@@ -1,4 +1,4 @@
-tachyon
+Tachyon
 =======
 
-Tachyon
+Version 0.1
