@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+#SCALA_HOME=/usr/local/share/scala-2.9.2
+
+#SPARK_CLASSPATH=/home/haoyuan/Tachyon/SparkTachyon/core/lib/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar
+
+export TACHYON_RAM_FOLDER=/mnt/ramdisk
+export TACHYON_MASTER_ADDRESS=localhost
+export TACHYON_HDFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_IP
+
+export TACHYON_JAVA_OPTS="
+  -Dtachyon.hdfs.address=$TACHYON_HDFS_ADDRESS
+  -Dtachyon.worker.memory.size=30
+  -Dtachyon.worker.data.folder=$TACHYON_RAM_FOLDER/tachyonworker/
+  -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
+  -Dtachyon.master.log.file=$TACHYON_HOME/logs/tachyon_log.data
+  -Dtachyon.master.checkpoint.file=$TACHYON_HOME/logs/tachyon_checkpoint.data
+"
