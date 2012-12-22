@@ -2,5 +2,6 @@
 .project
 .metadata/
 .settings/
+conf/tachyon-env.sh
 logs/
 target/
