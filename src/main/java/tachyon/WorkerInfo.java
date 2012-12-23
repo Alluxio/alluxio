@@ -76,23 +76,27 @@ public class WorkerInfo {
 
   public synchronized String toHtml() {
     long timeMs = System.currentTimeMillis() - START_TIME_MS;
-    StringBuilder sb = new StringBuilder("has been running @ " + ADDRESS + 
-        " for " + CommonUtils.convertMillis(timeMs));
-    sb.append("<br \\>");
-    sb.append(" ID ").append(mId).append(" ; ");
-    sb.append("LastUpdateTime ").append(CommonUtils.convertMillisToDate(mLastUpdatedTimeMs)).append("<br \\>");
+    StringBuilder sb = new StringBuilder();
     sb.append("Capacity (Byte): ").append(TOTAL_BYTES);
     sb.append("; UsedSpace: ").append(mUsedBytes);
     sb.append("; AvailableSpace: ").append(TOTAL_BYTES - mUsedBytes).append("<br \\>");
-
-    sb.append("Partitions: [ ");
-    List<Long> partitions = new ArrayList<Long>(mPartitions);
-    Collections.sort(partitions);
-    for (Long partition : partitions) {
-      sb.append("(").append(CommonUtils.computeDatasetIdFromBigId(partition));
-      sb.append(":").append(CommonUtils.computePartitionIdFromBigId(partition)).append(") ");
+    sb.append("It has been running @ " + ADDRESS + " for " + CommonUtils.convertMillis(timeMs));
+    if (Config.DEBUG) {
+      sb.append(" ID ").append(mId).append(" ; ");
+      sb.append("LastUpdateTime ").append(CommonUtils.convertMillisToDate(mLastUpdatedTimeMs));
+      sb.append("<br \\>");
     }
-    sb.append("]");
+
+    if (Config.DEBUG) {
+      sb.append("Partitions: [ ");
+      List<Long> partitions = new ArrayList<Long>(mPartitions);
+      Collections.sort(partitions);
+      for (Long partition : partitions) {
+        sb.append("(").append(CommonUtils.computeDatasetIdFromBigId(partition));
+        sb.append(":").append(CommonUtils.computePartitionIdFromBigId(partition)).append(") ");
+      }
+      sb.append("]");
+    }
     return sb.toString();
   }
 
