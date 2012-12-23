@@ -239,15 +239,34 @@ public class TachyonClient {
     } catch (DatasetAlreadyExistException e) {
       LOG.info(e.getMessage());
       datasetId = -1;
+    } catch (InvalidPathException e) {
+      LOG.error(e.getMessage());
+      datasetId = -1;
     } catch (TException e) {
       LOG.error(e.getMessage());
       mConnected = false;
       datasetId = -1;
-    } catch (InvalidPathException e) {
-      LOG.error(e.getMessage());
-      datasetId = -1;
     }
     return datasetId;
+  }
+
+  public synchronized boolean deleteDataset(int datasetId) {
+    connectAndGetLocalWorker();
+    if (!mConnected) {
+      return false;
+    }
+
+    try {
+      mMasterClient.user_deleteDataset(datasetId);
+    } catch (DatasetDoesNotExistException e) {
+      LOG.error(e.getMessage());
+      return false;
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      return false;
+    }
+
+    return true;
   }
 
   // TODO For now, we assume this is for partition read only.
@@ -366,7 +385,7 @@ public class TachyonClient {
   public synchronized boolean isConnected() {
     return mConnected;
   }
-  
+
   public synchronized void outOfMemoryForPinDataset(int datasetId) {
     connectAndGetLocalWorker();
     if (mConnected) {
@@ -414,6 +433,25 @@ public class TachyonClient {
     }
 
     mAvailableSpaceBytes -= requestSpaceBytes;
+
+    return true;
+  }
+
+  public synchronized boolean unpinDataset(int datasetId) {
+    connectAndGetLocalWorker();
+    if (!mConnected) {
+      return false;
+    }
+
+    try {
+      mMasterClient.user_unpinDataset(datasetId);
+    } catch (DatasetDoesNotExistException e) {
+      LOG.error(e.getMessage());
+      return false;
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      return false;
+    }
 
     return true;
   }

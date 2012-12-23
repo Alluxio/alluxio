@@ -53,7 +53,7 @@ public class MasterClient {
     mProtocol.getTransport().close();
     mIsConnected = false;
   }
-  
+
   public synchronized List<DatasetInfo> cmd_ls(String folder) throws TException {
     return CLIENT.cmd_ls(folder);
   }
@@ -83,8 +83,13 @@ public class MasterClient {
   }
 
   public synchronized int user_createDataset(String datasetPath, int partitions, String hdfsPath
-      ) throws DatasetAlreadyExistException, TException, InvalidPathException {
+      ) throws DatasetAlreadyExistException, InvalidPathException, TException {
     return CLIENT.user_createDataset(datasetPath, partitions, hdfsPath);
+  }
+
+  public synchronized void user_deleteDataset(int datasetId)
+      throws DatasetDoesNotExistException, TException {
+    CLIENT.user_deleteDataset(datasetId);
   }
 
   public synchronized int user_getDatasetId(String datasetPath) throws TException {
@@ -118,6 +123,11 @@ public class MasterClient {
   public synchronized void user_renameDataset(String srcDataset, String dstDataset)
       throws DatasetDoesNotExistException, TException {
     CLIENT.user_renameDataset(srcDataset, dstDataset);
+  }
+
+  public synchronized void user_unpinDataset(int datasetId) 
+      throws DatasetDoesNotExistException, TException {
+    CLIENT.user_unpinDataset(datasetId);
   }
 
   public synchronized void worker_addPartition(long workerId, long workerUsedBytes,

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-Usage="Usage: runTests.sh <Basic>"
+Usage="Usage: tachyon-run-tests.sh <Basic>"
 
 if [ "$#" -ne 1 ]; then
   echo $Usage

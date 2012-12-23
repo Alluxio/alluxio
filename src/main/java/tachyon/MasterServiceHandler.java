@@ -237,6 +237,8 @@ public class MasterServiceHandler implements MasterService.Iface {
         partition.mLocations = new HashMap<Long, NetAddress>();
         dataset.mPartitionList.add(partition);
       }
+      dataset.setMCache(mWhiteList.inList(dataset.mPath));
+      dataset.setMPin(mPinList.inList(dataset.mPath));
 
       mMasterLogWriter.appendAndFlush(dataset);
 
@@ -255,12 +257,23 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public void user_deleteDataset(int datasetId) throws DatasetDoesNotExistException, TException {
-    // TODO Support from V0.2
-  }
+    LOG.info("user_deleteDataset(" + datasetId + ")");
+    // Only remove meta data from master. The data in workers will be evicted since no further
+    // application can read them. (Based on LRU) TODO May change it to be active from V0.2. 
+    synchronized (mDatasets) {
+      if (!mDatasets.containsKey(datasetId)) {
+        throw new DatasetDoesNotExistException("Failed to delete " + datasetId + " dataset.");
+      }
 
-  @Override
-  public void user_freeDataset(int datasetId) throws DatasetDoesNotExistException, TException {
-    // TODO Support from V0.2
+      synchronized (mIdPinList) {
+        mIdPinList.remove(new Integer(datasetId));
+      }
+      DatasetInfo dataset = mDatasets.remove(datasetId);
+      mDatasetPathToId.remove(dataset.mPath);
+      dataset.mId = -dataset.mId;
+
+      mMasterLogWriter.appendAndFlush(dataset);
+    }
   }
 
   @Override
@@ -309,8 +322,6 @@ public class MasterServiceHandler implements MasterService.Iface {
       if (ret == null) {
         throw new DatasetDoesNotExistException("DatasetId " + datasetId + " does not exist.");
       }
-      ret.setMCache(mWhiteList.inList(ret.mPath));
-      ret.setMPin(mPinList.inList(ret.mPath));
       LOG.info("user_getDatasetById: " + datasetId + " good return");
       return ret;
     }
@@ -326,8 +337,6 @@ public class MasterServiceHandler implements MasterService.Iface {
       }
 
       DatasetInfo ret = mDatasets.get(mDatasetPathToId.get(datasetPath));
-      ret.setMCache(mWhiteList.inList(ret.mPath));
-      ret.setMPin(mPinList.inList(ret.mPath));
       LOG.info("user_getDatasetByPath(" + datasetPath + ") : " + ret);
       return ret;
     }
@@ -371,6 +380,25 @@ public class MasterServiceHandler implements MasterService.Iface {
       datasetInfo.mPath = dstDataset;
       datasetInfo.mVersion ++;
       mMasterLogWriter.appendAndFlush(datasetInfo);
+    }
+  }
+
+  @Override
+  public void user_unpinDataset(int datasetId) throws DatasetDoesNotExistException, TException {
+    // TODO Change meta data only. Data will be evicted from worker based on data replacement 
+    // policy. TODO May change it to be active from V0.2
+    LOG.info("user_freeDataset(" + datasetId + ")");
+    synchronized (mDatasets) {
+      if (!mDatasets.containsKey(datasetId)) {
+        throw new DatasetDoesNotExistException("Failed to free " + datasetId + " dataset.");
+      }
+
+      synchronized (mIdPinList) {
+        mIdPinList.remove(new Integer(datasetId));
+      }
+      DatasetInfo dataset = mDatasets.get(datasetId);
+      dataset.setMPin(false);
+      mMasterLogWriter.appendAndFlush(dataset);
     }
   }
 
@@ -571,8 +599,13 @@ public class MasterServiceHandler implements MasterService.Iface {
         reader = new MasterLogReader(Config.MASTER_LOG_FILE);
         while (reader.hasNext()) {
           DatasetInfo dataset = reader.getNextDatasetInfo();
-          mDatasets.put(dataset.mId, dataset);
-          mDatasetPathToId.put(dataset.mPath, dataset.mId);
+          if (dataset.mId > 0) {
+            mDatasets.put(dataset.mId, dataset);
+            mDatasetPathToId.put(dataset.mPath, dataset.mId);
+          } else {
+            mDatasets.remove(-dataset.mId);
+            mDatasetPathToId.remove(dataset.mPath);
+          }
         }
       }
     }

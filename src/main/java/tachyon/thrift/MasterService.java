@@ -58,7 +58,7 @@ public class MasterService {
 
     public void user_deleteDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException;
 
-    public void user_freeDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException;
+    public void user_unpinDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException;
 
     public void user_renameDataset(String srcDataset, String dstDataset) throws DatasetDoesNotExistException, org.apache.thrift.TException;
 
@@ -432,7 +432,7 @@ public class MasterService {
       return;
     }
 
-    public void user_freeDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException
+    public void user_unpinDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException
     {
       send_user_freeDataset(datasetId);
       recv_user_freeDataset();
@@ -1412,7 +1412,7 @@ public class MasterService {
       public user_freeDataset_result getResult(I iface, user_freeDataset_args args) throws org.apache.thrift.TException {
         user_freeDataset_result result = new user_freeDataset_result();
         try {
-          iface.user_freeDataset(args.datasetId);
+          iface.user_unpinDataset(args.datasetId);
         } catch (DatasetDoesNotExistException e) {
           result.e = e;
         }
