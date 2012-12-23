@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-#SCALA_HOME=/usr/local/share/scala-2.9.2
-
-#SPARK_CLASSPATH=/home/haoyuan/Tachyon/SparkTachyon/core/lib/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar
-
 export TACHYON_RAM_FOLDER=/mnt/ramdisk
 export TACHYON_MASTER_ADDRESS=localhost
 export TACHYON_HDFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_IP
