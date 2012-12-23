@@ -25,6 +25,7 @@ import tachyon.DataServerMessage;
 import tachyon.CommonUtils;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.OutOfMemoryForPinDatasetException;
+import tachyon.thrift.PartitionAlreadyExistException;
 import tachyon.thrift.PartitionDoesNotExistException;
 import tachyon.thrift.PartitionInfo;
 import tachyon.thrift.SuspectedPartitionSizeException;
@@ -181,6 +182,8 @@ public class Partition {
     } catch (SuspectedPartitionSizeException e) {
       LOG.error(e.getMessage(), e);
     } catch (PartitionDoesNotExistException e) {
+      LOG.error(e.getMessage(), e);
+    } catch (PartitionAlreadyExistException e) {
       LOG.error(e.getMessage(), e);
     }
   }

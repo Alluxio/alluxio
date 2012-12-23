@@ -18,6 +18,7 @@ import tachyon.WorkerClient;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoLocalWorkerException;
+import tachyon.thrift.PartitionAlreadyExistException;
 import tachyon.thrift.PartitionDoesNotExistException;
 import tachyon.thrift.PartitionInfo;
 import tachyon.thrift.DatasetAlreadyExistException;
@@ -102,7 +103,8 @@ public class TachyonClient {
   }
 
   public synchronized boolean addDonePartition(int datasetId, int partitionId, String hdfs)
-      throws PartitionDoesNotExistException, SuspectedPartitionSizeException {
+      throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
+      PartitionAlreadyExistException {
     connectAndGetLocalWorker();
     if (mLocalWorkerClient != null) {
       try {

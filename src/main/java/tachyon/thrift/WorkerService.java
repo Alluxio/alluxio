@@ -36,7 +36,7 @@ public class WorkerService {
 
     public void accessPartition(int datasetId, int partitionId) throws org.apache.thrift.TException;
 
-    public void addPartition(long userId, int datasetId, int partitionId, String hdfsPath) throws PartitionDoesNotExistException, SuspectedPartitionSizeException, org.apache.thrift.TException;
+    public void addPartition(long userId, int datasetId, int partitionId, String hdfsPath) throws PartitionDoesNotExistException, SuspectedPartitionSizeException, PartitionAlreadyExistException, org.apache.thrift.TException;
 
     public String getDataFolder() throws org.apache.thrift.TException;
 
@@ -109,7 +109,7 @@ public class WorkerService {
       return;
     }
 
-    public void addPartition(long userId, int datasetId, int partitionId, String hdfsPath) throws PartitionDoesNotExistException, SuspectedPartitionSizeException, org.apache.thrift.TException
+    public void addPartition(long userId, int datasetId, int partitionId, String hdfsPath) throws PartitionDoesNotExistException, SuspectedPartitionSizeException, PartitionAlreadyExistException, org.apache.thrift.TException
     {
       send_addPartition(userId, datasetId, partitionId, hdfsPath);
       recv_addPartition();
@@ -125,7 +125,7 @@ public class WorkerService {
       sendBase("addPartition", args);
     }
 
-    public void recv_addPartition() throws PartitionDoesNotExistException, SuspectedPartitionSizeException, org.apache.thrift.TException
+    public void recv_addPartition() throws PartitionDoesNotExistException, SuspectedPartitionSizeException, PartitionAlreadyExistException, org.apache.thrift.TException
     {
       addPartition_result result = new addPartition_result();
       receiveBase(result, "addPartition");
@@ -134,6 +134,9 @@ public class WorkerService {
       }
       if (result.eS != null) {
         throw result.eS;
+      }
+      if (result.eA != null) {
+        throw result.eA;
       }
       return;
     }
@@ -332,7 +335,7 @@ public class WorkerService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws PartitionDoesNotExistException, SuspectedPartitionSizeException, org.apache.thrift.TException {
+      public void getResult() throws PartitionDoesNotExistException, SuspectedPartitionSizeException, PartitionAlreadyExistException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -569,6 +572,8 @@ public class WorkerService {
           result.eP = eP;
         } catch (SuspectedPartitionSizeException eS) {
           result.eS = eS;
+        } catch (PartitionAlreadyExistException eA) {
+          result.eA = eA;
         }
         return result;
       }
@@ -2014,6 +2019,7 @@ public class WorkerService {
 
     private static final org.apache.thrift.protocol.TField E_P_FIELD_DESC = new org.apache.thrift.protocol.TField("eP", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField E_S_FIELD_DESC = new org.apache.thrift.protocol.TField("eS", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField E_A_FIELD_DESC = new org.apache.thrift.protocol.TField("eA", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2023,11 +2029,13 @@ public class WorkerService {
 
     public PartitionDoesNotExistException eP; // required
     public SuspectedPartitionSizeException eS; // required
+    public PartitionAlreadyExistException eA; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       E_P((short)1, "eP"),
-      E_S((short)2, "eS");
+      E_S((short)2, "eS"),
+      E_A((short)3, "eA");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2046,6 +2054,8 @@ public class WorkerService {
             return E_P;
           case 2: // E_S
             return E_S;
+          case 3: // E_A
+            return E_A;
           default:
             return null;
         }
@@ -2093,6 +2103,8 @@ public class WorkerService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_S, new org.apache.thrift.meta_data.FieldMetaData("eS", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_A, new org.apache.thrift.meta_data.FieldMetaData("eA", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(addPartition_result.class, metaDataMap);
     }
@@ -2102,11 +2114,13 @@ public class WorkerService {
 
     public addPartition_result(
       PartitionDoesNotExistException eP,
-      SuspectedPartitionSizeException eS)
+      SuspectedPartitionSizeException eS,
+      PartitionAlreadyExistException eA)
     {
       this();
       this.eP = eP;
       this.eS = eS;
+      this.eA = eA;
     }
 
     /**
@@ -2119,6 +2133,9 @@ public class WorkerService {
       if (other.isSetES()) {
         this.eS = new SuspectedPartitionSizeException(other.eS);
       }
+      if (other.isSetEA()) {
+        this.eA = new PartitionAlreadyExistException(other.eA);
+      }
     }
 
     public addPartition_result deepCopy() {
@@ -2129,6 +2146,7 @@ public class WorkerService {
     public void clear() {
       this.eP = null;
       this.eS = null;
+      this.eA = null;
     }
 
     public PartitionDoesNotExistException getEP() {
@@ -2179,6 +2197,30 @@ public class WorkerService {
       }
     }
 
+    public PartitionAlreadyExistException getEA() {
+      return this.eA;
+    }
+
+    public addPartition_result setEA(PartitionAlreadyExistException eA) {
+      this.eA = eA;
+      return this;
+    }
+
+    public void unsetEA() {
+      this.eA = null;
+    }
+
+    /** Returns true if field eA is set (has been assigned a value) and false otherwise */
+    public boolean isSetEA() {
+      return this.eA != null;
+    }
+
+    public void setEAIsSet(boolean value) {
+      if (!value) {
+        this.eA = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case E_P:
@@ -2197,6 +2239,14 @@ public class WorkerService {
         }
         break;
 
+      case E_A:
+        if (value == null) {
+          unsetEA();
+        } else {
+          setEA((PartitionAlreadyExistException)value);
+        }
+        break;
+
       }
     }
 
@@ -2207,6 +2257,9 @@ public class WorkerService {
 
       case E_S:
         return getES();
+
+      case E_A:
+        return getEA();
 
       }
       throw new IllegalStateException();
@@ -2223,6 +2276,8 @@ public class WorkerService {
         return isSetEP();
       case E_S:
         return isSetES();
+      case E_A:
+        return isSetEA();
       }
       throw new IllegalStateException();
     }
@@ -2255,6 +2310,15 @@ public class WorkerService {
         if (!(this_present_eS && that_present_eS))
           return false;
         if (!this.eS.equals(that.eS))
+          return false;
+      }
+
+      boolean this_present_eA = true && this.isSetEA();
+      boolean that_present_eA = true && that.isSetEA();
+      if (this_present_eA || that_present_eA) {
+        if (!(this_present_eA && that_present_eA))
+          return false;
+        if (!this.eA.equals(that.eA))
           return false;
       }
 
@@ -2294,6 +2358,16 @@ public class WorkerService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetEA()).compareTo(typedOther.isSetEA());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEA()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eA, typedOther.eA);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -2327,6 +2401,14 @@ public class WorkerService {
         sb.append("null");
       } else {
         sb.append(this.eS);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eA:");
+      if (this.eA == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eA);
       }
       first = false;
       sb.append(")");
@@ -2390,6 +2472,15 @@ public class WorkerService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 3: // E_A
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eA = new PartitionAlreadyExistException();
+                struct.eA.read(iprot);
+                struct.setEAIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -2413,6 +2504,11 @@ public class WorkerService {
         if (struct.eS != null) {
           oprot.writeFieldBegin(E_S_FIELD_DESC);
           struct.eS.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eA != null) {
+          oprot.writeFieldBegin(E_A_FIELD_DESC);
+          struct.eA.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -2439,19 +2535,25 @@ public class WorkerService {
         if (struct.isSetES()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetEA()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetEP()) {
           struct.eP.write(oprot);
         }
         if (struct.isSetES()) {
           struct.eS.write(oprot);
         }
+        if (struct.isSetEA()) {
+          struct.eA.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, addPartition_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.eP = new PartitionDoesNotExistException();
           struct.eP.read(iprot);
@@ -2461,6 +2563,11 @@ public class WorkerService {
           struct.eS = new SuspectedPartitionSizeException();
           struct.eS.read(iprot);
           struct.setESIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.eA = new PartitionAlreadyExistException();
+          struct.eA.read(iprot);
+          struct.setEAIsSet(true);
         }
       }
     }

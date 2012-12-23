@@ -19,6 +19,7 @@ import org.apache.commons.io.FileUtils;
 
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.PartitionAlreadyExistException;
 import tachyon.thrift.PartitionDoesNotExistException;
 import tachyon.thrift.SuspectedPartitionSizeException;
 import tachyon.thrift.WorkerService;
@@ -107,9 +108,14 @@ public class WorkerServiceHandler implements WorkerService.Iface {
 
   @Override
   public void addPartition(long userId, int datasetId, int partitionId, String hdfsPath)
-      throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
+      throws PartitionDoesNotExistException, SuspectedPartitionSizeException, 
+      PartitionAlreadyExistException, TException {
     File srcFile = new File(getUserTempFolder(userId) + "/" + datasetId + "-" + partitionId);
     File dstFile = new File(mDataFolder + "/" + datasetId + "-" + partitionId);
+    if (dstFile.exists()) {
+      throw new PartitionAlreadyExistException("Partition " + datasetId + "-" + partitionId + 
+          " already exists.");
+    }
     long fileSizeBytes = srcFile.length(); 
     if (!srcFile.renameTo(dstFile)) {
       CommonUtils.runtimeException("Failed to rename file from " + srcFile.getPath() +

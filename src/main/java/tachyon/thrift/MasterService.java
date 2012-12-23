@@ -94,7 +94,7 @@ public class MasterService {
 
     public void user_deleteDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_deleteDataset_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void user_freeDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_freeDataset_call> resultHandler) throws org.apache.thrift.TException;
+    public void user_unpinDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_unpinDataset_call> resultHandler) throws org.apache.thrift.TException;
 
     public void user_renameDataset(String srcDataset, String dstDataset, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_renameDataset_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -434,21 +434,21 @@ public class MasterService {
 
     public void user_unpinDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException
     {
-      send_user_freeDataset(datasetId);
-      recv_user_freeDataset();
+      send_user_unpinDataset(datasetId);
+      recv_user_unpinDataset();
     }
 
-    public void send_user_freeDataset(int datasetId) throws org.apache.thrift.TException
+    public void send_user_unpinDataset(int datasetId) throws org.apache.thrift.TException
     {
-      user_freeDataset_args args = new user_freeDataset_args();
+      user_unpinDataset_args args = new user_unpinDataset_args();
       args.setDatasetId(datasetId);
-      sendBase("user_freeDataset", args);
+      sendBase("user_unpinDataset", args);
     }
 
-    public void recv_user_freeDataset() throws DatasetDoesNotExistException, org.apache.thrift.TException
+    public void recv_user_unpinDataset() throws DatasetDoesNotExistException, org.apache.thrift.TException
     {
-      user_freeDataset_result result = new user_freeDataset_result();
-      receiveBase(result, "user_freeDataset");
+      user_unpinDataset_result result = new user_unpinDataset_result();
+      receiveBase(result, "user_unpinDataset");
       if (result.e != null) {
         throw result.e;
       }
@@ -957,23 +957,23 @@ public class MasterService {
       }
     }
 
-    public void user_freeDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_freeDataset_call> resultHandler) throws org.apache.thrift.TException {
+    public void user_unpinDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_unpinDataset_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_freeDataset_call method_call = new user_freeDataset_call(datasetId, resultHandler, this, ___protocolFactory, ___transport);
+      user_unpinDataset_call method_call = new user_unpinDataset_call(datasetId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class user_freeDataset_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class user_unpinDataset_call extends org.apache.thrift.async.TAsyncMethodCall {
       private int datasetId;
-      public user_freeDataset_call(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_freeDataset_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public user_unpinDataset_call(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_unpinDataset_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.datasetId = datasetId;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_freeDataset", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_freeDataset_args args = new user_freeDataset_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_unpinDataset", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        user_unpinDataset_args args = new user_unpinDataset_args();
         args.setDatasetId(datasetId);
         args.write(prot);
         prot.writeMessageEnd();
@@ -985,7 +985,7 @@ public class MasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_user_freeDataset();
+        (new Client(prot)).recv_user_unpinDataset();
       }
     }
 
@@ -1113,7 +1113,7 @@ public class MasterService {
       processMap.put("user_getDatasetById", new user_getDatasetById());
       processMap.put("user_getDatasetByPath", new user_getDatasetByPath());
       processMap.put("user_deleteDataset", new user_deleteDataset());
-      processMap.put("user_freeDataset", new user_freeDataset());
+      processMap.put("user_unpinDataset", new user_unpinDataset());
       processMap.put("user_renameDataset", new user_renameDataset());
       processMap.put("user_outOfMemoryForPinDataset", new user_outOfMemoryForPinDataset());
       processMap.put("cmd_ls", new cmd_ls());
@@ -1396,21 +1396,21 @@ public class MasterService {
       }
     }
 
-    public static class user_freeDataset<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_freeDataset_args> {
-      public user_freeDataset() {
-        super("user_freeDataset");
+    public static class user_unpinDataset<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_unpinDataset_args> {
+      public user_unpinDataset() {
+        super("user_unpinDataset");
       }
 
-      public user_freeDataset_args getEmptyArgsInstance() {
-        return new user_freeDataset_args();
+      public user_unpinDataset_args getEmptyArgsInstance() {
+        return new user_unpinDataset_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public user_freeDataset_result getResult(I iface, user_freeDataset_args args) throws org.apache.thrift.TException {
-        user_freeDataset_result result = new user_freeDataset_result();
+      public user_unpinDataset_result getResult(I iface, user_unpinDataset_args args) throws org.apache.thrift.TException {
+        user_unpinDataset_result result = new user_unpinDataset_result();
         try {
           iface.user_unpinDataset(args.datasetId);
         } catch (DatasetDoesNotExistException e) {
@@ -11914,15 +11914,15 @@ public class MasterService {
 
   }
 
-  public static class user_freeDataset_args implements org.apache.thrift.TBase<user_freeDataset_args, user_freeDataset_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_freeDataset_args");
+  public static class user_unpinDataset_args implements org.apache.thrift.TBase<user_unpinDataset_args, user_unpinDataset_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_unpinDataset_args");
 
     private static final org.apache.thrift.protocol.TField DATASET_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("datasetId", org.apache.thrift.protocol.TType.I32, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_freeDataset_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_freeDataset_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_unpinDataset_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_unpinDataset_argsTupleSchemeFactory());
     }
 
     public int datasetId; // required
@@ -11994,13 +11994,13 @@ public class MasterService {
       tmpMap.put(_Fields.DATASET_ID, new org.apache.thrift.meta_data.FieldMetaData("datasetId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_freeDataset_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_unpinDataset_args.class, metaDataMap);
     }
 
-    public user_freeDataset_args() {
+    public user_unpinDataset_args() {
     }
 
-    public user_freeDataset_args(
+    public user_unpinDataset_args(
       int datasetId)
     {
       this();
@@ -12011,13 +12011,13 @@ public class MasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_freeDataset_args(user_freeDataset_args other) {
+    public user_unpinDataset_args(user_unpinDataset_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.datasetId = other.datasetId;
     }
 
-    public user_freeDataset_args deepCopy() {
-      return new user_freeDataset_args(this);
+    public user_unpinDataset_args deepCopy() {
+      return new user_unpinDataset_args(this);
     }
 
     @Override
@@ -12030,7 +12030,7 @@ public class MasterService {
       return this.datasetId;
     }
 
-    public user_freeDataset_args setDatasetId(int datasetId) {
+    public user_unpinDataset_args setDatasetId(int datasetId) {
       this.datasetId = datasetId;
       setDatasetIdIsSet(true);
       return this;
@@ -12088,12 +12088,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_freeDataset_args)
-        return this.equals((user_freeDataset_args)that);
+      if (that instanceof user_unpinDataset_args)
+        return this.equals((user_unpinDataset_args)that);
       return false;
     }
 
-    public boolean equals(user_freeDataset_args that) {
+    public boolean equals(user_unpinDataset_args that) {
       if (that == null)
         return false;
 
@@ -12114,13 +12114,13 @@ public class MasterService {
       return 0;
     }
 
-    public int compareTo(user_freeDataset_args other) {
+    public int compareTo(user_unpinDataset_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      user_freeDataset_args typedOther = (user_freeDataset_args)other;
+      user_unpinDataset_args typedOther = (user_unpinDataset_args)other;
 
       lastComparison = Boolean.valueOf(isSetDatasetId()).compareTo(typedOther.isSetDatasetId());
       if (lastComparison != 0) {
@@ -12149,7 +12149,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_freeDataset_args(");
+      StringBuilder sb = new StringBuilder("user_unpinDataset_args(");
       boolean first = true;
 
       sb.append("datasetId:");
@@ -12182,15 +12182,15 @@ public class MasterService {
       }
     }
 
-    private static class user_freeDataset_argsStandardSchemeFactory implements SchemeFactory {
-      public user_freeDataset_argsStandardScheme getScheme() {
-        return new user_freeDataset_argsStandardScheme();
+    private static class user_unpinDataset_argsStandardSchemeFactory implements SchemeFactory {
+      public user_unpinDataset_argsStandardScheme getScheme() {
+        return new user_unpinDataset_argsStandardScheme();
       }
     }
 
-    private static class user_freeDataset_argsStandardScheme extends StandardScheme<user_freeDataset_args> {
+    private static class user_unpinDataset_argsStandardScheme extends StandardScheme<user_unpinDataset_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_freeDataset_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_unpinDataset_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -12219,7 +12219,7 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_freeDataset_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_unpinDataset_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -12232,16 +12232,16 @@ public class MasterService {
 
     }
 
-    private static class user_freeDataset_argsTupleSchemeFactory implements SchemeFactory {
-      public user_freeDataset_argsTupleScheme getScheme() {
-        return new user_freeDataset_argsTupleScheme();
+    private static class user_unpinDataset_argsTupleSchemeFactory implements SchemeFactory {
+      public user_unpinDataset_argsTupleScheme getScheme() {
+        return new user_unpinDataset_argsTupleScheme();
       }
     }
 
-    private static class user_freeDataset_argsTupleScheme extends TupleScheme<user_freeDataset_args> {
+    private static class user_unpinDataset_argsTupleScheme extends TupleScheme<user_unpinDataset_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_freeDataset_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_unpinDataset_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetDatasetId()) {
@@ -12254,7 +12254,7 @@ public class MasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_freeDataset_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_unpinDataset_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
@@ -12266,15 +12266,15 @@ public class MasterService {
 
   }
 
-  public static class user_freeDataset_result implements org.apache.thrift.TBase<user_freeDataset_result, user_freeDataset_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_freeDataset_result");
+  public static class user_unpinDataset_result implements org.apache.thrift.TBase<user_unpinDataset_result, user_unpinDataset_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_unpinDataset_result");
 
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_freeDataset_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_freeDataset_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_unpinDataset_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_unpinDataset_resultTupleSchemeFactory());
     }
 
     public DatasetDoesNotExistException e; // required
@@ -12344,13 +12344,13 @@ public class MasterService {
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_freeDataset_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_unpinDataset_result.class, metaDataMap);
     }
 
-    public user_freeDataset_result() {
+    public user_unpinDataset_result() {
     }
 
-    public user_freeDataset_result(
+    public user_unpinDataset_result(
       DatasetDoesNotExistException e)
     {
       this();
@@ -12360,14 +12360,14 @@ public class MasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_freeDataset_result(user_freeDataset_result other) {
+    public user_unpinDataset_result(user_unpinDataset_result other) {
       if (other.isSetE()) {
         this.e = new DatasetDoesNotExistException(other.e);
       }
     }
 
-    public user_freeDataset_result deepCopy() {
-      return new user_freeDataset_result(this);
+    public user_unpinDataset_result deepCopy() {
+      return new user_unpinDataset_result(this);
     }
 
     @Override
@@ -12379,7 +12379,7 @@ public class MasterService {
       return this.e;
     }
 
-    public user_freeDataset_result setE(DatasetDoesNotExistException e) {
+    public user_unpinDataset_result setE(DatasetDoesNotExistException e) {
       this.e = e;
       return this;
     }
@@ -12438,12 +12438,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_freeDataset_result)
-        return this.equals((user_freeDataset_result)that);
+      if (that instanceof user_unpinDataset_result)
+        return this.equals((user_unpinDataset_result)that);
       return false;
     }
 
-    public boolean equals(user_freeDataset_result that) {
+    public boolean equals(user_unpinDataset_result that) {
       if (that == null)
         return false;
 
@@ -12464,13 +12464,13 @@ public class MasterService {
       return 0;
     }
 
-    public int compareTo(user_freeDataset_result other) {
+    public int compareTo(user_unpinDataset_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      user_freeDataset_result typedOther = (user_freeDataset_result)other;
+      user_unpinDataset_result typedOther = (user_unpinDataset_result)other;
 
       lastComparison = Boolean.valueOf(isSetE()).compareTo(typedOther.isSetE());
       if (lastComparison != 0) {
@@ -12499,7 +12499,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_freeDataset_result(");
+      StringBuilder sb = new StringBuilder("user_unpinDataset_result(");
       boolean first = true;
 
       sb.append("e:");
@@ -12534,15 +12534,15 @@ public class MasterService {
       }
     }
 
-    private static class user_freeDataset_resultStandardSchemeFactory implements SchemeFactory {
-      public user_freeDataset_resultStandardScheme getScheme() {
-        return new user_freeDataset_resultStandardScheme();
+    private static class user_unpinDataset_resultStandardSchemeFactory implements SchemeFactory {
+      public user_unpinDataset_resultStandardScheme getScheme() {
+        return new user_unpinDataset_resultStandardScheme();
       }
     }
 
-    private static class user_freeDataset_resultStandardScheme extends StandardScheme<user_freeDataset_result> {
+    private static class user_unpinDataset_resultStandardScheme extends StandardScheme<user_unpinDataset_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_freeDataset_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_unpinDataset_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -12572,7 +12572,7 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_freeDataset_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_unpinDataset_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -12587,16 +12587,16 @@ public class MasterService {
 
     }
 
-    private static class user_freeDataset_resultTupleSchemeFactory implements SchemeFactory {
-      public user_freeDataset_resultTupleScheme getScheme() {
-        return new user_freeDataset_resultTupleScheme();
+    private static class user_unpinDataset_resultTupleSchemeFactory implements SchemeFactory {
+      public user_unpinDataset_resultTupleScheme getScheme() {
+        return new user_unpinDataset_resultTupleScheme();
       }
     }
 
-    private static class user_freeDataset_resultTupleScheme extends TupleScheme<user_freeDataset_result> {
+    private static class user_unpinDataset_resultTupleScheme extends TupleScheme<user_unpinDataset_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_freeDataset_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_unpinDataset_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetE()) {
@@ -12609,7 +12609,7 @@ public class MasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_freeDataset_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_unpinDataset_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {

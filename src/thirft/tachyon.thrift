@@ -56,6 +56,10 @@ exception PartitionDoesNotExistException {
   1: string message
 }
 
+exception PartitionAlreadyExistException {
+  1: string message
+}
+
 exception SuspectedPartitionSizeException {
   1: string message
 }
@@ -80,7 +84,7 @@ service MasterService {
   DatasetInfo user_getDatasetById(1: i32 datasetId) throws (1: DatasetDoesNotExistException e)        // Get Dataset info by dataset Id.
   DatasetInfo user_getDatasetByPath(1: string datasetPath) throws (1: DatasetDoesNotExistException e) // Get Dataset info by path
   void user_deleteDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e) // Delete dataset
-  void user_freeDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e)   // Remove dataset from memory
+  void user_unpinDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e)   // Remove dataset from memory
   void user_renameDataset(1: string srcDataset, 2: string dstDataset) throws (1: DatasetDoesNotExistException e)
   void user_outOfMemoryForPinDataset(1: i32 datasetId)
   
@@ -90,7 +94,7 @@ service MasterService {
 
 service WorkerService {
   void accessPartition(1: i32 datasetId, 2: i32 partitionId)
-  void addPartition(1: i64 userId, 2: i32 datasetId, 3: i32 partitionId, 4: string hdfsPath) throws (1: PartitionDoesNotExistException eP, 2: SuspectedPartitionSizeException eS)
+  void addPartition(1: i64 userId, 2: i32 datasetId, 3: i32 partitionId, 4: string hdfsPath) throws (1: PartitionDoesNotExistException eP, 2: SuspectedPartitionSizeException eS, 3: PartitionAlreadyExistException eA)
   string getDataFolder()
   string getUserTempFolder(1: i64 userId)
   void returnSpace(1: i64 userId, 2: i64 returnedBytes)
