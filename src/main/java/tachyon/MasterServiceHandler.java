@@ -270,7 +270,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       }
       DatasetInfo dataset = mDatasets.remove(datasetId);
       mDatasetPathToId.remove(dataset.mPath);
-      dataset.mId = -dataset.mId;
+      dataset.mId = - dataset.mId;
 
       mMasterLogWriter.appendAndFlush(dataset);
     }
@@ -554,8 +554,10 @@ public class MasterServiceHandler implements MasterService.Iface {
           mIdPinList.add(dataset.mId);
         }
       }
-      if (maxDatasetId > 0) {
-        mDatasetCounter.set(maxDatasetId);
+      if (maxDatasetId != mDatasetCounter.get() && mDatasetCounter.get() != 0) {
+        DatasetInfo tempDataset = new DatasetInfo();
+        tempDataset.mId = - mDatasetCounter.get();
+        checkpointWriter.appendAndFlush(tempDataset);
       }
       checkpointWriter.close();
 
@@ -577,37 +579,36 @@ public class MasterServiceHandler implements MasterService.Iface {
     LOG.info("Datasets recoveried done. Current mDatasetCounter: " + mDatasetCounter.get());
   }
 
-  private void recoveryFromLog() {
+  private void recoveryFromFile(String fileName, String msg) {
     MasterLogReader reader;
-    synchronized (mDatasets) {
-      File file = new File(Config.MASTER_CHECKPOINT_FILE);
-      if (!file.exists()) {
-        LOG.info("Master Checkpoint file " + Config.MASTER_CHECKPOINT_FILE + " does not exist.");
-      } else {
-        reader = new MasterLogReader(Config.MASTER_CHECKPOINT_FILE);
-        while (reader.hasNext()) {
-          DatasetInfo dataset = reader.getNextDatasetInfo();
+
+    File file = new File(fileName);
+    if (!file.exists()) {
+      LOG.info(msg + fileName + " does not exist.");
+    } else {
+      reader = new MasterLogReader(fileName);
+      while (reader.hasNext()) {
+        DatasetInfo dataset = reader.getNextDatasetInfo();
+        if (Math.abs(dataset.mId) > mDatasetCounter.get()) {
+          mDatasetCounter.set(Math.abs(dataset.mId));
+        }
+
+        System.out.println("Putting " + dataset);
+        if (dataset.mId > 0) {
           mDatasets.put(dataset.mId, dataset);
           mDatasetPathToId.put(dataset.mPath, dataset.mId);
+        } else {
+          mDatasets.remove(- dataset.mId);
+          mDatasetPathToId.remove(dataset.mPath);
         }
       }
+    }
+  }
 
-      file = new File(Config.MASTER_LOG_FILE);
-      if (!file.exists()) {
-        LOG.info("Master Log file " + Config.MASTER_LOG_FILE + " does not exist.");
-      } else {
-        reader = new MasterLogReader(Config.MASTER_LOG_FILE);
-        while (reader.hasNext()) {
-          DatasetInfo dataset = reader.getNextDatasetInfo();
-          if (dataset.mId > 0) {
-            mDatasets.put(dataset.mId, dataset);
-            mDatasetPathToId.put(dataset.mPath, dataset.mId);
-          } else {
-            mDatasets.remove(-dataset.mId);
-            mDatasetPathToId.remove(dataset.mPath);
-          }
-        }
-      }
+  private void recoveryFromLog() {
+    synchronized (mDatasets) {
+      recoveryFromFile(Config.MASTER_CHECKPOINT_FILE, "Master Checkpoint file ");
+      recoveryFromFile(Config.MASTER_LOG_FILE, "Master Log file ");
     }
   }
 }
