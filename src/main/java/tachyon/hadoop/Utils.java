@@ -57,7 +57,9 @@ public class Utils {
       }
       path = path.getParent();
     }
-    LOG.info("Utils getPathWithoutScheme(" + ori + ") result: " + ret);
+    if (Config.DEBUG) {
+      LOG.info("Utils getPathWithoutScheme(" + ori + ") result: " + ret);
+    }
     return ret;
   }
 

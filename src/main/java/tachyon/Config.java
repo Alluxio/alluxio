@@ -57,7 +57,7 @@ public class Config {
   public static final ArrayList<String> WHITELIST = new ArrayList<String>();
   public static final ArrayList<String> PINLIST = new ArrayList<String>();
   
-  public static final boolean DEBUG = false;
+  public static final boolean DEBUG;
 
   private static final Logger LOG = LoggerFactory.getLogger(Config.class);
 
@@ -111,5 +111,7 @@ public class Config {
     if (tPinList != null) {
       PINLIST.addAll(Arrays.asList(tPinList.split(";")));
     }
+    
+    DEBUG = Boolean.parseBoolean(getProperty("tachyon.debug", "false"));
   }
 }
