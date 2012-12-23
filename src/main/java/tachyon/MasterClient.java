@@ -58,6 +58,14 @@ public class MasterClient {
     return CLIENT.cmd_ls(folder);
   }
 
+  public synchronized List<DatasetInfo> cmd_rm(String folder) throws TException {
+    List<DatasetInfo> ret = CLIENT.cmd_ls(folder);
+    for (DatasetInfo dataset : ret) {
+      CLIENT.user_deleteDataset(dataset.mId);
+    }
+    return ret;
+  }
+
   public synchronized long getUserId() throws TException {
     long ret = CLIENT.user_getUserId();
     LOG.info("User registered at the master " + mMasterAddress + " got UserId " + ret);
