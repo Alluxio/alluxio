@@ -22,6 +22,7 @@ fi
 
 rm -rf $TACHYON_HOME/logs
 mkdir -p $TACHYON_HOME/logs
+mkdir -p $TACHYON_HOME/data
 
 $bin/tachyon-stop.sh
 

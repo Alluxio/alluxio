@@ -40,7 +40,7 @@ public class BasicUserOperationTest {
     }
 
     buf.flip();
-    LOG.info("Done write buf init: " + buf);
+    LOG.info("Writing data...");
     CommonUtils.printByteBuffer(LOG, buf);
 
     buf.flip();
@@ -49,22 +49,18 @@ public class BasicUserOperationTest {
     } catch (OutOfMemoryForPinDatasetException e) {
       CommonUtils.runtimeException(e);
     }
-    LOG.info("Done write buf");
     partition.close();
-    LOG.info("Done write buf close partition");
   }
 
   public static void readPartition() throws SuspectedPartitionSizeException, IOException {
+    LOG.info("Reading data...");
     Dataset dataset = sTachyonClient.getDataset(sDatasetPath);
     Partition partition = dataset.getPartition(3);
     partition.open("r");
 
     ByteBuffer buf;
-    try {
-      LOG.info("Trying to read data...");
+    try { 
       buf = partition.readByteBuffer();
-
-      LOG.info("Read data: " + buf);
       CommonUtils.printByteBuffer(LOG, buf);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);

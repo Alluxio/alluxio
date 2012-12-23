@@ -18,6 +18,7 @@ bin=`cd "$( dirname "$0" )"; pwd`
 
 rm -rf $TACHYON_HOME/logs
 mkdir -p $TACHYON_HOME/logs
+mkdir -p $TACHYON_HOME/data
 
 $bin/tachyon-stop.sh
 
