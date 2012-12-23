@@ -42,13 +42,13 @@ implements Seekable, PositionedReadable {
   private int mBufferPosition = 0;
   private byte mBuffer[] = new byte[Config.USER_BUFFER_PER_PARTITION_BYTES * 4];
 
-  public PartitionInputStreamHdfs(TachyonClient tachyonClient, int rddId, int partitionId, 
+  public PartitionInputStreamHdfs(TachyonClient tachyonClient, int datasetId, int partitionId, 
       Path hdfsPath, Configuration conf, int bufferSize) throws IOException {
-    LOG.debug("PartitionInputStreamHdfs(" + tachyonClient + ", " + rddId + ", " + partitionId + ", "
+    LOG.debug("PartitionInputStreamHdfs(" + tachyonClient + ", " + datasetId + ", " + partitionId + ", "
         + hdfsPath + ", " + conf + ", " + bufferSize + ")");
     mCurrentPosition = 0;
     mTachyonClient = tachyonClient;
-    mDatasetId = rddId;
+    mDatasetId = datasetId;
     mPartitionId = partitionId;
     mHdfsPath = hdfsPath;
     mHadoopConf = conf;

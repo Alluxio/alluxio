@@ -23,9 +23,9 @@ public class MasterLogWriter {
     }
   }
   
-  public void appendAndFlush(DatasetInfo rddInfo) {
+  public void appendAndFlush(DatasetInfo datasetInfo) {
     try {
-      mOutputStream.writeObject(rddInfo);
+      mOutputStream.writeObject(datasetInfo);
       mOutputStream.flush();
     } catch (IOException e) {
       CommonUtils.runtimeException(e);

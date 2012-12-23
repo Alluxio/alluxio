@@ -82,13 +82,13 @@ public class CommonUtils {
     if (p.length != 2) {
       throw new IllegalArgumentException("Wrong file name: " + name);
     }
-    int rddId;
+    int datasetId;
     try {
-      rddId = Integer.parseInt(p[0]);
+      datasetId = Integer.parseInt(p[0]);
     } catch (Exception e) {
       throw new IllegalArgumentException("Wrong file name: " + name);
     }
-    return rddId;
+    return datasetId;
   }
 
   public static int getPartitionIdFromFileName(String name) {
@@ -105,8 +105,8 @@ public class CommonUtils {
     return pId;
   }
 
-  public static long generateBigId(int rddId, int partitionId) {
-    long ret = rddId;
+  public static long generateBigId(int datasetId, int partitionId) {
+    long ret = datasetId;
     ret = (ret << 32) + partitionId; 
     return ret;
   }

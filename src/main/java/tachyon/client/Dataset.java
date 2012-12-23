@@ -14,9 +14,9 @@ public class Dataset {
 
   private DatasetInfo mDatasetInfo;
 
-  public Dataset(TachyonClient tachyonClient, DatasetInfo rddInfo) {
+  public Dataset(TachyonClient tachyonClient, DatasetInfo datasetInfo) {
     mTachyonClient = tachyonClient;
-    mDatasetInfo = rddInfo;
+    mDatasetInfo = datasetInfo;
   }
 
   public synchronized Partition getPartition(int pId) {

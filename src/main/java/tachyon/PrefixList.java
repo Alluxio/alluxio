@@ -13,9 +13,9 @@ public class PrefixList {
     mPrefixList = prefixList;
   }
 
-  public boolean inList(String rddPath) {
+  public boolean inList(String datasetPath) {
     for (int k = 0; k < mPrefixList.size(); k ++) {
-      if (rddPath.startsWith(mPrefixList.get(k))) {
+      if (datasetPath.startsWith(mPrefixList.get(k))) {
         return true;
       }
     }
