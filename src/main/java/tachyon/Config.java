@@ -56,6 +56,8 @@ public class Config {
 
   public static final ArrayList<String> WHITELIST = new ArrayList<String>();
   public static final ArrayList<String> PINLIST = new ArrayList<String>();
+  
+  public static final boolean DEBUG = false;
 
   private static final Logger LOG = LoggerFactory.getLogger(Config.class);
 

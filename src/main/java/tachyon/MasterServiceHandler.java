@@ -195,15 +195,22 @@ public class MasterServiceHandler implements MasterService.Iface {
         Collections.sort(workerList);
         for (int k = 0; k < workerList.size(); k ++) {
           sb.append("<strong>Worker " + (k + 1) + " </strong>: " + 
-              mWorkers.get(workerList.get(k)).toHtml() + "<br \\><br \\>");
+              mWorkers.get(workerList.get(k)).toHtml() + "<br \\>");
         }
 
         sb.append("<h2>" + mDatasets.size() + " File(s): </h2>");
         List<Integer> datasetList = new ArrayList<Integer>(mDatasets.keySet());
         Collections.sort(datasetList);
         for (int k = 0; k < datasetList.size(); k ++) {
-          sb.append("<strong>File " + (k + 1) + " </strong>: " +
-              mDatasets.get(datasetList.get(k)).toString() + "<br \\><br \\>");
+          DatasetInfo tDataset = mDatasets.get(datasetList.get(k));
+          sb.append("<strong>File " + (k + 1) + " </strong>: ");
+          sb.append("ID: ").append(tDataset.mId).append("; ");
+          sb.append("Path: ").append(tDataset.mPath).append("; ");
+          sb.append("NumberOfPartitions: ").append(tDataset.getMPartitionListSize()).append("; ");
+          if (Config.DEBUG) {
+            sb.append(tDataset.toString());
+          }
+          sb.append("<br \\>");
         }
       }
     }
