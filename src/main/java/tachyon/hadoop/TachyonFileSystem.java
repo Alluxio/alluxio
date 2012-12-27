@@ -107,7 +107,7 @@ public class TachyonFileSystem extends FileSystem {
         DATASET_NAME = "%" + datasetId + "%0";
       } else {
         LOG.info("TachyonClient does not have DATASET " + datasetPath);
-        int tmp = mTachyonClient.createDataset(datasetPath, 1, "DATASET backed by " + hdfsPath);
+        int tmp = mTachyonClient.createDataset(datasetPath, 1);
         if (tmp != -1) {
           DATASET_NAME = "%" + tmp + "%0";
         }
@@ -228,7 +228,7 @@ public class TachyonFileSystem extends FileSystem {
     }
     if (datasetId == 0) {
       LOG.info("TachyonClient does not have DATASET " + datasetPath);
-      int tmp = mTachyonClient.createDataset(datasetPath, hfs.length, "DATASET backed by " + hdfsPath);
+      int tmp = mTachyonClient.createDataset(datasetPath, hfs.length);
       if (tmp != -1) {
         DATASET_NAME = "%" + tmp + "%";
       }

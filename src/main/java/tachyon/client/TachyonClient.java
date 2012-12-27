@@ -4,14 +4,13 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Config;
+import tachyon.HdfsClient;
 import tachyon.MasterClient;
 import tachyon.CommonUtils;
 import tachyon.WorkerClient;
@@ -24,6 +23,7 @@ import tachyon.thrift.PartitionInfo;
 import tachyon.thrift.DatasetAlreadyExistException;
 import tachyon.thrift.DatasetDoesNotExistException;
 import tachyon.thrift.DatasetInfo;
+import tachyon.thrift.RawColumnDatasetInfo;
 import tachyon.thrift.SuspectedPartitionSizeException;
 
 /**
@@ -40,9 +40,6 @@ public class TachyonClient {
   // The local work ComId
   private InetSocketAddress sLocalWorkerAddress = null;
 
-  // All cached DatasetInfo
-  private Map<Integer, DatasetInfo> sCachedDatasetInfo = new HashMap<Integer, DatasetInfo>();
-
   // The RPC client talks to the system master.
   private MasterClient mMasterClient = null;
   // The Master address.
@@ -52,6 +49,9 @@ public class TachyonClient {
 
   // The local data folder.
   private String mUserTempFolder = null;
+  // The HDFS data folder
+  private String mUserHdfsTempFolder = null;
+  private HdfsClient mHdfsClient = null;
 
   private long mUserId = 0;
 
@@ -102,13 +102,13 @@ public class TachyonClient {
     LOG.error("TachyonClient accessLocalPartition(" + datasetId + ", " + partitionId + ") failed");
   }
 
-  public synchronized boolean addDonePartition(int datasetId, int partitionId, String hdfs)
+  public synchronized boolean addDonePartition(int datasetId, int partitionId, boolean writeThrough)
       throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
       PartitionAlreadyExistException {
     connectAndGetLocalWorker();
     if (mLocalWorkerClient != null) {
       try {
-        mLocalWorkerClient.addPartition(mUserId, datasetId, partitionId, hdfs);
+        mLocalWorkerClient.addPartition(mUserId, datasetId, partitionId, writeThrough);
         return true;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -119,7 +119,14 @@ public class TachyonClient {
     return false;
   }
 
+  public void addDoneRCDPartition(int mDatasetId, int mPartitionId,
+      int sizeBytes) {
+    // TODO Auto-generated method stub
+
+  }
+
   // Lazy connection
+  // TODO This should be removed since the Thrift server has been fixed.
   public synchronized void connectAndGetLocalWorker() {
     if (mMasterClient != null) {
       return;
@@ -171,6 +178,7 @@ public class TachyonClient {
     try {
       sDataFolder = mLocalWorkerClient.getDataFolder();
       mUserTempFolder = mLocalWorkerClient.getUserTempFolder(mUserId);
+      mUserHdfsTempFolder = mLocalWorkerClient.getUserHdfsTempFolder(mUserId);
     } catch (TException e) {
       LOG.error(e.getMessage());
       sDataFolder = null;
@@ -226,7 +234,47 @@ public class TachyonClient {
     return ret;
   }
 
-  public synchronized int createDataset(String datasetPath, int partitions, String description) {
+  public synchronized String createAndGetUserHDFSTempFolder(HdfsClient hdfsClient) {
+    connectAndGetLocalWorker();
+
+    if (mUserHdfsTempFolder == null) {
+      return null;
+    }
+    
+    if (mHdfsClient == null) {
+      mHdfsClient = new HdfsClient();
+    }
+    
+    mHdfsClient.mkdirs(mUserHdfsTempFolder, null, true);
+
+    return mUserHdfsTempFolder;
+  }
+
+  public synchronized int createRawColumnDataset(String datasetPath, int columns,  int partitions) {
+    connectAndGetLocalWorker();
+    if (!mConnected) {
+      return -1;
+    }
+    datasetPath = CommonUtils.cleanPath(datasetPath);
+    int rawColumnDatasetId = -1;
+    try {
+      rawColumnDatasetId = mMasterClient.user_createRawColumnDataset(datasetPath, columns, partitions);
+    } catch (DatasetAlreadyExistException e) {
+      LOG.info(e.getMessage());
+      rawColumnDatasetId = -1;
+    } catch (InvalidPathException e) {
+      LOG.error(e.getMessage());
+      rawColumnDatasetId = -1;
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      mConnected = false;
+      rawColumnDatasetId = -1;
+    }
+
+    return rawColumnDatasetId;
+  }
+
+  public synchronized int createDataset(String datasetPath, int partitions) {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return -1;
@@ -237,7 +285,7 @@ public class TachyonClient {
     }
     int datasetId = -1;
     try {
-      datasetId = mMasterClient.user_createDataset(datasetPath, partitions, description);
+      datasetId = mMasterClient.user_createDataset(datasetPath, partitions);
     } catch (DatasetAlreadyExistException e) {
       LOG.info(e.getMessage());
       datasetId = -1;
@@ -293,9 +341,6 @@ public class TachyonClient {
   }
 
   public synchronized Dataset getDataset(String datasetPath) {
-    if (datasetPath.startsWith("tachyon")) {
-      CommonUtils.runtimeException("...");
-    }
     datasetPath = CommonUtils.cleanPath(datasetPath);
     DatasetInfo datasetInfo = getDatasetInfo(datasetPath);
     if (datasetInfo == null) {
@@ -305,7 +350,7 @@ public class TachyonClient {
   }
 
   public synchronized Dataset getDataset(int datasetId) {
-    DatasetInfo datasetInfo = getDatasetInfo(datasetId, true);
+    DatasetInfo datasetInfo = getDatasetInfo(datasetId);
     if (datasetInfo == null) {
       return null;
     }
@@ -331,7 +376,7 @@ public class TachyonClient {
     return datasetId;
   }
 
-  public synchronized DatasetInfo getDatasetInfo(String datasetPath) {
+  private synchronized DatasetInfo getDatasetInfo(String datasetPath) {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return null;
@@ -349,31 +394,83 @@ public class TachyonClient {
       return null;
     }
 
-    sCachedDatasetInfo.put(ret.mId, ret);
     return ret;
   }
 
-  public synchronized DatasetInfo getDatasetInfo(int datasetId, boolean through) {
+  private synchronized DatasetInfo getDatasetInfo(int datasetId) {
+    connectAndGetLocalWorker();
+    if (!mConnected) {
+      return null;
+    }
     DatasetInfo ret = null;
+    try {
+      ret = mMasterClient.user_getDataset(datasetId);
+    } catch (DatasetDoesNotExistException e) {
+      LOG.info("Dataset with id " + datasetId + " does not exist.");
+      return null;
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      mConnected = false;
+      return null;
+    }
 
-    ret = sCachedDatasetInfo.get(datasetId);
+    return ret;
+  }
 
-    if (through || ret == null) {
-      connectAndGetLocalWorker();
-      if (!mConnected) {
-        return null;
-      }
-      try {
-        ret = mMasterClient.user_getDataset(datasetId);
-      } catch (DatasetDoesNotExistException e) {
-        LOG.info("Dataset with id " + datasetId + " does not exist.");
-        return null;
-      } catch (TException e) {
-        LOG.error(e.getMessage());
-        mConnected = false;
-        return null;
-      }
-      sCachedDatasetInfo.put(datasetId, ret);
+  public synchronized RawColumnDataset getRawColumnDataset(String datasetPath) {
+    datasetPath = CommonUtils.cleanPath(datasetPath);
+    RawColumnDatasetInfo rawColumnDatasetInfo = getRawColumnDatasetInfo(datasetPath);
+    if (rawColumnDatasetInfo == null) {
+      return null;
+    }
+    return new RawColumnDataset(this, rawColumnDatasetInfo);
+  }
+
+  public synchronized RawColumnDataset getRawColumnDataset(int datasetId) {
+    RawColumnDatasetInfo rawColumnDatasetInfo = getRawColumnDatasetInfo(datasetId);
+    if (rawColumnDatasetInfo == null) {
+      return null;
+    }
+    return new RawColumnDataset(this, rawColumnDatasetInfo);
+  }
+
+  private synchronized RawColumnDatasetInfo getRawColumnDatasetInfo(String datasetPath) {
+    connectAndGetLocalWorker();
+    if (!mConnected) {
+      return null;
+    }
+    RawColumnDatasetInfo ret;
+    datasetPath = CommonUtils.cleanPath(datasetPath);
+    try {
+      ret = mMasterClient.user_getRawColumnDataset(datasetPath);
+    } catch (DatasetDoesNotExistException e) {
+      LOG.info("RawColumnDataset with path " + datasetPath + " does not exist.");
+      return null;
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      mConnected = false;
+      return null;
+    }
+
+    return ret;
+  }
+
+  private synchronized RawColumnDatasetInfo getRawColumnDatasetInfo(int datasetId) {
+    connectAndGetLocalWorker();
+    if (!mConnected) {
+      return null;
+    }
+
+    RawColumnDatasetInfo ret = null;
+    try {
+      ret = mMasterClient.user_getRawColumnDatasetInfo(datasetId);
+    } catch (DatasetDoesNotExistException e) {
+      LOG.info("RawColumnDataset with id " + datasetId + " does not exist.");
+      return null;
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      mConnected = false;
+      return null;
     }
 
     return ret;

@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Config;
 import tachyon.DataServerMessage;
 import tachyon.CommonUtils;
+import tachyon.HdfsClient;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.OutOfMemoryForPinDatasetException;
 import tachyon.thrift.PartitionAlreadyExistException;
@@ -43,7 +44,9 @@ public class Partition {
   private final int mPartitionId;
 
   private PartitionInfo mPartitionInfo;
+  private boolean mOpen = false;
   private boolean mRead;
+  private boolean mWriteThrough;
   private int mSizeBytes;
   private File mFolder;
   private String mFilePath;
@@ -55,8 +58,6 @@ public class Partition {
   private FileChannel mOutChannel;
   private MappedByteBuffer mOut;
   private ByteBuffer mOutBuffer;
-
-  private String mHdfsPath;
 
   public Partition(TachyonClient tachyonClient, Dataset dataset, int datasetId, int pId) {
     mTachyonClient = tachyonClient;
@@ -84,7 +85,7 @@ public class Partition {
   }
 
   public void append(byte b) throws IOException {
-    validIO(false);
+    validateIO(false);
 
     appendCurrentOutBuffer(Config.USER_BUFFER_PER_PARTITION_BYTES);
 
@@ -92,7 +93,7 @@ public class Partition {
   }
 
   public void append(int b) throws IOException {
-    validIO(false);
+    validateIO(false);
 
     appendCurrentOutBuffer(Config.USER_BUFFER_PER_PARTITION_BYTES);
 
@@ -105,7 +106,7 @@ public class Partition {
 
   public void append(byte[] buf, int off, int len) 
       throws IOException, OutOfMemoryForPinDatasetException {
-    validIO(false);
+    validateIO(false);
 
     if (mOutBuffer.position() + len >= Config.USER_BUFFER_PER_PARTITION_BYTES) {
       if (mSizeBytes != mFile.length()) {
@@ -153,6 +154,10 @@ public class Partition {
   }
 
   private void close(boolean cancel) {
+    if (! mOpen) {
+      return;
+    }
+
     try {
       if (mRead) {
         if (mInChannel != null) {
@@ -172,7 +177,14 @@ public class Partition {
         if (cancel) {
           mTachyonClient.releaseSpace(mSizeBytes);
         } else {
-          if (!mTachyonClient.addDonePartition(mDatasetId, mPartitionId, mHdfsPath)) {
+          if (mWriteThrough) {
+            HdfsClient tHdfsClient = new HdfsClient();
+            String hdfsFolder = mTachyonClient.createAndGetUserHDFSTempFolder(tHdfsClient);
+            tHdfsClient.copyFromLocalFile(false, true, mFilePath,
+                hdfsFolder + "/" + mDatasetId + "-" + mPartitionId);
+          }
+
+          if (!mTachyonClient.addDonePartition(mDatasetId, mPartitionId, mWriteThrough)) {
             throw new IOException("Failed to add a partition to the tachyon system.");
           }
         }
@@ -186,6 +198,8 @@ public class Partition {
     } catch (PartitionAlreadyExistException e) {
       LOG.error(e.getMessage(), e);
     }
+
+    mOpen = false;
   }
 
   public FileSplit getHdfsFileSplit() {
@@ -205,6 +219,10 @@ public class Partition {
   }
 
   public void open(String wr) throws IOException {
+    open(wr, false);
+  }
+
+  public void open(String wr, boolean writeThrough) throws IOException {
     if (wr.equals("r")) {
       mRead = true;
     } else if (wr.equals("w")) {
@@ -212,6 +230,8 @@ public class Partition {
     } else {
       CommonUtils.runtimeException("Wrong option to open a partition: " + wr);
     }
+
+    mOpen = true;
 
     if (!mRead) {
       mFolder = mTachyonClient.createAndGetUserTempFolder();
@@ -261,7 +281,7 @@ public class Partition {
 
   private ByteBuffer readByteBufferWithException(boolean tryLocal) 
       throws IOException {
-    validIO(true);
+    validateIO(true);
 
     ByteBuffer ret = null;
 
@@ -336,8 +356,8 @@ public class Partition {
     socketChannel.close();
 
     if (recvMsg.getDatasetId() < 0) {
-      LOG.info("Data " + recvMsg.getDatasetId() + ":" + recvMsg.getPartitionId() + " is not in remote "
-          + "machine " );
+      LOG.info("Data " + recvMsg.getDatasetId() + ":" + recvMsg.getPartitionId() + 
+          " is not in remote machine.");
       return null;
     }
 
@@ -348,9 +368,12 @@ public class Partition {
     mHDFSFileSplit = fs;
   }
 
-  private void validIO(boolean read) {
+  private void validateIO(boolean read) {
+    if (!mOpen) {
+      CommonUtils.runtimeException("The partition was never openned or has been closed.");
+    }
     if (read != mRead) {
-      CommonUtils.illegalArgumentException("The partition was opened for " + 
+      CommonUtils.runtimeException("The partition was opened for " + 
           (mRead ? "Read" : "Write") + ". " + 
           (read ? "Read" : "Write") + " operation is not available.");
     }

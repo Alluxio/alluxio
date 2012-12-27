@@ -6,14 +6,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-import tachyon.thrift.DatasetInfo;
+import tachyon.thrift.LogEventType;
 
 public class MasterLogReader {
   private final String LOG_FILE_NAME;
 
   private ObjectInputStream mInputStream;
 
-  private DatasetInfo mCurrent = null;
+  private Pair<LogEventType, Object> mCurrent = null;
 
   public MasterLogReader(String fileName) {
     LOG_FILE_NAME = fileName;
@@ -28,17 +28,19 @@ public class MasterLogReader {
 
   public boolean hasNext() {
     if (mCurrent == null) {
-      mCurrent = readNextDatasetInfo();
+      mCurrent = getNext();
     }
 
     return mCurrent != null;
   }
-
-  private DatasetInfo readNextDatasetInfo() {
-    DatasetInfo ret = null;
-
+  
+  private Pair<LogEventType, Object> getNext() {
+    LogEventType first = null;
+    Object second = null;
+    
     try {
-      ret = (DatasetInfo) mInputStream.readObject();
+      first = (LogEventType) mInputStream.readObject();
+      second = mInputStream.readObject();
     } catch (EOFException e) {
       return null;
     } catch (IOException e) {
@@ -46,16 +48,16 @@ public class MasterLogReader {
     } catch (ClassNotFoundException e) {
       CommonUtils.runtimeException(e);
     }
-
-    return ret;
+    
+    return new Pair<LogEventType, Object>(first, second);
   }
 
-  public DatasetInfo getNextDatasetInfo() {
+  public Pair<LogEventType, Object> getNextDatasetInfo() {
     if (mCurrent == null) {
-      readNextDatasetInfo();
+      getNext();
     }
 
-    DatasetInfo ret = mCurrent;
+    Pair<LogEventType, Object> ret = mCurrent;
     mCurrent = null;
     return ret;
   }

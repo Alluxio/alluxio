@@ -19,11 +19,8 @@ public class Dataset {
     mDatasetInfo = datasetInfo;
   }
 
-  public synchronized Partition getPartition(int pId) {
-    if (pId < 0 || pId >= mDatasetInfo.mNumOfPartitions) {
-      CommonUtils.runtimeException(mDatasetInfo.mPath + " does not have partition " + pId + ". "
-          + "It has " + mDatasetInfo.mNumOfPartitions + " partitions.");
-    }
+  public Partition getPartition(int pId) {
+    validatePartitionId(pId);
     return new Partition(mTachyonClient, this, mDatasetInfo.mId, pId);
   }
 
@@ -35,11 +32,12 @@ public class Dataset {
     return mDatasetInfo.mId;
   }
 
-  public String getDatasetName() {
+  public String getDatasetPath() {
     return mDatasetInfo.mPath;
   }
 
   public PartitionInfo getPartitionInfo(int pId) {
+    validatePartitionId(pId);
     return mDatasetInfo.mPartitionList.get(pId);
   }
 
@@ -49,5 +47,12 @@ public class Dataset {
 
   public boolean needPin() {
     return mDatasetInfo.mPin;
+  }
+  
+  private void validatePartitionId(int pId) {
+    if (pId < 0 || pId >= mDatasetInfo.mNumOfPartitions) {
+      CommonUtils.runtimeException(mDatasetInfo.mPath + " does not have partition " + pId
+          + ". It has " + mDatasetInfo.mNumOfPartitions + " partitions.");
+    }
   }
 }

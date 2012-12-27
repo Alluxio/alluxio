@@ -30,7 +30,7 @@ public class PerformanceTest {
 
   public static void createDataset() {
     long startTimeMs = CommonUtils.getCurrentMs();
-    int datasetId = TC.createDataset(DATASET_NAME, PARTITIONS, "Creating " + DATASET_NAME);
+    int datasetId = TC.createDataset(DATASET_NAME, PARTITIONS);
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "user_createDataset: with datasetId " + datasetId);
   }
 

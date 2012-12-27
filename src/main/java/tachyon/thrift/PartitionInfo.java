@@ -33,9 +33,10 @@ import org.slf4j.LoggerFactory;
 public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, PartitionInfo._Fields>, java.io.Serializable, Cloneable {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("PartitionInfo");
 
-  private static final org.apache.thrift.protocol.TField M_SIZE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("mSizeBytes", org.apache.thrift.protocol.TType.I32, (short)1);
-  private static final org.apache.thrift.protocol.TField M_LOCATIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("mLocations", org.apache.thrift.protocol.TType.MAP, (short)2);
-  private static final org.apache.thrift.protocol.TField M_HDFS_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("mHdfsPath", org.apache.thrift.protocol.TType.STRING, (short)3);
+  private static final org.apache.thrift.protocol.TField M_DATASET_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mDatasetId", org.apache.thrift.protocol.TType.I32, (short)1);
+  private static final org.apache.thrift.protocol.TField M_PARTITION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mPartitionId", org.apache.thrift.protocol.TType.I32, (short)2);
+  private static final org.apache.thrift.protocol.TField M_SIZE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("mSizeBytes", org.apache.thrift.protocol.TType.I32, (short)3);
+  private static final org.apache.thrift.protocol.TField M_LOCATIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("mLocations", org.apache.thrift.protocol.TType.MAP, (short)4);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -43,15 +44,17 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
     schemes.put(TupleScheme.class, new PartitionInfoTupleSchemeFactory());
   }
 
+  public int mDatasetId; // required
+  public int mPartitionId; // required
   public int mSizeBytes; // required
   public Map<Long,NetAddress> mLocations; // required
-  public String mHdfsPath; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    M_SIZE_BYTES((short)1, "mSizeBytes"),
-    M_LOCATIONS((short)2, "mLocations"),
-    M_HDFS_PATH((short)3, "mHdfsPath");
+    M_DATASET_ID((short)1, "mDatasetId"),
+    M_PARTITION_ID((short)2, "mPartitionId"),
+    M_SIZE_BYTES((short)3, "mSizeBytes"),
+    M_LOCATIONS((short)4, "mLocations");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -66,12 +69,14 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // M_SIZE_BYTES
+        case 1: // M_DATASET_ID
+          return M_DATASET_ID;
+        case 2: // M_PARTITION_ID
+          return M_PARTITION_ID;
+        case 3: // M_SIZE_BYTES
           return M_SIZE_BYTES;
-        case 2: // M_LOCATIONS
+        case 4: // M_LOCATIONS
           return M_LOCATIONS;
-        case 3: // M_HDFS_PATH
-          return M_HDFS_PATH;
         default:
           return null;
       }
@@ -112,19 +117,23 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
   }
 
   // isset id assignments
-  private static final int __MSIZEBYTES_ISSET_ID = 0;
+  private static final int __MDATASETID_ISSET_ID = 0;
+  private static final int __MPARTITIONID_ISSET_ID = 1;
+  private static final int __MSIZEBYTES_ISSET_ID = 2;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+    tmpMap.put(_Fields.M_DATASET_ID, new org.apache.thrift.meta_data.FieldMetaData("mDatasetId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.M_PARTITION_ID, new org.apache.thrift.meta_data.FieldMetaData("mPartitionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.M_SIZE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("mSizeBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.M_LOCATIONS, new org.apache.thrift.meta_data.FieldMetaData("mLocations", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64), 
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NetAddress.class))));
-    tmpMap.put(_Fields.M_HDFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("mHdfsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(PartitionInfo.class, metaDataMap);
   }
@@ -133,15 +142,19 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
   }
 
   public PartitionInfo(
+    int mDatasetId,
+    int mPartitionId,
     int mSizeBytes,
-    Map<Long,NetAddress> mLocations,
-    String mHdfsPath)
+    Map<Long,NetAddress> mLocations)
   {
     this();
+    this.mDatasetId = mDatasetId;
+    setMDatasetIdIsSet(true);
+    this.mPartitionId = mPartitionId;
+    setMPartitionIdIsSet(true);
     this.mSizeBytes = mSizeBytes;
     setMSizeBytesIsSet(true);
     this.mLocations = mLocations;
-    this.mHdfsPath = mHdfsPath;
   }
 
   /**
@@ -149,6 +162,8 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
    */
   public PartitionInfo(PartitionInfo other) {
     __isset_bitfield = other.__isset_bitfield;
+    this.mDatasetId = other.mDatasetId;
+    this.mPartitionId = other.mPartitionId;
     this.mSizeBytes = other.mSizeBytes;
     if (other.isSetMLocations()) {
       Map<Long,NetAddress> __this__mLocations = new HashMap<Long,NetAddress>();
@@ -165,9 +180,6 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
       }
       this.mLocations = __this__mLocations;
     }
-    if (other.isSetMHdfsPath()) {
-      this.mHdfsPath = other.mHdfsPath;
-    }
   }
 
   public PartitionInfo deepCopy() {
@@ -176,10 +188,59 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
 
   @Override
   public void clear() {
+    setMDatasetIdIsSet(false);
+    this.mDatasetId = 0;
+    setMPartitionIdIsSet(false);
+    this.mPartitionId = 0;
     setMSizeBytesIsSet(false);
     this.mSizeBytes = 0;
     this.mLocations = null;
-    this.mHdfsPath = null;
+  }
+
+  public int getMDatasetId() {
+    return this.mDatasetId;
+  }
+
+  public PartitionInfo setMDatasetId(int mDatasetId) {
+    this.mDatasetId = mDatasetId;
+    setMDatasetIdIsSet(true);
+    return this;
+  }
+
+  public void unsetMDatasetId() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MDATASETID_ISSET_ID);
+  }
+
+  /** Returns true if field mDatasetId is set (has been assigned a value) and false otherwise */
+  public boolean isSetMDatasetId() {
+    return EncodingUtils.testBit(__isset_bitfield, __MDATASETID_ISSET_ID);
+  }
+
+  public void setMDatasetIdIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MDATASETID_ISSET_ID, value);
+  }
+
+  public int getMPartitionId() {
+    return this.mPartitionId;
+  }
+
+  public PartitionInfo setMPartitionId(int mPartitionId) {
+    this.mPartitionId = mPartitionId;
+    setMPartitionIdIsSet(true);
+    return this;
+  }
+
+  public void unsetMPartitionId() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MPARTITIONID_ISSET_ID);
+  }
+
+  /** Returns true if field mPartitionId is set (has been assigned a value) and false otherwise */
+  public boolean isSetMPartitionId() {
+    return EncodingUtils.testBit(__isset_bitfield, __MPARTITIONID_ISSET_ID);
+  }
+
+  public void setMPartitionIdIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MPARTITIONID_ISSET_ID, value);
   }
 
   public int getMSizeBytes() {
@@ -240,32 +301,24 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
     }
   }
 
-  public String getMHdfsPath() {
-    return this.mHdfsPath;
-  }
-
-  public PartitionInfo setMHdfsPath(String mHdfsPath) {
-    this.mHdfsPath = mHdfsPath;
-    return this;
-  }
-
-  public void unsetMHdfsPath() {
-    this.mHdfsPath = null;
-  }
-
-  /** Returns true if field mHdfsPath is set (has been assigned a value) and false otherwise */
-  public boolean isSetMHdfsPath() {
-    return this.mHdfsPath != null;
-  }
-
-  public void setMHdfsPathIsSet(boolean value) {
-    if (!value) {
-      this.mHdfsPath = null;
-    }
-  }
-
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
+    case M_DATASET_ID:
+      if (value == null) {
+        unsetMDatasetId();
+      } else {
+        setMDatasetId((Integer)value);
+      }
+      break;
+
+    case M_PARTITION_ID:
+      if (value == null) {
+        unsetMPartitionId();
+      } else {
+        setMPartitionId((Integer)value);
+      }
+      break;
+
     case M_SIZE_BYTES:
       if (value == null) {
         unsetMSizeBytes();
@@ -282,27 +335,22 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
       }
       break;
 
-    case M_HDFS_PATH:
-      if (value == null) {
-        unsetMHdfsPath();
-      } else {
-        setMHdfsPath((String)value);
-      }
-      break;
-
     }
   }
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
+    case M_DATASET_ID:
+      return Integer.valueOf(getMDatasetId());
+
+    case M_PARTITION_ID:
+      return Integer.valueOf(getMPartitionId());
+
     case M_SIZE_BYTES:
       return Integer.valueOf(getMSizeBytes());
 
     case M_LOCATIONS:
       return getMLocations();
-
-    case M_HDFS_PATH:
-      return getMHdfsPath();
 
     }
     throw new IllegalStateException();
@@ -315,12 +363,14 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
     }
 
     switch (field) {
+    case M_DATASET_ID:
+      return isSetMDatasetId();
+    case M_PARTITION_ID:
+      return isSetMPartitionId();
     case M_SIZE_BYTES:
       return isSetMSizeBytes();
     case M_LOCATIONS:
       return isSetMLocations();
-    case M_HDFS_PATH:
-      return isSetMHdfsPath();
     }
     throw new IllegalStateException();
   }
@@ -337,6 +387,24 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
   public boolean equals(PartitionInfo that) {
     if (that == null)
       return false;
+
+    boolean this_present_mDatasetId = true;
+    boolean that_present_mDatasetId = true;
+    if (this_present_mDatasetId || that_present_mDatasetId) {
+      if (!(this_present_mDatasetId && that_present_mDatasetId))
+        return false;
+      if (this.mDatasetId != that.mDatasetId)
+        return false;
+    }
+
+    boolean this_present_mPartitionId = true;
+    boolean that_present_mPartitionId = true;
+    if (this_present_mPartitionId || that_present_mPartitionId) {
+      if (!(this_present_mPartitionId && that_present_mPartitionId))
+        return false;
+      if (this.mPartitionId != that.mPartitionId)
+        return false;
+    }
 
     boolean this_present_mSizeBytes = true;
     boolean that_present_mSizeBytes = true;
@@ -356,15 +424,6 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
         return false;
     }
 
-    boolean this_present_mHdfsPath = true && this.isSetMHdfsPath();
-    boolean that_present_mHdfsPath = true && that.isSetMHdfsPath();
-    if (this_present_mHdfsPath || that_present_mHdfsPath) {
-      if (!(this_present_mHdfsPath && that_present_mHdfsPath))
-        return false;
-      if (!this.mHdfsPath.equals(that.mHdfsPath))
-        return false;
-    }
-
     return true;
   }
 
@@ -381,6 +440,26 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
     int lastComparison = 0;
     PartitionInfo typedOther = (PartitionInfo)other;
 
+    lastComparison = Boolean.valueOf(isSetMDatasetId()).compareTo(typedOther.isSetMDatasetId());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMDatasetId()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mDatasetId, typedOther.mDatasetId);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetMPartitionId()).compareTo(typedOther.isSetMPartitionId());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMPartitionId()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mPartitionId, typedOther.mPartitionId);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = Boolean.valueOf(isSetMSizeBytes()).compareTo(typedOther.isSetMSizeBytes());
     if (lastComparison != 0) {
       return lastComparison;
@@ -397,16 +476,6 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
     }
     if (isSetMLocations()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mLocations, typedOther.mLocations);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetMHdfsPath()).compareTo(typedOther.isSetMHdfsPath());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetMHdfsPath()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mHdfsPath, typedOther.mHdfsPath);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -431,6 +500,14 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
     StringBuilder sb = new StringBuilder("PartitionInfo(");
     boolean first = true;
 
+    sb.append("mDatasetId:");
+    sb.append(this.mDatasetId);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("mPartitionId:");
+    sb.append(this.mPartitionId);
+    first = false;
+    if (!first) sb.append(", ");
     sb.append("mSizeBytes:");
     sb.append(this.mSizeBytes);
     first = false;
@@ -440,14 +517,6 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
       sb.append("null");
     } else {
       sb.append(this.mLocations);
-    }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("mHdfsPath:");
-    if (this.mHdfsPath == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.mHdfsPath);
     }
     first = false;
     sb.append(")");
@@ -495,7 +564,23 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
           break;
         }
         switch (schemeField.id) {
-          case 1: // M_SIZE_BYTES
+          case 1: // M_DATASET_ID
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.mDatasetId = iprot.readI32();
+              struct.setMDatasetIdIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 2: // M_PARTITION_ID
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.mPartitionId = iprot.readI32();
+              struct.setMPartitionIdIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 3: // M_SIZE_BYTES
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.mSizeBytes = iprot.readI32();
               struct.setMSizeBytesIsSet(true);
@@ -503,7 +588,7 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // M_LOCATIONS
+          case 4: // M_LOCATIONS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map0 = iprot.readMapBegin();
@@ -524,14 +609,6 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // M_HDFS_PATH
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.mHdfsPath = iprot.readString();
-              struct.setMHdfsPathIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -547,6 +624,12 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      oprot.writeFieldBegin(M_DATASET_ID_FIELD_DESC);
+      oprot.writeI32(struct.mDatasetId);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(M_PARTITION_ID_FIELD_DESC);
+      oprot.writeI32(struct.mPartitionId);
+      oprot.writeFieldEnd();
       oprot.writeFieldBegin(M_SIZE_BYTES_FIELD_DESC);
       oprot.writeI32(struct.mSizeBytes);
       oprot.writeFieldEnd();
@@ -561,11 +644,6 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
           }
           oprot.writeMapEnd();
         }
-        oprot.writeFieldEnd();
-      }
-      if (struct.mHdfsPath != null) {
-        oprot.writeFieldBegin(M_HDFS_PATH_FIELD_DESC);
-        oprot.writeString(struct.mHdfsPath);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -586,16 +664,25 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
     public void write(org.apache.thrift.protocol.TProtocol prot, PartitionInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetMSizeBytes()) {
+      if (struct.isSetMDatasetId()) {
         optionals.set(0);
       }
-      if (struct.isSetMLocations()) {
+      if (struct.isSetMPartitionId()) {
         optionals.set(1);
       }
-      if (struct.isSetMHdfsPath()) {
+      if (struct.isSetMSizeBytes()) {
         optionals.set(2);
       }
-      oprot.writeBitSet(optionals, 3);
+      if (struct.isSetMLocations()) {
+        optionals.set(3);
+      }
+      oprot.writeBitSet(optionals, 4);
+      if (struct.isSetMDatasetId()) {
+        oprot.writeI32(struct.mDatasetId);
+      }
+      if (struct.isSetMPartitionId()) {
+        oprot.writeI32(struct.mPartitionId);
+      }
       if (struct.isSetMSizeBytes()) {
         oprot.writeI32(struct.mSizeBytes);
       }
@@ -609,20 +696,25 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
           }
         }
       }
-      if (struct.isSetMHdfsPath()) {
-        oprot.writeString(struct.mHdfsPath);
-      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, PartitionInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(4);
       if (incoming.get(0)) {
+        struct.mDatasetId = iprot.readI32();
+        struct.setMDatasetIdIsSet(true);
+      }
+      if (incoming.get(1)) {
+        struct.mPartitionId = iprot.readI32();
+        struct.setMPartitionIdIsSet(true);
+      }
+      if (incoming.get(2)) {
         struct.mSizeBytes = iprot.readI32();
         struct.setMSizeBytesIsSet(true);
       }
-      if (incoming.get(1)) {
+      if (incoming.get(3)) {
         {
           org.apache.thrift.protocol.TMap _map6 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I64, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
           struct.mLocations = new HashMap<Long,NetAddress>(2*_map6.size);
@@ -637,10 +729,6 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
           }
         }
         struct.setMLocationsIsSet(true);
-      }
-      if (incoming.get(2)) {
-        struct.mHdfsPath = iprot.readString();
-        struct.setMHdfsPathIsSet(true);
       }
     }
   }

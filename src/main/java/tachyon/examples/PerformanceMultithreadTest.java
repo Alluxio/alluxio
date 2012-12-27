@@ -38,7 +38,7 @@ public class PerformanceMultithreadTest {
 
   public static void createDataset() {
     long startTimeMs = CommonUtils.getCurrentMs();
-    int datasetId = MTC.createDataset(Dataset_NAME, PARTITIONS, "Creating " + Dataset_NAME);
+    int datasetId = MTC.createDataset(Dataset_NAME, PARTITIONS);
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "user_createDataset with datasetId " + datasetId);
   }
 
