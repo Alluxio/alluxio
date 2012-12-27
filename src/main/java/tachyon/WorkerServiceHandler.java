@@ -142,12 +142,11 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void addDoneRCDPartition(long userId, int datasetId, int partitionId,
-      int partitionSizeBytes) throws PartitionDoesNotExistException,
-      SuspectedPartitionSizeException, PartitionAlreadyExistException,
-      TException {
-    // TODO Auto-generated method stub
-
+  public void addRCDPartition(int datasetId, int partitionId, int partitionSizeBytes)
+      throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
+      PartitionAlreadyExistException, TException {
+    mMasterClient.worker_addRCDPartition(mWorkerInfo.getId(),
+        datasetId, partitionId, partitionSizeBytes);
   }
 
   private void addFoundPartition(int datasetId, int partitionId, long fileSizeBytes)

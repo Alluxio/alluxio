@@ -38,7 +38,7 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
   private static final org.apache.thrift.protocol.TField M_COLUMNS_FIELD_DESC = new org.apache.thrift.protocol.TField("mColumns", org.apache.thrift.protocol.TType.I32, (short)3);
   private static final org.apache.thrift.protocol.TField M_SIZE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("mSizeBytes", org.apache.thrift.protocol.TType.I64, (short)4);
   private static final org.apache.thrift.protocol.TField M_NUM_OF_PARTITIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("mNumOfPartitions", org.apache.thrift.protocol.TType.I32, (short)5);
-  private static final org.apache.thrift.protocol.TField M_DATASET_ID_LIST_FIELD_DESC = new org.apache.thrift.protocol.TField("mDatasetIdList", org.apache.thrift.protocol.TType.LIST, (short)6);
+  private static final org.apache.thrift.protocol.TField M_COLUMN_DATASET_ID_LIST_FIELD_DESC = new org.apache.thrift.protocol.TField("mColumnDatasetIdList", org.apache.thrift.protocol.TType.LIST, (short)6);
   private static final org.apache.thrift.protocol.TField M_PARTITION_LIST_FIELD_DESC = new org.apache.thrift.protocol.TField("mPartitionList", org.apache.thrift.protocol.TType.LIST, (short)7);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -52,7 +52,7 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
   public int mColumns; // required
   public long mSizeBytes; // required
   public int mNumOfPartitions; // required
-  public List<Integer> mDatasetIdList; // required
+  public List<Integer> mColumnDatasetIdList; // required
   public List<PartitionInfo> mPartitionList; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -62,7 +62,7 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
     M_COLUMNS((short)3, "mColumns"),
     M_SIZE_BYTES((short)4, "mSizeBytes"),
     M_NUM_OF_PARTITIONS((short)5, "mNumOfPartitions"),
-    M_DATASET_ID_LIST((short)6, "mDatasetIdList"),
+    M_COLUMN_DATASET_ID_LIST((short)6, "mColumnDatasetIdList"),
     M_PARTITION_LIST((short)7, "mPartitionList");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
@@ -88,8 +88,8 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
           return M_SIZE_BYTES;
         case 5: // M_NUM_OF_PARTITIONS
           return M_NUM_OF_PARTITIONS;
-        case 6: // M_DATASET_ID_LIST
-          return M_DATASET_ID_LIST;
+        case 6: // M_COLUMN_DATASET_ID_LIST
+          return M_COLUMN_DATASET_ID_LIST;
         case 7: // M_PARTITION_LIST
           return M_PARTITION_LIST;
         default:
@@ -150,7 +150,7 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.M_NUM_OF_PARTITIONS, new org.apache.thrift.meta_data.FieldMetaData("mNumOfPartitions", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.M_DATASET_ID_LIST, new org.apache.thrift.meta_data.FieldMetaData("mDatasetIdList", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.M_COLUMN_DATASET_ID_LIST, new org.apache.thrift.meta_data.FieldMetaData("mColumnDatasetIdList", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32))));
     tmpMap.put(_Fields.M_PARTITION_LIST, new org.apache.thrift.meta_data.FieldMetaData("mPartitionList", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -169,7 +169,7 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
     int mColumns,
     long mSizeBytes,
     int mNumOfPartitions,
-    List<Integer> mDatasetIdList,
+    List<Integer> mColumnDatasetIdList,
     List<PartitionInfo> mPartitionList)
   {
     this();
@@ -182,7 +182,7 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
     setMSizeBytesIsSet(true);
     this.mNumOfPartitions = mNumOfPartitions;
     setMNumOfPartitionsIsSet(true);
-    this.mDatasetIdList = mDatasetIdList;
+    this.mColumnDatasetIdList = mColumnDatasetIdList;
     this.mPartitionList = mPartitionList;
   }
 
@@ -198,12 +198,12 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
     this.mColumns = other.mColumns;
     this.mSizeBytes = other.mSizeBytes;
     this.mNumOfPartitions = other.mNumOfPartitions;
-    if (other.isSetMDatasetIdList()) {
-      List<Integer> __this__mDatasetIdList = new ArrayList<Integer>();
-      for (Integer other_element : other.mDatasetIdList) {
-        __this__mDatasetIdList.add(other_element);
+    if (other.isSetMColumnDatasetIdList()) {
+      List<Integer> __this__mColumnDatasetIdList = new ArrayList<Integer>();
+      for (Integer other_element : other.mColumnDatasetIdList) {
+        __this__mColumnDatasetIdList.add(other_element);
       }
-      this.mDatasetIdList = __this__mDatasetIdList;
+      this.mColumnDatasetIdList = __this__mColumnDatasetIdList;
     }
     if (other.isSetMPartitionList()) {
       List<PartitionInfo> __this__mPartitionList = new ArrayList<PartitionInfo>();
@@ -229,7 +229,7 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
     this.mSizeBytes = 0;
     setMNumOfPartitionsIsSet(false);
     this.mNumOfPartitions = 0;
-    this.mDatasetIdList = null;
+    this.mColumnDatasetIdList = null;
     this.mPartitionList = null;
   }
 
@@ -349,42 +349,42 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MNUMOFPARTITIONS_ISSET_ID, value);
   }
 
-  public int getMDatasetIdListSize() {
-    return (this.mDatasetIdList == null) ? 0 : this.mDatasetIdList.size();
+  public int getMColumnDatasetIdListSize() {
+    return (this.mColumnDatasetIdList == null) ? 0 : this.mColumnDatasetIdList.size();
   }
 
-  public java.util.Iterator<Integer> getMDatasetIdListIterator() {
-    return (this.mDatasetIdList == null) ? null : this.mDatasetIdList.iterator();
+  public java.util.Iterator<Integer> getMColumnDatasetIdListIterator() {
+    return (this.mColumnDatasetIdList == null) ? null : this.mColumnDatasetIdList.iterator();
   }
 
-  public void addToMDatasetIdList(int elem) {
-    if (this.mDatasetIdList == null) {
-      this.mDatasetIdList = new ArrayList<Integer>();
+  public void addToMColumnDatasetIdList(int elem) {
+    if (this.mColumnDatasetIdList == null) {
+      this.mColumnDatasetIdList = new ArrayList<Integer>();
     }
-    this.mDatasetIdList.add(elem);
+    this.mColumnDatasetIdList.add(elem);
   }
 
-  public List<Integer> getMDatasetIdList() {
-    return this.mDatasetIdList;
+  public List<Integer> getMColumnDatasetIdList() {
+    return this.mColumnDatasetIdList;
   }
 
-  public RawColumnDatasetInfo setMDatasetIdList(List<Integer> mDatasetIdList) {
-    this.mDatasetIdList = mDatasetIdList;
+  public RawColumnDatasetInfo setMColumnDatasetIdList(List<Integer> mColumnDatasetIdList) {
+    this.mColumnDatasetIdList = mColumnDatasetIdList;
     return this;
   }
 
-  public void unsetMDatasetIdList() {
-    this.mDatasetIdList = null;
+  public void unsetMColumnDatasetIdList() {
+    this.mColumnDatasetIdList = null;
   }
 
-  /** Returns true if field mDatasetIdList is set (has been assigned a value) and false otherwise */
-  public boolean isSetMDatasetIdList() {
-    return this.mDatasetIdList != null;
+  /** Returns true if field mColumnDatasetIdList is set (has been assigned a value) and false otherwise */
+  public boolean isSetMColumnDatasetIdList() {
+    return this.mColumnDatasetIdList != null;
   }
 
-  public void setMDatasetIdListIsSet(boolean value) {
+  public void setMColumnDatasetIdListIsSet(boolean value) {
     if (!value) {
-      this.mDatasetIdList = null;
+      this.mColumnDatasetIdList = null;
     }
   }
 
@@ -469,11 +469,11 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
       }
       break;
 
-    case M_DATASET_ID_LIST:
+    case M_COLUMN_DATASET_ID_LIST:
       if (value == null) {
-        unsetMDatasetIdList();
+        unsetMColumnDatasetIdList();
       } else {
-        setMDatasetIdList((List<Integer>)value);
+        setMColumnDatasetIdList((List<Integer>)value);
       }
       break;
 
@@ -505,8 +505,8 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
     case M_NUM_OF_PARTITIONS:
       return Integer.valueOf(getMNumOfPartitions());
 
-    case M_DATASET_ID_LIST:
-      return getMDatasetIdList();
+    case M_COLUMN_DATASET_ID_LIST:
+      return getMColumnDatasetIdList();
 
     case M_PARTITION_LIST:
       return getMPartitionList();
@@ -532,8 +532,8 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
       return isSetMSizeBytes();
     case M_NUM_OF_PARTITIONS:
       return isSetMNumOfPartitions();
-    case M_DATASET_ID_LIST:
-      return isSetMDatasetIdList();
+    case M_COLUMN_DATASET_ID_LIST:
+      return isSetMColumnDatasetIdList();
     case M_PARTITION_LIST:
       return isSetMPartitionList();
     }
@@ -598,12 +598,12 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
         return false;
     }
 
-    boolean this_present_mDatasetIdList = true && this.isSetMDatasetIdList();
-    boolean that_present_mDatasetIdList = true && that.isSetMDatasetIdList();
-    if (this_present_mDatasetIdList || that_present_mDatasetIdList) {
-      if (!(this_present_mDatasetIdList && that_present_mDatasetIdList))
+    boolean this_present_mColumnDatasetIdList = true && this.isSetMColumnDatasetIdList();
+    boolean that_present_mColumnDatasetIdList = true && that.isSetMColumnDatasetIdList();
+    if (this_present_mColumnDatasetIdList || that_present_mColumnDatasetIdList) {
+      if (!(this_present_mColumnDatasetIdList && that_present_mColumnDatasetIdList))
         return false;
-      if (!this.mDatasetIdList.equals(that.mDatasetIdList))
+      if (!this.mColumnDatasetIdList.equals(that.mColumnDatasetIdList))
         return false;
     }
 
@@ -682,12 +682,12 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetMDatasetIdList()).compareTo(typedOther.isSetMDatasetIdList());
+    lastComparison = Boolean.valueOf(isSetMColumnDatasetIdList()).compareTo(typedOther.isSetMColumnDatasetIdList());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMDatasetIdList()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mDatasetIdList, typedOther.mDatasetIdList);
+    if (isSetMColumnDatasetIdList()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mColumnDatasetIdList, typedOther.mColumnDatasetIdList);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -746,11 +746,11 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
     sb.append(this.mNumOfPartitions);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("mDatasetIdList:");
-    if (this.mDatasetIdList == null) {
+    sb.append("mColumnDatasetIdList:");
+    if (this.mColumnDatasetIdList == null) {
       sb.append("null");
     } else {
-      sb.append(this.mDatasetIdList);
+      sb.append(this.mColumnDatasetIdList);
     }
     first = false;
     if (!first) sb.append(", ");
@@ -846,20 +846,20 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 6: // M_DATASET_ID_LIST
+          case 6: // M_COLUMN_DATASET_ID_LIST
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list18 = iprot.readListBegin();
-                struct.mDatasetIdList = new ArrayList<Integer>(_list18.size);
+                struct.mColumnDatasetIdList = new ArrayList<Integer>(_list18.size);
                 for (int _i19 = 0; _i19 < _list18.size; ++_i19)
                 {
                   int _elem20; // required
                   _elem20 = iprot.readI32();
-                  struct.mDatasetIdList.add(_elem20);
+                  struct.mColumnDatasetIdList.add(_elem20);
                 }
                 iprot.readListEnd();
               }
-              struct.setMDatasetIdListIsSet(true);
+              struct.setMColumnDatasetIdListIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -915,11 +915,11 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
       oprot.writeFieldBegin(M_NUM_OF_PARTITIONS_FIELD_DESC);
       oprot.writeI32(struct.mNumOfPartitions);
       oprot.writeFieldEnd();
-      if (struct.mDatasetIdList != null) {
-        oprot.writeFieldBegin(M_DATASET_ID_LIST_FIELD_DESC);
+      if (struct.mColumnDatasetIdList != null) {
+        oprot.writeFieldBegin(M_COLUMN_DATASET_ID_LIST_FIELD_DESC);
         {
-          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, struct.mDatasetIdList.size()));
-          for (int _iter24 : struct.mDatasetIdList)
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, struct.mColumnDatasetIdList.size()));
+          for (int _iter24 : struct.mColumnDatasetIdList)
           {
             oprot.writeI32(_iter24);
           }
@@ -972,7 +972,7 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
       if (struct.isSetMNumOfPartitions()) {
         optionals.set(4);
       }
-      if (struct.isSetMDatasetIdList()) {
+      if (struct.isSetMColumnDatasetIdList()) {
         optionals.set(5);
       }
       if (struct.isSetMPartitionList()) {
@@ -994,10 +994,10 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
       if (struct.isSetMNumOfPartitions()) {
         oprot.writeI32(struct.mNumOfPartitions);
       }
-      if (struct.isSetMDatasetIdList()) {
+      if (struct.isSetMColumnDatasetIdList()) {
         {
-          oprot.writeI32(struct.mDatasetIdList.size());
-          for (int _iter26 : struct.mDatasetIdList)
+          oprot.writeI32(struct.mColumnDatasetIdList.size());
+          for (int _iter26 : struct.mColumnDatasetIdList)
           {
             oprot.writeI32(_iter26);
           }
@@ -1041,15 +1041,15 @@ public class RawColumnDatasetInfo implements org.apache.thrift.TBase<RawColumnDa
       if (incoming.get(5)) {
         {
           org.apache.thrift.protocol.TList _list28 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, iprot.readI32());
-          struct.mDatasetIdList = new ArrayList<Integer>(_list28.size);
+          struct.mColumnDatasetIdList = new ArrayList<Integer>(_list28.size);
           for (int _i29 = 0; _i29 < _list28.size; ++_i29)
           {
             int _elem30; // required
             _elem30 = iprot.readI32();
-            struct.mDatasetIdList.add(_elem30);
+            struct.mColumnDatasetIdList.add(_elem30);
           }
         }
-        struct.setMDatasetIdListIsSet(true);
+        struct.setMColumnDatasetIdListIsSet(true);
       }
       if (incoming.get(6)) {
         {

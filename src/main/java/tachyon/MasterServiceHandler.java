@@ -56,6 +56,10 @@ public class MasterServiceHandler implements MasterService.Iface {
   private Map<Integer, DatasetInfo> mDatasets = new HashMap<Integer, DatasetInfo>();
   private Map<String, Integer> mDatasetPathToId = new HashMap<String, Integer>();
 
+  private Map<Integer, RawColumnDatasetInfo> mRawColumnDatasets = 
+      new HashMap<Integer, RawColumnDatasetInfo>();
+  private Map<String, Integer> mRawColumnDatasetPathToId = new HashMap<String, Integer>();
+
   private Map<Long, WorkerInfo> mWorkers = new HashMap<Long, WorkerInfo>();
   private Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
   private BlockingQueue<WorkerInfo> mLostWorkers = new ArrayBlockingQueue<WorkerInfo>(32);
@@ -221,36 +225,21 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_createRawColumnDataset(String datasetPath, int columns, int partitions)
-      throws DatasetAlreadyExistException, InvalidPathException, TException {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
-  public RawColumnDatasetInfo user_getRawColumnDatasetById(int datasetId)
-      throws DatasetDoesNotExistException, TException {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public RawColumnDatasetInfo user_getRawColumnDatasetByPath(String datasetPath)
-      throws DatasetDoesNotExistException, TException {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public int user_createDataset(String datasetPath, int partitions)
       throws DatasetAlreadyExistException, TException, InvalidPathException {
-    LOG.info("user_createDataset(): " + datasetPath);
+    return user_createDataset(datasetPath, partitions, false, -1);
+  }
+
+  public int user_createDataset(String datasetPath, int partitions, boolean isSubDataset,
+      int parentDatasetId) throws DatasetAlreadyExistException, TException, InvalidPathException {
+    String parameters = CommonUtils.parametersToString(datasetPath, partitions);
+    LOG.info("user_createDataset" + parameters);
 
     DatasetInfo dataset = null;
 
     synchronized (mDatasets) {
       if (mDatasetPathToId.containsKey(datasetPath)) {
-        LOG.info("user_createDataset(): " + datasetPath + " already exists.");
+        LOG.info(datasetPath + " already exists.");
         throw new DatasetAlreadyExistException("Dataset " + datasetPath + " already exists.");
       }
 
@@ -270,6 +259,8 @@ public class MasterServiceHandler implements MasterService.Iface {
       }
       dataset.setMCache(mWhiteList.inList(dataset.mPath));
       dataset.setMPin(mPinList.inList(dataset.mPath));
+      dataset.mIsSubDataset = isSubDataset;
+      dataset.mParentDatasetId = parentDatasetId;
 
       mMasterLogWriter.appendAndFlush(dataset);
 
@@ -284,6 +275,53 @@ public class MasterServiceHandler implements MasterService.Iface {
     }
 
     return dataset.mId;
+  }
+
+  @Override
+  public int user_createRawColumnDataset(String datasetPath, int columns, int partitions)
+      throws DatasetAlreadyExistException, InvalidPathException, TException {
+    String parameters = CommonUtils.parametersToString(datasetPath, columns, partitions);
+    LOG.info("user_createRawColumnDataset" + parameters);
+
+    RawColumnDatasetInfo rawColumnDataset = null;
+
+    synchronized (mDatasets) {
+      if (mDatasetPathToId.containsKey(datasetPath) 
+          || mRawColumnDatasetPathToId.containsKey(datasetPath)) {
+        LOG.info(datasetPath + " already exists.");
+        throw new DatasetAlreadyExistException("RawColumnDataset " + datasetPath + 
+            " already exists.");
+      }
+
+      rawColumnDataset = new RawColumnDatasetInfo();
+      rawColumnDataset.mId = mDatasetCounter.addAndGet(1);
+      rawColumnDataset.mPath = datasetPath;
+      rawColumnDataset.mColumns = columns;
+      rawColumnDataset.mNumOfPartitions = partitions;
+      rawColumnDataset.mColumnDatasetIdList = new ArrayList<Integer>(columns);
+      for (int k = 0; k < columns; k ++) {
+        rawColumnDataset.mColumnDatasetIdList.add(
+            user_createDataset(datasetPath + "/col_" + k, partitions, true, rawColumnDataset.mId));
+      }
+      rawColumnDataset.mPartitionList = new ArrayList<PartitionInfo>(partitions);
+      for (int k = 0; k < partitions; k ++) {
+        PartitionInfo partition = new PartitionInfo();
+        partition.mDatasetId = rawColumnDataset.mId;
+        partition.mPartitionId = k;
+        partition.mSizeBytes = -1;
+        partition.mLocations = new HashMap<Long, NetAddress>();
+        rawColumnDataset.mPartitionList.add(partition);
+      }
+
+      mMasterLogWriter.appendAndFlush(rawColumnDataset);
+
+      mRawColumnDatasetPathToId.put(datasetPath, rawColumnDataset.mId);
+      mRawColumnDatasets.put(rawColumnDataset.mId, rawColumnDataset);
+
+      LOG.info("user_createRawColumnDataset: RawColumnDataset Created: " + rawColumnDataset);
+    }
+
+    return rawColumnDataset.mId;
   }
 
   @Override
@@ -383,7 +421,52 @@ public class MasterServiceHandler implements MasterService.Iface {
       }
     }
 
-    LOG.info("user_getDatasetId(" + datasetPath + ") with DatasetId " + ret);
+    LOG.info("user_getDatasetId(" + datasetPath + ") returns DatasetId " + ret);
+    return ret;
+  }
+
+  @Override
+  public RawColumnDatasetInfo user_getRawColumnDatasetById(int datasetId)
+      throws DatasetDoesNotExistException, TException {
+    LOG.info("user_getRawColumnDatasetById: " + datasetId);
+    synchronized (mDatasets) {
+      RawColumnDatasetInfo ret = mRawColumnDatasets.get(datasetId);
+      if (ret == null) {
+        throw new DatasetDoesNotExistException("RawColumnDatasetId " + datasetId +
+            " does not exist.");
+      }
+      LOG.info("user_getRawColumnDatasetById: " + datasetId + " good return");
+      return ret;
+    }
+  }
+
+  @Override
+  public RawColumnDatasetInfo user_getRawColumnDatasetByPath(String datasetPath)
+      throws DatasetDoesNotExistException, TException {
+    LOG.info("user_getRawColumnDatasetByPath(" + datasetPath + ")");
+    synchronized (mDatasets) {
+      if (!mRawColumnDatasetPathToId.containsKey(datasetPath)) {
+        throw new DatasetDoesNotExistException("RawColumnDataset " + datasetPath + 
+            " does not exist.");
+      }
+
+      RawColumnDatasetInfo ret = mRawColumnDatasets.get(mRawColumnDatasetPathToId.get(datasetPath));
+      LOG.info("user_getRawColumnDatasetByPath(" + datasetPath + ") : " + ret);
+      return ret;
+    }
+  }
+
+  @Override
+  public int user_getRawColumnDatasetId(String datasetPath) throws TException {
+    LOG.info("user_getRawColumnDatasetId(" + datasetPath + ")");
+    int ret = 0;
+    synchronized (mDatasets) {
+      if (mRawColumnDatasetPathToId.containsKey(datasetPath)) {
+        ret = mDatasetPathToId.get(datasetPath);
+      }
+    }
+
+    LOG.info("user_getRawColumnDatasetId(" + datasetPath + ") returns DatasetId " + ret);
     return ret;
   }
 
@@ -478,12 +561,10 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void worker_addDoneRCDPartition(long workerId, int datasetId,
-      int partitionId, int partitionSizeBytes)
-          throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
-          TException {
+  public void worker_addRCDPartition(long workerId, int datasetId, int partitionId,
+      int partitionSizeBytes) throws PartitionDoesNotExistException,
+      SuspectedPartitionSizeException, TException {
     // TODO Auto-generated method stub
-
   }
 
   @Override
@@ -593,6 +674,11 @@ public class MasterServiceHandler implements MasterService.Iface {
           mIdPinList.add(dataset.mId);
         }
       }
+      for (RawColumnDatasetInfo dataset : mRawColumnDatasets.values()) {
+        checkpointWriter.appendAndFlush(dataset);
+        LOG.info(dataset.toString());
+        maxDatasetId = Math.max(maxDatasetId, dataset.mId);
+      }
       if (maxDatasetId != mDatasetCounter.get() && mDatasetCounter.get() != 0) {
         DatasetInfo tempDataset = new DatasetInfo();
         tempDataset.mId = - mDatasetCounter.get();
@@ -629,7 +715,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       while (reader.hasNext()) {
         Pair<LogEventType, Object> pair = reader.getNextDatasetInfo();
         switch (pair.getFirst()) {
-          case DatasetInfo:
+          case DatasetInfo: {
             DatasetInfo dataset = (DatasetInfo) pair.getSecond();
             if (Math.abs(dataset.mId) > mDatasetCounter.get()) {
               mDatasetCounter.set(Math.abs(dataset.mId));
@@ -644,9 +730,23 @@ public class MasterServiceHandler implements MasterService.Iface {
               mDatasetPathToId.remove(dataset.mPath);
             }
             break;
-          case RawColumnDatasetInfo:
-            // TODO
+          }
+          case RawColumnDatasetInfo: {
+            RawColumnDatasetInfo dataset = (RawColumnDatasetInfo) pair.getSecond();
+            if (Math.abs(dataset.mId) > mDatasetCounter.get()) {
+              mDatasetCounter.set(Math.abs(dataset.mId));
+            }
+
+            System.out.println("Putting " + dataset);
+            if (dataset.mId > 0) {
+              mRawColumnDatasets.put(dataset.mId, dataset);
+              mRawColumnDatasetPathToId.put(dataset.mPath, dataset.mId);
+            } else {
+              mRawColumnDatasets.remove(- dataset.mId);
+              mRawColumnDatasetPathToId.remove(dataset.mPath);
+            }
             break;
+          }
           case Unknown:
           default:
             CommonUtils.runtimeException("Corruptted info from " + fileName);

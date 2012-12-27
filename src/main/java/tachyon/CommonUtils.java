@@ -21,94 +21,11 @@ import org.slf4j.LoggerFactory;
 public class CommonUtils {
   private static final Logger LOG = LoggerFactory.getLogger(CommonUtils.class);
 
-  public static void sleep(long timeMs) {
-    try {
-      Thread.sleep(timeMs);
-    } catch (InterruptedException e) {
-      LOG.error(e.getMessage(), e);
+  public static String cleanPath(String path) {
+    while (path.endsWith("/")) {
+      path = path.substring(0, path.length() - 1);
     }
-  }
-
-  public static long getCurrentMs() {
-    return System.currentTimeMillis();
-  }
-
-  public static long getCurrentNs() {
-    return System.nanoTime();
-  }
-
-  public static String getLocalFilePath(String localFolder, long bigId) {
-    return localFolder + "/" + computeDatasetIdFromBigId(bigId) + "-" 
-        + computePartitionIdFromBigId(bigId);
-  }
-
-  public static void printTimeTakenMs(long startTimeMs, Logger logger, String message) {
-    logger.info(message + " took " + (getCurrentMs() - startTimeMs) + " ms.");
-  }
-
-  public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
-    logger.info(message + " took " + (getCurrentNs() - startTimeNs) + " ns.");
-  }
-
-  public static void printByteBuffer(Logger LOG, ByteBuffer buf) {
-    String tmp = "";
-    for (int k = 0; k < buf.limit() / 4; k ++) {
-      tmp += buf.getInt() + " ";
-    }
-
-    LOG.info(tmp);
-  }
-
-  public static void runtimeException(String msg) {
-    throw new RuntimeException(msg);
-  }
-
-  public static void runtimeException(Exception e) {
-    LOG.error(e.getMessage(), e);
-    throw new RuntimeException(e);
-  }
-
-  public static void illegalArgumentException(String msg) {
-    throw new IllegalArgumentException(msg);
-  }
-
-  public static void illegalArgumentException(Exception e) {
-    LOG.error(e.getMessage(), e);
-    throw new IllegalArgumentException(e);
-  }
-
-  public static int getDatasetIdFromFileName(String name) {
-    String[] p = name.split("-");
-    if (p.length != 2) {
-      throw new IllegalArgumentException("Wrong file name: " + name);
-    }
-    int datasetId;
-    try {
-      datasetId = Integer.parseInt(p[0]);
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Wrong file name: " + name);
-    }
-    return datasetId;
-  }
-
-  public static int getPartitionIdFromFileName(String name) {
-    String[] p = name.split("-");
-    if (p.length != 2) {
-      throw new IllegalArgumentException("Wrong file name: " + name);
-    }
-    int pId;
-    try {
-      pId = Integer.parseInt(p[1]);
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Wrong file name: " + name);
-    }
-    return pId;
-  }
-
-  public static long generateBigId(int datasetId, int partitionId) {
-    long ret = datasetId;
-    ret = (ret << 32) + partitionId; 
-    return ret;
+    return path;
   }
 
   public static int computeDatasetIdFromBigId(long bigId) {
@@ -128,6 +45,66 @@ public class CommonUtils {
   public static String convertMillisToDate(long Millis) {
     DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
     return formatter.format(new Date(Millis));
+  }
+
+  public static long generateBigId(int datasetId, int partitionId) {
+    long ret = datasetId;
+    ret = (ret << 32) + partitionId; 
+    return ret;
+  }
+
+  public static String getCurrentMemStatsInBytes() {
+    Runtime runtime = Runtime.getRuntime();
+    StringBuilder sb = new StringBuilder();
+    sb.append(" MaxMemory=").append((runtime.maxMemory())).append(" bytes");
+    sb.append(" TotalMemory=").append((runtime.totalMemory())).append(" bytes");
+    sb.append(" FreeMemory=").append((runtime.freeMemory())).append(" bytes");
+    sb.append(" UsedMemory=").append((runtime.totalMemory() - runtime.freeMemory())).append(" bytes");
+    return sb.toString();
+  }
+
+  public static String getCurrentMemStats() {
+    Runtime runtime = Runtime.getRuntime();
+    StringBuilder sb = new StringBuilder();
+    sb.append(" MaxMemory=").append(getSizeFromBytes(runtime.maxMemory()));
+    sb.append(" TotalMemory=").append(getSizeFromBytes(runtime.totalMemory()));
+    sb.append(" FreeMemory=").append(getSizeFromBytes(runtime.freeMemory()));
+    sb.append(" UsedMemory=").append(getSizeFromBytes(runtime.totalMemory() - runtime.freeMemory()));
+    return sb.toString();
+  }
+
+  public static String getCurrentMemStatsAfterGCs() {
+    for (int k = 0; k < 10; k ++) {
+      System.gc();
+    }
+    return getCurrentMemStats();
+  }
+
+  public static long getCurrentMs() {
+    return System.currentTimeMillis();
+  }
+
+  public static long getCurrentNs() {
+    return System.nanoTime();
+  }
+
+  public static int getDatasetIdFromFileName(String name) {
+    String[] p = name.split("-");
+    if (p.length != 2) {
+      throw new IllegalArgumentException("Wrong file name: " + name);
+    }
+    int datasetId;
+    try {
+      datasetId = Integer.parseInt(p[0]);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Wrong file name: " + name);
+    }
+    return datasetId;
+  }
+
+  public static String getLocalFilePath(String localFolder, long bigId) {
+    return localFolder + "/" + computeDatasetIdFromBigId(bigId) + "-" 
+        + computePartitionIdFromBigId(bigId);
   }
 
   public static int getKB(int bytes) {
@@ -167,6 +144,20 @@ public class CommonUtils {
     return ret;
   }
 
+  public static int getPartitionIdFromFileName(String name) {
+    String[] p = name.split("-");
+    if (p.length != 2) {
+      throw new IllegalArgumentException("Wrong file name: " + name);
+    }
+    int pId;
+    try {
+      pId = Integer.parseInt(p[1]);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Wrong file name: " + name);
+    }
+    return pId;
+  }
+
   public static String getSizeFromBytes(long bytes) {
     double ret = bytes;
     if (ret <= 1024 * 5) {
@@ -184,38 +175,59 @@ public class CommonUtils {
     return String.format("%.2f GB", ret);
   }
 
-  public static String getCurrentMemStatsInBytes() {
-    Runtime runtime = Runtime.getRuntime();
-    StringBuilder sb = new StringBuilder();
-    sb.append(" MaxMemory=").append((runtime.maxMemory())).append(" bytes");
-    sb.append(" TotalMemory=").append((runtime.totalMemory())).append(" bytes");
-    sb.append(" FreeMemory=").append((runtime.freeMemory())).append(" bytes");
-    sb.append(" UsedMemory=").append((runtime.totalMemory() - runtime.freeMemory())).append(" bytes");
+  public static void illegalArgumentException(String msg) {
+    throw new IllegalArgumentException(msg);
+  }
+
+  public static void illegalArgumentException(Exception e) {
+    LOG.error(e.getMessage(), e);
+    throw new IllegalArgumentException(e);
+  }
+
+  public static String parametersToString(Object ... objs) {
+    StringBuilder sb = new StringBuilder("(");
+    for (int k = 0; k < objs.length; k ++) {
+      if (k != 0) {
+        sb.append(", ");
+      }
+      sb.append(objs[k].toString());
+    }
+    sb.append(")");
     return sb.toString();
   }
 
-  public static String getCurrentMemStats() {
-    Runtime runtime = Runtime.getRuntime();
-    StringBuilder sb = new StringBuilder();
-    sb.append(" MaxMemory=").append(getSizeFromBytes(runtime.maxMemory()));
-    sb.append(" TotalMemory=").append(getSizeFromBytes(runtime.totalMemory()));
-    sb.append(" FreeMemory=").append(getSizeFromBytes(runtime.freeMemory()));
-    sb.append(" UsedMemory=").append(getSizeFromBytes(runtime.totalMemory() - runtime.freeMemory()));
-    return sb.toString();
+  public static void printByteBuffer(Logger LOG, ByteBuffer buf) {
+    String tmp = "";
+    for (int k = 0; k < buf.limit() / 4; k ++) {
+      tmp += buf.getInt() + " ";
+    }
+
+    LOG.info(tmp);
   }
 
-  public static String getCurrentMemStatsAfterGCs() {
-    for (int k = 0; k < 10; k ++) {
-      System.gc();
-    }
-    return getCurrentMemStats();
+  public static void printTimeTakenMs(long startTimeMs, Logger logger, String message) {
+    logger.info(message + " took " + (getCurrentMs() - startTimeMs) + " ms.");
   }
 
-  public static String cleanPath(String path) {
-    while (path.endsWith("/")) {
-      path = path.substring(0, path.length() - 1);
+  public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
+    logger.info(message + " took " + (getCurrentNs() - startTimeNs) + " ns.");
+  }
+
+  public static void runtimeException(String msg) {
+    throw new RuntimeException(msg);
+  }
+
+  public static void runtimeException(Exception e) {
+    LOG.error(e.getMessage(), e);
+    throw new RuntimeException(e);
+  }
+
+  public static void sleep(long timeMs) {
+    try {
+      Thread.sleep(timeMs);
+    } catch (InterruptedException e) {
+      LOG.error(e.getMessage(), e);
     }
-    return path;
   }
 
   public static String[] toStringArray(ArrayList<String> src) {

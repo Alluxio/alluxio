@@ -161,6 +161,12 @@ public class MasterClient {
         partitionSizeBytes);
   }
 
+  public synchronized void worker_addRCDPartition(long workerId, int datasetId, int partitionId,
+      int partitionSizeBytes) throws PartitionDoesNotExistException,
+      SuspectedPartitionSizeException, TException {
+    CLIENT.worker_addRCDPartition(workerId, datasetId, partitionId, partitionSizeBytes);
+  }
+
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
       List<Long> removedPartitionList) throws TException {
     return CLIENT.worker_heartbeat(workerId, usedBytes, removedPartitionList);

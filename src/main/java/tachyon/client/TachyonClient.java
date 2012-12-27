@@ -120,12 +120,10 @@ public class TachyonClient {
   }
 
   public synchronized boolean addDoneRCDPartition(int datasetId, int partitionId, int sizeBytes) {
-    // TODO Auto-generated method stub
-
     connectAndGetLocalWorker();
     if (mLocalWorkerClient != null) {
       try {
-        mLocalWorkerClient.addDoneRCDPartition(mUserId, datasetId, partitionId, sizeBytes);
+        mLocalWorkerClient.addDoneRCDPartition(datasetId, partitionId, sizeBytes);
         return true;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -134,7 +132,6 @@ public class TachyonClient {
       }
     }
     return false;
-    
   }
 
   // Lazy connection
@@ -252,11 +249,11 @@ public class TachyonClient {
     if (mUserHdfsTempFolder == null) {
       return null;
     }
-    
+
     if (mHdfsClient == null) {
       mHdfsClient = new HdfsClient();
     }
-    
+
     mHdfsClient.mkdirs(mUserHdfsTempFolder, null, true);
 
     return mUserHdfsTempFolder;
