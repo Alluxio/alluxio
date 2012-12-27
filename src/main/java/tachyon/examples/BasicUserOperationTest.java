@@ -24,7 +24,7 @@ public class BasicUserOperationTest {
 
   public static void createDataset() {
     long startTimeMs = CommonUtils.getCurrentMs();
-    int datasetId = sTachyonClient.createDataset(sDatasetPath, 5, "hdfs://");
+    int datasetId = sTachyonClient.createDataset(sDatasetPath, 5);
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createDataset with datasetId " + datasetId);
   }
 

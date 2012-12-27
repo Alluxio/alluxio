@@ -24,6 +24,7 @@ import tachyon.thrift.PartitionInfo;
 import tachyon.thrift.DatasetAlreadyExistException;
 import tachyon.thrift.DatasetDoesNotExistException;
 import tachyon.thrift.DatasetInfo;
+import tachyon.thrift.RawColumnDatasetInfo;
 import tachyon.thrift.SuspectedPartitionSizeException;
 
 /**
@@ -90,9 +91,14 @@ public class MasterClient {
     return mIsConnected;
   }
 
-  public synchronized int user_createDataset(String datasetPath, int partitions, String hdfsPath
-      ) throws DatasetAlreadyExistException, InvalidPathException, TException {
-    return CLIENT.user_createDataset(datasetPath, partitions, hdfsPath);
+  public synchronized int user_createDataset(String datasetPath, int partitions)
+      throws DatasetAlreadyExistException, InvalidPathException, TException {
+    return CLIENT.user_createDataset(datasetPath, partitions);
+  }
+
+  public synchronized int user_createRawColumnDataset(String datasetPath, int columns,
+      int partitions) throws DatasetAlreadyExistException, InvalidPathException, TException {
+    return CLIENT.user_createRawColumnDataset(datasetPath, columns, partitions);
   }
 
   public synchronized void user_deleteDataset(int datasetId)
@@ -124,6 +130,16 @@ public class MasterClient {
     return CLIENT.user_getDatasetById(datasetId);
   }
 
+  public synchronized RawColumnDatasetInfo user_getRawColumnDataset(String datasetPath)
+      throws DatasetDoesNotExistException, TException {
+    return CLIENT.user_getRawColumnDatasetByPath(datasetPath);
+  }
+
+  public synchronized RawColumnDatasetInfo user_getRawColumnDatasetInfo(int datasetId)
+      throws DatasetDoesNotExistException, TException {
+    return CLIENT.user_getRawColumnDatasetById(datasetId);
+  }
+
   public synchronized void user_outOfMemoryForPinDataset(int datasetId) throws TException {
     CLIENT.user_outOfMemoryForPinDataset(datasetId);
   }
@@ -139,10 +155,10 @@ public class MasterClient {
   }
 
   public synchronized void worker_addPartition(long workerId, long workerUsedBytes,
-      int datasetId, int partitionId, int partitionSizeBytes, String hdfsPath)
+      int datasetId, int partitionId, int partitionSizeBytes)
           throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
     CLIENT.worker_addPartition(workerId, workerUsedBytes, datasetId, partitionId,
-        partitionSizeBytes, hdfsPath);
+        partitionSizeBytes);
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,

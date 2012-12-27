@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,10 +17,12 @@ public class Users {
   private final Logger LOG = LoggerFactory.getLogger(Users.class);
 
   private final String USER_FOLDER;
+  private final String USER_HDFS_FOLDER;
   private final Map<Long, UserInfo> USERS;
 
-  public Users(String userfolder) {
+  public Users(String userfolder, String userHdfsFolder) {
     USER_FOLDER = userfolder;
+    USER_HDFS_FOLDER = userHdfsFolder;
 
     USERS = new HashMap<Long, UserInfo>();
   }
@@ -53,6 +56,10 @@ public class Users {
   public String getUserTempFolder(long userId) {
     return USER_FOLDER + "/" + userId;
   }
+  
+  public String getUserHdfsTempFolder(long userId) {
+    return USER_HDFS_FOLDER + "/" + userId;
+  }
 
   private long removeUser(long userId) {
     StringBuilder sb = new StringBuilder("Trying to cleanup user " + userId + " : ");
@@ -69,12 +76,17 @@ public class Users {
     } else {
       ret = tUser.getOwnBytes();
       String folder = getUserTempFolder(userId);
-      sb.append(" The user returns " + ret + " bytes. Remove the user's folder " + folder);
+      sb.append(" The user returns " + ret + " bytes. Remove the user's folder " + folder + " ;");
       try {
         FileUtils.deleteDirectory(new File(folder));
       } catch (IOException e) {
         CommonUtils.runtimeException(e);
       }
+
+      folder = getUserHdfsTempFolder(userId);
+      sb.append(" Also remove users HDFS folder " + folder);
+      HdfsClient tHdfsClient = new HdfsClient();
+      tHdfsClient.delete(new Path(folder), true);
     }
 
     LOG.info(sb.toString());

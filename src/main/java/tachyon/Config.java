@@ -42,6 +42,7 @@ public class Config {
   public static final int WORKER_WORKER_THREADS = 128;
   public static final int WORKER_PORT = 10000;
   public static final int WORKER_DATA_SERVER_PORT = 10001;
+  public static final String WORKER_HDFS_FOLDER = "/tachyon/workers";
 
   public static final int USER_FAILED_SPACE_REQUEST_LIMITS = 3;
   public static final String USER_TEMP_RELATIVE_FOLDER = "users";
@@ -53,6 +54,7 @@ public class Config {
   public static final int CONECTION_MAX_TRY = 3;
   public static final String HDFS_TEMP_FILE = "_temporary";
   public static final String HDFS_ADDRESS;
+  public static final String HDFS_DATA_FOLDER = "/tachyon/data";
 
   public static final ArrayList<String> WHITELIST = new ArrayList<String>();
   public static final ArrayList<String> PINLIST = new ArrayList<String>();

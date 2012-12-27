@@ -16,6 +16,7 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.fs.Path;
 
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
@@ -45,6 +46,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       new ArrayBlockingQueue<Long>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
   private File mDataFolder;
   private File mUserFolder;
+  private Path mHdfsWorkerFolder;
+  private HdfsClient mHdfsClient;
 
   private Users mUsers;
 
@@ -70,7 +73,9 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     mDataFolder = new File(dataFolder);
     mUserFolder = new File(mDataFolder.toString(), Config.USER_TEMP_RELATIVE_FOLDER);
     mWorkerInfo = new WorkerInfo(id, workerAddress, spaceLimitBytes);
-    mUsers = new Users(mUserFolder.toString());
+    mHdfsWorkerFolder = new Path(Config.HDFS_ADDRESS + "/" + Config.WORKER_HDFS_FOLDER + "/" + id);
+    mHdfsClient = new HdfsClient();
+    mUsers = new Users(mUserFolder.toString(), mHdfsWorkerFolder.toString());
 
     try {
       initializeWorkerInfo();
@@ -107,7 +112,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void addPartition(long userId, int datasetId, int partitionId, String hdfsPath)
+  public void addPartition(long userId, int datasetId, int partitionId, boolean writeThrough)
       throws PartitionDoesNotExistException, SuspectedPartitionSizeException, 
       PartitionAlreadyExistException, TException {
     File srcFile = new File(getUserTempFolder(userId) + "/" + datasetId + "-" + partitionId);
@@ -121,17 +126,25 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       CommonUtils.runtimeException("Failed to rename file from " + srcFile.getPath() +
           " to " + dstFile.getPath());
     }
+    if (writeThrough) {
+      String name = datasetId + "-" + partitionId;
+      String srcPath = getUserHdfsTempFolder(userId) + "/" + name;
+      String dstPath = Config.HDFS_ADDRESS + "/" + Config.HDFS_DATA_FOLDER + "/" + name;
+      if (!mHdfsClient.rename(srcPath, dstPath)) {
+        LOG.error("Failed to rename from " + srcPath + " to " + dstPath);
+      }
+    }
     addBigId(CommonUtils.generateBigId(datasetId, partitionId), fileSizeBytes);
     mUsers.addOwnBytes(userId, - fileSizeBytes);
     mMasterClient.worker_addPartition(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), datasetId,
-        partitionId, (int)fileSizeBytes, hdfsPath);
+        partitionId, (int)fileSizeBytes);
   }
 
   private void addFoundPartition(int datasetId, int partitionId, long fileSizeBytes)
       throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
     addBigId(CommonUtils.generateBigId(datasetId, partitionId), fileSizeBytes);
     mMasterClient.worker_addPartition(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), datasetId,
-        partitionId, (int)fileSizeBytes, "");
+        partitionId, (int)fileSizeBytes);
   }
 
   public void checkStatus() {
@@ -155,6 +168,13 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   public String getUserTempFolder(long userId) throws TException {
     String ret = mUsers.getUserTempFolder(userId);
     LOG.info("Return UserTempFolder for " + userId + " : " + ret);
+    return ret;
+  }
+
+  @Override
+  public String getUserHdfsTempFolder(long userId) throws TException {
+    String ret = mUsers.getUserHdfsTempFolder(userId);
+    LOG.info("Return UserHdfsTempFolder for " + userId + " : " + ret);
     return ret;
   }
 

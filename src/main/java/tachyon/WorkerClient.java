@@ -44,9 +44,9 @@ public class WorkerClient {
   }
 
   public synchronized void addPartition(long userId, int datasetId, int partitionId, 
-      String hdfs) 
+      boolean writeThrough) 
           throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
-    CLIENT.addPartition(userId, datasetId, partitionId, hdfs);
+    CLIENT.addPartition(userId, datasetId, partitionId, writeThrough);
   }
 
   public synchronized void close() {
@@ -62,6 +62,10 @@ public class WorkerClient {
 
   public synchronized String getUserTempFolder(long userId) throws TException {
     return CLIENT.getUserTempFolder(userId);
+  }
+
+  public synchronized String getUserHdfsTempFolder(long userId) throws TException {
+    return CLIENT.getUserHdfsTempFolder(userId);
   }
 
   public synchronized String getDataFolder() throws TException {

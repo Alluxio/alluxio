@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.LogEventType;
 import tachyon.thrift.MasterService;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoLocalWorkerException;
@@ -31,6 +32,7 @@ import tachyon.thrift.PartitionInfo;
 import tachyon.thrift.DatasetAlreadyExistException;
 import tachyon.thrift.DatasetDoesNotExistException;
 import tachyon.thrift.DatasetInfo;
+import tachyon.thrift.RawColumnDatasetInfo;
 import tachyon.thrift.SuspectedPartitionSizeException;
 
 /**
@@ -219,8 +221,29 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_createDataset(String datasetPath, int partitions, String hdfsPath
-      ) throws DatasetAlreadyExistException, TException, InvalidPathException {
+  public int user_createRawColumnDataset(String datasetPath, int columns, int partitions)
+      throws DatasetAlreadyExistException, InvalidPathException, TException {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  public RawColumnDatasetInfo user_getRawColumnDatasetById(int datasetId)
+      throws DatasetDoesNotExistException, TException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public RawColumnDatasetInfo user_getRawColumnDatasetByPath(String datasetPath)
+      throws DatasetDoesNotExistException, TException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public int user_createDataset(String datasetPath, int partitions)
+      throws DatasetAlreadyExistException, TException, InvalidPathException {
     LOG.info("user_createDataset(): " + datasetPath);
 
     DatasetInfo dataset = null;
@@ -233,13 +256,14 @@ public class MasterServiceHandler implements MasterService.Iface {
 
       dataset = new DatasetInfo();
       dataset.mId = mDatasetCounter.addAndGet(1);
-      dataset.mVersion = 1;
       dataset.mPath = datasetPath;
       dataset.mSizeBytes = 0;
       dataset.mNumOfPartitions = partitions;
       dataset.mPartitionList = new ArrayList<PartitionInfo>(partitions);
       for (int k = 0; k < partitions; k ++) {
         PartitionInfo partition = new PartitionInfo();
+        partition.mDatasetId = dataset.mId;
+        partition.mPartitionId = k;
         partition.mSizeBytes = -1;
         partition.mLocations = new HashMap<Long, NetAddress>();
         dataset.mPartitionList.add(partition);
@@ -374,18 +398,17 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void user_renameDataset(String srcDataset, String dstDataset)
+  public void user_renameDataset(String srcDatasetPath, String dstDatasetPath)
       throws DatasetDoesNotExistException, TException {
     synchronized (mDatasets) {
-      int datasetId = user_getDatasetId(srcDataset);
+      int datasetId = user_getDatasetId(srcDatasetPath);
       if (datasetId <= 0) {
-        throw new DatasetDoesNotExistException("Dataset " + srcDataset + " does not exist");
+        throw new DatasetDoesNotExistException("Dataset " + srcDatasetPath + " does not exist");
       }
-      mDatasetPathToId.remove(srcDataset);
-      mDatasetPathToId.put(dstDataset, datasetId);
+      mDatasetPathToId.remove(srcDatasetPath);
+      mDatasetPathToId.put(dstDatasetPath, datasetId);
       DatasetInfo datasetInfo = mDatasets.get(datasetId);
-      datasetInfo.mPath = dstDataset;
-      datasetInfo.mVersion ++;
+      datasetInfo.mPath = dstDatasetPath;
       mMasterLogWriter.appendAndFlush(datasetInfo);
     }
   }
@@ -411,10 +434,10 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public void worker_addPartition(long workerId, long workerUsedBytes, int datasetId,
-      int partitionId, int partitionSizeBytes, String hdfsPath)
+      int partitionId, int partitionSizeBytes)
           throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
     String info = "worker_addPartition(" + workerId + ", " + workerUsedBytes + ", " + datasetId +
-        ", " + partitionId + ", " + partitionSizeBytes + ", " + hdfsPath + ")";
+        ", " + partitionId + ", " + partitionSizeBytes + ")";
     LOG.info(info);
     WorkerInfo tWorkerInfo = null;
     synchronized (mWorkers) {
@@ -595,18 +618,29 @@ public class MasterServiceHandler implements MasterService.Iface {
     } else {
       reader = new MasterLogReader(fileName);
       while (reader.hasNext()) {
-        DatasetInfo dataset = reader.getNextDatasetInfo();
-        if (Math.abs(dataset.mId) > mDatasetCounter.get()) {
-          mDatasetCounter.set(Math.abs(dataset.mId));
-        }
+        Pair<LogEventType, Object> pair = reader.getNextDatasetInfo();
+        switch (pair.getFirst()) {
+          case DatasetInfo:
+            DatasetInfo dataset = (DatasetInfo) pair.getSecond();
+            if (Math.abs(dataset.mId) > mDatasetCounter.get()) {
+              mDatasetCounter.set(Math.abs(dataset.mId));
+            }
 
-        System.out.println("Putting " + dataset);
-        if (dataset.mId > 0) {
-          mDatasets.put(dataset.mId, dataset);
-          mDatasetPathToId.put(dataset.mPath, dataset.mId);
-        } else {
-          mDatasets.remove(- dataset.mId);
-          mDatasetPathToId.remove(dataset.mPath);
+            System.out.println("Putting " + dataset);
+            if (dataset.mId > 0) {
+              mDatasets.put(dataset.mId, dataset);
+              mDatasetPathToId.put(dataset.mPath, dataset.mId);
+            } else {
+              mDatasets.remove(- dataset.mId);
+              mDatasetPathToId.remove(dataset.mPath);
+            }
+            break;
+          case RawColumnDatasetInfo:
+            // TODO
+            break;
+          case Unknown:
+          default:
+            CommonUtils.runtimeException("Corruptted info from " + fileName);
         }
       }
     }
