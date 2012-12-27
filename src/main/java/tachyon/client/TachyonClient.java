@@ -119,10 +119,22 @@ public class TachyonClient {
     return false;
   }
 
-  public void addDoneRCDPartition(int mDatasetId, int mPartitionId,
-      int sizeBytes) {
+  public synchronized boolean addDoneRCDPartition(int datasetId, int partitionId, int sizeBytes) {
     // TODO Auto-generated method stub
 
+    connectAndGetLocalWorker();
+    if (mLocalWorkerClient != null) {
+      try {
+        mLocalWorkerClient.addDoneRCDPartition(mUserId, datasetId, partitionId, sizeBytes);
+        return true;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mLocalWorkerClient = null;
+        return false;
+      }
+    }
+    return false;
+    
   }
 
   // Lazy connection

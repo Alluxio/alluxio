@@ -90,6 +90,7 @@ service MasterService {
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i64> currentPartitionList) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedPartitionList)
   void worker_addPartition(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 datasetId, 4: i32 partitionId, 5: i32 partitionSizeBytes) throws (1: PartitionDoesNotExistException eP, 2: SuspectedPartitionSizeException eS)
+  void worker_addDoneRCDPartition(1: i64 workerId, 2: i32 datasetId, 3: i32 partitionId, 4: i32 partitionSizeBytes) throws (1: PartitionDoesNotExistException eP, 2: SuspectedPartitionSizeException eS)
   set<i32> worker_getPinList()
 
   // Services to Users
@@ -115,6 +116,7 @@ service MasterService {
 service WorkerService {
   void accessPartition(1: i32 datasetId, 2: i32 partitionId)
   void addPartition(1: i64 userId, 2: i32 datasetId, 3: i32 partitionId, 4: bool writeThrough) throws (1: PartitionDoesNotExistException eP, 2: SuspectedPartitionSizeException eS, 3: PartitionAlreadyExistException eA)
+  void addDoneRCDPartition(1: i64 userId, 2: i32 datasetId, 3: i32 partitionId, 4: i32 partitionSizeBytes) throws (1: PartitionDoesNotExistException eP, 2: SuspectedPartitionSizeException eS, 3: PartitionAlreadyExistException eA)
   string getDataFolder()
   string getUserTempFolder(1: i64 userId)
   string getUserHdfsTempFolder(1: i64 userId)

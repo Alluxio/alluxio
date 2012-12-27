@@ -478,6 +478,15 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public void worker_addDoneRCDPartition(long workerId, int datasetId,
+      int partitionId, int partitionSizeBytes)
+          throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
+          TException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
   public Set<Integer> worker_getPinList() throws TException {
     Set<Integer> ret = new HashSet<Integer>();
     synchronized (mIdPinList) {

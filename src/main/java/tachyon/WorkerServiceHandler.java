@@ -127,6 +127,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
           " to " + dstFile.getPath());
     }
     if (writeThrough) {
+      // TODO This part need to be changed.
       String name = datasetId + "-" + partitionId;
       String srcPath = getUserHdfsTempFolder(userId) + "/" + name;
       String dstPath = Config.HDFS_ADDRESS + "/" + Config.HDFS_DATA_FOLDER + "/" + name;
@@ -138,6 +139,15 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     mUsers.addOwnBytes(userId, - fileSizeBytes);
     mMasterClient.worker_addPartition(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), datasetId,
         partitionId, (int)fileSizeBytes);
+  }
+
+  @Override
+  public void addDoneRCDPartition(long userId, int datasetId, int partitionId,
+      int partitionSizeBytes) throws PartitionDoesNotExistException,
+      SuspectedPartitionSizeException, PartitionAlreadyExistException,
+      TException {
+    // TODO Auto-generated method stub
+
   }
 
   private void addFoundPartition(int datasetId, int partitionId, long fileSizeBytes)
