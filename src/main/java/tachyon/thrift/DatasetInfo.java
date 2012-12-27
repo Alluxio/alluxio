@@ -41,7 +41,7 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
   private static final org.apache.thrift.protocol.TField M_CACHE_FIELD_DESC = new org.apache.thrift.protocol.TField("mCache", org.apache.thrift.protocol.TType.BOOL, (short)6);
   private static final org.apache.thrift.protocol.TField M_PIN_FIELD_DESC = new org.apache.thrift.protocol.TField("mPin", org.apache.thrift.protocol.TType.BOOL, (short)7);
   private static final org.apache.thrift.protocol.TField M_IS_SUB_DATASET_FIELD_DESC = new org.apache.thrift.protocol.TField("mIsSubDataset", org.apache.thrift.protocol.TType.BOOL, (short)8);
-  private static final org.apache.thrift.protocol.TField M_PARENT_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mParentId", org.apache.thrift.protocol.TType.I32, (short)9);
+  private static final org.apache.thrift.protocol.TField M_PARENT_DATASET_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mParentDatasetId", org.apache.thrift.protocol.TType.I32, (short)9);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -57,7 +57,7 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
   public boolean mCache; // required
   public boolean mPin; // required
   public boolean mIsSubDataset; // required
-  public int mParentId; // required
+  public int mParentDatasetId; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -69,7 +69,7 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
     M_CACHE((short)6, "mCache"),
     M_PIN((short)7, "mPin"),
     M_IS_SUB_DATASET((short)8, "mIsSubDataset"),
-    M_PARENT_ID((short)9, "mParentId");
+    M_PARENT_DATASET_ID((short)9, "mParentDatasetId");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -100,8 +100,8 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
           return M_PIN;
         case 8: // M_IS_SUB_DATASET
           return M_IS_SUB_DATASET;
-        case 9: // M_PARENT_ID
-          return M_PARENT_ID;
+        case 9: // M_PARENT_DATASET_ID
+          return M_PARENT_DATASET_ID;
         default:
           return null;
       }
@@ -148,7 +148,7 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
   private static final int __MCACHE_ISSET_ID = 3;
   private static final int __MPIN_ISSET_ID = 4;
   private static final int __MISSUBDATASET_ISSET_ID = 5;
-  private static final int __MPARENTID_ISSET_ID = 6;
+  private static final int __MPARENTDATASETID_ISSET_ID = 6;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -170,7 +170,7 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.M_IS_SUB_DATASET, new org.apache.thrift.meta_data.FieldMetaData("mIsSubDataset", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.M_PARENT_ID, new org.apache.thrift.meta_data.FieldMetaData("mParentId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.M_PARENT_DATASET_ID, new org.apache.thrift.meta_data.FieldMetaData("mParentDatasetId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(DatasetInfo.class, metaDataMap);
@@ -188,7 +188,7 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
     boolean mCache,
     boolean mPin,
     boolean mIsSubDataset,
-    int mParentId)
+    int mParentDatasetId)
   {
     this();
     this.mId = mId;
@@ -205,8 +205,8 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
     setMPinIsSet(true);
     this.mIsSubDataset = mIsSubDataset;
     setMIsSubDatasetIsSet(true);
-    this.mParentId = mParentId;
-    setMParentIdIsSet(true);
+    this.mParentDatasetId = mParentDatasetId;
+    setMParentDatasetIdIsSet(true);
   }
 
   /**
@@ -230,7 +230,7 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
     this.mCache = other.mCache;
     this.mPin = other.mPin;
     this.mIsSubDataset = other.mIsSubDataset;
-    this.mParentId = other.mParentId;
+    this.mParentDatasetId = other.mParentDatasetId;
   }
 
   public DatasetInfo deepCopy() {
@@ -253,8 +253,8 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
     this.mPin = false;
     setMIsSubDatasetIsSet(false);
     this.mIsSubDataset = false;
-    setMParentIdIsSet(false);
-    this.mParentId = 0;
+    setMParentDatasetIdIsSet(false);
+    this.mParentDatasetId = 0;
   }
 
   public int getMId() {
@@ -458,27 +458,27 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MISSUBDATASET_ISSET_ID, value);
   }
 
-  public int getMParentId() {
-    return this.mParentId;
+  public int getMParentDatasetId() {
+    return this.mParentDatasetId;
   }
 
-  public DatasetInfo setMParentId(int mParentId) {
-    this.mParentId = mParentId;
-    setMParentIdIsSet(true);
+  public DatasetInfo setMParentDatasetId(int mParentDatasetId) {
+    this.mParentDatasetId = mParentDatasetId;
+    setMParentDatasetIdIsSet(true);
     return this;
   }
 
-  public void unsetMParentId() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MPARENTID_ISSET_ID);
+  public void unsetMParentDatasetId() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MPARENTDATASETID_ISSET_ID);
   }
 
-  /** Returns true if field mParentId is set (has been assigned a value) and false otherwise */
-  public boolean isSetMParentId() {
-    return EncodingUtils.testBit(__isset_bitfield, __MPARENTID_ISSET_ID);
+  /** Returns true if field mParentDatasetId is set (has been assigned a value) and false otherwise */
+  public boolean isSetMParentDatasetId() {
+    return EncodingUtils.testBit(__isset_bitfield, __MPARENTDATASETID_ISSET_ID);
   }
 
-  public void setMParentIdIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MPARENTID_ISSET_ID, value);
+  public void setMParentDatasetIdIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MPARENTDATASETID_ISSET_ID, value);
   }
 
   public void setFieldValue(_Fields field, Object value) {
@@ -547,11 +547,11 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
       }
       break;
 
-    case M_PARENT_ID:
+    case M_PARENT_DATASET_ID:
       if (value == null) {
-        unsetMParentId();
+        unsetMParentDatasetId();
       } else {
-        setMParentId((Integer)value);
+        setMParentDatasetId((Integer)value);
       }
       break;
 
@@ -584,8 +584,8 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
     case M_IS_SUB_DATASET:
       return Boolean.valueOf(isMIsSubDataset());
 
-    case M_PARENT_ID:
-      return Integer.valueOf(getMParentId());
+    case M_PARENT_DATASET_ID:
+      return Integer.valueOf(getMParentDatasetId());
 
     }
     throw new IllegalStateException();
@@ -614,8 +614,8 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
       return isSetMPin();
     case M_IS_SUB_DATASET:
       return isSetMIsSubDataset();
-    case M_PARENT_ID:
-      return isSetMParentId();
+    case M_PARENT_DATASET_ID:
+      return isSetMParentDatasetId();
     }
     throw new IllegalStateException();
   }
@@ -705,12 +705,12 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
         return false;
     }
 
-    boolean this_present_mParentId = true;
-    boolean that_present_mParentId = true;
-    if (this_present_mParentId || that_present_mParentId) {
-      if (!(this_present_mParentId && that_present_mParentId))
+    boolean this_present_mParentDatasetId = true;
+    boolean that_present_mParentDatasetId = true;
+    if (this_present_mParentDatasetId || that_present_mParentDatasetId) {
+      if (!(this_present_mParentDatasetId && that_present_mParentDatasetId))
         return false;
-      if (this.mParentId != that.mParentId)
+      if (this.mParentDatasetId != that.mParentDatasetId)
         return false;
     }
 
@@ -810,12 +810,12 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetMParentId()).compareTo(typedOther.isSetMParentId());
+    lastComparison = Boolean.valueOf(isSetMParentDatasetId()).compareTo(typedOther.isSetMParentDatasetId());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetMParentId()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mParentId, typedOther.mParentId);
+    if (isSetMParentDatasetId()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mParentDatasetId, typedOther.mParentDatasetId);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -880,8 +880,8 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
     sb.append(this.mIsSubDataset);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("mParentId:");
-    sb.append(this.mParentId);
+    sb.append("mParentDatasetId:");
+    sb.append(this.mParentDatasetId);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -1003,10 +1003,10 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 9: // M_PARENT_ID
+          case 9: // M_PARENT_DATASET_ID
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.mParentId = iprot.readI32();
-              struct.setMParentIdIsSet(true);
+              struct.mParentDatasetId = iprot.readI32();
+              struct.setMParentDatasetIdIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -1061,8 +1061,8 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
       oprot.writeFieldBegin(M_IS_SUB_DATASET_FIELD_DESC);
       oprot.writeBool(struct.mIsSubDataset);
       oprot.writeFieldEnd();
-      oprot.writeFieldBegin(M_PARENT_ID_FIELD_DESC);
-      oprot.writeI32(struct.mParentId);
+      oprot.writeFieldBegin(M_PARENT_DATASET_ID_FIELD_DESC);
+      oprot.writeI32(struct.mParentDatasetId);
       oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -1106,7 +1106,7 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
       if (struct.isSetMIsSubDataset()) {
         optionals.set(7);
       }
-      if (struct.isSetMParentId()) {
+      if (struct.isSetMParentDatasetId()) {
         optionals.set(8);
       }
       oprot.writeBitSet(optionals, 9);
@@ -1140,8 +1140,8 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
       if (struct.isSetMIsSubDataset()) {
         oprot.writeBool(struct.mIsSubDataset);
       }
-      if (struct.isSetMParentId()) {
-        oprot.writeI32(struct.mParentId);
+      if (struct.isSetMParentDatasetId()) {
+        oprot.writeI32(struct.mParentDatasetId);
       }
     }
 
@@ -1192,8 +1192,8 @@ public class DatasetInfo implements org.apache.thrift.TBase<DatasetInfo, Dataset
         struct.setMIsSubDatasetIsSet(true);
       }
       if (incoming.get(8)) {
-        struct.mParentId = iprot.readI32();
-        struct.setMParentIdIsSet(true);
+        struct.mParentDatasetId = iprot.readI32();
+        struct.setMParentDatasetIdIsSet(true);
       }
     }
   }

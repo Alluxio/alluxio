@@ -11,6 +11,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tachyon.thrift.PartitionAlreadyExistException;
 import tachyon.thrift.PartitionDoesNotExistException;
 import tachyon.thrift.SuspectedPartitionSizeException;
 import tachyon.thrift.WorkerService;
@@ -47,6 +48,13 @@ public class WorkerClient {
       boolean writeThrough) 
           throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
     CLIENT.addPartition(userId, datasetId, partitionId, writeThrough);
+  }
+
+  public synchronized void addDoneRCDPartition(int datasetId, int partitionId, 
+      int sizeBytes) throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
+      PartitionAlreadyExistException, TException {
+    CLIENT.addRCDPartition(datasetId, partitionId, sizeBytes);
+
   }
 
   public synchronized void close() {

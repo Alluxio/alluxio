@@ -17,7 +17,7 @@ public class RawColumnDataset {
   }
 
   public List<Integer> getColumnDatasetIds() {
-    return mRawColumnDatasetInfo.mDatasetIdList;
+    return mRawColumnDatasetInfo.mColumnDatasetIdList;
   }
 
   public RCDPartition getPartition(int pId) {
