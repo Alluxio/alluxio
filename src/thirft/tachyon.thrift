@@ -106,8 +106,10 @@ service MasterService {
   RawColumnDatasetInfo user_getRawColumnDatasetByPath(1: string datasetPath) throws (1: DatasetDoesNotExistException e) // Get Dataset info by path
   PartitionInfo user_getPartitionInfo(1: i32 datasetId, 2: i32 partitionId) throws (1: PartitionDoesNotExistException e)  // Get partition info.
   void user_deleteDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e) // Delete dataset
+  void user_deleteRawColumnDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e) // Delete dataset
   void user_unpinDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e)   // Remove dataset from memory
-  void user_renameDataset(1: string srcDataset, 2: string dstDataset) throws (1: DatasetDoesNotExistException e)
+  void user_renameDataset(1: string srcDatasetPath, 2: string dstDatasetPath) throws (1: DatasetDoesNotExistException e)
+  void user_renameRawColumnDataset(1: string srcDatasetPath, 2: string dstDatasetPath) throws (1: DatasetDoesNotExistException e)
   void user_outOfMemoryForPinDataset(1: i32 datasetId)
   
   // cmd to scripts
