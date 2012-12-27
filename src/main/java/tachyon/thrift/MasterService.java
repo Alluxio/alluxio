@@ -68,9 +68,13 @@ public class MasterService {
 
     public void user_deleteDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException;
 
+    public void user_deleteRawColumnDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException;
+
     public void user_unpinDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException;
 
-    public void user_renameDataset(String srcDataset, String dstDataset) throws DatasetDoesNotExistException, org.apache.thrift.TException;
+    public void user_renameDataset(String srcDatasetPath, String dstDatasetPath) throws DatasetDoesNotExistException, org.apache.thrift.TException;
+
+    public void user_renameRawColumnDataset(String srcDatasetPath, String dstDatasetPath) throws DatasetDoesNotExistException, org.apache.thrift.TException;
 
     public void user_outOfMemoryForPinDataset(int datasetId) throws org.apache.thrift.TException;
 
@@ -114,9 +118,13 @@ public class MasterService {
 
     public void user_deleteDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_deleteDataset_call> resultHandler) throws org.apache.thrift.TException;
 
+    public void user_deleteRawColumnDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_deleteRawColumnDataset_call> resultHandler) throws org.apache.thrift.TException;
+
     public void user_unpinDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_unpinDataset_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void user_renameDataset(String srcDataset, String dstDataset, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_renameDataset_call> resultHandler) throws org.apache.thrift.TException;
+    public void user_renameDataset(String srcDatasetPath, String dstDatasetPath, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_renameDataset_call> resultHandler) throws org.apache.thrift.TException;
+
+    public void user_renameRawColumnDataset(String srcDatasetPath, String dstDatasetPath, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_renameRawColumnDataset_call> resultHandler) throws org.apache.thrift.TException;
 
     public void user_outOfMemoryForPinDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_outOfMemoryForPinDataset_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -585,6 +593,29 @@ public class MasterService {
       return;
     }
 
+    public void user_deleteRawColumnDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException
+    {
+      send_user_deleteRawColumnDataset(datasetId);
+      recv_user_deleteRawColumnDataset();
+    }
+
+    public void send_user_deleteRawColumnDataset(int datasetId) throws org.apache.thrift.TException
+    {
+      user_deleteRawColumnDataset_args args = new user_deleteRawColumnDataset_args();
+      args.setDatasetId(datasetId);
+      sendBase("user_deleteRawColumnDataset", args);
+    }
+
+    public void recv_user_deleteRawColumnDataset() throws DatasetDoesNotExistException, org.apache.thrift.TException
+    {
+      user_deleteRawColumnDataset_result result = new user_deleteRawColumnDataset_result();
+      receiveBase(result, "user_deleteRawColumnDataset");
+      if (result.e != null) {
+        throw result.e;
+      }
+      return;
+    }
+
     public void user_unpinDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException
     {
       send_user_unpinDataset(datasetId);
@@ -608,17 +639,17 @@ public class MasterService {
       return;
     }
 
-    public void user_renameDataset(String srcDataset, String dstDataset) throws DatasetDoesNotExistException, org.apache.thrift.TException
+    public void user_renameDataset(String srcDatasetPath, String dstDatasetPath) throws DatasetDoesNotExistException, org.apache.thrift.TException
     {
-      send_user_renameDataset(srcDataset, dstDataset);
+      send_user_renameDataset(srcDatasetPath, dstDatasetPath);
       recv_user_renameDataset();
     }
 
-    public void send_user_renameDataset(String srcDataset, String dstDataset) throws org.apache.thrift.TException
+    public void send_user_renameDataset(String srcDatasetPath, String dstDatasetPath) throws org.apache.thrift.TException
     {
       user_renameDataset_args args = new user_renameDataset_args();
-      args.setSrcDataset(srcDataset);
-      args.setDstDataset(dstDataset);
+      args.setSrcDatasetPath(srcDatasetPath);
+      args.setDstDatasetPath(dstDatasetPath);
       sendBase("user_renameDataset", args);
     }
 
@@ -626,6 +657,30 @@ public class MasterService {
     {
       user_renameDataset_result result = new user_renameDataset_result();
       receiveBase(result, "user_renameDataset");
+      if (result.e != null) {
+        throw result.e;
+      }
+      return;
+    }
+
+    public void user_renameRawColumnDataset(String srcDatasetPath, String dstDatasetPath) throws DatasetDoesNotExistException, org.apache.thrift.TException
+    {
+      send_user_renameRawColumnDataset(srcDatasetPath, dstDatasetPath);
+      recv_user_renameRawColumnDataset();
+    }
+
+    public void send_user_renameRawColumnDataset(String srcDatasetPath, String dstDatasetPath) throws org.apache.thrift.TException
+    {
+      user_renameRawColumnDataset_args args = new user_renameRawColumnDataset_args();
+      args.setSrcDatasetPath(srcDatasetPath);
+      args.setDstDatasetPath(dstDatasetPath);
+      sendBase("user_renameRawColumnDataset", args);
+    }
+
+    public void recv_user_renameRawColumnDataset() throws DatasetDoesNotExistException, org.apache.thrift.TException
+    {
+      user_renameRawColumnDataset_result result = new user_renameRawColumnDataset_result();
+      receiveBase(result, "user_renameRawColumnDataset");
       if (result.e != null) {
         throw result.e;
       }
@@ -1279,6 +1334,38 @@ public class MasterService {
       }
     }
 
+    public void user_deleteRawColumnDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_deleteRawColumnDataset_call> resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      user_deleteRawColumnDataset_call method_call = new user_deleteRawColumnDataset_call(datasetId, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class user_deleteRawColumnDataset_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private int datasetId;
+      public user_deleteRawColumnDataset_call(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_deleteRawColumnDataset_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.datasetId = datasetId;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_deleteRawColumnDataset", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        user_deleteRawColumnDataset_args args = new user_deleteRawColumnDataset_args();
+        args.setDatasetId(datasetId);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public void getResult() throws DatasetDoesNotExistException, org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        (new Client(prot)).recv_user_deleteRawColumnDataset();
+      }
+    }
+
     public void user_unpinDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_unpinDataset_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
       user_unpinDataset_call method_call = new user_unpinDataset_call(datasetId, resultHandler, this, ___protocolFactory, ___transport);
@@ -1311,27 +1398,27 @@ public class MasterService {
       }
     }
 
-    public void user_renameDataset(String srcDataset, String dstDataset, org.apache.thrift.async.AsyncMethodCallback<user_renameDataset_call> resultHandler) throws org.apache.thrift.TException {
+    public void user_renameDataset(String srcDatasetPath, String dstDatasetPath, org.apache.thrift.async.AsyncMethodCallback<user_renameDataset_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_renameDataset_call method_call = new user_renameDataset_call(srcDataset, dstDataset, resultHandler, this, ___protocolFactory, ___transport);
+      user_renameDataset_call method_call = new user_renameDataset_call(srcDatasetPath, dstDatasetPath, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class user_renameDataset_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String srcDataset;
-      private String dstDataset;
-      public user_renameDataset_call(String srcDataset, String dstDataset, org.apache.thrift.async.AsyncMethodCallback<user_renameDataset_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private String srcDatasetPath;
+      private String dstDatasetPath;
+      public user_renameDataset_call(String srcDatasetPath, String dstDatasetPath, org.apache.thrift.async.AsyncMethodCallback<user_renameDataset_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.srcDataset = srcDataset;
-        this.dstDataset = dstDataset;
+        this.srcDatasetPath = srcDatasetPath;
+        this.dstDatasetPath = dstDatasetPath;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_renameDataset", org.apache.thrift.protocol.TMessageType.CALL, 0));
         user_renameDataset_args args = new user_renameDataset_args();
-        args.setSrcDataset(srcDataset);
-        args.setDstDataset(dstDataset);
+        args.setSrcDatasetPath(srcDatasetPath);
+        args.setDstDatasetPath(dstDatasetPath);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -1343,6 +1430,41 @@ public class MasterService {
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
         (new Client(prot)).recv_user_renameDataset();
+      }
+    }
+
+    public void user_renameRawColumnDataset(String srcDatasetPath, String dstDatasetPath, org.apache.thrift.async.AsyncMethodCallback<user_renameRawColumnDataset_call> resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      user_renameRawColumnDataset_call method_call = new user_renameRawColumnDataset_call(srcDatasetPath, dstDatasetPath, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class user_renameRawColumnDataset_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private String srcDatasetPath;
+      private String dstDatasetPath;
+      public user_renameRawColumnDataset_call(String srcDatasetPath, String dstDatasetPath, org.apache.thrift.async.AsyncMethodCallback<user_renameRawColumnDataset_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.srcDatasetPath = srcDatasetPath;
+        this.dstDatasetPath = dstDatasetPath;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_renameRawColumnDataset", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        user_renameRawColumnDataset_args args = new user_renameRawColumnDataset_args();
+        args.setSrcDatasetPath(srcDatasetPath);
+        args.setDstDatasetPath(dstDatasetPath);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public void getResult() throws DatasetDoesNotExistException, org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        (new Client(prot)).recv_user_renameRawColumnDataset();
       }
     }
 
@@ -1440,8 +1562,10 @@ public class MasterService {
       processMap.put("user_getRawColumnDatasetByPath", new user_getRawColumnDatasetByPath());
       processMap.put("user_getPartitionInfo", new user_getPartitionInfo());
       processMap.put("user_deleteDataset", new user_deleteDataset());
+      processMap.put("user_deleteRawColumnDataset", new user_deleteRawColumnDataset());
       processMap.put("user_unpinDataset", new user_unpinDataset());
       processMap.put("user_renameDataset", new user_renameDataset());
+      processMap.put("user_renameRawColumnDataset", new user_renameRawColumnDataset());
       processMap.put("user_outOfMemoryForPinDataset", new user_outOfMemoryForPinDataset());
       processMap.put("cmd_ls", new cmd_ls());
       return processMap;
@@ -1845,6 +1969,30 @@ public class MasterService {
       }
     }
 
+    public static class user_deleteRawColumnDataset<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_deleteRawColumnDataset_args> {
+      public user_deleteRawColumnDataset() {
+        super("user_deleteRawColumnDataset");
+      }
+
+      public user_deleteRawColumnDataset_args getEmptyArgsInstance() {
+        return new user_deleteRawColumnDataset_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public user_deleteRawColumnDataset_result getResult(I iface, user_deleteRawColumnDataset_args args) throws org.apache.thrift.TException {
+        user_deleteRawColumnDataset_result result = new user_deleteRawColumnDataset_result();
+        try {
+          iface.user_deleteRawColumnDataset(args.datasetId);
+        } catch (DatasetDoesNotExistException e) {
+          result.e = e;
+        }
+        return result;
+      }
+    }
+
     public static class user_unpinDataset<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_unpinDataset_args> {
       public user_unpinDataset() {
         super("user_unpinDataset");
@@ -1885,7 +2033,31 @@ public class MasterService {
       public user_renameDataset_result getResult(I iface, user_renameDataset_args args) throws org.apache.thrift.TException {
         user_renameDataset_result result = new user_renameDataset_result();
         try {
-          iface.user_renameDataset(args.srcDataset, args.dstDataset);
+          iface.user_renameDataset(args.srcDatasetPath, args.dstDatasetPath);
+        } catch (DatasetDoesNotExistException e) {
+          result.e = e;
+        }
+        return result;
+      }
+    }
+
+    public static class user_renameRawColumnDataset<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_renameRawColumnDataset_args> {
+      public user_renameRawColumnDataset() {
+        super("user_renameRawColumnDataset");
+      }
+
+      public user_renameRawColumnDataset_args getEmptyArgsInstance() {
+        return new user_renameRawColumnDataset_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public user_renameRawColumnDataset_result getResult(I iface, user_renameRawColumnDataset_args args) throws org.apache.thrift.TException {
+        user_renameRawColumnDataset_result result = new user_renameRawColumnDataset_result();
+        try {
+          iface.user_renameRawColumnDataset(args.srcDatasetPath, args.dstDatasetPath);
         } catch (DatasetDoesNotExistException e) {
           result.e = e;
         }
@@ -16695,6 +16867,714 @@ public class MasterService {
 
   }
 
+  public static class user_deleteRawColumnDataset_args implements org.apache.thrift.TBase<user_deleteRawColumnDataset_args, user_deleteRawColumnDataset_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_deleteRawColumnDataset_args");
+
+    private static final org.apache.thrift.protocol.TField DATASET_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("datasetId", org.apache.thrift.protocol.TType.I32, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new user_deleteRawColumnDataset_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_deleteRawColumnDataset_argsTupleSchemeFactory());
+    }
+
+    public int datasetId; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      DATASET_ID((short)1, "datasetId");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // DATASET_ID
+            return DATASET_ID;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    private static final int __DATASETID_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.DATASET_ID, new org.apache.thrift.meta_data.FieldMetaData("datasetId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_deleteRawColumnDataset_args.class, metaDataMap);
+    }
+
+    public user_deleteRawColumnDataset_args() {
+    }
+
+    public user_deleteRawColumnDataset_args(
+      int datasetId)
+    {
+      this();
+      this.datasetId = datasetId;
+      setDatasetIdIsSet(true);
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public user_deleteRawColumnDataset_args(user_deleteRawColumnDataset_args other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.datasetId = other.datasetId;
+    }
+
+    public user_deleteRawColumnDataset_args deepCopy() {
+      return new user_deleteRawColumnDataset_args(this);
+    }
+
+    @Override
+    public void clear() {
+      setDatasetIdIsSet(false);
+      this.datasetId = 0;
+    }
+
+    public int getDatasetId() {
+      return this.datasetId;
+    }
+
+    public user_deleteRawColumnDataset_args setDatasetId(int datasetId) {
+      this.datasetId = datasetId;
+      setDatasetIdIsSet(true);
+      return this;
+    }
+
+    public void unsetDatasetId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __DATASETID_ISSET_ID);
+    }
+
+    /** Returns true if field datasetId is set (has been assigned a value) and false otherwise */
+    public boolean isSetDatasetId() {
+      return EncodingUtils.testBit(__isset_bitfield, __DATASETID_ISSET_ID);
+    }
+
+    public void setDatasetIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __DATASETID_ISSET_ID, value);
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case DATASET_ID:
+        if (value == null) {
+          unsetDatasetId();
+        } else {
+          setDatasetId((Integer)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case DATASET_ID:
+        return Integer.valueOf(getDatasetId());
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case DATASET_ID:
+        return isSetDatasetId();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof user_deleteRawColumnDataset_args)
+        return this.equals((user_deleteRawColumnDataset_args)that);
+      return false;
+    }
+
+    public boolean equals(user_deleteRawColumnDataset_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_datasetId = true;
+      boolean that_present_datasetId = true;
+      if (this_present_datasetId || that_present_datasetId) {
+        if (!(this_present_datasetId && that_present_datasetId))
+          return false;
+        if (this.datasetId != that.datasetId)
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(user_deleteRawColumnDataset_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      user_deleteRawColumnDataset_args typedOther = (user_deleteRawColumnDataset_args)other;
+
+      lastComparison = Boolean.valueOf(isSetDatasetId()).compareTo(typedOther.isSetDatasetId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetDatasetId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.datasetId, typedOther.datasetId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("user_deleteRawColumnDataset_args(");
+      boolean first = true;
+
+      sb.append("datasetId:");
+      sb.append(this.datasetId);
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class user_deleteRawColumnDataset_argsStandardSchemeFactory implements SchemeFactory {
+      public user_deleteRawColumnDataset_argsStandardScheme getScheme() {
+        return new user_deleteRawColumnDataset_argsStandardScheme();
+      }
+    }
+
+    private static class user_deleteRawColumnDataset_argsStandardScheme extends StandardScheme<user_deleteRawColumnDataset_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_deleteRawColumnDataset_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // DATASET_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+                struct.datasetId = iprot.readI32();
+                struct.setDatasetIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_deleteRawColumnDataset_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(DATASET_ID_FIELD_DESC);
+        oprot.writeI32(struct.datasetId);
+        oprot.writeFieldEnd();
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class user_deleteRawColumnDataset_argsTupleSchemeFactory implements SchemeFactory {
+      public user_deleteRawColumnDataset_argsTupleScheme getScheme() {
+        return new user_deleteRawColumnDataset_argsTupleScheme();
+      }
+    }
+
+    private static class user_deleteRawColumnDataset_argsTupleScheme extends TupleScheme<user_deleteRawColumnDataset_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_deleteRawColumnDataset_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetDatasetId()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetDatasetId()) {
+          oprot.writeI32(struct.datasetId);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_deleteRawColumnDataset_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.datasetId = iprot.readI32();
+          struct.setDatasetIdIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class user_deleteRawColumnDataset_result implements org.apache.thrift.TBase<user_deleteRawColumnDataset_result, user_deleteRawColumnDataset_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_deleteRawColumnDataset_result");
+
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new user_deleteRawColumnDataset_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_deleteRawColumnDataset_resultTupleSchemeFactory());
+    }
+
+    public DatasetDoesNotExistException e; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      E((short)1, "e");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // E
+            return E;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_deleteRawColumnDataset_result.class, metaDataMap);
+    }
+
+    public user_deleteRawColumnDataset_result() {
+    }
+
+    public user_deleteRawColumnDataset_result(
+      DatasetDoesNotExistException e)
+    {
+      this();
+      this.e = e;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public user_deleteRawColumnDataset_result(user_deleteRawColumnDataset_result other) {
+      if (other.isSetE()) {
+        this.e = new DatasetDoesNotExistException(other.e);
+      }
+    }
+
+    public user_deleteRawColumnDataset_result deepCopy() {
+      return new user_deleteRawColumnDataset_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.e = null;
+    }
+
+    public DatasetDoesNotExistException getE() {
+      return this.e;
+    }
+
+    public user_deleteRawColumnDataset_result setE(DatasetDoesNotExistException e) {
+      this.e = e;
+      return this;
+    }
+
+    public void unsetE() {
+      this.e = null;
+    }
+
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
+    }
+
+    public void setEIsSet(boolean value) {
+      if (!value) {
+        this.e = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case E:
+        if (value == null) {
+          unsetE();
+        } else {
+          setE((DatasetDoesNotExistException)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case E:
+        return getE();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case E:
+        return isSetE();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof user_deleteRawColumnDataset_result)
+        return this.equals((user_deleteRawColumnDataset_result)that);
+      return false;
+    }
+
+    public boolean equals(user_deleteRawColumnDataset_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
+          return false;
+        if (!this.e.equals(that.e))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(user_deleteRawColumnDataset_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      user_deleteRawColumnDataset_result typedOther = (user_deleteRawColumnDataset_result)other;
+
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(typedOther.isSetE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, typedOther.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("user_deleteRawColumnDataset_result(");
+      boolean first = true;
+
+      sb.append("e:");
+      if (this.e == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.e);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class user_deleteRawColumnDataset_resultStandardSchemeFactory implements SchemeFactory {
+      public user_deleteRawColumnDataset_resultStandardScheme getScheme() {
+        return new user_deleteRawColumnDataset_resultStandardScheme();
+      }
+    }
+
+    private static class user_deleteRawColumnDataset_resultStandardScheme extends StandardScheme<user_deleteRawColumnDataset_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_deleteRawColumnDataset_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // E
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.e = new DatasetDoesNotExistException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_deleteRawColumnDataset_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class user_deleteRawColumnDataset_resultTupleSchemeFactory implements SchemeFactory {
+      public user_deleteRawColumnDataset_resultTupleScheme getScheme() {
+        return new user_deleteRawColumnDataset_resultTupleScheme();
+      }
+    }
+
+    private static class user_deleteRawColumnDataset_resultTupleScheme extends TupleScheme<user_deleteRawColumnDataset_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_deleteRawColumnDataset_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetE()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_deleteRawColumnDataset_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.e = new DatasetDoesNotExistException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
+        }
+      }
+    }
+
+  }
+
   public static class user_unpinDataset_args implements org.apache.thrift.TBase<user_unpinDataset_args, user_unpinDataset_args._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_unpinDataset_args");
 
@@ -17406,8 +18286,8 @@ public class MasterService {
   public static class user_renameDataset_args implements org.apache.thrift.TBase<user_renameDataset_args, user_renameDataset_args._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_renameDataset_args");
 
-    private static final org.apache.thrift.protocol.TField SRC_DATASET_FIELD_DESC = new org.apache.thrift.protocol.TField("srcDataset", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField DST_DATASET_FIELD_DESC = new org.apache.thrift.protocol.TField("dstDataset", org.apache.thrift.protocol.TType.STRING, (short)2);
+    private static final org.apache.thrift.protocol.TField SRC_DATASET_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("srcDatasetPath", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField DST_DATASET_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("dstDatasetPath", org.apache.thrift.protocol.TType.STRING, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -17415,13 +18295,13 @@ public class MasterService {
       schemes.put(TupleScheme.class, new user_renameDataset_argsTupleSchemeFactory());
     }
 
-    public String srcDataset; // required
-    public String dstDataset; // required
+    public String srcDatasetPath; // required
+    public String dstDatasetPath; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SRC_DATASET((short)1, "srcDataset"),
-      DST_DATASET((short)2, "dstDataset");
+      SRC_DATASET_PATH((short)1, "srcDatasetPath"),
+      DST_DATASET_PATH((short)2, "dstDatasetPath");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -17436,10 +18316,10 @@ public class MasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // SRC_DATASET
-            return SRC_DATASET;
-          case 2: // DST_DATASET
-            return DST_DATASET;
+          case 1: // SRC_DATASET_PATH
+            return SRC_DATASET_PATH;
+          case 2: // DST_DATASET_PATH
+            return DST_DATASET_PATH;
           default:
             return null;
         }
@@ -17483,9 +18363,9 @@ public class MasterService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SRC_DATASET, new org.apache.thrift.meta_data.FieldMetaData("srcDataset", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.SRC_DATASET_PATH, new org.apache.thrift.meta_data.FieldMetaData("srcDatasetPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.DST_DATASET, new org.apache.thrift.meta_data.FieldMetaData("dstDataset", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.DST_DATASET_PATH, new org.apache.thrift.meta_data.FieldMetaData("dstDatasetPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_renameDataset_args.class, metaDataMap);
@@ -17495,23 +18375,23 @@ public class MasterService {
     }
 
     public user_renameDataset_args(
-      String srcDataset,
-      String dstDataset)
+      String srcDatasetPath,
+      String dstDatasetPath)
     {
       this();
-      this.srcDataset = srcDataset;
-      this.dstDataset = dstDataset;
+      this.srcDatasetPath = srcDatasetPath;
+      this.dstDatasetPath = dstDatasetPath;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public user_renameDataset_args(user_renameDataset_args other) {
-      if (other.isSetSrcDataset()) {
-        this.srcDataset = other.srcDataset;
+      if (other.isSetSrcDatasetPath()) {
+        this.srcDatasetPath = other.srcDatasetPath;
       }
-      if (other.isSetDstDataset()) {
-        this.dstDataset = other.dstDataset;
+      if (other.isSetDstDatasetPath()) {
+        this.dstDatasetPath = other.dstDatasetPath;
       }
     }
 
@@ -17521,73 +18401,73 @@ public class MasterService {
 
     @Override
     public void clear() {
-      this.srcDataset = null;
-      this.dstDataset = null;
+      this.srcDatasetPath = null;
+      this.dstDatasetPath = null;
     }
 
-    public String getSrcDataset() {
-      return this.srcDataset;
+    public String getSrcDatasetPath() {
+      return this.srcDatasetPath;
     }
 
-    public user_renameDataset_args setSrcDataset(String srcDataset) {
-      this.srcDataset = srcDataset;
+    public user_renameDataset_args setSrcDatasetPath(String srcDatasetPath) {
+      this.srcDatasetPath = srcDatasetPath;
       return this;
     }
 
-    public void unsetSrcDataset() {
-      this.srcDataset = null;
+    public void unsetSrcDatasetPath() {
+      this.srcDatasetPath = null;
     }
 
-    /** Returns true if field srcDataset is set (has been assigned a value) and false otherwise */
-    public boolean isSetSrcDataset() {
-      return this.srcDataset != null;
+    /** Returns true if field srcDatasetPath is set (has been assigned a value) and false otherwise */
+    public boolean isSetSrcDatasetPath() {
+      return this.srcDatasetPath != null;
     }
 
-    public void setSrcDatasetIsSet(boolean value) {
+    public void setSrcDatasetPathIsSet(boolean value) {
       if (!value) {
-        this.srcDataset = null;
+        this.srcDatasetPath = null;
       }
     }
 
-    public String getDstDataset() {
-      return this.dstDataset;
+    public String getDstDatasetPath() {
+      return this.dstDatasetPath;
     }
 
-    public user_renameDataset_args setDstDataset(String dstDataset) {
-      this.dstDataset = dstDataset;
+    public user_renameDataset_args setDstDatasetPath(String dstDatasetPath) {
+      this.dstDatasetPath = dstDatasetPath;
       return this;
     }
 
-    public void unsetDstDataset() {
-      this.dstDataset = null;
+    public void unsetDstDatasetPath() {
+      this.dstDatasetPath = null;
     }
 
-    /** Returns true if field dstDataset is set (has been assigned a value) and false otherwise */
-    public boolean isSetDstDataset() {
-      return this.dstDataset != null;
+    /** Returns true if field dstDatasetPath is set (has been assigned a value) and false otherwise */
+    public boolean isSetDstDatasetPath() {
+      return this.dstDatasetPath != null;
     }
 
-    public void setDstDatasetIsSet(boolean value) {
+    public void setDstDatasetPathIsSet(boolean value) {
       if (!value) {
-        this.dstDataset = null;
+        this.dstDatasetPath = null;
       }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case SRC_DATASET:
+      case SRC_DATASET_PATH:
         if (value == null) {
-          unsetSrcDataset();
+          unsetSrcDatasetPath();
         } else {
-          setSrcDataset((String)value);
+          setSrcDatasetPath((String)value);
         }
         break;
 
-      case DST_DATASET:
+      case DST_DATASET_PATH:
         if (value == null) {
-          unsetDstDataset();
+          unsetDstDatasetPath();
         } else {
-          setDstDataset((String)value);
+          setDstDatasetPath((String)value);
         }
         break;
 
@@ -17596,11 +18476,11 @@ public class MasterService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case SRC_DATASET:
-        return getSrcDataset();
+      case SRC_DATASET_PATH:
+        return getSrcDatasetPath();
 
-      case DST_DATASET:
-        return getDstDataset();
+      case DST_DATASET_PATH:
+        return getDstDatasetPath();
 
       }
       throw new IllegalStateException();
@@ -17613,10 +18493,10 @@ public class MasterService {
       }
 
       switch (field) {
-      case SRC_DATASET:
-        return isSetSrcDataset();
-      case DST_DATASET:
-        return isSetDstDataset();
+      case SRC_DATASET_PATH:
+        return isSetSrcDatasetPath();
+      case DST_DATASET_PATH:
+        return isSetDstDatasetPath();
       }
       throw new IllegalStateException();
     }
@@ -17634,21 +18514,21 @@ public class MasterService {
       if (that == null)
         return false;
 
-      boolean this_present_srcDataset = true && this.isSetSrcDataset();
-      boolean that_present_srcDataset = true && that.isSetSrcDataset();
-      if (this_present_srcDataset || that_present_srcDataset) {
-        if (!(this_present_srcDataset && that_present_srcDataset))
+      boolean this_present_srcDatasetPath = true && this.isSetSrcDatasetPath();
+      boolean that_present_srcDatasetPath = true && that.isSetSrcDatasetPath();
+      if (this_present_srcDatasetPath || that_present_srcDatasetPath) {
+        if (!(this_present_srcDatasetPath && that_present_srcDatasetPath))
           return false;
-        if (!this.srcDataset.equals(that.srcDataset))
+        if (!this.srcDatasetPath.equals(that.srcDatasetPath))
           return false;
       }
 
-      boolean this_present_dstDataset = true && this.isSetDstDataset();
-      boolean that_present_dstDataset = true && that.isSetDstDataset();
-      if (this_present_dstDataset || that_present_dstDataset) {
-        if (!(this_present_dstDataset && that_present_dstDataset))
+      boolean this_present_dstDatasetPath = true && this.isSetDstDatasetPath();
+      boolean that_present_dstDatasetPath = true && that.isSetDstDatasetPath();
+      if (this_present_dstDatasetPath || that_present_dstDatasetPath) {
+        if (!(this_present_dstDatasetPath && that_present_dstDatasetPath))
           return false;
-        if (!this.dstDataset.equals(that.dstDataset))
+        if (!this.dstDatasetPath.equals(that.dstDatasetPath))
           return false;
       }
 
@@ -17668,22 +18548,22 @@ public class MasterService {
       int lastComparison = 0;
       user_renameDataset_args typedOther = (user_renameDataset_args)other;
 
-      lastComparison = Boolean.valueOf(isSetSrcDataset()).compareTo(typedOther.isSetSrcDataset());
+      lastComparison = Boolean.valueOf(isSetSrcDatasetPath()).compareTo(typedOther.isSetSrcDatasetPath());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetSrcDataset()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.srcDataset, typedOther.srcDataset);
+      if (isSetSrcDatasetPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.srcDatasetPath, typedOther.srcDatasetPath);
         if (lastComparison != 0) {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetDstDataset()).compareTo(typedOther.isSetDstDataset());
+      lastComparison = Boolean.valueOf(isSetDstDatasetPath()).compareTo(typedOther.isSetDstDatasetPath());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetDstDataset()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.dstDataset, typedOther.dstDataset);
+      if (isSetDstDatasetPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.dstDatasetPath, typedOther.dstDatasetPath);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -17708,19 +18588,19 @@ public class MasterService {
       StringBuilder sb = new StringBuilder("user_renameDataset_args(");
       boolean first = true;
 
-      sb.append("srcDataset:");
-      if (this.srcDataset == null) {
+      sb.append("srcDatasetPath:");
+      if (this.srcDatasetPath == null) {
         sb.append("null");
       } else {
-        sb.append(this.srcDataset);
+        sb.append(this.srcDatasetPath);
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("dstDataset:");
-      if (this.dstDataset == null) {
+      sb.append("dstDatasetPath:");
+      if (this.dstDatasetPath == null) {
         sb.append("null");
       } else {
-        sb.append(this.dstDataset);
+        sb.append(this.dstDatasetPath);
       }
       first = false;
       sb.append(")");
@@ -17766,18 +18646,18 @@ public class MasterService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // SRC_DATASET
+            case 1: // SRC_DATASET_PATH
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.srcDataset = iprot.readString();
-                struct.setSrcDatasetIsSet(true);
+                struct.srcDatasetPath = iprot.readString();
+                struct.setSrcDatasetPathIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // DST_DATASET
+            case 2: // DST_DATASET_PATH
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.dstDataset = iprot.readString();
-                struct.setDstDatasetIsSet(true);
+                struct.dstDatasetPath = iprot.readString();
+                struct.setDstDatasetPathIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -17797,14 +18677,14 @@ public class MasterService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.srcDataset != null) {
-          oprot.writeFieldBegin(SRC_DATASET_FIELD_DESC);
-          oprot.writeString(struct.srcDataset);
+        if (struct.srcDatasetPath != null) {
+          oprot.writeFieldBegin(SRC_DATASET_PATH_FIELD_DESC);
+          oprot.writeString(struct.srcDatasetPath);
           oprot.writeFieldEnd();
         }
-        if (struct.dstDataset != null) {
-          oprot.writeFieldBegin(DST_DATASET_FIELD_DESC);
-          oprot.writeString(struct.dstDataset);
+        if (struct.dstDatasetPath != null) {
+          oprot.writeFieldBegin(DST_DATASET_PATH_FIELD_DESC);
+          oprot.writeString(struct.dstDatasetPath);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -17825,18 +18705,18 @@ public class MasterService {
       public void write(org.apache.thrift.protocol.TProtocol prot, user_renameDataset_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetSrcDataset()) {
+        if (struct.isSetSrcDatasetPath()) {
           optionals.set(0);
         }
-        if (struct.isSetDstDataset()) {
+        if (struct.isSetDstDatasetPath()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
-        if (struct.isSetSrcDataset()) {
-          oprot.writeString(struct.srcDataset);
+        if (struct.isSetSrcDatasetPath()) {
+          oprot.writeString(struct.srcDatasetPath);
         }
-        if (struct.isSetDstDataset()) {
-          oprot.writeString(struct.dstDataset);
+        if (struct.isSetDstDatasetPath()) {
+          oprot.writeString(struct.dstDatasetPath);
         }
       }
 
@@ -17845,12 +18725,12 @@ public class MasterService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.srcDataset = iprot.readString();
-          struct.setSrcDatasetIsSet(true);
+          struct.srcDatasetPath = iprot.readString();
+          struct.setSrcDatasetPathIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.dstDataset = iprot.readString();
-          struct.setDstDatasetIsSet(true);
+          struct.dstDatasetPath = iprot.readString();
+          struct.setDstDatasetPathIsSet(true);
         }
       }
     }
@@ -18201,6 +19081,816 @@ public class MasterService {
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, user_renameDataset_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.e = new DatasetDoesNotExistException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class user_renameRawColumnDataset_args implements org.apache.thrift.TBase<user_renameRawColumnDataset_args, user_renameRawColumnDataset_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_renameRawColumnDataset_args");
+
+    private static final org.apache.thrift.protocol.TField SRC_DATASET_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("srcDatasetPath", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField DST_DATASET_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("dstDatasetPath", org.apache.thrift.protocol.TType.STRING, (short)2);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new user_renameRawColumnDataset_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_renameRawColumnDataset_argsTupleSchemeFactory());
+    }
+
+    public String srcDatasetPath; // required
+    public String dstDatasetPath; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SRC_DATASET_PATH((short)1, "srcDatasetPath"),
+      DST_DATASET_PATH((short)2, "dstDatasetPath");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // SRC_DATASET_PATH
+            return SRC_DATASET_PATH;
+          case 2: // DST_DATASET_PATH
+            return DST_DATASET_PATH;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SRC_DATASET_PATH, new org.apache.thrift.meta_data.FieldMetaData("srcDatasetPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.DST_DATASET_PATH, new org.apache.thrift.meta_data.FieldMetaData("dstDatasetPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_renameRawColumnDataset_args.class, metaDataMap);
+    }
+
+    public user_renameRawColumnDataset_args() {
+    }
+
+    public user_renameRawColumnDataset_args(
+      String srcDatasetPath,
+      String dstDatasetPath)
+    {
+      this();
+      this.srcDatasetPath = srcDatasetPath;
+      this.dstDatasetPath = dstDatasetPath;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public user_renameRawColumnDataset_args(user_renameRawColumnDataset_args other) {
+      if (other.isSetSrcDatasetPath()) {
+        this.srcDatasetPath = other.srcDatasetPath;
+      }
+      if (other.isSetDstDatasetPath()) {
+        this.dstDatasetPath = other.dstDatasetPath;
+      }
+    }
+
+    public user_renameRawColumnDataset_args deepCopy() {
+      return new user_renameRawColumnDataset_args(this);
+    }
+
+    @Override
+    public void clear() {
+      this.srcDatasetPath = null;
+      this.dstDatasetPath = null;
+    }
+
+    public String getSrcDatasetPath() {
+      return this.srcDatasetPath;
+    }
+
+    public user_renameRawColumnDataset_args setSrcDatasetPath(String srcDatasetPath) {
+      this.srcDatasetPath = srcDatasetPath;
+      return this;
+    }
+
+    public void unsetSrcDatasetPath() {
+      this.srcDatasetPath = null;
+    }
+
+    /** Returns true if field srcDatasetPath is set (has been assigned a value) and false otherwise */
+    public boolean isSetSrcDatasetPath() {
+      return this.srcDatasetPath != null;
+    }
+
+    public void setSrcDatasetPathIsSet(boolean value) {
+      if (!value) {
+        this.srcDatasetPath = null;
+      }
+    }
+
+    public String getDstDatasetPath() {
+      return this.dstDatasetPath;
+    }
+
+    public user_renameRawColumnDataset_args setDstDatasetPath(String dstDatasetPath) {
+      this.dstDatasetPath = dstDatasetPath;
+      return this;
+    }
+
+    public void unsetDstDatasetPath() {
+      this.dstDatasetPath = null;
+    }
+
+    /** Returns true if field dstDatasetPath is set (has been assigned a value) and false otherwise */
+    public boolean isSetDstDatasetPath() {
+      return this.dstDatasetPath != null;
+    }
+
+    public void setDstDatasetPathIsSet(boolean value) {
+      if (!value) {
+        this.dstDatasetPath = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SRC_DATASET_PATH:
+        if (value == null) {
+          unsetSrcDatasetPath();
+        } else {
+          setSrcDatasetPath((String)value);
+        }
+        break;
+
+      case DST_DATASET_PATH:
+        if (value == null) {
+          unsetDstDatasetPath();
+        } else {
+          setDstDatasetPath((String)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SRC_DATASET_PATH:
+        return getSrcDatasetPath();
+
+      case DST_DATASET_PATH:
+        return getDstDatasetPath();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SRC_DATASET_PATH:
+        return isSetSrcDatasetPath();
+      case DST_DATASET_PATH:
+        return isSetDstDatasetPath();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof user_renameRawColumnDataset_args)
+        return this.equals((user_renameRawColumnDataset_args)that);
+      return false;
+    }
+
+    public boolean equals(user_renameRawColumnDataset_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_srcDatasetPath = true && this.isSetSrcDatasetPath();
+      boolean that_present_srcDatasetPath = true && that.isSetSrcDatasetPath();
+      if (this_present_srcDatasetPath || that_present_srcDatasetPath) {
+        if (!(this_present_srcDatasetPath && that_present_srcDatasetPath))
+          return false;
+        if (!this.srcDatasetPath.equals(that.srcDatasetPath))
+          return false;
+      }
+
+      boolean this_present_dstDatasetPath = true && this.isSetDstDatasetPath();
+      boolean that_present_dstDatasetPath = true && that.isSetDstDatasetPath();
+      if (this_present_dstDatasetPath || that_present_dstDatasetPath) {
+        if (!(this_present_dstDatasetPath && that_present_dstDatasetPath))
+          return false;
+        if (!this.dstDatasetPath.equals(that.dstDatasetPath))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(user_renameRawColumnDataset_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      user_renameRawColumnDataset_args typedOther = (user_renameRawColumnDataset_args)other;
+
+      lastComparison = Boolean.valueOf(isSetSrcDatasetPath()).compareTo(typedOther.isSetSrcDatasetPath());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSrcDatasetPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.srcDatasetPath, typedOther.srcDatasetPath);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetDstDatasetPath()).compareTo(typedOther.isSetDstDatasetPath());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetDstDatasetPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.dstDatasetPath, typedOther.dstDatasetPath);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("user_renameRawColumnDataset_args(");
+      boolean first = true;
+
+      sb.append("srcDatasetPath:");
+      if (this.srcDatasetPath == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.srcDatasetPath);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("dstDatasetPath:");
+      if (this.dstDatasetPath == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.dstDatasetPath);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class user_renameRawColumnDataset_argsStandardSchemeFactory implements SchemeFactory {
+      public user_renameRawColumnDataset_argsStandardScheme getScheme() {
+        return new user_renameRawColumnDataset_argsStandardScheme();
+      }
+    }
+
+    private static class user_renameRawColumnDataset_argsStandardScheme extends StandardScheme<user_renameRawColumnDataset_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_renameRawColumnDataset_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // SRC_DATASET_PATH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.srcDatasetPath = iprot.readString();
+                struct.setSrcDatasetPathIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // DST_DATASET_PATH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.dstDatasetPath = iprot.readString();
+                struct.setDstDatasetPathIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_renameRawColumnDataset_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.srcDatasetPath != null) {
+          oprot.writeFieldBegin(SRC_DATASET_PATH_FIELD_DESC);
+          oprot.writeString(struct.srcDatasetPath);
+          oprot.writeFieldEnd();
+        }
+        if (struct.dstDatasetPath != null) {
+          oprot.writeFieldBegin(DST_DATASET_PATH_FIELD_DESC);
+          oprot.writeString(struct.dstDatasetPath);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class user_renameRawColumnDataset_argsTupleSchemeFactory implements SchemeFactory {
+      public user_renameRawColumnDataset_argsTupleScheme getScheme() {
+        return new user_renameRawColumnDataset_argsTupleScheme();
+      }
+    }
+
+    private static class user_renameRawColumnDataset_argsTupleScheme extends TupleScheme<user_renameRawColumnDataset_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_renameRawColumnDataset_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSrcDatasetPath()) {
+          optionals.set(0);
+        }
+        if (struct.isSetDstDatasetPath()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSrcDatasetPath()) {
+          oprot.writeString(struct.srcDatasetPath);
+        }
+        if (struct.isSetDstDatasetPath()) {
+          oprot.writeString(struct.dstDatasetPath);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_renameRawColumnDataset_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.srcDatasetPath = iprot.readString();
+          struct.setSrcDatasetPathIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.dstDatasetPath = iprot.readString();
+          struct.setDstDatasetPathIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class user_renameRawColumnDataset_result implements org.apache.thrift.TBase<user_renameRawColumnDataset_result, user_renameRawColumnDataset_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_renameRawColumnDataset_result");
+
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new user_renameRawColumnDataset_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_renameRawColumnDataset_resultTupleSchemeFactory());
+    }
+
+    public DatasetDoesNotExistException e; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      E((short)1, "e");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // E
+            return E;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_renameRawColumnDataset_result.class, metaDataMap);
+    }
+
+    public user_renameRawColumnDataset_result() {
+    }
+
+    public user_renameRawColumnDataset_result(
+      DatasetDoesNotExistException e)
+    {
+      this();
+      this.e = e;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public user_renameRawColumnDataset_result(user_renameRawColumnDataset_result other) {
+      if (other.isSetE()) {
+        this.e = new DatasetDoesNotExistException(other.e);
+      }
+    }
+
+    public user_renameRawColumnDataset_result deepCopy() {
+      return new user_renameRawColumnDataset_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.e = null;
+    }
+
+    public DatasetDoesNotExistException getE() {
+      return this.e;
+    }
+
+    public user_renameRawColumnDataset_result setE(DatasetDoesNotExistException e) {
+      this.e = e;
+      return this;
+    }
+
+    public void unsetE() {
+      this.e = null;
+    }
+
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
+    }
+
+    public void setEIsSet(boolean value) {
+      if (!value) {
+        this.e = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case E:
+        if (value == null) {
+          unsetE();
+        } else {
+          setE((DatasetDoesNotExistException)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case E:
+        return getE();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case E:
+        return isSetE();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof user_renameRawColumnDataset_result)
+        return this.equals((user_renameRawColumnDataset_result)that);
+      return false;
+    }
+
+    public boolean equals(user_renameRawColumnDataset_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
+          return false;
+        if (!this.e.equals(that.e))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(user_renameRawColumnDataset_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      user_renameRawColumnDataset_result typedOther = (user_renameRawColumnDataset_result)other;
+
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(typedOther.isSetE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, typedOther.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("user_renameRawColumnDataset_result(");
+      boolean first = true;
+
+      sb.append("e:");
+      if (this.e == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.e);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class user_renameRawColumnDataset_resultStandardSchemeFactory implements SchemeFactory {
+      public user_renameRawColumnDataset_resultStandardScheme getScheme() {
+        return new user_renameRawColumnDataset_resultStandardScheme();
+      }
+    }
+
+    private static class user_renameRawColumnDataset_resultStandardScheme extends StandardScheme<user_renameRawColumnDataset_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_renameRawColumnDataset_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // E
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.e = new DatasetDoesNotExistException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_renameRawColumnDataset_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class user_renameRawColumnDataset_resultTupleSchemeFactory implements SchemeFactory {
+      public user_renameRawColumnDataset_resultTupleScheme getScheme() {
+        return new user_renameRawColumnDataset_resultTupleScheme();
+      }
+    }
+
+    private static class user_renameRawColumnDataset_resultTupleScheme extends TupleScheme<user_renameRawColumnDataset_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_renameRawColumnDataset_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetE()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_renameRawColumnDataset_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
