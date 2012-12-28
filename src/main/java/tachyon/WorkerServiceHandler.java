@@ -74,7 +74,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     mUserFolder = new File(mDataFolder.toString(), Config.USER_TEMP_RELATIVE_FOLDER);
     mWorkerInfo = new WorkerInfo(id, workerAddress, spaceLimitBytes);
     mHdfsWorkerFolder = new Path(Config.HDFS_ADDRESS + "/" + Config.WORKER_HDFS_FOLDER + "/" + id);
-    mHdfsClient = new HdfsClient();
+    mHdfsClient = new HdfsClient(Config.HDFS_ADDRESS);
     mUsers = new Users(mUserFolder.toString(), mHdfsWorkerFolder.toString());
 
     try {
@@ -130,7 +130,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       // TODO This part need to be changed.
       String name = datasetId + "-" + partitionId;
       String srcPath = getUserHdfsTempFolder(userId) + "/" + name;
-      String dstPath = Config.HDFS_ADDRESS + "/" + Config.HDFS_DATA_FOLDER + "/" + name;
+      String dstPath = Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" + name;
+      mHdfsClient.mkdirs(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" , null, true);
       if (!mHdfsClient.rename(srcPath, dstPath)) {
         LOG.error("Failed to rename from " + srcPath + " to " + dstPath);
       }

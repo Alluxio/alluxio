@@ -19,9 +19,11 @@ public class HdfsClient {
 
   private FileSystem mFs;
 
-  public HdfsClient() {
+  public HdfsClient(String fsDefaultName) {
     try {
-      mFs = FileSystem.get(new Configuration());
+      Configuration tConf = new Configuration();
+      tConf.set("fs.default.name", fsDefaultName);
+      mFs = FileSystem.get(tConf);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
@@ -99,7 +101,7 @@ public class HdfsClient {
     CommonUtils.runtimeException(te);
     return false;
   }
-  
+
   public boolean rename(String src, String dst) {
     IOException te = null;
     int cnt = 0;

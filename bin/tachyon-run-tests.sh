@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-Usage="Usage: tachyon-run-tests.sh <Basic>"
+Usage="Usage: tachyon-run-tests.sh <BasicDataset/BasicRawColumnDataset>"
 
 if [ "$#" -ne 1 ]; then
   echo $Usage
@@ -21,4 +21,12 @@ if [ -z $TACHYON_MASTER_ADDRESS ] ; then
   MASTER_ADDRESS=localhost
 fi
 
-java -cp $TACHYON_JAR tachyon.examples.BasicUserOperationTest $MASTER_ADDRESS /BasicTestRdd
+if [[ "$1" == "BasicDataset" ]]; then
+  java -cp $TACHYON_JAR tachyon.examples.BasicUserOperationTest $MASTER_ADDRESS /BasicDataset
+  exit 0
+elif [[ "$1" == "BasicRawColumnDataset" ]]; then
+  java -cp $TACHYON_JAR tachyon.examples.BasicRawColumnDatasetTest $MASTER_ADDRESS /BasicRawColumnDataset
+  exit 0
+fi
+
+echo $Usage
