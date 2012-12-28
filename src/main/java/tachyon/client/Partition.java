@@ -178,8 +178,8 @@ public class Partition {
           mTachyonClient.releaseSpace(mSizeBytes);
         } else {
           if (mWriteThrough) {
-            HdfsClient tHdfsClient = new HdfsClient();
-            String hdfsFolder = mTachyonClient.createAndGetUserHDFSTempFolder(tHdfsClient);
+            String hdfsFolder = mTachyonClient.createAndGetUserHDFSTempFolder();
+            HdfsClient tHdfsClient = new HdfsClient(hdfsFolder);
             tHdfsClient.copyFromLocalFile(false, true, mFilePath,
                 hdfsFolder + "/" + mDatasetId + "-" + mPartitionId);
           }
@@ -227,6 +227,7 @@ public class Partition {
       mRead = true;
     } else if (wr.equals("w")) {
       mRead = false;
+      mWriteThrough = writeThrough;
     } else {
       CommonUtils.runtimeException("Wrong option to open a partition: " + wr);
     }

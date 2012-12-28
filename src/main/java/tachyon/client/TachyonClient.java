@@ -243,7 +243,7 @@ public class TachyonClient {
     return ret;
   }
 
-  public synchronized String createAndGetUserHDFSTempFolder(HdfsClient hdfsClient) {
+  public synchronized String createAndGetUserHDFSTempFolder() {
     connectAndGetLocalWorker();
 
     if (mUserHdfsTempFolder == null) {
@@ -251,7 +251,7 @@ public class TachyonClient {
     }
 
     if (mHdfsClient == null) {
-      mHdfsClient = new HdfsClient();
+      mHdfsClient = new HdfsClient(mUserHdfsTempFolder);
     }
 
     mHdfsClient.mkdirs(mUserHdfsTempFolder, null, true);

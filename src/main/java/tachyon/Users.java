@@ -85,7 +85,7 @@ public class Users {
 
       folder = getUserHdfsTempFolder(userId);
       sb.append(" Also remove users HDFS folder " + folder);
-      HdfsClient tHdfsClient = new HdfsClient();
+      HdfsClient tHdfsClient = new HdfsClient(Config.HDFS_ADDRESS);
       tHdfsClient.delete(new Path(folder), true);
     }
 

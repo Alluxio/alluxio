@@ -8,7 +8,6 @@ import java.util.ArrayList;
 
 import tachyon.CommonUtils;
 import tachyon.thrift.OutOfMemoryForPinDatasetException;
-import tachyon.thrift.PartitionInfo;
 
 /**
  * RawColumnDatasetPartition
@@ -22,7 +21,6 @@ public class RCDPartition {
 
   private ArrayList<Partition> mColumnPartitions = new ArrayList<Partition>();
 
-  private PartitionInfo mPartitionInfo;
   private boolean mOpen = false;
   private boolean mRead;
   private boolean mWriteThrough;
@@ -50,10 +48,10 @@ public class RCDPartition {
       CommonUtils.runtimeException("Wrong option to open a partition: " + wr);
     }
 
-    for (int k = 0; k < mColumnPartitions.size(); k ++) {
+    for (int k = 0; k < mRawColumnDataset.getNumColumns(); k ++) {
       Dataset tDataset = mTachyonClient.getDataset(mRawColumnDataset.getColumnDatasetIds().get(k));
-      Partition tPartition = tDataset.getPartition(k);
-      tPartition.open(wr, writeThrough);
+      Partition tPartition = tDataset.getPartition(mPartitionId);
+      tPartition.open(wr, mWriteThrough);
       mColumnPartitions.add(tPartition);
     }
 
@@ -79,6 +77,17 @@ public class RCDPartition {
     mColumnPartitions.get(columnId).append(buf, off, len);
   }
 
+  public void append(int columnId, ByteBuffer buf) throws IOException, OutOfMemoryForPinDatasetException {
+    append(columnId, buf.array(), buf.position(), buf.limit() - buf.position());
+  }
+
+  public void append(int columnId, ArrayList<ByteBuffer> bufs) 
+      throws IOException, OutOfMemoryForPinDatasetException {
+    for (int k = 0; k < bufs.size(); k ++) {
+      append(columnId, bufs.get(k));
+    }
+  }
+
   public void close() {
     if (! mOpen) {
       return;
@@ -89,7 +98,7 @@ public class RCDPartition {
       mColumnPartitions.get(k).close();
       sizeBytes += mColumnPartitions.get(k).getSize();
     }
-    
+
     mTachyonClient.addDoneRCDPartition(mDatasetId, mPartitionId, sizeBytes);
 
     mOpen = false;
