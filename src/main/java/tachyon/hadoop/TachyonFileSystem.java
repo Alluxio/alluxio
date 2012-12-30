@@ -196,7 +196,7 @@ public class TachyonFileSystem extends FileSystem {
   public void initialize(URI uri, Configuration conf) throws IOException {
     LOG.info("TachyonFileSystem initialize(" + uri + ", " + conf + "). Connecting TachyonSystem: " +
         uri.getHost() + ":" + uri.getPort());
-    mTachyonClient = TachyonClient.createTachyonClient(
+    mTachyonClient = TachyonClient.getClient(
         new InetSocketAddress(uri.getHost(), uri.getPort()));
     mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort() + "/";
   }

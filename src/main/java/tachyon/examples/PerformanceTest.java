@@ -142,7 +142,7 @@ public class PerformanceTest {
           "<BlockSizeInBytes> <BlocksPerPartition> <DebugMode:true/false> <NumberOfPartitions>");
       System.exit(-1);
     }
-    TC = TachyonClient.createTachyonClient(new InetSocketAddress(args[0], Config.MASTER_PORT));
+    TC = TachyonClient.getClient(new InetSocketAddress(args[0], Config.MASTER_PORT));
     DATASET_NAME = args[1];
     BLOCK_SIZE_BYTES = Integer.parseInt(args[2]);
     BLOCKS_PER_PARTITION = Integer.parseInt(args[3]);

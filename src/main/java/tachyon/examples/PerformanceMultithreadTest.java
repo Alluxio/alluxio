@@ -126,7 +126,7 @@ public class PerformanceMultithreadTest {
       mLeft = left;
       mRight = right;
       mBuf = buf;
-      mTC = TachyonClient.createTachyonClient(
+      mTC = TachyonClient.getClient(
           new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
     }
 
@@ -183,7 +183,7 @@ public class PerformanceMultithreadTest {
       mWorkerId = id;
       mLeft = left;
       mRight = right;
-      mTC = TachyonClient.createTachyonClient(
+      mTC = TachyonClient.getClient(
           new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
     }
 
@@ -399,14 +399,14 @@ public class PerformanceMultithreadTest {
     if (testCaseNumber == 1) {
       RESULT_PREFIX = "DatasetWriteTest " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
-      MTC = TachyonClient.createTachyonClient(
+      MTC = TachyonClient.getClient(
           new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
       createDataset();
       writeTest();
     } else if (testCaseNumber == 2) {
       RESULT_PREFIX = "DatasetReadTest " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
-      MTC = TachyonClient.createTachyonClient(
+      MTC = TachyonClient.getClient(
           new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
       readTest();
     } else if (testCaseNumber == 3) {
