@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>tachyon</groupId>
   <artifactId>tachyon</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.2-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>tachyon</name>
   <url>http://maven.apache.org</url>
