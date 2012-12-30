@@ -76,7 +76,7 @@ public class BasicRawColumnDatasetTest {
       System.out.println("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
           "tachyon.examples.BasicRawColumnDatasetTest <TachyonMasterHostName> <DatasetPath>");
     }
-    sTachyonClient = TachyonClient.createTachyonClient(
+    sTachyonClient = TachyonClient.getClient(
         new InetSocketAddress(args[0], Config.MASTER_PORT));
     sDatasetPath = args[1];
     createRawColumnDataset();

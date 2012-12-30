@@ -207,8 +207,16 @@ public class TachyonClient {
     mAvailableSpaceBytes = 0L;
   }
 
-  public static synchronized TachyonClient createTachyonClient(InetSocketAddress tachyonAddress) {
+  public static synchronized TachyonClient getClient(InetSocketAddress tachyonAddress) {
     return new TachyonClient(tachyonAddress);
+  }
+  
+  public static synchronized TachyonClient getClient(String tachyonAddress) {
+    String[] address = tachyonAddress.split(":"); 
+    if (address.length != 1) {
+      CommonUtils.illegalArgumentException("Illegal Tachyon Master Address: " + tachyonAddress);
+    }
+    return getClient(new InetSocketAddress(address[0], Integer.parseInt(address[1])));
   }
 
   public synchronized void close() throws TException {

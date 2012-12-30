@@ -75,7 +75,7 @@ public class BasicUserOperationTest {
       System.out.println("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
           "tachyon.examples.BasicUserOperationTest <TachyonMasterHostName> <DatasetPath>");
     }
-    sTachyonClient = TachyonClient.createTachyonClient(
+    sTachyonClient = TachyonClient.getClient(
         new InetSocketAddress(args[0], Config.MASTER_PORT));
     sDatasetPath = args[1];
     createDataset();
