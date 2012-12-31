@@ -37,6 +37,8 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
   private static final org.apache.thrift.protocol.TField M_PARTITION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mPartitionId", org.apache.thrift.protocol.TType.I32, (short)2);
   private static final org.apache.thrift.protocol.TField M_SIZE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("mSizeBytes", org.apache.thrift.protocol.TType.I32, (short)3);
   private static final org.apache.thrift.protocol.TField M_LOCATIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("mLocations", org.apache.thrift.protocol.TType.MAP, (short)4);
+  private static final org.apache.thrift.protocol.TField M_HAS_CHECKPOINTED_FIELD_DESC = new org.apache.thrift.protocol.TField("mHasCheckpointed", org.apache.thrift.protocol.TType.BOOL, (short)5);
+  private static final org.apache.thrift.protocol.TField M_CHECKPOINT_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("mCheckpointPath", org.apache.thrift.protocol.TType.STRING, (short)6);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -48,13 +50,17 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
   public int mPartitionId; // required
   public int mSizeBytes; // required
   public Map<Long,NetAddress> mLocations; // required
+  public boolean mHasCheckpointed; // required
+  public String mCheckpointPath; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     M_DATASET_ID((short)1, "mDatasetId"),
     M_PARTITION_ID((short)2, "mPartitionId"),
     M_SIZE_BYTES((short)3, "mSizeBytes"),
-    M_LOCATIONS((short)4, "mLocations");
+    M_LOCATIONS((short)4, "mLocations"),
+    M_HAS_CHECKPOINTED((short)5, "mHasCheckpointed"),
+    M_CHECKPOINT_PATH((short)6, "mCheckpointPath");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -77,6 +83,10 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
           return M_SIZE_BYTES;
         case 4: // M_LOCATIONS
           return M_LOCATIONS;
+        case 5: // M_HAS_CHECKPOINTED
+          return M_HAS_CHECKPOINTED;
+        case 6: // M_CHECKPOINT_PATH
+          return M_CHECKPOINT_PATH;
         default:
           return null;
       }
@@ -120,6 +130,7 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
   private static final int __MDATASETID_ISSET_ID = 0;
   private static final int __MPARTITIONID_ISSET_ID = 1;
   private static final int __MSIZEBYTES_ISSET_ID = 2;
+  private static final int __MHASCHECKPOINTED_ISSET_ID = 3;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -134,6 +145,10 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64), 
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NetAddress.class))));
+    tmpMap.put(_Fields.M_HAS_CHECKPOINTED, new org.apache.thrift.meta_data.FieldMetaData("mHasCheckpointed", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.M_CHECKPOINT_PATH, new org.apache.thrift.meta_data.FieldMetaData("mCheckpointPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(PartitionInfo.class, metaDataMap);
   }
@@ -145,7 +160,9 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
     int mDatasetId,
     int mPartitionId,
     int mSizeBytes,
-    Map<Long,NetAddress> mLocations)
+    Map<Long,NetAddress> mLocations,
+    boolean mHasCheckpointed,
+    String mCheckpointPath)
   {
     this();
     this.mDatasetId = mDatasetId;
@@ -155,6 +172,9 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
     this.mSizeBytes = mSizeBytes;
     setMSizeBytesIsSet(true);
     this.mLocations = mLocations;
+    this.mHasCheckpointed = mHasCheckpointed;
+    setMHasCheckpointedIsSet(true);
+    this.mCheckpointPath = mCheckpointPath;
   }
 
   /**
@@ -180,6 +200,10 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
       }
       this.mLocations = __this__mLocations;
     }
+    this.mHasCheckpointed = other.mHasCheckpointed;
+    if (other.isSetMCheckpointPath()) {
+      this.mCheckpointPath = other.mCheckpointPath;
+    }
   }
 
   public PartitionInfo deepCopy() {
@@ -195,6 +219,9 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
     setMSizeBytesIsSet(false);
     this.mSizeBytes = 0;
     this.mLocations = null;
+    setMHasCheckpointedIsSet(false);
+    this.mHasCheckpointed = false;
+    this.mCheckpointPath = null;
   }
 
   public int getMDatasetId() {
@@ -301,6 +328,53 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
     }
   }
 
+  public boolean isMHasCheckpointed() {
+    return this.mHasCheckpointed;
+  }
+
+  public PartitionInfo setMHasCheckpointed(boolean mHasCheckpointed) {
+    this.mHasCheckpointed = mHasCheckpointed;
+    setMHasCheckpointedIsSet(true);
+    return this;
+  }
+
+  public void unsetMHasCheckpointed() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MHASCHECKPOINTED_ISSET_ID);
+  }
+
+  /** Returns true if field mHasCheckpointed is set (has been assigned a value) and false otherwise */
+  public boolean isSetMHasCheckpointed() {
+    return EncodingUtils.testBit(__isset_bitfield, __MHASCHECKPOINTED_ISSET_ID);
+  }
+
+  public void setMHasCheckpointedIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MHASCHECKPOINTED_ISSET_ID, value);
+  }
+
+  public String getMCheckpointPath() {
+    return this.mCheckpointPath;
+  }
+
+  public PartitionInfo setMCheckpointPath(String mCheckpointPath) {
+    this.mCheckpointPath = mCheckpointPath;
+    return this;
+  }
+
+  public void unsetMCheckpointPath() {
+    this.mCheckpointPath = null;
+  }
+
+  /** Returns true if field mCheckpointPath is set (has been assigned a value) and false otherwise */
+  public boolean isSetMCheckpointPath() {
+    return this.mCheckpointPath != null;
+  }
+
+  public void setMCheckpointPathIsSet(boolean value) {
+    if (!value) {
+      this.mCheckpointPath = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case M_DATASET_ID:
@@ -335,6 +409,22 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
       }
       break;
 
+    case M_HAS_CHECKPOINTED:
+      if (value == null) {
+        unsetMHasCheckpointed();
+      } else {
+        setMHasCheckpointed((Boolean)value);
+      }
+      break;
+
+    case M_CHECKPOINT_PATH:
+      if (value == null) {
+        unsetMCheckpointPath();
+      } else {
+        setMCheckpointPath((String)value);
+      }
+      break;
+
     }
   }
 
@@ -351,6 +441,12 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
 
     case M_LOCATIONS:
       return getMLocations();
+
+    case M_HAS_CHECKPOINTED:
+      return Boolean.valueOf(isMHasCheckpointed());
+
+    case M_CHECKPOINT_PATH:
+      return getMCheckpointPath();
 
     }
     throw new IllegalStateException();
@@ -371,6 +467,10 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
       return isSetMSizeBytes();
     case M_LOCATIONS:
       return isSetMLocations();
+    case M_HAS_CHECKPOINTED:
+      return isSetMHasCheckpointed();
+    case M_CHECKPOINT_PATH:
+      return isSetMCheckpointPath();
     }
     throw new IllegalStateException();
   }
@@ -421,6 +521,24 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
       if (!(this_present_mLocations && that_present_mLocations))
         return false;
       if (!this.mLocations.equals(that.mLocations))
+        return false;
+    }
+
+    boolean this_present_mHasCheckpointed = true;
+    boolean that_present_mHasCheckpointed = true;
+    if (this_present_mHasCheckpointed || that_present_mHasCheckpointed) {
+      if (!(this_present_mHasCheckpointed && that_present_mHasCheckpointed))
+        return false;
+      if (this.mHasCheckpointed != that.mHasCheckpointed)
+        return false;
+    }
+
+    boolean this_present_mCheckpointPath = true && this.isSetMCheckpointPath();
+    boolean that_present_mCheckpointPath = true && that.isSetMCheckpointPath();
+    if (this_present_mCheckpointPath || that_present_mCheckpointPath) {
+      if (!(this_present_mCheckpointPath && that_present_mCheckpointPath))
+        return false;
+      if (!this.mCheckpointPath.equals(that.mCheckpointPath))
         return false;
     }
 
@@ -480,6 +598,26 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetMHasCheckpointed()).compareTo(typedOther.isSetMHasCheckpointed());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMHasCheckpointed()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mHasCheckpointed, typedOther.mHasCheckpointed);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetMCheckpointPath()).compareTo(typedOther.isSetMCheckpointPath());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMCheckpointPath()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mCheckpointPath, typedOther.mCheckpointPath);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -517,6 +655,18 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
       sb.append("null");
     } else {
       sb.append(this.mLocations);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("mHasCheckpointed:");
+    sb.append(this.mHasCheckpointed);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("mCheckpointPath:");
+    if (this.mCheckpointPath == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.mCheckpointPath);
     }
     first = false;
     sb.append(")");
@@ -609,6 +759,22 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 5: // M_HAS_CHECKPOINTED
+            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+              struct.mHasCheckpointed = iprot.readBool();
+              struct.setMHasCheckpointedIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 6: // M_CHECKPOINT_PATH
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.mCheckpointPath = iprot.readString();
+              struct.setMCheckpointPathIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -646,6 +812,14 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
         }
         oprot.writeFieldEnd();
       }
+      oprot.writeFieldBegin(M_HAS_CHECKPOINTED_FIELD_DESC);
+      oprot.writeBool(struct.mHasCheckpointed);
+      oprot.writeFieldEnd();
+      if (struct.mCheckpointPath != null) {
+        oprot.writeFieldBegin(M_CHECKPOINT_PATH_FIELD_DESC);
+        oprot.writeString(struct.mCheckpointPath);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -676,7 +850,13 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
       if (struct.isSetMLocations()) {
         optionals.set(3);
       }
-      oprot.writeBitSet(optionals, 4);
+      if (struct.isSetMHasCheckpointed()) {
+        optionals.set(4);
+      }
+      if (struct.isSetMCheckpointPath()) {
+        optionals.set(5);
+      }
+      oprot.writeBitSet(optionals, 6);
       if (struct.isSetMDatasetId()) {
         oprot.writeI32(struct.mDatasetId);
       }
@@ -696,12 +876,18 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
           }
         }
       }
+      if (struct.isSetMHasCheckpointed()) {
+        oprot.writeBool(struct.mHasCheckpointed);
+      }
+      if (struct.isSetMCheckpointPath()) {
+        oprot.writeString(struct.mCheckpointPath);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, PartitionInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(4);
+      BitSet incoming = iprot.readBitSet(6);
       if (incoming.get(0)) {
         struct.mDatasetId = iprot.readI32();
         struct.setMDatasetIdIsSet(true);
@@ -729,6 +915,14 @@ public class PartitionInfo implements org.apache.thrift.TBase<PartitionInfo, Par
           }
         }
         struct.setMLocationsIsSet(true);
+      }
+      if (incoming.get(4)) {
+        struct.mHasCheckpointed = iprot.readBool();
+        struct.setMHasCheckpointedIsSet(true);
+      }
+      if (incoming.get(5)) {
+        struct.mCheckpointPath = iprot.readString();
+        struct.setMCheckpointPathIsSet(true);
       }
     }
   }

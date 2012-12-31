@@ -566,7 +566,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public void worker_addPartition(long workerId, long workerUsedBytes, int datasetId,
-      int partitionId, int partitionSizeBytes)
+      int partitionId, int partitionSizeBytes, boolean hasCheckpointed, String checkpointPath)
           throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
     String parameters = CommonUtils.parametersToString(workerId, workerUsedBytes, datasetId,
         partitionId, partitionSizeBytes);
@@ -603,6 +603,10 @@ public class MasterServiceHandler implements MasterService.Iface {
       } else {
         pInfo.mSizeBytes = partitionSizeBytes;
         datasetInfo.mSizeBytes += pInfo.mSizeBytes;
+      }
+      if (hasCheckpointed) {
+        pInfo.mHasCheckpointed = true;
+        pInfo.mCheckpointPath = checkpointPath;
       }
       InetSocketAddress address = tWorkerInfo.ADDRESS;
       pInfo.mLocations.put(workerId, new NetAddress(address.getHostName(), address.getPort()));
@@ -801,6 +805,17 @@ public class MasterServiceHandler implements MasterService.Iface {
       while (reader.hasNext()) {
         Pair<LogEventType, Object> pair = reader.getNextDatasetInfo();
         switch (pair.getFirst()) {
+          case PartitionInfo: {
+            PartitionInfo partition = (PartitionInfo) pair.getSecond();
+            System.out.println("Putting " + partition);
+            if (mDatasets.containsKey(partition.mDatasetId)) {
+              partition.mLocations.clear();
+              mDatasets.get(partition.mDatasetId).mPartitionList.set(
+                  partition.mPartitionId, partition);
+            } else {
+              CommonUtils.illegalArgumentException("Corrupted log.");
+            }
+          }
           case DatasetInfo: {
             DatasetInfo dataset = (DatasetInfo) pair.getSecond();
             if (Math.abs(dataset.mId) > mDatasetCounter.get()) {

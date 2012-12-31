@@ -7,13 +7,14 @@ import java.io.ObjectOutputStream;
 
 import tachyon.thrift.DatasetInfo;
 import tachyon.thrift.LogEventType;
+import tachyon.thrift.PartitionInfo;
 import tachyon.thrift.RawColumnDatasetInfo;
 
 public class MasterLogWriter {
   private final String LOG_FILE_NAME;
-  
+
   private ObjectOutputStream mOutputStream;
-  
+
   public MasterLogWriter(String fileName) {
     LOG_FILE_NAME = fileName;
     try {
@@ -24,7 +25,7 @@ public class MasterLogWriter {
       CommonUtils.runtimeException(e);
     }
   }
-  
+
   public void appendAndFlush(DatasetInfo datasetInfo) {
     try {
       mOutputStream.writeObject(LogEventType.DatasetInfo);
@@ -34,7 +35,17 @@ public class MasterLogWriter {
       CommonUtils.runtimeException(e);
     }
   }
-  
+
+  public void appendAndFlush(PartitionInfo partitionInfo) {
+    try {
+      mOutputStream.writeObject(LogEventType.PartitionInfo);
+      mOutputStream.writeObject(partitionInfo);
+      mOutputStream.flush();
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+  }
+
   public void appendAndFlush(RawColumnDatasetInfo rawColumnDatasetInfo) {
     try {
       mOutputStream.writeObject(LogEventType.RawColumnDatasetInfo);
@@ -44,7 +55,7 @@ public class MasterLogWriter {
       CommonUtils.runtimeException(e);
     }
   }
-  
+
   public void close() {
     try {
       mOutputStream.close();

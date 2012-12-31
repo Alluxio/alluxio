@@ -13,8 +13,9 @@ import org.apache.thrift.TEnum;
 
 public enum LogEventType implements org.apache.thrift.TEnum {
   Unknown(0),
-  DatasetInfo(1),
-  RawColumnDatasetInfo(2);
+  PartitionInfo(1),
+  DatasetInfo(2),
+  RawColumnDatasetInfo(3);
 
   private final int value;
 
@@ -38,8 +39,10 @@ public enum LogEventType implements org.apache.thrift.TEnum {
       case 0:
         return Unknown;
       case 1:
-        return DatasetInfo;
+        return PartitionInfo;
       case 2:
+        return DatasetInfo;
+      case 3:
         return RawColumnDatasetInfo;
       default:
         return null;

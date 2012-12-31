@@ -126,20 +126,22 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       CommonUtils.runtimeException("Failed to rename file from " + srcFile.getPath() +
           " to " + dstFile.getPath());
     }
+    String dstPath = "";
     if (writeThrough) {
       // TODO This part need to be changed.
       String name = datasetId + "-" + partitionId;
       String srcPath = getUserHdfsTempFolder(userId) + "/" + name;
-      String dstPath = Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" + name;
+      dstPath = Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" + name;
       mHdfsClient.mkdirs(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" , null, true);
       if (!mHdfsClient.rename(srcPath, dstPath)) {
         LOG.error("Failed to rename from " + srcPath + " to " + dstPath);
+        dstPath = "";
       }
     }
     addBigId(CommonUtils.generateBigId(datasetId, partitionId), fileSizeBytes);
     mUsers.addOwnBytes(userId, - fileSizeBytes);
     mMasterClient.worker_addPartition(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), datasetId,
-        partitionId, (int)fileSizeBytes);
+        partitionId, (int)fileSizeBytes, writeThrough && !dstPath.equals(""), dstPath);
   }
 
   @Override
@@ -154,7 +156,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
     addBigId(CommonUtils.generateBigId(datasetId, partitionId), fileSizeBytes);
     mMasterClient.worker_addPartition(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), datasetId,
-        partitionId, (int)fileSizeBytes);
+        partitionId, (int)fileSizeBytes, false, "");
   }
 
   public void checkStatus() {
