@@ -155,10 +155,11 @@ public class MasterClient {
   }
 
   public synchronized void worker_addPartition(long workerId, long workerUsedBytes,
-      int datasetId, int partitionId, int partitionSizeBytes)
+      int datasetId, int partitionId, int partitionSizeBytes, boolean hasCheckpointed, 
+      String checkpointPath)
           throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
     CLIENT.worker_addPartition(workerId, workerUsedBytes, datasetId, partitionId,
-        partitionSizeBytes);
+        partitionSizeBytes, hasCheckpointed, checkpointPath);
   }
 
   public synchronized void worker_addRCDPartition(long workerId, int datasetId, int partitionId,

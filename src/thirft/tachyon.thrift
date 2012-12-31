@@ -10,6 +10,8 @@ struct PartitionInfo {
   2: i32 mPartitionId
   3: i32 mSizeBytes
   4: map<i64, NetAddress> mLocations
+  5: bool mHasCheckpointed
+  6: string mCheckpointPath
 }
 
 struct DatasetInfo {
@@ -36,8 +38,9 @@ struct RawColumnDatasetInfo {
 
 enum LogEventType {
   Unknown = 0,
-  DatasetInfo = 1,
-  RawColumnDatasetInfo = 2,
+  PartitionInfo = 1,
+  DatasetInfo = 2,
+  RawColumnDatasetInfo = 3,
 }
 
 enum CommandType {
@@ -89,7 +92,7 @@ service MasterService {
   // Services to Workers
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i64> currentPartitionList) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedPartitionList)
-  void worker_addPartition(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 datasetId, 4: i32 partitionId, 5: i32 partitionSizeBytes) throws (1: PartitionDoesNotExistException eP, 2: SuspectedPartitionSizeException eS)
+  void worker_addPartition(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 datasetId, 4: i32 partitionId, 5: i32 partitionSizeBytes, 6: bool hasCheckpointed, 7: string checkpointPath) throws (1: PartitionDoesNotExistException eP, 2: SuspectedPartitionSizeException eS)
   void worker_addRCDPartition(1: i64 workerId, 2: i32 datasetId, 3: i32 partitionId, 4: i32 partitionSizeBytes) throws (1: PartitionDoesNotExistException eP, 2: SuspectedPartitionSizeException eS)
   set<i32> worker_getPinList()
 

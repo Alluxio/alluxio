@@ -210,7 +210,7 @@ public class TachyonClient {
   public static synchronized TachyonClient getClient(InetSocketAddress tachyonAddress) {
     return new TachyonClient(tachyonAddress);
   }
-  
+
   public static synchronized TachyonClient getClient(String tachyonAddress) {
     String[] address = tachyonAddress.split(":"); 
     if (address.length != 1) {

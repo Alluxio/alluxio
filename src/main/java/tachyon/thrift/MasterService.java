@@ -38,7 +38,7 @@ public class MasterService {
 
     public Command worker_heartbeat(long workerId, long usedBytes, List<Long> removedPartitionList) throws org.apache.thrift.TException;
 
-    public void worker_addPartition(long workerId, long workerUsedBytes, int datasetId, int partitionId, int partitionSizeBytes) throws PartitionDoesNotExistException, SuspectedPartitionSizeException, org.apache.thrift.TException;
+    public void worker_addPartition(long workerId, long workerUsedBytes, int datasetId, int partitionId, int partitionSizeBytes, boolean hasCheckpointed, String checkpointPath) throws PartitionDoesNotExistException, SuspectedPartitionSizeException, org.apache.thrift.TException;
 
     public void worker_addRCDPartition(long workerId, int datasetId, int partitionId, int partitionSizeBytes) throws PartitionDoesNotExistException, SuspectedPartitionSizeException, org.apache.thrift.TException;
 
@@ -88,7 +88,7 @@ public class MasterService {
 
     public void worker_heartbeat(long workerId, long usedBytes, List<Long> removedPartitionList, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.worker_heartbeat_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void worker_addPartition(long workerId, long workerUsedBytes, int datasetId, int partitionId, int partitionSizeBytes, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.worker_addPartition_call> resultHandler) throws org.apache.thrift.TException;
+    public void worker_addPartition(long workerId, long workerUsedBytes, int datasetId, int partitionId, int partitionSizeBytes, boolean hasCheckpointed, String checkpointPath, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.worker_addPartition_call> resultHandler) throws org.apache.thrift.TException;
 
     public void worker_addRCDPartition(long workerId, int datasetId, int partitionId, int partitionSizeBytes, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.worker_addRCDPartition_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -203,13 +203,13 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "worker_heartbeat failed: unknown result");
     }
 
-    public void worker_addPartition(long workerId, long workerUsedBytes, int datasetId, int partitionId, int partitionSizeBytes) throws PartitionDoesNotExistException, SuspectedPartitionSizeException, org.apache.thrift.TException
+    public void worker_addPartition(long workerId, long workerUsedBytes, int datasetId, int partitionId, int partitionSizeBytes, boolean hasCheckpointed, String checkpointPath) throws PartitionDoesNotExistException, SuspectedPartitionSizeException, org.apache.thrift.TException
     {
-      send_worker_addPartition(workerId, workerUsedBytes, datasetId, partitionId, partitionSizeBytes);
+      send_worker_addPartition(workerId, workerUsedBytes, datasetId, partitionId, partitionSizeBytes, hasCheckpointed, checkpointPath);
       recv_worker_addPartition();
     }
 
-    public void send_worker_addPartition(long workerId, long workerUsedBytes, int datasetId, int partitionId, int partitionSizeBytes) throws org.apache.thrift.TException
+    public void send_worker_addPartition(long workerId, long workerUsedBytes, int datasetId, int partitionId, int partitionSizeBytes, boolean hasCheckpointed, String checkpointPath) throws org.apache.thrift.TException
     {
       worker_addPartition_args args = new worker_addPartition_args();
       args.setWorkerId(workerId);
@@ -217,6 +217,8 @@ public class MasterService {
       args.setDatasetId(datasetId);
       args.setPartitionId(partitionId);
       args.setPartitionSizeBytes(partitionSizeBytes);
+      args.setHasCheckpointed(hasCheckpointed);
+      args.setCheckpointPath(checkpointPath);
       sendBase("worker_addPartition", args);
     }
 
@@ -827,9 +829,9 @@ public class MasterService {
       }
     }
 
-    public void worker_addPartition(long workerId, long workerUsedBytes, int datasetId, int partitionId, int partitionSizeBytes, org.apache.thrift.async.AsyncMethodCallback<worker_addPartition_call> resultHandler) throws org.apache.thrift.TException {
+    public void worker_addPartition(long workerId, long workerUsedBytes, int datasetId, int partitionId, int partitionSizeBytes, boolean hasCheckpointed, String checkpointPath, org.apache.thrift.async.AsyncMethodCallback<worker_addPartition_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      worker_addPartition_call method_call = new worker_addPartition_call(workerId, workerUsedBytes, datasetId, partitionId, partitionSizeBytes, resultHandler, this, ___protocolFactory, ___transport);
+      worker_addPartition_call method_call = new worker_addPartition_call(workerId, workerUsedBytes, datasetId, partitionId, partitionSizeBytes, hasCheckpointed, checkpointPath, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -840,13 +842,17 @@ public class MasterService {
       private int datasetId;
       private int partitionId;
       private int partitionSizeBytes;
-      public worker_addPartition_call(long workerId, long workerUsedBytes, int datasetId, int partitionId, int partitionSizeBytes, org.apache.thrift.async.AsyncMethodCallback<worker_addPartition_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private boolean hasCheckpointed;
+      private String checkpointPath;
+      public worker_addPartition_call(long workerId, long workerUsedBytes, int datasetId, int partitionId, int partitionSizeBytes, boolean hasCheckpointed, String checkpointPath, org.apache.thrift.async.AsyncMethodCallback<worker_addPartition_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.workerId = workerId;
         this.workerUsedBytes = workerUsedBytes;
         this.datasetId = datasetId;
         this.partitionId = partitionId;
         this.partitionSizeBytes = partitionSizeBytes;
+        this.hasCheckpointed = hasCheckpointed;
+        this.checkpointPath = checkpointPath;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -857,6 +863,8 @@ public class MasterService {
         args.setDatasetId(datasetId);
         args.setPartitionId(partitionId);
         args.setPartitionSizeBytes(partitionSizeBytes);
+        args.setHasCheckpointed(hasCheckpointed);
+        args.setCheckpointPath(checkpointPath);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -1628,7 +1636,7 @@ public class MasterService {
       public worker_addPartition_result getResult(I iface, worker_addPartition_args args) throws org.apache.thrift.TException {
         worker_addPartition_result result = new worker_addPartition_result();
         try {
-          iface.worker_addPartition(args.workerId, args.workerUsedBytes, args.datasetId, args.partitionId, args.partitionSizeBytes);
+          iface.worker_addPartition(args.workerId, args.workerUsedBytes, args.datasetId, args.partitionId, args.partitionSizeBytes, args.hasCheckpointed, args.checkpointPath);
         } catch (PartitionDoesNotExistException eP) {
           result.eP = eP;
         } catch (SuspectedPartitionSizeException eS) {
@@ -4129,6 +4137,8 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TField DATASET_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("datasetId", org.apache.thrift.protocol.TType.I32, (short)3);
     private static final org.apache.thrift.protocol.TField PARTITION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("partitionId", org.apache.thrift.protocol.TType.I32, (short)4);
     private static final org.apache.thrift.protocol.TField PARTITION_SIZE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("partitionSizeBytes", org.apache.thrift.protocol.TType.I32, (short)5);
+    private static final org.apache.thrift.protocol.TField HAS_CHECKPOINTED_FIELD_DESC = new org.apache.thrift.protocol.TField("hasCheckpointed", org.apache.thrift.protocol.TType.BOOL, (short)6);
+    private static final org.apache.thrift.protocol.TField CHECKPOINT_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("checkpointPath", org.apache.thrift.protocol.TType.STRING, (short)7);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4141,6 +4151,8 @@ public class MasterService {
     public int datasetId; // required
     public int partitionId; // required
     public int partitionSizeBytes; // required
+    public boolean hasCheckpointed; // required
+    public String checkpointPath; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -4148,7 +4160,9 @@ public class MasterService {
       WORKER_USED_BYTES((short)2, "workerUsedBytes"),
       DATASET_ID((short)3, "datasetId"),
       PARTITION_ID((short)4, "partitionId"),
-      PARTITION_SIZE_BYTES((short)5, "partitionSizeBytes");
+      PARTITION_SIZE_BYTES((short)5, "partitionSizeBytes"),
+      HAS_CHECKPOINTED((short)6, "hasCheckpointed"),
+      CHECKPOINT_PATH((short)7, "checkpointPath");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4173,6 +4187,10 @@ public class MasterService {
             return PARTITION_ID;
           case 5: // PARTITION_SIZE_BYTES
             return PARTITION_SIZE_BYTES;
+          case 6: // HAS_CHECKPOINTED
+            return HAS_CHECKPOINTED;
+          case 7: // CHECKPOINT_PATH
+            return CHECKPOINT_PATH;
           default:
             return null;
         }
@@ -4218,6 +4236,7 @@ public class MasterService {
     private static final int __DATASETID_ISSET_ID = 2;
     private static final int __PARTITIONID_ISSET_ID = 3;
     private static final int __PARTITIONSIZEBYTES_ISSET_ID = 4;
+    private static final int __HASCHECKPOINTED_ISSET_ID = 5;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
@@ -4232,6 +4251,10 @@ public class MasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
       tmpMap.put(_Fields.PARTITION_SIZE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("partitionSizeBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.HAS_CHECKPOINTED, new org.apache.thrift.meta_data.FieldMetaData("hasCheckpointed", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+      tmpMap.put(_Fields.CHECKPOINT_PATH, new org.apache.thrift.meta_data.FieldMetaData("checkpointPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(worker_addPartition_args.class, metaDataMap);
     }
@@ -4244,7 +4267,9 @@ public class MasterService {
       long workerUsedBytes,
       int datasetId,
       int partitionId,
-      int partitionSizeBytes)
+      int partitionSizeBytes,
+      boolean hasCheckpointed,
+      String checkpointPath)
     {
       this();
       this.workerId = workerId;
@@ -4257,6 +4282,9 @@ public class MasterService {
       setPartitionIdIsSet(true);
       this.partitionSizeBytes = partitionSizeBytes;
       setPartitionSizeBytesIsSet(true);
+      this.hasCheckpointed = hasCheckpointed;
+      setHasCheckpointedIsSet(true);
+      this.checkpointPath = checkpointPath;
     }
 
     /**
@@ -4269,6 +4297,10 @@ public class MasterService {
       this.datasetId = other.datasetId;
       this.partitionId = other.partitionId;
       this.partitionSizeBytes = other.partitionSizeBytes;
+      this.hasCheckpointed = other.hasCheckpointed;
+      if (other.isSetCheckpointPath()) {
+        this.checkpointPath = other.checkpointPath;
+      }
     }
 
     public worker_addPartition_args deepCopy() {
@@ -4287,6 +4319,9 @@ public class MasterService {
       this.partitionId = 0;
       setPartitionSizeBytesIsSet(false);
       this.partitionSizeBytes = 0;
+      setHasCheckpointedIsSet(false);
+      this.hasCheckpointed = false;
+      this.checkpointPath = null;
     }
 
     public long getWorkerId() {
@@ -4404,6 +4439,53 @@ public class MasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __PARTITIONSIZEBYTES_ISSET_ID, value);
     }
 
+    public boolean isHasCheckpointed() {
+      return this.hasCheckpointed;
+    }
+
+    public worker_addPartition_args setHasCheckpointed(boolean hasCheckpointed) {
+      this.hasCheckpointed = hasCheckpointed;
+      setHasCheckpointedIsSet(true);
+      return this;
+    }
+
+    public void unsetHasCheckpointed() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __HASCHECKPOINTED_ISSET_ID);
+    }
+
+    /** Returns true if field hasCheckpointed is set (has been assigned a value) and false otherwise */
+    public boolean isSetHasCheckpointed() {
+      return EncodingUtils.testBit(__isset_bitfield, __HASCHECKPOINTED_ISSET_ID);
+    }
+
+    public void setHasCheckpointedIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __HASCHECKPOINTED_ISSET_ID, value);
+    }
+
+    public String getCheckpointPath() {
+      return this.checkpointPath;
+    }
+
+    public worker_addPartition_args setCheckpointPath(String checkpointPath) {
+      this.checkpointPath = checkpointPath;
+      return this;
+    }
+
+    public void unsetCheckpointPath() {
+      this.checkpointPath = null;
+    }
+
+    /** Returns true if field checkpointPath is set (has been assigned a value) and false otherwise */
+    public boolean isSetCheckpointPath() {
+      return this.checkpointPath != null;
+    }
+
+    public void setCheckpointPathIsSet(boolean value) {
+      if (!value) {
+        this.checkpointPath = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case WORKER_ID:
@@ -4446,6 +4528,22 @@ public class MasterService {
         }
         break;
 
+      case HAS_CHECKPOINTED:
+        if (value == null) {
+          unsetHasCheckpointed();
+        } else {
+          setHasCheckpointed((Boolean)value);
+        }
+        break;
+
+      case CHECKPOINT_PATH:
+        if (value == null) {
+          unsetCheckpointPath();
+        } else {
+          setCheckpointPath((String)value);
+        }
+        break;
+
       }
     }
 
@@ -4465,6 +4563,12 @@ public class MasterService {
 
       case PARTITION_SIZE_BYTES:
         return Integer.valueOf(getPartitionSizeBytes());
+
+      case HAS_CHECKPOINTED:
+        return Boolean.valueOf(isHasCheckpointed());
+
+      case CHECKPOINT_PATH:
+        return getCheckpointPath();
 
       }
       throw new IllegalStateException();
@@ -4487,6 +4591,10 @@ public class MasterService {
         return isSetPartitionId();
       case PARTITION_SIZE_BYTES:
         return isSetPartitionSizeBytes();
+      case HAS_CHECKPOINTED:
+        return isSetHasCheckpointed();
+      case CHECKPOINT_PATH:
+        return isSetCheckpointPath();
       }
       throw new IllegalStateException();
     }
@@ -4546,6 +4654,24 @@ public class MasterService {
         if (!(this_present_partitionSizeBytes && that_present_partitionSizeBytes))
           return false;
         if (this.partitionSizeBytes != that.partitionSizeBytes)
+          return false;
+      }
+
+      boolean this_present_hasCheckpointed = true;
+      boolean that_present_hasCheckpointed = true;
+      if (this_present_hasCheckpointed || that_present_hasCheckpointed) {
+        if (!(this_present_hasCheckpointed && that_present_hasCheckpointed))
+          return false;
+        if (this.hasCheckpointed != that.hasCheckpointed)
+          return false;
+      }
+
+      boolean this_present_checkpointPath = true && this.isSetCheckpointPath();
+      boolean that_present_checkpointPath = true && that.isSetCheckpointPath();
+      if (this_present_checkpointPath || that_present_checkpointPath) {
+        if (!(this_present_checkpointPath && that_present_checkpointPath))
+          return false;
+        if (!this.checkpointPath.equals(that.checkpointPath))
           return false;
       }
 
@@ -4615,6 +4741,26 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetHasCheckpointed()).compareTo(typedOther.isSetHasCheckpointed());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetHasCheckpointed()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.hasCheckpointed, typedOther.hasCheckpointed);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetCheckpointPath()).compareTo(typedOther.isSetCheckpointPath());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetCheckpointPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.checkpointPath, typedOther.checkpointPath);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -4653,6 +4799,18 @@ public class MasterService {
       if (!first) sb.append(", ");
       sb.append("partitionSizeBytes:");
       sb.append(this.partitionSizeBytes);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("hasCheckpointed:");
+      sb.append(this.hasCheckpointed);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("checkpointPath:");
+      if (this.checkpointPath == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.checkpointPath);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -4739,6 +4897,22 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 6: // HAS_CHECKPOINTED
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.hasCheckpointed = iprot.readBool();
+                struct.setHasCheckpointedIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 7: // CHECKPOINT_PATH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.checkpointPath = iprot.readString();
+                struct.setCheckpointPathIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -4769,6 +4943,14 @@ public class MasterService {
         oprot.writeFieldBegin(PARTITION_SIZE_BYTES_FIELD_DESC);
         oprot.writeI32(struct.partitionSizeBytes);
         oprot.writeFieldEnd();
+        oprot.writeFieldBegin(HAS_CHECKPOINTED_FIELD_DESC);
+        oprot.writeBool(struct.hasCheckpointed);
+        oprot.writeFieldEnd();
+        if (struct.checkpointPath != null) {
+          oprot.writeFieldBegin(CHECKPOINT_PATH_FIELD_DESC);
+          oprot.writeString(struct.checkpointPath);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -4802,7 +4984,13 @@ public class MasterService {
         if (struct.isSetPartitionSizeBytes()) {
           optionals.set(4);
         }
-        oprot.writeBitSet(optionals, 5);
+        if (struct.isSetHasCheckpointed()) {
+          optionals.set(5);
+        }
+        if (struct.isSetCheckpointPath()) {
+          optionals.set(6);
+        }
+        oprot.writeBitSet(optionals, 7);
         if (struct.isSetWorkerId()) {
           oprot.writeI64(struct.workerId);
         }
@@ -4818,12 +5006,18 @@ public class MasterService {
         if (struct.isSetPartitionSizeBytes()) {
           oprot.writeI32(struct.partitionSizeBytes);
         }
+        if (struct.isSetHasCheckpointed()) {
+          oprot.writeBool(struct.hasCheckpointed);
+        }
+        if (struct.isSetCheckpointPath()) {
+          oprot.writeString(struct.checkpointPath);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, worker_addPartition_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(5);
+        BitSet incoming = iprot.readBitSet(7);
         if (incoming.get(0)) {
           struct.workerId = iprot.readI64();
           struct.setWorkerIdIsSet(true);
@@ -4843,6 +5037,14 @@ public class MasterService {
         if (incoming.get(4)) {
           struct.partitionSizeBytes = iprot.readI32();
           struct.setPartitionSizeBytesIsSet(true);
+        }
+        if (incoming.get(5)) {
+          struct.hasCheckpointed = iprot.readBool();
+          struct.setHasCheckpointedIsSet(true);
+        }
+        if (incoming.get(6)) {
+          struct.checkpointPath = iprot.readString();
+          struct.setCheckpointPathIsSet(true);
         }
       }
     }
