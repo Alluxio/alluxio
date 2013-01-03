@@ -3,6 +3,7 @@ package tachyon;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -100,6 +101,23 @@ public class HdfsClient {
     }
     CommonUtils.runtimeException(te);
     return false;
+  }
+
+  public FSDataInputStream open(String path) {
+    IOException te = null;
+    int cnt = 0;
+    while (cnt < MAX_TRY) {
+      try {
+        return mFs.open(new Path(path));
+      } catch (IOException e) {
+        cnt ++;
+        LOG.error(cnt + " : " + e.getMessage(), e);
+        te = e;
+        continue;
+      }
+    }
+    CommonUtils.runtimeException(te);
+    return null;
   }
 
   public boolean rename(String src, String dst) {
