@@ -16,6 +16,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.mapred.FileSplit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +59,6 @@ public class Partition {
   private FileChannel mOutChannel;
   private MappedByteBuffer mOut;
   private ByteBuffer mOutBuffer;
-  private int mPosition;
-  private Partition mCachePartition;
 
   public Partition(TachyonClient tachyonClient, Dataset dataset, int datasetId, int pId) {
     mTachyonClient = tachyonClient;
@@ -236,10 +235,7 @@ public class Partition {
 
     mOpen = true;
 
-    if (mRead) {
-      mPosition = 0;
-      mCachePartition = null;
-    } else {
+    if (!mRead) {
       mFolder = mTachyonClient.createAndGetUserTempFolder();
       if (mFolder == null) {
         throw new IOException("Failed to create temp user folder for tachyon client.");
@@ -257,41 +253,67 @@ public class Partition {
   // TODO Need to have append/write() like READ API!
   public ByteBuffer readByteBuffer() 
       throws UnknownHostException, FileNotFoundException, IOException {
-    ByteBuffer ret = null;
-    int tried = 0;
-    int max_try = 2;
-
-    boolean tryLocal = true;
-    while (tried < max_try) {
-      tried ++;
-
-      try {
-        ret = readByteBufferWithException(tryLocal);
-        break;
-      } catch (UnknownHostException e) {
-        throw e;
-      } catch (FileNotFoundException e) {
-        throw e;
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-
-        if (tried == max_try) {
-          throw e;
-        }
-      }
-      tryLocal = false;
-    }
-
-    return ret;
-  }
-
-  private ByteBuffer readByteBufferWithException(boolean tryLocal) 
-      throws IOException {
     validateIO(true);
 
     ByteBuffer ret = null;
 
-    if (tryLocal && mTachyonClient.getRootFolder() != null) {
+    ret = readByteBufferFromLocal();
+    if (ret == null) {
+      ret = readByteBufferFromRemote();
+    }
+
+    boolean recacheSucceed = recacheData();
+
+    if (recacheSucceed) {
+      ret = readByteBufferFromLocal();
+    }
+
+    if (ret == null) {
+      new IOException("Failed to read Dataset " + mDataset.getDatasetPath() +
+          " Partition " + mPartitionId);
+    }
+    return ret;
+  }
+
+  private boolean recacheData() throws IOException {
+    if (!mPartitionInfo.mHasCheckpointed) {
+      return false;
+    }
+
+    String path = mPartitionInfo.mCheckpointPath;
+    if (!Config.USING_HDFS) {
+      return false;
+    }
+
+    HdfsClient tHdfsClient = new HdfsClient(path);
+    FSDataInputStream inputStream = tHdfsClient.open(path);
+    Partition tPartition = mDataset.getPartition(mPartitionId);
+    tPartition.open("w", false);
+    byte buffer[] = new byte[Config.USER_BUFFER_PER_PARTITION_BYTES * 4];
+
+    int limit;
+    while ((limit = inputStream.read(buffer)) >= 0) {
+      if (limit != 0) {
+        try {
+          tPartition.append(buffer, 0, limit);
+        } catch (IOException e) {
+          LOG.error(e.getMessage());
+          return false;
+        } catch (OutOfMemoryForPinDatasetException e) {
+          CommonUtils.runtimeException(e);
+        }
+      }
+    }
+
+    tPartition.close();
+    
+    return true;
+  }
+
+  private ByteBuffer readByteBufferFromLocal() throws IOException {
+    ByteBuffer ret = null;
+
+    if (mTachyonClient.getRootFolder() != null) {
       mFolder = new File(mTachyonClient.getRootFolder());
       String localFileName = mFolder.getPath() + "/" + mDatasetId + "-" + mPartitionId;
       try {
@@ -304,8 +326,15 @@ public class Partition {
         return ret;
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");
+        ret = null;
       }
     }
+
+    return ret;
+  }
+
+  private ByteBuffer readByteBufferFromRemote() throws IOException {
+    ByteBuffer ret = null;
 
     LOG.info("Try to find and read from remote workers.");
 
