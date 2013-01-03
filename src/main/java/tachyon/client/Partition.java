@@ -261,6 +261,10 @@ public class Partition {
     if (ret == null) {
       ret = readByteBufferFromRemote();
     }
+    
+    if (ret != null) {
+      return ret;
+    }
 
     boolean recacheSucceed = recacheData();
 
@@ -276,7 +280,7 @@ public class Partition {
   }
 
   private boolean recacheData() throws IOException {
-    if (!mPartitionInfo.mHasCheckpointed) {
+    if (mPartitionInfo == null || !mPartitionInfo.mHasCheckpointed) {
       return false;
     }
 
