@@ -25,7 +25,9 @@ public class HdfsClient {
       tConf.set("fs.default.name", fsDefaultName);
       mFs = FileSystem.get(tConf);
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      LOG.warn("Can not connect to HDFS " + fsDefaultName);
+      mFs = null;
+//      CommonUtils.runtimeException(e);
     }
   }
 
