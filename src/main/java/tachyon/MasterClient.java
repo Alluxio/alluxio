@@ -153,6 +153,12 @@ public class MasterClient {
       throws DatasetDoesNotExistException, TException {
     CLIENT.user_unpinDataset(datasetId);
   }
+  
+  public synchronized void user_setPartitionCheckpointPath(int datasetId, int partitionId,
+      String checkpointPath) throws DatasetDoesNotExistException,
+      PartitionDoesNotExistException, TException {
+    CLIENT.user_setPartitionCheckpointPath(datasetId, partitionId, checkpointPath);
+  }
 
   public synchronized void worker_addPartition(long workerId, long workerUsedBytes,
       int datasetId, int partitionId, int partitionSizeBytes, boolean hasCheckpointed, 

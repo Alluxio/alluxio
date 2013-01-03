@@ -70,13 +70,15 @@ public class MasterService {
 
     public void user_deleteRawColumnDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException;
 
-    public void user_unpinDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException;
+    public void user_outOfMemoryForPinDataset(int datasetId) throws org.apache.thrift.TException;
 
     public void user_renameDataset(String srcDatasetPath, String dstDatasetPath) throws DatasetDoesNotExistException, org.apache.thrift.TException;
 
     public void user_renameRawColumnDataset(String srcDatasetPath, String dstDatasetPath) throws DatasetDoesNotExistException, org.apache.thrift.TException;
 
-    public void user_outOfMemoryForPinDataset(int datasetId) throws org.apache.thrift.TException;
+    public void user_setPartitionCheckpointPath(int datasetId, int partitionId, String checkpointPath) throws DatasetDoesNotExistException, PartitionDoesNotExistException, org.apache.thrift.TException;
+
+    public void user_unpinDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException;
 
     public List<DatasetInfo> cmd_ls(String folder) throws org.apache.thrift.TException;
 
@@ -120,13 +122,15 @@ public class MasterService {
 
     public void user_deleteRawColumnDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_deleteRawColumnDataset_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void user_unpinDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_unpinDataset_call> resultHandler) throws org.apache.thrift.TException;
+    public void user_outOfMemoryForPinDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_outOfMemoryForPinDataset_call> resultHandler) throws org.apache.thrift.TException;
 
     public void user_renameDataset(String srcDatasetPath, String dstDatasetPath, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_renameDataset_call> resultHandler) throws org.apache.thrift.TException;
 
     public void user_renameRawColumnDataset(String srcDatasetPath, String dstDatasetPath, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_renameRawColumnDataset_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void user_outOfMemoryForPinDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_outOfMemoryForPinDataset_call> resultHandler) throws org.apache.thrift.TException;
+    public void user_setPartitionCheckpointPath(int datasetId, int partitionId, String checkpointPath, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_setPartitionCheckpointPath_call> resultHandler) throws org.apache.thrift.TException;
+
+    public void user_unpinDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_unpinDataset_call> resultHandler) throws org.apache.thrift.TException;
 
     public void cmd_ls(String folder, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.cmd_ls_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -618,26 +622,23 @@ public class MasterService {
       return;
     }
 
-    public void user_unpinDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException
+    public void user_outOfMemoryForPinDataset(int datasetId) throws org.apache.thrift.TException
     {
-      send_user_unpinDataset(datasetId);
-      recv_user_unpinDataset();
+      send_user_outOfMemoryForPinDataset(datasetId);
+      recv_user_outOfMemoryForPinDataset();
     }
 
-    public void send_user_unpinDataset(int datasetId) throws org.apache.thrift.TException
+    public void send_user_outOfMemoryForPinDataset(int datasetId) throws org.apache.thrift.TException
     {
-      user_unpinDataset_args args = new user_unpinDataset_args();
+      user_outOfMemoryForPinDataset_args args = new user_outOfMemoryForPinDataset_args();
       args.setDatasetId(datasetId);
-      sendBase("user_unpinDataset", args);
+      sendBase("user_outOfMemoryForPinDataset", args);
     }
 
-    public void recv_user_unpinDataset() throws DatasetDoesNotExistException, org.apache.thrift.TException
+    public void recv_user_outOfMemoryForPinDataset() throws org.apache.thrift.TException
     {
-      user_unpinDataset_result result = new user_unpinDataset_result();
-      receiveBase(result, "user_unpinDataset");
-      if (result.e != null) {
-        throw result.e;
-      }
+      user_outOfMemoryForPinDataset_result result = new user_outOfMemoryForPinDataset_result();
+      receiveBase(result, "user_outOfMemoryForPinDataset");
       return;
     }
 
@@ -689,23 +690,54 @@ public class MasterService {
       return;
     }
 
-    public void user_outOfMemoryForPinDataset(int datasetId) throws org.apache.thrift.TException
+    public void user_setPartitionCheckpointPath(int datasetId, int partitionId, String checkpointPath) throws DatasetDoesNotExistException, PartitionDoesNotExistException, org.apache.thrift.TException
     {
-      send_user_outOfMemoryForPinDataset(datasetId);
-      recv_user_outOfMemoryForPinDataset();
+      send_user_setPartitionCheckpointPath(datasetId, partitionId, checkpointPath);
+      recv_user_setPartitionCheckpointPath();
     }
 
-    public void send_user_outOfMemoryForPinDataset(int datasetId) throws org.apache.thrift.TException
+    public void send_user_setPartitionCheckpointPath(int datasetId, int partitionId, String checkpointPath) throws org.apache.thrift.TException
     {
-      user_outOfMemoryForPinDataset_args args = new user_outOfMemoryForPinDataset_args();
+      user_setPartitionCheckpointPath_args args = new user_setPartitionCheckpointPath_args();
       args.setDatasetId(datasetId);
-      sendBase("user_outOfMemoryForPinDataset", args);
+      args.setPartitionId(partitionId);
+      args.setCheckpointPath(checkpointPath);
+      sendBase("user_setPartitionCheckpointPath", args);
     }
 
-    public void recv_user_outOfMemoryForPinDataset() throws org.apache.thrift.TException
+    public void recv_user_setPartitionCheckpointPath() throws DatasetDoesNotExistException, PartitionDoesNotExistException, org.apache.thrift.TException
     {
-      user_outOfMemoryForPinDataset_result result = new user_outOfMemoryForPinDataset_result();
-      receiveBase(result, "user_outOfMemoryForPinDataset");
+      user_setPartitionCheckpointPath_result result = new user_setPartitionCheckpointPath_result();
+      receiveBase(result, "user_setPartitionCheckpointPath");
+      if (result.eD != null) {
+        throw result.eD;
+      }
+      if (result.eP != null) {
+        throw result.eP;
+      }
+      return;
+    }
+
+    public void user_unpinDataset(int datasetId) throws DatasetDoesNotExistException, org.apache.thrift.TException
+    {
+      send_user_unpinDataset(datasetId);
+      recv_user_unpinDataset();
+    }
+
+    public void send_user_unpinDataset(int datasetId) throws org.apache.thrift.TException
+    {
+      user_unpinDataset_args args = new user_unpinDataset_args();
+      args.setDatasetId(datasetId);
+      sendBase("user_unpinDataset", args);
+    }
+
+    public void recv_user_unpinDataset() throws DatasetDoesNotExistException, org.apache.thrift.TException
+    {
+      user_unpinDataset_result result = new user_unpinDataset_result();
+      receiveBase(result, "user_unpinDataset");
+      if (result.e != null) {
+        throw result.e;
+      }
       return;
     }
 
@@ -1374,35 +1406,35 @@ public class MasterService {
       }
     }
 
-    public void user_unpinDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_unpinDataset_call> resultHandler) throws org.apache.thrift.TException {
+    public void user_outOfMemoryForPinDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_outOfMemoryForPinDataset_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_unpinDataset_call method_call = new user_unpinDataset_call(datasetId, resultHandler, this, ___protocolFactory, ___transport);
+      user_outOfMemoryForPinDataset_call method_call = new user_outOfMemoryForPinDataset_call(datasetId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class user_unpinDataset_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class user_outOfMemoryForPinDataset_call extends org.apache.thrift.async.TAsyncMethodCall {
       private int datasetId;
-      public user_unpinDataset_call(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_unpinDataset_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public user_outOfMemoryForPinDataset_call(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_outOfMemoryForPinDataset_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.datasetId = datasetId;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_unpinDataset", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_unpinDataset_args args = new user_unpinDataset_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_outOfMemoryForPinDataset", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        user_outOfMemoryForPinDataset_args args = new user_outOfMemoryForPinDataset_args();
         args.setDatasetId(datasetId);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws DatasetDoesNotExistException, org.apache.thrift.TException {
+      public void getResult() throws org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_user_unpinDataset();
+        (new Client(prot)).recv_user_outOfMemoryForPinDataset();
       }
     }
 
@@ -1476,35 +1508,73 @@ public class MasterService {
       }
     }
 
-    public void user_outOfMemoryForPinDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_outOfMemoryForPinDataset_call> resultHandler) throws org.apache.thrift.TException {
+    public void user_setPartitionCheckpointPath(int datasetId, int partitionId, String checkpointPath, org.apache.thrift.async.AsyncMethodCallback<user_setPartitionCheckpointPath_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_outOfMemoryForPinDataset_call method_call = new user_outOfMemoryForPinDataset_call(datasetId, resultHandler, this, ___protocolFactory, ___transport);
+      user_setPartitionCheckpointPath_call method_call = new user_setPartitionCheckpointPath_call(datasetId, partitionId, checkpointPath, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class user_outOfMemoryForPinDataset_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class user_setPartitionCheckpointPath_call extends org.apache.thrift.async.TAsyncMethodCall {
       private int datasetId;
-      public user_outOfMemoryForPinDataset_call(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_outOfMemoryForPinDataset_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private int partitionId;
+      private String checkpointPath;
+      public user_setPartitionCheckpointPath_call(int datasetId, int partitionId, String checkpointPath, org.apache.thrift.async.AsyncMethodCallback<user_setPartitionCheckpointPath_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.datasetId = datasetId;
+        this.partitionId = partitionId;
+        this.checkpointPath = checkpointPath;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_outOfMemoryForPinDataset", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_outOfMemoryForPinDataset_args args = new user_outOfMemoryForPinDataset_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_setPartitionCheckpointPath", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        user_setPartitionCheckpointPath_args args = new user_setPartitionCheckpointPath_args();
         args.setDatasetId(datasetId);
+        args.setPartitionId(partitionId);
+        args.setCheckpointPath(checkpointPath);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws org.apache.thrift.TException {
+      public void getResult() throws DatasetDoesNotExistException, PartitionDoesNotExistException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_user_outOfMemoryForPinDataset();
+        (new Client(prot)).recv_user_setPartitionCheckpointPath();
+      }
+    }
+
+    public void user_unpinDataset(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_unpinDataset_call> resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      user_unpinDataset_call method_call = new user_unpinDataset_call(datasetId, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class user_unpinDataset_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private int datasetId;
+      public user_unpinDataset_call(int datasetId, org.apache.thrift.async.AsyncMethodCallback<user_unpinDataset_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.datasetId = datasetId;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_unpinDataset", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        user_unpinDataset_args args = new user_unpinDataset_args();
+        args.setDatasetId(datasetId);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public void getResult() throws DatasetDoesNotExistException, org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        (new Client(prot)).recv_user_unpinDataset();
       }
     }
 
@@ -1571,10 +1641,11 @@ public class MasterService {
       processMap.put("user_getPartitionInfo", new user_getPartitionInfo());
       processMap.put("user_deleteDataset", new user_deleteDataset());
       processMap.put("user_deleteRawColumnDataset", new user_deleteRawColumnDataset());
-      processMap.put("user_unpinDataset", new user_unpinDataset());
+      processMap.put("user_outOfMemoryForPinDataset", new user_outOfMemoryForPinDataset());
       processMap.put("user_renameDataset", new user_renameDataset());
       processMap.put("user_renameRawColumnDataset", new user_renameRawColumnDataset());
-      processMap.put("user_outOfMemoryForPinDataset", new user_outOfMemoryForPinDataset());
+      processMap.put("user_setPartitionCheckpointPath", new user_setPartitionCheckpointPath());
+      processMap.put("user_unpinDataset", new user_unpinDataset());
       processMap.put("cmd_ls", new cmd_ls());
       return processMap;
     }
@@ -2001,26 +2072,22 @@ public class MasterService {
       }
     }
 
-    public static class user_unpinDataset<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_unpinDataset_args> {
-      public user_unpinDataset() {
-        super("user_unpinDataset");
+    public static class user_outOfMemoryForPinDataset<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_outOfMemoryForPinDataset_args> {
+      public user_outOfMemoryForPinDataset() {
+        super("user_outOfMemoryForPinDataset");
       }
 
-      public user_unpinDataset_args getEmptyArgsInstance() {
-        return new user_unpinDataset_args();
+      public user_outOfMemoryForPinDataset_args getEmptyArgsInstance() {
+        return new user_outOfMemoryForPinDataset_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public user_unpinDataset_result getResult(I iface, user_unpinDataset_args args) throws org.apache.thrift.TException {
-        user_unpinDataset_result result = new user_unpinDataset_result();
-        try {
-          iface.user_unpinDataset(args.datasetId);
-        } catch (DatasetDoesNotExistException e) {
-          result.e = e;
-        }
+      public user_outOfMemoryForPinDataset_result getResult(I iface, user_outOfMemoryForPinDataset_args args) throws org.apache.thrift.TException {
+        user_outOfMemoryForPinDataset_result result = new user_outOfMemoryForPinDataset_result();
+        iface.user_outOfMemoryForPinDataset(args.datasetId);
         return result;
       }
     }
@@ -2073,22 +2140,52 @@ public class MasterService {
       }
     }
 
-    public static class user_outOfMemoryForPinDataset<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_outOfMemoryForPinDataset_args> {
-      public user_outOfMemoryForPinDataset() {
-        super("user_outOfMemoryForPinDataset");
+    public static class user_setPartitionCheckpointPath<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_setPartitionCheckpointPath_args> {
+      public user_setPartitionCheckpointPath() {
+        super("user_setPartitionCheckpointPath");
       }
 
-      public user_outOfMemoryForPinDataset_args getEmptyArgsInstance() {
-        return new user_outOfMemoryForPinDataset_args();
+      public user_setPartitionCheckpointPath_args getEmptyArgsInstance() {
+        return new user_setPartitionCheckpointPath_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public user_outOfMemoryForPinDataset_result getResult(I iface, user_outOfMemoryForPinDataset_args args) throws org.apache.thrift.TException {
-        user_outOfMemoryForPinDataset_result result = new user_outOfMemoryForPinDataset_result();
-        iface.user_outOfMemoryForPinDataset(args.datasetId);
+      public user_setPartitionCheckpointPath_result getResult(I iface, user_setPartitionCheckpointPath_args args) throws org.apache.thrift.TException {
+        user_setPartitionCheckpointPath_result result = new user_setPartitionCheckpointPath_result();
+        try {
+          iface.user_setPartitionCheckpointPath(args.datasetId, args.partitionId, args.checkpointPath);
+        } catch (DatasetDoesNotExistException eD) {
+          result.eD = eD;
+        } catch (PartitionDoesNotExistException eP) {
+          result.eP = eP;
+        }
+        return result;
+      }
+    }
+
+    public static class user_unpinDataset<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_unpinDataset_args> {
+      public user_unpinDataset() {
+        super("user_unpinDataset");
+      }
+
+      public user_unpinDataset_args getEmptyArgsInstance() {
+        return new user_unpinDataset_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public user_unpinDataset_result getResult(I iface, user_unpinDataset_args args) throws org.apache.thrift.TException {
+        user_unpinDataset_result result = new user_unpinDataset_result();
+        try {
+          iface.user_unpinDataset(args.datasetId);
+        } catch (DatasetDoesNotExistException e) {
+          result.e = e;
+        }
         return result;
       }
     }
@@ -17777,15 +17874,15 @@ public class MasterService {
 
   }
 
-  public static class user_unpinDataset_args implements org.apache.thrift.TBase<user_unpinDataset_args, user_unpinDataset_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_unpinDataset_args");
+  public static class user_outOfMemoryForPinDataset_args implements org.apache.thrift.TBase<user_outOfMemoryForPinDataset_args, user_outOfMemoryForPinDataset_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_outOfMemoryForPinDataset_args");
 
     private static final org.apache.thrift.protocol.TField DATASET_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("datasetId", org.apache.thrift.protocol.TType.I32, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_unpinDataset_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_unpinDataset_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_outOfMemoryForPinDataset_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_outOfMemoryForPinDataset_argsTupleSchemeFactory());
     }
 
     public int datasetId; // required
@@ -17857,13 +17954,13 @@ public class MasterService {
       tmpMap.put(_Fields.DATASET_ID, new org.apache.thrift.meta_data.FieldMetaData("datasetId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_unpinDataset_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_outOfMemoryForPinDataset_args.class, metaDataMap);
     }
 
-    public user_unpinDataset_args() {
+    public user_outOfMemoryForPinDataset_args() {
     }
 
-    public user_unpinDataset_args(
+    public user_outOfMemoryForPinDataset_args(
       int datasetId)
     {
       this();
@@ -17874,13 +17971,13 @@ public class MasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_unpinDataset_args(user_unpinDataset_args other) {
+    public user_outOfMemoryForPinDataset_args(user_outOfMemoryForPinDataset_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.datasetId = other.datasetId;
     }
 
-    public user_unpinDataset_args deepCopy() {
-      return new user_unpinDataset_args(this);
+    public user_outOfMemoryForPinDataset_args deepCopy() {
+      return new user_outOfMemoryForPinDataset_args(this);
     }
 
     @Override
@@ -17893,7 +17990,7 @@ public class MasterService {
       return this.datasetId;
     }
 
-    public user_unpinDataset_args setDatasetId(int datasetId) {
+    public user_outOfMemoryForPinDataset_args setDatasetId(int datasetId) {
       this.datasetId = datasetId;
       setDatasetIdIsSet(true);
       return this;
@@ -17951,12 +18048,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_unpinDataset_args)
-        return this.equals((user_unpinDataset_args)that);
+      if (that instanceof user_outOfMemoryForPinDataset_args)
+        return this.equals((user_outOfMemoryForPinDataset_args)that);
       return false;
     }
 
-    public boolean equals(user_unpinDataset_args that) {
+    public boolean equals(user_outOfMemoryForPinDataset_args that) {
       if (that == null)
         return false;
 
@@ -17977,13 +18074,13 @@ public class MasterService {
       return 0;
     }
 
-    public int compareTo(user_unpinDataset_args other) {
+    public int compareTo(user_outOfMemoryForPinDataset_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      user_unpinDataset_args typedOther = (user_unpinDataset_args)other;
+      user_outOfMemoryForPinDataset_args typedOther = (user_outOfMemoryForPinDataset_args)other;
 
       lastComparison = Boolean.valueOf(isSetDatasetId()).compareTo(typedOther.isSetDatasetId());
       if (lastComparison != 0) {
@@ -18012,7 +18109,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_unpinDataset_args(");
+      StringBuilder sb = new StringBuilder("user_outOfMemoryForPinDataset_args(");
       boolean first = true;
 
       sb.append("datasetId:");
@@ -18045,15 +18142,15 @@ public class MasterService {
       }
     }
 
-    private static class user_unpinDataset_argsStandardSchemeFactory implements SchemeFactory {
-      public user_unpinDataset_argsStandardScheme getScheme() {
-        return new user_unpinDataset_argsStandardScheme();
+    private static class user_outOfMemoryForPinDataset_argsStandardSchemeFactory implements SchemeFactory {
+      public user_outOfMemoryForPinDataset_argsStandardScheme getScheme() {
+        return new user_outOfMemoryForPinDataset_argsStandardScheme();
       }
     }
 
-    private static class user_unpinDataset_argsStandardScheme extends StandardScheme<user_unpinDataset_args> {
+    private static class user_outOfMemoryForPinDataset_argsStandardScheme extends StandardScheme<user_outOfMemoryForPinDataset_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_unpinDataset_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_outOfMemoryForPinDataset_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -18082,7 +18179,7 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_unpinDataset_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_outOfMemoryForPinDataset_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -18095,16 +18192,16 @@ public class MasterService {
 
     }
 
-    private static class user_unpinDataset_argsTupleSchemeFactory implements SchemeFactory {
-      public user_unpinDataset_argsTupleScheme getScheme() {
-        return new user_unpinDataset_argsTupleScheme();
+    private static class user_outOfMemoryForPinDataset_argsTupleSchemeFactory implements SchemeFactory {
+      public user_outOfMemoryForPinDataset_argsTupleScheme getScheme() {
+        return new user_outOfMemoryForPinDataset_argsTupleScheme();
       }
     }
 
-    private static class user_unpinDataset_argsTupleScheme extends TupleScheme<user_unpinDataset_args> {
+    private static class user_outOfMemoryForPinDataset_argsTupleScheme extends TupleScheme<user_outOfMemoryForPinDataset_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_unpinDataset_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_outOfMemoryForPinDataset_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetDatasetId()) {
@@ -18117,7 +18214,7 @@ public class MasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_unpinDataset_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_outOfMemoryForPinDataset_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
@@ -18129,22 +18226,20 @@ public class MasterService {
 
   }
 
-  public static class user_unpinDataset_result implements org.apache.thrift.TBase<user_unpinDataset_result, user_unpinDataset_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_unpinDataset_result");
+  public static class user_outOfMemoryForPinDataset_result implements org.apache.thrift.TBase<user_outOfMemoryForPinDataset_result, user_outOfMemoryForPinDataset_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_outOfMemoryForPinDataset_result");
 
-    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_unpinDataset_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_unpinDataset_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_outOfMemoryForPinDataset_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_outOfMemoryForPinDataset_resultTupleSchemeFactory());
     }
 
-    public DatasetDoesNotExistException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      E((short)1, "e");
+;
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -18159,8 +18254,6 @@ public class MasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // E
-            return E;
           default:
             return null;
         }
@@ -18199,87 +18292,37 @@ public class MasterService {
         return _fieldName;
       }
     }
-
-    // isset id assignments
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_unpinDataset_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_outOfMemoryForPinDataset_result.class, metaDataMap);
     }
 
-    public user_unpinDataset_result() {
-    }
-
-    public user_unpinDataset_result(
-      DatasetDoesNotExistException e)
-    {
-      this();
-      this.e = e;
+    public user_outOfMemoryForPinDataset_result() {
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_unpinDataset_result(user_unpinDataset_result other) {
-      if (other.isSetE()) {
-        this.e = new DatasetDoesNotExistException(other.e);
-      }
+    public user_outOfMemoryForPinDataset_result(user_outOfMemoryForPinDataset_result other) {
     }
 
-    public user_unpinDataset_result deepCopy() {
-      return new user_unpinDataset_result(this);
+    public user_outOfMemoryForPinDataset_result deepCopy() {
+      return new user_outOfMemoryForPinDataset_result(this);
     }
 
     @Override
     public void clear() {
-      this.e = null;
-    }
-
-    public DatasetDoesNotExistException getE() {
-      return this.e;
-    }
-
-    public user_unpinDataset_result setE(DatasetDoesNotExistException e) {
-      this.e = e;
-      return this;
-    }
-
-    public void unsetE() {
-      this.e = null;
-    }
-
-    /** Returns true if field e is set (has been assigned a value) and false otherwise */
-    public boolean isSetE() {
-      return this.e != null;
-    }
-
-    public void setEIsSet(boolean value) {
-      if (!value) {
-        this.e = null;
-      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case E:
-        if (value == null) {
-          unsetE();
-        } else {
-          setE((DatasetDoesNotExistException)value);
-        }
-        break;
-
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case E:
-        return getE();
-
       }
       throw new IllegalStateException();
     }
@@ -18291,8 +18334,6 @@ public class MasterService {
       }
 
       switch (field) {
-      case E:
-        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -18301,23 +18342,14 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_unpinDataset_result)
-        return this.equals((user_unpinDataset_result)that);
+      if (that instanceof user_outOfMemoryForPinDataset_result)
+        return this.equals((user_outOfMemoryForPinDataset_result)that);
       return false;
     }
 
-    public boolean equals(user_unpinDataset_result that) {
+    public boolean equals(user_outOfMemoryForPinDataset_result that) {
       if (that == null)
         return false;
-
-      boolean this_present_e = true && this.isSetE();
-      boolean that_present_e = true && that.isSetE();
-      if (this_present_e || that_present_e) {
-        if (!(this_present_e && that_present_e))
-          return false;
-        if (!this.e.equals(that.e))
-          return false;
-      }
 
       return true;
     }
@@ -18327,24 +18359,14 @@ public class MasterService {
       return 0;
     }
 
-    public int compareTo(user_unpinDataset_result other) {
+    public int compareTo(user_outOfMemoryForPinDataset_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      user_unpinDataset_result typedOther = (user_unpinDataset_result)other;
+      user_outOfMemoryForPinDataset_result typedOther = (user_outOfMemoryForPinDataset_result)other;
 
-      lastComparison = Boolean.valueOf(isSetE()).compareTo(typedOther.isSetE());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetE()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, typedOther.e);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       return 0;
     }
 
@@ -18362,16 +18384,9 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_unpinDataset_result(");
+      StringBuilder sb = new StringBuilder("user_outOfMemoryForPinDataset_result(");
       boolean first = true;
 
-      sb.append("e:");
-      if (this.e == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.e);
-      }
-      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -18397,15 +18412,15 @@ public class MasterService {
       }
     }
 
-    private static class user_unpinDataset_resultStandardSchemeFactory implements SchemeFactory {
-      public user_unpinDataset_resultStandardScheme getScheme() {
-        return new user_unpinDataset_resultStandardScheme();
+    private static class user_outOfMemoryForPinDataset_resultStandardSchemeFactory implements SchemeFactory {
+      public user_outOfMemoryForPinDataset_resultStandardScheme getScheme() {
+        return new user_outOfMemoryForPinDataset_resultStandardScheme();
       }
     }
 
-    private static class user_unpinDataset_resultStandardScheme extends StandardScheme<user_unpinDataset_result> {
+    private static class user_outOfMemoryForPinDataset_resultStandardScheme extends StandardScheme<user_outOfMemoryForPinDataset_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_unpinDataset_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_outOfMemoryForPinDataset_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -18415,15 +18430,6 @@ public class MasterService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // E
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new DatasetDoesNotExistException();
-                struct.e.read(iprot);
-                struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -18435,51 +18441,32 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_unpinDataset_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_outOfMemoryForPinDataset_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.e != null) {
-          oprot.writeFieldBegin(E_FIELD_DESC);
-          struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class user_unpinDataset_resultTupleSchemeFactory implements SchemeFactory {
-      public user_unpinDataset_resultTupleScheme getScheme() {
-        return new user_unpinDataset_resultTupleScheme();
+    private static class user_outOfMemoryForPinDataset_resultTupleSchemeFactory implements SchemeFactory {
+      public user_outOfMemoryForPinDataset_resultTupleScheme getScheme() {
+        return new user_outOfMemoryForPinDataset_resultTupleScheme();
       }
     }
 
-    private static class user_unpinDataset_resultTupleScheme extends TupleScheme<user_unpinDataset_result> {
+    private static class user_outOfMemoryForPinDataset_resultTupleScheme extends TupleScheme<user_outOfMemoryForPinDataset_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_unpinDataset_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_outOfMemoryForPinDataset_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetE()) {
-          optionals.set(0);
-        }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetE()) {
-          struct.e.write(oprot);
-        }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_unpinDataset_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_outOfMemoryForPinDataset_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
-        if (incoming.get(0)) {
-          struct.e = new DatasetDoesNotExistException();
-          struct.e.read(iprot);
-          struct.setEIsSet(true);
-        }
       }
     }
 
@@ -20105,15 +20092,1019 @@ public class MasterService {
 
   }
 
-  public static class user_outOfMemoryForPinDataset_args implements org.apache.thrift.TBase<user_outOfMemoryForPinDataset_args, user_outOfMemoryForPinDataset_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_outOfMemoryForPinDataset_args");
+  public static class user_setPartitionCheckpointPath_args implements org.apache.thrift.TBase<user_setPartitionCheckpointPath_args, user_setPartitionCheckpointPath_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_setPartitionCheckpointPath_args");
+
+    private static final org.apache.thrift.protocol.TField DATASET_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("datasetId", org.apache.thrift.protocol.TType.I32, (short)1);
+    private static final org.apache.thrift.protocol.TField PARTITION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("partitionId", org.apache.thrift.protocol.TType.I32, (short)2);
+    private static final org.apache.thrift.protocol.TField CHECKPOINT_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("checkpointPath", org.apache.thrift.protocol.TType.STRING, (short)3);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new user_setPartitionCheckpointPath_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_setPartitionCheckpointPath_argsTupleSchemeFactory());
+    }
+
+    public int datasetId; // required
+    public int partitionId; // required
+    public String checkpointPath; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      DATASET_ID((short)1, "datasetId"),
+      PARTITION_ID((short)2, "partitionId"),
+      CHECKPOINT_PATH((short)3, "checkpointPath");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // DATASET_ID
+            return DATASET_ID;
+          case 2: // PARTITION_ID
+            return PARTITION_ID;
+          case 3: // CHECKPOINT_PATH
+            return CHECKPOINT_PATH;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    private static final int __DATASETID_ISSET_ID = 0;
+    private static final int __PARTITIONID_ISSET_ID = 1;
+    private byte __isset_bitfield = 0;
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.DATASET_ID, new org.apache.thrift.meta_data.FieldMetaData("datasetId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.PARTITION_ID, new org.apache.thrift.meta_data.FieldMetaData("partitionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.CHECKPOINT_PATH, new org.apache.thrift.meta_data.FieldMetaData("checkpointPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_setPartitionCheckpointPath_args.class, metaDataMap);
+    }
+
+    public user_setPartitionCheckpointPath_args() {
+    }
+
+    public user_setPartitionCheckpointPath_args(
+      int datasetId,
+      int partitionId,
+      String checkpointPath)
+    {
+      this();
+      this.datasetId = datasetId;
+      setDatasetIdIsSet(true);
+      this.partitionId = partitionId;
+      setPartitionIdIsSet(true);
+      this.checkpointPath = checkpointPath;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public user_setPartitionCheckpointPath_args(user_setPartitionCheckpointPath_args other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.datasetId = other.datasetId;
+      this.partitionId = other.partitionId;
+      if (other.isSetCheckpointPath()) {
+        this.checkpointPath = other.checkpointPath;
+      }
+    }
+
+    public user_setPartitionCheckpointPath_args deepCopy() {
+      return new user_setPartitionCheckpointPath_args(this);
+    }
+
+    @Override
+    public void clear() {
+      setDatasetIdIsSet(false);
+      this.datasetId = 0;
+      setPartitionIdIsSet(false);
+      this.partitionId = 0;
+      this.checkpointPath = null;
+    }
+
+    public int getDatasetId() {
+      return this.datasetId;
+    }
+
+    public user_setPartitionCheckpointPath_args setDatasetId(int datasetId) {
+      this.datasetId = datasetId;
+      setDatasetIdIsSet(true);
+      return this;
+    }
+
+    public void unsetDatasetId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __DATASETID_ISSET_ID);
+    }
+
+    /** Returns true if field datasetId is set (has been assigned a value) and false otherwise */
+    public boolean isSetDatasetId() {
+      return EncodingUtils.testBit(__isset_bitfield, __DATASETID_ISSET_ID);
+    }
+
+    public void setDatasetIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __DATASETID_ISSET_ID, value);
+    }
+
+    public int getPartitionId() {
+      return this.partitionId;
+    }
+
+    public user_setPartitionCheckpointPath_args setPartitionId(int partitionId) {
+      this.partitionId = partitionId;
+      setPartitionIdIsSet(true);
+      return this;
+    }
+
+    public void unsetPartitionId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __PARTITIONID_ISSET_ID);
+    }
+
+    /** Returns true if field partitionId is set (has been assigned a value) and false otherwise */
+    public boolean isSetPartitionId() {
+      return EncodingUtils.testBit(__isset_bitfield, __PARTITIONID_ISSET_ID);
+    }
+
+    public void setPartitionIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __PARTITIONID_ISSET_ID, value);
+    }
+
+    public String getCheckpointPath() {
+      return this.checkpointPath;
+    }
+
+    public user_setPartitionCheckpointPath_args setCheckpointPath(String checkpointPath) {
+      this.checkpointPath = checkpointPath;
+      return this;
+    }
+
+    public void unsetCheckpointPath() {
+      this.checkpointPath = null;
+    }
+
+    /** Returns true if field checkpointPath is set (has been assigned a value) and false otherwise */
+    public boolean isSetCheckpointPath() {
+      return this.checkpointPath != null;
+    }
+
+    public void setCheckpointPathIsSet(boolean value) {
+      if (!value) {
+        this.checkpointPath = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case DATASET_ID:
+        if (value == null) {
+          unsetDatasetId();
+        } else {
+          setDatasetId((Integer)value);
+        }
+        break;
+
+      case PARTITION_ID:
+        if (value == null) {
+          unsetPartitionId();
+        } else {
+          setPartitionId((Integer)value);
+        }
+        break;
+
+      case CHECKPOINT_PATH:
+        if (value == null) {
+          unsetCheckpointPath();
+        } else {
+          setCheckpointPath((String)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case DATASET_ID:
+        return Integer.valueOf(getDatasetId());
+
+      case PARTITION_ID:
+        return Integer.valueOf(getPartitionId());
+
+      case CHECKPOINT_PATH:
+        return getCheckpointPath();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case DATASET_ID:
+        return isSetDatasetId();
+      case PARTITION_ID:
+        return isSetPartitionId();
+      case CHECKPOINT_PATH:
+        return isSetCheckpointPath();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof user_setPartitionCheckpointPath_args)
+        return this.equals((user_setPartitionCheckpointPath_args)that);
+      return false;
+    }
+
+    public boolean equals(user_setPartitionCheckpointPath_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_datasetId = true;
+      boolean that_present_datasetId = true;
+      if (this_present_datasetId || that_present_datasetId) {
+        if (!(this_present_datasetId && that_present_datasetId))
+          return false;
+        if (this.datasetId != that.datasetId)
+          return false;
+      }
+
+      boolean this_present_partitionId = true;
+      boolean that_present_partitionId = true;
+      if (this_present_partitionId || that_present_partitionId) {
+        if (!(this_present_partitionId && that_present_partitionId))
+          return false;
+        if (this.partitionId != that.partitionId)
+          return false;
+      }
+
+      boolean this_present_checkpointPath = true && this.isSetCheckpointPath();
+      boolean that_present_checkpointPath = true && that.isSetCheckpointPath();
+      if (this_present_checkpointPath || that_present_checkpointPath) {
+        if (!(this_present_checkpointPath && that_present_checkpointPath))
+          return false;
+        if (!this.checkpointPath.equals(that.checkpointPath))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(user_setPartitionCheckpointPath_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      user_setPartitionCheckpointPath_args typedOther = (user_setPartitionCheckpointPath_args)other;
+
+      lastComparison = Boolean.valueOf(isSetDatasetId()).compareTo(typedOther.isSetDatasetId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetDatasetId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.datasetId, typedOther.datasetId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetPartitionId()).compareTo(typedOther.isSetPartitionId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetPartitionId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.partitionId, typedOther.partitionId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetCheckpointPath()).compareTo(typedOther.isSetCheckpointPath());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetCheckpointPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.checkpointPath, typedOther.checkpointPath);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("user_setPartitionCheckpointPath_args(");
+      boolean first = true;
+
+      sb.append("datasetId:");
+      sb.append(this.datasetId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("partitionId:");
+      sb.append(this.partitionId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("checkpointPath:");
+      if (this.checkpointPath == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.checkpointPath);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class user_setPartitionCheckpointPath_argsStandardSchemeFactory implements SchemeFactory {
+      public user_setPartitionCheckpointPath_argsStandardScheme getScheme() {
+        return new user_setPartitionCheckpointPath_argsStandardScheme();
+      }
+    }
+
+    private static class user_setPartitionCheckpointPath_argsStandardScheme extends StandardScheme<user_setPartitionCheckpointPath_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_setPartitionCheckpointPath_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // DATASET_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+                struct.datasetId = iprot.readI32();
+                struct.setDatasetIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // PARTITION_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+                struct.partitionId = iprot.readI32();
+                struct.setPartitionIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // CHECKPOINT_PATH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.checkpointPath = iprot.readString();
+                struct.setCheckpointPathIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_setPartitionCheckpointPath_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(DATASET_ID_FIELD_DESC);
+        oprot.writeI32(struct.datasetId);
+        oprot.writeFieldEnd();
+        oprot.writeFieldBegin(PARTITION_ID_FIELD_DESC);
+        oprot.writeI32(struct.partitionId);
+        oprot.writeFieldEnd();
+        if (struct.checkpointPath != null) {
+          oprot.writeFieldBegin(CHECKPOINT_PATH_FIELD_DESC);
+          oprot.writeString(struct.checkpointPath);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class user_setPartitionCheckpointPath_argsTupleSchemeFactory implements SchemeFactory {
+      public user_setPartitionCheckpointPath_argsTupleScheme getScheme() {
+        return new user_setPartitionCheckpointPath_argsTupleScheme();
+      }
+    }
+
+    private static class user_setPartitionCheckpointPath_argsTupleScheme extends TupleScheme<user_setPartitionCheckpointPath_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_setPartitionCheckpointPath_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetDatasetId()) {
+          optionals.set(0);
+        }
+        if (struct.isSetPartitionId()) {
+          optionals.set(1);
+        }
+        if (struct.isSetCheckpointPath()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetDatasetId()) {
+          oprot.writeI32(struct.datasetId);
+        }
+        if (struct.isSetPartitionId()) {
+          oprot.writeI32(struct.partitionId);
+        }
+        if (struct.isSetCheckpointPath()) {
+          oprot.writeString(struct.checkpointPath);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_setPartitionCheckpointPath_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(3);
+        if (incoming.get(0)) {
+          struct.datasetId = iprot.readI32();
+          struct.setDatasetIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.partitionId = iprot.readI32();
+          struct.setPartitionIdIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.checkpointPath = iprot.readString();
+          struct.setCheckpointPathIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class user_setPartitionCheckpointPath_result implements org.apache.thrift.TBase<user_setPartitionCheckpointPath_result, user_setPartitionCheckpointPath_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_setPartitionCheckpointPath_result");
+
+    private static final org.apache.thrift.protocol.TField E_D_FIELD_DESC = new org.apache.thrift.protocol.TField("eD", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_P_FIELD_DESC = new org.apache.thrift.protocol.TField("eP", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new user_setPartitionCheckpointPath_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_setPartitionCheckpointPath_resultTupleSchemeFactory());
+    }
+
+    public DatasetDoesNotExistException eD; // required
+    public PartitionDoesNotExistException eP; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      E_D((short)1, "eD"),
+      E_P((short)2, "eP");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // E_D
+            return E_D;
+          case 2: // E_P
+            return E_P;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.E_D, new org.apache.thrift.meta_data.FieldMetaData("eD", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_P, new org.apache.thrift.meta_data.FieldMetaData("eP", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_setPartitionCheckpointPath_result.class, metaDataMap);
+    }
+
+    public user_setPartitionCheckpointPath_result() {
+    }
+
+    public user_setPartitionCheckpointPath_result(
+      DatasetDoesNotExistException eD,
+      PartitionDoesNotExistException eP)
+    {
+      this();
+      this.eD = eD;
+      this.eP = eP;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public user_setPartitionCheckpointPath_result(user_setPartitionCheckpointPath_result other) {
+      if (other.isSetED()) {
+        this.eD = new DatasetDoesNotExistException(other.eD);
+      }
+      if (other.isSetEP()) {
+        this.eP = new PartitionDoesNotExistException(other.eP);
+      }
+    }
+
+    public user_setPartitionCheckpointPath_result deepCopy() {
+      return new user_setPartitionCheckpointPath_result(this);
+    }
+
+    @Override
+    public void clear() {
+      this.eD = null;
+      this.eP = null;
+    }
+
+    public DatasetDoesNotExistException getED() {
+      return this.eD;
+    }
+
+    public user_setPartitionCheckpointPath_result setED(DatasetDoesNotExistException eD) {
+      this.eD = eD;
+      return this;
+    }
+
+    public void unsetED() {
+      this.eD = null;
+    }
+
+    /** Returns true if field eD is set (has been assigned a value) and false otherwise */
+    public boolean isSetED() {
+      return this.eD != null;
+    }
+
+    public void setEDIsSet(boolean value) {
+      if (!value) {
+        this.eD = null;
+      }
+    }
+
+    public PartitionDoesNotExistException getEP() {
+      return this.eP;
+    }
+
+    public user_setPartitionCheckpointPath_result setEP(PartitionDoesNotExistException eP) {
+      this.eP = eP;
+      return this;
+    }
+
+    public void unsetEP() {
+      this.eP = null;
+    }
+
+    /** Returns true if field eP is set (has been assigned a value) and false otherwise */
+    public boolean isSetEP() {
+      return this.eP != null;
+    }
+
+    public void setEPIsSet(boolean value) {
+      if (!value) {
+        this.eP = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case E_D:
+        if (value == null) {
+          unsetED();
+        } else {
+          setED((DatasetDoesNotExistException)value);
+        }
+        break;
+
+      case E_P:
+        if (value == null) {
+          unsetEP();
+        } else {
+          setEP((PartitionDoesNotExistException)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case E_D:
+        return getED();
+
+      case E_P:
+        return getEP();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case E_D:
+        return isSetED();
+      case E_P:
+        return isSetEP();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof user_setPartitionCheckpointPath_result)
+        return this.equals((user_setPartitionCheckpointPath_result)that);
+      return false;
+    }
+
+    public boolean equals(user_setPartitionCheckpointPath_result that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_eD = true && this.isSetED();
+      boolean that_present_eD = true && that.isSetED();
+      if (this_present_eD || that_present_eD) {
+        if (!(this_present_eD && that_present_eD))
+          return false;
+        if (!this.eD.equals(that.eD))
+          return false;
+      }
+
+      boolean this_present_eP = true && this.isSetEP();
+      boolean that_present_eP = true && that.isSetEP();
+      if (this_present_eP || that_present_eP) {
+        if (!(this_present_eP && that_present_eP))
+          return false;
+        if (!this.eP.equals(that.eP))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    public int compareTo(user_setPartitionCheckpointPath_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+      user_setPartitionCheckpointPath_result typedOther = (user_setPartitionCheckpointPath_result)other;
+
+      lastComparison = Boolean.valueOf(isSetED()).compareTo(typedOther.isSetED());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetED()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eD, typedOther.eD);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEP()).compareTo(typedOther.isSetEP());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEP()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eP, typedOther.eP);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("user_setPartitionCheckpointPath_result(");
+      boolean first = true;
+
+      sb.append("eD:");
+      if (this.eD == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eD);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eP:");
+      if (this.eP == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eP);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class user_setPartitionCheckpointPath_resultStandardSchemeFactory implements SchemeFactory {
+      public user_setPartitionCheckpointPath_resultStandardScheme getScheme() {
+        return new user_setPartitionCheckpointPath_resultStandardScheme();
+      }
+    }
+
+    private static class user_setPartitionCheckpointPath_resultStandardScheme extends StandardScheme<user_setPartitionCheckpointPath_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_setPartitionCheckpointPath_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // E_D
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eD = new DatasetDoesNotExistException();
+                struct.eD.read(iprot);
+                struct.setEDIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // E_P
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eP = new PartitionDoesNotExistException();
+                struct.eP.read(iprot);
+                struct.setEPIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_setPartitionCheckpointPath_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.eD != null) {
+          oprot.writeFieldBegin(E_D_FIELD_DESC);
+          struct.eD.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eP != null) {
+          oprot.writeFieldBegin(E_P_FIELD_DESC);
+          struct.eP.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class user_setPartitionCheckpointPath_resultTupleSchemeFactory implements SchemeFactory {
+      public user_setPartitionCheckpointPath_resultTupleScheme getScheme() {
+        return new user_setPartitionCheckpointPath_resultTupleScheme();
+      }
+    }
+
+    private static class user_setPartitionCheckpointPath_resultTupleScheme extends TupleScheme<user_setPartitionCheckpointPath_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_setPartitionCheckpointPath_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetED()) {
+          optionals.set(0);
+        }
+        if (struct.isSetEP()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetED()) {
+          struct.eD.write(oprot);
+        }
+        if (struct.isSetEP()) {
+          struct.eP.write(oprot);
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_setPartitionCheckpointPath_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.eD = new DatasetDoesNotExistException();
+          struct.eD.read(iprot);
+          struct.setEDIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.eP = new PartitionDoesNotExistException();
+          struct.eP.read(iprot);
+          struct.setEPIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class user_unpinDataset_args implements org.apache.thrift.TBase<user_unpinDataset_args, user_unpinDataset_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_unpinDataset_args");
 
     private static final org.apache.thrift.protocol.TField DATASET_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("datasetId", org.apache.thrift.protocol.TType.I32, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_outOfMemoryForPinDataset_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_outOfMemoryForPinDataset_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_unpinDataset_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_unpinDataset_argsTupleSchemeFactory());
     }
 
     public int datasetId; // required
@@ -20185,13 +21176,13 @@ public class MasterService {
       tmpMap.put(_Fields.DATASET_ID, new org.apache.thrift.meta_data.FieldMetaData("datasetId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_outOfMemoryForPinDataset_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_unpinDataset_args.class, metaDataMap);
     }
 
-    public user_outOfMemoryForPinDataset_args() {
+    public user_unpinDataset_args() {
     }
 
-    public user_outOfMemoryForPinDataset_args(
+    public user_unpinDataset_args(
       int datasetId)
     {
       this();
@@ -20202,13 +21193,13 @@ public class MasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_outOfMemoryForPinDataset_args(user_outOfMemoryForPinDataset_args other) {
+    public user_unpinDataset_args(user_unpinDataset_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.datasetId = other.datasetId;
     }
 
-    public user_outOfMemoryForPinDataset_args deepCopy() {
-      return new user_outOfMemoryForPinDataset_args(this);
+    public user_unpinDataset_args deepCopy() {
+      return new user_unpinDataset_args(this);
     }
 
     @Override
@@ -20221,7 +21212,7 @@ public class MasterService {
       return this.datasetId;
     }
 
-    public user_outOfMemoryForPinDataset_args setDatasetId(int datasetId) {
+    public user_unpinDataset_args setDatasetId(int datasetId) {
       this.datasetId = datasetId;
       setDatasetIdIsSet(true);
       return this;
@@ -20279,12 +21270,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_outOfMemoryForPinDataset_args)
-        return this.equals((user_outOfMemoryForPinDataset_args)that);
+      if (that instanceof user_unpinDataset_args)
+        return this.equals((user_unpinDataset_args)that);
       return false;
     }
 
-    public boolean equals(user_outOfMemoryForPinDataset_args that) {
+    public boolean equals(user_unpinDataset_args that) {
       if (that == null)
         return false;
 
@@ -20305,13 +21296,13 @@ public class MasterService {
       return 0;
     }
 
-    public int compareTo(user_outOfMemoryForPinDataset_args other) {
+    public int compareTo(user_unpinDataset_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      user_outOfMemoryForPinDataset_args typedOther = (user_outOfMemoryForPinDataset_args)other;
+      user_unpinDataset_args typedOther = (user_unpinDataset_args)other;
 
       lastComparison = Boolean.valueOf(isSetDatasetId()).compareTo(typedOther.isSetDatasetId());
       if (lastComparison != 0) {
@@ -20340,7 +21331,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_outOfMemoryForPinDataset_args(");
+      StringBuilder sb = new StringBuilder("user_unpinDataset_args(");
       boolean first = true;
 
       sb.append("datasetId:");
@@ -20373,15 +21364,15 @@ public class MasterService {
       }
     }
 
-    private static class user_outOfMemoryForPinDataset_argsStandardSchemeFactory implements SchemeFactory {
-      public user_outOfMemoryForPinDataset_argsStandardScheme getScheme() {
-        return new user_outOfMemoryForPinDataset_argsStandardScheme();
+    private static class user_unpinDataset_argsStandardSchemeFactory implements SchemeFactory {
+      public user_unpinDataset_argsStandardScheme getScheme() {
+        return new user_unpinDataset_argsStandardScheme();
       }
     }
 
-    private static class user_outOfMemoryForPinDataset_argsStandardScheme extends StandardScheme<user_outOfMemoryForPinDataset_args> {
+    private static class user_unpinDataset_argsStandardScheme extends StandardScheme<user_unpinDataset_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_outOfMemoryForPinDataset_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_unpinDataset_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -20410,7 +21401,7 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_outOfMemoryForPinDataset_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_unpinDataset_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -20423,16 +21414,16 @@ public class MasterService {
 
     }
 
-    private static class user_outOfMemoryForPinDataset_argsTupleSchemeFactory implements SchemeFactory {
-      public user_outOfMemoryForPinDataset_argsTupleScheme getScheme() {
-        return new user_outOfMemoryForPinDataset_argsTupleScheme();
+    private static class user_unpinDataset_argsTupleSchemeFactory implements SchemeFactory {
+      public user_unpinDataset_argsTupleScheme getScheme() {
+        return new user_unpinDataset_argsTupleScheme();
       }
     }
 
-    private static class user_outOfMemoryForPinDataset_argsTupleScheme extends TupleScheme<user_outOfMemoryForPinDataset_args> {
+    private static class user_unpinDataset_argsTupleScheme extends TupleScheme<user_unpinDataset_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_outOfMemoryForPinDataset_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_unpinDataset_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetDatasetId()) {
@@ -20445,7 +21436,7 @@ public class MasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_outOfMemoryForPinDataset_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_unpinDataset_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
@@ -20457,20 +21448,22 @@ public class MasterService {
 
   }
 
-  public static class user_outOfMemoryForPinDataset_result implements org.apache.thrift.TBase<user_outOfMemoryForPinDataset_result, user_outOfMemoryForPinDataset_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_outOfMemoryForPinDataset_result");
+  public static class user_unpinDataset_result implements org.apache.thrift.TBase<user_unpinDataset_result, user_unpinDataset_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_unpinDataset_result");
 
+    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_outOfMemoryForPinDataset_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_outOfMemoryForPinDataset_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_unpinDataset_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_unpinDataset_resultTupleSchemeFactory());
     }
 
+    public DatasetDoesNotExistException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -20485,6 +21478,8 @@ public class MasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 1: // E
+            return E;
           default:
             return null;
         }
@@ -20523,37 +21518,87 @@ public class MasterService {
         return _fieldName;
       }
     }
+
+    // isset id assignments
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_outOfMemoryForPinDataset_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_unpinDataset_result.class, metaDataMap);
     }
 
-    public user_outOfMemoryForPinDataset_result() {
+    public user_unpinDataset_result() {
+    }
+
+    public user_unpinDataset_result(
+      DatasetDoesNotExistException e)
+    {
+      this();
+      this.e = e;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_outOfMemoryForPinDataset_result(user_outOfMemoryForPinDataset_result other) {
+    public user_unpinDataset_result(user_unpinDataset_result other) {
+      if (other.isSetE()) {
+        this.e = new DatasetDoesNotExistException(other.e);
+      }
     }
 
-    public user_outOfMemoryForPinDataset_result deepCopy() {
-      return new user_outOfMemoryForPinDataset_result(this);
+    public user_unpinDataset_result deepCopy() {
+      return new user_unpinDataset_result(this);
     }
 
     @Override
     public void clear() {
+      this.e = null;
+    }
+
+    public DatasetDoesNotExistException getE() {
+      return this.e;
+    }
+
+    public user_unpinDataset_result setE(DatasetDoesNotExistException e) {
+      this.e = e;
+      return this;
+    }
+
+    public void unsetE() {
+      this.e = null;
+    }
+
+    /** Returns true if field e is set (has been assigned a value) and false otherwise */
+    public boolean isSetE() {
+      return this.e != null;
+    }
+
+    public void setEIsSet(boolean value) {
+      if (!value) {
+        this.e = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case E:
+        if (value == null) {
+          unsetE();
+        } else {
+          setE((DatasetDoesNotExistException)value);
+        }
+        break;
+
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case E:
+        return getE();
+
       }
       throw new IllegalStateException();
     }
@@ -20565,6 +21610,8 @@ public class MasterService {
       }
 
       switch (field) {
+      case E:
+        return isSetE();
       }
       throw new IllegalStateException();
     }
@@ -20573,14 +21620,23 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_outOfMemoryForPinDataset_result)
-        return this.equals((user_outOfMemoryForPinDataset_result)that);
+      if (that instanceof user_unpinDataset_result)
+        return this.equals((user_unpinDataset_result)that);
       return false;
     }
 
-    public boolean equals(user_outOfMemoryForPinDataset_result that) {
+    public boolean equals(user_unpinDataset_result that) {
       if (that == null)
         return false;
+
+      boolean this_present_e = true && this.isSetE();
+      boolean that_present_e = true && that.isSetE();
+      if (this_present_e || that_present_e) {
+        if (!(this_present_e && that_present_e))
+          return false;
+        if (!this.e.equals(that.e))
+          return false;
+      }
 
       return true;
     }
@@ -20590,14 +21646,24 @@ public class MasterService {
       return 0;
     }
 
-    public int compareTo(user_outOfMemoryForPinDataset_result other) {
+    public int compareTo(user_unpinDataset_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      user_outOfMemoryForPinDataset_result typedOther = (user_outOfMemoryForPinDataset_result)other;
+      user_unpinDataset_result typedOther = (user_unpinDataset_result)other;
 
+      lastComparison = Boolean.valueOf(isSetE()).compareTo(typedOther.isSetE());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetE()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, typedOther.e);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -20615,9 +21681,16 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_outOfMemoryForPinDataset_result(");
+      StringBuilder sb = new StringBuilder("user_unpinDataset_result(");
       boolean first = true;
 
+      sb.append("e:");
+      if (this.e == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.e);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -20643,15 +21716,15 @@ public class MasterService {
       }
     }
 
-    private static class user_outOfMemoryForPinDataset_resultStandardSchemeFactory implements SchemeFactory {
-      public user_outOfMemoryForPinDataset_resultStandardScheme getScheme() {
-        return new user_outOfMemoryForPinDataset_resultStandardScheme();
+    private static class user_unpinDataset_resultStandardSchemeFactory implements SchemeFactory {
+      public user_unpinDataset_resultStandardScheme getScheme() {
+        return new user_unpinDataset_resultStandardScheme();
       }
     }
 
-    private static class user_outOfMemoryForPinDataset_resultStandardScheme extends StandardScheme<user_outOfMemoryForPinDataset_result> {
+    private static class user_unpinDataset_resultStandardScheme extends StandardScheme<user_unpinDataset_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_outOfMemoryForPinDataset_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_unpinDataset_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -20661,6 +21734,15 @@ public class MasterService {
             break;
           }
           switch (schemeField.id) {
+            case 1: // E
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.e = new DatasetDoesNotExistException();
+                struct.e.read(iprot);
+                struct.setEIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -20672,32 +21754,51 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_outOfMemoryForPinDataset_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_unpinDataset_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.e != null) {
+          oprot.writeFieldBegin(E_FIELD_DESC);
+          struct.e.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class user_outOfMemoryForPinDataset_resultTupleSchemeFactory implements SchemeFactory {
-      public user_outOfMemoryForPinDataset_resultTupleScheme getScheme() {
-        return new user_outOfMemoryForPinDataset_resultTupleScheme();
+    private static class user_unpinDataset_resultTupleSchemeFactory implements SchemeFactory {
+      public user_unpinDataset_resultTupleScheme getScheme() {
+        return new user_unpinDataset_resultTupleScheme();
       }
     }
 
-    private static class user_outOfMemoryForPinDataset_resultTupleScheme extends TupleScheme<user_outOfMemoryForPinDataset_result> {
+    private static class user_unpinDataset_resultTupleScheme extends TupleScheme<user_unpinDataset_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_outOfMemoryForPinDataset_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_unpinDataset_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetE()) {
+          optionals.set(0);
+        }
+        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetE()) {
+          struct.e.write(oprot);
+        }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_outOfMemoryForPinDataset_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_unpinDataset_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(1);
+        if (incoming.get(0)) {
+          struct.e = new DatasetDoesNotExistException();
+          struct.e.read(iprot);
+          struct.setEIsSet(true);
+        }
       }
     }
 

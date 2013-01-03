@@ -37,7 +37,7 @@ struct RawColumnDatasetInfo {
 }
 
 enum LogEventType {
-  Unknown = 0,
+  Undefined = 0,
   PartitionInfo = 1,
   DatasetInfo = 2,
   RawColumnDatasetInfo = 3,
@@ -110,13 +110,14 @@ service MasterService {
   PartitionInfo user_getPartitionInfo(1: i32 datasetId, 2: i32 partitionId) throws (1: PartitionDoesNotExistException e)  // Get partition info.
   void user_deleteDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e) // Delete dataset
   void user_deleteRawColumnDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e) // Delete dataset
-  void user_unpinDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e)   // Remove dataset from memory
+  void user_outOfMemoryForPinDataset(1: i32 datasetId)
   void user_renameDataset(1: string srcDatasetPath, 2: string dstDatasetPath) throws (1: DatasetDoesNotExistException e)
   void user_renameRawColumnDataset(1: string srcDatasetPath, 2: string dstDatasetPath) throws (1: DatasetDoesNotExistException e)
-  void user_outOfMemoryForPinDataset(1: i32 datasetId)
-  
+  void user_setPartitionCheckpointPath(1: i32 datasetId, 2: i32 partitionId, 3: string checkpointPath) throws (1: DatasetDoesNotExistException eD, 2: PartitionDoesNotExistException eP)
+  void user_unpinDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e)   // Remove dataset from memory
+
   // cmd to scripts
-  list<DatasetInfo> cmd_ls(1: string folder)  
+  list<DatasetInfo> cmd_ls(1: string folder)
 }
 
 service WorkerService {
