@@ -37,8 +37,9 @@ public class Users {
     tUser.addOwnBytes(newBytes);
   }
 
-  public void checkStatus(WorkerInfo workerInfo) {
+  public List<Long> checkStatus(WorkerInfo workerInfo) {
     LOG.debug("Worker is checking all users' status.");
+    List<Long> ret = new ArrayList<Long>();
     synchronized (USERS) {
       List<Long> toRemoveUsers = new ArrayList<Long>();
       for (Entry<Long, UserInfo> entry : USERS.entrySet()) {
@@ -49,8 +50,10 @@ public class Users {
 
       for (Long id : toRemoveUsers) {
         workerInfo.returnUsedBytes(removeUser(id));
+        ret.add(id);
       }
     }
+    return ret;
   }
 
   public String getUserTempFolder(long userId) {
