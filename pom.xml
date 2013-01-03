@@ -10,6 +10,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <hadoop.version>0.20.205.0</hadoop.version>
+    <libthrift.version>0.9.0</libthrift.version>
     <cxf.version>2.7.0</cxf.version>
     <jetty.version>7.5.3.v20111011</jetty.version>
   </properties>
@@ -37,7 +38,7 @@
     <dependency>
       <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
-      <version>0.9.0</version>
+      <version>${libthrift.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -54,7 +55,7 @@
       <artifactId>jetty-servlet</artifactId>
     <version>${jetty.version}</version>
 </dependency>
-            
+
   </dependencies>
 
   <build>
