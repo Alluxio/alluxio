@@ -17,7 +17,7 @@ public class HdfsClient {
   private static final int MAX_TRY = 5; 
   private final Logger LOG = LoggerFactory.getLogger(HdfsClient.class);
 
-  private FileSystem mFs;
+  private FileSystem mFs = null;
 
   public HdfsClient(String fsDefaultName) {
     try {
@@ -25,9 +25,7 @@ public class HdfsClient {
       tConf.set("fs.default.name", fsDefaultName);
       mFs = FileSystem.get(tConf);
     } catch (IOException e) {
-      LOG.warn("Can not connect to HDFS " + fsDefaultName);
-      mFs = null;
-//      CommonUtils.runtimeException(e);
+      CommonUtils.runtimeException(e);
     }
   }
 

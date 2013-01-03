@@ -55,6 +55,7 @@ public class Config {
   public static final String HDFS_TEMP_FILE = "_temporary";
   public static final String HDFS_ADDRESS;
   public static final String HDFS_DATA_FOLDER = "/tachyon/data";
+  public static final boolean USING_HDFS;
 
   public static final ArrayList<String> WHITELIST = new ArrayList<String>();
   public static final ArrayList<String> PINLIST = new ArrayList<String>();
@@ -107,6 +108,7 @@ public class Config {
     if (HDFS_ADDRESS == null) {
       LOG.warn("tachyon.hdfs.address was not set.");
     }
+    USING_HDFS = ((HDFS_ADDRESS != null) && (HDFS_ADDRESS.startsWith("hdfs")));
 
     WHITELIST.addAll(Arrays.asList(getProperty("tachyon.whitelist", "/").split(";")));
     String tPinList = getProperty("tachyon.pinlist", null);

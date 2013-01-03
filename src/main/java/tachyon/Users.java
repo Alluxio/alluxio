@@ -56,7 +56,7 @@ public class Users {
   public String getUserTempFolder(long userId) {
     return USER_FOLDER + "/" + userId;
   }
-  
+
   public String getUserHdfsTempFolder(long userId) {
     return USER_HDFS_FOLDER + "/" + userId;
   }
@@ -83,10 +83,12 @@ public class Users {
         CommonUtils.runtimeException(e);
       }
 
-      folder = getUserHdfsTempFolder(userId);
-      sb.append(" Also remove users HDFS folder " + folder);
-      HdfsClient tHdfsClient = new HdfsClient(Config.HDFS_ADDRESS);
-      tHdfsClient.delete(new Path(folder), true);
+      if (Config.USING_HDFS) {
+        folder = getUserHdfsTempFolder(userId);
+        sb.append(" Also remove users HDFS folder " + folder);
+        HdfsClient tHdfsClient = new HdfsClient(Config.HDFS_ADDRESS);
+        tHdfsClient.delete(new Path(folder), true);
+      }
     }
 
     LOG.info(sb.toString());
