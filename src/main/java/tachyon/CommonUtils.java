@@ -195,6 +195,34 @@ public class CommonUtils {
     sb.append(")");
     return sb.toString();
   }
+  
+  public static long parseMemorySize(String memorySize) {
+    String ori = memorySize;
+    String end = "";
+    int tIndex = memorySize.length() - 1;
+    while (tIndex >= 0) {
+      if (memorySize.charAt(tIndex) > '9' && memorySize.charAt(tIndex) < '0') {
+        end = memorySize.charAt(tIndex) + end;
+      } else {
+        break;
+      }
+      tIndex --;
+    }
+    memorySize = memorySize.substring(0, tIndex + 1);
+    long ret = Long.parseLong(memorySize);
+    end = end.toLowerCase();
+    if (end.equals("") || end.equals("b")) {
+      return ret;
+    } else if (end.equals("kb")) {
+      return ret * Config.KB;
+    } else if (end.equals("mb")) {
+      return ret * Config.MB;
+    } else if (end.equals("gb")) {
+      return ret * Config.TB;
+    }
+    runtimeException("Fail to parse " + ori + " as memory size");
+    return -1;
+  }
 
   public static void printByteBuffer(Logger LOG, ByteBuffer buf) {
     String tmp = "";

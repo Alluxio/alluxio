@@ -19,6 +19,7 @@ public class Config {
   public static final int KB = 1024;
   public static final int MB = KB * 1024;
   public static final long GB = MB * 1024L;
+  public static final long TB = GB * 1024L;
   public static final long TWO_32 = 1L << 32;
 
   public static final String MASTER_LOG_FILE;
@@ -59,7 +60,7 @@ public class Config {
 
   public static final ArrayList<String> WHITELIST = new ArrayList<String>();
   public static final ArrayList<String> PINLIST = new ArrayList<String>();
-  
+
   public static final boolean DEBUG;
 
   private static final Logger LOG = LoggerFactory.getLogger(Config.class);
@@ -102,7 +103,8 @@ public class Config {
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
 
     WORKER_DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramfs");
-    WORKER_MEMORY_SIZE = Long.parseLong(getProperty("tachyon.worker.memory.size", "2")) * GB;
+    WORKER_MEMORY_SIZE = CommonUtils.parseMemorySize(
+        getProperty("tachyon.worker.memory.size", "2GB"));
 
     HDFS_ADDRESS = getProperty("tachyon.hdfs.address", null);
     if (HDFS_ADDRESS == null) {
@@ -115,7 +117,7 @@ public class Config {
     if (tPinList != null) {
       PINLIST.addAll(Arrays.asList(tPinList.split(";")));
     }
-    
+
     DEBUG = Boolean.parseBoolean(getProperty("tachyon.debug", "false"));
   }
 }
