@@ -7,3 +7,9 @@ Version 0.1
 
 You can find the latest Tachyon documentation, including a programming
 guide, on the project webpage at <https://github.com/amplab/tachyon/wiki>.
+
+## Compile
+
+./bin/thrift-gen.sh
+
+mvn compile
