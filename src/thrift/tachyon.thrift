@@ -127,7 +127,9 @@ service WorkerService {
   string getDataFolder()
   string getUserTempFolder(1: i64 userId)
   string getUserHdfsTempFolder(1: i64 userId)
+  void lockPartition(1: i32 datasetId, 2: i32 partitionId, 3: i64 userId) // Lock the partition in memory while the user is reading it.
   void returnSpace(1: i64 userId, 2: i64 returnedBytes)
   bool requestSpace(1: i64 userId, 2: i64 requestBytes)   // Should change this to return i64, means how much space to grant.
+  void unlockPartition(1: i32 datasetId, 2: i32 partitionId, 3: i64 userId) // Lock the partition in memory while the user is reading it.
   void userHeartbeat(1: i64 userId)   // Local user send heartbeat to local worker to keep its temp folder.
 }

@@ -201,7 +201,7 @@ public class CommonUtils {
     String end = "";
     int tIndex = memorySize.length() - 1;
     while (tIndex >= 0) {
-      if (memorySize.charAt(tIndex) > '9' && memorySize.charAt(tIndex) < '0') {
+      if (memorySize.charAt(tIndex) > '9' || memorySize.charAt(tIndex) < '0') {
         end = memorySize.charAt(tIndex) + end;
       } else {
         break;

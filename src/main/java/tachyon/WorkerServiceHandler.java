@@ -6,6 +6,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -39,6 +40,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   // TODO Should merge these three structures, and make it more clean. Define NodeStroage class.
   private Map<Integer, Set<Integer>> mMemoryData = new HashMap<Integer, Set<Integer>>();
   private Map<Long, Long> mLatestPartitionAccessTime = new HashMap<Long, Long>();
+  private Map<Long, Set<Long>> mLockedPartitionPerPartition = new HashMap<Long, Set<Long>>();
+  private Map<Long, Set<Long>> mLockedPartitionPerUser = new HashMap<Long, Set<Long>>();
   private Map<Long, Long> mPartitionSizes = new HashMap<Long, Long>();
   private BlockingQueue<Long> mRemovedPartitionList = 
       new ArrayBlockingQueue<Long>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
@@ -164,7 +167,24 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   public void checkStatus() {
-    mUsers.checkStatus(mWorkerInfo);
+    List<Long> removedUsers = mUsers.checkStatus(mWorkerInfo);
+
+    for (long userId : removedUsers) {
+      synchronized (mLockedPartitionPerPartition) {
+        Set<Long> partitionIds = mLockedPartitionPerUser.get(userId);
+        mLockedPartitionPerUser.remove(userId);
+        if (partitionIds != null) {
+          for (long pId : partitionIds) {
+            try {
+              unlockPartition(CommonUtils.computeDatasetIdFromBigId(pId),
+                  CommonUtils.computePartitionIdFromBigId(pId), userId);
+            } catch (TException e) {
+              CommonUtils.runtimeException(e);
+            }
+          }
+        }
+      }
+    }
 
     synchronized (mLatestPartitionAccessTime) {
       while (!sDataAccessQueue.isEmpty()) {
@@ -249,6 +269,22 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     mUserFolder.mkdir();
   }
 
+  @Override
+  public void lockPartition(int datasetId, int partitionId, long userId) throws TException {
+    long bigId = CommonUtils.generateBigId(datasetId, partitionId);
+    synchronized (mLockedPartitionPerPartition) {
+      if (!mLockedPartitionPerPartition.containsKey(bigId)) {
+        mLockedPartitionPerPartition.put(bigId, new HashSet<Long>());
+      }
+      mLockedPartitionPerPartition.get(bigId).add(userId);
+
+      if (!mLockedPartitionPerUser.containsKey(userId)) {
+        mLockedPartitionPerUser.put(userId, new HashSet<Long>());
+      }
+      mLockedPartitionPerUser.get(userId).add(bigId);
+    }
+  }
+
   private boolean memoryEvictionLRU() {
     long latestTimeMs = Long.MAX_VALUE;
     long bigId = -1;
@@ -263,16 +299,20 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     }
 
     synchronized (mLatestPartitionAccessTime) {
-      for (Entry<Long, Long> entry : mLatestPartitionAccessTime.entrySet()) {
-        if (entry.getValue() < latestTimeMs 
-            && !pinList.contains(CommonUtils.computeDatasetIdFromBigId(entry.getKey()))) {
-          latestTimeMs = entry.getValue();
-          bigId = entry.getKey();
+      synchronized (mLockedPartitionPerPartition) {
+        for (Entry<Long, Long> entry : mLatestPartitionAccessTime.entrySet()) {
+          if (entry.getValue() < latestTimeMs 
+              && !pinList.contains(CommonUtils.computeDatasetIdFromBigId(entry.getKey()))) {
+            if(!mLockedPartitionPerPartition.containsKey(entry.getKey())) {
+              bigId = entry.getKey();
+              latestTimeMs = entry.getValue();
+            }
+          }
         }
-      }
-      if (bigId != -1) {
-        removePartition(bigId);
-        return true;
+        if (bigId != -1) {
+          removePartition(bigId);
+          return true;
+        }
       }
     }
 
@@ -350,6 +390,23 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     MasterClient tMasterClient = new MasterClient(mMasterAddress);
     tMasterClient.open();
     mMasterClient = tMasterClient;
+  }
+
+  @Override
+  public void unlockPartition(int datasetId, int partitionId, long userId) throws TException {
+    long bigId = CommonUtils.generateBigId(datasetId, partitionId);
+    synchronized (mLockedPartitionPerPartition) {
+      if (mLockedPartitionPerPartition.containsKey(bigId)) {
+        mLockedPartitionPerPartition.get(bigId).remove(userId);
+        if (mLockedPartitionPerPartition.get(bigId).size() == 0) {
+          mLockedPartitionPerPartition.remove(bigId);
+        }
+      }
+
+      if (mLockedPartitionPerUser.containsKey(userId)) {
+        mLockedPartitionPerUser.get(userId).remove(bigId);
+      }
+    }
   }
 
   @Override
