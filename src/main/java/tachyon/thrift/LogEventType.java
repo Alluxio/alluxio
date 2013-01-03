@@ -12,7 +12,7 @@ import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
 public enum LogEventType implements org.apache.thrift.TEnum {
-  Unknown(0),
+  Undefined(0),
   PartitionInfo(1),
   DatasetInfo(2),
   RawColumnDatasetInfo(3);
@@ -37,7 +37,7 @@ public enum LogEventType implements org.apache.thrift.TEnum {
   public static LogEventType findByValue(int value) { 
     switch (value) {
       case 0:
-        return Unknown;
+        return Undefined;
       case 1:
         return PartitionInfo;
       case 2:

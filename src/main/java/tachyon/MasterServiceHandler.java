@@ -546,6 +546,29 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public void user_setPartitionCheckpointPath(int datasetId, int partitionId,
+      String checkpointPath) throws DatasetDoesNotExistException,
+      PartitionDoesNotExistException, TException {
+    synchronized (mDatasets) {
+      if (!mDatasets.containsKey(datasetId)) {
+        throw new DatasetDoesNotExistException("Dataset " + datasetId + " does not exist");
+      }
+
+      DatasetInfo dataset = mDatasets.get(datasetId);
+
+      if (partitionId < 0 || partitionId >= dataset.mNumOfPartitions) {
+        throw new PartitionDoesNotExistException("Dataset has " + dataset.mNumOfPartitions +
+            " partitions. However, the request partition id is " + partitionId);
+      }
+
+      dataset.mPartitionList.get(partitionId).mHasCheckpointed = true;
+      dataset.mPartitionList.get(partitionId).mCheckpointPath = checkpointPath;
+
+      mMasterLogWriter.appendAndFlush(dataset.mPartitionList.get(partitionId));
+    }
+  }
+
+  @Override
   public void user_unpinDataset(int datasetId) throws DatasetDoesNotExistException, TException {
     // TODO Change meta data only. Data will be evicted from worker based on data replacement 
     // policy. TODO May change it to be active from V0.2
@@ -848,7 +871,10 @@ public class MasterServiceHandler implements MasterService.Iface {
             }
             break;
           }
-          case Unknown:
+          case Undefined:
+            CommonUtils.runtimeException("Corruptted info from " + fileName + 
+                ". It has undefined data type.");
+            break;
           default:
             CommonUtils.runtimeException("Corruptted info from " + fileName);
         }

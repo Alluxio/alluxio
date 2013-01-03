@@ -108,6 +108,7 @@ public class TachyonFileSystem extends FileSystem {
       } else {
         LOG.info("TachyonClient does not have DATASET " + datasetPath);
         int tmp = mTachyonClient.createDataset(datasetPath, 1);
+        // TODO Add Checkpoint Path.
         if (tmp != -1) {
           DATASET_NAME = "%" + tmp + "%0";
         }
@@ -229,6 +230,7 @@ public class TachyonFileSystem extends FileSystem {
     if (datasetId == 0) {
       LOG.info("TachyonClient does not have DATASET " + datasetPath);
       int tmp = mTachyonClient.createDataset(datasetPath, hfs.length);
+      // TODO Add Checkpoint Path.
       if (tmp != -1) {
         DATASET_NAME = "%" + tmp + "%";
       }
