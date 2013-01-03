@@ -10,6 +10,4 @@ guide, on the project webpage at <https://github.com/amplab/tachyon/wiki>.
 
 ## Compile
 
-./bin/thrift-gen.sh
-
 mvn compile
