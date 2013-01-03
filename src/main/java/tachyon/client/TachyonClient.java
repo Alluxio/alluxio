@@ -195,6 +195,10 @@ public class TachyonClient {
       mLocalWorkerClient = null;
       return;
     }
+    
+    if (!mUserHdfsTempFolder.startsWith("hdfs")) {
+      mUserHdfsTempFolder = null;
+    }
 
     mToWorkerHeartbeat = new ToWorkerHeartbeat(mLocalWorkerClient, mUserId);
     Thread thread = new Thread(mToWorkerHeartbeat);

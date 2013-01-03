@@ -58,6 +58,8 @@ public class Partition {
   private FileChannel mOutChannel;
   private MappedByteBuffer mOut;
   private ByteBuffer mOutBuffer;
+  private int mPosition;
+  private Partition mCachePartition;
 
   public Partition(TachyonClient tachyonClient, Dataset dataset, int datasetId, int pId) {
     mTachyonClient = tachyonClient;
@@ -234,7 +236,10 @@ public class Partition {
 
     mOpen = true;
 
-    if (!mRead) {
+    if (mRead) {
+      mPosition = 0;
+      mCachePartition = null;
+    } else {
       mFolder = mTachyonClient.createAndGetUserTempFolder();
       if (mFolder == null) {
         throw new IOException("Failed to create temp user folder for tachyon client.");
