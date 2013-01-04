@@ -55,7 +55,6 @@ public class Partition {
   private FileSplit mHDFSFileSplit = null;
 
   private FileChannel mInChannel;
-  private int mPosition;
   private ByteBuffer mInByteBuffer;
 
   private FileChannel mOutChannel;
@@ -201,6 +200,7 @@ public class Partition {
     } catch (PartitionAlreadyExistException e) {
       LOG.error(e.getMessage(), e);
     }
+    mTachyonClient.unlockPartition(mDatasetId, mPartitionId);
 
     mOpen = false;
   }
@@ -250,8 +250,8 @@ public class Partition {
       mOutBuffer = ByteBuffer.allocate(Config.USER_BUFFER_PER_PARTITION_BYTES + 4);
       mOutBuffer.order(ByteOrder.nativeOrder());
     } else {
-      mPosition = 0;
       mInByteBuffer = readByteBuffer();
+      mTachyonClient.lockPartition(mDatasetId, mPartitionId);
     }
   }
   
