@@ -85,6 +85,10 @@ public class WorkerClient {
     return mRootFolder;
   }
 
+  public void lockPartition(int datasetId, int partitionId, long userId) throws TException {
+    CLIENT.lockPartition(datasetId, partitionId, userId);
+  }
+
   public synchronized boolean isConnected() {
     return mIsConnected;
   }
@@ -103,14 +107,16 @@ public class WorkerClient {
     return mIsConnected;
   }
 
-  public synchronized boolean requestSpace(long userId, long requestBytes)
-      throws TException {
+  public synchronized boolean requestSpace(long userId, long requestBytes) throws TException {
     return CLIENT.requestSpace(userId, requestBytes);
   }
 
-  public synchronized void returnSpace(long userId, long returnSpaceBytes)
-      throws TException {
+  public synchronized void returnSpace(long userId, long returnSpaceBytes) throws TException {
     CLIENT.returnSpace(userId, returnSpaceBytes);
+  }
+
+  public void unlockPartition(int datasetId, int partitionId, long userId) throws TException {
+    CLIENT.unlockPartition(datasetId, partitionId, userId);
   }
 
   public synchronized void userHeartbeat(long userId) throws TException {

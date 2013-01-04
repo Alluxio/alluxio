@@ -204,7 +204,7 @@ public class TachyonClient {
       mLocalWorkerClient = null;
       return;
     }
-    
+
     if (!mUserHdfsTempFolder.startsWith("hdfs")) {
       mUserHdfsTempFolder = null;
     }
@@ -582,6 +582,34 @@ public class TachyonClient {
       return false;
     }
 
+    return true;
+  }
+
+  public boolean lockPartition(int datasetId, int partitionId) {
+    connectAndGetLocalWorker();
+    if (!mConnected || mLocalWorkerClient == null) {
+      return false;
+    }
+    try {
+      mLocalWorkerClient.lockPartition(datasetId, partitionId, mUserId);
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      return false;
+    }
+    return true;
+  }
+
+  public boolean unlockPartition(int datasetId, int partitionId) {
+    connectAndGetLocalWorker();
+    if (!mConnected || mLocalWorkerClient == null) {
+      return false;
+    }
+    try {
+      mLocalWorkerClient.unlockPartition(datasetId, partitionId, mUserId);
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      return false;
+    }
     return true;
   }
 }
