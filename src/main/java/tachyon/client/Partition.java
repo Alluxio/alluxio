@@ -217,10 +217,12 @@ public class Partition {
   }
 
   public PartitionInputStream getInputStream() {
+    validateIO(true);
     return new PartitionInputStream(this);
   }
 
   public PartitionOutputStream getOutputStream() {
+    validateIO(false);
     return new PartitionOutputStream(this);
   }
 
