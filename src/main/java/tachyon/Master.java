@@ -2,8 +2,8 @@ package tachyon;
 
 import java.net.InetSocketAddress;
 
+import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
@@ -30,10 +30,16 @@ public class Master {
       mMasterServiceHandler = new MasterServiceHandler(address);
       MasterService.Processor<MasterServiceHandler> processor = 
           new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
-      mServer = new TThreadedSelectorServer(new TThreadedSelectorServer
-          .Args(new TNonblockingServerSocket(address)).processor(processor)
-          .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
-          .workerThreads(workerThreads));
+
+      // TODO This is for Thrift 0.8 or newer.
+      //      mServer = new TThreadedSelectorServer(new TThreadedSelectorServer
+      //          .Args(new TNonblockingServerSocket(address)).processor(processor)
+      //          .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
+      //          .workerThreads(workerThreads));
+
+      // This is for Thrift 0.7.0, for Hive compatibility. 
+      mServer = new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(address)).
+          processor(processor).workerThreads(workerThreads));
 
       LOG.info("The master server started @ " + address);
       mServer.serve();

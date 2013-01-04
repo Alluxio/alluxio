@@ -59,7 +59,8 @@ public class MasterClient {
     return CLIENT.cmd_ls(folder);
   }
 
-  public synchronized List<DatasetInfo> cmd_rm(String folder) throws TException {
+  public synchronized List<DatasetInfo> cmd_rm(String folder)
+      throws DatasetDoesNotExistException, TException {
     List<DatasetInfo> ret = CLIENT.cmd_ls(folder);
     for (DatasetInfo dataset : ret) {
       CLIENT.user_deleteDataset(dataset.mId);
