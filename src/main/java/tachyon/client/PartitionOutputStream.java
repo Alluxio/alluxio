@@ -18,8 +18,21 @@ public class PartitionOutputStream extends OutputStream {
     PARTITION.append(b);
   }
 
+  public void write(byte b[]) throws IOException {
+    write(b, 0, b.length);
+  }
+
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
+    if (b == null) {
+      throw new NullPointerException();
+    } else if ((off < 0) || (off > b.length) || (len < 0) ||
+        ((off + len) > b.length) || ((off + len) < 0)) {
+      throw new IndexOutOfBoundsException();
+    } else if (len == 0) {
+      return;
+    }
+
     try {
       PARTITION.append(b, off, len);
     } catch (OutOfMemoryForPinDatasetException e) {
