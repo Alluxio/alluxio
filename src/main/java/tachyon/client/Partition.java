@@ -254,12 +254,33 @@ public class Partition {
       mTachyonClient.lockPartition(mDatasetId, mPartitionId);
     }
   }
-  
+
   public int read() throws IOException {
     return mInByteBuffer.get();
   }
 
-  // TODO Need to have append/write() like READ API!
+  public int read(byte b[]) throws IOException {
+    if (b == null) {
+      throw new NullPointerException();
+    }
+
+    return read(b, 0, b.length);
+  }
+
+  public int read(byte b[], int off, int len) throws IOException {
+    if (b == null) {
+      throw new NullPointerException();
+    } else if (off < 0 || len < 0 || len > b.length - off) {
+      throw new IndexOutOfBoundsException();
+    } else if (len == 0) {
+      return 0;
+    }
+
+    int ret = Math.min(len, mInByteBuffer.remaining());
+    mInByteBuffer.get(b, off, len);
+    return ret;
+  }
+
   public ByteBuffer readByteBuffer() 
       throws UnknownHostException, FileNotFoundException, IOException {
     validateIO(true);
@@ -270,7 +291,7 @@ public class Partition {
     if (ret == null) {
       ret = readByteBufferFromRemote();
     }
-    
+
     if (ret != null) {
       return ret;
     }
@@ -380,7 +401,7 @@ public class Partition {
     }
 
     tPartition.close();
-    
+
     return true;
   }
 
