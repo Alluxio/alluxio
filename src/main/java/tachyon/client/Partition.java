@@ -106,8 +106,15 @@ public class Partition {
     append(buf, 0, buf.length);
   }
 
-  public void append(byte[] buf, int off, int len) 
+  public void append(byte[] b, int off, int len) 
       throws IOException, OutOfMemoryForPinDatasetException {
+    if (b == null) {
+      throw new NullPointerException();
+    } else if ((off < 0) || (off > b.length) || (len < 0) ||
+        ((off + len) > b.length) || ((off + len) < 0)) {
+      throw new IndexOutOfBoundsException();
+    }
+
     validateIO(false);
 
     if (mOutBuffer.position() + len >= Config.USER_BUFFER_PER_PARTITION_BYTES) {
@@ -130,9 +137,9 @@ public class Partition {
       mOutBuffer.flip();
       mOut.put(mOutBuffer);
       mOutBuffer.clear();
-      mOut.put(buf, off, len);
+      mOut.put(b, off, len);
     } else {
-      mOutBuffer.put(buf, off, len);
+      mOutBuffer.put(b, off, len);
     }
   }
 
@@ -260,10 +267,6 @@ public class Partition {
   }
 
   public int read(byte b[]) throws IOException {
-    if (b == null) {
-      throw new NullPointerException();
-    }
-
     return read(b, 0, b.length);
   }
 
