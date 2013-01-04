@@ -3,8 +3,8 @@ package tachyon;
 import java.net.InetSocketAddress;
 
 import org.apache.thrift.TException;
+import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
@@ -54,10 +54,16 @@ public class Worker implements Runnable {
       LOG.info("The worker server tries to start @ " + workerAddress);
       WorkerService.Processor<WorkerServiceHandler> processor =
           new WorkerService.Processor<WorkerServiceHandler>(mWorkerServiceHandler);
-      mServer = new TThreadedSelectorServer(new TThreadedSelectorServer
-          .Args(new TNonblockingServerSocket(workerAddress)).processor(processor)
-          .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
-          .workerThreads(workerThreads));
+
+      // TODO This is for Thrift 0.8 or newer.
+      //      mServer = new TThreadedSelectorServer(new TThreadedSelectorServer
+      //          .Args(new TNonblockingServerSocket(workerAddress)).processor(processor)
+      //          .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
+      //          .workerThreads(workerThreads));
+
+      // This is for Thrift 0.7.0, for Hive compatibility. 
+      mServer = new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(workerAddress)).
+          processor(processor).workerThreads(workerThreads));
 
       LOG.info("The worker server started @ " + workerAddress);
       mServer.serve();
@@ -94,27 +100,27 @@ public class Worker implements Runnable {
 
       if (cmd != null) {
         switch (cmd.mCommandType) {
-        case Unknown :
-          LOG.error("Heartbeat got Unknown command: " + cmd);
-          break;
-        case Nothing :
-          LOG.debug("Heartbeat got Nothing command: " + cmd);
-          break;
-        case Register :
-          mWorkerServiceHandler.register();
-          LOG.info("Heartbeat got Register command: " + cmd);
-          break;
-        case Free :
-          LOG.info("Heartbeat got Free command: " + cmd);
-          break;
-        case Delete :
-          LOG.info("Heartbeat got Delete command: " + cmd);
-          break;
-        default :
-          CommonUtils.runtimeException("Got un-recognized command from master " + cmd.toString());
+          case Unknown :
+            LOG.error("Heartbeat got Unknown command: " + cmd);
+            break;
+          case Nothing :
+            LOG.debug("Heartbeat got Nothing command: " + cmd);
+            break;
+          case Register :
+            mWorkerServiceHandler.register();
+            LOG.info("Heartbeat got Register command: " + cmd);
+            break;
+          case Free :
+            LOG.info("Heartbeat got Free command: " + cmd);
+            break;
+          case Delete :
+            LOG.info("Heartbeat got Delete command: " + cmd);
+            break;
+          default :
+            CommonUtils.runtimeException("Got un-recognized command from master " + cmd.toString());
         }
       }
-      
+
       mWorkerServiceHandler.checkStatus();
     }
   }

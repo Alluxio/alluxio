@@ -123,8 +123,17 @@ public class TachyonClient {
     connectAndGetLocalWorker();
     if (mLocalWorkerClient != null) {
       try {
-        mLocalWorkerClient.addDoneRCDPartition(datasetId, partitionId, sizeBytes);
+        mLocalWorkerClient.addRCDPartition(datasetId, partitionId, sizeBytes);
         return true;
+      } catch (PartitionDoesNotExistException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch (SuspectedPartitionSizeException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      } catch (PartitionAlreadyExistException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mLocalWorkerClient = null;

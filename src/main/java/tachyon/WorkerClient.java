@@ -46,11 +46,12 @@ public class WorkerClient {
 
   public synchronized void addPartition(long userId, int datasetId, int partitionId, 
       boolean writeThrough) 
-          throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
+          throws PartitionDoesNotExistException, SuspectedPartitionSizeException, 
+          PartitionAlreadyExistException, TException {
     CLIENT.addPartition(userId, datasetId, partitionId, writeThrough);
   }
 
-  public synchronized void addDoneRCDPartition(int datasetId, int partitionId, 
+  public synchronized void addRCDPartition(int datasetId, int partitionId, 
       int sizeBytes) throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
       PartitionAlreadyExistException, TException {
     CLIENT.addRCDPartition(datasetId, partitionId, sizeBytes);

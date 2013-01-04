@@ -5,10 +5,11 @@ import java.util.List;
 import org.apache.thrift.TException;
 
 import tachyon.MasterClient;
+import tachyon.thrift.DatasetDoesNotExistException;
 import tachyon.thrift.DatasetInfo;
 
 public class Rm {
-  public static void main(String[] args) throws TException {
+  public static void main(String[] args) throws DatasetDoesNotExistException, TException{
     if (args.length != 1) {
       System.out.println("Usage: tachyon\n [-rm <path>]");
       System.exit(-1);
