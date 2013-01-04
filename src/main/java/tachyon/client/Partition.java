@@ -55,6 +55,8 @@ public class Partition {
   private FileSplit mHDFSFileSplit = null;
 
   private FileChannel mInChannel;
+  private int mPosition;
+  private ByteBuffer mInByteBuffer;
 
   private FileChannel mOutChannel;
   private MappedByteBuffer mOut;
@@ -247,7 +249,14 @@ public class Partition {
       LOG.info("File " + mFilePath + " is there!");
       mOutBuffer = ByteBuffer.allocate(Config.USER_BUFFER_PER_PARTITION_BYTES + 4);
       mOutBuffer.order(ByteOrder.nativeOrder());
+    } else {
+      mPosition = 0;
+      mInByteBuffer = readByteBuffer();
     }
+  }
+  
+  public int read() throws IOException {
+    return mInByteBuffer.get();
   }
 
   // TODO Need to have append/write() like READ API!
@@ -277,41 +286,6 @@ public class Partition {
           " Partition " + mPartitionId);
     }
     return ret;
-  }
-
-  private boolean recacheData() throws IOException {
-    if (mPartitionInfo == null || !mPartitionInfo.mHasCheckpointed) {
-      return false;
-    }
-
-    String path = mPartitionInfo.mCheckpointPath;
-    if (!Config.USING_HDFS) {
-      return false;
-    }
-
-    HdfsClient tHdfsClient = new HdfsClient(path);
-    FSDataInputStream inputStream = tHdfsClient.open(path);
-    Partition tPartition = mDataset.getPartition(mPartitionId);
-    tPartition.open("w", false);
-    byte buffer[] = new byte[Config.USER_BUFFER_PER_PARTITION_BYTES * 4];
-
-    int limit;
-    while ((limit = inputStream.read(buffer)) >= 0) {
-      if (limit != 0) {
-        try {
-          tPartition.append(buffer, 0, limit);
-        } catch (IOException e) {
-          LOG.error(e.getMessage());
-          return false;
-        } catch (OutOfMemoryForPinDatasetException e) {
-          CommonUtils.runtimeException(e);
-        }
-      }
-    }
-
-    tPartition.close();
-    
-    return true;
   }
 
   private ByteBuffer readByteBufferFromLocal() throws IOException {
@@ -373,6 +347,41 @@ public class Partition {
     }
 
     return ret;
+  }
+
+  private boolean recacheData() throws IOException {
+    if (mPartitionInfo == null || !mPartitionInfo.mHasCheckpointed) {
+      return false;
+    }
+
+    String path = mPartitionInfo.mCheckpointPath;
+    if (!Config.USING_HDFS) {
+      return false;
+    }
+
+    HdfsClient tHdfsClient = new HdfsClient(path);
+    FSDataInputStream inputStream = tHdfsClient.open(path);
+    Partition tPartition = mDataset.getPartition(mPartitionId);
+    tPartition.open("w", false);
+    byte buffer[] = new byte[Config.USER_BUFFER_PER_PARTITION_BYTES * 4];
+
+    int limit;
+    while ((limit = inputStream.read(buffer)) >= 0) {
+      if (limit != 0) {
+        try {
+          tPartition.append(buffer, 0, limit);
+        } catch (IOException e) {
+          LOG.error(e.getMessage());
+          return false;
+        } catch (OutOfMemoryForPinDatasetException e) {
+          CommonUtils.runtimeException(e);
+        }
+      }
+    }
+
+    tPartition.close();
+    
+    return true;
   }
 
   private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address) 
