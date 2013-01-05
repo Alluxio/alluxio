@@ -45,7 +45,8 @@ public class Worker implements Runnable {
         MasterAddress, WorkerAddress, DataFolder, MemoryCapacityBytes);
 
     mDataServer = new DataServer(new InetSocketAddress(
-        workerAddress.getHostName(), Config.WORKER_DATA_SERVER_PORT));
+        workerAddress.getHostName(), Config.WORKER_DATA_SERVER_PORT),
+        mWorkerServiceHandler);
     new Thread(mDataServer).start();
 
     new Thread(this).start();

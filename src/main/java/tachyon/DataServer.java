@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +39,13 @@ public class DataServer implements Runnable {
   private Map<SocketChannel, DataServerMessage> mReceivingData =
       Collections.synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
-  public DataServer(InetSocketAddress address) {
+  // The local worker service handler.
+  private WorkerServiceHandler mWorkerServiceHandler;
+
+  public DataServer(InetSocketAddress address, WorkerServiceHandler workerServiceHandler) {
     LOG.info("Starting DataServer @ " + address);
     mAddress = address;
+    mWorkerServiceHandler = workerServiceHandler;
     try {
       mSelector = initSelector();
     } catch (IOException e) {
@@ -115,6 +120,11 @@ public class DataServer implements Runnable {
     if (tMessage.isMessageReady()) {
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getDatasetId() + "-" + tMessage.getPartitionId());
+      try {
+        mWorkerServiceHandler.lockPartition(tMessage.getDatasetId(), tMessage.getPartitionId(), -1);
+      } catch (TException e) {
+        CommonUtils.runtimeException(e);
+      }
       mSendingData.put(socketChannel, DataServerMessage.createPartitionResponseMessage(
           true, tMessage.getDatasetId(), tMessage.getPartitionId()));
     }
@@ -143,6 +153,13 @@ public class DataServer implements Runnable {
       mReceivingData.remove(socketChannel);
       mSendingData.remove(socketChannel);
       sendMessage.close();
+
+      try {
+        mWorkerServiceHandler.unlockPartition(sendMessage.getDatasetId(), 
+            sendMessage.getPartitionId(), -1);
+      } catch (TException e) {
+        CommonUtils.runtimeException(e);
+      }
     }
   }
 
@@ -178,9 +195,5 @@ public class DataServer implements Runnable {
         throw new RuntimeException(e);
       }
     }
-  }
-
-  public static void main(String[] args) {
-    new Thread(new DataServer(new InetSocketAddress(9090))).start();
   }
 }
