@@ -68,6 +68,7 @@ public class DataServerMessage {
       ret.mPartitionId = partitionId;
 
       try {
+        
         String filePath = Config.WORKER_DATA_FOLDER + datasetId + "-" + partitionId;
         ret.LOG.info("Try to response remote requst by reading from " + filePath); 
         ret.mFile = new RandomAccessFile(filePath, "r");
