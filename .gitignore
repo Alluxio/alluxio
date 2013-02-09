@@ -1,8 +1,11 @@
 .classpath
 .project
+.idea/
 .metadata/
 .settings/
 conf/tachyon-env.sh
+data/
 logs/
 src/main/java/tachyon/thrift
+tachyon.iml
 target/

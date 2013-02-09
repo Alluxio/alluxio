@@ -3,6 +3,7 @@
 export TACHYON_RAM_FOLDER=/mnt/ramdisk
 export TACHYON_MASTER_ADDRESS=localhost
 export TACHYON_HDFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_IP
+export TACHYON_MASTER_SUBSUME_HDFS=false
 
 export TACHYON_JAVA_OPTS="
   -Dtachyon.hdfs.address=$TACHYON_HDFS_ADDRESS
@@ -11,4 +12,5 @@ export TACHYON_JAVA_OPTS="
   -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
   -Dtachyon.master.log.file=$TACHYON_HOME/data/tachyon_log.data
   -Dtachyon.master.checkpoint.file=$TACHYON_HOME/data/tachyon_checkpoint.data
+  -Dtachyon.master.subsume.hdfs=$TACHYON_MASTER_SUBSUME_HDFS
 "
