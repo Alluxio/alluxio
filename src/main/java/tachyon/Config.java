@@ -31,6 +31,7 @@ public class Config {
   public static final String MASTER_HOSTNAME;
   public static final int MASTER_PORT = 9999;
   public static final int MASTER_WEB_PORT = 9998;
+  public static final boolean MASTER_SUBSUME_HDFS;
 
   public static final String WORKER_DATA_FOLDER;
   public static final long WORKER_MEMORY_SIZE;
@@ -49,7 +50,7 @@ public class Config {
   public static final String USER_TEMP_RELATIVE_FOLDER = "users";
   public static final long USER_TIMEOUT_MS = 3 * 1000;;
   public static final long USER_QUOTA_UNIT_BYTES = 25 * MB;
-  public static final int USER_BUFFER_PER_PARTITION_BYTES = 4 * MB;
+  public static final int USER_BUFFER_PER_PARTITION_BYTES = 1 * MB;
   public static final int USER_HEARTBEAT_INTERVAL_MS = 1000;
 
   public static final int CONECTION_MAX_TRY = 3;
@@ -101,6 +102,7 @@ public class Config {
       MASTER_CHECKPOINT_FILE = null;
     }
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
+    MASTER_SUBSUME_HDFS = Boolean.parseBoolean(getProperty("tachyon.master.subsume.hdfs", "false"));
 
     WORKER_DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramfs");
     WORKER_MEMORY_SIZE = CommonUtils.parseMemorySize(
