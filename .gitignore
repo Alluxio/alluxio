@@ -9,3 +9,4 @@ logs/
 src/main/java/tachyon/thrift
 tachyon.iml
 target/
+*.class

@@ -17,11 +17,10 @@ public class WebServerMasterHandler extends AbstractHandler {
   public void handle(String target, Request baseRequest,
       HttpServletRequest request, HttpServletResponse response) 
           throws IOException, ServletException {
-    request.getRequestDispatcher("/web/index.jsp").forward(request, response);
-	//response.setContentType("text/html;charset=utf-8");
-    //response.setStatus(HttpServletResponse.SC_OK);
-    //baseRequest.setHandled(true);
-    //response.getWriter().println(mMasterServiceHandler.toHtml());
+	response.setContentType("text/html;charset=utf-8");
+    response.setStatus(HttpServletResponse.SC_OK);
+    baseRequest.setHandled(true);
+    response.getWriter().println(mMasterServiceHandler.toHtml());
   }
   
   public WebServerMasterHandler(MasterServiceHandler msh) {
