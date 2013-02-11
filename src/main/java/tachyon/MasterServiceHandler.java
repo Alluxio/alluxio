@@ -155,6 +155,11 @@ public class MasterServiceHandler implements MasterService.Iface {
     recoveryFromLog();
     writeCheckpoint();
 
+    if (Config.MASTER_SUBSUME_HDFS) {
+      HdfsClient hdfs = new HdfsClient(Config.HDFS_ADDRESS);
+//      subsumeHdfs(hdfs, Config.HDFS_ADDRESS);
+    }
+
     mMasterLogWriter = new MasterLogWriter(Config.MASTER_LOG_FILE);
 
     mHeartbeatThread = new Thread(new HeartbeatThread(
