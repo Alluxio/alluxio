@@ -16,6 +16,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,7 +166,15 @@ public class MasterServiceHandler implements MasterService.Iface {
 
     mWebServer = new WebServer("Tachyon Master Server",
         new InetSocketAddress(address.getHostName(), Config.MASTER_WEB_PORT));
-    mWebServer.setHandler(new WebServerMasterHandler(this));
+
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/");
+    mWebServer.setHandler(context);
+    context.addServlet(new ServletHolder(new WebInterfaceServlet()), "/*");
+
+    //WebServerMasterHandler mWebServerMasterHandler = new WebServerMasterHandler(this);
+    //mWebServerMasterHandler.addServletWithMapping("tachyon.WebInterfaceServlet", "/");
+    //mWebServer.setHandler(mWebServerMasterHandler);
     mWebServer.startWebServer();
   }
 
