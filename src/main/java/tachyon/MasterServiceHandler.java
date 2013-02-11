@@ -167,14 +167,14 @@ public class MasterServiceHandler implements MasterService.Iface {
     mWebServer = new WebServer("Tachyon Master Server",
         new InetSocketAddress(address.getHostName(), Config.MASTER_WEB_PORT));
 
-    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-    context.setContextPath("/");
-    mWebServer.setHandler(context);
-    context.addServlet(new ServletHolder(new WebInterfaceServlet()), "/*");
+    //ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    //context.setContextPath("/");
+    //mWebServer.setHandler(context);
+    //context.addServlet(new ServletHolder(new WebInterfaceServlet()), "/*");
 
-    //WebServerMasterHandler mWebServerMasterHandler = new WebServerMasterHandler(this);
+    WebServerMasterHandler mWebServerMasterHandler = new WebServerMasterHandler(this);
     //mWebServerMasterHandler.addServletWithMapping("tachyon.WebInterfaceServlet", "/");
-    //mWebServer.setHandler(mWebServerMasterHandler);
+    mWebServer.setHandler(mWebServerMasterHandler);
     mWebServer.startWebServer();
   }
 
