@@ -12,13 +12,27 @@
     <hadoop.version>0.20.205.0</hadoop.version>
     <libthrift.version>0.7.0</libthrift.version>
     <cxf.version>2.7.0</cxf.version>
-    <jetty.version>7.5.3.v20111011</jetty.version>
+    <jetty.version>7.6.9.v20130131</jetty.version>
   </properties>
 
   <repositories>
   </repositories>
 
   <dependencies>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-webapp</artifactId>
+      <version>${jetty.version}</version>
+      <type>jar</type>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-security</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -59,14 +73,21 @@
 
   <build>
     <plugins>
-    <plugin>
+
+      <plugin>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>${jetty.version}</version>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                     <source>1.5</source>
-                          <target>1.5</target>
-                              </configuration>
-                                 </plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
