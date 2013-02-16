@@ -16,8 +16,11 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.webapp.WebAppContext;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -167,14 +170,20 @@ public class MasterServiceHandler implements MasterService.Iface {
     mWebServer = new WebServer("Tachyon Master Server",
         new InetSocketAddress(address.getHostName(), Config.MASTER_WEB_PORT));
 
-    //ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-    //context.setContextPath("/");
-    //mWebServer.setHandler(context);
-    //context.addServlet(new ServletHolder(new WebInterfaceServlet()), "/*");
+    WebAppContext webappcontext = new WebAppContext();
+    webappcontext.setContextPath("/");
 
-    WebServerMasterHandler mWebServerMasterHandler = new WebServerMasterHandler(this);
+    File warPath = new File("/home/saasbook/Repos/tachyon", "src/main/java/tachyon/webapps");
+    webappcontext.setWar(warPath.getAbsolutePath());
+    HandlerList handlers = new HandlerList();
+    webappcontext.addServlet(new ServletHolder(new WebInterfaceServlet()), "/");
+
+    handlers.setHandlers(new Handler[] { webappcontext, new DefaultHandler() });
+    mWebServer.setHandler(handlers);
+
+    //WebServerMasterHandler mWebServerMasterHandler = new WebServerMasterHandler(this);
     //mWebServerMasterHandler.addServletWithMapping("tachyon.WebInterfaceServlet", "/");
-    mWebServer.setHandler(mWebServerMasterHandler);
+    //mWebServer.setHandler(mWebServerMasterHandler);
     mWebServer.startWebServer();
   }
 
