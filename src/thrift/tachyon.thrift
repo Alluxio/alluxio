@@ -56,15 +56,15 @@ struct Command {
   2: binary mData
 }
 
-exception OutOfMemoryForPinDatasetException {
+exception OutOfMemoryForPinFileException {
   1: string message
 }
 
-exception DatasetAlreadyExistException {
+exception FileAlreadyExistException {
   1: string message
 }
 
-exception DatasetDoesNotExistException {
+exception FileDoesNotExistException {
   1: string message
 }
 
@@ -72,15 +72,7 @@ exception NoLocalWorkerException {
   1: string message
 }
 
-exception PartitionDoesNotExistException {
-  1: string message
-}
-
-exception PartitionAlreadyExistException {
-  1: string message
-}
-
-exception SuspectedPartitionSizeException {
+exception SuspectedFileSizeException {
   1: string message
 }
 
@@ -90,25 +82,23 @@ exception InvalidPathException {
 
 service MasterService {
   // Services to Workers
-  i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i64> currentPartitionList) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
-  Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedPartitionList)
-  void worker_addPartition(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 datasetId, 4: i32 partitionId, 5: i32 partitionSizeBytes, 6: bool hasCheckpointed, 7: string checkpointPath) throws (1: PartitionDoesNotExistException eP, 2: SuspectedPartitionSizeException eS)
-  void worker_addRCDPartition(1: i64 workerId, 2: i32 datasetId, 3: i32 partitionId, 4: i32 partitionSizeBytes) throws (1: PartitionDoesNotExistException eP, 2: SuspectedPartitionSizeException eS)
+  i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i64> currentFileList) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
+  Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedFileList)
+  void worker_addFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i32 fileSizeBytes, 5: bool hasCheckpointed, 6: string checkpointPath) throws (1: FileDoesNotExistException eP, 2: SuspectedFileException eS)
   set<i32> worker_getPinList()
 
   // Services to Users
-  i32 user_createRawColumnDataset(1: string datasetPath, 2: i32 columns, 3: i32 partitions) throws (1: DatasetAlreadyExistException eR, 2: InvalidPathException eI)
-  i32 user_createDataset(1: string datasetPath, 2: i32 partitions) throws (1: DatasetAlreadyExistException eR, 2: InvalidPathException eI)
-  i32 user_getDatasetId(1: string datasetPath)  // Return 0 if does not contain the dataset, return datasetId if it exists.
-  i32 user_getRawColumnDatasetId(1: string datasetPath)  // Return 0 if does not contain the dataset, return datasetId if it exists.
+  i32 user_createFile(1: string filePath) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
+  i32 user_createRawTable(1: string tablePath, 2: i32 columns) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
+  i32 user_getFileId(1: string filePath)  // Return 0 if does not contain the dataset, return datasetId if it exists.
+  i32 user_getRawTableId(1: string datasetPath)  // Return 0 if does not contain the dataset, return datasetId if it exists.
   i64 user_getUserId()
   NetAddress user_getLocalWorker(1: string host) throws (1: NoLocalWorkerException e) // Get local worker NetAddress
-  DatasetInfo user_getDatasetById(1: i32 datasetId) throws (1: DatasetDoesNotExistException e)        // Get Dataset info by dataset Id.
-  DatasetInfo user_getDatasetByPath(1: string datasetPath) throws (1: DatasetDoesNotExistException e) // Get Dataset info by path
+  list<NetAddress> user_getFileLocsById(1: i32 fileId) throws (1: DatasetDoesNotExistException e)        // Get Dataset info by dataset Id.
+  list<NetAddress> user_getFileLocsByPath(1: string filePath) throws (1: DatasetDoesNotExistException e) // Get Dataset info by path
   RawColumnDatasetInfo user_getRawColumnDatasetById(1: i32 datasetId) throws (1: DatasetDoesNotExistException e)        // Get Dataset info by dataset Id.
   RawColumnDatasetInfo user_getRawColumnDatasetByPath(1: string datasetPath) throws (1: DatasetDoesNotExistException e) // Get Dataset info by path
-  PartitionInfo user_getPartitionInfo(1: i32 datasetId, 2: i32 partitionId) throws (1: PartitionDoesNotExistException e)  // Get partition info.
-  void user_deleteDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e) // Delete dataset
+  void user_deleteFile(1: i32 fileId) throws (1: FileDoesNotExistException e) // Delete dataset
   void user_deleteRawColumnDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e) // Delete dataset
   void user_outOfMemoryForPinDataset(1: i32 datasetId)
   void user_renameDataset(1: string srcDatasetPath, 2: string dstDatasetPath) throws (1: DatasetDoesNotExistException e)
@@ -121,15 +111,14 @@ service MasterService {
 }
 
 service WorkerService {
-  void accessPartition(1: i32 datasetId, 2: i32 partitionId)
-  void addPartition(1: i64 userId, 2: i32 datasetId, 3: i32 partitionId, 4: bool writeThrough) throws (1: PartitionDoesNotExistException eP, 2: SuspectedPartitionSizeException eS, 3: PartitionAlreadyExistException eA)
-  void addRCDPartition(1: i32 datasetId, 2: i32 partitionId, 3: i32 partitionSizeBytes) throws (1: PartitionDoesNotExistException eP, 2: SuspectedPartitionSizeException eS, 3: PartitionAlreadyExistException eA)
+  void accessFile(1: i32 fileId)
+  void addDoneFile(1: i64 userId, 2: i32 fileId, 3: bool writeThrough) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: FileAlreadyExistException eA)
   string getDataFolder()
   string getUserTempFolder(1: i64 userId)
   string getUserHdfsTempFolder(1: i64 userId)
-  void lockPartition(1: i32 datasetId, 2: i32 partitionId, 3: i64 userId) // Lock the partition in memory while the user is reading it.
+  void lockFile(1: i32 fileId, 2: i64 userId) // Lock the file in memory while the user is reading it.
   void returnSpace(1: i64 userId, 2: i64 returnedBytes)
   bool requestSpace(1: i64 userId, 2: i64 requestBytes)   // Should change this to return i64, means how much space to grant.
-  void unlockPartition(1: i32 datasetId, 2: i32 partitionId, 3: i64 userId) // Lock the partition in memory while the user is reading it.
+  void unlockFile(1: i32 fileId, 2: i64 userId) // unlock the file
   void userHeartbeat(1: i64 userId)   // Local user send heartbeat to local worker to keep its temp folder.
 }
