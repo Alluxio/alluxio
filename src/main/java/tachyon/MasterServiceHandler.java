@@ -173,17 +173,14 @@ public class MasterServiceHandler implements MasterService.Iface {
     WebAppContext webappcontext = new WebAppContext();
     webappcontext.setContextPath("/");
 
-    File warPath = new File("/home/saasbook/Repos/tachyon", "src/main/java/tachyon/webapps");
+    File warPath = new File(new File("").getAbsolutePath(), "src/main/java/tachyon/webapps");
     webappcontext.setWar(warPath.getAbsolutePath());
     HandlerList handlers = new HandlerList();
-    webappcontext.addServlet(new ServletHolder(new WebInterfaceServlet()), "/");
+    webappcontext.addServlet(new ServletHolder(new WebInterfaceServlet(this)), "/home");
 
     handlers.setHandlers(new Handler[] { webappcontext, new DefaultHandler() });
     mWebServer.setHandler(handlers);
 
-    //WebServerMasterHandler mWebServerMasterHandler = new WebServerMasterHandler(this);
-    //mWebServerMasterHandler.addServletWithMapping("tachyon.WebInterfaceServlet", "/");
-    //mWebServer.setHandler(mWebServerMasterHandler);
     mWebServer.startWebServer();
   }
 

@@ -1,3 +1,4 @@
+<%@ page isELIgnored ="false" %> 
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +18,7 @@
 					</ul>
 				</div>
 			</div>
-			
+
 			<div class="accordion span10" id="accordion1">
 				<div class="accordion-group">
 					<div class="accordion-heading">
@@ -32,11 +33,11 @@
 								<tbody>
 								<tr>
 									<th>Started on:</th>
-									<th>$VARIABLEHERE</th>
+									<th>${startTime}</th>
 								</tr>
 								<tr>
 									<th>Has been up for:</th>
-									<th>$VARIABLEHERE</th>
+									<th>${uptime}</th>
 								</tr>
 								<tr>
 									<th>Running Version:</th>
