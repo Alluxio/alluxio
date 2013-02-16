@@ -26,7 +26,7 @@ struct DatasetInfo {
   9: i32 mParentDatasetId
 }
 
-struct RawColumnDatasetInfo {
+struct RawTableInfo {
   1: i32 mId
   2: string mPath
   3: i32 mColumns
@@ -38,17 +38,16 @@ struct RawColumnDatasetInfo {
 
 enum LogEventType {
   Undefined = 0,
-  PartitionInfo = 1,
-  DatasetInfo = 2,
-  RawColumnDatasetInfo = 3,
+  FileInfo = 1,
+  RawTableInfo = 2,
 }
 
 enum CommandType {
   Unknown = 0,
   Nothing = 1,
   Register = 2,   // Ask the worker to re-register.
-  Free = 3,				// Ask the worker to free partitions from a dataset.
-  Delete = 4,			// Ask the worker to delete partitions from a dataset.
+  Free = 3,				// Ask the worker to free files.
+  Delete = 4,			// Ask the worker to delete files.
 }
 
 struct Command {
@@ -80,6 +79,10 @@ exception InvalidPathException {
   1: string message
 }
 
+exception TableDoesNotExistException {
+  1: string message
+}
+
 service MasterService {
   // Services to Workers
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i64> currentFileList) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
@@ -89,25 +92,26 @@ service MasterService {
 
   // Services to Users
   i32 user_createFile(1: string filePath) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
-  i32 user_createRawTable(1: string tablePath, 2: i32 columns) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
   i32 user_getFileId(1: string filePath)  // Return 0 if does not contain the dataset, return datasetId if it exists.
-  i32 user_getRawTableId(1: string datasetPath)  // Return 0 if does not contain the dataset, return datasetId if it exists.
   i64 user_getUserId()
   NetAddress user_getLocalWorker(1: string host) throws (1: NoLocalWorkerException e) // Get local worker NetAddress
-  list<NetAddress> user_getFileLocsById(1: i32 fileId) throws (1: DatasetDoesNotExistException e)        // Get Dataset info by dataset Id.
-  list<NetAddress> user_getFileLocsByPath(1: string filePath) throws (1: DatasetDoesNotExistException e) // Get Dataset info by path
-  RawColumnDatasetInfo user_getRawColumnDatasetById(1: i32 datasetId) throws (1: DatasetDoesNotExistException e)        // Get Dataset info by dataset Id.
-  RawColumnDatasetInfo user_getRawColumnDatasetByPath(1: string datasetPath) throws (1: DatasetDoesNotExistException e) // Get Dataset info by path
-  void user_deleteFile(1: i32 fileId) throws (1: FileDoesNotExistException e) // Delete dataset
-  void user_deleteRawColumnDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e) // Delete dataset
-  void user_outOfMemoryForPinDataset(1: i32 datasetId)
-  void user_renameDataset(1: string srcDatasetPath, 2: string dstDatasetPath) throws (1: DatasetDoesNotExistException e)
-  void user_renameRawColumnDataset(1: string srcDatasetPath, 2: string dstDatasetPath) throws (1: DatasetDoesNotExistException e)
-  void user_setPartitionCheckpointPath(1: i32 datasetId, 2: i32 partitionId, 3: string checkpointPath) throws (1: DatasetDoesNotExistException eD, 2: PartitionDoesNotExistException eP)
-  void user_unpinDataset(1: i32 datasetId) throws (1: DatasetDoesNotExistException e)   // Remove dataset from memory
+  list<NetAddress> user_getFileLocsById(1: i32 fileId) throws (1: DatasetDoesNotExistException e)        // Get file locations by file Id.
+  list<NetAddress> user_getFileLocsByPath(1: string filePath) throws (1: DatasetDoesNotExistException e) // Get file locations by path
+  void user_deleteFile(1: i32 fileId) throws (1: FileDoesNotExistException e) // Delete file
+  void user_outOfMemoryForPinFile(1: i32 datasetId)
+  void user_renameFile(1: string srcFilePath, 2: string dstFilePath) throws (1: FileDoesNotExistException e)
+//  void user_setPartitionCheckpointPath(1: i32 datasetId, 2: i32 partitionId, 3: string checkpointPath) throws (1: DatasetDoesNotExistException eD, 2: PartitionDoesNotExistException eP)
+  void user_unpinFile(1: i32 fileId) throws (1: FileDoesNotExistException e)   // Remove file from memory
+
+//  i32 user_createRawTable(1: string tablePath, 2: i32 columns) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
+//  i32 user_getRawTableId(1: string tablePath)  // Return 0 if does not contain the Table, return datasetId if it exists.
+//  void user_deleteRawTable(1: i32 tabletId) throws (1: DatasetDoesNotExistException e) // Delete dataset
+//  void user_renameRawTable(1: string srcTablePath, 2: string dstTablePath) throws (1: FileDoesNotExistException e)
+//  RawTableInfo user_getRawTableById(1: i32 tableId) throws (1: TableDoesNotExistException e)        // Get Table info by Table Id.
+//  RawTableInfo user_getRawTableByPath(1: string tablePath) throws (1: TableDoesNotExistException e) // Get Table info by path
 
   // cmd to scripts
-  list<DatasetInfo> cmd_ls(1: string folder)
+  list<string> cmd_ls(1: string path)
 }
 
 service WorkerService {

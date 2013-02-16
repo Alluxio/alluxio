@@ -3,13 +3,16 @@ package tachyon;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.StringTokenizer;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +23,54 @@ import org.slf4j.LoggerFactory;
  */
 public class CommonUtils {
   private static final Logger LOG = LoggerFactory.getLogger(CommonUtils.class);
+
+  /**
+   * Converts a byte array to a string using UTF8 encoding.
+   */
+  public static String bytes2String(byte[] bytes) {
+    try {
+      return new String(bytes, "UTF8");
+    } catch (UnsupportedEncodingException e) {
+      assert false : "UTF8 encoding is not supported ";
+    }
+    return null;
+  }
+
+  /**
+   * Converts a string to a byte array using UTF8 encoding.
+   */
+  public static byte[] string2Bytes(String str) {
+    try {
+      return str.getBytes("UTF8");
+    } catch (UnsupportedEncodingException e) {
+      assert false : "UTF8 encoding is not supported ";
+    }
+    return null;
+  }
+
+  /**
+   * Whether the pathname is valid.  Currently prohibits relative paths, 
+   * and names which contain a ":" or "/" 
+   */
+  public static boolean isValidName(String src) {
+    // Path must be absolute.
+    if (!src.startsWith(Path.SEPARATOR)) {
+      return false;
+    }
+
+    // Check for ".." "." ":" "/"
+    StringTokenizer tokens = new StringTokenizer(src, Path.SEPARATOR);
+    while(tokens.hasMoreTokens()) {
+      String element = tokens.nextToken();
+      if (element.equals("..") || 
+          element.equals(".")  ||
+          (element.indexOf(":") >= 0)  ||
+          (element.indexOf("/") >= 0)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   public static String cleanPath(String path) {
     while (path.endsWith("/")) {
@@ -195,7 +246,7 @@ public class CommonUtils {
     sb.append(")");
     return sb.toString();
   }
-  
+
   public static long parseMemorySize(String memorySize) {
     String ori = memorySize;
     String end = "";
