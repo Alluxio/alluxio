@@ -1,6 +1,8 @@
 package tachyon;
 
 public class INodeFile extends INode {
+  private static final long serialVersionUID = -1234480668664604254L;
+
   private long mLength;
 
   public INodeFile(String name, int id, int parentId) {
