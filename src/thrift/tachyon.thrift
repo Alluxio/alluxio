@@ -5,6 +5,13 @@ struct NetAddress {
   2: i32 mPort
 }
 
+struct ClientFileInfo {
+  1: i32 id
+  2: string checkpointPath
+  3: bool needPin
+  4: bool needCache
+}
+
 struct RawTableInfo {
   1: i32 mId
   2: string mPath
@@ -73,8 +80,9 @@ service MasterService {
   i32 user_getFileId(1: string filePath)  // Return 0 if does not contain the dataset, return datasetId if it exists.
   i64 user_getUserId()
   NetAddress user_getLocalWorker(1: string host) throws (1: NoLocalWorkerException e) // Get local worker NetAddress
-  list<NetAddress> user_getFileLocsById(1: i32 fileId) throws (1: FileDoesNotExistException e)        // Get file locations by file Id.
-  list<NetAddress> user_getFileLocsByPath(1: string filePath) throws (1: FileDoesNotExistException e) // Get file locations by path
+  ClientFileInfo user_getClientFileInfo(1: string filePath) throws (1: FileDoesNotExistException e)
+  list<NetAddress> user_getFileLocationsById(1: i32 fileId) throws (1: FileDoesNotExistException e)        // Get file locations by file Id.
+  list<NetAddress> user_getFileLocationsByPath(1: string filePath) throws (1: FileDoesNotExistException e) // Get file locations by path
   void user_deleteFile(1: i32 fileId) throws (1: FileDoesNotExistException e) // Delete file
   void user_outOfMemoryForPinFile(1: i32 datasetId)
   void user_renameFile(1: string srcFilePath, 2: string dstFilePath) throws (1: FileDoesNotExistException e)

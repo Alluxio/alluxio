@@ -44,7 +44,7 @@ public class DataServerMessage {
     return ret;
   }
 
-  public static DataServerMessage createPartitionRequestMessage(int datasetId, int partitionId) {
+  public static DataServerMessage createPartitionRequestMessage(int fileId) {
     DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
 
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
@@ -59,8 +59,7 @@ public class DataServerMessage {
     return ret;
   }
 
-  public static DataServerMessage createPartitionResponseMessage(boolean toSend, 
-      int datasetId, int partitionId) {
+  public static DataServerMessage createPartitionResponseMessage(boolean toSend, int fileId) {
     DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
 
     if (toSend) {
