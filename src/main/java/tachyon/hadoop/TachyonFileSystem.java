@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
@@ -19,10 +20,8 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.CommonUtils;
 import tachyon.Config;
-import tachyon.client.Dataset;
 import tachyon.client.TachyonClient;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.PartitionInfo;
 
 /**
  * This is only for compatibility with Hadoop stack.
@@ -91,36 +90,36 @@ public class TachyonFileSystem extends FileSystem {
    * If the file does not exist in Tachyon, query it from HDFS. 
    */
   public FileStatus getFileStatus(Path path) throws IOException {
-    String datasetPath = Utils.getPathWithoutScheme(path);
-    Path hdfsPath = Utils.getHDFSPath(datasetPath);
+    String filePath = Utils.getPathWithoutScheme(path);
+    Path hdfsPath = Utils.getHDFSPath(filePath);
 
     LOG.info("TachyonFileSystem getFilesStatus(" + path + "): Corresponding HDFS Path: " + hdfsPath);
 
     FileSystem fs = hdfsPath.getFileSystem(getConf());
     FileStatus hfs = fs.getFileStatus(hdfsPath);
 
-    String DATASET_NAME = "";
-    if (!hfs.isDir() && !datasetPath.contains(Config.HDFS_TEMP_FILE)) {
-      int datasetId = mTachyonClient.getDatasetId(datasetPath);
-      if (datasetId > 0) {
-        LOG.info("TachyonClient has DATASET " + datasetPath);
-        DATASET_NAME = "%" + datasetId + "%0";
+    String tFileSuffix = "";
+    if (!hfs.isDir() && !filePath.contains(Config.HDFS_TEMP_FILE)) {
+      int fileId = mTachyonClient.getFileId(filePath);
+      if (fileId > 0) {
+        LOG.info("TachyonClient has file " + filePath);
+        tFileSuffix = "%" + fileId;
       } else {
-        LOG.info("TachyonClient does not have DATASET " + datasetPath);
-        int tmp = mTachyonClient.createDataset(datasetPath, 1);
+        LOG.info("TachyonClient does not have DATASET " + filePath);
+        int tmp = mTachyonClient.createFile(filePath);
         // TODO Add Checkpoint Path.
         if (tmp != -1) {
-          DATASET_NAME = "%" + tmp + "%0";
+          tFileSuffix = "%" + tmp;
         }
       }
     }
 
     FileStatus ret = new FileStatus(hfs.getLen(), hfs.isDir(), hfs.getReplication(),
         Integer.MAX_VALUE, hfs.getModificationTime(), hfs.getAccessTime(), hfs.getPermission(),
-        hfs.getOwner(), hfs.getGroup(), new Path(mTachyonHeader + datasetPath + DATASET_NAME));
+        hfs.getOwner(), hfs.getGroup(), new Path(mTachyonHeader + filePath + tFileSuffix));
 
     LOG.debug("HFS: " + Utils.toStringHadoopFileStatus(hfs));
-    LOG.debug("CFS: " + Utils.toStringHadoopFileStatus(ret));
+    LOG.debug("TFS: " + Utils.toStringHadoopFileStatus(ret));
 
     return ret;
   }
@@ -147,30 +146,25 @@ public class TachyonFileSystem extends FileSystem {
     BlockLocation ret = null;
 
     String rawPath = path;
-    int datasetId = -1;
-    int pId = -1;
-    int length = -1;
+    int fileId = -1;
     ArrayList<String> names = new ArrayList<String>();
     ArrayList<String> hosts = new ArrayList<String>();
 
     if (path.contains("%")) {
       String[] list = path.split("%");
       rawPath = list[0];
-      datasetId = Integer.parseInt(list[1]);
-      pId = Integer.parseInt(list[2]);
+      fileId = Integer.parseInt(list[1]);
 
-      PartitionInfo pInfo = mTachyonClient.getPartitionInfo(datasetId, pId);
-      if (pInfo != null) {
-        if (pInfo.mLocations.size() != 0) {
-          for (NetAddress loc : pInfo.mLocations.values()) {
-            names.add(loc.mHost);
-            hosts.add(loc.mHost);
-          }
+      List<NetAddress> locations = mTachyonClient.getFileLocations(fileId);
+      if (locations != null) {
+        for (int k = 0; k < locations.size(); k ++) {
+          names.add(locations.get(k).mHost);
+          hosts.add(locations.get(k).mHost);
         }
-        length = pInfo.mSizeBytes;
+
         if (hosts.size() > 0) {
           ret = new BlockLocation(CommonUtils.toStringArray(names),
-              CommonUtils.toStringArray(hosts), 0, length);
+              CommonUtils.toStringArray(hosts), 0, Long.MAX_VALUE);
         }
       }
     }
@@ -204,11 +198,11 @@ public class TachyonFileSystem extends FileSystem {
 
   @Override
   /**
-   * Return all files in the path. In Tachyon, one partition equals to one file.
+   * Return all files in the path.
    */
   public FileStatus[] listStatus(Path path) throws IOException {
-    String datasetPath = Utils.getPathWithoutScheme(path);
-    Path hdfsPath = Utils.getHDFSPath(datasetPath);
+    String filePath = Utils.getPathWithoutScheme(path);
+    Path hdfsPath = Utils.getHDFSPath(filePath);
     LOG.info("TachyonFileSystem listStatus(" + path + "): Corresponding HDFS Path: " + hdfsPath);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
     FileStatus[] hfs = fs.listStatus(hdfsPath);
@@ -218,45 +212,68 @@ public class TachyonFileSystem extends FileSystem {
             mTachyonHeader + Utils.getPathWithoutScheme(thfs.getPath())));
       }
     }
-    String DATASET_NAME = "";
-    int datasetId = mTachyonClient.getDatasetId(datasetPath); 
-    if (datasetId > 0) {
-      LOG.info("TachyonClient has DATASET " + datasetPath);
-      Dataset dataset = mTachyonClient.getDataset(datasetPath);
-      if (dataset != null) {
-        DATASET_NAME = "%" + dataset.getDatasetId() + "%";
-      }
-    }
-    if (datasetId == 0) {
-      LOG.info("TachyonClient does not have DATASET " + datasetPath);
-      int tmp = mTachyonClient.createDataset(datasetPath, hfs.length);
-      // TODO Add Checkpoint Path.
-      if (tmp != -1) {
-        DATASET_NAME = "%" + tmp + "%";
-      }
-    }
     ArrayList<FileStatus> tRet = new ArrayList<FileStatus>();
-    // TODO For now, we reply on that the fs.liststatus() return files in the same order.
     for (int k = 0; k < hfs.length; k ++) {
-      FileStatus tfs = hfs[k];
-      LOG.debug("HFS: " + Utils.toStringHadoopFileStatus(tfs));
-      String t = "";
-      if (!DATASET_NAME.equals("")) {
-        t = DATASET_NAME + k;
-      }
-      FileStatus cfs = new FileStatus(tfs.getLen(), tfs.isDir(), tfs.getReplication(),
-          Integer.MAX_VALUE, tfs.getModificationTime(), tfs.getAccessTime(),
-          tfs.getPermission(), tfs.getOwner(), tfs.getGroup(),
-          new Path(mTachyonHeader + Utils.getPathWithoutScheme(tfs.getPath()) + t));
-      tRet.add(cfs);
-      LOG.debug("CFS: " + Utils.toStringHadoopFileStatus(cfs));
+      tRet.add(getFileStatus(hfs[k].getPath()));
     }
-
-    FileStatus[] ret = new FileStatus[tRet.size()];
+    FileStatus[] ret = new FileStatus[hfs.length];
     ret = tRet.toArray(ret);
 
     return ret;
   }
+  //  public FileStatus[] listStatus(Path path) throws IOException {
+  //    String datasetPath = Utils.getPathWithoutScheme(path);
+  //    Path hdfsPath = Utils.getHDFSPath(datasetPath);
+  //    LOG.info("TachyonFileSystem listStatus(" + path + "): Corresponding HDFS Path: " + hdfsPath);
+  //    FileSystem fs = hdfsPath.getFileSystem(getConf());
+  //    FileStatus[] hfs = fs.listStatus(hdfsPath);
+  //    for (FileStatus thfs : hfs) {
+  //      if (thfs.isDir()) {
+  //        CommonUtils.illegalArgumentException(new IOException("Not a file: " +
+  //            mTachyonHeader + Utils.getPathWithoutScheme(thfs.getPath())));
+  //      }
+  //    }
+  //
+  //    String DATASET_NAME = "";
+  //    int datasetId = mTachyonClient.getDatasetId(datasetPath); 
+  //    if (datasetId > 0) {
+  //      LOG.info("TachyonClient has DATASET " + datasetPath);
+  //      Dataset dataset = mTachyonClient.getDataset(datasetPath);
+  //      if (dataset != null) {
+  //        DATASET_NAME = "%" + dataset.getDatasetId() + "%";
+  //      }
+  //    }
+  //    if (datasetId == 0) {
+  //      LOG.info("TachyonClient does not have DATASET " + datasetPath);
+  //      int tmp = mTachyonClient.createDataset(datasetPath, hfs.length);
+  //      // TODO Add Checkpoint Path.
+  //      if (tmp != -1) {
+  //        DATASET_NAME = "%" + tmp + "%";
+  //      }
+  //    }
+  //    ArrayList<FileStatus> tRet = new ArrayList<FileStatus>();
+  //    // TODO For now, we reply on that the fs.liststatus() return files in the same order.
+  //    for (int k = 0; k < hfs.length; k ++) {
+  //      FileStatus tfs = hfs[k];
+  //      LOG.debug("HFS: " + Utils.toStringHadoopFileStatus(tfs));
+  //      String t = "";
+  //      if (!DATASET_NAME.equals("")) {
+  //        t = DATASET_NAME + k;
+  //      }
+  //      FileStatus cfs = new FileStatus(tfs.getLen(), tfs.isDir(), tfs.getReplication(),
+  //          Integer.MAX_VALUE, tfs.getModificationTime(), tfs.getAccessTime(),
+  //          tfs.getPermission(), tfs.getOwner(), tfs.getGroup(),
+  //          new Path(mTachyonHeader + Utils.getPathWithoutScheme(tfs.getPath()) + t));
+  //      tRet.add(cfs);
+  //      LOG.debug("CFS: " + Utils.toStringHadoopFileStatus(cfs));
+  //    }
+  //
+  //    FileStatus[] ret = new FileStatus[tRet.size()];
+  //    ret = tRet.toArray(ret);
+  //
+  //    return ret;
+  //  }
+
 
   @Override
   public boolean mkdirs(Path cPath, FsPermission permission) throws IOException {
@@ -283,21 +300,19 @@ public class TachyonFileSystem extends FileSystem {
     String path = Utils.getPathWithoutScheme(cPath);
 
     String rawPath = path;
-    int datasetId = -1;
-    int pId = -1;
+    int fileId = -1;
 
     if (path.contains("%")) {
       String[] list = path.split("%");
       rawPath = list[0];
-      datasetId = Integer.parseInt(list[1]);
-      pId = Integer.parseInt(list[2]);
+      fileId = Integer.parseInt(list[1]);
     } else {
       Path hdfsPath = Utils.getHDFSPath(rawPath);
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       return fs.open(hdfsPath, bufferSize);
     }
 
-    return new FSDataInputStream(new PartitionInputStreamHdfs(mTachyonClient, datasetId, pId,
+    return new FSDataInputStream(new TFileInputStreamHdfs(mTachyonClient, fileId,
         Utils.getHDFSPath(rawPath), getConf(), bufferSize));
   }
 

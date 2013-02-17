@@ -2,6 +2,7 @@ package tachyon.hadoop;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -14,63 +15,51 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Config;
 import tachyon.CommonUtils;
-import tachyon.client.Partition;
 import tachyon.client.TFileInputStream;
-import tachyon.client.Dataset;
 import tachyon.client.TachyonClient;
-import tachyon.thrift.OutOfMemoryForPinDatasetException;
-import tachyon.thrift.PartitionInfo;
+import tachyon.client.TachyonFile;
+import tachyon.thrift.NetAddress;
+import tachyon.thrift.OutOfMemoryForPinFileException;
 
-public class PartitionInputStreamHdfs extends InputStream
+public class TFileInputStreamHdfs extends InputStream
 implements Seekable, PositionedReadable {
-  private static Logger LOG = LoggerFactory.getLogger(PartitionInputStreamHdfs.class);
+  private static Logger LOG = LoggerFactory.getLogger(TFileInputStreamHdfs.class);
 
   private int mCurrentPosition;
   private TachyonClient mTachyonClient;
-  private int mDatasetId;
-  private int mPartitionId;
+  private int mFileId;
   private Path mHdfsPath;
   private Configuration mHadoopConf;
   private int mHadoopBufferSize;
 
   private FSDataInputStream mHdfsInputStream = null;
 
-  private Dataset mDataset = null;
   private TFileInputStream mTachyonPartitionInputStream = null;
 
   private int mBufferLimit = 0;
   private int mBufferPosition = 0;
   private byte mBuffer[] = new byte[Config.USER_BUFFER_PER_PARTITION_BYTES * 4];
 
-  public PartitionInputStreamHdfs(TachyonClient tachyonClient, int datasetId, int partitionId, 
+  public TFileInputStreamHdfs(TachyonClient tachyonClient, int fileId, 
       Path hdfsPath, Configuration conf, int bufferSize) throws IOException {
-    LOG.debug("PartitionInputStreamHdfs(" + tachyonClient + ", " + datasetId + ", " + partitionId + ", "
+    LOG.debug("PartitionInputStreamHdfs(" + tachyonClient + ", " + fileId + ", "
         + hdfsPath + ", " + conf + ", " + bufferSize + ")");
     mCurrentPosition = 0;
     mTachyonClient = tachyonClient;
-    mDatasetId = datasetId;
-    mPartitionId = partitionId;
+    mFileId = fileId;
     mHdfsPath = hdfsPath;
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;
 
-    mDataset = mTachyonClient.getDataset(mDatasetId);
-    if (mDataset == null || !mDataset.needCache()) {
-      return;
-    }
-    PartitionInfo pInfo = mDataset.getPartitionInfo(partitionId);
-    if (pInfo == null) {
-      return;
-    }
-    Partition TachyonPartition = null;
-    if (pInfo.mLocations.size() == 0) {
+    List<NetAddress> locations = mTachyonClient.getFileLocations(mFileId);
+    if (locations.size() == 0) {
       // Cache the partition
       long startTimeMs = System.currentTimeMillis();
       FileSystem fs = hdfsPath.getFileSystem(mHadoopConf);
       FSDataInputStream tHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-      TachyonPartition = mDataset.getPartition(mPartitionId);
+      TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
       try {
-        TachyonPartition.open("w");
+        tachyonFile.open("w");
       } catch (IOException e) {
         LOG.error(e.getMessage());
         return;
@@ -81,33 +70,33 @@ implements Seekable, PositionedReadable {
       while ((limit = tHdfsInputStream.read(mBuffer)) >= 0) {
         if (limit != 0) {
           try {
-            TachyonPartition.append(mBuffer, 0, limit);
+            tachyonFile.append(mBuffer, 0, limit);
           } catch (IOException e) {
             LOG.error(e.getMessage());
             return;
-          } catch (OutOfMemoryForPinDatasetException e) {
+          } catch (OutOfMemoryForPinFileException e) {
             CommonUtils.runtimeException(e);
           }
         }
         cnt += limit;
       }
 
-      TachyonPartition.close();
-      mDataset = mTachyonClient.getDataset(mDatasetId);
-      if (mDataset == null) {
+      tachyonFile.close();
+      tachyonFile = mTachyonClient.getFile(mFileId);
+      if (tachyonFile == null) {
         return;
       }
       LOG.info("Caching file " + mHdfsPath + " with size " + cnt + " bytes took " +
           (System.currentTimeMillis() - startTimeMs) + " ms. ");
     }
-    TachyonPartition = mDataset.getPartition(mPartitionId);
+    TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
     try {
-      TachyonPartition.open("r");
+      tachyonFile.open("r");
     } catch (IOException e) {
       LOG.error(e.getMessage());
       return;
     }
-    mTachyonPartitionInputStream = TachyonPartition.getInputStream();
+    mTachyonPartitionInputStream = tachyonFile.getInputStream();
   }
 
   /**
