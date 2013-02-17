@@ -159,11 +159,11 @@ public class MasterClient {
   }
 
   public synchronized void worker_addPartition(long workerId, long workerUsedBytes,
-      int fileId, int partitionId, int partitionSizeBytes, boolean hasCheckpointed, 
+      int fileId, int partitionSizeBytes, boolean hasCheckpointed, 
       String checkpointPath)
           throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    CLIENT.worker_addPartition(workerId, workerUsedBytes, fileId, partitionId,
-        partitionSizeBytes, hasCheckpointed, checkpointPath);
+    CLIENT.worker_addFile(workerId, workerUsedBytes, fileId, partitionSizeBytes, 
+        hasCheckpointed, checkpointPath);
   }
 
   public synchronized void worker_addRCDPartition(long workerId, int fileId, int partitionId,
@@ -173,7 +173,7 @@ public class MasterClient {
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
-      List<Long> removedPartitionList) throws TException {
+      List<Integer> removedPartitionList) throws TException {
     return CLIENT.worker_heartbeat(workerId, usedBytes, removedPartitionList);
   }
 
@@ -182,9 +182,9 @@ public class MasterClient {
   }
 
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
-      long usedBytes, List<Long> currentPartitionList) throws TException {
+      long usedBytes, List<Integer> currentFileList) throws TException {
     long ret = CLIENT.worker_register(
-        workerNetAddress, totalBytes, usedBytes, currentPartitionList); 
+        workerNetAddress, totalBytes, usedBytes, currentFileList); 
     LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress +
         " , got WorkerId " + ret);
     return ret;
