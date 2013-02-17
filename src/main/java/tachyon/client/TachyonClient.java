@@ -348,26 +348,26 @@ public class TachyonClient {
     if (clientFileInfo == null) {
       return null;
     }
-    return new TachyonFile(this, clientFileInfo, filePath);
+    return new TachyonFile(this, clientFileInfo);
   }
 
-  public synchronized Dataset getDataset(int datasetId) {
-    DatasetInfo datasetInfo = getDatasetInfo(datasetId);
-    if (datasetInfo == null) {
+  public synchronized TachyonFile getFile(int fileId) {
+    ClientFileInfo clientFileInfo = getClientFileInfo(fileId);
+    if (clientFileInfo == null) {
       return null;
     }
-    return new Dataset(this, datasetInfo);
+    return new TachyonFile(this, clientFileInfo);
   }
 
-  public synchronized int getDatasetId(String datasetPath) {
+  public synchronized int getFileId(String filePath) {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return -1;
     }
-    int datasetId = -1;
-    datasetPath = CommonUtils.cleanPath(datasetPath);
+    int fileId = -1;
+    filePath = CommonUtils.cleanPath(filePath);
     try {
-      datasetId = mMasterClient.user_getDatasetId(datasetPath);
+      fileId = mMasterClient.user_getFileId(filePath);
     } catch (TException e) {
       // TODO Ideally, this exception should be throws to the upper upper layer, and 
       // remove notContainDataset(datasetPath) method. This is for absolutely fall through.
@@ -375,7 +375,7 @@ public class TachyonClient {
       mConnected = false;
       return -1;
     }
-    return datasetId;
+    return fileId;
   }
 
   private synchronized ClientFileInfo getClientFileInfo(String filePath) {
@@ -386,9 +386,9 @@ public class TachyonClient {
     ClientFileInfo ret;
     filePath = CommonUtils.cleanPath(filePath);
     try {
-      ret = mMasterClient.user_getDataset(filePath);
+      ret = mMasterClient.user_getClientFileInfoByPath(filePath);
     } catch (FileDoesNotExistException e) {
-      LOG.info("Dataset with path " + filePath + " does not exist.");
+      LOG.info("File " + filePath + " does not exist.");
       return null;
     } catch (TException e) {
       LOG.error(e.getMessage());
@@ -399,16 +399,16 @@ public class TachyonClient {
     return ret;
   }
 
-  private synchronized DatasetInfo getDatasetInfo(int datasetId) {
+  private synchronized ClientFileInfo getClientFileInfo(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return null;
     }
-    DatasetInfo ret = null;
+    ClientFileInfo ret = null;
     try {
-      ret = mMasterClient.user_getDataset(datasetId);
-    } catch (DatasetDoesNotExistException e) {
-      LOG.info("Dataset with id " + datasetId + " does not exist.");
+      ret = mMasterClient.user_getClientFileInfoById(fileId);
+    } catch (FileDoesNotExistException e) {
+      LOG.info("File with id " + fileId + " does not exist.");
       return null;
     } catch (TException e) {
       LOG.error(e.getMessage());
@@ -419,64 +419,64 @@ public class TachyonClient {
     return ret;
   }
 
-  public synchronized RawColumnDataset getRawColumnDataset(String datasetPath) {
-    datasetPath = CommonUtils.cleanPath(datasetPath);
-    RawColumnDatasetInfo rawColumnDatasetInfo = getRawColumnDatasetInfo(datasetPath);
-    if (rawColumnDatasetInfo == null) {
-      return null;
-    }
-    return new RawColumnDataset(this, rawColumnDatasetInfo);
-  }
-
-  public synchronized RawColumnDataset getRawColumnDataset(int datasetId) {
-    RawColumnDatasetInfo rawColumnDatasetInfo = getRawColumnDatasetInfo(datasetId);
-    if (rawColumnDatasetInfo == null) {
-      return null;
-    }
-    return new RawColumnDataset(this, rawColumnDatasetInfo);
-  }
-
-  private synchronized RawColumnDatasetInfo getRawColumnDatasetInfo(String datasetPath) {
-    connectAndGetLocalWorker();
-    if (!mConnected) {
-      return null;
-    }
-    RawColumnDatasetInfo ret;
-    datasetPath = CommonUtils.cleanPath(datasetPath);
-    try {
-      ret = mMasterClient.user_getRawColumnDataset(datasetPath);
-    } catch (DatasetDoesNotExistException e) {
-      LOG.info("RawColumnDataset with path " + datasetPath + " does not exist.");
-      return null;
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      mConnected = false;
-      return null;
-    }
-
-    return ret;
-  }
-
-  private synchronized RawColumnDatasetInfo getRawColumnDatasetInfo(int datasetId) {
-    connectAndGetLocalWorker();
-    if (!mConnected) {
-      return null;
-    }
-
-    RawColumnDatasetInfo ret = null;
-    try {
-      ret = mMasterClient.user_getRawColumnDatasetInfo(datasetId);
-    } catch (DatasetDoesNotExistException e) {
-      LOG.info("RawColumnDataset with id " + datasetId + " does not exist.");
-      return null;
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      mConnected = false;
-      return null;
-    }
-
-    return ret;
-  }
+//  public synchronized RawColumnDataset getRawColumnDataset(String datasetPath) {
+//    datasetPath = CommonUtils.cleanPath(datasetPath);
+//    RawColumnDatasetInfo rawColumnDatasetInfo = getRawColumnDatasetInfo(datasetPath);
+//    if (rawColumnDatasetInfo == null) {
+//      return null;
+//    }
+//    return new RawColumnDataset(this, rawColumnDatasetInfo);
+//  }
+//
+//  public synchronized RawColumnDataset getRawColumnDataset(int datasetId) {
+//    RawColumnDatasetInfo rawColumnDatasetInfo = getRawColumnDatasetInfo(datasetId);
+//    if (rawColumnDatasetInfo == null) {
+//      return null;
+//    }
+//    return new RawColumnDataset(this, rawColumnDatasetInfo);
+//  }
+//
+//  private synchronized RawColumnDatasetInfo getRawColumnDatasetInfo(String datasetPath) {
+//    connectAndGetLocalWorker();
+//    if (!mConnected) {
+//      return null;
+//    }
+//    RawColumnDatasetInfo ret;
+//    datasetPath = CommonUtils.cleanPath(datasetPath);
+//    try {
+//      ret = mMasterClient.user_getRawColumnDataset(datasetPath);
+//    } catch (DatasetDoesNotExistException e) {
+//      LOG.info("RawColumnDataset with path " + datasetPath + " does not exist.");
+//      return null;
+//    } catch (TException e) {
+//      LOG.error(e.getMessage());
+//      mConnected = false;
+//      return null;
+//    }
+//
+//    return ret;
+//  }
+//
+//  private synchronized RawColumnDatasetInfo getRawColumnDatasetInfo(int datasetId) {
+//    connectAndGetLocalWorker();
+//    if (!mConnected) {
+//      return null;
+//    }
+//
+//    RawColumnDatasetInfo ret = null;
+//    try {
+//      ret = mMasterClient.user_getRawColumnDatasetInfo(datasetId);
+//    } catch (DatasetDoesNotExistException e) {
+//      LOG.info("RawColumnDataset with id " + datasetId + " does not exist.");
+//      return null;
+//    } catch (TException e) {
+//      LOG.error(e.getMessage());
+//      mConnected = false;
+//      return null;
+//    }
+//
+//    return ret;
+//  }
 
   public synchronized String getRootFolder() {
     connectAndGetLocalWorker();
@@ -538,15 +538,15 @@ public class TachyonClient {
     return true;
   }
 
-  public synchronized boolean unpinDataset(int datasetId) {
+  public synchronized boolean unpinFile(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return false;
     }
 
     try {
-      mMasterClient.user_unpinDataset(datasetId);
-    } catch (DatasetDoesNotExistException e) {
+      mMasterClient.user_unpinFile(fileId);
+    } catch (FileDoesNotExistException e) {
       LOG.error(e.getMessage());
       return false;
     } catch (TException e) {
@@ -563,7 +563,7 @@ public class TachyonClient {
       return false;
     }
     try {
-      mLocalWorkerClient.lockPartition(datasetId, partitionId, mUserId);
+      mLocalWorkerClient.lockFile(fileId, mUserId);
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;
@@ -577,7 +577,7 @@ public class TachyonClient {
       return false;
     }
     try {
-      mLocalWorkerClient.unlockPartition(datasetId, partitionId, mUserId);
+      mLocalWorkerClient.unlockFile(fileId, mUserId);
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;

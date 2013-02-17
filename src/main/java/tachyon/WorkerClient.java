@@ -84,7 +84,7 @@ public class WorkerClient {
     return mRootFolder;
   }
 
-  public void lockPartition(int datasetId, int partitionId, long userId) throws TException {
+  public void lockFile(int fileId, long userId) throws TException {
     CLIENT.lockPartition(datasetId, partitionId, userId);
   }
 
@@ -114,7 +114,7 @@ public class WorkerClient {
     CLIENT.returnSpace(userId, returnSpaceBytes);
   }
 
-  public void unlockPartition(int datasetId, int partitionId, long userId) throws TException {
+  public void unlockFile(int fileId, long userId) throws TException {
     CLIENT.unlockPartition(datasetId, partitionId, userId);
   }
 
