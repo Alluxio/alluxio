@@ -85,7 +85,8 @@ service MasterService {
   ClientFileInfo user_getClientFileInfoByPath(1: string filePath) throws (1: FileDoesNotExistException e)
   list<NetAddress> user_getFileLocationsById(1: i32 fileId) throws (1: FileDoesNotExistException e)        // Get file locations by file Id.
   list<NetAddress> user_getFileLocationsByPath(1: string filePath) throws (1: FileDoesNotExistException e) // Get file locations by path
-  void user_deleteFile(1: i32 fileId) throws (1: FileDoesNotExistException e) // Delete file
+  void user_deleteById(1: i32 fileId) throws (1: FileDoesNotExistException e) // Delete file
+  void user_deleteByPath(1: string filePath) throws (1: FileDoesNotExistException e) // Delete file
   void user_outOfMemoryForPinFile(1: i32 datasetId)
   void user_renameFile(1: string srcFilePath, 2: string dstFilePath) throws (1: FileDoesNotExistException e)
 //  void user_setPartitionCheckpointPath(1: i32 fileId, 2: string checkpointPath) throws (1: FileDoesNotExistException eD)

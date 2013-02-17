@@ -139,7 +139,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     }
     addId(fileId, fileSizeBytes);
     mUsers.addOwnBytes(userId, - fileSizeBytes);
-    mMasterClient.worker_addPartition(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
+    mMasterClient.worker_addFile(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
         (int)fileSizeBytes, writeThrough && !dstPath.equals(""), dstPath);
   }
 
@@ -154,7 +154,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   private void addFoundPartition(int fileId, long fileSizeBytes)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     addId(fileId, fileSizeBytes);
-    mMasterClient.worker_addPartition(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
+    mMasterClient.worker_addFile(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
         (int)fileSizeBytes, false, "");
   }
 
