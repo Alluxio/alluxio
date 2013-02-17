@@ -40,8 +40,8 @@ public class WorkerClient {
     CLIENT = new WorkerService.Client(mProtocol);
   }
 
-  public synchronized void accessPartition(int datasetId, int partitionId) throws TException {
-    CLIENT.accessPartition(datasetId, partitionId);
+  public synchronized void accessFile(int fileId) throws TException {
+    CLIENT.accessFile(fileId);
   }
 
   public synchronized void addPartition(long userId, int datasetId, int partitionId, 

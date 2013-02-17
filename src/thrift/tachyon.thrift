@@ -5,27 +5,6 @@ struct NetAddress {
   2: i32 mPort
 }
 
-struct PartitionInfo {
-  1: i32 mDatasetId
-  2: i32 mPartitionId
-  3: i32 mSizeBytes
-  4: map<i64, NetAddress> mLocations
-  5: bool mHasCheckpointed
-  6: string mCheckpointPath
-}
-
-struct DatasetInfo {
-  1: i32 mId
-  2: string mPath
-  3: i64 mSizeBytes
-  4: i32 mNumOfPartitions
-  5: list<PartitionInfo> mPartitionList
-  6: bool mCache
-  7: bool mPin
-  8: bool mIsSubDataset
-  9: i32 mParentDatasetId
-}
-
 struct RawTableInfo {
   1: i32 mId
   2: string mPath
@@ -33,7 +12,6 @@ struct RawTableInfo {
   4: i64 mSizeBytes
   5: i32 mNumOfPartitions
   6: list<i32> mColumnDatasetIdList
-  7: list<PartitionInfo> mPartitionList
 }
 
 enum LogEventType {
@@ -87,7 +65,7 @@ service MasterService {
   // Services to Workers
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i64> currentFileList) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedFileList)
-  void worker_addFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i32 fileSizeBytes, 5: bool hasCheckpointed, 6: string checkpointPath) throws (1: FileDoesNotExistException eP, 2: SuspectedFileException eS)
+  void worker_addFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i32 fileSizeBytes, 5: bool hasCheckpointed, 6: string checkpointPath) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
   set<i32> worker_getPinList()
 
   // Services to Users
@@ -95,12 +73,12 @@ service MasterService {
   i32 user_getFileId(1: string filePath)  // Return 0 if does not contain the dataset, return datasetId if it exists.
   i64 user_getUserId()
   NetAddress user_getLocalWorker(1: string host) throws (1: NoLocalWorkerException e) // Get local worker NetAddress
-  list<NetAddress> user_getFileLocsById(1: i32 fileId) throws (1: DatasetDoesNotExistException e)        // Get file locations by file Id.
-  list<NetAddress> user_getFileLocsByPath(1: string filePath) throws (1: DatasetDoesNotExistException e) // Get file locations by path
+  list<NetAddress> user_getFileLocsById(1: i32 fileId) throws (1: FileDoesNotExistException e)        // Get file locations by file Id.
+  list<NetAddress> user_getFileLocsByPath(1: string filePath) throws (1: FileDoesNotExistException e) // Get file locations by path
   void user_deleteFile(1: i32 fileId) throws (1: FileDoesNotExistException e) // Delete file
   void user_outOfMemoryForPinFile(1: i32 datasetId)
   void user_renameFile(1: string srcFilePath, 2: string dstFilePath) throws (1: FileDoesNotExistException e)
-//  void user_setPartitionCheckpointPath(1: i32 datasetId, 2: i32 partitionId, 3: string checkpointPath) throws (1: DatasetDoesNotExistException eD, 2: PartitionDoesNotExistException eP)
+//  void user_setPartitionCheckpointPath(1: i32 fileId, 2: string checkpointPath) throws (1: FileDoesNotExistException eD)
   void user_unpinFile(1: i32 fileId) throws (1: FileDoesNotExistException e)   // Remove file from memory
 
 //  i32 user_createRawTable(1: string tablePath, 2: i32 columns) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
