@@ -56,15 +56,6 @@ public class MasterClient {
     return CLIENT.cmd_ls(folder);
   }
 
-  public synchronized List<String> rm(String folder)
-      throws FileDoesNotExistException, TException {
-    List<DatasetInfo> ret = CLIENT.cmd_ls(folder);
-    for (DatasetInfo dataset : ret) {
-      CLIENT.user_deleteDataset(dataset.mId);
-    }
-    return ret;
-  }
-
   public synchronized long getUserId() throws TException {
     long ret = CLIENT.user_getUserId();
     LOG.info("User registered at the master " + mMasterAddress + " got UserId " + ret);
@@ -94,23 +85,31 @@ public class MasterClient {
     return CLIENT.user_createFile(filePath);
   }
 
-//  public synchronized int user_createRawColumnDataset(String datasetPath, int columns,
-//      int partitions) throws DatasetAlreadyExistException, InvalidPathException, TException {
-//    return CLIENT.user_createRawColumnDataset(datasetPath, columns, partitions);
-//  }
+  //  public synchronized int user_createRawColumnDataset(String datasetPath, int columns,
+  //      int partitions) throws DatasetAlreadyExistException, InvalidPathException, TException {
+  //    return CLIENT.user_createRawColumnDataset(datasetPath, columns, partitions);
+  //  }
 
-  public synchronized void user_deleteFile(int fileId)
+  public synchronized void user_delete(String folder) throws FileDoesNotExistException, TException {
+    CLIENT.user_deleteByPath(folder);
+  }
+
+  public synchronized void user_delete(int fileId) throws FileDoesNotExistException, TException {
+    CLIENT.user_deleteById(fileId);
+  }
+
+  public ClientFileInfo user_getClientFileInfoByPath(String filePath)
       throws FileDoesNotExistException, TException {
-    CLIENT.user_deleteFile(fileId);
+    return CLIENT.user_getClientFileInfoByPath(filePath);
+  }
+
+  public ClientFileInfo user_getClientFileInfoById(int fileId)
+      throws FileDoesNotExistException, TException {
+    return CLIENT.user_getClientFileInfoById(fileId);
   }
 
   public synchronized int user_getFileId(String filePath) throws TException {
     return CLIENT.user_getFileId(filePath);
-  }
-
-  public synchronized NetAddress user_getLocalWorker(String localHostName)
-      throws NoLocalWorkerException, TException {
-    return CLIENT.user_getLocalWorker(localHostName);
   }
 
   public synchronized List<NetAddress> user_getFileLocations(int fileId)
@@ -118,47 +117,42 @@ public class MasterClient {
     return CLIENT.user_getFileLocationsById(fileId);
   }
 
-  public synchronized DatasetInfo user_getDataset(String datasetPath)
-      throws FileDoesNotExistException, TException {
-    return CLIENT.user_getDatasetByPath(datasetPath);
+  public synchronized NetAddress user_getLocalWorker(String localHostName)
+      throws NoLocalWorkerException, TException {
+    return CLIENT.user_getLocalWorker(localHostName);
   }
 
-  public synchronized DatasetInfo user_getDataset(int fileId)
-      throws FileDoesNotExistException, TException {
-    return CLIENT.user_getDatasetById(fileId);
-  }
-
-  public synchronized RawColumnDatasetInfo user_getRawColumnDataset(String datasetPath)
-      throws FileDoesNotExistException, TException {
-    return CLIENT.user_getRawColumnDatasetByPath(datasetPath);
-  }
-
-  public synchronized RawColumnDatasetInfo user_getRawColumnDatasetInfo(int fileId)
-      throws FileDoesNotExistException, TException {
-    return CLIENT.user_getRawColumnDatasetById(fileId);
-  }
+//  public synchronized RawColumnDatasetInfo user_getRawColumnDataset(String datasetPath)
+//      throws FileDoesNotExistException, TException {
+//    return CLIENT.user_getRawColumnDatasetByPath(datasetPath);
+//  }
+//
+//  public synchronized RawColumnDatasetInfo user_getRawColumnDatasetInfo(int fileId)
+//      throws FileDoesNotExistException, TException {
+//    return CLIENT.user_getRawColumnDatasetById(fileId);
+//  }
 
   public synchronized void user_outOfMemoryForPinDataset(int fileId) throws TException {
-    CLIENT.user_outOfMemoryForPinDataset(fileId);
+    CLIENT.user_outOfMemoryForPinFile(fileId);
   }
 
-  public synchronized void user_renameDataset(String srcDataset, String dstDataset)
+  public synchronized void user_renameFile(String srcDataset, String dstDataset)
       throws FileDoesNotExistException, TException {
-    CLIENT.user_renameDataset(srcDataset, dstDataset);
+    CLIENT.user_renameFile(srcDataset, dstDataset);
   }
 
   public synchronized void user_unpinFile(int fileId) 
       throws FileDoesNotExistException, TException {
     CLIENT.user_unpinFile(fileId);
   }
-  
-  public synchronized void user_setPartitionCheckpointPath(int fileId, int partitionId,
-      String checkpointPath) throws FileDoesNotExistException,
-      FileDoesNotExistException, TException {
-    CLIENT.user_setPartitionCheckpointPath(fileId, partitionId, checkpointPath);
-  }
 
-  public synchronized void worker_addPartition(long workerId, long workerUsedBytes,
+//  public synchronized void user_setPartitionCheckpointPath(int fileId, int partitionId,
+//      String checkpointPath) throws FileDoesNotExistException,
+//      FileDoesNotExistException, TException {
+//    CLIENT.user_setFileCheckpointPath(fileId, partitionId, checkpointPath);
+//  }
+
+  public synchronized void worker_addFile(long workerId, long workerUsedBytes,
       int fileId, int partitionSizeBytes, boolean hasCheckpointed, 
       String checkpointPath)
           throws FileDoesNotExistException, SuspectedFileSizeException, TException {
@@ -166,11 +160,11 @@ public class MasterClient {
         hasCheckpointed, checkpointPath);
   }
 
-  public synchronized void worker_addRCDPartition(long workerId, int fileId, int partitionId,
-      int partitionSizeBytes) throws FileDoesNotExistException,
-      SuspectedFileSizeException, TException {
-    CLIENT.worker_addRCDPartition(workerId, fileId, partitionId, partitionSizeBytes);
-  }
+//  public synchronized void worker_addRCDPartition(long workerId, int fileId, int partitionId,
+//      int partitionSizeBytes) throws FileDoesNotExistException,
+//      SuspectedFileSizeException, TException {
+//    CLIENT.worker_addRCDPartition(workerId, fileId, partitionId, partitionSizeBytes);
+//  }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
       List<Integer> removedPartitionList) throws TException {
@@ -196,17 +190,5 @@ public class MasterClient {
     for (int k = 0; k < num; k ++) {
       mcs.add(new MasterClient(new InetSocketAddress("localhost", Config.MASTER_PORT)));
     }
-  }
-
-  public ClientFileInfo user_getClientFileInfoByPath(String filePath)
-      throws FileDoesNotExistException, TException {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  public ClientFileInfo user_getClientFileInfoById(int fileId)
-      throws FileDoesNotExistException, TException {
-    // TODO Auto-generated method stub
-    return null;
   }
 }

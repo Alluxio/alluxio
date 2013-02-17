@@ -309,7 +309,7 @@ public class TachyonClient {
     }
 
     try {
-      mMasterClient.user_deleteFile(fileId);
+      mMasterClient.user_delete(fileId);
     } catch (FileDoesNotExistException e) {
       LOG.error(e.getMessage());
       return false;
