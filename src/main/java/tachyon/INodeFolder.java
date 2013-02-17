@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class INodeFolder extends INode {
+  private static final long serialVersionUID = -1195474593218285949L;
+
   private List<INode> mChildren;
 
   public INodeFolder(String name, int id, int parentId) {
