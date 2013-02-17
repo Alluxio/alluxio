@@ -37,7 +37,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  * @author haoyuan
  */
 public class TachyonFile {
-  private final Logger LOG = LoggerFactory.getLogger(Partition.class);
+  private final Logger LOG = LoggerFactory.getLogger(TachyonFile.class);
   private final TachyonClient mTachyonClient;
   private final ClientFileInfo mClientFileInfo;
   private final int mId;
@@ -367,7 +367,7 @@ public class TachyonFile {
         }
       }
     }
-    
+
     mSizeBytes = ret.limit();
 
     return ret;
@@ -425,9 +425,8 @@ public class TachyonFile {
 
     socketChannel.close();
 
-    if (recvMsg.getDatasetId() < 0) {
-      LOG.info("Data " + recvMsg.getDatasetId() + ":" + recvMsg.getPartitionId() + 
-          " is not in remote machine.");
+    if (recvMsg.getFileId() < 0) {
+      LOG.info("Data " + recvMsg.getFileId() + " is not in remote machine.");
       return null;
     }
 

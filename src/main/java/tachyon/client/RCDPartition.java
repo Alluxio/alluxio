@@ -7,7 +7,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 import tachyon.CommonUtils;
-import tachyon.thrift.OutOfMemoryForPinDatasetException;
 
 /**
  * RawColumnDatasetPartition

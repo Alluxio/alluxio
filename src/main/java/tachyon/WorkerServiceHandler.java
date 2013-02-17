@@ -28,8 +28,8 @@ import tachyon.thrift.WorkerService;
 
 public class WorkerServiceHandler implements WorkerService.Iface {
   // TODO The reason this is public is for DataServerMessage to access. Need to re-organize this.
-  public static final BlockingQueue<Long> sDataAccessQueue = 
-      new ArrayBlockingQueue<Long>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
+  public static final BlockingQueue<Integer> sDataAccessQueue = 
+      new ArrayBlockingQueue<Integer>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
 
   private final Logger LOG = LoggerFactory.getLogger(WorkerServiceHandler.class);
 
@@ -270,7 +270,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void lockPartition(int datasetId, int partitionId, long userId) throws TException {
+  public void lockFile(int fileId, long userId) throws TException {
     long bigId = CommonUtils.generateBigId(datasetId, partitionId);
     synchronized (mLockedPartitionPerPartition) {
       if (!mLockedPartitionPerPartition.containsKey(bigId)) {
@@ -393,7 +393,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void unlockPartition(int datasetId, int partitionId, long userId) throws TException {
+  public void unlockFile(int fileId, long userId) throws TException {
     long bigId = CommonUtils.generateBigId(datasetId, partitionId);
     synchronized (mLockedPartitionPerPartition) {
       if (mLockedPartitionPerPartition.containsKey(bigId)) {
