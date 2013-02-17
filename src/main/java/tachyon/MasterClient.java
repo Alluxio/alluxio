@@ -52,11 +52,11 @@ public class MasterClient {
     mIsConnected = false;
   }
 
-  public synchronized List<DatasetInfo> cmd_ls(String folder) throws TException {
+  public synchronized List<String> ls(String folder) throws TException {
     return CLIENT.cmd_ls(folder);
   }
 
-  public synchronized List<DatasetInfo> cmd_rm(String folder)
+  public synchronized List<String> rm(String folder)
       throws FileDoesNotExistException, TException {
     List<DatasetInfo> ret = CLIENT.cmd_ls(folder);
     for (DatasetInfo dataset : ret) {
