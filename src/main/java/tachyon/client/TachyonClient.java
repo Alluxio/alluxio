@@ -58,40 +58,15 @@ public class TachyonClient {
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
 
-  private ToWorkerHeartbeat mToWorkerHeartbeat = null;
+  private ClientToWorkerHeartbeat mToWorkerHeartbeat = null;
 
   private boolean mConnected = false;
 
-  public static class ToWorkerHeartbeat implements Runnable {
-    final private Logger LOG = LoggerFactory.getLogger(ToWorkerHeartbeat.class);
-    final private WorkerClient WORKER_CLIENT;
-    final private long USER_ID;
-
-    public ToWorkerHeartbeat(WorkerClient workerClient, long userId) {
-      WORKER_CLIENT = workerClient;
-      USER_ID = userId;
-    }
-
-    @Override
-    public void run() {
-      while (true) {
-        try {
-          WORKER_CLIENT.userHeartbeat(USER_ID);
-        } catch (TException e) {
-          LOG.error(e.getMessage());
-          break;
-        }
-
-        CommonUtils.sleep(Config.USER_HEARTBEAT_INTERVAL_MS);
-      }
-    }
-  }
-
-  public synchronized void accessLocalPartition(int datasetId, int partitionId) {
+  public synchronized void accessLocalFile(int fileId) {
     connectAndGetLocalWorker();
     if (mLocalWorkerClient != null) {
       try {
-        mLocalWorkerClient.accessPartition(datasetId, partitionId);
+        mLocalWorkerClient.accessPartition(fileId);
         return;
       } catch (TException e) {
         mLocalWorkerClient = null;
@@ -209,7 +184,7 @@ public class TachyonClient {
       mUserHdfsTempFolder = null;
     }
 
-    mToWorkerHeartbeat = new ToWorkerHeartbeat(mLocalWorkerClient, mUserId);
+    mToWorkerHeartbeat = new ClientToWorkerHeartbeat(mLocalWorkerClient, mUserId);
     Thread thread = new Thread(mToWorkerHeartbeat);
     thread.setDaemon(true);
     thread.start();

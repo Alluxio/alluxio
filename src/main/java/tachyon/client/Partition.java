@@ -326,7 +326,7 @@ public class Partition {
         mInChannel = mFile.getChannel();
         ret = mInChannel.map(FileChannel.MapMode.READ_ONLY, 0, mSizeBytes);
         ret.order(ByteOrder.nativeOrder());
-        mTachyonClient.accessLocalPartition(mDatasetId, mPartitionId);
+        mTachyonClient.accessLocalFile(mDatasetId, mPartitionId);
         return ret;
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");
