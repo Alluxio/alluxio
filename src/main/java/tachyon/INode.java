@@ -1,14 +1,31 @@
 package tachyon;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import tachyon.thrift.NetAddress;
+
 public abstract class INode implements Comparable<INode> {
+  public static final long UNINITIAL_VALUE = -1;
+
   protected long mCreationTimeMs;
   protected int mId;
   protected String mName;
-  protected int mParent;
+  protected int mParentId;
+  protected boolean mIsFolder;
 
-  protected INode(String name, int parent) {
+  protected boolean mPin = false;
+  protected boolean mCache = false;
+  
+  protected boolean mHasCheckpointed = false;
+  protected String mCheckpointPath = "";
+
+  public Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>();
+
+  protected INode(String name, int id, int parentId, boolean isFolder) {
     mName = name;
-    mParent = parent;
+    mId = id;
+    mParentId = parentId;
     mCreationTimeMs = System.currentTimeMillis();
   }
 
@@ -32,14 +49,18 @@ public abstract class INode implements Comparable<INode> {
 
   public abstract long getLength();
 
-  public abstract boolean isDirectory();
+  public boolean isDirectory() {
+    return mIsFolder;
+  }
 
-  public abstract boolean isFile();
+  public boolean isFile() {
+    return !mIsFolder;
+  }
 
   public long getCreationTimeMs() {
     return mCreationTimeMs;
   }
-  
+
   public int getId() {
     return mId;
   }
@@ -50,5 +71,12 @@ public abstract class INode implements Comparable<INode> {
 
   public void setName(String name) {
     mName = name;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("INode(");
+    sb.append(mName).append(",").append(mId).append(")");
+    return sb.toString();
   }
 }

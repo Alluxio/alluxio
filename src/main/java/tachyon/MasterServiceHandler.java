@@ -20,6 +20,7 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.FileAlreadyExistException;
@@ -29,6 +30,7 @@ import tachyon.thrift.LogEventType;
 import tachyon.thrift.MasterService;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoLocalWorkerException;
+import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * The Master server program.
@@ -51,9 +53,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   private Map<Integer, INode> mFiles = new HashMap<Integer, INode>();
   private Map<String, Integer> mFilePathToId = new HashMap<String, Integer>();
 
-//  private Map<Integer, RawColumnDatasetInfo> mRawColumnDatasets = 
-//      new HashMap<Integer, RawColumnDatasetInfo>();
-//  private Map<String, Integer> mRawColumnDatasetPathToId = new HashMap<String, Integer>();
+  //  private Map<Integer, RawColumnDatasetInfo> mRawColumnDatasets = 
+  //      new HashMap<Integer, RawColumnDatasetInfo>();
+  //  private Map<String, Integer> mRawColumnDatasetPathToId = new HashMap<String, Integer>();
 
   private Map<Long, WorkerInfo> mWorkers = new HashMap<Long, WorkerInfo>();
   private Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
@@ -106,15 +108,11 @@ public class MasterServiceHandler implements MasterService.Iface {
         hadFailedWorker = true;
         WorkerInfo worker = mLostWorkers.poll();
 
-        for (long id: worker.getPartitions()) {
-          int datasetId = CommonUtils.computeDatasetIdFromBigId(id);
-          int pId = CommonUtils.computePartitionIdFromBigId(id);
-
+        for (int id: worker.getFiles()) {
           synchronized (mFiles) {
-            DatasetInfo tDatasetInfo = mFiles.get(datasetId);
-            if (tDatasetInfo != null) {
-              PartitionInfo pInfo = tDatasetInfo.mPartitionList.get(pId);
-              Map<Long, NetAddress> locations = pInfo.mLocations;
+            INode tFile = mFiles.get(id);
+            if (tFile != null) {
+              Map<Long, NetAddress> locations = tFile.mLocations;
 
               if (locations.containsKey(worker.getId())) {
                 locations.remove(worker.getId());
@@ -127,7 +125,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       if (hadFailedWorker) {
         LOG.warn("Restarting failed workers");
         try {
-          java.lang.Runtime.getRuntime().exec(Config.TACHYON_HOME +
+          java.lang.Runtime.getRuntime().exec(Config.TACHYON_HOME + 
               "/bin/restart-failed-tachyon-workers.sh");
         } catch (IOException e) {
           LOG.error(e.getMessage());
@@ -152,7 +150,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
     if (Config.MASTER_SUBSUME_HDFS) {
       HdfsClient hdfs = new HdfsClient(Config.HDFS_ADDRESS);
-//      subsumeHdfs(hdfs, Config.HDFS_ADDRESS);
+      //      subsumeHdfs(hdfs, Config.HDFS_ADDRESS);
     }
 
     mMasterLogWriter = new MasterLogWriter(Config.MASTER_LOG_FILE);
@@ -168,12 +166,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<DatasetInfo> cmd_ls(String folder) throws TException {
-    ArrayList<DatasetInfo> ret = new ArrayList<DatasetInfo>();
+  public List<String> cmd_ls(String folder) throws TException {
+    ArrayList<String> ret = new ArrayList<String>();
     synchronized (mFiles) {
-      for (DatasetInfo datasetInfo : mFiles.values()) {
-        if (datasetInfo.mPath.startsWith(folder)) {
-          ret.add(datasetInfo);
+      for (INode fileInfo : mFiles.values()) {
+        if (fileInfo.getName().startsWith(folder)) {
+          ret.add(fileInfo.getName());
         }
       }
 
@@ -205,16 +203,15 @@ public class MasterServiceHandler implements MasterService.Iface {
         }
 
         sb.append("<h2>" + mFiles.size() + " File(s): </h2>");
-        List<Integer> datasetList = new ArrayList<Integer>(mFiles.keySet());
-        Collections.sort(datasetList);
-        for (int k = 0; k < datasetList.size(); k ++) {
-          DatasetInfo tDataset = mFiles.get(datasetList.get(k));
+        List<Integer> fileIdList = new ArrayList<Integer>(mFiles.keySet());
+        Collections.sort(fileIdList);
+        for (int k = 0; k < fileIdList.size(); k ++) {
+          INode tINode = mFiles.get(fileIdList.get(k));
           sb.append("<strong>File " + (k + 1) + " </strong>: ");
-          sb.append("ID: ").append(tDataset.mId).append("; ");
-          sb.append("Path: ").append(tDataset.mPath).append("; ");
-          sb.append("NumberOfPartitions: ").append(tDataset.getMPartitionListSize()).append("; ");
+          sb.append("ID: ").append(tINode.mId).append("; ");
+          sb.append("Path: ").append(tINode.mName).append("; ");
           if (Config.DEBUG) {
-            sb.append(tDataset.toString());
+            sb.append(tINode.toString());
           }
           sb.append("<br \\>");
         }
@@ -235,94 +232,79 @@ public class MasterServiceHandler implements MasterService.Iface {
     String parameters = CommonUtils.parametersToString(filePath);
     LOG.info("user_createFile" + parameters);
 
-    DatasetInfo dataset = null;
+    INode inode = null;
 
     synchronized (mFiles) {
-      if (mFilePathToId.containsKey(datasetPath)) {
-        LOG.info(datasetPath + " already exists.");
-        throw new FileAlreadyExistException("Dataset " + datasetPath + " already exists.");
+      if (mFilePathToId.containsKey(filePath)) {
+        LOG.info(filePath + " already exists.");
+        throw new FileAlreadyExistException("File " + filePath + " already exists.");
       }
 
-      dataset = new DatasetInfo();
-      dataset.mId = mDatasetCounter.addAndGet(1);
-      dataset.mPath = datasetPath;
-      dataset.mSizeBytes = 0;
-      dataset.mNumOfPartitions = partitions;
-      dataset.mPartitionList = new ArrayList<PartitionInfo>(partitions);
-      for (int k = 0; k < partitions; k ++) {
-        PartitionInfo partition = new PartitionInfo();
-        partition.mDatasetId = dataset.mId;
-        partition.mPartitionId = k;
-        partition.mSizeBytes = -1;
-        partition.mLocations = new HashMap<Long, NetAddress>();
-        dataset.mPartitionList.add(partition);
-      }
-      dataset.setMCache(mWhiteList.inList(dataset.mPath));
-      dataset.setMPin(mPinList.inList(dataset.mPath));
-      dataset.mIsSubDataset = isSubDataset;
-      dataset.mParentDatasetId = parentDatasetId;
+      inode = new INodeFile(filePath, mDatasetCounter.addAndGet(1), parentFileId);
+      inode.mPin = mPinList.inList(filePath);
+      inode.mCache = mWhiteList.inList(filePath);
 
-      mMasterLogWriter.appendAndFlush(dataset);
+      mMasterLogWriter.appendAndFlush(inode);
 
-      mFilePathToId.put(datasetPath, dataset.mId);
-      mFiles.put(dataset.mId, dataset);
+      mFilePathToId.put(filePath, inode.mId);
+      mFiles.put(inode.mId, inode);
 
-      if (mPinList.inList(datasetPath)) {
-        mIdPinList.add(dataset.mId);
+      if (mPinList.inList(filePath)) {
+        mIdPinList.add(inode.mId);
       }
 
-      LOG.info("user_createDataset: Dataset Created: " + dataset);
+      LOG.info("user_createFile: File Created: " + inode);
     }
 
-    return dataset.mId;
+    return inode.mId;
   }
 
-//  @Override
-//  public int user_createRawColumnDataset(String datasetPath, int columns, int partitions)
-//      throws FileAlreadyExistException, InvalidPathException, TException {
-//    String parameters = CommonUtils.parametersToString(datasetPath, columns, partitions);
-//    LOG.info("user_createRawColumnDataset" + parameters);
-//
-//    RawColumnDatasetInfo rawColumnDataset = null;
-//
-//    synchronized (mDatasets) {
-//      if (mDatasetPathToId.containsKey(datasetPath) 
-//          || mRawColumnDatasetPathToId.containsKey(datasetPath)) {
-//        LOG.info(datasetPath + " already exists.");
-//        throw new FileAlreadyExistException("RawColumnDataset " + datasetPath + 
-//            " already exists.");
-//      }
-//
-//      rawColumnDataset = new RawColumnDatasetInfo();
-//      rawColumnDataset.mId = mDatasetCounter.addAndGet(1);
-//      rawColumnDataset.mPath = datasetPath;
-//      rawColumnDataset.mColumns = columns;
-//      rawColumnDataset.mNumOfPartitions = partitions;
-//      rawColumnDataset.mColumnDatasetIdList = new ArrayList<Integer>(columns);
-//      for (int k = 0; k < columns; k ++) {
-//        rawColumnDataset.mColumnDatasetIdList.add(
-//            user_createDataset(datasetPath + "/col_" + k, partitions, true, rawColumnDataset.mId));
-//      }
-//      rawColumnDataset.mPartitionList = new ArrayList<PartitionInfo>(partitions);
-//      for (int k = 0; k < partitions; k ++) {
-//        PartitionInfo partition = new PartitionInfo();
-//        partition.mDatasetId = rawColumnDataset.mId;
-//        partition.mPartitionId = k;
-//        partition.mSizeBytes = -1;
-//        partition.mLocations = new HashMap<Long, NetAddress>();
-//        rawColumnDataset.mPartitionList.add(partition);
-//      }
-//
-//      mMasterLogWriter.appendAndFlush(rawColumnDataset);
-//
-//      mRawColumnDatasetPathToId.put(datasetPath, rawColumnDataset.mId);
-//      mRawColumnDatasets.put(rawColumnDataset.mId, rawColumnDataset);
-//
-//      LOG.info("user_createRawColumnDataset: RawColumnDataset Created: " + rawColumnDataset);
-//    }
-//
-//    return rawColumnDataset.mId;
-//  }
+  //  @Override
+  //  public int user_createRawColumnDataset(String datasetPath, int columns, int partitions)
+  //      throws FileAlreadyExistException, InvalidPathException, TException {
+  //    String parameters = CommonUtils.parametersToString(datasetPath, columns, partitions);
+  //    LOG.info("user_createRawColumnDataset" + parameters);
+  //
+  //    RawColumnDatasetInfo rawColumnDataset = null;
+  //
+  //    synchronized (mDatasets) {
+  //      if (mDatasetPathToId.containsKey(datasetPath) 
+  //          || mRawColumnDatasetPathToId.containsKey(datasetPath)) {
+  //        LOG.info(datasetPath + " already exists.");
+  //        throw new FileAlreadyExistException("RawColumnDataset " + datasetPath + 
+  //            " already exists.");
+  //      }
+  //
+  //      rawColumnDataset = new RawColumnDatasetInfo();
+  //      rawColumnDataset.mId = mDatasetCounter.addAndGet(1);
+  //      rawColumnDataset.mPath = datasetPath;
+  //      rawColumnDataset.mColumns = columns;
+  //      rawColumnDataset.mNumOfPartitions = partitions;
+  //      rawColumnDataset.mColumnDatasetIdList = new ArrayList<Integer>(columns);
+  //      for (int k = 0; k < columns; k ++) {
+  //        rawColumnDataset.mColumnDatasetIdList.add(
+  //            user_createDataset(datasetPath + "/col_" + k, partitions, true, rawColumnDataset.mId));
+  //      }
+  //      rawColumnDataset.mPartitionList = new ArrayList<PartitionInfo>(partitions);
+  //      for (int k = 0; k < partitions; k ++) {
+  //        PartitionInfo partition = new PartitionInfo();
+  //        partition.mDatasetId = rawColumnDataset.mId;
+  //        partition.mPartitionId = k;
+  //        partition.mSizeBytes = -1;
+  //        partition.mLocations = new HashMap<Long, NetAddress>();
+  //        rawColumnDataset.mPartitionList.add(partition);
+  //      }
+  //
+  //      mMasterLogWriter.appendAndFlush(rawColumnDataset);
+  //
+  //      mRawColumnDatasetPathToId.put(datasetPath, rawColumnDataset.mId);
+  //      mRawColumnDatasets.put(rawColumnDataset.mId, rawColumnDataset);
+  //
+  //      LOG.info("user_createRawColumnDataset: RawColumnDataset Created: " + rawColumnDataset);
+  //    }
+  //
+  //    return rawColumnDataset.mId;
+  //  }
 
   @Override
   public void user_deleteById(int fileId) throws FileDoesNotExistException, TException {
@@ -330,18 +312,18 @@ public class MasterServiceHandler implements MasterService.Iface {
     // Only remove meta data from master. The data in workers will be evicted since no further
     // application can read them. (Based on LRU) TODO May change it to be active from V0.2. 
     synchronized (mFiles) {
-      if (!mFiles.containsKey(datasetId)) {
-        throw new DatasetDoesNotExistException("Failed to delete " + datasetId + " dataset.");
+      if (!mFiles.containsKey(fileId)) {
+        throw new FileDoesNotExistException("Failed to delete " + fileId);
       }
 
       synchronized (mIdPinList) {
-        mIdPinList.remove(new Integer(datasetId));
+        mIdPinList.remove(fileId);
       }
-      DatasetInfo dataset = mFiles.remove(datasetId);
-      mFilePathToId.remove(dataset.mPath);
-      dataset.mId = - dataset.mId;
+      INode inode = mFiles.remove(fileId);
+      mFilePathToId.remove(inode.mName);
+      inode.mId = - inode.mId;
 
-      mMasterLogWriter.appendAndFlush(dataset);
+      mMasterLogWriter.appendAndFlush(inode);
     }
   }
 
@@ -351,46 +333,47 @@ public class MasterServiceHandler implements MasterService.Iface {
     // Only remove meta data from master. The data in workers will be evicted since no further
     // application can read them. (Based on LRU) TODO May change it to be active from V0.2. 
     synchronized (mFiles) {
-      if (!mFiles.containsKey(datasetId)) {
-        throw new DatasetDoesNotExistException("Failed to delete " + datasetId + " dataset.");
+      if (!mFilePathToId.containsKey(filePath)) {
+        throw new FileDoesNotExistException("Failed to delete " + filePath);
       }
+
+      int id = mFilePathToId.remove(filePath);
 
       synchronized (mIdPinList) {
-        mIdPinList.remove(new Integer(datasetId));
+        mIdPinList.remove(new Integer(id));
       }
-      DatasetInfo dataset = mFiles.remove(datasetId);
-      mFilePathToId.remove(dataset.mPath);
-      dataset.mId = - dataset.mId;
+      INode inode = mFiles.remove(id);
+      inode.mId = - inode.mId;
 
-      mMasterLogWriter.appendAndFlush(dataset);
+      mMasterLogWriter.appendAndFlush(inode);
     }
   }
-  
-//  @Override
-//  public void user_deleteRawColumnDataset(int datasetId)
-//      throws DatasetDoesNotExistException, TException {
-//    // TODO Auto-generated method stub
-//    LOG.info("user_deleteDataset(" + datasetId + ")");
-//    // Only remove meta data from master. The data in workers will be evicted since no further
-//    // application can read them. (Based on LRU) TODO May change it to be active from V0.2. 
-//    synchronized (mDatasets) {
-//      if (!mRawColumnDatasets.containsKey(datasetId)) {
-//        throw new DatasetDoesNotExistException("Failed to delete " + datasetId + 
-//            " RawColumnDataset.");
-//      }
-//
-//      RawColumnDatasetInfo dataset = mRawColumnDatasets.remove(datasetId);
-//      mRawColumnDatasetPathToId.remove(dataset.mPath);
-//      dataset.mId = - dataset.mId;
-//
-//      for (int k = 0; k < dataset.mColumns; k ++) {
-//        user_deleteDataset(dataset.mColumnDatasetIdList.get(k));
-//      }
-//
-//      // TODO this order is not right. Move this upper.
-//      mMasterLogWriter.appendAndFlush(dataset);
-//    }
-//  }
+
+  //  @Override
+  //  public void user_deleteRawColumnDataset(int datasetId)
+  //      throws FileDoesNotExistException, TException {
+  //    // TODO Auto-generated method stub
+  //    LOG.info("user_deleteDataset(" + datasetId + ")");
+  //    // Only remove meta data from master. The data in workers will be evicted since no further
+  //    // application can read them. (Based on LRU) TODO May change it to be active from V0.2. 
+  //    synchronized (mDatasets) {
+  //      if (!mRawColumnDatasets.containsKey(datasetId)) {
+  //        throw new FileDoesNotExistException("Failed to delete " + datasetId + 
+  //            " RawColumnDataset.");
+  //      }
+  //
+  //      RawColumnDatasetInfo dataset = mRawColumnDatasets.remove(datasetId);
+  //      mRawColumnDatasetPathToId.remove(dataset.mPath);
+  //      dataset.mId = - dataset.mId;
+  //
+  //      for (int k = 0; k < dataset.mColumns; k ++) {
+  //        user_deleteDataset(dataset.mColumnDatasetIdList.get(k));
+  //      }
+  //
+  //      // TODO this order is not right. Move this upper.
+  //      mMasterLogWriter.appendAndFlush(dataset);
+  //    }
+  //  }
 
   @Override
   public NetAddress user_getLocalWorker(String host)
@@ -409,113 +392,137 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public PartitionInfo user_getPartitionInfo(int datasetId, int partitionId)
-      throws PartitionDoesNotExistException, TException {
-    PartitionInfo ret;
-    LOG.info("user_getPartitionInfo( " + datasetId + "," + partitionId + ")");
+  public ClientFileInfo user_getClientFileInfoById(int fileId)
+      throws FileDoesNotExistException, TException {
+    LOG.info("user_getClientFileInfoById(" + fileId + ")");
     synchronized (mFiles) {
-      DatasetInfo tDatasetInfo = mFiles.get(datasetId);
-      if (tDatasetInfo == null) {
-        throw new PartitionDoesNotExistException("DatasetId " + datasetId + " does not exist.");
+      INode inode = mFiles.get(fileId);
+      if (inode == null) {
+        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
-      if (partitionId < 0 || partitionId >= tDatasetInfo.mNumOfPartitions) {
-        throw new PartitionDoesNotExistException("DatasetId " + datasetId + " has " +
-            tDatasetInfo.mNumOfPartitions + " partitions. The requested partition id " + 
-            partitionId + " is out of index.");
-      }
-      ret = tDatasetInfo.mPartitionList.get(partitionId);
-    }
-    LOG.info("user_getPartitionInfo() returns partition info: " + ret);
-    return ret;
-  }
-
-  @Override
-  public DatasetInfo user_getDatasetById(int datasetId) 
-      throws DatasetDoesNotExistException, TException {
-    LOG.info("user_getDatasetById: " + datasetId);
-    synchronized (mFiles) {
-      DatasetInfo ret = mFiles.get(datasetId);
-      if (ret == null) {
-        throw new DatasetDoesNotExistException("DatasetId " + datasetId + " does not exist.");
-      }
-      LOG.info("user_getDatasetById: " + datasetId + " good return");
+      ClientFileInfo ret = new ClientFileInfo();
+      ret.id = inode.mId;
+      ret.fileName = inode.mName;
+      ret.checkpointPath = inode.mCheckpointPath;
+      ret.needPin = inode.mPin;
+      ret.needCache = inode.mCache;
+      LOG.info("user_getClientFileInfoById(" + fileId + "): "  + ret);
       return ret;
     }
   }
 
   @Override
-  public DatasetInfo user_getDatasetByPath(String datasetPath)
-      throws DatasetDoesNotExistException, TException {
-    LOG.info("user_getDatasetByPath(" + datasetPath + ")");
+  public ClientFileInfo user_getClientFileInfoByPath(String filePath)
+      throws FileDoesNotExistException, TException {
+    LOG.info("user_getClientFileInfoByPath(" + filePath + ")");
     synchronized (mFiles) {
-      if (!mFilePathToId.containsKey(datasetPath)) {
-        throw new DatasetDoesNotExistException("Dataset " + datasetPath + " does not exist.");
+      if (!mFilePathToId.containsKey(filePath)) {
+        throw new FileDoesNotExistException("File " + filePath + " does not exist.");
       }
 
-      DatasetInfo ret = mFiles.get(mFilePathToId.get(datasetPath));
-      LOG.info("user_getDatasetByPath(" + datasetPath + ") : " + ret);
+      INode inode = mFiles.get(mFilePathToId.get(filePath));
+      ClientFileInfo ret = new ClientFileInfo();
+      ret.id = inode.mId;
+      ret.fileName = inode.mName;
+      ret.checkpointPath = inode.mCheckpointPath;
+      ret.needPin = inode.mPin;
+      ret.needCache = inode.mCache;
+      LOG.info("user_getClientFileInfoByPath(" + filePath + ") : " + ret);
       return ret;
     }
   }
 
   @Override
-  public int user_getDatasetId(String datasetPath) throws TException {
-    LOG.info("user_getDatasetId(" + datasetPath + ")");
+  public List<NetAddress> user_getFileLocationsById(int fileId)
+      throws FileDoesNotExistException, TException {
+    LOG.info("user_getFileLocationsById: " + fileId);
+    synchronized (mFiles) {
+      INode inode = mFiles.get(fileId);
+      if (inode == null) {
+        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
+      }
+      LOG.info("user_getFileLocationsById: " + fileId + " good return");
+      ArrayList<NetAddress> ret = new ArrayList<NetAddress>(inode.mLocations.size());
+      ret.addAll(inode.mLocations.values());
+      return ret;
+    }
+  }
+
+  @Override
+  public List<NetAddress> user_getFileLocationsByPath(String filePath)
+      throws FileDoesNotExistException, TException {
+    LOG.info("user_getFileLocationsByPath(" + filePath + ")");
+    synchronized (mFiles) {
+      if (!mFilePathToId.containsKey(filePath)) {
+        throw new FileDoesNotExistException("File " + filePath + " does not exist.");
+      }
+
+      INode inode = mFiles.get(mFilePathToId.get(filePath));
+      ArrayList<NetAddress> ret = new ArrayList<NetAddress>(inode.mLocations.size());
+      ret.addAll(inode.mLocations.values());
+      LOG.info("user_getFileLocationsByPath(" + filePath + ") : " + ret);
+      return ret;
+    }
+  }
+
+  @Override
+  public int user_getFileId(String filePath) throws TException {
+    LOG.info("user_getFileId(" + filePath + ")");
     int ret = 0;
     synchronized (mFiles) {
-      if (mFilePathToId.containsKey(datasetPath)) {
-        ret = mFilePathToId.get(datasetPath);
+      if (mFilePathToId.containsKey(filePath)) {
+        ret = mFilePathToId.get(filePath);
       }
     }
 
-    LOG.info("user_getDatasetId(" + datasetPath + ") returns DatasetId " + ret);
+    LOG.info("user_getFileId(" + filePath + ") returns FileId " + ret);
     return ret;
   }
 
-  @Override
-  public RawColumnDatasetInfo user_getRawColumnDatasetById(int datasetId)
-      throws DatasetDoesNotExistException, TException {
-    LOG.info("user_getRawColumnDatasetById: " + datasetId);
-    synchronized (mFiles) {
-      RawColumnDatasetInfo ret = mRawColumnDatasets.get(datasetId);
-      if (ret == null) {
-        throw new DatasetDoesNotExistException("RawColumnDatasetId " + datasetId +
-            " does not exist.");
-      }
-      LOG.info("user_getRawColumnDatasetById: " + datasetId + " good return");
-      return ret;
-    }
-  }
-
-  @Override
-  public RawColumnDatasetInfo user_getRawColumnDatasetByPath(String datasetPath)
-      throws DatasetDoesNotExistException, TException {
-    LOG.info("user_getRawColumnDatasetByPath(" + datasetPath + ")");
-    synchronized (mFiles) {
-      if (!mRawColumnDatasetPathToId.containsKey(datasetPath)) {
-        throw new DatasetDoesNotExistException("RawColumnDataset " + datasetPath + 
-            " does not exist.");
-      }
-
-      RawColumnDatasetInfo ret = mRawColumnDatasets.get(mRawColumnDatasetPathToId.get(datasetPath));
-      LOG.info("user_getRawColumnDatasetByPath(" + datasetPath + ") : " + ret);
-      return ret;
-    }
-  }
-
-  @Override
-  public int user_getRawColumnDatasetId(String datasetPath) throws TException {
-    LOG.info("user_getRawColumnDatasetId(" + datasetPath + ")");
-    int ret = 0;
-    synchronized (mFiles) {
-      if (mRawColumnDatasetPathToId.containsKey(datasetPath)) {
-        ret = mFilePathToId.get(datasetPath);
-      }
-    }
-
-    LOG.info("user_getRawColumnDatasetId(" + datasetPath + ") returns DatasetId " + ret);
-    return ret;
-  }
+  //  @Override
+  //  public RawColumnDatasetInfo user_getRawColumnDatasetById(int datasetId)
+  //      throws FileDoesNotExistException, TException {
+  //    LOG.info("user_getRawColumnDatasetById: " + datasetId);
+  //    synchronized (mFiles) {
+  //      RawColumnDatasetInfo ret = mRawColumnDatasets.get(datasetId);
+  //      if (ret == null) {
+  //        throw new FileDoesNotExistException("RawColumnDatasetId " + datasetId +
+  //            " does not exist.");
+  //      }
+  //      LOG.info("user_getRawColumnDatasetById: " + datasetId + " good return");
+  //      return ret;
+  //    }
+  //  }
+  //
+  //  @Override
+  //  public RawColumnDatasetInfo user_getRawColumnDatasetByPath(String datasetPath)
+  //      throws FileDoesNotExistException, TException {
+  //    LOG.info("user_getRawColumnDatasetByPath(" + datasetPath + ")");
+  //    synchronized (mFiles) {
+  //      if (!mRawColumnDatasetPathToId.containsKey(datasetPath)) {
+  //        throw new FileDoesNotExistException("RawColumnDataset " + datasetPath + 
+  //            " does not exist.");
+  //      }
+  //
+  //      RawColumnDatasetInfo ret = mRawColumnDatasets.get(mRawColumnDatasetPathToId.get(datasetPath));
+  //      LOG.info("user_getRawColumnDatasetByPath(" + datasetPath + ") : " + ret);
+  //      return ret;
+  //    }
+  //  }
+  //
+  //  @Override
+  //  public int user_getRawColumnDatasetId(String datasetPath) throws TException {
+  //    LOG.info("user_getRawColumnDatasetId(" + datasetPath + ")");
+  //    int ret = 0;
+  //    synchronized (mFiles) {
+  //      if (mRawColumnDatasetPathToId.containsKey(datasetPath)) {
+  //        ret = mFilePathToId.get(datasetPath);
+  //      }
+  //    }
+  //
+  //    LOG.info("user_getRawColumnDatasetId(" + datasetPath + ") returns DatasetId " + ret);
+  //    return ret;
+  //  }
 
   @Override
   public long user_getUserId() throws TException {
@@ -523,97 +530,97 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void user_outOfMemoryForPinDataset(int datasetId) throws TException {
-    LOG.error("The user can not allocate enough space for PIN list Dataset " + datasetId);
+  public void user_outOfMemoryForPinFile(int fileId) throws TException {
+    LOG.error("The user can not allocate enough space for PIN list File " + fileId);
   }
 
   @Override
-  public void user_renameDataset(String srcDatasetPath, String dstDatasetPath)
-      throws DatasetDoesNotExistException, TException {
+  public void user_renameFile(String srcDatasetPath, String dstDatasetPath)
+      throws FileDoesNotExistException, TException {
     synchronized (mFiles) {
-      int datasetId = user_getDatasetId(srcDatasetPath);
-      if (datasetId <= 0) {
-        throw new DatasetDoesNotExistException("Dataset " + srcDatasetPath + " does not exist");
+      int fileId = user_getFileId(srcDatasetPath);
+      if (fileId <= 0) {
+        throw new FileDoesNotExistException("File " + srcDatasetPath + " does not exist");
       }
       mFilePathToId.remove(srcDatasetPath);
-      mFilePathToId.put(dstDatasetPath, datasetId);
-      DatasetInfo datasetInfo = mFiles.get(datasetId);
-      datasetInfo.mPath = dstDatasetPath;
-      mMasterLogWriter.appendAndFlush(datasetInfo);
+      mFilePathToId.put(dstDatasetPath, fileId);
+      INode inode = mFiles.get(fileId);
+      inode.mName = dstDatasetPath;
+      mMasterLogWriter.appendAndFlush(inode);
     }
   }
 
+  //  @Override
+  //  public void user_renameRawColumnDataset(String srcDatasetPath, String dstDatasetPath)
+  //      throws FileDoesNotExistException, TException {
+  //    // TODO Auto-generated method stub
+  //    synchronized (mFiles) {
+  //      int datasetId = user_getRawColumnDatasetId(srcDatasetPath);
+  //      if (datasetId <= 0) {
+  //        throw new FileDoesNotExistException("getRawColumnDataset " + srcDatasetPath +
+  //            " does not exist");
+  //      }
+  //      mRawColumnDatasetPathToId.remove(srcDatasetPath);
+  //      mRawColumnDatasetPathToId.put(dstDatasetPath, datasetId);
+  //      RawColumnDatasetInfo datasetInfo = mRawColumnDatasets.get(datasetId);
+  //      datasetInfo.mPath = dstDatasetPath;
+  //      for (int k = 0; k < datasetInfo.mColumns; k ++) {
+  //        user_renameDataset(srcDatasetPath + "/col_" + k, dstDatasetPath + "/col_" + k);
+  //      }
+  //
+  //      mMasterLogWriter.appendAndFlush(datasetInfo);
+  //    }
+  //  }
+
+  //  @Override
+  //  public void user_setPartitionCheckpointPath(int datasetId, int partitionId,
+  //      String checkpointPath) throws FileDoesNotExistException,
+  //      FileDoesNotExistException, TException {
+  //    synchronized (mFiles) {
+  //      if (!mFiles.containsKey(datasetId)) {
+  //        throw new FileDoesNotExistException("Dataset " + datasetId + " does not exist");
+  //      }
+  //
+  //      DatasetInfo dataset = mFiles.get(datasetId);
+  //
+  //      if (partitionId < 0 || partitionId >= dataset.mNumOfPartitions) {
+  //        throw new FileDoesNotExistException("Dataset has " + dataset.mNumOfPartitions +
+  //            " partitions. However, the request partition id is " + partitionId);
+  //      }
+  //
+  //      dataset.mPartitionList.get(partitionId).mHasCheckpointed = true;
+  //      dataset.mPartitionList.get(partitionId).mCheckpointPath = checkpointPath;
+  //
+  //      mMasterLogWriter.appendAndFlush(dataset.mPartitionList.get(partitionId));
+  //    }
+  //  }
+
   @Override
-  public void user_renameRawColumnDataset(String srcDatasetPath, String dstDatasetPath)
-      throws DatasetDoesNotExistException, TException {
-    // TODO Auto-generated method stub
-    synchronized (mFiles) {
-      int datasetId = user_getRawColumnDatasetId(srcDatasetPath);
-      if (datasetId <= 0) {
-        throw new DatasetDoesNotExistException("getRawColumnDataset " + srcDatasetPath +
-            " does not exist");
-      }
-      mRawColumnDatasetPathToId.remove(srcDatasetPath);
-      mRawColumnDatasetPathToId.put(dstDatasetPath, datasetId);
-      RawColumnDatasetInfo datasetInfo = mRawColumnDatasets.get(datasetId);
-      datasetInfo.mPath = dstDatasetPath;
-      for (int k = 0; k < datasetInfo.mColumns; k ++) {
-        user_renameDataset(srcDatasetPath + "/col_" + k, dstDatasetPath + "/col_" + k);
-      }
-
-      mMasterLogWriter.appendAndFlush(datasetInfo);
-    }
-  }
-
-  @Override
-  public void user_setPartitionCheckpointPath(int datasetId, int partitionId,
-      String checkpointPath) throws DatasetDoesNotExistException,
-      PartitionDoesNotExistException, TException {
-    synchronized (mFiles) {
-      if (!mFiles.containsKey(datasetId)) {
-        throw new DatasetDoesNotExistException("Dataset " + datasetId + " does not exist");
-      }
-
-      DatasetInfo dataset = mFiles.get(datasetId);
-
-      if (partitionId < 0 || partitionId >= dataset.mNumOfPartitions) {
-        throw new PartitionDoesNotExistException("Dataset has " + dataset.mNumOfPartitions +
-            " partitions. However, the request partition id is " + partitionId);
-      }
-
-      dataset.mPartitionList.get(partitionId).mHasCheckpointed = true;
-      dataset.mPartitionList.get(partitionId).mCheckpointPath = checkpointPath;
-
-      mMasterLogWriter.appendAndFlush(dataset.mPartitionList.get(partitionId));
-    }
-  }
-
-  @Override
-  public void user_unpinDataset(int datasetId) throws DatasetDoesNotExistException, TException {
+  public void user_unpinFile(int fileId) throws FileDoesNotExistException, TException {
     // TODO Change meta data only. Data will be evicted from worker based on data replacement 
     // policy. TODO May change it to be active from V0.2
-    LOG.info("user_freeDataset(" + datasetId + ")");
+    LOG.info("user_unpinFile(" + fileId + ")");
     synchronized (mFiles) {
-      if (!mFiles.containsKey(datasetId)) {
-        throw new DatasetDoesNotExistException("Failed to free " + datasetId + " dataset.");
+      if (!mFiles.containsKey(fileId)) {
+        throw new FileDoesNotExistException("Failed to unpin " + fileId);
       }
 
       synchronized (mIdPinList) {
-        mIdPinList.remove(new Integer(datasetId));
+        mIdPinList.remove(fileId);
       }
-      DatasetInfo dataset = mFiles.get(datasetId);
-      dataset.setMPin(false);
-      mMasterLogWriter.appendAndFlush(dataset);
+      INode inode = mFiles.get(fileId);
+      inode.mPin = false;
+      mMasterLogWriter.appendAndFlush(inode);
     }
   }
 
   @Override
-  public void worker_addPartition(long workerId, long workerUsedBytes, int datasetId,
-      int partitionId, int partitionSizeBytes, boolean hasCheckpointed, String checkpointPath)
-          throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
-    String parameters = CommonUtils.parametersToString(workerId, workerUsedBytes, datasetId,
-        partitionId, partitionSizeBytes);
-    LOG.info("worker_addPartition" + parameters);
+  public void worker_addFile(long workerId, long workerUsedBytes, int fileId,
+      int partitionSizeBytes, boolean hasCheckpointed, String checkpointPath)
+          throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    String parameters = CommonUtils.parametersToString(workerId, workerUsedBytes, fileId,
+        partitionSizeBytes);
+    LOG.info("worker_addFile" + parameters);
     WorkerInfo tWorkerInfo = null;
     synchronized (mWorkers) {
       tWorkerInfo = mWorkers.get(workerId);
@@ -624,81 +631,82 @@ public class MasterServiceHandler implements MasterService.Iface {
       }
     }
 
-    tWorkerInfo.updateFile(true, CommonUtils.generateBigId(datasetId, partitionId));
+    tWorkerInfo.updateFile(true, fileId);
     tWorkerInfo.updateUsedBytes(workerUsedBytes);
     tWorkerInfo.updateLastUpdatedTimeMs();
 
     synchronized (mFiles) {
-      DatasetInfo datasetInfo = mFiles.get(datasetId);
+      INode inode = mFiles.get(fileId);
 
-      if (partitionId < 0 || partitionId >= datasetInfo.mNumOfPartitions) {
-        throw new PartitionDoesNotExistException("DatasetId " + datasetId + " has " +
-            datasetInfo.mNumOfPartitions + " partitions. The requested partition id " + 
-            partitionId + " is out of index.");
+      if (inode == null) {
+        throw new FileDoesNotExistException("File " + fileId + " does not exist.");
+      }
+      if (inode.mIsFolder) {
+        throw new FileDoesNotExistException("File " + fileId + " is a folder.");
       }
 
-      PartitionInfo pInfo = datasetInfo.mPartitionList.get(partitionId);
-      if (pInfo.mSizeBytes != -1) {
-        if (pInfo.mSizeBytes != partitionSizeBytes) {
-          throw new SuspectedPartitionSizeException(datasetId + "-" + partitionId + 
-              ". Original Size: " + pInfo.mSizeBytes + ". New Size: " + partitionSizeBytes);
+      INodeFile tFile = (INodeFile) inode;
+
+      if (tFile.getLength() != INode.UNINITIAL_VALUE) {
+        if (tFile.getLength() != partitionSizeBytes) {
+          throw new SuspectedFileSizeException(fileId + ". Original Size: " +
+              tFile.getLength() + ". New Size: " + partitionSizeBytes);
         }
       } else {
-        pInfo.mSizeBytes = partitionSizeBytes;
-        datasetInfo.mSizeBytes += pInfo.mSizeBytes;
+        tFile.setLength(partitionSizeBytes);
       }
       if (hasCheckpointed) {
-        pInfo.mHasCheckpointed = true;
-        pInfo.mCheckpointPath = checkpointPath;
+        tFile.mHasCheckpointed = true;
+        tFile.mCheckpointPath = checkpointPath;
       }
       InetSocketAddress address = tWorkerInfo.ADDRESS;
-      pInfo.mLocations.put(workerId, new NetAddress(address.getHostName(), address.getPort()));
+      tFile.mLocations.put(workerId, new NetAddress(address.getHostName(), address.getPort()));
     }
   }
 
-  @Override
-  public void worker_addRCDPartition(long workerId, int datasetId, int partitionId,
-      int partitionSizeBytes) throws PartitionDoesNotExistException,
-      SuspectedPartitionSizeException, TException {
-    String parameters = CommonUtils.parametersToString(workerId, datasetId, partitionId,
-        partitionSizeBytes);
-    LOG.info("worker_addRCDPartition" + parameters);
-    WorkerInfo tWorkerInfo = null;
-    synchronized (mWorkers) {
-      tWorkerInfo = mWorkers.get(workerId);
-
-      if (tWorkerInfo == null) {
-        LOG.error("No worker: " + workerId);
-        return;
-      }
-    }
-
-    tWorkerInfo.updateFile(true, CommonUtils.generateBigId(datasetId, partitionId));
-    tWorkerInfo.updateLastUpdatedTimeMs();
-
-    synchronized (mFiles) {
-      RawColumnDatasetInfo datasetInfo = mRawColumnDatasets.get(datasetId);
-
-      if (partitionId < 0 || partitionId >= datasetInfo.mNumOfPartitions) {
-        throw new PartitionDoesNotExistException("RawColumnDatasetId " + datasetId + " has " +
-            datasetInfo.mNumOfPartitions + " partitions. The requested partition id " + 
-            partitionId + " is out of index.");
-      }
-
-      PartitionInfo pInfo = datasetInfo.mPartitionList.get(partitionId);
-      if (pInfo.mSizeBytes != -1) {
-        if (pInfo.mSizeBytes != partitionSizeBytes) {
-          throw new SuspectedPartitionSizeException(datasetId + "-" + partitionId + 
-              ". Original Size: " + pInfo.mSizeBytes + ". New Size: " + partitionSizeBytes);
-        }
-      } else {
-        pInfo.mSizeBytes = partitionSizeBytes;
-        datasetInfo.mSizeBytes += pInfo.mSizeBytes;
-      }
-      InetSocketAddress address = tWorkerInfo.ADDRESS;
-      pInfo.mLocations.put(workerId, new NetAddress(address.getHostName(), address.getPort()));
-    }
-  }
+  //  @Override
+  //  public void worker_addRCDPartition(long workerId, int datasetId, int partitionId,
+  //      int partitionSizeBytes) throws FileDoesNotExistException,
+  //      SuspectedFileSizeException, TException {
+  //    String parameters = CommonUtils.parametersToString(workerId, datasetId, partitionId,
+  //        partitionSizeBytes);
+  //    LOG.info("worker_addRCDPartition" + parameters);
+  //    WorkerInfo tWorkerInfo = null;
+  //    synchronized (mWorkers) {
+  //      tWorkerInfo = mWorkers.get(workerId);
+  //
+  //      if (tWorkerInfo == null) {
+  //        LOG.error("No worker: " + workerId);
+  //        return;
+  //      }
+  //    }
+  //
+  //    tWorkerInfo.updateFile(true, CommonUtils.generateBigId(datasetId, partitionId));
+  //    tWorkerInfo.updateLastUpdatedTimeMs();
+  //
+  //    synchronized (mFiles) {
+  //      RawColumnDatasetInfo datasetInfo = mRawColumnDatasets.get(datasetId);
+  //
+  //      if (partitionId < 0 || partitionId >= datasetInfo.mNumOfPartitions) {
+  //        throw new FileDoesNotExistException("RawColumnDatasetId " + datasetId + " has " +
+  //            datasetInfo.mNumOfPartitions + " partitions. The requested partition id " + 
+  //            partitionId + " is out of index.");
+  //      }
+  //
+  //      PartitionInfo pInfo = datasetInfo.mPartitionList.get(partitionId);
+  //      if (pInfo.mSizeBytes != -1) {
+  //        if (pInfo.mSizeBytes != partitionSizeBytes) {
+  //          throw new SuspectedFileSizeException(datasetId + "-" + partitionId + 
+  //              ". Original Size: " + pInfo.mSizeBytes + ". New Size: " + partitionSizeBytes);
+  //        }
+  //      } else {
+  //        pInfo.mSizeBytes = partitionSizeBytes;
+  //        datasetInfo.mSizeBytes += pInfo.mSizeBytes;
+  //      }
+  //      InetSocketAddress address = tWorkerInfo.ADDRESS;
+  //      pInfo.mLocations.put(workerId, new NetAddress(address.getHostName(), address.getPort()));
+  //    }
+  //  }
 
   @Override
   public Set<Integer> worker_getPinList() throws TException {
@@ -712,8 +720,8 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public Command worker_heartbeat(long workerId, long usedBytes,
-      List<Long> removedPartitionList) throws TException {
+  public Command worker_heartbeat(long workerId, long usedBytes, List<Integer> removedFiles)
+      throws TException {
     LOG.info("worker_heartbeat(): WorkerId: " + workerId);
     synchronized (mWorkers) {
       if (!mWorkers.containsKey(workerId)) {
@@ -723,19 +731,16 @@ public class MasterServiceHandler implements MasterService.Iface {
       } else {
         WorkerInfo tWorkerInfo = mWorkers.get(workerId);
         tWorkerInfo.updateUsedBytes(usedBytes);
-        tWorkerInfo.updateFiles(false, removedPartitionList);
+        tWorkerInfo.updateFiles(false, removedFiles);
         tWorkerInfo.updateLastUpdatedTimeMs();
 
         synchronized (mFiles) {
-          for (long bigId : removedPartitionList) {
-            int datasetId = CommonUtils.computeDatasetIdFromBigId(bigId);
-            int pId = CommonUtils.computePartitionIdFromBigId(bigId);
-            DatasetInfo datasetInfo = mFiles.get(datasetId);
-            if (datasetInfo == null) {
-              LOG.error("Data " + datasetId + " does not exist");
+          for (int fileId : removedFiles) {
+            INode inode = mFiles.get(fileId);
+            if (inode == null) {
+              LOG.error("Data " + fileId + " does not exist");
             } else {
-              PartitionInfo pInfo = datasetInfo.mPartitionList.get(pId);
-              pInfo.mLocations.remove(workerId);
+              inode.mLocations.remove(workerId);
             }
           }
         }
@@ -746,8 +751,8 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public long worker_register(NetAddress workerNetAddress, long totalBytes,
-      long usedBytes, List<Long> currentPartitionList) throws TException {
+  public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes,
+      List<Integer> currentFiles) throws TException {
     long id = 0;
     InetSocketAddress workerAddress =
         new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
@@ -768,24 +773,20 @@ public class MasterServiceHandler implements MasterService.Iface {
       id = START_TIME_NS_PREFIX + mWorkerCounter.addAndGet(1);
       WorkerInfo tWorkerInfo = new WorkerInfo(id, workerAddress, totalBytes);
       tWorkerInfo.updateUsedBytes(usedBytes);
-      tWorkerInfo.updateFiles(true, currentPartitionList);
+      tWorkerInfo.updateFiles(true, currentFiles);
       tWorkerInfo.updateLastUpdatedTimeMs();
       mWorkers.put(id, tWorkerInfo);
       mWorkerAddressToId.put(workerAddress, id);
       LOG.info("worker_register(): " + tWorkerInfo);
     }
 
-    for (long wId: currentPartitionList) {
-      int datasetId = CommonUtils.computeDatasetIdFromBigId(wId);
-      int pId = CommonUtils.computePartitionIdFromBigId(wId);
-
+    for (long fileId: currentFiles) {
       synchronized (mFiles) {
-        DatasetInfo tDatasetInfo = mFiles.get(datasetId);
-        if (tDatasetInfo != null) {
-          PartitionInfo pInfo = tDatasetInfo.mPartitionList.get(pId);
-          pInfo.mLocations.put(id, workerNetAddress);
+        INode inode = mFiles.get(fileId);
+        if (inode != null) {
+          inode.mLocations.put(id, workerNetAddress);
         } else {
-          LOG.warn("worker_register failed to add datasetId " + datasetId + " partitionId " + pId);
+          LOG.warn("worker_register failed to add fileId " + fileId);
         }
       }
     }
@@ -794,29 +795,29 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   private void writeCheckpoint() {
-    LOG.info("Datasets recoveried from logs: ");
+    LOG.info("Files recoveried from logs: ");
     synchronized (mFiles) {
       MasterLogWriter checkpointWriter =
           new MasterLogWriter(Config.MASTER_CHECKPOINT_FILE + ".tmp");
       int maxDatasetId = 0;
-      for (DatasetInfo dataset : mFiles.values()) {
-        checkpointWriter.appendAndFlush(dataset);
-        LOG.info(dataset.toString());
-        maxDatasetId = Math.max(maxDatasetId, dataset.mId);
-        if (mPinList.inList(dataset.mPath)) {
-          mIdPinList.add(dataset.mId);
+      for (INode inode : mFiles.values()) {
+        checkpointWriter.appendAndFlush(inode);
+        LOG.info(inode.toString());
+        maxDatasetId = Math.max(maxDatasetId, inode.mId);
+        if (mPinList.inList(inode.mName)) {
+          mIdPinList.add(inode.mId);
         }
       }
-      for (RawColumnDatasetInfo dataset : mRawColumnDatasets.values()) {
-        checkpointWriter.appendAndFlush(dataset);
-        LOG.info(dataset.toString());
-        maxDatasetId = Math.max(maxDatasetId, dataset.mId);
-      }
-      if (maxDatasetId != mDatasetCounter.get() && mDatasetCounter.get() != 0) {
-        DatasetInfo tempDataset = new DatasetInfo();
-        tempDataset.mId = - mDatasetCounter.get();
-        checkpointWriter.appendAndFlush(tempDataset);
-      }
+      //      for (RawColumnDatasetInfo dataset : mRawColumnDatasets.values()) {
+      //        checkpointWriter.appendAndFlush(dataset);
+      //        LOG.info(dataset.toString());
+      //        maxDatasetId = Math.max(maxDatasetId, dataset.mId);
+      //      }
+      //      if (maxDatasetId != mDatasetCounter.get() && mDatasetCounter.get() != 0) {
+      //        INode tempDataset = new DatasetInfo();
+      //        tempDataset.mId = - mDatasetCounter.get();
+      //        checkpointWriter.appendAndFlush(tempDataset);
+      //      }
       checkpointWriter.close();
 
       File srcFile = new File(Config.MASTER_CHECKPOINT_FILE + ".tmp");
@@ -834,7 +835,7 @@ public class MasterServiceHandler implements MasterService.Iface {
         }
       }
     }
-    LOG.info("Datasets recoveried done. Current mDatasetCounter: " + mDatasetCounter.get());
+    LOG.info("Files recovery done. Current mDatasetCounter: " + mDatasetCounter.get());
   }
 
   private void recoveryFromFile(String fileName, String msg) {
@@ -848,49 +849,38 @@ public class MasterServiceHandler implements MasterService.Iface {
       while (reader.hasNext()) {
         Pair<LogEventType, Object> pair = reader.getNextDatasetInfo();
         switch (pair.getFirst()) {
-          case PartitionInfo: {
-            PartitionInfo partition = (PartitionInfo) pair.getSecond();
-            System.out.println("Putting " + partition);
-            if (mFiles.containsKey(partition.mDatasetId)) {
-              partition.mLocations.clear();
-              mFiles.get(partition.mDatasetId).mPartitionList.set(
-                  partition.mPartitionId, partition);
-            } else {
-              CommonUtils.illegalArgumentException("Corrupted log.");
-            }
-          }
-          case DatasetInfo: {
-            DatasetInfo dataset = (DatasetInfo) pair.getSecond();
-            if (Math.abs(dataset.mId) > mDatasetCounter.get()) {
-              mDatasetCounter.set(Math.abs(dataset.mId));
+          case INode: {
+            INode inode = (INode) pair.getSecond();
+            if (Math.abs(inode.mId) > mDatasetCounter.get()) {
+              mDatasetCounter.set(Math.abs(inode.mId));
             }
 
-            System.out.println("Putting " + dataset);
-            if (dataset.mId > 0) {
-              mFiles.put(dataset.mId, dataset);
-              mFilePathToId.put(dataset.mPath, dataset.mId);
+            System.out.println("Putting " + inode);
+            if (inode.mId > 0) {
+              mFiles.put(inode.mId, inode);
+              mFilePathToId.put(inode.mName, inode.mId);
             } else {
-              mFiles.remove(- dataset.mId);
-              mFilePathToId.remove(dataset.mPath);
+              mFiles.remove(- inode.mId);
+              mFilePathToId.remove(inode.mName);
             }
             break;
           }
-          case RawColumnDatasetInfo: {
-            RawColumnDatasetInfo dataset = (RawColumnDatasetInfo) pair.getSecond();
-            if (Math.abs(dataset.mId) > mDatasetCounter.get()) {
-              mDatasetCounter.set(Math.abs(dataset.mId));
-            }
-
-            System.out.println("Putting " + dataset);
-            if (dataset.mId > 0) {
-              mRawColumnDatasets.put(dataset.mId, dataset);
-              mRawColumnDatasetPathToId.put(dataset.mPath, dataset.mId);
-            } else {
-              mRawColumnDatasets.remove(- dataset.mId);
-              mRawColumnDatasetPathToId.remove(dataset.mPath);
-            }
-            break;
-          }
+          //          case RawColumnDatasetInfo: {
+          //            RawColumnDatasetInfo dataset = (RawColumnDatasetInfo) pair.getSecond();
+          //            if (Math.abs(dataset.mId) > mDatasetCounter.get()) {
+          //              mDatasetCounter.set(Math.abs(dataset.mId));
+          //            }
+          //
+          //            System.out.println("Putting " + dataset);
+          //            if (dataset.mId > 0) {
+          //              mRawColumnDatasets.put(dataset.mId, dataset);
+          //              mRawColumnDatasetPathToId.put(dataset.mPath, dataset.mId);
+          //            } else {
+          //              mRawColumnDatasets.remove(- dataset.mId);
+          //              mRawColumnDatasetPathToId.remove(dataset.mPath);
+          //            }
+          //            break;
+          //          }
           case Undefined:
             CommonUtils.runtimeException("Corruptted info from " + fileName + 
                 ". It has undefined data type.");

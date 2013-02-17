@@ -1,12 +1,10 @@
 package tachyon;
 
 public class INodeFile extends INode {
-  private static final long UNINITIAL_VALUE = -1;
+  private long mLength;
 
-  public long mLength;
-
-  public INodeFile(String name, int parent) {
-    super(name, parent);
+  public INodeFile(String name, int id, int parentId) {
+    super(name, id, parentId, false);
     mLength = UNINITIAL_VALUE;
   }
 

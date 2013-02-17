@@ -23,35 +23,25 @@ public class MasterLogWriter {
     }
   }
 
-  public void appendAndFlush(DatasetInfo datasetInfo) {
+  public void appendAndFlush(INode inodeInfo) {
     try {
-      mOutputStream.writeObject(LogEventType.DatasetInfo);
-      mOutputStream.writeObject(datasetInfo);
+      mOutputStream.writeObject(LogEventType.INode);
+      mOutputStream.writeObject(inodeInfo);
       mOutputStream.flush();
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
   }
 
-  public void appendAndFlush(PartitionInfo partitionInfo) {
-    try {
-      mOutputStream.writeObject(LogEventType.PartitionInfo);
-      mOutputStream.writeObject(partitionInfo);
-      mOutputStream.flush();
-    } catch (IOException e) {
-      CommonUtils.runtimeException(e);
-    }
-  }
-
-  public void appendAndFlush(RawColumnDatasetInfo rawColumnDatasetInfo) {
-    try {
-      mOutputStream.writeObject(LogEventType.RawColumnDatasetInfo);
-      mOutputStream.writeObject(rawColumnDatasetInfo);
-      mOutputStream.flush();
-    } catch (IOException e) {
-      CommonUtils.runtimeException(e);
-    }
-  }
+//  public void appendAndFlush(RawColumnDatasetInfo rawColumnDatasetInfo) {
+//    try {
+//      mOutputStream.writeObject(LogEventType.RawTableInfo);
+//      mOutputStream.writeObject(rawColumnDatasetInfo);
+//      mOutputStream.flush();
+//    } catch (IOException e) {
+//      CommonUtils.runtimeException(e);
+//    }
+//  }
 
   public void close() {
     try {
