@@ -14,7 +14,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.ArrayList;
-import java.util.Map.Entry;
+import java.util.List;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.mapred.FileSplit;
@@ -25,12 +25,12 @@ import tachyon.Config;
 import tachyon.DataServerMessage;
 import tachyon.CommonUtils;
 import tachyon.HdfsClient;
+import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.OutOfMemoryForPinDatasetException;
-import tachyon.thrift.PartitionAlreadyExistException;
-import tachyon.thrift.PartitionDoesNotExistException;
-import tachyon.thrift.PartitionInfo;
-import tachyon.thrift.SuspectedPartitionSizeException;
+import tachyon.thrift.OutOfMemoryForPinFileException;
+import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * Tachyon File.
@@ -39,11 +39,12 @@ import tachyon.thrift.SuspectedPartitionSizeException;
 public class TachyonFile {
   private final Logger LOG = LoggerFactory.getLogger(Partition.class);
   private final TachyonClient mTachyonClient;
-  private final Dataset mDataset;
-  private final int mDatasetId;
-  private final int mPartitionId;
+  private final ClientFileInfo mClientFileInfo;
+  private final int mId;
 
-  private PartitionInfo mPartitionInfo;
+  private String mFileName;
+  private List<NetAddress> mLocations;
+
   private boolean mOpen = false;
   private boolean mRead;
   private boolean mWriteThrough;
@@ -60,11 +61,11 @@ public class TachyonFile {
   private MappedByteBuffer mOut;
   private ByteBuffer mOutBuffer;
 
-  public TachyonFile(TachyonClient tachyonClient, Dataset dataset, int datasetId, int pId) {
+  public TachyonFile(TachyonClient tachyonClient, ClientFileInfo fileInfo, String fileName) {
     mTachyonClient = tachyonClient;
-    mDataset = dataset;
-    mDatasetId = datasetId;
-    mPartitionId = pId;
+    mClientFileInfo = fileInfo;
+    mId = mClientFileInfo.getId();
+    mFileName = fileName;
   }
 
   private synchronized void appendCurrentOutBuffer(int minimalPosition) throws IOException {
@@ -101,12 +102,12 @@ public class TachyonFile {
     mOutBuffer.putInt(b);
   }
 
-  public void append(byte[] buf) throws IOException, OutOfMemoryForPinDatasetException {
+  public void append(byte[] buf) throws IOException, OutOfMemoryForPinFileException {
     append(buf, 0, buf.length);
   }
 
   public void append(byte[] b, int off, int len) 
-      throws IOException, OutOfMemoryForPinDatasetException {
+      throws IOException, OutOfMemoryForPinFileException {
     if (b == null) {
       throw new NullPointerException();
     } else if ((off < 0) || (off > b.length) || (len < 0) ||
@@ -123,10 +124,10 @@ public class TachyonFile {
       }
 
       if (!mTachyonClient.requestSpace(mOutBuffer.position() + len)) {
-        if (mDataset.needPin()) {
-          mTachyonClient.outOfMemoryForPinDataset(mDatasetId);
-          throw new OutOfMemoryForPinDatasetException("Local tachyon worker does not have enough space " +
-              "or no worker for " + mDatasetId + ":" + mPartitionId);
+        if (mClientFileInfo.isNeedPin()) {
+          mTachyonClient.outOfMemoryForPinDataset(mId);
+          throw new OutOfMemoryForPinFileException("Local tachyon worker does not have enough " +
+              "space or no worker for " + mId);
         }
         throw new IOException("Local tachyon worker does not have enough space or no worker.");
       }
@@ -142,12 +143,12 @@ public class TachyonFile {
     }
   }
 
-  public void append(ByteBuffer buf) throws IOException, OutOfMemoryForPinDatasetException {
+  public void append(ByteBuffer buf) throws IOException, OutOfMemoryForPinFileException {
     append(buf.array(), buf.position(), buf.limit() - buf.position());
   }
 
   public void append(ArrayList<ByteBuffer> bufs) 
-      throws IOException, OutOfMemoryForPinDatasetException {
+      throws IOException, OutOfMemoryForPinFileException {
     for (int k = 0; k < bufs.size(); k ++) {
       append(bufs.get(k));
     }
@@ -188,25 +189,24 @@ public class TachyonFile {
           if (mWriteThrough) {
             String hdfsFolder = mTachyonClient.createAndGetUserHDFSTempFolder();
             HdfsClient tHdfsClient = new HdfsClient(hdfsFolder);
-            tHdfsClient.copyFromLocalFile(false, true, mFilePath,
-                hdfsFolder + "/" + mDatasetId + "-" + mPartitionId);
+            tHdfsClient.copyFromLocalFile(false, true, mFilePath, hdfsFolder + "/" + mId);
           }
 
-          if (!mTachyonClient.addDonePartition(mDatasetId, mPartitionId, mWriteThrough)) {
+          if (!mTachyonClient.addDoneFile(mId, mWriteThrough)) {
             throw new IOException("Failed to add a partition to the tachyon system.");
           }
         }
       }
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
-    } catch (SuspectedPartitionSizeException e) {
+    } catch (SuspectedFileSizeException e) {
       LOG.error(e.getMessage(), e);
-    } catch (PartitionDoesNotExistException e) {
+    } catch (FileDoesNotExistException e) {
       LOG.error(e.getMessage(), e);
-    } catch (PartitionAlreadyExistException e) {
+    } catch (FileAlreadyExistException e) {
       LOG.error(e.getMessage(), e);
     }
-    mTachyonClient.unlockPartition(mDatasetId, mPartitionId);
+    mTachyonClient.unlockFile(mId);
 
     mOpen = false;
   }
@@ -215,14 +215,14 @@ public class TachyonFile {
     return mHDFSFileSplit;
   }
 
-  public PartitionInputStream getInputStream() {
+  public TFileInputStream getInputStream() {
     validateIO(true);
-    return new PartitionInputStream(this);
+    return new TFileInputStream(this);
   }
 
-  public PartitionOutputStream getOutputStream() {
+  public TFileOutputStream getOutputStream() {
     validateIO(false);
-    return new PartitionOutputStream(this);
+    return new TFileOutputStream(this);
   }
 
   public int getSize() {
@@ -250,7 +250,7 @@ public class TachyonFile {
       if (mFolder == null) {
         throw new IOException("Failed to create temp user folder for tachyon client.");
       }
-      mFilePath = mFolder.getPath() + "/" + mDatasetId + "-" + mPartitionId;
+      mFilePath = mFolder.getPath() + "/" + mId;
       mFile = new RandomAccessFile(mFilePath, "rw");
       mOutChannel = mFile.getChannel();
       mSizeBytes = 0;
@@ -259,7 +259,7 @@ public class TachyonFile {
       mOutBuffer.order(ByteOrder.nativeOrder());
     } else {
       mInByteBuffer = readByteBuffer();
-      mTachyonClient.lockPartition(mDatasetId, mPartitionId);
+      mTachyonClient.lockFile(mId);
     }
   }
 
@@ -307,8 +307,7 @@ public class TachyonFile {
     }
 
     if (ret == null) {
-      new IOException("Failed to read Dataset " + mDataset.getDatasetPath() +
-          " Partition " + mPartitionId);
+      new IOException("Failed to read file " + mFileName);
     }
     return ret;
   }
@@ -318,14 +317,14 @@ public class TachyonFile {
 
     if (mTachyonClient.getRootFolder() != null) {
       mFolder = new File(mTachyonClient.getRootFolder());
-      String localFileName = mFolder.getPath() + "/" + mDatasetId + "-" + mPartitionId;
+      String localFileName = mFolder.getPath() + "/" + mId;
       try {
         mFile = new RandomAccessFile(localFileName, "r");
         mSizeBytes = (int) mFile.length();
         mInChannel = mFile.getChannel();
         ret = mInChannel.map(FileChannel.MapMode.READ_ONLY, 0, mSizeBytes);
         ret.order(ByteOrder.nativeOrder());
-        mTachyonClient.accessLocalFile(mDatasetId, mPartitionId);
+        mTachyonClient.accessLocalFile(mId);
         return ret;
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");
@@ -341,27 +340,25 @@ public class TachyonFile {
 
     LOG.info("Try to find and read from remote workers.");
 
-    mPartitionInfo = mTachyonClient.getPartitionInfo(mDatasetId, mPartitionId);
+    mLocations = mTachyonClient.getFileLocations(mId);
 
-    if (mPartitionInfo == null) {
-      throw new IOException("Can not find info about " + mDatasetId + " " + mPartitionId);
+    if (mLocations == null) {
+      throw new IOException("Can not find location info about " + mFileName + " " + mId);
     }
 
-    mSizeBytes = mPartitionInfo.mSizeBytes;
+    LOG.info("readByteBuffer() PartitionInfo " + mLocations);
 
-    LOG.info("readByteBuffer() PartitionInfo " + mPartitionInfo);
-
-    for (Entry<Long, NetAddress> entry : mPartitionInfo.mLocations.entrySet()) {
-      String host = entry.getValue().mHost;
+    for (int k = 0 ;k < mLocations.size(); k ++) {
+      String host = mLocations.get(k).mHost;
       if (host.equals(InetAddress.getLocalHost().getHostAddress())) {
-        String localFileName = mFolder.getPath() + "/" + mDatasetId + "-" + mPartitionId;
+        String localFileName = mFolder.getPath() + "/" + mId;
         LOG.error("Master thinks the local machine has data! But " + localFileName + " is not!");
       } else {
         LOG.info("readByteBuffer() Read from remote machine: " + host + ":" +
             Config.WORKER_DATA_SERVER_PORT);
         try {
           ret = retrieveByteBufferFromRemoteMachine(
-              new InetSocketAddress(host, Config.WORKER_DATA_SERVER_PORT));
+              new InetSocketAddress(host, mLocations.get(k).mPort));
           if (ret != null) {
             break;
           }
@@ -370,41 +367,43 @@ public class TachyonFile {
         }
       }
     }
+    
+    mSizeBytes = ret.limit();
 
     return ret;
   }
 
   private boolean recacheData() throws IOException {
-    if (mPartitionInfo == null || !mPartitionInfo.mHasCheckpointed) {
+    if (mClientFileInfo.checkpointPath.equals("")) {
       return false;
     }
 
-    String path = mPartitionInfo.mCheckpointPath;
+    String path = mClientFileInfo.checkpointPath;
     if (!Config.USING_HDFS) {
       return false;
     }
 
     HdfsClient tHdfsClient = new HdfsClient(path);
     FSDataInputStream inputStream = tHdfsClient.open(path);
-    Partition tPartition = mDataset.getPartition(mPartitionId);
-    tPartition.open("w", false);
+    TachyonFile tTFile = mTachyonClient.getFile(mFileName);
+    tTFile.open("w", false);
     byte buffer[] = new byte[Config.USER_BUFFER_PER_PARTITION_BYTES * 4];
 
     int limit;
     while ((limit = inputStream.read(buffer)) >= 0) {
       if (limit != 0) {
         try {
-          tPartition.append(buffer, 0, limit);
+          tTFile.append(buffer, 0, limit);
         } catch (IOException e) {
           LOG.error(e.getMessage());
           return false;
-        } catch (OutOfMemoryForPinDatasetException e) {
+        } catch (OutOfMemoryForPinFileException e) {
           CommonUtils.runtimeException(e);
         }
       }
     }
 
-    tPartition.close();
+    tTFile.close();
 
     return true;
   }
@@ -414,14 +413,12 @@ public class TachyonFile {
     SocketChannel socketChannel = SocketChannel.open();
     socketChannel.connect(address);
 
-    DataServerMessage sendMsg = 
-        DataServerMessage.createPartitionRequestMessage(mDatasetId, mPartitionId);
+    DataServerMessage sendMsg = DataServerMessage.createPartitionRequestMessage(mId);
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }
 
-    DataServerMessage recvMsg = 
-        DataServerMessage.createPartitionResponseMessage(false, mDatasetId, mPartitionId);
+    DataServerMessage recvMsg = DataServerMessage.createPartitionResponseMessage(false, mId);
     while (!recvMsg.isMessageReady()) {
       recvMsg.recv(socketChannel);
     }

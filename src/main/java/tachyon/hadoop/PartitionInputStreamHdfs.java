@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Config;
 import tachyon.CommonUtils;
 import tachyon.client.Partition;
-import tachyon.client.PartitionInputStream;
+import tachyon.client.TFileInputStream;
 import tachyon.client.Dataset;
 import tachyon.client.TachyonClient;
 import tachyon.thrift.OutOfMemoryForPinDatasetException;
@@ -36,7 +36,7 @@ implements Seekable, PositionedReadable {
   private FSDataInputStream mHdfsInputStream = null;
 
   private Dataset mDataset = null;
-  private PartitionInputStream mTachyonPartitionInputStream = null;
+  private TFileInputStream mTachyonPartitionInputStream = null;
 
   private int mBufferLimit = 0;
   private int mBufferPosition = 0;

@@ -216,14 +216,14 @@ public class Partition {
     return mHDFSFileSplit;
   }
 
-  public PartitionInputStream getInputStream() {
+  public TFileInputStream getInputStream() {
     validateIO(true);
-    return new PartitionInputStream(this);
+    return new TFileInputStream(this);
   }
 
-  public PartitionOutputStream getOutputStream() {
+  public TFileOutputStream getOutputStream() {
     validateIO(false);
-    return new PartitionOutputStream(this);
+    return new TFileOutputStream(this);
   }
 
   public int getSize() {

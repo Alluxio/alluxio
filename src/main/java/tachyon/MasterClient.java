@@ -15,17 +15,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.thrift.Command;
+import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.MasterService;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoLocalWorkerException;
-import tachyon.thrift.PartitionDoesNotExistException;
-import tachyon.thrift.PartitionInfo;
-import tachyon.thrift.DatasetAlreadyExistException;
-import tachyon.thrift.DatasetDoesNotExistException;
-import tachyon.thrift.DatasetInfo;
-import tachyon.thrift.RawColumnDatasetInfo;
-import tachyon.thrift.SuspectedPartitionSizeException;
 
 /**
  * The master server client side.
@@ -92,23 +87,23 @@ public class MasterClient {
     return mIsConnected;
   }
 
-  public synchronized int user_createDataset(String datasetPath, int partitions)
-      throws DatasetAlreadyExistException, InvalidPathException, TException {
-    return CLIENT.user_createDataset(datasetPath, partitions);
+  public synchronized int user_createFile(String filePath)
+      throws FileAlreadyExistException, InvalidPathException, TException {
+    return CLIENT.user_createFile(filePath);
   }
 
-  public synchronized int user_createRawColumnDataset(String datasetPath, int columns,
-      int partitions) throws DatasetAlreadyExistException, InvalidPathException, TException {
-    return CLIENT.user_createRawColumnDataset(datasetPath, columns, partitions);
+//  public synchronized int user_createRawColumnDataset(String datasetPath, int columns,
+//      int partitions) throws DatasetAlreadyExistException, InvalidPathException, TException {
+//    return CLIENT.user_createRawColumnDataset(datasetPath, columns, partitions);
+//  }
+
+  public synchronized void user_deleteFile(int fileId)
+      throws FileDoesNotExistException, TException {
+    CLIENT.user_deleteFile(fileId);
   }
 
-  public synchronized void user_deleteDataset(int datasetId)
-      throws DatasetDoesNotExistException, TException {
-    CLIENT.user_deleteDataset(datasetId);
-  }
-
-  public synchronized int user_getDatasetId(String datasetPath) throws TException {
-    return CLIENT.user_getDatasetId(datasetPath);
+  public synchronized int user_getFileId(String filePath) throws TException {
+    return CLIENT.user_getFileId(filePath);
   }
 
   public synchronized NetAddress user_getLocalWorker(String localHostName)
@@ -116,9 +111,9 @@ public class MasterClient {
     return CLIENT.user_getLocalWorker(localHostName);
   }
 
-  public synchronized PartitionInfo user_getPartitionInfo(int datasetId, int partitionId
-      ) throws PartitionDoesNotExistException, TException {
-    return CLIENT.user_getPartitionInfo(datasetId, partitionId);
+  public synchronized List<NetAddress> user_getFileLocations(int fileId)
+      throws FileDoesNotExistException, TException {
+    return CLIENT.user_getFileLocationsById(fileId);
   }
 
   public synchronized DatasetInfo user_getDataset(String datasetPath)
