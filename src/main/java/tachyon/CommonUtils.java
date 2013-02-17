@@ -79,14 +79,6 @@ public class CommonUtils {
     return path;
   }
 
-  public static int computeDatasetIdFromBigId(long bigId) {
-    return (int)(bigId >> 32);
-  }
-
-  public static int computePartitionIdFromBigId(long bigId) {
-    return (int)(bigId % Config.TWO_32);
-  }
-
   public static String convertMillis(long Millis) {
     return String.format("%d hour(s), %d minute(s), and %d second(s)",
         Millis / (1000L * 60 * 60), (Millis % (1000L * 60 * 60)) / (1000 * 60),
@@ -96,12 +88,6 @@ public class CommonUtils {
   public static String convertMillisToDate(long Millis) {
     DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
     return formatter.format(new Date(Millis));
-  }
-
-  public static long generateBigId(int datasetId, int partitionId) {
-    long ret = datasetId;
-    ret = (ret << 32) + partitionId; 
-    return ret;
   }
 
   public static String getCurrentMemStatsInBytes() {
@@ -139,23 +125,18 @@ public class CommonUtils {
     return System.nanoTime();
   }
 
-  public static int getDatasetIdFromFileName(String name) {
-    String[] p = name.split("-");
-    if (p.length != 2) {
-      throw new IllegalArgumentException("Wrong file name: " + name);
-    }
-    int datasetId;
+  public static int getFileIdFromFileName(String name) {
+    int fileId;
     try {
-      datasetId = Integer.parseInt(p[0]);
+      fileId = Integer.parseInt(name);
     } catch (Exception e) {
       throw new IllegalArgumentException("Wrong file name: " + name);
     }
-    return datasetId;
+    return fileId;
   }
 
-  public static String getLocalFilePath(String localFolder, long bigId) {
-    return localFolder + "/" + computeDatasetIdFromBigId(bigId) + "-" 
-        + computePartitionIdFromBigId(bigId);
+  public static String getLocalFilePath(String localFolder, int fileId) {
+    return localFolder + "/" + fileId;
   }
 
   public static int getKB(int bytes) {
@@ -193,20 +174,6 @@ public class CommonUtils {
       runtimeException(e);
     }
     return ret;
-  }
-
-  public static int getPartitionIdFromFileName(String name) {
-    String[] p = name.split("-");
-    if (p.length != 2) {
-      throw new IllegalArgumentException("Wrong file name: " + name);
-    }
-    int pId;
-    try {
-      pId = Integer.parseInt(p[1]);
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Wrong file name: " + name);
-    }
-    return pId;
   }
 
   public static String getSizeFromBytes(long bytes) {

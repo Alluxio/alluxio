@@ -50,12 +50,11 @@ public class WorkerClient {
     CLIENT.addDoneFile(userId, fileId, writeThrough);
   }
 
-  public synchronized void addRCDPartition(int datasetId, int partitionId, 
-      int sizeBytes) throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
-      PartitionAlreadyExistException, TException {
-    CLIENT.addRCDPartition(datasetId, partitionId, sizeBytes);
-
-  }
+//  public synchronized void addRCDPartition(int datasetId, int partitionId, 
+//      int sizeBytes) throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
+//      PartitionAlreadyExistException, TException {
+//    CLIENT.addRCDPartition(datasetId, partitionId, sizeBytes);
+//  }
 
   public synchronized void close() {
     mProtocol.getTransport().close();
@@ -85,7 +84,7 @@ public class WorkerClient {
   }
 
   public void lockFile(int fileId, long userId) throws TException {
-    CLIENT.lockPartition(datasetId, partitionId, userId);
+    CLIENT.lockFile(fileId, userId);
   }
 
   public synchronized boolean isConnected() {
@@ -115,7 +114,7 @@ public class WorkerClient {
   }
 
   public void unlockFile(int fileId, long userId) throws TException {
-    CLIENT.unlockPartition(datasetId, partitionId, userId);
+    CLIENT.unlockFile(fileId, userId);
   }
 
   public synchronized void userHeartbeat(long userId) throws TException {

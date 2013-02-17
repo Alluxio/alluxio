@@ -609,7 +609,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       }
     }
 
-    tWorkerInfo.updatePartition(true, CommonUtils.generateBigId(datasetId, partitionId));
+    tWorkerInfo.updateFile(true, CommonUtils.generateBigId(datasetId, partitionId));
     tWorkerInfo.updateUsedBytes(workerUsedBytes);
     tWorkerInfo.updateLastUpdatedTimeMs();
 
@@ -658,7 +658,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       }
     }
 
-    tWorkerInfo.updatePartition(true, CommonUtils.generateBigId(datasetId, partitionId));
+    tWorkerInfo.updateFile(true, CommonUtils.generateBigId(datasetId, partitionId));
     tWorkerInfo.updateLastUpdatedTimeMs();
 
     synchronized (mDatasets) {
@@ -708,7 +708,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       } else {
         WorkerInfo tWorkerInfo = mWorkers.get(workerId);
         tWorkerInfo.updateUsedBytes(usedBytes);
-        tWorkerInfo.updatePartitions(false, removedPartitionList);
+        tWorkerInfo.updateFiles(false, removedPartitionList);
         tWorkerInfo.updateLastUpdatedTimeMs();
 
         synchronized (mDatasets) {
@@ -753,7 +753,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       id = START_TIME_NS_PREFIX + mWorkerCounter.addAndGet(1);
       WorkerInfo tWorkerInfo = new WorkerInfo(id, workerAddress, totalBytes);
       tWorkerInfo.updateUsedBytes(usedBytes);
-      tWorkerInfo.updatePartitions(true, currentPartitionList);
+      tWorkerInfo.updateFiles(true, currentPartitionList);
       tWorkerInfo.updateLastUpdatedTimeMs();
       mWorkers.put(id, tWorkerInfo);
       mWorkerAddressToId.put(workerAddress, id);

@@ -5,10 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
-import tachyon.thrift.DatasetInfo;
 import tachyon.thrift.LogEventType;
-import tachyon.thrift.PartitionInfo;
-import tachyon.thrift.RawColumnDatasetInfo;
 
 public class MasterLogWriter {
   private final String LOG_FILE_NAME;
