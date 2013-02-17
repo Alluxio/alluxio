@@ -7,9 +7,10 @@ struct NetAddress {
 
 struct ClientFileInfo {
   1: i32 id
-  2: string checkpointPath
-  3: bool needPin
-  4: bool needCache
+  2: string fileName
+  3: string checkpointPath
+  4: bool needPin
+  5: bool needCache
 }
 
 struct RawTableInfo {
@@ -80,7 +81,8 @@ service MasterService {
   i32 user_getFileId(1: string filePath)  // Return 0 if does not contain the dataset, return datasetId if it exists.
   i64 user_getUserId()
   NetAddress user_getLocalWorker(1: string host) throws (1: NoLocalWorkerException e) // Get local worker NetAddress
-  ClientFileInfo user_getClientFileInfo(1: string filePath) throws (1: FileDoesNotExistException e)
+  ClientFileInfo user_getClientFileInfoById(1: i32 fileId) throws (1: FileDoesNotExistException e)
+  ClientFileInfo user_getClientFileInfoByPath(1: string filePath) throws (1: FileDoesNotExistException e)
   list<NetAddress> user_getFileLocationsById(1: i32 fileId) throws (1: FileDoesNotExistException e)        // Get file locations by file Id.
   list<NetAddress> user_getFileLocationsByPath(1: string filePath) throws (1: FileDoesNotExistException e) // Get file locations by path
   void user_deleteFile(1: i32 fileId) throws (1: FileDoesNotExistException e) // Delete file

@@ -14,6 +14,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -21,6 +22,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.MasterService;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoLocalWorkerException;
+import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * The master server client side.
@@ -55,7 +57,7 @@ public class MasterClient {
   }
 
   public synchronized List<DatasetInfo> cmd_rm(String folder)
-      throws DatasetDoesNotExistException, TException {
+      throws FileDoesNotExistException, TException {
     List<DatasetInfo> ret = CLIENT.cmd_ls(folder);
     for (DatasetInfo dataset : ret) {
       CLIENT.user_deleteDataset(dataset.mId);
@@ -117,57 +119,57 @@ public class MasterClient {
   }
 
   public synchronized DatasetInfo user_getDataset(String datasetPath)
-      throws DatasetDoesNotExistException, TException {
+      throws FileDoesNotExistException, TException {
     return CLIENT.user_getDatasetByPath(datasetPath);
   }
 
-  public synchronized DatasetInfo user_getDataset(int datasetId)
-      throws DatasetDoesNotExistException, TException {
-    return CLIENT.user_getDatasetById(datasetId);
+  public synchronized DatasetInfo user_getDataset(int fileId)
+      throws FileDoesNotExistException, TException {
+    return CLIENT.user_getDatasetById(fileId);
   }
 
   public synchronized RawColumnDatasetInfo user_getRawColumnDataset(String datasetPath)
-      throws DatasetDoesNotExistException, TException {
+      throws FileDoesNotExistException, TException {
     return CLIENT.user_getRawColumnDatasetByPath(datasetPath);
   }
 
-  public synchronized RawColumnDatasetInfo user_getRawColumnDatasetInfo(int datasetId)
-      throws DatasetDoesNotExistException, TException {
-    return CLIENT.user_getRawColumnDatasetById(datasetId);
+  public synchronized RawColumnDatasetInfo user_getRawColumnDatasetInfo(int fileId)
+      throws FileDoesNotExistException, TException {
+    return CLIENT.user_getRawColumnDatasetById(fileId);
   }
 
-  public synchronized void user_outOfMemoryForPinDataset(int datasetId) throws TException {
-    CLIENT.user_outOfMemoryForPinDataset(datasetId);
+  public synchronized void user_outOfMemoryForPinDataset(int fileId) throws TException {
+    CLIENT.user_outOfMemoryForPinDataset(fileId);
   }
 
   public synchronized void user_renameDataset(String srcDataset, String dstDataset)
-      throws DatasetDoesNotExistException, TException {
+      throws FileDoesNotExistException, TException {
     CLIENT.user_renameDataset(srcDataset, dstDataset);
   }
 
-  public synchronized void user_unpinDataset(int datasetId) 
-      throws DatasetDoesNotExistException, TException {
-    CLIENT.user_unpinDataset(datasetId);
+  public synchronized void user_unpinFile(int fileId) 
+      throws FileDoesNotExistException, TException {
+    CLIENT.user_unpinFile(fileId);
   }
   
-  public synchronized void user_setPartitionCheckpointPath(int datasetId, int partitionId,
-      String checkpointPath) throws DatasetDoesNotExistException,
-      PartitionDoesNotExistException, TException {
-    CLIENT.user_setPartitionCheckpointPath(datasetId, partitionId, checkpointPath);
+  public synchronized void user_setPartitionCheckpointPath(int fileId, int partitionId,
+      String checkpointPath) throws FileDoesNotExistException,
+      FileDoesNotExistException, TException {
+    CLIENT.user_setPartitionCheckpointPath(fileId, partitionId, checkpointPath);
   }
 
   public synchronized void worker_addPartition(long workerId, long workerUsedBytes,
-      int datasetId, int partitionId, int partitionSizeBytes, boolean hasCheckpointed, 
+      int fileId, int partitionId, int partitionSizeBytes, boolean hasCheckpointed, 
       String checkpointPath)
-          throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
-    CLIENT.worker_addPartition(workerId, workerUsedBytes, datasetId, partitionId,
+          throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    CLIENT.worker_addPartition(workerId, workerUsedBytes, fileId, partitionId,
         partitionSizeBytes, hasCheckpointed, checkpointPath);
   }
 
-  public synchronized void worker_addRCDPartition(long workerId, int datasetId, int partitionId,
-      int partitionSizeBytes) throws PartitionDoesNotExistException,
-      SuspectedPartitionSizeException, TException {
-    CLIENT.worker_addRCDPartition(workerId, datasetId, partitionId, partitionSizeBytes);
+  public synchronized void worker_addRCDPartition(long workerId, int fileId, int partitionId,
+      int partitionSizeBytes) throws FileDoesNotExistException,
+      SuspectedFileSizeException, TException {
+    CLIENT.worker_addRCDPartition(workerId, fileId, partitionId, partitionSizeBytes);
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
@@ -194,5 +196,17 @@ public class MasterClient {
     for (int k = 0; k < num; k ++) {
       mcs.add(new MasterClient(new InetSocketAddress("localhost", Config.MASTER_PORT)));
     }
+  }
+
+  public ClientFileInfo user_getClientFileInfoByPath(String filePath)
+      throws FileDoesNotExistException, TException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public ClientFileInfo user_getClientFileInfoById(int fileId)
+      throws FileDoesNotExistException, TException {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

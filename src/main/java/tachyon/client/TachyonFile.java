@@ -61,11 +61,11 @@ public class TachyonFile {
   private MappedByteBuffer mOut;
   private ByteBuffer mOutBuffer;
 
-  public TachyonFile(TachyonClient tachyonClient, ClientFileInfo fileInfo, String fileName) {
+  public TachyonFile(TachyonClient tachyonClient, ClientFileInfo fileInfo) {
     mTachyonClient = tachyonClient;
     mClientFileInfo = fileInfo;
     mId = mClientFileInfo.getId();
-    mFileName = fileName;
+    mFileName = mClientFileInfo.getFileName();
   }
 
   private synchronized void appendCurrentOutBuffer(int minimalPosition) throws IOException {
