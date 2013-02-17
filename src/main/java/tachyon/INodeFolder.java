@@ -6,8 +6,8 @@ import java.util.List;
 public class INodeFolder extends INode {
   private List<INode> mChildren;
 
-  public INodeFolder(String name, int parent) {
-    super(name, parent);
+  public INodeFolder(String name, int id, int parentId) {
+    super(name, id, parentId, true);
     mChildren = new ArrayList<INode>();
   }
 
