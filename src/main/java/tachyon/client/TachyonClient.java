@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -14,17 +15,13 @@ import tachyon.HdfsClient;
 import tachyon.MasterClient;
 import tachyon.CommonUtils;
 import tachyon.WorkerClient;
+import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoLocalWorkerException;
-import tachyon.thrift.PartitionAlreadyExistException;
-import tachyon.thrift.PartitionDoesNotExistException;
-import tachyon.thrift.PartitionInfo;
-import tachyon.thrift.DatasetAlreadyExistException;
-import tachyon.thrift.DatasetDoesNotExistException;
-import tachyon.thrift.DatasetInfo;
-import tachyon.thrift.RawColumnDatasetInfo;
-import tachyon.thrift.SuspectedPartitionSizeException;
+import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * Major Tachyon system user facing class. It contains a MasterClient and several WorkerClients
@@ -58,40 +55,15 @@ public class TachyonClient {
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
 
-  private ToWorkerHeartbeat mToWorkerHeartbeat = null;
+  private ClientToWorkerHeartbeat mToWorkerHeartbeat = null;
 
   private boolean mConnected = false;
 
-  public static class ToWorkerHeartbeat implements Runnable {
-    final private Logger LOG = LoggerFactory.getLogger(ToWorkerHeartbeat.class);
-    final private WorkerClient WORKER_CLIENT;
-    final private long USER_ID;
-
-    public ToWorkerHeartbeat(WorkerClient workerClient, long userId) {
-      WORKER_CLIENT = workerClient;
-      USER_ID = userId;
-    }
-
-    @Override
-    public void run() {
-      while (true) {
-        try {
-          WORKER_CLIENT.userHeartbeat(USER_ID);
-        } catch (TException e) {
-          LOG.error(e.getMessage());
-          break;
-        }
-
-        CommonUtils.sleep(Config.USER_HEARTBEAT_INTERVAL_MS);
-      }
-    }
-  }
-
-  public synchronized void accessLocalPartition(int datasetId, int partitionId) {
+  public synchronized void accessLocalFile(int fileId) {
     connectAndGetLocalWorker();
     if (mLocalWorkerClient != null) {
       try {
-        mLocalWorkerClient.accessPartition(datasetId, partitionId);
+        mLocalWorkerClient.accessFile(fileId);
         return;
       } catch (TException e) {
         mLocalWorkerClient = null;
@@ -99,16 +71,15 @@ public class TachyonClient {
       }
     }
 
-    LOG.error("TachyonClient accessLocalPartition(" + datasetId + ", " + partitionId + ") failed");
+    LOG.error("TachyonClient accessLocalFile(" + fileId + ") failed");
   }
 
-  public synchronized boolean addDonePartition(int datasetId, int partitionId, boolean writeThrough)
-      throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
-      PartitionAlreadyExistException {
+  public synchronized boolean addDoneFile(int fileId, boolean writeThrough)
+      throws FileDoesNotExistException, SuspectedFileSizeException, FileAlreadyExistException {
     connectAndGetLocalWorker();
     if (mLocalWorkerClient != null) {
       try {
-        mLocalWorkerClient.addPartition(mUserId, datasetId, partitionId, writeThrough);
+        mLocalWorkerClient.addFile(mUserId, fileId, writeThrough);
         return true;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -119,29 +90,29 @@ public class TachyonClient {
     return false;
   }
 
-  public synchronized boolean addDoneRCDPartition(int datasetId, int partitionId, int sizeBytes) {
-    connectAndGetLocalWorker();
-    if (mLocalWorkerClient != null) {
-      try {
-        mLocalWorkerClient.addRCDPartition(datasetId, partitionId, sizeBytes);
-        return true;
-      } catch (PartitionDoesNotExistException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch (SuspectedPartitionSizeException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch (PartitionAlreadyExistException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mLocalWorkerClient = null;
-        return false;
-      }
-    }
-    return false;
-  }
+//  public synchronized boolean addDoneRCDPartition(int datasetId, int partitionId, int sizeBytes) {
+//    connectAndGetLocalWorker();
+//    if (mLocalWorkerClient != null) {
+//      try {
+//        mLocalWorkerClient.addRCDPartition(datasetId, partitionId, sizeBytes);
+//        return true;
+//      } catch (PartitionDoesNotExistException e) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      } catch (SuspectedPartitionSizeException e) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      } catch (PartitionAlreadyExistException e) {
+//        // TODO Auto-generated catch block
+//        e.printStackTrace();
+//      } catch (TException e) {
+//        LOG.error(e.getMessage(), e);
+//        mLocalWorkerClient = null;
+//        return false;
+//      }
+//    }
+//    return false;
+//  }
 
   // Lazy connection
   // TODO This should be removed since the Thrift server has been fixed.
@@ -209,7 +180,7 @@ public class TachyonClient {
       mUserHdfsTempFolder = null;
     }
 
-    mToWorkerHeartbeat = new ToWorkerHeartbeat(mLocalWorkerClient, mUserId);
+    mToWorkerHeartbeat = new ClientToWorkerHeartbeat(mLocalWorkerClient, mUserId);
     Thread thread = new Thread(mToWorkerHeartbeat);
     thread.setDaemon(true);
     thread.start();
@@ -280,65 +251,66 @@ public class TachyonClient {
     return mUserHdfsTempFolder;
   }
 
-  public synchronized int createRawColumnDataset(String datasetPath, int columns,  int partitions) {
+//  public synchronized int createRawColumnDataset(String datasetPath, int columns,  int partitions) {
+//    connectAndGetLocalWorker();
+//    if (!mConnected) {
+//      return -1;
+//    }
+//    datasetPath = CommonUtils.cleanPath(datasetPath);
+//    int rawColumnDatasetId = -1;
+//    try {
+//      rawColumnDatasetId = mMasterClient.user_createRawColumnDataset(datasetPath, columns, partitions);
+//    } catch (DatasetAlreadyExistException e) {
+//      LOG.info(e.getMessage());
+//      rawColumnDatasetId = -1;
+//    } catch (InvalidPathException e) {
+//      LOG.error(e.getMessage());
+//      rawColumnDatasetId = -1;
+//    } catch (TException e) {
+//      LOG.error(e.getMessage());
+//      mConnected = false;
+//      rawColumnDatasetId = -1;
+//    }
+//
+//    return rawColumnDatasetId;
+//  }
+
+  public synchronized int createFile(String filePath) {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return -1;
     }
-    datasetPath = CommonUtils.cleanPath(datasetPath);
-    int rawColumnDatasetId = -1;
+    filePath = CommonUtils.cleanPath(filePath);
+    // TODO HDFS_TEMP_FILE should also be in Tachyon, but not flashed to disk if not necessary.
+    if (filePath.contains(Config.HDFS_TEMP_FILE)) {
+      return -1;
+    }
+    int fileId = -1;
     try {
-      rawColumnDatasetId = mMasterClient.user_createRawColumnDataset(datasetPath, columns, partitions);
-    } catch (DatasetAlreadyExistException e) {
+      fileId = mMasterClient.user_createFile(filePath);
+    } catch (FileAlreadyExistException e) {
       LOG.info(e.getMessage());
-      rawColumnDatasetId = -1;
+      fileId = -1;
     } catch (InvalidPathException e) {
       LOG.error(e.getMessage());
-      rawColumnDatasetId = -1;
+      fileId = -1;
     } catch (TException e) {
       LOG.error(e.getMessage());
       mConnected = false;
-      rawColumnDatasetId = -1;
+      fileId = -1;
     }
-
-    return rawColumnDatasetId;
+    return fileId;
   }
 
-  public synchronized int createDataset(String datasetPath, int partitions) {
-    connectAndGetLocalWorker();
-    if (!mConnected) {
-      return -1;
-    }
-    datasetPath = CommonUtils.cleanPath(datasetPath);
-    if (datasetPath.contains(Config.HDFS_TEMP_FILE)) {
-      return -1;
-    }
-    int datasetId = -1;
-    try {
-      datasetId = mMasterClient.user_createDataset(datasetPath, partitions);
-    } catch (DatasetAlreadyExistException e) {
-      LOG.info(e.getMessage());
-      datasetId = -1;
-    } catch (InvalidPathException e) {
-      LOG.error(e.getMessage());
-      datasetId = -1;
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      mConnected = false;
-      datasetId = -1;
-    }
-    return datasetId;
-  }
-
-  public synchronized boolean deleteDataset(int datasetId) {
+  public synchronized boolean deleteFile(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return false;
     }
 
     try {
-      mMasterClient.user_deleteDataset(datasetId);
-    } catch (DatasetDoesNotExistException e) {
+      mMasterClient.user_delete(fileId);
+    } catch (FileDoesNotExistException e) {
       LOG.error(e.getMessage());
       return false;
     } catch (TException e) {
@@ -350,16 +322,16 @@ public class TachyonClient {
   }
 
   // TODO For now, we assume this is for partition read only.
-  public synchronized PartitionInfo getPartitionInfo(int datasetId, int partitionId) {
+  public synchronized List<NetAddress> getFileLocations(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return null;
     }
 
-    PartitionInfo ret = null;
+    List<NetAddress> ret = null;
     try {
-      ret = mMasterClient.user_getPartitionInfo(datasetId, partitionId);
-    } catch (PartitionDoesNotExistException e) {
+      ret = mMasterClient.user_getFileLocations(fileId);
+    } catch (FileDoesNotExistException e) {
       LOG.error(e.getMessage());
       return null;
     } catch (TException e) {
@@ -370,32 +342,34 @@ public class TachyonClient {
     return ret;
   }
 
-  public synchronized Dataset getDataset(String datasetPath) {
-    datasetPath = CommonUtils.cleanPath(datasetPath);
-    DatasetInfo datasetInfo = getDatasetInfo(datasetPath);
-    if (datasetInfo == null) {
+  public synchronized TachyonFile getFile(String filePath) {
+    filePath = CommonUtils.cleanPath(filePath);
+    ClientFileInfo clientFileInfo = getClientFileInfo(filePath);
+    if (clientFileInfo == null) {
       return null;
     }
-    return new Dataset(this, datasetInfo);
+    return new TachyonFile(this, clientFileInfo);
   }
 
-  public synchronized Dataset getDataset(int datasetId) {
-    DatasetInfo datasetInfo = getDatasetInfo(datasetId);
-    if (datasetInfo == null) {
+  public synchronized TachyonFile getFile(int fileId) {
+    ClientFileInfo clientFileInfo = getClientFileInfo(fileId);
+    if (clientFileInfo == null) {
       return null;
     }
-    return new Dataset(this, datasetInfo);
+    return new TachyonFile(this, clientFileInfo);
   }
 
-  public synchronized int getDatasetId(String datasetPath) {
+  public synchronized int getFileId(String filePath) {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return -1;
     }
-    int datasetId = -1;
-    datasetPath = CommonUtils.cleanPath(datasetPath);
+    int fileId = -1;
+    filePath = CommonUtils.cleanPath(filePath);
     try {
-      datasetId = mMasterClient.user_getDatasetId(datasetPath);
+      fileId = mMasterClient.user_getFileId(filePath);
+    } catch (InvalidPathException e) {
+      CommonUtils.runtimeException(e);
     } catch (TException e) {
       // TODO Ideally, this exception should be throws to the upper upper layer, and 
       // remove notContainDataset(datasetPath) method. This is for absolutely fall through.
@@ -403,20 +377,23 @@ public class TachyonClient {
       mConnected = false;
       return -1;
     }
-    return datasetId;
+    return fileId;
   }
 
-  private synchronized DatasetInfo getDatasetInfo(String datasetPath) {
+  private synchronized ClientFileInfo getClientFileInfo(String filePath) {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return null;
     }
-    DatasetInfo ret;
-    datasetPath = CommonUtils.cleanPath(datasetPath);
+    ClientFileInfo ret;
+    filePath = CommonUtils.cleanPath(filePath);
     try {
-      ret = mMasterClient.user_getDataset(datasetPath);
-    } catch (DatasetDoesNotExistException e) {
-      LOG.info("Dataset with path " + datasetPath + " does not exist.");
+      ret = mMasterClient.user_getClientFileInfoByPath(filePath);
+    } catch (FileDoesNotExistException e) {
+      LOG.info("File " + filePath + " does not exist.");
+      return null;
+    } catch (InvalidPathException e) {
+      LOG.info("File path " + filePath + " is invalid.");
       return null;
     } catch (TException e) {
       LOG.error(e.getMessage());
@@ -427,16 +404,16 @@ public class TachyonClient {
     return ret;
   }
 
-  private synchronized DatasetInfo getDatasetInfo(int datasetId) {
+  private synchronized ClientFileInfo getClientFileInfo(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return null;
     }
-    DatasetInfo ret = null;
+    ClientFileInfo ret = null;
     try {
-      ret = mMasterClient.user_getDataset(datasetId);
-    } catch (DatasetDoesNotExistException e) {
-      LOG.info("Dataset with id " + datasetId + " does not exist.");
+      ret = mMasterClient.user_getClientFileInfoById(fileId);
+    } catch (FileDoesNotExistException e) {
+      LOG.info("File with id " + fileId + " does not exist.");
       return null;
     } catch (TException e) {
       LOG.error(e.getMessage());
@@ -447,64 +424,64 @@ public class TachyonClient {
     return ret;
   }
 
-  public synchronized RawColumnDataset getRawColumnDataset(String datasetPath) {
-    datasetPath = CommonUtils.cleanPath(datasetPath);
-    RawColumnDatasetInfo rawColumnDatasetInfo = getRawColumnDatasetInfo(datasetPath);
-    if (rawColumnDatasetInfo == null) {
-      return null;
-    }
-    return new RawColumnDataset(this, rawColumnDatasetInfo);
-  }
-
-  public synchronized RawColumnDataset getRawColumnDataset(int datasetId) {
-    RawColumnDatasetInfo rawColumnDatasetInfo = getRawColumnDatasetInfo(datasetId);
-    if (rawColumnDatasetInfo == null) {
-      return null;
-    }
-    return new RawColumnDataset(this, rawColumnDatasetInfo);
-  }
-
-  private synchronized RawColumnDatasetInfo getRawColumnDatasetInfo(String datasetPath) {
-    connectAndGetLocalWorker();
-    if (!mConnected) {
-      return null;
-    }
-    RawColumnDatasetInfo ret;
-    datasetPath = CommonUtils.cleanPath(datasetPath);
-    try {
-      ret = mMasterClient.user_getRawColumnDataset(datasetPath);
-    } catch (DatasetDoesNotExistException e) {
-      LOG.info("RawColumnDataset with path " + datasetPath + " does not exist.");
-      return null;
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      mConnected = false;
-      return null;
-    }
-
-    return ret;
-  }
-
-  private synchronized RawColumnDatasetInfo getRawColumnDatasetInfo(int datasetId) {
-    connectAndGetLocalWorker();
-    if (!mConnected) {
-      return null;
-    }
-
-    RawColumnDatasetInfo ret = null;
-    try {
-      ret = mMasterClient.user_getRawColumnDatasetInfo(datasetId);
-    } catch (DatasetDoesNotExistException e) {
-      LOG.info("RawColumnDataset with id " + datasetId + " does not exist.");
-      return null;
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      mConnected = false;
-      return null;
-    }
-
-    return ret;
-  }
+//  public synchronized RawColumnDataset getRawColumnDataset(String datasetPath) {
+//    datasetPath = CommonUtils.cleanPath(datasetPath);
+//    RawColumnDatasetInfo rawColumnDatasetInfo = getRawColumnDatasetInfo(datasetPath);
+//    if (rawColumnDatasetInfo == null) {
+//      return null;
+//    }
+//    return new RawColumnDataset(this, rawColumnDatasetInfo);
+//  }
+//
+//  public synchronized RawColumnDataset getRawColumnDataset(int datasetId) {
+//    RawColumnDatasetInfo rawColumnDatasetInfo = getRawColumnDatasetInfo(datasetId);
+//    if (rawColumnDatasetInfo == null) {
+//      return null;
+//    }
+//    return new RawColumnDataset(this, rawColumnDatasetInfo);
+//  }
+//
+//  private synchronized RawColumnDatasetInfo getRawColumnDatasetInfo(String datasetPath) {
+//    connectAndGetLocalWorker();
+//    if (!mConnected) {
+//      return null;
+//    }
+//    RawColumnDatasetInfo ret;
+//    datasetPath = CommonUtils.cleanPath(datasetPath);
+//    try {
+//      ret = mMasterClient.user_getRawColumnDataset(datasetPath);
+//    } catch (DatasetDoesNotExistException e) {
+//      LOG.info("RawColumnDataset with path " + datasetPath + " does not exist.");
+//      return null;
+//    } catch (TException e) {
+//      LOG.error(e.getMessage());
+//      mConnected = false;
+//      return null;
+//    }
+//
+//    return ret;
+//  }
+//
+//  private synchronized RawColumnDatasetInfo getRawColumnDatasetInfo(int datasetId) {
+//    connectAndGetLocalWorker();
+//    if (!mConnected) {
+//      return null;
+//    }
+//
+//    RawColumnDatasetInfo ret = null;
+//    try {
+//      ret = mMasterClient.user_getRawColumnDatasetInfo(datasetId);
+//    } catch (DatasetDoesNotExistException e) {
+//      LOG.info("RawColumnDataset with id " + datasetId + " does not exist.");
+//      return null;
+//    } catch (TException e) {
+//      LOG.error(e.getMessage());
+//      mConnected = false;
+//      return null;
+//    }
+//
+//    return ret;
+//  }
 
   public synchronized String getRootFolder() {
     connectAndGetLocalWorker();
@@ -566,15 +543,15 @@ public class TachyonClient {
     return true;
   }
 
-  public synchronized boolean unpinDataset(int datasetId) {
+  public synchronized boolean unpinFile(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return false;
     }
 
     try {
-      mMasterClient.user_unpinDataset(datasetId);
-    } catch (DatasetDoesNotExistException e) {
+      mMasterClient.user_unpinFile(fileId);
+    } catch (FileDoesNotExistException e) {
       LOG.error(e.getMessage());
       return false;
     } catch (TException e) {
@@ -585,13 +562,13 @@ public class TachyonClient {
     return true;
   }
 
-  public boolean lockPartition(int datasetId, int partitionId) {
+  public boolean lockFile(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected || mLocalWorkerClient == null) {
       return false;
     }
     try {
-      mLocalWorkerClient.lockPartition(datasetId, partitionId, mUserId);
+      mLocalWorkerClient.lockFile(fileId, mUserId);
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;
@@ -599,13 +576,13 @@ public class TachyonClient {
     return true;
   }
 
-  public boolean unlockPartition(int datasetId, int partitionId) {
+  public boolean unlockFile(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected || mLocalWorkerClient == null) {
       return false;
     }
     try {
-      mLocalWorkerClient.unlockPartition(datasetId, partitionId, mUserId);
+      mLocalWorkerClient.unlockFile(fileId, mUserId);
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;

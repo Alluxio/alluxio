@@ -119,14 +119,14 @@ public class DataServer implements Runnable {
 
     if (tMessage.isMessageReady()) {
       key.interestOps(SelectionKey.OP_WRITE);
-      LOG.info("Get request for " + tMessage.getDatasetId() + "-" + tMessage.getPartitionId());
+      LOG.info("Get request for " + tMessage.getFileId());
       try {
-        mWorkerServiceHandler.lockPartition(tMessage.getDatasetId(), tMessage.getPartitionId(), -1);
+        mWorkerServiceHandler.lockFile(tMessage.getFileId(), -1);
       } catch (TException e) {
         CommonUtils.runtimeException(e);
       }
       mSendingData.put(socketChannel, DataServerMessage.createPartitionResponseMessage(
-          true, tMessage.getDatasetId(), tMessage.getPartitionId()));
+          true, tMessage.getFileId()));
     }
   }
 
@@ -155,8 +155,7 @@ public class DataServer implements Runnable {
       sendMessage.close();
 
       try {
-        mWorkerServiceHandler.unlockPartition(sendMessage.getDatasetId(), 
-            sendMessage.getPartitionId(), -1);
+        mWorkerServiceHandler.unlockFile(sendMessage.getFileId(), -1);
       } catch (TException e) {
         CommonUtils.runtimeException(e);
       }
