@@ -15,7 +15,7 @@ public class Rm {
     }
 
     System.out.println(args[0]);
-    String folder = Utils.getDatasetName(args[0]);
+    String folder = Utils.getFilePath(args[0]);
     MasterClient masterClient = new MasterClient(Utils.getTachyonMasterAddress(args[0]));
     masterClient.open();
     masterClient.user_delete(folder);
