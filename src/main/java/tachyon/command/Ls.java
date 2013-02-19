@@ -5,9 +5,12 @@ import java.util.List;
 import org.apache.thrift.TException;
 
 import tachyon.MasterClient;
+import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.InvalidPathException;
 
 public class Ls {
-  public static void main(String[] args) throws TException {
+  public static void main(String[] args)
+      throws InvalidPathException, FileDoesNotExistException, TException {
     if (args.length != 1) {
       System.out.println("Usage: tachyon\n [-ls <path>]");
       System.exit(-1);

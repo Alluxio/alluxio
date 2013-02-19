@@ -4,9 +4,11 @@ import org.apache.thrift.TException;
 
 import tachyon.MasterClient;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.InvalidPathException;
 
 public class Rm {
-  public static void main(String[] args) throws FileDoesNotExistException, TException{
+  public static void main(String[] args)
+      throws FileDoesNotExistException, InvalidPathException, TException {
     if (args.length != 1) {
       System.out.println("Usage: tachyon\n [-rm <path>]");
       System.exit(-1);

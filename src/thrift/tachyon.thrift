@@ -24,8 +24,9 @@ struct RawTableInfo {
 
 enum LogEventType {
   Undefined = 0,
-  INode = 1,
-  RawTableInfo = 2,
+  CheckpointInfo = 1,
+  INode = 2,
+  RawTableInfo = 3,
 }
 
 enum CommandType {
@@ -78,17 +79,17 @@ service MasterService {
 
   // Services to Users
   i32 user_createFile(1: string filePath) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
-  i32 user_getFileId(1: string filePath)  // Return 0 if does not contain the dataset, return datasetId if it exists.
+  i32 user_getFileId(1: string filePath) throws (1: InvalidPathException e) // Return -1 if does not contain the dataset, return datasetId if it exists.
   i64 user_getUserId()
   NetAddress user_getLocalWorker(1: string host) throws (1: NoLocalWorkerException e) // Get local worker NetAddress
   ClientFileInfo user_getClientFileInfoById(1: i32 fileId) throws (1: FileDoesNotExistException e)
-  ClientFileInfo user_getClientFileInfoByPath(1: string filePath) throws (1: FileDoesNotExistException e)
+  ClientFileInfo user_getClientFileInfoByPath(1: string filePath) throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
   list<NetAddress> user_getFileLocationsById(1: i32 fileId) throws (1: FileDoesNotExistException e)        // Get file locations by file Id.
-  list<NetAddress> user_getFileLocationsByPath(1: string filePath) throws (1: FileDoesNotExistException e) // Get file locations by path
-  void user_deleteById(1: i32 fileId) throws (1: FileDoesNotExistException e) // Delete file
-  void user_deleteByPath(1: string filePath) throws (1: FileDoesNotExistException e) // Delete file
+  list<NetAddress> user_getFileLocationsByPath(1: string filePath) throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI) // Get file locations by path
+  void user_deleteById(1: i32 fileId) // Delete file
+  void user_deleteByPath(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF) // Delete file
   void user_outOfMemoryForPinFile(1: i32 datasetId)
-  void user_renameFile(1: string srcFilePath, 2: string dstFilePath) throws (1: FileDoesNotExistException e)
+  void user_renameFile(1: string srcFilePath, 2: string dstFilePath) throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
 //  void user_setPartitionCheckpointPath(1: i32 fileId, 2: string checkpointPath) throws (1: FileDoesNotExistException eD)
   void user_unpinFile(1: i32 fileId) throws (1: FileDoesNotExistException e)   // Remove file from memory
 
@@ -100,7 +101,7 @@ service MasterService {
 //  RawTableInfo user_getRawTableByPath(1: string tablePath) throws (1: TableDoesNotExistException e) // Get Table info by path
 
   // cmd to scripts
-  list<string> cmd_ls(1: string path)
+  list<string> cmd_ls(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
 }
 
 service WorkerService {

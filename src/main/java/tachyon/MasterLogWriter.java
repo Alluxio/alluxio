@@ -32,6 +32,16 @@ public class MasterLogWriter {
       CommonUtils.runtimeException(e);
     }
   }
+  
+  public void appendAndFlush(CheckpointInfo checkpointInfo) {
+    try {
+      mOutputStream.writeObject(LogEventType.CheckpointInfo);
+      mOutputStream.writeObject(checkpointInfo);
+      mOutputStream.flush();
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+  }
 
 //  public void appendAndFlush(RawColumnDatasetInfo rawColumnDatasetInfo) {
 //    try {

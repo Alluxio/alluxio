@@ -1,9 +1,9 @@
 package tachyon;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -23,30 +23,6 @@ import org.slf4j.LoggerFactory;
  */
 public class CommonUtils {
   private static final Logger LOG = LoggerFactory.getLogger(CommonUtils.class);
-
-  /**
-   * Converts a byte array to a string using UTF8 encoding.
-   */
-  public static String bytes2String(byte[] bytes) {
-    try {
-      return new String(bytes, "UTF8");
-    } catch (UnsupportedEncodingException e) {
-      assert false : "UTF8 encoding is not supported ";
-    }
-    return null;
-  }
-
-  /**
-   * Converts a string to a byte array using UTF8 encoding.
-   */
-  public static byte[] string2Bytes(String str) {
-    try {
-      return str.getBytes("UTF8");
-    } catch (UnsupportedEncodingException e) {
-      assert false : "UTF8 encoding is not supported ";
-    }
-    return null;
-  }
 
   /**
    * Whether the pathname is valid.  Currently prohibits relative paths, 
@@ -88,6 +64,16 @@ public class CommonUtils {
   public static String convertMillisToDate(long Millis) {
     DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
     return formatter.format(new Date(Millis));
+  }
+
+  public static void deleteFile(String fileName) {
+    File file = new File(fileName);
+    if (file.exists()) {
+      while (!file.delete()) {
+        LOG.info("Trying to delete " + file.toString());
+        sleep(1000);
+      }
+    }
   }
 
   public static String getCurrentMemStatsInBytes() {
@@ -257,6 +243,14 @@ public class CommonUtils {
 
   public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
     logger.info(message + " took " + (getCurrentNs() - startTimeNs) + " ns.");
+  }
+
+  public static void renameFile(String src, String dst) {
+    File srcFile = new File(src);
+    File dstFile = new File(dst);
+    if (!srcFile.renameTo(dstFile)) {
+      CommonUtils.runtimeException("Failed to rename file from " + src + " to " + dst);
+    }
   }
 
   public static void runtimeException(String msg) {
