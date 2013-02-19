@@ -1,3 +1,4 @@
+<%@ page isELIgnored ="false" %> 
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,8 +13,8 @@
 	<div class="navbar navbar-inverse">
 		<div class="navbar-inner">
 			<ul class="nav nav-pills">
-				<li><a href="./">Master Node XXXXX</a></li>
-				<li class="active"><a href="./browse.html">Browse File System</a></li>
+				<li><a href="./home">Master Node XXXXX</a></li>
+				<li class="active"><a href="./browse?path=/">Browse File System</a></li>
 			</ul>
 		</div>
 	</div>
@@ -28,7 +29,7 @@
 			</div>
 			<div class="span10 well">
 				<table class="table">
-					<caption><h3>Directory Path: $VARIABLEHERE</h3></caption>
+					<caption><h3>Directory Path: ${currentPath}</h3></caption>
 					<thead>
 						<th>File Name</th>
 						<th>Size</th>

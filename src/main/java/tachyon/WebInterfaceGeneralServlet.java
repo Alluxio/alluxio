@@ -12,11 +12,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class WebInterfaceServlet extends HttpServlet {
+public class WebInterfaceGeneralServlet extends HttpServlet {
 
 	MasterServiceHandler mMSH;
 
-	public WebInterfaceServlet(MasterServiceHandler MSH) {
+	public WebInterfaceGeneralServlet(MasterServiceHandler MSH) {
 		this.mMSH = MSH;
 	}
 
