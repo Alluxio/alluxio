@@ -3,16 +3,16 @@ package tachyon.client;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class PartitionInputStream extends InputStream {
-  private final Partition PARTITION; 
+public class TFileInputStream extends InputStream {
+  private final TachyonFile FILE; 
 
-  public PartitionInputStream(Partition partition) {
-    PARTITION = partition;
+  public TFileInputStream(TachyonFile file) {
+    FILE = file;
   }
 
   @Override
   public int read() throws IOException {
-    return PARTITION.read();
+    return FILE.read();
   }
 
   @Override
@@ -22,6 +22,6 @@ public class PartitionInputStream extends InputStream {
 
   @Override
   public int read(byte b[], int off, int len) throws IOException {
-    return PARTITION.read(b, off, len);
+    return FILE.read(b, off, len);
   }
 }

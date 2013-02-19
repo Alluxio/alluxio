@@ -20,7 +20,7 @@ public class WorkerInfo {
   private long mId;
   private long mUsedBytes;
   private long mLastUpdatedTimeMs;
-  private Set<Long> mPartitions; 
+  private Set<Integer> mFiles; 
 
   public WorkerInfo(long id, InetSocketAddress address, long totalBytes) {
     mId = id;
@@ -29,12 +29,12 @@ public class WorkerInfo {
     START_TIME_MS = System.currentTimeMillis();
 
     mUsedBytes = 0;
-    mPartitions = new HashSet<Long>();
+    mFiles = new HashSet<Integer>();
     mLastUpdatedTimeMs = System.currentTimeMillis();
   }
 
   public synchronized boolean containPartition(long partition) {
-    return mPartitions.contains(partition);
+    return mFiles.contains(partition);
   }
 
   public synchronized long getAvailableBytes() {
@@ -49,8 +49,8 @@ public class WorkerInfo {
     return mLastUpdatedTimeMs;
   }
 
-  public synchronized Set<Long> getPartitions() {
-    return new HashSet<Long>(mPartitions);
+  public synchronized Set<Integer> getFiles() {
+    return new HashSet<Integer>(mFiles);
   }
 
   public synchronized long getUsedBytes() {
@@ -70,8 +70,8 @@ public class WorkerInfo {
     mUsedBytes -= returnUsedBytes;
   }
 
-  public synchronized void removePartition(long bigId) {
-    mPartitions.remove(bigId);
+  public synchronized void removeFile(int fileId) {
+    mFiles.remove(fileId);
   }
 
   public synchronized String toHtml() {
@@ -83,17 +83,16 @@ public class WorkerInfo {
     sb.append("It has been running @ " + ADDRESS + " for " + CommonUtils.convertMillis(timeMs));
     if (Config.DEBUG) {
       sb.append(" ID ").append(mId).append(" ; ");
-      sb.append("LastUpdateTime ").append(CommonUtils.convertMillisToDate(mLastUpdatedTimeMs));
+      sb.append("LastUpdateTimeMs ").append(CommonUtils.convertMillisToDate(mLastUpdatedTimeMs));
       sb.append("<br \\>");
     }
 
     if (Config.DEBUG) {
-      sb.append("Partitions: [ ");
-      List<Long> partitions = new ArrayList<Long>(mPartitions);
-      Collections.sort(partitions);
-      for (Long partition : partitions) {
-        sb.append("(").append(CommonUtils.computeDatasetIdFromBigId(partition));
-        sb.append(":").append(CommonUtils.computePartitionIdFromBigId(partition)).append(") ");
+      sb.append("Files: [ ");
+      List<Integer> files = new ArrayList<Integer>(mFiles);
+      Collections.sort(files);
+      for (int file : files) {
+        sb.append("(").append(file).append(") ");
       }
       sb.append("]");
     }
@@ -110,12 +109,27 @@ public class WorkerInfo {
     sb.append(", mAvailableBytes: ").append(TOTAL_BYTES - mUsedBytes);
     sb.append(", mLastUpdatedTimeMs: ").append(mLastUpdatedTimeMs);
     sb.append(", mPartitions: [ ");
-    for (Long partition : mPartitions) {
-      sb.append(partition).append("(").append(CommonUtils.computeDatasetIdFromBigId(partition))
-      .append(":").append(CommonUtils.computePartitionIdFromBigId(partition)).append(") ; ");
+    for (int file : mFiles) {
+      sb.append(file).append(", ");
     }
     sb.append("] )");
     return sb.toString();
+  }
+
+  public synchronized void updateFile(boolean add, int fileId) {
+    if (add) {
+      mFiles.add(fileId);
+    } else {
+      mFiles.remove(fileId);
+    }
+  }
+
+  public synchronized void updateFiles(boolean add, Collection<Integer> fileIds) {
+    if (add) {
+      mFiles.addAll(fileIds);
+    } else {
+      mFiles.removeAll(fileIds);
+    }
   }
 
   public synchronized void updateId(long id) {
@@ -124,22 +138,6 @@ public class WorkerInfo {
 
   public synchronized void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs = System.currentTimeMillis();
-  }
-
-  public synchronized void updatePartition(boolean add, long partition) {
-    if (add) {
-      mPartitions.add(partition);
-    } else {
-      mPartitions.remove(partition);
-    }
-  }
-
-  public synchronized void updatePartitions(boolean add, Collection<Long> partitions) {
-    if (add) {
-      mPartitions.addAll(partitions);
-    } else {
-      mPartitions.removeAll(partitions);
-    }
   }
 
   public synchronized void updateUsedBytes(long usedBytes) {

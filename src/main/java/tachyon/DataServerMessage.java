@@ -21,8 +21,7 @@ public class DataServerMessage {
 
   private ByteBuffer mHeader;
   private static final int HEADER_LENGTH = 12;
-  private int mDatasetId;
-  private int mPartitionId;
+  private int mFileId;
   private int mDataLength;
   RandomAccessFile mFile;
 
@@ -44,12 +43,11 @@ public class DataServerMessage {
     return ret;
   }
 
-  public static DataServerMessage createPartitionRequestMessage(int datasetId, int partitionId) {
+  public static DataServerMessage createPartitionRequestMessage(int fileId) {
     DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
 
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
-    ret.mDatasetId = datasetId;
-    ret.mPartitionId = partitionId;
+    ret.mFileId = fileId;
     ret.mDataLength = 0;
     ret.generateHeader();
     ret.mData = ByteBuffer.allocate(0);
@@ -59,17 +57,14 @@ public class DataServerMessage {
     return ret;
   }
 
-  public static DataServerMessage createPartitionResponseMessage(boolean toSend, 
-      int datasetId, int partitionId) {
+  public static DataServerMessage createPartitionResponseMessage(boolean toSend, int fileId) {
     DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
 
     if (toSend) {
-      ret.mDatasetId = datasetId;
-      ret.mPartitionId = partitionId;
+      ret.mFileId = fileId;
 
       try {
-        
-        String filePath = Config.WORKER_DATA_FOLDER + datasetId + "-" + partitionId;
+        String filePath = Config.WORKER_DATA_FOLDER + fileId;
         ret.LOG.info("Try to response remote requst by reading from " + filePath); 
         ret.mFile = new RandomAccessFile(filePath, "r");
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
@@ -78,10 +73,10 @@ public class DataServerMessage {
         ret.mData = ret.mInChannel.map(FileChannel.MapMode.READ_ONLY, 0, ret.mDataLength);
         ret.mIsMessageReady = true;
         ret.generateHeader();
-        WorkerServiceHandler.sDataAccessQueue.add(CommonUtils.generateBigId(datasetId, partitionId));
+        WorkerServiceHandler.sDataAccessQueue.add(ret.mFileId);
       } catch (IOException e) {
         // TODO This is a trick for now. The data may have been removed before remote retrieving. 
-        ret.mDatasetId = - ret.mDatasetId;
+        ret.mFileId = - ret.mFileId;
         ret.mDataLength = 0;
         ret.mData = ByteBuffer.allocate(0);
         ret.generateHeader();
@@ -107,8 +102,7 @@ public class DataServerMessage {
 
   private void generateHeader() {
     mHeader.clear();
-    mHeader.putInt(mDatasetId);
-    mHeader.putInt(mPartitionId);
+    mHeader.putInt(mFileId);
     mHeader.putInt(mDataLength);
     mHeader.flip();
   }
@@ -122,8 +116,7 @@ public class DataServerMessage {
       numRead = socketChannel.read(mHeader);
       if (mHeader.remaining() == 0) {
         mHeader.flip();
-        mDatasetId = mHeader.getInt();
-        mPartitionId = mHeader.getInt();
+        mFileId = mHeader.getInt();
         mDataLength = mHeader.getInt();
         mData = ByteBuffer.allocate(mDataLength);
         LOG.info("recv(): mData: " + mData);
@@ -171,18 +164,11 @@ public class DataServerMessage {
     return mIsMessageReady;
   }
 
-  public int getDatasetId() {
+  public int getFileId() {
     if (!mIsMessageReady) {
       CommonUtils.runtimeException("Message is not ready.");
     }
-    return mDatasetId;
-  }
-
-  public int getPartitionId() {
-    if (!mIsMessageReady) {
-      CommonUtils.runtimeException("Message is not ready.");
-    }
-    return mPartitionId;
+    return mFileId;
   }
 
   public ByteBuffer getReadOnlyData() {

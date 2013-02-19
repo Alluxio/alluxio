@@ -20,16 +20,16 @@ import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.Path;
 
 import tachyon.thrift.Command;
+import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.PartitionAlreadyExistException;
-import tachyon.thrift.PartitionDoesNotExistException;
-import tachyon.thrift.SuspectedPartitionSizeException;
+import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.WorkerService;
 
 public class WorkerServiceHandler implements WorkerService.Iface {
   // TODO The reason this is public is for DataServerMessage to access. Need to re-organize this.
-  public static final BlockingQueue<Long> sDataAccessQueue = 
-      new ArrayBlockingQueue<Long>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
+  public static final BlockingQueue<Integer> sDataAccessQueue = 
+      new ArrayBlockingQueue<Integer>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
 
   private final Logger LOG = LoggerFactory.getLogger(WorkerServiceHandler.class);
 
@@ -38,15 +38,15 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   private WorkerInfo mWorkerInfo;
 
   // TODO Should merge these three structures, and make it more clean. Define NodeStroage class.
-  private Map<Integer, Set<Integer>> mMemoryData = new HashMap<Integer, Set<Integer>>();
-  private Map<Long, Long> mLatestPartitionAccessTime = new HashMap<Long, Long>();
-  private Map<Long, Set<Long>> mLockedPartitionPerPartition = new HashMap<Long, Set<Long>>();
-  private Map<Long, Set<Long>> mLockedPartitionPerUser = new HashMap<Long, Set<Long>>();
-  private Map<Long, Long> mPartitionSizes = new HashMap<Long, Long>();
-  private BlockingQueue<Long> mRemovedPartitionList = 
-      new ArrayBlockingQueue<Long>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
-  private BlockingQueue<Long> mAddedPartitionList = 
-      new ArrayBlockingQueue<Long>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
+  private Set<Integer> mMemoryData = new HashSet<Integer>();
+  private Map<Integer, Long> mLatestFileAccessTimeMs = new HashMap<Integer, Long>();
+  private Map<Integer, Set<Long>> mUsersPerLockedFile = new HashMap<Integer, Set<Long>>();
+  private Map<Long, Set<Integer>> mLockedFilesPerUser = new HashMap<Long, Set<Integer>>();
+  private Map<Integer, Long> mFileSizes = new HashMap<Integer, Long>();
+  private BlockingQueue<Integer> mRemovedFileList = 
+      new ArrayBlockingQueue<Integer>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
+  private BlockingQueue<Integer> mAddedFileList = 
+      new ArrayBlockingQueue<Integer>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
   private File mDataFolder;
   private File mUserFolder;
   private Path mHdfsWorkerFolder;
@@ -65,7 +65,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
         mMasterClient.open();
         id = mMasterClient.worker_register(
             new NetAddress(workerAddress.getHostName(), workerAddress.getPort()),
-            spaceLimitBytes, 0, new ArrayList<Long>());
+            spaceLimitBytes, 0, new ArrayList<Integer>());
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
@@ -84,9 +84,9 @@ public class WorkerServiceHandler implements WorkerService.Iface {
 
     try {
       initializeWorkerInfo();
-    } catch (PartitionDoesNotExistException e) {
+    } catch (FileDoesNotExistException e) {
       CommonUtils.runtimeException(e);
-    } catch (SuspectedPartitionSizeException e) {
+    } catch (SuspectedFileSizeException e) {
       CommonUtils.runtimeException(e);
     } catch (TException e) {
       CommonUtils.runtimeException(e);
@@ -96,35 +96,28 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void accessPartition(int datasetId, int partitionId) throws TException {
-    sDataAccessQueue.add(CommonUtils.generateBigId(datasetId, partitionId));
+  public void accessFile(int fileId) throws TException {
+    sDataAccessQueue.add(fileId);
   }
 
-  private void addBigId(long bigId, long fileSizeBytes) {
-    mWorkerInfo.updatePartition(true, bigId);
-    int datasetId = CommonUtils.computeDatasetIdFromBigId(bigId);
-    int partitionId = CommonUtils.computePartitionIdFromBigId(bigId);
+  private void addId(int fileId, long fileSizeBytes) {
+    mWorkerInfo.updateFile(true, fileId);
 
-    synchronized (mLatestPartitionAccessTime) {
-      mLatestPartitionAccessTime.put(CommonUtils.generateBigId(datasetId, partitionId),
-          System.currentTimeMillis());
-      mPartitionSizes.put(CommonUtils.generateBigId(datasetId, partitionId), fileSizeBytes);
-      if (!mMemoryData.containsKey(datasetId)) {
-        mMemoryData.put(datasetId, new HashSet<Integer>());
-      }
-      mMemoryData.get(datasetId).add(partitionId);
+    synchronized (mLatestFileAccessTimeMs) {
+      mLatestFileAccessTimeMs.put(fileId, System.currentTimeMillis());
+      mFileSizes.put(fileId, fileSizeBytes);
+      mMemoryData.add(fileId);
     }
   }
 
   @Override
-  public void addPartition(long userId, int datasetId, int partitionId, boolean writeThrough)
-      throws PartitionDoesNotExistException, SuspectedPartitionSizeException, 
-      PartitionAlreadyExistException, TException {
-    File srcFile = new File(getUserTempFolder(userId) + "/" + datasetId + "-" + partitionId);
-    File dstFile = new File(mDataFolder + "/" + datasetId + "-" + partitionId);
+  public void addDoneFile(long userId, int fileId, boolean writeThrough)
+      throws FileDoesNotExistException, SuspectedFileSizeException, 
+      FileAlreadyExistException, TException {
+    File srcFile = new File(getUserTempFolder(userId) + "/" + fileId);
+    File dstFile = new File(mDataFolder + "/" + fileId);
     if (dstFile.exists()) {
-      throw new PartitionAlreadyExistException("Partition " + datasetId + "-" + partitionId + 
-          " already exists.");
+      throw new FileAlreadyExistException("File " + fileId + " already exists.");
     }
     long fileSizeBytes = srcFile.length(); 
     if (!srcFile.renameTo(dstFile)) {
@@ -134,9 +127,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     String dstPath = "";
     if (writeThrough) {
       // TODO This part need to be changed.
-      String name = datasetId + "-" + partitionId;
-      String srcPath = getUserHdfsTempFolder(userId) + "/" + name;
-      dstPath = Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" + name;
+      String srcPath = getUserHdfsTempFolder(userId) + "/" + fileId;
+      dstPath = Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" + fileId;
       if (Config.USING_HDFS) {
         mHdfsClient.mkdirs(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" , null, true);
         if (!mHdfsClient.rename(srcPath, dstPath)) {
@@ -145,39 +137,38 @@ public class WorkerServiceHandler implements WorkerService.Iface {
         }
       }
     }
-    addBigId(CommonUtils.generateBigId(datasetId, partitionId), fileSizeBytes);
+    addId(fileId, fileSizeBytes);
     mUsers.addOwnBytes(userId, - fileSizeBytes);
-    mMasterClient.worker_addPartition(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), datasetId,
-        partitionId, (int)fileSizeBytes, writeThrough && !dstPath.equals(""), dstPath);
+    mMasterClient.worker_addFile(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
+        (int)fileSizeBytes, writeThrough && !dstPath.equals(""), dstPath);
   }
 
-  @Override
-  public void addRCDPartition(int datasetId, int partitionId, int partitionSizeBytes)
-      throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
-      PartitionAlreadyExistException, TException {
-    mMasterClient.worker_addRCDPartition(mWorkerInfo.getId(),
-        datasetId, partitionId, partitionSizeBytes);
-  }
+  //  @Override
+  //  public void addRCDPartition(int datasetId, int partitionId, int partitionSizeBytes)
+  //      throws FileDoesNotExistException, SuspectedFileSizeException,
+  //      FileAlreadyExistException, TException {
+  //    mMasterClient.worker_addRCDPartition(mWorkerInfo.getId(),
+  //        datasetId, partitionId, partitionSizeBytes);
+  //  }
 
-  private void addFoundPartition(int datasetId, int partitionId, long fileSizeBytes)
-      throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
-    addBigId(CommonUtils.generateBigId(datasetId, partitionId), fileSizeBytes);
-    mMasterClient.worker_addPartition(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), datasetId,
-        partitionId, (int)fileSizeBytes, false, "");
+  private void addFoundPartition(int fileId, long fileSizeBytes)
+      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    addId(fileId, fileSizeBytes);
+    mMasterClient.worker_addFile(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
+        (int)fileSizeBytes, false, "");
   }
 
   public void checkStatus() {
     List<Long> removedUsers = mUsers.checkStatus(mWorkerInfo);
 
     for (long userId : removedUsers) {
-      synchronized (mLockedPartitionPerPartition) {
-        Set<Long> partitionIds = mLockedPartitionPerUser.get(userId);
-        mLockedPartitionPerUser.remove(userId);
-        if (partitionIds != null) {
-          for (long pId : partitionIds) {
+      synchronized (mUsersPerLockedFile) {
+        Set<Integer> fileIds = mLockedFilesPerUser.get(userId);
+        mLockedFilesPerUser.remove(userId);
+        if (fileIds != null) {
+          for (int fileId : fileIds) {
             try {
-              unlockPartition(CommonUtils.computeDatasetIdFromBigId(pId),
-                  CommonUtils.computePartitionIdFromBigId(pId), userId);
+              unlockFile(fileId, userId);
             } catch (TException e) {
               CommonUtils.runtimeException(e);
             }
@@ -186,11 +177,11 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       }
     }
 
-    synchronized (mLatestPartitionAccessTime) {
+    synchronized (mLatestFileAccessTimeMs) {
       while (!sDataAccessQueue.isEmpty()) {
-        long bigId = sDataAccessQueue.poll();
+        int fileId = sDataAccessQueue.poll();
 
-        mLatestPartitionAccessTime.put(bigId, System.currentTimeMillis());
+        mLatestFileAccessTimeMs.put(fileId, System.currentTimeMillis());
       }
     }
   }
@@ -215,16 +206,16 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   public Command heartbeat() throws TException {
-    ArrayList<Long> sendRemovedPartitionList = new ArrayList<Long>();
-    while (mRemovedPartitionList.size() > 0) {
-      sendRemovedPartitionList.add(mRemovedPartitionList.poll());
+    ArrayList<Integer> sendRemovedPartitionList = new ArrayList<Integer>();
+    while (mRemovedFileList.size() > 0) {
+      sendRemovedPartitionList.add(mRemovedFileList.poll());
     }
     return mMasterClient.worker_heartbeat(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(),
         sendRemovedPartitionList);
   }
 
   private void initializeWorkerInfo() 
-      throws PartitionDoesNotExistException, SuspectedPartitionSizeException, TException {
+      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     LOG.info("Initializing the worker info.");
     if (!mDataFolder.exists()) {
       LOG.info("Local folder " + mDataFolder.toString() + " does not exist. Creating a new one.");
@@ -247,12 +238,10 @@ public class WorkerServiceHandler implements WorkerService.Iface {
         cnt ++;
         LOG.info("File " + cnt + ": " + tFile.getPath() + " with size " + tFile.length() + " Bs.");
 
-        int datasetId = CommonUtils.getDatasetIdFromFileName(tFile.getName());
-        int pId = CommonUtils.getPartitionIdFromFileName(tFile.getName());
-        long bigId = CommonUtils.generateBigId(datasetId, pId);
+        int fileId = CommonUtils.getFileIdFromFileName(tFile.getName());
         boolean success = mWorkerInfo.requestSpaceBytes(tFile.length());
-        addFoundPartition(datasetId, pId, tFile.length());
-        mAddedPartitionList.add(bigId);
+        addFoundPartition(fileId, tFile.length());
+        mAddedFileList.add(fileId);
         if (!success) {
           CommonUtils.runtimeException("Pre-existing files exceed the local memory capacity.");
         }
@@ -270,24 +259,23 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void lockPartition(int datasetId, int partitionId, long userId) throws TException {
-    long bigId = CommonUtils.generateBigId(datasetId, partitionId);
-    synchronized (mLockedPartitionPerPartition) {
-      if (!mLockedPartitionPerPartition.containsKey(bigId)) {
-        mLockedPartitionPerPartition.put(bigId, new HashSet<Long>());
+  public void lockFile(int fileId, long userId) throws TException {
+    synchronized (mUsersPerLockedFile) {
+      if (!mUsersPerLockedFile.containsKey(fileId)) {
+        mUsersPerLockedFile.put(fileId, new HashSet<Long>());
       }
-      mLockedPartitionPerPartition.get(bigId).add(userId);
+      mUsersPerLockedFile.get(fileId).add(userId);
 
-      if (!mLockedPartitionPerUser.containsKey(userId)) {
-        mLockedPartitionPerUser.put(userId, new HashSet<Long>());
+      if (!mLockedFilesPerUser.containsKey(userId)) {
+        mLockedFilesPerUser.put(userId, new HashSet<Integer>());
       }
-      mLockedPartitionPerUser.get(userId).add(bigId);
+      mLockedFilesPerUser.get(userId).add(fileId);
     }
   }
 
   private boolean memoryEvictionLRU() {
     long latestTimeMs = Long.MAX_VALUE;
-    long bigId = -1;
+    int fileId = -1;
     Set<Integer> pinList = new HashSet<Integer>();
 
     // TODO Cache replacement policy should go through Master.
@@ -298,19 +286,18 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       pinList = new HashSet<Integer>();
     }
 
-    synchronized (mLatestPartitionAccessTime) {
-      synchronized (mLockedPartitionPerPartition) {
-        for (Entry<Long, Long> entry : mLatestPartitionAccessTime.entrySet()) {
-          if (entry.getValue() < latestTimeMs 
-              && !pinList.contains(CommonUtils.computeDatasetIdFromBigId(entry.getKey()))) {
-            if(!mLockedPartitionPerPartition.containsKey(entry.getKey())) {
-              bigId = entry.getKey();
+    synchronized (mLatestFileAccessTimeMs) {
+      synchronized (mUsersPerLockedFile) {
+        for (Entry<Integer, Long> entry : mLatestFileAccessTimeMs.entrySet()) {
+          if (entry.getValue() < latestTimeMs && !pinList.contains(entry.getKey())) {
+            if(!mUsersPerLockedFile.containsKey(entry.getKey())) {
+              fileId = entry.getKey();
               latestTimeMs = entry.getValue();
             }
           }
         }
-        if (bigId != -1) {
-          removePartition(bigId);
+        if (fileId != -1) {
+          freeFile(fileId);
           return true;
         }
       }
@@ -319,22 +306,18 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     return false;
   }
 
-  private void removePartition(long bigId) {
-    mWorkerInfo.returnUsedBytes(mPartitionSizes.get(bigId));
-    mWorkerInfo.removePartition(bigId);
-    File srcFile = new File(mDataFolder + "/" + CommonUtils.computeDatasetIdFromBigId(bigId) + "-" + 
-        CommonUtils.computePartitionIdFromBigId(bigId));
+  private void freeFile(int fileId) {
+    mWorkerInfo.returnUsedBytes(mFileSizes.get(fileId));
+    mWorkerInfo.removeFile(fileId);
+    File srcFile = new File(mDataFolder + "/" + fileId);
     srcFile.delete();
-    synchronized (mLatestPartitionAccessTime) {
-      mLatestPartitionAccessTime.remove(bigId);
-      mPartitionSizes.remove(bigId);
-      mRemovedPartitionList.add(bigId);
-      int datasetId = CommonUtils.computeDatasetIdFromBigId(bigId);
-      int partitionId = CommonUtils.computePartitionIdFromBigId(bigId);
-      mMemoryData.get(datasetId).remove(partitionId);
+    synchronized (mLatestFileAccessTimeMs) {
+      mLatestFileAccessTimeMs.remove(fileId);
+      mFileSizes.remove(fileId);
+      mRemovedFileList.add(fileId);
+      mMemoryData.remove(fileId);
     }
-    LOG.info("Removed Data " + CommonUtils.computeDatasetIdFromBigId(bigId) + ":" + 
-        CommonUtils.computePartitionIdFromBigId(bigId));
+    LOG.info("Removed Data " + fileId);
   }
 
   public void register() {
@@ -344,7 +327,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
         mMasterClient.open();
         id = mMasterClient.worker_register(
             new NetAddress(mWorkerInfo.ADDRESS.getHostName(), mWorkerInfo.ADDRESS.getPort()),
-            mWorkerInfo.TOTAL_BYTES, 0, new ArrayList<Long>());
+            mWorkerInfo.TOTAL_BYTES, 0, new ArrayList<Integer>());
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
@@ -393,18 +376,17 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void unlockPartition(int datasetId, int partitionId, long userId) throws TException {
-    long bigId = CommonUtils.generateBigId(datasetId, partitionId);
-    synchronized (mLockedPartitionPerPartition) {
-      if (mLockedPartitionPerPartition.containsKey(bigId)) {
-        mLockedPartitionPerPartition.get(bigId).remove(userId);
-        if (mLockedPartitionPerPartition.get(bigId).size() == 0) {
-          mLockedPartitionPerPartition.remove(bigId);
+  public void unlockFile(int fileId, long userId) throws TException {
+    synchronized (mUsersPerLockedFile) {
+      if (mUsersPerLockedFile.containsKey(fileId)) {
+        mUsersPerLockedFile.get(fileId).remove(userId);
+        if (mUsersPerLockedFile.get(fileId).size() == 0) {
+          mUsersPerLockedFile.remove(fileId);
         }
       }
 
-      if (mLockedPartitionPerUser.containsKey(userId)) {
-        mLockedPartitionPerUser.get(userId).remove(bigId);
+      if (mLockedFilesPerUser.containsKey(userId)) {
+        mLockedFilesPerUser.get(userId).remove(fileId);
       }
     }
   }

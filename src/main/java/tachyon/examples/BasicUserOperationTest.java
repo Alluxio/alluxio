@@ -10,28 +10,26 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Config;
 import tachyon.CommonUtils;
-import tachyon.client.Partition;
-import tachyon.client.Dataset;
 import tachyon.client.TachyonClient;
-import tachyon.thrift.OutOfMemoryForPinDatasetException;
-import tachyon.thrift.SuspectedPartitionSizeException;
+import tachyon.client.TachyonFile;
+import tachyon.thrift.OutOfMemoryForPinFileException;
+import tachyon.thrift.SuspectedFileSizeException;
 
 public class BasicUserOperationTest {
   private static Logger LOG = LoggerFactory.getLogger(BasicUserOperationTest.class);
 
   private static TachyonClient sTachyonClient;
-  private static String sDatasetPath = null;
+  private static String sFilePath = null;
 
-  public static void createDataset() {
+  public static void createFile() {
     long startTimeMs = CommonUtils.getCurrentMs();
-    int datasetId = sTachyonClient.createDataset(sDatasetPath, 5);
-    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createDataset with datasetId " + datasetId);
+    int fileId = sTachyonClient.createFile(sFilePath);
+    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createFile with fileId " + fileId);
   }
 
-  public static void writeParition() throws SuspectedPartitionSizeException, IOException {
-    Dataset dataset = sTachyonClient.getDataset(sDatasetPath);
-    Partition partition = dataset.getPartition(3);
-    partition.open("w");
+  public static void writeFile() throws SuspectedFileSizeException, IOException {
+    TachyonFile file = sTachyonClient.getFile(sFilePath);
+    file.open("w");
 
     ByteBuffer buf = ByteBuffer.allocate(80);
     buf.order(ByteOrder.nativeOrder());
@@ -45,41 +43,40 @@ public class BasicUserOperationTest {
 
     buf.flip();
     try {
-      partition.append(buf);
-    } catch (OutOfMemoryForPinDatasetException e) {
+      file.append(buf);
+    } catch (OutOfMemoryForPinFileException e) {
       CommonUtils.runtimeException(e);
     }
-    partition.close();
+    file.close();
   }
 
-  public static void readPartition() throws SuspectedPartitionSizeException, IOException {
+  public static void readFile() throws SuspectedFileSizeException, IOException {
     LOG.info("Reading data...");
-    Dataset dataset = sTachyonClient.getDataset(sDatasetPath);
-    Partition partition = dataset.getPartition(3);
-    partition.open("r");
+    TachyonFile file = sTachyonClient.getFile(sFilePath);
+    file.open("r");
 
     ByteBuffer buf;
     try { 
-      buf = partition.readByteBuffer();
+      buf = file.readByteBuffer();
       CommonUtils.printByteBuffer(LOG, buf);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
       CommonUtils.runtimeException(e);
     }
 
-    partition.close();
+    file.close();
   }
 
-  public static void main(String[] args) throws SuspectedPartitionSizeException, IOException {
+  public static void main(String[] args) throws SuspectedFileSizeException, IOException {
     if (args.length != 2) {
       System.out.println("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
-          "tachyon.examples.BasicUserOperationTest <TachyonMasterHostName> <DatasetPath>");
+          "tachyon.examples.BasicUserOperationTest <TachyonMasterHostName> <FilePath>");
     }
     sTachyonClient = TachyonClient.getClient(
         new InetSocketAddress(args[0], Config.MASTER_PORT));
-    sDatasetPath = args[1];
-    createDataset();
-    writeParition();
-    readPartition();
+    sFilePath = args[1];
+    createFile();
+    writeFile();
+    readFile();
   }
 }

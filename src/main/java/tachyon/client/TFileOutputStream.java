@@ -4,18 +4,18 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import tachyon.CommonUtils;
-import tachyon.thrift.OutOfMemoryForPinDatasetException;
+import tachyon.thrift.OutOfMemoryForPinFileException;
 
-public class PartitionOutputStream extends OutputStream {
-  private final Partition PARTITION; 
+public class TFileOutputStream extends OutputStream {
+  private final TachyonFile FILE; 
 
-  public PartitionOutputStream(Partition partition) {
-    PARTITION = partition;
+  public TFileOutputStream(TachyonFile file) {
+    FILE = file;
   }
 
   @Override
   public void write(int b) throws IOException {
-    PARTITION.append(b);
+    FILE.append(b);
   }
 
   public void write(byte b[]) throws IOException {
@@ -34,14 +34,14 @@ public class PartitionOutputStream extends OutputStream {
     }
 
     try {
-      PARTITION.append(b, off, len);
-    } catch (OutOfMemoryForPinDatasetException e) {
+      FILE.append(b, off, len);
+    } catch (OutOfMemoryForPinFileException e) {
       CommonUtils.runtimeException(e);
     }
   }
 
   @Override
   public void close() {
-    PARTITION.close();
+    FILE.close();
   }
 }
