@@ -204,11 +204,14 @@ public class MasterInfo {
     } else {
       List<Integer> childernIds = ((InodeFolder) inode).getChildrenIds();
 
+      if (!path.endsWith("/")) {
+        path += "/";
+      }
       synchronized (mRoot) {
         for (int k : childernIds) {
-          inode = mInodes.get(childernIds.get(k));
+          inode = mInodes.get(k);
           if (inode != null) {
-            ret.add(path + "/" + inode.getName());
+            ret.add(path + inode.getName());
           }
         }
       }
@@ -269,11 +272,6 @@ public class MasterInfo {
   }
 
   private Inode getInode(String path) throws InvalidPathException {
-    String[] s = getPathNames(path);
-    System.out.println("S :" + path + ":");
-    for (int k = 0; k < s.length; k ++) {
-      System.out.println(k + " +" + s[k] + "+");
-    }
     return getInode(getPathNames(path));
   }
 

@@ -17,7 +17,7 @@ public class Ls {
     }
 
     System.out.println(args[0]);
-    String folder = Utils.getDatasetName(args[0]);
+    String folder = Utils.getFilePath(args[0]);
     MasterClient masterClient = new MasterClient(Utils.getTachyonMasterAddress(args[0]));
     masterClient.open();
     List<String> files = masterClient.ls(folder);
