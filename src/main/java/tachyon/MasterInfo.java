@@ -148,15 +148,16 @@ public class MasterInfo {
     mHeartbeatThread.start();
   }
 
-  public int createFile(String path) throws FileAlreadyExistException, InvalidPathException {
+  public int createFile(String path, boolean directory)
+      throws FileAlreadyExistException, InvalidPathException {
     String parameters = CommonUtils.parametersToString(path);
     LOG.info("createFile" + parameters);
 
     String[] pathNames = getPathNames(path);
 
     synchronized (mRoot) {
-      Inode inode = getInode(path);
-      if (inode != null && path.equals(SEPARATOR)) {
+      Inode inode = getInode(pathNames);
+      if (inode != null) {
         Log.info("FileAlreadyExistException: File " + path + " already exist.");
         throw new FileAlreadyExistException("File " + path + " already exist.");
       }
@@ -176,7 +177,13 @@ public class MasterInfo {
             + folderPath + " does not exist.");
       }
 
-      Inode newFile = new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId());
+      Inode newFile = null;
+      
+      if (directory) {
+        newFile = new InodeFolder(name, mInodeCounter.incrementAndGet(), inode.getId());
+      } else {
+        newFile = new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId());
+      }
 
       mInodes.put(newFile.getId(), newFile);
       ((InodeFolder) inode).addChild(newFile.getId());
@@ -264,11 +271,6 @@ public class MasterInfo {
       }
       delete(inode.getId());
     }
-  }
-
-  public boolean mkdir(String path) {
-    // TODO
-    return false;
   }
 
   private Inode getInode(String path) throws InvalidPathException {
