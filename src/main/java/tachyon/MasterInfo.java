@@ -126,6 +126,7 @@ public class MasterInfo {
 
   public MasterInfo(InetSocketAddress address) {
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1);
+    mInodes.put(mRoot.getId(), mRoot);
 
     MASTER_ADDRESS = address;
     START_TIME_MS = System.currentTimeMillis();
@@ -448,22 +449,38 @@ public class MasterInfo {
         }
 
         sb.append("<h2>" + mInodes.size() + " File(s): </h2>");
-        List<Integer> fileIdList = new ArrayList<Integer>(mInodes.keySet());
-        Collections.sort(fileIdList);
-        for (int k = 0; k < fileIdList.size(); k ++) {
-          Inode tInode = mInodes.get(fileIdList.get(k));
-          sb.append("<strong>File " + (k + 1) + " </strong>: ");
-          sb.append("ID: ").append(tInode.getId()).append("; ");
-          sb.append("Path: ").append(tInode.getName()).append("; ");
-          if (Config.DEBUG) {
-            sb.append(tInode.toString());
-          }
-          sb.append("<br \\>");
-        }
+
+        generateFileNamesForHtml("/", mRoot, sb, 1);
       }
     }
 
     return sb.toString();
+  }
+
+  private int generateFileNamesForHtml(String curPath, Inode inode, StringBuilder sb, int cnt) {
+    sb.append("<strong>File " + cnt + " </strong>: ");
+    sb.append("ID: ").append(inode.getId()).append("; ");
+    sb.append("Path: ").append(curPath + inode.getName()).append("; ");
+    if (Config.DEBUG) {
+      sb.append(inode.toString());
+    }
+    sb.append("<br \\>");
+
+    cnt ++;
+    int subCnt = 1;
+    if (inode.isDirectory()) {
+      List<Integer> childrenIds = ((InodeFolder) inode).getChildrenIds();
+      if (inode.getId() != 1) {
+        curPath += "/";
+      }
+      for (int id : childrenIds) {
+        int t = generateFileNamesForHtml(curPath + inode.getName(), mInodes.get(id), sb, cnt);
+        subCnt += t;
+        cnt += t;
+      }
+    }
+    
+    return subCnt;
   }
 
   public NetAddress getLocalWorker(String host) throws NoLocalWorkerException {
