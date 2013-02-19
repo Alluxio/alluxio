@@ -7,19 +7,18 @@ struct NetAddress {
 
 struct ClientFileInfo {
   1: i32 id
-  2: string fileName
-  3: string checkpointPath
-  4: bool needPin
-  5: bool needCache
+  2: string name
+  3: string path
+  4: string checkpointPath
+  5: bool needPin
+  6: bool needCache
 }
 
-struct RawTableInfo {
-  1: i32 mId
-  2: string mPath
-  3: i32 mColumns
-  4: i64 mSizeBytes
-  5: i32 mNumOfPartitions
-  6: list<i32> mColumnDatasetIdList
+struct ClientRawTableInfo {
+  1: i32 id
+  2: string name
+  3: string path
+  4: i32 columns
 }
 
 enum LogEventType {

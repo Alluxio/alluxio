@@ -42,7 +42,6 @@ public class TachyonFile {
   private final ClientFileInfo mClientFileInfo;
   private final int mId;
 
-  private String mFileName;
   private List<NetAddress> mLocations;
 
   private boolean mOpen = false;
@@ -65,7 +64,6 @@ public class TachyonFile {
     mTachyonClient = tachyonClient;
     mClientFileInfo = fileInfo;
     mId = mClientFileInfo.getId();
-    mFileName = mClientFileInfo.getFileName();
   }
 
   private synchronized void appendCurrentOutBuffer(int minimalPosition) throws IOException {
@@ -307,7 +305,7 @@ public class TachyonFile {
     }
 
     if (ret == null) {
-      new IOException("Failed to read file " + mFileName);
+      new IOException("Failed to read file " + mClientFileInfo.getPath());
     }
     return ret;
   }
@@ -343,7 +341,7 @@ public class TachyonFile {
     mLocations = mTachyonClient.getFileLocations(mId);
 
     if (mLocations == null) {
-      throw new IOException("Can not find location info about " + mFileName + " " + mId);
+      throw new IOException("Can not find location info: " + mClientFileInfo.getPath() + " " + mId);
     }
 
     LOG.info("readByteBuffer() PartitionInfo " + mLocations);
@@ -385,7 +383,7 @@ public class TachyonFile {
 
     HdfsClient tHdfsClient = new HdfsClient(path);
     FSDataInputStream inputStream = tHdfsClient.open(path);
-    TachyonFile tTFile = mTachyonClient.getFile(mFileName);
+    TachyonFile tTFile = mTachyonClient.getFile(mClientFileInfo.getPath());
     tTFile.open("w", false);
     byte buffer[] = new byte[Config.USER_BUFFER_PER_PARTITION_BYTES * 4];
 
