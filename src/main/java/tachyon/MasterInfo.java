@@ -178,7 +178,7 @@ public class MasterInfo {
       }
 
       Inode newFile = null;
-      
+
       if (directory) {
         newFile = new InodeFolder(name, mInodeCounter.incrementAndGet(), inode.getId());
       } else {
@@ -479,7 +479,7 @@ public class MasterInfo {
         cnt += t;
       }
     }
-    
+
     return subCnt;
   }
 
@@ -506,12 +506,25 @@ public class MasterInfo {
       }
       ClientFileInfo ret = new ClientFileInfo();
       ret.id = inode.getId();
-      ret.fileName = inode.getName();
+      ret.name = inode.getName();
+      ret.path = getPath(inode);
       ret.checkpointPath = inode.getCheckpointPath();
       ret.needPin = inode.isPin();
       ret.needCache = inode.isCache();
       LOG.info("getClientFileInfo(" + id + "): "  + ret);
       return ret;
+    }
+  }
+
+  private String getPath(Inode inode) {
+    synchronized (mRoot) {
+      if (inode.getId() == 1) {
+        return "/";
+      }
+      if (inode.getParentId() == 1) {
+        return SEPARATOR + inode.getName();
+      }
+      return getPath(mInodes.get(inode.getParentId())) + SEPARATOR + inode.getName();
     }
   }
 
