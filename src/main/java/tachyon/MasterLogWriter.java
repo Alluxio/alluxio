@@ -23,7 +23,7 @@ public class MasterLogWriter {
     }
   }
 
-  public void appendAndFlush(INode inodeInfo) {
+  public void appendAndFlush(Inode inodeInfo) {
     try {
       mOutputStream.writeObject(LogEventType.INode);
       mOutputStream.writeObject(inodeInfo);
