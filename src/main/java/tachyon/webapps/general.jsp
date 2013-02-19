@@ -13,13 +13,13 @@
 			<div class="navbar navbar-inverse">
 				<div class="navbar-inner">
 					<ul class="nav nav-pills">
-						<li class="active"><a href="./index.html">Master Node XXXXX</a></li>
-						<li><a href="./browse.html">Browse File System</a></li>
+						<li class="active"><a href="./home">Master Node XXXXX</a></li>
+						<li><a href="./browse?path=/">Browse File System</a></li>
 					</ul>
 				</div>
 			</div>
-
-			<div class="accordion span10" id="accordion1">
+			<div class ="row-fluid">
+			<div class="accordion span6" id="accordion1">
 				<div class="accordion-group">
 					<div class="accordion-heading">
 						<a class="accordion-toggle" data-toggle="collapse" 
@@ -54,7 +54,7 @@
 				</div>
 			</div>
 			
-			<div class="accordion span10" id="accordion2">
+			<div class="accordion span6" id="accordion2">
 				<div class="accordion-group">
 					<div class="accordion-heading">
 						<a class="accordion-toggle" data-toggle="collapse" 
@@ -87,6 +87,58 @@
 						</div>
 					</div>
 				</div>
+			</div>	
+			</div>
+			<div class="row-fluid">
+
+			<div class="accordion span14" id="accordion3">
+				<div class="accordion-group">
+					<div class="accordion-heading">
+						<a class="accordion-toggle" data-toggle="collapse" 
+							data-parent="#accordion3" href="#data3">
+							<h4>Detailed Node Summary Here</h4>
+						</a>
+					</div>
+					<div id="data3" class="accordion-body collapse in">
+						<div class="accordion-inner">
+							<table class="table table-hover">
+								<thead>
+									<th>Node Name</th>
+									<th>Last Heartbeat</th>
+									<th>State</th>
+									<th>Blocks</th>	
+									<th>Capacity</th>
+								<tbody>
+									<tr>
+										<th>$VARIABLEHERE</th>
+										<th>$VARIABLEHERE</th>
+										<th>$VARIABLEHERE</th>
+										<th>$VARIABLEHERE</th>
+										<th>
+											<div class="progress">
+  												<div class="bar bar-success" style="width: 80%;">$%Free</div>
+  												<div class="bar bar-danger" style="width: 20%;"></div>
+											</div>
+										</th>
+									</tr>
+									<tr>
+										<th>$VARIABLEHERE</th>
+										<th>$VARIABLEHERE</th>
+										<th>$VARIABLEHERE</th>
+										<th>$VARIABLEHERE</th>
+										<th>
+											<div class="progress">
+  												<div class="bar bar-success" style="width: 80%;">$%Free</div>
+  												<div class="bar bar-danger" style="width: 20%;"></div>
+											</div>
+										</th>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
 			</div>	
 		</div>
 	</body>
