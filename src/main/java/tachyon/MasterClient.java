@@ -52,7 +52,8 @@ public class MasterClient {
     mIsConnected = false;
   }
 
-  public synchronized List<String> ls(String folder) throws TException {
+  public synchronized List<String> ls(String folder)
+      throws InvalidPathException, FileDoesNotExistException, TException {
     return CLIENT.cmd_ls(folder);
   }
 
@@ -90,7 +91,8 @@ public class MasterClient {
   //    return CLIENT.user_createRawColumnDataset(datasetPath, columns, partitions);
   //  }
 
-  public synchronized void user_delete(String folder) throws FileDoesNotExistException, TException {
+  public synchronized void user_delete(String folder)
+      throws FileDoesNotExistException, InvalidPathException, TException {
     CLIENT.user_deleteByPath(folder);
   }
 
@@ -99,7 +101,7 @@ public class MasterClient {
   }
 
   public ClientFileInfo user_getClientFileInfoByPath(String filePath)
-      throws FileDoesNotExistException, TException {
+      throws FileDoesNotExistException, InvalidPathException, TException {
     return CLIENT.user_getClientFileInfoByPath(filePath);
   }
 
@@ -108,7 +110,7 @@ public class MasterClient {
     return CLIENT.user_getClientFileInfoById(fileId);
   }
 
-  public synchronized int user_getFileId(String filePath) throws TException {
+  public synchronized int user_getFileId(String filePath) throws InvalidPathException, TException {
     return CLIENT.user_getFileId(filePath);
   }
 
@@ -122,22 +124,22 @@ public class MasterClient {
     return CLIENT.user_getLocalWorker(localHostName);
   }
 
-//  public synchronized RawColumnDatasetInfo user_getRawColumnDataset(String datasetPath)
-//      throws FileDoesNotExistException, TException {
-//    return CLIENT.user_getRawColumnDatasetByPath(datasetPath);
-//  }
-//
-//  public synchronized RawColumnDatasetInfo user_getRawColumnDatasetInfo(int fileId)
-//      throws FileDoesNotExistException, TException {
-//    return CLIENT.user_getRawColumnDatasetById(fileId);
-//  }
+  //  public synchronized RawColumnDatasetInfo user_getRawColumnDataset(String datasetPath)
+  //      throws FileDoesNotExistException, TException {
+  //    return CLIENT.user_getRawColumnDatasetByPath(datasetPath);
+  //  }
+  //
+  //  public synchronized RawColumnDatasetInfo user_getRawColumnDatasetInfo(int fileId)
+  //      throws FileDoesNotExistException, TException {
+  //    return CLIENT.user_getRawColumnDatasetById(fileId);
+  //  }
 
   public synchronized void user_outOfMemoryForPinDataset(int fileId) throws TException {
     CLIENT.user_outOfMemoryForPinFile(fileId);
   }
 
   public synchronized void user_renameFile(String srcDataset, String dstDataset)
-      throws FileDoesNotExistException, TException {
+      throws FileDoesNotExistException, InvalidPathException, TException {
     CLIENT.user_renameFile(srcDataset, dstDataset);
   }
 
@@ -146,11 +148,11 @@ public class MasterClient {
     CLIENT.user_unpinFile(fileId);
   }
 
-//  public synchronized void user_setPartitionCheckpointPath(int fileId, int partitionId,
-//      String checkpointPath) throws FileDoesNotExistException,
-//      FileDoesNotExistException, TException {
-//    CLIENT.user_setFileCheckpointPath(fileId, partitionId, checkpointPath);
-//  }
+  //  public synchronized void user_setPartitionCheckpointPath(int fileId, int partitionId,
+  //      String checkpointPath) throws FileDoesNotExistException,
+  //      FileDoesNotExistException, TException {
+  //    CLIENT.user_setFileCheckpointPath(fileId, partitionId, checkpointPath);
+  //  }
 
   public synchronized void worker_addFile(long workerId, long workerUsedBytes,
       int fileId, int partitionSizeBytes, boolean hasCheckpointed, 
@@ -160,11 +162,11 @@ public class MasterClient {
         hasCheckpointed, checkpointPath);
   }
 
-//  public synchronized void worker_addRCDPartition(long workerId, int fileId, int partitionId,
-//      int partitionSizeBytes) throws FileDoesNotExistException,
-//      SuspectedFileSizeException, TException {
-//    CLIENT.worker_addRCDPartition(workerId, fileId, partitionId, partitionSizeBytes);
-//  }
+  //  public synchronized void worker_addRCDPartition(long workerId, int fileId, int partitionId,
+  //      int partitionSizeBytes) throws FileDoesNotExistException,
+  //      SuspectedFileSizeException, TException {
+  //    CLIENT.worker_addRCDPartition(workerId, fileId, partitionId, partitionSizeBytes);
+  //  }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
       List<Integer> removedPartitionList) throws TException {

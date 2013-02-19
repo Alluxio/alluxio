@@ -11,8 +11,8 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 
 
 public class WebServerMasterHandler extends AbstractHandler {
-  private MasterServiceHandler mMasterServiceHandler;
-  
+  private MasterInfo mMasterInfo;
+
   @Override
   public void handle(String target, Request baseRequest,
       HttpServletRequest request, HttpServletResponse response) 
@@ -20,10 +20,10 @@ public class WebServerMasterHandler extends AbstractHandler {
     response.setContentType("text/html;charset=utf-8");
     response.setStatus(HttpServletResponse.SC_OK);
     baseRequest.setHandled(true);
-    response.getWriter().println(mMasterServiceHandler.toHtml());
+    response.getWriter().println(mMasterInfo.toHtml());
   }
-  
-  public WebServerMasterHandler(MasterServiceHandler msh) {
-    mMasterServiceHandler = msh;
+
+  public WebServerMasterHandler(MasterInfo masterInfo) {
+    mMasterInfo = masterInfo;
   }
 }

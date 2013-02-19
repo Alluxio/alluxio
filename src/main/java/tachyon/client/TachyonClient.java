@@ -368,6 +368,8 @@ public class TachyonClient {
     filePath = CommonUtils.cleanPath(filePath);
     try {
       fileId = mMasterClient.user_getFileId(filePath);
+    } catch (InvalidPathException e) {
+      CommonUtils.runtimeException(e);
     } catch (TException e) {
       // TODO Ideally, this exception should be throws to the upper upper layer, and 
       // remove notContainDataset(datasetPath) method. This is for absolutely fall through.
@@ -389,6 +391,9 @@ public class TachyonClient {
       ret = mMasterClient.user_getClientFileInfoByPath(filePath);
     } catch (FileDoesNotExistException e) {
       LOG.info("File " + filePath + " does not exist.");
+      return null;
+    } catch (InvalidPathException e) {
+      LOG.info("File path " + filePath + " is invalid.");
       return null;
     } catch (TException e) {
       LOG.error(e.getMessage());

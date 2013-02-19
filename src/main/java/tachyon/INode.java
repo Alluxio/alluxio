@@ -1,7 +1,9 @@
 package tachyon;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import tachyon.thrift.NetAddress;
@@ -11,34 +13,37 @@ public abstract class INode implements Comparable<INode>, Serializable {
 
   public static final long UNINITIAL_VALUE = -1;
 
-  protected long mCreationTimeMs;
-  protected int mId;
-  protected String mName;
-  protected int mParentId;
-  protected boolean mIsFolder;
+  private final long CREATION_TIME_MS;
+  private final boolean IS_FOLDER;
 
-  protected boolean mPin = false;
-  protected boolean mCache = false;
-  
-  protected boolean mHasCheckpointed = false;
-  protected String mCheckpointPath = "";
+  private int mId;
+  private String mName;
+  private int mParentId;
 
-  public Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>();
+  private boolean mPin = false;
+  private boolean mCache = false;
+
+  private boolean mHasCheckpointed = false;
+  private String mCheckpointPath = "";
+
+  private Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>();
 
   protected INode(String name, int id, int parentId, boolean isFolder) {
     mName = name;
-    mId = id;
     mParentId = parentId;
-    mCreationTimeMs = System.currentTimeMillis();
+
+    mId = id;
+    IS_FOLDER = isFolder;
+    CREATION_TIME_MS = System.currentTimeMillis();
   }
 
   @Override
-  public int compareTo(INode o) {
+  public synchronized int compareTo(INode o) {
     return mId - o.mId;
   }
 
   @Override
-  public boolean equals(Object o) {
+  public synchronized boolean equals(Object o) {
     if (!(o instanceof INode)) {
       return false;
     }
@@ -46,40 +51,92 @@ public abstract class INode implements Comparable<INode>, Serializable {
   }
 
   @Override
-  public int hashCode() {
+  public synchronized int hashCode() {
     return mId;
   }
 
-  public abstract long getLength();
-
   public boolean isDirectory() {
-    return mIsFolder;
+    return IS_FOLDER;
   }
 
   public boolean isFile() {
-    return !mIsFolder;
+    return !IS_FOLDER;
   }
 
   public long getCreationTimeMs() {
-    return mCreationTimeMs;
+    return CREATION_TIME_MS;
   }
 
-  public int getId() {
+  public synchronized int getId() {
     return mId;
   }
 
-  public String getName() {
+  public synchronized void reverseId() {
+    mId = -mId;
+  }
+
+  public synchronized String getName() {
     return mName;
   }
 
-  public void setName(String name) {
+  public synchronized void setName(String name) {
     mName = name;
   }
 
+  public synchronized int getParentId() {
+    return mParentId;
+  }
+
+  public synchronized void setParentId(int parentId) {
+    mParentId = parentId;
+  }
+
+  public synchronized boolean isPin() {
+    return mPin;
+  }
+
+  public synchronized boolean isCache() {
+    return mCache;
+  }
+
+  public synchronized void setHasCheckpointed(boolean hasCheckpointed) {
+    mHasCheckpointed = hasCheckpointed;
+  }
+
+  public synchronized boolean hasCheckpointed() {
+    return mHasCheckpointed;
+  }
+
   @Override
-  public String toString() {
+  public synchronized String toString() {
     StringBuilder sb = new StringBuilder("INode(");
     sb.append(mName).append(",").append(mId).append(")");
     return sb.toString();
+  }
+
+  public synchronized void setCheckpointPath(String checkpointPath) {
+    mCheckpointPath = checkpointPath;
+  }
+
+  public synchronized String getCheckpointPath() {
+    return mCheckpointPath;
+  }
+
+  public synchronized void addLocation(long workerId, NetAddress workerAddress) {
+    mLocations.put(workerId, workerAddress);
+  }
+  
+  public synchronized void removeLocation(long workerId) {
+    mLocations.remove(workerId);
+  }
+
+  public synchronized List<NetAddress> getLocations() {
+    List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
+    ret.addAll(mLocations.values());
+    return ret;
+  }
+
+  public void setPin(boolean pin) {
+    mPin = pin;
   }
 }

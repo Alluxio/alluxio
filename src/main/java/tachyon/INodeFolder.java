@@ -1,56 +1,58 @@
 package tachyon;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class INodeFolder extends INode {
   private static final long serialVersionUID = -1195474593218285949L;
 
-  private List<INode> mChildren;
+  private Set<Integer> mChildren;
 
   public INodeFolder(String name, int id, int parentId) {
     super(name, id, parentId, true);
-    mChildren = new ArrayList<INode>();
+    mChildren = new HashSet<Integer>();
   }
 
-  @Override
-  public long getLength() {
-    return 0;
-  }
-
-  @Override
-  public boolean isDirectory() {
-    return true;
-  }
-
-  @Override
-  public boolean isFile() {
-    return false;
-  }
-
-  public synchronized void addChild(INode childId) {
+  public synchronized void addChild(int childId) {
     mChildren.add(childId);
   }
 
-  public synchronized void addChildren(INode [] childrenIds) {
+  public synchronized void addChildren(int [] childrenIds) {
     for (int k = 0; k < childrenIds.length; k ++) {
       addChild(childrenIds[k]);
     }
   }
 
-  public synchronized INode getChild(String name) {
-    for (int k = 0; k < mChildren.size(); k ++) {
-      if (mChildren.get(k).getName().equals(name)) {
-        return mChildren.get(k);
+  public synchronized INode getChild(String name, Map<Integer, INode> allInodes) {
+    INode tInode = null;
+    for (int childId : mChildren) {
+      tInode = allInodes.get(childId);
+      if (tInode != null && tInode.getName().equals(name)) {
+        return tInode;
       }
     }
     return null;
   }
 
-  public synchronized boolean removeChild(String name) {
-    for (int k = 0; k < mChildren.size(); k ++) {
-      if (mChildren.get(k).getName().equals(name)) {
-        mChildren.remove(k);
+  public synchronized List<Integer> getChildrenIds() {
+    List<Integer> ret = new ArrayList<Integer>(mChildren.size());
+    ret.addAll(mChildren);
+    return ret;
+  }
+
+  public synchronized void removeChild(int id) {
+    mChildren.remove(id);
+  }
+
+  public synchronized boolean removeChild(String name, Map<Integer, INode> allInodes) {
+    INode tInode = null;
+    for (int childId : mChildren) {
+      tInode = allInodes.get(childId);
+      if (tInode != null && tInode.getName().equals(name)) {
+        mChildren.remove(childId);
         return true;
       }
     }

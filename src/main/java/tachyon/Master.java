@@ -21,13 +21,22 @@ public class Master {
 
   private static Master MASTER = null;
 
+  private MasterInfo mMasterInfo;
+  private WebServer mWebServer;
   private TServer mServer;
   private MasterServiceHandler mMasterServiceHandler;
 
   private Master(InetSocketAddress address, int selectorThreads, int acceptQueueSizePerThreads,
       int workerThreads) {
     try {
-      mMasterServiceHandler = new MasterServiceHandler(address);
+      mMasterInfo = new MasterInfo(address);
+      
+      mWebServer = new WebServer("Tachyon Master Server",
+          new InetSocketAddress(address.getHostName(), Config.MASTER_WEB_PORT));
+      mWebServer.setHandler(new WebServerMasterHandler(mMasterInfo));
+      mWebServer.startWebServer();
+      
+      mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
       MasterService.Processor<MasterServiceHandler> processor = 
           new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
