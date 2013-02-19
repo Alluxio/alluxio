@@ -134,6 +134,11 @@ public class MasterClient {
   //    return CLIENT.user_getRawColumnDatasetById(fileId);
   //  }
 
+  public int user_mkdir(String path) 
+      throws FileAlreadyExistException, InvalidPathException, TException {
+    return CLIENT.user_mkdir(path);
+  }
+
   public synchronized void user_outOfMemoryForPinDataset(int fileId) throws TException {
     CLIENT.user_outOfMemoryForPinFile(fileId);
   }
