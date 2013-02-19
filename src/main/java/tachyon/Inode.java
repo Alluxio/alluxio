@@ -8,7 +8,7 @@ import java.util.Map;
 
 import tachyon.thrift.NetAddress;
 
-public abstract class INode implements Comparable<INode>, Serializable {
+public abstract class Inode implements Comparable<Inode>, Serializable {
   private static final long serialVersionUID = 2712957988375300023L;
 
   public static final long UNINITIAL_VALUE = -1;
@@ -28,7 +28,7 @@ public abstract class INode implements Comparable<INode>, Serializable {
 
   private Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>();
 
-  protected INode(String name, int id, int parentId, boolean isFolder) {
+  protected Inode(String name, int id, int parentId, boolean isFolder) {
     mName = name;
     mParentId = parentId;
 
@@ -38,16 +38,16 @@ public abstract class INode implements Comparable<INode>, Serializable {
   }
 
   @Override
-  public synchronized int compareTo(INode o) {
+  public synchronized int compareTo(Inode o) {
     return mId - o.mId;
   }
 
   @Override
   public synchronized boolean equals(Object o) {
-    if (!(o instanceof INode)) {
+    if (!(o instanceof Inode)) {
       return false;
     }
-    return mId == ((INode)o).mId;
+    return mId == ((Inode)o).mId;
   }
 
   @Override

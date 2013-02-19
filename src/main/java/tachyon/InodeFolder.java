@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class INodeFolder extends INode {
+public class InodeFolder extends Inode {
   private static final long serialVersionUID = -1195474593218285949L;
 
   private Set<Integer> mChildren;
 
-  public INodeFolder(String name, int id, int parentId) {
+  public InodeFolder(String name, int id, int parentId) {
     super(name, id, parentId, true);
     mChildren = new HashSet<Integer>();
   }
@@ -26,8 +26,8 @@ public class INodeFolder extends INode {
     }
   }
 
-  public synchronized INode getChild(String name, Map<Integer, INode> allInodes) {
-    INode tInode = null;
+  public synchronized Inode getChild(String name, Map<Integer, Inode> allInodes) {
+    Inode tInode = null;
     for (int childId : mChildren) {
       tInode = allInodes.get(childId);
       if (tInode != null && tInode.getName().equals(name)) {
@@ -47,8 +47,8 @@ public class INodeFolder extends INode {
     mChildren.remove(id);
   }
 
-  public synchronized boolean removeChild(String name, Map<Integer, INode> allInodes) {
-    INode tInode = null;
+  public synchronized boolean removeChild(String name, Map<Integer, Inode> allInodes) {
+    Inode tInode = null;
     for (int childId : mChildren) {
       tInode = allInodes.get(childId);
       if (tInode != null && tInode.getName().equals(name)) {
