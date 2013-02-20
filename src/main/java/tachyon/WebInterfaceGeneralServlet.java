@@ -14,8 +14,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
   MasterInfo mMSH;
 
-	public WebInterfaceServlet(MasterInfo MSH) {
-		this.mMSH = MSH;
+	public WebInterfaceGeneralServlet(MasterInfo MSH) {
+		mMSH = MSH;
 	}
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
