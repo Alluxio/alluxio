@@ -12,10 +12,10 @@ import java.io.IOException;
 
 public class WebInterfaceGeneralServlet extends HttpServlet {
 
-  MasterInfo mMSH;
+  MasterInfo mMasterInfo;
 
-	public WebInterfaceGeneralServlet(MasterInfo MSH) {
-		mMSH = MSH;
+	public WebInterfaceGeneralServlet(MasterInfo MI) {
+		mMasterInfo = MI;
 	}
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
@@ -30,18 +30,29 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
 	// Populates key, value pairs for UI display
 	private void populateValues(HttpServletRequest request) {
-	  int upMillis = (int) (System.currentTimeMillis() - mMSH.getStarttimeMs());
-      String uptime = (upMillis/84600000) + " d "
-      				  + (upMillis/3600000 % 24) + " h "
-      				  + (upMillis/60000 % 60) + " m "
-      				  + (upMillis/1000 % 60) + " s ";
-      request.setAttribute("uptime", uptime);
+	  int upMillis = (int) (System.currentTimeMillis() - mMasterInfo.getStarttimeMs());
+    String uptime = (upMillis/84600000) + " d "
+    				        + (upMillis/3600000 % 24) + " h "
+    				        + (upMillis/60000 % 60) + " m "
+    				        + (upMillis/1000 % 60) + " s ";
+    request.setAttribute("uptime", uptime);
       
-      DateFormat formatter = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss");
-      Calendar cal = Calendar.getInstance();
-      cal.setTimeInMillis(mMSH.getStarttimeMs());
-      String startTime = formatter.format(cal.getTime());
-      request.setAttribute("startTime", startTime);
+    DateFormat formatter = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss");
+    Calendar cal = Calendar.getInstance();
+    cal.setTimeInMillis(mMasterInfo.getStarttimeMs());
+    String startTime = formatter.format(cal.getTime());
+    request.setAttribute("startTime", startTime);
 
+    String version = Config.VERSION;
+    request.setAttribute("version", version);
+
+    String capacity = Long.toString(mMasterInfo.getCapacityBytes());
+    request.setAttribute("capacity", capacity);
+
+    String usedCapacity = Long.toString(mMasterInfo.getUsedCapacityBytes());
+    request.setAttribute("usedCapacity", usedCapacity);
+
+    String liveWorkerNodes = Integer.toString(mMasterInfo.getWorkerCount());
+    request.setAttribute("liveWorkerNodes", liveWorkerNodes);
 	}
 }

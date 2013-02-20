@@ -13,7 +13,7 @@
 			<div class="navbar navbar-inverse">
 				<div class="navbar-inner">
 					<ul class="nav nav-pills">
-						<li class="active"><a href="./home">Master Node XXXXX</a></li>
+						<li class="active"><a href="./home">Master Node</a></li>
 						<li><a href="./browse?path=/">Browse File System</a></li>
 					</ul>
 				</div>
@@ -24,7 +24,7 @@
 					<div class="accordion-heading">
 						<a class="accordion-toggle" data-toggle="collapse" 
 							data-parent="#accordion1" href="#data1">
-							<h4>Instance Summary Here</h4>
+							<h4>Instance Summary</h4>
 						</a>
 					</div>
 					<div id="data1" class="accordion-body collapse in">
@@ -41,11 +41,7 @@
 								</tr>
 								<tr>
 									<th>Running Version:</th>
-									<th>$VARIABLEHERE</th>
-								</tr>
-								<tr>
-									<th>Other Data:</th>
-									<th>$VARIABLEHERE</th>
+									<th>${version}</th>
 								</tr>
 								</tbody>
 							</table>
@@ -59,7 +55,7 @@
 					<div class="accordion-heading">
 						<a class="accordion-toggle" data-toggle="collapse" 
 							data-parent="#accordion2" href="#data2">
-							<h4>Cluster Summary Here</h4>
+							<h4>Cluster Summary</h4>
 						</a>
 					</div>
 					<div id="data2" class="accordion-body collapse in">
@@ -68,19 +64,15 @@
 								<tbody>
 									<tr>
 										<th>Configured Storage Capacity:</th>
-										<th>$VARIABLEHERE</th>
+										<th>${capacity}</th>
 									</tr>
 									<tr>
 										<th>Storage In-Use</th>
-										<th>$VARIABLEHERE</th>
+										<th>${usedCapacity}</th>
 									</tr>
 									<tr>
 										<th>Slaves Running</th>
-										<th>$VARIABLEHERE</th>
-									</tr>
-									<tr>
-										<th>Decomissioning Nodes</th>
-										<th>$VARIABLEHERE</th>
+										<th>${liveWorkerNodes}</th>
 									</tr>
 								</tbody>
 							</table>
@@ -96,7 +88,7 @@
 					<div class="accordion-heading">
 						<a class="accordion-toggle" data-toggle="collapse" 
 							data-parent="#accordion3" href="#data3">
-							<h4>Detailed Node Summary Here</h4>
+							<h4>Detailed Node Summary</h4>
 						</a>
 					</div>
 					<div id="data3" class="accordion-body collapse in">
