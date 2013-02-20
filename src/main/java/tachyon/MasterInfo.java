@@ -204,7 +204,7 @@ public class MasterInfo {
       mMasterLogWriter.appendAndFlush(inode);
       mMasterLogWriter.appendAndFlush(ret);
 
-      LOG.info("createFile: File Created: " + ret);
+      LOG.info("createFile: File Created: " + ret + " parent: " + inode);
       return ret.getId();
     }
   }
@@ -219,7 +219,13 @@ public class MasterInfo {
           Config.MAX_COLUMNS);
     }
 
-    return createFile(path, true, columns);
+    int id = createFile(path, true, columns);
+    
+    for (int k = 0; k < columns; k ++) {
+      createFile(path + SEPARATOR + k, true);
+    }
+    
+    return id;
   }
 
   public List<String> ls(String path) throws InvalidPathException, FileDoesNotExistException {
@@ -374,12 +380,6 @@ public class MasterInfo {
         }
       }
 
-      //      for (RawColumnDatasetInfo dataset : mRawColumnDatasets.values()) {
-      //        checkpointWriter.appendAndFlush(dataset);
-      //        LOG.info(dataset.toString());
-      //        maxDatasetId = Math.max(maxDatasetId, dataset.mId);
-      //      }
-
       checkpointWriter.appendAndFlush(new CheckpointInfo(mInodeCounter.get()));
       checkpointWriter.close();
 
@@ -399,7 +399,7 @@ public class MasterInfo {
     } else {
       reader = new MasterLogReader(fileName);
       while (reader.hasNext()) {
-        Pair<LogEventType, Object> pair = reader.getNextDatasetInfo();
+        Pair<LogEventType, Object> pair = reader.getNextPair();
         switch (pair.getFirst()) {
           case CheckpointInfo: {
             CheckpointInfo checkpointInfo = (CheckpointInfo) pair.getSecond();
@@ -422,22 +422,6 @@ public class MasterInfo {
             }
             break;
           }
-          //          case RawColumnDatasetInfo: {
-          //            RawColumnDatasetInfo dataset = (RawColumnDatasetInfo) pair.getSecond();
-          //            if (Math.abs(dataset.mId) > mDatasetCounter.get()) {
-          //              mDatasetCounter.set(Math.abs(dataset.mId));
-          //            }
-          //
-          //            System.out.println("Putting " + dataset);
-          //            if (dataset.mId > 0) {
-          //              mRawColumnDatasets.put(dataset.mId, dataset);
-          //              mRawColumnDatasetPathToId.put(dataset.mPath, dataset.mId);
-          //            } else {
-          //              mRawColumnDatasets.remove(- dataset.mId);
-          //              mRawColumnDatasetPathToId.remove(dataset.mPath);
-          //            }
-          //            break;
-          //          }
           case Undefined:
             CommonUtils.runtimeException("Corruptted data from " + fileName + 
                 ". It has undefined data type.");
@@ -474,6 +458,7 @@ public class MasterInfo {
         }
 
         sb.append("<h2>" + mInodes.size() + " File(s): </h2>");
+        System.out.println(mInodes);
 
         generateFileNamesForHtml("/", mRoot, sb, 1);
       }
@@ -485,7 +470,8 @@ public class MasterInfo {
   private int generateFileNamesForHtml(String curPath, Inode inode, StringBuilder sb, int cnt) {
     sb.append("<strong>File " + cnt + " </strong>: ");
     sb.append("ID: ").append(inode.getId()).append("; ");
-    sb.append("Path: ").append(curPath + inode.getName()).append("; ");
+    curPath += inode.getName();
+    sb.append("Path: ").append(curPath).append("; ");
     if (Config.DEBUG) {
       sb.append(inode.toString());
     }
@@ -496,10 +482,10 @@ public class MasterInfo {
     if (inode.isDirectory()) {
       List<Integer> childrenIds = ((InodeFolder) inode).getChildrenIds();
       if (inode.getId() != 1) {
-        curPath += "/";
+        curPath += SEPARATOR;
       }
       for (int id : childrenIds) {
-        int t = generateFileNamesForHtml(curPath + inode.getName(), mInodes.get(id), sb, cnt);
+        int t = generateFileNamesForHtml(curPath, mInodes.get(id), sb, cnt);
         subCnt += t;
         cnt += t;
       }

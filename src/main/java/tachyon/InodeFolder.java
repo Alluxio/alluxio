@@ -69,4 +69,11 @@ public class InodeFolder extends Inode {
   public boolean isRawTable() {
     return IS_RAW_TABLE;
   }
+  
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("InodeFolder(");
+    sb.append(super.toString()).append(",").append(mChildren).append(")");
+    return sb.toString();
+  }
 }

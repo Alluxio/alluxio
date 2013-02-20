@@ -11,9 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.CommonUtils;
 import tachyon.Config;
-import tachyon.client.RCDPartition;
 import tachyon.client.RawColumn;
-import tachyon.client.RawColumnDataset;
 import tachyon.client.RawTable;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
@@ -38,7 +36,10 @@ public class BasicRawTableTest {
       OutOfMemoryForPinFileException, InvalidPathException, TException {
     RawTable rawTable = sTachyonClient.getRawTable(sTablePath);
     RawColumn rawColumn = rawTable.getRawColumn(2);
-    assert rawColumn.createPartition(0);
+    if (!rawColumn.createPartition(0)) {
+      CommonUtils.runtimeException("Failed to create partition 2 in table " + sTablePath);
+    }
+
     TachyonFile tFile = rawColumn.getPartition(0);
     tFile.open("w");
 
