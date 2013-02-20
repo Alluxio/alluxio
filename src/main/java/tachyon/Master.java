@@ -47,7 +47,10 @@ public class Master {
       File warPath = new File(new File("").getAbsolutePath(), "src/main/java/tachyon/webapps");
       webappcontext.setWar(warPath.getAbsolutePath());
       HandlerList handlers = new HandlerList();
-      webappcontext.addServlet(new ServletHolder(new WebInterfaceServlet(mMasterInfo)), "/home");
+      webappcontext.addServlet(
+          new ServletHolder(new WebInterfaceGeneralServlet(mMasterInfo)), "/home");
+      webappcontext.addServlet(
+          new ServletHolder(new WebInterfaceBrowseServlet(mMasterInfo)), "/browse");
 
       handlers.setHandlers(new Handler[] { webappcontext, new DefaultHandler() });
       mWebServer.setHandler(handlers);
