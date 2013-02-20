@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -23,6 +24,8 @@ import tachyon.thrift.MasterService;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoLocalWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.thrift.TableColumnException;
+import tachyon.thrift.TableDoesNotExistException;
 
 /**
  * The master server client side.
@@ -81,42 +84,46 @@ public class MasterClient {
     return mIsConnected;
   }
 
-  public synchronized int user_createFile(String filePath)
+  public synchronized int user_createFile(String path)
       throws FileAlreadyExistException, InvalidPathException, TException {
-    return CLIENT.user_createFile(filePath);
+    return CLIENT.user_createFile(path);
   }
 
-  //  public synchronized int user_createRawColumnDataset(String datasetPath, int columns,
-  //      int partitions) throws DatasetAlreadyExistException, InvalidPathException, TException {
-  //    return CLIENT.user_createRawColumnDataset(datasetPath, columns, partitions);
-  //  }
+  public synchronized int user_createRawTable(String path, int columns) 
+      throws FileAlreadyExistException, InvalidPathException, TableColumnException, TException {
+    return CLIENT.user_createRawTable(path, columns);
+  }
 
-  public synchronized void user_delete(String folder)
+  public synchronized void user_delete(String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
-    CLIENT.user_deleteByPath(folder);
+    CLIENT.user_deleteByPath(path);
   }
 
   public synchronized void user_delete(int fileId) throws FileDoesNotExistException, TException {
     CLIENT.user_deleteById(fileId);
   }
 
-  public ClientFileInfo user_getClientFileInfoByPath(String filePath)
+  public ClientFileInfo user_getClientFileInfoByPath(String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
-    return CLIENT.user_getClientFileInfoByPath(filePath);
+    return CLIENT.user_getClientFileInfoByPath(path);
   }
 
-  public ClientFileInfo user_getClientFileInfoById(int fileId)
+  public ClientFileInfo user_getClientFileInfoById(int id)
       throws FileDoesNotExistException, TException {
-    return CLIENT.user_getClientFileInfoById(fileId);
+    return CLIENT.user_getClientFileInfoById(id);
   }
 
-  public synchronized int user_getFileId(String filePath) throws InvalidPathException, TException {
-    return CLIENT.user_getFileId(filePath);
+  public synchronized int user_getFileId(String path) throws InvalidPathException, TException {
+    return CLIENT.user_getFileId(path);
   }
 
-  public synchronized List<NetAddress> user_getFileLocations(int fileId)
+  public synchronized int user_getRawTableId(String path) throws InvalidPathException, TException {
+    return CLIENT.user_getRawTableId(path);
+  }
+
+  public synchronized List<NetAddress> user_getFileLocations(int id)
       throws FileDoesNotExistException, TException {
-    return CLIENT.user_getFileLocationsById(fileId);
+    return CLIENT.user_getFileLocationsById(id);
   }
 
   public synchronized NetAddress user_getLocalWorker(String localHostName)
@@ -124,15 +131,15 @@ public class MasterClient {
     return CLIENT.user_getLocalWorker(localHostName);
   }
 
-  //  public synchronized RawColumnDatasetInfo user_getRawColumnDataset(String datasetPath)
-  //      throws FileDoesNotExistException, TException {
-  //    return CLIENT.user_getRawColumnDatasetByPath(datasetPath);
-  //  }
-  //
-  //  public synchronized RawColumnDatasetInfo user_getRawColumnDatasetInfo(int fileId)
-  //      throws FileDoesNotExistException, TException {
-  //    return CLIENT.user_getRawColumnDatasetById(fileId);
-  //  }
+  public synchronized ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
+      throws TableDoesNotExistException, InvalidPathException, TException {
+    return CLIENT.user_getClientRawTableInfoByPath(path);
+  }
+
+  public synchronized ClientRawTableInfo user_getClientRawTableInfoById(int id)
+      throws TableDoesNotExistException, TException {
+    return CLIENT.user_getClientRawTableInfoById(id);
+  }
 
   public int user_mkdir(String path) 
       throws FileAlreadyExistException, InvalidPathException, TException {
@@ -143,14 +150,13 @@ public class MasterClient {
     CLIENT.user_outOfMemoryForPinFile(fileId);
   }
 
-  public synchronized void user_renameFile(String srcDataset, String dstDataset)
+  public synchronized void user_renameFile(String srcPath, String dstPath)
       throws FileDoesNotExistException, InvalidPathException, TException {
-    CLIENT.user_renameFile(srcDataset, dstDataset);
+    CLIENT.user_renameFile(srcPath, dstPath);
   }
 
-  public synchronized void user_unpinFile(int fileId) 
-      throws FileDoesNotExistException, TException {
-    CLIENT.user_unpinFile(fileId);
+  public synchronized void user_unpinFile(int id) throws FileDoesNotExistException, TException {
+    CLIENT.user_unpinFile(id);
   }
 
   //  public synchronized void user_setPartitionCheckpointPath(int fileId, int partitionId,

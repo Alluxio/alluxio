@@ -10,7 +10,7 @@ public class RawTable {
 
   public RawTable(TachyonClient tachyonClient, ClientRawTableInfo clientRawTableInfo) {
     TACHYON_CLIENT = tachyonClient;
-    mClientRawTableInfo = mClientRawTableInfo;
+    mClientRawTableInfo = clientRawTableInfo;
   }
 
   public int getColumns() {
@@ -29,7 +29,7 @@ public class RawTable {
     return mClientRawTableInfo.getPath();
   }
 
-  public RawColumn getPartition(int columnIndex, int partitionId) {
+  public RawColumn getRawColumn(int columnIndex) {
     if (columnIndex < 0 || columnIndex >= mClientRawTableInfo.getColumns()) {
       CommonUtils.runtimeException(mClientRawTableInfo.getPath() + " does not have column " + 
           columnIndex + ". It has " + mClientRawTableInfo.getColumns() + " columns.");

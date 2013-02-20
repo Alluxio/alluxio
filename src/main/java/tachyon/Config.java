@@ -60,6 +60,8 @@ public class Config {
   public static final String HDFS_TACHYON_META = "_tachyon_metadata";
   public static final String HDFS_TACHYON_META_TEMP = "__tachyon_metadata";
   public static final boolean USING_HDFS;
+  
+  public static final int MAX_COLUMNS = 100;
 
   public static final ArrayList<String> WHITELIST = new ArrayList<String>();
   public static final ArrayList<String> PINLIST = new ArrayList<String>();

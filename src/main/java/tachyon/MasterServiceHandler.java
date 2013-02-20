@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -17,6 +18,8 @@ import tachyon.thrift.MasterService;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoLocalWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.thrift.TableColumnException;
+import tachyon.thrift.TableDoesNotExistException;
 
 /**
  * The Master server program.
@@ -52,52 +55,11 @@ public class MasterServiceHandler implements MasterService.Iface {
     return mMasterInfo.createFile(filePath, false);
   }
 
-  //  @Override
-  //  public int user_createRawColumnDataset(String datasetPath, int columns, int partitions)
-  //      throws FileAlreadyExistException, InvalidPathException, TException {
-  //    String parameters = CommonUtils.parametersToString(datasetPath, columns, partitions);
-  //    LOG.info("user_createRawColumnDataset" + parameters);
-  //
-  //    RawColumnDatasetInfo rawColumnDataset = null;
-  //
-  //    synchronized (mDatasets) {
-  //      if (mDatasetPathToId.containsKey(datasetPath) 
-  //          || mRawColumnDatasetPathToId.containsKey(datasetPath)) {
-  //        LOG.info(datasetPath + " already exists.");
-  //        throw new FileAlreadyExistException("RawColumnDataset " + datasetPath + 
-  //            " already exists.");
-  //      }
-  //
-  //      rawColumnDataset = new RawColumnDatasetInfo();
-  //      rawColumnDataset.mId = mDatasetCounter.addAndGet(1);
-  //      rawColumnDataset.mPath = datasetPath;
-  //      rawColumnDataset.mColumns = columns;
-  //      rawColumnDataset.mNumOfPartitions = partitions;
-  //      rawColumnDataset.mColumnDatasetIdList = new ArrayList<Integer>(columns);
-  //      for (int k = 0; k < columns; k ++) {
-  //        rawColumnDataset.mColumnDatasetIdList.add(
-  //            user_createDataset(datasetPath + "/col_" + k, partitions, true, rawColumnDataset.mId));
-  //      }
-  //      rawColumnDataset.mPartitionList = new ArrayList<PartitionInfo>(partitions);
-  //      for (int k = 0; k < partitions; k ++) {
-  //        PartitionInfo partition = new PartitionInfo();
-  //        partition.mDatasetId = rawColumnDataset.mId;
-  //        partition.mPartitionId = k;
-  //        partition.mSizeBytes = -1;
-  //        partition.mLocations = new HashMap<Long, NetAddress>();
-  //        rawColumnDataset.mPartitionList.add(partition);
-  //      }
-  //
-  //      mMasterLogWriter.appendAndFlush(rawColumnDataset);
-  //
-  //      mRawColumnDatasetPathToId.put(datasetPath, rawColumnDataset.mId);
-  //      mRawColumnDatasets.put(rawColumnDataset.mId, rawColumnDataset);
-  //
-  //      LOG.info("user_createRawColumnDataset: RawColumnDataset Created: " + rawColumnDataset);
-  //    }
-  //
-  //    return rawColumnDataset.mId;
-  //  }
+  @Override
+  public int user_createRawTable(String path, int columns)
+      throws FileAlreadyExistException, InvalidPathException, TableColumnException, TException {
+    return mMasterInfo.createRawTable(path, columns);
+  }
 
   @Override
   public void user_deleteById(int id) throws TException {
@@ -170,50 +132,22 @@ public class MasterServiceHandler implements MasterService.Iface {
     return mMasterInfo.getFileId(filePath);
   }
 
-  //  @Override
-  //  public RawColumnDatasetInfo user_getRawColumnDatasetById(int datasetId)
-  //      throws FileDoesNotExistException, TException {
-  //    LOG.info("user_getRawColumnDatasetById: " + datasetId);
-  //    synchronized (mFiles) {
-  //      RawColumnDatasetInfo ret = mRawColumnDatasets.get(datasetId);
-  //      if (ret == null) {
-  //        throw new FileDoesNotExistException("RawColumnDatasetId " + datasetId +
-  //            " does not exist.");
-  //      }
-  //      LOG.info("user_getRawColumnDatasetById: " + datasetId + " good return");
-  //      return ret;
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public RawColumnDatasetInfo user_getRawColumnDatasetByPath(String datasetPath)
-  //      throws FileDoesNotExistException, TException {
-  //    LOG.info("user_getRawColumnDatasetByPath(" + datasetPath + ")");
-  //    synchronized (mFiles) {
-  //      if (!mRawColumnDatasetPathToId.containsKey(datasetPath)) {
-  //        throw new FileDoesNotExistException("RawColumnDataset " + datasetPath + 
-  //            " does not exist.");
-  //      }
-  //
-  //      RawColumnDatasetInfo ret = mRawColumnDatasets.get(mRawColumnDatasetPathToId.get(datasetPath));
-  //      LOG.info("user_getRawColumnDatasetByPath(" + datasetPath + ") : " + ret);
-  //      return ret;
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public int user_getRawColumnDatasetId(String datasetPath) throws TException {
-  //    LOG.info("user_getRawColumnDatasetId(" + datasetPath + ")");
-  //    int ret = 0;
-  //    synchronized (mFiles) {
-  //      if (mRawColumnDatasetPathToId.containsKey(datasetPath)) {
-  //        ret = mFilePathToId.get(datasetPath);
-  //      }
-  //    }
-  //
-  //    LOG.info("user_getRawColumnDatasetId(" + datasetPath + ") returns DatasetId " + ret);
-  //    return ret;
-  //  }
+  @Override
+  public int user_getRawTableId(String path) throws InvalidPathException, TException {
+    return mMasterInfo.getRawTableId(path);
+  }
+
+  @Override
+  public ClientRawTableInfo user_getClientRawTableInfoById(int id)
+      throws TableDoesNotExistException, TException {
+    return mMasterInfo.getClientRawTableInfo(id);
+  }
+
+  @Override
+  public ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
+      throws TableDoesNotExistException, InvalidPathException, TException {
+    return mMasterInfo.getClientRawTableInfo(path);
+  }
 
   @Override
   public long user_getUserId() throws TException {
