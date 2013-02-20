@@ -10,8 +10,9 @@ struct ClientFileInfo {
   2: string name
   3: string path
   4: string checkpointPath
-  5: bool needPin
-  6: bool needCache
+  5: i64 sizeBytes
+  6: bool needPin
+  7: bool needCache
 }
 
 struct ClientRawTableInfo {
@@ -78,7 +79,7 @@ service MasterService {
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i32> currentFiles) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i32> removedFiles)
   void worker_addFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i32 fileSizeBytes, 5: bool hasCheckpointed, 6: string checkpointPath) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
-  set<i32> worker_getPinList()
+  set<i32> worker_getPinIdList()
 
   // Services to Users
   i32 user_createFile(1: string filePath) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
