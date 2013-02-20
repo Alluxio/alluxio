@@ -135,6 +135,10 @@ public abstract class Inode implements Comparable<Inode>, Serializable {
     ret.addAll(mLocations.values());
     return ret;
   }
+  
+  public synchronized boolean isInMemory() {
+    return mLocations.size() > 0;
+  }
 
   public void setPin(boolean pin) {
     mPin = pin;

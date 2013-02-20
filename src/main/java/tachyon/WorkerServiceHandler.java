@@ -327,7 +327,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
         mMasterClient.open();
         id = mMasterClient.worker_register(
             new NetAddress(mWorkerInfo.ADDRESS.getHostName(), mWorkerInfo.ADDRESS.getPort()),
-            mWorkerInfo.TOTAL_BYTES, 0, new ArrayList<Integer>());
+            mWorkerInfo.getCapacityBytes(), 0, new ArrayList<Integer>());
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
@@ -352,7 +352,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   public boolean requestSpace(long userId, long requestBytes) throws TException {
     LOG.info("requestSpace(" + userId + ", " + requestBytes + "): Current available: " +
         mWorkerInfo.getAvailableBytes() + " requested: " + requestBytes);
-    if (mWorkerInfo.TOTAL_BYTES < requestBytes) {
+    if (mWorkerInfo.getCapacityBytes() < requestBytes) {
       LOG.info("user_requestSpace(): requested memory size is larger than the total memory on" +
           " the machine.");
       return false;

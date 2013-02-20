@@ -8,13 +8,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import tachyon.thrift.ClientWorkerInfo;
+import tachyon.thrift.NetAddress;
+
 /**
  * The structure to store a worker's information.
  * @author Haoyuan
  */
 public class WorkerInfo {
   public final InetSocketAddress ADDRESS;
-  public final long TOTAL_BYTES;
+  private final long CAPACITY_BYTES;
   private final long START_TIME_MS;
 
   private long mId;
@@ -25,7 +28,7 @@ public class WorkerInfo {
   public WorkerInfo(long id, InetSocketAddress address, long totalBytes) {
     mId = id;
     ADDRESS = address;
-    TOTAL_BYTES = totalBytes;
+    CAPACITY_BYTES = totalBytes;
     START_TIME_MS = System.currentTimeMillis();
 
     mUsedBytes = 0;
@@ -38,7 +41,11 @@ public class WorkerInfo {
   }
 
   public synchronized long getAvailableBytes() {
-    return TOTAL_BYTES - mUsedBytes;
+    return CAPACITY_BYTES - mUsedBytes;
+  }
+
+  public long getCapacityBytes() {
+    return CAPACITY_BYTES;
   }
 
   public synchronized long getId() {
@@ -77,9 +84,9 @@ public class WorkerInfo {
   public synchronized String toHtml() {
     long timeMs = System.currentTimeMillis() - START_TIME_MS;
     StringBuilder sb = new StringBuilder();
-    sb.append("Capacity (Byte): ").append(TOTAL_BYTES);
+    sb.append("Capacity (Byte): ").append(CAPACITY_BYTES);
     sb.append("; UsedSpace: ").append(mUsedBytes);
-    sb.append("; AvailableSpace: ").append(TOTAL_BYTES - mUsedBytes).append("<br \\>");
+    sb.append("; AvailableSpace: ").append(CAPACITY_BYTES - mUsedBytes).append("<br \\>");
     sb.append("It has been running @ " + ADDRESS + " for " + CommonUtils.convertMillis(timeMs));
     if (Config.DEBUG) {
       sb.append(" ID ").append(mId).append(" ; ");
@@ -104,9 +111,9 @@ public class WorkerInfo {
     StringBuilder sb = new StringBuilder("WorkerInfo(");
     sb.append(" ID: ").append(mId);
     sb.append(", ADDRESS: ").append(ADDRESS);
-    sb.append(", TOTAL_BYTES: ").append(TOTAL_BYTES);
+    sb.append(", TOTAL_BYTES: ").append(CAPACITY_BYTES);
     sb.append(", mUsedBytes: ").append(mUsedBytes);
-    sb.append(", mAvailableBytes: ").append(TOTAL_BYTES - mUsedBytes);
+    sb.append(", mAvailableBytes: ").append(CAPACITY_BYTES - mUsedBytes);
     sb.append(", mLastUpdatedTimeMs: ").append(mLastUpdatedTimeMs);
     sb.append(", mPartitions: [ ");
     for (int file : mFiles) {
@@ -142,5 +149,16 @@ public class WorkerInfo {
 
   public synchronized void updateUsedBytes(long usedBytes) {
     mUsedBytes = usedBytes;
+  }
+
+  public ClientWorkerInfo generateClientWorkerInfo() {
+    ClientWorkerInfo ret = new ClientWorkerInfo();
+    ret.id = mId;
+    ret.address = new NetAddress(ADDRESS.getHostName(), ADDRESS.getPort());
+    ret.lastContactSec = (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / 1000);
+    ret.state = "In Service";
+    ret.capacityBytes = CAPACITY_BYTES;
+    ret.usedBytes = mUsedBytes;
+    return ret;
   }
 }
