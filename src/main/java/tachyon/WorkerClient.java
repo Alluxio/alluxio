@@ -11,9 +11,9 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tachyon.thrift.PartitionAlreadyExistException;
-import tachyon.thrift.PartitionDoesNotExistException;
-import tachyon.thrift.SuspectedPartitionSizeException;
+import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.WorkerService;
 
 /**
@@ -40,23 +40,21 @@ public class WorkerClient {
     CLIENT = new WorkerService.Client(mProtocol);
   }
 
-  public synchronized void accessPartition(int datasetId, int partitionId) throws TException {
-    CLIENT.accessPartition(datasetId, partitionId);
+  public synchronized void accessFile(int fileId) throws TException {
+    CLIENT.accessFile(fileId);
   }
 
-  public synchronized void addPartition(long userId, int datasetId, int partitionId, 
-      boolean writeThrough) 
-          throws PartitionDoesNotExistException, SuspectedPartitionSizeException, 
-          PartitionAlreadyExistException, TException {
-    CLIENT.addPartition(userId, datasetId, partitionId, writeThrough);
+  public synchronized void addFile(long userId, int fileId, boolean writeThrough)
+      throws FileDoesNotExistException, SuspectedFileSizeException, 
+      FileAlreadyExistException, TException {
+    CLIENT.addDoneFile(userId, fileId, writeThrough);
   }
 
-  public synchronized void addRCDPartition(int datasetId, int partitionId, 
-      int sizeBytes) throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
-      PartitionAlreadyExistException, TException {
-    CLIENT.addRCDPartition(datasetId, partitionId, sizeBytes);
-
-  }
+//  public synchronized void addRCDPartition(int datasetId, int partitionId, 
+//      int sizeBytes) throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
+//      PartitionAlreadyExistException, TException {
+//    CLIENT.addRCDPartition(datasetId, partitionId, sizeBytes);
+//  }
 
   public synchronized void close() {
     mProtocol.getTransport().close();
@@ -85,8 +83,8 @@ public class WorkerClient {
     return mRootFolder;
   }
 
-  public void lockPartition(int datasetId, int partitionId, long userId) throws TException {
-    CLIENT.lockPartition(datasetId, partitionId, userId);
+  public void lockFile(int fileId, long userId) throws TException {
+    CLIENT.lockFile(fileId, userId);
   }
 
   public synchronized boolean isConnected() {
@@ -115,8 +113,8 @@ public class WorkerClient {
     CLIENT.returnSpace(userId, returnSpaceBytes);
   }
 
-  public void unlockPartition(int datasetId, int partitionId, long userId) throws TException {
-    CLIENT.unlockPartition(datasetId, partitionId, userId);
+  public void unlockFile(int fileId, long userId) throws TException {
+    CLIENT.unlockFile(fileId, userId);
   }
 
   public synchronized void userHeartbeat(long userId) throws TException {

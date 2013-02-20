@@ -5,10 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
-import tachyon.thrift.DatasetInfo;
 import tachyon.thrift.LogEventType;
-import tachyon.thrift.PartitionInfo;
-import tachyon.thrift.RawColumnDatasetInfo;
 
 public class MasterLogWriter {
   private final String LOG_FILE_NAME;
@@ -26,35 +23,35 @@ public class MasterLogWriter {
     }
   }
 
-  public void appendAndFlush(DatasetInfo datasetInfo) {
+  public void appendAndFlush(INode inodeInfo) {
     try {
-      mOutputStream.writeObject(LogEventType.DatasetInfo);
-      mOutputStream.writeObject(datasetInfo);
+      mOutputStream.writeObject(LogEventType.INode);
+      mOutputStream.writeObject(inodeInfo);
+      mOutputStream.flush();
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+  }
+  
+  public void appendAndFlush(CheckpointInfo checkpointInfo) {
+    try {
+      mOutputStream.writeObject(LogEventType.CheckpointInfo);
+      mOutputStream.writeObject(checkpointInfo);
       mOutputStream.flush();
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
   }
 
-  public void appendAndFlush(PartitionInfo partitionInfo) {
-    try {
-      mOutputStream.writeObject(LogEventType.PartitionInfo);
-      mOutputStream.writeObject(partitionInfo);
-      mOutputStream.flush();
-    } catch (IOException e) {
-      CommonUtils.runtimeException(e);
-    }
-  }
-
-  public void appendAndFlush(RawColumnDatasetInfo rawColumnDatasetInfo) {
-    try {
-      mOutputStream.writeObject(LogEventType.RawColumnDatasetInfo);
-      mOutputStream.writeObject(rawColumnDatasetInfo);
-      mOutputStream.flush();
-    } catch (IOException e) {
-      CommonUtils.runtimeException(e);
-    }
-  }
+//  public void appendAndFlush(RawColumnDatasetInfo rawColumnDatasetInfo) {
+//    try {
+//      mOutputStream.writeObject(LogEventType.RawTableInfo);
+//      mOutputStream.writeObject(rawColumnDatasetInfo);
+//      mOutputStream.flush();
+//    } catch (IOException e) {
+//      CommonUtils.runtimeException(e);
+//    }
+//  }
 
   public void close() {
     try {

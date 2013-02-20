@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -8,8 +9,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.StringTokenizer;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,19 +24,35 @@ import org.slf4j.LoggerFactory;
 public class CommonUtils {
   private static final Logger LOG = LoggerFactory.getLogger(CommonUtils.class);
 
+  /**
+   * Whether the pathname is valid.  Currently prohibits relative paths, 
+   * and names which contain a ":" or "/" 
+   */
+  public static boolean isValidName(String src) {
+    // Path must be absolute.
+    if (!src.startsWith(Path.SEPARATOR)) {
+      return false;
+    }
+
+    // Check for ".." "." ":" "/"
+    StringTokenizer tokens = new StringTokenizer(src, Path.SEPARATOR);
+    while(tokens.hasMoreTokens()) {
+      String element = tokens.nextToken();
+      if (element.equals("..") || 
+          element.equals(".")  ||
+          (element.indexOf(":") >= 0)  ||
+          (element.indexOf("/") >= 0)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public static String cleanPath(String path) {
     while (path.endsWith("/")) {
       path = path.substring(0, path.length() - 1);
     }
     return path;
-  }
-
-  public static int computeDatasetIdFromBigId(long bigId) {
-    return (int)(bigId >> 32);
-  }
-
-  public static int computePartitionIdFromBigId(long bigId) {
-    return (int)(bigId % Config.TWO_32);
   }
 
   public static String convertMillis(long Millis) {
@@ -47,10 +66,14 @@ public class CommonUtils {
     return formatter.format(new Date(Millis));
   }
 
-  public static long generateBigId(int datasetId, int partitionId) {
-    long ret = datasetId;
-    ret = (ret << 32) + partitionId; 
-    return ret;
+  public static void deleteFile(String fileName) {
+    File file = new File(fileName);
+    if (file.exists()) {
+      while (!file.delete()) {
+        LOG.info("Trying to delete " + file.toString());
+        sleep(1000);
+      }
+    }
   }
 
   public static String getCurrentMemStatsInBytes() {
@@ -88,23 +111,18 @@ public class CommonUtils {
     return System.nanoTime();
   }
 
-  public static int getDatasetIdFromFileName(String name) {
-    String[] p = name.split("-");
-    if (p.length != 2) {
-      throw new IllegalArgumentException("Wrong file name: " + name);
-    }
-    int datasetId;
+  public static int getFileIdFromFileName(String name) {
+    int fileId;
     try {
-      datasetId = Integer.parseInt(p[0]);
+      fileId = Integer.parseInt(name);
     } catch (Exception e) {
       throw new IllegalArgumentException("Wrong file name: " + name);
     }
-    return datasetId;
+    return fileId;
   }
 
-  public static String getLocalFilePath(String localFolder, long bigId) {
-    return localFolder + "/" + computeDatasetIdFromBigId(bigId) + "-" 
-        + computePartitionIdFromBigId(bigId);
+  public static String getLocalFilePath(String localFolder, int fileId) {
+    return localFolder + "/" + fileId;
   }
 
   public static int getKB(int bytes) {
@@ -144,20 +162,6 @@ public class CommonUtils {
     return ret;
   }
 
-  public static int getPartitionIdFromFileName(String name) {
-    String[] p = name.split("-");
-    if (p.length != 2) {
-      throw new IllegalArgumentException("Wrong file name: " + name);
-    }
-    int pId;
-    try {
-      pId = Integer.parseInt(p[1]);
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Wrong file name: " + name);
-    }
-    return pId;
-  }
-
   public static String getSizeFromBytes(long bytes) {
     double ret = bytes;
     if (ret <= 1024 * 5) {
@@ -195,7 +199,7 @@ public class CommonUtils {
     sb.append(")");
     return sb.toString();
   }
-  
+
   public static long parseMemorySize(String memorySize) {
     String ori = memorySize;
     String end = "";
@@ -239,6 +243,14 @@ public class CommonUtils {
 
   public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
     logger.info(message + " took " + (getCurrentNs() - startTimeNs) + " ns.");
+  }
+
+  public static void renameFile(String src, String dst) {
+    File srcFile = new File(src);
+    File dstFile = new File(dst);
+    if (!srcFile.renameTo(dstFile)) {
+      CommonUtils.runtimeException("Failed to rename file from " + src + " to " + dst);
+    }
   }
 
   public static void runtimeException(String msg) {
