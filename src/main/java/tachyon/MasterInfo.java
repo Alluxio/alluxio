@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.FileAlreadyExistException;
@@ -252,6 +253,33 @@ public class MasterInfo {
           if (inode != null) {
             ret.add(path + inode.getName());
           }
+        }
+      }
+    }
+
+    return ret;
+  }
+
+  public List<ClientFileInfo> getFilesInfo(String path) 
+      throws FileDoesNotExistException, InvalidPathException {
+    List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
+
+    Inode inode = getInode(path);
+
+    if (inode == null) {
+      throw new FileDoesNotExistException(path);
+    }
+
+    ret.add(getClientFileInfo(inode.getId()));
+    if (inode.isDirectory()) {
+      List<Integer> childernIds = ((InodeFolder) inode).getChildrenIds();
+
+      if (!path.endsWith("/")) {
+        path += "/";
+      }
+      synchronized (mRoot) {
+        for (int k : childernIds) {
+          ret.add(getClientFileInfo(k));
         }
       }
     }
@@ -513,7 +541,7 @@ public class MasterInfo {
     long ret = 0;
     synchronized (mWorkers) {
       for (WorkerInfo worker : mWorkers.values()) {
-        ret += worker.TOTAL_BYTES;
+        ret += worker.getCapacityBytes();
       }
     }
     return ret;
@@ -541,6 +569,13 @@ public class MasterInfo {
       ret.name = inode.getName();
       ret.path = getPath(inode);
       ret.checkpointPath = inode.getCheckpointPath();
+      ret.sizeBytes = 0;
+      ret.inMemory = false;
+      if (inode.isFile()) {
+        ret.sizeBytes = ((InodeFile) inode).getLength();
+        ret.inMemory = ((InodeFile) inode).isInMemory();
+      }
+      ret.isFolder = inode.isDirectory();
       ret.needPin = inode.isPin();
       ret.needCache = inode.isCache();
       LOG.info("getClientFileInfo(" + id + "): "  + ret);
@@ -639,6 +674,18 @@ public class MasterInfo {
     synchronized (mWorkers) {
       return mWorkers.size();
     }
+  }
+
+  public List<ClientWorkerInfo> getWorkersInfo() {
+    List<ClientWorkerInfo> ret = new ArrayList<ClientWorkerInfo>();
+
+    synchronized (mWorkers) {
+      for (WorkerInfo worker : mWorkers.values()) {
+        ret.add(worker.generateClientWorkerInfo());
+      }
+    }
+
+    return ret;
   }
 
   public List<String> getWhiteList() {
