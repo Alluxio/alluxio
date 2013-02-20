@@ -110,7 +110,7 @@ public abstract class Inode implements Comparable<Inode>, Serializable {
   @Override
   public synchronized String toString() {
     StringBuilder sb = new StringBuilder("INode(");
-    sb.append(mName).append(",").append(mId).append(")");
+    sb.append(mName).append(",").append(mId).append(",").append(mParentId).append(")");
     return sb.toString();
   }
 
