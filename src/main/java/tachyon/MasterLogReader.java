@@ -52,7 +52,7 @@ public class MasterLogReader {
     return new Pair<LogEventType, Object>(first, second);
   }
 
-  public Pair<LogEventType, Object> getNextDatasetInfo() {
+  public Pair<LogEventType, Object> getNextPair() {
     if (mCurrent == null) {
       getNext();
     }

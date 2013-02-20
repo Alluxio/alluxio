@@ -12,4 +12,4 @@ bin=`cd "$( dirname "$0" )"; pwd`
 # Load the Tachyon configuration
 . "$bin/tachyon-config.sh"
 
-java -cp $TACHYON_HOME/target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar tachyon.command.Rm $@ 
+java -cp $TACHYON_JAR tachyon.command.Rm $@ 

@@ -23,17 +23,18 @@ public class MasterLogWriter {
     }
   }
 
-  public void appendAndFlush(INode inodeInfo) {
+  public synchronized void appendAndFlush(Inode inode) {
+    System.out.println("Append and Flush " + inode);
     try {
       mOutputStream.writeObject(LogEventType.INode);
-      mOutputStream.writeObject(inodeInfo);
+      mOutputStream.writeObject(inode);
       mOutputStream.flush();
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
   }
   
-  public void appendAndFlush(CheckpointInfo checkpointInfo) {
+  public synchronized void appendAndFlush(CheckpointInfo checkpointInfo) {
     try {
       mOutputStream.writeObject(LogEventType.CheckpointInfo);
       mOutputStream.writeObject(checkpointInfo);
@@ -43,17 +44,7 @@ public class MasterLogWriter {
     }
   }
 
-//  public void appendAndFlush(RawColumnDatasetInfo rawColumnDatasetInfo) {
-//    try {
-//      mOutputStream.writeObject(LogEventType.RawTableInfo);
-//      mOutputStream.writeObject(rawColumnDatasetInfo);
-//      mOutputStream.flush();
-//    } catch (IOException e) {
-//      CommonUtils.runtimeException(e);
-//    }
-//  }
-
-  public void close() {
+  public synchronized void close() {
     try {
       mOutputStream.close();
     } catch (IOException e) {
