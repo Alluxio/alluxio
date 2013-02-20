@@ -5,14 +5,25 @@ struct NetAddress {
   2: i32 mPort
 }
 
+struct ClientWorkerInfo {
+  1: i64 id
+  2: NetAddress address
+  3: i32 lastContactSec
+  4: string state
+  5: i64 capacityBytes
+  6: i64 usedBytes
+}
+
 struct ClientFileInfo {
   1: i32 id
   2: string name
   3: string path
   4: string checkpointPath
   5: i64 sizeBytes
-  6: bool needPin
-  7: bool needCache
+  6: bool isFolder
+  7: bool inMemory
+  8: bool needPin
+  9: bool needCache
 }
 
 struct ClientRawTableInfo {
