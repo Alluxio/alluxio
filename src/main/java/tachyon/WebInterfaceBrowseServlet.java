@@ -14,10 +14,10 @@ import java.io.IOException;
 
 public class WebInterfaceBrowseServlet extends HttpServlet {
 
-  MasterInfo mMSH;
+  MasterInfo mMasterInfo;
 
-	public WebInterfaceBrowseServlet(MasterInfo MSH) {
-		mMSH = MSH;
+	public WebInterfaceBrowseServlet(MasterInfo MI) {
+		mMasterInfo = MI;
 	}
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
