@@ -6,14 +6,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class INodeFolder extends INode {
+public class InodeFolder extends Inode {
   private static final long serialVersionUID = -1195474593218285949L;
 
   private Set<Integer> mChildren;
+  
+  private final boolean IS_RAW_TABLE;
 
-  public INodeFolder(String name, int id, int parentId) {
+  public InodeFolder(String name, int id, int parentId) {
+    this(name, id, parentId, false);
+  }
+  
+  public InodeFolder(String name, int id, int parentId, boolean isRawTable) {
     super(name, id, parentId, true);
     mChildren = new HashSet<Integer>();
+    IS_RAW_TABLE = isRawTable;
   }
 
   public synchronized void addChild(int childId) {
@@ -26,8 +33,8 @@ public class INodeFolder extends INode {
     }
   }
 
-  public synchronized INode getChild(String name, Map<Integer, INode> allInodes) {
-    INode tInode = null;
+  public synchronized Inode getChild(String name, Map<Integer, Inode> allInodes) {
+    Inode tInode = null;
     for (int childId : mChildren) {
       tInode = allInodes.get(childId);
       if (tInode != null && tInode.getName().equals(name)) {
@@ -47,8 +54,8 @@ public class INodeFolder extends INode {
     mChildren.remove(id);
   }
 
-  public synchronized boolean removeChild(String name, Map<Integer, INode> allInodes) {
-    INode tInode = null;
+  public synchronized boolean removeChild(String name, Map<Integer, Inode> allInodes) {
+    Inode tInode = null;
     for (int childId : mChildren) {
       tInode = allInodes.get(childId);
       if (tInode != null && tInode.getName().equals(name)) {
@@ -57,5 +64,16 @@ public class INodeFolder extends INode {
       }
     }
     return false;
+  }
+  
+  public boolean isRawTable() {
+    return IS_RAW_TABLE;
+  }
+  
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("InodeFolder(");
+    sb.append(super.toString()).append(",").append(mChildren).append(")");
+    return sb.toString();
   }
 }
