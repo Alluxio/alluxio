@@ -57,6 +57,8 @@ public class Config {
   public static final String HDFS_TEMP_FILE = "_temporary";
   public static final String HDFS_ADDRESS;
   public static final String HDFS_DATA_FOLDER = "/tachyon/data";
+  public static final String HDFS_TACHYON_META = "_tachyon_metadata";
+  public static final String HDFS_TACHYON_META_TEMP = "__tachyon_metadata";
   public static final boolean USING_HDFS;
 
   public static final ArrayList<String> WHITELIST = new ArrayList<String>();

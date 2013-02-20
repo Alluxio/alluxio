@@ -5,8 +5,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 import javax.servlet.ServletException;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,9 +12,9 @@ import java.io.IOException;
 
 public class WebInterfaceGeneralServlet extends HttpServlet {
 
-	MasterServiceHandler mMSH;
+  MasterInfo mMSH;
 
-	public WebInterfaceGeneralServlet(MasterServiceHandler MSH) {
+	public WebInterfaceServlet(MasterInfo MSH) {
 		this.mMSH = MSH;
 	}
 

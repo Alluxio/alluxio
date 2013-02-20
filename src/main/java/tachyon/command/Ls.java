@@ -5,10 +5,12 @@ import java.util.List;
 import org.apache.thrift.TException;
 
 import tachyon.MasterClient;
-import tachyon.thrift.DatasetInfo;
+import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.InvalidPathException;
 
 public class Ls {
-  public static void main(String[] args) throws TException {
+  public static void main(String[] args)
+      throws InvalidPathException, FileDoesNotExistException, TException {
     if (args.length != 1) {
       System.out.println("Usage: tachyon\n [-ls <path>]");
       System.exit(-1);
@@ -18,12 +20,12 @@ public class Ls {
     String folder = Utils.getDatasetName(args[0]);
     MasterClient masterClient = new MasterClient(Utils.getTachyonMasterAddress(args[0]));
     masterClient.open();
-    List<DatasetInfo> files = masterClient.cmd_ls(folder);
+    List<String> files = masterClient.ls(folder);
     System.out.println("The folder " + folder + " contains " + files.size() + " files");
     for (int i = 0; i < files.size(); i ++) {
       for (int j = i + 1; j < files.size(); j ++) {
-        if (files.get(i).mPath.compareToIgnoreCase(files.get(j).mPath) > 0) {
-          DatasetInfo tmp = files.get(i);
+        if (files.get(i).compareToIgnoreCase(files.get(j)) > 0) {
+          String tmp = files.get(i);
           files.set(i, files.get(j));
           files.set(j, tmp);
         }

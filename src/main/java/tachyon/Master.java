@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 
 import org.apache.thrift.server.THsHaServer;
@@ -8,6 +9,12 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.webapp.WebAppContext;
 
 import tachyon.thrift.MasterService;
 
@@ -21,13 +28,33 @@ public class Master {
 
   private static Master MASTER = null;
 
+  private MasterInfo mMasterInfo;
+  private WebServer mWebServer;
   private TServer mServer;
   private MasterServiceHandler mMasterServiceHandler;
 
   private Master(InetSocketAddress address, int selectorThreads, int acceptQueueSizePerThreads,
       int workerThreads) {
     try {
-      mMasterServiceHandler = new MasterServiceHandler(address);
+      mMasterInfo = new MasterInfo(address);
+
+      mWebServer = new WebServer("Tachyon Master Server",
+          new InetSocketAddress(address.getHostName(), Config.MASTER_WEB_PORT));
+
+      WebAppContext webappcontext = new WebAppContext();
+
+      webappcontext.setContextPath("/");
+      File warPath = new File(new File("").getAbsolutePath(), "src/main/java/tachyon/webapps");
+      webappcontext.setWar(warPath.getAbsolutePath());
+      HandlerList handlers = new HandlerList();
+      webappcontext.addServlet(new ServletHolder(new WebInterfaceServlet(mMasterInfo)), "/home");
+
+      handlers.setHandlers(new Handler[] { webappcontext, new DefaultHandler() });
+      mWebServer.setHandler(handlers);
+
+      mWebServer.startWebServer();
+
+      mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
       MasterService.Processor<MasterServiceHandler> processor = 
           new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 

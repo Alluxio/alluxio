@@ -3,7 +3,7 @@ package tachyon.hadoop;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class PartitionOutputStreamHdfs extends OutputStream {
+public class TFileOutputStreamHdfs extends OutputStream {
 
   @Override
   public void write(int b) throws IOException {
