@@ -13,6 +13,9 @@ import org.slf4j.LoggerFactory;
  * @author haoyuan
  */
 public class Config {
+  // TODO Make this auto filled.
+  public static final String VERSION = "0.2-SNAPSHOT";
+  
   public static final boolean IS_SYSTEM;
   public static final String TACHYON_HOME;
 
