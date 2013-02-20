@@ -184,8 +184,8 @@ public class MasterClient {
     return CLIENT.worker_heartbeat(workerId, usedBytes, removedPartitionList);
   }
 
-  public synchronized Set<Integer> worker_getPinList() throws TException {
-    return CLIENT.worker_getPinList();
+  public synchronized Set<Integer> worker_getPinIdList() throws TException {
+    return CLIENT.worker_getPinIdList();
   }
 
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,

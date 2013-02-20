@@ -280,7 +280,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
 
     // TODO Cache replacement policy should go through Master.
     try {
-      pinList = mMasterClient.worker_getPinList();
+      pinList = mMasterClient.worker_getPinIdList();
     } catch (TException e) {
       LOG.error(e.getMessage());
       pinList = new HashSet<Integer>();

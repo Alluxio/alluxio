@@ -62,6 +62,7 @@ public class MasterInfo {
   private Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
   private BlockingQueue<WorkerInfo> mLostWorkers = new ArrayBlockingQueue<WorkerInfo>(32);
 
+  // TODO Check the logic related to this two lists.
   private PrefixList mWhiteList;
   private PrefixList mPinList;
   private List<Integer> mIdPinList;
@@ -220,11 +221,11 @@ public class MasterInfo {
     }
 
     int id = createFile(path, true, columns);
-    
+
     for (int k = 0; k < columns; k ++) {
       createFile(path + SEPARATOR + k, true);
     }
-    
+
     return id;
   }
 
@@ -508,6 +509,26 @@ public class MasterInfo {
     throw new NoLocalWorkerException("getLocalWorker: no local worker on " + host);
   }
 
+  public long getCapacityBytes() {
+    long ret = 0;
+    synchronized (mWorkers) {
+      for (WorkerInfo worker : mWorkers.values()) {
+        ret += worker.TOTAL_BYTES;
+      }
+    }
+    return ret;
+  }
+
+  public long getUsedCapacityBytes() {
+    long ret = 0;
+    synchronized (mWorkers) {
+      for (WorkerInfo worker : mWorkers.values()) {
+        ret += worker.getUsedBytes();
+      }
+    }
+    return ret;
+  }
+
   public ClientFileInfo getClientFileInfo(int id) throws FileDoesNotExistException {
     LOG.info("getClientFileInfo(" + id + ")");
     synchronized (mRoot) {
@@ -538,7 +559,7 @@ public class MasterInfo {
       return getClientFileInfo(inode.getId());
     }
   }
-  
+
   public ClientRawTableInfo getClientRawTableInfo(int id) throws TableDoesNotExistException {
     LOG.info("getClientRawTableInfo(" + id + ")");
     synchronized (mRoot) {
@@ -612,6 +633,30 @@ public class MasterInfo {
 
   public long getNewUserId() {
     return mUserCounter.incrementAndGet();
+  }
+
+  public int getWorkerCount() {
+    synchronized (mWorkers) {
+      return mWorkers.size();
+    }
+  }
+
+  public List<String> getWhiteList() {
+    return mWhiteList.getList();
+  }
+
+  public List<String> getPinList() {
+    return mPinList.getList();
+  }
+
+  public List<Integer> getPinIdList() {
+    synchronized (mIdPinList) {
+      List<Integer> ret = new ArrayList<Integer>();
+      for (int id : mIdPinList) {
+        ret.add(id);
+      }
+      return ret;
+    }
   }
 
   private String getPath(Inode inode) {
@@ -726,16 +771,6 @@ public class MasterInfo {
       }
       InetSocketAddress address = tWorkerInfo.ADDRESS;
       tFile.addLocation(workerId, new NetAddress(address.getHostName(), address.getPort()));
-    }
-  }
-
-  public List<Integer> getPinList() {
-    synchronized (mIdPinList) {
-      List<Integer> ret = new ArrayList<Integer>();
-      for (int id : mIdPinList) {
-        ret.add(id);
-      }
-      return ret;
     }
   }
 

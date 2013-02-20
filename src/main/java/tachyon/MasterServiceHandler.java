@@ -274,8 +274,8 @@ public class MasterServiceHandler implements MasterService.Iface {
   //  }
 
   @Override
-  public Set<Integer> worker_getPinList() throws TException {
-    List<Integer> ret = mMasterInfo.getPinList();
+  public Set<Integer> worker_getPinIdList() throws TException {
+    List<Integer> ret = mMasterInfo.getPinIdList();
     return new HashSet<Integer>(ret);
   }
 
