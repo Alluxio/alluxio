@@ -10,10 +10,17 @@ public class InodeFolder extends Inode {
   private static final long serialVersionUID = -1195474593218285949L;
 
   private Set<Integer> mChildren;
+  
+  private final boolean IS_RAW_TABLE;
 
   public InodeFolder(String name, int id, int parentId) {
+    this(name, id, parentId, false);
+  }
+  
+  public InodeFolder(String name, int id, int parentId, boolean isRawTable) {
     super(name, id, parentId, true);
     mChildren = new HashSet<Integer>();
+    IS_RAW_TABLE = isRawTable;
   }
 
   public synchronized void addChild(int childId) {
@@ -57,5 +64,9 @@ public class InodeFolder extends Inode {
       }
     }
     return false;
+  }
+  
+  public boolean isRawTable() {
+    return IS_RAW_TABLE;
   }
 }

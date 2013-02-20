@@ -6,10 +6,16 @@ public class RawColumn {
   private final int COLUMN_INDEX;
 
   public RawColumn(TachyonClient tachyonClient, RawTable rawTable, int columnIndex) {
-    // TODO Auto-generated constructor stub
     TACHYON_CLIENT = tachyonClient;
     RAW_TABLE = rawTable;
     COLUMN_INDEX = columnIndex;
   }
-
+  
+  public boolean createPartition(int pId) {
+    return TACHYON_CLIENT.createFile(RAW_TABLE.getPath() + "/" + COLUMN_INDEX + "/" + pId) > 0;
+  }
+  
+  public TachyonFile getPartition(int pId) {
+    return TACHYON_CLIENT.getFile(RAW_TABLE.getPath() + "/" + COLUMN_INDEX + "/" + pId);
+  }
 }

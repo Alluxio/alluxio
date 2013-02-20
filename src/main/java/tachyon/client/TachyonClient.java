@@ -16,12 +16,15 @@ import tachyon.MasterClient;
 import tachyon.CommonUtils;
 import tachyon.WorkerClient;
 import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoLocalWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.thrift.TableColumnException;
+import tachyon.thrift.TableDoesNotExistException;
 
 /**
  * Major Tachyon system user facing class. It contains a MasterClient and several WorkerClients
@@ -251,29 +254,35 @@ public class TachyonClient {
     return mUserHdfsTempFolder;
   }
 
-  //  public synchronized int createRawColumnDataset(String datasetPath, int columns,  int partitions) {
-  //    connectAndGetLocalWorker();
-  //    if (!mConnected) {
-  //      return -1;
-  //    }
-  //    datasetPath = CommonUtils.cleanPath(datasetPath);
-  //    int rawColumnDatasetId = -1;
-  //    try {
-  //      rawColumnDatasetId = mMasterClient.user_createRawColumnDataset(datasetPath, columns, partitions);
-  //    } catch (DatasetAlreadyExistException e) {
-  //      LOG.info(e.getMessage());
-  //      rawColumnDatasetId = -1;
-  //    } catch (InvalidPathException e) {
-  //      LOG.error(e.getMessage());
-  //      rawColumnDatasetId = -1;
-  //    } catch (TException e) {
-  //      LOG.error(e.getMessage());
-  //      mConnected = false;
-  //      rawColumnDatasetId = -1;
-  //    }
-  //
-  //    return rawColumnDatasetId;
-  //  }
+  public synchronized int createRawTable(String path, int columns) {
+    connectAndGetLocalWorker();
+    if (!mConnected) {
+      return -1;
+    }
+    path = CommonUtils.cleanPath(path);
+
+    if (columns < 1 || columns > Config.MAX_COLUMNS) {
+      CommonUtils.runtimeException("Column count " + columns + " is smaller than 1 or bigger than "
+          + Config.MAX_COLUMNS);
+    }
+
+    try {
+      return mMasterClient.user_createRawTable(path, columns);
+    } catch (TableColumnException e) {
+      LOG.info(e.getMessage());
+      return -1;
+    } catch (FileAlreadyExistException e) {
+      LOG.info(e.getMessage());
+      return -1;
+    } catch (InvalidPathException e) {
+      LOG.error(e.getMessage());
+      return -1;
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      mConnected = false;
+      return -1;
+    }
+  }
 
   public synchronized int createFile(String filePath) {
     connectAndGetLocalWorker();
@@ -446,23 +455,18 @@ public class TachyonClient {
     return ret;
   }
 
-  //  public synchronized RawColumnDataset getRawColumnDataset(String datasetPath) {
-  //    datasetPath = CommonUtils.cleanPath(datasetPath);
-  //    RawColumnDatasetInfo rawColumnDatasetInfo = getRawColumnDatasetInfo(datasetPath);
-  //    if (rawColumnDatasetInfo == null) {
-  //      return null;
-  //    }
-  //    return new RawColumnDataset(this, rawColumnDatasetInfo);
-  //  }
-  //
-  //  public synchronized RawColumnDataset getRawColumnDataset(int datasetId) {
-  //    RawColumnDatasetInfo rawColumnDatasetInfo = getRawColumnDatasetInfo(datasetId);
-  //    if (rawColumnDatasetInfo == null) {
-  //      return null;
-  //    }
-  //    return new RawColumnDataset(this, rawColumnDatasetInfo);
-  //  }
-  //
+  public synchronized RawTable getRawTable(String path)
+      throws TableDoesNotExistException, InvalidPathException, TException {
+    path = CommonUtils.cleanPath(path);
+    ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfoByPath(path);
+    return new RawTable(this, clientRawTableInfo);
+  }
+
+  public synchronized RawTable getRawTable(int id) throws TableDoesNotExistException, TException {
+    ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfoById(id);
+    return new RawTable(this, clientRawTableInfo);
+  }
+
   //  private synchronized RawColumnDatasetInfo getRawColumnDatasetInfo(String datasetPath) {
   //    connectAndGetLocalWorker();
   //    if (!mConnected) {

@@ -65,6 +65,10 @@ exception InvalidPathException {
   1: string message
 }
 
+exception TableColumnException {
+  1: string message
+}
+
 exception TableDoesNotExistException {
   1: string message
 }
@@ -93,12 +97,12 @@ service MasterService {
   void user_unpinFile(1: i32 fileId) throws (1: FileDoesNotExistException e)   // Remove file from memory
   i32 user_mkdir(1: string path) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
 
-//  i32 user_createRawTable(1: string tablePath, 2: i32 columns) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
-//  i32 user_getRawTableId(1: string tablePath)  // Return 0 if does not contain the Table, return datasetId if it exists.
+  i32 user_createRawTable(1: string path, 2: i32 columns) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TableColumnException eT)
+  i32 user_getRawTableId(1: string path) throws (1: InvalidPathException e) // Return 0 if does not contain the Table, return datasetId if it exists.
+  ClientRawTableInfo user_getClientRawTableInfoById(1: i32 tableId) throws (1: TableDoesNotExistException e)        // Get Table info by Table Id.
+  ClientRawTableInfo user_getClientRawTableInfoByPath(1: string tablePath) throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI) // Get Table info by path
 //  void user_deleteRawTable(1: i32 tabletId) throws (1: DatasetDoesNotExistException e) // Delete dataset
 //  void user_renameRawTable(1: string srcTablePath, 2: string dstTablePath) throws (1: FileDoesNotExistException e)
-//  RawTableInfo user_getRawTableById(1: i32 tableId) throws (1: TableDoesNotExistException e)        // Get Table info by Table Id.
-//  RawTableInfo user_getRawTableByPath(1: string tablePath) throws (1: TableDoesNotExistException e) // Get Table info by path
 
   // cmd to scripts
   list<string> cmd_ls(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)

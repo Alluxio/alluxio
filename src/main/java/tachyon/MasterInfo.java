@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
 import tachyon.thrift.FileAlreadyExistException;
@@ -32,6 +33,8 @@ import tachyon.thrift.LogEventType;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoLocalWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.thrift.TableColumnException;
+import tachyon.thrift.TableDoesNotExistException;
 
 /**
  * A global view of filesystem in master.
@@ -150,6 +153,11 @@ public class MasterInfo {
 
   public int createFile(String path, boolean directory)
       throws FileAlreadyExistException, InvalidPathException {
+    return createFile(path, directory, -1);
+  }
+
+  public int createFile(String path, boolean directory, int columns)
+      throws FileAlreadyExistException, InvalidPathException {
     String parameters = CommonUtils.parametersToString(path);
     LOG.info("createFile" + parameters);
 
@@ -177,24 +185,41 @@ public class MasterInfo {
             + folderPath + " does not exist.");
       }
 
-      Inode newFile = null;
+      Inode ret = null;
 
       if (directory) {
-        newFile = new InodeFolder(name, mInodeCounter.incrementAndGet(), inode.getId());
+        if (columns != -1) {
+          ret = new InodeRawTable(name, mInodeCounter.incrementAndGet(), inode.getId(), columns);
+        } else {
+          ret = new InodeFolder(name, mInodeCounter.incrementAndGet(), inode.getId());
+        }
       } else {
-        newFile = new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId());
+        ret = new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId());
       }
 
-      mInodes.put(newFile.getId(), newFile);
-      ((InodeFolder) inode).addChild(newFile.getId());
+      mInodes.put(ret.getId(), ret);
+      ((InodeFolder) inode).addChild(ret.getId());
 
       // TODO this two appends should be atomic;
       mMasterLogWriter.appendAndFlush(inode);
-      mMasterLogWriter.appendAndFlush(newFile);
+      mMasterLogWriter.appendAndFlush(ret);
 
-      LOG.info("createFile: File Created: " + newFile);
-      return newFile.getId();
+      LOG.info("createFile: File Created: " + ret);
+      return ret.getId();
     }
+  }
+
+  public int createRawTable(String path, int columns)
+      throws FileAlreadyExistException, InvalidPathException, TableColumnException {
+    String parameters = CommonUtils.parametersToString(path, columns);
+    LOG.info("user_createRawTable" + parameters);
+
+    if (columns <= 0 || columns >= Config.MAX_COLUMNS) {
+      throw new TableColumnException("Column " + columns + " should between 0 to " + 
+          Config.MAX_COLUMNS);
+    }
+
+    return createFile(path, true, columns);
   }
 
   public List<String> ls(String path) throws InvalidPathException, FileDoesNotExistException {
@@ -516,18 +541,6 @@ public class MasterInfo {
     }
   }
 
-  private String getPath(Inode inode) {
-    synchronized (mRoot) {
-      if (inode.getId() == 1) {
-        return "/";
-      }
-      if (inode.getParentId() == 1) {
-        return SEPARATOR + inode.getName();
-      }
-      return getPath(mInodes.get(inode.getParentId())) + SEPARATOR + inode.getName();
-    }
-  }
-
   public ClientFileInfo getClientFileInfo(String path)
       throws FileDoesNotExistException, InvalidPathException {
     LOG.info("getClientFileInfo(" + path + ")");
@@ -537,6 +550,34 @@ public class MasterInfo {
         throw new FileDoesNotExistException(path);
       }
       return getClientFileInfo(inode.getId());
+    }
+  }
+  
+  public ClientRawTableInfo getClientRawTableInfo(int id) throws TableDoesNotExistException {
+    LOG.info("getClientRawTableInfo(" + id + ")");
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(id);
+      if (inode == null || inode.isFile() || !((InodeFolder) inode).isRawTable()) {
+        throw new TableDoesNotExistException("Table " + id + " does not exist.");
+      }
+      ClientRawTableInfo ret = new ClientRawTableInfo();
+      ret.id = inode.getId();
+      ret.name = inode.getName();
+      ret.path = getPath(inode);
+      ret.columns = ((InodeRawTable) inode).getColumns();
+      return ret;
+    }
+  }
+
+  public ClientRawTableInfo getClientRawTableInfo(String path)
+      throws TableDoesNotExistException, InvalidPathException {
+    LOG.info("getClientRawTableInfo(" + path + ")");
+    synchronized (mRoot) {
+      Inode inode = getInode(path);
+      if (inode == null) {
+        throw new TableDoesNotExistException(path);
+      }
+      return getClientRawTableInfo(inode.getId());
     }
   }
 
@@ -575,8 +616,28 @@ public class MasterInfo {
     return ret;
   }
 
+  public int getRawTableId(String path) throws InvalidPathException {
+    Inode inode = getInode(path);
+    if (inode == null || inode.isFile() || !((InodeFolder) inode).isRawTable()) {
+      return -1;
+    }
+    return inode.getId();
+  }
+
   public long getNewUserId() {
     return mUserCounter.incrementAndGet();
+  }
+
+  private String getPath(Inode inode) {
+    synchronized (mRoot) {
+      if (inode.getId() == 1) {
+        return "/";
+      }
+      if (inode.getParentId() == 1) {
+        return SEPARATOR + inode.getName();
+      }
+      return getPath(mInodes.get(inode.getParentId())) + SEPARATOR + inode.getName();
+    }
   }
 
   private static String getName(String path) throws InvalidPathException {
