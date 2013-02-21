@@ -443,12 +443,14 @@ public class TachyonClient {
 
   public synchronized RawTable getRawTable(String path)
       throws TableDoesNotExistException, InvalidPathException, TException {
+    connectAndGetLocalWorker();
     path = CommonUtils.cleanPath(path);
     ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfoByPath(path);
     return new RawTable(this, clientRawTableInfo);
   }
 
   public synchronized RawTable getRawTable(int id) throws TableDoesNotExistException, TException {
+    connectAndGetLocalWorker();
     ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfoById(id);
     return new RawTable(this, clientRawTableInfo);
   }
