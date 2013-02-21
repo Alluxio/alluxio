@@ -16,6 +16,7 @@ import tachyon.Config;
 import tachyon.CommonUtils;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
+import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfMemoryForPinFileException;
 import tachyon.thrift.SuspectedFileSizeException;
 
@@ -35,7 +36,7 @@ public class PerformanceMultithreadTest {
   private static int Tachyon_WRITE_BUFFER_SIZE_BYTES = -1;
   private static String RESULT_PREFIX = null;
 
-  public static void createFiles() {
+  public static void createFiles() throws InvalidPathException {
     long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < FILES; k ++) {
       int fileId = MTC.createFile(FILE_NAME + k);
@@ -131,7 +132,8 @@ public class PerformanceMultithreadTest {
           new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
     }
 
-    public void writeParition() throws IOException, SuspectedFileSizeException, TException {
+    public void writeParition()
+        throws IOException, SuspectedFileSizeException, InvalidPathException, TException {
       if (DEBUG_MODE) {
         mBuf.flip();
         CommonUtils.printByteBuffer(LOG, mBuf);
@@ -163,6 +165,8 @@ public class PerformanceMultithreadTest {
         writeParition();
       } catch (IOException e) {
         CommonUtils.runtimeException(e);
+      } catch (InvalidPathException e) {
+        CommonUtils.runtimeException(e);
       } catch (SuspectedFileSizeException e) {
         CommonUtils.runtimeException(e);
       } catch (TException e) {
@@ -186,7 +190,8 @@ public class PerformanceMultithreadTest {
           new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
     }
 
-    public void readPartition() throws IOException, SuspectedFileSizeException, TException {
+    public void readPartition() 
+        throws IOException, SuspectedFileSizeException, InvalidPathException, TException {
       ByteBuffer buf;
       if (DEBUG_MODE) {
         LOG.info("Verifying the reading data...");
@@ -251,6 +256,8 @@ public class PerformanceMultithreadTest {
       try {
         readPartition();
       } catch (IOException e) {
+        CommonUtils.runtimeException(e);
+      } catch (InvalidPathException e) {
         CommonUtils.runtimeException(e);
       } catch (SuspectedFileSizeException e) {
         CommonUtils.runtimeException(e);
@@ -354,7 +361,7 @@ public class PerformanceMultithreadTest {
     LOG.info(RESULT_PREFIX + "Entire Read: " + result + " Mb/sec. Took " + takenTimeMs + " ms.");
   }
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws IOException, InvalidPathException {
     if (args.length != 9) {
       System.out.println("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
           "tachyon.examples.PerformanceTest " + " <MasterIp> <FileName> " +
