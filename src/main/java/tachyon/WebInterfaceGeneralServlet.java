@@ -46,13 +46,15 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     String version = Config.VERSION;
     request.setAttribute("version", version);
 
-    String capacity = Long.toString(mMasterInfo.getCapacityBytes());
+    String capacity = Double.toString(mMasterInfo.getCapacityBytes()/Math.pow(2,30));
     request.setAttribute("capacity", capacity);
 
-    String usedCapacity = Long.toString(mMasterInfo.getUsedCapacityBytes());
+    String usedCapacity = Double.toString(mMasterInfo.getUsedCapacityBytes()/Math.pow(2,30));
     request.setAttribute("usedCapacity", usedCapacity);
 
     String liveWorkerNodes = Integer.toString(mMasterInfo.getWorkerCount());
     request.setAttribute("liveWorkerNodes", liveWorkerNodes);
+
+
 	}
 }

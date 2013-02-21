@@ -98,11 +98,9 @@
 									<th>Node Name</th>
 									<th>Last Heartbeat</th>
 									<th>State</th>
-									<th>Blocks</th>	
 									<th>Capacity</th>
 								<tbody>
 									<tr>
-										<th>$VARIABLEHERE</th>
 										<th>$VARIABLEHERE</th>
 										<th>$VARIABLEHERE</th>
 										<th>$VARIABLEHERE</th>
@@ -114,7 +112,6 @@
 										</th>
 									</tr>
 									<tr>
-										<th>$VARIABLEHERE</th>
 										<th>$VARIABLEHERE</th>
 										<th>$VARIABLEHERE</th>
 										<th>$VARIABLEHERE</th>
