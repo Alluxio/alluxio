@@ -383,7 +383,7 @@ public class TachyonFile {
 
     HdfsClient tHdfsClient = new HdfsClient(path);
     FSDataInputStream inputStream = tHdfsClient.open(path);
-    TachyonFile tTFile = mTachyonClient.getFile(mClientFileInfo.getPath());
+    TachyonFile tTFile = mTachyonClient.getFile(mClientFileInfo.getId());
     tTFile.open("w", false);
     byte buffer[] = new byte[Config.USER_BUFFER_PER_PARTITION_BYTES * 4];
 

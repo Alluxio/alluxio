@@ -1,5 +1,7 @@
 package tachyon.client;
 
+import tachyon.thrift.InvalidPathException;
+
 public class RawColumn {
   private final TachyonClient TACHYON_CLIENT;
   private final RawTable RAW_TABLE;
@@ -11,11 +13,13 @@ public class RawColumn {
     COLUMN_INDEX = columnIndex;
   }
   
-  public boolean createPartition(int pId) {
+  // TODO creating file here should be based on id.
+  public boolean createPartition(int pId) throws InvalidPathException {
     return TACHYON_CLIENT.createFile(RAW_TABLE.getPath() + "/" + COLUMN_INDEX + "/" + pId) > 0;
   }
   
-  public TachyonFile getPartition(int pId) {
+  // TODO creating file here should be based on id.
+  public TachyonFile getPartition(int pId) throws InvalidPathException {
     return TACHYON_CLIENT.getFile(RAW_TABLE.getPath() + "/" + COLUMN_INDEX + "/" + pId);
   }
 }

@@ -199,8 +199,8 @@ public class TachyonClient {
   }
 
   public static synchronized TachyonClient getClient(String tachyonAddress) {
-    String[] address = tachyonAddress.split(":"); 
-    if (address.length != 1) {
+    String[] address = tachyonAddress.split(":");
+    if (address.length != 2) {
       CommonUtils.illegalArgumentException("Illegal Tachyon Master Address: " + tachyonAddress);
     }
     return getClient(new InetSocketAddress(address[0], Integer.parseInt(address[1])));
@@ -254,7 +254,7 @@ public class TachyonClient {
     return mUserHdfsTempFolder;
   }
 
-  public synchronized int createRawTable(String path, int columns) {
+  public synchronized int createRawTable(String path, int columns) throws InvalidPathException {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return -1;
@@ -274,9 +274,6 @@ public class TachyonClient {
     } catch (FileAlreadyExistException e) {
       LOG.info(e.getMessage());
       return -1;
-    } catch (InvalidPathException e) {
-      LOG.error(e.getMessage());
-      return -1;
     } catch (TException e) {
       LOG.error(e.getMessage());
       mConnected = false;
@@ -284,24 +281,21 @@ public class TachyonClient {
     }
   }
 
-  public synchronized int createFile(String filePath) {
+  public synchronized int createFile(String path) throws InvalidPathException {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return -1;
     }
-    filePath = CommonUtils.cleanPath(filePath);
+    path = CommonUtils.cleanPath(path);
     // TODO HDFS_TEMP_FILE should also be in Tachyon, but not flashed to disk if not necessary.
-    if (filePath.contains(Config.HDFS_TEMP_FILE)) {
+    if (path.contains(Config.HDFS_TEMP_FILE)) {
       return -1;
     }
     int fileId = -1;
     try {
-      fileId = mMasterClient.user_createFile(filePath);
+      fileId = mMasterClient.user_createFile(path);
     } catch (FileAlreadyExistException e) {
       LOG.info(e.getMessage());
-      fileId = -1;
-    } catch (InvalidPathException e) {
-      LOG.error(e.getMessage());
       fileId = -1;
     } catch (TException e) {
       LOG.error(e.getMessage());
@@ -311,7 +305,7 @@ public class TachyonClient {
     return fileId;
   }
 
-  public synchronized int mkdir(String path) {
+  public synchronized int mkdir(String path) throws InvalidPathException {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return -1;
@@ -321,9 +315,6 @@ public class TachyonClient {
     try {
       id = mMasterClient.user_mkdir(path);
     } catch (FileAlreadyExistException e) {
-      LOG.info(e.getMessage());
-      id = -1;
-    } catch (InvalidPathException e) {
       LOG.info(e.getMessage());
       id = -1;
     } catch (TException e) {
@@ -373,9 +364,9 @@ public class TachyonClient {
     return ret;
   }
 
-  public synchronized TachyonFile getFile(String filePath) {
-    filePath = CommonUtils.cleanPath(filePath);
-    ClientFileInfo clientFileInfo = getClientFileInfo(filePath);
+  public synchronized TachyonFile getFile(String path) throws InvalidPathException {
+    path = CommonUtils.cleanPath(path);
+    ClientFileInfo clientFileInfo = getClientFileInfo(path);
     if (clientFileInfo == null) {
       return null;
     }
@@ -390,17 +381,15 @@ public class TachyonClient {
     return new TachyonFile(this, clientFileInfo);
   }
 
-  public synchronized int getFileId(String filePath) {
+  public synchronized int getFileId(String path) throws InvalidPathException {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return -1;
     }
     int fileId = -1;
-    filePath = CommonUtils.cleanPath(filePath);
+    path = CommonUtils.cleanPath(path);
     try {
-      fileId = mMasterClient.user_getFileId(filePath);
-    } catch (InvalidPathException e) {
-      CommonUtils.runtimeException(e);
+      fileId = mMasterClient.user_getFileId(path);
     } catch (TException e) {
       // TODO Ideally, this exception should be throws to the upper upper layer, and 
       // remove notContainDataset(datasetPath) method. This is for absolutely fall through.
@@ -411,20 +400,17 @@ public class TachyonClient {
     return fileId;
   }
 
-  private synchronized ClientFileInfo getClientFileInfo(String filePath) {
+  private synchronized ClientFileInfo getClientFileInfo(String path) throws InvalidPathException {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return null;
     }
     ClientFileInfo ret;
-    filePath = CommonUtils.cleanPath(filePath);
+    path = CommonUtils.cleanPath(path);
     try {
-      ret = mMasterClient.user_getClientFileInfoByPath(filePath);
+      ret = mMasterClient.user_getClientFileInfoByPath(path);
     } catch (FileDoesNotExistException e) {
-      LOG.info("File " + filePath + " does not exist.");
-      return null;
-    } catch (InvalidPathException e) {
-      LOG.info("File path " + filePath + " is invalid.");
+      LOG.info("File " + path + " does not exist.");
       return null;
     } catch (TException e) {
       LOG.error(e.getMessage());

@@ -14,6 +14,7 @@ import tachyon.Config;
 import tachyon.CommonUtils;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
+import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfMemoryForPinFileException;
 import tachyon.thrift.SuspectedFileSizeException;
 
@@ -27,7 +28,7 @@ public class PerformanceTest {
   private static int FILES = -1;
   private static boolean DEBUG_MODE = false;
 
-  public static void createFiles() {
+  public static void createFiles() throws InvalidPathException {
     long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < FILES; k ++) {
       int fileId = TC.createFile(FILE_NAME + k);
@@ -36,7 +37,7 @@ public class PerformanceTest {
   }
 
   public static void writeFiles() throws IOException, SuspectedFileSizeException, 
-  OutOfMemoryForPinFileException, TException {
+  OutOfMemoryForPinFileException, InvalidPathException, TException {
     ByteBuffer buf = ByteBuffer.allocate(BLOCK_SIZE_BYTES);
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < BLOCK_SIZE_BYTES / 4; k ++) {
@@ -69,7 +70,8 @@ public class PerformanceTest {
     }
   }
 
-  public static void readFiles() throws IOException, SuspectedFileSizeException, TException {
+  public static void readFiles() 
+      throws IOException, SuspectedFileSizeException, InvalidPathException, TException {
     ByteBuffer buf;
     LOG.info("Trying to read data...");
     if (DEBUG_MODE) {
@@ -130,7 +132,7 @@ public class PerformanceTest {
   }
 
   public static void main(String[] args) throws IOException, SuspectedFileSizeException,
-  OutOfMemoryForPinFileException, TException {
+  OutOfMemoryForPinFileException, InvalidPathException, TException {
     if (args.length != 6) {
       System.out.println("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
           "tachyon.examples.PerformanceTest " + " <MasterIp> <FileName> " +

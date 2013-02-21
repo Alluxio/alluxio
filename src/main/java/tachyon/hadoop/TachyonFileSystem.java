@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.CommonUtils;
 import tachyon.Config;
 import tachyon.client.TachyonClient;
+import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 
 /**
@@ -99,19 +100,24 @@ public class TachyonFileSystem extends FileSystem {
     FileStatus hfs = fs.getFileStatus(hdfsPath);
 
     String tFileSuffix = "";
-    if (!hfs.isDir() && !filePath.contains(Config.HDFS_TEMP_FILE)) {
-      int fileId = mTachyonClient.getFileId(filePath);
-      if (fileId > 0) {
-        LOG.info("TachyonClient has file " + filePath);
-        tFileSuffix = "%" + fileId;
-      } else {
-        LOG.info("TachyonClient does not have DATASET " + filePath);
-        int tmp = mTachyonClient.createFile(filePath);
-        // TODO Add Checkpoint Path.
-        if (tmp != -1) {
-          tFileSuffix = "%" + tmp;
+    try {
+      if (!hfs.isDir() && !filePath.contains(Config.HDFS_TEMP_FILE)) {
+        int fileId;
+        fileId = mTachyonClient.getFileId(filePath);
+        if (fileId > 0) {
+          LOG.info("TachyonClient has file " + filePath);
+          tFileSuffix = "%" + fileId;
+        } else {
+          LOG.info("TachyonClient does not have DATASET " + filePath);
+          int tmp = mTachyonClient.createFile(filePath);
+          // TODO Add Checkpoint Path.
+          if (tmp != -1) {
+            tFileSuffix = "%" + tmp;
+          }
         }
       }
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
     }
 
     FileStatus ret = new FileStatus(hfs.getLen(), hfs.isDir(), hfs.getReplication(),
