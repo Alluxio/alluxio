@@ -467,48 +467,6 @@ public class TachyonClient {
     return new RawTable(this, clientRawTableInfo);
   }
 
-  //  private synchronized RawColumnDatasetInfo getRawColumnDatasetInfo(String datasetPath) {
-  //    connectAndGetLocalWorker();
-  //    if (!mConnected) {
-  //      return null;
-  //    }
-  //    RawColumnDatasetInfo ret;
-  //    datasetPath = CommonUtils.cleanPath(datasetPath);
-  //    try {
-  //      ret = mMasterClient.user_getRawColumnDataset(datasetPath);
-  //    } catch (DatasetDoesNotExistException e) {
-  //      LOG.info("RawColumnDataset with path " + datasetPath + " does not exist.");
-  //      return null;
-  //    } catch (TException e) {
-  //      LOG.error(e.getMessage());
-  //      mConnected = false;
-  //      return null;
-  //    }
-  //
-  //    return ret;
-  //  }
-  //
-  //  private synchronized RawColumnDatasetInfo getRawColumnDatasetInfo(int datasetId) {
-  //    connectAndGetLocalWorker();
-  //    if (!mConnected) {
-  //      return null;
-  //    }
-  //
-  //    RawColumnDatasetInfo ret = null;
-  //    try {
-  //      ret = mMasterClient.user_getRawColumnDatasetInfo(datasetId);
-  //    } catch (DatasetDoesNotExistException e) {
-  //      LOG.info("RawColumnDataset with id " + datasetId + " does not exist.");
-  //      return null;
-  //    } catch (TException e) {
-  //      LOG.error(e.getMessage());
-  //      mConnected = false;
-  //      return null;
-  //    }
-  //
-  //    return ret;
-  //  }
-
   public synchronized String getRootFolder() {
     connectAndGetLocalWorker();
     return sDataFolder;
@@ -518,11 +476,11 @@ public class TachyonClient {
     return mConnected;
   }
 
-  public synchronized void outOfMemoryForPinDataset(int datasetId) {
+  public synchronized void outOfMemoryForPinFile(int fileId) {
     connectAndGetLocalWorker();
     if (mConnected) {
       try {
-        mMasterClient.user_outOfMemoryForPinDataset(datasetId);
+        mMasterClient.user_outOfMemoryForPinFile(fileId);
       } catch (TException e) {
         LOG.error(e.getMessage());
       }

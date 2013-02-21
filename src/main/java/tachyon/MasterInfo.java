@@ -416,7 +416,7 @@ public class MasterInfo {
 
       CommonUtils.deleteFile(Config.MASTER_LOG_FILE);
     }
-    LOG.info("Files recovery done. Current mDatasetCounter: " + mInodeCounter.get());
+    LOG.info("Files recovery done. Current mInodeCounter: " + mInodeCounter.get());
   }
 
   private void recoveryFromFile(String fileName, String msg) {

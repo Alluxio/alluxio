@@ -77,7 +77,7 @@ public class BasicRawTableTest {
       InvalidPathException, TException {
     if (args.length != 2) {
       System.out.println("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
-          "tachyon.examples.BasicRawColumnDatasetTest <TachyonMasterHostName> <DatasetPath>");
+          "tachyon.examples.BasicRawTableTest <TachyonMasterHostName> <FilePath>");
     }
     sTachyonClient = TachyonClient.getClient(new InetSocketAddress(args[0], Config.MASTER_PORT));
     sTablePath = args[1];

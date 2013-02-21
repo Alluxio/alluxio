@@ -123,7 +123,7 @@ public class TachyonFile {
 
       if (!mTachyonClient.requestSpace(mOutBuffer.position() + len)) {
         if (mClientFileInfo.isNeedPin()) {
-          mTachyonClient.outOfMemoryForPinDataset(mId);
+          mTachyonClient.outOfMemoryForPinFile(mId);
           throw new OutOfMemoryForPinFileException("Local tachyon worker does not have enough " +
               "space or no worker for " + mId);
         }
