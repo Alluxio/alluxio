@@ -25,10 +25,10 @@ public class WorkerInfo {
   private long mLastUpdatedTimeMs;
   private Set<Integer> mFiles; 
 
-  public WorkerInfo(long id, InetSocketAddress address, long totalBytes) {
+  public WorkerInfo(long id, InetSocketAddress address, long capacityBytes) {
     mId = id;
     ADDRESS = address;
-    CAPACITY_BYTES = totalBytes;
+    CAPACITY_BYTES = capacityBytes;
     START_TIME_MS = System.currentTimeMillis();
 
     mUsedBytes = 0;

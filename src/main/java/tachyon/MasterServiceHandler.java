@@ -33,12 +33,6 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   private final MasterInfo mMasterInfo;
 
-  //  private Map<Integer, RawColumnDatasetInfo> mRawColumnDatasets = 
-  //      new HashMap<Integer, RawColumnDatasetInfo>();
-  //  private Map<String, Integer> mRawColumnDatasetPathToId = new HashMap<String, Integer>();
-
-  // Fault Recovery Log
-
   public MasterServiceHandler(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
   }
@@ -71,32 +65,6 @@ public class MasterServiceHandler implements MasterService.Iface {
       throws InvalidPathException, FileDoesNotExistException, TException {
     mMasterInfo.delete(path);
   }
-
-  //  @Override
-  //  public void user_deleteRawColumnDataset(int datasetId)
-  //      throws FileDoesNotExistException, TException {
-  //    // TODO Auto-generated method stub
-  //    LOG.info("user_deleteDataset(" + datasetId + ")");
-  //    // Only remove meta data from master. The data in workers will be evicted since no further
-  //    // application can read them. (Based on LRU) TODO May change it to be active from V0.2. 
-  //    synchronized (mDatasets) {
-  //      if (!mRawColumnDatasets.containsKey(datasetId)) {
-  //        throw new FileDoesNotExistException("Failed to delete " + datasetId + 
-  //            " RawColumnDataset.");
-  //      }
-  //
-  //      RawColumnDatasetInfo dataset = mRawColumnDatasets.remove(datasetId);
-  //      mRawColumnDatasetPathToId.remove(dataset.mPath);
-  //      dataset.mId = - dataset.mId;
-  //
-  //      for (int k = 0; k < dataset.mColumns; k ++) {
-  //        user_deleteDataset(dataset.mColumnDatasetIdList.get(k));
-  //      }
-  //
-  //      // TODO this order is not right. Move this upper.
-  //      mMasterLogWriter.appendAndFlush(dataset);
-  //    }
-  //  }
 
   @Override
   public NetAddress user_getLocalWorker(String host) throws NoLocalWorkerException, TException {
@@ -172,28 +140,6 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   //  @Override
-  //  public void user_renameRawColumnDataset(String srcDatasetPath, String dstDatasetPath)
-  //      throws FileDoesNotExistException, TException {
-  //    // TODO Auto-generated method stub
-  //    synchronized (mFiles) {
-  //      int datasetId = user_getRawColumnDatasetId(srcDatasetPath);
-  //      if (datasetId <= 0) {
-  //        throw new FileDoesNotExistException("getRawColumnDataset " + srcDatasetPath +
-  //            " does not exist");
-  //      }
-  //      mRawColumnDatasetPathToId.remove(srcDatasetPath);
-  //      mRawColumnDatasetPathToId.put(dstDatasetPath, datasetId);
-  //      RawColumnDatasetInfo datasetInfo = mRawColumnDatasets.get(datasetId);
-  //      datasetInfo.mPath = dstDatasetPath;
-  //      for (int k = 0; k < datasetInfo.mColumns; k ++) {
-  //        user_renameDataset(srcDatasetPath + "/col_" + k, dstDatasetPath + "/col_" + k);
-  //      }
-  //
-  //      mMasterLogWriter.appendAndFlush(datasetInfo);
-  //    }
-  //  }
-
-  //  @Override
   //  public void user_setPartitionCheckpointPath(int datasetId, int partitionId,
   //      String checkpointPath) throws FileDoesNotExistException,
   //      FileDoesNotExistException, TException {
@@ -228,50 +174,6 @@ public class MasterServiceHandler implements MasterService.Iface {
     mMasterInfo.cachedFile(workerId, workerUsedBytes, fileId, partitionSizeBytes, 
         hasCheckpointed, checkpointPath);
   }
-
-  //  @Override
-  //  public void worker_addRCDPartition(long workerId, int datasetId, int partitionId,
-  //      int partitionSizeBytes) throws FileDoesNotExistException,
-  //      SuspectedFileSizeException, TException {
-  //    String parameters = CommonUtils.parametersToString(workerId, datasetId, partitionId,
-  //        partitionSizeBytes);
-  //    LOG.info("worker_addRCDPartition" + parameters);
-  //    WorkerInfo tWorkerInfo = null;
-  //    synchronized (mWorkers) {
-  //      tWorkerInfo = mWorkers.get(workerId);
-  //
-  //      if (tWorkerInfo == null) {
-  //        LOG.error("No worker: " + workerId);
-  //        return;
-  //      }
-  //    }
-  //
-  //    tWorkerInfo.updateFile(true, CommonUtils.generateBigId(datasetId, partitionId));
-  //    tWorkerInfo.updateLastUpdatedTimeMs();
-  //
-  //    synchronized (mFiles) {
-  //      RawColumnDatasetInfo datasetInfo = mRawColumnDatasets.get(datasetId);
-  //
-  //      if (partitionId < 0 || partitionId >= datasetInfo.mNumOfPartitions) {
-  //        throw new FileDoesNotExistException("RawColumnDatasetId " + datasetId + " has " +
-  //            datasetInfo.mNumOfPartitions + " partitions. The requested partition id " + 
-  //            partitionId + " is out of index.");
-  //      }
-  //
-  //      PartitionInfo pInfo = datasetInfo.mPartitionList.get(partitionId);
-  //      if (pInfo.mSizeBytes != -1) {
-  //        if (pInfo.mSizeBytes != partitionSizeBytes) {
-  //          throw new SuspectedFileSizeException(datasetId + "-" + partitionId + 
-  //              ". Original Size: " + pInfo.mSizeBytes + ". New Size: " + partitionSizeBytes);
-  //        }
-  //      } else {
-  //        pInfo.mSizeBytes = partitionSizeBytes;
-  //        datasetInfo.mSizeBytes += pInfo.mSizeBytes;
-  //      }
-  //      InetSocketAddress address = tWorkerInfo.ADDRESS;
-  //      pInfo.mLocations.put(workerId, new NetAddress(address.getHostName(), address.getPort()));
-  //    }
-  //  }
 
   @Override
   public Set<Integer> worker_getPinIdList() throws TException {

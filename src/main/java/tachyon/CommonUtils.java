@@ -222,7 +222,7 @@ public class CommonUtils {
     } else if (end.equals("mb")) {
       return ret * Config.MB;
     } else if (end.equals("gb")) {
-      return ret * Config.TB;
+      return ret * Config.GB;
     }
     runtimeException("Fail to parse " + ori + " as memory size");
     return -1;
