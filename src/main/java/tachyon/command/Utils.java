@@ -4,7 +4,7 @@ import java.net.InetSocketAddress;
 
 public class Utils {
   private static final String HEADER = "tachyon://";
-  
+
   public static void validateTachyonPath(String path) {
     if (!path.startsWith(HEADER)) {
       System.out.println("The path name has to start with tachyon://");
@@ -15,7 +15,7 @@ public class Utils {
       System.exit(-1);
     }
   }
-  
+
   public static String getFilePath(String path) {
     validateTachyonPath(path);
     path = path.substring(HEADER.length());
