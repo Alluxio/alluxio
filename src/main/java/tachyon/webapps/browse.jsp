@@ -24,9 +24,9 @@
 	<div class="container-fluid">
 		<div class="row-fluid">
 			<div class="span12 well">
-				<div class="h1 text-error">
+				<h1 class="text-error">
 					${invalidPathError}
-				</div>
+				</h1>
 				<div class="navbar">
 					<div class="navbar-inner">
 						<ul class="nav nav-pills">
@@ -42,11 +42,22 @@
 						<th>File Name</th>
 						<th>Size</th>
 						<th>In-Memory</th>
+						<c:if test = "${debug}">
+							<th>[DEBUG]Inode Number</th>
+						</c:if>
 					</thead>
 					<tbody>
 						<c:forEach var="fileInfo" items="${fileInfos}">
 							<tr>
-								<th><a href="./browse?path=${fileInfo.absolutePath}"><c:out value="${fileInfo.name}"/></a></th>
+								<th>
+									<c:if test = "${fileInfo.isDirectory}">
+										<i class="icon-folder-close"></i>
+									</c:if>
+									<c:if test = "${not fileInfo.isDirectory}">
+										<i class="icon-file"></i>
+									</c:if>
+									<a href="./browse?path=${fileInfo.absolutePath}"><c:out value="${fileInfo.name}"/></a>
+								</th>
 								<th>${fileInfo.size} Bytes</th>
 								<th>
 									<c:if test = "${fileInfo.inMemory}">
@@ -56,6 +67,9 @@
 										<i class="icon-hdd icon-white"></i>
 									</c:if>
 								</th>
+								<c:if test = "${debug}">
+									<th>${fileInfo.id}</th>
+								</c:if>
 							</tr>
 						</c:forEach>
 					</tbody>

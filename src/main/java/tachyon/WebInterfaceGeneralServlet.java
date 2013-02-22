@@ -33,6 +33,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
   // Populates key, value pairs for UI display
   private void populateValues(HttpServletRequest request) {
+    request.setAttribute("debug", Config.DEBUG);
+
     long upMillis = System.currentTimeMillis() - mMasterInfo.getStarttimeMs();
     request.setAttribute("uptime", CommonUtils.convertMillis(upMillis));
 
