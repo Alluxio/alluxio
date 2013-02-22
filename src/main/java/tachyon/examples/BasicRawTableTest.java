@@ -24,11 +24,12 @@ public class BasicRawTableTest {
 
   private static TachyonClient sTachyonClient;
   private static String sTablePath = null;
+  private static int mId;
 
   public static void createRawTable() throws InvalidPathException {
     long startTimeMs = CommonUtils.getCurrentMs();
-    int id = sTachyonClient.createRawTable(sTablePath, 3);
-    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createRawTable with id " + id);
+    mId = sTachyonClient.createRawTable(sTablePath, 3);
+    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createRawTable with id " + mId);
   }
 
   public static void writeParition() 
@@ -56,17 +57,49 @@ public class BasicRawTableTest {
     buf.flip();
     tFile.append(buf);
     tFile.close();
+    
+    rawTable = sTachyonClient.getRawTable(mId);
+    rawColumn = rawTable.getRawColumn(1);
+    if (!rawColumn.createPartition(0)) {
+      CommonUtils.runtimeException("Failed to create partition 2 in table " + sTablePath);
+    }
+
+    tFile = rawColumn.getPartition(0);
+    tFile.open("w");
+
+    buf = ByteBuffer.allocate(80);
+    buf.order(ByteOrder.nativeOrder());
+    for (int k = 20; k < 40; k ++) {
+      buf.putInt(k);
+    }
+
+    buf.flip();
+    LOG.info("Writing data...");
+    CommonUtils.printByteBuffer(LOG, buf);
+
+    buf.flip();
+    tFile.append(buf);
+    tFile.close();
   }
 
   public static void readPartition()
       throws IOException, TableDoesNotExistException, InvalidPathException, TException {
     LOG.info("Reading data...");
-    RawTable rawTable = sTachyonClient.getRawTable(sTablePath);
-    RawColumn rawColumn = rawTable.getRawColumn(2);
+    RawTable rawTable = sTachyonClient.getRawTable(mId);
+    RawColumn rawColumn = rawTable.getRawColumn(1);
     TachyonFile tFile = rawColumn.getPartition(0);
     tFile.open("r");
 
     ByteBuffer buf;
+    buf = tFile.readByteBuffer();
+    CommonUtils.printByteBuffer(LOG, buf);
+    tFile.close();
+    
+    rawTable = sTachyonClient.getRawTable(sTablePath);
+    rawColumn = rawTable.getRawColumn(2);
+    tFile = rawColumn.getPartition(0);
+    tFile.open("r");
+
     buf = tFile.readByteBuffer();
     CommonUtils.printByteBuffer(LOG, buf);
     tFile.close();

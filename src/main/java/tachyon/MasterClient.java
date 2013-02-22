@@ -141,6 +141,11 @@ public class MasterClient {
     return CLIENT.user_getClientRawTableInfoById(id);
   }
 
+  public synchronized int getNumberOfFiles(String folderPath)
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    return CLIENT.user_getNumberOfFiles(folderPath);
+  }
+
   public int user_mkdir(String path) 
       throws FileAlreadyExistException, InvalidPathException, TException {
     return CLIENT.user_mkdir(path);

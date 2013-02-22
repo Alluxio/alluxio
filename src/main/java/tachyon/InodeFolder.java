@@ -49,6 +49,10 @@ public class InodeFolder extends Inode {
     ret.addAll(mChildren);
     return ret;
   }
+  
+  public synchronized int getNumberOfChildren() {
+    return mChildren.size();
+  }
 
   public synchronized void removeChild(int id) {
     mChildren.remove(id);
