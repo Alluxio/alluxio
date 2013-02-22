@@ -20,6 +20,7 @@ public abstract class Inode implements Comparable<Inode>, Serializable {
   private String mName;
   private int mParentId;
 
+  // TODO These two variables should be moved to InodeFile. 
   private boolean mPin = false;
   private boolean mCache = false;
 

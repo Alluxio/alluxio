@@ -14,7 +14,7 @@ import tachyon.Config;
 public class Utils {
   private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
-  public static String getTachyonDatasetName(String path) {
+  public static String getTachyonFileName(String path) {
     if (path.contains("%")) {
       path = path.split("%")[0];
     }
@@ -36,7 +36,7 @@ public class Utils {
   }
 
   public static Path getHDFSPath(String path) {
-    path = getTachyonDatasetName(path);
+    path = getTachyonFileName(path);
 
     String mid = "/";
     if (path.startsWith("/")) {
