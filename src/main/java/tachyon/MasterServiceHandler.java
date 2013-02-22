@@ -123,6 +123,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public int user_getNumberOfFiles(String path)
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    return mMasterInfo.getNumberOfFiles(path);
+  }
+
+  @Override
   public int user_mkdir(String path) 
       throws FileAlreadyExistException, InvalidPathException, TException {
     return mMasterInfo.createFile(path, true);
