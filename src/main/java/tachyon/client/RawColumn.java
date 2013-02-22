@@ -29,7 +29,9 @@ public class RawColumn {
         COLUMN_INDEX + "/" + pId);
   }
 
+  // TODO creating file here should be based on id.
   public int getPartitions() throws FileDoesNotExistException, InvalidPathException, TException {
-    return TACHYON_CLIENT.getNumberOfFiles(RAW_TABLE.getPath() + "/col_" + COLUMN_INDEX);
+    return TACHYON_CLIENT.getNumberOfFiles(RAW_TABLE.getPath() + MasterInfo.SEPARATOR +
+        MasterInfo.COL + COLUMN_INDEX);
   }
 }
