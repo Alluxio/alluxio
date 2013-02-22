@@ -12,6 +12,7 @@ import tachyon.Config;
 import tachyon.CommonUtils;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
+import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfMemoryForPinFileException;
 import tachyon.thrift.SuspectedFileSizeException;
 
@@ -21,13 +22,14 @@ public class BasicUserOperationTest {
   private static TachyonClient sTachyonClient;
   private static String sFilePath = null;
 
-  public static void createFile() {
+  public static void createFile() throws InvalidPathException {
     long startTimeMs = CommonUtils.getCurrentMs();
     int fileId = sTachyonClient.createFile(sFilePath);
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createFile with fileId " + fileId);
   }
 
-  public static void writeFile() throws SuspectedFileSizeException, IOException {
+  public static void writeFile()
+      throws SuspectedFileSizeException, InvalidPathException, IOException {
     TachyonFile file = sTachyonClient.getFile(sFilePath);
     file.open("w");
 
@@ -50,7 +52,8 @@ public class BasicUserOperationTest {
     file.close();
   }
 
-  public static void readFile() throws SuspectedFileSizeException, IOException {
+  public static void readFile()
+      throws SuspectedFileSizeException, InvalidPathException, IOException {
     LOG.info("Reading data...");
     TachyonFile file = sTachyonClient.getFile(sFilePath);
     file.open("r");
@@ -67,7 +70,8 @@ public class BasicUserOperationTest {
     file.close();
   }
 
-  public static void main(String[] args) throws SuspectedFileSizeException, IOException {
+  public static void main(String[] args)
+      throws SuspectedFileSizeException, InvalidPathException, IOException {
     if (args.length != 2) {
       System.out.println("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
           "tachyon.examples.BasicUserOperationTest <TachyonMasterHostName> <FilePath>");
