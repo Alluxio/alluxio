@@ -18,7 +18,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   private MasterInfo mMasterInfo;
 
   public WebInterfaceGeneralServlet(MasterInfo MI) {
-    this.mMasterInfo = MI;
+    mMasterInfo = MI;
   }
 
   protected void doGet(HttpServletRequest request, HttpServletResponse response) 
@@ -33,28 +33,28 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
   // Populates key, value pairs for UI display
   private void populateValues(HttpServletRequest request) {
-    long upMillis = System.currentTimeMillis() - this.mMasterInfo.getStarttimeMs();
+    long upMillis = System.currentTimeMillis() - mMasterInfo.getStarttimeMs();
     request.setAttribute("uptime", CommonUtils.convertMillis(upMillis));
 
     DateFormat formatter = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss");
     Calendar cal = Calendar.getInstance();
-    cal.setTimeInMillis(this.mMasterInfo.getStarttimeMs());
+    cal.setTimeInMillis(mMasterInfo.getStarttimeMs());
     String startTime = formatter.format(cal.getTime());
     request.setAttribute("startTime", startTime);
 
     String version = Config.VERSION;
     request.setAttribute("version", version);
 
-    String capacity = CommonUtils.getSizeFromBytes(this.mMasterInfo.getCapacityBytes());
+    String capacity = CommonUtils.getSizeFromBytes(mMasterInfo.getCapacityBytes());
     request.setAttribute("capacity", capacity);
 
-    String usedCapacity = CommonUtils.getSizeFromBytes(this.mMasterInfo.getUsedCapacityBytes());
+    String usedCapacity = CommonUtils.getSizeFromBytes(mMasterInfo.getUsedCapacityBytes());
     request.setAttribute("usedCapacity", usedCapacity);
 
-    String liveWorkerNodes = Integer.toString(this.mMasterInfo.getWorkerCount());
+    String liveWorkerNodes = Integer.toString(mMasterInfo.getWorkerCount());
     request.setAttribute("liveWorkerNodes", liveWorkerNodes);
 
-    List<ClientWorkerInfo> workerInfos = this.mMasterInfo.getWorkersInfo();
+    List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
     int index = 0;
     NodeInfo[] nodeInfos = new NodeInfo[workerInfos.size()];
     for (ClientWorkerInfo workerInfo : workerInfos) {
@@ -62,9 +62,9 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     }
     request.setAttribute("nodeInfos", nodeInfos);
 
-    request.setAttribute("pinlist", this.mMasterInfo.getPinList());
+    request.setAttribute("pinlist", mMasterInfo.getPinList());
 
-    request.setAttribute("whitelist", this.mMasterInfo.getWhiteList());
+    request.setAttribute("whitelist", mMasterInfo.getWhiteList());
     
   }
 
@@ -72,39 +72,39 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   // by array indexes.
 
   public class NodeInfo {
-    private String name;
-    private String lastHeartbeat;
-    private String state;
-    private int percentFreeSpace;
-    private int percentUsedSpace;
+    private String mName;
+    private String mLastHeartbeat;
+    private String mState;
+    private int mPercentFreeSpace;
+    private int mPercentUsedSpace;
 
     private NodeInfo(ClientWorkerInfo workerInfo) {
-      this.name = workerInfo.getAddress().getMHost();
-      this.lastHeartbeat = Integer.toString(workerInfo.getLastContactSec());
-      this.state = workerInfo.getState();
+      mName = workerInfo.getAddress().getMHost();
+      mLastHeartbeat = Integer.toString(workerInfo.getLastContactSec());
+      mState = workerInfo.getState();
       Long usedSpace = 100*workerInfo.getUsedBytes()/workerInfo.getCapacityBytes();
-      this.percentUsedSpace = usedSpace.intValue();
-      this.percentFreeSpace = 100 - percentUsedSpace;
+      mPercentUsedSpace = usedSpace.intValue();
+      mPercentFreeSpace = 100 - mPercentUsedSpace;
     }
 
     public String getName() {
-      return this.name;
+      return mName;
     }
 
     public String getLastHeartbeat() {
-      return this.lastHeartbeat;
+      return mLastHeartbeat;
     }
 
     public String getState() {
-      return this.state;
+      return mState;
     }
 
     public int getPercentFreeSpace() {
-      return this.percentFreeSpace;
+      return mPercentFreeSpace;
     }
 
     public int getPercentUsedSpace() {
-      return this.percentUsedSpace;
+      return mPercentUsedSpace;
     }
 
   }
