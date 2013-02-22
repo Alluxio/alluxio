@@ -146,7 +146,7 @@ public class MasterClient {
     return CLIENT.user_mkdir(path);
   }
 
-  public synchronized void user_outOfMemoryForPinDataset(int fileId) throws TException {
+  public synchronized void user_outOfMemoryForPinFile(int fileId) throws TException {
     CLIENT.user_outOfMemoryForPinFile(fileId);
   }
 
