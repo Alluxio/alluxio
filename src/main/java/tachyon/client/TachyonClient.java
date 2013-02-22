@@ -163,6 +163,7 @@ public class TachyonClient {
     LOG.info("Trying to connect local worker @ " + sLocalWorkerAddress);
     mLocalWorkerClient = WorkerClient.createWorkerClient(sLocalWorkerAddress);
     if (!mLocalWorkerClient.open()) {
+      LOG.error("Failed to connect local worker @ " + sLocalWorkerAddress);
       mLocalWorkerClient = null;
       return;
     }

@@ -354,7 +354,7 @@ public class MasterInfo {
     Inode cur = mRoot;
 
     synchronized (mRoot) {
-      for (int k = 1; k < pathNames.length; k ++) {
+      for (int k = 1; k < pathNames.length && cur != null; k ++) {
         String name = pathNames[k];
         if (cur.isFile()) {
           return null;
