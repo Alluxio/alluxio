@@ -50,11 +50,11 @@ public class WorkerClient {
     CLIENT.addDoneFile(userId, fileId, writeThrough);
   }
 
-//  public synchronized void addRCDPartition(int datasetId, int partitionId, 
-//      int sizeBytes) throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
-//      PartitionAlreadyExistException, TException {
-//    CLIENT.addRCDPartition(datasetId, partitionId, sizeBytes);
-//  }
+  //  public synchronized void addRCDPartition(int datasetId, int partitionId, 
+  //      int sizeBytes) throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
+  //      PartitionAlreadyExistException, TException {
+  //    CLIENT.addRCDPartition(datasetId, partitionId, sizeBytes);
+  //  }
 
   public synchronized void close() {
     mProtocol.getTransport().close();
