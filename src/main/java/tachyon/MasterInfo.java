@@ -42,7 +42,8 @@ import tachyon.thrift.TableDoesNotExistException;
  * @author Haoyuan Li haoyuan@cs.berkeley.edu
  */
 public class MasterInfo {
-  private static final String SEPARATOR = "/";
+  public static final String SEPARATOR = "/";
+  public static final String COL = "COL_";
 
   private final Logger LOG = LoggerFactory.getLogger(MasterInfo.class);
 
@@ -224,7 +225,7 @@ public class MasterInfo {
     int id = createFile(path, true, columns);
 
     for (int k = 0; k < columns; k ++) {
-      createFile(path + SEPARATOR + k, true);
+      createFile(path + SEPARATOR + COL + k, true);
     }
 
     return id;
@@ -892,5 +893,16 @@ public class MasterInfo {
     }
 
     return id;
+  }
+
+  public int getNumberOfFiles(String path) throws InvalidPathException, FileDoesNotExistException {
+    Inode inode = getInode(path);
+    if (inode == null) {
+      throw new FileDoesNotExistException(path);
+    }
+    if (inode.isFile()) {
+      return 1;
+    }
+    return ((InodeFolder) inode).getNumberOfChildren();
   }
 }

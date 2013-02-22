@@ -561,4 +561,10 @@ public class TachyonClient {
     }
     return true;
   }
+
+  public int getNumberOfFiles(String folderPath) 
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    connectAndGetLocalWorker();
+    return mMasterClient.getNumberOfFiles(folderPath);
+  }
 }

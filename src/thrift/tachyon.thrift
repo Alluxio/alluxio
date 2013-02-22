@@ -113,6 +113,7 @@ service MasterService {
   i32 user_getRawTableId(1: string path) throws (1: InvalidPathException e) // Return 0 if does not contain the Table, return fileId if it exists.
   ClientRawTableInfo user_getClientRawTableInfoById(1: i32 tableId) throws (1: TableDoesNotExistException e)        // Get Table info by Table Id.
   ClientRawTableInfo user_getClientRawTableInfoByPath(1: string tablePath) throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI) // Get Table info by path
+  i32 user_getNumberOfFiles(1:string path) throws (1: FileDoesNotExistException eR, 2: InvalidPathException eI)
 
   // cmd to scripts
   list<string> cmd_ls(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
