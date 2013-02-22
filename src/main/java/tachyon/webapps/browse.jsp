@@ -1,4 +1,6 @@
 <%@ page isELIgnored ="false" %> 
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>  
+
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +15,7 @@
 	<div class="navbar navbar-inverse">
 		<div class="navbar-inner">
 			<ul class="nav nav-pills">
-				<li><a href="./home">Master Node XXXXX</a></li>
+				<li><a href="./home">Master Node</a></li>
 				<li class="active"><a href="./browse?path=/">Browse File System</a></li>
 			</ul>
 		</div>
@@ -21,31 +23,41 @@
 	
 	<div class="container-fluid">
 		<div class="row-fluid">
-			<div class="span2 well">
-				<h3>Directory Listing</h3>
-				<li>
-					$VARIABLEHERE
-				</li>
-			</div>
-			<div class="span10 well">
+			<div class="span12 well">
+				<div class="h1 text-error">
+					${invalidPathError}
+				</div>
+				<div class="navbar">
+					<div class="navbar-inner">
+						<ul class="nav nav-pills">
+							<c:forEach var="pathInfo" items="${pathInfos}">
+								<li><a href="./browse?path=${pathInfo.absolutePath}"><c:out value="${pathInfo.name}"/></a></li>
+							</c:forEach>
+							<li class="active"><a href="./browse?path=${currentPath}"><c:out value="${currentDirectory.name}"/></a></li>
+						</ul>
+					</div>
+				</div>
 				<table class="table">
-					<caption><h3>Directory Path: ${currentPath}</h3></caption>
 					<thead>
 						<th>File Name</th>
 						<th>Size</th>
 						<th>In-Memory</th>
 					</thead>
 					<tbody>
-						<tr>
-							<th><a href="#">$VARIABLEHERE</a></th>
-							<th>$VARIABLEHERE</th>
-							<th>$VARIABLEHERE</th>
-						</tr>
-						<tr>
-							<th><a href="#">$VARIABLEHERE</a></th>
-							<th>$VARIABLEHERE</th>
-							<th>$VARIABLEHERE</th>
-						</tr>
+						<c:forEach var="fileInfo" items="${fileInfos}">
+							<tr>
+								<th><a href="./browse?path=${fileInfo.absolutePath}"><c:out value="${fileInfo.name}"/></a></th>
+								<th>${fileInfo.size} Bytes</th>
+								<th>
+									<c:if test = "${fileInfo.inMemory}">
+										<i class="icon-hdd"></i>
+									</c:if>
+									<c:if test = "${not fileInfo.inMemory}">
+										<i class="icon-hdd icon-white"></i>
+									</c:if>
+								</th>
+							</tr>
+						</c:forEach>
 					</tbody>
 				</table>
 			</div>

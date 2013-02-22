@@ -1,4 +1,5 @@
 <%@ page isELIgnored ="false" %> 
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>  
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -81,17 +82,68 @@
 				</div>
 			</div>	
 			</div>
-			<div class="row-fluid">
 
-			<div class="accordion span14" id="accordion3">
+			<div class ="row-fluid">
+			<div class="accordion span6" id="accordion3">
 				<div class="accordion-group">
 					<div class="accordion-heading">
 						<a class="accordion-toggle" data-toggle="collapse" 
 							data-parent="#accordion3" href="#data3">
-							<h4>Detailed Node Summary</h4>
+							<h4>Pin List</h4>
 						</a>
 					</div>
 					<div id="data3" class="accordion-body collapse in">
+						<div class="accordion-inner">
+							<table class="table">
+								<tbody>
+									<tr>
+										<c:forEach var="file" items="${pinlist}">
+											<th>${file}</th>
+										</c:forEach>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="accordion span6" id="accordion4">
+				<div class="accordion-group">
+					<div class="accordion-heading">
+						<a class="accordion-toggle" data-toggle="collapse" 
+							data-parent="#accordion4" href="#data4">
+							<h4>White List</h4>
+						</a>
+					</div>
+					<div id="data4" class="accordion-body collapse in">
+						<div class="accordion-inner">
+							<table class="table">
+								<tbody>
+									<tr>
+										<c:forEach var="file" items="${whitelist}">
+											<th>${file}</th>
+										</c:forEach>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>	
+			</div>
+
+			<div class="row-fluid">
+
+			<div class="accordion span14" id="accordion5">
+				<div class="accordion-group">
+					<div class="accordion-heading">
+						<a class="accordion-toggle" data-toggle="collapse" 
+							data-parent="#accordion5" href="#data5">
+							<h4>Detailed Node Summary</h4>
+						</a>
+					</div>
+					<div id="data5" class="accordion-body collapse in">
 						<div class="accordion-inner">
 							<table class="table table-hover">
 								<thead>
@@ -100,28 +152,27 @@
 									<th>State</th>
 									<th>Capacity</th>
 								<tbody>
-									<tr>
-										<th>$VARIABLEHERE</th>
-										<th>$VARIABLEHERE</th>
-										<th>$VARIABLEHERE</th>
-										<th>
-											<div class="progress">
-  												<div class="bar bar-success" style="width: 80%;">$%Free</div>
-  												<div class="bar bar-danger" style="width: 20%;"></div>
-											</div>
-										</th>
-									</tr>
-									<tr>
-										<th>$VARIABLEHERE</th>
-										<th>$VARIABLEHERE</th>
-										<th>$VARIABLEHERE</th>
-										<th>
-											<div class="progress">
-  												<div class="bar bar-success" style="width: 80%;">$%Free</div>
-  												<div class="bar bar-danger" style="width: 20%;"></div>
-											</div>
-										</th>
-									</tr>
+									<c:forEach var="nodeInfo" items="${nodeInfos}">
+										<tr>
+											<th>${nodeInfo.name}</th>
+											<th>${nodeInfo.lastHeartbeat}</th>
+											<th>${nodeInfo.state}</th>
+											<th>
+												<div class="progress">
+  													<div class="bar bar-success" style="width: ${nodeInfo.percentFreeSpace}%;">
+  														<c:if test="${nodeInfo.percentFreeSpace ge nodeInfo.percentUsedSpace}">
+  															${nodeInfo.percentFreeSpace}% Free
+  														</c:if>
+  													</div>
+  													<div class="bar bar-danger" style="width: ${nodeInfo.percentUsedSpace}%;">
+  														<c:if test="${nodeInfo.percentUsedSpace gt nodeInfo.percentFreeSpace}">
+  															${nodeInfo.percentUsedSpace}% Used
+  														</c:if>
+  													</div>
+												</div>
+											</th>
+										</tr>
+									</c:forEach>
 								</tbody>
 							</table>
 						</div>

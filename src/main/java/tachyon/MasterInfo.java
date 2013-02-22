@@ -287,6 +287,15 @@ public class MasterInfo {
     return ret;
   }
 
+  public ClientFileInfo getFileInfo(String path)
+      throws FileDoesNotExistException, InvalidPathException {
+    Inode inode = getInode(path);
+    if (inode == null) {
+      throw new FileDoesNotExistException(path);
+    }
+    return getClientFileInfo(inode.getId());
+      }
+
   public void delete(int id) {
     LOG.info("delete(" + id + ")");
     // Only remove meta data from master. The data in workers will be evicted since no further
