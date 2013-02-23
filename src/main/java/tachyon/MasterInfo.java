@@ -271,7 +271,6 @@ public class MasterInfo {
       throw new FileDoesNotExistException(path);
     }
 
-    ret.add(getClientFileInfo(inode.getId()));
     if (inode.isDirectory()) {
       List<Integer> childernIds = ((InodeFolder) inode).getChildrenIds();
 
@@ -283,6 +282,8 @@ public class MasterInfo {
           ret.add(getClientFileInfo(k));
         }
       }
+    } else {
+      ret.add(getClientFileInfo(inode.getId()));
     }
 
     return ret;
