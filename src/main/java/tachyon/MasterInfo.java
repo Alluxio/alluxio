@@ -156,10 +156,10 @@ public class MasterInfo {
 
   public int createFile(String path, boolean directory)
       throws FileAlreadyExistException, InvalidPathException {
-    return createFile(path, directory, -1);
+    return createFile(path, directory, -1, null);
   }
 
-  public int createFile(String path, boolean directory, int columns)
+  public int createFile(String path, boolean directory, int columns, List<Byte> metadata)
       throws FileAlreadyExistException, InvalidPathException {
     String parameters = CommonUtils.parametersToString(path);
     LOG.info("createFile" + parameters);
@@ -192,7 +192,8 @@ public class MasterInfo {
 
       if (directory) {
         if (columns != -1) {
-          ret = new InodeRawTable(name, mInodeCounter.incrementAndGet(), inode.getId(), columns);
+          ret = new InodeRawTable(name, mInodeCounter.incrementAndGet(), inode.getId(),
+              columns, metadata);
         } else {
           ret = new InodeFolder(name, mInodeCounter.incrementAndGet(), inode.getId());
         }
@@ -212,7 +213,7 @@ public class MasterInfo {
     }
   }
 
-  public int createRawTable(String path, int columns)
+  public int createRawTable(String path, int columns, List<Byte> metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException {
     String parameters = CommonUtils.parametersToString(path, columns);
     LOG.info("user_createRawTable" + parameters);
@@ -222,7 +223,7 @@ public class MasterInfo {
           Config.MAX_COLUMNS);
     }
 
-    int id = createFile(path, true, columns);
+    int id = createFile(path, true, columns, metadata);
 
     for (int k = 0; k < columns; k ++) {
       createFile(path + SEPARATOR + COL + k, true);
@@ -608,6 +609,7 @@ public class MasterInfo {
       ret.name = inode.getName();
       ret.path = getPath(inode);
       ret.columns = ((InodeRawTable) inode).getColumns();
+      ret.metadata = ((InodeRawTable) inode).getMetadata();
       return ret;
     }
   }
