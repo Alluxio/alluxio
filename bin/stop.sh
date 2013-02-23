@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-usage="Usage: tachyon-stop.sh"
+usage="Usage: stop.sh"
 
 if [ "$#" -ne 0 ]; then
   echo $Usage

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-Usage="Usage: tachyon-start-safe.sh"
+Usage="Usage: start-safe.sh"
 
 if [ "$#" -ne 0 ]; then
   echo $Usage
@@ -15,7 +15,7 @@ do
 
   if [[ $RUN -eq 0 ]] ; then
     echo "Restarting the system master..."
-    $bin/tachyon-start.sh
+    $bin/start.sh
   fi
   echo "Tachyon is running... "
   sleep 2

@@ -1,5 +1,12 @@
 #!/bin/bash
 
+Usage="Usage: start-master.sh"
+
+if [ "$#" -ne 0 ]; then
+  echo $Usage
+  exit 1
+fi
+
 bin=`cd "$( dirname "$0" )"; pwd`
 
 # Load the Tachyon configuration
