@@ -89,9 +89,12 @@ public class MasterClient {
     return CLIENT.user_createFile(path);
   }
 
-  public synchronized int user_createRawTable(String path, int columns) 
+  public synchronized int user_createRawTable(String path, int columns, List<Byte> metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException, TException {
-    return CLIENT.user_createRawTable(path, columns);
+    if (metadata == null) {
+      metadata = new ArrayList<Byte>(0);
+    }
+    return CLIENT.user_createRawTable(path, columns, metadata);
   }
 
   public synchronized void user_delete(String path)

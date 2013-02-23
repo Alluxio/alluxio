@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,9 +51,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_createRawTable(String path, int columns)
+  public int user_createRawTable(String path, int columns, List<Byte> metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException, TException {
-    return mMasterInfo.createRawTable(path, columns);
+    return mMasterInfo.createRawTable(path, columns, metadata);
   }
 
   @Override

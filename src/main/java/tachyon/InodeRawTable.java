@@ -1,24 +1,21 @@
 package tachyon;
 
-import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class InodeRawTable extends InodeFolder {
   private static final long serialVersionUID = -6912568260566139359L;
 
   private final int COLUMNS;
 
-  private final byte[] METADATA;
+  private final List<Byte> METADATA;
 
-  public InodeRawTable(String name, int id, int parentId, int columns) {
-    this(name, id, parentId, columns, new byte[0]);
-  }
-
-  public InodeRawTable(String name, int id, int parentId, int columns, byte[] metadata) {
+  public InodeRawTable(String name, int id, int parentId, int columns, List<Byte> metadata) {
     super(name, id, parentId, true);
     COLUMNS = columns;
-    METADATA = new byte[metadata.length];
-    for (int k = 0; k < metadata.length; k ++) {
-      METADATA[k] = metadata[k];
+    METADATA = new ArrayList<Byte>(metadata.size());
+    for (int k = 0; k < metadata.size(); k ++) {
+      METADATA.add(metadata.get(k));
     }
   }
 
@@ -26,7 +23,11 @@ public class InodeRawTable extends InodeFolder {
     return COLUMNS;
   }
 
-  public ByteBuffer getMetadata() {
-    return ByteBuffer.wrap(METADATA).asReadOnlyBuffer();
-  }
+  public List<Byte> getMetadata() {
+    List<Byte> ret = new ArrayList<Byte>(METADATA.size());
+    for (int k = 0; k < METADATA.size(); k ++) {
+      ret.add(METADATA.get(k));
+    }
+    return ret;
+  } 
 }
