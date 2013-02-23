@@ -13,9 +13,13 @@ public class InodeRawTable extends InodeFolder {
   public InodeRawTable(String name, int id, int parentId, int columns, List<Byte> metadata) {
     super(name, id, parentId, true);
     COLUMNS = columns;
-    METADATA = new ArrayList<Byte>(metadata.size());
-    for (int k = 0; k < metadata.size(); k ++) {
-      METADATA.add(metadata.get(k));
+    if (metadata == null) {
+      METADATA = new ArrayList<Byte>(0);
+    } else {
+      METADATA = new ArrayList<Byte>(metadata.size());
+      for (int k = 0; k < metadata.size(); k ++) {
+        METADATA.add(metadata.get(k));
+      }
     }
   }
 
