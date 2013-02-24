@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -28,7 +30,13 @@ public class BasicRawTableTest {
 
   public static void createRawTable() throws InvalidPathException {
     long startTimeMs = CommonUtils.getCurrentMs();
-    mId = sTachyonClient.createRawTable(sTablePath, 3);
+    List<Byte> data = new ArrayList<Byte>(5);
+    data.add((byte) -1);
+    data.add((byte) -2);
+    data.add((byte) -3);
+    data.add((byte) -4);
+    data.add((byte) -5);
+    mId = sTachyonClient.createRawTable(sTablePath, 3, data);
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createRawTable with id " + mId);
   }
 
@@ -57,7 +65,7 @@ public class BasicRawTableTest {
     buf.flip();
     tFile.append(buf);
     tFile.close();
-    
+
     rawTable = sTachyonClient.getRawTable(mId);
     rawColumn = rawTable.getRawColumn(1);
     if (!rawColumn.createPartition(0)) {
@@ -86,6 +94,12 @@ public class BasicRawTableTest {
       throws IOException, TableDoesNotExistException, InvalidPathException, TException {
     LOG.info("Reading data...");
     RawTable rawTable = sTachyonClient.getRawTable(mId);
+    List<Byte> metadata = rawTable.getMetadata();
+    LOG.info("Metadata: ");
+    for (Byte b : metadata) {
+      LOG.info(b + "");
+    }
+
     RawColumn rawColumn = rawTable.getRawColumn(1);
     TachyonFile tFile = rawColumn.getPartition(0);
     tFile.open("r");
@@ -94,7 +108,7 @@ public class BasicRawTableTest {
     buf = tFile.readByteBuffer();
     CommonUtils.printByteBuffer(LOG, buf);
     tFile.close();
-    
+
     rawTable = sTachyonClient.getRawTable(sTablePath);
     rawColumn = rawTable.getRawColumn(2);
     tFile = rawColumn.getPartition(0);

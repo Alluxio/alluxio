@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Usage="Usage: restart-failed-tachyon-worker.sh"
+Usage="Usage: restart-failed-worker.sh"
 
 if [ "$#" -ne 0 ]; then
   echo $Usage

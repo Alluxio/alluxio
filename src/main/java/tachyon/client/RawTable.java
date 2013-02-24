@@ -1,5 +1,7 @@
 package tachyon.client;
 
+import java.util.List;
+
 import tachyon.CommonUtils;
 import tachyon.thrift.ClientRawTableInfo;
 
@@ -27,6 +29,10 @@ public class RawTable {
 
   public String getPath() {
     return mClientRawTableInfo.getPath();
+  }
+  
+  public List<Byte> getMetadata() {
+    return mClientRawTableInfo.getMetadata();
   }
 
   public RawColumn getRawColumn(int columnIndex) {
