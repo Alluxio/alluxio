@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.thrift.TException;
@@ -163,6 +164,7 @@ public class TachyonClient {
     LOG.info("Trying to connect local worker @ " + sLocalWorkerAddress);
     mLocalWorkerClient = WorkerClient.createWorkerClient(sLocalWorkerAddress);
     if (!mLocalWorkerClient.open()) {
+      LOG.error("Failed to connect local worker @ " + sLocalWorkerAddress);
       mLocalWorkerClient = null;
       return;
     }
@@ -253,8 +255,13 @@ public class TachyonClient {
 
     return mUserHdfsTempFolder;
   }
-
+  
   public synchronized int createRawTable(String path, int columns) throws InvalidPathException {
+    return createRawTable(path, columns, new ArrayList<Byte>(0));
+  }
+
+  public synchronized int createRawTable(String path, int columns, List<Byte> metadata)
+      throws InvalidPathException {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return -1;
@@ -267,7 +274,7 @@ public class TachyonClient {
     }
 
     try {
-      return mMasterClient.user_createRawTable(path, columns);
+      return mMasterClient.user_createRawTable(path, columns, metadata);
     } catch (TableColumnException e) {
       LOG.info(e.getMessage());
       return -1;
