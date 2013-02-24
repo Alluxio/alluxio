@@ -42,7 +42,6 @@ import tachyon.thrift.TableDoesNotExistException;
  * @author Haoyuan Li haoyuan@cs.berkeley.edu
  */
 public class MasterInfo {
-  public static final String SEPARATOR = "/";
   public static final String COL = "COL_";
 
   private final Logger LOG = LoggerFactory.getLogger(MasterInfo.class);
@@ -226,7 +225,7 @@ public class MasterInfo {
     int id = createFile(path, true, columns, metadata);
 
     for (int k = 0; k < columns; k ++) {
-      createFile(path + SEPARATOR + COL + k, true);
+      createFile(path + Config.SEPARATOR + COL + k, true);
     }
 
     return id;
@@ -377,21 +376,14 @@ public class MasterInfo {
     }
   }
 
-  private static void validatePath(String path) throws InvalidPathException {
-    if (path == null || !path.startsWith(SEPARATOR) || 
-        (path.length() > 1 && path.endsWith(SEPARATOR))) {
-      throw new InvalidPathException("Path " + path + " is invalid.");
-    }
-  }
-
   private static String[] getPathNames(String path) throws InvalidPathException {
-    validatePath(path);
-    if (path.length() == 1 && path.equals(SEPARATOR)) {
+    CommonUtils.validatePath(path);
+    if (path.length() == 1 && path.equals(Config.SEPARATOR)) {
       String[] ret = new String[1];
       ret[0] = "";
       return ret;
     }
-    return path.split(SEPARATOR);
+    return path.split(Config.SEPARATOR);
   }
 
   private void writeCheckpoint() {
@@ -482,7 +474,7 @@ public class MasterInfo {
   public String toHtml() {
     long timeMs = System.currentTimeMillis() - START_TIME_MS;
     StringBuilder sb = new StringBuilder("<h1> Tachyon has been running @ " + MASTER_ADDRESS + 
-        " for " + CommonUtils.convertMillis(timeMs) + " </h1> \n");
+        " for " + CommonUtils.convertMsToClockTime(timeMs) + " </h1> \n");
 
     sb.append(mWhiteList.toHtml("WhiteList"));
 
@@ -523,7 +515,7 @@ public class MasterInfo {
     if (inode.isDirectory()) {
       List<Integer> childrenIds = ((InodeFolder) inode).getChildrenIds();
       if (inode.getId() != 1) {
-        curPath += SEPARATOR;
+        curPath += Config.SEPARATOR;
       }
       for (int id : childrenIds) {
         int t = generateFileNamesForHtml(curPath, mInodes.get(id), sb, cnt);
@@ -725,9 +717,9 @@ public class MasterInfo {
         return "/";
       }
       if (inode.getParentId() == 1) {
-        return SEPARATOR + inode.getName();
+        return Config.SEPARATOR + inode.getName();
       }
-      return getPath(mInodes.get(inode.getParentId())) + SEPARATOR + inode.getName();
+      return getPath(mInodes.get(inode.getParentId())) + Config.SEPARATOR + inode.getName();
     }
   }
 

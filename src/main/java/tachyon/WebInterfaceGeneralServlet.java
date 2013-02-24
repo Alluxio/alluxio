@@ -1,10 +1,6 @@
 package tachyon;
 
-import java.lang.Comparable;
 import java.util.List;
-import java.util.Calendar;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -15,99 +11,96 @@ import java.io.IOException;
 import tachyon.thrift.ClientWorkerInfo;
 
 public class WebInterfaceGeneralServlet extends HttpServlet {
+  private static final long serialVersionUID = 2335205655766736309L;
+
   private MasterInfo mMasterInfo;
+
+  /**
+   * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association
+   * by array indexes.
+   */
+  public class NodeInfo {
+    private final String NAME;
+    private final String LAST_CONTACT_SEC;
+    private final String STATE;
+    private final int FREE_SPACE_PERCENT;
+    private final int USED_SPACE_PERCENT;
+
+    private NodeInfo(ClientWorkerInfo workerInfo) {
+      NAME = workerInfo.getAddress().getMHost();
+      LAST_CONTACT_SEC = Integer.toString(workerInfo.getLastContactSec());
+      STATE = workerInfo.getState();
+      USED_SPACE_PERCENT = (int) (100L * workerInfo.getUsedBytes() / workerInfo.getCapacityBytes());
+      FREE_SPACE_PERCENT = 100 - USED_SPACE_PERCENT;
+    }
+
+    public String getName() {
+      return NAME;
+    }
+
+    public String getLastHeartbeat() {
+      return LAST_CONTACT_SEC;
+    }
+
+    public String getState() {
+      return STATE;
+    }
+
+    public int getFreeSpacePercent() {
+      return FREE_SPACE_PERCENT;
+    }
+
+    public int getUsedSpacePercent() {
+      return USED_SPACE_PERCENT;
+    }
+  }
 
   public WebInterfaceGeneralServlet(MasterInfo MI) {
     mMasterInfo = MI;
   }
 
+  @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) 
       throws ServletException, IOException {
-    this.populateValues(request);
+    populateValues(request);
     getServletContext().getRequestDispatcher("/general.jsp").forward(request, response);
   }
 
+  @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response) {
     return;
   }
 
-  // Populates key, value pairs for UI display
+  /**
+   * Populates key, value pairs for UI display
+   * @param request
+   */
   private void populateValues(HttpServletRequest request) {
     request.setAttribute("debug", Config.DEBUG);
 
-    long upMillis = System.currentTimeMillis() - mMasterInfo.getStarttimeMs();
-    request.setAttribute("uptime", CommonUtils.convertMillis(upMillis));
+    request.setAttribute("uptime", System.currentTimeMillis() - mMasterInfo.getStarttimeMs());
 
-    DateFormat formatter = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss");
-    Calendar cal = Calendar.getInstance();
-    cal.setTimeInMillis(mMasterInfo.getStarttimeMs());
-    String startTime = formatter.format(cal.getTime());
-    request.setAttribute("startTime", startTime);
+    request.setAttribute("startTime", CommonUtils.convertMsToDate(mMasterInfo.getStarttimeMs()));
 
-    String version = Config.VERSION;
-    request.setAttribute("version", version);
+    request.setAttribute("version", Config.VERSION);
 
-    String capacity = CommonUtils.getSizeFromBytes(mMasterInfo.getCapacityBytes());
-    request.setAttribute("capacity", capacity);
+    request.setAttribute("capacity", CommonUtils.getSizeFromBytes(mMasterInfo.getCapacityBytes()));
 
-    String usedCapacity = CommonUtils.getSizeFromBytes(mMasterInfo.getUsedCapacityBytes());
-    request.setAttribute("usedCapacity", usedCapacity);
+    request.setAttribute("usedCapacity", 
+        CommonUtils.getSizeFromBytes(mMasterInfo.getUsedCapacityBytes()));
 
-    String liveWorkerNodes = Integer.toString(mMasterInfo.getWorkerCount());
-    request.setAttribute("liveWorkerNodes", liveWorkerNodes);
+    request.setAttribute("liveWorkerNodes", Integer.toString(mMasterInfo.getWorkerCount()));
 
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
     int index = 0;
     NodeInfo[] nodeInfos = new NodeInfo[workerInfos.size()];
     for (ClientWorkerInfo workerInfo : workerInfos) {
-      nodeInfos[index++] = new NodeInfo(workerInfo);
+      nodeInfos[index ++] = new NodeInfo(workerInfo);
     }
     request.setAttribute("nodeInfos", nodeInfos);
 
     request.setAttribute("pinlist", mMasterInfo.getPinList());
 
     request.setAttribute("whitelist", mMasterInfo.getWhiteList());
-    
-  }
-
-  // Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association
-  // by array indexes.
-
-  public class NodeInfo {
-    private String mName;
-    private String mLastHeartbeat;
-    private String mState;
-    private int mPercentFreeSpace;
-    private int mPercentUsedSpace;
-
-    private NodeInfo(ClientWorkerInfo workerInfo) {
-      mName = workerInfo.getAddress().getMHost();
-      mLastHeartbeat = Integer.toString(workerInfo.getLastContactSec());
-      mState = workerInfo.getState();
-      Long usedSpace = 100*workerInfo.getUsedBytes()/workerInfo.getCapacityBytes();
-      mPercentUsedSpace = usedSpace.intValue();
-      mPercentFreeSpace = 100 - mPercentUsedSpace;
-    }
-
-    public String getName() {
-      return mName;
-    }
-
-    public String getLastHeartbeat() {
-      return mLastHeartbeat;
-    }
-
-    public String getState() {
-      return mState;
-    }
-
-    public int getPercentFreeSpace() {
-      return mPercentFreeSpace;
-    }
-
-    public int getPercentUsedSpace() {
-      return mPercentUsedSpace;
-    }
-
   }
 }
