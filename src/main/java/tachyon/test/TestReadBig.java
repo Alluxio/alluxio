@@ -7,8 +7,6 @@ import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-import tachyon.thrift.InvalidPathException;
-
 public class TestReadBig {
   public static void main(String[] args) {
     String localFileName = "/mnt/ramdisk/tachyonworker/0";

@@ -87,10 +87,10 @@ public class WorkerInfo {
     sb.append("Capacity (Byte): ").append(CAPACITY_BYTES);
     sb.append("; UsedSpace: ").append(mUsedBytes);
     sb.append("; AvailableSpace: ").append(CAPACITY_BYTES - mUsedBytes).append("<br \\>");
-    sb.append("It has been running @ " + ADDRESS + " for " + CommonUtils.convertMillis(timeMs));
+    sb.append("It has been running @ " + ADDRESS + " for " + CommonUtils.convertMsToClockTime(timeMs));
     if (Config.DEBUG) {
       sb.append(" ID ").append(mId).append(" ; ");
-      sb.append("LastUpdateTimeMs ").append(CommonUtils.convertMillisToDate(mLastUpdatedTimeMs));
+      sb.append("LastUpdateTimeMs ").append(CommonUtils.convertMsToDate(mLastUpdatedTimeMs));
       sb.append("<br \\>");
     }
 

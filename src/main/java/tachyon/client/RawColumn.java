@@ -2,6 +2,7 @@ package tachyon.client;
 
 import org.apache.thrift.TException;
 
+import tachyon.Config;
 import tachyon.MasterInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -19,19 +20,19 @@ public class RawColumn {
 
   // TODO creating file here should be based on id.
   public boolean createPartition(int pId) throws InvalidPathException {
-    return TACHYON_CLIENT.createFile(RAW_TABLE.getPath() + MasterInfo.SEPARATOR + MasterInfo.COL +
+    return TACHYON_CLIENT.createFile(RAW_TABLE.getPath() + Config.SEPARATOR + MasterInfo.COL +
         COLUMN_INDEX + "/" + pId) > 0;
   }
 
   // TODO creating file here should be based on id.
   public TachyonFile getPartition(int pId) throws InvalidPathException {
-    return TACHYON_CLIENT.getFile(RAW_TABLE.getPath() + MasterInfo.SEPARATOR + MasterInfo.COL +
+    return TACHYON_CLIENT.getFile(RAW_TABLE.getPath() + Config.SEPARATOR + MasterInfo.COL +
         COLUMN_INDEX + "/" + pId);
   }
 
   // TODO creating file here should be based on id.
   public int getPartitions() throws FileDoesNotExistException, InvalidPathException, TException {
-    return TACHYON_CLIENT.getNumberOfFiles(RAW_TABLE.getPath() + MasterInfo.SEPARATOR +
+    return TACHYON_CLIENT.getNumberOfFiles(RAW_TABLE.getPath() + Config.SEPARATOR +
         MasterInfo.COL + COLUMN_INDEX);
   }
 }

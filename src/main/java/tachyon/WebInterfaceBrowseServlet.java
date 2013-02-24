@@ -1,9 +1,8 @@
 package tachyon;
+
 import java.util.List;
 import java.io.IOException;
 import javax.servlet.ServletException;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,12 +12,65 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 
 public class WebInterfaceBrowseServlet extends HttpServlet {
-  MasterInfo mMasterInfo;
+  private static final long serialVersionUID = 6121623049981468871L;
 
-  public WebInterfaceBrowseServlet(MasterInfo MI) {
-    mMasterInfo = MI;
+  private MasterInfo mMasterInfo;
+
+  /**
+   * Class to make referencing file objects more intuitive. Mainly to avoid implicit association
+   * by array indexes.
+   */
+  public class UiFileInfo {
+    private final int ID;
+    private final String NAME;
+    private final String ABSOLUATE_PATH;
+    private final long SIZE;
+    private final boolean IN_MEMORY;
+    private final boolean IS_DIRECTORY;
+
+    private UiFileInfo(ClientFileInfo fileInfo) {
+      ID = fileInfo.getId();
+      NAME = fileInfo.getName();
+      ABSOLUATE_PATH = fileInfo.getPath();
+      SIZE = fileInfo.getSizeBytes();
+      IN_MEMORY = fileInfo.isInMemory();
+      IS_DIRECTORY = fileInfo.isIsFolder();
+    }
+
+    public int getId() {
+      return ID;
+    }
+
+    public String getName() {
+      if (ABSOLUATE_PATH.equals(Config.SEPARATOR)) {
+        return "root";
+      } else {
+        return NAME;
+      }
+    }
+
+    public String getAbsolutePath() {
+      return ABSOLUATE_PATH;
+    }
+
+    public long getSize() {
+      return SIZE;
+    }
+
+    public boolean getInMemory() {
+      return IN_MEMORY;
+    }
+
+    public boolean getIsDirectory() {
+      return IS_DIRECTORY;
+    }
   }
 
+  public WebInterfaceBrowseServlet(MasterInfo masterInfo) {
+    mMasterInfo = masterInfo;
+  }
+
+  @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) 
       throws ServletException, IOException {
     request.setAttribute("debug", Config.DEBUG);
@@ -32,110 +84,60 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     request.setAttribute("currentPath", currentPath);
 
     try {
-      this.setPathDirectories(currentPath, request);
+      CommonUtils.validatePath(currentPath);
+      setPathDirectories(currentPath, request);
       filesInfo = mMasterInfo.getFilesInfo(currentPath);
     } catch (FileDoesNotExistException fdne) {
-      request.setAttribute("invalidPathError", "Error: File Does not Exist!");
+      request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-      return; // For clarity
+      return;
     } catch (InvalidPathException ipe) {
-      request.setAttribute("invalidPathError", "Error: Invalid Path!");
+      request.setAttribute("invalidPathError", "Error: Invalid Path " + ipe.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
-      return; // For clarity
+      return;
     }
 
     int index = 0;
-    FileInfo[] fileInfos = new FileInfo[filesInfo.size()];
+    UiFileInfo[] fileInfos = new UiFileInfo[filesInfo.size()];
     for (ClientFileInfo fileInfo : filesInfo) {
-      fileInfos[index++] = new FileInfo(fileInfo);
+      fileInfos[index ++] = new UiFileInfo(fileInfo);
     }
     request.setAttribute("fileInfos", fileInfos);
 
     getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
   }
 
-
-
+  @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response) {
     return;
   }
 
-  // This function sets the fileinfos for folders that are in the path to the current directory
+  /**
+   * This function sets the fileinfos for folders that are in the path to the current directory.
+   * 
+   * @param path
+   * @param request
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
+   */
   private void setPathDirectories(String path, HttpServletRequest request) 
       throws FileDoesNotExistException, InvalidPathException {
-    String[] splitPath = path.split("/");
-    String currentPath = new String("/");
-    FileInfo[] pathInfos = new FileInfo[splitPath.length];
-    if (splitPath.length == 0) {
-      request.setAttribute("currentDirectory", new FileInfo(mMasterInfo.getFileInfo("/")));
-      request.setAttribute("pathInfos", pathInfos);
-      return;
-    } else {
-      pathInfos[0] = new FileInfo(mMasterInfo.getFileInfo("/"));
-      for (int i = 0; i < splitPath.length; i++) {
-        if (splitPath[i].isEmpty()) {
-          continue;
-        }
-        currentPath = currentPath + splitPath[i];
-        if (i == splitPath.length - 1) {
-          request.setAttribute("currentDirectory", 
-                              new FileInfo(mMasterInfo.getFileInfo(currentPath)));
-        } else {
-          pathInfos[i+1] = new FileInfo(mMasterInfo.getFileInfo(currentPath));
-          currentPath = currentPath + "/";
-        }
-      }
-      request.setAttribute("pathInfos", pathInfos);
+    request.setAttribute("currentDirectory", new UiFileInfo(mMasterInfo.getFileInfo(path)));
+    if (path.equals(Config.SEPARATOR)) {
+      request.setAttribute("pathInfos", new UiFileInfo[0]);
       return;
     }
-    
-  }
 
-  // Class to make referencing file objects more intuitive. Mainly to avoid implicit association
-  // by array indexes.
-  public class FileInfo {
-    private int mId;
-    private String mName;
-    private String mAbsolutePath;
-    private long mSize;
-    private boolean mInMemory;
-    private boolean mIsDirectory;
-
-    private FileInfo(ClientFileInfo fileInfo) {
-      mId = fileInfo.getId();
-      mName = fileInfo.getName();
-      mAbsolutePath = fileInfo.getPath();
-      mSize = fileInfo.getSizeBytes();
-      mInMemory = fileInfo.isInMemory();
-      mIsDirectory = fileInfo.isIsFolder();
+    String[] splitPath = path.split(Config.SEPARATOR);
+    UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length];
+    String currentPath = Config.SEPARATOR;
+    pathInfos[0] = new UiFileInfo(mMasterInfo.getFileInfo(currentPath));
+    for (int i = 1; i < splitPath.length - 1; i ++) {
+      currentPath = currentPath + splitPath[i];
+      pathInfos[i] = new UiFileInfo(mMasterInfo.getFileInfo(currentPath));
+      currentPath = currentPath + Config.SEPARATOR;
     }
-
-    public int getId() {
-      return mId;
-    }
-
-    public String getName() {
-      if (mAbsolutePath.equals("/")) {
-        return "root";
-      } else {
-        return mName;
-      }
-    }
-
-    public String getAbsolutePath() {
-      return mAbsolutePath;
-    }
-
-    public long getSize() {
-      return mSize;
-    }
-
-    public boolean getInMemory() {
-      return mInMemory;
-    }
-
-    public boolean getIsDirectory() {
-      return mIsDirectory;
-    }
+    request.setAttribute("pathInfos", pathInfos);
+    return;
   }
 }
