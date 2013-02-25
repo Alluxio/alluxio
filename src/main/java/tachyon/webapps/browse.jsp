@@ -16,6 +16,7 @@
       <ul class="nav nav-pills">
         <li><a href="./home">Master: ${masterNodeAddress}</a></li>
         <li class="active"><a href="./browse?path=/">Browse File System</a></li>
+        <li><a href="./memory">View Files in Memory</a></li>
       </ul>
     </div>
   </div>
@@ -76,6 +77,9 @@
       </div>
     </div>
   </div>
+  <footer>
+    <p>Tachyon is a project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu">AMPLab</a>.</p>
+  </footer>
 </div>
 </body>
 </html>
