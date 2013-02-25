@@ -8,7 +8,7 @@
 </head>
 <title>Tachyon</title>
 <body>
-<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+<script src="jquery-1.9.1.min.js" type="text/javascript"></script>
 <script src="bootstrap/js/bootstrap.min.js"></script>
 <div class="container-fluid">
   <div class="navbar navbar-inverse">
