@@ -74,6 +74,8 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response) 
       throws ServletException, IOException {
     request.setAttribute("debug", Config.DEBUG);
+
+    request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
     request.setAttribute("invalidPathError", "");
     List<ClientFileInfo> filesInfo = null;
     String currentPath = request.getParameter("path");
