@@ -607,6 +607,32 @@ public class MasterInfo {
     return ret;
   }
 
+  public List<String> getInMemoryFiles() {
+    List<String> ret = new ArrayList<String>();
+    LOG.info("getInMemoryFiles()");
+    Queue<Pair<InodeFolder, String>> nodesQueue = new LinkedList<Pair<InodeFolder, String>>();
+    synchronized (mRoot) {
+      nodesQueue.add(new Pair<InodeFolder, String>(mRoot, ""));
+      while (!nodesQueue.isEmpty()) {
+        Pair<InodeFolder, String> tPair = nodesQueue.poll();
+        InodeFolder tFolder = tPair.getFirst();
+        String curPath = tPair.getSecond();
+
+        List<Integer> childrenIds = tFolder.getChildrenIds();
+        for (int id : childrenIds) {
+          Inode tInode = mInodes.get(id);
+          String newPath = curPath + Config.SEPARATOR + tInode.getName();
+          if (tInode.isDirectory()) {
+            nodesQueue.add(new Pair<InodeFolder, String>((InodeFolder) tInode, newPath));
+          } else if (tInode.isInMemory()) {
+            ret.add(newPath);
+          }
+        }
+      }
+    }
+    return ret;
+  }
+
   public int getRawTableId(String path) throws InvalidPathException {
     Inode inode = getInode(path);
     if (inode == null || inode.isFile() || !((InodeFolder) inode).isRawTable()) {
