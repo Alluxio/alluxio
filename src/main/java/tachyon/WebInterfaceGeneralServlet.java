@@ -55,8 +55,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     }
   }
 
-  public WebInterfaceGeneralServlet(MasterInfo MI) {
-    mMasterInfo = MI;
+  public WebInterfaceGeneralServlet(MasterInfo masterInfo) {
+    mMasterInfo = masterInfo;
   }
 
   @Override
