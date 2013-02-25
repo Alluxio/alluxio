@@ -14,7 +14,7 @@
   <div class="navbar navbar-inverse">
     <div class="navbar-inner">
       <ul class="nav nav-pills">
-        <li><a href="./home">Master Node</a></li>
+        <li><a href="./home">Master: ${masterNodeAddress}</a></li>
         <li class="active"><a href="./browse?path=/">Browse File System</a></li>
       </ul>
     </div>
