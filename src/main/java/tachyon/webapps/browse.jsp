@@ -4,12 +4,12 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
 </head>
 <title>Tachyon</title>
 <body>
-<script src="jquery-1.9.1.min.js" type="text/javascript"></script>
-<script src="bootstrap/js/bootstrap.min.js"></script>
+<script src="js/jquery-1.9.1.min.js" type="text/javascript"></script>
+<script src="js/bootstrap.min.js"></script>
 <div class="container-fluid">
   <div class="navbar navbar-inverse">
     <div class="navbar-inner">
