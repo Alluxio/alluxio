@@ -23,7 +23,7 @@
         <div class="accordion-group">
           <div class="accordion-heading">
             <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion1" href="#data1">
-              <h4>Instance Summary</h4>
+              <h4>Tachyon Summary</h4>
             </a>
           </div>
           <div id="data1" class="accordion-body collapse in">
@@ -31,15 +31,15 @@
               <table class="table">
                 <tbody>
                 <tr>
-                  <th>Started on:</th>
+                  <th>Started:</th>
                   <th>${startTime}</th>
                 </tr>
                 <tr>
-                  <th>Has been up for:</th>
+                  <th>Uptime:</th>
                   <th>${uptime}</th>
                 </tr>
                 <tr>
-                  <th>Running Version:</th>
+                  <th>Version:</th>
                   <th>${version}</th>
                 </tr>
                 </tbody>
@@ -61,15 +61,15 @@
               <table class="table">
                 <tbody>
                   <tr>
-                    <th>Configured Storage Capacity:</th>
+                    <th>Memory Storage Capacity:</th>
                     <th>${capacity}</th>
                   </tr>
                   <tr>
-                    <th>Storage In-Use</th>
+                    <th>Memory Storage In-Use</th>
                     <th>${usedCapacity}</th>
                   </tr>
                   <tr>
-                    <th>Slaves Running</th>
+                    <th>Workers Running</th>
                     <th>${liveWorkerNodes}</th>
                   </tr>
                 </tbody>
@@ -137,7 +137,7 @@
           <div class="accordion-heading">
             <a class="accordion-toggle" data-toggle="collapse" 
               data-parent="#accordion5" href="#data5">
-              <h4>Detailed Node Summary</h4>
+              <h4>Detailed Nodes Summary</h4>
             </a>
           </div>
           <div id="data5" class="accordion-body collapse in">
@@ -152,7 +152,7 @@
                   <c:forEach var="nodeInfo" items="${nodeInfos}">
                     <tr>
                       <th>${nodeInfo.name}</th>
-                      <th>${nodeInfo.lastHeartbeat}</th>
+                      <th>${nodeInfo.lastHeartbeat} seconds ago</th>
                       <th>${nodeInfo.state}</th>
                       <th>
                         <div class="progress">
