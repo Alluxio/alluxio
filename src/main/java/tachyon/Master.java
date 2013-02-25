@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 
 import org.apache.thrift.server.THsHaServer;
@@ -8,6 +9,12 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.webapp.WebAppContext;
 
 import tachyon.thrift.MasterService;
 
@@ -30,12 +37,26 @@ public class Master {
       int workerThreads) {
     try {
       mMasterInfo = new MasterInfo(address);
-      
+
       mWebServer = new WebServer("Tachyon Master Server",
           new InetSocketAddress(address.getHostName(), Config.MASTER_WEB_PORT));
-      mWebServer.setHandler(new WebServerMasterHandler(mMasterInfo));
+
+      WebAppContext webappcontext = new WebAppContext();
+
+      webappcontext.setContextPath("/");
+      File warPath = new File(new File("").getAbsolutePath(), "src/main/java/tachyon/webapps");
+      webappcontext.setWar(warPath.getAbsolutePath());
+      HandlerList handlers = new HandlerList();
+      webappcontext.addServlet(
+          new ServletHolder(new WebInterfaceGeneralServlet(mMasterInfo)), "/home");
+      webappcontext.addServlet(
+          new ServletHolder(new WebInterfaceBrowseServlet(mMasterInfo)), "/browse");
+
+      handlers.setHandlers(new Handler[] { webappcontext, new DefaultHandler() });
+      mWebServer.setHandler(handlers);
+
       mWebServer.startWebServer();
-      
+
       mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
       MasterService.Processor<MasterServiceHandler> processor = 
           new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);

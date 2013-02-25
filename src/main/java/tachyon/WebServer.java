@@ -7,7 +7,6 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 public class WebServer {
   private final Logger LOG = LoggerFactory.getLogger(WebServer.class);
 
