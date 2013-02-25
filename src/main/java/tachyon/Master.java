@@ -51,6 +51,8 @@ public class Master {
           new ServletHolder(new WebInterfaceGeneralServlet(mMasterInfo)), "/home");
       webappcontext.addServlet(
           new ServletHolder(new WebInterfaceBrowseServlet(mMasterInfo)), "/browse");
+      webappcontext.addServlet(
+          new ServletHolder(new WebInterfaceMemoryServlet(mMasterInfo)), "/memory");
 
       handlers.setHandlers(new Handler[] { webappcontext, new DefaultHandler() });
       mWebServer.setHandler(handlers);
