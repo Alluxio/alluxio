@@ -81,31 +81,6 @@ public class WorkerInfo {
     mFiles.remove(fileId);
   }
 
-  public synchronized String toHtml() {
-    long timeMs = System.currentTimeMillis() - START_TIME_MS;
-    StringBuilder sb = new StringBuilder();
-    sb.append("Capacity (Byte): ").append(CAPACITY_BYTES);
-    sb.append("; UsedSpace: ").append(mUsedBytes);
-    sb.append("; AvailableSpace: ").append(CAPACITY_BYTES - mUsedBytes).append("<br \\>");
-    sb.append("It has been running @ " + ADDRESS + " for " + CommonUtils.convertMsToClockTime(timeMs));
-    if (Config.DEBUG) {
-      sb.append(" ID ").append(mId).append(" ; ");
-      sb.append("LastUpdateTimeMs ").append(CommonUtils.convertMsToDate(mLastUpdatedTimeMs));
-      sb.append("<br \\>");
-    }
-
-    if (Config.DEBUG) {
-      sb.append("Files: [ ");
-      List<Integer> files = new ArrayList<Integer>(mFiles);
-      Collections.sort(files);
-      for (int file : files) {
-        sb.append("(").append(file).append(") ");
-      }
-      sb.append("]");
-    }
-    return sb.toString();
-  }
-
   @Override
   public synchronized String toString() {
     StringBuilder sb = new StringBuilder("WorkerInfo(");
