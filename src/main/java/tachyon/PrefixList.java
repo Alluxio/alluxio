@@ -27,17 +27,4 @@ public class PrefixList {
   public List<String> getList() {
     return new ArrayList<String>(LIST);
   }
-
-  public String toHtml(String listName) {
-    StringBuilder sb = new StringBuilder("<h2> " + listName + " contains " + LIST.size() + 
-        " item(s) </h2>");
-
-    for (int k = 0; k < LIST.size(); k ++) {
-      String item = LIST.get(k);
-      sb.append("Prefix " + (k + 1) + " : " + item + " <br \\>");
-    }
-    sb.append(" <br \\>");
-
-    return sb.toString();
-  }
 }

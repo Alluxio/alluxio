@@ -471,62 +471,6 @@ public class MasterInfo {
     recoveryFromFile(Config.MASTER_LOG_FILE, "Master Log file ");
   }
 
-  public String toHtml() {
-    long timeMs = System.currentTimeMillis() - START_TIME_MS;
-    StringBuilder sb = new StringBuilder("<h1> Tachyon has been running @ " + MASTER_ADDRESS + 
-        " for " + CommonUtils.convertMsToClockTime(timeMs) + " </h1> \n");
-
-    sb.append(mWhiteList.toHtml("WhiteList"));
-
-    sb.append(mPinList.toHtml("PinList"));
-
-    synchronized (mWorkers) {
-      synchronized (mRoot) {
-        sb.append("<h2>" + mWorkers.size() + " worker(s) are running: </h2>");
-        List<Long> workerList = new ArrayList<Long>(mWorkers.keySet());
-        Collections.sort(workerList);
-        for (int k = 0; k < workerList.size(); k ++) {
-          sb.append("<strong>Worker " + (k + 1) + " </strong>: " + 
-              mWorkers.get(workerList.get(k)).toHtml() + "<br \\>");
-        }
-
-        sb.append("<h2>" + mInodes.size() + " File(s): </h2>");
-        System.out.println(mInodes);
-
-        generateFileNamesForHtml("/", mRoot, sb, 1);
-      }
-    }
-
-    return sb.toString();
-  }
-
-  private int generateFileNamesForHtml(String curPath, Inode inode, StringBuilder sb, int cnt) {
-    sb.append("<strong>File " + cnt + " </strong>: ");
-    sb.append("ID: ").append(inode.getId()).append("; ");
-    curPath += inode.getName();
-    sb.append("Path: ").append(curPath).append("; ");
-    if (Config.DEBUG) {
-      sb.append(inode.toString());
-    }
-    sb.append("<br \\>");
-
-    cnt ++;
-    int subCnt = 1;
-    if (inode.isDirectory()) {
-      List<Integer> childrenIds = ((InodeFolder) inode).getChildrenIds();
-      if (inode.getId() != 1) {
-        curPath += Config.SEPARATOR;
-      }
-      for (int id : childrenIds) {
-        int t = generateFileNamesForHtml(curPath, mInodes.get(id), sb, cnt);
-        subCnt += t;
-        cnt += t;
-      }
-    }
-
-    return subCnt;
-  }
-
   public NetAddress getLocalWorker(String host) throws NoLocalWorkerException {
     LOG.info("getLocalWorker(" + host + ")");
     synchronized (mWorkers) {
@@ -726,6 +670,10 @@ public class MasterInfo {
   private static String getName(String path) throws InvalidPathException {
     String[] pathNames = getPathNames(path);
     return pathNames[pathNames.length - 1];
+  }
+
+  public InetSocketAddress getMasterAddress() {
+    return MASTER_ADDRESS;
   }
 
   public void renameFile(String srcFilePath, String dstFilePath) 
