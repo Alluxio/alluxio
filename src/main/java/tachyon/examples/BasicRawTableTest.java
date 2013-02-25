@@ -44,50 +44,31 @@ public class BasicRawTableTest {
       throws IOException, TableDoesNotExistException, 
       OutOfMemoryForPinFileException, InvalidPathException, TException {
     RawTable rawTable = sTachyonClient.getRawTable(sTablePath);
-    RawColumn rawColumn = rawTable.getRawColumn(2);
-    if (!rawColumn.createPartition(0)) {
-      CommonUtils.runtimeException("Failed to create partition 2 in table " + sTablePath);
+
+    for (int column = 0; column < 3; column ++) {
+      RawColumn rawColumn = rawTable.getRawColumn(column);
+      if (!rawColumn.createPartition(0)) {
+        CommonUtils.runtimeException("Failed to create partition in table " + sTablePath + 
+            " under column " + column);
+      }
+
+      TachyonFile tFile = rawColumn.getPartition(0);
+      tFile.open("w");
+
+      ByteBuffer buf = ByteBuffer.allocate(80);
+      buf.order(ByteOrder.nativeOrder());
+      for (int k = 0; k < 20; k ++) {
+        buf.putInt(k);
+      }
+
+      buf.flip();
+      LOG.info("Writing data...");
+      CommonUtils.printByteBuffer(LOG, buf);
+
+      buf.flip();
+      tFile.append(buf);
+      tFile.close();
     }
-
-    TachyonFile tFile = rawColumn.getPartition(0);
-    tFile.open("w");
-
-    ByteBuffer buf = ByteBuffer.allocate(80);
-    buf.order(ByteOrder.nativeOrder());
-    for (int k = 0; k < 20; k ++) {
-      buf.putInt(k);
-    }
-
-    buf.flip();
-    LOG.info("Writing data...");
-    CommonUtils.printByteBuffer(LOG, buf);
-
-    buf.flip();
-    tFile.append(buf);
-    tFile.close();
-
-    rawTable = sTachyonClient.getRawTable(mId);
-    rawColumn = rawTable.getRawColumn(1);
-    if (!rawColumn.createPartition(0)) {
-      CommonUtils.runtimeException("Failed to create partition 2 in table " + sTablePath);
-    }
-
-    tFile = rawColumn.getPartition(0);
-    tFile.open("w");
-
-    buf = ByteBuffer.allocate(80);
-    buf.order(ByteOrder.nativeOrder());
-    for (int k = 20; k < 40; k ++) {
-      buf.putInt(k);
-    }
-
-    buf.flip();
-    LOG.info("Writing data...");
-    CommonUtils.printByteBuffer(LOG, buf);
-
-    buf.flip();
-    tFile.append(buf);
-    tFile.close();
   }
 
   public static void readPartition()
@@ -100,23 +81,16 @@ public class BasicRawTableTest {
       LOG.info(b + "");
     }
 
-    RawColumn rawColumn = rawTable.getRawColumn(1);
-    TachyonFile tFile = rawColumn.getPartition(0);
-    tFile.open("r");
+    for (int column = 0; column < 3; column ++) {
+      RawColumn rawColumn = rawTable.getRawColumn(column);
+      TachyonFile tFile = rawColumn.getPartition(0);
+      tFile.open("r");
 
-    ByteBuffer buf;
-    buf = tFile.readByteBuffer();
-    CommonUtils.printByteBuffer(LOG, buf);
-    tFile.close();
-
-    rawTable = sTachyonClient.getRawTable(sTablePath);
-    rawColumn = rawTable.getRawColumn(2);
-    tFile = rawColumn.getPartition(0);
-    tFile.open("r");
-
-    buf = tFile.readByteBuffer();
-    CommonUtils.printByteBuffer(LOG, buf);
-    tFile.close();
+      ByteBuffer buf;
+      buf = tFile.readByteBuffer();
+      CommonUtils.printByteBuffer(LOG, buf);
+      tFile.close();
+    }
   }
 
   public static void main(String[] args)
