@@ -77,6 +77,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
    */
   private void populateValues(HttpServletRequest request) {
     request.setAttribute("debug", Config.DEBUG);
+    
+    request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
 
     request.setAttribute("uptime", CommonUtils.convertMsToClockTime(
         System.currentTimeMillis() - mMasterInfo.getStarttimeMs()));
