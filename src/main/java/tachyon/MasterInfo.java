@@ -607,6 +607,11 @@ public class MasterInfo {
     return ret;
   }
 
+  /**
+   * Get absolute paths of all in memory files.
+   *
+   * @return absolute paths of all in memory files.
+   */
   public List<String> getInMemoryFiles() {
     List<String> ret = new ArrayList<String>();
     LOG.info("getInMemoryFiles()");
