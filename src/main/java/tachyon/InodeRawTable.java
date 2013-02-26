@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InodeRawTable extends InodeFolder {
-  private static final long serialVersionUID = -6912568260566139359L;
-
   private final int COLUMNS;
 
   private final List<Byte> METADATA;
@@ -33,5 +31,12 @@ public class InodeRawTable extends InodeFolder {
       ret.add(METADATA.get(k));
     }
     return ret;
-  } 
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("InodeRawTable(");
+    sb.append(super.toString()).append(",").append(COLUMNS).append(")");
+    return sb.toString();
+  }
 }

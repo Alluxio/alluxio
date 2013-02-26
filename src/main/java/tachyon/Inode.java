@@ -1,6 +1,5 @@
 package tachyon;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,9 +7,7 @@ import java.util.Map;
 
 import tachyon.thrift.NetAddress;
 
-public abstract class Inode implements Comparable<Inode>, Serializable {
-  private static final long serialVersionUID = 2712957988375300023L;
-
+public abstract class Inode implements Comparable<Inode> {
   public static final long UNINITIAL_VALUE = -1;
 
   private final long CREATION_TIME_MS;

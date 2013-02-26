@@ -1,8 +1,6 @@
 package tachyon;
 
 public class InodeFile extends Inode {
-  private static final long serialVersionUID = -1234480668664604254L;
-
   private boolean mIsReady;
   private long mLength;
 
@@ -21,8 +19,15 @@ public class InodeFile extends Inode {
     mLength = length;
     mIsReady = true;
   }
-  
+
   public synchronized boolean isReady() {
     return mIsReady;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("InodeFile(");
+    sb.append(super.toString()).append(",").append(mLength).append(")");
+    return sb.toString();
   }
 }
