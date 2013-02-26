@@ -34,13 +34,6 @@ struct ClientRawTableInfo {
   5: list<byte> metadata
 }
 
-enum LogEventType {
-  Undefined = 0,
-  CheckpointInfo = 1,
-  INode = 2,
-  RawTableInfo = 3,
-}
-
 enum CommandType {
   Unknown = 0,
   Nothing = 1,

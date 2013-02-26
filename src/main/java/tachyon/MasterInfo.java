@@ -30,7 +30,6 @@ import tachyon.thrift.CommandType;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.LogEventType;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoLocalWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -430,18 +429,21 @@ public class MasterInfo {
     if (!file.exists()) {
       LOG.info(msg + fileName + " does not exist.");
     } else {
+      LOG.info("Reading " + msg + fileName);
       reader = new MasterLogReader(fileName);
       while (reader.hasNext()) {
-        Pair<LogEventType, Object> pair = reader.getNextPair();
+        Pair<LogType, Object> pair = reader.getNextPair();
         switch (pair.getFirst()) {
           case CheckpointInfo: {
             CheckpointInfo checkpointInfo = (CheckpointInfo) pair.getSecond();
             mInodeCounter.set(checkpointInfo.COUNTER_INODE);
             break;
           }
-          case INode: {
+          case InodeFile:
+          case InodeFolder:
+          case InodeRawTable: {
             Inode inode = (Inode) pair.getSecond();
-            System.out.println("Putting " + inode);
+            LOG.info("Putting " + inode);
             if (Math.abs(inode.getId()) > mInodeCounter.get()) {
               mInodeCounter.set(Math.abs(inode.getId()));
             }
@@ -787,6 +789,7 @@ public class MasterInfo {
       }
 
       InodeFile tFile = (InodeFile) inode;
+      boolean needLog = false;
 
       if (tFile.isReady()) {
         if (tFile.getLength() != fileSizeBytes) {
@@ -795,10 +798,15 @@ public class MasterInfo {
         }
       } else {
         tFile.setLength(fileSizeBytes);
+        needLog = true;
       }
       if (hasCheckpointed && !tFile.hasCheckpointed()) {
         tFile.setHasCheckpointed(true);
         tFile.setCheckpointPath(checkpointPath);
+        needLog = true;
+      }
+      if (needLog) {
+        mMasterLogWriter.appendAndFlush(tFile);
       }
       InetSocketAddress address = tWorkerInfo.ADDRESS;
       tFile.addLocation(workerId, new NetAddress(address.getHostName(), address.getPort()));
