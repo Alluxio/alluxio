@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is a HDFS Client for TRex. It handles all sorts of retry logic.
+ * This is a HDFS Client for Tachyon. It handles all sorts of retry logic.
  * @author haoyuan
  */
 public class HdfsClient {
