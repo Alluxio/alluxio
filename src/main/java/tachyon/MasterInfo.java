@@ -154,11 +154,11 @@ public class MasterInfo {
 
   public int createFile(String path, boolean directory)
       throws FileAlreadyExistException, InvalidPathException {
-    return createFile(path, directory, -1, null);
+    return createFile(true, path, directory, -1, null);
   }
 
-  public int createFile(String path, boolean directory, int columns, List<Byte> metadata)
-      throws FileAlreadyExistException, InvalidPathException {
+  public int createFile(boolean recursive, String path, boolean directory, int columns,
+      List<Byte> metadata) throws FileAlreadyExistException, InvalidPathException {
     String parameters = CommonUtils.parametersToString(path);
     LOG.info("createFile" + parameters);
 
@@ -179,11 +179,24 @@ public class MasterInfo {
         folderPath = path.substring(0, path.length() - name.length() - 1);
       }
       inode = getInode(folderPath);
-      if (inode == null || inode.isFile()) {
-        Log.info("InvalidPathException: File " + path + " creation failed. Folder "
-            + folderPath + " does not exist.");
-        throw new InvalidPathException("File " + path + " creation failed. Folder "
-            + folderPath + " does not exist.");
+      if (inode == null) {
+        int succeed = 0;
+        if (recursive) {
+          succeed = createFile(true, folderPath, true, -1, null);
+        }
+        if (!recursive || succeed <= 0) {
+          Log.info("InvalidPathException: File " + path + " creation failed. Folder "
+              + folderPath + " does not exist.");
+          throw new InvalidPathException("InvalidPathException: File " + path + " creation " +
+          		"failed. Folder " + folderPath + " does not exist.");
+        } else {
+          inode = mInodes.get(succeed);
+        }
+      } else if (inode.isFile()) {
+        Log.info("InvalidPathException: File " + path + " creation failed. "
+            + folderPath + " is a file.");
+        throw new InvalidPathException("File " + path + " creation failed. "
+            + folderPath + " is a file");
       }
 
       Inode ret = null;
@@ -221,7 +234,7 @@ public class MasterInfo {
           Config.MAX_COLUMNS);
     }
 
-    int id = createFile(path, true, columns, metadata);
+    int id = createFile(true, path, true, columns, metadata);
 
     for (int k = 0; k < columns; k ++) {
       createFile(path + Config.SEPARATOR + COL + k, true);
