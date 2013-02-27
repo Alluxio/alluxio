@@ -108,7 +108,8 @@ public abstract class Inode implements Comparable<Inode> {
   @Override
   public synchronized String toString() {
     StringBuilder sb = new StringBuilder("INode(");
-    sb.append(mName).append(",").append(mId).append(",").append(mParentId).append(")");
+    sb.append(mName).append(",").append(mId).append(",").append(mParentId);
+    sb.append(mHasCheckpointed).append(",").append(mCheckpointPath).append(")");
     return sb.toString();
   }
 

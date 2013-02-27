@@ -83,7 +83,7 @@ public class TachyonClient {
     connectAndGetLocalWorker();
     if (mLocalWorkerClient != null) {
       try {
-        mLocalWorkerClient.addFile(mUserId, fileId, writeThrough);
+        mLocalWorkerClient.addDoneFile(mUserId, fileId, writeThrough);
         return true;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
