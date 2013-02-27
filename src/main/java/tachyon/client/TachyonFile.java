@@ -228,7 +228,7 @@ public class TachyonFile {
   }
 
   public void open(String wr) throws IOException {
-    open(wr, false);
+    open(wr, true);
   }
 
   public void open(String wr, boolean writeThrough) throws IOException {

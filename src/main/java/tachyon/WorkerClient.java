@@ -44,7 +44,7 @@ public class WorkerClient {
     CLIENT.accessFile(fileId);
   }
 
-  public synchronized void addFile(long userId, int fileId, boolean writeThrough)
+  public synchronized void addDoneFile(long userId, int fileId, boolean writeThrough)
       throws FileDoesNotExistException, SuspectedFileSizeException, 
       FileAlreadyExistException, TException {
     CLIENT.addDoneFile(userId, fileId, writeThrough);
