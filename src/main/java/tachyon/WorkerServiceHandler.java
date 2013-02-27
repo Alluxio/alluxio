@@ -143,14 +143,6 @@ public class WorkerServiceHandler implements WorkerService.Iface {
         (int)fileSizeBytes, writeThrough && !dstPath.equals(""), dstPath);
   }
 
-  //  @Override
-  //  public void addRCDPartition(int datasetId, int partitionId, int partitionSizeBytes)
-  //      throws FileDoesNotExistException, SuspectedFileSizeException,
-  //      FileAlreadyExistException, TException {
-  //    mMasterClient.worker_addRCDPartition(mWorkerInfo.getId(),
-  //        datasetId, partitionId, partitionSizeBytes);
-  //  }
-
   private void addFoundPartition(int fileId, long fileSizeBytes)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     addId(fileId, fileSizeBytes);
