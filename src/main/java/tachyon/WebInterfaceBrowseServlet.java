@@ -36,7 +36,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       ABSOLUATE_PATH = fileInfo.getPath();
       SIZE = fileInfo.getSizeBytes();
       IN_MEMORY = fileInfo.isInMemory();
-      IS_DIRECTORY = fileInfo.isIsFolder();
+      IS_DIRECTORY = fileInfo.isFolder();
     }
 
     public int getId() {

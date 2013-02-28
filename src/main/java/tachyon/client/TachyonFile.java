@@ -469,4 +469,8 @@ public class TachyonFile {
           (read ? "Read" : "Write") + " operation is not available.");
     }
   }
+
+  public boolean isReady() {
+    return mClientFileInfo.isReady();
+  }
 }
