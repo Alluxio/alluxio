@@ -28,7 +28,9 @@
           <caption>Files Currently In Memory</caption>
           <tbody>
             <c:forEach var="file" items="${inMemoryFiles}">
-              <th>${file}</th>
+              <tr>
+                <th>${file}</th>
+              </tr>
             </c:forEach>
           </tbody>
         </table>
