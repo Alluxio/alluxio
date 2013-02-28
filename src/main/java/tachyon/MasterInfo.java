@@ -532,9 +532,11 @@ public class MasterInfo {
       ret.checkpointPath = "";
       ret.sizeBytes = 0;
       ret.inMemory = false;
+      ret.ready = true;
       if (inode.isFile()) {
         ret.sizeBytes = ((InodeFile) inode).getLength();
         ret.inMemory = ((InodeFile) inode).isInMemory();
+        ret.ready = ((InodeFile) inode).isReady();
       }
       ret.folder = inode.isDirectory();
       ret.needPin = false;
