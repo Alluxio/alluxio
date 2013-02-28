@@ -490,7 +490,7 @@ public class MasterInfo {
       for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
         if (address.getHostName().equals(host)) {
           LOG.info("getLocalWorker: " + address);
-          return new NetAddress(address.getHostName(), address.getPort());
+          return new NetAddress(address.getHostName(), Config.WORKER_DATA_SERVER_PORT);
         }
       }
     }

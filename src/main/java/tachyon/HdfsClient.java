@@ -144,6 +144,10 @@ public class HdfsClient {
       LOG.error("File " + src + " does not exist. Therefore rename to " + dst + " failed.");
     }
 
+    if (exist(dst)) {
+      LOG.error("File " + dst + " does exist. Therefore rename from " + src + " failed.");
+    }
+
     while (cnt < MAX_TRY) {
       try {
         return mFs.rename(new Path(src), new Path(dst));

@@ -362,7 +362,7 @@ public class TachyonFile {
         LOG.error("Master thinks the local machine has data! But " + localFileName + " is not!");
       } else {
         LOG.info("readByteBuffer() Read from remote machine: " + host + ":" +
-            Config.WORKER_DATA_SERVER_PORT);
+            mLocations.get(k).mPort);
         try {
           ret = retrieveByteBufferFromRemoteMachine(
               new InetSocketAddress(host, mLocations.get(k).mPort));
