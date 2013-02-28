@@ -1,5 +1,7 @@
 package tachyon;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -20,7 +22,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * Class to make referencing file objects more intuitive. Mainly to avoid implicit association
    * by array indexes.
    */
-  public class UiFileInfo {
+  public class UiFileInfo implements Comparable<UiFileInfo> {
     private final int ID;
     private final String NAME;
     private final String ABSOLUATE_PATH;
@@ -64,6 +66,11 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     public boolean getIsDirectory() {
       return IS_DIRECTORY;
     }
+
+    @Override
+    public int compareTo(UiFileInfo o) {
+      return ABSOLUATE_PATH.compareTo(o.getAbsolutePath());
+    }
   }
 
   public WebInterfaceBrowseServlet(MasterInfo masterInfo) {
@@ -99,11 +106,11 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       return;
     }
 
-    int index = 0;
-    UiFileInfo[] fileInfos = new UiFileInfo[filesInfo.size()];
+    List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>(filesInfo.size());
     for (ClientFileInfo fileInfo : filesInfo) {
-      fileInfos[index ++] = new UiFileInfo(fileInfo);
+      fileInfos.add(new UiFileInfo(fileInfo));
     }
+    Collections.sort(fileInfos);
     request.setAttribute("fileInfos", fileInfos);
 
     getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
