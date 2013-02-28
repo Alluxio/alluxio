@@ -262,6 +262,7 @@ public class TachyonFile {
   }
 
   public int read() throws IOException {
+    validateIO(true);
     try {
       return mInByteBuffer.get();
     } catch (java.nio.BufferUnderflowException e) {
@@ -282,6 +283,7 @@ public class TachyonFile {
       return 0;
     }
 
+    validateIO(true);
     int ret = Math.min(len, mInByteBuffer.remaining());
     if (ret == 0) {
       return -1;

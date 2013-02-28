@@ -120,8 +120,11 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       throw new FileAlreadyExistException("File " + fileId + " already exists.");
     }
     long fileSizeBytes = srcFile.length(); 
+    if (!srcFile.exists()) {
+      throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
+    }
     if (!srcFile.renameTo(dstFile)) {
-      CommonUtils.runtimeException("Failed to rename file from " + srcFile.getPath() +
+      throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath() +
           " to " + dstFile.getPath());
     }
     String dstPath = "";

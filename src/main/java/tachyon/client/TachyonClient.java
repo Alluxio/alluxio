@@ -541,7 +541,7 @@ public class TachyonClient {
     return true;
   }
 
-  public boolean lockFile(int fileId) {
+  public synchronized boolean lockFile(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected || mLocalWorkerClient == null) {
       return false;
@@ -555,7 +555,7 @@ public class TachyonClient {
     return true;
   }
 
-  public boolean unlockFile(int fileId) {
+  public synchronized boolean unlockFile(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected || mLocalWorkerClient == null) {
       return false;
@@ -569,7 +569,7 @@ public class TachyonClient {
     return true;
   }
 
-  public int getNumberOfFiles(String folderPath) 
+  public synchronized int getNumberOfFiles(String folderPath) 
       throws FileDoesNotExistException, InvalidPathException, TException {
     connectAndGetLocalWorker();
     return mMasterClient.getNumberOfFiles(folderPath);
