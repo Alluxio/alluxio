@@ -314,7 +314,7 @@ public class TachyonFile {
     }
 
     if (ret == null) {
-      new IOException("Failed to read file " + mClientFileInfo.getPath());
+      throw new IOException("Failed to read file " + mClientFileInfo.getPath());
     }
     return ret;
   }
@@ -353,7 +353,7 @@ public class TachyonFile {
       throw new IOException("Can not find location info: " + mClientFileInfo.getPath() + " " + mId);
     }
 
-    LOG.info("readByteBuffer() PartitionInfo " + mLocations);
+    LOG.info("readByteBufferFromRemote() " + mLocations);
 
     for (int k = 0 ;k < mLocations.size(); k ++) {
       String host = mLocations.get(k).mHost;
@@ -361,8 +361,7 @@ public class TachyonFile {
         String localFileName = mFolder.getPath() + "/" + mId;
         LOG.error("Master thinks the local machine has data! But " + localFileName + " is not!");
       } else {
-        LOG.info("readByteBuffer() Read from remote machine: " + host + ":" +
-            mLocations.get(k).mPort);
+        LOG.info("readByteBufferFromRemote() : " + host + ":" + Config.WORKER_DATA_SERVER_PORT);
         try {
           // TODO Using Config.WORKER_DATA_SERVER_PORT here is a bug. Fix it later.
           ret = retrieveByteBufferFromRemoteMachine(
@@ -378,6 +377,7 @@ public class TachyonFile {
 
     if (ret != null) {
       mSizeBytes = ret.limit();
+      ret.order(ByteOrder.nativeOrder());
     }
 
     return ret;
@@ -433,11 +433,19 @@ public class TachyonFile {
     
     DataServerMessage recvMsg = DataServerMessage.createPartitionResponseMessage(false, mId);
     while (!recvMsg.isMessageReady()) {
-      recvMsg.recv(socketChannel);
+      int numRead = recvMsg.recv(socketChannel);
+      if (numRead == -1) {
+        break;
+      }
     }
     LOG.info("Data " + mId + " from remote machine " + address + " received");
 
     socketChannel.close();
+    
+    if (!recvMsg.isMessageReady()) {
+      LOG.info("Data " + mId + " from remote machine is not ready.");
+      return null;
+    }
 
     if (recvMsg.getFileId() < 0) {
       LOG.info("Data " + recvMsg.getFileId() + " is not in remote machine.");

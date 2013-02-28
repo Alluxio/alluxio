@@ -276,6 +276,10 @@ public class CommonUtils {
     String[] ret = new String[src.size()];
     return src.toArray(ret);
   }
+  
+  public static void tempoaryLog(String msg) {
+    LOG.info("Temporary Log ============================== " + msg);
+  }
 
   public static void validatePath(String path) throws InvalidPathException {
     if (path == null || !path.startsWith(Config.SEPARATOR) || 
