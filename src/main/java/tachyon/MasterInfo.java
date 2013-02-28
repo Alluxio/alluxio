@@ -536,7 +536,7 @@ public class MasterInfo {
         ret.sizeBytes = ((InodeFile) inode).getLength();
         ret.inMemory = ((InodeFile) inode).isInMemory();
       }
-      ret.isFolder = inode.isDirectory();
+      ret.folder = inode.isDirectory();
       ret.needPin = false;
       ret.needCache = false;
 

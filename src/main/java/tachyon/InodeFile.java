@@ -10,12 +10,9 @@ import tachyon.thrift.NetAddress;
 public class InodeFile extends Inode {
   public static final long UNINITIAL_VALUE = -1;
 
-  private boolean mIsReady;
   private long mLength;
-
   private boolean mPin = false;
   private boolean mCache = false;
-
   private boolean mHasCheckpointed = false;
   private String mCheckpointPath = "";
 
@@ -24,7 +21,6 @@ public class InodeFile extends Inode {
   public InodeFile(String name, int id, int parentId) {
     super(name, id, parentId, InodeType.File);
     mLength = UNINITIAL_VALUE;
-    mIsReady = false;
   }
 
   public synchronized long getLength() {
@@ -32,13 +28,13 @@ public class InodeFile extends Inode {
   }
 
   public synchronized void setLength(long length) {
-    assert mLength == UNINITIAL_VALUE : "INodeFile length was set previously.";
+    assert mLength == UNINITIAL_VALUE : "InodeFile length was set previously.";
+    assert length < 0 : "InodeFile new length " + length + " is illegal.";
     mLength = length;
-    mIsReady = true;
   }
 
   public synchronized boolean isReady() {
-    return mIsReady;
+    return mLength != UNINITIAL_VALUE;
   }
 
   @Override

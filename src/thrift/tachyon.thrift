@@ -20,10 +20,11 @@ struct ClientFileInfo {
   3: string path
   4: string checkpointPath
   5: i64 sizeBytes
-  6: bool isFolder
-  7: bool inMemory
-  8: bool needPin
-  9: bool needCache
+  6: bool ready
+  7: bool folder
+  8: bool inMemory
+  9: bool needPin
+  10: bool needCache
 }
 
 struct ClientRawTableInfo {
