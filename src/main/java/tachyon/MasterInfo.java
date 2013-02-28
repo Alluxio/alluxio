@@ -120,7 +120,7 @@ public class MasterInfo {
         LOG.warn("Restarting failed workers");
         try {
           java.lang.Runtime.getRuntime().exec(Config.TACHYON_HOME + 
-              "/bin/restart-failed-tachyon-workers.sh");
+              "/bin/restart-failed-workers.sh");
         } catch (IOException e) {
           LOG.error(e.getMessage());
         }

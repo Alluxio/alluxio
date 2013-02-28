@@ -36,7 +36,7 @@ public class HdfsClient {
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        mFs.copyFromLocalFile(delSrc, overwrite, new Path(src), new Path(dst));
+        mFs.copyFromLocalFile(false, overwrite, new Path(src), new Path(dst));
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
@@ -47,6 +47,9 @@ public class HdfsClient {
       return;
     }
     CommonUtils.runtimeException(te);
+    if (delSrc) {
+      delete(new Path(src), true);
+    }
   }
 
   public void copyToLocalFile(boolean delSrc, Path src, Path dst) {

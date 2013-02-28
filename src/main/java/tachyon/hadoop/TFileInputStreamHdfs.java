@@ -2,6 +2,7 @@ package tachyon.hadoop;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -17,6 +18,7 @@ import tachyon.CommonUtils;
 import tachyon.client.TFileInputStream;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
+import tachyon.thrift.NetAddress;
 import tachyon.thrift.OutOfMemoryForPinFileException;
 
 public class TFileInputStreamHdfs extends InputStream
@@ -49,16 +51,15 @@ implements Seekable, PositionedReadable {
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;
 
-    TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
-
-    if (!tachyonFile.isReady()) {
+    List<NetAddress> locations = mTachyonClient.getFileLocations(mFileId);
+    if (locations.size() == 0) {
       // Cache the partition
       long startTimeMs = System.currentTimeMillis();
       FileSystem fs = hdfsPath.getFileSystem(mHadoopConf);
       FSDataInputStream tHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-      TachyonFile tTachyonFile = mTachyonClient.getFile(mFileId);
+      TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
       try {
-        tTachyonFile.open("w");
+        tachyonFile.open("w");
       } catch (IOException e) {
         LOG.error(e.getMessage());
         return;
@@ -69,7 +70,7 @@ implements Seekable, PositionedReadable {
       while ((limit = tHdfsInputStream.read(mBuffer)) >= 0) {
         if (limit != 0) {
           try {
-            tTachyonFile.append(mBuffer, 0, limit);
+            tachyonFile.append(mBuffer, 0, limit);
           } catch (IOException e) {
             LOG.error(e.getMessage());
             return;
@@ -80,7 +81,7 @@ implements Seekable, PositionedReadable {
         cnt += limit;
       }
 
-      tTachyonFile.close();
+      tachyonFile.close();
       tachyonFile = mTachyonClient.getFile(mFileId);
       if (tachyonFile == null) {
         return;
@@ -88,13 +89,14 @@ implements Seekable, PositionedReadable {
       LOG.info("Caching file " + mHdfsPath + " with size " + cnt + " bytes took " +
           (System.currentTimeMillis() - startTimeMs) + " ms. ");
     }
-
+    TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
     try {
       tachyonFile.open("r");
     } catch (IOException e) {
       LOG.error(e.getMessage());
       return;
     }
+
     mTachyonPartitionInputStream = tachyonFile.getInputStream();
   }
 
