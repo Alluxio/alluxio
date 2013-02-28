@@ -94,30 +94,6 @@ public class TachyonClient {
     return false;
   }
 
-  //  public synchronized boolean addDoneRCDPartition(int datasetId, int partitionId, int sizeBytes) {
-  //    connectAndGetLocalWorker();
-  //    if (mLocalWorkerClient != null) {
-  //      try {
-  //        mLocalWorkerClient.addRCDPartition(datasetId, partitionId, sizeBytes);
-  //        return true;
-  //      } catch (PartitionDoesNotExistException e) {
-  //        // TODO Auto-generated catch block
-  //        e.printStackTrace();
-  //      } catch (SuspectedPartitionSizeException e) {
-  //        // TODO Auto-generated catch block
-  //        e.printStackTrace();
-  //      } catch (PartitionAlreadyExistException e) {
-  //        // TODO Auto-generated catch block
-  //        e.printStackTrace();
-  //      } catch (TException e) {
-  //        LOG.error(e.getMessage(), e);
-  //        mLocalWorkerClient = null;
-  //        return false;
-  //      }
-  //    }
-  //    return false;
-  //  }
-
   // Lazy connection
   // TODO This should be removed since the Thrift server has been fixed.
   public synchronized void connectAndGetLocalWorker() {
@@ -162,7 +138,7 @@ public class TachyonClient {
     }
 
     LOG.info("Trying to connect local worker @ " + sLocalWorkerAddress);
-    mLocalWorkerClient = WorkerClient.createWorkerClient(sLocalWorkerAddress);
+    mLocalWorkerClient = new WorkerClient(sLocalWorkerAddress);
     if (!mLocalWorkerClient.open()) {
       LOG.error("Failed to connect local worker @ " + sLocalWorkerAddress);
       mLocalWorkerClient = null;
@@ -255,7 +231,7 @@ public class TachyonClient {
 
     return mUserHdfsTempFolder;
   }
-  
+
   public synchronized int createRawTable(String path, int columns) throws InvalidPathException {
     return createRawTable(path, columns, new ArrayList<Byte>(0));
   }
