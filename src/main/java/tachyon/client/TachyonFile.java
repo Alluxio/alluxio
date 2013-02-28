@@ -422,15 +422,19 @@ public class TachyonFile {
     SocketChannel socketChannel = SocketChannel.open();
     socketChannel.connect(address);
 
+    LOG.info("Connected to remote machine " + address + " sent");
     DataServerMessage sendMsg = DataServerMessage.createPartitionRequestMessage(mId);
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }
 
+    LOG.info("Data " + mId + " to remote machine " + address + " sent");
+    
     DataServerMessage recvMsg = DataServerMessage.createPartitionResponseMessage(false, mId);
     while (!recvMsg.isMessageReady()) {
       recvMsg.recv(socketChannel);
     }
+    LOG.info("Data " + mId + " from remote machine " + address + " received");
 
     socketChannel.close();
 
