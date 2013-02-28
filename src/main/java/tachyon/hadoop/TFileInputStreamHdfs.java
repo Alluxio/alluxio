@@ -81,8 +81,8 @@ implements Seekable, PositionedReadable {
       }
 
       tTachyonFile.close();
-      tTachyonFile = mTachyonClient.getFile(mFileId);
-      if (tTachyonFile == null) {
+      tachyonFile = mTachyonClient.getFile(mFileId);
+      if (tachyonFile == null) {
         return;
       }
       LOG.info("Caching file " + mHdfsPath + " with size " + cnt + " bytes took " +
