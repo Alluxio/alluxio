@@ -373,7 +373,9 @@ public class TachyonFile {
       }
     }
 
-    mSizeBytes = ret.limit();
+    if (ret != null) {
+      mSizeBytes = ret.limit();
+    }
 
     return ret;
   }
