@@ -2,18 +2,18 @@ package tachyon;
 
 public abstract class Inode implements Comparable<Inode> {
   private final long CREATION_TIME_MS;
-  private final boolean IS_FOLDER;
+  protected final InodeType TYPE;
 
   private int mId;
   private String mName;
   private int mParentId;
 
-  protected Inode(String name, int id, int parentId, boolean isFolder) {
+  protected Inode(String name, int id, int parentId, InodeType type) {
     mName = name;
     mParentId = parentId;
 
     mId = id;
-    IS_FOLDER = isFolder;
+    TYPE = type;
     CREATION_TIME_MS = System.currentTimeMillis();
   }
 
@@ -36,11 +36,15 @@ public abstract class Inode implements Comparable<Inode> {
   }
 
   public boolean isDirectory() {
-    return IS_FOLDER;
+    return TYPE != InodeType.File;
   }
 
   public boolean isFile() {
-    return !IS_FOLDER;
+    return TYPE == InodeType.File;
+  }
+  
+  public InodeType getInodeType() {
+    return TYPE;
   }
 
   public long getCreationTimeMs() {

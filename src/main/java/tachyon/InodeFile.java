@@ -22,7 +22,7 @@ public class InodeFile extends Inode {
   private Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>();
 
   public InodeFile(String name, int id, int parentId) {
-    super(name, id, parentId, false);
+    super(name, id, parentId, InodeType.File);
     mLength = UNINITIAL_VALUE;
     mIsReady = false;
   }

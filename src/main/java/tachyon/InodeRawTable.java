@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InodeRawTable extends InodeFolder {
-  private final int COLUMNS;
+  protected final int COLUMNS;
 
   private final List<Byte> METADATA;
 
   public InodeRawTable(String name, int id, int parentId, int columns, List<Byte> metadata) {
-    super(name, id, parentId, true);
+    super(name, id, parentId, InodeType.RawTable);
     COLUMNS = columns;
     if (metadata == null) {
       METADATA = new ArrayList<Byte>(0);
