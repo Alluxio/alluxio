@@ -33,7 +33,7 @@ public class WorkerClient {
 
   private String mRootFolder = null;
 
-  private WorkerClient(InetSocketAddress address) {
+  public WorkerClient(InetSocketAddress address) {
     mWorkerAddress = address;
     mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(
         mWorkerAddress.getHostName(), mWorkerAddress.getPort())));
@@ -61,12 +61,6 @@ public class WorkerClient {
     mIsConnected = false;
   }
 
-  public static WorkerClient createWorkerClient(InetSocketAddress address) {
-    WorkerClient ret = new WorkerClient(address);
-
-    return ret;
-  }
-
   public synchronized String getUserTempFolder(long userId) throws TException {
     return CLIENT.getUserTempFolder(userId);
   }
@@ -83,7 +77,7 @@ public class WorkerClient {
     return mRootFolder;
   }
 
-  public void lockFile(int fileId, long userId) throws TException {
+  public synchronized void lockFile(int fileId, long userId) throws TException {
     CLIENT.lockFile(fileId, userId);
   }
 
@@ -113,7 +107,7 @@ public class WorkerClient {
     CLIENT.returnSpace(userId, returnSpaceBytes);
   }
 
-  public void unlockFile(int fileId, long userId) throws TException {
+  public synchronized void unlockFile(int fileId, long userId) throws TException {
     CLIENT.unlockFile(fileId, userId);
   }
 
