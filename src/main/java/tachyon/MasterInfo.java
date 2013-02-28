@@ -108,7 +108,7 @@ public class MasterInfo {
 
         for (int id: worker.getFiles()) {
           synchronized (mRoot) {
-            Inode tFile = mInodes.get(id);
+            InodeFile tFile = (InodeFile) mInodes.get(id);
             if (tFile != null) {
               tFile.removeLocation(worker.getId());
             }
@@ -188,7 +188,7 @@ public class MasterInfo {
           Log.info("InvalidPathException: File " + path + " creation failed. Folder "
               + folderPath + " does not exist.");
           throw new InvalidPathException("InvalidPathException: File " + path + " creation " +
-          		"failed. Folder " + folderPath + " does not exist.");
+              "failed. Folder " + folderPath + " does not exist.");
         } else {
           inode = mInodes.get(succeed);
         }
@@ -332,7 +332,7 @@ public class MasterInfo {
       InodeFolder parent = (InodeFolder) mInodes.get(inode.getParentId());
       parent.removeChild(inode.getId());
       mInodes.remove(inode.getId());
-      if (inode.isPin()) {
+      if (inode.isFile() && ((InodeFile) inode).isPin()) {
         synchronized (mIdPinList) {
           mIdPinList.remove(inode.getId());
         }
@@ -415,9 +415,7 @@ public class MasterInfo {
           checkpointWriter.appendAndFlush(tInode);
           if (tInode.isDirectory()) {
             nodesQueue.add(tInode);
-          }
-
-          if (tInode.isPin()) {
+          } else if (((InodeFile) tInode).isPin()) {
             synchronized (mIdPinList) {
               mIdPinList.add(tInode.getId());
             }
@@ -531,7 +529,7 @@ public class MasterInfo {
       ret.id = inode.getId();
       ret.name = inode.getName();
       ret.path = getPath(inode);
-      ret.checkpointPath = inode.getCheckpointPath();
+      ret.checkpointPath = "";
       ret.sizeBytes = 0;
       ret.inMemory = false;
       if (inode.isFile()) {
@@ -539,8 +537,16 @@ public class MasterInfo {
         ret.inMemory = ((InodeFile) inode).isInMemory();
       }
       ret.isFolder = inode.isDirectory();
-      ret.needPin = inode.isPin();
-      ret.needCache = inode.isCache();
+      ret.needPin = false;
+      ret.needCache = false;
+
+      if (inode.isFile()) {
+        InodeFile tInode = (InodeFile) inode;
+        ret.checkpointPath = tInode.getCheckpointPath();
+        ret.needPin = tInode.isPin();
+        ret.needCache = tInode.isCache();
+      }
+
       LOG.info("getClientFileInfo(" + id + "): "  + ret);
       return ret;
     }
@@ -595,7 +601,7 @@ public class MasterInfo {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
       LOG.info("getFileLocations: " + fileId + " good return");
-      return inode.getLocations();
+      return ((InodeFile) inode).getLocations();
     }
   }
 
@@ -644,7 +650,7 @@ public class MasterInfo {
           String newPath = curPath + Config.SEPARATOR + tInode.getName();
           if (tInode.isDirectory()) {
             nodesQueue.add(new Pair<InodeFolder, String>((InodeFolder) tInode, newPath));
-          } else if (tInode.isInMemory()) {
+          } else if (((InodeFile) tInode).isInMemory()) {
             ret.add(newPath);
           }
         }
@@ -761,7 +767,7 @@ public class MasterInfo {
         throw new FileDoesNotExistException("Failed to unpin " + fileId);
       }
 
-      inode.setPin(false);
+      ((InodeFile) inode).setPin(false);
       synchronized (mIdPinList) {
         mIdPinList.remove(fileId);
       }
@@ -846,8 +852,8 @@ public class MasterInfo {
           Inode inode = mInodes.get(id);
           if (inode == null) {
             LOG.error("Data " + id + " does not exist");
-          } else {
-            inode.removeLocation(id);
+          } else if (inode.isFile()) {
+            ((InodeFile) inode).removeLocation(id);
           }
         }
       }
@@ -888,8 +894,8 @@ public class MasterInfo {
     synchronized (mRoot) {
       for (long fileId: currentFileIds) {
         Inode inode = mInodes.get(fileId);
-        if (inode != null) {
-          inode.addLocation(id, workerNetAddress);
+        if (inode != null && inode.isFile()) {
+          ((InodeFile) inode).addLocation(id, workerNetAddress);
         } else {
           LOG.warn("registerWorker failed to add fileId " + fileId);
         }
