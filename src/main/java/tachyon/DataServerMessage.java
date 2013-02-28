@@ -20,7 +20,7 @@ public class DataServerMessage {
   private boolean mIsMessageReady;
 
   private ByteBuffer mHeader;
-  private static final int HEADER_LENGTH = 12;
+  private static final int HEADER_LENGTH = 8;
   private int mFileId;
   private int mDataLength;
   RandomAccessFile mFile;
@@ -111,7 +111,6 @@ public class DataServerMessage {
     isSend(false);
 
     int numRead = 0;
-
     if (mHeader.remaining() > 0) {
       numRead = socketChannel.read(mHeader);
       if (mHeader.remaining() == 0) {
@@ -119,7 +118,7 @@ public class DataServerMessage {
         mFileId = mHeader.getInt();
         mDataLength = mHeader.getInt();
         mData = ByteBuffer.allocate(mDataLength);
-        LOG.info("recv(): mData: " + mData);
+        LOG.info("recv(): mData: " + mData + " mFileId " + mFileId);
         if (mDataLength == 0) {
           mIsMessageReady = true;
         }
