@@ -87,7 +87,7 @@ public class WorkerInfo {
     sb.append(", mUsedBytes: ").append(mUsedBytes);
     sb.append(", mAvailableBytes: ").append(CAPACITY_BYTES - mUsedBytes);
     sb.append(", mLastUpdatedTimeMs: ").append(mLastUpdatedTimeMs);
-    sb.append(", mPartitions: [ ");
+    sb.append(", mFiles: [ ");
     for (int file : mFiles) {
       sb.append(file).append(", ");
     }
