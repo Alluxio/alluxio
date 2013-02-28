@@ -364,8 +364,9 @@ public class TachyonFile {
         LOG.info("readByteBuffer() Read from remote machine: " + host + ":" +
             mLocations.get(k).mPort);
         try {
+          // TODO Using Config.WORKER_DATA_SERVER_PORT here is a bug. Fix it later.
           ret = retrieveByteBufferFromRemoteMachine(
-              new InetSocketAddress(host, mLocations.get(k).mPort));
+              new InetSocketAddress(host, Config.WORKER_DATA_SERVER_PORT));
           if (ret != null) {
             break;
           }
