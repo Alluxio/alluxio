@@ -83,6 +83,23 @@ public class HdfsClient {
     CommonUtils.runtimeException(te);
   }
 
+  public boolean exist(String src) {
+    IOException te = null;
+    int cnt = 0;
+    while (cnt < MAX_TRY) {
+      try {
+        return mFs.exists(new Path(src));
+      } catch (IOException e) {
+        cnt ++;
+        LOG.error(cnt + " : " + e.getMessage(), e);
+        te = e;
+        continue;
+      }
+    }
+    CommonUtils.runtimeException(te);
+    return false;
+  }
+
   public boolean mkdirs(String src, FsPermission permission, boolean createParent) {
     IOException te = null;
     int cnt = 0;
@@ -123,6 +140,10 @@ public class HdfsClient {
   public boolean rename(String src, String dst) {
     IOException te = null;
     int cnt = 0;
+    if (!exist(src)) {
+      LOG.error("File " + src + " does not exist. Therefore rename to " + dst + " failed.");
+    }
+
     while (cnt < MAX_TRY) {
       try {
         return mFs.rename(new Path(src), new Path(dst));
