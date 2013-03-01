@@ -78,6 +78,7 @@ public class DataServerMessage {
         // TODO This is a trick for now. The data may have been removed before remote retrieving. 
         ret.mFileId = - ret.mFileId;
         ret.mDataLength = 0;
+        ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
         ret.mData = ByteBuffer.allocate(0);
         ret.generateHeader();
         ret.LOG.error(e.getMessage(), e);
