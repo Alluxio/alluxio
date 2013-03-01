@@ -54,10 +54,14 @@ public class InodeFile extends Inode {
 
   public synchronized void addLocation(long workerId, NetAddress workerAddress) {
     mLocations.put(workerId, workerAddress);
+    CommonUtils.tempoaryLog(" added worker " + workerId + " into file " + getId() + " current " +
+        "locations " + mLocations + " size " + mLocations.size());
   }
 
   public synchronized void removeLocation(long workerId) {
     mLocations.remove(workerId);
+    CommonUtils.tempoaryLog(" removed worker " + workerId + " from file " + getId() + " current " +
+        "locations " + mLocations + " size " + mLocations.size());
   }
 
   public synchronized List<NetAddress> getLocations() {
@@ -67,15 +71,21 @@ public class InodeFile extends Inode {
   }
 
   public synchronized boolean isInMemory() {
+    CommonUtils.tempoaryLog("File " + getId() + " isInMemory " + (mLocations.size() > 0) + " : "
+        + mLocations);
     return mLocations.size() > 0;
   }
 
-  public void setPin(boolean pin) {
+  public synchronized void setPin(boolean pin) {
     mPin = pin;
   }
 
   public synchronized boolean isPin() {
     return mPin;
+  }
+
+  public synchronized void setCache(boolean cache) {
+    mCache = cache;
   }
 
   public synchronized boolean isCache() {
