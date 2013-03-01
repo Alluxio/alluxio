@@ -18,6 +18,7 @@ import tachyon.CommonUtils;
 import tachyon.WorkerClient;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -78,20 +79,37 @@ public class TachyonClient {
     LOG.error("TachyonClient accessLocalFile(" + fileId + ") failed");
   }
 
-  public synchronized boolean addDoneFile(int fileId, boolean writeThrough)
-      throws FileDoesNotExistException, SuspectedFileSizeException, FileAlreadyExistException {
+  public void addCheckpoint(int fileId) 
+      throws FileDoesNotExistException, SuspectedFileSizeException, FailedToCheckpointException {
     connectAndGetLocalWorker();
+    if (!mConnected) {
+      throw new FailedToCheckpointException("Failed to add checkpoint for file " + fileId);
+    }
     if (mLocalWorkerClient != null) {
       try {
-        mLocalWorkerClient.addDoneFile(mUserId, fileId, writeThrough);
-        return true;
+        mLocalWorkerClient.addCheckpoint(mUserId, fileId);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mLocalWorkerClient = null;
-        return false;
       }
     }
-    return false;
+  }
+
+  public void cacheFile(int fileId) throws FileDoesNotExistException, SuspectedFileSizeException {
+    connectAndGetLocalWorker();
+    if (!mConnected) {
+      return;
+    }
+
+    if (mLocalWorkerClient != null) {
+      try {
+        mLocalWorkerClient.cacheFile(mUserId, fileId);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mLocalWorkerClient = null;
+      }
+    }
+    return;
   }
 
   // Lazy connection

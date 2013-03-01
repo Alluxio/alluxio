@@ -152,6 +152,106 @@ public class MasterInfo {
     mHeartbeatThread.start();
   }
 
+  public void addCheckpoint(long workerId, int fileId, int fileSizeBytes,
+      String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException {
+    String parameters = CommonUtils.parametersToString(workerId, fileId, fileSizeBytes,
+        checkpointPath);
+    LOG.info("addCheckpoint" + parameters);
+
+    WorkerInfo tWorkerInfo = null;
+    synchronized (mWorkers) {
+      tWorkerInfo = mWorkers.get(workerId);
+
+      if (tWorkerInfo == null) {
+        LOG.error("No worker: " + workerId);
+        return;
+      }
+    }
+
+    tWorkerInfo.updateLastUpdatedTimeMs();
+
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+
+      if (inode == null) {
+        throw new FileDoesNotExistException("File " + fileId + " does not exist.");
+      }
+      if (inode.isDirectory()) {
+        throw new FileDoesNotExistException("File " + fileId + " is a folder.");
+      }
+
+      InodeFile tFile = (InodeFile) inode;
+      boolean needLog = false;
+
+      if (tFile.isReady()) {
+        if (tFile.getLength() != fileSizeBytes) {
+          throw new SuspectedFileSizeException(fileId + ". Original Size: " +
+              tFile.getLength() + ". New Size: " + fileSizeBytes);
+        }
+      } else {
+        tFile.setLength(fileSizeBytes);
+        needLog = true;
+      }
+      if (!tFile.hasCheckpointed()) {
+        tFile.setCheckpointPath(checkpointPath);
+        needLog = true;
+      }
+      if (needLog) {
+        mMasterLogWriter.appendAndFlush(tFile);
+      }
+    }
+  }
+
+  public void cachedFile(long workerId, long workerUsedBytes, int fileId,
+      int fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException {
+    String parameters = CommonUtils.parametersToString(workerId, workerUsedBytes, fileId, 
+        fileSizeBytes);
+    LOG.info("cachedFile" + parameters);
+
+    WorkerInfo tWorkerInfo = null;
+    synchronized (mWorkers) {
+      tWorkerInfo = mWorkers.get(workerId);
+
+      if (tWorkerInfo == null) {
+        LOG.error("No worker: " + workerId);
+        return;
+      }
+    }
+
+    tWorkerInfo.updateFile(true, fileId);
+    tWorkerInfo.updateUsedBytes(workerUsedBytes);
+    tWorkerInfo.updateLastUpdatedTimeMs();
+
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+
+      if (inode == null) {
+        throw new FileDoesNotExistException("File " + fileId + " does not exist.");
+      }
+      if (inode.isDirectory()) {
+        throw new FileDoesNotExistException("File " + fileId + " is a folder.");
+      }
+
+      InodeFile tFile = (InodeFile) inode;
+      boolean needLog = false;
+
+      if (tFile.isReady()) {
+        if (tFile.getLength() != fileSizeBytes) {
+          throw new SuspectedFileSizeException(fileId + ". Original Size: " +
+              tFile.getLength() + ". New Size: " + fileSizeBytes);
+        }
+      } else {
+        tFile.setLength(fileSizeBytes);
+        needLog = true;
+      }
+      if (needLog) {
+        mMasterLogWriter.appendAndFlush(tFile);
+      }
+      InetSocketAddress address = tWorkerInfo.ADDRESS;
+      tFile.addLocation(workerId, new NetAddress(address.getHostName(), address.getPort()));
+    }
+  }
+
   public int createFile(String path, boolean directory)
       throws FileAlreadyExistException, InvalidPathException {
     return createFile(true, path, directory, -1, null);
@@ -775,62 +875,6 @@ public class MasterInfo {
       }
 
       mMasterLogWriter.appendAndFlush(inode);
-    }
-  }
-
-  public void cachedFile(long workerId, long workerUsedBytes, int fileId,
-      int fileSizeBytes, boolean hasCheckpointed, String checkpointPath)
-          throws FileDoesNotExistException, SuspectedFileSizeException {
-    String parameters = CommonUtils.parametersToString(workerId, workerUsedBytes, fileId, 
-        fileSizeBytes);
-    LOG.info("cachedFile" + parameters);
-
-    WorkerInfo tWorkerInfo = null;
-    synchronized (mWorkers) {
-      tWorkerInfo = mWorkers.get(workerId);
-
-      if (tWorkerInfo == null) {
-        LOG.error("No worker: " + workerId);
-        return;
-      }
-    }
-
-    tWorkerInfo.updateFile(true, fileId);
-    tWorkerInfo.updateUsedBytes(workerUsedBytes);
-    tWorkerInfo.updateLastUpdatedTimeMs();
-
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-
-      if (inode == null) {
-        throw new FileDoesNotExistException("File " + fileId + " does not exist.");
-      }
-      if (inode.isDirectory()) {
-        throw new FileDoesNotExistException("File " + fileId + " is a folder.");
-      }
-
-      InodeFile tFile = (InodeFile) inode;
-      boolean needLog = false;
-
-      if (tFile.isReady()) {
-        if (tFile.getLength() != fileSizeBytes) {
-          throw new SuspectedFileSizeException(fileId + ". Original Size: " +
-              tFile.getLength() + ". New Size: " + fileSizeBytes);
-        }
-      } else {
-        tFile.setLength(fileSizeBytes);
-        needLog = true;
-      }
-      if (hasCheckpointed && !tFile.hasCheckpointed()) {
-        tFile.setHasCheckpointed(true);
-        tFile.setCheckpointPath(checkpointPath);
-        needLog = true;
-      }
-      if (needLog) {
-        mMasterLogWriter.appendAndFlush(tFile);
-      }
-      InetSocketAddress address = tWorkerInfo.ADDRESS;
-      tFile.addLocation(workerId, new NetAddress(address.getHostName(), address.getPort()));
     }
   }
 

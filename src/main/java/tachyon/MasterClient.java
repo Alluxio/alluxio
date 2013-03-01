@@ -167,25 +167,16 @@ public class MasterClient {
     CLIENT.user_unpinFile(id);
   }
 
-  //  public synchronized void user_setPartitionCheckpointPath(int fileId, int partitionId,
-  //      String checkpointPath) throws FileDoesNotExistException,
-  //      FileDoesNotExistException, TException {
-  //    CLIENT.user_setFileCheckpointPath(fileId, partitionId, checkpointPath);
-  //  }
-
-  public synchronized void worker_addFile(long workerId, long workerUsedBytes,
-      int fileId, int partitionSizeBytes, boolean hasCheckpointed, 
+  public void worker_addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
       String checkpointPath)
           throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    CLIENT.worker_addFile(workerId, workerUsedBytes, fileId, partitionSizeBytes, 
-        hasCheckpointed, checkpointPath);
+    CLIENT.worker_addCheckpoint(workerId, fileId, (int) fileSizeBytes, checkpointPath);
   }
 
-  //  public synchronized void worker_addRCDPartition(long workerId, int fileId, int partitionId,
-  //      int partitionSizeBytes) throws FileDoesNotExistException,
-  //      SuspectedFileSizeException, TException {
-  //    CLIENT.worker_addRCDPartition(workerId, fileId, partitionId, partitionSizeBytes);
-  //  }
+  public void worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
+      int fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    CLIENT.worker_cacheFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
+  }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
       List<Integer> removedPartitionList) throws TException {
