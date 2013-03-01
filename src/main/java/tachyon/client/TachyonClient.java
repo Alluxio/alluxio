@@ -79,7 +79,7 @@ public class TachyonClient {
     LOG.error("TachyonClient accessLocalFile(" + fileId + ") failed");
   }
 
-  public void addCheckpoint(int fileId) 
+  public synchronized void addCheckpoint(int fileId) 
       throws FileDoesNotExistException, SuspectedFileSizeException, FailedToCheckpointException {
     connectAndGetLocalWorker();
     if (!mConnected) {
@@ -95,7 +95,8 @@ public class TachyonClient {
     }
   }
 
-  public void cacheFile(int fileId) throws FileDoesNotExistException, SuspectedFileSizeException {
+  public synchronized void cacheFile(int fileId) 
+      throws FileDoesNotExistException, SuspectedFileSizeException {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return;
