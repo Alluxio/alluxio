@@ -20,9 +20,9 @@ public class DataServerMessage {
   private boolean mIsMessageReady;
 
   private ByteBuffer mHeader;
-  private static final int HEADER_LENGTH = 8;
+  private static final int HEADER_LENGTH = 12;
   private int mFileId;
-  private int mDataLength;
+  private long mDataLength;
   RandomAccessFile mFile;
 
   private ByteBuffer mData;
@@ -68,7 +68,7 @@ public class DataServerMessage {
         ret.LOG.info("Try to response remote requst by reading from " + filePath); 
         ret.mFile = new RandomAccessFile(filePath, "r");
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
-        ret.mDataLength = (int) ret.mFile.length();
+        ret.mDataLength = ret.mFile.length();
         ret.mInChannel = ret.mFile.getChannel();
         ret.mData = ret.mInChannel.map(FileChannel.MapMode.READ_ONLY, 0, ret.mDataLength);
         ret.mIsMessageReady = true;
@@ -103,7 +103,7 @@ public class DataServerMessage {
   private void generateHeader() {
     mHeader.clear();
     mHeader.putInt(mFileId);
-    mHeader.putInt(mDataLength);
+    mHeader.putLong(mDataLength);
     mHeader.flip();
   }
 
@@ -116,8 +116,10 @@ public class DataServerMessage {
       if (mHeader.remaining() == 0) {
         mHeader.flip();
         mFileId = mHeader.getInt();
-        mDataLength = mHeader.getInt();
-        mData = ByteBuffer.allocate(mDataLength);
+        mDataLength = mHeader.getLong();
+        // TODO make this better to truncate the file.
+        assert mDataLength < Integer.MAX_VALUE;
+        mData = ByteBuffer.allocate((int) mDataLength);
         LOG.info("recv(): mData: " + mData + " mFileId " + mFileId);
         if (mDataLength == 0) {
           mIsMessageReady = true;

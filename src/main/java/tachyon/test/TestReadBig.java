@@ -12,7 +12,7 @@ public class TestReadBig {
     String localFileName = "/mnt/ramdisk/tachyonworker/0";
     try {
       RandomAccessFile mFile = new RandomAccessFile(localFileName, "r");
-      int mSizeBytes = (int) mFile.length();
+      long mSizeBytes = mFile.length();
       System.out.println("Size = " + mSizeBytes);
       FileChannel mInChannel = mFile.getChannel();
       MappedByteBuffer ret = mInChannel.map(FileChannel.MapMode.READ_ONLY, 0, mSizeBytes);

@@ -151,7 +151,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void worker_addCheckpoint(long workerId, int fileId, int fileSizeBytes, 
+  public void worker_addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
       String checkpointPath) 
           throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
@@ -159,7 +159,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public void worker_cacheFile(long workerId, long workerUsedBytes, int fileId,
-      int fileSizeBytes) throws FileDoesNotExistException,
+      long fileSizeBytes) throws FileDoesNotExistException,
       SuspectedFileSizeException, TException {
     mMasterInfo.cachedFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
   }

@@ -47,7 +47,7 @@ public class TachyonFile {
   private boolean mOpen = false;
   private boolean mRead;
   private boolean mWriteThrough;
-  private int mSizeBytes;
+  private long mSizeBytes;
   private File mFolder;
   private String mFilePath;
   private RandomAccessFile mFile;
@@ -222,7 +222,7 @@ public class TachyonFile {
     return new TFileOutputStream(this);
   }
 
-  public int getSize() {
+  public long getSize() {
     return mSizeBytes;
   }
 
@@ -326,7 +326,7 @@ public class TachyonFile {
       String localFileName = mFolder.getPath() + "/" + mId;
       try {
         mFile = new RandomAccessFile(localFileName, "r");
-        mSizeBytes = (int) mFile.length();
+        mSizeBytes = mFile.length();
         mInChannel = mFile.getChannel();
         ret = mInChannel.map(FileChannel.MapMode.READ_ONLY, 0, mSizeBytes);
         ret.order(ByteOrder.nativeOrder());
