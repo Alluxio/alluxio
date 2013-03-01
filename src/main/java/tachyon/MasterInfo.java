@@ -152,7 +152,7 @@ public class MasterInfo {
     mHeartbeatThread.start();
   }
 
-  public void addCheckpoint(long workerId, int fileId, int fileSizeBytes,
+  public void addCheckpoint(long workerId, int fileId, long fileSizeBytes,
       String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException {
     String parameters = CommonUtils.parametersToString(workerId, fileId, fileSizeBytes,
         checkpointPath);
@@ -203,7 +203,7 @@ public class MasterInfo {
   }
 
   public void cachedFile(long workerId, long workerUsedBytes, int fileId,
-      int fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException {
+      long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException {
     String parameters = CommonUtils.parametersToString(workerId, workerUsedBytes, fileId, 
         fileSizeBytes);
     LOG.info("cachedFile" + parameters);

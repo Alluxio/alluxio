@@ -168,13 +168,13 @@ public class MasterClient {
   }
 
   public void worker_addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
-      String checkpointPath)
+      String checkpointPath) 
           throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    CLIENT.worker_addCheckpoint(workerId, fileId, (int) fileSizeBytes, checkpointPath);
+    CLIENT.worker_addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
   }
 
   public void worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
-      int fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+      long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     CLIENT.worker_cacheFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
   }
 
