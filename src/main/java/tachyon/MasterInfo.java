@@ -879,7 +879,7 @@ public class MasterInfo {
   }
 
   public Command workerHeartbeat(long workerId, long usedBytes, List<Integer> removedFileIds) {
-    LOG.info("workerHeartbeat(): WorkerId: " + workerId);
+    LOG.debug("workerHeartbeat(): WorkerId: " + workerId);
     synchronized (mWorkers) {
       WorkerInfo tWorkerInfo = mWorkers.get(workerId);
 
