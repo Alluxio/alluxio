@@ -44,13 +44,13 @@ public class WorkerClient {
     CLIENT.accessFile(fileId);
   }
 
-  public void addCheckpoint(long userId, int fileId) 
+  public synchronized void addCheckpoint(long userId, int fileId) 
       throws FileDoesNotExistException, SuspectedFileSizeException,
       FailedToCheckpointException, TException {
     CLIENT.addCheckpoint(userId, fileId);
   }
 
-  public void cacheFile(long userId, int fileId)
+  public synchronized void cacheFile(long userId, int fileId)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     CLIENT.cacheFile(userId, fileId);
   }

@@ -106,12 +106,12 @@ public class MasterClient {
     CLIENT.user_deleteById(fileId);
   }
 
-  public ClientFileInfo user_getClientFileInfoByPath(String path)
+  public synchronized ClientFileInfo user_getClientFileInfoByPath(String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
     return CLIENT.user_getClientFileInfoByPath(path);
   }
 
-  public ClientFileInfo user_getClientFileInfoById(int id)
+  public synchronized ClientFileInfo user_getClientFileInfoById(int id)
       throws FileDoesNotExistException, TException {
     return CLIENT.user_getClientFileInfoById(id);
   }
@@ -149,7 +149,7 @@ public class MasterClient {
     return CLIENT.user_getNumberOfFiles(folderPath);
   }
 
-  public int user_mkdir(String path) 
+  public synchronized int user_mkdir(String path) 
       throws FileAlreadyExistException, InvalidPathException, TException {
     return CLIENT.user_mkdir(path);
   }
@@ -167,13 +167,13 @@ public class MasterClient {
     CLIENT.user_unpinFile(id);
   }
 
-  public void worker_addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
+  public synchronized void worker_addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
       String checkpointPath) 
           throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     CLIENT.worker_addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
   }
 
-  public void worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
+  public synchronized void worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
       long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     CLIENT.worker_cacheFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
   }
