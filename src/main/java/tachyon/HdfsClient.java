@@ -49,7 +49,7 @@ public class HdfsClient {
     }
     CommonUtils.runtimeException(te);
     if (delSrc) {
-      delete(new Path(src), true);
+      delete(src, true);
     }
   }
 
@@ -70,12 +70,12 @@ public class HdfsClient {
     CommonUtils.runtimeException(te);
   }
 
-  public void delete(Path f, boolean recursive) {
+  public void delete(String f, boolean recursive) {
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        mFs.delete(f, recursive);
+        mFs.delete(new Path(f), recursive);
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
