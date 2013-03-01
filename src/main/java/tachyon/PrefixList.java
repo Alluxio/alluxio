@@ -14,9 +14,9 @@ public class PrefixList {
     LIST = prefixList;
   }
 
-  public boolean inList(String datasetPath) {
+  public boolean inList(String path) {
     for (int k = 0; k < LIST.size(); k ++) {
-      if (datasetPath.startsWith(LIST.get(k))) {
+      if (path.startsWith(LIST.get(k))) {
         return true;
       }
     }

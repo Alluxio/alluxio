@@ -82,7 +82,7 @@ public class MasterInfo {
 
     @Override
     public void heartbeat() {
-      LOG.info("Periodical system status checking...");
+      LOG.debug("Periodical system status checking...");
 
       Set<Long> lostWorkers = new HashSet<Long>();
 
@@ -310,6 +310,16 @@ public class MasterInfo {
         }
       } else {
         ret = new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId());
+        String curPath = getPath(ret);
+        if (mPinList.inList(curPath)) {
+          synchronized (mIdPinList) {
+          mIdPinList.add(ret.getId());
+          ((InodeFile) ret).setPin(true);
+          }
+        }
+        if (mWhiteList.inList(curPath)) {
+          ((InodeFile) ret).setCache(true);
+        }
       }
 
       mInodes.put(ret.getId(), ret);
@@ -899,7 +909,7 @@ public class MasterInfo {
           if (inode == null) {
             LOG.error("Data " + id + " does not exist");
           } else if (inode.isFile()) {
-            ((InodeFile) inode).removeLocation(id);
+            ((InodeFile) inode).removeLocation(workerId);
           }
         }
       }
