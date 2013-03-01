@@ -11,7 +11,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.WorkerService;
@@ -44,17 +44,16 @@ public class WorkerClient {
     CLIENT.accessFile(fileId);
   }
 
-  public synchronized void addDoneFile(long userId, int fileId, boolean writeThrough)
-      throws FileDoesNotExistException, SuspectedFileSizeException, 
-      FileAlreadyExistException, TException {
-    CLIENT.addDoneFile(userId, fileId, writeThrough);
+  public void addCheckpoint(long userId, int fileId) 
+      throws FileDoesNotExistException, SuspectedFileSizeException,
+      FailedToCheckpointException, TException {
+    CLIENT.addCheckpoint(userId, fileId);
   }
 
-  //  public synchronized void addRCDPartition(int datasetId, int partitionId, 
-  //      int sizeBytes) throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
-  //      PartitionAlreadyExistException, TException {
-  //    CLIENT.addRCDPartition(datasetId, partitionId, sizeBytes);
-  //  }
+  public void cacheFile(long userId, int fileId)
+      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    CLIENT.cacheFile(userId, fileId);
+  }
 
   public synchronized void close() {
     mProtocol.getTransport().close();

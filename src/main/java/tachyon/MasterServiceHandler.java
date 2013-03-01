@@ -145,40 +145,23 @@ public class MasterServiceHandler implements MasterService.Iface {
     mMasterInfo.renameFile(srcFilePath, dstFilePath);
   }
 
-  //  @Override
-  //  public void user_setPartitionCheckpointPath(int datasetId, int partitionId,
-  //      String checkpointPath) throws FileDoesNotExistException,
-  //      FileDoesNotExistException, TException {
-  //    synchronized (mFiles) {
-  //      if (!mFiles.containsKey(datasetId)) {
-  //        throw new FileDoesNotExistException("Dataset " + datasetId + " does not exist");
-  //      }
-  //
-  //      DatasetInfo dataset = mFiles.get(datasetId);
-  //
-  //      if (partitionId < 0 || partitionId >= dataset.mNumOfPartitions) {
-  //        throw new FileDoesNotExistException("Dataset has " + dataset.mNumOfPartitions +
-  //            " partitions. However, the request partition id is " + partitionId);
-  //      }
-  //
-  //      dataset.mPartitionList.get(partitionId).mHasCheckpointed = true;
-  //      dataset.mPartitionList.get(partitionId).mCheckpointPath = checkpointPath;
-  //
-  //      mMasterLogWriter.appendAndFlush(dataset.mPartitionList.get(partitionId));
-  //    }
-  //  }
-
   @Override
   public void user_unpinFile(int fileId) throws FileDoesNotExistException, TException {
     mMasterInfo.unpinFile(fileId);
   }
 
   @Override
-  public void worker_addFile(long workerId, long workerUsedBytes, int fileId,
-      int partitionSizeBytes, boolean hasCheckpointed, String checkpointPath)
+  public void worker_addCheckpoint(long workerId, int fileId, int fileSizeBytes, 
+      String checkpointPath) 
           throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    mMasterInfo.cachedFile(workerId, workerUsedBytes, fileId, partitionSizeBytes, 
-        hasCheckpointed, checkpointPath);
+    mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+  }
+
+  @Override
+  public void worker_cacheFile(long workerId, long workerUsedBytes, int fileId,
+      int fileSizeBytes) throws FileDoesNotExistException,
+      SuspectedFileSizeException, TException {
+    mMasterInfo.cachedFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
   }
 
   @Override

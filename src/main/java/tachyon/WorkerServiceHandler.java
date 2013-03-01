@@ -20,7 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.Path;
 
 import tachyon.thrift.Command;
-import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -111,14 +111,25 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void addDoneFile(long userId, int fileId, boolean writeThrough)
+  public void addCheckpoint(long userId, int fileId)
       throws FileDoesNotExistException, SuspectedFileSizeException, 
-      FileAlreadyExistException, TException {
+      FailedToCheckpointException, TException {
+    // TODO This part need to be changed.
+    String srcPath = getUserHdfsTempFolder(userId) + "/" + fileId;
+    String dstPath = Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" + fileId;
+    mHdfsClient.mkdirs(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" , null, true);
+    if (!mHdfsClient.rename(srcPath, dstPath)) {
+      throw new FailedToCheckpointException("Failed to rename from " + srcPath + " to " + dstPath);
+    }
+    long fileSize = mHdfsClient.getFileSize(dstPath); 
+    mMasterClient.worker_addCheckpoint(mWorkerInfo.getId(), fileId, fileSize, dstPath);
+  }
+
+  @Override
+  public void cacheFile(long userId, int fileId)
+      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     File srcFile = new File(getUserTempFolder(userId) + "/" + fileId);
     File dstFile = new File(mDataFolder + "/" + fileId);
-    if (dstFile.exists()) {
-      throw new FileAlreadyExistException("File " + fileId + " already exists.");
-    }
     long fileSizeBytes = srcFile.length(); 
     if (!srcFile.exists()) {
       throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
@@ -127,30 +138,17 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath() +
           " to " + dstFile.getPath());
     }
-    String dstPath = "";
-    if (writeThrough) {
-      // TODO This part need to be changed.
-      String srcPath = getUserHdfsTempFolder(userId) + "/" + fileId;
-      dstPath = Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" + fileId;
-      if (Config.USING_HDFS) {
-        mHdfsClient.mkdirs(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" , null, true);
-        if (!mHdfsClient.rename(srcPath, dstPath)) {
-          LOG.error("Failed to rename from " + srcPath + " to " + dstPath);
-          dstPath = "";
-        }
-      }
-    }
     addId(fileId, fileSizeBytes);
     mUsers.addOwnBytes(userId, - fileSizeBytes);
-    mMasterClient.worker_addFile(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
-        (int)fileSizeBytes, writeThrough && !dstPath.equals(""), dstPath);
+    mMasterClient.worker_cachedFile(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
+        (int) fileSizeBytes);
   }
 
   private void addFoundPartition(int fileId, long fileSizeBytes)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     addId(fileId, fileSizeBytes);
-    mMasterClient.worker_addFile(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
-        (int)fileSizeBytes, false, "");
+    mMasterClient.worker_cachedFile(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
+        (int)fileSizeBytes);
   }
 
   public void checkStatus() {

@@ -26,7 +26,7 @@ import tachyon.DataServerMessage;
 import tachyon.CommonUtils;
 import tachyon.HdfsClient;
 import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.OutOfMemoryForPinFileException;
@@ -188,11 +188,10 @@ public class TachyonFile {
             String hdfsFolder = mTachyonClient.createAndGetUserHDFSTempFolder();
             HdfsClient tHdfsClient = new HdfsClient(hdfsFolder);
             tHdfsClient.copyFromLocalFile(false, true, mFilePath, hdfsFolder + "/" + mId);
+            mTachyonClient.addCheckpoint(mId);
           }
 
-          if (!mTachyonClient.addDoneFile(mId, mWriteThrough)) {
-            throw new IOException("Failed to add a partition to the tachyon system.");
-          }
+          mTachyonClient.cacheFile(mId);
         }
       }
     } catch (IOException e) {
@@ -201,7 +200,7 @@ public class TachyonFile {
       LOG.error(e.getMessage(), e);
     } catch (FileDoesNotExistException e) {
       LOG.error(e.getMessage(), e);
-    } catch (FileAlreadyExistException e) {
+    } catch (FailedToCheckpointException e) {
       LOG.error(e.getMessage(), e);
     }
     mTachyonClient.unlockFile(mId);

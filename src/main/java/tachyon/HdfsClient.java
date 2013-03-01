@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -101,6 +102,22 @@ public class HdfsClient {
     }
     CommonUtils.runtimeException(te);
     return false;
+  }
+
+  public long getFileSize(String f) {
+    int cnt = 0;
+    Path path = new Path(f);
+    while (cnt < MAX_TRY) {
+      try {
+        FileStatus fs = mFs.getFileStatus(path);
+        return fs.getLen();
+      } catch (IOException e) {
+        cnt ++;
+        LOG.error(cnt + " : " + e.getMessage(), e);
+        continue;
+      }
+    }
+    return -1;
   }
 
   public boolean mkdirs(String src, FsPermission permission, boolean createParent) {

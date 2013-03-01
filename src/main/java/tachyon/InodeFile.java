@@ -13,8 +13,7 @@ public class InodeFile extends Inode {
   private long mLength;
   private boolean mPin = false;
   private boolean mCache = false;
-  private boolean mHasCheckpointed = false;
-  private String mCheckpointPath = "";
+  private String mCheckpointPath = null;
 
   private Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>();
 
@@ -41,7 +40,7 @@ public class InodeFile extends Inode {
   public String toString() {
     StringBuilder sb = new StringBuilder("InodeFile(");
     sb.append(super.toString()).append(",").append(mLength).append(",");
-    sb.append(mHasCheckpointed).append(",").append(mCheckpointPath).append(")");
+    sb.append(mCheckpointPath).append(")");
     return sb.toString();
   }
 
@@ -83,11 +82,7 @@ public class InodeFile extends Inode {
     return mCache;
   }
 
-  public synchronized void setHasCheckpointed(boolean hasCheckpointed) {
-    mHasCheckpointed = hasCheckpointed;
-  }
-
   public synchronized boolean hasCheckpointed() {
-    return mHasCheckpointed;
+    return mCheckpointPath != null;
   }
 }

@@ -60,6 +60,10 @@ exception FileDoesNotExistException {
   1: string message
 }
 
+exception FailedToCheckpointException {
+  1: string message
+}
+
 exception NoLocalWorkerException {
   1: string message
 }
@@ -84,7 +88,8 @@ service MasterService {
   // Services to Workers
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i32> currentFiles) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i32> removedFiles)
-  void worker_addFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i32 fileSizeBytes, 5: bool hasCheckpointed, 6: string checkpointPath) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+  void worker_addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i32 fileSizeBytes, 4: string checkpointPath) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+  void worker_cacheFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i32 fileSizeBytes) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
   set<i32> worker_getPinIdList()
 
   // Services to Users
@@ -116,7 +121,8 @@ service MasterService {
 
 service WorkerService {
   void accessFile(1: i32 fileId)
-  void addDoneFile(1: i64 userId, 2: i32 fileId, 3: bool writeThrough) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: FileAlreadyExistException eA)
+  void addCheckpoint(1: i64 userId, 2: i32 fileId) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: FailedToCheckpointException eF)
+  void cacheFile(1: i64 userId, 2: i32 fileId) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
   string getDataFolder()
   string getUserTempFolder(1: i64 userId)
   string getUserHdfsTempFolder(1: i64 userId)
