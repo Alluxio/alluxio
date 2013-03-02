@@ -255,8 +255,8 @@ public class TachyonFile {
       mOutBuffer = ByteBuffer.allocate(Config.USER_BUFFER_PER_PARTITION_BYTES + 4);
       mOutBuffer.order(ByteOrder.nativeOrder());
     } else {
-      mInByteBuffer = readByteBuffer();
       mTachyonClient.lockFile(mId);
+      mInByteBuffer = readByteBuffer();
     }
   }
 
@@ -265,6 +265,7 @@ public class TachyonFile {
     try {
       return mInByteBuffer.get();
     } catch (java.nio.BufferUnderflowException e) {
+      close();
       return -1;
     }
   }
@@ -285,6 +286,7 @@ public class TachyonFile {
     validateIO(true);
     int ret = Math.min(len, mInByteBuffer.remaining());
     if (ret == 0) {
+      close();
       return -1;
     }
     mInByteBuffer.get(b, off, len);
@@ -356,11 +358,14 @@ public class TachyonFile {
 
     for (int k = 0 ;k < mLocations.size(); k ++) {
       String host = mLocations.get(k).mHost;
-      if (host.equals(InetAddress.getLocalHost().getHostAddress())) {
+      if (host.equals(InetAddress.getLocalHost().getHostName()) 
+          || host.equals(InetAddress.getLocalHost().getHostAddress())) {
         String localFileName = mFolder.getPath() + "/" + mId;
         LOG.error("Master thinks the local machine has data! But " + localFileName + " is not!");
       } else {
-        LOG.info("readByteBufferFromRemote() : " + host + ":" + Config.WORKER_DATA_SERVER_PORT);
+        LOG.info("readByteBufferFromRemote() : " + host + ":" + Config.WORKER_DATA_SERVER_PORT +
+            " current host is " + InetAddress.getLocalHost().getHostName() + " " +
+            InetAddress.getLocalHost().getHostAddress());
         try {
           // TODO Using Config.WORKER_DATA_SERVER_PORT here is a bug. Fix it later.
           ret = retrieveByteBufferFromRemoteMachine(

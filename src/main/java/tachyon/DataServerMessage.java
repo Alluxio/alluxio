@@ -80,6 +80,7 @@ public class DataServerMessage {
         ret.mDataLength = 0;
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
         ret.mData = ByteBuffer.allocate(0);
+        ret.mIsMessageReady = true;
         ret.generateHeader();
         ret.LOG.error("The file is not here : " + e.getMessage(), e);
       }

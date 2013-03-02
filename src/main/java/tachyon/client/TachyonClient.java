@@ -496,7 +496,8 @@ public class TachyonClient {
         if (mLocalWorkerClient.requestSpace(mUserId, Config.USER_QUOTA_UNIT_BYTES)) {
           mAvailableSpaceBytes += Config.USER_QUOTA_UNIT_BYTES;
         } else {
-          LOG.info("Failed to request local space. Time " + (failedTimes ++));
+          LOG.info("Failed to request " + Config.USER_QUOTA_UNIT_BYTES + " bytes local space. " +
+          		"Time " + (failedTimes ++));
           if (failedTimes == Config.USER_FAILED_SPACE_REQUEST_LIMITS) {
             return false;
           }

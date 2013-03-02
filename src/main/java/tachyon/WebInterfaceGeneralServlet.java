@@ -97,7 +97,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("capacity", CommonUtils.getSizeFromBytes(mMasterInfo.getCapacityBytes()));
 
     request.setAttribute("usedCapacity", 
-        CommonUtils.getSizeFromBytes(mMasterInfo.getUsedCapacityBytes()));
+        CommonUtils.getSizeFromBytes(mMasterInfo.getUsedBytes()));
 
     request.setAttribute("liveWorkerNodes", Integer.toString(mMasterInfo.getWorkerCount()));
 
