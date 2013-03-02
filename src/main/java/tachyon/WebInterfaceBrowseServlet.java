@@ -27,6 +27,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     private final String NAME;
     private final String ABSOLUATE_PATH;
     private final long SIZE;
+    private final long CREATION_TIME_MS;
     private final boolean IN_MEMORY;
     private final boolean IS_DIRECTORY;
 
@@ -35,6 +36,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       NAME = fileInfo.getName();
       ABSOLUATE_PATH = fileInfo.getPath();
       SIZE = fileInfo.getSizeBytes();
+      CREATION_TIME_MS = fileInfo.getCreationTimeMs();
       IN_MEMORY = fileInfo.isInMemory();
       IS_DIRECTORY = fileInfo.isFolder();
     }
@@ -61,6 +63,10 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       } else {
         return CommonUtils.getSizeFromBytes(SIZE);
       }
+    }
+
+    public String getCreationTime() {
+      return CommonUtils.convertMsToDate(CREATION_TIME_MS);
     }
 
     public boolean getInMemory() {

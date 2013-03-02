@@ -44,14 +44,15 @@
             <th>File Name</th>
             <th>Size</th>
             <th>In-Memory</th>
-            <% if ((Boolean) request.getAttribute("debug")) { %>
-              <th>[DEBUG]Inode Number</th>
-            <% } %>
           <!--
             <c:if test = "${debug}">
               <th>[DEBUG]Inode Number</th>
             </c:if>
           -->
+            <% if ((Boolean) request.getAttribute("debug")) { %>
+              <th>[DEBUG]Inode Number</th>
+            <% } %>
+            <th>Creation Time</th>
           </thead>
           <tbody>
             <!--
@@ -78,6 +79,7 @@
                 <c:if test = "${debug}">
                   <th>${fileInfo.id}</th>
                 </c:if>
+                <th>${fileInfo.creationTime}</th>
               </tr>
             </c:forEach>
           -->
@@ -104,6 +106,7 @@
                 <% if ((Boolean) request.getAttribute("debug")) { %>
                   <th><%= fileInfo.getId() %></th>
                 <% } %>
+                <th><%= fileInfo.getCreationTime() %></th>
               </tr>
             <% } %>
           </tbody>
