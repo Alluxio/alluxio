@@ -55,8 +55,12 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       return ABSOLUATE_PATH;
     }
 
-    public long getSize() {
-      return SIZE;
+    public String getSize() {
+      if (IS_DIRECTORY) {
+        return " ";
+      } else {
+        return CommonUtils.getSizeFromBytes(SIZE);
+      }
     }
 
     public boolean getInMemory() {

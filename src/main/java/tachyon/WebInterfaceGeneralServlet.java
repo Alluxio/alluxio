@@ -25,6 +25,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     private final String STATE;
     private final int FREE_SPACE_PERCENT;
     private final int USED_SPACE_PERCENT;
+    private final String UPTIME_CLOCK_TIME;
 
     private NodeInfo(ClientWorkerInfo workerInfo) {
       NAME = workerInfo.getAddress().getMHost();
@@ -32,6 +33,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
       STATE = workerInfo.getState();
       USED_SPACE_PERCENT = (int) (100L * workerInfo.getUsedBytes() / workerInfo.getCapacityBytes());
       FREE_SPACE_PERCENT = 100 - USED_SPACE_PERCENT;
+      UPTIME_CLOCK_TIME = CommonUtils.convertMsToShortClockTime(
+          System.currentTimeMillis() - workerInfo.getStarttimeMs());
     }
 
     public String getName() {
@@ -53,6 +56,10 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     public int getUsedSpacePercent() {
       return USED_SPACE_PERCENT;
     }
+
+    public String getUptimeClockTime() {
+      return UPTIME_CLOCK_TIME;
+    } 
   }
 
   public WebInterfaceGeneralServlet(MasterInfo masterInfo) {
