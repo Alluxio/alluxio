@@ -107,7 +107,9 @@
                   </c:forEach>
                   -->
                   <% for (String file : ((List<String>) request.getAttribute("pinlist"))) { %>
-                    <th><%= file %></th>
+                    <tr>  
+                      <th><%= file %></th>
+                    </tr>
                   <% } %>
                 </tr>
               </tbody>
@@ -134,7 +136,9 @@
                   </c:forEach>
                   -->
                   <% for (String file : ((List<String>) request.getAttribute("whitelist"))) { %>
-                    <th><%= file %></th>
+                    <tr>
+                      <th><%= file %></th>
+                    </tr>
                   <% } %>
                 </tr>
               </tbody>
@@ -154,9 +158,10 @@
         </div>
         <div id="data5" class="accordion-body collapse in">
           <div class="accordion-inner">
-            <table class="table table-hover">
+            <table class="table table-hover table-condensed">
               <thead>
                 <th>Node Name</th>
+                <th>Uptime</th>
                 <th>Last Heartbeat</th>
                 <th>State</th>
                 <th>Capacity</th>
@@ -165,6 +170,7 @@
                 <c:forEach var="nodeInfo" items="${nodeInfos}">
                   <tr>
                     <th>${nodeInfo.name}</th>
+                    <th>${nodeInfo.uptimeClockTime}</th>
                     <th>${nodeInfo.lastHeartbeat} seconds ago</th>
                     <th>${nodeInfo.state}</th>
                     <th>
@@ -187,6 +193,7 @@
                 <% for (WebInterfaceGeneralServlet.NodeInfo nodeInfo : ((WebInterfaceGeneralServlet.NodeInfo[]) request.getAttribute("nodeInfos"))) { %>
                   <tr>
                     <th><%= nodeInfo.getName() %></th>
+                    <th><%= nodeInfo.getUptimeClockTime() %></th>
                     <th><%= nodeInfo.getLastHeartbeat() %></th>
                     <th><%= nodeInfo.getState() %></th>
                     <th>
