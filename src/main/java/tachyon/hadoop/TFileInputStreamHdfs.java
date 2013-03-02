@@ -51,13 +51,12 @@ implements Seekable, PositionedReadable {
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;
 
-    List<NetAddress> locations = mTachyonClient.getFileLocations(mFileId);
-    if (locations.size() == 0) {
+    TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
+    if (!tachyonFile.isReady()) {
       // Cache the partition
       long startTimeMs = System.currentTimeMillis();
       FileSystem fs = hdfsPath.getFileSystem(mHadoopConf);
       FSDataInputStream tHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-      TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
       try {
         tachyonFile.open("w");
       } catch (IOException e) {
@@ -89,7 +88,6 @@ implements Seekable, PositionedReadable {
       LOG.info("Caching file " + mHdfsPath + " with size " + cnt + " bytes took " +
           (System.currentTimeMillis() - startTimeMs) + " ms. ");
     }
-    TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
     try {
       tachyonFile.open("r");
     } catch (IOException e) {
