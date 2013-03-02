@@ -138,7 +138,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
 
     String[] splitPath = path.split(Config.SEPARATOR);
-    UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length];
+    UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length - 1];
     String currentPath = Config.SEPARATOR;
     pathInfos[0] = new UiFileInfo(mMasterInfo.getFileInfo(currentPath));
     for (int i = 1; i < splitPath.length - 1; i ++) {
