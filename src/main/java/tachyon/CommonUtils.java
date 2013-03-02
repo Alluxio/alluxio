@@ -63,6 +63,12 @@ public class CommonUtils {
         (Millis % (1000L * 60)) / 1000);
   }
 
+  public static String convertMsToShortClockTime(long Millis) {
+    return String.format("%d h, %d m, and %d s",
+        Millis / (1000L * 60 * 60), (Millis % (1000L * 60 * 60)) / (1000 * 60),
+        (Millis % (1000L * 60)) / 1000);
+  }
+
   public static String convertMsToDate(long Millis) {
     DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
     return formatter.format(new Date(Millis));
