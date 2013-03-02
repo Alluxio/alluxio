@@ -641,6 +641,7 @@ public class MasterInfo {
       ret.path = getPath(inode);
       ret.checkpointPath = "";
       ret.sizeBytes = 0;
+      ret.creationTime = System.currentTimeMillis();
       ret.inMemory = false;
       ret.ready = true;
       if (inode.isFile()) {
