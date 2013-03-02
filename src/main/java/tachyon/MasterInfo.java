@@ -71,6 +71,8 @@ public class MasterInfo {
 
   private Thread mHeartbeatThread;
 
+  private HdfsClient mHdfsClient = new HdfsClient(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER);
+
   /**
    * System periodical status check.
    * 
@@ -313,8 +315,8 @@ public class MasterInfo {
         String curPath = getPath(ret);
         if (mPinList.inList(curPath)) {
           synchronized (mIdPinList) {
-          mIdPinList.add(ret.getId());
-          ((InodeFile) ret).setPin(true);
+            mIdPinList.add(ret.getId());
+            ((InodeFile) ret).setPin(true);
           }
         }
         if (mWhiteList.inList(curPath)) {
@@ -618,7 +620,7 @@ public class MasterInfo {
     return ret;
   }
 
-  public long getUsedCapacityBytes() {
+  public long getUsedBytes() {
     long ret = 0;
     synchronized (mWorkers) {
       for (WorkerInfo worker : mWorkers.values()) {

@@ -289,6 +289,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
             }
           }
         }
+        LOG.info("Evicting current files " + mMemoryData + " freeing " + fileId + " " + mUsersPerLockedFile);
         if (fileId != -1) {
           freeFile(fileId);
           return true;

@@ -201,4 +201,14 @@ implements Seekable, PositionedReadable {
     mBufferPosition = 0;
     return mBuffer[mBufferPosition ++];
   }
+  
+  @Override
+  public void close() throws IOException {
+    if (mTachyonPartitionInputStream != null) {
+      mTachyonPartitionInputStream.close();
+    }
+    if (mHdfsInputStream != null) {
+      mHdfsInputStream.close();
+    }
+  }
 }

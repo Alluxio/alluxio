@@ -24,4 +24,9 @@ public class TFileInputStream extends InputStream {
   public int read(byte b[], int off, int len) throws IOException {
     return FILE.read(b, off, len);
   }
+  
+  @Override
+  public void close() {
+    FILE.close();
+  }
 }
