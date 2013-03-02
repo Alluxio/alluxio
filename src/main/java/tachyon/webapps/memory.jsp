@@ -1,5 +1,5 @@
-<%@ page isELIgnored ="false" %> 
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>  
+<%@ page import="java.util.*" %>
+<%@ page import="tachyon.*" %> 
 
 <html>
 <head>
@@ -14,7 +14,7 @@
   <div class="navbar navbar-inverse">
     <div class="navbar-inner">
       <ul class="nav nav-pills">
-        <li><a href="./home">Master: ${masterNodeAddress}</a></li>
+        <li><a href="./home">Master: <%= request.getAttribute("masterNodeAddress") %></a></li>
         <li><a href="./browse?path=/">Browse File System</a></li>
         <li class="active"><a href="./memory">View Files in Memory</a></li>
       </ul>
@@ -27,11 +27,18 @@
         <table class="table table-hover">
           <caption>Files Currently In Memory</caption>
           <tbody>
+            <!--
             <c:forEach var="file" items="${inMemoryFiles}">
               <tr>
                 <th>${file}</th>
               </tr>
             </c:forEach>
+          -->
+          <% for (String file : ((List<String>) request.getAttribute("inMemoryFiles"))) { %>
+            <tr>
+              <th><%= file %></th>
+            </tr>
+          <% } %>
           </tbody>
         </table>
       </div>
