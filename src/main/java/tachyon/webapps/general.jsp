@@ -1,5 +1,6 @@
-<%@ page isELIgnored ="false" %> 
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>  
+<%@ page import="java.util.*" %>
+<%@ page import="tachyon.*" %>
+
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +14,8 @@
   <div class="navbar navbar-inverse">
     <div class="navbar-inner">
       <ul class="nav nav-pills">
-        <li class="active"><a href="./home">Master: ${masterNodeAddress}</a></li>
+        <!-- <li class="active"><a href="./home">Master: ${masterNodeAddress}</a></li> -->
+        <li class="active"><a href="./home">Master: <%= request.getAttribute("masterNodeAddress") %></a></li>
         <li><a href="./browse?path=/">Browse File System</a></li>
         <li><a href="./memory">View Files in Memory</a></li>
       </ul>
@@ -33,15 +35,18 @@
               <tbody>
                 <tr>
                   <th>Started:</th>
-                  <th>${startTime}</th>
+                  <!-- <th>${startTime}</th> -->
+                  <th><%= request.getAttribute("startTime") %></th>
                 </tr>
                 <tr>
                   <th>Uptime:</th>
-                  <th>${uptime}</th>
+                  <!-- <th>${uptime}</th> -->
+                  <th><%= request.getAttribute("uptime") %></th>
                 </tr>
                 <tr>
-                  <th>Version:</th>
-                  <th>${version}</th>
+                  <th>Version:</th> 
+                  <!-- <th>${version}</th> -->
+                  <th><%= request.getAttribute("version") %></th>
                 </tr>
               </tbody>
             </table>
@@ -63,15 +68,18 @@
               <tbody>
                 <tr>
                   <th>Memory Storage Capacity:</th>
-                  <th>${capacity}</th>
+                  <!-- <th>${capacity}</th> -->
+                  <th><%= request.getAttribute("capacity") %></th>
                 </tr>
                 <tr>
                   <th>Memory Storage In-Use</th>
-                  <th>${usedCapacity}</th>
+                  <!-- <th>${usedCapacity}</th> -->
+                  <th><%= request.getAttribute("usedCapacity") %></th>
                 </tr>
                 <tr>
                   <th>Workers Running</th>
-                  <th>${liveWorkerNodes}</th>
+                  <!-- <th>${liveWorkerNodes}</th> -->
+                  <th><%= request.getAttribute("liveWorkerNodes") %></th>
                 </tr>
               </tbody>
             </table>
@@ -93,9 +101,14 @@
             <table class="table">
               <tbody>
                 <tr>
+                  <!--
                   <c:forEach var="file" items="${pinlist}">
                     <th>${file}</th>
                   </c:forEach>
+                  -->
+                  <% for (String file : ((List<String>) request.getAttribute("pinlist"))) { %>
+                    <th><%= file %></th>
+                  <% } %>
                 </tr>
               </tbody>
             </table>
@@ -115,9 +128,14 @@
             <table class="table">
               <tbody>
                 <tr>
+                  <!--
                   <c:forEach var="file" items="${whitelist}">
                     <th>${file}</th>
                   </c:forEach>
+                  -->
+                  <% for (String file : ((List<String>) request.getAttribute("whitelist"))) { %>
+                    <th><%= file %></th>
+                  <% } %>
                 </tr>
               </tbody>
             </table>
@@ -143,6 +161,7 @@
                 <th>State</th>
                 <th>Capacity</th>
               <tbody>
+                <!--
                 <c:forEach var="nodeInfo" items="${nodeInfos}">
                   <tr>
                     <th>${nodeInfo.name}</th>
@@ -164,6 +183,28 @@
                     </th>
                   </tr>
                 </c:forEach>
+                -->
+                <% for (WebInterfaceGeneralServlet.NodeInfo nodeInfo : ((WebInterfaceGeneralServlet.NodeInfo[]) request.getAttribute("nodeInfos"))) { %>
+                  <tr>
+                    <th><%= nodeInfo.getName() %></th>
+                    <th><%= nodeInfo.getLastHeartbeat() %></th>
+                    <th><%= nodeInfo.getState() %></th>
+                    <th>
+                      <div class="progress">
+                          <div class="bar bar-success" style="width: <%= nodeInfo.getFreeSpacePercent() %>%;">
+                            <% if (nodeInfo.getFreeSpacePercent() >= nodeInfo.getUsedSpacePercent()) { %>
+                              <%= nodeInfo.getFreeSpacePercent() %>%Free
+                            <% } %>
+                          </div>
+                          <div class="bar bar-danger" style="width: <%= nodeInfo.getUsedSpacePercent() %>%;">
+                            <% if (nodeInfo.getFreeSpacePercent() < nodeInfo.getUsedSpacePercent()) { %>
+                              <%= nodeInfo.getUsedSpacePercent() %>%Used
+                            <% } %>
+                          </div>
+                      </div>
+                    </th>
+                  </tr>
+                <% } %>
               </tbody>
             </table>
           </div>
