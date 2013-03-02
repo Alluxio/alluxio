@@ -12,6 +12,7 @@ struct ClientWorkerInfo {
   4: string state
   5: i64 capacityBytes
   6: i64 usedBytes
+  7: i64 starttimeMs
 }
 
 struct ClientFileInfo {

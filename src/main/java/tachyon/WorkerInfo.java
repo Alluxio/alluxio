@@ -131,6 +131,7 @@ public class WorkerInfo {
     ret.state = "In Service";
     ret.capacityBytes = CAPACITY_BYTES;
     ret.usedBytes = mUsedBytes;
+    ret.starttimeMs = START_TIME_MS;
     return ret;
   }
 }
