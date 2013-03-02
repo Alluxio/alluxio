@@ -71,8 +71,6 @@ public class MasterInfo {
 
   private Thread mHeartbeatThread;
 
-  private HdfsClient mHdfsClient = new HdfsClient(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER);
-
   /**
    * System periodical status check.
    * 
