@@ -175,7 +175,7 @@
                     <th>${nodeInfo.lastHeartbeat} seconds ago</th>
                     <th>${nodeInfo.state}</th>
                     <th>
-                      <div class="custom-progress">
+                      <div class="progress custom-progress">
                           <div class="bar bar-success" style="width: ${nodeInfo.freeSpacePercent}%;">
                             <c:if test="${nodeInfo.freeSpacePercent ge nodeInfo.usedSpacePercent}">
                               ${nodeInfo.freeSpacePercent}% Free
