@@ -5,6 +5,7 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+  <link href="css/tachyoncustom.min.css" rel="stylesheet">
 </head>
 <title>Tachyon</title>
 <body>
@@ -174,7 +175,7 @@
                     <th>${nodeInfo.lastHeartbeat} seconds ago</th>
                     <th>${nodeInfo.state}</th>
                     <th>
-                      <div class="progress">
+                      <div class="custom-progress">
                           <div class="bar bar-success" style="width: ${nodeInfo.freeSpacePercent}%;">
                             <c:if test="${nodeInfo.freeSpacePercent ge nodeInfo.usedSpacePercent}">
                               ${nodeInfo.freeSpacePercent}% Free
@@ -197,7 +198,7 @@
                     <th><%= nodeInfo.getLastHeartbeat() %></th>
                     <th><%= nodeInfo.getState() %></th>
                     <th>
-                      <div class="progress">
+                      <div class="progress custom-progress">
                           <div class="bar bar-success" style="width: <%= nodeInfo.getFreeSpacePercent() %>%;">
                             <% if (nodeInfo.getFreeSpacePercent() >= nodeInfo.getUsedSpacePercent()) { %>
                               <%= nodeInfo.getFreeSpacePercent() %>%Free
