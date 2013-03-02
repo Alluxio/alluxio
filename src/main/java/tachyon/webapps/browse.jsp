@@ -39,7 +39,7 @@
             </ul>
           </div>
         </div>
-        <table class="table">
+        <table class="table table-condensed">
           <thead>
             <th>File Name</th>
             <th>Size</th>
