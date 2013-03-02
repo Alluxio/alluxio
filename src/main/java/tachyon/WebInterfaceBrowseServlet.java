@@ -59,7 +59,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       if (IS_DIRECTORY) {
         return " ";
       } else {
-        return String.valueOf(SIZE);
+        return CommonUtils.getSizeFromBytes(SIZE);
       }
     }
 

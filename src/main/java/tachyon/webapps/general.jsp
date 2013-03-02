@@ -170,7 +170,7 @@
                 <c:forEach var="nodeInfo" items="${nodeInfos}">
                   <tr>
                     <th>${nodeInfo.name}</th>
-                    <th>${nodeInfo.uptime}</th>
+                    <th>${nodeInfo.uptimeClockTime}</th>
                     <th>${nodeInfo.lastHeartbeat} seconds ago</th>
                     <th>${nodeInfo.state}</th>
                     <th>
@@ -193,7 +193,7 @@
                 <% for (WebInterfaceGeneralServlet.NodeInfo nodeInfo : ((WebInterfaceGeneralServlet.NodeInfo[]) request.getAttribute("nodeInfos"))) { %>
                   <tr>
                     <th><%= nodeInfo.getName() %></th>
-                    <th><%= nodeInfo.getUptime() %></th>
+                    <th><%= nodeInfo.getUptimeClockTime() %></th>
                     <th><%= nodeInfo.getLastHeartbeat() %></th>
                     <th><%= nodeInfo.getState() %></th>
                     <th>
