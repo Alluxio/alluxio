@@ -429,7 +429,7 @@ public class TachyonFile {
     }
 
     LOG.info("Data " + mId + " to remote machine " + address + " sent");
-    
+
     DataServerMessage recvMsg = DataServerMessage.createPartitionResponseMessage(false, mId);
     while (!recvMsg.isMessageReady()) {
       int numRead = recvMsg.recv(socketChannel);
@@ -440,7 +440,7 @@ public class TachyonFile {
     LOG.info("Data " + mId + " from remote machine " + address + " received");
 
     socketChannel.close();
-    
+
     if (!recvMsg.isMessageReady()) {
       LOG.info("Data " + mId + " from remote machine is not ready.");
       return null;
