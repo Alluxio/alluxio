@@ -21,7 +21,7 @@ struct ClientFileInfo {
   3: string path
   4: string checkpointPath
   5: i64 sizeBytes
-  6: i64 creationTime
+  6: i64 creationTimeMs
   7: bool ready
   8: bool folder
   9: bool inMemory
