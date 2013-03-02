@@ -8,7 +8,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.RequestDispatcher;
 
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -114,10 +113,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     Collections.sort(fileInfos);
     request.setAttribute("fileInfos", fileInfos);
 
-    RequestDispatcher rd = getServletContext().getRequestDispatcher("/browse.jsp");
-    if (rd != null) {
-      rd.forward(request, response);
-    }
+    getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
   }
 
   @Override
@@ -142,7 +138,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
 
     String[] splitPath = path.split(Config.SEPARATOR);
-    UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length-1];
+    UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length - 1];
     String currentPath = Config.SEPARATOR;
     pathInfos[0] = new UiFileInfo(mMasterInfo.getFileInfo(currentPath));
     for (int i = 1; i < splitPath.length - 1; i ++) {
@@ -151,12 +147,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       currentPath = currentPath + Config.SEPARATOR;
     }
     request.setAttribute("pathInfos", pathInfos);
-
-    for (UiFileInfo pathi : pathInfos) {
-      System.out.println("=====================================================");
-      System.out.println(pathi.getName());
-    }
-
     return;
   }
 }
