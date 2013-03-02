@@ -94,8 +94,12 @@ public class DataServerMessage {
   public void close() {
     if (mMsgType == DATA_SERVER_RESPONSE_MESSAGE) {
       try {
-        mFile.close();
+        if (mFile != null) {
+          mFile.close();
+        }
       } catch (IOException e) {
+        LOG.error(mFile + " " + e.getMessage());
+      } catch (Exception e) {
         LOG.error(mFile + " " + e.getMessage());
       }
     }
