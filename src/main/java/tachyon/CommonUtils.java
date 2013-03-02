@@ -78,6 +78,10 @@ public class CommonUtils {
     }
   }
 
+  public static boolean existFile(String fileName) {
+    return (new File(fileName)).exists();
+  }
+
   public static String getCurrentMemStatsInBytes() {
     Runtime runtime = Runtime.getRuntime();
     StringBuilder sb = new StringBuilder();
@@ -276,7 +280,7 @@ public class CommonUtils {
     String[] ret = new String[src.size()];
     return src.toArray(ret);
   }
-  
+
   public static void tempoaryLog(String msg) {
     LOG.info("Temporary Log ============================== " + msg);
   }

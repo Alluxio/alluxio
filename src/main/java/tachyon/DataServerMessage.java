@@ -74,14 +74,14 @@ public class DataServerMessage {
         ret.mIsMessageReady = true;
         ret.generateHeader();
         WorkerServiceHandler.sDataAccessQueue.add(ret.mFileId);
-      } catch (IOException e) {
+      } catch (Exception e) {
         // TODO This is a trick for now. The data may have been removed before remote retrieving. 
         ret.mFileId = - ret.mFileId;
         ret.mDataLength = 0;
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
         ret.mData = ByteBuffer.allocate(0);
         ret.generateHeader();
-        ret.LOG.error(e.getMessage(), e);
+        ret.LOG.error("The file is not here : " + e.getMessage(), e);
       }
     } else {
       ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
