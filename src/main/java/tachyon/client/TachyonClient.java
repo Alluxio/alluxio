@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.thrift.TException;
@@ -17,6 +18,7 @@ import tachyon.CommonUtils;
 import tachyon.WorkerClient;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -77,45 +79,39 @@ public class TachyonClient {
     LOG.error("TachyonClient accessLocalFile(" + fileId + ") failed");
   }
 
-  public synchronized boolean addDoneFile(int fileId, boolean writeThrough)
-      throws FileDoesNotExistException, SuspectedFileSizeException, FileAlreadyExistException {
+  public synchronized void addCheckpoint(int fileId) 
+      throws FileDoesNotExistException, SuspectedFileSizeException, FailedToCheckpointException {
     connectAndGetLocalWorker();
+    if (!mConnected) {
+      throw new FailedToCheckpointException("Failed to add checkpoint for file " + fileId);
+    }
     if (mLocalWorkerClient != null) {
       try {
-        mLocalWorkerClient.addFile(mUserId, fileId, writeThrough);
-        return true;
+        mLocalWorkerClient.addCheckpoint(mUserId, fileId);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mLocalWorkerClient = null;
-        return false;
       }
     }
-    return false;
   }
 
-  //  public synchronized boolean addDoneRCDPartition(int datasetId, int partitionId, int sizeBytes) {
-  //    connectAndGetLocalWorker();
-  //    if (mLocalWorkerClient != null) {
-  //      try {
-  //        mLocalWorkerClient.addRCDPartition(datasetId, partitionId, sizeBytes);
-  //        return true;
-  //      } catch (PartitionDoesNotExistException e) {
-  //        // TODO Auto-generated catch block
-  //        e.printStackTrace();
-  //      } catch (SuspectedPartitionSizeException e) {
-  //        // TODO Auto-generated catch block
-  //        e.printStackTrace();
-  //      } catch (PartitionAlreadyExistException e) {
-  //        // TODO Auto-generated catch block
-  //        e.printStackTrace();
-  //      } catch (TException e) {
-  //        LOG.error(e.getMessage(), e);
-  //        mLocalWorkerClient = null;
-  //        return false;
-  //      }
-  //    }
-  //    return false;
-  //  }
+  public synchronized void cacheFile(int fileId) 
+      throws FileDoesNotExistException, SuspectedFileSizeException {
+    connectAndGetLocalWorker();
+    if (!mConnected) {
+      return;
+    }
+
+    if (mLocalWorkerClient != null) {
+      try {
+        mLocalWorkerClient.cacheFile(mUserId, fileId);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mLocalWorkerClient = null;
+      }
+    }
+    return;
+  }
 
   // Lazy connection
   // TODO This should be removed since the Thrift server has been fixed.
@@ -161,8 +157,9 @@ public class TachyonClient {
     }
 
     LOG.info("Trying to connect local worker @ " + sLocalWorkerAddress);
-    mLocalWorkerClient = WorkerClient.createWorkerClient(sLocalWorkerAddress);
+    mLocalWorkerClient = new WorkerClient(sLocalWorkerAddress);
     if (!mLocalWorkerClient.open()) {
+      LOG.error("Failed to connect local worker @ " + sLocalWorkerAddress);
       mLocalWorkerClient = null;
       return;
     }
@@ -255,6 +252,11 @@ public class TachyonClient {
   }
 
   public synchronized int createRawTable(String path, int columns) throws InvalidPathException {
+    return createRawTable(path, columns, new ArrayList<Byte>(0));
+  }
+
+  public synchronized int createRawTable(String path, int columns, List<Byte> metadata)
+      throws InvalidPathException {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return -1;
@@ -267,7 +269,7 @@ public class TachyonClient {
     }
 
     try {
-      return mMasterClient.user_createRawTable(path, columns);
+      return mMasterClient.user_createRawTable(path, columns, metadata);
     } catch (TableColumnException e) {
       LOG.info(e.getMessage());
       return -1;
@@ -494,7 +496,8 @@ public class TachyonClient {
         if (mLocalWorkerClient.requestSpace(mUserId, Config.USER_QUOTA_UNIT_BYTES)) {
           mAvailableSpaceBytes += Config.USER_QUOTA_UNIT_BYTES;
         } else {
-          LOG.info("Failed to request local space. Time " + (failedTimes ++));
+          LOG.info("Failed to request " + Config.USER_QUOTA_UNIT_BYTES + " bytes local space. " +
+          		"Time " + (failedTimes ++));
           if (failedTimes == Config.USER_FAILED_SPACE_REQUEST_LIMITS) {
             return false;
           }
@@ -534,7 +537,7 @@ public class TachyonClient {
     return true;
   }
 
-  public boolean lockFile(int fileId) {
+  public synchronized boolean lockFile(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected || mLocalWorkerClient == null) {
       return false;
@@ -548,7 +551,7 @@ public class TachyonClient {
     return true;
   }
 
-  public boolean unlockFile(int fileId) {
+  public synchronized boolean unlockFile(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected || mLocalWorkerClient == null) {
       return false;
@@ -560,5 +563,11 @@ public class TachyonClient {
       return false;
     }
     return true;
+  }
+
+  public synchronized int getNumberOfFiles(String folderPath) 
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    connectAndGetLocalWorker();
+    return mMasterClient.getNumberOfFiles(folderPath);
   }
 }

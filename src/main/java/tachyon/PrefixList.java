@@ -14,9 +14,9 @@ public class PrefixList {
     LIST = prefixList;
   }
 
-  public boolean inList(String datasetPath) {
+  public boolean inList(String path) {
     for (int k = 0; k < LIST.size(); k ++) {
-      if (datasetPath.startsWith(LIST.get(k))) {
+      if (path.startsWith(LIST.get(k))) {
         return true;
       }
     }
@@ -26,18 +26,5 @@ public class PrefixList {
   
   public List<String> getList() {
     return new ArrayList<String>(LIST);
-  }
-
-  public String toHtml(String listName) {
-    StringBuilder sb = new StringBuilder("<h2> " + listName + " contains " + LIST.size() + 
-        " item(s) </h2>");
-
-    for (int k = 0; k < LIST.size(); k ++) {
-      String item = LIST.get(k);
-      sb.append("Prefix " + (k + 1) + " : " + item + " <br \\>");
-    }
-    sb.append(" <br \\>");
-
-    return sb.toString();
   }
 }

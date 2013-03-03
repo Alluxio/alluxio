@@ -7,20 +7,15 @@ import java.util.Map;
 import java.util.Set;
 
 public class InodeFolder extends Inode {
-  private static final long serialVersionUID = -1195474593218285949L;
-
   private Set<Integer> mChildren;
-  
-  private final boolean IS_RAW_TABLE;
 
   public InodeFolder(String name, int id, int parentId) {
-    this(name, id, parentId, false);
+    this(name, id, parentId, InodeType.Folder);
   }
-  
-  public InodeFolder(String name, int id, int parentId, boolean isRawTable) {
-    super(name, id, parentId, true);
+
+  public InodeFolder(String name, int id, int parentId, InodeType type) {
+    super(name, id, parentId, type);
     mChildren = new HashSet<Integer>();
-    IS_RAW_TABLE = isRawTable;
   }
 
   public synchronized void addChild(int childId) {
@@ -50,6 +45,10 @@ public class InodeFolder extends Inode {
     return ret;
   }
 
+  public synchronized int getNumberOfChildren() {
+    return mChildren.size();
+  }
+
   public synchronized void removeChild(int id) {
     mChildren.remove(id);
   }
@@ -65,11 +64,11 @@ public class InodeFolder extends Inode {
     }
     return false;
   }
-  
+
   public boolean isRawTable() {
-    return IS_RAW_TABLE;
+    return TYPE == InodeType.RawTable;
   }
-  
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("InodeFolder(");

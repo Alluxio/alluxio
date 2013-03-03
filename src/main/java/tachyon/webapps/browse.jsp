@@ -1,0 +1,122 @@
+<%@ page import="java.util.*" %>
+<%@ page import="tachyon.*" %>
+
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
+</head>
+<title>Tachyon</title>
+<body>
+<script src="js/jquery-1.9.1.min.js" type="text/javascript"></script>
+<script src="js/bootstrap.min.js"></script>
+<div class="container-fluid">
+  <div class="navbar navbar-inverse">
+    <div class="navbar-inner">
+      <ul class="nav nav-pills">
+        <li><a href="./home">Master: <%= request.getAttribute("masterNodeAddress") %></a></li>
+        <li class="active"><a href="./browse?path=/">Browse File System</a></li>
+        <li><a href="./memory">View Files in Memory</a></li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="container-fluid">
+    <div class="row-fluid">
+      <div class="span12 well">
+        <h1 class="text-error">
+          <%= request.getAttribute("invalidPathError") %>
+        </h1>
+        <div class="navbar">
+          <div class="navbar-inner">
+            <ul class="nav nav-pills">
+              <% 
+              for (WebInterfaceBrowseServlet.UiFileInfo pathInfo : ((WebInterfaceBrowseServlet.UiFileInfo[]) request.getAttribute("pathInfos"))) { 
+              %>
+                <li><a href="./browse?path=<%= pathInfo.getAbsolutePath() %>"><%= pathInfo.getName() %> </a></li>
+              <% } %>
+              <li class="active"><a href="./browse?path=<%= request.getAttribute("currentPath") %>"><%= ((WebInterfaceBrowseServlet.UiFileInfo) request.getAttribute("currentDirectory")).getName() %></a></li>
+            </ul>
+          </div>
+        </div>
+        <table class="table table-condensed">
+          <thead>
+            <th>File Name</th>
+            <th>Size</th>
+            <th>In-Memory</th>
+          <!--
+            <c:if test = "${debug}">
+              <th>[DEBUG]Inode Number</th>
+            </c:if>
+          -->
+            <% if ((Boolean) request.getAttribute("debug")) { %>
+              <th>[DEBUG]Inode Number</th>
+            <% } %>
+            <th>Creation Time</th>
+          </thead>
+          <tbody>
+            <!--
+            <c:forEach var="fileInfo" items="${fileInfos}">
+              <tr>
+                <th>
+                  <c:if test = "${fileInfo.isDirectory}">
+                    <i class="icon-folder-close"></i>
+                  </c:if>
+                  <c:if test = "${not fileInfo.isDirectory}">
+                    <i class="icon-file"></i>
+                  </c:if>
+                  <a href="./browse?path=${fileInfo.absolutePath}"><c:out value="${fileInfo.name}"/></a>
+                </th>
+                <th>${fileInfo.size} Bytes</th>
+                <th>
+                  <c:if test = "${fileInfo.inMemory}">
+                    <i class="icon-hdd"></i>
+                  </c:if>
+                  <c:if test = "${not fileInfo.inMemory}">
+                    <i class="icon-hdd icon-white"></i>
+                  </c:if>
+                </th>
+                <c:if test = "${debug}">
+                  <th>${fileInfo.id}</th>
+                </c:if>
+                <th>${fileInfo.creationTime}</th>
+              </tr>
+            </c:forEach>
+          -->
+            <% for (WebInterfaceBrowseServlet.UiFileInfo fileInfo : ((List<WebInterfaceBrowseServlet.UiFileInfo>) request.getAttribute("fileInfos"))) { %>
+              <tr>
+                <th>
+                  <% if (fileInfo.getIsDirectory()) { %>
+                    <i class="icon-folder-close"></i>
+                  <% } %>
+                  <% if (!fileInfo.getIsDirectory()) { %>
+                    <i class="icon-file"></i>
+                  <% } %>
+                  <a href="./browse?path=<%=fileInfo.getAbsolutePath()%>"><%= fileInfo.getName() %></a>
+                </th>
+                <th><%= fileInfo.getSize() %></th>
+                <th>
+                  <% if (fileInfo.getInMemory()) { %>
+                    <i class="icon-hdd"></i>
+                  <% } %>
+                  <% if (!fileInfo.getInMemory()) { %>
+                    <i class="icon-hdd icon-white"></i>
+                  <% } %>
+                </th>
+                <% if ((Boolean) request.getAttribute("debug")) { %>
+                  <th><%= fileInfo.getId() %></th>
+                <% } %>
+                <th><%= fileInfo.getCreationTime() %></th>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <p>Tachyon is a project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu">AMPLab</a>.</p>
+  </footer>
+</div>
+</body>
+</html>

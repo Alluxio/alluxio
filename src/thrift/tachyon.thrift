@@ -12,6 +12,7 @@ struct ClientWorkerInfo {
   4: string state
   5: i64 capacityBytes
   6: i64 usedBytes
+  7: i64 starttimeMs
 }
 
 struct ClientFileInfo {
@@ -20,10 +21,12 @@ struct ClientFileInfo {
   3: string path
   4: string checkpointPath
   5: i64 sizeBytes
-  6: bool isFolder
-  7: bool inMemory
-  8: bool needPin
-  9: bool needCache
+  6: i64 creationTimeMs
+  7: bool ready
+  8: bool folder
+  9: bool inMemory
+  10: bool needPin
+  11: bool needCache
 }
 
 struct ClientRawTableInfo {
@@ -31,13 +34,7 @@ struct ClientRawTableInfo {
   2: string name
   3: string path
   4: i32 columns
-}
-
-enum LogEventType {
-  Undefined = 0,
-  CheckpointInfo = 1,
-  INode = 2,
-  RawTableInfo = 3,
+  5: list<byte> metadata
 }
 
 enum CommandType {
@@ -65,6 +62,10 @@ exception FileDoesNotExistException {
   1: string message
 }
 
+exception FailedToCheckpointException {
+  1: string message
+}
+
 exception NoLocalWorkerException {
   1: string message
 }
@@ -89,7 +90,8 @@ service MasterService {
   // Services to Workers
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i32> currentFiles) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i32> removedFiles)
-  void worker_addFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i32 fileSizeBytes, 5: bool hasCheckpointed, 6: string checkpointPath) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+  void worker_addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 fileSizeBytes, 4: string checkpointPath) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+  void worker_cacheFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i64 fileSizeBytes) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
   set<i32> worker_getPinIdList()
 
   // Services to Users
@@ -109,10 +111,11 @@ service MasterService {
   void user_unpinFile(1: i32 fileId) throws (1: FileDoesNotExistException e)   // Remove file from memory
   i32 user_mkdir(1: string path) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
 
-  i32 user_createRawTable(1: string path, 2: i32 columns) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TableColumnException eT)
+  i32 user_createRawTable(1: string path, 2: i32 columns, 3: list<byte> metadata) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TableColumnException eT)
   i32 user_getRawTableId(1: string path) throws (1: InvalidPathException e) // Return 0 if does not contain the Table, return fileId if it exists.
   ClientRawTableInfo user_getClientRawTableInfoById(1: i32 tableId) throws (1: TableDoesNotExistException e)        // Get Table info by Table Id.
   ClientRawTableInfo user_getClientRawTableInfoByPath(1: string tablePath) throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI) // Get Table info by path
+  i32 user_getNumberOfFiles(1:string path) throws (1: FileDoesNotExistException eR, 2: InvalidPathException eI)
 
   // cmd to scripts
   list<string> cmd_ls(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
@@ -120,7 +123,8 @@ service MasterService {
 
 service WorkerService {
   void accessFile(1: i32 fileId)
-  void addDoneFile(1: i64 userId, 2: i32 fileId, 3: bool writeThrough) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: FileAlreadyExistException eA)
+  void addCheckpoint(1: i64 userId, 2: i32 fileId) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: FailedToCheckpointException eF)
+  void cacheFile(1: i64 userId, 2: i32 fileId) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
   string getDataFolder()
   string getUserTempFolder(1: i64 userId)
   string getUserHdfsTempFolder(1: i64 userId)

@@ -50,9 +50,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_createRawTable(String path, int columns)
+  public int user_createRawTable(String path, int columns, List<Byte> metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException, TException {
-    return mMasterInfo.createRawTable(path, columns);
+    return mMasterInfo.createRawTable(path, columns, metadata);
   }
 
   @Override
@@ -123,6 +123,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public int user_getNumberOfFiles(String path)
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    return mMasterInfo.getNumberOfFiles(path);
+  }
+
+  @Override
   public int user_mkdir(String path) 
       throws FileAlreadyExistException, InvalidPathException, TException {
     return mMasterInfo.createFile(path, true);
@@ -139,40 +145,23 @@ public class MasterServiceHandler implements MasterService.Iface {
     mMasterInfo.renameFile(srcFilePath, dstFilePath);
   }
 
-  //  @Override
-  //  public void user_setPartitionCheckpointPath(int datasetId, int partitionId,
-  //      String checkpointPath) throws FileDoesNotExistException,
-  //      FileDoesNotExistException, TException {
-  //    synchronized (mFiles) {
-  //      if (!mFiles.containsKey(datasetId)) {
-  //        throw new FileDoesNotExistException("Dataset " + datasetId + " does not exist");
-  //      }
-  //
-  //      DatasetInfo dataset = mFiles.get(datasetId);
-  //
-  //      if (partitionId < 0 || partitionId >= dataset.mNumOfPartitions) {
-  //        throw new FileDoesNotExistException("Dataset has " + dataset.mNumOfPartitions +
-  //            " partitions. However, the request partition id is " + partitionId);
-  //      }
-  //
-  //      dataset.mPartitionList.get(partitionId).mHasCheckpointed = true;
-  //      dataset.mPartitionList.get(partitionId).mCheckpointPath = checkpointPath;
-  //
-  //      mMasterLogWriter.appendAndFlush(dataset.mPartitionList.get(partitionId));
-  //    }
-  //  }
-
   @Override
   public void user_unpinFile(int fileId) throws FileDoesNotExistException, TException {
     mMasterInfo.unpinFile(fileId);
   }
 
   @Override
-  public void worker_addFile(long workerId, long workerUsedBytes, int fileId,
-      int partitionSizeBytes, boolean hasCheckpointed, String checkpointPath)
+  public void worker_addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
+      String checkpointPath) 
           throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    mMasterInfo.cachedFile(workerId, workerUsedBytes, fileId, partitionSizeBytes, 
-        hasCheckpointed, checkpointPath);
+    mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+  }
+
+  @Override
+  public void worker_cacheFile(long workerId, long workerUsedBytes, int fileId,
+      long fileSizeBytes) throws FileDoesNotExistException,
+      SuspectedFileSizeException, TException {
+    mMasterInfo.cachedFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
   }
 
   @Override

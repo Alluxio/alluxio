@@ -16,6 +16,8 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tachyon.thrift.InvalidPathException;
+
 /**
  * Utility class shared by all components of the system.
  * 
@@ -55,13 +57,19 @@ public class CommonUtils {
     return path;
   }
 
-  public static String convertMillis(long Millis) {
+  public static String convertMsToClockTime(long Millis) {
     return String.format("%d hour(s), %d minute(s), and %d second(s)",
         Millis / (1000L * 60 * 60), (Millis % (1000L * 60 * 60)) / (1000 * 60),
         (Millis % (1000L * 60)) / 1000);
   }
 
-  public static String convertMillisToDate(long Millis) {
+  public static String convertMsToShortClockTime(long Millis) {
+    return String.format("%d h, %d m, and %d s",
+        Millis / (1000L * 60 * 60), (Millis % (1000L * 60 * 60)) / (1000 * 60),
+        (Millis % (1000L * 60)) / 1000);
+  }
+
+  public static String convertMsToDate(long Millis) {
     DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
     return formatter.format(new Date(Millis));
   }
@@ -74,6 +82,10 @@ public class CommonUtils {
         sleep(1000);
       }
     }
+  }
+
+  public static boolean existFile(String fileName) {
+    return (new File(fileName)).exists();
   }
 
   public static String getCurrentMemStatsInBytes() {
@@ -273,5 +285,16 @@ public class CommonUtils {
   public static String[] toStringArray(ArrayList<String> src) {
     String[] ret = new String[src.size()];
     return src.toArray(ret);
+  }
+
+  public static void tempoaryLog(String msg) {
+    LOG.info("Temporary Log ============================== " + msg);
+  }
+
+  public static void validatePath(String path) throws InvalidPathException {
+    if (path == null || !path.startsWith(Config.SEPARATOR) || 
+        (path.length() > 1 && path.endsWith(Config.SEPARATOR))) {
+      throw new InvalidPathException("Path " + path + " is invalid.");
+    }
   }
 }
