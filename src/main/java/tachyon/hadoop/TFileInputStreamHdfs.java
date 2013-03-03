@@ -2,7 +2,6 @@ package tachyon.hadoop;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -18,7 +17,6 @@ import tachyon.CommonUtils;
 import tachyon.client.TFileInputStream;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.OutOfMemoryForPinFileException;
 
 public class TFileInputStreamHdfs extends InputStream
