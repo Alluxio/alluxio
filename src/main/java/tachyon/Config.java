@@ -51,7 +51,7 @@ public class Config {
 
   public static final int USER_FAILED_SPACE_REQUEST_LIMITS = 3;
   public static final String USER_TEMP_RELATIVE_FOLDER = "users";
-  public static final long USER_TIMEOUT_MS = 30 * 1000;;
+  public static final long USER_TIMEOUT_MS = 60 * 1000;;
   public static final long USER_QUOTA_UNIT_BYTES = 25 * MB;
   public static final int USER_BUFFER_PER_PARTITION_BYTES = 1 * MB;
   public static final int USER_HEARTBEAT_INTERVAL_MS = 1000;
