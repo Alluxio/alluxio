@@ -16,6 +16,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.mapred.FileSplit;
 import org.slf4j.Logger;
@@ -187,6 +188,7 @@ public class TachyonFile {
           if (mWriteThrough) {
             String hdfsFolder = mTachyonClient.createAndGetUserHDFSTempFolder();
             HdfsClient tHdfsClient = new HdfsClient(hdfsFolder);
+            LOG.info("Precopy " + mFilePath + " " + mClientFileInfo.getPath());
             tHdfsClient.copyFromLocalFile(false, true, mFilePath, hdfsFolder + "/" + mId);
             mTachyonClient.addCheckpoint(mId);
           }
@@ -224,6 +226,18 @@ public class TachyonFile {
 
   public long getSize() {
     return mSizeBytes;
+  }
+
+  public List<String> getLocationHosts() {
+    List<NetAddress> locations = mTachyonClient.getFileLocations(mId);
+    List<String> ret = new ArrayList<String>(locations.size());
+    if (locations != null) {
+      for (int k = 0; k < locations.size(); k ++) {
+        ret.add(locations.get(k).mHost);
+      }
+    }
+
+    return ret;
   }
 
   public void open(String wr) throws IOException {
