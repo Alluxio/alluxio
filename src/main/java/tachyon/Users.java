@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +89,7 @@ public class Users {
         folder = getUserHdfsTempFolder(userId);
         sb.append(" Also remove users HDFS folder " + folder);
         HdfsClient tHdfsClient = new HdfsClient(Config.HDFS_ADDRESS);
-        tHdfsClient.delete(new Path(folder), true);
+        tHdfsClient.delete(folder, true);
       }
     }
 

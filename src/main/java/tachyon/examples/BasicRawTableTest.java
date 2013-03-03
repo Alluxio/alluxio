@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -24,52 +26,71 @@ public class BasicRawTableTest {
 
   private static TachyonClient sTachyonClient;
   private static String sTablePath = null;
+  private static int mId;
 
   public static void createRawTable() throws InvalidPathException {
     long startTimeMs = CommonUtils.getCurrentMs();
-    int id = sTachyonClient.createRawTable(sTablePath, 3);
-    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createRawTable with id " + id);
+    List<Byte> data = new ArrayList<Byte>(5);
+    data.add((byte) -1);
+    data.add((byte) -2);
+    data.add((byte) -3);
+    data.add((byte) -4);
+    data.add((byte) -5);
+    mId = sTachyonClient.createRawTable(sTablePath, 3, data);
+    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createRawTable with id " + mId);
   }
 
   public static void writeParition() 
       throws IOException, TableDoesNotExistException, 
       OutOfMemoryForPinFileException, InvalidPathException, TException {
     RawTable rawTable = sTachyonClient.getRawTable(sTablePath);
-    RawColumn rawColumn = rawTable.getRawColumn(2);
-    if (!rawColumn.createPartition(0)) {
-      CommonUtils.runtimeException("Failed to create partition 2 in table " + sTablePath);
+
+    for (int column = 0; column < 3; column ++) {
+      RawColumn rawColumn = rawTable.getRawColumn(column);
+      if (!rawColumn.createPartition(0)) {
+        CommonUtils.runtimeException("Failed to create partition in table " + sTablePath + 
+            " under column " + column);
+      }
+
+      TachyonFile tFile = rawColumn.getPartition(0);
+      tFile.open("w");
+
+      ByteBuffer buf = ByteBuffer.allocate(80);
+      buf.order(ByteOrder.nativeOrder());
+      for (int k = 0; k < 20; k ++) {
+        buf.putInt(k);
+      }
+
+      buf.flip();
+      LOG.info("Writing data...");
+      CommonUtils.printByteBuffer(LOG, buf);
+
+      buf.flip();
+      tFile.append(buf);
+      tFile.close();
     }
-
-    TachyonFile tFile = rawColumn.getPartition(0);
-    tFile.open("w");
-
-    ByteBuffer buf = ByteBuffer.allocate(80);
-    buf.order(ByteOrder.nativeOrder());
-    for (int k = 0; k < 20; k ++) {
-      buf.putInt(k);
-    }
-
-    buf.flip();
-    LOG.info("Writing data...");
-    CommonUtils.printByteBuffer(LOG, buf);
-
-    buf.flip();
-    tFile.append(buf);
-    tFile.close();
   }
 
   public static void readPartition()
       throws IOException, TableDoesNotExistException, InvalidPathException, TException {
     LOG.info("Reading data...");
-    RawTable rawTable = sTachyonClient.getRawTable(sTablePath);
-    RawColumn rawColumn = rawTable.getRawColumn(2);
-    TachyonFile tFile = rawColumn.getPartition(0);
-    tFile.open("r");
+    RawTable rawTable = sTachyonClient.getRawTable(mId);
+    List<Byte> metadata = rawTable.getMetadata();
+    LOG.info("Metadata: ");
+    for (Byte b : metadata) {
+      LOG.info(b + "");
+    }
 
-    ByteBuffer buf;
-    buf = tFile.readByteBuffer();
-    CommonUtils.printByteBuffer(LOG, buf);
-    tFile.close();
+    for (int column = 0; column < 3; column ++) {
+      RawColumn rawColumn = rawTable.getRawColumn(column);
+      TachyonFile tFile = rawColumn.getPartition(0);
+      tFile.open("r");
+
+      ByteBuffer buf;
+      buf = tFile.readByteBuffer();
+      CommonUtils.printByteBuffer(LOG, buf);
+      tFile.close();
+    }
   }
 
   public static void main(String[] args)

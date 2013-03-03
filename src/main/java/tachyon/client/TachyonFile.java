@@ -26,7 +26,7 @@ import tachyon.DataServerMessage;
 import tachyon.CommonUtils;
 import tachyon.HdfsClient;
 import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.OutOfMemoryForPinFileException;
@@ -47,7 +47,7 @@ public class TachyonFile {
   private boolean mOpen = false;
   private boolean mRead;
   private boolean mWriteThrough;
-  private int mSizeBytes;
+  private long mSizeBytes;
   private File mFolder;
   private String mFilePath;
   private RandomAccessFile mFile;
@@ -188,11 +188,10 @@ public class TachyonFile {
             String hdfsFolder = mTachyonClient.createAndGetUserHDFSTempFolder();
             HdfsClient tHdfsClient = new HdfsClient(hdfsFolder);
             tHdfsClient.copyFromLocalFile(false, true, mFilePath, hdfsFolder + "/" + mId);
+            mTachyonClient.addCheckpoint(mId);
           }
 
-          if (!mTachyonClient.addDoneFile(mId, mWriteThrough)) {
-            throw new IOException("Failed to add a partition to the tachyon system.");
-          }
+          mTachyonClient.cacheFile(mId);
         }
       }
     } catch (IOException e) {
@@ -201,7 +200,7 @@ public class TachyonFile {
       LOG.error(e.getMessage(), e);
     } catch (FileDoesNotExistException e) {
       LOG.error(e.getMessage(), e);
-    } catch (FileAlreadyExistException e) {
+    } catch (FailedToCheckpointException e) {
       LOG.error(e.getMessage(), e);
     }
     mTachyonClient.unlockFile(mId);
@@ -223,12 +222,12 @@ public class TachyonFile {
     return new TFileOutputStream(this);
   }
 
-  public int getSize() {
+  public long getSize() {
     return mSizeBytes;
   }
 
   public void open(String wr) throws IOException {
-    open(wr, false);
+    open(wr, true);
   }
 
   public void open(String wr, boolean writeThrough) throws IOException {
@@ -256,13 +255,19 @@ public class TachyonFile {
       mOutBuffer = ByteBuffer.allocate(Config.USER_BUFFER_PER_PARTITION_BYTES + 4);
       mOutBuffer.order(ByteOrder.nativeOrder());
     } else {
-      mInByteBuffer = readByteBuffer();
       mTachyonClient.lockFile(mId);
+      mInByteBuffer = readByteBuffer();
     }
   }
 
   public int read() throws IOException {
-    return mInByteBuffer.get();
+    validateIO(true);
+    try {
+      return mInByteBuffer.get();
+    } catch (java.nio.BufferUnderflowException e) {
+      close();
+      return -1;
+    }
   }
 
   public int read(byte b[]) throws IOException {
@@ -278,7 +283,12 @@ public class TachyonFile {
       return 0;
     }
 
+    validateIO(true);
     int ret = Math.min(len, mInByteBuffer.remaining());
+    if (ret == 0) {
+      close();
+      return -1;
+    }
     mInByteBuffer.get(b, off, len);
     return ret;
   }
@@ -305,7 +315,7 @@ public class TachyonFile {
     }
 
     if (ret == null) {
-      new IOException("Failed to read file " + mClientFileInfo.getPath());
+      throw new IOException("Failed to read file " + mClientFileInfo.getPath());
     }
     return ret;
   }
@@ -318,7 +328,7 @@ public class TachyonFile {
       String localFileName = mFolder.getPath() + "/" + mId;
       try {
         mFile = new RandomAccessFile(localFileName, "r");
-        mSizeBytes = (int) mFile.length();
+        mSizeBytes = mFile.length();
         mInChannel = mFile.getChannel();
         ret = mInChannel.map(FileChannel.MapMode.READ_ONLY, 0, mSizeBytes);
         ret.order(ByteOrder.nativeOrder());
@@ -344,19 +354,22 @@ public class TachyonFile {
       throw new IOException("Can not find location info: " + mClientFileInfo.getPath() + " " + mId);
     }
 
-    LOG.info("readByteBuffer() PartitionInfo " + mLocations);
+    LOG.info("readByteBufferFromRemote() " + mLocations);
 
     for (int k = 0 ;k < mLocations.size(); k ++) {
       String host = mLocations.get(k).mHost;
-      if (host.equals(InetAddress.getLocalHost().getHostAddress())) {
+      if (host.equals(InetAddress.getLocalHost().getHostName()) 
+          || host.equals(InetAddress.getLocalHost().getHostAddress())) {
         String localFileName = mFolder.getPath() + "/" + mId;
         LOG.error("Master thinks the local machine has data! But " + localFileName + " is not!");
       } else {
-        LOG.info("readByteBuffer() Read from remote machine: " + host + ":" +
-            Config.WORKER_DATA_SERVER_PORT);
+        LOG.info("readByteBufferFromRemote() : " + host + ":" + Config.WORKER_DATA_SERVER_PORT +
+            " current host is " + InetAddress.getLocalHost().getHostName() + " " +
+            InetAddress.getLocalHost().getHostAddress());
         try {
+          // TODO Using Config.WORKER_DATA_SERVER_PORT here is a bug. Fix it later.
           ret = retrieveByteBufferFromRemoteMachine(
-              new InetSocketAddress(host, mLocations.get(k).mPort));
+              new InetSocketAddress(host, Config.WORKER_DATA_SERVER_PORT));
           if (ret != null) {
             break;
           }
@@ -366,7 +379,10 @@ public class TachyonFile {
       }
     }
 
-    mSizeBytes = ret.limit();
+    if (ret != null) {
+      mSizeBytes = ret.limit();
+      ret.order(ByteOrder.nativeOrder());
+    }
 
     return ret;
   }
@@ -411,17 +427,29 @@ public class TachyonFile {
     SocketChannel socketChannel = SocketChannel.open();
     socketChannel.connect(address);
 
+    LOG.info("Connected to remote machine " + address + " sent");
     DataServerMessage sendMsg = DataServerMessage.createPartitionRequestMessage(mId);
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }
 
+    LOG.info("Data " + mId + " to remote machine " + address + " sent");
+
     DataServerMessage recvMsg = DataServerMessage.createPartitionResponseMessage(false, mId);
     while (!recvMsg.isMessageReady()) {
-      recvMsg.recv(socketChannel);
+      int numRead = recvMsg.recv(socketChannel);
+      if (numRead == -1) {
+        break;
+      }
     }
+    LOG.info("Data " + mId + " from remote machine " + address + " received");
 
     socketChannel.close();
+
+    if (!recvMsg.isMessageReady()) {
+      LOG.info("Data " + mId + " from remote machine is not ready.");
+      return null;
+    }
 
     if (recvMsg.getFileId() < 0) {
       LOG.info("Data " + recvMsg.getFileId() + " is not in remote machine.");
@@ -444,5 +472,9 @@ public class TachyonFile {
           (mRead ? "Read" : "Write") + ". " + 
           (read ? "Read" : "Write") + " operation is not available.");
     }
+  }
+
+  public boolean isReady() {
+    return mClientFileInfo.isReady();
   }
 }

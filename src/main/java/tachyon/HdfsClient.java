@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -11,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This is a HDFS Client for TRex. It handles all sorts of retry logic.
+ * This is a HDFS Client for Tachyon. It handles all sorts of retry logic.
  * @author haoyuan
  */
 public class HdfsClient {
@@ -36,7 +37,7 @@ public class HdfsClient {
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        mFs.copyFromLocalFile(delSrc, overwrite, new Path(src), new Path(dst));
+        mFs.copyFromLocalFile(false, overwrite, new Path(src), new Path(dst));
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
@@ -47,6 +48,9 @@ public class HdfsClient {
       return;
     }
     CommonUtils.runtimeException(te);
+    if (delSrc) {
+      delete(src, true);
+    }
   }
 
   public void copyToLocalFile(boolean delSrc, Path src, Path dst) {
@@ -66,12 +70,12 @@ public class HdfsClient {
     CommonUtils.runtimeException(te);
   }
 
-  public void delete(Path f, boolean recursive) {
+  public void delete(String f, boolean recursive) {
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        mFs.delete(f, recursive);
+        mFs.delete(new Path(f), recursive);
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
@@ -81,6 +85,39 @@ public class HdfsClient {
       return;
     }
     CommonUtils.runtimeException(te);
+  }
+
+  public boolean exist(String src) {
+    IOException te = null;
+    int cnt = 0;
+    while (cnt < MAX_TRY) {
+      try {
+        return mFs.exists(new Path(src));
+      } catch (IOException e) {
+        cnt ++;
+        LOG.error(cnt + " : " + e.getMessage(), e);
+        te = e;
+        continue;
+      }
+    }
+    CommonUtils.runtimeException(te);
+    return false;
+  }
+
+  public long getFileSize(String f) {
+    int cnt = 0;
+    Path path = new Path(f);
+    while (cnt < MAX_TRY) {
+      try {
+        FileStatus fs = mFs.getFileStatus(path);
+        return fs.getLen();
+      } catch (IOException e) {
+        cnt ++;
+        LOG.error(cnt + " : " + e.getMessage(), e);
+        continue;
+      }
+    }
+    return -1;
   }
 
   public boolean mkdirs(String src, FsPermission permission, boolean createParent) {
@@ -123,6 +160,14 @@ public class HdfsClient {
   public boolean rename(String src, String dst) {
     IOException te = null;
     int cnt = 0;
+    if (!exist(src)) {
+      LOG.error("File " + src + " does not exist. Therefore rename to " + dst + " failed.");
+    }
+
+    if (exist(dst)) {
+      LOG.error("File " + dst + " does exist. Therefore rename from " + src + " failed.");
+    }
+
     while (cnt < MAX_TRY) {
       try {
         return mFs.rename(new Path(src), new Path(dst));

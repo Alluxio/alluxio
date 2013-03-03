@@ -11,7 +11,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.WorkerService;
@@ -33,7 +33,7 @@ public class WorkerClient {
 
   private String mRootFolder = null;
 
-  private WorkerClient(InetSocketAddress address) {
+  public WorkerClient(InetSocketAddress address) {
     mWorkerAddress = address;
     mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(
         mWorkerAddress.getHostName(), mWorkerAddress.getPort())));
@@ -44,27 +44,20 @@ public class WorkerClient {
     CLIENT.accessFile(fileId);
   }
 
-  public synchronized void addFile(long userId, int fileId, boolean writeThrough)
-      throws FileDoesNotExistException, SuspectedFileSizeException, 
-      FileAlreadyExistException, TException {
-    CLIENT.addDoneFile(userId, fileId, writeThrough);
+  public synchronized void addCheckpoint(long userId, int fileId) 
+      throws FileDoesNotExistException, SuspectedFileSizeException,
+      FailedToCheckpointException, TException {
+    CLIENT.addCheckpoint(userId, fileId);
   }
 
-//  public synchronized void addRCDPartition(int datasetId, int partitionId, 
-//      int sizeBytes) throws PartitionDoesNotExistException, SuspectedPartitionSizeException,
-//      PartitionAlreadyExistException, TException {
-//    CLIENT.addRCDPartition(datasetId, partitionId, sizeBytes);
-//  }
+  public synchronized void cacheFile(long userId, int fileId)
+      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    CLIENT.cacheFile(userId, fileId);
+  }
 
   public synchronized void close() {
     mProtocol.getTransport().close();
     mIsConnected = false;
-  }
-
-  public static WorkerClient createWorkerClient(InetSocketAddress address) {
-    WorkerClient ret = new WorkerClient(address);
-
-    return ret;
   }
 
   public synchronized String getUserTempFolder(long userId) throws TException {
@@ -83,7 +76,7 @@ public class WorkerClient {
     return mRootFolder;
   }
 
-  public void lockFile(int fileId, long userId) throws TException {
+  public synchronized void lockFile(int fileId, long userId) throws TException {
     CLIENT.lockFile(fileId, userId);
   }
 
@@ -113,7 +106,7 @@ public class WorkerClient {
     CLIENT.returnSpace(userId, returnSpaceBytes);
   }
 
-  public void unlockFile(int fileId, long userId) throws TException {
+  public synchronized void unlockFile(int fileId, long userId) throws TException {
     CLIENT.unlockFile(fileId, userId);
   }
 

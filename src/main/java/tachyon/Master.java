@@ -22,7 +22,7 @@ public class Master {
   private static Master MASTER = null;
 
   private MasterInfo mMasterInfo;
-  private WebServer mWebServer;
+  private UIWebServer mWebServer;
   private TServer mServer;
   private MasterServiceHandler mMasterServiceHandler;
 
@@ -30,12 +30,11 @@ public class Master {
       int workerThreads) {
     try {
       mMasterInfo = new MasterInfo(address);
-      
-      mWebServer = new WebServer("Tachyon Master Server",
-          new InetSocketAddress(address.getHostName(), Config.MASTER_WEB_PORT));
-      mWebServer.setHandler(new WebServerMasterHandler(mMasterInfo));
+
+      mWebServer = new UIWebServer("Tachyon Master Server",
+          new InetSocketAddress(address.getHostName(), Config.MASTER_WEB_PORT), mMasterInfo);
       mWebServer.startWebServer();
-      
+
       mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
       MasterService.Processor<MasterServiceHandler> processor = 
           new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
