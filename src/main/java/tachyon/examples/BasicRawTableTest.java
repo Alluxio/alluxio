@@ -105,5 +105,8 @@ public class BasicRawTableTest {
     createRawTable();
     writeParition();
     readPartition();
+    
+    int id = sTachyonClient.getFileId(sTablePath);
+    sTachyonClient.deleteFile(id);
   }
 }
