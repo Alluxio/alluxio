@@ -591,11 +591,10 @@ public class MasterInfo {
   }
 
   public NetAddress getLocalWorker(String host) throws NoLocalWorkerException {
-    LOG.info("getLocalWorker(" + host + ")");
     synchronized (mWorkers) {
       for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
         if (address.getHostName().equals(host)) {
-          LOG.info("getLocalWorker: " + address);
+          LOG.debug("getLocalWorker: " + address);
           return new NetAddress(address.getHostName(), address.getPort());
         }
       }
