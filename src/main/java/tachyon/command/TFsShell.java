@@ -62,15 +62,15 @@ public class TFsShell {
   }
   
   public static void main(String argv[]) throws TException{
-	System.out.flush();
+	  System.out.flush();
     TFsShell shell = new TFsShell();
-	int exitCode;
-	try {
-	  exitCode = shell.run(argv);
-	} finally {
-	  shell.close();
-	}
-	System.exit(exitCode);
+	  int exitCode;
+	  try {
+	    exitCode = shell.run(argv);
+	  } finally {
+	    shell.close();
+	  }
+	  System.exit(exitCode);
   }
   
   public int run(String argv[]) throws TException {

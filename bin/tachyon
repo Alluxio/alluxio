@@ -8,9 +8,9 @@ if [ "$#" == 0 ]; then
   exit 1
 elif [ "$#" == 1 ]; then
   echo "Usage: java TFsShell"
-  echo -e "\t[-ls <path>] "
-  echo -e "\t[-lsr <path>]"
-  echo -e "\t[mkdir <path>]"
+  echo -e "\t[ls <path>] "
+  echo -e "\t[rm <path>] "
+  echo -e "\t[mv <src> <dest>] "
   echo ""
   echo "The general command line syntax is:"
   echo "bin/tachyon command [commandOptions]"
