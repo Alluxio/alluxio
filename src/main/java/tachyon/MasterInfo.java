@@ -65,7 +65,7 @@ public class MasterInfo {
   // TODO Check the logic related to this two lists.
   private PrefixList mWhiteList;
   private PrefixList mPinList;
-  private List<Integer> mIdPinList;
+  private Set<Integer> mIdPinList;
 
   private MasterLogWriter mMasterLogWriter;
 
@@ -96,6 +96,8 @@ public class MasterInfo {
           }
         }
         for (long workerId: lostWorkers) {
+          WorkerInfo workerInfo = mWorkers.get(workerId);
+          mWorkerAddressToId.remove(workerInfo.getAddress());
           mWorkers.remove(workerId);
         }
       }
@@ -139,7 +141,7 @@ public class MasterInfo {
 
     mWhiteList = new PrefixList(Config.WHITELIST);
     mPinList = new PrefixList(Config.PINLIST);
-    mIdPinList = Collections.synchronizedList(new ArrayList<Integer>());
+    mIdPinList = Collections.synchronizedSet(new HashSet<Integer>());
 
     // TODO Fault recovery: need user counter info;
     recoveryFromLog();
