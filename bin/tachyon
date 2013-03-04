@@ -6,7 +6,7 @@ if [ "$#" == 0 ]; then
   echo -e "    tfs\t run a generic filesystem user client"
   echo "Most commands print help when invoked w/o parameters."
   exit 1
-elif [[ ("$#" == 1) || ("$#" == 2) ]]; then
+elif [ "$#" == 1 ]; then
   echo "Usage: java TFsShell"
   echo -e "\t[-ls <path>] "
   echo -e "\t[-lsr <path>]"
@@ -15,8 +15,8 @@ elif [[ ("$#" == 1) || ("$#" == 2) ]]; then
   echo "The general command line syntax is:"
   echo "bin/tachyon command [commandOptions]"
   exit 1
-elif [ "$#" == 3 ]; then
+elif [ "$#" > 1 ]; then
 	bin=`cd "$( dirname "$0" )"; pwd`
 	. "$bin/tachyon-config.sh"
-	java -cp $TACHYON_HOME/target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar tachyon.command.TFsShell ${@: 2:3}  #tachyon.jar change
+	java -cp $TACHYON_JAR tachyon.command.TFsShell $@ 
 fi
