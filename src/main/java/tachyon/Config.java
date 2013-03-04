@@ -38,7 +38,7 @@ public class Config {
 
   public static final String WORKER_DATA_FOLDER;
   public static final long WORKER_MEMORY_SIZE;
-  public static final long WORKER_TIMEOUT_MS = 10 * 1000;
+  public static final long WORKER_TIMEOUT_MS = 60 * 1000;
   public static final long WORKER_HEARTBEAT_TIMEOUT_MS = 10 * 1000;;
   public static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 1000;
   public static final int WORKER_DATA_ACCESS_QUEUE_SIZE = 10000;
