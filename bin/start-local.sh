@@ -26,15 +26,15 @@ mkdir -p $TACHYON_HOME/data
 
 $bin/stop.sh
 
-if [ -z $TACHYON_RAM_FOLDER ] ; then
-  echo "TACHYON_RAM_FOLDER was not set. Using the default one: /mnt/ramfs"
-  TACHYON_RAM_FOLDER=/mnt/ramfs
+if [[ `uname -a` == Darwin* ]]; then
+  # Assuming Mac OS X
+  echo "Mounting ramfs on Mac OS X..."
+  $bin/mount-ramfs-mac.sh
+else
+  # Assuming Linux
+  echo "Mounting ramfs on Linux..."
+  sudo $bin/mount-ramfs-linux.sh
 fi
-
-F=$TACHYON_RAM_FOLDER
-
-echo "Formatting RamFS: $F"
-sudo mkdir -p $F; sudo mount -t ramfs -o size=15g ramfs $F ; sudo chmod a+w $F ;
 
 $bin/start-master.sh
 
