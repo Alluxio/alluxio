@@ -38,9 +38,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<String> cmd_ls(String path)
+  public List<ClientFileInfo> cmd_ls(String path)
       throws InvalidPathException, FileDoesNotExistException, TException {
-    return mMasterInfo.ls(path);
+    return mMasterInfo.getFilesInfo(path);
   }
 
   @Override

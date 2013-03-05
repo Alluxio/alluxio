@@ -3,20 +3,23 @@
 if [ "$#" == 0 ]; then
   echo "Usage: tachyon COMMAND"
   echo "where COMMAND is one of:"
-  echo -e "    tfs\t run a generic filesystem user client"
-  echo "Most commands print help when invoked w/o parameters."
+  echo -e "    tfs\t command line input for generic filesystem user client"
+  echo "Commands print help when invoked w/o parameters."
   exit 1
-elif [ "$#" == 1 ]; then
-  echo "Usage: java TFsShell"
-  echo -e "\t[ls <path>] "
-  echo -e "\t[rm <path>] "
-  echo -e "\t[mv <src> <dest>] "
-  echo ""
-  echo "The general command line syntax is:"
-  echo "bin/tachyon command [commandOptions]"
-  exit 1
-elif [ "$#" > 1 ]; then
-	bin=`cd "$( dirname "$0" )"; pwd`
-	. "$bin/tachyon-config.sh"
-	java -cp $TACHYON_JAR tachyon.command.TFsShell $@ 
 fi
+
+COMMAND=$1
+shift
+
+if [ "$COMMAND" == "tfs" ]; then
+  CLASS=tachyon.command.TFsShell
+else
+  echo "Usage: tachyon COMMAND"
+  echo "where COMMAND is one of:"
+  echo -e "    tfs\t command line input for generic filesystem user client"
+  echo "Commands print help when invoked w/o parameters."
+  exit 1
+fi
+bin=`cd "$( dirname "$0" )"; pwd`
+. "$bin/tachyon-config.sh"
+java -cp $TACHYON_JAR $CLASS $@ 

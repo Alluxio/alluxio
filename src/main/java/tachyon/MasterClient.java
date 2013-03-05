@@ -55,7 +55,7 @@ public class MasterClient {
     mIsConnected = false;
   }
 
-  public synchronized List<String> ls(String folder)
+  public synchronized List<ClientFileInfo> ls(String folder)
       throws InvalidPathException, FileDoesNotExistException, TException {
     return CLIENT.cmd_ls(folder);
   }
