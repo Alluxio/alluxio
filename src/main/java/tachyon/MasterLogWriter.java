@@ -31,7 +31,7 @@ public class MasterLogWriter {
   }
 
   public synchronized void appendAndFlush(Inode inode) {
-    LOG.info("Append and Flush " + inode);
+    LOG.debug("Append and Flush " + inode);
     if (inode.isFile()) {
       mKryo.writeClassAndObject(mOutput, LogType.InodeFile);
       mKryo.writeClassAndObject(mOutput, (InodeFile) inode);

@@ -37,6 +37,10 @@ public class WorkerInfo {
     return mFiles.contains(partition);
   }
 
+  public synchronized InetSocketAddress getAddress() {
+    return ADDRESS;
+  }
+
   public synchronized long getAvailableBytes() {
     return CAPACITY_BYTES - mUsedBytes;
   }

@@ -16,7 +16,7 @@ if [ -e $TACHYON_HOME/conf/tachyon-env.sh ] ; then
   . $TACHYON_HOME/conf/tachyon-env.sh
 fi
 
-$bin/mount-ramfs.sh
+$bin/mount-ramfs-linux.sh
 
 mkdir -p $TACHYON_HOME/logs
 
