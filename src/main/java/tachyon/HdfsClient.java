@@ -44,13 +44,13 @@ public class HdfsClient {
         te = e;
         continue;
       }
+      if (delSrc) {
+        delete(src, true);
+      }
       LOG.info("Finished the copy from " + src + " to " + dst);
       return;
     }
     CommonUtils.runtimeException(te);
-    if (delSrc) {
-      delete(src, true);
-    }
   }
 
   public void copyToLocalFile(boolean delSrc, Path src, Path dst) {
@@ -71,6 +71,7 @@ public class HdfsClient {
   }
 
   public void delete(String f, boolean recursive) {
+    LOG.debug("deleting " + f + " " + recursive);
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
@@ -160,6 +161,7 @@ public class HdfsClient {
   public boolean rename(String src, String dst) {
     IOException te = null;
     int cnt = 0;
+    LOG.debug("Renaming from " + src + " to " + dst);
     if (!exist(src)) {
       LOG.error("File " + src + " does not exist. Therefore rename to " + dst + " failed.");
     }

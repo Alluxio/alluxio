@@ -82,7 +82,10 @@ public class Worker implements Runnable {
     while (true) {
       long diff = System.currentTimeMillis() - lastHeartbeatMs;
       if (diff < Config.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) {
+        LOG.warn("Last heartbeat related process takes " + diff + " ms.");
         CommonUtils.sleep(Config.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS - diff);
+      } else {
+        LOG.warn("Last heartbeat related process takes " + diff + " ms.");
       }
 
       try {
