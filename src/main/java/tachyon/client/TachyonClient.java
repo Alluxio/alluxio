@@ -345,6 +345,10 @@ public class TachyonClient {
     return true;
   }
 
+  public synchronized boolean deleteFile(String path) throws InvalidPathException {
+    return deleteFile(getFileId(path));
+  }
+
   // TODO For now, we assume this is for partition read only.
   public synchronized List<NetAddress> getFileLocations(int fileId) {
     connectAndGetLocalWorker();
@@ -464,6 +468,15 @@ public class TachyonClient {
 
   public synchronized boolean isConnected() {
     return mConnected;
+  }
+
+  public synchronized List<ClientFileInfo> listStatus(String path) throws FileDoesNotExistException, 
+      InvalidPathException, TException {
+    connectAndGetLocalWorker();
+    if (!mConnected) {
+      return null;
+    }
+    return mMasterClient.ls(path);
   }
 
   public synchronized void outOfMemoryForPinFile(int fileId) {

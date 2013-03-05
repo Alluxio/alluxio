@@ -118,7 +118,7 @@ service MasterService {
   i32 user_getNumberOfFiles(1:string path) throws (1: FileDoesNotExistException eR, 2: InvalidPathException eI)
 
   // cmd to scripts
-  list<string> cmd_ls(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
+  list<ClientFileInfo> cmd_ls(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
 }
 
 service WorkerService {
