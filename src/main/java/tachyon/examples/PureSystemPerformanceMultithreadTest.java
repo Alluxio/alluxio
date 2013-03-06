@@ -11,10 +11,9 @@ import java.nio.channels.FileChannel.MapMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.corba.se.impl.util.Version;
-
 import tachyon.Config;
 import tachyon.CommonUtils;
+import tachyon.Version;
 
 public class PureSystemPerformanceMultithreadTest {
   private static Logger LOG = LoggerFactory.getLogger(PureSystemPerformanceMultithreadTest.class);

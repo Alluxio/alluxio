@@ -23,7 +23,8 @@ public class Format {
         hdfsClient.delete(Config.HDFS_ADDRESS + Config.WORKER_HDFS_FOLDER, true);
       }
     } else {
-      LOG.info("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar tachyon.Format");
+      LOG.info("java -cp target/tachyon-" + Version.VERSION + 
+          "-jar-with-dependencies.jar tachyon.Format");
     }
   }
 }
