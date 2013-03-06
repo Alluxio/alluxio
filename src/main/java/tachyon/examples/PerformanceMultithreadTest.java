@@ -34,29 +34,36 @@ public class PerformanceMultithreadTest {
   private static boolean DEBUG_MODE = false;
   private static int FILE_BYTES = -1;
   private static long FILES_BYTES = -1;
-  private static int Tachyon_WRITE_BUFFER_SIZE_BYTES = -1;
   private static String RESULT_PREFIX = null;
+  private static long[] Results = new long[100];
 
   public static void createFiles() throws InvalidPathException {
     long startTimeMs = CommonUtils.getCurrentMs();
-    for (int k = 0; k < FILES; k ++) {
+    for (int k = 0; k < THREADS; k ++) {
       int fileId = MTC.createFile(FILE_NAME + k);
       CommonUtils.printTimeTakenMs(startTimeMs, LOG, "user_createFiles with fileId " + fileId);
     }
   }
 
-  public static class MemoryCopyWorker extends Thread {
-    private int mWorkerId;
-    private int mLeft;
-    private int mRight;
-    private ByteBuffer mBuf;
-    private boolean mOneToMany;
+  public static abstract class Worker extends Thread {
+    protected int mWorkerId;
+    protected int mLeft;
+    protected int mRight;
+    protected ByteBuffer mBuf;
 
-    public MemoryCopyWorker(int id, int left, int right, ByteBuffer buf, boolean oneToMany) {
+    public Worker(int id, int left, int right, ByteBuffer buf) {
       mWorkerId = id;
       mLeft = left;
       mRight = right;
       mBuf = buf;
+    }
+  }
+
+  public static class MemoryCopyWorker extends Worker {
+    private boolean mOneToMany;
+
+    public MemoryCopyWorker(int id, int left, int right, ByteBuffer buf, boolean oneToMany) {
+      super(id, left, right, buf);
       mOneToMany = oneToMany;
     }
 
@@ -68,41 +75,50 @@ public class PerformanceMultithreadTest {
       mBuf.flip();
 
       if (mOneToMany) {
-        ByteBuffer dst = null; 
+        //        ByteBuffer dst = dst = ByteBuffer.allocateDirect(FILE_BYTES);
+        long sum = 0;
+        RandomAccessFile file =
+            new RandomAccessFile("/mnt/ramdisk/tachyonworker/" + (mWorkerId + 2), "rw");
+        ByteBuffer dst = file.getChannel().map(MapMode.READ_WRITE, 0, FILE_BYTES);
+        dst.order(ByteOrder.nativeOrder());
         for (int times = mLeft; times < mRight; times ++) {
-          long startTimeMs = System.currentTimeMillis();
-
-          if (times == mLeft) {
-            dst = ByteBuffer.allocateDirect(FILE_BYTES);
-            dst.order(ByteOrder.nativeOrder());
-          }
+          //          long startTimeMs = System.currentTimeMillis();
           for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
             mBuf.array()[0] = (byte) (k + mWorkerId);
             dst.put(mBuf.array());
           }
-          long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-          double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
-          LOG.info(times + "th MemCopy @ Worker " + mWorkerId + " : " + result + " Mb/sec. Took " +
-              takenTimeMs + " ms. Is One To Many: " + mOneToMany);
+          //          long takenTimeMs = System.currentTimeMillis() - startTimeMs;
+          //          double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
+          //          LOG.info(times + "th MemCopy @ Worker " + mWorkerId + " : " + result + " Mb/sec. Took " +
+          //              takenTimeMs + " ms. Is One To Many: " + mOneToMany);
+          //          sum += dst.get(times);
+          dst.clear();
+          sum += dst.get(times);
           dst.clear();
         }
+        file.close();
+        Results[mWorkerId] = sum;
       } else {
+        //        ByteBuffer dst = ByteBuffer.allocateDirect(FILE_BYTES);
+        long sum = 0;
+        RandomAccessFile file =
+            new RandomAccessFile("/mnt/ramdisk/tachyonworker/" + (mWorkerId + 2), "r");
+        ByteBuffer dst = file.getChannel().map(MapMode.READ_ONLY, 0, FILE_BYTES);
+        dst.order(ByteOrder.nativeOrder());
         for (int times = mLeft; times < mRight; times ++) {
-          long startTimeMs = System.currentTimeMillis();
-          RandomAccessFile file =
-              new RandomAccessFile(Config.WORKER_DATA_FOLDER + "1-" + times, "r");
-          ByteBuffer dst = file.getChannel().map(MapMode.READ_ONLY, 0, FILE_BYTES);
-          dst.order(ByteOrder.nativeOrder());
-
+//          long startTimeMs = System.currentTimeMillis();
           for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
             dst.get(mBuf.array());
           }
-          long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-          double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
-          LOG.info(times + "th MemCopy @ Worker " + mWorkerId + " : " + result + " Mb/sec. Took " +
-              takenTimeMs + " ms. Is One To Many: " + mOneToMany);
+          sum += mBuf.get(times % 16);
+          //          long takenTimeMs = System.currentTimeMillis() - startTimeMs;
+          //          double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
+          //          LOG.info(times + "th MemCopy @ Worker " + mWorkerId + " : " + result + " Mb/sec. Took " +
+          //              takenTimeMs + " ms. Is One To Many: " + mOneToMany);
           dst.clear();
         }
+        file.close();
+        Results[mWorkerId] = sum;
       }
     }
 
@@ -117,20 +133,12 @@ public class PerformanceMultithreadTest {
     }
   }
 
-  public static class WriterWorker extends Thread {
-    private int mWorkerId;
-    private int mLeft;
-    private int mRight;
-    private ByteBuffer mBuf;
+  public static class WriterWorker extends Worker {
     private TachyonClient mTC;
 
     public WriterWorker(int id, int left, int right, ByteBuffer buf) {
-      mWorkerId = id;
-      mLeft = left;
-      mRight = right;
-      mBuf = buf;
-      mTC = TachyonClient.getClient(
-          new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
+      super(id, left, right, buf);
+      mTC = TachyonClient.getClient(new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
     }
 
     public void writeParition()
@@ -142,7 +150,7 @@ public class PerformanceMultithreadTest {
 
       mBuf.flip();
       for (int pId = mLeft; pId < mRight; pId ++) {
-        TachyonFile file = mTC.getFile(FILE_NAME + pId);
+        TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
         file.open("w", false);
         long startTimeMs = System.currentTimeMillis();
         for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
@@ -177,18 +185,12 @@ public class PerformanceMultithreadTest {
     }
   }
 
-  public static class ReadWorker extends Thread {
-    private int mWorkerId;
-    private int mLeft;
-    private int mRight;
+  public static class ReadWorker extends Worker {
     private TachyonClient mTC;
 
     public ReadWorker(int id, int left, int right) {
-      mWorkerId = id;
-      mLeft = left;
-      mRight = right;
-      mTC = TachyonClient.getClient(
-          new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
+      super(id, left, right, null);
+      mTC = TachyonClient.getClient(new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
     }
 
     public void readPartition() 
@@ -226,7 +228,7 @@ public class PerformanceMultithreadTest {
       }
 
       for (int pId = mLeft; pId < mRight; pId ++) {
-        TachyonFile file = mTC.getFile(FILE_NAME + pId);
+        TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
         file.open("r");
 
         int[] readArray = new int[WRITE_BLOCK_SIZE_BYTES / 4];
@@ -363,11 +365,10 @@ public class PerformanceMultithreadTest {
   }
 
   public static void main(String[] args) throws IOException, InvalidPathException {
-    if (args.length != 9) {
+    if (args.length != 8) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
-          "-jar-with-dependencies.jar " +
-          "tachyon.examples.PerformanceTest " + " <MasterIp> <FileName> " +
-          "<WriteBlockSizeInBytes> <BlocksPerFile> <TachyonWriteBufferSize> " +
+          "-jar-with-dependencies.jar tachyon.examples.PerformanceTest " + 
+          " <MasterIp> <FileName> <WriteBlockSizeInBytes> <BlocksPerFile> " +
           "<DebugMode:true/false> <Threads> <FilesPerThread> <Test Case Number>\n" +
           "1: Files Write Test\n" +
           "2: Files Read Test\n" + 
@@ -380,27 +381,20 @@ public class PerformanceMultithreadTest {
     FILE_NAME = args[1];
     WRITE_BLOCK_SIZE_BYTES = Integer.parseInt(args[2]);
     BLOCKS_PER_FILE = Integer.parseInt(args[3]);
-    Tachyon_WRITE_BUFFER_SIZE_BYTES = Integer.parseInt(args[4]);
-    if (Tachyon_WRITE_BUFFER_SIZE_BYTES != -1) {
-      // TODO 
-      //      Config.USER_BUFFER_PER_PARTITION_BYTES = Tachyon_WRITE_BUFFER_SIZE_BYTES;
-    } else {
-      Tachyon_WRITE_BUFFER_SIZE_BYTES = Config.USER_BUFFER_PER_PARTITION_BYTES;
-    }
-    DEBUG_MODE = ("true".equals(args[5]));
-    THREADS = Integer.parseInt(args[6]);
-    FILES = Integer.parseInt(args[7]) * THREADS;
-    int testCaseNumber = Integer.parseInt(args[8]);
+    DEBUG_MODE = ("true".equals(args[4]));
+    THREADS = Integer.parseInt(args[5]);
+    FILES = Integer.parseInt(args[6]) * THREADS;
+    int testCaseNumber = Integer.parseInt(args[7]);
 
     FILE_BYTES = BLOCKS_PER_FILE * WRITE_BLOCK_SIZE_BYTES;
     FILES_BYTES = 1L * FILE_BYTES * FILES;
 
     RESULT_PREFIX = String.format("Threads %d FilesPerThread %d TotalFiles %d " +
-        "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d FILES_SIZE_MB %d " +
+        "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d " +
         "Tachyon_WRITE_BUFFER_SIZE_KB %d : ",
         THREADS, FILES / THREADS, FILES, WRITE_BLOCK_SIZE_BYTES / 1024, 
-        BLOCKS_PER_FILE, CommonUtils.getMB(FILE_BYTES), CommonUtils.getMB(FILES_BYTES),
-        Tachyon_WRITE_BUFFER_SIZE_BYTES / 1024);
+        BLOCKS_PER_FILE, CommonUtils.getMB(FILE_BYTES), 
+        Config.USER_BUFFER_PER_PARTITION_BYTES / 1024);
 
     if (testCaseNumber == 1) {
       RESULT_PREFIX = "FilesWriteTest " + RESULT_PREFIX;
@@ -424,5 +418,10 @@ public class PerformanceMultithreadTest {
     } else {
       CommonUtils.runtimeException("No Test Case " + testCaseNumber);
     }
+
+    for (int k = 0; k < 100; k ++) {
+      System.out.print(Results[k] + " ");
+    }
+    System.out.println();
   }
 }
