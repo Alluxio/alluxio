@@ -11,6 +11,8 @@ import java.nio.channels.FileChannel.MapMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.corba.se.impl.util.Version;
+
 import tachyon.Config;
 import tachyon.CommonUtils;
 
@@ -46,7 +48,7 @@ public class PureSystemPerformanceMultithreadTest {
       ByteBuffer dst = null; 
       for (int times = mLeft; times < mRight; times ++) {
         long startTimeMs = System.currentTimeMillis();
-        
+
         if (times == mLeft) {
           dst = ByteBuffer.allocateDirect(BLOCK_SIZE_BYTES * BLOCKS_PER_PARTITION);
           dst.order(ByteOrder.nativeOrder());
@@ -73,7 +75,7 @@ public class PureSystemPerformanceMultithreadTest {
       LOG.info("MemCopyWorker " + mWorkerId + " just finished.");
     }
   }
-  
+
   public static class WriterWorker extends Thread {
     private int mWorkerId;
     private int mLeft;
@@ -97,7 +99,7 @@ public class PureSystemPerformanceMultithreadTest {
       for (int times = mLeft; times < mRight; times ++) {
         LOG.info("Trying to write to " + Config.WORKER_DATA_FOLDER + "/RawTest" + times);
         long startTimeMs = System.currentTimeMillis();
-        
+
         RandomAccessFile file = 
             new RandomAccessFile(Config.WORKER_DATA_FOLDER + "/RawTest" + times, "rw");
         for (int k = 0; k < BLOCKS_PER_PARTITION; k ++) {
@@ -308,16 +310,15 @@ public class PureSystemPerformanceMultithreadTest {
 
   public static void main(String[] args) throws IOException {
     if (args.length != 5) {
-      System.out.println("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
-          "tachyon.examples.PureSystemPerformanceTest " + 
+      String EXEC = "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
+          "tachyon.examples.PureSystemPerformanceTest ";
+      System.out.println(EXEC  + 
           " <BlockSizeInBytes> <BlocksPerPartition> <DebugMode:true/false> <Times> <Threads>\n" +
           " For example: \n" +
-          "a). java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
-          "tachyon.examples.PureSystemPerformanceTest 524288000 4 false 10 2 \n" +
-          "b). java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
-          "tachyon.examples.PureSystemPerformanceMultithreadTest 16777216 64 false 3 3 \n" +
+          "a). " + EXEC + " 524288000 4 false 10 2 \n" +
+          "b). " + EXEC + " 16777216 64 false 3 3 \n" +
           "c). java -Xmn2G -Xms4G -Xmx4G " +
-          "-cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
+          "-cp target/tachyon-" + Version.VERSION  + "-jar-with-dependencies.jar " +
           "tachyon.examples.PureSystemPerformanceMultithreadTest 16777216 64 false 24 12 \n");
       System.exit(-1);
     }

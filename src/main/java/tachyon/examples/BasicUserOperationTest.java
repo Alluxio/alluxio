@@ -8,6 +8,8 @@ import java.nio.ByteOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.corba.se.impl.util.Version;
+
 import tachyon.Config;
 import tachyon.CommonUtils;
 import tachyon.client.TachyonClient;
@@ -73,11 +75,11 @@ public class BasicUserOperationTest {
   public static void main(String[] args)
       throws SuspectedFileSizeException, InvalidPathException, IOException {
     if (args.length != 2) {
-      System.out.println("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
+      System.out.println("java -cp target/tachyon-" + Version.VERSION + 
+          "-jar-with-dependencies.jar " +
           "tachyon.examples.BasicUserOperationTest <TachyonMasterHostName> <FilePath>");
     }
-    sTachyonClient = TachyonClient.getClient(
-        new InetSocketAddress(args[0], Config.MASTER_PORT));
+    sTachyonClient = TachyonClient.getClient(new InetSocketAddress(args[0], Config.MASTER_PORT));
     sFilePath = args[1];
     createFile();
     writeFile();

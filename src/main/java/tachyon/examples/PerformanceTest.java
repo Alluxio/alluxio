@@ -10,6 +10,8 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.corba.se.impl.util.Version;
+
 import tachyon.Config;
 import tachyon.CommonUtils;
 import tachyon.client.TachyonClient;
@@ -53,7 +55,7 @@ public class PerformanceTest {
     buf.flip();
     for (int pId = 0; pId < FILES; pId ++) {
       TachyonFile file = TC.getFile(FILE_NAME + pId);
-      file.open("w");
+      file.open("w", false);
       long startTimeMs = System.currentTimeMillis();
       for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
         //        long localStartTimeNs = System.nanoTime();
@@ -134,7 +136,8 @@ public class PerformanceTest {
   public static void main(String[] args) throws IOException, SuspectedFileSizeException,
   OutOfMemoryForPinFileException, InvalidPathException, TException {
     if (args.length != 6) {
-      System.out.println("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
+      System.out.println("java -cp target/tachyon-" + Version.VERSION + 
+          "-jar-with-dependencies.jar " +
           "tachyon.examples.PerformanceTest " + " <MasterIp> <FileName> " +
           "<BlockSizeInBytes> <BlocksPerFile> <DebugMode:true/false> <NumberOfFiles>");
       System.exit(-1);
