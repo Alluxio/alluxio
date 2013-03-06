@@ -12,6 +12,8 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.corba.se.impl.util.Version;
+
 import tachyon.Config;
 import tachyon.CommonUtils;
 import tachyon.client.TachyonClient;
@@ -141,8 +143,8 @@ public class PerformanceMultithreadTest {
 
       mBuf.flip();
       for (int pId = mLeft; pId < mRight; pId ++) {
-        TachyonFile file =mTC.getFile(FILE_NAME + pId);
-        file.open("w");
+        TachyonFile file = mTC.getFile(FILE_NAME + pId);
+        file.open("w", false);
         long startTimeMs = System.currentTimeMillis();
         for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
           mBuf.array()[0] = (byte) (k + mWorkerId);
@@ -363,7 +365,8 @@ public class PerformanceMultithreadTest {
 
   public static void main(String[] args) throws IOException, InvalidPathException {
     if (args.length != 9) {
-      System.out.println("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
+      System.out.println("java -cp target/tachyon-" + Version.VERSION + 
+          "-jar-with-dependencies.jar " +
           "tachyon.examples.PerformanceTest " + " <MasterIp> <FileName> " +
           "<WriteBlockSizeInBytes> <BlocksPerFile> <TachyonWriteBufferSize> " +
           "<DebugMode:true/false> <Threads> <FilesPerThread> <Test Case Number>\n" +

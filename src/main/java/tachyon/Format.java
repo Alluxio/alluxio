@@ -15,11 +15,13 @@ public class Format {
       LOG.info("Deleting " + Config.MASTER_LOG_FILE);
       CommonUtils.deleteFile(Config.MASTER_LOG_FILE);
 
-      HdfsClient hdfsClient = new HdfsClient(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER);
-      LOG.info("Deleting " + Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER);
-      hdfsClient.delete(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER, true);
-      LOG.info("Deleting " + Config.HDFS_ADDRESS + Config.WORKER_HDFS_FOLDER);
-      hdfsClient.delete(Config.HDFS_ADDRESS + Config.WORKER_HDFS_FOLDER, true);
+      if (Config.USING_HDFS) {
+        HdfsClient hdfsClient = new HdfsClient(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER);
+        LOG.info("Deleting " + Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER);
+        hdfsClient.delete(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER, true);
+        LOG.info("Deleting " + Config.HDFS_ADDRESS + Config.WORKER_HDFS_FOLDER);
+        hdfsClient.delete(Config.HDFS_ADDRESS + Config.WORKER_HDFS_FOLDER, true);
+      }
     } else {
       LOG.info("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar tachyon.Format");
     }
