@@ -12,10 +12,9 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.corba.se.impl.util.Version;
-
 import tachyon.Config;
 import tachyon.CommonUtils;
+import tachyon.Version;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 import tachyon.thrift.InvalidPathException;
