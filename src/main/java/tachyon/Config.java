@@ -109,7 +109,7 @@ public class Config {
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     MASTER_SUBSUME_HDFS = Boolean.parseBoolean(getProperty("tachyon.master.subsume.hdfs", "false"));
 
-    WORKER_DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramfs");
+    WORKER_DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramdisk");
     WORKER_MEMORY_SIZE = CommonUtils.parseMemorySize(
         getProperty("tachyon.worker.memory.size", "2GB"));
 
