@@ -32,7 +32,7 @@ public class BasicUserOperationTest {
   public static void writeFile()
       throws SuspectedFileSizeException, InvalidPathException, IOException {
     TachyonFile file = sTachyonClient.getFile(sFilePath);
-    file.open("w");
+    file.open("w", false);
 
     ByteBuffer buf = ByteBuffer.allocate(80);
     buf.order(ByteOrder.nativeOrder());
