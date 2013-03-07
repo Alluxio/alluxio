@@ -55,7 +55,7 @@ public class BasicRawTableTest {
       }
 
       TachyonFile tFile = rawColumn.getPartition(0);
-      tFile.open("w");
+      tFile.open("w", false);
 
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
