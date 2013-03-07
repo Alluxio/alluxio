@@ -2,11 +2,17 @@
 package tachyon.command;
 
 import java.io.IOException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Collections;
 
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -14,12 +20,13 @@ import tachyon.thrift.ClientFileInfo;
 
 import tachyon.CommonUtils;
 import tachyon.client.TachyonClient;
-
+import tachyon.client.TachyonFile;
 
 public class TFsShell {
 
   public TFsShell() {}
 
+  private final Logger LOG = LoggerFactory.getLogger("AppLogging");
   private final String TAB = "    ";
 
   public void printUsage(String cmd) {}
@@ -98,6 +105,30 @@ public class TFsShell {
       System.out.println("       [copyToLocal <src> <localdst>]");
       return -1;
     }
+
+    String srcPath = argv[1];
+    String dstPath = argv[2];
+    String folder = Utils.getFilePath(srcPath);
+    File dst = new File(dstPath);
+    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(srcPath));
+    TachyonFile tFile = tachyonClient.getFile(folder);
+    
+    // tachyonClient.getFile() catches FileDoesNotExist exceptions and returns null
+    if (tFile == null) {
+      throw new FileDoesNotExistException(folder);
+    }
+
+    tFile.open("r");
+    ByteBuffer buf = tFile.readByteBuffer();
+    buf.rewind();
+    FileOutputStream out = new FileOutputStream(dst);
+    FileChannel channel = out.getChannel();
+    while(buf.hasRemaining()) {
+      channel.write(buf);
+    }
+    channel.close();
+    out.close();
+    System.out.println("Copied " + srcPath + " to " + dstPath);
     return 0;
   }
 
