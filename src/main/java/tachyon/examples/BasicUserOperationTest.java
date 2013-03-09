@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Config;
 import tachyon.CommonUtils;
 import tachyon.Version;
+import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 import tachyon.thrift.InvalidPathException;
@@ -32,7 +33,7 @@ public class BasicUserOperationTest {
   public static void writeFile()
       throws SuspectedFileSizeException, InvalidPathException, IOException {
     TachyonFile file = sTachyonClient.getFile(sFilePath);
-    file.open("w", false);
+    file.open(OpType.WRITE_CACHE);
 
     ByteBuffer buf = ByteBuffer.allocate(80);
     buf.order(ByteOrder.nativeOrder());
@@ -57,7 +58,7 @@ public class BasicUserOperationTest {
       throws SuspectedFileSizeException, InvalidPathException, IOException {
     LOG.info("Reading data...");
     TachyonFile file = sTachyonClient.getFile(sFilePath);
-    file.open("r");
+    file.open(OpType.READ_CACHE);
 
     ByteBuffer buf;
     try { 

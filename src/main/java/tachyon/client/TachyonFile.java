@@ -44,9 +44,8 @@ public class TachyonFile {
 
   private List<NetAddress> mLocations;
 
+  private OpType mIo;
   private boolean mOpen = false;
-  private boolean mRead;
-  private boolean mWriteThrough;
   private long mSizeBytes;
   private File mFolder;
   private String mFilePath;
@@ -166,7 +165,7 @@ public class TachyonFile {
     }
 
     try {
-      if (mRead) {
+      if (mIo.isRead()) {
         if (mInChannel != null) {
           mInChannel.close();
           mFile.close();
@@ -184,7 +183,7 @@ public class TachyonFile {
         if (cancel) {
           mTachyonClient.releaseSpace(mSizeBytes);
         } else {
-          if (mWriteThrough) {
+          if (mIo.syncWrite()) {
             String hdfsFolder = mTachyonClient.createAndGetUserHDFSTempFolder();
             HdfsClient tHdfsClient = new HdfsClient(hdfsFolder);
             LOG.info("Precopy " + mFilePath + " " + mClientFileInfo.getPath());
@@ -239,23 +238,12 @@ public class TachyonFile {
     return ret;
   }
 
-  public void open(String wr) throws IOException {
-    open(wr, true);
-  }
-
-  public void open(String wr, boolean writeThrough) throws IOException {
-    if (wr.equals("r")) {
-      mRead = true;
-    } else if (wr.equals("w")) {
-      mRead = false;
-      mWriteThrough = writeThrough;
-    } else {
-      CommonUtils.runtimeException("Wrong option to open a partition: " + wr);
-    }
+  public void open(OpType io) throws IOException {
+    mIo = io;
 
     mOpen = true;
 
-    if (!mRead) {
+    if (mIo.isWrite()) {
       mFolder = mTachyonClient.createAndGetUserTempFolder();
       if (mFolder == null) {
         throw new IOException("Failed to create temp user folder for tachyon client.");
@@ -413,7 +401,7 @@ public class TachyonFile {
     HdfsClient tHdfsClient = new HdfsClient(path);
     FSDataInputStream inputStream = tHdfsClient.open(path);
     TachyonFile tTFile = mTachyonClient.getFile(mClientFileInfo.getId());
-    tTFile.open("w", false);
+    tTFile.open(OpType.WRITE_CACHE);
     byte buffer[] = new byte[Config.USER_BUFFER_PER_PARTITION_BYTES * 4];
 
     int limit;
@@ -480,9 +468,9 @@ public class TachyonFile {
     if (!mOpen) {
       CommonUtils.runtimeException("The partition was never openned or has been closed.");
     }
-    if (read != mRead) {
+    if (read != mIo.isRead()) {
       CommonUtils.runtimeException("The partition was opened for " + 
-          (mRead ? "Read" : "Write") + ". " + 
+          (mIo.isRead() ? "Read" : "Write") + ". " + 
           (read ? "Read" : "Write") + " operation is not available.");
     }
   }
