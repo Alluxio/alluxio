@@ -837,11 +837,15 @@ public class MasterInfo {
   }
 
   public void renameFile(String srcFilePath, String dstFilePath) 
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
       Inode inode = getInode(srcFilePath);
       if (inode == null) {
-        throw new FileDoesNotExistException("File " + srcFilePath + " does not exist");
+        throw new FileDoesNotExistException("Failed to rename: " + srcFilePath + " does not exist");
+      }
+
+      if (getInode(dstFilePath) != null) {
+        throw new FileAlreadyExistException("Failed to rename: " + dstFilePath + " already exist");
       }
 
       String dstName = getName(dstFilePath);
@@ -853,7 +857,8 @@ public class MasterInfo {
       String dstFileFolder = dstFilePath.substring(0, dstFilePath.length() - dstName.length() - 1);
       Inode dstFolder = getInode(dstFileFolder);
       if (dstFolder == null || dstFolder.isFile()) {
-        throw new FileDoesNotExistException("Folder " + dstFileFolder + " does not exist.");
+        throw new FileDoesNotExistException("Failed to rename: " + dstFileFolder + 
+            " does not exist.");
       }
       ((InodeFolder) dstFolder).addChild(inode.getId());
 

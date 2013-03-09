@@ -24,7 +24,7 @@ public enum OpType {
     return !isRead();
   }
 
-  public boolean syncWrite() {
+  public boolean isSyncWrite() {
     return (mValue == WRITE_CACHE_THROUGH.mValue);
   }
 }
