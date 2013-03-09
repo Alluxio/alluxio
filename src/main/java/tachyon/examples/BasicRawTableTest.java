@@ -11,6 +11,8 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.corba.se.impl.util.Version;
+
 import tachyon.CommonUtils;
 import tachyon.Config;
 import tachyon.client.RawColumn;
@@ -53,7 +55,7 @@ public class BasicRawTableTest {
       }
 
       TachyonFile tFile = rawColumn.getPartition(0);
-      tFile.open("w");
+      tFile.open("w", false);
 
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
@@ -97,7 +99,8 @@ public class BasicRawTableTest {
       throws IOException, TableDoesNotExistException, OutOfMemoryForPinFileException, 
       InvalidPathException, TException {
     if (args.length != 2) {
-      System.out.println("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar " +
+      System.out.println("java -cp target/tachyon-" + Version.VERSION + 
+          "-jar-with-dependencies.jar " +
           "tachyon.examples.BasicRawTableTest <TachyonMasterHostName> <FilePath>");
     }
     sTachyonClient = TachyonClient.getClient(new InetSocketAddress(args[0], Config.MASTER_PORT));

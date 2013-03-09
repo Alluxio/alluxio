@@ -349,7 +349,6 @@ public class TachyonClient {
     return deleteFile(getFileId(path));
   }
 
-  // TODO For now, we assume this is for partition read only.
   public synchronized List<NetAddress> getFileLocations(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected) {
@@ -470,8 +469,8 @@ public class TachyonClient {
     return mConnected;
   }
 
-  public synchronized List<ClientFileInfo> listStatus(String path) throws FileDoesNotExistException, 
-      InvalidPathException, TException {
+  public synchronized List<ClientFileInfo> listStatus(String path)
+      throws FileDoesNotExistException, InvalidPathException, TException {
     connectAndGetLocalWorker();
     if (!mConnected) {
       return null;
@@ -510,7 +509,7 @@ public class TachyonClient {
           mAvailableSpaceBytes += Config.USER_QUOTA_UNIT_BYTES;
         } else {
           LOG.info("Failed to request " + Config.USER_QUOTA_UNIT_BYTES + " bytes local space. " +
-          		"Time " + (failedTimes ++));
+              "Time " + (failedTimes ++));
           if (failedTimes == Config.USER_FAILED_SPACE_REQUEST_LIMITS) {
             return false;
           }
