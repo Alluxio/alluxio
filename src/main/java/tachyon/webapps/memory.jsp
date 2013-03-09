@@ -45,7 +45,10 @@
     </div>
   </div>
   <footer>
-    <p>Tachyon is a project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu">AMPLab</a>.</p>
+    <p>
+      Tachyon is a project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu">AMPLab</a>.
+      <img src="./img/amplab_logo.png" class="offset3"/>
+    </p>
   </footer>
 </div>
 </body>
