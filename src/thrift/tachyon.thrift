@@ -106,7 +106,7 @@ service MasterService {
   void user_deleteById(1: i32 fileId) // Delete file
   void user_deleteByPath(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF) // Delete file
   void user_outOfMemoryForPinFile(1: i32 fileId)
-  void user_renameFile(1: string srcFilePath, 2: string dstFilePath) throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
+  void user_renameFile(1: string srcFilePath, 2: string dstFilePath) throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)
 //  void user_setPartitionCheckpointPath(1: i32 fileId, 2: string checkpointPath) throws (1: FileDoesNotExistException eD)
   void user_unpinFile(1: i32 fileId) throws (1: FileDoesNotExistException e)   // Remove file from memory
   i32 user_mkdir(1: string path) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)

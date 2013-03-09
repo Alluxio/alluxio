@@ -141,7 +141,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public void user_renameFile(String srcFilePath, String dstFilePath)
-      throws FileDoesNotExistException, InvalidPathException, TException {
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException{
     mMasterInfo.renameFile(srcFilePath, dstFilePath);
   }
 

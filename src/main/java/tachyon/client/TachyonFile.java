@@ -183,7 +183,7 @@ public class TachyonFile {
         if (cancel) {
           mTachyonClient.releaseSpace(mSizeBytes);
         } else {
-          if (mIo.syncWrite()) {
+          if (mIo.isSyncWrite()) {
             String hdfsFolder = mTachyonClient.createAndGetUserHDFSTempFolder();
             HdfsClient tHdfsClient = new HdfsClient(hdfsFolder);
             LOG.info("Precopy " + mFilePath + " " + mClientFileInfo.getPath());
