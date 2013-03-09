@@ -264,7 +264,7 @@ public class TachyonFile {
       mFile = new RandomAccessFile(mFilePath, "rw");
       mOutChannel = mFile.getChannel();
       mSizeBytes = 0;
-      LOG.info("File " + mFilePath + " is there!");
+      LOG.info("File " + mFilePath + " was created!");
       mOutBuffer = ByteBuffer.allocate(Config.USER_BUFFER_PER_PARTITION_BYTES + 4);
       mOutBuffer.order(ByteOrder.nativeOrder());
     } else {

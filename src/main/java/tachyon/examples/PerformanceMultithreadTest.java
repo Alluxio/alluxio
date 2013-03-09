@@ -61,10 +61,13 @@ public class PerformanceMultithreadTest {
 
   public static class MemoryCopyWorker extends Worker {
     private boolean mOneToMany;
+    private boolean mMemoryOnly;
 
-    public MemoryCopyWorker(int id, int left, int right, ByteBuffer buf, boolean oneToMany) {
+    public MemoryCopyWorker(int id, int left, int right, ByteBuffer buf, boolean oneToMany,
+        boolean memoryOnly) {
       super(id, left, right, buf);
       mOneToMany = oneToMany;
+      mMemoryOnly = memoryOnly;
     }
 
     public void memoryCopyParition() throws IOException {
@@ -73,6 +76,48 @@ public class PerformanceMultithreadTest {
         CommonUtils.printByteBuffer(LOG, mBuf);
       }
       mBuf.flip();
+
+      if (mMemoryOnly) {
+        if (mOneToMany) {
+          long sum = 0;
+          ByteBuffer dst = ByteBuffer.allocateDirect(FILE_BYTES);
+          dst.order(ByteOrder.nativeOrder());
+          for (int times = mLeft; times < mRight; times ++) {
+            //            long startTimeMs = System.currentTimeMillis();
+            for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
+              mBuf.array()[0] = (byte) (k + mWorkerId);
+              dst.put(mBuf.array());
+            }
+            //            long takenTimeMs = System.currentTimeMillis() - startTimeMs;
+            //            double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
+            //            LOG.info(times + "th MemCopy @ Worker " + mWorkerId + " : " + result + " Mb/sec. Took " +
+            //                takenTimeMs + " ms. Is One To Many: " + mOneToMany);
+            dst.clear();
+            sum += dst.get(times);
+            dst.clear();
+          }
+          Results[mWorkerId] = sum;
+        } else {
+          long sum = 0;
+          ByteBuffer dst = ByteBuffer.allocateDirect(FILE_BYTES);
+          dst.order(ByteOrder.nativeOrder());
+          for (int times = mLeft; times < mRight; times ++) {
+            //            long startTimeMs = System.currentTimeMillis();
+            for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
+              dst.get(mBuf.array());
+            }
+            sum += mBuf.get(times % 16);
+            //            long takenTimeMs = System.currentTimeMillis() - startTimeMs;
+            //            double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
+            //            LOG.info(times + "th MemCopy @ Worker " + mWorkerId + " : " + result + " Mb/sec. Took " +
+            //                takenTimeMs + " ms. Is One To Many: " + mOneToMany);
+            dst.clear();
+          }
+          Results[mWorkerId] = sum;
+        }
+
+        return;
+      }
 
       if (mOneToMany) {
         //        ByteBuffer dst = dst = ByteBuffer.allocateDirect(FILE_BYTES);
@@ -106,7 +151,7 @@ public class PerformanceMultithreadTest {
         ByteBuffer dst = file.getChannel().map(MapMode.READ_ONLY, 0, FILE_BYTES);
         dst.order(ByteOrder.nativeOrder());
         for (int times = mLeft; times < mRight; times ++) {
-//          long startTimeMs = System.currentTimeMillis();
+          //          long startTimeMs = System.currentTimeMillis();
           for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
             dst.get(mBuf.array());
           }
@@ -149,9 +194,9 @@ public class PerformanceMultithreadTest {
       }
 
       mBuf.flip();
+      TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
+      file.open("w", false);
       for (int pId = mLeft; pId < mRight; pId ++) {
-        TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-        file.open("w", false);
         long startTimeMs = System.currentTimeMillis();
         for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
           mBuf.array()[0] = (byte) (k + mWorkerId);
@@ -161,11 +206,11 @@ public class PerformanceMultithreadTest {
             CommonUtils.runtimeException(e);
           }
         }
-        file.close();
         long takenTimeMs = System.currentTimeMillis() - startTimeMs + 1;
         double result = WRITE_BLOCK_SIZE_BYTES * 1000L * BLOCKS_PER_FILE / takenTimeMs / 1024 / 1024;
         LOG.info(pId + "th Write @ Worker " + mWorkerId + ": " + result + " Mb/sec.");
       }
+      file.close();
     }
 
     @Override
@@ -188,8 +233,8 @@ public class PerformanceMultithreadTest {
   public static class ReadWorker extends Worker {
     private TachyonClient mTC;
 
-    public ReadWorker(int id, int left, int right) {
-      super(id, left, right, null);
+    public ReadWorker(int id, int left, int right, ByteBuffer buf) {
+      super(id, left, right, buf);
       mTC = TachyonClient.getClient(new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
     }
 
@@ -200,7 +245,7 @@ public class PerformanceMultithreadTest {
         LOG.info("Verifying the reading data...");
 
         for (int pId = mLeft; pId < mRight; pId ++) {
-          TachyonFile file = mTC.getFile(FILE_NAME + pId);
+          TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
           file.open("r");
 
           long startTimeMs = System.currentTimeMillis();
@@ -226,32 +271,31 @@ public class PerformanceMultithreadTest {
           LOG.info("Verifying read data: " + buf + " took " + takenTimeMs + " ms");
         }
       }
-
+      TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
+      file.open("r");
+      buf = file.readByteBuffer();
+      long sum = 0;
       for (int pId = mLeft; pId < mRight; pId ++) {
-        TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-        file.open("r");
 
-        int[] readArray = new int[WRITE_BLOCK_SIZE_BYTES / 4];
         long startTimeMs = System.currentTimeMillis();
-        buf = file.readByteBuffer();
-        IntBuffer intBuf;
-        intBuf = buf.asIntBuffer();
         int tmp = 0;
         for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
-          intBuf.get(readArray);
-          tmp = readArray[0];
+          buf.get(mBuf.array());
         }
-        file.close();
+        sum += mBuf.get(pId % 16);
         long takenTimeMs = System.currentTimeMillis() - startTimeMs + 1;
         double result = 1000L * WRITE_BLOCK_SIZE_BYTES * BLOCKS_PER_FILE / takenTimeMs / 1024 / 1024;
 
         LOG.info(pId + "th Read @ Worker " + mWorkerId + " : " + result + 
             " Mb/sec, took " + takenTimeMs + " ms. " + tmp);
-        if (DEBUG_MODE) {
-          buf.flip();
-          CommonUtils.printByteBuffer(LOG, buf);
-        }
+        //        if (DEBUG_MODE) {
+        //          buf.flip();
+        //          CommonUtils.printByteBuffer(LOG, buf);
+        //        }
+        buf.clear();
       }
+      file.close();
+      Results[mWorkerId] = sum;
     }
 
     @Override
@@ -271,7 +315,7 @@ public class PerformanceMultithreadTest {
     }
   }
 
-  private static void memoryCopyTest(boolean OneToMany) {
+  private static void memoryCopyTest(boolean OneToMany, boolean memoryOnly) {
     ByteBuffer[] bufs = new ByteBuffer[THREADS];
 
     for (int thread = 0; thread < THREADS; thread ++) {
@@ -287,7 +331,7 @@ public class PerformanceMultithreadTest {
     int t = FILES / THREADS;
     for (int thread = 0; thread < THREADS; thread ++) {
       WWs[thread] = new MemoryCopyWorker(
-          thread, t * thread, t * (thread + 1), bufs[thread], OneToMany);
+          thread, t * thread, t * (thread + 1), bufs[thread], OneToMany, memoryOnly);
     }
 
     long startTimeMs = System.currentTimeMillis();
@@ -342,10 +386,21 @@ public class PerformanceMultithreadTest {
   }
 
   private static void readTest() {
+    ByteBuffer[] bufs = new ByteBuffer[THREADS];
+
+    for (int thread = 0; thread < THREADS; thread ++) {
+      ByteBuffer sRawData = ByteBuffer.allocate(WRITE_BLOCK_SIZE_BYTES);
+      sRawData.order(ByteOrder.nativeOrder());
+      for (int k = 0; k < WRITE_BLOCK_SIZE_BYTES / 4; k ++) {
+        sRawData.putInt(k);
+      }
+      bufs[thread] = sRawData;
+    }
+
     ReadWorker[] WWs = new ReadWorker[THREADS];
     int t = FILES / THREADS;
     for (int thread = 0; thread < THREADS; thread ++) {
-      WWs[thread] = new ReadWorker(thread, t * thread, t * (thread + 1));
+      WWs[thread] = new ReadWorker(thread, t * thread, t * (thread + 1), bufs[thread]);
     }
 
     long startTimeMs = System.currentTimeMillis();
@@ -373,7 +428,8 @@ public class PerformanceMultithreadTest {
           "1: Files Write Test\n" +
           "2: Files Read Test\n" + 
           "3: ByteBuffer Memory Copy Test One to Many \n" +
-          "4: ByteBuffer Memory Copy Test Many to One \n");
+          "4: ByteBuffer Memory Copy Test Many to One \n" + 
+          "5: ByteBuffer Memory Copy Test One to Many (Pure Memory Copy) \n");
       System.exit(-1);
     }
 
@@ -410,11 +466,19 @@ public class PerformanceMultithreadTest {
     } else if (testCaseNumber == 3) {
       RESULT_PREFIX = "MemoryCopyTestOneToMany " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
-      memoryCopyTest(true);
+      memoryCopyTest(true, false);
     } else if (testCaseNumber == 4) {
       RESULT_PREFIX = "MemoryCopyTestManyToOne " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
-      memoryCopyTest(false);
+      memoryCopyTest(false, false);
+    } else if (testCaseNumber == 5) {
+      RESULT_PREFIX = "MemoryCopyTestOneToManyPureMemoryCopy " + RESULT_PREFIX;
+      LOG.info(RESULT_PREFIX);
+      memoryCopyTest(true, true);
+    } else if (testCaseNumber == 6) {
+      RESULT_PREFIX = "MemoryCopyTestManyToOnePureMemoryCopy " + RESULT_PREFIX;
+      LOG.info(RESULT_PREFIX);
+      memoryCopyTest(false, true);
     } else {
       CommonUtils.runtimeException("No Test Case " + testCaseNumber);
     }
