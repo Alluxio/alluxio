@@ -13,9 +13,6 @@ import org.slf4j.LoggerFactory;
  * @author haoyuan
  */
 public class Config {
-  // TODO Make this auto filled.
-  public static final String VERSION = "0.2-SNAPSHOT";
-  
   public static final boolean IS_SYSTEM;
   public static final String TACHYON_HOME;
 
@@ -112,7 +109,7 @@ public class Config {
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     MASTER_SUBSUME_HDFS = Boolean.parseBoolean(getProperty("tachyon.master.subsume.hdfs", "false"));
 
-    WORKER_DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramfs");
+    WORKER_DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramdisk");
     WORKER_MEMORY_SIZE = CommonUtils.parseMemorySize(
         getProperty("tachyon.worker.memory.size", "2GB"));
 
