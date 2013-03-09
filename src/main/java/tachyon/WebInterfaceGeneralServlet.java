@@ -92,7 +92,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("startTime", CommonUtils.convertMsToDate(mMasterInfo.getStarttimeMs()));
 
-    request.setAttribute("version", Config.VERSION);
+    request.setAttribute("version", Version.VERSION);
 
     request.setAttribute("capacity", CommonUtils.getSizeFromBytes(mMasterInfo.getCapacityBytes()));
 
