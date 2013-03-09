@@ -30,12 +30,14 @@
         <div class="navbar">
           <div class="navbar-inner">
             <ul class="nav nav-pills">
-              <% 
-              for (WebInterfaceBrowseServlet.UiFileInfo pathInfo : ((WebInterfaceBrowseServlet.UiFileInfo[]) request.getAttribute("pathInfos"))) { 
-              %>
-                <li><a href="./browse?path=<%= pathInfo.getAbsolutePath() %>"><%= pathInfo.getName() %> </a></li>
+              <% if (request.getAttribute("pathInfos") != null) { %>
+                <% for (WebInterfaceBrowseServlet.UiFileInfo pathInfo : ((WebInterfaceBrowseServlet.UiFileInfo[]) request.getAttribute("pathInfos"))) { %>
+                  <li><a href="./browse?path=<%= pathInfo.getAbsolutePath() %>"><%= pathInfo.getName() %> </a></li>
+                <% } %>
               <% } %>
-              <li class="active"><a href="./browse?path=<%= request.getAttribute("currentPath") %>"><%= ((WebInterfaceBrowseServlet.UiFileInfo) request.getAttribute("currentDirectory")).getName() %></a></li>
+              <% if (request.getAttribute("currentDirectory") != null) { %>
+                <li class="active"><a href="./browse?path=<%= request.getAttribute("currentPath") %>"><%= ((WebInterfaceBrowseServlet.UiFileInfo) request.getAttribute("currentDirectory")).getName() %></a></li>
+              <% } %>
             </ul>
           </div>
         </div>
@@ -83,31 +85,33 @@
               </tr>
             </c:forEach>
           -->
-            <% for (WebInterfaceBrowseServlet.UiFileInfo fileInfo : ((List<WebInterfaceBrowseServlet.UiFileInfo>) request.getAttribute("fileInfos"))) { %>
-              <tr>
-                <th>
-                  <% if (fileInfo.getIsDirectory()) { %>
-                    <i class="icon-folder-close"></i>
+            <% if (request.getAttribute("fileInfos") != null) { %>
+              <% for (WebInterfaceBrowseServlet.UiFileInfo fileInfo : ((List<WebInterfaceBrowseServlet.UiFileInfo>) request.getAttribute("fileInfos"))) { %>
+                <tr>
+                  <th>
+                    <% if (fileInfo.getIsDirectory()) { %>
+                      <i class="icon-folder-close"></i>
+                    <% } %>
+                    <% if (!fileInfo.getIsDirectory()) { %>
+                      <i class="icon-file"></i>
+                    <% } %>
+                    <a href="./browse?path=<%=fileInfo.getAbsolutePath()%>"><%= fileInfo.getName() %></a>
+                  </th>
+                  <th><%= fileInfo.getSize() %></th>
+                  <th>
+                    <% if (fileInfo.getInMemory()) { %>
+                      <i class="icon-hdd"></i>
+                    <% } %>
+                    <% if (!fileInfo.getInMemory()) { %>
+                      <i class="icon-hdd icon-white"></i>
+                    <% } %>
+                  </th>
+                  <% if ((Boolean) request.getAttribute("debug")) { %>
+                    <th><%= fileInfo.getId() %></th>
                   <% } %>
-                  <% if (!fileInfo.getIsDirectory()) { %>
-                    <i class="icon-file"></i>
-                  <% } %>
-                  <a href="./browse?path=<%=fileInfo.getAbsolutePath()%>"><%= fileInfo.getName() %></a>
-                </th>
-                <th><%= fileInfo.getSize() %></th>
-                <th>
-                  <% if (fileInfo.getInMemory()) { %>
-                    <i class="icon-hdd"></i>
-                  <% } %>
-                  <% if (!fileInfo.getInMemory()) { %>
-                    <i class="icon-hdd icon-white"></i>
-                  <% } %>
-                </th>
-                <% if ((Boolean) request.getAttribute("debug")) { %>
-                  <th><%= fileInfo.getId() %></th>
-                <% } %>
-                <th><%= fileInfo.getCreationTime() %></th>
-              </tr>
+                  <th><%= fileInfo.getCreationTime() %></th>
+                </tr>
+              <% } %>
             <% } %>
           </tbody>
         </table>
