@@ -1,4 +1,3 @@
-
 package tachyon.command;
 
 import java.io.IOException;
@@ -6,13 +5,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Collections;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -23,54 +19,50 @@ import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 
 public class TFsShell {
-
-  public TFsShell() {}
-
-  private final Logger LOG = LoggerFactory.getLogger("AppLogging");
-  private final String TAB = "    ";
-
   public void printUsage(String cmd) {}
   public void close() {}
-  
-  public int listStatus(String argv[]) throws FileDoesNotExistException, InvalidPathException, 
-      TException {
+
+  public int listStatus(String argv[])
+      throws FileDoesNotExistException, InvalidPathException, TException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs ls");
       System.out.println("       [ls <path>]");
       return -1;
     }
     String path = argv[1];
-	  String folder = Utils.getFilePath(path);
-	  TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
-	  List<ClientFileInfo> files = tachyonClient.listStatus(folder);
+    String folder = Utils.getFilePath(path);
+    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
+    List<ClientFileInfo> files = tachyonClient.listStatus(folder);
     Collections.sort(files);
-	  for (ClientFileInfo file : files) {
-      System.out.print(file.getName() + TAB + CommonUtils.getSizeFromBytes(file.getSizeBytes()));
-      System.out.print(TAB + CommonUtils.convertMsToDate(file.getCreationTimeMs()));
-      if (file.isInMemory()) {
-        System.out.println(TAB + "In Memory");
-      } else {
-        System.out.println(TAB + "Not In Memory");
-      }
-	  }
-	  return 0;
+    int maxLength = 0;
+    for (ClientFileInfo file : files) {
+      maxLength = Math.max(maxLength, file.getName().length());
+    }
+    maxLength = Math.min(maxLength + 3, 30);
+    String format = "%1$-" + maxLength + "s%2$-10s%3$-25s%4$-15s\n";
+    for (ClientFileInfo file : files) {
+      System.out.format(format, file.getName(), CommonUtils.getSizeFromBytes(file.getSizeBytes()),
+          CommonUtils.convertMsToDate(file.getCreationTimeMs()),
+          file.isInMemory() ? "In Memory" : "Not In Memory");
+    }
+    return 0;
   }
-  
-  public int remove(String argv[]) throws FileDoesNotExistException, InvalidPathException, 
-      TException {
+
+  public int remove(String argv[]) 
+      throws FileDoesNotExistException, InvalidPathException, TException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs rm");
       System.out.println("       [rm <path>]");
       return -1;
     }
     String path = argv[1];
-	  String folder = Utils.getFilePath(path);
-	  TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
-	  tachyonClient.deleteFile(folder);
-	  System.out.println(folder + " has been removed");
-	  return 0;
+    String file = Utils.getFilePath(path);
+    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
+    tachyonClient.deleteFile(file);
+    System.out.println(file + " has been removed");
+    return 0;
   }
-  
+
   /*
   TODO Implement rename
 
@@ -96,10 +88,10 @@ public class TFsShell {
       System.out.println("Renamed " + srcFile + " to " + dstFile);
       return 0;
   }
-  */
+   */
 
-  public int copyToLocal(String argv[]) throws FileDoesNotExistException, InvalidPathException,
-      TException, IOException {
+  public int copyToLocal(String argv[])
+      throws FileDoesNotExistException, InvalidPathException, TException, IOException {
     if (argv.length != 3) {
       System.out.println("Usage: tfs copyToLocal");
       System.out.println("       [copyToLocal <src> <localdst>]");
@@ -112,7 +104,7 @@ public class TFsShell {
     File dst = new File(dstPath);
     TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(srcPath));
     TachyonFile tFile = tachyonClient.getFile(folder);
-    
+
     // tachyonClient.getFile() catches FileDoesNotExist exceptions and returns null
     if (tFile == null) {
       throw new FileDoesNotExistException(folder);
@@ -138,19 +130,12 @@ public class TFsShell {
     System.out.println("       [rm <path>]");
     System.out.println("       [copyToLocal <src> <localDst>]");
   }
-  
+
   public static void main(String argv[]) throws TException{
-	  System.out.flush();
     TFsShell shell = new TFsShell();
-	  int exitCode;
-	  try {
-	    exitCode = shell.run(argv);
-	  } finally {
-	    shell.close();
-	  }
-	  System.exit(exitCode);
+    System.exit(shell.run(argv));
   }
-  
+
   public int run(String argv[]) throws TException {
     if (argv.length == 0) {
       printUsage();
@@ -162,12 +147,13 @@ public class TFsShell {
     try {
       if (cmd.equals("ls")) {
         exitCode = listStatus(argv);	
-      }
-      if (cmd.equals("rm")) {
-    	  exitCode = remove(argv);
-      }
-      if (cmd.equals("copyToLocal")) {
-    	  exitCode = copyToLocal(argv);
+      } else if (cmd.equals("rm")) {
+        exitCode = remove(argv);
+      } else if (cmd.equals("copyToLocal")) {
+        exitCode = copyToLocal(argv);
+      } else {
+        printUsage();
+        return -1;
       }
     } catch (InvalidPathException ipe) {
       System.out.println("Invalid Path: " + ipe.getMessage());
@@ -177,8 +163,7 @@ public class TFsShell {
       System.out.println(ioe.getMessage());
     } finally {
     }
-    
+
     return exitCode;
   }
-
 }
