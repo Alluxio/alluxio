@@ -15,6 +15,7 @@ import com.sun.corba.se.impl.util.Version;
 
 import tachyon.CommonUtils;
 import tachyon.Config;
+import tachyon.client.OpType;
 import tachyon.client.RawColumn;
 import tachyon.client.RawTable;
 import tachyon.client.TachyonClient;
@@ -55,7 +56,7 @@ public class BasicRawTableTest {
       }
 
       TachyonFile tFile = rawColumn.getPartition(0);
-      tFile.open("w", false);
+      tFile.open(OpType.WRITE_CACHE);
 
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
@@ -86,7 +87,7 @@ public class BasicRawTableTest {
     for (int column = 0; column < 3; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
-      tFile.open("r");
+      tFile.open(OpType.READ_CACHE);
 
       ByteBuffer buf;
       buf = tFile.readByteBuffer();
