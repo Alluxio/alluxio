@@ -361,6 +361,9 @@ public class TachyonClient {
     } catch (FileDoesNotExistException e) {
       LOG.error(e.getMessage());
       return false;
+    } catch (FileAlreadyExistException e) {
+      LOG.error(e.getMessage());
+      return false;
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;

@@ -847,9 +847,17 @@ public class MasterInfo {
       if (getInode(dstPath) != null) {
         throw new FileAlreadyExistException("Failed to rename: " + dstPath + " already exist");
       }
+      
+      ClientFileInfo srcInfo = getClientFileInfo(srcPath);
 
       String dstName = getName(dstPath);
       String dstFolderPath = dstPath.substring(0, dstPath.length() - dstName.length() - 1);
+      
+      // If we are renaming into the root folder
+      if (dstFolderPath.isEmpty()) {
+        dstFolderPath = "/";
+      }
+
       Inode dstFolderInode = getInode(dstFolderPath);
       if (dstFolderInode == null || dstFolderInode.isFile()) {
         throw new FileDoesNotExistException("Failed to rename: " + dstFolderPath + 
@@ -859,7 +867,12 @@ public class MasterInfo {
       inode.setName(dstName);
       InodeFolder parent = (InodeFolder) mInodes.get(inode.getParentId());
       parent.removeChild(inode.getId());
+      inode.setParentId(dstFolderInode.getId());
       ((InodeFolder) dstFolderInode).addChild(inode.getId());
+      
+      // Update clientfileinfo
+      srcInfo.path = getPath(inode);
+      srcInfo.name = inode.getName();
 
       // TODO The following should be done atomically.
       mMasterLogWriter.appendAndFlush(parent);
