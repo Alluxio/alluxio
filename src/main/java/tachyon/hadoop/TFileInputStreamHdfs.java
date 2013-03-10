@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import tachyon.Config;
 import tachyon.CommonUtils;
+import tachyon.client.OpType;
 import tachyon.client.TFileInputStream;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
@@ -56,7 +57,7 @@ implements Seekable, PositionedReadable {
       FileSystem fs = hdfsPath.getFileSystem(mHadoopConf);
       FSDataInputStream tHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
       try {
-        tachyonFile.open("w");
+        tachyonFile.open(OpType.WRITE_CACHE_THROUGH);
       } catch (IOException e) {
         LOG.error(e.getMessage());
         return;
@@ -87,7 +88,7 @@ implements Seekable, PositionedReadable {
           (System.currentTimeMillis() - startTimeMs) + " ms. ");
     }
     try {
-      tachyonFile.open("r");
+      tachyonFile.open(OpType.READ_CACHE);
     } catch (IOException e) {
       LOG.error(e.getMessage());
       return;

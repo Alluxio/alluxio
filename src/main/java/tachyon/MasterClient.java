@@ -159,7 +159,7 @@ public class MasterClient {
   }
 
   public synchronized void user_renameFile(String srcPath, String dstPath)
-      throws FileDoesNotExistException, InvalidPathException, TException {
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException{
     CLIENT.user_renameFile(srcPath, dstPath);
   }
 
@@ -189,8 +189,7 @@ public class MasterClient {
 
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
       long usedBytes, List<Integer> currentFileList) throws TException {
-    long ret = CLIENT.worker_register(
-        workerNetAddress, totalBytes, usedBytes, currentFileList); 
+    long ret = CLIENT.worker_register(workerNetAddress, totalBytes, usedBytes, currentFileList); 
     LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress +
         " , got WorkerId " + ret);
     return ret;
