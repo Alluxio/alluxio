@@ -349,7 +349,7 @@ public class TachyonClient {
     return deleteFile(getFileId(path));
   }
 
-  public synchronized boolean renameFile(String srcFilePath, String dstFilePath) 
+  public synchronized boolean renameFile(String srcPath, String dstPath) 
       throws InvalidPathException {
     connectAndGetLocalWorker();
     if (!mConnected) {
@@ -357,7 +357,7 @@ public class TachyonClient {
     }
 
     try {
-      mMasterClient.user_renameFile(srcFilePath, dstFilePath);
+      mMasterClient.user_renameFile(srcPath, dstPath);
     } catch (FileDoesNotExistException e) {
       LOG.error(e.getMessage());
       return false;
