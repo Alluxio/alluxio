@@ -16,6 +16,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.ClientFileInfo;
 
 import tachyon.CommonUtils;
+import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 
@@ -113,7 +114,7 @@ public class TFsShell {
       throw new FileDoesNotExistException(folder);
     }
 
-    tFile.open("r");
+    tFile.open(OpType.READ_CACHE);
     ByteBuffer buf = tFile.readByteBuffer();
     buf.rewind();
     FileOutputStream out = new FileOutputStream(dst);

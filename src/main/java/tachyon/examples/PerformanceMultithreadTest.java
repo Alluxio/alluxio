@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Config;
 import tachyon.CommonUtils;
 import tachyon.Version;
+import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 import tachyon.thrift.InvalidPathException;
@@ -195,7 +196,7 @@ public class PerformanceMultithreadTest {
 
       mBuf.flip();
       TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-      file.open("w", false);
+      file.open(OpType.WRITE_CACHE);
       for (int pId = mLeft; pId < mRight; pId ++) {
         long startTimeMs = System.currentTimeMillis();
         for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
@@ -246,7 +247,7 @@ public class PerformanceMultithreadTest {
 
         for (int pId = mLeft; pId < mRight; pId ++) {
           TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-          file.open("r");
+          file.open(OpType.READ_CACHE);
 
           long startTimeMs = System.currentTimeMillis();
           buf = file.readByteBuffer();
@@ -272,7 +273,7 @@ public class PerformanceMultithreadTest {
         }
       }
       TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-      file.open("r");
+      file.open(OpType.READ_CACHE);
       buf = file.readByteBuffer();
       long sum = 0;
       for (int pId = mLeft; pId < mRight; pId ++) {
