@@ -349,6 +349,26 @@ public class TachyonClient {
     return deleteFile(getFileId(path));
   }
 
+  public synchronized boolean renameFile(String srcFilePath, String dstFilePath) 
+      throws InvalidPathException {
+    connectAndGetLocalWorker();
+    if (!mConnected) {
+      return false;
+    }
+
+    try {
+      mMasterClient.user_renameFile(srcFilePath, dstFilePath);
+    } catch (FileDoesNotExistException e) {
+      LOG.error(e.getMessage());
+      return false;
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      return false;
+    }
+
+    return true;
+  }
+
   public synchronized List<NetAddress> getFileLocations(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected) {
