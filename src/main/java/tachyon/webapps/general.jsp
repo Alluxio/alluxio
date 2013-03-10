@@ -220,14 +220,11 @@
       </div>
     </div>
   </div>
-  <div class="row-fluid">
-    <footer class="offset3">
-      <p>
-        Tachyon is a project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu">AMPLab</a>.
-        <img src="./img/amplab_logo.png" class="offset1"/>
-      </p>
-    </footer>  
-  </div>
+  <footer>
+    <p style="text-align: center;">
+      Tachyon is a project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu">AMPLab</a>.
+    </p>
+  </footer>
 </div>
 </body>
 </html>

@@ -24,11 +24,10 @@ public class TFsShell {
   public void printUsage(String cmd) {}
   public void close() {}
 
-  public int listStatus(String argv[])
+  public int ls(String argv[])
       throws FileDoesNotExistException, InvalidPathException, TException {
     if (argv.length != 2) {
-      System.out.println("Usage: tfs ls");
-      System.out.println("       [ls <path>]");
+      System.out.println("Usage: tfs ls <path>");
       return -1;
     }
     String path = argv[1];
@@ -36,12 +35,7 @@ public class TFsShell {
     TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
     List<ClientFileInfo> files = tachyonClient.listStatus(folder);
     Collections.sort(files);
-    int maxLength = 0;
-    for (ClientFileInfo file : files) {
-      maxLength = Math.max(maxLength, file.getPath().length());
-    }
-    maxLength = Math.min(maxLength + 3, 100);
-    String format = "%-10s%-25s%-15s%-" + maxLength + "s\n";
+    String format = "%-10s%-25s%-15s%-5s\n";
     for (ClientFileInfo file : files) {
       System.out.format(format, CommonUtils.getSizeFromBytes(file.getSizeBytes()),
           CommonUtils.convertMsToDate(file.getCreationTimeMs()), 
@@ -50,11 +44,10 @@ public class TFsShell {
     return 0;
   }
 
-  public int remove(String argv[]) 
+  public int rm(String argv[]) 
       throws FileDoesNotExistException, InvalidPathException, TException {
     if (argv.length != 2) {
-      System.out.println("Usage: tfs rm");
-      System.out.println("       [rm <path>]");
+      System.out.println("Usage: tfs rm <path>");
       return -1;
     }
     String path = argv[1];
@@ -69,24 +62,23 @@ public class TFsShell {
   }
 
   public int rename(String argv[]) 
-      throws FileDoesNotExistException, InvalidPathException, TException, IOException {
+      throws FileDoesNotExistException, InvalidPathException, TException {
     if (argv.length != 3) {
-      System.out.println("Usage: tfs mv");
-      System.out.println("       [mv <src> <dst>]");
+      System.out.println("Usage: tfs mv <src> <dst>");
       return -1;
     }
-    String srcFilePath = argv[1];
-    String dstFilePath = argv[2];
-	  InetSocketAddress srcFileAddr = Utils.getTachyonMasterAddress(srcFilePath);
-	  InetSocketAddress dstFileAddr = Utils.getTachyonMasterAddress(dstFilePath);
-	  if (!srcFileAddr.getHostName().equals(dstFileAddr.getHostName()) || 
-		  srcFileAddr.getPort() != dstFileAddr.getPort()) {
-		  throw new IOException("The file system of source and destination must be the same");
-	  }
-	  String srcFile = Utils.getFilePath(srcFilePath);
-	  String dstFile = Utils.getFilePath(dstFilePath);
-	  TachyonClient tachyonClient = TachyonClient.getClient(srcFileAddr);
-	  if (tachyonClient.renameFile(srcFile, dstFile)) {
+    String srcPath = argv[1];
+    String dstPath = argv[2];
+    InetSocketAddress srcMasterAddr = Utils.getTachyonMasterAddress(srcPath);
+    InetSocketAddress dstMasterAddr = Utils.getTachyonMasterAddress(dstPath);
+    if (!srcMasterAddr.getHostName().equals(dstMasterAddr.getHostName()) || 
+        srcMasterAddr.getPort() != dstMasterAddr.getPort()) {
+      throw new InvalidPathException("The file system of source and destination must be the same");
+    }
+    String srcFile = Utils.getFilePath(srcPath);
+    String dstFile = Utils.getFilePath(dstPath);
+    TachyonClient tachyonClient = TachyonClient.getClient(srcMasterAddr);
+    if (tachyonClient.renameFile(srcFile, dstFile)) {
       System.out.println("Renamed " + srcFile + " to " + dstFile);
       return 0;
     } else {
@@ -97,8 +89,7 @@ public class TFsShell {
   public int copyToLocal(String argv[])
       throws FileDoesNotExistException, InvalidPathException, TException, IOException {
     if (argv.length != 3) {
-      System.out.println("Usage: tfs copyToLocal");
-      System.out.println("       [copyToLocal <src> <localdst>]");
+      System.out.println("Usage: tfs copyToLocal <src> <localdst>");
       return -1;
     }
 
@@ -116,7 +107,6 @@ public class TFsShell {
 
     tFile.open(OpType.READ_CACHE);
     ByteBuffer buf = tFile.readByteBuffer();
-    buf.rewind();
     FileOutputStream out = new FileOutputStream(dst);
     FileChannel channel = out.getChannel();
     while(buf.hasRemaining()) {
@@ -151,9 +141,9 @@ public class TFsShell {
     int exitCode = -1;
     try {
       if (cmd.equals("ls")) {
-        exitCode = listStatus(argv);	
+        exitCode = ls(argv);	
       } else if (cmd.equals("rm")) {
-        exitCode = remove(argv);
+        exitCode = rm(argv);
       } else if (cmd.equals("mv")) {
         exitCode = rename(argv);
       } else if (cmd.equals("copyToLocal")) {
