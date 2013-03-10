@@ -850,6 +850,12 @@ public class MasterInfo {
 
       String dstName = getName(dstPath);
       String dstFolderPath = dstPath.substring(0, dstPath.length() - dstName.length() - 1);
+
+      // If we are renaming into the root folder
+      if (dstFolderPath.isEmpty()) {
+        dstFolderPath = "/";
+      }
+
       Inode dstFolderInode = getInode(dstFolderPath);
       if (dstFolderInode == null || dstFolderInode.isFile()) {
         throw new FileDoesNotExistException("Failed to rename: " + dstFolderPath + 
@@ -859,6 +865,7 @@ public class MasterInfo {
       inode.setName(dstName);
       InodeFolder parent = (InodeFolder) mInodes.get(inode.getParentId());
       parent.removeChild(inode.getId());
+      inode.setParentId(dstFolderInode.getId());
       ((InodeFolder) dstFolderInode).addChild(inode.getId());
 
       // TODO The following should be done atomically.

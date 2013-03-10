@@ -177,7 +177,7 @@ public class CommonUtils {
   public static String getSizeFromBytes(long bytes) {
     double ret = bytes;
     if (ret <= 1024 * 5) {
-      return String.format("%.2f Bytes", ret); 
+      return String.format("%.2f B", ret); 
     }
     ret /= 1024;
     if (ret <= 1024 * 5) {

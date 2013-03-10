@@ -4,18 +4,19 @@ import java.net.InetSocketAddress;
 
 public class Utils {
   private static final String HEADER = "tachyon://";
-  
+
   public static void validateTachyonPath(String path) {
     if (!path.startsWith(HEADER)) {
-      System.out.println("The path name has to start with tachyon://");
+      System.out.println("The path format is " + HEADER + "<MASTERHOST>:<PORT>/<PATH_NAME>");
       System.exit(-1);
     }
+    path = path.substring(HEADER.length());
     if (!path.contains(":") || !path.contains("/")) {
-      System.out.println("The path name is invalid.");
+      System.out.println("The path format is " + HEADER + "<MASTERHOST>:<PORT>/<PATH_NAME>");
       System.exit(-1);
     }
   }
-  
+
   public static String getFilePath(String path) {
     validateTachyonPath(path);
     path = path.substring(HEADER.length());

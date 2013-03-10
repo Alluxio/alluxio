@@ -10,7 +10,7 @@ if [ -e $TACHYON_HOME/conf/tachyon-env.sh ] ; then
 fi
 
 if [ -z $TACHYON_RAM_FOLDER ] ; then
-  TACHYON_RAM_FOLDER=/mnt/ramfs
+  TACHYON_RAM_FOLDER=/mnt/ramdisk
   echo "TACHYON_RAM_FOLDER was not set. Using the default one: $TACHYON_RAM_FOLDER"
 fi
 

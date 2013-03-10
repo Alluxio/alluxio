@@ -345,7 +345,33 @@ public class TachyonClient {
     return true;
   }
 
-  // TODO For now, we assume this is for partition read only.
+  public synchronized boolean deleteFile(String path) throws InvalidPathException {
+    return deleteFile(getFileId(path));
+  }
+
+  public synchronized boolean renameFile(String srcPath, String dstPath) 
+      throws InvalidPathException {
+    connectAndGetLocalWorker();
+    if (!mConnected) {
+      return false;
+    }
+
+    try {
+      mMasterClient.user_renameFile(srcPath, dstPath);
+    } catch (FileDoesNotExistException e) {
+      LOG.error(e.getMessage());
+      return false;
+    } catch (FileAlreadyExistException e) {
+      LOG.error(e.getMessage());
+      return false;
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      return false;
+    }
+
+    return true;
+  }
+
   public synchronized List<NetAddress> getFileLocations(int fileId) {
     connectAndGetLocalWorker();
     if (!mConnected) {
@@ -466,6 +492,15 @@ public class TachyonClient {
     return mConnected;
   }
 
+  public synchronized List<ClientFileInfo> listStatus(String path)
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    connectAndGetLocalWorker();
+    if (!mConnected) {
+      return null;
+    }
+    return mMasterClient.ls(path);
+  }
+
   public synchronized void outOfMemoryForPinFile(int fileId) {
     connectAndGetLocalWorker();
     if (mConnected) {
@@ -497,7 +532,7 @@ public class TachyonClient {
           mAvailableSpaceBytes += Config.USER_QUOTA_UNIT_BYTES;
         } else {
           LOG.info("Failed to request " + Config.USER_QUOTA_UNIT_BYTES + " bytes local space. " +
-          		"Time " + (failedTimes ++));
+              "Time " + (failedTimes ++));
           if (failedTimes == Config.USER_FAILED_SPACE_REQUEST_LIMITS) {
             return false;
           }
