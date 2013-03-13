@@ -74,7 +74,7 @@ public class TachyonFile {
       throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     HdfsClient tHdfsClient = new HdfsClient(path);
     long sizeBytes = tHdfsClient.getFileSize(path);
-    if (mTachyonClient.addCheckpointPath(mId, path, sizeBytes)) {
+    if (mTachyonClient.addCheckpointPath(mId, path)) {
       mClientFileInfo.sizeBytes = sizeBytes;
       mClientFileInfo.checkpointPath = path;
       return true;

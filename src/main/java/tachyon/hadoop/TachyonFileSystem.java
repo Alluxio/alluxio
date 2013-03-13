@@ -15,14 +15,17 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.CommonUtils;
 import tachyon.Config;
 import tachyon.client.TachyonClient;
+import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * This is only for compatibility with Hadoop stack.
@@ -113,11 +116,18 @@ public class TachyonFileSystem extends FileSystem {
           // TODO Add Checkpoint Path.
           if (tmp != -1) {
             tFileSuffix = "%" + tmp;
+            mTachyonClient.addCheckpointPath(tmp, filePath);
           }
         }
       }
     } catch (InvalidPathException e) {
       throw new IOException(e);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      LOG.error(e.getMessage());
     }
 
     FileStatus ret = new FileStatus(hfs.getLen(), hfs.isDir(), hfs.getReplication(),
