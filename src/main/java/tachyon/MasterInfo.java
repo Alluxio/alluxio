@@ -256,7 +256,7 @@ public class MasterInfo {
   }
 
   public int createFile(boolean recursive, String path, boolean directory, int columns,
-      List<Byte> metadata) throws FileAlreadyExistException, InvalidPathException {
+      ByteBuffer metadata) throws FileAlreadyExistException, InvalidPathException {
     LOG.debug("createFile" + CommonUtils.parametersToString(path));
 
     String[] pathNames = getPathNames(path);
@@ -331,7 +331,7 @@ public class MasterInfo {
     }
   }
 
-  public int createRawTable(String path, int columns, List<Byte> metadata)
+  public int createRawTable(String path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException {
     LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
 

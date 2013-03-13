@@ -1,6 +1,6 @@
 package tachyon.client;
 
-import java.util.List;
+import java.nio.ByteBuffer;
 
 import tachyon.CommonUtils;
 import tachyon.thrift.ClientRawTableInfo;
@@ -30,9 +30,11 @@ public class RawTable {
   public String getPath() {
     return mClientRawTableInfo.getPath();
   }
-  
-  public List<Byte> getMetadata() {
-    return mClientRawTableInfo.getMetadata();
+
+  public ByteBuffer getMetadata() {
+    ByteBuffer ret = mClientRawTableInfo.metadata.duplicate();
+    ret.asReadOnlyBuffer();
+    return ret;
   }
 
   public RawColumn getRawColumn(int columnIndex) {

@@ -31,7 +31,7 @@ public class HdfsClient {
       CommonUtils.runtimeException(e);
     }
   }
-  
+
   public void close() throws IOException {
     mFs.close();
   }

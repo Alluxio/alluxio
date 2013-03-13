@@ -34,7 +34,7 @@ struct ClientRawTableInfo {
   2: string name
   3: string path
   4: i32 columns
-  5: list<byte> metadata
+  5: binary metadata
 }
 
 enum CommandType {
@@ -112,7 +112,7 @@ service MasterService {
   void user_unpinFile(1: i32 fileId) throws (1: FileDoesNotExistException e)   // Remove file from memory
   i32 user_mkdir(1: string path) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
 
-  i32 user_createRawTable(1: string path, 2: i32 columns, 3: list<byte> metadata) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TableColumnException eT)
+  i32 user_createRawTable(1: string path, 2: i32 columns, 3: binary metadata) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TableColumnException eT)
   i32 user_getRawTableId(1: string path) throws (1: InvalidPathException e) // Return 0 if does not contain the Table, return fileId if it exists.
   ClientRawTableInfo user_getClientRawTableInfoById(1: i32 tableId) throws (1: TableDoesNotExistException e)        // Get Table info by Table Id.
   ClientRawTableInfo user_getClientRawTableInfoByPath(1: string tablePath) throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI) // Get Table info by path

@@ -1,6 +1,7 @@
 package tachyon;
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -105,10 +106,10 @@ public class MasterClient {
     return CLIENT.user_createFile(path);
   }
 
-  public synchronized int user_createRawTable(String path, int columns, List<Byte> metadata)
+  public synchronized int user_createRawTable(String path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException, TException {
     if (metadata == null) {
-      metadata = new ArrayList<Byte>(0);
+      metadata = ByteBuffer.allocate(0);
     }
     return CLIENT.user_createRawTable(path, columns, metadata);
   }

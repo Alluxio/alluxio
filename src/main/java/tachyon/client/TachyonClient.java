@@ -4,7 +4,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.apache.thrift.TException;
@@ -287,10 +287,10 @@ public class TachyonClient {
   }
 
   public synchronized int createRawTable(String path, int columns) throws InvalidPathException {
-    return createRawTable(path, columns, new ArrayList<Byte>(0));
+    return createRawTable(path, columns, ByteBuffer.allocate(0));
   }
 
-  public synchronized int createRawTable(String path, int columns, List<Byte> metadata)
+  public synchronized int createRawTable(String path, int columns, ByteBuffer metadata)
       throws InvalidPathException {
     connect();
     if (!mConnected) {
