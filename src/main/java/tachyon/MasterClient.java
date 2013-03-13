@@ -84,6 +84,22 @@ public class MasterClient {
     return mIsConnected;
   }
 
+  /**
+   * @param workerId if -1, means the checkpoint is added directly by underlayer fs.
+   * @param fileId
+   * @param fileSizeBytes
+   * @param checkpointPath
+   * @return
+   * @throws FileDoesNotExistException
+   * @throws SuspectedFileSizeException
+   * @throws TException
+   */
+  public synchronized boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
+      String checkpointPath) 
+          throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    return CLIENT.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+  }
+
   public synchronized int user_createFile(String path)
       throws FileAlreadyExistException, InvalidPathException, TException {
     return CLIENT.user_createFile(path);
@@ -165,12 +181,6 @@ public class MasterClient {
 
   public synchronized void user_unpinFile(int id) throws FileDoesNotExistException, TException {
     CLIENT.user_unpinFile(id);
-  }
-
-  public synchronized void worker_addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
-      String checkpointPath) 
-          throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    CLIENT.worker_addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
   }
 
   public synchronized void worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 

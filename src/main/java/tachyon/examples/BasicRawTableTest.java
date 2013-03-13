@@ -56,7 +56,7 @@ public class BasicRawTableTest {
       }
 
       TachyonFile tFile = rawColumn.getPartition(0);
-      tFile.open(OpType.WRITE_CACHE);
+      tFile.open(OpType.WRITE_CACHE_NO_THROUGH);
 
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
@@ -87,7 +87,7 @@ public class BasicRawTableTest {
     for (int column = 0; column < 3; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
-      tFile.open(OpType.READ_CACHE);
+      tFile.open(OpType.READ_NO_CACHE);
 
       ByteBuffer buf;
       buf = tFile.readByteBuffer();

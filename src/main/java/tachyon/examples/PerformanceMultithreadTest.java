@@ -19,7 +19,6 @@ import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.OutOfMemoryForPinFileException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 public class PerformanceMultithreadTest {
@@ -196,16 +195,12 @@ public class PerformanceMultithreadTest {
 
       mBuf.flip();
       TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-      file.open(OpType.WRITE_CACHE);
+      file.open(OpType.WRITE_CACHE_NO_THROUGH);
       for (int pId = mLeft; pId < mRight; pId ++) {
         long startTimeMs = System.currentTimeMillis();
         for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
           mBuf.array()[0] = (byte) (k + mWorkerId);
-          try {
-            file.append(mBuf);
-          } catch (OutOfMemoryForPinFileException e) {
-            CommonUtils.runtimeException(e);
-          }
+          file.append(mBuf);
         }
         long takenTimeMs = System.currentTimeMillis() - startTimeMs + 1;
         double result = WRITE_BLOCK_SIZE_BYTES * 1000L * BLOCKS_PER_FILE / takenTimeMs / 1024 / 1024;
@@ -247,7 +242,7 @@ public class PerformanceMultithreadTest {
 
         for (int pId = mLeft; pId < mRight; pId ++) {
           TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-          file.open(OpType.READ_CACHE);
+          file.open(OpType.READ_NO_CACHE);
 
           long startTimeMs = System.currentTimeMillis();
           buf = file.readByteBuffer();
@@ -273,7 +268,7 @@ public class PerformanceMultithreadTest {
         }
       }
       TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-      file.open(OpType.READ_CACHE);
+      file.open(OpType.READ_NO_CACHE);
       buf = file.readByteBuffer();
       long sum = 0;
       for (int pId = mLeft; pId < mRight; pId ++) {

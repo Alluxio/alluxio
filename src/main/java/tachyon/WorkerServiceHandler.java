@@ -121,8 +121,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     if (!mHdfsClient.rename(srcPath, dstPath)) {
       throw new FailedToCheckpointException("Failed to rename from " + srcPath + " to " + dstPath);
     }
-    long fileSize = mHdfsClient.getFileSize(dstPath); 
-    mMasterClient.worker_addCheckpoint(mWorkerInfo.getId(), fileId, fileSize, dstPath);
+    long fileSize = mHdfsClient.getFileSize(dstPath);
+    mMasterClient.addCheckpoint(mWorkerInfo.getId(), fileId, fileSize, dstPath);
   }
 
   @Override

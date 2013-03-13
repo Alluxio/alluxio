@@ -3,9 +3,6 @@ package tachyon.client;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import tachyon.CommonUtils;
-import tachyon.thrift.OutOfMemoryForPinFileException;
-
 public class TFileOutputStream extends OutputStream {
   private final TachyonFile FILE; 
 
@@ -33,15 +30,11 @@ public class TFileOutputStream extends OutputStream {
       return;
     }
 
-    try {
-      FILE.append(b, off, len);
-    } catch (OutOfMemoryForPinFileException e) {
-      CommonUtils.runtimeException(e);
-    }
+    FILE.append(b, off, len);
   }
 
   @Override
-  public void close() {
+  public void close() throws IOException {
     FILE.close();
   }
 }

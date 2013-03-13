@@ -154,22 +154,15 @@ public class MasterInfo {
     mHeartbeatThread.start();
   }
 
-  public void addCheckpoint(long workerId, int fileId, long fileSizeBytes,
+  public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes,
       String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException {
     LOG.info("addCheckpoint" + CommonUtils.parametersToString(workerId, fileId, fileSizeBytes,
         checkpointPath));
 
-    WorkerInfo tWorkerInfo = null;
-    synchronized (mWorkers) {
-      tWorkerInfo = mWorkers.get(workerId);
-
-      if (tWorkerInfo == null) {
-        LOG.error("No worker: " + workerId);
-        return;
-      }
+    if (workerId != -1) {
+      WorkerInfo tWorkerInfo = getWorkerInfo(workerId);
+      tWorkerInfo.updateLastUpdatedTimeMs();
     }
-
-    tWorkerInfo.updateLastUpdatedTimeMs();
 
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
@@ -200,6 +193,7 @@ public class MasterInfo {
       if (needLog) {
         mMasterLogWriter.appendAndFlush(tFile);
       }
+      return true;
     }
   }
 
@@ -208,16 +202,7 @@ public class MasterInfo {
     LOG.info("cachedFile" + CommonUtils.parametersToString(workerId, workerUsedBytes, fileId, 
         fileSizeBytes));
 
-    WorkerInfo tWorkerInfo = null;
-    synchronized (mWorkers) {
-      tWorkerInfo = mWorkers.get(workerId);
-
-      if (tWorkerInfo == null) {
-        LOG.error("No worker: " + workerId);
-        return;
-      }
-    }
-
+    WorkerInfo tWorkerInfo = getWorkerInfo(workerId);
     tWorkerInfo.updateFile(true, fileId);
     tWorkerInfo.updateUsedBytes(workerUsedBytes);
     tWorkerInfo.updateLastUpdatedTimeMs();
@@ -250,6 +235,18 @@ public class MasterInfo {
       InetSocketAddress address = tWorkerInfo.ADDRESS;
       tFile.addLocation(workerId, new NetAddress(address.getHostName(), address.getPort()));
     }
+  }
+
+  private WorkerInfo getWorkerInfo(long workerId) {
+    WorkerInfo ret = null;
+    synchronized (mWorkers) {
+      ret = mWorkers.get(workerId);
+
+      if (ret == null) {
+        LOG.error("No worker: " + workerId);
+      }
+    }
+    return ret;
   }
 
   public int createFile(String path, boolean directory)

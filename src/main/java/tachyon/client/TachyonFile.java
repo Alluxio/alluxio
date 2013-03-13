@@ -3,6 +3,8 @@ package tachyon.client;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -17,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.mapred.FileSplit;
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +31,6 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.OutOfMemoryForPinFileException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 /**
@@ -42,22 +43,17 @@ public class TachyonFile {
   private final ClientFileInfo mClientFileInfo;
   private final int mId;
 
-  private List<NetAddress> mLocations;
-
-  private OpType mIo;
-  private boolean mOpen = false;
+  private OpType mIo = null;
   private long mSizeBytes;
-  private File mFolder;
-  private String mFilePath;
-  private RandomAccessFile mFile;
-  private FileSplit mHDFSFileSplit = null;
 
-  private FileChannel mInChannel;
-  private ByteBuffer mInByteBuffer;
+  private ByteBuffer mBuffer;
 
-  private FileChannel mOutChannel;
-  private MappedByteBuffer mOut;
-  private ByteBuffer mOutBuffer;
+  private RandomAccessFile mLocalFile;
+  private FileChannel mLocalFileChannel;
+
+  // TODO Use mCheckpointInputStream
+  //private InputStream mCheckpointInputStream;
+  private OutputStream mCheckpointOutputStream;
 
   public TachyonFile(TachyonClient tachyonClient, ClientFileInfo fileInfo) {
     mTachyonClient = tachyonClient;
@@ -65,46 +61,81 @@ public class TachyonFile {
     mId = mClientFileInfo.getId();
   }
 
-  private synchronized void appendCurrentOutBuffer(int minimalPosition) throws IOException {
-    if (mOutBuffer.position() >= minimalPosition) {
-      if (mSizeBytes != mFile.length()) {
+  /**
+   * This API is not recommended to use.
+   * 
+   * @param path file's checkpoint path.
+   * @return true if the checkpoint path is added successfully, false otherwise.
+   * @throws TException 
+   * @throws SuspectedFileSizeException 
+   * @throws FileDoesNotExistException 
+   */
+  public boolean addCheckpointPath(String path)
+      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    HdfsClient tHdfsClient = new HdfsClient(path);
+    long sizeBytes = tHdfsClient.getFileSize(path);
+    if (mTachyonClient.addCheckpointPath(mId, path, sizeBytes)) {
+      mClientFileInfo.sizeBytes = sizeBytes;
+      mClientFileInfo.checkpointPath = path;
+      return true;
+    }
+
+    return false;
+  }
+
+  private synchronized void appendCurrentBuffer(int minimalPosition) throws IOException {
+    if (mBuffer.position() >= minimalPosition) {
+      if (mSizeBytes != mLocalFile.length()) {
         CommonUtils.runtimeException(
-            String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mFile.length()));
+            String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
       }
 
-      if (!mTachyonClient.requestSpace(mOutBuffer.position())) {
-        throw new IOException("Local tachyon worker does not have enough space.");
+      if (mIo.isWriteCache()) {
+        if (!mTachyonClient.requestSpace(mBuffer.position())) {
+          if (mClientFileInfo.isNeedPin()) {
+            mTachyonClient.outOfMemoryForPinFile(mId);
+            throw new IOException("Local tachyon worker does not have enough " +
+                "space or no worker for " + mId);
+          }
+          throw new IOException("Local tachyon worker does not have enough space.");
+        }
+        mBuffer.flip();
+        MappedByteBuffer out = 
+            mLocalFileChannel.map(MapMode.READ_WRITE, mSizeBytes, mBuffer.limit());
+        out.put(mBuffer);
       }
-      mOut = mOutChannel.map(MapMode.READ_WRITE, mSizeBytes, mOutBuffer.position());
-      mSizeBytes += mOutBuffer.position();
-      mOutBuffer.flip();
-      mOut.put(mOutBuffer);
-      mOutBuffer.clear();
+
+      if (mIo.isWriteThrough()) {
+        mBuffer.flip();
+        mCheckpointOutputStream.write(mBuffer.array(), 0, mBuffer.limit());
+      }
+
+      mSizeBytes += mBuffer.limit();
+      mBuffer.clear();
     }
   }
 
   public void append(byte b) throws IOException {
     validateIO(false);
 
-    appendCurrentOutBuffer(Config.USER_BUFFER_PER_PARTITION_BYTES);
+    appendCurrentBuffer(Config.USER_BUFFER_PER_PARTITION_BYTES);
 
-    mOutBuffer.put(b);
+    mBuffer.put(b);
   }
 
   public void append(int b) throws IOException {
     validateIO(false);
 
-    appendCurrentOutBuffer(Config.USER_BUFFER_PER_PARTITION_BYTES);
+    appendCurrentBuffer(Config.USER_BUFFER_PER_PARTITION_BYTES);
 
-    mOutBuffer.putInt(b);
+    mBuffer.putInt(b);
   }
 
-  public void append(byte[] buf) throws IOException, OutOfMemoryForPinFileException {
+  public void append(byte[] buf) throws IOException {
     append(buf, 0, buf.length);
   }
 
-  public void append(byte[] b, int off, int len) 
-      throws IOException, OutOfMemoryForPinFileException {
+  public void append(byte[] b, int off, int len) throws IOException {
     if (b == null) {
       throw new NullPointerException();
     } else if ((off < 0) || (off > b.length) || (len < 0) ||
@@ -114,110 +145,125 @@ public class TachyonFile {
 
     validateIO(false);
 
-    if (mOutBuffer.position() + len >= Config.USER_BUFFER_PER_PARTITION_BYTES) {
-      if (mSizeBytes != mFile.length()) {
+    if (mBuffer.position() + len >= Config.USER_BUFFER_PER_PARTITION_BYTES) {
+      if (mSizeBytes != mLocalFile.length()) {
         CommonUtils.runtimeException(
-            String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mFile.length()));
+            String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
       }
 
-      if (!mTachyonClient.requestSpace(mOutBuffer.position() + len)) {
-        if (mClientFileInfo.isNeedPin()) {
-          mTachyonClient.outOfMemoryForPinFile(mId);
-          throw new OutOfMemoryForPinFileException("Local tachyon worker does not have enough " +
-              "space or no worker for " + mId);
+      if (mIo.isWriteCache()) {
+        if (!mTachyonClient.requestSpace(mBuffer.position() + len)) {
+          if (mClientFileInfo.isNeedPin()) {
+            mTachyonClient.outOfMemoryForPinFile(mId);
+            throw new IOException("Local tachyon worker does not have enough " +
+                "space or no worker for " + mId);
+          }
+          throw new IOException("Local tachyon worker does not have enough space or no worker.");
         }
-        throw new IOException("Local tachyon worker does not have enough space or no worker.");
-      }
-      mOut = mOutChannel.map(MapMode.READ_WRITE, mSizeBytes, mOutBuffer.position() + len);
-      mSizeBytes += mOutBuffer.position() + len;
 
-      mOutBuffer.flip();
-      mOut.put(mOutBuffer);
-      mOutBuffer.clear();
-      mOut.put(b, off, len);
+        mBuffer.flip();
+        MappedByteBuffer out =
+            mLocalFileChannel.map(MapMode.READ_WRITE, mSizeBytes, mBuffer.limit() + len);
+        out.put(mBuffer);
+        out.put(b, off, len);
+      }
+
+      if (mIo.isWriteThrough()) {
+        mBuffer.flip();
+        mCheckpointOutputStream.write(mBuffer.array(), 0, mBuffer.limit());
+        mCheckpointOutputStream.write(b, off, len);
+      }
+
+      mSizeBytes += mBuffer.limit();
+      mBuffer.clear();
     } else {
-      mOutBuffer.put(b, off, len);
+      mBuffer.put(b, off, len);
     }
   }
 
-  public void append(ByteBuffer buf) throws IOException, OutOfMemoryForPinFileException {
+  public void append(ByteBuffer buf) throws IOException {
     append(buf.array(), buf.position(), buf.limit() - buf.position());
   }
 
-  public void append(ArrayList<ByteBuffer> bufs) 
-      throws IOException, OutOfMemoryForPinFileException {
+  public void append(ArrayList<ByteBuffer> bufs) throws IOException {
     for (int k = 0; k < bufs.size(); k ++) {
       append(bufs.get(k));
     }
   }
 
-  public void cancel() {
+  public void cancel() throws IOException {
     close(true);
   }
 
-  public void close()  {
+  public void close() throws IOException  {
     close(false);
   }
 
-  private void close(boolean cancel) {
-    if (! mOpen) {
+  private void close(boolean cancel) throws IOException {
+    if (mIo == null) {
       return;
     }
 
+    IOException ioE = null;
+
     try {
       if (mIo.isRead()) {
-        if (mInChannel != null) {
-          mInChannel.close();
-          mFile.close();
+        if (mLocalFileChannel != null) {
+          mLocalFileChannel.close();
+          mLocalFile.close();
         }
       } else {
-        if (mOutChannel != null) {
-          if (!cancel) {
-            appendCurrentOutBuffer(1);
-          }
+        if (!cancel) {
+          appendCurrentBuffer(1);
+        }
 
-          mOutChannel.close();
-          mFile.close();
+        if (mLocalFileChannel != null) {
+          mLocalFileChannel.close();
+          mLocalFile.close();
         }
 
         if (cancel) {
           mTachyonClient.releaseSpace(mSizeBytes);
         } else {
-          if (mIo.isSyncWrite()) {
-            String hdfsFolder = mTachyonClient.createAndGetUserHDFSTempFolder();
-            HdfsClient tHdfsClient = new HdfsClient(hdfsFolder);
-            LOG.info("Precopy " + mFilePath + " " + mClientFileInfo.getPath());
-            tHdfsClient.copyFromLocalFile(false, true, mFilePath, hdfsFolder + "/" + mId);
+          if (mIo.isWriteThrough()) {
+            mCheckpointOutputStream.flush();
+            mCheckpointOutputStream.close();
             mTachyonClient.addCheckpoint(mId);
           }
 
-          mTachyonClient.cacheFile(mId);
+          if (mIo.isWriteCache()) {
+            mTachyonClient.cacheFile(mId);
+          }
         }
       }
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
+      ioE = e;
     } catch (SuspectedFileSizeException e) {
       LOG.error(e.getMessage(), e);
+      ioE = new IOException(e);
     } catch (FileDoesNotExistException e) {
       LOG.error(e.getMessage(), e);
+      ioE = new IOException(e);
     } catch (FailedToCheckpointException e) {
       LOG.error(e.getMessage(), e);
+      ioE = new IOException(e);
     }
     mTachyonClient.unlockFile(mId);
 
-    mOpen = false;
+    mIo = null;
+
+    if (ioE != null) {
+      throw ioE;
+    }
   }
 
-  public FileSplit getHdfsFileSplit() {
-    return mHDFSFileSplit;
-  }
-
-  public TFileInputStream getInputStream() {
+  public InputStream getInputStream() throws IOException {
     validateIO(true);
     return new TFileInputStream(this);
   }
 
-  public TFileOutputStream getOutputStream() {
+  public OutputStream getOutputStream() throws IOException {
     validateIO(false);
     return new TFileOutputStream(this);
   }
@@ -239,32 +285,44 @@ public class TachyonFile {
   }
 
   public void open(OpType io) throws IOException {
+    if (io == null) {
+      throw new IOException("OpType can not be null.");
+    }
+
     mIo = io;
 
-    mOpen = true;
-
     if (mIo.isWrite()) {
-      mFolder = mTachyonClient.createAndGetUserTempFolder();
-      if (mFolder == null) {
-        throw new IOException("Failed to create temp user folder for tachyon client.");
+      mBuffer = ByteBuffer.allocate(Config.USER_BUFFER_PER_PARTITION_BYTES + 4);
+      mBuffer.order(ByteOrder.nativeOrder());
+
+      if (mIo.isWriteCache()) {
+        File localFolder = mTachyonClient.createAndGetUserTempFolder();
+        if (localFolder == null) {
+          throw new IOException("Failed to create temp user folder for tachyon client.");
+        }
+        String localFilePath = localFolder.getPath() + "/" + mId;
+        mLocalFile = new RandomAccessFile(localFilePath, "rw");
+        mLocalFileChannel = mLocalFile.getChannel();
+        mSizeBytes = 0;
+        LOG.info("File " + localFilePath + " was created!");
       }
-      mFilePath = mFolder.getPath() + "/" + mId;
-      mFile = new RandomAccessFile(mFilePath, "rw");
-      mOutChannel = mFile.getChannel();
-      mSizeBytes = 0;
-      LOG.info("File " + mFilePath + " was created!");
-      mOutBuffer = ByteBuffer.allocate(Config.USER_BUFFER_PER_PARTITION_BYTES + 4);
-      mOutBuffer.order(ByteOrder.nativeOrder());
+
+      if (mIo.isWriteThrough()) {
+        String hdfsFolder = mTachyonClient.createAndGetUserHDFSTempFolder();
+        HdfsClient tHdfsClient = new HdfsClient(hdfsFolder);
+        mCheckpointOutputStream = tHdfsClient.create(hdfsFolder + "/" + mId);
+      }
     } else {
+      // TODO
       mTachyonClient.lockFile(mId);
-      mInByteBuffer = readByteBuffer();
+      mBuffer = readByteBuffer();
     }
   }
 
   public int read() throws IOException {
     validateIO(true);
     try {
-      return mInByteBuffer.get();
+      return mBuffer.get();
     } catch (java.nio.BufferUnderflowException e) {
       close();
       return -1;
@@ -285,12 +343,12 @@ public class TachyonFile {
     }
 
     validateIO(true);
-    int ret = Math.min(len, mInByteBuffer.remaining());
+    int ret = Math.min(len, mBuffer.remaining());
     if (ret == 0) {
       close();
       return -1;
     }
-    mInByteBuffer.get(b, off, len);
+    mBuffer.get(b, off, len);
     return ret;
   }
 
@@ -325,13 +383,12 @@ public class TachyonFile {
     ByteBuffer ret = null;
 
     if (mTachyonClient.getRootFolder() != null) {
-      mFolder = new File(mTachyonClient.getRootFolder());
-      String localFileName = mFolder.getPath() + "/" + mId;
+      String localFileName = mTachyonClient.getRootFolder() + "/" + mId;
       try {
-        mFile = new RandomAccessFile(localFileName, "r");
-        mSizeBytes = mFile.length();
-        mInChannel = mFile.getChannel();
-        ret = mInChannel.map(FileChannel.MapMode.READ_ONLY, 0, mSizeBytes);
+        mLocalFile = new RandomAccessFile(localFileName, "r");
+        mSizeBytes = mLocalFile.length();
+        mLocalFileChannel = mLocalFile.getChannel();
+        ret = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, mSizeBytes);
         ret.order(ByteOrder.nativeOrder());
         mTachyonClient.accessLocalFile(mId);
         return ret;
@@ -349,20 +406,20 @@ public class TachyonFile {
 
     LOG.info("Try to find and read from remote workers.");
 
-    mLocations = mTachyonClient.getFileLocations(mId);
+    List<NetAddress> fileLocations = mTachyonClient.getFileLocations(mId);
 
-    if (mLocations == null) {
+    if (fileLocations == null) {
       throw new IOException("Can not find location info: " + mClientFileInfo.getPath() + " " + mId);
     }
 
-    LOG.info("readByteBufferFromRemote() " + mLocations);
+    LOG.info("readByteBufferFromRemote() " + fileLocations);
 
-    for (int k = 0 ;k < mLocations.size(); k ++) {
-      String host = mLocations.get(k).mHost;
+    for (int k = 0 ;k < fileLocations.size(); k ++) {
+      String host = fileLocations.get(k).mHost;
       if (host.equals(InetAddress.getLocalHost().getHostName()) 
           || host.equals(InetAddress.getLocalHost().getHostAddress())) {
-        String localFileName = mFolder.getPath() + "/" + mId;
-        LOG.error("Master thinks the local machine has data! But " + localFileName + " is not!");
+        String localFileName = mTachyonClient.getRootFolder() + "/" + mId;
+        LOG.warn("Master thinks the local machine has data! But " + localFileName + " is not!");
       } else {
         LOG.info("readByteBufferFromRemote() : " + host + ":" + Config.WORKER_DATA_SERVER_PORT +
             " current host is " + InetAddress.getLocalHost().getHostName() + " " +
@@ -394,27 +451,16 @@ public class TachyonFile {
     }
 
     String path = mClientFileInfo.checkpointPath;
-    if (!Config.USING_HDFS) {
-      return false;
-    }
-
     HdfsClient tHdfsClient = new HdfsClient(path);
     FSDataInputStream inputStream = tHdfsClient.open(path);
     TachyonFile tTFile = mTachyonClient.getFile(mClientFileInfo.getId());
-    tTFile.open(OpType.WRITE_CACHE);
+    tTFile.open(OpType.WRITE_CACHE_NO_THROUGH);
     byte buffer[] = new byte[Config.USER_BUFFER_PER_PARTITION_BYTES * 4];
 
     int limit;
     while ((limit = inputStream.read(buffer)) >= 0) {
       if (limit != 0) {
-        try {
-          tTFile.append(buffer, 0, limit);
-        } catch (IOException e) {
-          LOG.error(e.getMessage());
-          return false;
-        } catch (OutOfMemoryForPinFileException e) {
-          CommonUtils.runtimeException(e);
-        }
+        tTFile.append(buffer, 0, limit);
       }
     }
 
@@ -460,12 +506,8 @@ public class TachyonFile {
     return recvMsg.getReadOnlyData();
   }
 
-  public void setHDFSFileSplit(FileSplit fs) {
-    mHDFSFileSplit = fs;
-  }
-
-  private void validateIO(boolean read) {
-    if (!mOpen) {
+  private void validateIO(boolean read) throws IOException {
+    if (mIo == null) {
       CommonUtils.runtimeException("The partition was never openned or has been closed.");
     }
     if (read != mIo.isRead()) {
