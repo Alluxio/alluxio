@@ -230,9 +230,11 @@ public class TachyonClient {
    * @throws SuspectedFileSizeException 
    * @throws FileDoesNotExistException 
    */
-  public synchronized boolean addCheckpointPath(int id, String path, long fileSizeBytes)
+  public synchronized boolean addCheckpointPath(int id, String path)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     connect();
+    HdfsClient hdfsClient = new HdfsClient(path);
+    long fileSizeBytes = hdfsClient.getFileSize(path);
     return mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path);
   }
 

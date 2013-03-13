@@ -48,40 +48,6 @@ implements Seekable, PositionedReadable {
     mHadoopBufferSize = bufferSize;
 
     TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
-    if (!tachyonFile.isReady()) {
-      // Cache the partition
-      long startTimeMs = System.currentTimeMillis();
-      FileSystem fs = hdfsPath.getFileSystem(mHadoopConf);
-      FSDataInputStream tHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-      try {
-        tachyonFile.open(OpType.WRITE_CACHE_THROUGH);
-      } catch (IOException e) {
-        LOG.error(e.getMessage());
-        return;
-      }
-      int cnt = 0;
-
-      int limit;
-      while ((limit = tHdfsInputStream.read(mBuffer)) >= 0) {
-        if (limit != 0) {
-          try {
-            tachyonFile.append(mBuffer, 0, limit);
-          } catch (IOException e) {
-            LOG.error(e.getMessage());
-            return;
-          }
-        }
-        cnt += limit;
-      }
-
-      tachyonFile.close();
-      tachyonFile = mTachyonClient.getFile(mFileId);
-      if (tachyonFile == null) {
-        return;
-      }
-      LOG.info("Caching file " + mHdfsPath + " with size " + cnt + " bytes took " +
-          (System.currentTimeMillis() - startTimeMs) + " ms. ");
-    }
     try {
       tachyonFile.open(OpType.READ_TRY_CACHE);
     } catch (IOException e) {
@@ -193,7 +159,7 @@ implements Seekable, PositionedReadable {
     mBufferPosition = 0;
     return mBuffer[mBufferPosition ++];
   }
-  
+
   @Override
   public void close() throws IOException {
     if (mTachyonFileInputStream != null) {
