@@ -15,7 +15,6 @@ import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.OutOfMemoryForPinFileException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 public class BasicUserOperationTest {
@@ -33,7 +32,7 @@ public class BasicUserOperationTest {
   public static void writeFile()
       throws SuspectedFileSizeException, InvalidPathException, IOException {
     TachyonFile file = sTachyonClient.getFile(sFilePath);
-    file.open(OpType.WRITE_CACHE);
+    file.open(OpType.WRITE_CACHE_NO_THROUGH);
 
     ByteBuffer buf = ByteBuffer.allocate(80);
     buf.order(ByteOrder.nativeOrder());
@@ -46,11 +45,7 @@ public class BasicUserOperationTest {
     CommonUtils.printByteBuffer(LOG, buf);
 
     buf.flip();
-    try {
-      file.append(buf);
-    } catch (OutOfMemoryForPinFileException e) {
-      CommonUtils.runtimeException(e);
-    }
+    file.append(buf);
     file.close();
   }
 
@@ -58,7 +53,7 @@ public class BasicUserOperationTest {
       throws SuspectedFileSizeException, InvalidPathException, IOException {
     LOG.info("Reading data...");
     TachyonFile file = sTachyonClient.getFile(sFilePath);
-    file.open(OpType.READ_CACHE);
+    file.open(OpType.READ_NO_CACHE);
 
     ByteBuffer buf;
     try { 

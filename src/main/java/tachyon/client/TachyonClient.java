@@ -203,6 +203,21 @@ public class TachyonClient {
     return getClient(new InetSocketAddress(address[0], Integer.parseInt(address[1])));
   }
 
+  /**
+   * This API is not recommended to use.
+   * @param id file id
+   * @param path existing checkpoint path
+   * @return true if the checkpoint path is added successfully, false otherwise.
+   * @throws TException 
+   * @throws SuspectedFileSizeException 
+   * @throws FileDoesNotExistException 
+   */
+  public synchronized boolean addCheckpointPath(int id, String path, long fileSizeBytes)
+      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    connectAndGetLocalWorker();
+    return mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path);
+  }
+
   public synchronized void close() throws TException {
     if (mMasterClient != null) {
       mMasterClient.close();

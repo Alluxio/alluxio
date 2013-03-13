@@ -26,7 +26,7 @@ public class TFileInputStream extends InputStream {
   }
   
   @Override
-  public void close() {
+  public void close() throws IOException {
     FILE.close();
   }
 }

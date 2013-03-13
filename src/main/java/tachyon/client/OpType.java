@@ -2,13 +2,16 @@ package tachyon.client;
 
 public enum OpType {
   // Read the file and cache it.
-  READ_CACHE(1),
+//  READ_CACHE(1),
+  // Read the file and but do not cache it explictly.
+  READ_NO_CACHE(2),
   // Write the file and cache it.
-  WRITE_CACHE(1 << 4),
+  // TODO This is for local testing only for now.
+  WRITE_CACHE_NO_THROUGH(1 << 4),
   // Write the file synchronously, cache it,
-  WRITE_CACHE_THROUGH(1 << 4 + 1);
+  WRITE_CACHE_THROUGH(1 << 4 + 1),
   // Write the file synchronously, no cache.
-  //  WRITE_THROUGH(1 << 4 + 2);
+  WRITE_THROUGH_NO_CACHE(1 << 4 + 2);
 
   private final int mValue;
 
@@ -24,7 +27,11 @@ public enum OpType {
     return !isRead();
   }
 
-  public boolean isSyncWrite() {
-    return (mValue == WRITE_CACHE_THROUGH.mValue);
+  public boolean isWriteThrough() {
+    return (mValue == WRITE_CACHE_THROUGH.mValue) || (mValue == WRITE_THROUGH_NO_CACHE.mValue);
+  }
+  
+  public boolean isWriteCache() {
+    return (mValue == WRITE_CACHE_NO_THROUGH.mValue) || (mValue == WRITE_CACHE_THROUGH.mValue);
   }
 }

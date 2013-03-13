@@ -13,12 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Config;
-import tachyon.CommonUtils;
 import tachyon.client.OpType;
-import tachyon.client.TFileInputStream;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
-import tachyon.thrift.OutOfMemoryForPinFileException;
 
 public class TFileInputStreamHdfs extends InputStream
 implements Seekable, PositionedReadable {
@@ -33,7 +30,7 @@ implements Seekable, PositionedReadable {
 
   private FSDataInputStream mHdfsInputStream = null;
 
-  private TFileInputStream mTachyonPartitionInputStream = null;
+  private InputStream mTachyonFileInputStream = null;
 
   private int mBufferLimit = 0;
   private int mBufferPosition = 0;
@@ -72,8 +69,6 @@ implements Seekable, PositionedReadable {
           } catch (IOException e) {
             LOG.error(e.getMessage());
             return;
-          } catch (OutOfMemoryForPinFileException e) {
-            CommonUtils.runtimeException(e);
           }
         }
         cnt += limit;
@@ -88,13 +83,13 @@ implements Seekable, PositionedReadable {
           (System.currentTimeMillis() - startTimeMs) + " ms. ");
     }
     try {
-      tachyonFile.open(OpType.READ_CACHE);
+      tachyonFile.open(OpType.READ_NO_CACHE);
     } catch (IOException e) {
       LOG.error(e.getMessage());
       return;
     }
 
-    mTachyonPartitionInputStream = tachyonFile.getInputStream();
+    mTachyonFileInputStream = tachyonFile.getInputStream();
   }
 
   /**
@@ -166,15 +161,15 @@ implements Seekable, PositionedReadable {
       return readFromHdfsBuffer();
     }
 
-    if (mTachyonPartitionInputStream != null) {
+    if (mTachyonFileInputStream != null) {
       int ret = 0;
       try {
-        ret = mTachyonPartitionInputStream.read();
+        ret = mTachyonFileInputStream.read();
         mCurrentPosition ++;
         return ret;
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        mTachyonPartitionInputStream = null;
+        mTachyonFileInputStream = null;
       }
     }
 
@@ -201,8 +196,8 @@ implements Seekable, PositionedReadable {
   
   @Override
   public void close() throws IOException {
-    if (mTachyonPartitionInputStream != null) {
-      mTachyonPartitionInputStream.close();
+    if (mTachyonFileInputStream != null) {
+      mTachyonFileInputStream.close();
     }
     if (mHdfsInputStream != null) {
       mHdfsInputStream.close();

@@ -38,6 +38,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath) 
+      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+  }
+
+  @Override
   public List<ClientFileInfo> cmd_ls(String path)
       throws InvalidPathException, FileDoesNotExistException, TException {
     return mMasterInfo.getFilesInfo(path);
@@ -148,13 +154,6 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public void user_unpinFile(int fileId) throws FileDoesNotExistException, TException {
     mMasterInfo.unpinFile(fileId);
-  }
-
-  @Override
-  public void worker_addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
-      String checkpointPath) 
-          throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
   }
 
   @Override
