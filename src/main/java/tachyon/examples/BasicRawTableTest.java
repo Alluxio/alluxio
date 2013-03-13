@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -35,10 +33,10 @@ public class BasicRawTableTest {
 
   public static void createRawTable() throws InvalidPathException {
     long startTimeMs = CommonUtils.getCurrentMs();
-    List<Byte> data = new ArrayList<Byte>(3);
-    data.add((byte) -1);
-    data.add((byte) -2);
-    data.add((byte) -3);
+    ByteBuffer data = ByteBuffer.allocate(12);
+    data.putInt(-1);
+    data.putInt(-2);
+    data.putInt(-3);
     mId = sTachyonClient.createRawTable(sTablePath, 3, data);
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createRawTable with id " + mId);
   }
@@ -77,11 +75,9 @@ public class BasicRawTableTest {
       throws IOException, TableDoesNotExistException, InvalidPathException, TException {
     LOG.info("Reading data...");
     RawTable rawTable = sTachyonClient.getRawTable(mId);
-    List<Byte> metadata = rawTable.getMetadata();
+    ByteBuffer metadata = rawTable.getMetadata();
     LOG.info("Metadata: ");
-    for (Byte b : metadata) {
-      LOG.info(b + "");
-    }
+    LOG.info(metadata.getInt() + " ");
 
     for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
