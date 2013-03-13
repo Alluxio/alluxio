@@ -15,6 +15,7 @@ public class InodeRawTable extends InodeFolder {
     } else {
       METADATA = ByteBuffer.allocate(metadata.limit());
       METADATA.put(metadata);
+      METADATA.flip();
     }
   }
 
