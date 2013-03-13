@@ -99,7 +99,7 @@ service MasterService {
   i32 user_createFile(1: string filePath) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
   i32 user_getFileId(1: string filePath) throws (1: InvalidPathException e) // Return -1 if does not contain the file, return fileId if it exists.
   i64 user_getUserId()
-  NetAddress user_getLocalWorker(1: string host) throws (1: NoLocalWorkerException e) // Get local worker NetAddress
+  NetAddress user_getWorker(1: bool random, 2: string host) throws (1: NoLocalWorkerException e) // Get local worker NetAddress
   ClientFileInfo user_getClientFileInfoById(1: i32 fileId) throws (1: FileDoesNotExistException e)
   ClientFileInfo user_getClientFileInfoByPath(1: string filePath) throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
   list<NetAddress> user_getFileLocationsById(1: i32 fileId) throws (1: FileDoesNotExistException e)        // Get file locations by file Id.

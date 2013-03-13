@@ -83,7 +83,7 @@ implements Seekable, PositionedReadable {
           (System.currentTimeMillis() - startTimeMs) + " ms. ");
     }
     try {
-      tachyonFile.open(OpType.READ_NO_CACHE);
+      tachyonFile.open(OpType.READ_TRY_CACHE);
     } catch (IOException e) {
       LOG.error(e.getMessage());
       return;

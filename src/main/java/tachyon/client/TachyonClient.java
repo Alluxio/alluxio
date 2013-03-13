@@ -37,18 +37,16 @@ import tachyon.thrift.TableDoesNotExistException;
 public class TachyonClient {
   private final Logger LOG = LoggerFactory.getLogger(TachyonClient.class);
 
-  // The local root data folder.
-  private String sDataFolder = null;
-  // The local work ComId
-  private InetSocketAddress sLocalWorkerAddress = null;
-
   // The RPC client talks to the system master.
   private MasterClient mMasterClient = null;
   // The Master address.
   private InetSocketAddress mMasterAddress = null;
   // The RPC client talks to the local worker if there is one.
-  private WorkerClient mLocalWorkerClient = null;
-
+  private WorkerClient mWorkerClient = null;
+  // The local root data folder.
+  private String mDataFolder = null;
+  // Whether the client is local or remote.
+  private boolean mIsWorkerLocal = false;
   // The local data folder.
   private String mUserTempFolder = null;
   // The HDFS data folder
@@ -65,13 +63,13 @@ public class TachyonClient {
   private boolean mConnected = false;
 
   public synchronized void accessLocalFile(int fileId) {
-    connectAndGetLocalWorker();
-    if (mLocalWorkerClient != null) {
+    connect();
+    if (mWorkerClient != null && mIsWorkerLocal) {
       try {
-        mLocalWorkerClient.accessFile(fileId);
+        mWorkerClient.accessFile(fileId);
         return;
       } catch (TException e) {
-        mLocalWorkerClient = null;
+        mWorkerClient = null;
         LOG.error(e.getMessage(), e);
       }
     }
@@ -81,33 +79,33 @@ public class TachyonClient {
 
   public synchronized void addCheckpoint(int fileId) 
       throws FileDoesNotExistException, SuspectedFileSizeException, FailedToCheckpointException {
-    connectAndGetLocalWorker();
+    connect();
     if (!mConnected) {
       throw new FailedToCheckpointException("Failed to add checkpoint for file " + fileId);
     }
-    if (mLocalWorkerClient != null) {
+    if (mWorkerClient != null) {
       try {
-        mLocalWorkerClient.addCheckpoint(mUserId, fileId);
+        mWorkerClient.addCheckpoint(mUserId, fileId);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        mLocalWorkerClient = null;
+        mWorkerClient = null;
       }
     }
   }
 
   public synchronized void cacheFile(int fileId) 
       throws FileDoesNotExistException, SuspectedFileSizeException {
-    connectAndGetLocalWorker();
+    connect();
     if (!mConnected) {
       return;
     }
 
-    if (mLocalWorkerClient != null) {
+    if (mWorkerClient != null) {
       try {
-        mLocalWorkerClient.cacheFile(mUserId, fileId);
+        mWorkerClient.cacheFile(mUserId, fileId);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        mLocalWorkerClient = null;
+        mWorkerClient = null;
       }
     }
     return;
@@ -115,7 +113,7 @@ public class TachyonClient {
 
   // Lazy connection
   // TODO This should be removed since the Thrift server has been fixed.
-  public synchronized void connectAndGetLocalWorker() {
+  public synchronized void connect() {
     if (mMasterClient != null) {
       return;
     }
@@ -135,44 +133,64 @@ public class TachyonClient {
       return;
     }
 
+    InetSocketAddress workerAddress = null;
+    NetAddress workerNetAddress = null;
+    mIsWorkerLocal = false;
     try {
       String localHostName = InetAddress.getLocalHost().getHostName();
       LOG.info("Trying to get local worker host : " + localHostName);
-      NetAddress localWorker = mMasterClient.user_getLocalWorker(localHostName); 
-      sLocalWorkerAddress = new InetSocketAddress(localWorker.mHost, localWorker.mPort);
+      workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
+      mIsWorkerLocal = true;
     } catch (NoLocalWorkerException e) {
       LOG.info(e.getMessage());
-      sLocalWorkerAddress = null;
+      workerNetAddress = null;
+    } catch (UnknownHostException e) {
+      LOG.error(e.getMessage());
+      workerNetAddress = null;
     } catch (TException e) {
       LOG.error(e.getMessage());
       mConnected = false;
-      sLocalWorkerAddress = null;
-    } catch (UnknownHostException e) {
-      LOG.error(e.getMessage());
-      sLocalWorkerAddress = null;
+      workerNetAddress = null;
     }
 
-    if (sLocalWorkerAddress == null) {
+    if (workerNetAddress == null) {
+      try {
+        workerNetAddress = mMasterClient.user_getWorker(true, "");
+      } catch (NoLocalWorkerException e) {
+        LOG.info(e.getMessage());
+        workerNetAddress = null;
+      } catch (TException e) {
+        LOG.error(e.getMessage());
+        mConnected = false;
+        workerNetAddress = null;
+      }
+    }
+
+    if (workerNetAddress == null) {
+      LOG.error("No worker running in the system");
       return;
     }
 
-    LOG.info("Trying to connect local worker @ " + sLocalWorkerAddress);
-    mLocalWorkerClient = new WorkerClient(sLocalWorkerAddress);
-    if (!mLocalWorkerClient.open()) {
-      LOG.error("Failed to connect local worker @ " + sLocalWorkerAddress);
-      mLocalWorkerClient = null;
+    workerAddress = new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
+
+    LOG.info("Connecting " + (mIsWorkerLocal ? "local" : "remote") + " worker @ " + workerAddress);
+    mWorkerClient = new WorkerClient(workerAddress);
+    if (!mWorkerClient.open()) {
+      LOG.error("Failed to connect " + (mIsWorkerLocal ? "local" : "remote") + 
+          " worker @ " + workerAddress);
+      mWorkerClient = null;
       return;
     }
 
     try {
-      sDataFolder = mLocalWorkerClient.getDataFolder();
-      mUserTempFolder = mLocalWorkerClient.getUserTempFolder(mUserId);
-      mUserHdfsTempFolder = mLocalWorkerClient.getUserHdfsTempFolder(mUserId);
+      mDataFolder = mWorkerClient.getDataFolder();
+      mUserTempFolder = mWorkerClient.getUserTempFolder(mUserId);
+      mUserHdfsTempFolder = mWorkerClient.getUserHdfsTempFolder(mUserId);
     } catch (TException e) {
       LOG.error(e.getMessage());
-      sDataFolder = null;
+      mDataFolder = null;
       mUserTempFolder = null;
-      mLocalWorkerClient = null;
+      mWorkerClient = null;
       return;
     }
 
@@ -180,7 +198,7 @@ public class TachyonClient {
       mUserHdfsTempFolder = null;
     }
 
-    mToWorkerHeartbeat = new ClientToWorkerHeartbeat(mLocalWorkerClient, mUserId);
+    mToWorkerHeartbeat = new ClientToWorkerHeartbeat(mWorkerClient, mUserId);
     Thread thread = new Thread(mToWorkerHeartbeat);
     thread.setDaemon(true);
     thread.start();
@@ -214,7 +232,7 @@ public class TachyonClient {
    */
   public synchronized boolean addCheckpointPath(int id, String path, long fileSizeBytes)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    connectAndGetLocalWorker();
+    connect();
     return mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path);
   }
 
@@ -223,14 +241,14 @@ public class TachyonClient {
       mMasterClient.close();
     }
 
-    if (mLocalWorkerClient != null) {
-      mLocalWorkerClient.returnSpace(mUserId, mAvailableSpaceBytes);
-      mLocalWorkerClient.close();
+    if (mWorkerClient != null) {
+      mWorkerClient.returnSpace(mUserId, mAvailableSpaceBytes);
+      mWorkerClient.close();
     }
   }
 
   public synchronized File createAndGetUserTempFolder() {
-    connectAndGetLocalWorker();
+    connect();
 
     if (mUserTempFolder == null) {
       return null;
@@ -251,7 +269,7 @@ public class TachyonClient {
   }
 
   public synchronized String createAndGetUserHDFSTempFolder() {
-    connectAndGetLocalWorker();
+    connect();
 
     if (mUserHdfsTempFolder == null) {
       return null;
@@ -272,7 +290,7 @@ public class TachyonClient {
 
   public synchronized int createRawTable(String path, int columns, List<Byte> metadata)
       throws InvalidPathException {
-    connectAndGetLocalWorker();
+    connect();
     if (!mConnected) {
       return -1;
     }
@@ -299,7 +317,7 @@ public class TachyonClient {
   }
 
   public synchronized int createFile(String path) throws InvalidPathException {
-    connectAndGetLocalWorker();
+    connect();
     if (!mConnected) {
       return -1;
     }
@@ -323,7 +341,7 @@ public class TachyonClient {
   }
 
   public synchronized int mkdir(String path) throws InvalidPathException {
-    connectAndGetLocalWorker();
+    connect();
     if (!mConnected) {
       return -1;
     }
@@ -342,7 +360,7 @@ public class TachyonClient {
   }
 
   public synchronized boolean deleteFile(int fileId) {
-    connectAndGetLocalWorker();
+    connect();
     if (!mConnected) {
       return false;
     }
@@ -366,7 +384,7 @@ public class TachyonClient {
 
   public synchronized boolean renameFile(String srcPath, String dstPath) 
       throws InvalidPathException {
-    connectAndGetLocalWorker();
+    connect();
     if (!mConnected) {
       return false;
     }
@@ -388,7 +406,7 @@ public class TachyonClient {
   }
 
   public synchronized List<NetAddress> getFileLocations(int fileId) {
-    connectAndGetLocalWorker();
+    connect();
     if (!mConnected) {
       return null;
     }
@@ -425,7 +443,7 @@ public class TachyonClient {
   }
 
   public synchronized int getFileId(String path) throws InvalidPathException {
-    connectAndGetLocalWorker();
+    connect();
     if (!mConnected) {
       return -1;
     }
@@ -444,7 +462,7 @@ public class TachyonClient {
   }
 
   private synchronized ClientFileInfo getClientFileInfo(String path) throws InvalidPathException {
-    connectAndGetLocalWorker();
+    connect();
     if (!mConnected) {
       return null;
     }
@@ -465,7 +483,7 @@ public class TachyonClient {
   }
 
   private synchronized ClientFileInfo getClientFileInfo(int fileId) {
-    connectAndGetLocalWorker();
+    connect();
     if (!mConnected) {
       return null;
     }
@@ -486,21 +504,26 @@ public class TachyonClient {
 
   public synchronized RawTable getRawTable(String path)
       throws TableDoesNotExistException, InvalidPathException, TException {
-    connectAndGetLocalWorker();
+    connect();
     path = CommonUtils.cleanPath(path);
     ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfoByPath(path);
     return new RawTable(this, clientRawTableInfo);
   }
 
   public synchronized RawTable getRawTable(int id) throws TableDoesNotExistException, TException {
-    connectAndGetLocalWorker();
+    connect();
     ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfoById(id);
     return new RawTable(this, clientRawTableInfo);
   }
 
   public synchronized String getRootFolder() {
-    connectAndGetLocalWorker();
-    return sDataFolder;
+    connect();
+    return mDataFolder;
+  }
+
+  public synchronized boolean hasLocalWorker() {
+    connect();
+    return (mIsWorkerLocal && mWorkerClient != null);
   }
 
   public synchronized boolean isConnected() {
@@ -509,7 +532,7 @@ public class TachyonClient {
 
   public synchronized List<ClientFileInfo> listStatus(String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
-    connectAndGetLocalWorker();
+    connect();
     if (!mConnected) {
       return null;
     }
@@ -517,7 +540,7 @@ public class TachyonClient {
   }
 
   public synchronized void outOfMemoryForPinFile(int fileId) {
-    connectAndGetLocalWorker();
+    connect();
     if (mConnected) {
       try {
         mMasterClient.user_outOfMemoryForPinFile(fileId);
@@ -532,18 +555,18 @@ public class TachyonClient {
   }
 
   public synchronized boolean requestSpace(long requestSpaceBytes) {
-    connectAndGetLocalWorker();
-    if (mLocalWorkerClient == null) {
+    connect();
+    if (mWorkerClient == null || !mIsWorkerLocal) {
       return false;
     }
     int failedTimes = 0;
     while (mAvailableSpaceBytes < requestSpaceBytes) {
-      if (mLocalWorkerClient == null) {
+      if (mWorkerClient == null) {
         LOG.error("The current host does not have a Tachyon worker.");
         return false;
       }
       try {
-        if (mLocalWorkerClient.requestSpace(mUserId, Config.USER_QUOTA_UNIT_BYTES)) {
+        if (mWorkerClient.requestSpace(mUserId, Config.USER_QUOTA_UNIT_BYTES)) {
           mAvailableSpaceBytes += Config.USER_QUOTA_UNIT_BYTES;
         } else {
           LOG.info("Failed to request " + Config.USER_QUOTA_UNIT_BYTES + " bytes local space. " +
@@ -554,7 +577,7 @@ public class TachyonClient {
         }
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        mLocalWorkerClient = null;
+        mWorkerClient = null;
         return false;
       }
     }
@@ -569,7 +592,7 @@ public class TachyonClient {
   }
 
   public synchronized boolean unpinFile(int fileId) {
-    connectAndGetLocalWorker();
+    connect();
     if (!mConnected) {
       return false;
     }
@@ -588,12 +611,12 @@ public class TachyonClient {
   }
 
   public synchronized boolean lockFile(int fileId) {
-    connectAndGetLocalWorker();
-    if (!mConnected || mLocalWorkerClient == null) {
+    connect();
+    if (!mConnected || mWorkerClient == null || !mIsWorkerLocal) {
       return false;
     }
     try {
-      mLocalWorkerClient.lockFile(fileId, mUserId);
+      mWorkerClient.lockFile(fileId, mUserId);
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;
@@ -602,12 +625,12 @@ public class TachyonClient {
   }
 
   public synchronized boolean unlockFile(int fileId) {
-    connectAndGetLocalWorker();
-    if (!mConnected || mLocalWorkerClient == null) {
+    connect();
+    if (!mConnected || mWorkerClient == null || !mIsWorkerLocal) {
       return false;
     }
     try {
-      mLocalWorkerClient.unlockFile(fileId, mUserId);
+      mWorkerClient.unlockFile(fileId, mUserId);
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;
@@ -617,7 +640,7 @@ public class TachyonClient {
 
   public synchronized int getNumberOfFiles(String folderPath) 
       throws FileDoesNotExistException, InvalidPathException, TException {
-    connectAndGetLocalWorker();
+    connect();
     return mMasterClient.getNumberOfFiles(folderPath);
   }
 }

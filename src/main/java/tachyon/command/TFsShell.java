@@ -105,7 +105,7 @@ public class TFsShell {
       throw new FileDoesNotExistException(folder);
     }
 
-    tFile.open(OpType.READ_NO_CACHE);
+    tFile.open(OpType.READ_TRY_CACHE);
     ByteBuffer buf = tFile.readByteBuffer();
     FileOutputStream out = new FileOutputStream(dst);
     FileChannel channel = out.getChannel();
