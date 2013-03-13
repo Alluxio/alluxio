@@ -37,6 +37,7 @@ public class BasicRawTableTest {
     data.putInt(-1);
     data.putInt(-2);
     data.putInt(-3);
+    data.flip();
     mId = sTachyonClient.createRawTable(sTablePath, 3, data);
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createRawTable with id " + mId);
   }
@@ -77,6 +78,8 @@ public class BasicRawTableTest {
     RawTable rawTable = sTachyonClient.getRawTable(mId);
     ByteBuffer metadata = rawTable.getMetadata();
     LOG.info("Metadata: ");
+    LOG.info(metadata.getInt() + " ");
+    LOG.info(metadata.getInt() + " ");
     LOG.info(metadata.getInt() + " ");
 
     for (int column = 0; column < COLS; column ++) {
