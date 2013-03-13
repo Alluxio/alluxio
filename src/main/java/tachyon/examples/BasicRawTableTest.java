@@ -27,28 +27,28 @@ import tachyon.thrift.TableDoesNotExistException;
 public class BasicRawTableTest {
   private static Logger LOG = LoggerFactory.getLogger(BasicRawTableTest.class);
 
+  private static final int COLS = 3;
   private static TachyonClient sTachyonClient;
   private static String sTablePath = null;
   private static int mId;
+  private static OpType sWriteType = null;
 
   public static void createRawTable() throws InvalidPathException {
     long startTimeMs = CommonUtils.getCurrentMs();
-    List<Byte> data = new ArrayList<Byte>(5);
+    List<Byte> data = new ArrayList<Byte>(3);
     data.add((byte) -1);
     data.add((byte) -2);
     data.add((byte) -3);
-    data.add((byte) -4);
-    data.add((byte) -5);
     mId = sTachyonClient.createRawTable(sTablePath, 3, data);
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createRawTable with id " + mId);
   }
 
   public static void writeParition() 
-      throws IOException, TableDoesNotExistException, 
-      OutOfMemoryForPinFileException, InvalidPathException, TException {
+      throws IOException, TableDoesNotExistException, InvalidPathException, TException {
     RawTable rawTable = sTachyonClient.getRawTable(sTablePath);
 
-    for (int column = 0; column < 3; column ++) {
+    LOG.info("Writing data...");
+    for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       if (!rawColumn.createPartition(0)) {
         CommonUtils.runtimeException("Failed to create partition in table " + sTablePath + 
@@ -56,7 +56,7 @@ public class BasicRawTableTest {
       }
 
       TachyonFile tFile = rawColumn.getPartition(0);
-      tFile.open(OpType.WRITE_CACHE_NO_THROUGH);
+      tFile.open(sWriteType);
 
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
@@ -65,7 +65,6 @@ public class BasicRawTableTest {
       }
 
       buf.flip();
-      LOG.info("Writing data...");
       CommonUtils.printByteBuffer(LOG, buf);
 
       buf.flip();
@@ -84,10 +83,10 @@ public class BasicRawTableTest {
       LOG.info(b + "");
     }
 
-    for (int column = 0; column < 3; column ++) {
+    for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
-      tFile.open(OpType.READ_NO_CACHE);
+      tFile.open(OpType.READ_TRY_CACHE);
 
       ByteBuffer buf;
       buf = tFile.readByteBuffer();
@@ -99,13 +98,14 @@ public class BasicRawTableTest {
   public static void main(String[] args)
       throws IOException, TableDoesNotExistException, OutOfMemoryForPinFileException, 
       InvalidPathException, TException {
-    if (args.length != 2) {
+    if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar " +
           "tachyon.examples.BasicRawTableTest <TachyonMasterHostName> <FilePath>");
     }
     sTachyonClient = TachyonClient.getClient(new InetSocketAddress(args[0], Config.MASTER_PORT));
     sTablePath = args[1];
+    sWriteType = OpType.getOpType(args[2]);
     createRawTable();
     writeParition();
     readPartition();

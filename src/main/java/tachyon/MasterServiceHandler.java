@@ -73,8 +73,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public NetAddress user_getLocalWorker(String host) throws NoLocalWorkerException, TException {
-    return mMasterInfo.getLocalWorker(host);
+  public NetAddress user_getWorker(boolean random, String host) 
+      throws NoLocalWorkerException, TException {
+    return mMasterInfo.getWorker(random, host);
   }
 
   @Override

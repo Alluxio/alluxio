@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -589,12 +590,27 @@ public class MasterInfo {
     recoveryFromFile(Config.MASTER_LOG_FILE, "Master Log file ");
   }
 
-  public NetAddress getLocalWorker(String host) throws NoLocalWorkerException {
+  public NetAddress getWorker(boolean random, String host) throws NoLocalWorkerException {
     synchronized (mWorkers) {
-      for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
-        if (address.getHostName().equals(host)) {
-          LOG.debug("getLocalWorker: " + address);
+      if (random) {
+        int index = new Random(mWorkerAddressToId.size()).nextInt(mWorkerAddressToId.size());
+        for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
+          if (index == 0) {
+            LOG.debug("getRandomWorker: " + address);
+            return new NetAddress(address.getHostName(), address.getPort());
+          }
+          index --;
+        }
+        for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
+          LOG.debug("getRandomWorker: " + address);
           return new NetAddress(address.getHostName(), address.getPort());
+        }
+      } else {
+        for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
+          if (address.getHostName().equals(host)) {
+            LOG.debug("getLocalWorker: " + address);
+            return new NetAddress(address.getHostName(), address.getPort());
+          }
         }
       }
     }

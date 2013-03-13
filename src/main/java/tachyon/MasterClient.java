@@ -145,9 +145,9 @@ public class MasterClient {
     return CLIENT.user_getFileLocationsById(id);
   }
 
-  public synchronized NetAddress user_getLocalWorker(String localHostName)
+  public synchronized NetAddress user_getWorker(boolean random, String hostname)
       throws NoLocalWorkerException, TException {
-    return CLIENT.user_getLocalWorker(localHostName);
+    return CLIENT.user_getWorker(random, hostname);
   }
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoByPath(String path)

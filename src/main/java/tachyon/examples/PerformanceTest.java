@@ -55,7 +55,7 @@ public class PerformanceTest {
     buf.flip();
     for (int pId = 0; pId < FILES; pId ++) {
       TachyonFile file = TC.getFile(FILE_NAME + pId);
-      file.open(OpType.WRITE_CACHE_NO_THROUGH);
+      file.open(OpType.WRITE_CACHE);
       long startTimeMs = System.currentTimeMillis();
       for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
         //        long localStartTimeNs = System.nanoTime();
@@ -81,7 +81,7 @@ public class PerformanceTest {
 
       for (int pId = 0; pId < FILES; pId ++) {
         TachyonFile file = TC.getFile(FILE_NAME + pId);
-        file.open(OpType.READ_NO_CACHE);
+        file.open(OpType.READ_TRY_CACHE);
 
         long startTimeMs = System.currentTimeMillis();
         buf = file.readByteBuffer();
@@ -109,7 +109,7 @@ public class PerformanceTest {
 
     for (int pId = 0; pId < FILES; pId ++) {
       TachyonFile file = TC.getFile(FILE_NAME + pId);
-      file.open(OpType.READ_NO_CACHE);
+      file.open(OpType.READ_TRY_CACHE);
 
       int[] readArray = new int[BLOCK_SIZE_BYTES / 4];
       long startTimeMs = System.currentTimeMillis();

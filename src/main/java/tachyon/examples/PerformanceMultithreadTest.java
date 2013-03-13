@@ -195,7 +195,7 @@ public class PerformanceMultithreadTest {
 
       mBuf.flip();
       TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-      file.open(OpType.WRITE_CACHE_NO_THROUGH);
+      file.open(OpType.WRITE_CACHE);
       for (int pId = mLeft; pId < mRight; pId ++) {
         long startTimeMs = System.currentTimeMillis();
         for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
@@ -242,7 +242,7 @@ public class PerformanceMultithreadTest {
 
         for (int pId = mLeft; pId < mRight; pId ++) {
           TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-          file.open(OpType.READ_NO_CACHE);
+          file.open(OpType.READ_TRY_CACHE);
 
           long startTimeMs = System.currentTimeMillis();
           buf = file.readByteBuffer();
@@ -268,7 +268,7 @@ public class PerformanceMultithreadTest {
         }
       }
       TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-      file.open(OpType.READ_NO_CACHE);
+      file.open(OpType.READ_TRY_CACHE);
       buf = file.readByteBuffer();
       long sum = 0;
       for (int pId = mLeft; pId < mRight; pId ++) {
