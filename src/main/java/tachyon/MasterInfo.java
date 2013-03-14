@@ -51,6 +51,7 @@ public class MasterInfo {
   private final long START_TIME_MS;
 
   private AtomicInteger mInodeCounter = new AtomicInteger(0);
+  private AtomicInteger mDependencyCounter = new AtomicInteger(0);
   private AtomicInteger mUserCounter = new AtomicInteger(0);
   private AtomicInteger mWorkerCounter = new AtomicInteger(0);
 
@@ -529,7 +530,8 @@ public class MasterInfo {
         }
       }
 
-      checkpointWriter.appendAndFlush(new CheckpointInfo(mInodeCounter.get()));
+      checkpointWriter.appendAndFlush(new CheckpointInfo(
+          mInodeCounter.get(), mDependencyCounter.get()));
       checkpointWriter.close();
 
       CommonUtils.renameFile(Config.MASTER_CHECKPOINT_FILE + ".tmp", Config.MASTER_CHECKPOINT_FILE);
@@ -554,6 +556,7 @@ public class MasterInfo {
           case CheckpointInfo: {
             CheckpointInfo checkpointInfo = (CheckpointInfo) pair.getSecond();
             mInodeCounter.set(checkpointInfo.COUNTER_INODE);
+            mDependencyCounter.set(checkpointInfo.COUNTER_DEPENDENCY);
             break;
           }
           case InodeFile:

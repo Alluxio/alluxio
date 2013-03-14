@@ -96,6 +96,7 @@ service MasterService {
   set<i32> worker_getPinIdList()
 
   // Services to Users
+//  i32 user_createDependency(1: list<i32> parents, 2: list<i32> children, 3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework, 7: string frameworkVersion, 8: string dependencyType) throws (1: FileDoesNotExistException e)
   i32 user_createFile(1: string filePath) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
   i32 user_getFileId(1: string filePath) throws (1: InvalidPathException e) // Return -1 if does not contain the file, return fileId if it exists.
   i64 user_getUserId()
