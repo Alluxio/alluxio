@@ -3,8 +3,7 @@ package tachyon;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 /**
  * All constants in the system. This should only be visible to the System. Should not be visible to 
@@ -21,6 +20,8 @@ public class Config {
   public static final long GB = MB * 1024L;
   public static final long TB = GB * 1024L;
   public static final long TWO_32 = 1L << 32;
+
+  public static String LOGGER_TYPE = "";
 
   public static final String MASTER_LOG_FILE;
   public static final String MASTER_CHECKPOINT_FILE;
@@ -69,7 +70,7 @@ public class Config {
 
   public static final boolean DEBUG;
 
-  private static final Logger LOG = LoggerFactory.getLogger(Config.class);
+  private static final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private static String getNonNullProperty(String property, String defaultValue) {
     String ret = System.getProperty(property);

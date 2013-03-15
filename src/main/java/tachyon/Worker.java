@@ -7,8 +7,7 @@ import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import tachyon.thrift.Command;
 import tachyon.thrift.WorkerService;
@@ -19,7 +18,7 @@ import tachyon.thrift.WorkerService;
  * @author haoyuan
  */
 public class Worker implements Runnable {
-  private static final Logger LOG = LoggerFactory.getLogger(Worker.class);
+  private static final Logger LOG = Logger.getLogger("WORKER_LOGGER");
 
   private static Worker WORKER = null;
 
@@ -35,6 +34,8 @@ public class Worker implements Runnable {
   private Worker(InetSocketAddress masterAddress, InetSocketAddress workerAddress, 
       int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String dataFolder, long memoryCapacityBytes) {
+    Config.LOGGER_TYPE = "WORKER_LOGGER";
+
     DataFolder = dataFolder;
     MemoryCapacityBytes = memoryCapacityBytes;
 
@@ -67,6 +68,9 @@ public class Worker implements Runnable {
           processor(processor).workerThreads(workerThreads));
 
       LOG.info("The worker server started @ " + workerAddress);
+      for (int i = 0; i < 10000; i++) {
+        LOG.info("Log test, remember to remove (Worker.java line 69-71");
+      }
       mServer.serve();
       LOG.info("The worker server ends @ " + workerAddress);
     } catch (TTransportException e) {

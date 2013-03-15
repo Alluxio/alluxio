@@ -23,4 +23,4 @@ fi
 
 echo "Starting master @ $MASTER_ADDRESS"
 # echo "Starting master: (java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true $TACHYON_JAVA_OPTS tachyon.Master ) &> $TACHYON_HOME/logs/master.log &"
-(java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true $TACHYON_JAVA_OPTS tachyon.Master ) &> $TACHYON_HOME/logs/master.log &
+(java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true $TACHYON_JAVA_OPTS tachyon.Master ) &

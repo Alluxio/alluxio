@@ -13,8 +13,8 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
+
 
 /**
  * The Server to serve data partition read request from remote machines. The current implementation
@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * @author Haoyuan Li
  */
 public class DataServer implements Runnable {
-  private static final Logger LOG = LoggerFactory.getLogger(DataServer.class);
+  private static final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   // The host:port combination to listen on
   private InetSocketAddress mAddress;
