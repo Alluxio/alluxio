@@ -53,7 +53,7 @@ public class TachyonFileAppender extends FileAppender {
   }
 
   private String getNewLogFileName(String fileName) {
-    if (fileName != null) {
+    if (!fileName.isEmpty()) {
       String newFileName = "";
       int dotIndex = fileName.indexOf(".");
       if (dotIndex != -1 && fileName.indexOf("-") == -1) {
@@ -76,8 +76,9 @@ public class TachyonFileAppender extends FileAppender {
       mLastDate = CommonUtils.convertMsToSimpleDate(System.currentTimeMillis());
       mCurrentFileName = newFileName;
       return newFileName;
+    } else {
+      throw new RuntimeException("Log4j configuration has not been set correctly, null filepath");
     }
-    return null;
   }
 
   private void rotateLogs(String fileName) {
