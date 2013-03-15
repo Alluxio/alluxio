@@ -6,9 +6,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Config;
 import tachyon.CommonUtils;
@@ -21,7 +20,7 @@ import tachyon.thrift.OutOfMemoryForPinFileException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 public class PerformanceTest {
-  private static Logger LOG = LoggerFactory.getLogger(PerformanceTest.class);
+  private static Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private static TachyonClient TC;
   private static String FILE_NAME = null;

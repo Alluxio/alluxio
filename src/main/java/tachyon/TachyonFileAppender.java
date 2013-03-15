@@ -25,15 +25,13 @@ public class TachyonFileAppender extends FileAppender {
   }
 
   @Override
-  public void subAppend(LoggingEvent event) {
+  public synchronized void subAppend(LoggingEvent event) {
     File currentLog = new File(mCurrentFileName);
     if (currentLog.length() > mMaxFileBytes || 
         !CommonUtils.convertMsToSimpleDate(System.currentTimeMillis()).equals(mLastDate)) {
       activateOptions();
     }
-    synchronized (this) {
-      super.subAppend(event);
-    }
+    super.subAppend(event);
   }
 
   @Override
@@ -90,7 +88,7 @@ public class TachyonFileAppender extends FileAppender {
     fileName = fileName.substring(0, fileName.length() - suffix.length());
     File latestFile = new File(fileName + suffix);
     if (latestFile.length() > 0) {
-      for (int i = mMaxBackupIndex; i > 0; i--) {  
+      for (int i = mMaxBackupIndex; i > 0; i --) {  
         File oldFile = new File(fileName + "[" + i + "]" + suffix);
         if (oldFile.exists()) {
           if (i == mMaxBackupIndex) {
