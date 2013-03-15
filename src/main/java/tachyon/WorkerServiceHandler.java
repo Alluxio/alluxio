@@ -15,7 +15,6 @@ import java.util.concurrent.BlockingQueue;
 
 import org.apache.thrift.TException;
 import org.apache.log4j.Logger;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.Path;
 

@@ -18,7 +18,7 @@ import tachyon.thrift.WorkerService;
  * @author haoyuan
  */
 public class Worker implements Runnable {
-  private static final Logger LOG = Logger.getLogger("WORKER_LOGGER");
+  private static final Logger LOG = Logger.getLogger(Config.WORKER_LOGGER_TYPE);
 
   private static Worker WORKER = null;
 
@@ -34,7 +34,7 @@ public class Worker implements Runnable {
   private Worker(InetSocketAddress masterAddress, InetSocketAddress workerAddress, 
       int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String dataFolder, long memoryCapacityBytes) {
-    Config.LOGGER_TYPE = "WORKER_LOGGER";
+    Config.LOGGER_TYPE = Config.WORKER_LOGGER_TYPE;
 
     DataFolder = dataFolder;
     MemoryCapacityBytes = memoryCapacityBytes;
@@ -68,9 +68,6 @@ public class Worker implements Runnable {
           processor(processor).workerThreads(workerThreads));
 
       LOG.info("The worker server started @ " + workerAddress);
-      for (int i = 0; i < 10000; i++) {
-        LOG.info("Log test, remember to remove (Worker.java line 69-71");
-      }
       mServer.serve();
       LOG.info("The worker server ends @ " + workerAddress);
     } catch (TTransportException e) {

@@ -15,7 +15,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
-
 import tachyon.thrift.InvalidPathException;
 
 /**
@@ -78,7 +77,6 @@ public class CommonUtils {
     DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy");
     return formatter.format(new Date(Millis));
   }
-
 
   public static void deleteFile(String fileName) {
     File file = new File(fileName);
