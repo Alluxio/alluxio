@@ -11,7 +11,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.log4j.Logger;
 
-
 /**
  * This is a HDFS Client for Tachyon. It handles all sorts of retry logic.
  * @author haoyuan

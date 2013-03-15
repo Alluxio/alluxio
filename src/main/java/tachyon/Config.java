@@ -22,6 +22,8 @@ public class Config {
   public static final long TWO_32 = 1L << 32;
 
   public static String LOGGER_TYPE = "";
+  public static final String MASTER_LOGGER_TYPE = "MASTER_LOGGER";
+  public static final String WORKER_LOGGER_TYPE = "WORKER_LOGGER";
 
   public static final String MASTER_LOG_FILE;
   public static final String MASTER_CHECKPOINT_FILE;
@@ -61,7 +63,7 @@ public class Config {
   public static final String HDFS_TACHYON_META = "_tachyon_metadata";
   public static final String HDFS_TACHYON_META_TEMP = "__tachyon_metadata";
   public static final boolean USING_HDFS;
-  
+
   public static final int MAX_COLUMNS = 100;
   public static final String SEPARATOR = "/";
 

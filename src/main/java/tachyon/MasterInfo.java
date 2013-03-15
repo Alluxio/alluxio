@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.mortbay.log.Log;
 import org.apache.log4j.Logger;
 
-
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
