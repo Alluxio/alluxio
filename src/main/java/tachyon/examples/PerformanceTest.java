@@ -21,8 +21,8 @@ import tachyon.client.TachyonFile;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
-public class PerformanceMultithreadTest {
-  private static Logger LOG = LoggerFactory.getLogger(PerformanceMultithreadTest.class);
+public class PerformanceTest {
+  private static Logger LOG = LoggerFactory.getLogger(PerformanceTest.class);
 
   private static TachyonClient MTC = null;
   private static String MASTER_HOST = null;
@@ -115,55 +115,51 @@ public class PerformanceMultithreadTest {
           }
           Results[mWorkerId] = sum;
         }
-
-        return;
-      }
-
-      if (mOneToMany) {
-        //        ByteBuffer dst = dst = ByteBuffer.allocateDirect(FILE_BYTES);
-        long sum = 0;
-        RandomAccessFile file =
-            new RandomAccessFile("/mnt/ramdisk/tachyonworker/" + (mWorkerId + 2), "rw");
-        ByteBuffer dst = file.getChannel().map(MapMode.READ_WRITE, 0, FILE_BYTES);
-        dst.order(ByteOrder.nativeOrder());
-        for (int times = mLeft; times < mRight; times ++) {
-          //          long startTimeMs = System.currentTimeMillis();
-          for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
-            mBuf.array()[0] = (byte) (k + mWorkerId);
-            dst.put(mBuf.array());
-          }
-          //          long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-          //          double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
-          //          LOG.info(times + "th MemCopy @ Worker " + mWorkerId + " : " + result + " Mb/sec. Took " +
-          //              takenTimeMs + " ms. Is One To Many: " + mOneToMany);
-          //          sum += dst.get(times);
-          dst.clear();
-          sum += dst.get(times);
-          dst.clear();
-        }
-        file.close();
-        Results[mWorkerId] = sum;
       } else {
-        //        ByteBuffer dst = ByteBuffer.allocateDirect(FILE_BYTES);
-        long sum = 0;
-        RandomAccessFile file =
-            new RandomAccessFile("/mnt/ramdisk/tachyonworker/" + (mWorkerId + 2), "r");
-        ByteBuffer dst = file.getChannel().map(MapMode.READ_ONLY, 0, FILE_BYTES);
-        dst.order(ByteOrder.nativeOrder());
-        for (int times = mLeft; times < mRight; times ++) {
-          //          long startTimeMs = System.currentTimeMillis();
-          for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
-            dst.get(mBuf.array());
+        if (mOneToMany) {
+          long sum = 0;
+          RandomAccessFile file =
+              new RandomAccessFile("/mnt/ramdisk/tachyonworker/" + (mWorkerId + 2), "rw");
+          ByteBuffer dst = file.getChannel().map(MapMode.READ_WRITE, 0, FILE_BYTES);
+          dst.order(ByteOrder.nativeOrder());
+          for (int times = mLeft; times < mRight; times ++) {
+            //          long startTimeMs = System.currentTimeMillis();
+            for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
+              mBuf.array()[0] = (byte) (k + mWorkerId);
+              dst.put(mBuf.array());
+            }
+            //          long takenTimeMs = System.currentTimeMillis() - startTimeMs;
+            //          double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
+            //          LOG.info(times + "th MemCopy @ Worker " + mWorkerId + " : " + result + " Mb/sec. Took " +
+            //              takenTimeMs + " ms. Is One To Many: " + mOneToMany);
+            //          sum += dst.get(times);
+            dst.clear();
+            sum += dst.get(times);
+            dst.clear();
           }
-          sum += mBuf.get(times % 16);
-          //          long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-          //          double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
-          //          LOG.info(times + "th MemCopy @ Worker " + mWorkerId + " : " + result + " Mb/sec. Took " +
-          //              takenTimeMs + " ms. Is One To Many: " + mOneToMany);
-          dst.clear();
+          file.close();
+          Results[mWorkerId] = sum;
+        } else {
+          long sum = 0;
+          RandomAccessFile file =
+              new RandomAccessFile("/mnt/ramdisk/tachyonworker/" + (mWorkerId + 2), "r");
+          ByteBuffer dst = file.getChannel().map(MapMode.READ_ONLY, 0, FILE_BYTES);
+          dst.order(ByteOrder.nativeOrder());
+          for (int times = mLeft; times < mRight; times ++) {
+            //          long startTimeMs = System.currentTimeMillis();
+            for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
+              dst.get(mBuf.array());
+            }
+            sum += mBuf.get(times % 16);
+            //          long takenTimeMs = System.currentTimeMillis() - startTimeMs;
+            //          double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
+            //          LOG.info(times + "th MemCopy @ Worker " + mWorkerId + " : " + result + " Mb/sec. Took " +
+            //              takenTimeMs + " ms. Is One To Many: " + mOneToMany);
+            dst.clear();
+          }
+          file.close();
+          Results[mWorkerId] = sum;
         }
-        file.close();
-        Results[mWorkerId] = sum;
       }
     }
 
@@ -263,8 +259,8 @@ public class PerformanceMultithreadTest {
 
           long takenTimeMs = System.currentTimeMillis() - startTimeMs + 1;
           double result = WRITE_BLOCK_SIZE_BYTES * 1000L * BLOCKS_PER_FILE / takenTimeMs / 1024 / 1024;
-          LOG.info("Read Performance: " + result + " Mb/sec");
-          LOG.info("Verifying read data: " + buf + " took " + takenTimeMs + " ms");
+          LOG.info("Read Performance: " + result + " Mb/sec. " +
+          		"Verifying read data: " + buf + " took " + takenTimeMs + " ms");
         }
       }
       TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
@@ -284,10 +280,10 @@ public class PerformanceMultithreadTest {
 
         LOG.info(pId + "th Read @ Worker " + mWorkerId + " : " + result + 
             " Mb/sec, took " + takenTimeMs + " ms. " + tmp);
-        //        if (DEBUG_MODE) {
-        //          buf.flip();
-        //          CommonUtils.printByteBuffer(LOG, buf);
-        //        }
+        if (DEBUG_MODE) {
+          buf.flip();
+          CommonUtils.printByteBuffer(LOG, buf);
+        }
         buf.clear();
       }
       file.close();
