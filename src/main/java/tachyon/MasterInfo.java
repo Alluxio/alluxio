@@ -23,11 +23,13 @@ import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
+import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -256,7 +258,6 @@ public class MasterInfo {
       String commandPrefix, List<ByteBuffer> data, String comment,
       String framework, String frameworkVersion, DependencyType dependencyType)
           throws InvalidPathException, FileDoesNotExistException {
-    // TODO Auto-generated method stub
     Dependency dep = null;
     synchronized (mRoot) {
       List<Integer> parentsIdList = getFilesIds(parents);
@@ -275,8 +276,10 @@ public class MasterInfo {
       mMasterLogWriter.appendAndFlush(childrenInodeList);
     }
 
-    mDependencies.put(dep.ID, dep);
-    mMasterLogWriter.appendAndFlush(dep);
+    synchronized (mDependencies) {
+      mDependencies.put(dep.ID, dep);
+      mMasterLogWriter.appendAndFlush(dep);
+    }
 
     return dep.ID;
   }
@@ -669,6 +672,18 @@ public class MasterInfo {
       }
     }
     return ret;
+  }
+
+  public ClientDependencyInfo getClientDependencyInfo(int dependencyId) 
+      throws DependencyDoesNotExistException {
+    Dependency dep = null;
+    synchronized (mDependencies) {
+      dep = mDependencies.get(dependencyId);
+      if (dep == null) {
+        throw new DependencyDoesNotExistException("No dependency with id " + dependencyId);
+      }
+    }
+    return dep.generateClientDependencyInfo();
   }
 
   public ClientFileInfo getClientFileInfo(int id) throws FileDoesNotExistException {

@@ -37,6 +37,13 @@ struct ClientRawTableInfo {
   5: binary metadata
 }
 
+struct ClientDependencyInfo {
+  1: i32 id
+  2: list<i32> parents
+  3: list<i32> children
+  4: list<binary> data
+}
+
 enum CommandType {
   Unknown = 0,
   Nothing = 1,
@@ -86,6 +93,10 @@ exception TableDoesNotExistException {
   1: string message
 }
 
+exception DependencyDoesNotExistException {
+  1: string message
+}
+
 service MasterService {
   bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 fileSizeBytes, 4: string checkpointPath) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
 
@@ -97,6 +108,7 @@ service MasterService {
 
   // Services to Users
   i32 user_createDependency(1: list<string> parents, 2: list<string> children, 3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework, 7: string frameworkVersion, 8: i32 dependencyType) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
+  ClientDependencyInfo user_getClientDependencyInfo(1: i32 dependencyId) throws (1: DependencyDoesNotExistException e)
   i32 user_createFile(1: string filePath) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
   i32 user_getFileId(1: string filePath) throws (1: InvalidPathException e) // Return -1 if does not contain the file, return fileId if it exists.
   i64 user_getUserId()

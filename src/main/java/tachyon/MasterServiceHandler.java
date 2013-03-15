@@ -10,9 +10,11 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.Command;
+import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -92,6 +94,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   public NetAddress user_getWorker(boolean random, String host) 
       throws NoLocalWorkerException, TException {
     return mMasterInfo.getWorker(random, host);
+  }
+
+  @Override
+  public ClientDependencyInfo user_getClientDependencyInfo(int dependencyId)
+      throws DependencyDoesNotExistException, TException {
+    return mMasterInfo.getClientDependencyInfo(dependencyId);
   }
 
   @Override

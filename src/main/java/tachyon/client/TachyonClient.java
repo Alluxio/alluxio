@@ -12,14 +12,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Config;
-import tachyon.Dependency;
 import tachyon.DependencyType;
 import tachyon.HdfsClient;
 import tachyon.MasterClient;
 import tachyon.CommonUtils;
 import tachyon.WorkerClient;
+import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -287,16 +288,14 @@ public class TachyonClient {
 
     return mUserHdfsTempFolder;
   }
-  
-  // TODO Dependency and DependencyType should not be applications facing.
-  public synchronized Dependency createDependency(List<String> parents, List<String> children,
+
+  public synchronized int createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, DependencyType type) {
+      String frameworkVersion, DependencyType type)
+          throws InvalidPathException, FileDoesNotExistException, TException {
     connect();
-    int dependencyId = mMasterClient.createDependency(parents, children, commandPrefix, 
+    return mMasterClient.user_createDependency(parents, children, commandPrefix, 
         data, comment, framework, frameworkVersion, type.getValue());
-    // TODO;
-    return null;
   }
 
   public synchronized int createRawTable(String path, int columns) throws InvalidPathException {
@@ -475,6 +474,12 @@ public class TachyonClient {
       return -1;
     }
     return fileId;
+  }
+
+  public synchronized ClientDependencyInfo getClientDependencyInfo(int dependencyId)
+      throws DependencyDoesNotExistException, TException {
+    connect();
+    return mMasterClient.user_getClientDependencyInfo(dependencyId);
   }
 
   private synchronized ClientFileInfo getClientFileInfo(String path) throws InvalidPathException {

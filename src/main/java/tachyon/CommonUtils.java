@@ -9,6 +9,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -55,6 +56,21 @@ public class CommonUtils {
       path = path.substring(0, path.length() - 1);
     }
     return path;
+  }
+
+  public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
+    ByteBuffer ret = ByteBuffer.allocate(buf.limit() - buf.position());
+    ret.put(buf);
+    ret.flip();
+    return ret;
+  }
+
+  public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
+    List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
+    for (int k = 0; k < source.size(); k ++) {
+      source.add(cloneByteBuffer(source.get(k)));
+    }
+    return ret;
   }
 
   public static String convertMsToClockTime(long Millis) {
