@@ -4,6 +4,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import tachyon.thrift.ClientDependencyInfo;
+
 public class Dependency {
   public final int ID;
   public final long CREATION_TIME_MS;
@@ -30,13 +32,7 @@ public class Dependency {
     CHILDREN = new ArrayList<Integer>(children.size());
     CHILDREN.addAll(children);
     COMMAND_PREFIX = commandPrefix;
-    DATA = new ArrayList<ByteBuffer>(data.size());
-    for (int k = 0; k < data.size(); k ++) {
-      ByteBuffer tBuf = ByteBuffer.allocate(data.get(k).limit());
-      tBuf.put(data.get(k));
-      tBuf.flip();
-      DATA.add(tBuf);
-    }
+    DATA = CommonUtils.cloneByteBufferList(data);
 
     COMMENT = comment;
     FRAMEWORK = framework;
@@ -68,5 +64,16 @@ public class Dependency {
       sb.append(" ").append(recomputeList.get(k));
     }
     return sb.toString();
+  }
+
+  public ClientDependencyInfo generateClientDependencyInfo() {
+    ClientDependencyInfo ret = new ClientDependencyInfo();
+    ret.id = ID;
+    ret.parents = new ArrayList<Integer>(PARENTS.size());
+    ret.parents.addAll(PARENTS);
+    ret.children = new ArrayList<Integer>(CHILDREN.size());
+    ret.children.addAll(CHILDREN);
+    ret.data = CommonUtils.cloneByteBufferList(DATA);
+    return ret;
   }
 }

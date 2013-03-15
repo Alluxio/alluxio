@@ -15,9 +15,11 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.Command;
+import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -101,6 +103,14 @@ public class MasterClient {
     return CLIENT.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
   }
 
+  public synchronized int user_createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment,
+      String framework, String frameworkVersion, int value) 
+          throws InvalidPathException, FileDoesNotExistException, TException {
+    return CLIENT.user_createDependency(parents, children, commandPrefix, data, comment, 
+        framework, frameworkVersion, value);
+  }
+
   public synchronized int user_createFile(String path)
       throws FileAlreadyExistException, InvalidPathException, TException {
     return CLIENT.user_createFile(path);
@@ -131,6 +141,11 @@ public class MasterClient {
   public synchronized ClientFileInfo user_getClientFileInfoById(int id)
       throws FileDoesNotExistException, TException {
     return CLIENT.user_getClientFileInfoById(id);
+  }
+
+  public synchronized ClientDependencyInfo user_getClientDependencyInfo(int dependencyId) 
+      throws DependencyDoesNotExistException, TException {
+    return CLIENT.user_getClientDependencyInfo(dependencyId);
   }
 
   public synchronized int user_getFileId(String path) throws InvalidPathException, TException {
