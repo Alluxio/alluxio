@@ -96,7 +96,7 @@ service MasterService {
   set<i32> worker_getPinIdList()
 
   // Services to Users
-//  i32 user_createDependency(1: list<i32> parents, 2: list<i32> children, 3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework, 7: string frameworkVersion, 8: string dependencyType) throws (1: FileDoesNotExistException e)
+  i32 user_createDependency(1: list<string> parents, 2: list<string> children, 3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework, 7: string frameworkVersion, 8: i32 dependencyType) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
   i32 user_createFile(1: string filePath) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
   i32 user_getFileId(1: string filePath) throws (1: InvalidPathException e) // Return -1 if does not contain the file, return fileId if it exists.
   i64 user_getUserId()
@@ -109,7 +109,6 @@ service MasterService {
   void user_deleteByPath(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF) // Delete file
   void user_outOfMemoryForPinFile(1: i32 fileId)
   void user_renameFile(1: string srcFilePath, 2: string dstFilePath) throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)
-//  void user_setPartitionCheckpointPath(1: i32 fileId, 2: string checkpointPath) throws (1: FileDoesNotExistException eD)
   void user_unpinFile(1: i32 fileId) throws (1: FileDoesNotExistException e)   // Remove file from memory
   i32 user_mkdir(1: string path) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
 

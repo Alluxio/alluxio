@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Config;
+import tachyon.Dependency;
+import tachyon.DependencyType;
 import tachyon.HdfsClient;
 import tachyon.MasterClient;
 import tachyon.CommonUtils;
@@ -285,6 +287,17 @@ public class TachyonClient {
 
     return mUserHdfsTempFolder;
   }
+  
+  // TODO Dependency and DependencyType should not be applications facing.
+  public synchronized Dependency createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+      String frameworkVersion, DependencyType type) {
+    connect();
+    int dependencyId = mMasterClient.createDependency(parents, children, commandPrefix, 
+        data, comment, framework, frameworkVersion, type.getValue());
+    // TODO;
+    return null;
+  }
 
   public synchronized int createRawTable(String path, int columns) throws InvalidPathException {
     return createRawTable(path, columns, ByteBuffer.allocate(0));
@@ -436,6 +449,7 @@ public class TachyonClient {
     return new TachyonFile(this, clientFileInfo);
   }
 
+  // TODO fileId should not be exposed to applications, it should be an internal value.
   public synchronized TachyonFile getFile(int fileId) {
     ClientFileInfo clientFileInfo = getClientFileInfo(fileId);
     if (clientFileInfo == null) {

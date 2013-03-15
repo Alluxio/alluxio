@@ -7,13 +7,16 @@ public abstract class Inode implements Comparable<Inode> {
   private int mId;
   private String mName;
   private int mParentId;
+  private int mDependencyId;
 
   protected Inode(String name, int id, int parentId, InodeType type) {
-    mName = name;
-    mParentId = parentId;
+    TYPE = type;
 
     mId = id;
-    TYPE = type;
+    mName = name;
+    mParentId = parentId;
+    mDependencyId = -1;
+
     CREATION_TIME_MS = System.currentTimeMillis();
   }
 
@@ -42,7 +45,7 @@ public abstract class Inode implements Comparable<Inode> {
   public boolean isFile() {
     return TYPE == InodeType.File;
   }
-  
+
   public InodeType getInodeType() {
     return TYPE;
   }
@@ -65,6 +68,14 @@ public abstract class Inode implements Comparable<Inode> {
 
   public synchronized void setName(String name) {
     mName = name;
+  }
+
+  public synchronized void setDependencyId(int dependencyId) {
+    mDependencyId = dependencyId;
+  }
+
+  public synchronized int getDependencyId() {
+    return mDependencyId;
   }
 
   public synchronized int getParentId() {

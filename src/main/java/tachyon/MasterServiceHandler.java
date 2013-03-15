@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.List;
@@ -48,6 +49,20 @@ public class MasterServiceHandler implements MasterService.Iface {
   public List<ClientFileInfo> cmd_ls(String path)
       throws InvalidPathException, FileDoesNotExistException, TException {
     return mMasterInfo.getFilesInfo(path);
+  }
+
+  @Override
+  public int user_createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment,
+      String framework, String frameworkVersion, int dependencyType)
+          throws InvalidPathException, FileDoesNotExistException, TException {
+    try {
+      return mMasterInfo.createDependency(parents, children, commandPrefix, 
+          data, comment, framework, frameworkVersion,
+          DependencyType.getDependencyType(dependencyType));
+    } catch (IOException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    }
   }
 
   @Override

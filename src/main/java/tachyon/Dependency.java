@@ -44,4 +44,29 @@ public class Dependency {
 
     TYPE = type;
   }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("Dependency[");
+    sb.append("ID:").append(ID).append(", CREATION_TIME_MS:").append(CREATION_TIME_MS);
+    sb.append(", Parents:").append(PARENTS).append(", Children:").append(CHILDREN);
+    sb.append(", COMMAND_PREFIX:").append(COMMAND_PREFIX);
+    sb.append(", COMMENT:").append(COMMENT);
+    sb.append(", FRAMEWORK:").append(FRAMEWORK);
+    sb.append(", FRAMEWORK_VERSION:").append(FRAMEWORK_VERSION);
+    sb.append("]");
+    return sb.toString();
+  }
+
+  public String getCommand(List<Integer> recomputeList) {
+    // TODO In future, we should support different types of command;
+    // For now, assume there is only one command model.
+    StringBuilder sb = new StringBuilder(COMMAND_PREFIX);
+    sb.append(" ").append(Config.MASTER_HOSTNAME).append(":").append(Config.MASTER_PORT);
+    sb.append(" ").append(ID);
+    for (int k = 0; k < recomputeList.size(); k ++) {
+      sb.append(" ").append(recomputeList.get(k));
+    }
+    return sb.toString();
+  }
 }
