@@ -1,23 +1,21 @@
 package tachyon;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.ByteBuffer;
 
 public class InodeRawTable extends InodeFolder {
   protected final int COLUMNS;
 
-  private final List<Byte> METADATA;
+  private final ByteBuffer METADATA;
 
-  public InodeRawTable(String name, int id, int parentId, int columns, List<Byte> metadata) {
+  public InodeRawTable(String name, int id, int parentId, int columns, ByteBuffer metadata) {
     super(name, id, parentId, InodeType.RawTable);
     COLUMNS = columns;
     if (metadata == null) {
-      METADATA = new ArrayList<Byte>(0);
+      METADATA = ByteBuffer.allocate(0);
     } else {
-      METADATA = new ArrayList<Byte>(metadata.size());
-      for (int k = 0; k < metadata.size(); k ++) {
-        METADATA.add(metadata.get(k));
-      }
+      METADATA = ByteBuffer.allocate(metadata.limit());
+      METADATA.put(metadata);
+      METADATA.flip();
     }
   }
 
@@ -25,11 +23,9 @@ public class InodeRawTable extends InodeFolder {
     return COLUMNS;
   }
 
-  public List<Byte> getMetadata() {
-    List<Byte> ret = new ArrayList<Byte>(METADATA.size());
-    for (int k = 0; k < METADATA.size(); k ++) {
-      ret.add(METADATA.get(k));
-    }
+  public ByteBuffer getMetadata() {
+    ByteBuffer ret = METADATA.duplicate();
+    ret.asReadOnlyBuffer();
     return ret;
   }
 

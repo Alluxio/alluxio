@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -154,22 +155,15 @@ public class MasterInfo {
     mHeartbeatThread.start();
   }
 
-  public void addCheckpoint(long workerId, int fileId, long fileSizeBytes,
+  public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes,
       String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException {
     LOG.info("addCheckpoint" + CommonUtils.parametersToString(workerId, fileId, fileSizeBytes,
         checkpointPath));
 
-    WorkerInfo tWorkerInfo = null;
-    synchronized (mWorkers) {
-      tWorkerInfo = mWorkers.get(workerId);
-
-      if (tWorkerInfo == null) {
-        LOG.error("No worker: " + workerId);
-        return;
-      }
+    if (workerId != -1) {
+      WorkerInfo tWorkerInfo = getWorkerInfo(workerId);
+      tWorkerInfo.updateLastUpdatedTimeMs();
     }
-
-    tWorkerInfo.updateLastUpdatedTimeMs();
 
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
@@ -200,6 +194,7 @@ public class MasterInfo {
       if (needLog) {
         mMasterLogWriter.appendAndFlush(tFile);
       }
+      return true;
     }
   }
 
@@ -208,16 +203,7 @@ public class MasterInfo {
     LOG.info("cachedFile" + CommonUtils.parametersToString(workerId, workerUsedBytes, fileId, 
         fileSizeBytes));
 
-    WorkerInfo tWorkerInfo = null;
-    synchronized (mWorkers) {
-      tWorkerInfo = mWorkers.get(workerId);
-
-      if (tWorkerInfo == null) {
-        LOG.error("No worker: " + workerId);
-        return;
-      }
-    }
-
+    WorkerInfo tWorkerInfo = getWorkerInfo(workerId);
     tWorkerInfo.updateFile(true, fileId);
     tWorkerInfo.updateUsedBytes(workerUsedBytes);
     tWorkerInfo.updateLastUpdatedTimeMs();
@@ -252,13 +238,25 @@ public class MasterInfo {
     }
   }
 
+  private WorkerInfo getWorkerInfo(long workerId) {
+    WorkerInfo ret = null;
+    synchronized (mWorkers) {
+      ret = mWorkers.get(workerId);
+
+      if (ret == null) {
+        LOG.error("No worker: " + workerId);
+      }
+    }
+    return ret;
+  }
+
   public int createFile(String path, boolean directory)
       throws FileAlreadyExistException, InvalidPathException {
     return createFile(true, path, directory, -1, null);
   }
 
   public int createFile(boolean recursive, String path, boolean directory, int columns,
-      List<Byte> metadata) throws FileAlreadyExistException, InvalidPathException {
+      ByteBuffer metadata) throws FileAlreadyExistException, InvalidPathException {
     LOG.debug("createFile" + CommonUtils.parametersToString(path));
 
     String[] pathNames = getPathNames(path);
@@ -333,7 +331,7 @@ public class MasterInfo {
     }
   }
 
-  public int createRawTable(String path, int columns, List<Byte> metadata)
+  public int createRawTable(String path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException {
     LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
 
@@ -592,12 +590,27 @@ public class MasterInfo {
     recoveryFromFile(Config.MASTER_LOG_FILE, "Master Log file ");
   }
 
-  public NetAddress getLocalWorker(String host) throws NoLocalWorkerException {
+  public NetAddress getWorker(boolean random, String host) throws NoLocalWorkerException {
     synchronized (mWorkers) {
-      for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
-        if (address.getHostName().equals(host)) {
-          LOG.debug("getLocalWorker: " + address);
+      if (random) {
+        int index = new Random(mWorkerAddressToId.size()).nextInt(mWorkerAddressToId.size());
+        for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
+          if (index == 0) {
+            LOG.debug("getRandomWorker: " + address);
+            return new NetAddress(address.getHostName(), address.getPort());
+          }
+          index --;
+        }
+        for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
+          LOG.debug("getRandomWorker: " + address);
           return new NetAddress(address.getHostName(), address.getPort());
+        }
+      } else {
+        for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
+          if (address.getHostName().equals(host)) {
+            LOG.debug("getLocalWorker: " + address);
+            return new NetAddress(address.getHostName(), address.getPort());
+          }
         }
       }
     }
@@ -836,30 +849,41 @@ public class MasterInfo {
     return MASTER_ADDRESS;
   }
 
-  public void renameFile(String srcFilePath, String dstFilePath) 
-      throws FileDoesNotExistException, InvalidPathException {
+  public void renameFile(String srcPath, String dstPath) 
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
-      Inode inode = getInode(srcFilePath);
+      Inode inode = getInode(srcPath);
       if (inode == null) {
-        throw new FileDoesNotExistException("File " + srcFilePath + " does not exist");
+        throw new FileDoesNotExistException("Failed to rename: " + srcPath + " does not exist");
       }
 
-      String dstName = getName(dstFilePath);
-      inode.setName(dstName);
+      if (getInode(dstPath) != null) {
+        throw new FileAlreadyExistException("Failed to rename: " + dstPath + " already exist");
+      }
 
+      String dstName = getName(dstPath);
+      String dstFolderPath = dstPath.substring(0, dstPath.length() - dstName.length() - 1);
+
+      // If we are renaming into the root folder
+      if (dstFolderPath.isEmpty()) {
+        dstFolderPath = "/";
+      }
+
+      Inode dstFolderInode = getInode(dstFolderPath);
+      if (dstFolderInode == null || dstFolderInode.isFile()) {
+        throw new FileDoesNotExistException("Failed to rename: " + dstFolderPath + 
+            " does not exist.");
+      }
+
+      inode.setName(dstName);
       InodeFolder parent = (InodeFolder) mInodes.get(inode.getParentId());
       parent.removeChild(inode.getId());
-
-      String dstFileFolder = dstFilePath.substring(0, dstFilePath.length() - dstName.length() - 1);
-      Inode dstFolder = getInode(dstFileFolder);
-      if (dstFolder == null || dstFolder.isFile()) {
-        throw new FileDoesNotExistException("Folder " + dstFileFolder + " does not exist.");
-      }
-      ((InodeFolder) dstFolder).addChild(inode.getId());
+      inode.setParentId(dstFolderInode.getId());
+      ((InodeFolder) dstFolderInode).addChild(inode.getId());
 
       // TODO The following should be done atomically.
       mMasterLogWriter.appendAndFlush(parent);
-      mMasterLogWriter.appendAndFlush(dstFolder);
+      mMasterLogWriter.appendAndFlush(dstFolderInode);
       mMasterLogWriter.appendAndFlush(inode);
     }
   }

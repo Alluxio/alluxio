@@ -46,15 +46,17 @@
             <th>File Name</th>
             <th>Size</th>
             <th>In-Memory</th>
+            <th>Creation Time</th>
           <!--
             <c:if test = "${debug}">
               <th>[DEBUG]Inode Number</th>
+              <th>[DEBUG]Checkpoint Path</th>
             </c:if>
           -->
             <% if ((Boolean) request.getAttribute("debug")) { %>
               <th>[DEBUG]Inode Number</th>
+              <th>[DEBUG]Checkpoint Path</th>
             <% } %>
-            <th>Creation Time</th>
           </thead>
           <tbody>
             <!--
@@ -78,10 +80,11 @@
                     <i class="icon-hdd icon-white"></i>
                   </c:if>
                 </th>
+                <th>${fileInfo.creationTime}</th>
                 <c:if test = "${debug}">
                   <th>${fileInfo.id}</th>
+                  <th>${fileInfo.checkpointPath}</th>
                 </c:if>
-                <th>${fileInfo.creationTime}</th>
               </tr>
             </c:forEach>
           -->
@@ -106,10 +109,11 @@
                       <i class="icon-hdd icon-white"></i>
                     <% } %>
                   </th>
+                  <th><%= fileInfo.getCreationTime() %></th>
                   <% if ((Boolean) request.getAttribute("debug")) { %>
                     <th><%= fileInfo.getId() %></th>
+                    <th><%= fileInfo.getCheckpointPath() %></th>
                   <% } %>
-                  <th><%= fileInfo.getCreationTime() %></th>
                 </tr>
               <% } %>
             <% } %>
@@ -119,7 +123,9 @@
     </div>
   </div>
   <footer>
-    <p>Tachyon is a project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu">AMPLab</a>.</p>
+    <p style="text-align: center;">
+      Tachyon is a project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu">AMPLab</a>.
+    </p>
   </footer>
 </div>
 </body>
