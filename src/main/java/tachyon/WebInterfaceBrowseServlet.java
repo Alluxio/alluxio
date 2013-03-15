@@ -26,6 +26,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     private final int ID;
     private final String NAME;
     private final String ABSOLUATE_PATH;
+    private final String CHECKPOINT_PATH;
     private final long SIZE;
     private final long CREATION_TIME_MS;
     private final boolean IN_MEMORY;
@@ -35,6 +36,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       ID = fileInfo.getId();
       NAME = fileInfo.getName();
       ABSOLUATE_PATH = fileInfo.getPath();
+      CHECKPOINT_PATH = fileInfo.getCheckpointPath();
       SIZE = fileInfo.getSizeBytes();
       CREATION_TIME_MS = fileInfo.getCreationTimeMs();
       IN_MEMORY = fileInfo.isInMemory();
@@ -55,6 +57,10 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
     public String getAbsolutePath() {
       return ABSOLUATE_PATH;
+    }
+
+    public String getCheckpointPath() {
+      return CHECKPOINT_PATH;
     }
 
     public String getSize() {

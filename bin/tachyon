@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+if [ "$#" == 0 ]; then
+  echo "Usage: tachyon COMMAND"
+  echo "where COMMAND is one of:"
+  echo -e "    tfs\t command line input for generic filesystem user client"
+  echo "Commands print help when invoked without parameters."
+  exit 1
+fi
+
+COMMAND=$1
+shift
+
+if [ "$COMMAND" == "tfs" ]; then
+  CLASS=tachyon.command.TFsShell
+else
+  echo "Usage: tachyon COMMAND"
+  echo "where COMMAND is one of:"
+  echo -e "    tfs\t command line input for generic filesystem user client"
+  echo "Commands print help when invoked without parameters."
+  exit 1
+fi
+bin=`cd "$( dirname "$0" )"; pwd`
+. "$bin/tachyon-config.sh"
+java -cp $TACHYON_JAR $CLASS $@

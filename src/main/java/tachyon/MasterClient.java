@@ -1,6 +1,7 @@
 package tachyon;
 
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -54,7 +55,7 @@ public class MasterClient {
     mIsConnected = false;
   }
 
-  public synchronized List<String> ls(String folder)
+  public synchronized List<ClientFileInfo> ls(String folder)
       throws InvalidPathException, FileDoesNotExistException, TException {
     return CLIENT.cmd_ls(folder);
   }
@@ -83,15 +84,31 @@ public class MasterClient {
     return mIsConnected;
   }
 
+  /**
+   * @param workerId if -1, means the checkpoint is added directly by underlayer fs.
+   * @param fileId
+   * @param fileSizeBytes
+   * @param checkpointPath
+   * @return
+   * @throws FileDoesNotExistException
+   * @throws SuspectedFileSizeException
+   * @throws TException
+   */
+  public synchronized boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
+      String checkpointPath) 
+          throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    return CLIENT.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+  }
+
   public synchronized int user_createFile(String path)
       throws FileAlreadyExistException, InvalidPathException, TException {
     return CLIENT.user_createFile(path);
   }
 
-  public synchronized int user_createRawTable(String path, int columns, List<Byte> metadata)
+  public synchronized int user_createRawTable(String path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException, TException {
     if (metadata == null) {
-      metadata = new ArrayList<Byte>(0);
+      metadata = ByteBuffer.allocate(0);
     }
     return CLIENT.user_createRawTable(path, columns, metadata);
   }
@@ -128,9 +145,9 @@ public class MasterClient {
     return CLIENT.user_getFileLocationsById(id);
   }
 
-  public synchronized NetAddress user_getLocalWorker(String localHostName)
+  public synchronized NetAddress user_getWorker(boolean random, String hostname)
       throws NoLocalWorkerException, TException {
-    return CLIENT.user_getLocalWorker(localHostName);
+    return CLIENT.user_getWorker(random, hostname);
   }
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
@@ -158,18 +175,12 @@ public class MasterClient {
   }
 
   public synchronized void user_renameFile(String srcPath, String dstPath)
-      throws FileDoesNotExistException, InvalidPathException, TException {
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException{
     CLIENT.user_renameFile(srcPath, dstPath);
   }
 
   public synchronized void user_unpinFile(int id) throws FileDoesNotExistException, TException {
     CLIENT.user_unpinFile(id);
-  }
-
-  public synchronized void worker_addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
-      String checkpointPath) 
-          throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    CLIENT.worker_addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
   }
 
   public synchronized void worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
@@ -188,8 +199,7 @@ public class MasterClient {
 
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
       long usedBytes, List<Integer> currentFileList) throws TException {
-    long ret = CLIENT.worker_register(
-        workerNetAddress, totalBytes, usedBytes, currentFileList); 
+    long ret = CLIENT.worker_register(workerNetAddress, totalBytes, usedBytes, currentFileList); 
     LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress +
         " , got WorkerId " + ret);
     return ret;

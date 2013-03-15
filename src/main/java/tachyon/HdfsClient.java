@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -29,6 +30,10 @@ public class HdfsClient {
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
+  }
+
+  public void close() throws IOException {
+    mFs.close();
   }
 
   public void copyFromLocalFile(boolean delSrc, boolean overwrite, String src, String dst) {
@@ -68,6 +73,23 @@ public class HdfsClient {
       return;
     }
     CommonUtils.runtimeException(te);
+  }
+
+  public FSDataOutputStream create(String path) {
+    IOException te = null;
+    int cnt = 0;
+    while (cnt < MAX_TRY) {
+      try {
+        return mFs.create(new Path(path));
+      } catch (IOException e) {
+        cnt ++;
+        LOG.error(cnt + " : " + e.getMessage(), e);
+        te = e;
+        continue;
+      }
+    }
+    CommonUtils.runtimeException(te);
+    return null;
   }
 
   public void delete(String f, boolean recursive) {

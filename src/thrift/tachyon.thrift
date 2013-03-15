@@ -34,7 +34,7 @@ struct ClientRawTableInfo {
   2: string name
   3: string path
   4: i32 columns
-  5: list<byte> metadata
+  5: binary metadata
 }
 
 enum CommandType {
@@ -87,10 +87,11 @@ exception TableDoesNotExistException {
 }
 
 service MasterService {
+  bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 fileSizeBytes, 4: string checkpointPath) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+
   // Services to Workers
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i32> currentFiles) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i32> removedFiles)
-  void worker_addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 fileSizeBytes, 4: string checkpointPath) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
   void worker_cacheFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i64 fileSizeBytes) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
   set<i32> worker_getPinIdList()
 
@@ -98,7 +99,7 @@ service MasterService {
   i32 user_createFile(1: string filePath) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
   i32 user_getFileId(1: string filePath) throws (1: InvalidPathException e) // Return -1 if does not contain the file, return fileId if it exists.
   i64 user_getUserId()
-  NetAddress user_getLocalWorker(1: string host) throws (1: NoLocalWorkerException e) // Get local worker NetAddress
+  NetAddress user_getWorker(1: bool random, 2: string host) throws (1: NoLocalWorkerException e) // Get local worker NetAddress
   ClientFileInfo user_getClientFileInfoById(1: i32 fileId) throws (1: FileDoesNotExistException e)
   ClientFileInfo user_getClientFileInfoByPath(1: string filePath) throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
   list<NetAddress> user_getFileLocationsById(1: i32 fileId) throws (1: FileDoesNotExistException e)        // Get file locations by file Id.
@@ -106,19 +107,19 @@ service MasterService {
   void user_deleteById(1: i32 fileId) // Delete file
   void user_deleteByPath(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF) // Delete file
   void user_outOfMemoryForPinFile(1: i32 fileId)
-  void user_renameFile(1: string srcFilePath, 2: string dstFilePath) throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
+  void user_renameFile(1: string srcFilePath, 2: string dstFilePath) throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)
 //  void user_setPartitionCheckpointPath(1: i32 fileId, 2: string checkpointPath) throws (1: FileDoesNotExistException eD)
   void user_unpinFile(1: i32 fileId) throws (1: FileDoesNotExistException e)   // Remove file from memory
   i32 user_mkdir(1: string path) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
 
-  i32 user_createRawTable(1: string path, 2: i32 columns, 3: list<byte> metadata) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TableColumnException eT)
+  i32 user_createRawTable(1: string path, 2: i32 columns, 3: binary metadata) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TableColumnException eT)
   i32 user_getRawTableId(1: string path) throws (1: InvalidPathException e) // Return 0 if does not contain the Table, return fileId if it exists.
   ClientRawTableInfo user_getClientRawTableInfoById(1: i32 tableId) throws (1: TableDoesNotExistException e)        // Get Table info by Table Id.
   ClientRawTableInfo user_getClientRawTableInfoByPath(1: string tablePath) throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI) // Get Table info by path
   i32 user_getNumberOfFiles(1:string path) throws (1: FileDoesNotExistException eR, 2: InvalidPathException eI)
 
   // cmd to scripts
-  list<string> cmd_ls(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
+  list<ClientFileInfo> cmd_ls(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
 }
 
 service WorkerService {

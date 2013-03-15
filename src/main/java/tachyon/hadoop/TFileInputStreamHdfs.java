@@ -13,11 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Config;
-import tachyon.CommonUtils;
-import tachyon.client.TFileInputStream;
+import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
-import tachyon.thrift.OutOfMemoryForPinFileException;
 
 public class TFileInputStreamHdfs extends InputStream
 implements Seekable, PositionedReadable {
@@ -32,7 +30,7 @@ implements Seekable, PositionedReadable {
 
   private FSDataInputStream mHdfsInputStream = null;
 
-  private TFileInputStream mTachyonPartitionInputStream = null;
+  private InputStream mTachyonFileInputStream = null;
 
   private int mBufferLimit = 0;
   private int mBufferPosition = 0;
@@ -50,50 +48,14 @@ implements Seekable, PositionedReadable {
     mHadoopBufferSize = bufferSize;
 
     TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
-    if (!tachyonFile.isReady()) {
-      // Cache the partition
-      long startTimeMs = System.currentTimeMillis();
-      FileSystem fs = hdfsPath.getFileSystem(mHadoopConf);
-      FSDataInputStream tHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-      try {
-        tachyonFile.open("w");
-      } catch (IOException e) {
-        LOG.error(e.getMessage());
-        return;
-      }
-      int cnt = 0;
-
-      int limit;
-      while ((limit = tHdfsInputStream.read(mBuffer)) >= 0) {
-        if (limit != 0) {
-          try {
-            tachyonFile.append(mBuffer, 0, limit);
-          } catch (IOException e) {
-            LOG.error(e.getMessage());
-            return;
-          } catch (OutOfMemoryForPinFileException e) {
-            CommonUtils.runtimeException(e);
-          }
-        }
-        cnt += limit;
-      }
-
-      tachyonFile.close();
-      tachyonFile = mTachyonClient.getFile(mFileId);
-      if (tachyonFile == null) {
-        return;
-      }
-      LOG.info("Caching file " + mHdfsPath + " with size " + cnt + " bytes took " +
-          (System.currentTimeMillis() - startTimeMs) + " ms. ");
-    }
     try {
-      tachyonFile.open("r");
+      tachyonFile.open(OpType.READ_TRY_CACHE);
     } catch (IOException e) {
       LOG.error(e.getMessage());
       return;
     }
 
-    mTachyonPartitionInputStream = tachyonFile.getInputStream();
+    mTachyonFileInputStream = tachyonFile.getInputStream();
   }
 
   /**
@@ -165,15 +127,15 @@ implements Seekable, PositionedReadable {
       return readFromHdfsBuffer();
     }
 
-    if (mTachyonPartitionInputStream != null) {
+    if (mTachyonFileInputStream != null) {
       int ret = 0;
       try {
-        ret = mTachyonPartitionInputStream.read();
+        ret = mTachyonFileInputStream.read();
         mCurrentPosition ++;
         return ret;
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        mTachyonPartitionInputStream = null;
+        mTachyonFileInputStream = null;
       }
     }
 
@@ -197,11 +159,11 @@ implements Seekable, PositionedReadable {
     mBufferPosition = 0;
     return mBuffer[mBufferPosition ++];
   }
-  
+
   @Override
   public void close() throws IOException {
-    if (mTachyonPartitionInputStream != null) {
-      mTachyonPartitionInputStream.close();
+    if (mTachyonFileInputStream != null) {
+      mTachyonFileInputStream.close();
     }
     if (mHdfsInputStream != null) {
       mHdfsInputStream.close();

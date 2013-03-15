@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.thrift.TException; 
 import org.apache.log4j.Logger;
@@ -14,6 +12,7 @@ import com.sun.corba.se.impl.util.Version;
 
 import tachyon.CommonUtils;
 import tachyon.Config;
+import tachyon.client.OpType;
 import tachyon.client.RawColumn;
 import tachyon.client.RawTable;
 import tachyon.client.TachyonClient;
@@ -25,28 +24,29 @@ import tachyon.thrift.TableDoesNotExistException;
 public class BasicRawTableTest {
   private static Logger LOG = Logger.getLogger(BasicRawTableTest.class);
 
+  private static final int COLS = 3;
   private static TachyonClient sTachyonClient;
   private static String sTablePath = null;
   private static int mId;
+  private static OpType sWriteType = null;
 
   public static void createRawTable() throws InvalidPathException {
     long startTimeMs = CommonUtils.getCurrentMs();
-    List<Byte> data = new ArrayList<Byte>(5);
-    data.add((byte) -1);
-    data.add((byte) -2);
-    data.add((byte) -3);
-    data.add((byte) -4);
-    data.add((byte) -5);
+    ByteBuffer data = ByteBuffer.allocate(12);
+    data.putInt(-1);
+    data.putInt(-2);
+    data.putInt(-3);
+    data.flip();
     mId = sTachyonClient.createRawTable(sTablePath, 3, data);
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createRawTable with id " + mId);
   }
 
   public static void writeParition() 
-      throws IOException, TableDoesNotExistException, 
-      OutOfMemoryForPinFileException, InvalidPathException, TException {
+      throws IOException, TableDoesNotExistException, InvalidPathException, TException {
     RawTable rawTable = sTachyonClient.getRawTable(sTablePath);
 
-    for (int column = 0; column < 3; column ++) {
+    LOG.info("Writing data...");
+    for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       if (!rawColumn.createPartition(0)) {
         CommonUtils.runtimeException("Failed to create partition in table " + sTablePath + 
@@ -54,7 +54,7 @@ public class BasicRawTableTest {
       }
 
       TachyonFile tFile = rawColumn.getPartition(0);
-      tFile.open("w", false);
+      tFile.open(sWriteType);
 
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
@@ -63,7 +63,6 @@ public class BasicRawTableTest {
       }
 
       buf.flip();
-      LOG.info("Writing data...");
       CommonUtils.printByteBuffer(LOG, buf);
 
       buf.flip();
@@ -76,16 +75,16 @@ public class BasicRawTableTest {
       throws IOException, TableDoesNotExistException, InvalidPathException, TException {
     LOG.info("Reading data...");
     RawTable rawTable = sTachyonClient.getRawTable(mId);
-    List<Byte> metadata = rawTable.getMetadata();
+    ByteBuffer metadata = rawTable.getMetadata();
     LOG.info("Metadata: ");
-    for (Byte b : metadata) {
-      LOG.info(b + "");
-    }
+    LOG.info(metadata.getInt() + " ");
+    LOG.info(metadata.getInt() + " ");
+    LOG.info(metadata.getInt() + " ");
 
-    for (int column = 0; column < 3; column ++) {
+    for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
-      tFile.open("r");
+      tFile.open(OpType.READ_TRY_CACHE);
 
       ByteBuffer buf;
       buf = tFile.readByteBuffer();
@@ -97,13 +96,14 @@ public class BasicRawTableTest {
   public static void main(String[] args)
       throws IOException, TableDoesNotExistException, OutOfMemoryForPinFileException, 
       InvalidPathException, TException {
-    if (args.length != 2) {
+    if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar " +
           "tachyon.examples.BasicRawTableTest <TachyonMasterHostName> <FilePath>");
     }
     sTachyonClient = TachyonClient.getClient(new InetSocketAddress(args[0], Config.MASTER_PORT));
     sTablePath = args[1];
+    sWriteType = OpType.getOpType(args[2]);
     createRawTable();
     writeParition();
     readPartition();

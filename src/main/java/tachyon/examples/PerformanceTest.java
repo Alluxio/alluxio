@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Config;
 import tachyon.CommonUtils;
 import tachyon.Version;
+import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 import tachyon.thrift.InvalidPathException;
@@ -54,7 +55,7 @@ public class PerformanceTest {
     buf.flip();
     for (int pId = 0; pId < FILES; pId ++) {
       TachyonFile file = TC.getFile(FILE_NAME + pId);
-      file.open("w", false);
+      file.open(OpType.WRITE_CACHE);
       long startTimeMs = System.currentTimeMillis();
       for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
         //        long localStartTimeNs = System.nanoTime();
@@ -80,7 +81,7 @@ public class PerformanceTest {
 
       for (int pId = 0; pId < FILES; pId ++) {
         TachyonFile file = TC.getFile(FILE_NAME + pId);
-        file.open("r");
+        file.open(OpType.READ_TRY_CACHE);
 
         long startTimeMs = System.currentTimeMillis();
         buf = file.readByteBuffer();
@@ -108,7 +109,7 @@ public class PerformanceTest {
 
     for (int pId = 0; pId < FILES; pId ++) {
       TachyonFile file = TC.getFile(FILE_NAME + pId);
-      file.open("r");
+      file.open(OpType.READ_TRY_CACHE);
 
       int[] readArray = new int[BLOCK_SIZE_BYTES / 4];
       long startTimeMs = System.currentTimeMillis();

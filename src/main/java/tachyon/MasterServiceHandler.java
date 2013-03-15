@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,9 +38,15 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<String> cmd_ls(String path)
+  public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath) 
+      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+  }
+
+  @Override
+  public List<ClientFileInfo> cmd_ls(String path)
       throws InvalidPathException, FileDoesNotExistException, TException {
-    return mMasterInfo.ls(path);
+    return mMasterInfo.getFilesInfo(path);
   }
 
   @Override
@@ -49,7 +56,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_createRawTable(String path, int columns, List<Byte> metadata)
+  public int user_createRawTable(String path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException, TException {
     return mMasterInfo.createRawTable(path, columns, metadata);
   }
@@ -66,8 +73,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public NetAddress user_getLocalWorker(String host) throws NoLocalWorkerException, TException {
-    return mMasterInfo.getLocalWorker(host);
+  public NetAddress user_getWorker(boolean random, String host) 
+      throws NoLocalWorkerException, TException {
+    return mMasterInfo.getWorker(random, host);
   }
 
   @Override
@@ -140,20 +148,13 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public void user_renameFile(String srcFilePath, String dstFilePath)
-      throws FileDoesNotExistException, InvalidPathException, TException {
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException{
     mMasterInfo.renameFile(srcFilePath, dstFilePath);
   }
 
   @Override
   public void user_unpinFile(int fileId) throws FileDoesNotExistException, TException {
     mMasterInfo.unpinFile(fileId);
-  }
-
-  @Override
-  public void worker_addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
-      String checkpointPath) 
-          throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
   }
 
   @Override
