@@ -8,8 +8,8 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
+
 
 /**
  * This is a HDFS Client for Tachyon. It handles all sorts of retry logic.
@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  */
 public class HdfsClient {
   private static final int MAX_TRY = 5; 
-  private final Logger LOG = LoggerFactory.getLogger(HdfsClient.class);
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private FileSystem mFs = null;
 

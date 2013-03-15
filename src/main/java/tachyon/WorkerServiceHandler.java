@@ -14,8 +14,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.Path;
 
@@ -31,7 +31,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   public static final BlockingQueue<Integer> sDataAccessQueue = 
       new ArrayBlockingQueue<Integer>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
 
-  private final Logger LOG = LoggerFactory.getLogger(WorkerServiceHandler.class);
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private volatile MasterClient mMasterClient;
   private InetSocketAddress mMasterAddress;

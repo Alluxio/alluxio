@@ -13,8 +13,8 @@ import java.util.StringTokenizer;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.hadoop.fs.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
+
 
 import tachyon.thrift.InvalidPathException;
 
@@ -24,7 +24,7 @@ import tachyon.thrift.InvalidPathException;
  * @author haoyuan
  */
 public class CommonUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(CommonUtils.class);
+  private static final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   /**
    * Whether the pathname is valid.  Currently prohibits relative paths, 
@@ -73,6 +73,12 @@ public class CommonUtils {
     DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
     return formatter.format(new Date(Millis));
   }
+
+  public static String convertMsToSimpleDate(long Millis) {
+    DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy");
+    return formatter.format(new Date(Millis));
+  }
+
 
   public static void deleteFile(String fileName) {
     File file = new File(fileName);

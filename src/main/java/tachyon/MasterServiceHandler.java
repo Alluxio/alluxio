@@ -5,8 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
@@ -29,7 +28,7 @@ import tachyon.thrift.TableDoesNotExistException;
  * @author haoyuan
  */
 public class MasterServiceHandler implements MasterService.Iface {
-  private final Logger LOG = LoggerFactory.getLogger(MasterServiceHandler.class);
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private final MasterInfo mMasterInfo;
 
