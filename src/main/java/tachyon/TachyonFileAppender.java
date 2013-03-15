@@ -65,8 +65,8 @@ public class TachyonFileAppender extends FileAppender {
         } catch (UnknownHostException uhe) {
           address = "@UnknownHost";
         }
-        newFileName = baseName + address + "(" 
-            + CommonUtils.convertMsToSimpleDate(System.currentTimeMillis()) + ")" + suffix;
+        newFileName = baseName + address + "_" 
+            + CommonUtils.convertMsToSimpleDate(System.currentTimeMillis()) + suffix;
       }
       File file = new File(newFileName);
       if (file.exists()) {
@@ -90,16 +90,16 @@ public class TachyonFileAppender extends FileAppender {
     File latestFile = new File(fileName + suffix);
     if (latestFile.length() > 0) {
       for (int i = mMaxBackupIndex; i > 0; i --) {  
-        File oldFile = new File(fileName + "[" + i + "]" + suffix);
+        File oldFile = new File(fileName + "_" + i + suffix);
         if (oldFile.exists()) {
           if (i == mMaxBackupIndex) {
             oldFile.delete();
           } else {
-            oldFile.renameTo(new File(fileName + "[" + (i + 1) + "]" + suffix));
+            oldFile.renameTo(new File(fileName + "_" + (i + 1) + suffix));
           }
         }
       }
-      latestFile.renameTo(new File(fileName + "[" + 1 + "]" + suffix));
+      latestFile.renameTo(new File(fileName + "_" + 1 + suffix));
     } else {
       latestFile.delete();
     }
