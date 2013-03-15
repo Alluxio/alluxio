@@ -1,12 +1,16 @@
 package tachyon;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.spi.ErrorCode;
 import org.apache.log4j.spi.LoggingEvent;
+import org.apache.tools.ant.util.LazyFileOutputStream;
 
 public class TachyonFileAppender extends FileAppender { 
   private int mMaxBackupIndex = 1;
@@ -22,16 +26,6 @@ public class TachyonFileAppender extends FileAppender {
 
   public void setMaxFileSize(int maxFileSize) {
     mMaxFileSize = maxFileSize;
-  }
-
-  @Override
-  public synchronized void subAppend(LoggingEvent event) {
-    File currentLog = new File(mCurrentFileName);
-    if (currentLog.length() > mMaxFileBytes || 
-        !CommonUtils.convertMsToSimpleDate(System.currentTimeMillis()).equals(mLastDate)) {
-      activateOptions();
-    }
-    super.subAppend(event);
   }
 
   @Override
@@ -51,6 +45,42 @@ public class TachyonFileAppender extends FileAppender {
       }
     }
   }
+
+  @Override
+  public synchronized void setFile(String fileName, boolean append, boolean bufferedIO, 
+      int bufferSize) throws IOException  {
+    // It does not make sense to have immediate flush and bufferedIO.
+    if(bufferedIO) {
+      setImmediateFlush(false);
+    }
+
+    reset();
+
+    //Creation of the LazyFileOutputStream object (the responsible of the log writing operations)
+    LazyFileOutputStream ostream = new LazyFileOutputStream(fileName, append);
+
+    Writer fw = createWriter(ostream);
+    if(bufferedIO) {
+      fw = new BufferedWriter(fw, bufferSize);
+    }
+    setQWForFiles(fw);
+    this.fileName = fileName;
+    this.fileAppend = append;
+    this.bufferedIO = bufferedIO;
+    this.bufferSize = bufferSize;
+    writeHeader();
+  }
+
+  @Override
+  public synchronized void subAppend(LoggingEvent event) {
+    File currentLog = new File(mCurrentFileName);
+    if (currentLog.length() > mMaxFileBytes || 
+        !CommonUtils.convertMsToSimpleDate(System.currentTimeMillis()).equals(mLastDate)) {
+      activateOptions();
+    }
+    super.subAppend(event);
+  }
+
 
   private String getNewLogFileName(String fileName) {
     if (!fileName.isEmpty()) {
