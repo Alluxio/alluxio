@@ -59,6 +59,7 @@ public class MasterInfo {
   private InodeFolder mRoot;
 
   private Map<Integer, Inode> mInodes = new HashMap<Integer, Inode>();
+  private Map<Integer, Dependency> mDependencies = new HashMap<Integer, Dependency>();
 
   private Map<Long, WorkerInfo> mWorkers = new HashMap<Long, WorkerInfo>();
   private Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
@@ -249,6 +250,35 @@ public class MasterInfo {
       }
     }
     return ret;
+  }
+
+  public int createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment,
+      String framework, String frameworkVersion, DependencyType dependencyType)
+          throws InvalidPathException, FileDoesNotExistException {
+    // TODO Auto-generated method stub
+    Dependency dep = null;
+    synchronized (mRoot) {
+      List<Integer> parentsIdList = getFilesIds(parents);
+      List<Integer> childrenIdList = getFilesIds(children);
+
+      dep = new Dependency(mDependencyCounter.incrementAndGet(), parentsIdList,
+          childrenIdList, commandPrefix, data, comment, framework, frameworkVersion,
+          dependencyType);
+
+      List<Inode> childrenInodeList = new ArrayList<Inode>();
+      for (int k = 0; k < childrenIdList.size(); k ++) {
+        Inode inode = mInodes.get(childrenIdList.get(k));
+        inode.setDependencyId(dep.ID);
+        childrenInodeList.add(inode);
+      }
+      mMasterLogWriter.appendAndFlush(childrenInodeList);
+    }
+
+    mDependencies.put(dep.ID, dep);
+    mMasterLogWriter.appendAndFlush(dep);
+
+    return dep.ID;
   }
 
   public int createFile(String path, boolean directory)
@@ -749,6 +779,19 @@ public class MasterInfo {
       ret = inode.getId();
     }
     LOG.debug("getFileId(" + filePath + "): " + ret);
+    return ret;
+  }
+
+  public List<Integer> getFilesIds(List<String> pathList)
+      throws InvalidPathException, FileDoesNotExistException {
+    List<Integer> ret = new ArrayList<Integer>(pathList.size());
+    for (int k = 0; k < pathList.size(); k ++) {
+      int fid = getFileId(pathList.get(k));
+      if (fid == -1) {
+        throw new FileDoesNotExistException(pathList.get(k));
+      }
+      ret.add(fid);
+    }
     return ret;
   }
 
