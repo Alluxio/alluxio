@@ -25,7 +25,7 @@ public class PerformanceTest {
   private static Logger LOG = LoggerFactory.getLogger(PerformanceTest.class);
 
   private static final int RESULT_ARRAY_SIZE = 68;
-  private static final String FOLDER = "/mnt/ramdisk/tachyonworker/";
+  private static final String FOLDER = "/mnt/ramdisk/";
 
   private static TachyonClient MTC = null;
   private static String MASTER_HOST = null;
@@ -260,7 +260,7 @@ public class PerformanceTest {
     }
   }
 
-  private static void memoryCopyTest(boolean OneToMany, boolean memoryOnly) {
+  private static void memoryCopyTest(boolean write, boolean memoryOnly) {
     ByteBuffer[] bufs = new ByteBuffer[THREADS];
 
     for (int thread = 0; thread < THREADS; thread ++) {
@@ -272,13 +272,13 @@ public class PerformanceTest {
       bufs[thread] = sRawData;
     }
 
-    String msg = (OneToMany ? "Write" : "Read") + (memoryOnly ? "_Memory " : "_RamFile ");
+    String msg = (write ? "Write" : "Read") + (memoryOnly ? "_Memory " : "_RamFile ");
 
     GeneralWorker[] WWs = new GeneralWorker[THREADS];
     int t = FILES / THREADS;
     for (int thread = 0; thread < THREADS; thread ++) {
       WWs[thread] = new GeneralWorker(
-          thread, t * thread, t * (thread + 1), bufs[thread], OneToMany, memoryOnly, msg);
+          thread, t * thread, t * (thread + 1), bufs[thread], write, memoryOnly, msg);
     }
 
     long startTimeMs = System.currentTimeMillis();
@@ -295,8 +295,8 @@ public class PerformanceTest {
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
     double result = 1000L * FILES_BYTES / takenTimeMs / 1024 / 1024;
 
-    LOG.info(RESULT_PREFIX + "Entire " + msg + " Test : " + result + " Mb/sec. Took " + 
-        takenTimeMs + " ms.");
+    LOG.info(RESULT_PREFIX + "Entire " + msg + " Test : " + result + " Mb/sec. Took " +
+        takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
   private static void TachyonTest(boolean write) {
@@ -335,20 +335,21 @@ public class PerformanceTest {
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
     double result = FILES_BYTES * 1000L / takenTimeMs / 1024 / 1024;
     LOG.info(RESULT_PREFIX + "Entire " + (write ? "Write ": "Read ") + result + " Mb/sec. Took " +
-        takenTimeMs + " ms.");
+        takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
   public static void main(String[] args) throws IOException, InvalidPathException {
     if (args.length != 9) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar tachyon.examples.PerformanceTest " + 
-          " <MasterIp> <FileName> <WriteBlockSizeInBytes> <BlocksPerFile> " +
+          "<MasterIp> <FileName> <WriteBlockSizeInBytes> <BlocksPerFile> " +
           "<DebugMode:true/false> <Threads> <FilesPerThread> <TestCaseNumber> <BaseFileNumber>\n" +
           "1: Files Write Test\n" +
           "2: Files Read Test\n" + 
-          "3: ByteBuffer Memory Copy Test One to Many \n" +
-          "4: ByteBuffer Memory Copy Test Many to One \n" + 
-          "5: ByteBuffer Memory Copy Test One to Many (Pure Memory Copy) \n");
+          "3: RamFile Write Test \n" +
+          "4: RamFile Read Test \n" + 
+          "5: ByteBuffer Write Test \n" +
+          "6: ByteBuffer Read Test \n");
       System.exit(-1);
     }
 
@@ -384,19 +385,19 @@ public class PerformanceTest {
       MTC = TachyonClient.getClient(new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
       TachyonTest(false);
     } else if (testCaseNumber == 3) {
-      RESULT_PREFIX = "MemoryCopyTestOneToMany " + RESULT_PREFIX;
+      RESULT_PREFIX = "RamFile Write " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
       memoryCopyTest(true, false);
     } else if (testCaseNumber == 4) {
-      RESULT_PREFIX = "MemoryCopyTestManyToOne " + RESULT_PREFIX;
+      RESULT_PREFIX = "RamFile Read " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
       memoryCopyTest(false, false);
     } else if (testCaseNumber == 5) {
-      RESULT_PREFIX = "MemoryCopyTestOneToManyPureMemoryCopy " + RESULT_PREFIX;
+      RESULT_PREFIX = "ByteBuffer Write Test " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
       memoryCopyTest(true, true);
     } else if (testCaseNumber == 6) {
-      RESULT_PREFIX = "MemoryCopyTestManyToOnePureMemoryCopy " + RESULT_PREFIX;
+      RESULT_PREFIX = "ByteBuffer Read Test " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
       memoryCopyTest(false, true);
     } else {
