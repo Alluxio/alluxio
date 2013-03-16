@@ -171,7 +171,7 @@ public class TachyonFileSystem extends FileSystem {
       rawPath = list[0];
       fileId = Integer.parseInt(list[1]);
 
-      List<NetAddress> locations = mTachyonClient.getFileLocations(fileId);
+      List<NetAddress> locations = mTachyonClient.getFileNetAddresses(fileId);
       if (locations != null) {
         for (int k = 0; k < locations.size(); k ++) {
           names.add(locations.get(k).mHost);
