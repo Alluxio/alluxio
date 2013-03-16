@@ -383,36 +383,6 @@ public class MasterInfo {
     return id;
   }
 
-  public List<String> ls(String path) throws InvalidPathException, FileDoesNotExistException {
-    List<String> ret = new ArrayList<String>();
-
-    Inode inode = getInode(path);
-
-    if (inode == null) {
-      throw new FileDoesNotExistException(path);
-    }
-
-    if (inode.isFile()) {
-      ret.add(path);
-    } else {
-      List<Integer> childernIds = ((InodeFolder) inode).getChildrenIds();
-
-      if (!path.endsWith("/")) {
-        path += "/";
-      }
-      synchronized (mRoot) {
-        for (int k : childernIds) {
-          inode = mInodes.get(k);
-          if (inode != null) {
-            ret.add(path + inode.getName());
-          }
-        }
-      }
-    }
-
-    return ret;
-  }
-
   public List<ClientFileInfo> getFilesInfo(String path) 
       throws FileDoesNotExistException, InvalidPathException {
     List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
@@ -608,6 +578,13 @@ public class MasterInfo {
             } else {
               mInodes.remove(- inode.getId());
             }
+            break;
+          }
+          case Dependency: {
+            Dependency dependency = (Dependency) pair.getSecond();
+            LOG.info("Putting " + dependency);
+            mDependencyCounter.set(Math.max(mDependencyCounter.get(), dependency.ID));
+            mDependencies.put(dependency.ID, dependency);
             break;
           }
           case Undefined:
@@ -908,6 +885,67 @@ public class MasterInfo {
 
   public InetSocketAddress getMasterAddress() {
     return MASTER_ADDRESS;
+  }
+
+  public List<Integer> listFiles(String path, boolean recursive) 
+      throws InvalidPathException, FileDoesNotExistException {
+    List<Integer> ret = new ArrayList<Integer>(); 
+    synchronized (mRoot) {
+      Inode inode = getInode(path);
+      if (inode == null) {
+        throw new FileDoesNotExistException(path);
+      }
+
+      if (inode.isFile()) {
+        ret.add(inode.getId());
+      } else if (recursive) {
+        Queue<Integer> queue = new LinkedList<Integer>();
+        queue.addAll(((InodeFolder) inode).getChildrenIds());
+
+        while (!queue.isEmpty()) {
+          int id = queue.poll();
+          inode = mInodes.get(id);
+
+          if (inode.isDirectory()) {
+            queue.addAll(((InodeFolder) inode).getChildrenIds());
+          } else {
+            ret.add(id);
+          }
+        }
+      }
+    }
+
+    return ret;
+  }
+
+  public List<String> ls(String path) throws InvalidPathException, FileDoesNotExistException {
+    List<String> ret = new ArrayList<String>();
+
+    Inode inode = getInode(path);
+
+    if (inode == null) {
+      throw new FileDoesNotExistException(path);
+    }
+
+    if (inode.isFile()) {
+      ret.add(path);
+    } else {
+      List<Integer> childernIds = ((InodeFolder) inode).getChildrenIds();
+
+      if (!path.endsWith("/")) {
+        path += "/";
+      }
+      synchronized (mRoot) {
+        for (int k : childernIds) {
+          inode = mInodes.get(k);
+          if (inode != null) {
+            ret.add(path + inode.getName());
+          }
+        }
+      }
+    }
+
+    return ret;
   }
 
   public void renameFile(String srcPath, String dstPath) 

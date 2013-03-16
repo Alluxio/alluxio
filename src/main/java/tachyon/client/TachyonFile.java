@@ -272,7 +272,7 @@ public class TachyonFile {
     return mSizeBytes;
   }
 
-  public List<String> getLocationHosts() {
+  public List<String> getLocationHosts() throws IOException {
     List<NetAddress> locations = mTachyonClient.getFileLocations(mId);
     List<String> ret = new ArrayList<String>(locations.size());
     if (locations != null) {

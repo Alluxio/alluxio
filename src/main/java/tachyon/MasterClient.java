@@ -106,7 +106,8 @@ public class MasterClient {
   public synchronized int user_createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment,
       String framework, String frameworkVersion, int value) 
-          throws InvalidPathException, FileDoesNotExistException, TException {
+          throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
+          TException {
     return CLIENT.user_createDependency(parents, children, commandPrefix, data, comment, 
         framework, frameworkVersion, value);
   }
@@ -176,9 +177,14 @@ public class MasterClient {
     return CLIENT.user_getClientRawTableInfoById(id);
   }
 
-  public synchronized int getNumberOfFiles(String folderPath)
+  public synchronized int user_getNumberOfFiles(String folderPath)
       throws FileDoesNotExistException, InvalidPathException, TException {
     return CLIENT.user_getNumberOfFiles(folderPath);
+  }
+
+  public synchronized List<Integer> user_listFiles(String path, boolean recursive)
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    return CLIENT.user_listFiles(path, recursive);
   }
 
   public synchronized int user_mkdir(String path) 

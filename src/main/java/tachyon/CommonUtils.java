@@ -68,7 +68,7 @@ public class CommonUtils {
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
     List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
     for (int k = 0; k < source.size(); k ++) {
-      source.add(cloneByteBuffer(source.get(k)));
+      ret.add(cloneByteBuffer(source.get(k)));
     }
     return ret;
   }
