@@ -273,7 +273,7 @@ public class TachyonFile {
   }
 
   public List<String> getLocationHosts() throws IOException {
-    List<NetAddress> locations = mTachyonClient.getFileLocations(mId);
+    List<NetAddress> locations = mTachyonClient.getFileNetAddresses(mId);
     List<String> ret = new ArrayList<String>(locations.size());
     if (locations != null) {
       for (int k = 0; k < locations.size(); k ++) {
@@ -428,7 +428,7 @@ public class TachyonFile {
 
     LOG.info("Try to find and read from remote workers.");
 
-    List<NetAddress> fileLocations = mTachyonClient.getFileLocations(mId);
+    List<NetAddress> fileLocations = mTachyonClient.getFileNetAddresses(mId);
 
     if (fileLocations == null) {
       throw new IOException("Can not find location info: " + mClientFileInfo.getPath() + " " + mId);
