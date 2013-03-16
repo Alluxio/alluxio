@@ -57,8 +57,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   public int user_createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment,
       String framework, String frameworkVersion, int dependencyType)
-          throws InvalidPathException, FileDoesNotExistException, TException {
+          throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
+          TException {
     try {
+      for (int k = 0; k < children.size(); k ++) {
+        mMasterInfo.createFile(children.get(k), false);
+      }
       return mMasterInfo.createDependency(parents, children, commandPrefix, 
           data, comment, framework, frameworkVersion,
           DependencyType.getDependencyType(dependencyType));
@@ -157,6 +161,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   public int user_getNumberOfFiles(String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
     return mMasterInfo.getNumberOfFiles(path);
+  }
+
+  @Override
+  public List<Integer> user_listFiles(String path, boolean recursive)
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    return mMasterInfo.listFiles(path, recursive);
   }
 
   @Override
