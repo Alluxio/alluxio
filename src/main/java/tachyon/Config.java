@@ -21,9 +21,7 @@ public class Config {
   public static final long TB = GB * 1024L;
   public static final long TWO_32 = 1L << 32;
 
-  public static String LOGGER_TYPE = "";
-  public static final String MASTER_LOGGER_TYPE = "MASTER_LOGGER";
-  public static final String WORKER_LOGGER_TYPE = "WORKER_LOGGER";
+  public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
 
   public static final String MASTER_LOG_FILE;
   public static final String MASTER_CHECKPOINT_FILE;
