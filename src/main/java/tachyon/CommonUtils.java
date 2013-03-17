@@ -61,6 +61,7 @@ public class CommonUtils {
     ByteBuffer ret = ByteBuffer.allocate(buf.limit() - buf.position());
     ret.put(buf);
     ret.flip();
+    buf.flip();
     return ret;
   }
 
