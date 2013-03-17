@@ -296,7 +296,7 @@ public class PerformanceTest {
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
     double result = 1000L * FILES_BYTES / takenTimeMs / 1024 / 1024;
 
-    LOG.info(RESULT_PREFIX + "Entire " + msg + " Test : " + result + " Mb/sec. Took " +
+    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + msg + " Test : " + " Took " +
         takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
@@ -335,8 +335,8 @@ public class PerformanceTest {
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
     double result = FILES_BYTES * 1000L / takenTimeMs / 1024 / 1024;
-    LOG.info(RESULT_PREFIX + "Entire " + (write ? "Write ": "Read ") + result + " Mb/sec. Took " +
-        takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
+    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write ": "Read ") + 
+        " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
   public static void main(String[] args) throws IOException, InvalidPathException {
