@@ -24,7 +24,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 public class PerformanceTest {
   private static Logger LOG = LoggerFactory.getLogger(PerformanceTest.class);
 
-  private static final int RESULT_ARRAY_SIZE = 68;
+  private static final int RESULT_ARRAY_SIZE = 64;
   private static final String FOLDER = "/mnt/ramdisk/";
 
   private static TachyonClient MTC = null;
@@ -44,7 +44,7 @@ public class PerformanceTest {
   public static void createFiles() throws InvalidPathException {
     long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < THREADS; k ++) {
-      int fileId = MTC.createFile(FILE_NAME + k);
+      int fileId = MTC.createFile(FILE_NAME + (k + BASE_FILE_NUMBER));
       CommonUtils.printTimeTakenMs(startTimeMs, LOG, "user_createFiles with fileId " + fileId);
     }
   }
@@ -100,7 +100,7 @@ public class PerformanceTest {
         }
         for (int times = mLeft; times < mRight; times ++) {
           if (!mMemoryOnly) {
-            file = new RandomAccessFile(FOLDER + (mWorkerId + 2 + BASE_FILE_NUMBER), "rw");
+            file = new RandomAccessFile(FOLDER + (mWorkerId + BASE_FILE_NUMBER), "rw");
             dst = file.getChannel().map(MapMode.READ_WRITE, 0, FILE_BYTES);
           }
           long startTimeMs = System.currentTimeMillis();
@@ -125,7 +125,7 @@ public class PerformanceTest {
         }
         for (int times = mLeft; times < mRight; times ++) {
           if (!mMemoryOnly) {
-            file = new RandomAccessFile(FOLDER + (mWorkerId + 2 + BASE_FILE_NUMBER), "rw");
+            file = new RandomAccessFile(FOLDER + (mWorkerId + BASE_FILE_NUMBER), "rw");
             dst = file.getChannel().map(MapMode.READ_WRITE, 0, FILE_BYTES);
           }
           dst.order(ByteOrder.nativeOrder());
@@ -171,17 +171,17 @@ public class PerformanceTest {
       }
 
       mBuf.flip();
-      TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-      file.open(OpType.WRITE_CACHE);
       for (int pId = mLeft; pId < mRight; pId ++) {
+        TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
+        file.open(OpType.WRITE_CACHE);
         long startTimeMs = System.currentTimeMillis();
         for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
           mBuf.array()[0] = (byte) (k + mWorkerId);
           file.append(mBuf);
         }
+        file.close();
         logPerIteration(startTimeMs, pId, "th WriteTachyonFile @ Worker ", pId);
       }
-      file.close();
     }
 
     @Override
@@ -227,11 +227,12 @@ public class PerformanceTest {
           }
         }
       }
-      TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-      file.open(OpType.READ_TRY_CACHE);
-      buf = file.readByteBuffer();
+
       long sum = 0;
       for (int pId = mLeft; pId < mRight; pId ++) {
+        TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
+        file.open(OpType.READ_TRY_CACHE);
+        buf = file.readByteBuffer();
         long startTimeMs = System.currentTimeMillis();
         for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
           buf.get(mBuf.array());
@@ -244,8 +245,8 @@ public class PerformanceTest {
           CommonUtils.printByteBuffer(LOG, buf);
         }
         buf.clear();
+        file.close();
       }
-      file.close();
       Results[mWorkerId] = sum;
     }
 
@@ -360,7 +361,7 @@ public class PerformanceTest {
     DEBUG_MODE = ("true".equals(args[4]));
     THREADS = Integer.parseInt(args[5]);
     FILES = Integer.parseInt(args[6]) * THREADS;
-    int testCaseNumber = Integer.parseInt(args[7]);
+    int testCase = Integer.parseInt(args[7]);
     BASE_FILE_NUMBER = Integer.parseInt(args[8]);
 
     FILE_BYTES = BLOCKS_PER_FILE * WRITE_BLOCK_SIZE_BYTES;
@@ -368,40 +369,40 @@ public class PerformanceTest {
 
     RESULT_PREFIX = String.format("Threads %d FilesPerThread %d TotalFiles %d " +
         "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d " +
-        "Tachyon_WRITE_BUFFER_SIZE_KB %d : ",
+        "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ",
         THREADS, FILES / THREADS, FILES, WRITE_BLOCK_SIZE_BYTES / 1024, 
         BLOCKS_PER_FILE, CommonUtils.getMB(FILE_BYTES), 
-        Config.USER_BUFFER_PER_PARTITION_BYTES / 1024);
+        Config.USER_BUFFER_PER_PARTITION_BYTES / 1024, BASE_FILE_NUMBER);
 
-    if (testCaseNumber == 1) {
+    if (testCase == 1) {
       RESULT_PREFIX = "TachyonFilesWriteTest " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
       MTC = TachyonClient.getClient(new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
       createFiles();
       TachyonTest(true);
-    } else if (testCaseNumber == 2) {
+    } else if (testCase == 2) {
       RESULT_PREFIX = "TachyonFilesReadTest " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
       MTC = TachyonClient.getClient(new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
       TachyonTest(false);
-    } else if (testCaseNumber == 3) {
+    } else if (testCase == 3) {
       RESULT_PREFIX = "RamFile Write " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
       memoryCopyTest(true, false);
-    } else if (testCaseNumber == 4) {
+    } else if (testCase == 4) {
       RESULT_PREFIX = "RamFile Read " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
       memoryCopyTest(false, false);
-    } else if (testCaseNumber == 5) {
+    } else if (testCase == 5) {
       RESULT_PREFIX = "ByteBuffer Write Test " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
       memoryCopyTest(true, true);
-    } else if (testCaseNumber == 6) {
+    } else if (testCase == 6) {
       RESULT_PREFIX = "ByteBuffer Read Test " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
       memoryCopyTest(false, true);
     } else {
-      CommonUtils.runtimeException("No Test Case " + testCaseNumber);
+      CommonUtils.runtimeException("No Test Case " + testCase);
     }
 
     for (int k = 0; k < RESULT_ARRAY_SIZE; k ++) {
