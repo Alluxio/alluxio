@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 export TACHYON_RAM_FOLDER=/mnt/ramdisk
 export TACHYON_MASTER_ADDRESS=localhost
 export TACHYON_HDFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_IP
