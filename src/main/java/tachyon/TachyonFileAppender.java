@@ -101,7 +101,6 @@ public class TachyonFileAppender extends FileAppender {
       File file = new File(newFileName);
       if (file.exists()) {
         rotateLogs(newFileName);
-        file = new File(newFileName);
       }
       mLastDate = CommonUtils.convertMsToSimpleDate(System.currentTimeMillis());
       mCurrentFileName = newFileName;
