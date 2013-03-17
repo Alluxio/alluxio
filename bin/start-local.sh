@@ -20,7 +20,6 @@ if [ -e $TACHYON_HOME/conf/tachyon-env.sh ] ; then
   . $TACHYON_HOME/conf/tachyon-env.sh
 fi
 
-rm -rf $TACHYON_HOME/logs
 mkdir -p $TACHYON_HOME/logs
 mkdir -p $TACHYON_HOME/data
 
@@ -41,4 +40,4 @@ $bin/start-master.sh
 sleep 1
 
 echo "Starting worker @ `hostname`"
-(java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true $TACHYON_JAVA_OPTS tachyon.Worker `hostname`) &> $TACHYON_HOME/logs/worker.log &
+(java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true $TACHYON_JAVA_OPTS tachyon.Worker `hostname`) &

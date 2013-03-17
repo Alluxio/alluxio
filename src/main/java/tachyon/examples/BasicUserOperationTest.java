@@ -5,8 +5,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import tachyon.Config;
 import tachyon.CommonUtils;
@@ -18,7 +17,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 public class BasicUserOperationTest {
-  private static Logger LOG = LoggerFactory.getLogger(BasicUserOperationTest.class);
+  private static Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private static TachyonClient sTachyonClient;
   private static String sFilePath = null;
