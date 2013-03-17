@@ -99,11 +99,11 @@ public class PerformanceTest {
           dst = ByteBuffer.allocateDirect(FILE_BYTES);
         }
         for (int times = mLeft; times < mRight; times ++) {
+          long startTimeMs = System.currentTimeMillis();
           if (!mMemoryOnly) {
             file = new RandomAccessFile(FOLDER + (mWorkerId + BASE_FILE_NUMBER), "rw");
             dst = file.getChannel().map(MapMode.READ_WRITE, 0, FILE_BYTES);
           }
-          long startTimeMs = System.currentTimeMillis();
           dst.order(ByteOrder.nativeOrder());
           for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
             mBuf.array()[0] = (byte) (k + mWorkerId);
@@ -124,21 +124,21 @@ public class PerformanceTest {
           dst = ByteBuffer.allocateDirect(FILE_BYTES);
         }
         for (int times = mLeft; times < mRight; times ++) {
+          long startTimeMs = System.currentTimeMillis();
           if (!mMemoryOnly) {
             file = new RandomAccessFile(FOLDER + (mWorkerId + BASE_FILE_NUMBER), "rw");
             dst = file.getChannel().map(MapMode.READ_WRITE, 0, FILE_BYTES);
           }
           dst.order(ByteOrder.nativeOrder());
-          long startTimeMs = System.currentTimeMillis();
           for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
             dst.get(mBuf.array());
           }
           sum += mBuf.get(times % 16);
           dst.clear();
-          logPerIteration(startTimeMs, times, str, mWorkerId);
           if (!mMemoryOnly) {
             file.close();
           }
+          logPerIteration(startTimeMs, times, str, mWorkerId);
         }
       }
       Results[mWorkerId] = sum;
@@ -172,9 +172,9 @@ public class PerformanceTest {
 
       mBuf.flip();
       for (int pId = mLeft; pId < mRight; pId ++) {
+        long startTimeMs = System.currentTimeMillis();
         TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
         file.open(OpType.WRITE_CACHE);
-        long startTimeMs = System.currentTimeMillis();
         for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
           mBuf.array()[0] = (byte) (k + mWorkerId);
           file.append(mBuf);
@@ -230,15 +230,14 @@ public class PerformanceTest {
 
       long sum = 0;
       for (int pId = mLeft; pId < mRight; pId ++) {
+        long startTimeMs = System.currentTimeMillis();
         TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
         file.open(OpType.READ_TRY_CACHE);
         buf = file.readByteBuffer();
-        long startTimeMs = System.currentTimeMillis();
         for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
           buf.get(mBuf.array());
         }
         sum += mBuf.get(pId % 16);
-        logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
 
         if (DEBUG_MODE) {
           buf.flip();
@@ -246,6 +245,7 @@ public class PerformanceTest {
         }
         buf.clear();
         file.close();
+        logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
       }
       Results[mWorkerId] = sum;
     }
