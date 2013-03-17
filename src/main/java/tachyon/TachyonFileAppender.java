@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.Math;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -15,6 +16,8 @@ import org.apache.tools.ant.util.LazyFileOutputStream;
 public class TachyonFileAppender extends FileAppender { 
   private int mMaxBackupIndex = 1;
   private int mMaxFileSize = 1;
+  private int mCurrentFileBackupIndex = -1;
+  private int mDeletionPercentage = 10;
   private long mMaxFileBytes = mMaxFileSize * 1024 * 1024;
   private String mCurrentFileName = "";
   private String mOriginalFileName = "";
@@ -26,6 +29,14 @@ public class TachyonFileAppender extends FileAppender {
 
   public void setMaxFileSize(int maxFileSize) {
     mMaxFileSize = maxFileSize;
+  }
+
+  public void setDeletionPercentage(int deletionPercentage) {
+    if (deletionPercentage > 0 && deletionPercentage <= 100) {
+      mDeletionPercentage = deletionPercentage;
+    } else {
+      throw new RuntimeException("Log4j configuration error, invalid deletionPercentage");
+    }
   }
 
   @Override
@@ -106,7 +117,7 @@ public class TachyonFileAppender extends FileAppender {
       mCurrentFileName = newFileName;
       return newFileName;
     } else {
-      throw new RuntimeException("Log4j configuration has not been set correctly, null filepath");
+      throw new RuntimeException("Log4j configuration error, null filepath");
     }
   }
 
@@ -115,22 +126,49 @@ public class TachyonFileAppender extends FileAppender {
     if (fileName.indexOf(".") != -1) {
       suffix = fileName.substring(fileName.lastIndexOf("."), fileName.length());
     }
-    fileName = fileName.substring(0, fileName.length() - suffix.length());
-    File latestFile = new File(fileName + suffix);
-    if (latestFile.length() > 0) {
-      for (int i = mMaxBackupIndex; i > 0; i --) {  
-        File oldFile = new File(fileName + "_" + i + suffix);
-        if (oldFile.exists()) {
-          if (i == mMaxBackupIndex) {
-            oldFile.delete();
+    String prefix = fileName.substring(0, fileName.length() - suffix.length());
+
+    if (mCurrentFileBackupIndex == -1) {
+      int lo = 0;
+      int hi = mMaxBackupIndex;
+      while (lo <= hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (mid == 0) {
+          mCurrentFileBackupIndex = 1;
+          break;
+        }
+        System.out.println("mid is " + mid);
+        if (new File(prefix + "_" + mid + suffix).exists()) {
+          if (new File(prefix + "_" + (mid+1) + suffix).exists()) {
+            lo = mid;
           } else {
-            oldFile.renameTo(new File(fileName + "_" + (i + 1) + suffix));
+            mCurrentFileBackupIndex = mid + 1;
+            break;
+          }
+        } else {
+          if (new File(prefix + "_" + (mid-1) + suffix).exists()) {
+            mCurrentFileBackupIndex = mid;
+            break;
+          } else {
+            hi = mid;
           }
         }
       }
-      latestFile.renameTo(new File(fileName + "_" + 1 + suffix));
-    } else {
-      latestFile.delete();
     }
+    
+    File oldFile = new File(fileName); 
+    if (mCurrentFileBackupIndex >= mMaxBackupIndex) {
+      int deleteToIndex = (int) Math.ceil(mMaxBackupIndex*mDeletionPercentage/100.0);
+      for (int i = 1; i < deleteToIndex; i ++) {
+        new File(prefix + "_" + i + suffix).delete();
+      }
+      for (int i = deleteToIndex + 1; i <= mMaxBackupIndex; i ++) {
+        new File(prefix + "_" + i + suffix).renameTo(
+            new File(prefix + "_" + (i - deleteToIndex) + suffix));
+      }
+      mCurrentFileBackupIndex = mCurrentFileBackupIndex - deleteToIndex;
+    }
+    oldFile.renameTo(new File(prefix + "_" + mCurrentFileBackupIndex + suffix));
+    mCurrentFileBackupIndex ++;
   }
 }
