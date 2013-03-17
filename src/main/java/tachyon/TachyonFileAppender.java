@@ -137,7 +137,6 @@ public class TachyonFileAppender extends FileAppender {
           mCurrentFileBackupIndex = 1;
           break;
         }
-        System.out.println("mid is " + mid);
         if (new File(prefix + "_" + mid + suffix).exists()) {
           if (new File(prefix + "_" + (mid+1) + suffix).exists()) {
             lo = mid;
