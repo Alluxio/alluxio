@@ -82,7 +82,7 @@ public class Config {
       }
       ret = defaultValue;
     } else {
-      LOG.info(property + " : " + ret);
+      LOG.debug(property + " : " + ret);
     }
     return ret;
   }
@@ -94,7 +94,7 @@ public class Config {
       ret = defaultValue;
       msg = " users default value";
     }
-    LOG.info(property + msg + " : " + ret);
+    LOG.debug(property + msg + " : " + ret);
     return ret;
   }
 
