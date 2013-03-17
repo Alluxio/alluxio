@@ -15,9 +15,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.CommonUtils;
 import tachyon.Config;
@@ -33,7 +32,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  * @author haoyuan
  */
 public class TachyonFileSystem extends FileSystem {
-  private final Logger LOG = LoggerFactory.getLogger(TachyonFileSystem.class);
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private URI mUri = null;
   private Path mWorkingDir = new Path("/");

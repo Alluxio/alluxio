@@ -5,14 +5,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
 
 public class MasterLogWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(MasterLogWriter.class);
+  private static final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private final String LOG_FILE_NAME;
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 export TACHYON_RAM_FOLDER=/mnt/ramdisk
 export TACHYON_MASTER_ADDRESS=localhost
 export TACHYON_HDFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_IP
@@ -7,6 +9,7 @@ export TACHYON_MASTER_SUBSUME_HDFS=false
 export TACHYON_WORKER_MEMORY_SIZE=512MB
 
 export TACHYON_JAVA_OPTS="
+  -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
   -Dtachyon.hdfs.address=$TACHYON_HDFS_ADDRESS
   -Dtachyon.worker.memory.size=$TACHYON_WORKER_MEMORY_SIZE
   -Dtachyon.worker.data.folder=$TACHYON_RAM_FOLDER/tachyonworker/
