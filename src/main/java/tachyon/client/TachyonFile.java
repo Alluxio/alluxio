@@ -86,7 +86,7 @@ public class TachyonFile {
   private synchronized void appendCurrentBuffer(int minimalPosition) throws IOException {
     if (mBuffer.position() >= minimalPosition) {
       if (mIoType.isWriteCache()) {
-        if (mSizeBytes != mLocalFile.length()) {
+        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
           CommonUtils.runtimeException(
               String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
         }
@@ -147,7 +147,7 @@ public class TachyonFile {
 
     if (mBuffer.position() + len >= Config.USER_BUFFER_PER_PARTITION_BYTES) {
       if (mIoType.isWriteCache()) {
-        if (mSizeBytes != mLocalFile.length()) {
+        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
           CommonUtils.runtimeException(
               String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
         }
@@ -174,7 +174,7 @@ public class TachyonFile {
         mCheckpointOutputStream.write(b, off, len);
       }
 
-      mSizeBytes += mBuffer.limit();
+      mSizeBytes += mBuffer.limit() + len;
       mBuffer.clear();
     } else {
       mBuffer.put(b, off, len);
