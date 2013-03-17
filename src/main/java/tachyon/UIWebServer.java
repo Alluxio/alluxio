@@ -10,11 +10,10 @@ import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 public class UIWebServer {
-  private final Logger LOG = LoggerFactory.getLogger(UIWebServer.class);
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private Server mServer;
   private String mServerName;

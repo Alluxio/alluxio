@@ -7,9 +7,8 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Config;
 import tachyon.HdfsClient;
@@ -35,7 +34,7 @@ import tachyon.thrift.TableDoesNotExistException;
  * @author haoyuan
  */
 public class TachyonClient {
-  private final Logger LOG = LoggerFactory.getLogger(TachyonClient.class);
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   // The RPC client talks to the system master.
   private MasterClient mMasterClient = null;

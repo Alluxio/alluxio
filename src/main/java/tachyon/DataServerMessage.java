@@ -6,14 +6,14 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
+
 
 public class DataServerMessage {
   public static final short DATA_SERVER_REQUEST_MESSAGE = 1;
   public static final short DATA_SERVER_RESPONSE_MESSAGE = 2;
 
-  private final Logger LOG = LoggerFactory.getLogger(DataServerMessage.class); 
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE); 
 
   private final boolean IS_TO_SEND_DATA;
   private final short mMsgType;

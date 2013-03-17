@@ -8,9 +8,8 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.channels.FileChannel.MapMode;
 
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Config;
 import tachyon.CommonUtils;
@@ -22,7 +21,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 public class PerformanceMultithreadTest {
-  private static Logger LOG = LoggerFactory.getLogger(PerformanceMultithreadTest.class);
+  private static Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private static TachyonClient MTC = null;
   private static String MASTER_HOST = null;

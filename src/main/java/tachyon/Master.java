@@ -6,8 +6,7 @@ import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import tachyon.thrift.MasterService;
 
@@ -17,7 +16,7 @@ import tachyon.thrift.MasterService;
  * @author haoyuan
  */
 public class Master {
-  private static final Logger LOG = LoggerFactory.getLogger(Master.class);
+  private static final Logger LOG = Logger.getLogger(Config.MASTER_LOGGER_TYPE);
 
   private static Master MASTER = null;
 
@@ -29,6 +28,8 @@ public class Master {
   private Master(InetSocketAddress address, int selectorThreads, int acceptQueueSizePerThreads,
       int workerThreads) {
     try {
+      Config.LOGGER_TYPE = Config.MASTER_LOGGER_TYPE;
+
       mMasterInfo = new MasterInfo(address);
 
       mWebServer = new UIWebServer("Tachyon Master Server",

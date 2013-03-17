@@ -8,8 +8,7 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -24,7 +23,7 @@ import tachyon.thrift.WorkerService;
  * @author Haoyuan
  */
 public class WorkerClient {
-  private final Logger LOG = LoggerFactory.getLogger(WorkerClient.class);
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
   private final WorkerService.Client CLIENT;
 
   private TProtocol mProtocol;
