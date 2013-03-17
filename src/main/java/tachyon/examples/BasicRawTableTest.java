@@ -8,10 +8,9 @@ import java.nio.ByteOrder;
 import org.apache.thrift.TException; 
 import org.apache.log4j.Logger;
 
-import com.sun.corba.se.impl.util.Version;
-
 import tachyon.CommonUtils;
 import tachyon.Config;
+import tachyon.Version;
 import tachyon.client.OpType;
 import tachyon.client.RawColumn;
 import tachyon.client.RawTable;
@@ -22,7 +21,7 @@ import tachyon.thrift.OutOfMemoryForPinFileException;
 import tachyon.thrift.TableDoesNotExistException;
 
 public class BasicRawTableTest {
-  private static Logger LOG = Logger.getLogger(BasicRawTableTest.class);
+  private static Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private static final int COLS = 3;
   private static TachyonClient sTachyonClient;
