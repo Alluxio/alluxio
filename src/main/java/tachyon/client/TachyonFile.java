@@ -19,9 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.Config;
 import tachyon.DataServerMessage;
@@ -38,7 +37,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  * @author haoyuan
  */
 public class TachyonFile {
-  private final Logger LOG = LoggerFactory.getLogger(TachyonFile.class);
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
   private final TachyonClient mTachyonClient;
   private final ClientFileInfo mClientFileInfo;
   private final int mId;

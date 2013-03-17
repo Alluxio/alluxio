@@ -20,8 +20,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.mortbay.log.Log;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
@@ -44,7 +43,7 @@ import tachyon.thrift.TableDoesNotExistException;
 public class MasterInfo {
   public static final String COL = "COL_";
 
-  private final Logger LOG = LoggerFactory.getLogger(MasterInfo.class);
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private final InetSocketAddress MASTER_ADDRESS;
   private final long START_TIME_NS_PREFIX;

@@ -3,15 +3,14 @@ package tachyon;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Input;
 
 public class MasterLogReader {
-  private static final Logger LOG = LoggerFactory.getLogger(MasterLogReader.class);
+  private static final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private final String LOG_FILE_NAME;
 

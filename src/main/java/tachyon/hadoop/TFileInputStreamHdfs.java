@@ -9,8 +9,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import tachyon.Config;
 import tachyon.client.OpType;
@@ -19,7 +18,7 @@ import tachyon.client.TachyonFile;
 
 public class TFileInputStreamHdfs extends InputStream
 implements Seekable, PositionedReadable {
-  private static Logger LOG = LoggerFactory.getLogger(TFileInputStreamHdfs.class);
+  private static Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private int mCurrentPosition;
   private TachyonClient mTachyonClient;
