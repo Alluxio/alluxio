@@ -22,10 +22,10 @@ if [ -z $TACHYON_MASTER_ADDRESS ] ; then
 fi
 
 if [[ "$1" == "Basic" ]]; then
-  java -cp $bin/../conf/:$TACHYON_JAR $TACHYON_JAVA_OPTS tachyon.examples.BasicUserOperationTest $MASTER_ADDRESS /Basic_File_$2 $2
+  java -cp $bin/../conf/:$TACHYON_JAR tachyon.examples.BasicUserOperationTest $MASTER_ADDRESS /Basic_File_$2 $2
   exit 0
 elif [[ "$1" == "BasicRawTable" ]]; then
-  java -cp $bin/../conf/:$TACHYON_JAR $TACHYON_JAVA_OPTS tachyon.examples.BasicRawTableTest $MASTER_ADDRESS /Basic_Raw_Table_$2 $2
+  java -cp $bin/../conf/:$TACHYON_JAR tachyon.examples.BasicRawTableTest $MASTER_ADDRESS /Basic_Raw_Table_$2 $2
   exit 0
 fi
 
