@@ -1,10 +1,9 @@
 package tachyon;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 public class HeartbeatThread implements Runnable {
-  private final Logger LOG = LoggerFactory.getLogger(HeartbeatThread.class);
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
   private final HeartbeatExecutor HEARTBEAT;
   private final int SLEEP_INTERVAL_MS;
 

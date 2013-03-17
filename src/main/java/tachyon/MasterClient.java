@@ -12,8 +12,7 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
@@ -36,7 +35,7 @@ import tachyon.thrift.TableDoesNotExistException;
  * @author haoyuan
  */
 public class MasterClient {
-  private final Logger LOG = LoggerFactory.getLogger(MasterClient.class);
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
   private final MasterService.Client CLIENT;
 
   private InetSocketAddress mMasterAddress;

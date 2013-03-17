@@ -7,8 +7,7 @@ import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import tachyon.thrift.Command;
 import tachyon.thrift.WorkerService;
@@ -19,7 +18,7 @@ import tachyon.thrift.WorkerService;
  * @author haoyuan
  */
 public class Worker implements Runnable {
-  private static final Logger LOG = LoggerFactory.getLogger(Worker.class);
+  private static final Logger LOG = Logger.getLogger(Config.WORKER_LOGGER_TYPE);
 
   private static Worker WORKER = null;
 
@@ -35,6 +34,8 @@ public class Worker implements Runnable {
   private Worker(InetSocketAddress masterAddress, InetSocketAddress workerAddress, 
       int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String dataFolder, long memoryCapacityBytes) {
+    Config.LOGGER_TYPE = Config.WORKER_LOGGER_TYPE;
+
     DataFolder = dataFolder;
     MemoryCapacityBytes = memoryCapacityBytes;
 

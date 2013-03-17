@@ -1,15 +1,14 @@
 package tachyon.client;
 
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import tachyon.CommonUtils;
 import tachyon.Config;
 import tachyon.WorkerClient;
 
 class ClientToWorkerHeartbeat implements Runnable {
-  private final Logger LOG = LoggerFactory.getLogger(ClientToWorkerHeartbeat.class);
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
   private final WorkerClient WORKER_CLIENT;
   private final long USER_ID;
 

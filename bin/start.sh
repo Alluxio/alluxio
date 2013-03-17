@@ -16,7 +16,6 @@ bin=`cd "$( dirname "$0" )"; pwd`
 # Load the Tachyon configuration
 . "$bin/tachyon-config.sh"
 
-rm -rf $TACHYON_HOME/logs
 mkdir -p $TACHYON_HOME/logs
 mkdir -p $TACHYON_HOME/data
 

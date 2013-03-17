@@ -1,13 +1,12 @@
 package tachyon;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 /**
  * Format Tachyon.
  */
 public class Format {
-  private final static Logger LOG = LoggerFactory.getLogger(Format.class);
+  private final static Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
   public static void main(String[] args) {
     if (args.length == 0) {
       LOG.info("Deleting " + Config.MASTER_CHECKPOINT_FILE);
@@ -23,7 +22,7 @@ public class Format {
         hdfsClient.delete(Config.HDFS_ADDRESS + Config.WORKER_HDFS_FOLDER, true);
       }
     } else {
-      LOG.info("java -cp target/tachyon-" + Version.VERSION + 
+      LOG.info("java -cp target/tachyon-" + Version.VERSION +
           "-jar-with-dependencies.jar tachyon.Format");
     }
   }

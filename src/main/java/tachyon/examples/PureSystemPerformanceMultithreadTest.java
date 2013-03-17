@@ -8,15 +8,14 @@ import java.nio.IntBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 import tachyon.Config;
 import tachyon.CommonUtils;
 import tachyon.Version;
 
 public class PureSystemPerformanceMultithreadTest {
-  private static Logger LOG = LoggerFactory.getLogger(PureSystemPerformanceMultithreadTest.class);
+  private static Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private static int TIMES = -1;
   private static int BLOCK_SIZE_BYTES = -1;
