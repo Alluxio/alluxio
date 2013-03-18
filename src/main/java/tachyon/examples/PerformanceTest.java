@@ -29,7 +29,7 @@ public class PerformanceTest {
   private static TachyonClient MTC = null;
   private static String MASTER_HOST = null;
   private static String FILE_NAME = null;
-  private static int WRITE_BLOCK_SIZE_BYTES = -1;
+  private static int BLOCK_SIZE_BYTES = -1;
   private static int BLOCKS_PER_FILE = -1;
   private static int THREADS = -1;
   private static int FILES = -1;
@@ -216,7 +216,7 @@ public class PerformanceTest {
           intBuf = buf.asIntBuffer();
           int tmp;
           for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
-            for (int k = 0; k < WRITE_BLOCK_SIZE_BYTES / 4; k ++) {
+            for (int k = 0; k < BLOCK_SIZE_BYTES / 4; k ++) {
               tmp = intBuf.get();
               if ((k == 0 && tmp == (i + mWorkerId)) || (k != 0 && tmp == k)) {
               } else {
@@ -264,9 +264,9 @@ public class PerformanceTest {
     ByteBuffer[] bufs = new ByteBuffer[THREADS];
 
     for (int thread = 0; thread < THREADS; thread ++) {
-      ByteBuffer sRawData = ByteBuffer.allocate(WRITE_BLOCK_SIZE_BYTES);
+      ByteBuffer sRawData = ByteBuffer.allocate(BLOCK_SIZE_BYTES);
       sRawData.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < WRITE_BLOCK_SIZE_BYTES / 4; k ++) {
+      for (int k = 0; k < BLOCK_SIZE_BYTES / 4; k ++) {
         sRawData.putInt(k);
       }
       bufs[thread] = sRawData;
@@ -303,9 +303,9 @@ public class PerformanceTest {
     ByteBuffer[] bufs = new ByteBuffer[THREADS];
 
     for (int thread = 0; thread < THREADS; thread ++) {
-      ByteBuffer sRawData = ByteBuffer.allocate(WRITE_BLOCK_SIZE_BYTES);
+      ByteBuffer sRawData = ByteBuffer.allocate(BLOCK_SIZE_BYTES);
       sRawData.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < WRITE_BLOCK_SIZE_BYTES / 4; k ++) {
+      for (int k = 0; k < BLOCK_SIZE_BYTES / 4; k ++) {
         sRawData.putInt(k);
       }
       bufs[thread] = sRawData;
@@ -355,7 +355,7 @@ public class PerformanceTest {
 
     MASTER_HOST = args[0];
     FILE_NAME = args[1];
-    WRITE_BLOCK_SIZE_BYTES = Integer.parseInt(args[2]);
+    BLOCK_SIZE_BYTES = Integer.parseInt(args[2]);
     BLOCKS_PER_FILE = Integer.parseInt(args[3]);
     DEBUG_MODE = ("true".equals(args[4]));
     THREADS = Integer.parseInt(args[5]);
@@ -363,13 +363,13 @@ public class PerformanceTest {
     int testCase = Integer.parseInt(args[7]);
     BASE_FILE_NUMBER = Integer.parseInt(args[8]);
 
-    FILE_BYTES = BLOCKS_PER_FILE * WRITE_BLOCK_SIZE_BYTES;
+    FILE_BYTES = BLOCKS_PER_FILE * BLOCK_SIZE_BYTES;
     FILES_BYTES = 1L * FILE_BYTES * FILES;
 
     RESULT_PREFIX = String.format("Threads %d FilesPerThread %d TotalFiles %d " +
         "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d " +
         "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ",
-        THREADS, FILES / THREADS, FILES, WRITE_BLOCK_SIZE_BYTES / 1024, 
+        THREADS, FILES / THREADS, FILES, BLOCK_SIZE_BYTES / 1024, 
         BLOCKS_PER_FILE, CommonUtils.getMB(FILE_BYTES), 
         Config.USER_BUFFER_PER_PARTITION_BYTES / 1024, BASE_FILE_NUMBER);
 
