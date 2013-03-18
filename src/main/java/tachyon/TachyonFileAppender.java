@@ -42,17 +42,20 @@ public class TachyonFileAppender extends FileAppender {
   @Override
   public void activateOptions() {
     if (fileName != null) {
-      if (!fileName.equals(mCurrentFileName)) {
-        mOriginalFileName = fileName;
-      } else {
-        fileName = mOriginalFileName;
-      }
-      try {
-        fileName = getNewLogFileName(fileName);
-        setFile(fileName, fileAppend, bufferedIO, bufferSize);
-      } catch (Exception e) {
-        errorHandler.error("Error while activating log options", e,
-            ErrorCode.FILE_OPEN_FAILURE);
+      if (Config.LOGGER_TYPE.equals("MASTER_LOGGER") && fileName.contains("master") || 
+          Config.LOGGER_TYPE.equals("WORKER_LOGGER") && fileName.contains("worker")) {
+        if (!fileName.equals(mCurrentFileName)) {
+          mOriginalFileName = fileName;
+        } else {
+          fileName = mOriginalFileName;
+        }
+        try {
+          fileName = getNewLogFileName(fileName);
+          setFile(fileName, fileAppend, bufferedIO, bufferSize);
+        } catch (Exception e) {
+          errorHandler.error("Error while activating log options", e,
+              ErrorCode.FILE_OPEN_FAILURE);
+        }
       }
     }
   }
@@ -61,7 +64,7 @@ public class TachyonFileAppender extends FileAppender {
   public synchronized void setFile(String fileName, boolean append, boolean bufferedIO, 
       int bufferSize) throws IOException  {
     // It does not make sense to have immediate flush and bufferedIO.
-    if(bufferedIO) {
+    if (bufferedIO) {
       setImmediateFlush(false);
     }
 
@@ -71,7 +74,7 @@ public class TachyonFileAppender extends FileAppender {
     LazyFileOutputStream ostream = new LazyFileOutputStream(fileName, append);
 
     Writer fw = createWriter(ostream);
-    if(bufferedIO) {
+    if (bufferedIO) {
       fw = new BufferedWriter(fw, bufferSize);
     }
     setQWForFiles(fw);
