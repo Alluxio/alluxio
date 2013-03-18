@@ -42,8 +42,7 @@ public class TachyonFileAppender extends FileAppender {
   @Override
   public void activateOptions() {
     if (fileName != null) {
-      if (Config.LOGGER_TYPE.equals("MASTER_LOGGER") && fileName.contains("master") || 
-          Config.LOGGER_TYPE.equals("WORKER_LOGGER") && fileName.contains("worker")) {
+      if (Config.LOGGER_TYPE.equals(getName())) {
         if (!fileName.equals(mCurrentFileName)) {
           mOriginalFileName = fileName;
         } else {
