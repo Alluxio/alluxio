@@ -16,7 +16,7 @@ import tachyon.thrift.MasterService;
  * @author haoyuan
  */
 public class Master {
-  private static final Logger LOG = Logger.getLogger(Config.MASTER_LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private static Master MASTER = null;
 
@@ -28,8 +28,6 @@ public class Master {
   private Master(InetSocketAddress address, int selectorThreads, int acceptQueueSizePerThreads,
       int workerThreads) {
     try {
-      Config.LOGGER_TYPE = Config.MASTER_LOGGER_TYPE;
-
       mMasterInfo = new MasterInfo(address);
 
       mWebServer = new UIWebServer("Tachyon Master Server",

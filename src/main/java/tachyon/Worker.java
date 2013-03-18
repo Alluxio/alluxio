@@ -18,7 +18,7 @@ import tachyon.thrift.WorkerService;
  * @author haoyuan
  */
 public class Worker implements Runnable {
-  private static final Logger LOG = Logger.getLogger(Config.WORKER_LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private static Worker WORKER = null;
 
@@ -34,8 +34,6 @@ public class Worker implements Runnable {
   private Worker(InetSocketAddress masterAddress, InetSocketAddress workerAddress, 
       int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String dataFolder, long memoryCapacityBytes) {
-    Config.LOGGER_TYPE = Config.WORKER_LOGGER_TYPE;
-
     DataFolder = dataFolder;
     MemoryCapacityBytes = memoryCapacityBytes;
 
