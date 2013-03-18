@@ -9,7 +9,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <hadoop.version>0.20.205.0</hadoop.version>
+    <hadoop.version>1.0.4</hadoop.version>
     <libthrift.version>0.7.0</libthrift.version>
     <cxf.version>2.7.0</cxf.version>
     <jetty.version>7.5.3.v20111011</jetty.version>
