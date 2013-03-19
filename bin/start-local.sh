@@ -25,6 +25,8 @@ mkdir -p $TACHYON_HOME/data
 
 $bin/stop.sh
 
+sleep 1
+
 if [[ `uname -a` == Darwin* ]]; then
   # Assuming Mac OS X
   echo "Mounting ramfs on Mac OS X..."
