@@ -141,7 +141,7 @@ public class TachyonClient {
     NetAddress workerNetAddress = null;
     mIsWorkerLocal = false;
     try {
-      String localHostName = InetAddress.getLocalHost().getHostName();
+      String localHostName = InetAddress.getLocalHost().getCanonicalHostName();
       LOG.info("Trying to get local worker host : " + localHostName);
       workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
       mIsWorkerLocal = true;
