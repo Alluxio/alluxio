@@ -22,11 +22,12 @@ struct ClientFileInfo {
   4: string checkpointPath
   5: i64 sizeBytes
   6: i64 creationTimeMs
-  7: bool ready
-  8: bool folder
-  9: bool inMemory
-  10: bool needPin
-  11: bool needCache
+  7: i32 dependencyId
+  8: bool ready
+  9: bool folder
+  10: bool inMemory
+  11: bool needPin
+  12: bool needCache
 }
 
 struct ClientRawTableInfo {
@@ -103,8 +104,9 @@ service MasterService {
   // Services to Workers
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i32> currentFiles) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i32> removedFiles)
-  void worker_cacheFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i64 fileSizeBytes) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+  i32 worker_cacheFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i64 fileSizeBytes) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
   set<i32> worker_getPinIdList()
+  list<i32> worker_getPriorityDependencyList()
 
   // Services to Users
   i32 user_createDependency(1: list<string> parents, 2: list<string> children, 3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework, 7: string frameworkVersion, 8: i32 dependencyType) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF, 3: FileAlreadyExistException eA)

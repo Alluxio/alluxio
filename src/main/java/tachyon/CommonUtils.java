@@ -221,6 +221,14 @@ public class CommonUtils {
     throw new IllegalArgumentException(e);
   }
 
+  public static <T> String listToString(List<T> list) {
+    StringBuilder sb = new StringBuilder();
+    for (int k = 0; k < list.size(); k ++) {
+      sb.append(list.get(k)).append(" ");
+    }
+    return sb.toString();
+  }
+
   public static String parametersToString(Object ... objs) {
     StringBuilder sb = new StringBuilder("(");
     for (int k = 0; k < objs.length; k ++) {

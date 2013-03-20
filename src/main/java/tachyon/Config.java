@@ -45,6 +45,7 @@ public class Config {
   public static final int WORKER_WORKER_THREADS = 128;
   public static final int WORKER_PORT = 10000;
   public static final int WORKER_DATA_SERVER_PORT = 10001;
+  public static final int WORKER_CHECKPOINT_THREADS;
   public static final String WORKER_HDFS_FOLDER = "/tachyon/workers";
 
   public static final int USER_FAILED_SPACE_REQUEST_LIMITS = 3;
@@ -101,8 +102,10 @@ public class Config {
     TACHYON_HOME = getNonNullProperty("tachyon.home", null);
 
     if (TACHYON_HOME != null) {
-      MASTER_LOG_FILE = getProperty("tachyon.master.log.file", TACHYON_HOME + "/logs/tachyon_log.data");
-      MASTER_CHECKPOINT_FILE = getProperty("tachyon.master.checkpoint.file", TACHYON_HOME + "/logs/tachyon_checkpoint.data");
+      MASTER_LOG_FILE = getProperty(
+          "tachyon.master.log.file", TACHYON_HOME + "/logs/tachyon_log.data");
+      MASTER_CHECKPOINT_FILE = getProperty(
+          "tachyon.master.checkpoint.file", TACHYON_HOME + "/logs/tachyon_checkpoint.data");
     } else {
       MASTER_LOG_FILE = null;
       MASTER_CHECKPOINT_FILE = null;
@@ -113,6 +116,8 @@ public class Config {
     WORKER_DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramdisk");
     WORKER_MEMORY_SIZE = CommonUtils.parseMemorySize(
         getProperty("tachyon.worker.memory.size", "2GB"));
+    WORKER_CHECKPOINT_THREADS = Integer.parseInt(
+        getProperty("tachyon.worker.checkpoint.threads", "2"));
 
     HDFS_ADDRESS = getProperty("tachyon.hdfs.address", null);
     if (HDFS_ADDRESS == null) {
