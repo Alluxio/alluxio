@@ -204,9 +204,9 @@ public class MasterClient {
     CLIENT.user_unpinFile(id);
   }
 
-  public synchronized void worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
+  public synchronized int worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
       long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    CLIENT.worker_cacheFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
+    return CLIENT.worker_cacheFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
@@ -216,6 +216,10 @@ public class MasterClient {
 
   public synchronized Set<Integer> worker_getPinIdList() throws TException {
     return CLIENT.worker_getPinIdList();
+  }
+
+  public synchronized List<Integer> worker_getPriorityDependencyList() throws TException {
+    return CLIENT.worker_getPriorityDependencyList();
   }
 
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,

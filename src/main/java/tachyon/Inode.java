@@ -7,7 +7,6 @@ public abstract class Inode implements Comparable<Inode> {
   private int mId;
   private String mName;
   private int mParentId;
-  private int mDependencyId;
 
   protected Inode(String name, int id, int parentId, InodeType type) {
     TYPE = type;
@@ -15,7 +14,6 @@ public abstract class Inode implements Comparable<Inode> {
     mId = id;
     mName = name;
     mParentId = parentId;
-    mDependencyId = -1;
 
     CREATION_TIME_MS = System.currentTimeMillis();
   }
@@ -68,14 +66,6 @@ public abstract class Inode implements Comparable<Inode> {
 
   public synchronized void setName(String name) {
     mName = name;
-  }
-
-  public synchronized void setDependencyId(int dependencyId) {
-    mDependencyId = dependencyId;
-  }
-
-  public synchronized int getDependencyId() {
-    return mDependencyId;
   }
 
   public synchronized int getParentId() {

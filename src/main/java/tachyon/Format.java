@@ -18,8 +18,10 @@ public class Format {
         HdfsClient hdfsClient = new HdfsClient(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER);
         LOG.info("Deleting " + Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER);
         hdfsClient.delete(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER, true);
+        hdfsClient.mkdirs(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER, null, true);
         LOG.info("Deleting " + Config.HDFS_ADDRESS + Config.WORKER_HDFS_FOLDER);
         hdfsClient.delete(Config.HDFS_ADDRESS + Config.WORKER_HDFS_FOLDER, true);
+        hdfsClient.mkdirs(Config.HDFS_ADDRESS + Config.WORKER_HDFS_FOLDER, null, true);
       }
     } else {
       LOG.info("java -cp target/tachyon-" + Version.VERSION +

@@ -191,16 +191,21 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void worker_cacheFile(long workerId, long workerUsedBytes, int fileId,
+  public int worker_cacheFile(long workerId, long workerUsedBytes, int fileId,
       long fileSizeBytes) throws FileDoesNotExistException,
       SuspectedFileSizeException, TException {
-    mMasterInfo.cachedFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
+    return mMasterInfo.cachedFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
   }
 
   @Override
   public Set<Integer> worker_getPinIdList() throws TException {
     List<Integer> ret = mMasterInfo.getPinIdList();
     return new HashSet<Integer>(ret);
+  }
+
+  @Override
+  public List<Integer> worker_getPriorityDependencyList() throws TException {
+    return mMasterInfo.getPriorityDependencyList();
   }
 
   @Override

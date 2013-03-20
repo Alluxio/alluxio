@@ -46,12 +46,144 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       new ArrayBlockingQueue<Integer>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
   private BlockingQueue<Integer> mAddedFileList = 
       new ArrayBlockingQueue<Integer>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
+
+  // Dependency related lock
+  private Object mDependencyLock = new Object();
+  private Set<Integer> mUncheckpointFiles = new HashSet<Integer>();
+  // From dependencyId to files in that set.
+  private Map<Integer, Set<Integer>> mDepIdToFiles = new HashMap<Integer, Set<Integer>>();
+  private List<Integer> mPriorityDependencies = new ArrayList<Integer>();
+
   private File mDataFolder;
   private File mUserFolder;
   private Path mHdfsWorkerFolder;
+  private Path mHdfsWorkerDataFolder;
   private HdfsClient mHdfsClient;
 
   private Users mUsers;
+
+  private ArrayList<Thread> mCheckpointThreads = 
+      new ArrayList<Thread>(Config.WORKER_CHECKPOINT_THREADS); 
+
+  public class CheckpointThread implements Runnable {
+    private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+    private final int ID;
+    private HdfsClient mLocalHdfsClient = null;
+
+    public CheckpointThread(int id) {
+      ID = id;
+    }
+
+    @Override
+    public void run() {
+      while (true) {
+        try {
+          int fileId = -1;
+          synchronized (mDependencyLock) {
+            if (mPriorityDependencies.size() == 0) {
+              try {
+                mPriorityDependencies = mMasterClient.worker_getPriorityDependencyList();
+                if (!mPriorityDependencies.isEmpty()) {
+                  LOG.info("Get new mPriorityDependencies " +
+                      CommonUtils.listToString(mPriorityDependencies));
+                }
+              } catch (TException e) {
+                LOG.error(e);
+              }
+            }
+
+            fileId = getFileIdBasedOnPriorityDependency();
+
+            if (fileId == -1) {
+              fileId = getRandomUncheckpointedFile();
+            }
+          }
+
+          if (fileId == -1) {
+            try {
+              LOG.debug("Thread " + ID + " has nothing to checkpoint. Sleep for 1 sec.");
+              Thread.sleep(1000);
+            } catch (InterruptedException e) {
+              LOG.warn(e);
+            }
+            continue;
+          }
+
+          //TODO checkpoint process. In future, move from midPath to dstPath should be done by
+          // master
+          String srcPath = mDataFolder + "/" + fileId;
+          long fileSize = (new File(srcPath)).length();
+          String midPath = mHdfsWorkerDataFolder + "/" + fileId;
+          String dstPath = Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" + fileId;
+          LOG.info("Thread " + ID + " is checkpointing file " + fileId + " from " + srcPath + 
+              " to " + midPath + " to " + dstPath);
+
+          if (mLocalHdfsClient == null) {
+            mLocalHdfsClient = new HdfsClient(midPath);
+          }
+
+          mLocalHdfsClient.copyFromLocalFile(true, false, srcPath, midPath);
+          if (!mLocalHdfsClient.rename(midPath, dstPath)) {
+            LOG.error("Failed to rename from " + midPath + " to " + dstPath);
+          }
+
+          mMasterClient.addCheckpoint(mWorkerInfo.getId(), fileId, fileSize, dstPath);
+
+          unlockFile(fileId, -2); 
+        } catch (FileDoesNotExistException e) {
+          LOG.warn(e);
+        } catch (SuspectedFileSizeException e) {
+          LOG.error(e);
+        } catch (TException e) {
+          LOG.warn(e); 
+        }
+      }
+    }
+
+    // This method assumes the mDependencyLock has been acquired.
+    private int getRandomUncheckpointedFile() throws TException {
+      if (mUncheckpointFiles.isEmpty()) {
+        return -1;
+      }
+      for (int depId: mDepIdToFiles.keySet()) {
+        int fileId = getFileIdFromOneDependency(depId);
+        if (fileId != -1) {
+          return fileId;
+        }
+      }
+      return -1;
+    }
+
+    // This method assumes the mDependencyLock has been acquired.
+    private int getFileIdBasedOnPriorityDependency() throws TException {
+      if (mPriorityDependencies.isEmpty()) {
+        return -1;
+      }
+      for (int depId : mPriorityDependencies) {
+        int fileId = getFileIdFromOneDependency(depId);
+        if (fileId != -1) {
+          return fileId;
+        }
+      }
+      return -1;
+    }
+
+    // This method assumes the mDependencyLock has been acquired.
+    private int getFileIdFromOneDependency(int depId) throws TException {
+      Set<Integer> fileIds = mDepIdToFiles.get(depId);
+      if (fileIds != null && !fileIds.isEmpty()) {
+        int fileId = fileIds.iterator().next();
+        lockFile(fileId, -2);
+        fileIds.remove(fileId);
+        mUncheckpointFiles.remove(fileId);
+        if (fileIds.isEmpty()) {
+          mDepIdToFiles.remove(depId);
+        }
+        return fileId;
+      }
+      return -1;
+    }
+  }
 
   public WorkerServiceHandler(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       String dataFolder, long spaceLimitBytes) {
@@ -76,10 +208,19 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     mUserFolder = new File(mDataFolder.toString(), Config.USER_TEMP_RELATIVE_FOLDER);
     mWorkerInfo = new WorkerInfo(id, workerAddress, spaceLimitBytes);
     mHdfsWorkerFolder = new Path(Config.HDFS_ADDRESS + "/" + Config.WORKER_HDFS_FOLDER + "/" + id);
+    mHdfsWorkerDataFolder = new Path(mHdfsWorkerFolder.toString() + "/data");
     if (Config.USING_HDFS) {
       mHdfsClient = new HdfsClient(Config.HDFS_ADDRESS);
     }
     mUsers = new Users(mUserFolder.toString(), mHdfsWorkerFolder.toString());
+
+    if (Config.USING_HDFS) {
+      for (int k = 0; k < Config.WORKER_CHECKPOINT_THREADS; k ++) {
+        Thread thread = new Thread(new CheckpointThread(k));
+        mCheckpointThreads.add(thread);
+        thread.start();
+      }
+    }
 
     try {
       initializeWorkerInfo();
@@ -99,6 +240,27 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     sDataAccessQueue.add(fileId);
   }
 
+  @Override
+  public void addCheckpoint(long userId, int fileId)
+      throws FileDoesNotExistException, SuspectedFileSizeException, 
+      FailedToCheckpointException, TException {
+    // TODO This part need to be changed.
+    String srcPath = getUserHdfsTempFolder(userId) + "/" + fileId;
+    String dstPath = Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" + fileId;
+    if (!mHdfsClient.rename(srcPath, dstPath)) {
+      throw new FailedToCheckpointException("Failed to rename from " + srcPath + " to " + dstPath);
+    }
+    long fileSize = mHdfsClient.getFileSize(dstPath);
+    mMasterClient.addCheckpoint(mWorkerInfo.getId(), fileId, fileSize, dstPath);
+  }
+
+  private void addFoundPartition(int fileId, long fileSizeBytes)
+      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    addId(fileId, fileSizeBytes);
+    mMasterClient.worker_cachedFile(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
+        fileSizeBytes);
+  }
+
   private void addId(int fileId, long fileSizeBytes) {
     mWorkerInfo.updateFile(true, fileId);
 
@@ -107,21 +269,6 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       mFileSizes.put(fileId, fileSizeBytes);
       mMemoryData.add(fileId);
     }
-  }
-
-  @Override
-  public void addCheckpoint(long userId, int fileId)
-      throws FileDoesNotExistException, SuspectedFileSizeException, 
-      FailedToCheckpointException, TException {
-    // TODO This part need to be changed.
-    String srcPath = getUserHdfsTempFolder(userId) + "/" + fileId;
-    String dstPath = Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" + fileId;
-    mHdfsClient.mkdirs(Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" , null, true);
-    if (!mHdfsClient.rename(srcPath, dstPath)) {
-      throw new FailedToCheckpointException("Failed to rename from " + srcPath + " to " + dstPath);
-    }
-    long fileSize = mHdfsClient.getFileSize(dstPath);
-    mMasterClient.addCheckpoint(mWorkerInfo.getId(), fileId, fileSize, dstPath);
   }
 
   @Override
@@ -139,15 +286,18 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     }
     addId(fileId, fileSizeBytes);
     mUsers.addOwnBytes(userId, - fileSizeBytes);
-    mMasterClient.worker_cachedFile(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
-        fileSizeBytes);
-  }
+    int dependencyId = mMasterClient.worker_cachedFile(mWorkerInfo.getId(), 
+        mWorkerInfo.getUsedBytes(), fileId, fileSizeBytes);
 
-  private void addFoundPartition(int fileId, long fileSizeBytes)
-      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    addId(fileId, fileSizeBytes);
-    mMasterClient.worker_cachedFile(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
-        fileSizeBytes);
+    if (dependencyId != -1) {
+      synchronized (mDependencyLock) {
+        mUncheckpointFiles.add(fileId);
+        if (!mDepIdToFiles.containsKey(dependencyId)) {
+          mDepIdToFiles.put(dependencyId, new HashSet<Integer>());
+        }
+        mDepIdToFiles.get(dependencyId).add(fileId);
+      }
+    }
   }
 
   public void checkStatus() {
@@ -176,6 +326,20 @@ public class WorkerServiceHandler implements WorkerService.Iface {
         mLatestFileAccessTimeMs.put(fileId, System.currentTimeMillis());
       }
     }
+  }
+
+  private void freeFile(int fileId) {
+    mWorkerInfo.returnUsedBytes(mFileSizes.get(fileId));
+    mWorkerInfo.removeFile(fileId);
+    File srcFile = new File(mDataFolder + "/" + fileId);
+    srcFile.delete();
+    synchronized (mLatestFileAccessTimeMs) {
+      mLatestFileAccessTimeMs.remove(fileId);
+      mFileSizes.remove(fileId);
+      mRemovedFileList.add(fileId);
+      mMemoryData.remove(fileId);
+    }
+    LOG.info("Removed Data " + fileId);
   }
 
   @Override
@@ -280,36 +444,25 @@ public class WorkerServiceHandler implements WorkerService.Iface {
 
     synchronized (mLatestFileAccessTimeMs) {
       synchronized (mUsersPerLockedFile) {
-        for (Entry<Integer, Long> entry : mLatestFileAccessTimeMs.entrySet()) {
-          if (entry.getValue() < latestTimeMs && !pinList.contains(entry.getKey())) {
-            if(!mUsersPerLockedFile.containsKey(entry.getKey())) {
-              fileId = entry.getKey();
-              latestTimeMs = entry.getValue();
+        synchronized (mDependencyLock) {
+          for (Entry<Integer, Long> entry : mLatestFileAccessTimeMs.entrySet()) {
+            if (entry.getValue() < latestTimeMs && !pinList.contains(entry.getKey())) {
+              if(!mUsersPerLockedFile.containsKey(entry.getKey())
+                  && !mUncheckpointFiles.contains(entry.getKey())) {
+                fileId = entry.getKey();
+                latestTimeMs = entry.getValue();
+              }
             }
           }
-        }
-        if (fileId != -1) {
-          freeFile(fileId);
-          return true;
+          if (fileId != -1) {
+            freeFile(fileId);
+            return true;
+          }
         }
       }
     }
 
     return false;
-  }
-
-  private void freeFile(int fileId) {
-    mWorkerInfo.returnUsedBytes(mFileSizes.get(fileId));
-    mWorkerInfo.removeFile(fileId);
-    File srcFile = new File(mDataFolder + "/" + fileId);
-    srcFile.delete();
-    synchronized (mLatestFileAccessTimeMs) {
-      mLatestFileAccessTimeMs.remove(fileId);
-      mFileSizes.remove(fileId);
-      mRemovedFileList.add(fileId);
-      mMemoryData.remove(fileId);
-    }
-    LOG.info("Removed Data " + fileId);
   }
 
   public void register() {
