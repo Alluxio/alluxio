@@ -115,7 +115,7 @@ public class TachyonFile {
   }
 
   public void append(byte b) throws IOException {
-//    validateIO(false);
+    //    validateIO(false);
 
     appendCurrentBuffer(Config.USER_BUFFER_PER_PARTITION_BYTES);
 
@@ -123,7 +123,7 @@ public class TachyonFile {
   }
 
   public void append(int b) throws IOException {
-//    validateIO(false);
+    //    validateIO(false);
 
     appendCurrentBuffer(Config.USER_BUFFER_PER_PARTITION_BYTES);
 
@@ -142,7 +142,7 @@ public class TachyonFile {
       throw new IndexOutOfBoundsException();
     }
 
-//    validateIO(false);
+    //    validateIO(false);
 
     if (mBuffer.position() + len >= Config.USER_BUFFER_PER_PARTITION_BYTES) {
       if (mIoType.isWriteCache()) {
@@ -258,12 +258,12 @@ public class TachyonFile {
   }
 
   public InputStream getInputStream() throws IOException {
-//    validateIO(true);
+    //    validateIO(true);
     return new TFileInputStream(this);
   }
 
   public OutputStream getOutputStream() throws IOException {
-//    validateIO(false);
+    //    validateIO(false);
     return new TFileOutputStream(this);
   }
 
@@ -327,13 +327,20 @@ public class TachyonFile {
         mCheckpointInputStream = tHdfsClient.open(mClientFileInfo.checkpointPath);
       }
       if (mBuffer == null && mCheckpointInputStream == null) {
+        try {
+          mTachyonClient.reportLostFile(mId);
+        } catch (FileDoesNotExistException e) {
+          throw new IOException("File does not exist anymore: " + mClientFileInfo);
+        } catch (TException e) {
+          throw new IOException("Can not connect to Tachyon system.");
+        }
         throw new IOException("Can not find file " + mClientFileInfo.getPath());
       }
     }
   }
 
   public int read() throws IOException {
-//    validateIO(true);
+    //    validateIO(true);
     if (mBuffer != null) {
       try {
         return mBuffer.get();
@@ -358,7 +365,7 @@ public class TachyonFile {
       return 0;
     }
 
-//    validateIO(true);
+    //    validateIO(true);
     if (mBuffer != null) {
       int ret = Math.min(len, mBuffer.remaining());
       if (ret == 0) {

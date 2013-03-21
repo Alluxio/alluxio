@@ -640,6 +640,10 @@ public class TachyonClient {
     mAvailableSpaceBytes += releaseSpaceBytes;
   }
 
+  public void reportLostFile(int fileId) throws FileDoesNotExistException, TException {
+    mMasterClient.user_reportLostFile(fileId);
+  }
+
   public synchronized boolean requestSpace(long requestSpaceBytes) {
     connect();
     if (mWorkerClient == null || !mIsWorkerLocal) {

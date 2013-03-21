@@ -200,6 +200,11 @@ public class MasterClient {
     CLIENT.user_renameFile(srcPath, dstPath);
   }
 
+  public synchronized void user_reportLostFile(int fileId) 
+      throws FileDoesNotExistException, TException {
+    CLIENT.user_reportLostFile(fileId);
+  }
+
   public synchronized void user_unpinFile(int id) throws FileDoesNotExistException, TException {
     CLIENT.user_unpinFile(id);
   }
