@@ -100,7 +100,7 @@ public class CommonUtils {
     if (file.exists()) {
       while (!file.delete()) {
         LOG.info("Trying to delete " + file.toString());
-        sleep(1000);
+        sleep(LOG, 1000);
       }
     }
   }
@@ -303,11 +303,11 @@ public class CommonUtils {
     throw new RuntimeException(e);
   }
 
-  public static void sleep(long timeMs) {
+  public static void sleep(Logger logger, long timeMs) {
     try {
       Thread.sleep(timeMs);
     } catch (InterruptedException e) {
-      LOG.error(e.getMessage(), e);
+      logger.warn(e.getMessage(), e);
     }
   }
 

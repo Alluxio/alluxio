@@ -33,6 +33,7 @@ public class Config {
   public static final int MASTER_PORT = 9999;
   public static final int MASTER_WEB_PORT = 9998;
   public static final boolean MASTER_SUBSUME_HDFS;
+  public static final boolean MASTER_PROACTIVE_RECOVERY;
 
   public static final String WORKER_DATA_FOLDER;
   public static final long WORKER_MEMORY_SIZE;
@@ -112,6 +113,8 @@ public class Config {
     }
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     MASTER_SUBSUME_HDFS = Boolean.parseBoolean(getProperty("tachyon.master.subsume.hdfs", "false"));
+    MASTER_PROACTIVE_RECOVERY =
+        Boolean.parseBoolean(getProperty("tachyon.master.proactive_recovery", "true"));
 
     WORKER_DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramdisk");
     WORKER_MEMORY_SIZE = CommonUtils.parseMemorySize(
