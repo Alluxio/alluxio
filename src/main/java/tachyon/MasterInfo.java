@@ -380,6 +380,7 @@ public class MasterInfo {
           throws InvalidPathException, FileDoesNotExistException {
     Dependency dep = null;
     synchronized (mRoot) {
+      LOG.info("ParentList: " + CommonUtils.listToString(parents));
       List<Integer> parentsIdList = getFilesIds(parents);
       List<Integer> childrenIdList = getFilesIds(children);
 
@@ -388,9 +389,11 @@ public class MasterInfo {
         int parentId = parentsIdList.get(k);
         Inode inode = mInodes.get(parentId);
         if (inode.isFile()) {
+          LOG.info("PARENT DEPENDENCY ID IS " + ((InodeFile) inode).getDependencyId() + " " +
+              ((InodeFile) inode));
           parentDependencyIds.add(((InodeFile) inode).getDependencyId());
         } else {
-          throw new InvalidPathException("Children " + children.get(k) + " is not a file.");
+          throw new InvalidPathException("Parent " + parentId + " is not a file.");
         }
       }
 
@@ -420,6 +423,8 @@ public class MasterInfo {
         mDependencies.get(parentDependencyId).addChildrenDependency(dep.ID);
       }
     }
+
+    LOG.info("Dependency created: " + dep);
 
     return dep.ID;
   }
