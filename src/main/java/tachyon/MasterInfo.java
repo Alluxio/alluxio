@@ -743,11 +743,7 @@ public class MasterInfo {
       throws InvalidPathException, FileDoesNotExistException {
     List<Integer> ret = new ArrayList<Integer>(pathList.size());
     for (int k = 0; k < pathList.size(); k ++) {
-      int fid = getFileId(pathList.get(k));
-      if (fid == -1) {
-        throw new FileDoesNotExistException(pathList.get(k));
-      }
-      ret.add(fid);
+      ret.addAll(listFiles(pathList.get(k), true));
     }
     return ret;
   }
