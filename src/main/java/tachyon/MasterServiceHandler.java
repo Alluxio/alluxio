@@ -167,6 +167,12 @@ public class MasterServiceHandler implements MasterService.Iface {
       throws FileDoesNotExistException, InvalidPathException, TException {
     return mMasterInfo.listFiles(path, recursive);
   }
+  
+  @Override
+  public List<String> user_ls(String path, boolean recursive)
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    return mMasterInfo.ls(path, recursive);
+  }
 
   @Override
   public int user_mkdir(String path) 

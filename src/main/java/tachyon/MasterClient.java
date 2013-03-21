@@ -186,6 +186,11 @@ public class MasterClient {
     return CLIENT.user_listFiles(path, recursive);
   }
 
+  public synchronized List<String> user_ls(String path, boolean recursive)
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    return CLIENT.user_ls(path, recursive);
+  }
+
   public synchronized int user_mkdir(String path) 
       throws FileAlreadyExistException, InvalidPathException, TException {
     return CLIENT.user_mkdir(path);
