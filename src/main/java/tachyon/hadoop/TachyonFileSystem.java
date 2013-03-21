@@ -54,9 +54,9 @@ public class TachyonFileSystem extends FileSystem {
         ", " + bufferSize + ", " + replication + ", " + blockSize + ", " + progress + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
-//    if (path.contains("%")) {
-//      CommonUtils.runtimeException("Save into Tachyon could not be with a DATASET ID");
-//    }
+    //    if (path.contains("%")) {
+    //      CommonUtils.runtimeException("Save into Tachyon could not be with a DATASET ID");
+    //    }
 
     Path hdfsPath = Utils.getHDFSPath(path);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
@@ -214,7 +214,7 @@ public class TachyonFileSystem extends FileSystem {
     LOG.info("TachyonFileSystem initialize(" + uri + ", " + conf + "). Connecting TachyonSystem: " +
         uri.getHost() + ":" + uri.getPort());
     mTachyonClient = TachyonClient.getClient(new InetSocketAddress(uri.getHost(), uri.getPort()));
-    mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort() + "/";
+    mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort() + "";
   }
 
   @Override
@@ -248,9 +248,9 @@ public class TachyonFileSystem extends FileSystem {
     LOG.info("TachyonFileSystem mkdirs(" + cPath + ", " + permission + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
-//    if (path.contains("%")) {
-//      CommonUtils.runtimeException("Save into Tachyon could not be with a DATASET ID");
-//    }
+    //    if (path.contains("%")) {
+    //      CommonUtils.runtimeException("Save into Tachyon could not be with a DATASET ID");
+    //    }
 
     Path hdfsPath = Utils.getHDFSPath(path);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
@@ -269,7 +269,7 @@ public class TachyonFileSystem extends FileSystem {
 
     String rawPath = path;
     int fileId = -1;
-    
+
     try {
       fileId = mTachyonClient.getFileId(path);
     } catch (InvalidPathException e) {
@@ -277,14 +277,14 @@ public class TachyonFileSystem extends FileSystem {
       fileId = -1;
     }
 
+    Path hdfsPath = Utils.getHDFSPath(rawPath);
     if (fileId == -1) {
-      Path hdfsPath = Utils.getHDFSPath(rawPath);
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       return fs.open(hdfsPath, bufferSize);
     }
 
     return new FSDataInputStream(new TFileInputStreamHdfs(mTachyonClient, fileId,
-        Utils.getHDFSPath(rawPath), getConf(), bufferSize));
+        hdfsPath, getConf(), bufferSize));
   }
 
   @Override

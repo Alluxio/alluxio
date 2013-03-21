@@ -132,6 +132,7 @@ service MasterService {
   ClientRawTableInfo user_getClientRawTableInfoById(1: i32 tableId) throws (1: TableDoesNotExistException e)        // Get Table info by Table Id.
   ClientRawTableInfo user_getClientRawTableInfoByPath(1: string tablePath) throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI) // Get Table info by path
   i32 user_getNumberOfFiles(1:string path) throws (1: FileDoesNotExistException eR, 2: InvalidPathException eI)
+  void user_reportLostFile(1: i32 fileId) throws (1: FileDoesNotExistException e)
 
   // cmd to scripts
   list<ClientFileInfo> cmd_ls(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)

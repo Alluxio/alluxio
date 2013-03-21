@@ -12,6 +12,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 public class Users {
+  public static final int sDATASERVER_USER_ID = -1;
+  public static final int sCHECKPOINT_USER_ID = -2;
+  
   private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
 
   private final String USER_FOLDER;

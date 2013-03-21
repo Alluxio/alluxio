@@ -186,6 +186,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public void user_reportLostFile(int fileId) throws FileDoesNotExistException,
+      TException {
+    mMasterInfo.reportLostFile(fileId);
+  }
+
+  @Override
   public void user_unpinFile(int fileId) throws FileDoesNotExistException, TException {
     mMasterInfo.unpinFile(fileId);
   }
