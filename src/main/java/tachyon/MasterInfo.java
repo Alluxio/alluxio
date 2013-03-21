@@ -1017,7 +1017,8 @@ public class MasterInfo {
     return ret;
   }
 
-  public List<String> ls(String path) throws InvalidPathException, FileDoesNotExistException {
+  public List<String> ls(String path, boolean recursive) 
+      throws InvalidPathException, FileDoesNotExistException {
     List<String> ret = new ArrayList<String>();
 
     Inode inode = getInode(path);
@@ -1028,7 +1029,7 @@ public class MasterInfo {
 
     if (inode.isFile()) {
       ret.add(path);
-    } else {
+    } else if (recursive) {
       List<Integer> childernIds = ((InodeFolder) inode).getChildrenIds();
 
       if (!path.endsWith("/")) {

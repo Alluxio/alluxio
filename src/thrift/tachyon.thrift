@@ -120,6 +120,7 @@ service MasterService {
   list<NetAddress> user_getFileLocationsById(1: i32 fileId) throws (1: FileDoesNotExistException e)        // Get file locations by file Id.
   list<NetAddress> user_getFileLocationsByPath(1: string filePath) throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI) // Get file locations by path
   list<i32> user_listFiles(1: string path, 2: bool recursive) throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
+  list<string> user_ls(1: string path, 2: bool recursive) throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
   void user_deleteById(1: i32 fileId) // Delete file
   void user_deleteByPath(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF) // Delete file
   void user_outOfMemoryForPinFile(1: i32 fileId)
