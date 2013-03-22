@@ -1,7 +1,9 @@
 package tachyon;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -169,6 +171,7 @@ public class MasterInfo {
       while (true) {
         boolean hasLostFiles = false;
         boolean launched = false;
+        List<String> cmds = new ArrayList<String>();
         synchronized (mRoot) {
           synchronized (mDependencies) {
             if (!mMustRecomputeDependencies.isEmpty()) {
@@ -205,19 +208,37 @@ public class MasterInfo {
                 mMustRecomputeDependencies.remove(recomputeList.get(k));
                 Dependency dep = mDependencies.get(recomputeList.get(k));
                 mBeingRecomputedFiles.addAll(dep.getLostFiles());
-                String cmd = dep.getCommand();
-                cmd += " &> " + Config.TACHYON_HOME + "/logs/rerun-" +
-                    mRerunCounter.incrementAndGet();
-                try {
-                  LOG.info("Exec " + cmd);
-                  java.lang.Runtime.getRuntime().exec(cmd);
-                } catch (IOException e) {
-                  LOG.error(e.getMessage());
-                }
+                cmds.add(dep.getCommand());
               }
             }
           }
         }
+
+        for (String cmd : cmds) {
+//          cmd += " &> " + Config.TACHYON_HOME + "/logs/rerun-" +
+//              mRerunCounter.incrementAndGet();
+          try {
+            LOG.info("Exec " + cmd);
+            Process p = java.lang.Runtime.getRuntime().exec(cmd);
+            //            String line;
+            //            BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            //            BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+            //            while ((line = bri.readLine()) != null) {
+            //              LOG.info(line);
+            //            }
+            //            bri.close();
+            //            while ((line = bre.readLine()) != null) {
+            //              LOG.info(line);
+            //            }
+            //            bre.close();
+            //            p.waitFor();
+          } catch (IOException e) {
+            LOG.error(e.getMessage());
+            //          } catch (InterruptedException e) {
+            //            LOG.error(e.getMessage());
+          }
+        }
+
 
         if (!launched) {
           if (hasLostFiles) {
