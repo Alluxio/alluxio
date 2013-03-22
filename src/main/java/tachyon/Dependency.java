@@ -6,13 +6,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
-
 import tachyon.thrift.ClientDependencyInfo;
 
 public class Dependency {
-  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
-
   public final int ID;
   public final long CREATION_TIME_MS;
 
