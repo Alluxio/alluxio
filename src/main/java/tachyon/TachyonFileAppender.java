@@ -42,19 +42,17 @@ public class TachyonFileAppender extends FileAppender {
   @Override
   public void activateOptions() {
     if (fileName != null) {
-      if (Config.LOGGER_TYPE.equals(getName())) {
-        if (!fileName.equals(mCurrentFileName)) {
-          mOriginalFileName = fileName;
-        } else {
-          fileName = mOriginalFileName;
-        }
-        try {
-          fileName = getNewLogFileName(fileName);
-          setFile(fileName, fileAppend, bufferedIO, bufferSize);
-        } catch (Exception e) {
-          errorHandler.error("Error while activating log options", e,
-              ErrorCode.FILE_OPEN_FAILURE);
-        }
+      if (!fileName.equals(mCurrentFileName)) {
+        mOriginalFileName = fileName;
+      } else {
+        fileName = mOriginalFileName;
+      }
+      try {
+        fileName = getNewLogFileName(fileName);
+        setFile(fileName, fileAppend, bufferedIO, bufferSize);
+      } catch (Exception e) {
+        errorHandler.error("Error while activating log options", e,
+            ErrorCode.FILE_OPEN_FAILURE);
       }
     }
   }
