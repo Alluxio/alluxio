@@ -118,7 +118,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
             mLocalHdfsClient = new HdfsClient(midPath);
           }
 
-          mLocalHdfsClient.copyFromLocalFile(true, false, srcPath, midPath);
+          mLocalHdfsClient.copyFromLocalFile(false, false, srcPath, midPath);
           if (!mLocalHdfsClient.rename(midPath, dstPath)) {
             LOG.error("Failed to rename from " + midPath + " to " + dstPath);
           }
