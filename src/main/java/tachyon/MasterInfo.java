@@ -53,6 +53,7 @@ public class MasterInfo {
 
   private AtomicInteger mInodeCounter = new AtomicInteger(0);
   private AtomicInteger mDependencyCounter = new AtomicInteger(0);
+  private AtomicInteger mRerunCounter = new AtomicInteger(0);
   private AtomicInteger mUserCounter = new AtomicInteger(0);
   private AtomicInteger mWorkerCounter = new AtomicInteger(0);
 
@@ -204,7 +205,10 @@ public class MasterInfo {
                 Dependency dep = mDependencies.get(recomputeList.get(k));
                 mBeingRecomputedFiles.addAll(dep.getLostFiles());
                 String cmd = dep.getCommand();
+                cmd += " &> " + Config.TACHYON_HOME + "/logs/rerun " +
+                    mRerunCounter.incrementAndGet();
                 try {
+                  LOG.info("Exec " + cmd);
                   java.lang.Runtime.getRuntime().exec(cmd);
                 } catch (IOException e) {
                   LOG.error(e.getMessage());
