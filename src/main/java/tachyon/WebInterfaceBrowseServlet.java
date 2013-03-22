@@ -24,6 +24,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    */
   public class UiFileInfo implements Comparable<UiFileInfo> {
     private final int ID;
+    private final int DEPENDENCY_ID;
     private final String NAME;
     private final String ABSOLUATE_PATH;
     private final String CHECKPOINT_PATH;
@@ -34,6 +35,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
     private UiFileInfo(ClientFileInfo fileInfo) {
       ID = fileInfo.getId();
+      DEPENDENCY_ID = fileInfo.getDependencyId();
       NAME = fileInfo.getName();
       ABSOLUATE_PATH = fileInfo.getPath();
       CHECKPOINT_PATH = fileInfo.getCheckpointPath();
@@ -45,6 +47,10 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
     public int getId() {
       return ID;
+    }
+
+    public int getDependencyId() {
+      return DEPENDENCY_ID;
     }
 
     public String getName() {
