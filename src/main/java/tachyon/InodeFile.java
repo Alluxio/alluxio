@@ -41,8 +41,9 @@ public class InodeFile extends Inode {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("InodeFile(");
-    sb.append(super.toString()).append(",").append(mLength).append(",");
-    sb.append(mCheckpointPath).append(")");
+    sb.append(super.toString()).append(", LENGTH:").append(mLength);
+    sb.append(", CheckpointPath:").append(mCheckpointPath);
+    sb.append(", DependencyId:").append(mDependencyId).append(")");
     return sb.toString();
   }
 

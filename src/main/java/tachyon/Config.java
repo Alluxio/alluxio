@@ -33,11 +33,12 @@ public class Config {
   public static final int MASTER_PORT = 9999;
   public static final int MASTER_WEB_PORT = 9998;
   public static final boolean MASTER_SUBSUME_HDFS;
+  public static final boolean MASTER_PROACTIVE_RECOVERY;
 
   public static final String WORKER_DATA_FOLDER;
   public static final long WORKER_MEMORY_SIZE;
-  public static final long WORKER_TIMEOUT_MS = 60 * 1000;
-  public static final long WORKER_HEARTBEAT_TIMEOUT_MS = 10 * 1000;;
+  public static final long WORKER_TIMEOUT_MS;
+  public static final long WORKER_HEARTBEAT_TIMEOUT_MS = 10 * 1000;
   public static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 1000;
   public static final int WORKER_DATA_ACCESS_QUEUE_SIZE = 10000;
   public static final int WORKER_SELECTOR_THREADS = 2;
@@ -112,12 +113,15 @@ public class Config {
     }
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     MASTER_SUBSUME_HDFS = Boolean.parseBoolean(getProperty("tachyon.master.subsume.hdfs", "false"));
+    MASTER_PROACTIVE_RECOVERY =
+        Boolean.parseBoolean(getProperty("tachyon.master.proactive_recovery", "true"));
 
     WORKER_DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramdisk");
     WORKER_MEMORY_SIZE = CommonUtils.parseMemorySize(
         getProperty("tachyon.worker.memory.size", "2GB"));
     WORKER_CHECKPOINT_THREADS = Integer.parseInt(
         getProperty("tachyon.worker.checkpoint.threads", "2"));
+    WORKER_TIMEOUT_MS = Long.parseLong(getProperty("tachyon.worker.timeout.ms", "60000"));
 
     HDFS_ADDRESS = getProperty("tachyon.hdfs.address", null);
     if (HDFS_ADDRESS == null) {

@@ -167,6 +167,12 @@ public class MasterServiceHandler implements MasterService.Iface {
       throws FileDoesNotExistException, InvalidPathException, TException {
     return mMasterInfo.listFiles(path, recursive);
   }
+  
+  @Override
+  public List<String> user_ls(String path, boolean recursive)
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    return mMasterInfo.ls(path, recursive);
+  }
 
   @Override
   public int user_mkdir(String path) 
@@ -183,6 +189,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   public void user_renameFile(String srcFilePath, String dstFilePath)
       throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException{
     mMasterInfo.renameFile(srcFilePath, dstFilePath);
+  }
+
+  @Override
+  public void user_reportLostFile(int fileId) throws FileDoesNotExistException,
+      TException {
+    mMasterInfo.reportLostFile(fileId);
   }
 
   @Override

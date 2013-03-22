@@ -85,10 +85,10 @@ public class TachyonFile {
   private synchronized void appendCurrentBuffer(int minimalPosition) throws IOException {
     if (mBuffer.position() >= minimalPosition) {
       if (mIoType.isWriteCache()) {
-        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
-          CommonUtils.runtimeException(
-              String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
-        }
+//        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
+//          CommonUtils.runtimeException(
+//              String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
+//        }
 
         if (!mTachyonClient.requestSpace(mBuffer.position())) {
           if (mClientFileInfo.isNeedPin()) {
@@ -115,15 +115,13 @@ public class TachyonFile {
   }
 
   public void append(byte b) throws IOException {
-    validateIO(false);
-
-    appendCurrentBuffer(Config.USER_BUFFER_PER_PARTITION_BYTES);
+    //    validateIO(false);
 
     mBuffer.put(b);
   }
 
   public void append(int b) throws IOException {
-    validateIO(false);
+    //    validateIO(false);
 
     appendCurrentBuffer(Config.USER_BUFFER_PER_PARTITION_BYTES);
 
@@ -142,14 +140,14 @@ public class TachyonFile {
       throw new IndexOutOfBoundsException();
     }
 
-    validateIO(false);
+    //    validateIO(false);
 
     if (mBuffer.position() + len >= Config.USER_BUFFER_PER_PARTITION_BYTES) {
       if (mIoType.isWriteCache()) {
-        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
-          CommonUtils.runtimeException(
-              String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
-        }
+//        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
+//          CommonUtils.runtimeException(
+//              String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
+//        }
 
         if (!mTachyonClient.requestSpace(mBuffer.position() + len)) {
           if (mClientFileInfo.isNeedPin()) {
@@ -258,12 +256,12 @@ public class TachyonFile {
   }
 
   public InputStream getInputStream() throws IOException {
-    validateIO(true);
+    //    validateIO(true);
     return new TFileInputStream(this);
   }
 
   public OutputStream getOutputStream() throws IOException {
-    validateIO(false);
+    //    validateIO(false);
     return new TFileOutputStream(this);
   }
 
@@ -322,17 +320,25 @@ public class TachyonFile {
         mBuffer = readByteBuffer();
       }
       if (mBuffer == null && !mClientFileInfo.checkpointPath.equals("")) {
+        LOG.warn("Will stream from underlayer fs.");
         HdfsClient tHdfsClient = new HdfsClient(mClientFileInfo.checkpointPath);
         mCheckpointInputStream = tHdfsClient.open(mClientFileInfo.checkpointPath);
       }
       if (mBuffer == null && mCheckpointInputStream == null) {
+        try {
+          mTachyonClient.reportLostFile(mId);
+        } catch (FileDoesNotExistException e) {
+          throw new IOException("File does not exist anymore: " + mClientFileInfo);
+        } catch (TException e) {
+          throw new IOException("Can not connect to Tachyon system.");
+        }
         throw new IOException("Can not find file " + mClientFileInfo.getPath());
       }
     }
   }
 
   public int read() throws IOException {
-    validateIO(true);
+    //    validateIO(true);
     if (mBuffer != null) {
       try {
         return mBuffer.get();
@@ -341,6 +347,7 @@ public class TachyonFile {
         return -1;
       }
     }
+
     return mCheckpointInputStream.read();
   }
 
@@ -357,7 +364,7 @@ public class TachyonFile {
       return 0;
     }
 
-    validateIO(true);
+    //    validateIO(true);
     if (mBuffer != null) {
       int ret = Math.min(len, mBuffer.remaining());
       if (ret == 0) {

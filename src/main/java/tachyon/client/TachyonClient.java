@@ -611,6 +611,20 @@ public class TachyonClient {
     return mMasterClient.ls(path);
   }
 
+  public synchronized List<String> ls(String path, boolean recursive) throws IOException {
+    connect();
+    try {
+      return mMasterClient.user_ls(path, recursive);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
   public synchronized boolean lockFile(int fileId) {
     connect();
     if (!mConnected || mWorkerClient == null || !mIsWorkerLocal) {
@@ -638,6 +652,10 @@ public class TachyonClient {
 
   public synchronized void releaseSpace(long releaseSpaceBytes) {
     mAvailableSpaceBytes += releaseSpaceBytes;
+  }
+
+  public synchronized void reportLostFile(int fileId) throws FileDoesNotExistException, TException {
+    mMasterClient.user_reportLostFile(fileId);
   }
 
   public synchronized boolean requestSpace(long requestSpaceBytes) {
