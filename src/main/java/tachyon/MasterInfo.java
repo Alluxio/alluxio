@@ -1289,6 +1289,7 @@ public class MasterInfo {
             LOG.error("Data " + id + " does not exist");
           } else if (inode.isFile()) {
             ((InodeFile) inode).removeLocation(workerId);
+            LOG.error("Data " + id + " was evicted from worker " + workerId);
           }
         }
       }
