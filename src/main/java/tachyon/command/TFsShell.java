@@ -153,7 +153,7 @@ public class TFsShell {
       return -1;
     }
     TachyonFile tFile = tachyonClient.getFile(fileId);
-    tFile.open(OpType.WRITE_CACHE);
+    tFile.open(OpType.WRITE_THROUGH);
     FileInputStream in = new FileInputStream(src);
     FileChannel channel = in.getChannel();
     ByteBuffer buf = ByteBuffer.allocate(1024);
