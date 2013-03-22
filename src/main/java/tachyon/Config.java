@@ -37,8 +37,8 @@ public class Config {
 
   public static final String WORKER_DATA_FOLDER;
   public static final long WORKER_MEMORY_SIZE;
-  public static final long WORKER_TIMEOUT_MS = 60 * 1000;
-  public static final long WORKER_HEARTBEAT_TIMEOUT_MS = 10 * 1000;;
+  public static final long WORKER_TIMEOUT_MS;
+  public static final long WORKER_HEARTBEAT_TIMEOUT_MS = 10 * 1000;
   public static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 1000;
   public static final int WORKER_DATA_ACCESS_QUEUE_SIZE = 10000;
   public static final int WORKER_SELECTOR_THREADS = 2;
@@ -121,6 +121,7 @@ public class Config {
         getProperty("tachyon.worker.memory.size", "2GB"));
     WORKER_CHECKPOINT_THREADS = Integer.parseInt(
         getProperty("tachyon.worker.checkpoint.threads", "2"));
+    WORKER_TIMEOUT_MS = Long.parseLong(getProperty("tachyon.worker.timeout.ms", "60000"));
 
     HDFS_ADDRESS = getProperty("tachyon.hdfs.address", null);
     if (HDFS_ADDRESS == null) {
