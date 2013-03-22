@@ -22,35 +22,35 @@
       </ul>
     </div>
   </div>
-  <div class="row-fluid well">
+  <div class="row-fluid">
     <% if (!((String) request.getAttribute("error")).isEmpty()) { %>
       <h1 class="text-error">
         <%= request.getAttribute("error") %>
       </h1>
     <% } %>
-    <h3 class="offset4">Dependency info for <%= request.getAttribute("fileName") %>.</h3>
-    <div class="span5">
+    <h3 class="offset2">Dependency info for <%= request.getAttribute("filePath") %>.</h3>
+    <div class="well span5">
       <table class="table">
         <caption>Parent Dependencies</caption>
         <tbody>
      <!-- <c:forEach var="parent" items="${parentFileNames}">
-            <c:out value=${parent}/>
+            <tr><th><c:out value=${parent}/></th></tr>
           </c:forEach> -->
           <% for (String parent : (List<String>) request.getAttribute("parentFileNames")) { %>
-            <th><%= parent %></th>
+            <tr><th><%= parent %></th></tr>
           <% } %>
         </tbody>
       </table>
     </div>
-    <div class="span5">
+    <div class="well offset1 span5">
       <table class="table">
         <caption>Child Dependencies</caption>
         <tbody>
      <!-- <c:forEach var="child" items="${childrenFileNames}">
-            <c:out value=${child}/>
+            <tr><th><c:out value=${child}/></th></tr>
           </c:forEach> -->
           <% for (String child : (List<String>) request.getAttribute("childrenFileNames")) { %>
-            <th><%= child %></th>
+            <tr><th><%= child %></th></tr>
           <% } %>
         </tbody>
       </table>

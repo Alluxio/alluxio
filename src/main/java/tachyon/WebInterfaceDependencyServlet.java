@@ -26,7 +26,8 @@ public class WebInterfaceDependencyServlet extends HttpServlet {
   public void doGet(HttpServletRequest request, HttpServletResponse response) 
       throws ServletException, IOException {
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
-    request.setAttribute("fileName", request.getParameter("fileName"));
+    request.setAttribute("filePath", request.getParameter("filePath"));
+    request.setAttribute("error", "");
     int dependencyId = Integer.parseInt(request.getParameter("id"));
     List<String> parentFileNames = new ArrayList<String>();
     List<String> childrenFileNames = new ArrayList<String>();
