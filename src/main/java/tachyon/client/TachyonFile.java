@@ -85,10 +85,10 @@ public class TachyonFile {
   private synchronized void appendCurrentBuffer(int minimalPosition) throws IOException {
     if (mBuffer.position() >= minimalPosition) {
       if (mIoType.isWriteCache()) {
-        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
-          CommonUtils.runtimeException(
-              String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
-        }
+//        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
+//          CommonUtils.runtimeException(
+//              String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
+//        }
 
         if (!mTachyonClient.requestSpace(mBuffer.position())) {
           if (mClientFileInfo.isNeedPin()) {
@@ -144,10 +144,10 @@ public class TachyonFile {
 
     if (mBuffer.position() + len >= Config.USER_BUFFER_PER_PARTITION_BYTES) {
       if (mIoType.isWriteCache()) {
-        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
-          CommonUtils.runtimeException(
-              String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
-        }
+//        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
+//          CommonUtils.runtimeException(
+//              String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
+//        }
 
         if (!mTachyonClient.requestSpace(mBuffer.position() + len)) {
           if (mClientFileInfo.isNeedPin()) {
@@ -347,6 +347,7 @@ public class TachyonFile {
         return -1;
       }
     }
+
     return mCheckpointInputStream.read();
   }
 
