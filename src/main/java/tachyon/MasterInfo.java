@@ -741,6 +741,16 @@ public class MasterInfo {
     return getClientFileInfo(inode.getId());
   }
 
+  public String getFileNameById(int fileId) throws FileDoesNotExistException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+      if (inode == null) {
+        throw new FileDoesNotExistException("FileId " + fileId + " does not exist");
+      }
+      return getPath(inode);
+    }
+  }
+
   public List<NetAddress> getFileLocations(int fileId) throws FileDoesNotExistException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
