@@ -118,6 +118,16 @@ public class TFsShell {
     return 0;
   }
 
+  public int debugLog(String argv[])
+      throws FileDoesNotExistException, InvalidPathException, TException, IOException {
+    String fileName = argv[1];
+    String file = Utils.getFilePath(fileName);
+    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(fileName));
+    tachyonClient.createFile(file);
+    tachyonClient.createFile(file);
+    return 0;
+  }
+
   public void printUsage() {
     System.out.println("Usage: java TFsShell");
     System.out.println("       [ls <path>]");
@@ -148,6 +158,8 @@ public class TFsShell {
         exitCode = rename(argv);
       } else if (cmd.equals("copyToLocal")) {
         exitCode = copyToLocal(argv);
+      } else if (cmd.equals("debugLog")) {
+        exitCode = debugLog(argv);
       } else {
         printUsage();
         return -1;
