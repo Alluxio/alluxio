@@ -118,12 +118,28 @@ public class TFsShell {
     return 0;
   }
 
+  public int report(String argv[]) 
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs report <path>");
+      return -1;
+    }
+    String path = argv[1];
+    String file = Utils.getFilePath(path);
+    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
+    int fileId = tachyonClient.getFileId(file);
+    tachyonClient.reportLostFile(fileId);
+    System.out.println(file + " with file id " + fileId + " has reported been report lost.");
+    return 0;
+  }
+
   public void printUsage() {
     System.out.println("Usage: java TFsShell");
     System.out.println("       [ls <path>]");
     System.out.println("       [rm <path>]");
     System.out.println("       [mv <src> <dst>");
     System.out.println("       [copyToLocal <src> <localDst>]");
+    System.out.println("       [report <path>");
   }
 
   public static void main(String argv[]) throws TException{
@@ -148,6 +164,8 @@ public class TFsShell {
         exitCode = rename(argv);
       } else if (cmd.equals("copyToLocal")) {
         exitCode = copyToLocal(argv);
+      } else if (cmd.equals("report")) {
+        exitCode = report(argv);
       } else {
         printUsage();
         return -1;

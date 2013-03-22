@@ -186,6 +186,11 @@ public class MasterClient {
     return CLIENT.user_listFiles(path, recursive);
   }
 
+  public synchronized List<String> user_ls(String path, boolean recursive)
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    return CLIENT.user_ls(path, recursive);
+  }
+
   public synchronized int user_mkdir(String path) 
       throws FileAlreadyExistException, InvalidPathException, TException {
     return CLIENT.user_mkdir(path);
@@ -198,6 +203,11 @@ public class MasterClient {
   public synchronized void user_renameFile(String srcPath, String dstPath)
       throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException{
     CLIENT.user_renameFile(srcPath, dstPath);
+  }
+
+  public synchronized void user_reportLostFile(int fileId) 
+      throws FileDoesNotExistException, TException {
+    CLIENT.user_reportLostFile(fileId);
   }
 
   public synchronized void user_unpinFile(int id) throws FileDoesNotExistException, TException {

@@ -6,9 +6,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import tachyon.thrift.ClientDependencyInfo;
 
 public class Dependency {
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+
   public final int ID;
   public final long CREATION_TIME_MS;
 
@@ -25,7 +29,8 @@ public class Dependency {
   public final DependencyType TYPE;
 
   public final List<Integer> PARENT_DEPENDENCIES;
-  private List<Integer> CHILDREN_DEPENDENCIES;
+  private List<Integer> mChildrenDependencies;
+  private Set<Integer> mLostFileIds;
 
   public Dependency(int id, List<Integer> parents, List<Integer> children, String commandPrefix,
       List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
@@ -50,7 +55,8 @@ public class Dependency {
 
     PARENT_DEPENDENCIES = new ArrayList<Integer>(parentDependencies.size());
     PARENT_DEPENDENCIES.addAll(parentDependencies);
-    CHILDREN_DEPENDENCIES = new ArrayList<Integer>(0);
+    mChildrenDependencies = new ArrayList<Integer>(0);
+    mLostFileIds = new HashSet<Integer>(0);
   }
 
   @Override
@@ -66,15 +72,19 @@ public class Dependency {
     return sb.toString();
   }
 
-  public String getCommand(List<Integer> recomputeList) {
+  public synchronized String getCommand() {
     // TODO In future, we should support different types of command;
     // For now, assume there is only one command model.
     StringBuilder sb = new StringBuilder(COMMAND_PREFIX);
     sb.append(" ").append(Config.MASTER_HOSTNAME).append(":").append(Config.MASTER_PORT);
     sb.append(" ").append(ID);
-    for (int k = 0; k < recomputeList.size(); k ++) {
-      sb.append(" ").append(recomputeList.get(k));
+    for (int k = 0; k < CHILDREN_FILES.size(); k ++) {
+      int id = CHILDREN_FILES.get(k);
+      if (mLostFileIds.contains(id)) {
+        sb.append(" ").append(k);
+      }
     }
+    mLostFileIds.clear();
     return sb.toString();
   }
 
@@ -90,22 +100,22 @@ public class Dependency {
   }
 
   public synchronized void addChildrenDependency(int childDependencyId) {
-    for (int dependencyId : CHILDREN_DEPENDENCIES) {
+    for (int dependencyId : mChildrenDependencies) {
       if (dependencyId == childDependencyId) {
         return;
       }
     }
-    CHILDREN_DEPENDENCIES.add(childDependencyId);
+    mChildrenDependencies.add(childDependencyId);
   }
 
   public synchronized List<Integer> getChildrenDependency() {
-    List<Integer> ret = new ArrayList<Integer>(CHILDREN_DEPENDENCIES.size());
-    ret.addAll(CHILDREN_DEPENDENCIES);
+    List<Integer> ret = new ArrayList<Integer>(mChildrenDependencies.size());
+    ret.addAll(mChildrenDependencies);
     return ret;
   }
-  
+
   public synchronized boolean hasChildrenDependency() {
-    return !CHILDREN_DEPENDENCIES.isEmpty();
+    return !mChildrenDependencies.isEmpty();
   }
 
   public synchronized boolean hasCheckpointed() {
@@ -114,5 +124,19 @@ public class Dependency {
 
   public synchronized void childCheckpointed(int childFileId) {
     mUncheckpointedChildrenFiles.remove(childFileId);
+  }
+
+  public synchronized void addLostFile(int fileId) {
+    mLostFileIds.add(fileId);
+  }
+
+  public synchronized List<Integer> getLostFiles() {
+    List<Integer> ret = new ArrayList<Integer>();
+    ret.addAll(mLostFileIds);
+    return ret;
+  }
+
+  public synchronized boolean hasLostFile() {
+    return !mLostFileIds.isEmpty();
   }
 }

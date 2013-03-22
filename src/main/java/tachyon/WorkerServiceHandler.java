@@ -100,12 +100,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
           }
 
           if (fileId == -1) {
-            try {
-              LOG.debug("Thread " + ID + " has nothing to checkpoint. Sleep for 1 sec.");
-              Thread.sleep(1000);
-            } catch (InterruptedException e) {
-              LOG.warn(e);
-            }
+            LOG.debug("Thread " + ID + " has nothing to checkpoint. Sleep for 1 sec.");
+            CommonUtils.sleep(LOG, 1000);
             continue;
           }
 
@@ -129,7 +125,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
 
           mMasterClient.addCheckpoint(mWorkerInfo.getId(), fileId, fileSize, dstPath);
 
-          unlockFile(fileId, -2); 
+          unlockFile(fileId, Users.sCHECKPOINT_USER_ID); 
         } catch (FileDoesNotExistException e) {
           LOG.warn(e);
         } catch (SuspectedFileSizeException e) {
@@ -173,7 +169,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       Set<Integer> fileIds = mDepIdToFiles.get(depId);
       if (fileIds != null && !fileIds.isEmpty()) {
         int fileId = fileIds.iterator().next();
-        lockFile(fileId, -2);
+        lockFile(fileId, Users.sCHECKPOINT_USER_ID);
         fileIds.remove(fileId);
         mUncheckpointFiles.remove(fileId);
         if (fileIds.isEmpty()) {
@@ -200,7 +196,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
-        CommonUtils.sleep(1000);
+        CommonUtils.sleep(LOG, 1000);
       }
     }
 
@@ -476,7 +472,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
-        CommonUtils.sleep(1000);
+        CommonUtils.sleep(LOG, 1000);
       }
     }
     mWorkerInfo.updateId(id);
