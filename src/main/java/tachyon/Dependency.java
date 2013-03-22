@@ -6,9 +6,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import tachyon.thrift.ClientDependencyInfo;
 
 public class Dependency {
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+
   public final int ID;
   public final long CREATION_TIME_MS;
 
@@ -74,10 +78,10 @@ public class Dependency {
     StringBuilder sb = new StringBuilder(COMMAND_PREFIX);
     sb.append(" ").append(Config.MASTER_HOSTNAME).append(":").append(Config.MASTER_PORT);
     sb.append(" ").append(ID);
-    for (int k = 0; k < PARENT_FILES.size(); k ++) {
-      int id = PARENT_FILES.get(k);
+    for (int k = 0; k < CHILDREN_FILES.size(); k ++) {
+      int id = CHILDREN_FILES.get(k);
       if (mLostFileIds.contains(id)) {
-        sb.append(" ").append(id);
+        sb.append(" ").append(k);
       }
     }
     mLostFileIds.clear();

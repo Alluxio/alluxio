@@ -82,6 +82,7 @@ public class MasterInfo {
   private MasterLogWriter mMasterLogWriter;
 
   private Thread mHeartbeatThread;
+  private Thread mRecomputeThread;
 
   /**
    * System periodical status check.
@@ -205,7 +206,7 @@ public class MasterInfo {
                 Dependency dep = mDependencies.get(recomputeList.get(k));
                 mBeingRecomputedFiles.addAll(dep.getLostFiles());
                 String cmd = dep.getCommand();
-                cmd += " &> " + Config.TACHYON_HOME + "/logs/rerun " +
+                cmd += " &> " + Config.TACHYON_HOME + "/logs/rerun-" +
                     mRerunCounter.incrementAndGet();
                 try {
                   LOG.info("Exec " + cmd);
@@ -218,8 +219,10 @@ public class MasterInfo {
           }
         }
 
-        if (!launched && hasLostFiles) {
-          LOG.info("HasLostFiles, but no job can be launched.");
+        if (!launched) {
+          if (hasLostFiles) {
+            LOG.info("HasLostFiles, but no job can be launched.");
+          }
           CommonUtils.sleep(LOG, 1000);
         }
       }
@@ -248,6 +251,9 @@ public class MasterInfo {
     mHeartbeatThread = new Thread(new HeartbeatThread(
         new MasterHeartbeatExecutor(), Config.MASTER_HEARTBEAT_INTERVAL_MS));
     mHeartbeatThread.start();
+
+    mRecomputeThread = new Thread(new RecomputationScheduler());
+    mRecomputeThread.start();
   }
 
   public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes,
