@@ -1,7 +1,9 @@
 package tachyon.command;
 
 import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -42,6 +44,22 @@ public class TFsShell {
           file.isInMemory() ? "In Memory" : "Not In Memory", file.getPath());
     }
     return 0;
+  }
+
+  public int mkdir(String argv[]) throws InvalidPathException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs mkdir <path>");
+      return -1;
+    }
+    String path = argv[1];
+    String folder = Utils.getFilePath(path);
+    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
+    if (tachyonClient.mkdir(folder) != -1) {
+      System.out.println("Successfully created directory " + folder);
+      return 0;
+    } else {
+      return -1;
+    }
   }
 
   public int rm(String argv[]) 
@@ -109,7 +127,7 @@ public class TFsShell {
     ByteBuffer buf = tFile.readByteBuffer();
     FileOutputStream out = new FileOutputStream(dst);
     FileChannel channel = out.getChannel();
-    while(buf.hasRemaining()) {
+    while (buf.hasRemaining()) {
       channel.write(buf);
     }
     channel.close();
@@ -118,12 +136,46 @@ public class TFsShell {
     return 0;
   }
 
+  public int copyFromLocal(String argv[]) 
+      throws FileNotFoundException, InvalidPathException, IOException {
+    if (argv.length != 3) {
+      System.out.println("Usage: tfs copyFromLocal <src> <remoteDst>");
+      return -1;
+    }
+
+    String srcPath = argv[1];
+    String dstPath = argv[2];
+    String dstFile = Utils.getFilePath(dstPath);
+    File src = new File(srcPath);
+    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(dstPath));
+    int fileId = tachyonClient.createFile(dstFile);
+    if (fileId == -1) {
+      return -1;
+    }
+    TachyonFile tFile = tachyonClient.getFile(fileId);
+    tFile.open(OpType.WRITE_CACHE);
+    FileInputStream in = new FileInputStream(src);
+    FileChannel channel = in.getChannel();
+    ByteBuffer buf = ByteBuffer.allocate(1024);
+    while (channel.read(buf) != -1) {
+      buf.flip();
+      tFile.append(buf);
+    }
+    tFile.close();
+    channel.close();
+    in.close();
+    System.out.println("Copied " + srcPath + " to " + dstPath);
+    return 0;
+  }
+
   public void printUsage() {
     System.out.println("Usage: java TFsShell");
     System.out.println("       [ls <path>]");
+    System.out.println("       [mkdir <path>]");
     System.out.println("       [rm <path>]");
     System.out.println("       [mv <src> <dst>");
     System.out.println("       [copyToLocal <src> <localDst>]");
+    System.out.println("       [copyFromLocal <src> <remoteDst>]");
   }
 
   public static void main(String argv[]) throws TException{
@@ -141,11 +193,15 @@ public class TFsShell {
     int exitCode = -1;
     try {
       if (cmd.equals("ls")) {
-        exitCode = ls(argv);	
+        exitCode = ls(argv);
+      } else if (cmd.equals("mkdir")) {
+        exitCode = mkdir(argv);
       } else if (cmd.equals("rm")) {
         exitCode = rm(argv);
       } else if (cmd.equals("mv")) {
         exitCode = rename(argv);
+      } else if (cmd.equals("copyFromLocal")) {
+        exitCode = copyFromLocal(argv);
       } else if (cmd.equals("copyToLocal")) {
         exitCode = copyToLocal(argv);
       } else {
