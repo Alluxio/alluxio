@@ -138,7 +138,8 @@ public class MasterInfo {
                   } else {
                     Dependency dep = mDependencies.get(depId);
                     dep.addLostFile(id);
-
+                    LOG.info("File " + id + " got lost from worker " + worker.getId() + " . " +
+                        "Trying to recompute it using dependency " + dep);
                     if (!Config.MASTER_PROACTIVE_RECOVERY) {
                       mMustRecomputeDependencies.add(depId);
                     }
@@ -215,8 +216,8 @@ public class MasterInfo {
         }
 
         for (String cmd : cmds) {
-//          cmd += " &> " + Config.TACHYON_HOME + "/logs/rerun-" +
-//              mRerunCounter.incrementAndGet();
+          //          cmd += " &> " + Config.TACHYON_HOME + "/logs/rerun-" +
+          //              mRerunCounter.incrementAndGet();
           try {
             LOG.info("Exec " + cmd);
             Process p = java.lang.Runtime.getRuntime().exec(cmd);
