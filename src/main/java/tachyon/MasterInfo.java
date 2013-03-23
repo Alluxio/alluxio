@@ -140,7 +140,7 @@ public class MasterInfo {
                     dep.addLostFile(id);
                     LOG.info("File " + id + " got lost from worker " + worker.getId() + " . " +
                         "Trying to recompute it using dependency " + dep.ID);
-                    if (!Config.MASTER_PROACTIVE_RECOVERY) {
+                    if (Config.MASTER_PROACTIVE_RECOVERY) {
                       mMustRecomputeDependencies.add(depId);
                     }
                   }
