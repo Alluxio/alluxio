@@ -245,7 +245,7 @@ public class MasterInfo {
           if (hasLostFiles) {
             LOG.info("HasLostFiles, but no job can be launched.");
           }
-          CommonUtils.sleep(LOG, 1000);
+          CommonUtils.sleepMs(LOG, 1000);
         }
       }
     }

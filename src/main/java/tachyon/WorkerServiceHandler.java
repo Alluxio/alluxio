@@ -101,7 +101,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
 
           if (fileId == -1) {
             LOG.debug("Thread " + ID + " has nothing to checkpoint. Sleep for 1 sec.");
-            CommonUtils.sleep(LOG, 1000);
+            CommonUtils.sleepMs(LOG, 1000);
             continue;
           }
 
@@ -118,12 +118,21 @@ public class WorkerServiceHandler implements WorkerService.Iface {
             mLocalHdfsClient = new HdfsClient(midPath);
           }
 
+          long startCopyTimeMs = System.currentTimeMillis();
           mLocalHdfsClient.copyFromLocalFile(false, false, srcPath, midPath);
           if (!mLocalHdfsClient.rename(midPath, dstPath)) {
             LOG.error("Failed to rename from " + midPath + " to " + dstPath);
           }
-
           mMasterClient.addCheckpoint(mWorkerInfo.getId(), fileId, fileSize, dstPath);
+          long shouldTakeMs = (long) 
+              (1000.0 * fileSize / Config.MB / Config.WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
+          long currentTimeMs = System.currentTimeMillis();
+          if (startCopyTimeMs + shouldTakeMs > currentTimeMs) {
+            long shouldSleepMs = startCopyTimeMs + shouldTakeMs - currentTimeMs;
+            LOG.info("Checkpointed last file " + fileId + " took " + 
+                (currentTimeMs - startCopyTimeMs) + " ms. Need to sleep " + shouldSleepMs + " ms.");
+            CommonUtils.sleepMs(LOG, shouldSleepMs);
+          }
 
           unlockFile(fileId, Users.sCHECKPOINT_USER_ID); 
         } catch (FileDoesNotExistException e) {
@@ -196,7 +205,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
-        CommonUtils.sleep(LOG, 1000);
+        CommonUtils.sleepMs(LOG, 1000);
       }
     }
 
@@ -472,7 +481,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
-        CommonUtils.sleep(LOG, 1000);
+        CommonUtils.sleepMs(LOG, 1000);
       }
     }
     mWorkerInfo.updateId(id);

@@ -48,6 +48,7 @@ public class Config {
   public static final int WORKER_DATA_SERVER_PORT = 10001;
   public static final int WORKER_CHECKPOINT_THREADS;
   public static final String WORKER_HDFS_FOLDER = "/tachyon/workers";
+  public static final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
 
   public static final int USER_FAILED_SPACE_REQUEST_LIMITS = 3;
   public static final String USER_TEMP_RELATIVE_FOLDER = "users";
@@ -122,6 +123,8 @@ public class Config {
     WORKER_CHECKPOINT_THREADS = Integer.parseInt(
         getProperty("tachyon.worker.checkpoint.threads", "2"));
     WORKER_TIMEOUT_MS = Long.parseLong(getProperty("tachyon.worker.timeout.ms", "60000"));
+    WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
+        Integer.parseInt(getProperty("tachyon.worker.per.thread.checkpoint.cap.mb.sec", "80"));
 
     HDFS_ADDRESS = getProperty("tachyon.hdfs.address", null);
     if (HDFS_ADDRESS == null) {
