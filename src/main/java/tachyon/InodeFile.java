@@ -66,6 +66,13 @@ public class InodeFile extends Inode {
   public synchronized List<NetAddress> getLocations() {
     List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
     ret.addAll(mLocations.values());
+    if (ret.isEmpty() && hasCheckpointed()) {
+      HdfsClient hdfsClient = new HdfsClient(mCheckpointPath);
+      List<String> locs = hdfsClient.getFirstBlockLocations(mCheckpointPath);
+      for (String loc: locs) {
+        ret.add(new NetAddress(loc, -1));
+      }
+    }
     return ret;
   }
 
