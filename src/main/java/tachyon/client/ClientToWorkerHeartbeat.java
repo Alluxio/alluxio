@@ -27,7 +27,7 @@ class ClientToWorkerHeartbeat implements Runnable {
         break;
       }
 
-      CommonUtils.sleep(LOG, Config.USER_HEARTBEAT_INTERVAL_MS);
+      CommonUtils.sleepMs(LOG, Config.USER_HEARTBEAT_INTERVAL_MS);
     }
   }
 }
