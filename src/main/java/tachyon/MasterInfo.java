@@ -758,8 +758,9 @@ public class MasterInfo {
       if (inode == null || inode.isDirectory()) {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
-      LOG.debug("getFileLocations: " + fileId + ((InodeFile) inode).getLocations());
-      return ((InodeFile) inode).getLocations();
+      List<NetAddress> ret = ((InodeFile) inode).getLocations();
+      LOG.debug("getFileLocations: " + fileId + ret);
+      return ret;
     }
   }
 
