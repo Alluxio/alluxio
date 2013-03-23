@@ -423,7 +423,9 @@ public class MasterInfo {
         if (inode.isFile()) {
           LOG.info("PARENT DEPENDENCY ID IS " + ((InodeFile) inode).getDependencyId() + " " +
               ((InodeFile) inode));
-          parentDependencyIds.add(((InodeFile) inode).getDependencyId());
+          if (((InodeFile) inode).getDependencyId() != -1) {
+            parentDependencyIds.add(((InodeFile) inode).getDependencyId());
+          }
         } else {
           throw new InvalidPathException("Parent " + parentId + " is not a file.");
         }

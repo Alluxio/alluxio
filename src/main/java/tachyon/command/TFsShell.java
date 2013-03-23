@@ -209,8 +209,8 @@ public class TFsShell {
     System.out.println("       [mv <src> <dst>");
     System.out.println("       [copyFromLocal <src> <remoteDst>]");
     System.out.println("       [copyToLocal <src> <localDst>]");
-    System.out.println("       [report <path>");
-    System.out.println("       [location <path>");
+    System.out.println("       [report <path>]");
+    System.out.println("       [location <path>]");
   }
 
   public static void main(String argv[]) throws TException{
