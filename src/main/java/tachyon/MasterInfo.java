@@ -1,7 +1,9 @@
 package tachyon;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
@@ -127,7 +129,6 @@ public class MasterInfo {
         synchronized (mRoot) {
           synchronized (mDependencies) {
             for (int id: worker.getFiles()) {
-              mLostFiles.add(id);
               InodeFile tFile = (InodeFile) mInodes.get(id);
               if (tFile != null) {
                 tFile.removeLocation(worker.getId());
@@ -136,6 +137,7 @@ public class MasterInfo {
                   if (depId == -1) {
                     LOG.error("Permanent Data loss: " + tFile);
                   } else {
+                    mLostFiles.add(id);
                     Dependency dep = mDependencies.get(depId);
                     dep.addLostFile(id);
                     LOG.info("File " + id + " got lost from worker " + worker.getId() + " . " +
@@ -156,13 +158,54 @@ public class MasterInfo {
 
       if (hadFailedWorker) {
         LOG.warn("Restarting failed workers: Do not restart for now.");
-//        try {
-//          java.lang.Runtime.getRuntime().exec(Config.TACHYON_HOME + 
-//              "/bin/restart-failed-workers.sh");
-//        } catch (IOException e) {
-//          LOG.error(e.getMessage());
-//        }
+        //        try {
+        //          java.lang.Runtime.getRuntime().exec(Config.TACHYON_HOME + 
+        //              "/bin/restart-failed-workers.sh");
+        //        } catch (IOException e) {
+        //          LOG.error(e.getMessage());
+        //        }
       }
+    }
+  }
+
+  public class RecomputeCmd implements Runnable {
+    private final String CMD;
+    private final String FILE_PATH;
+
+    public RecomputeCmd(String cmd, String filePath) {
+      CMD = cmd;
+      FILE_PATH = filePath;
+    }
+
+    @Override
+    public void run() {
+      try {
+        LOG.info("Exec " + CMD + " output to " + FILE_PATH);
+        Process p = java.lang.Runtime.getRuntime().exec(CMD);
+        String line;
+        BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+        File file = new File(FILE_PATH);
+        FileWriter fw = new FileWriter(file.getAbsoluteFile());
+        BufferedWriter bw = new BufferedWriter(fw);
+        while ((line = bri.readLine()) != null) {
+          bw.write(line + "\n");
+        }
+        bri.close();
+        while ((line = bre.readLine()) != null) {
+          bw.write(line + "\n");
+        }
+        bre.close();
+        bw.flush();
+        bw.close();
+        p.waitFor();
+        LOG.info("Exec " + CMD + " output to " + FILE_PATH + " done.");
+      } catch (IOException e) {
+        LOG.error(e.getMessage());
+      } catch (InterruptedException e) {
+        LOG.error(e.getMessage());
+      }
+
     }
   }
 
@@ -216,30 +259,9 @@ public class MasterInfo {
         }
 
         for (String cmd : cmds) {
-          //          cmd += " &> " + Config.TACHYON_HOME + "/logs/rerun-" +
-          //              mRerunCounter.incrementAndGet();
-          try {
-            LOG.info("Exec " + cmd);
-            Process p = java.lang.Runtime.getRuntime().exec(cmd);
-            //            String line;
-            //            BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            //            BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-            //            while ((line = bri.readLine()) != null) {
-            //              LOG.info(line);
-            //            }
-            //            bri.close();
-            //            while ((line = bre.readLine()) != null) {
-            //              LOG.info(line);
-            //            }
-            //            bre.close();
-            //            p.waitFor();
-          } catch (IOException e) {
-            LOG.error(e.getMessage());
-            //          } catch (InterruptedException e) {
-            //            LOG.error(e.getMessage());
-          }
+          String filePath = Config.TACHYON_HOME + "/logs/rerun-" + mRerunCounter.incrementAndGet();
+          new Thread(new RecomputeCmd(cmd, filePath)).start();
         }
-
 
         if (!launched) {
           if (hasLostFiles) {
