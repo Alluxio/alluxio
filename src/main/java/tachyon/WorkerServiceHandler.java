@@ -83,6 +83,15 @@ public class WorkerServiceHandler implements WorkerService.Iface {
             if (mPriorityDependencies.size() == 0) {
               try {
                 mPriorityDependencies = mMasterClient.worker_getPriorityDependencyList();
+                for (int i = 0; i < mPriorityDependencies.size(); i ++) {
+                  for (int j = i + 1; j < mPriorityDependencies.size(); j ++) {
+                    if (mPriorityDependencies.get(i) < mPriorityDependencies.get(j)) {
+                      int k = mPriorityDependencies.get(i);
+                      mPriorityDependencies.set(i, mPriorityDependencies.get(j));
+                      mPriorityDependencies.set(j, k);
+                    }
+                  }
+                }
                 if (!mPriorityDependencies.isEmpty()) {
                   LOG.info("Get new mPriorityDependencies " +
                       CommonUtils.listToString(mPriorityDependencies));
