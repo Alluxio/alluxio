@@ -139,7 +139,7 @@ public class MasterInfo {
                     Dependency dep = mDependencies.get(depId);
                     dep.addLostFile(id);
                     LOG.info("File " + id + " got lost from worker " + worker.getId() + " . " +
-                        "Trying to recompute it using dependency " + dep);
+                        "Trying to recompute it using dependency " + dep.ID);
                     if (!Config.MASTER_PROACTIVE_RECOVERY) {
                       mMustRecomputeDependencies.add(depId);
                     }
@@ -155,13 +155,13 @@ public class MasterInfo {
       }
 
       if (hadFailedWorker) {
-        LOG.warn("Restarting failed workers");
-        try {
-          java.lang.Runtime.getRuntime().exec(Config.TACHYON_HOME + 
-              "/bin/restart-failed-workers.sh");
-        } catch (IOException e) {
-          LOG.error(e.getMessage());
-        }
+        LOG.warn("Restarting failed workers: Do not restart for now.");
+//        try {
+//          java.lang.Runtime.getRuntime().exec(Config.TACHYON_HOME + 
+//              "/bin/restart-failed-workers.sh");
+//        } catch (IOException e) {
+//          LOG.error(e.getMessage());
+//        }
       }
     }
   }
