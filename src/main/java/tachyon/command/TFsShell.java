@@ -151,6 +151,24 @@ public class TFsShell {
     return 0;
   }
 
+  public int location(String argv[]) 
+      throws FileDoesNotExistException, InvalidPathException, IOException, TException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs location <path>");
+      return -1;
+    }
+    String path = argv[1];
+    String file = Utils.getFilePath(path);
+    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
+    int fileId = tachyonClient.getFileId(file);
+    List<String> hosts = tachyonClient.getFileHosts(fileId);
+    System.out.println(file + " with file id " + fileId + " are on nodes: ");
+    for (String host: hosts) {
+      System.out.println(host);
+    }
+    return 0;
+  }
+
   public int copyFromLocal(String argv[]) 
       throws FileNotFoundException, InvalidPathException, IOException {
     if (argv.length != 3) {
@@ -192,6 +210,7 @@ public class TFsShell {
     System.out.println("       [copyFromLocal <src> <remoteDst>]");
     System.out.println("       [copyToLocal <src> <localDst>]");
     System.out.println("       [report <path>");
+    System.out.println("       [location <path>");
   }
 
   public static void main(String argv[]) throws TException{
@@ -222,6 +241,8 @@ public class TFsShell {
         exitCode = copyToLocal(argv);
       } else if (cmd.equals("report")) {
         exitCode = report(argv);
+      } else if (cmd.equals("location")) {
+        exitCode = location(argv);
       } else {
         printUsage();
         return -1;
