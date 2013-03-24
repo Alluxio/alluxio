@@ -154,8 +154,8 @@ public class TFsShell {
 
   public int request(String argv[]) 
       throws DependencyDoesNotExistException, TException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs request <dependencyId>");
+    if (argv.length != 3) {
+      System.out.println("Usage: tfs request <tachyonaddress> <dependencyId>");
       return -1;
     }
     String path = argv[1];
@@ -225,7 +225,7 @@ public class TFsShell {
     System.out.println("       [copyFromLocal <src> <remoteDst>]");
     System.out.println("       [copyToLocal <src> <localDst>]");
     System.out.println("       [report <path>]");
-    System.out.println("       [request <dependencyId>]");
+    System.out.println("       [request <tachyonaddress> <dependencyId>]");
     System.out.println("       [location <path>]");
   }
 
