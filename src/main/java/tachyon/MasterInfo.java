@@ -339,7 +339,7 @@ public class MasterInfo {
           int depId = tFile.getDependencyId();
           if (depId != -1) {
             Dependency dep = mDependencies.get(depId);
-            dep.addChildrenDependency(tFile.getId());
+            dep.childCheckpointed(tFile.getId());
             if (dep.hasCheckpointed()) {
               mUncheckpointedDependencies.remove(dep.ID);
               mPriorityDependencies.remove(dep.ID);
@@ -951,16 +951,24 @@ public class MasterInfo {
           Dependency dep = mDependencies.get(depId); 
           if (!dep.hasChildrenDependency()) {
             mPriorityDependencies.add(dep.ID);
+            LOG.info("Compute Dep: " + dep);
+          } else {
+            LOG.info("Compute Dep: " + dep);
           }
           if (dep.CREATION_TIME_MS < earliest) {
             earliest = dep.CREATION_TIME_MS;
             earliestDepId = dep.ID;
           }
         }
+
+        if (!mPriorityDependencies.isEmpty()) {
+          LOG.info("New computed priority dependency list " + mPriorityDependencies);
+        }
       }
 
       if (mPriorityDependencies.isEmpty() && earliestDepId != -1) {
         mPriorityDependencies.add(earliestDepId);
+        LOG.info("Priority dependency list by earliest creation time: " + mPriorityDependencies);
       }
 
       List<Integer> ret = new ArrayList<Integer>(mPriorityDependencies.size());
