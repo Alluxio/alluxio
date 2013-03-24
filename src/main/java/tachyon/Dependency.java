@@ -8,8 +8,6 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import com.esotericsoftware.minlog.Log;
-
 import tachyon.thrift.ClientDependencyInfo;
 
 public class Dependency {
@@ -129,7 +127,7 @@ public class Dependency {
 
   public synchronized void childCheckpointed(int childFileId) {
     mUncheckpointedChildrenFiles.remove(childFileId);
-    LOG.info("Child got checkpointed " + childFileId + " : " + toString());
+    LOG.debug("Child got checkpointed " + childFileId + " : " + toString());
   }
 
   public synchronized void addLostFile(int fileId) {
