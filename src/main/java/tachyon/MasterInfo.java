@@ -476,7 +476,6 @@ public class MasterInfo {
       }
       for (int parentDependencyId: dep.PARENT_DEPENDENCIES) {
         mDependencies.get(parentDependencyId).addChildrenDependency(dep.ID);
-        LOG.info("Added child dependency to parent dependency: " + mDependencies.get(parentDependencyId));
       }
     }
 
@@ -952,9 +951,7 @@ public class MasterInfo {
           Dependency dep = mDependencies.get(depId); 
           if (!dep.hasChildrenDependency()) {
             mPriorityDependencies.add(dep.ID);
-            LOG.info("Compute Dep: " + dep);
           } else {
-            LOG.info("Compute Dep: " + dep);
           }
           if (dep.CREATION_TIME_MS < earliest) {
             earliest = dep.CREATION_TIME_MS;
