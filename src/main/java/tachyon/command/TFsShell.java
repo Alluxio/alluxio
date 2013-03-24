@@ -13,6 +13,7 @@ import java.util.Collections;
 
 import org.apache.thrift.TException;
 
+import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.ClientFileInfo;
@@ -151,6 +152,20 @@ public class TFsShell {
     return 0;
   }
 
+  public int request(String argv[]) 
+      throws DependencyDoesNotExistException, TException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs request <dependencyId>");
+      return -1;
+    }
+    String path = argv[1];
+    int depId = Integer.parseInt(argv[2]);
+    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
+    tachyonClient.requestFilesInDependency(depId);
+    System.out.println("Dependency with ID " + depId + " has been requested.");
+    return 0;
+  }
+
   public int location(String argv[]) 
       throws FileDoesNotExistException, InvalidPathException, IOException, TException {
     if (argv.length != 2) {
@@ -210,6 +225,7 @@ public class TFsShell {
     System.out.println("       [copyFromLocal <src> <remoteDst>]");
     System.out.println("       [copyToLocal <src> <localDst>]");
     System.out.println("       [report <path>]");
+    System.out.println("       [request <dependencyId>]");
     System.out.println("       [location <path>]");
   }
 
@@ -241,6 +257,8 @@ public class TFsShell {
         exitCode = copyToLocal(argv);
       } else if (cmd.equals("report")) {
         exitCode = report(argv);
+      } else if (cmd.equals("request")) {
+        exitCode = request(argv);
       } else if (cmd.equals("location")) {
         exitCode = location(argv);
       } else {
@@ -253,6 +271,8 @@ public class TFsShell {
       System.out.println("File Does Not Exist: " + fdne.getMessage());
     } catch (IOException ioe) {
       System.out.println(ioe.getMessage());
+    } catch (DependencyDoesNotExistException denee) {
+      System.out.println(denee.getMessage());
     } finally {
     }
 

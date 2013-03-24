@@ -167,7 +167,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       throws FileDoesNotExistException, InvalidPathException, TException {
     return mMasterInfo.listFiles(path, recursive);
   }
-  
+
   @Override
   public List<String> user_ls(String path, boolean recursive)
       throws FileDoesNotExistException, InvalidPathException, TException {
@@ -192,9 +192,15 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void user_reportLostFile(int fileId) throws FileDoesNotExistException,
-      TException {
+  public void user_reportLostFile(int fileId) 
+      throws FileDoesNotExistException, TException {
     mMasterInfo.reportLostFile(fileId);
+  }
+
+  @Override
+  public void user_requestFilesInDependency(int depId) 
+      throws DependencyDoesNotExistException, TException {
+    mMasterInfo.requestFilesInDependency(depId);
   }
 
   @Override

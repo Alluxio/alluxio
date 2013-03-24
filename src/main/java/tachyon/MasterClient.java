@@ -210,6 +210,11 @@ public class MasterClient {
     CLIENT.user_reportLostFile(fileId);
   }
 
+  public synchronized void user_requestFilesInDependency(int depId) 
+      throws DependencyDoesNotExistException, TException {
+    CLIENT.user_requestFilesInDependency(depId);
+  }
+
   public synchronized void user_unpinFile(int id) throws FileDoesNotExistException, TException {
     CLIENT.user_unpinFile(id);
   }

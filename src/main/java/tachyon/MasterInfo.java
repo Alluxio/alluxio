@@ -205,7 +205,6 @@ public class MasterInfo {
       } catch (InterruptedException e) {
         LOG.error(e.getMessage());
       }
-
     }
   }
 
@@ -1279,6 +1278,20 @@ public class MasterInfo {
             mMustRecomputeDependencies.add(depId);
           }
         }
+      }
+    }
+  }
+
+  public void requestFilesInDependency(int depId) {
+    synchronized (mDependencies) {
+      if (mDependencies.containsKey(depId)) {
+        Dependency dep = mDependencies.get(depId);
+        LOG.info("Request files in dependency " + dep);
+        if (dep.hasLostFile()) {
+          mMustRecomputeDependencies.add(depId);
+        }
+      } else {
+        LOG.error("There is no dependency with id " + depId);
       }
     }
   }
