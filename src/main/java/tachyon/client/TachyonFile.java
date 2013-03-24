@@ -117,6 +117,8 @@ public class TachyonFile {
   public void append(byte b) throws IOException {
     //    validateIO(false);
 
+    appendCurrentBuffer(Config.USER_BUFFER_PER_PARTITION_BYTES);
+
     mBuffer.put(b);
   }
 
