@@ -655,11 +655,13 @@ public class TachyonClient {
   }
 
   public synchronized void reportLostFile(int fileId) throws FileDoesNotExistException, TException {
+    connect();
     mMasterClient.user_reportLostFile(fileId);
   }
 
   public synchronized void requestFilesInDependency(int depId)
       throws DependencyDoesNotExistException, TException {
+    connect();
     mMasterClient.user_requestFilesInDependency(depId);
   }
 
