@@ -658,6 +658,11 @@ public class TachyonClient {
     mMasterClient.user_reportLostFile(fileId);
   }
 
+  public synchronized void requestFilesInDependency(int depId)
+      throws DependencyDoesNotExistException, TException {
+    mMasterClient.user_requestFilesInDependency(depId);
+  }
+
   public synchronized boolean requestSpace(long requestSpaceBytes) {
     connect();
     if (mWorkerClient == null || !mIsWorkerLocal) {
