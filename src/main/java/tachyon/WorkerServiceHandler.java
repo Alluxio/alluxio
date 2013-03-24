@@ -108,9 +108,9 @@ public class WorkerServiceHandler implements WorkerService.Iface {
                   mPriorityDependencies = tList;
                 }
               }
-            }
 
-            fileId = getFileIdBasedOnPriorityDependency();
+              fileId = getFileIdBasedOnPriorityDependency();
+            }
 
             if (fileId == -1) {
               fileId = getRandomUncheckpointedFile();
