@@ -82,29 +82,31 @@ public class WorkerServiceHandler implements WorkerService.Iface {
           synchronized (mDependencyLock) {
             fileId = getFileIdBasedOnPriorityDependency();
 
-            if (mPriorityDependencies.size() == 0) {
-              mPriorityDependencies = getSortedPriorityDependencyList();
-              if (!mPriorityDependencies.isEmpty()) {
-                LOG.info("Get new mPriorityDependencies " +
-                    CommonUtils.listToString(mPriorityDependencies));
-              }
-            } else {
-              List<Integer> tList = getSortedPriorityDependencyList();
-              boolean equal = true;
-              if (mPriorityDependencies.size() != tList.size()) {
-                equal = false;
-              }
-              if (equal) {
-                for (int k = 0; k < tList.size(); k ++) {
-                  if (tList.get(k) != mPriorityDependencies.get(k)) {
-                    equal = false;
-                    break;
+            if (fileId == -1) {
+              if (mPriorityDependencies.size() == 0) {
+                mPriorityDependencies = getSortedPriorityDependencyList();
+                if (!mPriorityDependencies.isEmpty()) {
+                  LOG.info("Get new mPriorityDependencies " +
+                      CommonUtils.listToString(mPriorityDependencies));
+                }
+              } else {
+                List<Integer> tList = getSortedPriorityDependencyList();
+                boolean equal = true;
+                if (mPriorityDependencies.size() != tList.size()) {
+                  equal = false;
+                }
+                if (equal) {
+                  for (int k = 0; k < tList.size(); k ++) {
+                    if (tList.get(k) != mPriorityDependencies.get(k)) {
+                      equal = false;
+                      break;
+                    }
                   }
                 }
-              }
-              
-              if (!equal) {
-                mPriorityDependencies = tList;
+
+                if (!equal) {
+                  mPriorityDependencies = tList;
+                }
               }
             }
 
