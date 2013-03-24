@@ -64,6 +64,8 @@ public class Dependency {
     sb.append(", COMMENT:").append(COMMENT);
     sb.append(", FRAMEWORK:").append(FRAMEWORK);
     sb.append(", FRAMEWORK_VERSION:").append(FRAMEWORK_VERSION);
+    sb.append(", PARENT_DEPENDENCIES:").append(PARENT_DEPENDENCIES);
+    sb.append(", ChildrenDependencies:").append(mChildrenDependencies);
     sb.append("]");
     return sb.toString();
   }
