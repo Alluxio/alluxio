@@ -6,9 +6,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
+import com.esotericsoftware.minlog.Log;
+
 import tachyon.thrift.ClientDependencyInfo;
 
 public class Dependency {
+  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+
   public final int ID;
   public final long CREATION_TIME_MS;
 
@@ -66,6 +72,7 @@ public class Dependency {
     sb.append(", FRAMEWORK_VERSION:").append(FRAMEWORK_VERSION);
     sb.append(", PARENT_DEPENDENCIES:").append(PARENT_DEPENDENCIES);
     sb.append(", ChildrenDependencies:").append(mChildrenDependencies);
+    sb.append(", UncheckpointedChildrenFiles:").append(mUncheckpointedChildrenFiles);
     sb.append("]");
     return sb.toString();
   }
@@ -122,6 +129,7 @@ public class Dependency {
 
   public synchronized void childCheckpointed(int childFileId) {
     mUncheckpointedChildrenFiles.remove(childFileId);
+    LOG.info("Child got checkpointed " + childFileId + " : " + toString());
   }
 
   public synchronized void addLostFile(int fileId) {
