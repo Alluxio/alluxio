@@ -80,24 +80,31 @@ public class WorkerServiceHandler implements WorkerService.Iface {
         try {
           int fileId = -1;
           synchronized (mDependencyLock) {
+            fileId = getFileIdBasedOnPriorityDependency();
+
             if (mPriorityDependencies.size() == 0) {
-              try {
-                mPriorityDependencies = mMasterClient.worker_getPriorityDependencyList();
-                for (int i = 0; i < mPriorityDependencies.size(); i ++) {
-                  for (int j = i + 1; j < mPriorityDependencies.size(); j ++) {
-                    if (mPriorityDependencies.get(i) < mPriorityDependencies.get(j)) {
-                      int k = mPriorityDependencies.get(i);
-                      mPriorityDependencies.set(i, mPriorityDependencies.get(j));
-                      mPriorityDependencies.set(j, k);
-                    }
+              mPriorityDependencies = getSortedPriorityDependencyList();
+              if (!mPriorityDependencies.isEmpty()) {
+                LOG.info("Get new mPriorityDependencies " +
+                    CommonUtils.listToString(mPriorityDependencies));
+              }
+            } else {
+              List<Integer> tList = getSortedPriorityDependencyList();
+              boolean equal = true;
+              if (mPriorityDependencies.size() != tList.size()) {
+                equal = false;
+              }
+              if (equal) {
+                for (int k = 0; k < tList.size(); k ++) {
+                  if (tList.get(k) != mPriorityDependencies.get(k)) {
+                    equal = false;
+                    break;
                   }
                 }
-                if (!mPriorityDependencies.isEmpty()) {
-                  LOG.info("Get new mPriorityDependencies " +
-                      CommonUtils.listToString(mPriorityDependencies));
-                }
-              } catch (TException e) {
-                LOG.error(e);
+              }
+              
+              if (!equal) {
+                mPriorityDependencies = tList;
               }
             }
 
@@ -152,6 +159,20 @@ public class WorkerServiceHandler implements WorkerService.Iface {
           LOG.warn(e); 
         }
       }
+    }
+
+    private List<Integer> getSortedPriorityDependencyList() throws TException {
+      List<Integer> ret = mMasterClient.worker_getPriorityDependencyList();
+      for (int i = 0; i < ret.size(); i ++) {
+        for (int j = i + 1; j < ret.size(); j ++) {
+          if (ret.get(i) < ret.get(j)) {
+            int k = ret.get(i);
+            ret.set(i, ret.get(j));
+            ret.set(j, k);
+          }
+        }
+      }
+      return ret;
     }
 
     // This method assumes the mDependencyLock has been acquired.
