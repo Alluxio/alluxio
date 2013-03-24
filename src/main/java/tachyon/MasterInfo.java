@@ -476,6 +476,7 @@ public class MasterInfo {
       }
       for (int parentDependencyId: dep.PARENT_DEPENDENCIES) {
         mDependencies.get(parentDependencyId).addChildrenDependency(dep.ID);
+        LOG.info("Added child dependency to parent dependency: " + mDependencies.get(parentDependencyId));
       }
     }
 
