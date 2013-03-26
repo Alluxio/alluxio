@@ -113,7 +113,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
             }
 
             if (fileId == -1) {
-              fileId = getRandomUncheckpointedFile();
+//              fileId = getRandomUncheckpointedFile();
             }
           }
 
