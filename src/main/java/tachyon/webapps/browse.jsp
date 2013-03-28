@@ -56,6 +56,7 @@
             <% if ((Boolean) request.getAttribute("debug")) { %>
               <th>[DEBUG]Inode Number</th>
               <th>[DEBUG]Checkpoint Path</th>
+              <th>[DEBUG]File Locations</th>
             <% } %>
           </thead>
           <tbody>
@@ -84,6 +85,11 @@
                 <c:if test = "${debug}">
                   <th>${fileInfo.id}</th>
                   <th>${fileInfo.checkpointPath}</th>
+                  <th>
+                  <c:forEach var="location" items="${fileInfo.fileLocations}">
+                    ${location}<br/>
+                  </c:forEach>
+                  </th>
                 </c:if>
               </tr>
             </c:forEach>
@@ -113,6 +119,10 @@
                   <% if ((Boolean) request.getAttribute("debug")) { %>
                     <th><%= fileInfo.getId() %></th>
                     <th><%= fileInfo.getCheckpointPath() %></th>
+                    <th><% for (String location : fileInfo.getFileLocations()) { %>
+                          <%= location %> <br/>
+                        <% } %>
+                    </th>
                   <% } %>
                 </tr>
               <% } %>

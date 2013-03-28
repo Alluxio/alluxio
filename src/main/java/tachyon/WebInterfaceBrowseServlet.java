@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.NetAddress;
 
 public class WebInterfaceBrowseServlet extends HttpServlet {
   private static final long serialVersionUID = 6121623049981468871L;
@@ -31,6 +32,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     private final long CREATION_TIME_MS;
     private final boolean IN_MEMORY;
     private final boolean IS_DIRECTORY;
+    private List<String> mFileLocations;
 
     private UiFileInfo(ClientFileInfo fileInfo) {
       ID = fileInfo.getId();
@@ -41,6 +43,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       CREATION_TIME_MS = fileInfo.getCreationTimeMs();
       IN_MEMORY = fileInfo.isInMemory();
       IS_DIRECTORY = fileInfo.isFolder();
+      mFileLocations = new ArrayList<String>();
     }
 
     public int getId() {
@@ -81,6 +84,16 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
     public boolean getIsDirectory() {
       return IS_DIRECTORY;
+    }
+
+    public void setFileLocations(List<NetAddress> fileLocations) {
+      for (NetAddress addr : fileLocations) {
+        mFileLocations.add(new String(addr.getMHost() + ":" + addr.getMPort()));
+      }
+    }
+
+    public List<String> getFileLocations() {
+      return mFileLocations;
     }
 
     @Override
@@ -124,7 +137,17 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
     List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>(filesInfo.size());
     for (ClientFileInfo fileInfo : filesInfo) {
-      fileInfos.add(new UiFileInfo(fileInfo));
+      UiFileInfo toAdd = new UiFileInfo(fileInfo);
+      try {
+        if (!toAdd.getIsDirectory()) {
+          toAdd.setFileLocations(mMasterInfo.getFileLocations(toAdd.getId()));
+        }
+      } catch (FileDoesNotExistException fdne) {
+        request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
+        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        return;
+      }
+      fileInfos.add(toAdd);
     }
     Collections.sort(fileInfos);
     request.setAttribute("fileInfos", fileInfos);
