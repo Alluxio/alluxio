@@ -327,13 +327,6 @@ public class TachyonFile {
         mCheckpointInputStream = tHdfsClient.open(mClientFileInfo.checkpointPath);
       }
       if (mBuffer == null && mCheckpointInputStream == null) {
-        try {
-          mTachyonClient.reportLostFile(mId);
-        } catch (FileDoesNotExistException e) {
-          throw new IOException("File does not exist anymore: " + mClientFileInfo);
-        } catch (TException e) {
-          throw new IOException("Can not connect to Tachyon system.");
-        }
         throw new IOException("Can not find file " + mClientFileInfo.getPath());
       }
     }

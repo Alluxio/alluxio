@@ -1,6 +1,5 @@
 package tachyon;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.List;
@@ -9,11 +8,9 @@ import java.util.Set;
 import org.apache.thrift.TException;
 import org.apache.log4j.Logger;
 
-import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.Command;
-import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -53,24 +50,6 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_createDependency(List<String> parents, List<String> children,
-      String commandPrefix, List<ByteBuffer> data, String comment,
-      String framework, String frameworkVersion, int dependencyType)
-          throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
-          TException {
-    try {
-      for (int k = 0; k < children.size(); k ++) {
-        mMasterInfo.createFile(children.get(k), false);
-      }
-      return mMasterInfo.createDependency(parents, children, commandPrefix, 
-          data, comment, framework, frameworkVersion,
-          DependencyType.getDependencyType(dependencyType));
-    } catch (IOException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    }
-  }
-
-  @Override
   public int user_createFile(String filePath)
       throws FileAlreadyExistException, InvalidPathException, TException {
     return mMasterInfo.createFile(filePath, false);
@@ -97,12 +76,6 @@ public class MasterServiceHandler implements MasterService.Iface {
   public NetAddress user_getWorker(boolean random, String host) 
       throws NoLocalWorkerException, TException {
     return mMasterInfo.getWorker(random, host);
-  }
-
-  @Override
-  public ClientDependencyInfo user_getClientDependencyInfo(int dependencyId)
-      throws DependencyDoesNotExistException, TException {
-    return mMasterInfo.getClientDependencyInfo(dependencyId);
   }
 
   @Override
@@ -192,38 +165,21 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void user_reportLostFile(int fileId) 
-      throws FileDoesNotExistException, TException {
-    mMasterInfo.reportLostFile(fileId);
-  }
-
-  @Override
-  public void user_requestFilesInDependency(int depId) 
-      throws DependencyDoesNotExistException, TException {
-    mMasterInfo.requestFilesInDependency(depId);
-  }
-
-  @Override
   public void user_unpinFile(int fileId) throws FileDoesNotExistException, TException {
     mMasterInfo.unpinFile(fileId);
   }
 
   @Override
-  public int worker_cacheFile(long workerId, long workerUsedBytes, int fileId,
+  public void worker_cacheFile(long workerId, long workerUsedBytes, int fileId,
       long fileSizeBytes) throws FileDoesNotExistException,
       SuspectedFileSizeException, TException {
-    return mMasterInfo.cachedFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
+    mMasterInfo.cachedFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
   }
 
   @Override
   public Set<Integer> worker_getPinIdList() throws TException {
     List<Integer> ret = mMasterInfo.getPinIdList();
     return new HashSet<Integer>(ret);
-  }
-
-  @Override
-  public List<Integer> worker_getPriorityDependencyList() throws TException {
-    return mMasterInfo.getPriorityDependencyList();
   }
 
   @Override

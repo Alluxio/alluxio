@@ -22,8 +22,6 @@ public class KryoFactory {
     ret.register(InodeFolder.class);
     ret.register(InodeRawTable.class);
     ret.register(CheckpointInfo.class);
-    ret.register(DependencyType.class);
-    ret.register(Dependency.class);
 
     return ret;
   }

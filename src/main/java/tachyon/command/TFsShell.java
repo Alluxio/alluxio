@@ -13,7 +13,6 @@ import java.util.Collections;
 
 import org.apache.thrift.TException;
 
-import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.ClientFileInfo;
@@ -137,35 +136,6 @@ public class TFsShell {
     return 0;
   }
 
-  public int report(String argv[]) 
-      throws FileDoesNotExistException, InvalidPathException, TException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs report <path>");
-      return -1;
-    }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
-    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
-    int fileId = tachyonClient.getFileId(file);
-    tachyonClient.reportLostFile(fileId);
-    System.out.println(file + " with file id " + fileId + " has reported been report lost.");
-    return 0;
-  }
-
-  public int request(String argv[]) 
-      throws DependencyDoesNotExistException, TException {
-    if (argv.length != 3) {
-      System.out.println("Usage: tfs request <tachyonaddress> <dependencyId>");
-      return -1;
-    }
-    String path = argv[1];
-    int depId = Integer.parseInt(argv[2]);
-    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
-    tachyonClient.requestFilesInDependency(depId);
-    System.out.println("Dependency with ID " + depId + " has been requested.");
-    return 0;
-  }
-
   public int location(String argv[]) 
       throws FileDoesNotExistException, InvalidPathException, IOException, TException {
     if (argv.length != 2) {
@@ -224,8 +194,6 @@ public class TFsShell {
     System.out.println("       [mv <src> <dst>");
     System.out.println("       [copyFromLocal <src> <remoteDst>]");
     System.out.println("       [copyToLocal <src> <localDst>]");
-    System.out.println("       [report <path>]");
-    System.out.println("       [request <tachyonaddress> <dependencyId>]");
     System.out.println("       [location <path>]");
   }
 
@@ -255,10 +223,6 @@ public class TFsShell {
         exitCode = copyFromLocal(argv);
       } else if (cmd.equals("copyToLocal")) {
         exitCode = copyToLocal(argv);
-      } else if (cmd.equals("report")) {
-        exitCode = report(argv);
-      } else if (cmd.equals("request")) {
-        exitCode = request(argv);
       } else if (cmd.equals("location")) {
         exitCode = location(argv);
       } else {
@@ -271,8 +235,6 @@ public class TFsShell {
       System.out.println("File Does Not Exist: " + fdne.getMessage());
     } catch (IOException ioe) {
       System.out.println(ioe.getMessage());
-    } catch (DependencyDoesNotExistException denee) {
-      System.out.println(denee.getMessage());
     } finally {
     }
 
