@@ -1,8 +1,11 @@
 package tachyon;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -203,5 +206,22 @@ public class HdfsClient {
     }
     CommonUtils.runtimeException(te);
     return false;
+  }
+
+  public List<String> getFirstBlockLocations(String path) {
+    List<String> ret = new ArrayList<String>();
+    try {
+      FileStatus fStatus = mFs.getFileStatus(new Path(path));
+      BlockLocation[] bLocations = mFs.getFileBlockLocations(fStatus, 0, 1);
+      if (bLocations.length > 0) {
+        String[] hosts = bLocations[0].getHosts();
+        for (String host: hosts) {
+          ret.add(host);
+        }
+      }
+    } catch (IOException e) {
+      LOG.error(e);
+    }
+    return ret;
   }
 }

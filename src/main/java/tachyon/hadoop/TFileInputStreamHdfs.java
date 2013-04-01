@@ -146,6 +146,7 @@ implements Seekable, PositionedReadable {
   }
 
   private int readFromHdfsBuffer() throws IOException {
+    LOG.error("Reading from HDFS directly");
     if (mBufferPosition < mBufferLimit) {
       return mBuffer[mBufferPosition ++];
     }

@@ -1,22 +1,27 @@
 package tachyon.client;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.Config;
+import tachyon.DependencyType;
 import tachyon.HdfsClient;
 import tachyon.MasterClient;
 import tachyon.CommonUtils;
 import tachyon.WorkerClient;
+import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -136,7 +141,7 @@ public class TachyonClient {
     NetAddress workerNetAddress = null;
     mIsWorkerLocal = false;
     try {
-      String localHostName = InetAddress.getLocalHost().getHostName();
+      String localHostName = InetAddress.getLocalHost().getCanonicalHostName();
       LOG.info("Trying to get local worker host : " + localHostName);
       workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
       mIsWorkerLocal = true;
@@ -285,6 +290,16 @@ public class TachyonClient {
     return mUserHdfsTempFolder;
   }
 
+  public synchronized int createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+      String frameworkVersion, DependencyType type)
+          throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
+          TException {
+    connect();
+    return mMasterClient.user_createDependency(parents, children, commandPrefix, 
+        data, comment, framework, frameworkVersion, type.getValue());
+  }
+
   public synchronized int createRawTable(String path, int columns) throws InvalidPathException {
     return createRawTable(path, columns, ByteBuffer.allocate(0));
   }
@@ -406,7 +421,8 @@ public class TachyonClient {
     return true;
   }
 
-  public synchronized List<NetAddress> getFileLocations(int fileId) {
+  public synchronized List<NetAddress> getFileNetAddresses(int fileId)
+      throws IOException {
     connect();
     if (!mConnected) {
       return null;
@@ -416,13 +432,50 @@ public class TachyonClient {
     try {
       ret = mMasterClient.user_getFileLocations(fileId);
     } catch (FileDoesNotExistException e) {
-      LOG.error(e.getMessage());
-      return null;
+      throw new IOException(e);
     } catch (TException e) {
-      LOG.error(e.getMessage());
       mConnected = false;
+      throw new IOException(e);
+    }
+    return ret;
+  }
+
+  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fileIds) 
+      throws IOException {
+    List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
+    for (int k = 0; k < fileIds.size(); k ++) {
+      ret.add(getFileNetAddresses(fileIds.get(k)));
+    }
+
+    return ret;
+  }
+
+  public synchronized List<String> getFileHosts(int fileId)
+      throws IOException {
+    connect();
+    if (!mConnected) {
       return null;
     }
+
+    List<NetAddress> adresses = getFileNetAddresses(fileId);
+    List<String> ret = new ArrayList<String>(adresses.size());
+    for (NetAddress address: adresses) {
+      ret.add(address.mHost);
+      if (address.mHost.endsWith(".ec2.internal")) {
+        ret.add(address.mHost.substring(0, address.mHost.length() - 13));
+      }
+    }
+
+    return ret;
+  }
+
+  public synchronized List<List<String>> getFilesHosts(List<Integer> fileIds) 
+      throws IOException {
+    List<List<String>> ret = new ArrayList<List<String>>();
+    for (int k = 0; k < fileIds.size(); k ++) {
+      ret.add(getFileHosts(fileIds.get(k)));
+    }
+
     return ret;
   }
 
@@ -435,6 +488,7 @@ public class TachyonClient {
     return new TachyonFile(this, clientFileInfo);
   }
 
+  // TODO fileId should not be exposed to applications, it should be an internal value.
   public synchronized TachyonFile getFile(int fileId) {
     ClientFileInfo clientFileInfo = getClientFileInfo(fileId);
     if (clientFileInfo == null) {
@@ -462,7 +516,13 @@ public class TachyonClient {
     return fileId;
   }
 
-  private synchronized ClientFileInfo getClientFileInfo(String path) throws InvalidPathException {
+  public synchronized ClientDependencyInfo getClientDependencyInfo(int dependencyId)
+      throws DependencyDoesNotExistException, TException {
+    connect();
+    return mMasterClient.user_getClientDependencyInfo(dependencyId);
+  }
+
+  private synchronized ClientFileInfo getClientFileInfo(String path) throws InvalidPathException { 
     connect();
     if (!mConnected) {
       return null;
@@ -531,6 +591,20 @@ public class TachyonClient {
     return mConnected;
   }
 
+  public synchronized List<Integer> listFiles(String path, boolean recursive) throws IOException {
+    connect();
+    try {
+      return mMasterClient.user_listFiles(path, recursive);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
   public synchronized List<ClientFileInfo> listStatus(String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
     connect();
@@ -538,6 +612,34 @@ public class TachyonClient {
       return null;
     }
     return mMasterClient.ls(path);
+  }
+
+  public synchronized List<String> ls(String path, boolean recursive) throws IOException {
+    connect();
+    try {
+      return mMasterClient.user_ls(path, recursive);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized boolean lockFile(int fileId) {
+    connect();
+    if (!mConnected || mWorkerClient == null || !mIsWorkerLocal) {
+      return false;
+    }
+    try {
+      mWorkerClient.lockFile(fileId, mUserId);
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      return false;
+    }
+    return true;
   }
 
   public synchronized void outOfMemoryForPinFile(int fileId) {
@@ -553,6 +655,17 @@ public class TachyonClient {
 
   public synchronized void releaseSpace(long releaseSpaceBytes) {
     mAvailableSpaceBytes += releaseSpaceBytes;
+  }
+
+  public synchronized void reportLostFile(int fileId) throws FileDoesNotExistException, TException {
+    connect();
+    mMasterClient.user_reportLostFile(fileId);
+  }
+
+  public synchronized void requestFilesInDependency(int depId)
+      throws DependencyDoesNotExistException, TException {
+    connect();
+    mMasterClient.user_requestFilesInDependency(depId);
   }
 
   public synchronized boolean requestSpace(long requestSpaceBytes) {
@@ -611,20 +724,6 @@ public class TachyonClient {
     return true;
   }
 
-  public synchronized boolean lockFile(int fileId) {
-    connect();
-    if (!mConnected || mWorkerClient == null || !mIsWorkerLocal) {
-      return false;
-    }
-    try {
-      mWorkerClient.lockFile(fileId, mUserId);
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      return false;
-    }
-    return true;
-  }
-
   public synchronized boolean unlockFile(int fileId) {
     connect();
     if (!mConnected || mWorkerClient == null || !mIsWorkerLocal) {
@@ -642,6 +741,6 @@ public class TachyonClient {
   public synchronized int getNumberOfFiles(String folderPath) 
       throws FileDoesNotExistException, InvalidPathException, TException {
     connect();
-    return mMasterClient.getNumberOfFiles(folderPath);
+    return mMasterClient.user_getNumberOfFiles(folderPath);
   }
 }

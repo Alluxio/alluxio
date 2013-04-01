@@ -22,7 +22,7 @@
       </ul>
     </div>
   </div>
-  <div class ="row-fluid">
+  <div class="row-fluid">
     <div class="accordion span6" id="accordion1">
       <div class="accordion-group">
         <div class="accordion-heading">

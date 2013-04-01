@@ -47,10 +47,11 @@
             <th>Size</th>
             <th>In-Memory</th>
             <th>Creation Time</th>
+            <th>Dependency Id</th>
           <!--
             <c:if test = "${debug}">
-              <th>[DEBUG]Inode Number</th>
-              <th>[DEBUG]Checkpoint Path</th>
+              <th>[D]Inode Number</th>
+              <th>[D]Checkpoint Path</th>
             </c:if>
           -->
             <% if ((Boolean) request.getAttribute("debug")) { %>
@@ -82,6 +83,11 @@
                   </c:if>
                 </th>
                 <th>${fileInfo.creationTime}</th>
+                <th>
+                  <c:if test = "${fileInfo.dependencyId} != -1">
+                    <a href="./dependency?id=${fileInfo.dependencyId}&filePath=${fileInfo.absolutePath}"><c:out value="${fileInfo.dependencyId}"/></a>
+                  </c:if>
+                </th>
                 <c:if test = "${debug}">
                   <th>${fileInfo.id}</th>
                   <th>${fileInfo.checkpointPath}</th>
@@ -116,6 +122,11 @@
                     <% } %>
                   </th>
                   <th><%= fileInfo.getCreationTime() %></th>
+                  <th>
+                    <% if (fileInfo.getDependencyId() != -1) { %>
+                      <a href="./dependency?id=<%=fileInfo.getDependencyId()%>&filePath=<%=fileInfo.getAbsolutePath()%>"><%= fileInfo.getDependencyId() %></a>
+                    <% } %>
+                  </th>
                   <% if ((Boolean) request.getAttribute("debug")) { %>
                     <th><%= fileInfo.getId() %></th>
                     <th><%= fileInfo.getCheckpointPath() %></th>

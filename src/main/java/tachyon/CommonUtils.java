@@ -9,6 +9,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -56,6 +57,22 @@ public class CommonUtils {
     return path;
   }
 
+  public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
+    ByteBuffer ret = ByteBuffer.allocate(buf.limit() - buf.position());
+    ret.put(buf);
+    ret.flip();
+    buf.flip();
+    return ret;
+  }
+
+  public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
+    List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
+    for (int k = 0; k < source.size(); k ++) {
+      ret.add(cloneByteBuffer(source.get(k)));
+    }
+    return ret;
+  }
+
   public static String convertMsToClockTime(long Millis) {
     return String.format("%d hour(s), %d minute(s), and %d second(s)",
         Millis / (1000L * 60 * 60), (Millis % (1000L * 60 * 60)) / (1000 * 60),
@@ -83,7 +100,7 @@ public class CommonUtils {
     if (file.exists()) {
       while (!file.delete()) {
         LOG.info("Trying to delete " + file.toString());
-        sleep(1000);
+        sleepMs(LOG, 1000);
       }
     }
   }
@@ -204,6 +221,14 @@ public class CommonUtils {
     throw new IllegalArgumentException(e);
   }
 
+  public static <T> String listToString(List<T> list) {
+    StringBuilder sb = new StringBuilder();
+    for (int k = 0; k < list.size(); k ++) {
+      sb.append(list.get(k)).append(" ");
+    }
+    return sb.toString();
+  }
+
   public static String parametersToString(Object ... objs) {
     StringBuilder sb = new StringBuilder("(");
     for (int k = 0; k < objs.length; k ++) {
@@ -278,11 +303,11 @@ public class CommonUtils {
     throw new RuntimeException(e);
   }
 
-  public static void sleep(long timeMs) {
+  public static void sleepMs(Logger logger, long timeMs) {
     try {
       Thread.sleep(timeMs);
     } catch (InterruptedException e) {
-      LOG.error(e.getMessage(), e);
+      logger.warn(e.getMessage(), e);
     }
   }
 
