@@ -54,9 +54,9 @@ public class TachyonFileSystem extends FileSystem {
         ", " + bufferSize + ", " + replication + ", " + blockSize + ", " + progress + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
-    if (path.contains("%")) {
-      CommonUtils.runtimeException("Save into Tachyon could not be with a DATASET ID");
-    }
+    //    if (path.contains("%")) {
+    //      CommonUtils.runtimeException("Save into Tachyon could not be with a DATASET ID");
+    //    }
 
     Path hdfsPath = Utils.getHDFSPath(path);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
@@ -101,21 +101,24 @@ public class TachyonFileSystem extends FileSystem {
     FileSystem fs = hdfsPath.getFileSystem(getConf());
     FileStatus hfs = fs.getFileStatus(hdfsPath);
 
-    String tFileSuffix = "";
+    //    String tFileSuffix = "";
     try {
       if (!hfs.isDir() && !filePath.contains(Config.HDFS_TEMP_FILE)) {
         int fileId;
         fileId = mTachyonClient.getFileId(filePath);
         if (fileId > 0) {
           LOG.info("Tachyon has file " + filePath);
-          tFileSuffix = "%" + fileId;
+          //          tFileSuffix = "%" + fileId;
         } else {
           LOG.info("Tachyon does not have file " + filePath);
           int tmp = mTachyonClient.createFile(filePath);
           // TODO Add Checkpoint Path.
           if (tmp != -1) {
-            tFileSuffix = "%" + tmp;
-            mTachyonClient.addCheckpointPath(tmp, filePath);
+            //            tFileSuffix = "%" + tmp;
+            mTachyonClient.addCheckpointPath(tmp, hdfsPath.toString());
+            LOG.info("Tachyon does not have file " + filePath + " checkpoint added.");
+          } else {
+            LOG.info("Tachyon does not have file " + filePath + " and creation failed.");
           }
         }
       }
@@ -129,9 +132,11 @@ public class TachyonFileSystem extends FileSystem {
       LOG.error(e.getMessage());
     }
 
+    LOG.info("HERE!!!!!!!!!!!!!!!!!!!!");
     FileStatus ret = new FileStatus(hfs.getLen(), hfs.isDir(), hfs.getReplication(),
         Integer.MAX_VALUE, hfs.getModificationTime(), hfs.getAccessTime(), hfs.getPermission(),
-        hfs.getOwner(), hfs.getGroup(), new Path(mTachyonHeader + filePath + tFileSuffix));
+        hfs.getOwner(), hfs.getGroup(), new Path(mTachyonHeader + filePath));// + tFileSuffix));
+    LOG.info("HERE==================== " + mTachyonHeader + filePath);// + tFileSuffix);
 
     LOG.debug("HFS: " + Utils.toStringHadoopFileStatus(hfs));
     LOG.debug("TFS: " + Utils.toStringHadoopFileStatus(ret));
@@ -160,17 +165,19 @@ public class TachyonFileSystem extends FileSystem {
     String path = Utils.getPathWithoutScheme(file.getPath());
     BlockLocation ret = null;
 
-    String rawPath = path;
     int fileId = -1;
     ArrayList<String> names = new ArrayList<String>();
     ArrayList<String> hosts = new ArrayList<String>();
 
-    if (path.contains("%")) {
-      String[] list = path.split("%");
-      rawPath = list[0];
-      fileId = Integer.parseInt(list[1]);
+    try {
+      fileId = mTachyonClient.getFileId(path);
+    } catch (InvalidPathException e) {
+      LOG.warn(e.getMessage());
+      fileId = -1;
+    }
 
-      List<NetAddress> locations = mTachyonClient.getFileLocations(fileId);
+    if (fileId != -1) {
+      List<NetAddress> locations = mTachyonClient.getFileNetAddresses(fileId);
       if (locations != null) {
         for (int k = 0; k < locations.size(); k ++) {
           names.add(locations.get(k).mHost);
@@ -185,7 +192,7 @@ public class TachyonFileSystem extends FileSystem {
     }
 
     if (ret == null) {
-      Path hdfsPath = Utils.getHDFSPath(rawPath);
+      Path hdfsPath = Utils.getHDFSPath(path);
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       FileStatus hdfsFileStatus = new FileStatus(file.getLen(), file.isDir(),
           file.getReplication(), file.getBlockSize(), file.getModificationTime(), 
@@ -207,7 +214,7 @@ public class TachyonFileSystem extends FileSystem {
     LOG.info("TachyonFileSystem initialize(" + uri + ", " + conf + "). Connecting TachyonSystem: " +
         uri.getHost() + ":" + uri.getPort());
     mTachyonClient = TachyonClient.getClient(new InetSocketAddress(uri.getHost(), uri.getPort()));
-    mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort() + "/";
+    mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort() + "";
   }
 
   @Override
@@ -241,9 +248,9 @@ public class TachyonFileSystem extends FileSystem {
     LOG.info("TachyonFileSystem mkdirs(" + cPath + ", " + permission + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
-    if (path.contains("%")) {
-      CommonUtils.runtimeException("Save into Tachyon could not be with a DATASET ID");
-    }
+    //    if (path.contains("%")) {
+    //      CommonUtils.runtimeException("Save into Tachyon could not be with a DATASET ID");
+    //    }
 
     Path hdfsPath = Utils.getHDFSPath(path);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
@@ -263,18 +270,21 @@ public class TachyonFileSystem extends FileSystem {
     String rawPath = path;
     int fileId = -1;
 
-    if (path.contains("%")) {
-      String[] list = path.split("%");
-      rawPath = list[0];
-      fileId = Integer.parseInt(list[1]);
-    } else {
-      Path hdfsPath = Utils.getHDFSPath(rawPath);
+    try {
+      fileId = mTachyonClient.getFileId(path);
+    } catch (InvalidPathException e) {
+      LOG.warn(e.getMessage());
+      fileId = -1;
+    }
+
+    Path hdfsPath = Utils.getHDFSPath(rawPath);
+    if (fileId == -1) {
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       return fs.open(hdfsPath, bufferSize);
     }
 
     return new FSDataInputStream(new TFileInputStreamHdfs(mTachyonClient, fileId,
-        Utils.getHDFSPath(rawPath), getConf(), bufferSize));
+        hdfsPath, getConf(), bufferSize));
   }
 
   @Override

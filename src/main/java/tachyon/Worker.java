@@ -1,6 +1,8 @@
 package tachyon;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.server.THsHaServer;
@@ -82,7 +84,7 @@ public class Worker implements Runnable {
       long diff = System.currentTimeMillis() - lastHeartbeatMs;
       if (diff < Config.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) {
         LOG.warn("Last heartbeat related process takes " + diff + " ms.");
-        CommonUtils.sleep(Config.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS - diff);
+        CommonUtils.sleepMs(LOG, Config.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS - diff);
       } else {
         LOG.warn("Last heartbeat related process takes " + diff + " ms.");
       }
@@ -94,7 +96,7 @@ public class Worker implements Runnable {
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mWorkerServiceHandler.resetMasterClient();
-        CommonUtils.sleep(1000);
+        CommonUtils.sleepMs(LOG, 1000);
         cmd = null;
         if (System.currentTimeMillis() - lastHeartbeatMs >= Config.WORKER_HEARTBEAT_TIMEOUT_MS) {
           System.exit(-1);
@@ -138,7 +140,7 @@ public class Worker implements Runnable {
     return WORKER;
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws UnknownHostException {
     if (args.length == 0) {
       Worker.createWorker(
           new InetSocketAddress(Config.MASTER_HOSTNAME, Config.MASTER_PORT),
@@ -149,7 +151,8 @@ public class Worker implements Runnable {
     } else if (args.length == 1) {
       Worker.createWorker(
           new InetSocketAddress(Config.MASTER_HOSTNAME, Config.MASTER_PORT),
-          new InetSocketAddress(args[0], Config.WORKER_PORT),
+          new InetSocketAddress(InetAddress.getLocalHost().getCanonicalHostName(),
+              Config.WORKER_PORT),
           Config.WORKER_SELECTOR_THREADS, Config.WORKER_QUEUE_SIZE_PER_SELECTOR,
           Config.WORKER_WORKER_THREADS, Config.WORKER_DATA_FOLDER,
           Config.WORKER_MEMORY_SIZE);

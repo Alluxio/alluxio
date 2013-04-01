@@ -1,5 +1,7 @@
 package tachyon.client;
 
+import java.io.IOException;
+
 public enum OpType {
   // Read the file and cache it.
   //  READ_NO_CACHE(1),
@@ -39,7 +41,7 @@ public enum OpType {
     return (mValue == WRITE_CACHE.mValue) || (mValue == WRITE_CACHE_THROUGH.mValue);
   }
 
-  public static OpType getOpType(String op) {
+  public static OpType getOpType(String op) throws IOException {
     if (op.equals("READ_TRY_CACHE")) {
       return READ_TRY_CACHE;
     } else if (op.equals("WRITE_CACHE")) {
@@ -50,6 +52,6 @@ public enum OpType {
       return WRITE_THROUGH;
     }
 
-    return null;
+    throw new IOException("Unknown OpType : " + op);
   }
 }

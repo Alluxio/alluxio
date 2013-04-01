@@ -3,6 +3,7 @@ package tachyon;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -29,6 +30,13 @@ public class MasterLogWriter {
     }
   }
 
+  public synchronized void appendAndFlush(Dependency dep) {
+    LOG.debug("Append and Flush " + dep);
+    mKryo.writeClassAndObject(mOutput, LogType.Dependency);
+    mKryo.writeClassAndObject(mOutput, dep);
+    flush();
+  }
+
   public synchronized void appendAndFlush(Inode inode) {
     LOG.debug("Append and Flush " + inode);
     if (inode.isFile()) {
@@ -41,17 +49,34 @@ public class MasterLogWriter {
       mKryo.writeClassAndObject(mOutput, LogType.InodeRawTable);
       mKryo.writeClassAndObject(mOutput, (InodeRawTable) inode);
     }
-    mOutput.flush();
-    try {
-      mFileOutputStream.flush();
-    } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+    flush();
+  }
+
+  public void appendAndFlush(List<Inode> inodeList) {
+    LOG.debug("Append and Flush List<Inode> " + inodeList);
+    for (int k = 0; k < inodeList.size(); k ++) {
+      Inode inode = inodeList.get(k);
+      if (inode.isFile()) {
+        mKryo.writeClassAndObject(mOutput, LogType.InodeFile);
+        mKryo.writeClassAndObject(mOutput, (InodeFile) inode);
+      } else if (!((InodeFolder) inode).isRawTable()) {
+        mKryo.writeClassAndObject(mOutput, LogType.InodeFolder);
+        mKryo.writeClassAndObject(mOutput, (InodeFolder) inode);
+      } else {
+        mKryo.writeClassAndObject(mOutput, LogType.InodeRawTable);
+        mKryo.writeClassAndObject(mOutput, (InodeRawTable) inode);
+      }
     }
+    flush();
   }
 
   public synchronized void appendAndFlush(CheckpointInfo checkpointInfo) {
     mKryo.writeClassAndObject(mOutput, LogType.CheckpointInfo);
     mKryo.writeClassAndObject(mOutput, checkpointInfo);
+    flush();
+  }
+
+  public synchronized void flush() {
     mOutput.flush();
     try {
       mFileOutputStream.flush();

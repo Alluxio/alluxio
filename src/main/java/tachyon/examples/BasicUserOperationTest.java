@@ -64,6 +64,7 @@ public class BasicUserOperationTest {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar " +
           "tachyon.examples.BasicUserOperationTest <TachyonMasterHostName> <FilePath> <WriteType>");
+      System.exit(-1);
     }
     sTachyonClient = TachyonClient.getClient(new InetSocketAddress(args[0], Config.MASTER_PORT));
     sFilePath = args[1];

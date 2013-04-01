@@ -9,11 +9,12 @@ public abstract class Inode implements Comparable<Inode> {
   private int mParentId;
 
   protected Inode(String name, int id, int parentId, InodeType type) {
+    TYPE = type;
+
+    mId = id;
     mName = name;
     mParentId = parentId;
 
-    mId = id;
-    TYPE = type;
     CREATION_TIME_MS = System.currentTimeMillis();
   }
 
@@ -42,7 +43,7 @@ public abstract class Inode implements Comparable<Inode> {
   public boolean isFile() {
     return TYPE == InodeType.File;
   }
-  
+
   public InodeType getInodeType() {
     return TYPE;
   }
@@ -78,7 +79,9 @@ public abstract class Inode implements Comparable<Inode> {
   @Override
   public synchronized String toString() {
     StringBuilder sb = new StringBuilder("INode(");
-    sb.append(mName).append(",").append(mId).append(",").append(mParentId).append(")");
+    sb.append("ID:").append(mId).append(", NAME:").append(mName);
+    sb.append(", PARENT_ID:").append(mParentId);
+    sb.append(", CREATION_TIME_MS:").append(CREATION_TIME_MS).append(")");
     return sb.toString();
   }
 }

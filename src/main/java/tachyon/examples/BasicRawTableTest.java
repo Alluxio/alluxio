@@ -99,6 +99,7 @@ public class BasicRawTableTest {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar " +
           "tachyon.examples.BasicRawTableTest <TachyonMasterHostName> <FilePath>");
+      System.exit(-1);
     }
     sTachyonClient = TachyonClient.getClient(new InetSocketAddress(args[0], Config.MASTER_PORT));
     sTablePath = args[1];

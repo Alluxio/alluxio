@@ -121,7 +121,7 @@ public class DataServer implements Runnable {
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getFileId());
       try {
-        mWorkerServiceHandler.lockFile(tMessage.getFileId(), -1);
+        mWorkerServiceHandler.lockFile(tMessage.getFileId(), Users.sDATASERVER_USER_ID);
       } catch (TException e) {
         CommonUtils.runtimeException(e);
       }
@@ -155,7 +155,7 @@ public class DataServer implements Runnable {
       sendMessage.close();
 
       try {
-        mWorkerServiceHandler.unlockFile(sendMessage.getFileId(), -1);
+        mWorkerServiceHandler.unlockFile(sendMessage.getFileId(), Users.sDATASERVER_USER_ID);
       } catch (TException e) {
         CommonUtils.runtimeException(e);
       }

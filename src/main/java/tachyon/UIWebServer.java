@@ -36,6 +36,8 @@ public class UIWebServer {
         new ServletHolder(new WebInterfaceBrowseServlet(masterInfo)), "/browse");
     webappcontext.addServlet(
         new ServletHolder(new WebInterfaceMemoryServlet(masterInfo)), "/memory");
+    webappcontext.addServlet(
+        new ServletHolder(new WebInterfaceDependencyServlet(masterInfo)), "/dependency");
 
     handlers.setHandlers(new Handler[] { webappcontext, new DefaultHandler() });
     mServer.setHandler(handlers);

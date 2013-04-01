@@ -33,11 +33,12 @@ public class Config {
   public static final int MASTER_PORT = 9999;
   public static final int MASTER_WEB_PORT = 9998;
   public static final boolean MASTER_SUBSUME_HDFS;
+  public static final boolean MASTER_PROACTIVE_RECOVERY;
 
   public static final String WORKER_DATA_FOLDER;
   public static final long WORKER_MEMORY_SIZE;
-  public static final long WORKER_TIMEOUT_MS = 60 * 1000;
-  public static final long WORKER_HEARTBEAT_TIMEOUT_MS = 10 * 1000;;
+  public static final long WORKER_TIMEOUT_MS;
+  public static final long WORKER_HEARTBEAT_TIMEOUT_MS = 10 * 1000;
   public static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 1000;
   public static final int WORKER_DATA_ACCESS_QUEUE_SIZE = 10000;
   public static final int WORKER_SELECTOR_THREADS = 2;
@@ -45,12 +46,14 @@ public class Config {
   public static final int WORKER_WORKER_THREADS = 128;
   public static final int WORKER_PORT = 10000;
   public static final int WORKER_DATA_SERVER_PORT = 10001;
+  public static final int WORKER_CHECKPOINT_THREADS;
   public static final String WORKER_HDFS_FOLDER = "/tachyon/workers";
+  public static final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
 
   public static final int USER_FAILED_SPACE_REQUEST_LIMITS = 3;
   public static final String USER_TEMP_RELATIVE_FOLDER = "users";
   public static final long USER_TIMEOUT_MS = 60 * 1000;;
-  public static final long USER_QUOTA_UNIT_BYTES = 25 * MB;
+  public static final long USER_QUOTA_UNIT_BYTES = 16 * MB;
   public static final int USER_BUFFER_PER_PARTITION_BYTES = 1 * MB;
   public static final int USER_HEARTBEAT_INTERVAL_MS = 1000;
 
@@ -101,18 +104,27 @@ public class Config {
     TACHYON_HOME = getNonNullProperty("tachyon.home", null);
 
     if (TACHYON_HOME != null) {
-      MASTER_LOG_FILE = getProperty("tachyon.master.log.file", TACHYON_HOME + "/logs/tachyon_log.data");
-      MASTER_CHECKPOINT_FILE = getProperty("tachyon.master.checkpoint.file", TACHYON_HOME + "/logs/tachyon_checkpoint.data");
+      MASTER_LOG_FILE = getProperty(
+          "tachyon.master.log.file", TACHYON_HOME + "/logs/tachyon_log.data");
+      MASTER_CHECKPOINT_FILE = getProperty(
+          "tachyon.master.checkpoint.file", TACHYON_HOME + "/logs/tachyon_checkpoint.data");
     } else {
       MASTER_LOG_FILE = null;
       MASTER_CHECKPOINT_FILE = null;
     }
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     MASTER_SUBSUME_HDFS = Boolean.parseBoolean(getProperty("tachyon.master.subsume.hdfs", "false"));
+    MASTER_PROACTIVE_RECOVERY =
+        Boolean.parseBoolean(getProperty("tachyon.master.proactive_recovery", "true"));
 
     WORKER_DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramdisk");
     WORKER_MEMORY_SIZE = CommonUtils.parseMemorySize(
         getProperty("tachyon.worker.memory.size", "2GB"));
+    WORKER_CHECKPOINT_THREADS = Integer.parseInt(
+        getProperty("tachyon.worker.checkpoint.threads", "2"));
+    WORKER_TIMEOUT_MS = Long.parseLong(getProperty("tachyon.worker.timeout.ms", "60000"));
+    WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
+        Integer.parseInt(getProperty("tachyon.worker.per.thread.checkpoint.cap.mb.sec", "80"));
 
     HDFS_ADDRESS = getProperty("tachyon.hdfs.address", null);
     if (HDFS_ADDRESS == null) {
