@@ -31,7 +31,7 @@ public class UIWebServer {
     WebAppContext webappcontext = new WebAppContext();
 
     webappcontext.setContextPath("/");
-    File warPath = new File(new File("").getAbsolutePath(), "src/main/java/tachyon/webapps");
+    File warPath = new File(new File("").getAbsolutePath(), "src/main/java/tachyon/web/resources");
     webappcontext.setWar(warPath.getAbsolutePath());
     HandlerList handlers = new HandlerList();
     webappcontext.addServlet(
