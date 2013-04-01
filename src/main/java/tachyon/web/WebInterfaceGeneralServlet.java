@@ -1,4 +1,4 @@
-package tachyon;
+package tachyon.web;
 
 import java.util.List;
 
@@ -8,6 +8,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import tachyon.CommonUtils;
+import tachyon.Config;
+import tachyon.MasterInfo;
+import tachyon.Version;
 import tachyon.thrift.ClientWorkerInfo;
 
 public class WebInterfaceGeneralServlet extends HttpServlet {

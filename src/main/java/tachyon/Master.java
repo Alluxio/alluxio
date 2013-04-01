@@ -9,6 +9,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
 import tachyon.thrift.MasterService;
+import tachyon.web.UIWebServer;
 
 /**
  * Entry point for the Master program. Master class is singleton. 

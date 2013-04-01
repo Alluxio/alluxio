@@ -1,4 +1,4 @@
-package tachyon;
+package tachyon.web;
 
 import java.util.List;
 import java.util.Collections;
@@ -7,6 +7,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import tachyon.MasterInfo;
+
 import java.io.IOException;
 
 public class WebInterfaceMemoryServlet extends HttpServlet {
