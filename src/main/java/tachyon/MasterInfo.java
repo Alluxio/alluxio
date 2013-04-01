@@ -26,13 +26,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.mortbay.log.Log;
 import org.apache.log4j.Logger;
 
-import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
-import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -56,8 +54,6 @@ public class MasterInfo {
   private final long START_TIME_MS;
 
   private AtomicInteger mInodeCounter = new AtomicInteger(0);
-  private AtomicInteger mDependencyCounter = new AtomicInteger(0);
-  private AtomicInteger mRerunCounter = new AtomicInteger(0);
   private AtomicInteger mUserCounter = new AtomicInteger(0);
   private AtomicInteger mWorkerCounter = new AtomicInteger(0);
 
@@ -65,14 +61,6 @@ public class MasterInfo {
   private InodeFolder mRoot;
 
   private Map<Integer, Inode> mInodes = new HashMap<Integer, Inode>();
-  private Map<Integer, Dependency> mDependencies = new HashMap<Integer, Dependency>();
-
-  // TODO add initialization part for master failover or restart.
-  private Set<Integer> mUncheckpointedDependencies = new HashSet<Integer>();
-  private Set<Integer> mPriorityDependencies = new HashSet<Integer>();
-  private Set<Integer> mLostFiles = new HashSet<Integer>();
-  private Set<Integer> mBeingRecomputedFiles = new HashSet<Integer>();
-  private Set<Integer> mMustRecomputeDependencies = new HashSet<Integer>();
 
   private Map<Long, WorkerInfo> mWorkers = new HashMap<Long, WorkerInfo>();
   private Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
@@ -86,7 +74,6 @@ public class MasterInfo {
   private MasterLogWriter mMasterLogWriter;
 
   private Thread mHeartbeatThread;
-  private Thread mRecomputeThread;
 
   /**
    * System periodical status check.
@@ -125,45 +112,31 @@ public class MasterInfo {
         hadFailedWorker = true;
         WorkerInfo worker = mLostWorkers.poll();
 
-        // TODO these two locks are not efficient. Since node failure is rare, this is fine for now.
+        // TODO these a lock is not efficient. Since node failure is rare, this is fine for now.
         synchronized (mRoot) {
-          synchronized (mDependencies) {
             for (int id: worker.getFiles()) {
               InodeFile tFile = (InodeFile) mInodes.get(id);
               if (tFile != null) {
                 tFile.removeLocation(worker.getId());
                 if (!tFile.hasCheckpointed() && !tFile.isInMemory()) {
-                  int depId = tFile.getDependencyId();
-                  if (depId == -1) {
-                    LOG.error("Permanent Data loss: " + tFile);
-                  } else {
-                    mLostFiles.add(id);
-                    Dependency dep = mDependencies.get(depId);
-                    dep.addLostFile(id);
-                    LOG.info("File " + id + " got lost from worker " + worker.getId() + " . " +
-                        "Trying to recompute it using dependency " + dep.ID);
-                    if (Config.MASTER_PROACTIVE_RECOVERY) {
-                      mMustRecomputeDependencies.add(depId);
-                    }
-                  }
+                  LOG.info("File " + id + " got lost from worker " + worker.getId() + " .");
                 } else {
                   LOG.info("File " + tFile + " only lost an in memory copy from worker " +
                       worker.getId());
                 }
               } 
             }
-          }
         }
       }
 
       if (hadFailedWorker) {
         LOG.warn("Restarting failed workers: Do not restart for now.");
-        //        try {
-        //          java.lang.Runtime.getRuntime().exec(Config.TACHYON_HOME + 
-        //              "/bin/restart-failed-workers.sh");
-        //        } catch (IOException e) {
-        //          LOG.error(e.getMessage());
-        //        }
+        try {
+          java.lang.Runtime.getRuntime().exec(Config.TACHYON_HOME + 
+              "/bin/restart-failed-workers.sh");
+        } catch (IOException e) {
+          LOG.error(e.getMessage());
+        }
       }
     }
   }
@@ -208,70 +181,6 @@ public class MasterInfo {
     }
   }
 
-  public class RecomputationScheduler implements Runnable {
-    @Override
-    public void run() {
-      while (true) {
-        boolean hasLostFiles = false;
-        boolean launched = false;
-        List<String> cmds = new ArrayList<String>();
-        synchronized (mRoot) {
-          synchronized (mDependencies) {
-            if (!mMustRecomputeDependencies.isEmpty()) {
-              List<Integer> recomputeList = new ArrayList<Integer>();
-              Queue<Integer> checkQueue = new LinkedList<Integer>();
-
-              checkQueue.addAll(mMustRecomputeDependencies);
-              while (!checkQueue.isEmpty()) {
-                int depId = checkQueue.poll();
-                Dependency dep = mDependencies.get(depId);
-                boolean canLaunch = true;
-                for (int k = 0; k < dep.PARENT_FILES.size(); k ++) {
-                  int fildId = dep.PARENT_FILES.get(k);
-                  if (mLostFiles.contains(fildId)) {
-                    canLaunch = false;
-                    InodeFile iFile = (InodeFile) mInodes.get(fildId);
-                    if (!mBeingRecomputedFiles.contains(fildId)) {
-                      int tDepId = iFile.getDependencyId();
-                      if (tDepId != -1 && !mMustRecomputeDependencies.contains(tDepId)) {
-                        mMustRecomputeDependencies.add(tDepId);
-                        checkQueue.add(tDepId);
-                      }
-                    }
-                  }
-                }
-                if (canLaunch) {
-                  recomputeList.add(depId);
-                }
-              }
-              hasLostFiles = !mMustRecomputeDependencies.isEmpty();
-              launched = (recomputeList.size() > 0);
-
-              for (int k = 0; k < recomputeList.size(); k ++) {
-                mMustRecomputeDependencies.remove(recomputeList.get(k));
-                Dependency dep = mDependencies.get(recomputeList.get(k));
-                mBeingRecomputedFiles.addAll(dep.getLostFiles());
-                cmds.add(dep.getCommand());
-              }
-            }
-          }
-        }
-
-        for (String cmd : cmds) {
-          String filePath = Config.TACHYON_HOME + "/logs/rerun-" + mRerunCounter.incrementAndGet();
-          new Thread(new RecomputeCmd(cmd, filePath)).start();
-        }
-
-        if (!launched) {
-          if (hasLostFiles) {
-            LOG.info("HasLostFiles, but no job can be launched.");
-          }
-          CommonUtils.sleepMs(LOG, 1000);
-        }
-      }
-    }
-  }
-
   public MasterInfo(InetSocketAddress address) {
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1);
     mInodes.put(mRoot.getId(), mRoot);
@@ -294,9 +203,6 @@ public class MasterInfo {
     mHeartbeatThread = new Thread(new HeartbeatThread(
         new MasterHeartbeatExecutor(), Config.MASTER_HEARTBEAT_INTERVAL_MS));
     mHeartbeatThread.start();
-
-    mRecomputeThread = new Thread(new RecomputationScheduler());
-    mRecomputeThread.start();
   }
 
   public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes,
@@ -335,36 +241,12 @@ public class MasterInfo {
       if (!tFile.hasCheckpointed()) {
         tFile.setCheckpointPath(checkpointPath);
         needLog = true;
-        synchronized (mDependencies) {
-          int depId = tFile.getDependencyId();
-          if (depId != -1) {
-            Dependency dep = mDependencies.get(depId);
-            dep.childCheckpointed(tFile.getId());
-            if (dep.hasCheckpointed()) {
-              mUncheckpointedDependencies.remove(dep.ID);
-              mPriorityDependencies.remove(dep.ID);
-            }
-          }
-        }
       }
-
-      addFile(fileId, tFile.getDependencyId());
 
       if (needLog) {
         mMasterLogWriter.appendAndFlush(tFile);
       }
       return true;
-    }
-  }
-
-  private void addFile(int fileId, int dependencyId) {
-    synchronized (mDependencies) {
-      if (mLostFiles.contains(fileId)) {
-        mLostFiles.remove(fileId);
-      }
-      if (mBeingRecomputedFiles.contains(fileId)) {
-        mBeingRecomputedFiles.remove(fileId);
-      }
     }
   }
 
@@ -379,7 +261,7 @@ public class MasterInfo {
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    */
-  public int cachedFile(long workerId, long workerUsedBytes, int fileId,
+  public void cachedFile(long workerId, long workerUsedBytes, int fileId,
       long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException {
     LOG.info("cachedFile" + CommonUtils.parametersToString(workerId, workerUsedBytes, fileId, 
         fileSizeBytes));
@@ -416,72 +298,7 @@ public class MasterInfo {
       }
       InetSocketAddress address = tWorkerInfo.ADDRESS;
       tFile.addLocation(workerId, new NetAddress(address.getHostName(), address.getPort()));
-
-      addFile(fileId, tFile.getDependencyId());
-
-      if (tFile.hasCheckpointed()) {
-        return -1;
-      } else {
-        return tFile.getDependencyId();
-      }
     }
-  }
-
-  public int createDependency(List<String> parents, List<String> children,
-      String commandPrefix, List<ByteBuffer> data, String comment,
-      String framework, String frameworkVersion, DependencyType dependencyType)
-          throws InvalidPathException, FileDoesNotExistException {
-    Dependency dep = null;
-    synchronized (mRoot) {
-      LOG.info("ParentList: " + CommonUtils.listToString(parents));
-      List<Integer> parentsIdList = getFilesIds(parents);
-      List<Integer> childrenIdList = getFilesIds(children);
-
-      Set<Integer> parentDependencyIds = new HashSet<Integer>();
-      for (int k = 0; k < parentsIdList.size(); k ++) {
-        int parentId = parentsIdList.get(k);
-        Inode inode = mInodes.get(parentId);
-        if (inode.isFile()) {
-          LOG.info("PARENT DEPENDENCY ID IS " + ((InodeFile) inode).getDependencyId() + " " +
-              ((InodeFile) inode));
-          if (((InodeFile) inode).getDependencyId() != -1) {
-            parentDependencyIds.add(((InodeFile) inode).getDependencyId());
-          }
-        } else {
-          throw new InvalidPathException("Parent " + parentId + " is not a file.");
-        }
-      }
-
-      dep = new Dependency(mDependencyCounter.incrementAndGet(), parentsIdList,
-          childrenIdList, commandPrefix, data, comment, framework, frameworkVersion,
-          dependencyType, parentDependencyIds);
-
-      List<Inode> childrenInodeList = new ArrayList<Inode>();
-      for (int k = 0; k < childrenIdList.size(); k ++) {
-        InodeFile inode = (InodeFile) mInodes.get(childrenIdList.get(k));
-        inode.setDependencyId(dep.ID);
-        childrenInodeList.add(inode);
-        if (inode.hasCheckpointed()) {
-          dep.childCheckpointed(inode.getId());
-        }
-      }
-      mMasterLogWriter.appendAndFlush(childrenInodeList);
-    }
-
-    synchronized (mDependencies) {
-      mDependencies.put(dep.ID, dep);
-      mMasterLogWriter.appendAndFlush(dep);
-      if (!dep.hasCheckpointed()) {
-        mUncheckpointedDependencies.add(dep.ID);
-      }
-      for (int parentDependencyId: dep.PARENT_DEPENDENCIES) {
-        mDependencies.get(parentDependencyId).addChildrenDependency(dep.ID);
-      }
-    }
-
-    LOG.info("Dependency created: " + dep);
-
-    return dep.ID;
   }
 
   public int createFile(String path, boolean directory)
@@ -639,18 +456,6 @@ public class MasterInfo {
     return ret;
   }
 
-  public ClientDependencyInfo getClientDependencyInfo(int dependencyId) 
-      throws DependencyDoesNotExistException {
-    Dependency dep = null;
-    synchronized (mDependencies) {
-      dep = mDependencies.get(dependencyId);
-      if (dep == null) {
-        throw new DependencyDoesNotExistException("No dependency with id " + dependencyId);
-      }
-    }
-    return dep.generateClientDependencyInfo();
-  }
-
   public ClientFileInfo getClientFileInfo(int id) throws FileDoesNotExistException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(id);
@@ -669,7 +474,6 @@ public class MasterInfo {
       ret.folder = inode.isDirectory();
       ret.needPin = false;
       ret.needCache = false;
-      ret.dependencyId = -1;
 
       if (inode.isFile()) {
         InodeFile tInode = (InodeFile) inode;
@@ -679,7 +483,6 @@ public class MasterInfo {
         ret.checkpointPath = tInode.getCheckpointPath();
         ret.needPin = tInode.isPin();
         ret.needCache = tInode.isCache();
-        ret.dependencyId = tInode.getDependencyId();
       }
 
       LOG.debug("getClientFileInfo(" + id + "): "  + ret);
@@ -942,39 +745,6 @@ public class MasterInfo {
     }
   }
 
-  public List<Integer> getPriorityDependencyList() {
-    synchronized (mDependencies) {
-      int earliestDepId = -1;
-      if (mPriorityDependencies.isEmpty()) {
-        long earliest = Long.MAX_VALUE;
-        for (int depId: mUncheckpointedDependencies) {
-          Dependency dep = mDependencies.get(depId); 
-          if (!dep.hasChildrenDependency()) {
-            mPriorityDependencies.add(dep.ID);
-          } else {
-          }
-          if (dep.CREATION_TIME_MS < earliest) {
-            earliest = dep.CREATION_TIME_MS;
-            earliestDepId = dep.ID;
-          }
-        }
-
-        if (!mPriorityDependencies.isEmpty()) {
-          LOG.info("New computed priority dependency list " + mPriorityDependencies);
-        }
-      }
-
-      if (mPriorityDependencies.isEmpty() && earliestDepId != -1) {
-        mPriorityDependencies.add(earliestDepId);
-        LOG.info("Priority dependency list by earliest creation time: " + mPriorityDependencies);
-      }
-
-      List<Integer> ret = new ArrayList<Integer>(mPriorityDependencies.size());
-      ret.addAll(mPriorityDependencies);
-      return ret;
-    }
-  }
-
   public int getRawTableId(String path) throws InvalidPathException {
     Inode inode = getInode(path);
     if (inode == null || inode.isFile() || !((InodeFolder) inode).isRawTable()) {
@@ -1136,7 +906,6 @@ public class MasterInfo {
           case CheckpointInfo: {
             CheckpointInfo checkpointInfo = (CheckpointInfo) pair.getSecond();
             mInodeCounter.set(checkpointInfo.COUNTER_INODE);
-            mDependencyCounter.set(checkpointInfo.COUNTER_DEPENDENCY);
             break;
           }
           case InodeFile:
@@ -1155,13 +924,6 @@ public class MasterInfo {
             } else {
               mInodes.remove(- inode.getId());
             }
-            break;
-          }
-          case Dependency: {
-            Dependency dependency = (Dependency) pair.getSecond();
-            LOG.info("Putting " + dependency);
-            mDependencyCounter.set(Math.max(mDependencyCounter.get(), dependency.ID));
-            mDependencies.put(dependency.ID, dependency);
             break;
           }
           case Undefined:
@@ -1262,46 +1024,6 @@ public class MasterInfo {
     }
   }
 
-  public void reportLostFile(int fileId) {
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-      if (inode == null) {
-        LOG.warn("Tachyon does not have file " +fileId);
-      } else if (inode.isDirectory()) {
-        LOG.warn("Reported file is a directory " + inode);
-      } else {
-        InodeFile iFile = (InodeFile) inode;
-        int depId = iFile.getDependencyId();
-        synchronized (mDependencies) {
-          mLostFiles.add(fileId);
-          if (depId == -1) {
-            LOG.error("There is no dependency info for " + iFile + " . No recovery on that");
-          } else {
-            LOG.info("Reported file loss. Tachyon will recompute it: " + iFile.toString());
-
-            Dependency dep = mDependencies.get(depId);
-            dep.addLostFile(fileId);
-            mMustRecomputeDependencies.add(depId);
-          }
-        }
-      }
-    }
-  }
-
-  public void requestFilesInDependency(int depId) {
-    synchronized (mDependencies) {
-      if (mDependencies.containsKey(depId)) {
-        Dependency dep = mDependencies.get(depId);
-        LOG.info("Request files in dependency " + dep);
-        if (dep.hasLostFile()) {
-          mMustRecomputeDependencies.add(depId);
-        }
-      } else {
-        LOG.error("There is no dependency with id " + depId);
-      }
-    }
-  }
-
   public void unpinFile(int fileId) throws FileDoesNotExistException {
     // TODO Change meta data only. Data will be evicted from worker based on data replacement 
     // policy. TODO May change it to be active from V0.2
@@ -1378,8 +1100,7 @@ public class MasterInfo {
         }
       }
 
-      checkpointWriter.appendAndFlush(new CheckpointInfo(
-          mInodeCounter.get(), mDependencyCounter.get()));
+      checkpointWriter.appendAndFlush(new CheckpointInfo(mInodeCounter.get()));
       checkpointWriter.close();
 
       CommonUtils.renameFile(Config.MASTER_CHECKPOINT_FILE + ".tmp", Config.MASTER_CHECKPOINT_FILE);

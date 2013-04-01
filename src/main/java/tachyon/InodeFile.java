@@ -14,14 +14,12 @@ public class InodeFile extends Inode {
   private boolean mPin = false;
   private boolean mCache = false;
   private String mCheckpointPath = "";
-  private int mDependencyId;
 
   private Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>();
 
   public InodeFile(String name, int id, int parentId) {
     super(name, id, parentId, InodeType.File);
     mLength = UNINITIAL_VALUE;
-    mDependencyId = -1;
   }
 
   public synchronized long getLength() {
@@ -42,8 +40,7 @@ public class InodeFile extends Inode {
   public String toString() {
     StringBuilder sb = new StringBuilder("InodeFile(");
     sb.append(super.toString()).append(", LENGTH:").append(mLength);
-    sb.append(", CheckpointPath:").append(mCheckpointPath);
-    sb.append(", DependencyId:").append(mDependencyId).append(")");
+    sb.append(", CheckpointPath:").append(mCheckpointPath).append(")");
     return sb.toString();
   }
 
@@ -98,13 +95,5 @@ public class InodeFile extends Inode {
 
   public synchronized boolean hasCheckpointed() {
     return !mCheckpointPath.equals("");
-  }
-
-  public synchronized void setDependencyId(int dependencyId) {
-    mDependencyId = dependencyId;
-  }
-
-  public synchronized int getDependencyId() {
-    return mDependencyId;
   }
 }

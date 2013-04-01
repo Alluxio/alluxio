@@ -56,9 +56,6 @@ public class MasterLogReader {
         case InodeRawTable:
           second = mKryo.readClassAndObject(mInput);
           break;
-        case Dependency:
-          second = mKryo.readClassAndObject(mInput);
-          break;
         default:
           LOG.warn("Corrupted log.");
           break;

@@ -30,13 +30,6 @@ public class MasterLogWriter {
     }
   }
 
-  public synchronized void appendAndFlush(Dependency dep) {
-    LOG.debug("Append and Flush " + dep);
-    mKryo.writeClassAndObject(mOutput, LogType.Dependency);
-    mKryo.writeClassAndObject(mOutput, dep);
-    flush();
-  }
-
   public synchronized void appendAndFlush(Inode inode) {
     LOG.debug("Append and Flush " + inode);
     if (inode.isFile()) {

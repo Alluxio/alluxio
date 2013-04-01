@@ -14,11 +14,9 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
-import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.Command;
-import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -102,15 +100,6 @@ public class MasterClient {
     return CLIENT.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
   }
 
-  public synchronized int user_createDependency(List<String> parents, List<String> children,
-      String commandPrefix, List<ByteBuffer> data, String comment,
-      String framework, String frameworkVersion, int value) 
-          throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
-          TException {
-    return CLIENT.user_createDependency(parents, children, commandPrefix, data, comment, 
-        framework, frameworkVersion, value);
-  }
-
   public synchronized int user_createFile(String path)
       throws FileAlreadyExistException, InvalidPathException, TException {
     return CLIENT.user_createFile(path);
@@ -141,11 +130,6 @@ public class MasterClient {
   public synchronized ClientFileInfo user_getClientFileInfoById(int id)
       throws FileDoesNotExistException, TException {
     return CLIENT.user_getClientFileInfoById(id);
-  }
-
-  public synchronized ClientDependencyInfo user_getClientDependencyInfo(int dependencyId) 
-      throws DependencyDoesNotExistException, TException {
-    return CLIENT.user_getClientDependencyInfo(dependencyId);
   }
 
   public synchronized int user_getFileId(String path) throws InvalidPathException, TException {
@@ -205,23 +189,13 @@ public class MasterClient {
     CLIENT.user_renameFile(srcPath, dstPath);
   }
 
-  public synchronized void user_reportLostFile(int fileId) 
-      throws FileDoesNotExistException, TException {
-    CLIENT.user_reportLostFile(fileId);
-  }
-
-  public synchronized void user_requestFilesInDependency(int depId) 
-      throws DependencyDoesNotExistException, TException {
-    CLIENT.user_requestFilesInDependency(depId);
-  }
-
   public synchronized void user_unpinFile(int id) throws FileDoesNotExistException, TException {
     CLIENT.user_unpinFile(id);
   }
 
-  public synchronized int worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
+  public synchronized void worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
       long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    return CLIENT.worker_cacheFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
+    CLIENT.worker_cacheFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
@@ -231,10 +205,6 @@ public class MasterClient {
 
   public synchronized Set<Integer> worker_getPinIdList() throws TException {
     return CLIENT.worker_getPinIdList();
-  }
-
-  public synchronized List<Integer> worker_getPriorityDependencyList() throws TException {
-    return CLIENT.worker_getPriorityDependencyList();
   }
 
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,

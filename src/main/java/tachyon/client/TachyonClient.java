@@ -13,15 +13,12 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.Config;
-import tachyon.DependencyType;
 import tachyon.HdfsClient;
 import tachyon.MasterClient;
 import tachyon.CommonUtils;
 import tachyon.WorkerClient;
-import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
-import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -290,16 +287,6 @@ public class TachyonClient {
     return mUserHdfsTempFolder;
   }
 
-  public synchronized int createDependency(List<String> parents, List<String> children,
-      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, DependencyType type)
-          throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
-          TException {
-    connect();
-    return mMasterClient.user_createDependency(parents, children, commandPrefix, 
-        data, comment, framework, frameworkVersion, type.getValue());
-  }
-
   public synchronized int createRawTable(String path, int columns) throws InvalidPathException {
     return createRawTable(path, columns, ByteBuffer.allocate(0));
   }
@@ -516,12 +503,6 @@ public class TachyonClient {
     return fileId;
   }
 
-  public synchronized ClientDependencyInfo getClientDependencyInfo(int dependencyId)
-      throws DependencyDoesNotExistException, TException {
-    connect();
-    return mMasterClient.user_getClientDependencyInfo(dependencyId);
-  }
-
   private synchronized ClientFileInfo getClientFileInfo(String path) throws InvalidPathException { 
     connect();
     if (!mConnected) {
@@ -655,17 +636,6 @@ public class TachyonClient {
 
   public synchronized void releaseSpace(long releaseSpaceBytes) {
     mAvailableSpaceBytes += releaseSpaceBytes;
-  }
-
-  public synchronized void reportLostFile(int fileId) throws FileDoesNotExistException, TException {
-    connect();
-    mMasterClient.user_reportLostFile(fileId);
-  }
-
-  public synchronized void requestFilesInDependency(int depId)
-      throws DependencyDoesNotExistException, TException {
-    connect();
-    mMasterClient.user_requestFilesInDependency(depId);
   }
 
   public synchronized boolean requestSpace(long requestSpaceBytes) {

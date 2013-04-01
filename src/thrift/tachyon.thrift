@@ -22,7 +22,6 @@ struct ClientFileInfo {
   4: string checkpointPath
   5: i64 sizeBytes
   6: i64 creationTimeMs
-  7: i32 dependencyId
   8: bool ready
   9: bool folder
   10: bool inMemory
@@ -36,13 +35,6 @@ struct ClientRawTableInfo {
   3: string path
   4: i32 columns
   5: binary metadata
-}
-
-struct ClientDependencyInfo {
-  1: i32 id
-  2: list<i32> parents
-  3: list<i32> children
-  4: list<binary> data
 }
 
 enum CommandType {
@@ -94,23 +86,16 @@ exception TableDoesNotExistException {
   1: string message
 }
 
-exception DependencyDoesNotExistException {
-  1: string message
-}
-
 service MasterService {
   bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 fileSizeBytes, 4: string checkpointPath) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
 
   // Services to Workers
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i32> currentFiles) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i32> removedFiles)
-  i32 worker_cacheFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i64 fileSizeBytes) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+  void worker_cacheFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i64 fileSizeBytes) throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
   set<i32> worker_getPinIdList()
-  list<i32> worker_getPriorityDependencyList()
 
   // Services to Users
-  i32 user_createDependency(1: list<string> parents, 2: list<string> children, 3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework, 7: string frameworkVersion, 8: i32 dependencyType) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF, 3: FileAlreadyExistException eA)
-  ClientDependencyInfo user_getClientDependencyInfo(1: i32 dependencyId) throws (1: DependencyDoesNotExistException e)
   i32 user_createFile(1: string filePath) throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
   i32 user_getFileId(1: string filePath) throws (1: InvalidPathException e) // Return -1 if does not contain the file, return fileId if it exists.
   i64 user_getUserId()
@@ -133,8 +118,6 @@ service MasterService {
   ClientRawTableInfo user_getClientRawTableInfoById(1: i32 tableId) throws (1: TableDoesNotExistException e)        // Get Table info by Table Id.
   ClientRawTableInfo user_getClientRawTableInfoByPath(1: string tablePath) throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI) // Get Table info by path
   i32 user_getNumberOfFiles(1:string path) throws (1: FileDoesNotExistException eR, 2: InvalidPathException eI)
-  void user_reportLostFile(1: i32 fileId) throws (1: FileDoesNotExistException e)
-  void user_requestFilesInDependency(1: i32 depId) throws (1: DependencyDoesNotExistException e)
 
   // cmd to scripts
   list<ClientFileInfo> cmd_ls(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)

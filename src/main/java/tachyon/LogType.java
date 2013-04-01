@@ -5,8 +5,7 @@ public enum LogType {
   CheckpointInfo(1),
   InodeFile(2),
   InodeFolder(3),
-  InodeRawTable(4),
-  Dependency(5);
+  InodeRawTable(4);
 
   private final int value;
 
