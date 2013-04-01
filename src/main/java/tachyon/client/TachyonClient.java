@@ -461,6 +461,9 @@ public class TachyonClient {
     List<String> ret = new ArrayList<String>(adresses.size());
     for (NetAddress address: adresses) {
       ret.add(address.mHost);
+      if (address.mHost.endsWith(".ec2.internal")) {
+        ret.add(address.mHost.substring(0, address.mHost.length() - 13));
+      }
     }
 
     return ret;
