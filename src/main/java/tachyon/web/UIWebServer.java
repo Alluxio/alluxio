@@ -1,4 +1,4 @@
-package tachyon;
+package tachyon.web;
 
 import java.io.File;
 import java.net.InetSocketAddress;
@@ -11,6 +11,10 @@ import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.apache.log4j.Logger;
+
+import tachyon.CommonUtils;
+import tachyon.Config;
+import tachyon.MasterInfo;
 
 public class UIWebServer {
   private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
