@@ -19,8 +19,8 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.CommonUtils;
-import tachyon.Config;
 import tachyon.client.TachyonClient;
+import tachyon.conf.CommonConf;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
@@ -32,7 +32,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  * @author haoyuan
  */
 public class TachyonFileSystem extends FileSystem {
-  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
 
   private URI mUri = null;
   private Path mWorkingDir = new Path("/");
@@ -54,17 +54,10 @@ public class TachyonFileSystem extends FileSystem {
         ", " + bufferSize + ", " + replication + ", " + blockSize + ", " + progress + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
-    //    if (path.contains("%")) {
-    //      CommonUtils.runtimeException("Save into Tachyon could not be with a DATASET ID");
-    //    }
 
     Path hdfsPath = Utils.getHDFSPath(path);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
     LOG.info("TachyonFileSystem mkdirs: making dir " + hdfsPath);
-
-    if (!path.contains(Config.HDFS_TEMP_FILE)) {
-      throw new IOException("Not supported");
-    }
 
     return fs.create(hdfsPath, permission, overwrite, bufferSize, replication, blockSize,
         progress);
@@ -101,20 +94,16 @@ public class TachyonFileSystem extends FileSystem {
     FileSystem fs = hdfsPath.getFileSystem(getConf());
     FileStatus hfs = fs.getFileStatus(hdfsPath);
 
-    //    String tFileSuffix = "";
     try {
-      if (!hfs.isDir() && !filePath.contains(Config.HDFS_TEMP_FILE)) {
+      if (!hfs.isDir()) {
         int fileId;
         fileId = mTachyonClient.getFileId(filePath);
         if (fileId > 0) {
           LOG.info("Tachyon has file " + filePath);
-          //          tFileSuffix = "%" + fileId;
         } else {
           LOG.info("Tachyon does not have file " + filePath);
           int tmp = mTachyonClient.createFile(filePath);
-          // TODO Add Checkpoint Path.
           if (tmp != -1) {
-            //            tFileSuffix = "%" + tmp;
             mTachyonClient.addCheckpointPath(tmp, hdfsPath.toString());
             LOG.info("Tachyon does not have file " + filePath + " checkpoint added.");
           } else {
@@ -248,10 +237,6 @@ public class TachyonFileSystem extends FileSystem {
     LOG.info("TachyonFileSystem mkdirs(" + cPath + ", " + permission + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
-    //    if (path.contains("%")) {
-    //      CommonUtils.runtimeException("Save into Tachyon could not be with a DATASET ID");
-    //    }
-
     Path hdfsPath = Utils.getHDFSPath(path);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
     LOG.info("TachyonFileSystem mkdirs: making dir " + hdfsPath);

@@ -8,6 +8,7 @@ import java.util.Set;
 import org.apache.thrift.TException;
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.Command;
@@ -25,11 +26,9 @@ import tachyon.thrift.TableDoesNotExistException;
  * The Master server program.
  * 
  * It maintains the state of each worker. It never keeps the state of any user.
- * 
- * @author haoyuan
  */
 public class MasterServiceHandler implements MasterService.Iface {
-  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
 
   private final MasterInfo mMasterInfo;
 

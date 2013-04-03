@@ -15,15 +15,15 @@ import java.util.Map;
 import org.apache.thrift.TException;
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
+
 
 /**
  * The Server to serve data partition read request from remote machines. The current implementation
  * is based on non-blocking NIO.
- * 
- * @author Haoyuan Li
  */
 public class DataServer implements Runnable {
-  private static final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
 
   // The host:port combination to listen on
   private InetSocketAddress mAddress;

@@ -11,15 +11,15 @@ import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import tachyon.Config;
 import tachyon.Version;
 import tachyon.client.TachyonClient;
+import tachyon.conf.CommonConf;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 public class ConsumeHdfs {
-  private static Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private static Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
 
   private static TachyonClient sTachyonClient;
   private static String sFilePath = null;

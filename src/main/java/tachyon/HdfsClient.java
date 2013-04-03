@@ -14,13 +14,14 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
+
 /**
- * This is a HDFS Client for Tachyon. It handles all sorts of retry logic.
- * @author haoyuan
+ * HDFS Client for Tachyon.
  */
 public class HdfsClient {
   private static final int MAX_TRY = 5; 
-  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
 
   private FileSystem mFs = null;
 

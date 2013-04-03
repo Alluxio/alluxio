@@ -11,11 +11,13 @@ import java.util.Map.Entry;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
+
 public class Users {
   public static final int sDATASERVER_USER_ID = -1;
   public static final int sCHECKPOINT_USER_ID = -2;
   
-  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
 
   private final String USER_FOLDER;
   private final String USER_HDFS_FOLDER;
@@ -87,10 +89,10 @@ public class Users {
         CommonUtils.runtimeException(e);
       }
 
-      if (Config.USING_HDFS) {
+      if (CommonConf.get().USING_HDFS) {
         folder = getUserHdfsTempFolder(userId);
         sb.append(" Also remove users HDFS folder " + folder);
-        HdfsClient tHdfsClient = new HdfsClient(Config.HDFS_ADDRESS);
+        HdfsClient tHdfsClient = new HdfsClient(CommonConf.get().HDFS_ADDRESS);
         tHdfsClient.delete(folder, true);
       }
     }

@@ -18,6 +18,8 @@ import org.apache.log4j.Logger;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.Path;
 
+import tachyon.conf.CommonConf;
+import tachyon.conf.WorkerConf;
 import tachyon.thrift.Command;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -28,9 +30,11 @@ import tachyon.thrift.WorkerService;
 public class WorkerServiceHandler implements WorkerService.Iface {
   // TODO The reason this is public is for DataServerMessage to access. Need to re-organize this.
   public static final BlockingQueue<Integer> sDataAccessQueue = 
-      new ArrayBlockingQueue<Integer>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
+      new ArrayBlockingQueue<Integer>(Constants.WORKER_FILES_QUEUE_SIZE);
 
-  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+
+  private final CommonConf COMMON_CONF;
 
   private volatile MasterClient mMasterClient;
   private InetSocketAddress mMasterAddress;
@@ -43,9 +47,9 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   private Map<Long, Set<Integer>> mLockedFilesPerUser = new HashMap<Long, Set<Integer>>();
   private Map<Integer, Long> mFileSizes = new HashMap<Integer, Long>();
   private BlockingQueue<Integer> mRemovedFileList = 
-      new ArrayBlockingQueue<Integer>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
+      new ArrayBlockingQueue<Integer>(Constants.WORKER_FILES_QUEUE_SIZE);
   private BlockingQueue<Integer> mAddedFileList = 
-      new ArrayBlockingQueue<Integer>(Config.WORKER_DATA_ACCESS_QUEUE_SIZE);
+      new ArrayBlockingQueue<Integer>(Constants.WORKER_FILES_QUEUE_SIZE);
 
   private File mDataFolder;
   private File mUserFolder;
@@ -56,6 +60,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
 
   public WorkerServiceHandler(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       String dataFolder, long spaceLimitBytes) {
+    COMMON_CONF = CommonConf.get();
+
     mMasterAddress = masterAddress;
     mMasterClient = new MasterClient(mMasterAddress);
 
@@ -74,11 +80,11 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     }
 
     mDataFolder = new File(dataFolder);
-    mUserFolder = new File(mDataFolder.toString(), Config.USER_TEMP_RELATIVE_FOLDER);
+    mUserFolder = new File(mDataFolder.toString(), WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
     mWorkerInfo = new WorkerInfo(id, workerAddress, spaceLimitBytes);
-    mHdfsWorkerFolder = new Path(Config.HDFS_ADDRESS + "/" + Config.WORKER_HDFS_FOLDER + "/" + id);
-    if (Config.USING_HDFS) {
-      mHdfsClient = new HdfsClient(Config.HDFS_ADDRESS);
+    mHdfsWorkerFolder = new Path(COMMON_CONF.HDFS_ADDRESS + "/" + COMMON_CONF.WORKERS_FOLDER + "/" + id);
+    if (COMMON_CONF.USING_HDFS) {
+      mHdfsClient = new HdfsClient(COMMON_CONF.HDFS_ADDRESS);
     }
     mUsers = new Users(mUserFolder.toString(), mHdfsWorkerFolder.toString());
 
@@ -106,7 +112,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       FailedToCheckpointException, TException {
     // TODO This part need to be changed.
     String srcPath = getUserHdfsTempFolder(userId) + "/" + fileId;
-    String dstPath = Config.HDFS_ADDRESS + Config.HDFS_DATA_FOLDER + "/" + fileId;
+    String dstPath = COMMON_CONF.HDFS_ADDRESS + COMMON_CONF.DATA_FOLDER + "/" + fileId;
     if (!mHdfsClient.rename(srcPath, dstPath)) {
       throw new FailedToCheckpointException("Failed to rename from " + srcPath + " to " + dstPath);
     }

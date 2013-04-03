@@ -1,5 +1,7 @@
 package tachyon;
 
+import tachyon.conf.WorkerConf;
+
 public class UserInfo {
   private long mUserId;
   private long mOwnBytes;
@@ -31,6 +33,6 @@ public class UserInfo {
   }
 
   public synchronized boolean timeout() {
-    return (System.currentTimeMillis() - mLastHeartbeatMs > Config.USER_TIMEOUT_MS); 
+    return (System.currentTimeMillis() - mLastHeartbeatMs > WorkerConf.get().USER_TIMEOUT_MS); 
   }
 }

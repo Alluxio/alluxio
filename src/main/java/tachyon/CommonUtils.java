@@ -16,6 +16,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
 import tachyon.thrift.InvalidPathException;
 
 /**
@@ -23,8 +24,11 @@ import tachyon.thrift.InvalidPathException;
  * 
  * @author haoyuan
  */
-public class CommonUtils {
-  private static final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+public final class CommonUtils {
+  private static final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  
+  private CommonUtils () {
+  }
 
   /**
    * Whether the pathname is valid.  Currently prohibits relative paths, 
@@ -259,11 +263,11 @@ public class CommonUtils {
     if (end.equals("") || end.equals("b")) {
       return ret;
     } else if (end.equals("kb")) {
-      return ret * Config.KB;
+      return ret * Constants.KB;
     } else if (end.equals("mb")) {
-      return ret * Config.MB;
+      return ret * Constants.MB;
     } else if (end.equals("gb")) {
-      return ret * Config.GB;
+      return ret * Constants.GB;
     }
     runtimeException("Fail to parse " + ori + " as memory size");
     return -1;
@@ -321,8 +325,8 @@ public class CommonUtils {
   }
 
   public static void validatePath(String path) throws InvalidPathException {
-    if (path == null || !path.startsWith(Config.SEPARATOR) || 
-        (path.length() > 1 && path.endsWith(Config.SEPARATOR))) {
+    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR) || 
+        (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR))) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
   }

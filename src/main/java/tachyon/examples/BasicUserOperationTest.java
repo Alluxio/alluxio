@@ -1,23 +1,22 @@
 package tachyon.examples;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import org.apache.log4j.Logger;
 
-import tachyon.Config;
 import tachyon.CommonUtils;
 import tachyon.Version;
 import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
+import tachyon.conf.CommonConf;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 public class BasicUserOperationTest {
-  private static Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private static Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
 
   private static TachyonClient sTachyonClient;
   private static String sFilePath = null;
@@ -63,10 +62,10 @@ public class BasicUserOperationTest {
     if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar " +
-          "tachyon.examples.BasicUserOperationTest <TachyonMasterHostName> <FilePath> <WriteType>");
+          "tachyon.examples.BasicUserOperationTest <TachyonMasterAddress> <FilePath> <WriteType>");
       System.exit(-1);
     }
-    sTachyonClient = TachyonClient.getClient(new InetSocketAddress(args[0], Config.MASTER_PORT));
+    sTachyonClient = TachyonClient.getClient(args[0]);
     sFilePath = args[1];
     sWriteType = OpType.getOpType(args[2]);
     createFile();

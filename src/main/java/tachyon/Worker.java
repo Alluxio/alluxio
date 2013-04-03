@@ -1,6 +1,5 @@
 package tachyon;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
@@ -11,16 +10,16 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
+import tachyon.conf.WorkerConf;
 import tachyon.thrift.Command;
 import tachyon.thrift.WorkerService;
 
 /**
  * Entry point for a worker daemon. Worker class is singleton.
- * 
- * @author haoyuan
  */
 public class Worker implements Runnable {
-  private static final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
 
   private static Worker WORKER = null;
 
@@ -46,7 +45,7 @@ public class Worker implements Runnable {
         MasterAddress, WorkerAddress, DataFolder, MemoryCapacityBytes);
 
     mDataServer = new DataServer(new InetSocketAddress(
-        workerAddress.getHostName(), Config.WORKER_DATA_SERVER_PORT),
+        workerAddress.getHostName(), workerAddress.getPort() + 1),
         mWorkerServiceHandler);
     new Thread(mDataServer).start();
 
@@ -82,9 +81,9 @@ public class Worker implements Runnable {
     Command cmd = null;
     while (true) {
       long diff = System.currentTimeMillis() - lastHeartbeatMs;
-      if (diff < Config.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS) {
+      if (diff < WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS) {
         LOG.warn("Last heartbeat related process takes " + diff + " ms.");
-        CommonUtils.sleepMs(LOG, Config.WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS - diff);
+        CommonUtils.sleepMs(LOG, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS - diff);
       } else {
         LOG.warn("Last heartbeat related process takes " + diff + " ms.");
       }
@@ -98,7 +97,7 @@ public class Worker implements Runnable {
         mWorkerServiceHandler.resetMasterClient();
         CommonUtils.sleepMs(LOG, 1000);
         cmd = null;
-        if (System.currentTimeMillis() - lastHeartbeatMs >= Config.WORKER_HEARTBEAT_TIMEOUT_MS) {
+        if (System.currentTimeMillis() - lastHeartbeatMs >= WorkerConf.get().HEARTBEAT_TIMEOUT_MS) {
           System.exit(-1);
         }
       }
@@ -140,25 +139,28 @@ public class Worker implements Runnable {
     return WORKER;
   }
 
-  public static void main(String[] args) throws UnknownHostException {
-    if (args.length == 0) {
-      Worker.createWorker(
-          new InetSocketAddress(Config.MASTER_HOSTNAME, Config.MASTER_PORT),
-          new InetSocketAddress("localhost", Config.WORKER_PORT),
-          Config.WORKER_SELECTOR_THREADS, Config.WORKER_QUEUE_SIZE_PER_SELECTOR,
-          Config.WORKER_WORKER_THREADS, Config.WORKER_DATA_FOLDER,
-          Config.WORKER_MEMORY_SIZE);
-    } else if (args.length == 1) {
-      Worker.createWorker(
-          new InetSocketAddress(Config.MASTER_HOSTNAME, Config.MASTER_PORT),
-          new InetSocketAddress(InetAddress.getLocalHost().getCanonicalHostName(),
-              Config.WORKER_PORT),
-          Config.WORKER_SELECTOR_THREADS, Config.WORKER_QUEUE_SIZE_PER_SELECTOR,
-          Config.WORKER_WORKER_THREADS, Config.WORKER_DATA_FOLDER,
-          Config.WORKER_MEMORY_SIZE);
-    } else {
-      LOG.info("java -cp target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar tachyon.Worker " +
-          "<WorkerHostName>");
+  public static synchronized Worker createWorker(String masterAddress, 
+      String workerAddress, int selectorThreads, int acceptQueueSizePerThreads,
+      int workerThreads, String localFolder, long spaceLimitBytes) {
+    if (WORKER == null) {
+      String[] address = masterAddress.split(":");
+      InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
+      address = workerAddress.split(":");
+      InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
+      WORKER = new Worker(master, worker, selectorThreads, 
+          acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
     }
+    return WORKER;
+  }
+
+  public static void main(String[] args) throws UnknownHostException {
+    if (args.length != 2) {
+      LOG.info("Usage: java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
+          "tachyon.Worker <MasterAddress> <WorkerAddress>");
+      System.exit(-1);
+    }
+    WorkerConf wConf = WorkerConf.get();
+    Worker.createWorker(args[0], args[1], wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
+        wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
   }
 }
