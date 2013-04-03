@@ -32,18 +32,18 @@ class Utils {
   }
 
   public static int getIntProperty(String property) {
-    return Integer.parseInt(getProperty(property));
+    return Integer.valueOf(getProperty(property));
   }
 
   public static int getIntProperty(String property, int defaultValue) {
-    return Integer.parseInt(getProperty(property, defaultValue + ""));
+    return Integer.valueOf(getProperty(property, defaultValue + ""));
   }
 
   public static boolean getBooleanProperty(String property) {
-    return Boolean.parseBoolean(getProperty(property));
+    return Boolean.valueOf(getProperty(property));
   }
 
   public static boolean getBooleanProperty(String property, boolean defaultValue) {
-    return Boolean.parseBoolean(getProperty(property, defaultValue + ""));
+    return Boolean.valueOf(getProperty(property, defaultValue + ""));
   }
 }
