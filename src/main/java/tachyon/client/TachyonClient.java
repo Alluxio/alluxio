@@ -12,11 +12,13 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import tachyon.Config;
+import tachyon.Constants;
 import tachyon.HdfsClient;
 import tachyon.MasterClient;
 import tachyon.CommonUtils;
 import tachyon.WorkerClient;
+import tachyon.conf.CommonConf;
+import tachyon.conf.UserConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.FailedToCheckpointException;
@@ -32,11 +34,12 @@ import tachyon.thrift.TableDoesNotExistException;
 /**
  * Major Tachyon system user facing class. It contains a MasterClient and several WorkerClients
  * depending on how many workers the client program interact with.
- * 
- * @author haoyuan
  */
 public class TachyonClient {
-  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  
+  private final long USER_QUOTA_UNIT_BYTES = UserConf.get().QUOTA_UNIT_BYTES;
+  private final int USER_FAILED_SPACE_REQUEST_LIMITS = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
 
   // The RPC client talks to the system master.
   private MasterClient mMasterClient = null;
@@ -299,9 +302,9 @@ public class TachyonClient {
     }
     path = CommonUtils.cleanPath(path);
 
-    if (columns < 1 || columns > Config.MAX_COLUMNS) {
+    if (columns < 1 || columns > Constants.MAX_COLUMNS) {
       CommonUtils.runtimeException("Column count " + columns + " is smaller than 1 or bigger than "
-          + Config.MAX_COLUMNS);
+          + Constants.MAX_COLUMNS);
     }
 
     try {
@@ -325,10 +328,6 @@ public class TachyonClient {
       return -1;
     }
     path = CommonUtils.cleanPath(path);
-    // TODO HDFS_TEMP_FILE should also be in Tachyon, but not flashed to disk if not necessary.
-    if (path.contains(Config.HDFS_TEMP_FILE)) {
-      return -1;
-    }
     int fileId = -1;
     try {
       fileId = mMasterClient.user_createFile(path);
@@ -650,12 +649,12 @@ public class TachyonClient {
         return false;
       }
       try {
-        if (mWorkerClient.requestSpace(mUserId, Config.USER_QUOTA_UNIT_BYTES)) {
-          mAvailableSpaceBytes += Config.USER_QUOTA_UNIT_BYTES;
+        if (mWorkerClient.requestSpace(mUserId, USER_QUOTA_UNIT_BYTES)) {
+          mAvailableSpaceBytes += USER_QUOTA_UNIT_BYTES;
         } else {
-          LOG.info("Failed to request " + Config.USER_QUOTA_UNIT_BYTES + " bytes local space. " +
+          LOG.info("Failed to request " + USER_QUOTA_UNIT_BYTES + " bytes local space. " +
               "Time " + (failedTimes ++));
-          if (failedTimes == Config.USER_FAILED_SPACE_REQUEST_LIMITS) {
+          if (failedTimes == USER_FAILED_SPACE_REQUEST_LIMITS) {
             return false;
           }
         }

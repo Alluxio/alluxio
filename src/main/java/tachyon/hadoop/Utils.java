@@ -8,10 +8,12 @@ import org.apache.hadoop.mapred.FileSplit;
 import org.apache.hadoop.mapred.InputSplit;
 import org.apache.log4j.Logger;
 
-import tachyon.Config;
+import tachyon.conf.CommonConf;
 
-public class Utils {
-  private static final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+public final class Utils {
+  private static final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private static final String HDFS_ADDRESS = CommonConf.get().HDFS_ADDRESS;
+  private static final boolean DEBUG = CommonConf.get().DEBUG;
 
   public static String getTachyonFileName(String path) {
     if (path.contains("%")) {
@@ -42,7 +44,7 @@ public class Utils {
       mid = "";
     }
 
-    return new Path(Config.HDFS_ADDRESS + mid + path);
+    return new Path(HDFS_ADDRESS + mid + path);
   }
 
   public static String getPathWithoutScheme(Path path) {
@@ -56,7 +58,7 @@ public class Utils {
       }
       path = path.getParent();
     }
-    if (Config.DEBUG) {
+    if (DEBUG) {
       LOG.info("Utils getPathWithoutScheme(" + ori + ") result: " + ret);
     }
     return ret;

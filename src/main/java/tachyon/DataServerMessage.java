@@ -8,12 +8,15 @@ import java.nio.channels.SocketChannel;
 
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
+import tachyon.conf.WorkerConf;
+
 
 public class DataServerMessage {
   public static final short DATA_SERVER_REQUEST_MESSAGE = 1;
   public static final short DATA_SERVER_RESPONSE_MESSAGE = 2;
 
-  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE); 
+  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE); 
 
   private final boolean IS_TO_SEND_DATA;
   private final short mMsgType;
@@ -64,7 +67,7 @@ public class DataServerMessage {
       ret.mFileId = fileId;
 
       try {
-        String filePath = Config.WORKER_DATA_FOLDER + fileId;
+        String filePath = WorkerConf.get().DATA_FOLDER + fileId;
         ret.LOG.info("Try to response remote requst by reading from " + filePath); 
         ret.mFile = new RandomAccessFile(filePath, "r");
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);

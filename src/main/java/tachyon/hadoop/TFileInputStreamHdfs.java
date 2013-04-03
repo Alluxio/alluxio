@@ -11,14 +11,15 @@ import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
 import org.apache.log4j.Logger;
 
-import tachyon.Config;
 import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
+import tachyon.conf.CommonConf;
+import tachyon.conf.UserConf;
 
 public class TFileInputStreamHdfs extends InputStream
 implements Seekable, PositionedReadable {
-  private static Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private static Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
 
   private int mCurrentPosition;
   private TachyonClient mTachyonClient;
@@ -33,7 +34,7 @@ implements Seekable, PositionedReadable {
 
   private int mBufferLimit = 0;
   private int mBufferPosition = 0;
-  private byte mBuffer[] = new byte[Config.USER_BUFFER_PER_PARTITION_BYTES * 4];
+  private byte mBuffer[] = new byte[UserConf.get().BUFFER_PER_PARTITION_BYTES * 4];
 
   public TFileInputStreamHdfs(TachyonClient tachyonClient, int fileId, 
       Path hdfsPath, Configuration conf, int bufferSize) throws IOException {

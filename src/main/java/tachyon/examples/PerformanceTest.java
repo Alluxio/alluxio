@@ -2,7 +2,6 @@ package tachyon.examples;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -11,23 +10,24 @@ import java.nio.channels.FileChannel.MapMode;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import tachyon.Config;
 import tachyon.CommonUtils;
 import tachyon.Version;
 import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
+import tachyon.conf.CommonConf;
+import tachyon.conf.UserConf;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 public class PerformanceTest {
-  private static Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private static Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
 
   private static final int RESULT_ARRAY_SIZE = 64;
   private static final String FOLDER = "/mnt/ramdisk/";
 
   private static TachyonClient MTC = null;
-  private static String MASTER_HOST = null;
+  private static String MASTER_ADDRESS = null;
   private static String FILE_NAME = null;
   private static int BLOCK_SIZE_BYTES = -1;
   private static int BLOCKS_PER_FILE = -1;
@@ -159,7 +159,7 @@ public class PerformanceTest {
 
     public TachyonWriterWorker(int id, int left, int right, ByteBuffer buf) {
       super(id, left, right, buf);
-      mTC = TachyonClient.getClient(new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
+      mTC = TachyonClient.getClient(MASTER_ADDRESS);
     }
 
     public void writeParition()
@@ -199,7 +199,7 @@ public class PerformanceTest {
 
     public TachyonReadWorker(int id, int left, int right, ByteBuffer buf) {
       super(id, left, right, buf);
-      mTC = TachyonClient.getClient(new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
+      mTC = TachyonClient.getClient(MASTER_ADDRESS);
     }
 
     public void readPartition() 
@@ -353,7 +353,7 @@ public class PerformanceTest {
       System.exit(-1);
     }
 
-    MASTER_HOST = args[0];
+    MASTER_ADDRESS = args[0];
     FILE_NAME = args[1];
     BLOCK_SIZE_BYTES = Integer.parseInt(args[2]);
     BLOCKS_PER_FILE = Integer.parseInt(args[3]);
@@ -371,18 +371,18 @@ public class PerformanceTest {
         "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ",
         THREADS, FILES / THREADS, FILES, BLOCK_SIZE_BYTES / 1024, 
         BLOCKS_PER_FILE, CommonUtils.getMB(FILE_BYTES), 
-        Config.USER_BUFFER_PER_PARTITION_BYTES / 1024, BASE_FILE_NUMBER);
+        UserConf.get().BUFFER_PER_PARTITION_BYTES / 1024, BASE_FILE_NUMBER);
 
     if (testCase == 1) {
       RESULT_PREFIX = "TachyonFilesWriteTest " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
-      MTC = TachyonClient.getClient(new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
+      MTC = TachyonClient.getClient(MASTER_ADDRESS);
       createFiles();
       TachyonTest(true);
     } else if (testCase == 2) {
       RESULT_PREFIX = "TachyonFilesReadTest " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
-      MTC = TachyonClient.getClient(new InetSocketAddress(MASTER_HOST, Config.MASTER_PORT));
+      MTC = TachyonClient.getClient(MASTER_ADDRESS);
       TachyonTest(false);
     } else if (testCase == 3) {
       RESULT_PREFIX = "RamFile Write " + RESULT_PREFIX;

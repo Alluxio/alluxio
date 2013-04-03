@@ -2,7 +2,6 @@ package tachyon;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -14,6 +13,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.Command;
@@ -35,7 +35,7 @@ import tachyon.thrift.TableDoesNotExistException;
  * @author haoyuan
  */
 public class MasterClient {
-  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
   private final MasterService.Client CLIENT;
 
   private InetSocketAddress mMasterAddress;
@@ -213,13 +213,5 @@ public class MasterClient {
     LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress +
         " , got WorkerId " + ret);
     return ret;
-  }
-
-  public static void main(String[] args) {
-    int num = Integer.parseInt(args[0]);
-    ArrayList<MasterClient> mcs = new ArrayList<MasterClient>(num);
-    for (int k = 0; k < num; k ++) {
-      mcs.add(new MasterClient(new InetSocketAddress("localhost", Config.MASTER_PORT)));
-    }
   }
 }

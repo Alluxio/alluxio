@@ -2,8 +2,10 @@ package tachyon;
 
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
+
 public class HeartbeatThread implements Runnable {
-  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
   private final HeartbeatExecutor HEARTBEAT;
   private final int SLEEP_INTERVAL_MS;
 

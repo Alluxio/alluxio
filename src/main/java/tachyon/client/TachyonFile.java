@@ -22,10 +22,11 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import tachyon.Config;
 import tachyon.DataServerMessage;
 import tachyon.CommonUtils;
 import tachyon.HdfsClient;
+import tachyon.conf.CommonConf;
+import tachyon.conf.UserConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -34,10 +35,11 @@ import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * Tachyon File.
- * @author haoyuan
  */
 public class TachyonFile {
-  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private final UserConf USER_CONF = UserConf.get();
+      
   private final TachyonClient mTachyonClient;
   private final ClientFileInfo mClientFileInfo;
   private final int mId;
@@ -117,7 +119,7 @@ public class TachyonFile {
   public void append(byte b) throws IOException {
     //    validateIO(false);
 
-    appendCurrentBuffer(Config.USER_BUFFER_PER_PARTITION_BYTES);
+    appendCurrentBuffer(USER_CONF.BUFFER_PER_PARTITION_BYTES);
 
     mBuffer.put(b);
   }
@@ -125,7 +127,7 @@ public class TachyonFile {
   public void append(int b) throws IOException {
     //    validateIO(false);
 
-    appendCurrentBuffer(Config.USER_BUFFER_PER_PARTITION_BYTES);
+    appendCurrentBuffer(USER_CONF.BUFFER_PER_PARTITION_BYTES);
 
     mBuffer.putInt(b);
   }
@@ -144,7 +146,7 @@ public class TachyonFile {
 
     //    validateIO(false);
 
-    if (mBuffer.position() + len >= Config.USER_BUFFER_PER_PARTITION_BYTES) {
+    if (mBuffer.position() + len >= USER_CONF.BUFFER_PER_PARTITION_BYTES) {
       if (mIoType.isWriteCache()) {
 //        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
 //          CommonUtils.runtimeException(
@@ -291,7 +293,7 @@ public class TachyonFile {
     mIoType = io;
 
     if (mIoType.isWrite()) {
-      mBuffer = ByteBuffer.allocate(Config.USER_BUFFER_PER_PARTITION_BYTES + 4);
+      mBuffer = ByteBuffer.allocate(USER_CONF.BUFFER_PER_PARTITION_BYTES + 4);
       mBuffer.order(ByteOrder.nativeOrder());
 
       if (mIoType.isWriteCache()) {
@@ -439,18 +441,17 @@ public class TachyonFile {
 
     for (int k = 0 ;k < fileLocations.size(); k ++) {
       String host = fileLocations.get(k).mHost;
+      int port = fileLocations.get(k).mPort;
       if (host.equals(InetAddress.getLocalHost().getHostName()) 
           || host.equals(InetAddress.getLocalHost().getHostAddress())) {
         String localFileName = mTachyonClient.getRootFolder() + "/" + mId;
         LOG.warn("Master thinks the local machine has data! But " + localFileName + " is not!");
       } else {
-        LOG.info("readByteBufferFromRemote() : " + host + ":" + Config.WORKER_DATA_SERVER_PORT +
+        LOG.info("readByteBufferFromRemote() : " + host + ":" + (port + 1) +
             " current host is " + InetAddress.getLocalHost().getHostName() + " " +
             InetAddress.getLocalHost().getHostAddress());
         try {
-          // TODO Using Config.WORKER_DATA_SERVER_PORT here is a bug. Fix it later.
-          ret = retrieveByteBufferFromRemoteMachine(
-              new InetSocketAddress(host, Config.WORKER_DATA_SERVER_PORT));
+          ret = retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port + 1));
           if (ret != null) {
             break;
           }
@@ -474,7 +475,7 @@ public class TachyonFile {
     FSDataInputStream inputStream = tHdfsClient.open(path);
     TachyonFile tTFile = mTachyonClient.getFile(mClientFileInfo.getId());
     tTFile.open(OpType.WRITE_CACHE);
-    byte buffer[] = new byte[Config.USER_BUFFER_PER_PARTITION_BYTES * 4];
+    byte buffer[] = new byte[USER_CONF.BUFFER_PER_PARTITION_BYTES * 4];
 
     int limit;
     while ((limit = inputStream.read(buffer)) >= 0) {

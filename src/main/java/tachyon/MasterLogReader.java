@@ -5,12 +5,14 @@ import java.io.FileNotFoundException;
 
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Input;
 
 public class MasterLogReader {
-  private static final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
 
   private final String LOG_FILE_NAME;
 

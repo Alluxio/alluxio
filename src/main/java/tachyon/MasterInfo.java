@@ -26,6 +26,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.mortbay.log.Log;
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
+import tachyon.conf.MasterConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
@@ -42,16 +44,17 @@ import tachyon.thrift.TableDoesNotExistException;
 
 /**
  * A global view of filesystem in master.
- * @author Haoyuan Li haoyuan@cs.berkeley.edu
  */
 public class MasterInfo {
   public static final String COL = "COL_";
 
-  private final Logger LOG = Logger.getLogger(Config.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
 
   private final InetSocketAddress MASTER_ADDRESS;
   private final long START_TIME_NS_PREFIX;
   private final long START_TIME_MS;
+
+  private final MasterConf MASTER_CONF;
 
   private AtomicInteger mInodeCounter = new AtomicInteger(0);
   private AtomicInteger mUserCounter = new AtomicInteger(0);
@@ -93,7 +96,7 @@ public class MasterInfo {
       synchronized (mWorkers) {
         for (Entry<Long, WorkerInfo> worker: mWorkers.entrySet()) {
           if (CommonUtils.getCurrentMs() - worker.getValue().getLastUpdatedTimeMs() 
-              > Config.WORKER_TIMEOUT_MS) {
+              > MASTER_CONF.WORKER_TIMEOUT_MS) {
             LOG.error("The worker " + worker.getValue() + " got timed out!");
             mLostWorkers.add(worker.getValue());
             lostWorkers.add(worker.getKey());
@@ -114,25 +117,25 @@ public class MasterInfo {
 
         // TODO these a lock is not efficient. Since node failure is rare, this is fine for now.
         synchronized (mRoot) {
-            for (int id: worker.getFiles()) {
-              InodeFile tFile = (InodeFile) mInodes.get(id);
-              if (tFile != null) {
-                tFile.removeLocation(worker.getId());
-                if (!tFile.hasCheckpointed() && !tFile.isInMemory()) {
-                  LOG.info("File " + id + " got lost from worker " + worker.getId() + " .");
-                } else {
-                  LOG.info("File " + tFile + " only lost an in memory copy from worker " +
-                      worker.getId());
-                }
-              } 
-            }
+          for (int id: worker.getFiles()) {
+            InodeFile tFile = (InodeFile) mInodes.get(id);
+            if (tFile != null) {
+              tFile.removeLocation(worker.getId());
+              if (!tFile.hasCheckpointed() && !tFile.isInMemory()) {
+                LOG.info("File " + id + " got lost from worker " + worker.getId() + " .");
+              } else {
+                LOG.info("File " + tFile + " only lost an in memory copy from worker " +
+                    worker.getId());
+              }
+            } 
+          }
         }
       }
 
       if (hadFailedWorker) {
         LOG.warn("Restarting failed workers: Do not restart for now.");
         try {
-          java.lang.Runtime.getRuntime().exec(Config.TACHYON_HOME + 
+          java.lang.Runtime.getRuntime().exec(MASTER_CONF.TACHYON_HOME + 
               "/bin/restart-failed-workers.sh");
         } catch (IOException e) {
           LOG.error(e.getMessage());
@@ -182,6 +185,8 @@ public class MasterInfo {
   }
 
   public MasterInfo(InetSocketAddress address) {
+    MASTER_CONF = MasterConf.get();
+
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1);
     mInodes.put(mRoot.getId(), mRoot);
 
@@ -190,18 +195,18 @@ public class MasterInfo {
     // TODO This name need to be changed.
     START_TIME_NS_PREFIX = START_TIME_MS - (START_TIME_MS % 1000000);
 
-    mWhiteList = new PrefixList(Config.WHITELIST);
-    mPinList = new PrefixList(Config.PINLIST);
+    mWhiteList = new PrefixList(MASTER_CONF.WHITELIST);
+    mPinList = new PrefixList(MASTER_CONF.PINLIST);
     mIdPinList = Collections.synchronizedSet(new HashSet<Integer>());
 
     // TODO Fault recovery: need user counter info;
     recoveryFromLog();
     writeCheckpoint();
 
-    mMasterLogWriter = new MasterLogWriter(Config.MASTER_LOG_FILE);
+    mMasterLogWriter = new MasterLogWriter(MASTER_CONF.LOG_FILE);
 
     mHeartbeatThread = new Thread(new HeartbeatThread(
-        new MasterHeartbeatExecutor(), Config.MASTER_HEARTBEAT_INTERVAL_MS));
+        new MasterHeartbeatExecutor(), MASTER_CONF.HEARTBEAT_INTERVAL_MS));
     mHeartbeatThread.start();
   }
 
@@ -386,15 +391,15 @@ public class MasterInfo {
       throws FileAlreadyExistException, InvalidPathException, TableColumnException {
     LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
 
-    if (columns <= 0 || columns >= Config.MAX_COLUMNS) {
+    if (columns <= 0 || columns >= Constants.MAX_COLUMNS) {
       throw new TableColumnException("Column " + columns + " should between 0 to " + 
-          Config.MAX_COLUMNS);
+          Constants.MAX_COLUMNS);
     }
 
     int id = createFile(true, path, true, columns, metadata);
 
     for (int k = 0; k < columns; k ++) {
-      createFile(path + Config.SEPARATOR + COL + k, true);
+      createFile(path + Constants.PATH_SEPARATOR + COL + k, true);
     }
 
     return id;
@@ -673,7 +678,7 @@ public class MasterInfo {
         List<Integer> childrenIds = tFolder.getChildrenIds();
         for (int id : childrenIds) {
           Inode tInode = mInodes.get(id);
-          String newPath = curPath + Config.SEPARATOR + tInode.getName();
+          String newPath = curPath + Constants.PATH_SEPARATOR + tInode.getName();
           if (tInode.isDirectory()) {
             nodesQueue.add(new Pair<InodeFolder, String>((InodeFolder) tInode, newPath));
           } else if (((InodeFile) tInode).isInMemory()) {
@@ -715,20 +720,20 @@ public class MasterInfo {
         return "/";
       }
       if (inode.getParentId() == 1) {
-        return Config.SEPARATOR + inode.getName();
+        return Constants.PATH_SEPARATOR + inode.getName();
       }
-      return getPath(mInodes.get(inode.getParentId())) + Config.SEPARATOR + inode.getName();
+      return getPath(mInodes.get(inode.getParentId())) + Constants.PATH_SEPARATOR + inode.getName();
     }
   }
 
   private static String[] getPathNames(String path) throws InvalidPathException {
     CommonUtils.validatePath(path);
-    if (path.length() == 1 && path.equals(Config.SEPARATOR)) {
+    if (path.length() == 1 && path.equals(Constants.PATH_SEPARATOR)) {
       String[] ret = new String[1];
       ret[0] = "";
       return ret;
     }
-    return path.split(Config.SEPARATOR);
+    return path.split(Constants.PATH_SEPARATOR);
   }
 
   public List<String> getPinList() {
@@ -938,8 +943,8 @@ public class MasterInfo {
   }
 
   private void recoveryFromLog() {
-    recoveryFromFile(Config.MASTER_CHECKPOINT_FILE, "Master Checkpoint file ");
-    recoveryFromFile(Config.MASTER_LOG_FILE, "Master Log file ");
+    recoveryFromFile(MASTER_CONF.CHECKPOINT_FILE, "Master Checkpoint file ");
+    recoveryFromFile(MASTER_CONF.LOG_FILE, "Master Log file ");
   }
 
   public long registerWorker(NetAddress workerNetAddress, long totalBytes,
@@ -1078,7 +1083,7 @@ public class MasterInfo {
   private void writeCheckpoint() {
     LOG.info("Files recoveried from logs: ");
     MasterLogWriter checkpointWriter =
-        new MasterLogWriter(Config.MASTER_CHECKPOINT_FILE + ".tmp");
+        new MasterLogWriter(MASTER_CONF.CHECKPOINT_FILE + ".tmp");
     Queue<Inode> nodesQueue = new LinkedList<Inode>();
     synchronized (mRoot) {
       checkpointWriter.appendAndFlush(mRoot);
@@ -1103,9 +1108,9 @@ public class MasterInfo {
       checkpointWriter.appendAndFlush(new CheckpointInfo(mInodeCounter.get()));
       checkpointWriter.close();
 
-      CommonUtils.renameFile(Config.MASTER_CHECKPOINT_FILE + ".tmp", Config.MASTER_CHECKPOINT_FILE);
+      CommonUtils.renameFile(MASTER_CONF.CHECKPOINT_FILE + ".tmp", MASTER_CONF.CHECKPOINT_FILE);
 
-      CommonUtils.deleteFile(Config.MASTER_LOG_FILE);
+      CommonUtils.deleteFile(MASTER_CONF.LOG_FILE);
     }
     LOG.info("Files recovery done. Current mInodeCounter: " + mInodeCounter.get());
   }
