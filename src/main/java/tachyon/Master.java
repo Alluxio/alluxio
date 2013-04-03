@@ -17,7 +17,7 @@ import tachyon.web.UIWebServer;
  * Entry point for the Master program. Master class is singleton.
  */
 public class Master {
-  private static final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private static Master MASTER = null;
 
@@ -26,13 +26,13 @@ public class Master {
   private TServer mServer;
   private MasterServiceHandler mMasterServiceHandler;
 
-  private Master(InetSocketAddress address, int selectorThreads, int acceptQueueSizePerThreads,
-      int workerThreads) {
+  private Master(InetSocketAddress address, int webPort, int selectorThreads, 
+      int acceptQueueSizePerThreads, int workerThreads) {
     try {
       mMasterInfo = new MasterInfo(address);
 
       mWebServer = new UIWebServer("Tachyon Master Server",
-          new InetSocketAddress(address.getHostName(), address.getPort() + 1), mMasterInfo);
+          new InetSocketAddress(address.getHostName(), webPort), mMasterInfo);
       mWebServer.startWebServer();
 
       mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
@@ -61,10 +61,11 @@ public class Master {
     }
   }
 
-  public static synchronized Master createMaster(InetSocketAddress address, int selectorThreads,
-      int acceptQueueSizePerThreads, int workerThreads) {
+  public static synchronized Master createMaster(InetSocketAddress address, int webport,
+      int selectorThreads, int acceptQueueSizePerThreads, int workerThreads) {
     if (MASTER == null) {
-      MASTER = new Master(address, selectorThreads, acceptQueueSizePerThreads, workerThreads);
+      MASTER = new Master(
+          address, webport, selectorThreads, acceptQueueSizePerThreads, workerThreads);
     }
     return MASTER;
   }
@@ -76,7 +77,7 @@ public class Master {
       System.exit(-1);
     }
     MasterConf mConf = MasterConf.get();
-    Master.createMaster(new InetSocketAddress(mConf.HOSTNAME, mConf.PORT),
+    Master.createMaster(new InetSocketAddress(mConf.HOSTNAME, mConf.PORT), mConf.WEB_PORT,
         mConf.SELECTOR_THREADS, mConf.QUEUE_SIZE_PER_SELECTOR, mConf.SERVER_THREADS);
   }
 }

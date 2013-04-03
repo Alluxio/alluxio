@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 import tachyon.conf.CommonConf;
 
 public final class Utils {
-  private static final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
   private static final String HDFS_ADDRESS = CommonConf.get().HDFS_ADDRESS;
   private static final boolean DEBUG = CommonConf.get().DEBUG;
 

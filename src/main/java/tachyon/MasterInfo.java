@@ -48,7 +48,7 @@ import tachyon.thrift.TableDoesNotExistException;
 public class MasterInfo {
   public static final String COL = "COL_";
 
-  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private final InetSocketAddress MASTER_ADDRESS;
   private final long START_TIME_NS_PREFIX;

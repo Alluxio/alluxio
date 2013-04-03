@@ -9,7 +9,7 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 
 class ClientToWorkerHeartbeat implements Runnable {
-  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
   private final WorkerClient WORKER_CLIENT;
   private final long USER_ID;
   private final long HEARTBEAT_INTERVAL_MS;

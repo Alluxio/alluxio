@@ -13,7 +13,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
 
 public class MasterLogWriter {
-  private static final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private final String LOG_FILE_NAME;
 

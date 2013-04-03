@@ -28,11 +28,9 @@ import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * This is only for compatibility with Hadoop stack.
- * 
- * @author haoyuan
  */
 public class TachyonFileSystem extends FileSystem {
-  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private URI mUri = null;
   private Path mWorkingDir = new Path("/");

@@ -16,17 +16,14 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
-import tachyon.conf.CommonConf;
 import tachyon.thrift.InvalidPathException;
 
 /**
  * Utility class shared by all components of the system.
- * 
- * @author haoyuan
  */
 public final class CommonUtils {
-  private static final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
-  
+  private static final Logger LOG = Logger.getLogger("");
+
   private CommonUtils () {
   }
 

@@ -21,7 +21,7 @@ import tachyon.conf.CommonConf;
  */
 public class HdfsClient {
   private static final int MAX_TRY = 5; 
-  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private FileSystem mFs = null;
 

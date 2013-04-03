@@ -31,11 +31,9 @@ import tachyon.thrift.TableDoesNotExistException;
  * The master server client side.
  * 
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
- * 
- * @author haoyuan
  */
 public class MasterClient {
-  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
   private final MasterService.Client CLIENT;
 
   private InetSocketAddress mMasterAddress;

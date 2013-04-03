@@ -17,7 +17,7 @@ public class Users {
   public static final int sDATASERVER_USER_ID = -1;
   public static final int sCHECKPOINT_USER_ID = -2;
   
-  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private final String USER_FOLDER;
   private final String USER_HDFS_FOLDER;

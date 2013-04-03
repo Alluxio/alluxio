@@ -19,7 +19,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 public class ConsumeHdfs {
-  private static Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private static Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private static TachyonClient sTachyonClient;
   private static String sFilePath = null;
