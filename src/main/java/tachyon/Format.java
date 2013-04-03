@@ -9,7 +9,7 @@ import tachyon.conf.MasterConf;
  * Format Tachyon.
  */
 public class Format {
-  private final static Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private final static Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   public static void main(String[] args) {
     if (args.length != 0) {

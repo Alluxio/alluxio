@@ -20,7 +20,7 @@ import tachyon.thrift.OutOfMemoryForPinFileException;
 import tachyon.thrift.TableDoesNotExistException;
 
 public class BasicRawTableTest {
-  private static Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private static Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private static final int COLS = 3;
   private static TachyonClient sTachyonClient;

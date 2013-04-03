@@ -19,7 +19,7 @@ import tachyon.thrift.WorkerService;
  * Entry point for a worker daemon. Worker class is singleton.
  */
 public class Worker implements Runnable {
-  private static final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private static Worker WORKER = null;
 
@@ -32,7 +32,7 @@ public class Worker implements Runnable {
   private WorkerServiceHandler mWorkerServiceHandler;
   private DataServer mDataServer;
 
-  private Worker(InetSocketAddress masterAddress, InetSocketAddress workerAddress, 
+  private Worker(InetSocketAddress masterAddress, InetSocketAddress workerAddress, int dataPort,
       int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String dataFolder, long memoryCapacityBytes) {
     DataFolder = dataFolder;
@@ -44,8 +44,7 @@ public class Worker implements Runnable {
     mWorkerServiceHandler = new WorkerServiceHandler(
         MasterAddress, WorkerAddress, DataFolder, MemoryCapacityBytes);
 
-    mDataServer = new DataServer(new InetSocketAddress(
-        workerAddress.getHostName(), workerAddress.getPort() + 1),
+    mDataServer = new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
         mWorkerServiceHandler);
     new Thread(mDataServer).start();
 
@@ -130,37 +129,39 @@ public class Worker implements Runnable {
   }
 
   public static synchronized Worker createWorker(InetSocketAddress masterAddress, 
-      InetSocketAddress workerAddress, int selectorThreads, int acceptQueueSizePerThreads,
-      int workerThreads, String localFolder, long spaceLimitBytes) {
+      InetSocketAddress workerAddress, int dataPort, int selectorThreads,
+      int acceptQueueSizePerThreads, int workerThreads, String localFolder, long spaceLimitBytes) {
     if (WORKER == null) {
-      WORKER = new Worker(masterAddress, workerAddress, selectorThreads, 
+      WORKER = new Worker(masterAddress, workerAddress, dataPort, selectorThreads, 
           acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
     }
     return WORKER;
   }
 
   public static synchronized Worker createWorker(String masterAddress, 
-      String workerAddress, int selectorThreads, int acceptQueueSizePerThreads,
+      String workerAddress, int dataPort, int selectorThreads, int acceptQueueSizePerThreads,
       int workerThreads, String localFolder, long spaceLimitBytes) {
     if (WORKER == null) {
       String[] address = masterAddress.split(":");
       InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
       address = workerAddress.split(":");
       InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
-      WORKER = new Worker(master, worker, selectorThreads, 
+      WORKER = new Worker(master, worker, dataPort, selectorThreads, 
           acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
     }
     return WORKER;
   }
 
   public static void main(String[] args) throws UnknownHostException {
-    if (args.length != 2) {
+    if (args.length != 1) {
       LOG.info("Usage: java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
-          "tachyon.Worker <MasterAddress> <WorkerAddress>");
+          "tachyon.Worker <WorkerHost>");
       System.exit(-1);
     }
     WorkerConf wConf = WorkerConf.get();
-    Worker.createWorker(args[0], args[1], wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
+    Worker.createWorker(wConf.MASTER_HOSTNAME + ":" + wConf.MASTER_PORT, 
+        args[0] + ":" + wConf.PORT, wConf.DATA_PORT,
+        wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
         wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
   }
 }

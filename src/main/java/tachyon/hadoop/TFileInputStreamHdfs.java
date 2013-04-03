@@ -19,7 +19,7 @@ import tachyon.conf.UserConf;
 
 public class TFileInputStreamHdfs extends InputStream
 implements Seekable, PositionedReadable {
-  private static Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private static Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private int mCurrentPosition;
   private TachyonClient mTachyonClient;

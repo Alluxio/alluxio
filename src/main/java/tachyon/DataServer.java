@@ -23,7 +23,7 @@ import tachyon.conf.CommonConf;
  * is based on non-blocking NIO.
  */
 public class DataServer implements Runnable {
-  private static final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   // The host:port combination to listen on
   private InetSocketAddress mAddress;

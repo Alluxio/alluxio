@@ -22,7 +22,7 @@ import tachyon.thrift.WorkerService;
  * Since WorkerService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class WorkerClient {
-  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
   private final WorkerService.Client CLIENT;
 
   private TProtocol mProtocol;

@@ -17,7 +17,7 @@ import tachyon.MasterInfo;
 import tachyon.conf.CommonConf;
 
 public class UIWebServer {
-  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private Server mServer;
   private String mServerName;

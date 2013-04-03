@@ -37,7 +37,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Tachyon File.
  */
 public class TachyonFile {
-  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
   private final UserConf USER_CONF = UserConf.get();
       
   private final TachyonClient mTachyonClient;

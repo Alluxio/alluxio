@@ -32,7 +32,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   public static final BlockingQueue<Integer> sDataAccessQueue = 
       new ArrayBlockingQueue<Integer>(Constants.WORKER_FILES_QUEUE_SIZE);
 
-  private final Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private final CommonConf COMMON_CONF;
 

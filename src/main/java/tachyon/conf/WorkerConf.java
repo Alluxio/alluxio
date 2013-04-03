@@ -1,10 +1,16 @@
 package tachyon.conf;
 
 import tachyon.CommonUtils;
+import tachyon.Constants;
 
 public class WorkerConf extends Utils {
   private static WorkerConf WORKER_CONF = null;
 
+  public final String MASTER_HOSTNAME;
+  public final int MASTER_PORT;
+
+  public final int PORT;
+  public final int DATA_PORT;
   public final String DATA_FOLDER;
   public final long MEMORY_SIZE;
   public final long HEARTBEAT_TIMEOUT_MS;
@@ -16,6 +22,12 @@ public class WorkerConf extends Utils {
   public final String USER_TEMP_RELATIVE_FOLDER = "users";
 
   private WorkerConf() {
+    MASTER_HOSTNAME = getProperty("tachyon.master.hostname");
+    MASTER_PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
+
+    PORT = getIntProperty("tachyon.worker.port", Constants.DEFAULT_WORKER_PORT);
+    DATA_PORT = 
+        getIntProperty("tachyon.worker.data.port", Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
     DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramdisk");
     MEMORY_SIZE = CommonUtils.parseMemorySize(getProperty("tachyon.worker.memory.size"));
     HEARTBEAT_TIMEOUT_MS = getIntProperty("tachyon.worker.heartbeat.timeout.ms", 10 * 1000);

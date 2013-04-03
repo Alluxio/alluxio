@@ -21,7 +21,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 public class PerformanceTest {
-  private static Logger LOG = Logger.getLogger(CommonConf.get().LOGGER_TYPE);
+  private static Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private static final int RESULT_ARRAY_SIZE = 64;
   private static final String FOLDER = "/mnt/ramdisk/";
