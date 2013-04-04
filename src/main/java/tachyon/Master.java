@@ -22,6 +22,7 @@ public class Master {
   private static Master MASTER = null;
 
   private MasterInfo mMasterInfo;
+  private InetSocketAddress mMasterAddress;
   private UIWebServer mWebServer;
   private TServer mServer;
   private MasterServiceHandler mMasterServiceHandler;
@@ -29,11 +30,12 @@ public class Master {
   private Master(InetSocketAddress address, int webPort, int selectorThreads, 
       int acceptQueueSizePerThreads, int workerThreads) {
     try {
-      mMasterInfo = new MasterInfo(address);
+      mMasterAddress = address;
+
+      mMasterInfo = new MasterInfo(mMasterAddress);
 
       mWebServer = new UIWebServer("Tachyon Master Server",
-          new InetSocketAddress(address.getHostName(), webPort), mMasterInfo);
-      mWebServer.startWebServer();
+          new InetSocketAddress(mMasterAddress.getHostName(), webPort), mMasterInfo);
 
       mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
       MasterService.Processor<MasterServiceHandler> processor = 
@@ -46,12 +48,8 @@ public class Master {
       //          .workerThreads(workerThreads));
 
       // This is for Thrift 0.7.0, for Hive compatibility. 
-      mServer = new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(address)).
+      mServer = new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(mMasterAddress)).
           processor(processor).workerThreads(workerThreads));
-
-      LOG.info("The master server started @ " + address);
-      mServer.serve();
-      LOG.info("The master server ended @ " + address);
     } catch (TTransportException e) {
       LOG.error(e.getMessage(), e);
       System.exit(-1);
@@ -70,6 +68,19 @@ public class Master {
     return MASTER;
   }
 
+  public void start() {
+    mWebServer.startWebServer();
+    LOG.info("The master server started @ " + mMasterAddress);
+    mServer.serve();
+    LOG.info("The master server ended @ " + mMasterAddress);
+  }
+
+  public void stop() throws Exception {
+    mWebServer.shutdownWebServer();
+    mMasterInfo.stop();
+    mServer.stop();
+  }
+
   public static void main(String[] args) {
     if (args.length != 0) {
       LOG.info("java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
@@ -77,7 +88,9 @@ public class Master {
       System.exit(-1);
     }
     MasterConf mConf = MasterConf.get();
-    Master.createMaster(new InetSocketAddress(mConf.HOSTNAME, mConf.PORT), mConf.WEB_PORT,
-        mConf.SELECTOR_THREADS, mConf.QUEUE_SIZE_PER_SELECTOR, mConf.SERVER_THREADS);
+    Master master = Master.createMaster(new InetSocketAddress(mConf.HOSTNAME, mConf.PORT),
+        mConf.WEB_PORT, mConf.SELECTOR_THREADS, mConf.QUEUE_SIZE_PER_SELECTOR, 
+        mConf.SERVER_THREADS);
+    master.start();
   }
 }

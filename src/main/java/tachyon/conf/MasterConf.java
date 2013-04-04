@@ -28,8 +28,8 @@ public class MasterConf extends Utils {
   private MasterConf() {
     TACHYON_HOME = getProperty("tachyon.home");
     CHECKPOINT_FILE = getProperty(
-        "tachyon.master.checkpoint.file", TACHYON_HOME + "/logs/tachyon_checkpoint.data");
-    LOG_FILE = getProperty("tachyon.master.log.file", TACHYON_HOME + "/logs/tachyon_log.data");
+        "tachyon.master.checkpoint.file", TACHYON_HOME + "/data/tachyon_checkpoint.data");
+    LOG_FILE = getProperty("tachyon.master.log.file", TACHYON_HOME + "/data/tachyon_log.data");
 
     HOSTNAME = getProperty("tachyon.master.hostname");
     PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);

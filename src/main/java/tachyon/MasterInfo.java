@@ -1114,4 +1114,10 @@ public class MasterInfo {
     }
     LOG.info("Files recovery done. Current mInodeCounter: " + mInodeCounter.get());
   }
+
+  @SuppressWarnings("deprecation")
+  public void stop() {
+    // TODO Better shutdown.
+    mHeartbeatThread.stop();
+  }
 }
