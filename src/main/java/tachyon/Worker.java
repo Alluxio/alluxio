@@ -32,6 +32,9 @@ public class Worker implements Runnable {
   private WorkerServiceHandler mWorkerServiceHandler;
   private DataServer mDataServer;
 
+  private Thread mDataServerThread;
+  private Thread mHeartbeatThread;
+
   private Worker(InetSocketAddress masterAddress, InetSocketAddress workerAddress, int dataPort,
       int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String dataFolder, long memoryCapacityBytes) {
@@ -46,9 +49,9 @@ public class Worker implements Runnable {
 
     mDataServer = new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
         mWorkerServiceHandler);
-    new Thread(mDataServer).start();
+    mDataServerThread = new Thread(mDataServer);
 
-    new Thread(this).start();
+    mHeartbeatThread = new Thread(this);
 
     try {
       LOG.info("The worker server tries to start @ " + workerAddress);
@@ -64,10 +67,6 @@ public class Worker implements Runnable {
       // This is for Thrift 0.7.0, for Hive compatibility. 
       mServer = new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(workerAddress)).
           processor(processor).workerThreads(workerThreads));
-
-      LOG.info("The worker server started @ " + workerAddress);
-      mServer.serve();
-      LOG.info("The worker server ends @ " + workerAddress);
     } catch (TTransportException e) {
       LOG.error(e.getMessage(), e);
       System.exit(-1);
@@ -152,6 +151,23 @@ public class Worker implements Runnable {
     return WORKER;
   }
 
+  public void start() {
+    mDataServerThread.start();
+    mHeartbeatThread.start();
+
+    LOG.info("The worker server started @ " + WorkerAddress);
+    mServer.serve();
+    LOG.info("The worker server ends @ " + WorkerAddress);
+  }
+
+  @SuppressWarnings("deprecation")
+  public void stop() {
+    // TODO better stop for these two threads.
+    mDataServerThread.stop();
+    mHeartbeatThread.stop();
+    mServer.stop();
+  }
+
   public static void main(String[] args) throws UnknownHostException {
     if (args.length != 1) {
       LOG.info("Usage: java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
@@ -159,9 +175,10 @@ public class Worker implements Runnable {
       System.exit(-1);
     }
     WorkerConf wConf = WorkerConf.get();
-    Worker.createWorker(wConf.MASTER_HOSTNAME + ":" + wConf.MASTER_PORT, 
+    Worker worker = Worker.createWorker(wConf.MASTER_HOSTNAME + ":" + wConf.MASTER_PORT, 
         args[0] + ":" + wConf.PORT, wConf.DATA_PORT,
         wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
         wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
+    worker.start();
   }
 }
