@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import tachyon.client.TachyonClient;
+
 /**
  * Local Tachyon cluster for unit tests.
  */
@@ -27,11 +29,14 @@ public class LocalTachyonCluster {
     mWorkerCapacityBytes = workerCapacityBytes;
   }
 
+  public TachyonClient getClient() {
+    return TachyonClient.getClient("localhost:" + mMasterPort);
+  }
+
   private void mkdir(String path) throws IOException {
     if (!(new File(path)).mkdirs()) {
       throw new IOException("Failed to make folder: " + path);
     }
-    System.out.println("Made folder " + path);
   }
 
   public void start() throws IOException {
@@ -55,7 +60,7 @@ public class LocalTachyonCluster {
 
     mMaster = Master.createMaster(
         new InetSocketAddress("localhost", mMasterPort), mMasterPort + 1, 1, 1, 1);
-    
+
     Runnable runMaster = new Runnable() {
       public void run() {
         mMaster.start();
@@ -85,6 +90,12 @@ public class LocalTachyonCluster {
 
     System.clearProperty("tachyon.home");
     System.clearProperty("tachyon.master.hostname");
+    System.clearProperty("tachyon.master.port");
+    System.clearProperty("tachyon.master.web.port");
+    System.clearProperty("tachyon.worker.port");
+    System.clearProperty("tachyon.worker.data.port");
+    System.clearProperty("tachyon.worker.data.folder");
+    System.clearProperty("tachyon.worker.memory.size");
   }
 
   public static void main(String[] args) throws Exception {
@@ -92,7 +103,5 @@ public class LocalTachyonCluster {
     cluster.start();
     CommonUtils.sleepMs(null, 10 * 1000);
     cluster.stop();
-
-    System.out.println("I'm done.");
   }
 }
