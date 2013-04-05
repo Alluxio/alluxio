@@ -55,4 +55,11 @@ public class MasterConf extends Utils {
 
     return MASTER_CONF;
   }
+
+  /**
+   * This is for unit test only. DO NOT use it for other purpose.
+   */
+  public static synchronized void clear() {
+    MASTER_CONF = null;
+  }
 }

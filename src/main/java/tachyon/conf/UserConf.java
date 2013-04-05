@@ -24,4 +24,11 @@ public class UserConf extends Utils {
 
     return USER_CONF;
   }
+
+  /**
+   * This is for unit test only. DO NOT use it for other purpose.
+   */
+  public static synchronized void clear() {
+    USER_CONF = null;
+  }
 }
