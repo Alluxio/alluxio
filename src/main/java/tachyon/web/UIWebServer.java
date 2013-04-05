@@ -16,6 +16,9 @@ import tachyon.CommonUtils;
 import tachyon.MasterInfo;
 import tachyon.conf.CommonConf;
 
+/**
+ * Class that bootstraps and starts the web server for the web interface.
+ */
 public class UIWebServer {
   private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
@@ -23,6 +26,13 @@ public class UIWebServer {
   private String mServerName;
   private InetSocketAddress mAddress;
 
+  /**
+   * Constructor that pairs urls with servlets and sets the webapp folder.
+   * @param serverName Name of the server
+   * @param InetSocketAddress Address of the server
+   * @param masterInfo MasterInfo for the tachyon filesystem this UIWebServer supports
+   * @return A new UIWebServer
+   */
   public UIWebServer(String serverName, InetSocketAddress address, MasterInfo masterInfo) {
     mAddress = address;
     mServerName = serverName;

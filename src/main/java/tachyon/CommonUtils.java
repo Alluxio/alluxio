@@ -74,6 +74,14 @@ public final class CommonUtils {
     return ret;
   }
 
+  public static String convertByteArrayToString(byte[] data) {
+    StringBuilder sb = new StringBuilder(data.length);
+    for (int i = 0; i < data.length; ++ i) {
+        sb.append((char) data[i]);
+    }
+    return sb.toString();
+  }
+
   public static String convertMsToClockTime(long Millis) {
     return String.format("%d hour(s), %d minute(s), and %d second(s)",
         Millis / (1000L * 60 * 60), (Millis % (1000L * 60 * 60)) / (1000 * 60),

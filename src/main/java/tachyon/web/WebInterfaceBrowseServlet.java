@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -12,12 +15,18 @@ import javax.servlet.http.HttpServletResponse;
 import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.MasterInfo;
+import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFile;
+import tachyon.client.OpType;
 import tachyon.conf.CommonConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 
+/**
+ * Servlet that provides data for browsing the file system.
+ */
 public class WebInterfaceBrowseServlet extends HttpServlet {
   private static final long serialVersionUID = 6121623049981468871L;
 
@@ -110,9 +119,19 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     mMasterInfo = masterInfo;
   }
 
+  /**
+   * Populates attribute fields with data from the MasterInfo associated with this servlet. Errors
+   * will be displayed in an error field. Debugging can be enabled to display additional data.
+   * Will eventually redirect the request to a jsp.
+   * @param request The HttpServletRequest object
+   * @param response The HttpServletResponse object
+   * @throws ServletException
+   * @throws IOException
+   * @throws UnknownHostException
+   */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) 
-      throws ServletException, IOException {
+      throws ServletException, IOException, UnknownHostException {
     request.setAttribute("debug", CommonConf.get().DEBUG);
 
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
@@ -124,8 +143,13 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       currentPath = "/";
     }
     request.setAttribute("currentPath", currentPath);
-
     try {
+      UiFileInfo currentFileInfo = new UiFileInfo(mMasterInfo.getFileInfo(currentPath));
+      request.setAttribute("currentDirectory", currentFileInfo);
+      if (!currentFileInfo.getIsDirectory()) {
+        displayFile(currentFileInfo.getAbsolutePath(), response);
+        return;
+      }
       CommonUtils.validatePath(currentPath);
       setPathDirectories(currentPath, request);
       filesInfo = mMasterInfo.getFilesInfo(currentPath);
@@ -165,16 +189,45 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   }
 
   /**
+   * This function displays the first 5KB of a file if it is in ASCII format.
+   * @param path The path of the file to display
+   * @param response The HttpServletResponse object
+   * @throws FileDoesNotExistException
+   * @throws IOException
+   * @throws InvalidPathException
+   * @throws UnknownHostException
+   */
+  private void displayFile(String path, HttpServletResponse response) 
+      throws FileDoesNotExistException, IOException, InvalidPathException, UnknownHostException {
+    PrintWriter out = response.getWriter();
+    out.println("<html><body>");
+    out.println("<h2>The first 5KB of " + path + " in ASCII</h2>");
+    TachyonClient tachyonClient = TachyonClient.getClient(mMasterInfo.getMasterAddress());
+    TachyonFile tFile = tachyonClient.getFile(path);
+    if (tFile == null) {
+      throw new FileDoesNotExistException(path);
+    }
+    tFile.open(OpType.READ_TRY_CACHE);
+    ByteBuffer buf = tFile.readByteBuffer();
+    byte[] data = new byte[Math.min(5120, (int) tFile.getSize())];
+    buf.get(data);
+    out.println(CommonUtils.convertByteArrayToString(data));
+    out.println("</body></html>");
+    out.close();
+    tFile.close();
+    return;
+  }
+
+  /**
    * This function sets the fileinfos for folders that are in the path to the current directory.
    * 
-   * @param path
-   * @param request
+   * @param path The path of the current directory.
+   * @param request The HttpServletRequest object
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
   private void setPathDirectories(String path, HttpServletRequest request) 
       throws FileDoesNotExistException, InvalidPathException {
-    request.setAttribute("currentDirectory", new UiFileInfo(mMasterInfo.getFileInfo(path)));
     if (path.equals(Constants.PATH_SEPARATOR)) {
       request.setAttribute("pathInfos", new UiFileInfo[0]);
       return;

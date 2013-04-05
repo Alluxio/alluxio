@@ -12,6 +12,9 @@ import tachyon.MasterInfo;
 
 import java.io.IOException;
 
+/**
+ * Servlet that provides data for displaying which files are currently in memory.
+ */
 public class WebInterfaceMemoryServlet extends HttpServlet {
   private static final long serialVersionUID = 4293149962399443914L;
   private MasterInfo mMasterInfo;
@@ -19,7 +22,12 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
   public WebInterfaceMemoryServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
   }
-
+  
+  /**
+   * Populates attributes before redirecting to a jsp.
+   * @param request The HttpServletRequest object
+   * @param response The HttpServletReponse object
+   */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response) 
       throws ServletException, IOException {
