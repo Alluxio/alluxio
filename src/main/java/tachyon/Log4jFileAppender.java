@@ -18,7 +18,7 @@ import org.apache.tools.ant.util.LazyFileOutputStream;
  * both size and day. Also implements batch deletion of logs when the maximum backup index is
  * reached.
  */
-public class TachyonFileAppender extends FileAppender { 
+public class Log4jFileAppender extends FileAppender { 
   private int mMaxBackupIndex = 1;
   private int mMaxFileSize = 1;
   private int mCurrentFileBackupIndex = -1;
