@@ -14,6 +14,7 @@ import org.apache.thrift.TException;
 import tachyon.Version;
 import tachyon.client.TachyonClient;
 import tachyon.conf.CommonConf;
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -27,7 +28,7 @@ public class ConsumeHdfs {
 
   public static void main(String[] args)
       throws SuspectedFileSizeException, InvalidPathException, IOException,
-      FileDoesNotExistException, TException {
+      FileDoesNotExistException, FileAlreadyExistException, TException {
     if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar " + 

@@ -31,6 +31,14 @@ class Utils {
     return ret;
   }
 
+  public static boolean getBooleanProperty(String property) {
+    return Boolean.valueOf(getProperty(property));
+  }
+
+  public static boolean getBooleanProperty(String property, boolean defaultValue) {
+    return Boolean.valueOf(getProperty(property, defaultValue + ""));
+  }
+
   public static int getIntProperty(String property) {
     return Integer.valueOf(getProperty(property));
   }
@@ -39,11 +47,12 @@ class Utils {
     return Integer.valueOf(getProperty(property, defaultValue + ""));
   }
 
-  public static boolean getBooleanProperty(String property) {
-    return Boolean.valueOf(getProperty(property));
+  public static long getLongProperty(String property) {
+    return Long.valueOf(getProperty(property));
   }
 
-  public static boolean getBooleanProperty(String property, boolean defaultValue) {
-    return Boolean.valueOf(getProperty(property, defaultValue + ""));
+  public static long getLongProperty(String property, int defaultValue) {
+    return Long.valueOf(getProperty(property, defaultValue + ""));
   }
+
 }

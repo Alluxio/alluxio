@@ -14,12 +14,10 @@ import tachyon.thrift.MasterService;
 import tachyon.web.UIWebServer;
 
 /**
- * Entry point for the Master program. Master class is singleton.
+ * Entry point for the Master program.
  */
 public class Master {
   private static final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
-
-  private static Master MASTER = null;
 
   private MasterInfo mMasterInfo;
   private InetSocketAddress mMasterAddress;
@@ -59,13 +57,9 @@ public class Master {
     }
   }
 
-  public static synchronized Master createMaster(InetSocketAddress address, int webport,
+  public static Master createMaster(InetSocketAddress address, int webport,
       int selectorThreads, int acceptQueueSizePerThreads, int workerThreads) {
-    if (MASTER == null) {
-      MASTER = new Master(
-          address, webport, selectorThreads, acceptQueueSizePerThreads, workerThreads);
-    }
-    return MASTER;
+    return new Master(address, webport, selectorThreads, acceptQueueSizePerThreads, workerThreads);
   }
 
   public void start() {

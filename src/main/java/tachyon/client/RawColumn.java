@@ -4,6 +4,7 @@ import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.MasterInfo;
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 
@@ -19,7 +20,7 @@ public class RawColumn {
   }
 
   // TODO creating file here should be based on id.
-  public boolean createPartition(int pId) throws InvalidPathException {
+  public boolean createPartition(int pId) throws InvalidPathException, FileAlreadyExistException {
     return TACHYON_CLIENT.createFile(RAW_TABLE.getPath() + Constants.PATH_SEPARATOR + 
         MasterInfo.COL + COLUMN_INDEX + "/" + pId) > 0;
   }

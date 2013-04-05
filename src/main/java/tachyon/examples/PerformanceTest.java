@@ -17,6 +17,7 @@ import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
@@ -40,7 +41,7 @@ public class PerformanceTest {
   private static long[] Results = new long[RESULT_ARRAY_SIZE];
   private static int BASE_FILE_NUMBER = 0;
 
-  public static void createFiles() throws InvalidPathException {
+  public static void createFiles() throws InvalidPathException, FileAlreadyExistException {
     long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < THREADS; k ++) {
       int fileId = MTC.createFile(FILE_NAME + (k + BASE_FILE_NUMBER));
@@ -338,7 +339,8 @@ public class PerformanceTest {
         " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
-  public static void main(String[] args) throws IOException, InvalidPathException {
+  public static void main(String[] args) 
+      throws IOException, InvalidPathException, FileAlreadyExistException {
     if (args.length != 9) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar tachyon.examples.PerformanceTest " + 
@@ -371,7 +373,7 @@ public class PerformanceTest {
         "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ",
         THREADS, FILES / THREADS, FILES, BLOCK_SIZE_BYTES / 1024, 
         BLOCKS_PER_FILE, CommonUtils.getMB(FILE_BYTES), 
-        UserConf.get().BUFFER_PER_PARTITION_BYTES / 1024, BASE_FILE_NUMBER);
+        UserConf.get().FILE_BUFFER_BYTES / 1024, BASE_FILE_NUMBER);
 
     if (testCase == 1) {
       RESULT_PREFIX = "TachyonFilesWriteTest " + RESULT_PREFIX;

@@ -13,6 +13,7 @@ import java.util.Collections;
 
 import org.apache.thrift.TException;
 
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.ClientFileInfo;
@@ -155,7 +156,7 @@ public class TFsShell {
   }
 
   public int copyFromLocal(String argv[]) 
-      throws FileNotFoundException, InvalidPathException, IOException {
+      throws FileNotFoundException, InvalidPathException, IOException, FileAlreadyExistException {
     if (argv.length != 3) {
       System.out.println("Usage: tfs copyFromLocal <src> <remoteDst>");
       return -1;
@@ -235,6 +236,8 @@ public class TFsShell {
       System.out.println("File Does Not Exist: " + fdne.getMessage());
     } catch (IOException ioe) {
       System.out.println(ioe.getMessage());
+    } catch (FileAlreadyExistException faee) {
+      System.out.println(faee.getMessage());
     } finally {
     }
 

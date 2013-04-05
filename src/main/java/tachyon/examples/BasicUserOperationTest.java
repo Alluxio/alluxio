@@ -12,6 +12,7 @@ import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 import tachyon.conf.CommonConf;
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
@@ -22,7 +23,7 @@ public class BasicUserOperationTest {
   private static String sFilePath = null;
   private static OpType sWriteType = null;
 
-  public static void createFile() throws InvalidPathException {
+  public static void createFile() throws InvalidPathException, FileAlreadyExistException {
     long startTimeMs = CommonUtils.getCurrentMs();
     int fileId = sTachyonClient.createFile(sFilePath);
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createFile with fileId " + fileId);
@@ -58,7 +59,8 @@ public class BasicUserOperationTest {
   }
 
   public static void main(String[] args)
-      throws SuspectedFileSizeException, InvalidPathException, IOException {
+      throws SuspectedFileSizeException, InvalidPathException, IOException,
+      FileAlreadyExistException {
     if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar " +

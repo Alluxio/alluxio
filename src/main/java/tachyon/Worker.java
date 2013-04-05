@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
@@ -16,12 +17,10 @@ import tachyon.thrift.Command;
 import tachyon.thrift.WorkerService;
 
 /**
- * Entry point for a worker daemon. Worker class is singleton.
+ * Entry point for a worker daemon.
  */
 public class Worker implements Runnable {
   private static final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
-
-  private static Worker WORKER = null;
 
   private final InetSocketAddress MasterAddress;
   private final InetSocketAddress WorkerAddress;
@@ -130,25 +129,19 @@ public class Worker implements Runnable {
   public static synchronized Worker createWorker(InetSocketAddress masterAddress, 
       InetSocketAddress workerAddress, int dataPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads, String localFolder, long spaceLimitBytes) {
-    if (WORKER == null) {
-      WORKER = new Worker(masterAddress, workerAddress, dataPort, selectorThreads, 
-          acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
-    }
-    return WORKER;
+    return new Worker(masterAddress, workerAddress, dataPort, selectorThreads, 
+        acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
   }
 
   public static synchronized Worker createWorker(String masterAddress, 
       String workerAddress, int dataPort, int selectorThreads, int acceptQueueSizePerThreads,
       int workerThreads, String localFolder, long spaceLimitBytes) {
-    if (WORKER == null) {
-      String[] address = masterAddress.split(":");
-      InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
-      address = workerAddress.split(":");
-      InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
-      WORKER = new Worker(master, worker, dataPort, selectorThreads, 
-          acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
-    }
-    return WORKER;
+    String[] address = masterAddress.split(":");
+    InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
+    address = workerAddress.split(":");
+    InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
+    return new Worker(master, worker, dataPort, selectorThreads, 
+        acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
   }
 
   public void start() {
@@ -161,11 +154,15 @@ public class Worker implements Runnable {
   }
 
   @SuppressWarnings("deprecation")
-  public void stop() {
+  public void stop() throws IOException {
+    mDataServer.close();
     // TODO better stop for these two threads.
-    mDataServerThread.stop();
     mHeartbeatThread.stop();
     mServer.stop();
+    while (!mDataServer.isClosed()) {
+      CommonUtils.tempoaryLog("Waiting to close dataserver");
+      CommonUtils.sleepMs(null, 100);
+    }
   }
 
   public static void main(String[] args) throws UnknownHostException {
