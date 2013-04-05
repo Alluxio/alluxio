@@ -6,6 +6,10 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import tachyon.client.TachyonClient;
+import tachyon.conf.CommonConf;
+import tachyon.conf.MasterConf;
+import tachyon.conf.UserConf;
+import tachyon.conf.WorkerConf;
 
 /**
  * Local Tachyon cluster for unit tests.
@@ -62,6 +66,11 @@ public class LocalTachyonCluster {
     System.setProperty("tachyon.worker.data.port", (mWorkerPort + 1) + "");
     System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
+
+    CommonConf.clear();
+    MasterConf.clear();
+    WorkerConf.clear();
+    UserConf.clear();
 
     mMaster = Master.createMaster(
         new InetSocketAddress(mLocalhostName, mMasterPort), mMasterPort + 1, 1, 1, 1);
