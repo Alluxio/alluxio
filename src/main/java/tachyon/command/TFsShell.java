@@ -178,6 +178,7 @@ public class TFsShell {
     }
     channel.close();
     out.close();
+    tFile.close();
     System.out.println("Copied " + srcPath + " to " + dstPath);
     return 0;
   }
