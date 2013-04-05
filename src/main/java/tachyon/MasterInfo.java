@@ -89,7 +89,7 @@ public class MasterInfo {
 
     @Override
     public void heartbeat() {
-      LOG.debug("Periodical system status checking...");
+      LOG.debug("System status checking.");
 
       Set<Long> lostWorkers = new HashSet<Long>();
 
@@ -212,8 +212,7 @@ public class MasterInfo {
 
   public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes,
       String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException {
-    LOG.info("addCheckpoint" + CommonUtils.parametersToString(workerId, fileId, fileSizeBytes,
-        checkpointPath));
+    LOG.info(CommonUtils.parametersToString(workerId, fileId, fileSizeBytes, checkpointPath));
 
     if (workerId != -1) {
       WorkerInfo tWorkerInfo = getWorkerInfo(workerId);
@@ -268,8 +267,7 @@ public class MasterInfo {
    */
   public void cachedFile(long workerId, long workerUsedBytes, int fileId,
       long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException {
-    LOG.info("cachedFile" + CommonUtils.parametersToString(workerId, workerUsedBytes, fileId, 
-        fileSizeBytes));
+    LOG.info(CommonUtils.parametersToString(workerId, workerUsedBytes, fileId, fileSizeBytes));
 
     WorkerInfo tWorkerInfo = getWorkerInfo(workerId);
     tWorkerInfo.updateFile(true, fileId);
@@ -1050,7 +1048,7 @@ public class MasterInfo {
   }
 
   public Command workerHeartbeat(long workerId, long usedBytes, List<Integer> removedFileIds) {
-    LOG.debug("workerHeartbeat(): WorkerId: " + workerId);
+    LOG.debug("WorkerId: " + workerId);
     synchronized (mWorkers) {
       WorkerInfo tWorkerInfo = mWorkers.get(workerId);
 

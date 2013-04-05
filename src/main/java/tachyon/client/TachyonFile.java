@@ -39,7 +39,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 public class TachyonFile {
   private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
   private final UserConf USER_CONF = UserConf.get();
-      
+
   private final TachyonClient mTachyonClient;
   private final ClientFileInfo mClientFileInfo;
   private final int mId;
@@ -87,10 +87,10 @@ public class TachyonFile {
   private synchronized void appendCurrentBuffer(int minimalPosition) throws IOException {
     if (mBuffer.position() >= minimalPosition) {
       if (mIoType.isWriteCache()) {
-//        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
-//          CommonUtils.runtimeException(
-//              String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
-//        }
+        //        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
+        //          CommonUtils.runtimeException(
+        //              String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
+        //        }
 
         if (!mTachyonClient.requestSpace(mBuffer.position())) {
           if (mClientFileInfo.isNeedPin()) {
@@ -148,10 +148,10 @@ public class TachyonFile {
 
     if (mBuffer.position() + len >= USER_CONF.FILE_BUFFER_BYTES) {
       if (mIoType.isWriteCache()) {
-//        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
-//          CommonUtils.runtimeException(
-//              String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
-//        }
+        //        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
+        //          CommonUtils.runtimeException(
+        //              String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
+        //        }
 
         if (!mTachyonClient.requestSpace(mBuffer.position() + len)) {
           if (mClientFileInfo.isNeedPin()) {
@@ -336,15 +336,13 @@ public class TachyonFile {
 
   public int read() throws IOException {
     //    validateIO(true);
-    if (mBuffer != null) {
-      try {
-        return mBuffer.get();
-      } catch (java.nio.BufferUnderflowException e) {
-        close();
-        return -1;
-      }
+    try {
+      return mBuffer.get();
+    } catch (java.nio.BufferUnderflowException e) {
+      close();
+      return -1;
+    } catch (NullPointerException e) {
     }
-
     return mCheckpointInputStream.read();
   }
 
@@ -368,7 +366,7 @@ public class TachyonFile {
         close();
         return -1;
       }
-      mBuffer.get(b, off, len);
+      mBuffer.get(b, off, ret);
       return ret;
     }
 

@@ -79,10 +79,10 @@ public class Worker implements Runnable {
     while (true) {
       long diff = System.currentTimeMillis() - lastHeartbeatMs;
       if (diff < WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS) {
-        LOG.warn("Last heartbeat related process takes " + diff + " ms.");
+        LOG.warn("Heartbeat process takes " + diff + " ms.");
         CommonUtils.sleepMs(LOG, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS - diff);
       } else {
-        LOG.warn("Last heartbeat related process takes " + diff + " ms.");
+        LOG.warn("Heartbeat process takes " + diff + " ms.");
       }
 
       try {
@@ -102,23 +102,23 @@ public class Worker implements Runnable {
       if (cmd != null) {
         switch (cmd.mCommandType) {
           case Unknown :
-            LOG.error("Heartbeat got Unknown command: " + cmd);
+            LOG.error("Unknown command: " + cmd);
             break;
           case Nothing :
-            LOG.debug("Heartbeat got Nothing command: " + cmd);
+            LOG.debug("Nothing command: " + cmd);
             break;
           case Register :
             mWorkerServiceHandler.register();
-            LOG.info("Heartbeat got Register command: " + cmd);
+            LOG.info("Register command: " + cmd);
             break;
           case Free :
-            LOG.info("Heartbeat got Free command: " + cmd);
+            LOG.info("Free command: " + cmd);
             break;
           case Delete :
-            LOG.info("Heartbeat got Delete command: " + cmd);
+            LOG.info("Delete command: " + cmd);
             break;
           default :
-            CommonUtils.runtimeException("Got un-recognized command from master " + cmd.toString());
+            CommonUtils.runtimeException("Un-recognized command from master " + cmd.toString());
         }
       }
 
