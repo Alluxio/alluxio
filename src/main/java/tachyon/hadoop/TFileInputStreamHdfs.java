@@ -123,10 +123,6 @@ implements Seekable, PositionedReadable {
 
   @Override
   public int read() throws IOException {
-    if (mHdfsInputStream != null) {
-      return readFromHdfsBuffer();
-    }
-
     if (mTachyonFileInputStream != null) {
       int ret = 0;
       try {
@@ -137,6 +133,10 @@ implements Seekable, PositionedReadable {
         LOG.error(e.getMessage(), e);
         mTachyonFileInputStream = null;
       }
+    }
+
+    if (mHdfsInputStream != null) {
+      return readFromHdfsBuffer();
     }
 
     FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
