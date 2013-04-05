@@ -13,6 +13,11 @@ import org.apache.log4j.spi.ErrorCode;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.tools.ant.util.LazyFileOutputStream;
 
+/**
+ * Custom log4j appender which preserves old logs on system restart, rolls over logs based on
+ * both size and day. Also implements batch deletion of logs when the maximum backup index is
+ * reached.
+ */
 public class TachyonFileAppender extends FileAppender { 
   private int mMaxBackupIndex = 1;
   private int mMaxFileSize = 1;
@@ -39,6 +44,10 @@ public class TachyonFileAppender extends FileAppender {
     }
   }
 
+  /**
+   * Called when a new log attempt is made, either due to server restart or rollover. The filename
+   * is modified to identify the logging node in getNewFileName.
+   */
   @Override
   public void activateOptions() {
     if (fileName != null) {
@@ -56,7 +65,14 @@ public class TachyonFileAppender extends FileAppender {
       }
     }
   }
-
+  
+  /**
+   * Creates a LazyFileOutputStream so logs are only created when a message is logged.
+   * @param fileName
+   * @param append
+   * @param bufferedIO
+   * @param bufferSize
+   */
   @Override
   public synchronized void setFile(String fileName, boolean append, boolean bufferedIO, 
       int bufferSize) throws IOException  {
@@ -82,6 +98,11 @@ public class TachyonFileAppender extends FileAppender {
     writeHeader();
   }
 
+  /**
+   * Called whenever a new message is logged. Checks both the date and size to determine if
+   * rollover is necessary.
+   * @param event 
+   */
   @Override
   public synchronized void subAppend(LoggingEvent event) {
     File currentLog = new File(mCurrentFileName);
@@ -92,7 +113,11 @@ public class TachyonFileAppender extends FileAppender {
     super.subAppend(event);
   }
 
-
+  /**
+   * Gets a log file name which includes the logger's host address and the date.
+   * @param fileName The base filename
+   * @return A new filename string
+   */
   private String getNewLogFileName(String fileName) {
     if (!fileName.isEmpty()) {
       String newFileName = "";
@@ -121,6 +146,12 @@ public class TachyonFileAppender extends FileAppender {
     }
   }
 
+  /**
+   * Rotates logs. The previous current log is set to the next available index. If the index has
+   * reached the maximum backup index, a percent of backup logs will be deleted, started from the
+   * earliest first. Then all rolledover logs will be moved up.
+   * @param fileName The fileName of the new current log.
+   */
   private void rotateLogs(String fileName) {
     String suffix = "";
     if (fileName.indexOf(".") != -1) {

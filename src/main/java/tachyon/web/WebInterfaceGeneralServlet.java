@@ -14,6 +14,9 @@ import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.thrift.ClientWorkerInfo;
 
+/**
+ * Servlet that provides data for viewing the general status of the filesystem.
+ */
 public class WebInterfaceGeneralServlet extends HttpServlet {
   private static final long serialVersionUID = 2335205655766736309L;
 
@@ -69,7 +72,12 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   public WebInterfaceGeneralServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
   }
-
+  
+  /**
+   * Redirects the request to a jsp after populating attributes via populateValues.
+   * @param request The HttpServletRequest object
+   * @param response The HttpServletResponse object
+   */  
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) 
       throws ServletException, IOException {
@@ -84,7 +92,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
   /**
    * Populates key, value pairs for UI display
-   * @param request
+   * @param request The HttpServletRequest object
    */
   private void populateValues(HttpServletRequest request) {
     request.setAttribute("debug", CommonConf.get().DEBUG);
