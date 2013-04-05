@@ -147,7 +147,8 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       UiFileInfo currentFileInfo = new UiFileInfo(mMasterInfo.getFileInfo(currentPath));
       request.setAttribute("currentDirectory", currentFileInfo);
       if (!currentFileInfo.getIsDirectory()) {
-        displayFile(currentFileInfo.getAbsolutePath(), response);
+        displayFile(currentFileInfo.getAbsolutePath(), request);
+        getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
         return;
       }
       CommonUtils.validatePath(currentPath);
@@ -191,17 +192,14 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   /**
    * This function displays the first 5KB of a file if it is in ASCII format.
    * @param path The path of the file to display
-   * @param response The HttpServletResponse object
+   * @param request The HttpServletRequest object
    * @throws FileDoesNotExistException
    * @throws IOException
    * @throws InvalidPathException
    * @throws UnknownHostException
    */
-  private void displayFile(String path, HttpServletResponse response) 
+  private void displayFile(String path, HttpServletRequest request) 
       throws FileDoesNotExistException, IOException, InvalidPathException, UnknownHostException {
-    PrintWriter out = response.getWriter();
-    out.println("<html><body>");
-    out.println("<h2>The first 5KB of " + path + " in ASCII</h2>");
     TachyonClient tachyonClient = TachyonClient.getClient(mMasterInfo.getMasterAddress());
     TachyonFile tFile = tachyonClient.getFile(path);
     if (tFile == null) {
@@ -211,10 +209,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     ByteBuffer buf = tFile.readByteBuffer();
     byte[] data = new byte[Math.min(5120, (int) tFile.getSize())];
     buf.get(data);
-    out.println(CommonUtils.convertByteArrayToString(data));
-    out.println("</body></html>");
-    out.close();
-    tFile.close();
+    request.setAttribute("fileData", CommonUtils.convertByteArrayToString(data));
     return;
   }
 
