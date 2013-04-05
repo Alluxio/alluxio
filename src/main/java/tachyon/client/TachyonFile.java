@@ -119,7 +119,7 @@ public class TachyonFile {
   public void append(byte b) throws IOException {
     //    validateIO(false);
 
-    appendCurrentBuffer(USER_CONF.BUFFER_PER_PARTITION_BYTES);
+    appendCurrentBuffer(USER_CONF.FILE_BUFFER_BYTES);
 
     mBuffer.put(b);
   }
@@ -127,7 +127,7 @@ public class TachyonFile {
   public void append(int b) throws IOException {
     //    validateIO(false);
 
-    appendCurrentBuffer(USER_CONF.BUFFER_PER_PARTITION_BYTES);
+    appendCurrentBuffer(USER_CONF.FILE_BUFFER_BYTES);
 
     mBuffer.putInt(b);
   }
@@ -146,7 +146,7 @@ public class TachyonFile {
 
     //    validateIO(false);
 
-    if (mBuffer.position() + len >= USER_CONF.BUFFER_PER_PARTITION_BYTES) {
+    if (mBuffer.position() + len >= USER_CONF.FILE_BUFFER_BYTES) {
       if (mIoType.isWriteCache()) {
 //        if (Config.DEBUG && mSizeBytes != mLocalFile.length()) {
 //          CommonUtils.runtimeException(
@@ -293,7 +293,7 @@ public class TachyonFile {
     mIoType = io;
 
     if (mIoType.isWrite()) {
-      mBuffer = ByteBuffer.allocate(USER_CONF.BUFFER_PER_PARTITION_BYTES + 4);
+      mBuffer = ByteBuffer.allocate(USER_CONF.FILE_BUFFER_BYTES + 4);
       mBuffer.order(ByteOrder.nativeOrder());
 
       if (mIoType.isWriteCache()) {
@@ -475,7 +475,7 @@ public class TachyonFile {
     FSDataInputStream inputStream = tHdfsClient.open(path);
     TachyonFile tTFile = mTachyonClient.getFile(mClientFileInfo.getId());
     tTFile.open(OpType.WRITE_CACHE);
-    byte buffer[] = new byte[USER_CONF.BUFFER_PER_PARTITION_BYTES * 4];
+    byte buffer[] = new byte[USER_CONF.FILE_BUFFER_BYTES * 4];
 
     int limit;
     while ((limit = inputStream.read(buffer)) >= 0) {

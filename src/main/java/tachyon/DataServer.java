@@ -42,6 +42,9 @@ public class DataServer implements Runnable {
   // The local worker service handler.
   private WorkerServiceHandler mWorkerServiceHandler;
 
+  private boolean mShutdown = false;
+  private boolean mShutdowned = false;
+
   public DataServer(InetSocketAddress address, WorkerServiceHandler workerServiceHandler) {
     LOG.info("Starting DataServer @ " + address);
     mAddress = address;
@@ -162,12 +165,26 @@ public class DataServer implements Runnable {
     }
   }
 
+  public void close() throws IOException {
+    mShutdown = true;
+    mServerChannel.close();
+    mSelector.close();
+  }
+
+  public boolean isClosed() {
+    return mShutdowned;
+  }
+
   @Override
   public void run() {
     while (true) {
       try {
         // Wait for an event one of the registered channels.
         mSelector.select();
+        if (mShutdown) {
+          mShutdowned = true;
+          return;
+        }
 
         // Iterate over the set of keys for which events are available
         Iterator<SelectionKey> selectKeys = mSelector.selectedKeys().iterator();
@@ -189,7 +206,7 @@ public class DataServer implements Runnable {
             write(key);
           }
         }
-      } catch (Exception e) {
+      } catch (IOException e) {
         LOG.error(e.getMessage(), e);
         throw new RuntimeException(e);
       }

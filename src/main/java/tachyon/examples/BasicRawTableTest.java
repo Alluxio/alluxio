@@ -15,6 +15,7 @@ import tachyon.client.RawTable;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 import tachyon.conf.CommonConf;
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfMemoryForPinFileException;
 import tachyon.thrift.TableDoesNotExistException;
@@ -40,7 +41,8 @@ public class BasicRawTableTest {
   }
 
   public static void writeParition() 
-      throws IOException, TableDoesNotExistException, InvalidPathException, TException {
+      throws IOException, TableDoesNotExistException, InvalidPathException, 
+      FileAlreadyExistException, TException {
     RawTable rawTable = sTachyonClient.getRawTable(sTablePath);
 
     LOG.info("Writing data...");
@@ -93,7 +95,7 @@ public class BasicRawTableTest {
 
   public static void main(String[] args)
       throws IOException, TableDoesNotExistException, OutOfMemoryForPinFileException, 
-      InvalidPathException, TException {
+      InvalidPathException, FileAlreadyExistException, TException {
     if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar " +

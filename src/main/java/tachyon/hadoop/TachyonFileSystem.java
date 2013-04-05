@@ -21,6 +21,7 @@ import org.apache.thrift.TException;
 import tachyon.CommonUtils;
 import tachyon.client.TachyonClient;
 import tachyon.conf.CommonConf;
+import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
@@ -115,9 +116,11 @@ public class TachyonFileSystem extends FileSystem {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
       throw new IOException(e);
+    } catch (FileAlreadyExistException e) {
+      throw new IOException(e);
     } catch (TException e) {
       LOG.error(e.getMessage());
-    }
+    } 
 
     LOG.info("HERE!!!!!!!!!!!!!!!!!!!!");
     FileStatus ret = new FileStatus(hfs.getLen(), hfs.isDir(), hfs.getReplication(),

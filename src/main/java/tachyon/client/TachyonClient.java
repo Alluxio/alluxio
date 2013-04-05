@@ -37,7 +37,7 @@ import tachyon.thrift.TableDoesNotExistException;
  */
 public class TachyonClient {
   private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
-  
+
   private final long USER_QUOTA_UNIT_BYTES = UserConf.get().QUOTA_UNIT_BYTES;
   private final int USER_FAILED_SPACE_REQUEST_LIMITS = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
 
@@ -322,7 +322,8 @@ public class TachyonClient {
     }
   }
 
-  public synchronized int createFile(String path) throws InvalidPathException {
+  public synchronized int createFile(String path)
+      throws InvalidPathException, FileAlreadyExistException {
     connect();
     if (!mConnected) {
       return -1;
@@ -331,9 +332,6 @@ public class TachyonClient {
     int fileId = -1;
     try {
       fileId = mMasterClient.user_createFile(path);
-    } catch (FileAlreadyExistException e) {
-      LOG.info(e.getMessage());
-      fileId = -1;
     } catch (TException e) {
       LOG.error(e.getMessage());
       mConnected = false;

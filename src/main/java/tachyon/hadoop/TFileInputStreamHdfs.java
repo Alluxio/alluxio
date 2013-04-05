@@ -34,7 +34,7 @@ implements Seekable, PositionedReadable {
 
   private int mBufferLimit = 0;
   private int mBufferPosition = 0;
-  private byte mBuffer[] = new byte[UserConf.get().BUFFER_PER_PARTITION_BYTES * 4];
+  private byte mBuffer[] = new byte[UserConf.get().FILE_BUFFER_BYTES * 4];
 
   public TFileInputStreamHdfs(TachyonClient tachyonClient, int fileId, 
       Path hdfsPath, Configuration conf, int bufferSize) throws IOException {

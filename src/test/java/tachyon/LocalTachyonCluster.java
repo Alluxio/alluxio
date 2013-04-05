@@ -2,6 +2,7 @@ package tachyon;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import tachyon.client.TachyonClient;
@@ -23,6 +24,8 @@ public class LocalTachyonCluster {
   private Thread mMasterThread = null;
   private Thread mWorkerThread = null;
 
+  private String mLocalhostName = null;
+
   public LocalTachyonCluster(int masterPort, int workerPort, long workerCapacityBytes) {
     mMasterPort = masterPort;
     mWorkerPort = workerPort;
@@ -30,7 +33,7 @@ public class LocalTachyonCluster {
   }
 
   public TachyonClient getClient() {
-    return TachyonClient.getClient("localhost:" + mMasterPort);
+    return TachyonClient.getClient(mLocalhostName + ":" + mMasterPort);
   }
 
   private void mkdir(String path) throws IOException {
@@ -49,8 +52,10 @@ public class LocalTachyonCluster {
     mkdir(masterDataFolder);
     mkdir(masterLogFolder);
 
+    mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
+
     System.setProperty("tachyon.home", mTachyonHome);
-    System.setProperty("tachyon.master.hostname", "localhost");
+    System.setProperty("tachyon.master.hostname", mLocalhostName);
     System.setProperty("tachyon.master.port", mMasterPort + "");
     System.setProperty("tachyon.master.web.port", (mMasterPort + 1) + "");
     System.setProperty("tachyon.worker.port", mWorkerPort + "");
@@ -59,7 +64,7 @@ public class LocalTachyonCluster {
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
 
     mMaster = Master.createMaster(
-        new InetSocketAddress("localhost", mMasterPort), mMasterPort + 1, 1, 1, 1);
+        new InetSocketAddress(mLocalhostName, mMasterPort), mMasterPort + 1, 1, 1, 1);
 
     Runnable runMaster = new Runnable() {
       public void run() {
@@ -69,11 +74,11 @@ public class LocalTachyonCluster {
     mMasterThread = new Thread(runMaster);
     mMasterThread.start();
 
-    CommonUtils.sleepMs(null, 10 * 1000);
+    CommonUtils.sleepMs(null, 100);
 
     mWorker = Worker.createWorker(
-        new InetSocketAddress("localhost", mMasterPort), 
-        new InetSocketAddress("localhost", mWorkerPort),
+        new InetSocketAddress(mLocalhostName, mMasterPort), 
+        new InetSocketAddress(mLocalhostName, mWorkerPort),
         mWorkerPort + 1, 1, 1, 1, mWorkerDataFolder, mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {
       public void run() {
@@ -101,7 +106,14 @@ public class LocalTachyonCluster {
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(1998, 2998, 100);
     cluster.start();
-    CommonUtils.sleepMs(null, 10 * 1000);
+    CommonUtils.sleepMs(null, 1000);
     cluster.stop();
+    CommonUtils.sleepMs(null, 1000);
+
+    cluster = new LocalTachyonCluster(1998, 2998, 100);
+    cluster.start();
+    CommonUtils.sleepMs(null, 1000);
+    cluster.stop();
+    CommonUtils.sleepMs(null, 1000);
   }
 }
