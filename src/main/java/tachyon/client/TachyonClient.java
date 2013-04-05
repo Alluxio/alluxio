@@ -363,6 +363,10 @@ public class TachyonClient {
     return deleteFile(getFileId(path));
   }
 
+  public synchronized boolean existFile(String path) throws InvalidPathException {
+    return getFileId(path) != -1;
+  }
+
   public synchronized boolean renameFile(String srcPath, String dstPath) 
       throws InvalidPathException {
     connect();
@@ -513,8 +517,7 @@ public class TachyonClient {
     try {
       fileId = mMasterClient.user_getFileId(path);
     } catch (TException e) {
-      // TODO Ideally, this exception should be throws to the upper upper layer, and 
-      // remove notContainDataset(datasetPath) method. This is for absolutely fall through.
+      // TODO Ideally, this exception should be throws to the upper upper layer.
       LOG.error(e.getMessage());
       mConnected = false;
       return -1;
