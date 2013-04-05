@@ -47,7 +47,7 @@ public class TFsShell {
     return 0;
   }
 
-  public int mkdir(String argv[]) throws InvalidPathException {
+  public int mkdir(String argv[]) throws InvalidPathException, FileAlreadyExistException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs mkdir <path>");
       return -1;
