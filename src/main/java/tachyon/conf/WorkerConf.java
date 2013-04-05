@@ -45,4 +45,11 @@ public class WorkerConf extends Utils {
 
     return WORKER_CONF;
   }
+
+  /**
+   * This is for unit test only. DO NOT use it for other purpose.
+   */
+  public static synchronized void clear() {
+    WORKER_CONF = null;
+  }
 }
