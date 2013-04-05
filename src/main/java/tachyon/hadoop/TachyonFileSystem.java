@@ -122,11 +122,10 @@ public class TachyonFileSystem extends FileSystem {
       LOG.error(e.getMessage());
     } 
 
-    LOG.info("HERE!!!!!!!!!!!!!!!!!!!!");
     FileStatus ret = new FileStatus(hfs.getLen(), hfs.isDir(), hfs.getReplication(),
         Integer.MAX_VALUE, hfs.getModificationTime(), hfs.getAccessTime(), hfs.getPermission(),
-        hfs.getOwner(), hfs.getGroup(), new Path(mTachyonHeader + filePath));// + tFileSuffix));
-    LOG.info("HERE==================== " + mTachyonHeader + filePath);// + tFileSuffix);
+        hfs.getOwner(), hfs.getGroup(), new Path(mTachyonHeader + filePath));
+    LOG.info(mTachyonHeader + filePath);
 
     LOG.debug("HFS: " + Utils.toStringHadoopFileStatus(hfs));
     LOG.debug("TFS: " + Utils.toStringHadoopFileStatus(ret));
