@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class TFileInputStream extends InputStream {
-  private final TachyonFile FILE; 
+  private final TachyonFile FILE;
 
   public TFileInputStream(TachyonFile file) {
     FILE = file;

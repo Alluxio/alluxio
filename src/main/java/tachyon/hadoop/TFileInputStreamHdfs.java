@@ -146,6 +146,44 @@ implements Seekable, PositionedReadable {
     return readFromHdfsBuffer();
   }
 
+  @Override
+  public int read(byte b[]) throws IOException {
+    throw new IOException("Not supported");
+  }
+
+  @Override
+  public int read(byte b[], int off, int len) throws IOException {
+    if (mTachyonFileInputStream != null) {
+      int ret = 0;
+      try {
+        ret = mTachyonFileInputStream.read(b, off, len);
+        mCurrentPosition += ret;
+        return ret;
+      } catch (IOException e) {
+        LOG.error(e.getMessage(), e);
+        mTachyonFileInputStream = null;
+      }
+    }
+
+    if (mHdfsInputStream != null) {
+      b[off] = (byte) readFromHdfsBuffer();
+      if (b[off] == -1) {
+        return -1;
+      }
+      return 1;
+    }
+
+    FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
+    mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
+    mHdfsInputStream.seek(mCurrentPosition);
+
+    b[off] = (byte) readFromHdfsBuffer();
+    if (b[off] == -1) {
+      return -1;
+    }
+    return 1;
+  }
+
   private int readFromHdfsBuffer() throws IOException {
     LOG.error("Reading from HDFS directly");
     if (mBufferPosition < mBufferLimit) {
