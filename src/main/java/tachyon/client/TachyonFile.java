@@ -440,6 +440,9 @@ public class TachyonFile {
     for (int k = 0 ;k < fileLocations.size(); k ++) {
       String host = fileLocations.get(k).mHost;
       int port = fileLocations.get(k).mPort;
+      if (port == -1) {
+        continue;
+      }
       if (host.equals(InetAddress.getLocalHost().getHostName()) 
           || host.equals(InetAddress.getLocalHost().getHostAddress())) {
         String localFileName = mTachyonClient.getRootFolder() + "/" + mId;
