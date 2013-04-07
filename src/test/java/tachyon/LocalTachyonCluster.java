@@ -83,7 +83,7 @@ public class LocalTachyonCluster {
     mMasterThread = new Thread(runMaster);
     mMasterThread.start();
 
-    CommonUtils.sleepMs(null, 100);
+    CommonUtils.sleepMs(null, 10);
 
     mWorker = Worker.createWorker(
         new InetSocketAddress(mLocalhostName, mMasterPort), 

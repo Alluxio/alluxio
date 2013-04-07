@@ -37,7 +37,7 @@ implements Seekable, PositionedReadable {
   private byte mBuffer[] = new byte[UserConf.get().FILE_BUFFER_BYTES * 4];
 
   public TFileInputStreamHdfs(TachyonClient tachyonClient, int fileId, 
-      Path hdfsPath, Configuration conf, int bufferSize) throws IOException {
+      Path hdfsPath, Configuration conf, int bufferSize) {
     LOG.debug("PartitionInputStreamHdfs(" + tachyonClient + ", " + fileId + ", "
         + hdfsPath + ", " + conf + ", " + bufferSize + ")");
     mCurrentPosition = 0;
@@ -50,12 +50,11 @@ implements Seekable, PositionedReadable {
     TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
     try {
       tachyonFile.open(OpType.READ_TRY_CACHE);
+      mTachyonFileInputStream = tachyonFile.getInputStream();
     } catch (IOException e) {
       LOG.error(e.getMessage());
       return;
     }
-
-    mTachyonFileInputStream = tachyonFile.getInputStream();
   }
 
   /**
@@ -185,10 +184,10 @@ implements Seekable, PositionedReadable {
   }
 
   private int readFromHdfsBuffer() throws IOException {
-    LOG.error("Reading from HDFS directly");
     if (mBufferPosition < mBufferLimit) {
       return mBuffer[mBufferPosition ++];
     }
+    LOG.error("Reading from HDFS directly");
     while ((mBufferLimit = mHdfsInputStream.read(mBuffer)) == 0) {
       LOG.error("Read 0 bytes in readFromHdfsBuffer for " + mHdfsPath); 
     }

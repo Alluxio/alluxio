@@ -245,7 +245,7 @@ public class TachyonFileSystem extends FileSystem {
 
   @Override
   /**
-   * Return the inputstream of a partition.
+   * Return the inputstream of a file.
    */
   public FSDataInputStream open(Path cPath, int bufferSize) throws IOException {
     LOG.info("TachyonFileSystem open(" + cPath + ", " + bufferSize + ")");

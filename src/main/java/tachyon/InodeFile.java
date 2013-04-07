@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import tachyon.thrift.NetAddress;
+import tachyon.thrift.SuspectedFileSizeException;
 
 public class InodeFile extends Inode {
   public static final long UNINITIAL_VALUE = -1;
@@ -26,9 +27,13 @@ public class InodeFile extends Inode {
     return mLength;
   }
 
-  public synchronized void setLength(long length) {
-    assert mLength == UNINITIAL_VALUE : "InodeFile length was set previously.";
-    assert length < 0 : "InodeFile new length " + length + " is illegal.";
+  public synchronized void setLength(long length) throws SuspectedFileSizeException {
+    if (mLength != UNINITIAL_VALUE) {
+      throw new SuspectedFileSizeException("InodeFile length was set previously.");
+    }
+    if (length < 0) {
+      throw new SuspectedFileSizeException("InodeFile new length " + length + " is illegal.");
+    }
     mLength = length;
   }
 

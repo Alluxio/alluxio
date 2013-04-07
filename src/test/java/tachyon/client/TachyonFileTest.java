@@ -1,0 +1,66 @@
+package tachyon.client;
+
+import java.io.IOException;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import tachyon.LocalTachyonCluster;
+import tachyon.Utils;
+import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.InvalidPathException;
+
+public class TachyonFileTest {
+  LocalTachyonCluster mLocalTachyonCluster = null;
+  TachyonClient mClient = null;
+
+  @Before
+  public final void before() throws IOException {
+    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
+    mLocalTachyonCluster = new LocalTachyonCluster(5555, 6666, 1000);
+    mLocalTachyonCluster.start();
+    mClient = mLocalTachyonCluster.getClient();
+  }
+
+  @After
+  public final void after() throws Exception {
+    mLocalTachyonCluster.stop();
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+  }
+
+  @Test
+  public void appendTest1() throws InvalidPathException, FileAlreadyExistException, IOException {
+    int fileId = mClient.createFile("/root/testFile1");
+    Assert.assertEquals(3, fileId);
+
+    TachyonFile file = mClient.getFile(fileId);
+    file.open(OpType.WRITE_CACHE);
+    for (int k = 0; k < 100; k ++) {
+      file.append((byte) k);
+    }
+    file.close();
+    
+    file = mClient.getFile("/root/testFile1");
+    file.open(OpType.READ_TRY_CACHE);
+    Assert.assertTrue(Utils.equalIncreasingByteBuffer(100, file.readByteBuffer()));
+  }
+  
+  @Test
+  public void appendTest2() throws InvalidPathException, FileAlreadyExistException, IOException {
+    int fileId = mClient.createFile("/root/testFile1");
+    Assert.assertEquals(3, fileId);
+
+    TachyonFile file = mClient.getFile(fileId);
+    file.open(OpType.WRITE_CACHE);
+    for (int k = 0; k < 100; k ++) {
+      file.append(k);
+    }
+    file.close();
+    
+    file = mClient.getFile("/root/testFile1");
+    file.open(OpType.READ_TRY_CACHE);
+    Assert.assertTrue(Utils.equalIncreasingIntBuffer(100, file.readByteBuffer()));
+  }
+}

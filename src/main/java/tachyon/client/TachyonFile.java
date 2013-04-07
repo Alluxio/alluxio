@@ -321,7 +321,12 @@ public class TachyonFile {
       mBuffer = null;
       mCheckpointInputStream = null;
       if (mIoType.isReadTryCache()) {
-        mBuffer = readByteBuffer();
+        try {
+          mBuffer = readByteBuffer();
+        } catch (IOException e) {
+          mTachyonClient.unlockFile(mId);
+          throw e;
+        }
       }
       if (mBuffer == null && !mClientFileInfo.checkpointPath.equals("")) {
         LOG.warn("Will stream from underlayer fs.");
@@ -329,6 +334,7 @@ public class TachyonFile {
         mCheckpointInputStream = tHdfsClient.open(mClientFileInfo.checkpointPath);
       }
       if (mBuffer == null && mCheckpointInputStream == null) {
+        mTachyonClient.unlockFile(mId);
         throw new IOException("Can not find file " + mClientFileInfo.getPath());
       }
     }
@@ -479,15 +485,22 @@ public class TachyonFile {
     byte buffer[] = new byte[USER_CONF.FILE_BUFFER_BYTES * 4];
 
     int limit;
+    boolean succeed = true;
     while ((limit = inputStream.read(buffer)) >= 0) {
       if (limit != 0) {
-        tTFile.append(buffer, 0, limit);
+        try {
+          tTFile.append(buffer, 0, limit);
+        } catch (IOException e) {
+          LOG.warn(e);
+          succeed = false;
+          break;
+        }
       }
     }
 
-    tTFile.close();
+    tTFile.close(!succeed);
 
-    return true;
+    return succeed;
   }
 
   private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address) 
