@@ -31,7 +31,7 @@ public class MasterConf extends Utils {
         "tachyon.master.checkpoint.file", TACHYON_HOME + "/data/tachyon_checkpoint.data");
     LOG_FILE = getProperty("tachyon.master.log.file", TACHYON_HOME + "/data/tachyon_log.data");
 
-    HOSTNAME = getProperty("tachyon.master.hostname");
+    HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
     WEB_PORT = getIntProperty("tachyon.master.web.port", Constants.DEFAULT_MASTER_WEB_PORT);
 

@@ -12,7 +12,7 @@ public class UserConf extends Utils {
 
   private UserConf() {
     FAILED_SPACE_REQUEST_LIMITS = getIntProperty("tachyon.user.failed.space.request.limits", 3);
-    QUOTA_UNIT_BYTES = getLongProperty("tachyon.user.quota.unit.bytes", 16 * Constants.MB);
+    QUOTA_UNIT_BYTES = getLongProperty("tachyon.user.quota.unit.bytes", 8 * Constants.MB);
     FILE_BUFFER_BYTES = getIntProperty("tachyon.user.file.buffer.bytes", Constants.MB);
     HEARTBEAT_INTERVAL_MS = getIntProperty("tachyon.user.heartbeat.interval.ms", 1000);
   }
