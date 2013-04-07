@@ -82,7 +82,7 @@ public class Worker implements Runnable {
         LOG.warn("Heartbeat process takes " + diff + " ms.");
         CommonUtils.sleepMs(LOG, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS - diff);
       } else {
-        LOG.warn("Heartbeat process takes " + diff + " ms.");
+        LOG.debug("Heartbeat process takes " + diff + " ms.");
       }
 
       try {
