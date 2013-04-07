@@ -54,7 +54,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   private File mDataFolder;
   private File mUserFolder;
   private Path mHdfsWorkerFolder;
-  private HdfsClient mHdfsClient;
+  private UnderFileSystem mUnderFs;
 
   private Users mUsers;
 
@@ -84,7 +84,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     mWorkerInfo = new WorkerInfo(id, workerAddress, spaceLimitBytes);
     mHdfsWorkerFolder = new Path(COMMON_CONF.HDFS_ADDRESS + "/" + COMMON_CONF.WORKERS_FOLDER + "/" + id);
     if (COMMON_CONF.USING_HDFS) {
-      mHdfsClient = new HdfsClient(COMMON_CONF.HDFS_ADDRESS);
+      mUnderFs = UnderFileSystem.getUnderFileSystem(COMMON_CONF.HDFS_ADDRESS);
     }
     mUsers = new Users(mUserFolder.toString(), mHdfsWorkerFolder.toString());
 
@@ -113,10 +113,10 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     // TODO This part need to be changed.
     String srcPath = getUserHdfsTempFolder(userId) + "/" + fileId;
     String dstPath = COMMON_CONF.HDFS_ADDRESS + COMMON_CONF.DATA_FOLDER + "/" + fileId;
-    if (!mHdfsClient.rename(srcPath, dstPath)) {
+    if (!mUnderFs.rename(srcPath, dstPath)) {
       throw new FailedToCheckpointException("Failed to rename from " + srcPath + " to " + dstPath);
     }
-    long fileSize = mHdfsClient.getFileSize(dstPath);
+    long fileSize = mUnderFs.getFileSize(dstPath);
     mMasterClient.addCheckpoint(mWorkerInfo.getId(), fileId, fileSize, dstPath);
   }
 
