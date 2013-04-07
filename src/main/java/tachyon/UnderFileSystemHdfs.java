@@ -11,21 +11,24 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
 
 /**
- * HDFS Client for Tachyon.
+ * HDFS UnderFilesystem implementation.
  */
-public class HdfsClient {
+public class UnderFileSystemHdfs extends UnderFileSystem {
   private static final int MAX_TRY = 5; 
   private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private FileSystem mFs = null;
+  
+  public static UnderFileSystemHdfs getClient(String path) {
+    return new UnderFileSystemHdfs(path);
+  }
 
-  public HdfsClient(String fsDefaultName) {
+  private UnderFileSystemHdfs(String fsDefaultName) {
     try {
       Configuration tConf = new Configuration();
       tConf.set("fs.default.name", fsDefaultName);
@@ -35,49 +38,12 @@ public class HdfsClient {
     }
   }
 
+  @Override
   public void close() throws IOException {
     mFs.close();
   }
 
-  public void copyFromLocalFile(boolean delSrc, boolean overwrite, String src, String dst) {
-    IOException te = null;
-    LOG.info("Trying to copy from " + src + " to " + dst);
-    int cnt = 0;
-    while (cnt < MAX_TRY) {
-      try {
-        mFs.copyFromLocalFile(false, overwrite, new Path(src), new Path(dst));
-      } catch (IOException e) {
-        cnt ++;
-        LOG.error(cnt + " : " + e.getMessage(), e);
-        te = e;
-        continue;
-      }
-      if (delSrc) {
-        delete(src, true);
-      }
-      LOG.info("Finished the copy from " + src + " to " + dst);
-      return;
-    }
-    CommonUtils.runtimeException(te);
-  }
-
-  public void copyToLocalFile(boolean delSrc, Path src, Path dst) {
-    IOException te = null;
-    int cnt = 0;
-    while (cnt < MAX_TRY) {
-      try {
-        mFs.copyToLocalFile(delSrc, src, dst);
-      } catch (IOException e) {
-        cnt ++;
-        LOG.error(cnt + " : " + e.getMessage(), e);
-        te = e;
-        continue;
-      }
-      return;
-    }
-    CommonUtils.runtimeException(te);
-  }
-
+  @Override
   public FSDataOutputStream create(String path) {
     IOException te = null;
     int cnt = 0;
@@ -95,13 +61,14 @@ public class HdfsClient {
     return null;
   }
 
-  public void delete(String f, boolean recursive) {
-    LOG.debug("deleting " + f + " " + recursive);
+  @Override
+  public void delete(String path, boolean recursive) {
+    LOG.debug("deleting " + path + " " + recursive);
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        mFs.delete(new Path(f), recursive);
+        mFs.delete(new Path(path), recursive);
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
@@ -113,12 +80,13 @@ public class HdfsClient {
     CommonUtils.runtimeException(te);
   }
 
-  public boolean exist(String src) {
+  @Override
+  public boolean exist(String path) {
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        return mFs.exists(new Path(src));
+        return mFs.exists(new Path(path));
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
@@ -130,12 +98,13 @@ public class HdfsClient {
     return false;
   }
 
-  public long getFileSize(String f) {
+  @Override
+  public long getFileSize(String path) {
     int cnt = 0;
-    Path path = new Path(f);
+    Path tPath = new Path(path);
     while (cnt < MAX_TRY) {
       try {
-        FileStatus fs = mFs.getFileStatus(path);
+        FileStatus fs = mFs.getFileStatus(tPath);
         return fs.getLen();
       } catch (IOException e) {
         cnt ++;
@@ -146,15 +115,16 @@ public class HdfsClient {
     return -1;
   }
 
-  public boolean mkdirs(String src, FsPermission permission, boolean createParent) {
+  @Override
+  public boolean mkdirs(String path, boolean createParent) {
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        if (mFs.exists(new Path(src))) {
+        if (mFs.exists(new Path(path))) {
           return true;
         }
-        return mFs.mkdirs(new Path(src), permission);
+        return mFs.mkdirs(new Path(path), null);
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
@@ -166,6 +136,7 @@ public class HdfsClient {
     return false;
   }
 
+  @Override
   public FSDataInputStream open(String path) {
     IOException te = null;
     int cnt = 0;
@@ -183,6 +154,7 @@ public class HdfsClient {
     return null;
   }
 
+  @Override
   public boolean rename(String src, String dst) {
     IOException te = null;
     int cnt = 0;
@@ -209,7 +181,8 @@ public class HdfsClient {
     return false;
   }
 
-  public List<String> getFirstBlockLocations(String path) {
+  @Override
+  public List<String> getFileLocations(String path) {
     List<String> ret = new ArrayList<String>();
     try {
       FileStatus fStatus = mFs.getFileStatus(new Path(path));

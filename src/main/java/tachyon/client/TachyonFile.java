@@ -18,13 +18,12 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.DataServerMessage;
 import tachyon.CommonUtils;
-import tachyon.HdfsClient;
+import tachyon.UnderFileSystem;
 import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientFileInfo;
@@ -73,8 +72,8 @@ public class TachyonFile {
    */
   public boolean addCheckpointPath(String path)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    HdfsClient tHdfsClient = new HdfsClient(path);
-    long sizeBytes = tHdfsClient.getFileSize(path);
+    UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(path);
+    long sizeBytes = ufs.getFileSize(path);
     if (mTachyonClient.addCheckpointPath(mId, path)) {
       mClientFileInfo.sizeBytes = sizeBytes;
       mClientFileInfo.checkpointPath = path;
@@ -313,7 +312,7 @@ public class TachyonFile {
 
       if (mIoType.isWriteThrough()) {
         String hdfsFolder = mTachyonClient.createAndGetUserHDFSTempFolder();
-        HdfsClient tHdfsClient = new HdfsClient(hdfsFolder);
+        UnderFileSystem tHdfsClient = UnderFileSystem.getUnderFileSystem(hdfsFolder);
         mCheckpointOutputStream = tHdfsClient.create(hdfsFolder + "/" + mId);
       }
     } else {
@@ -330,7 +329,8 @@ public class TachyonFile {
       }
       if (mBuffer == null && !mClientFileInfo.checkpointPath.equals("")) {
         LOG.warn("Will stream from underlayer fs.");
-        HdfsClient tHdfsClient = new HdfsClient(mClientFileInfo.checkpointPath);
+        UnderFileSystem tHdfsClient =
+            UnderFileSystem.getUnderFileSystem(mClientFileInfo.checkpointPath);
         mCheckpointInputStream = tHdfsClient.open(mClientFileInfo.checkpointPath);
       }
       if (mBuffer == null && mCheckpointInputStream == null) {
@@ -478,8 +478,8 @@ public class TachyonFile {
 
   private boolean recacheData() throws IOException {
     String path = mClientFileInfo.checkpointPath;
-    HdfsClient tHdfsClient = new HdfsClient(path);
-    FSDataInputStream inputStream = tHdfsClient.open(path);
+    UnderFileSystem tHdfsClient = UnderFileSystem.getUnderFileSystem(path);
+    InputStream inputStream = tHdfsClient.open(path);
     TachyonFile tTFile = mTachyonClient.getFile(mClientFileInfo.getId());
     tTFile.open(OpType.WRITE_CACHE);
     byte buffer[] = new byte[USER_CONF.FILE_BUFFER_BYTES * 4];

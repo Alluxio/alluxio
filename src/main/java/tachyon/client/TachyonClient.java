@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
-import tachyon.HdfsClient;
+import tachyon.UnderFileSystem;
 import tachyon.MasterClient;
 import tachyon.CommonUtils;
 import tachyon.WorkerClient;
@@ -32,8 +32,8 @@ import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 
 /**
- * Major Tachyon system user facing class. It contains a MasterClient and several WorkerClients
- * depending on how many workers the client program interact with.
+ * Tachyon's user client API. It contains a MasterClient and several WorkerClients
+ * depending on how many workers the client program is interacting with.
  */
 public class TachyonClient {
   private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
@@ -55,7 +55,7 @@ public class TachyonClient {
   private String mUserTempFolder = null;
   // The HDFS data folder
   private String mUserHdfsTempFolder = null;
-  private HdfsClient mHdfsClient = null;
+  private UnderFileSystem mUnderFileSystem = null;
 
   private long mUserId = 0;
 
@@ -126,7 +126,7 @@ public class TachyonClient {
   public synchronized boolean addCheckpointPath(int id, String path)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     connect();
-    HdfsClient hdfsClient = new HdfsClient(path);
+    UnderFileSystem hdfsClient = UnderFileSystem.getUnderFileSystem(path);
     long fileSizeBytes = hdfsClient.getFileSize(path);
     return mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path);
   }
@@ -281,11 +281,11 @@ public class TachyonClient {
       return null;
     }
 
-    if (mHdfsClient == null) {
-      mHdfsClient = new HdfsClient(mUserHdfsTempFolder);
+    if (mUnderFileSystem == null) {
+      mUnderFileSystem = UnderFileSystem.getUnderFileSystem(mUserHdfsTempFolder);
     }
 
-    mHdfsClient.mkdirs(mUserHdfsTempFolder, null, true);
+    mUnderFileSystem.mkdirs(mUserHdfsTempFolder, true);
 
     return mUserHdfsTempFolder;
   }
@@ -363,7 +363,7 @@ public class TachyonClient {
     return delete(getFileId(path));
   }
 
-  public synchronized boolean existFile(String path) throws InvalidPathException {
+  public synchronized boolean exist(String path) throws InvalidPathException {
     return getFileId(path) != -1;
   }
 
@@ -654,10 +654,12 @@ public class TachyonClient {
         return false;
       }
       try {
-        if (mWorkerClient.requestSpace(mUserId, USER_QUOTA_UNIT_BYTES)) {
-          mAvailableSpaceBytes += USER_QUOTA_UNIT_BYTES;
+        long toRequestSpaceBytes = 
+            Math.max(requestSpaceBytes - mAvailableSpaceBytes, USER_QUOTA_UNIT_BYTES); 
+        if (mWorkerClient.requestSpace(mUserId, toRequestSpaceBytes)) {
+          mAvailableSpaceBytes += toRequestSpaceBytes;
         } else {
-          LOG.info("Failed to request " + USER_QUOTA_UNIT_BYTES + " bytes local space. " +
+          LOG.info("Failed to request " + toRequestSpaceBytes + " bytes local space. " +
               "Time " + (failedTimes ++));
           if (failedTimes == USER_FAILED_SPACE_REQUEST_LIMITS) {
             return false;

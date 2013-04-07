@@ -27,15 +27,15 @@ public class Format {
     CommonConf commonConf = CommonConf.get();
     if (commonConf.USING_HDFS) {
       String folder = commonConf.HDFS_ADDRESS + commonConf.DATA_FOLDER;
-      HdfsClient hdfsClient = new HdfsClient(folder);
+      UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(folder);
       LOG.info("Deleting " + folder);
-      hdfsClient.delete(folder, true);
-      hdfsClient.mkdirs(folder, null, true);
+      ufs.delete(folder, true);
+      ufs.mkdirs(folder, true);
 
       folder = commonConf.HDFS_ADDRESS + commonConf.WORKERS_FOLDER;
       LOG.info("Deleting " + folder);
-      hdfsClient.delete(folder, true);
-      hdfsClient.mkdirs(folder, null, true);
+      ufs.delete(folder, true);
+      ufs.mkdirs(folder, true);
     }
   }
 }
