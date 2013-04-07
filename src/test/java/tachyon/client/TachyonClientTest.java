@@ -60,7 +60,7 @@ public class TachyonClientTest {
   public void deleteFileTest() 
       throws InvalidPathException, FileAlreadyExistException {
     int fileId = mClient.createFile("/root/testFile1");
-    mClient.deleteFile(fileId);
+    mClient.delete(fileId);
     Assert.assertFalse(mClient.existFile("/root/testFile1"));
   }
 
@@ -68,7 +68,7 @@ public class TachyonClientTest {
   public void renameFileTest()
       throws InvalidPathException, FileAlreadyExistException {
     int fileId = mClient.createFile("/root/testFile1");
-    mClient.renameFile("/root/testFile1", "/root/testFile2");
+    mClient.rename("/root/testFile1", "/root/testFile2");
     Assert.assertEquals(fileId, mClient.getFileId("/root/testFile2"));
     Assert.assertFalse(mClient.existFile("/root/testFile1"));
   }

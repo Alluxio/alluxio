@@ -340,7 +340,7 @@ public class TachyonClient {
     return fileId;
   }
 
-  public synchronized boolean deleteFile(int fileId) {
+  public synchronized boolean delete(int fileId) {
     connect();
     if (!mConnected) {
       return false;
@@ -359,15 +359,15 @@ public class TachyonClient {
     return true;
   }
 
-  public synchronized boolean deleteFile(String path) throws InvalidPathException {
-    return deleteFile(getFileId(path));
+  public synchronized boolean delete(String path) throws InvalidPathException {
+    return delete(getFileId(path));
   }
 
   public synchronized boolean existFile(String path) throws InvalidPathException {
     return getFileId(path) != -1;
   }
 
-  public synchronized boolean renameFile(String srcPath, String dstPath) 
+  public synchronized boolean rename(String srcPath, String dstPath) 
       throws InvalidPathException {
     connect();
     if (!mConnected) {
