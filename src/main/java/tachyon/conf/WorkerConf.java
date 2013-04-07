@@ -22,7 +22,7 @@ public class WorkerConf extends Utils {
   public final String USER_TEMP_RELATIVE_FOLDER = "users";
 
   private WorkerConf() {
-    MASTER_HOSTNAME = getProperty("tachyon.master.hostname");
+    MASTER_HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     MASTER_PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
 
     PORT = getIntProperty("tachyon.worker.port", Constants.DEFAULT_WORKER_PORT);
