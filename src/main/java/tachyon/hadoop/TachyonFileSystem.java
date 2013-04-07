@@ -28,7 +28,9 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 
 /**
- * This is only for compatibility with Hadoop stack.
+ * An Hadoop FileSystem interface implementation. Any program working with Hadoop HDFS can work
+ * with Tachyon transparently by using this class. However, it is not as efficient as using
+ * the Tachyon API in tachyon.client package.
  */
 public class TachyonFileSystem extends FileSystem {
   private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
@@ -70,12 +72,17 @@ public class TachyonFileSystem extends FileSystem {
 
   @Override
   public boolean delete(Path path, boolean recursive) throws IOException {
-    LOG.info("TachyonFileSystem delete(" + path + ", " + recursive + ")");
+    LOG.debug("TachyonFileSystem delete(" + path + ", " + recursive + ")");
     Path hdfsPath = Utils.getHDFSPath(path);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
-    LOG.info("TachyonFileSystem delete(" + hdfsPath + ", " + recursive + ")");
-    // TODO Need to add Tachyon part.
-    return fs.delete(hdfsPath, recursive);
+    LOG.debug("TachyonFileSystem delete(" + hdfsPath + ", " + recursive + ")");
+    boolean succeed = false;
+    try {
+      succeed = mTachyonClient.delete(Utils.getPathWithoutScheme(path));
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
+    return fs.delete(hdfsPath, recursive) && succeed;
   }
 
   @Override
@@ -274,12 +281,18 @@ public class TachyonFileSystem extends FileSystem {
 
   @Override
   public boolean rename(Path src, Path dst) throws IOException {
-    LOG.info("TachyonFileSystem rename(" + src + ", " + dst + ")");
+    LOG.debug("TachyonFileSystem rename(" + src + ", " + dst + ")");
     Path hSrc = Utils.getHDFSPath(src);
     Path hDst = Utils.getHDFSPath(dst);
     FileSystem fs = hSrc.getFileSystem(getConf());
-    // TODO Need to add the Tachyon part.
-    return fs.rename(hSrc, hDst); 
+    boolean succeed = false;
+    try {
+      succeed = mTachyonClient.rename(
+          Utils.getPathWithoutScheme(src), Utils.getPathWithoutScheme(dst));
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
+    return fs.rename(hSrc, hDst) && succeed;
   }
 
   @Override

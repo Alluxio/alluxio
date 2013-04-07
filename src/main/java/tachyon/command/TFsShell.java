@@ -99,7 +99,7 @@ public class TFsShell {
     String path = argv[1];
     String file = Utils.getFilePath(path);
     TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
-    if (tachyonClient.deleteFile(file)) {
+    if (tachyonClient.delete(file)) {
       System.out.println(file + " has been removed");
       return 0;
     } else {
@@ -133,7 +133,7 @@ public class TFsShell {
     String srcFile = Utils.getFilePath(srcPath);
     String dstFile = Utils.getFilePath(dstPath);
     TachyonClient tachyonClient = TachyonClient.getClient(srcMasterAddr);
-    if (tachyonClient.renameFile(srcFile, dstFile)) {
+    if (tachyonClient.rename(srcFile, dstFile)) {
       System.out.println("Renamed " + srcFile + " to " + dstFile);
       return 0;
     } else {
