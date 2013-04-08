@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
@@ -77,9 +78,13 @@ public final class CommonUtils {
   public static String convertByteArrayToString(byte[] data) {
     StringBuilder sb = new StringBuilder(data.length);
     for (int i = 0; i < data.length; ++ i) {
+      if (data[i] < 128) {
         sb.append((char) data[i]);
+      } else {
+        return null;
+      }
     }
-    return sb.toString();
+    return StringEscapeUtils.escapeHtml3(sb.toString()).replace("\n", "<br/>");
   }
 
   public static String convertMsToClockTime(long Millis) {
