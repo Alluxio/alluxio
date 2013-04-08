@@ -48,4 +48,5 @@ else
 fi
 
 echo "Formatting RamFS: $F ($NUM_SECTORS sectors)."
+diskutil unmount /Volumes/$F
 diskutil erasevolume HFS+ $F `hdiutil attach -nomount ram://$NUM_SECTORS`
