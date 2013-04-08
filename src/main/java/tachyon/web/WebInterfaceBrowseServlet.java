@@ -207,7 +207,11 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     ByteBuffer buf = tFile.readByteBuffer();
     byte[] data = new byte[Math.min(5120, (int) tFile.getSize())];
     buf.get(data);
-    request.setAttribute("fileData", CommonUtils.convertByteArrayToString(data));
+    String fileData = CommonUtils.convertByteArrayToString(data);
+    if (fileData == null) {
+      fileData = "The requested file is not completely encoded in ascii";
+    } 
+    request.setAttribute("fileData", fileData);
     return;
   }
 
