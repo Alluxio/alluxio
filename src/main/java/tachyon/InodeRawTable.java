@@ -1,6 +1,7 @@
 package tachyon;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class InodeRawTable extends InodeFolder {
   protected final int COLUMNS;
@@ -24,8 +25,10 @@ public class InodeRawTable extends InodeFolder {
   }
 
   public ByteBuffer getMetadata() {
-    ByteBuffer ret = METADATA.duplicate();
-    ret.asReadOnlyBuffer();
+    byte[] metadata = METADATA.array();
+    ByteBuffer ret = ByteBuffer.allocate(metadata.length);
+    ret.put(metadata);
+    ret.flip();
     return ret;
   }
 
