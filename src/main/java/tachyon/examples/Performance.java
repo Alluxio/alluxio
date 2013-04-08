@@ -21,7 +21,7 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
-public class PerformanceTest {
+public class Performance {
   private static Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private static final int RESULT_ARRAY_SIZE = 64;
@@ -343,7 +343,7 @@ public class PerformanceTest {
       throws IOException, InvalidPathException, FileAlreadyExistException {
     if (args.length != 9) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
-          "-jar-with-dependencies.jar tachyon.examples.PerformanceTest " + 
+          "-jar-with-dependencies.jar tachyon.examples.Performance " + 
           "<MasterIp> <FileName> <WriteBlockSizeInBytes> <BlocksPerFile> " +
           "<DebugMode:true/false> <Threads> <FilesPerThread> <TestCaseNumber> <BaseFileNumber>\n" +
           "1: Files Write Test\n" +

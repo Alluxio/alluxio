@@ -20,7 +20,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfMemoryForPinFileException;
 import tachyon.thrift.TableDoesNotExistException;
 
-public class BasicRawTableTest {
+public class BasicRawTableOperations {
   private static Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private static final int COLS = 3;
@@ -99,7 +99,7 @@ public class BasicRawTableTest {
     if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar " +
-          "tachyon.examples.BasicRawTableTest <TachyonMasterAddress> <FilePath>");
+          "tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>");
       System.exit(-1);
     }
     sTachyonClient = TachyonClient.getClient(args[0]);

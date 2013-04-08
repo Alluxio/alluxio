@@ -16,7 +16,7 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
-public class BasicUserOperationTest {
+public class BasicOperations {
   private static Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private static TachyonClient sTachyonClient;
@@ -64,7 +64,7 @@ public class BasicUserOperationTest {
     if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar " +
-          "tachyon.examples.BasicUserOperationTest <TachyonMasterAddress> <FilePath> <WriteType>");
+          "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
       System.exit(-1);
     }
     sTachyonClient = TachyonClient.getClient(args[0]);
