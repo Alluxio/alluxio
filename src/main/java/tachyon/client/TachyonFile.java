@@ -448,7 +448,7 @@ public class TachyonFile {
 
     LOG.info("readByteBufferFromRemote() " + fileLocations);
 
-    for (int k = 0 ;k < fileLocations.size(); k ++) {
+    for (int k = 0; k < fileLocations.size(); k ++) {
       String host = fileLocations.get(k).mHost;
       int port = fileLocations.get(k).mPort;
       if (port == -1) {

@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -209,18 +209,17 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     if (tFile == null) {
       throw new FileDoesNotExistException(path);
     }
-    String fileData = "The file size is bigger than 10MB, do not show it for now.";
-    // TODO provide API to read partial file.
-    if (tFile.length() < 10 * Constants.MB) {
-      tFile.open(OpType.READ_TRY_CACHE);
-      ByteBuffer buf = tFile.readByteBuffer();
-      byte[] data = new byte[Math.min(5120, (int) tFile.getSize())];
-      buf.get(data);
-      fileData = CommonUtils.convertByteArrayToString(data);
-      if (fileData == null) {
-        fileData = "The requested file is not completely encoded in ascii";
-      } 
+
+    tFile.open(OpType.READ_TRY_CACHE);
+    InputStream is = tFile.getInputStream();
+    int len = Math.min(5 * Constants.KB, (int) tFile.getSize());
+    byte[] data = new byte[len];
+    is.read(data, 0, len);
+    String fileData = CommonUtils.convertByteArrayToString(data);
+    if (fileData == null) {
+      fileData = "The requested file is not completely encoded in ascii";
     }
+    is.close();
 
     tFile.close();
     try {

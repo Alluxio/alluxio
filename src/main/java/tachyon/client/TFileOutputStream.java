@@ -12,9 +12,10 @@ public class TFileOutputStream extends OutputStream {
 
   @Override
   public void write(int b) throws IOException {
-    FILE.append(b);
+    FILE.append((byte) b);
   }
 
+  @Override
   public void write(byte b[]) throws IOException {
     write(b, 0, b.length);
   }
