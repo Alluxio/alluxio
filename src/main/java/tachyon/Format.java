@@ -1,5 +1,7 @@
 package tachyon;
 
+import java.io.IOException;
+
 import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
@@ -11,7 +13,7 @@ import tachyon.conf.MasterConf;
 public class Format {
   private final static Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     if (args.length != 0) {
       LOG.info("java -cp target/tachyon-" + Version.VERSION +
           "-jar-with-dependencies.jar tachyon.Format");
@@ -25,17 +27,15 @@ public class Format {
     CommonUtils.deleteFile(masterConf.LOG_FILE);
 
     CommonConf commonConf = CommonConf.get();
-    if (commonConf.USING_HDFS) {
-      String folder = commonConf.HDFS_ADDRESS + commonConf.DATA_FOLDER;
-      HdfsClient hdfsClient = new HdfsClient(folder);
-      LOG.info("Deleting " + folder);
-      hdfsClient.delete(folder, true);
-      hdfsClient.mkdirs(folder, null, true);
+    String folder = commonConf.UNDERFS_ADDRESS + commonConf.DATA_FOLDER;
+    UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(folder);
+    LOG.info("Deleting " + folder);
+    ufs.delete(folder, true);
+    ufs.mkdirs(folder, true);
 
-      folder = commonConf.HDFS_ADDRESS + commonConf.WORKERS_FOLDER;
-      LOG.info("Deleting " + folder);
-      hdfsClient.delete(folder, true);
-      hdfsClient.mkdirs(folder, null, true);
-    }
+    folder = commonConf.UNDERFS_ADDRESS + commonConf.WORKERS_FOLDER;
+    LOG.info("Deleting " + folder);
+    ufs.delete(folder, true);
+    ufs.mkdirs(folder, true);
   }
 }

@@ -21,6 +21,7 @@ import org.apache.thrift.TException;
 import tachyon.CommonUtils;
 import tachyon.client.TachyonClient;
 import tachyon.conf.CommonConf;
+import tachyon.conf.UserConf;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -211,6 +212,7 @@ public class TachyonFileSystem extends FileSystem {
         uri.getHost() + ":" + uri.getPort());
     mTachyonClient = TachyonClient.getClient(new InetSocketAddress(uri.getHost(), uri.getPort()));
     mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort() + "";
+    Utils.HDFS_ADDRESS = mTachyonClient.getUnderfsAddress();
   }
 
   @Override

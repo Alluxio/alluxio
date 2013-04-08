@@ -8,18 +8,16 @@ import org.apache.hadoop.mapred.FileSplit;
 import org.apache.hadoop.mapred.InputSplit;
 import org.apache.log4j.Logger;
 
+import tachyon.Constants;
 import tachyon.conf.CommonConf;
+import tachyon.conf.UserConf;
 
 public final class Utils {
   private static final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
-  private static final String HDFS_ADDRESS = CommonConf.get().HDFS_ADDRESS;
-  private static final boolean DEBUG = CommonConf.get().DEBUG;
+  public static String HDFS_ADDRESS;
+  private static final boolean DEBUG = Constants.DEBUG;
 
   public static String getTachyonFileName(String path) {
-    if (path.contains("%")) {
-      path = path.split("%")[0];
-    }
-
     while (path.contains(":")) {
       int index = path.indexOf(":");
       path = path.substring(index + 1);

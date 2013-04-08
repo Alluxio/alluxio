@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A file can only be cached if it passes the white list.
- * @author Haoyuan
+ * Prefix list is used by PINList and WhiteList to do file filter. 
  */
 public class PrefixList {
   private final List<String> LIST;

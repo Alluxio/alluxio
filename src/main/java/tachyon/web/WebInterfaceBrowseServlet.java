@@ -17,7 +17,6 @@ import tachyon.MasterInfo;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 import tachyon.client.OpType;
-import tachyon.conf.CommonConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -131,7 +130,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) 
       throws ServletException, IOException, UnknownHostException {
-    request.setAttribute("debug", CommonConf.get().DEBUG);
+    request.setAttribute("debug", Constants.DEBUG);
 
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
     request.setAttribute("invalidPathError", "");

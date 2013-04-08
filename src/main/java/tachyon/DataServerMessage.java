@@ -11,7 +11,9 @@ import org.apache.log4j.Logger;
 import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
 
-
+/**
+ * The message type used to send data request and response for remote data.
+ */
 public class DataServerMessage {
   public static final short DATA_SERVER_REQUEST_MESSAGE = 1;
   public static final short DATA_SERVER_RESPONSE_MESSAGE = 2;
