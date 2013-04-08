@@ -138,6 +138,7 @@ service MasterService {
     throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI) // Get Table info by path
   i32 user_getNumberOfFiles(1:string path)
     throws (1: FileDoesNotExistException eR, 2: InvalidPathException eI)
+  string user_getUnderfsAddress()
 
   // cmd to scripts
   list<ClientFileInfo> cmd_ls(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)

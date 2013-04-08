@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.LocalTachyonCluster;
-import tachyon.Utils;
+import tachyon.TestUtils;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
@@ -19,7 +19,7 @@ public class TachyonFileTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(5555, 6666, 1000);
+    mLocalTachyonCluster = new LocalTachyonCluster(1000);
     mLocalTachyonCluster.start();
     mClient = mLocalTachyonCluster.getClient();
   }
@@ -44,7 +44,7 @@ public class TachyonFileTest {
     
     file = mClient.getFile("/root/testFile1");
     file.open(OpType.READ_TRY_CACHE);
-    Assert.assertTrue(Utils.equalIncreasingByteBuffer(100, file.readByteBuffer()));
+    Assert.assertTrue(TestUtils.equalIncreasingByteBuffer(100, file.readByteBuffer()));
   }
   
   @Test
@@ -61,6 +61,6 @@ public class TachyonFileTest {
     
     file = mClient.getFile("/root/testFile1");
     file.open(OpType.READ_TRY_CACHE);
-    Assert.assertTrue(Utils.equalIncreasingIntBuffer(100, file.readByteBuffer()));
+    Assert.assertTrue(TestUtils.equalIncreasingIntBuffer(100, file.readByteBuffer()));
   }
 }

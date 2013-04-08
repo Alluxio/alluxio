@@ -2,7 +2,7 @@ package tachyon;
 
 import java.nio.ByteBuffer;
 
-public final class Utils {
+public final class TestUtils {
   public static byte[] getIncreasingByteArray(int len) {
     byte[] ret = new byte[len];
     for (int k = 0; k < len; k ++) {

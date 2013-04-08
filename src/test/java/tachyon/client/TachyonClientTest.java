@@ -21,7 +21,7 @@ public class TachyonClientTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(5555, 6666, 1000);
+    mLocalTachyonCluster = new LocalTachyonCluster(1000);
     mLocalTachyonCluster.start();
     mClient = mLocalTachyonCluster.getClient();
   }

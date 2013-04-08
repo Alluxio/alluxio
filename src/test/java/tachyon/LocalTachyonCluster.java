@@ -30,6 +30,12 @@ public class LocalTachyonCluster {
 
   private String mLocalhostName = null;
 
+  public LocalTachyonCluster(long workerCapacityBytes) {
+    mMasterPort = Constants.DEFAULT_MASTER_PORT;
+    mWorkerPort = Constants.DEFAULT_WORKER_PORT;
+    mWorkerCapacityBytes = workerCapacityBytes;
+  }
+
   public LocalTachyonCluster(int masterPort, int workerPort, long workerCapacityBytes) {
     mMasterPort = masterPort;
     mWorkerPort = workerPort;
@@ -38,6 +44,10 @@ public class LocalTachyonCluster {
 
   public TachyonClient getClient() {
     return TachyonClient.getClient(mLocalhostName + ":" + mMasterPort);
+  }
+
+  public int getMasterPort() {
+    return mMasterPort;
   }
 
   private void mkdir(String path) throws IOException {
@@ -115,13 +125,13 @@ public class LocalTachyonCluster {
   }
 
   public static void main(String[] args) throws Exception {
-    LocalTachyonCluster cluster = new LocalTachyonCluster(1998, 2998, 100);
+    LocalTachyonCluster cluster = new LocalTachyonCluster(100);
     cluster.start();
     CommonUtils.sleepMs(null, 1000);
     cluster.stop();
     CommonUtils.sleepMs(null, 1000);
 
-    cluster = new LocalTachyonCluster(1998, 2998, 100);
+    cluster = new LocalTachyonCluster(100);
     cluster.start();
     CommonUtils.sleepMs(null, 1000);
     cluster.stop();

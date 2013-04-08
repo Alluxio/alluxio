@@ -163,6 +163,10 @@ public class MasterClient {
     return CLIENT.user_getNumberOfFiles(folderPath);
   }
 
+  public synchronized String user_getUnderfsAddress() throws TException {
+    return CLIENT.user_getUnderfsAddress();
+  }
+
   public synchronized List<Integer> user_listFiles(String path, boolean recursive)
       throws FileDoesNotExistException, InvalidPathException, TException {
     return CLIENT.user_listFiles(path, recursive);
