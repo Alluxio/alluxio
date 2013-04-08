@@ -87,4 +87,11 @@ public class Master {
         mConf.SERVER_THREADS);
     master.start();
   }
+  /**
+   * Get MasterInfo instance for Unit Test
+   * @return MasterInfo of the Master  
+   */
+  MasterInfo getMasterInfo() {
+    return mMasterInfo;
+  }
 }
