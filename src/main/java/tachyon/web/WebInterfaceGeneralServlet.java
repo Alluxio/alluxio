@@ -9,9 +9,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import tachyon.CommonUtils;
+import tachyon.Constants;
 import tachyon.MasterInfo;
 import tachyon.Version;
-import tachyon.conf.CommonConf;
 import tachyon.thrift.ClientWorkerInfo;
 
 /**
@@ -95,7 +95,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
    * @param request The HttpServletRequest object
    */
   private void populateValues(HttpServletRequest request) {
-    request.setAttribute("debug", CommonConf.get().DEBUG);
+    request.setAttribute("debug", Constants.DEBUG);
 
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
 

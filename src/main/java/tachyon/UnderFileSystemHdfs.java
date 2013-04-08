@@ -23,7 +23,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private FileSystem mFs = null;
-  
+
   public static UnderFileSystemHdfs getClient(String path) {
     return new UnderFileSystemHdfs(path);
   }
@@ -44,7 +44,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public FSDataOutputStream create(String path) {
+  public FSDataOutputStream create(String path) throws IOException {
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
@@ -57,12 +57,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         continue;
       }
     }
-    CommonUtils.runtimeException(te);
-    return null;
+    throw te;
   }
 
   @Override
-  public void delete(String path, boolean recursive) {
+  public void delete(String path, boolean recursive) throws IOException {
     LOG.debug("deleting " + path + " " + recursive);
     IOException te = null;
     int cnt = 0;
@@ -77,7 +76,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       }
       return;
     }
-    CommonUtils.runtimeException(te);
+    throw te;
   }
 
   @Override
@@ -96,6 +95,24 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     }
     CommonUtils.runtimeException(te);
     return false;
+  }
+
+  @Override
+  public List<String> getFileLocations(String path) {
+    List<String> ret = new ArrayList<String>();
+    try {
+      FileStatus fStatus = mFs.getFileStatus(new Path(path));
+      BlockLocation[] bLocations = mFs.getFileBlockLocations(fStatus, 0, 1);
+      if (bLocations.length > 0) {
+        String[] hosts = bLocations[0].getHosts();
+        for (String host: hosts) {
+          ret.add(host);
+        }
+      }
+    } catch (IOException e) {
+      LOG.error(e);
+    }
+    return ret;
   }
 
   @Override
@@ -179,23 +196,5 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     }
     CommonUtils.runtimeException(te);
     return false;
-  }
-
-  @Override
-  public List<String> getFileLocations(String path) {
-    List<String> ret = new ArrayList<String>();
-    try {
-      FileStatus fStatus = mFs.getFileStatus(new Path(path));
-      BlockLocation[] bLocations = mFs.getFileBlockLocations(fStatus, 0, 1);
-      if (bLocations.length > 0) {
-        String[] hosts = bLocations[0].getHosts();
-        for (String host: hosts) {
-          ret.add(host);
-        }
-      }
-    } catch (IOException e) {
-      LOG.error(e);
-    }
-    return ret;
   }
 }

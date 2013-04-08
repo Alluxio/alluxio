@@ -82,10 +82,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     mDataFolder = new File(dataFolder);
     mUserFolder = new File(mDataFolder.toString(), WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
     mWorkerInfo = new WorkerInfo(id, workerAddress, spaceLimitBytes);
-    mHdfsWorkerFolder = new Path(COMMON_CONF.HDFS_ADDRESS + "/" + COMMON_CONF.WORKERS_FOLDER + "/" + id);
-    if (COMMON_CONF.USING_HDFS) {
-      mUnderFs = UnderFileSystem.getUnderFileSystem(COMMON_CONF.HDFS_ADDRESS);
-    }
+    mHdfsWorkerFolder = new Path(COMMON_CONF.UNDERFS_ADDRESS + "/" + COMMON_CONF.WORKERS_FOLDER + "/" + id);
+    mUnderFs = UnderFileSystem.getUnderFileSystem(COMMON_CONF.UNDERFS_ADDRESS);
     mUsers = new Users(mUserFolder.toString(), mHdfsWorkerFolder.toString());
 
     try {
@@ -111,12 +109,21 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       throws FileDoesNotExistException, SuspectedFileSizeException, 
       FailedToCheckpointException, TException {
     // TODO This part need to be changed.
-    String srcPath = getUserHdfsTempFolder(userId) + "/" + fileId;
-    String dstPath = COMMON_CONF.HDFS_ADDRESS + COMMON_CONF.DATA_FOLDER + "/" + fileId;
-    if (!mUnderFs.rename(srcPath, dstPath)) {
-      throw new FailedToCheckpointException("Failed to rename from " + srcPath + " to " + dstPath);
+    String srcPath = getUserUnderfsTempFolder(userId) + "/" + fileId;
+    String dstPath = COMMON_CONF.UNDERFS_ADDRESS + COMMON_CONF.DATA_FOLDER + "/" + fileId;
+    try {
+      if (!mUnderFs.rename(srcPath, dstPath)) {
+        throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
+      }
+    } catch (IOException e1) {
+      throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
     }
-    long fileSize = mUnderFs.getFileSize(dstPath);
+    long fileSize;
+    try {
+      fileSize = mUnderFs.getFileSize(dstPath);
+    } catch (IOException e) {
+      throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
+    }
     mMasterClient.addCheckpoint(mWorkerInfo.getId(), fileId, fileSize, dstPath);
   }
 
@@ -211,7 +218,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public String getUserHdfsTempFolder(long userId) throws TException {
+  public String getUserUnderfsTempFolder(long userId) throws TException {
     String ret = mUsers.getUserHdfsTempFolder(userId);
     LOG.info("Return UserHdfsTempFolder for " + userId + " : " + ret);
     return ret;

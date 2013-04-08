@@ -54,7 +54,7 @@ public class TachyonClient {
   // The local data folder.
   private String mUserTempFolder = null;
   // The HDFS data folder
-  private String mUserHdfsTempFolder = null;
+  private String mUserUnderfsTempFolder = null;
   private UnderFileSystem mUnderFileSystem = null;
 
   private long mUserId = 0;
@@ -122,9 +122,10 @@ public class TachyonClient {
    * @throws TException 
    * @throws SuspectedFileSizeException 
    * @throws FileDoesNotExistException 
+   * @throws IOException 
    */
   public synchronized boolean addCheckpointPath(int id, String path)
-      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+      throws FileDoesNotExistException, SuspectedFileSizeException, TException, IOException {
     connect();
     UnderFileSystem hdfsClient = UnderFileSystem.getUnderFileSystem(path);
     long fileSizeBytes = hdfsClient.getFileSize(path);
@@ -223,17 +224,13 @@ public class TachyonClient {
     try {
       mDataFolder = mWorkerClient.getDataFolder();
       mUserTempFolder = mWorkerClient.getUserTempFolder(mUserId);
-      mUserHdfsTempFolder = mWorkerClient.getUserHdfsTempFolder(mUserId);
+      mUserUnderfsTempFolder = mWorkerClient.getUserUnderfsTempFolder(mUserId);
     } catch (TException e) {
       LOG.error(e.getMessage());
       mDataFolder = null;
       mUserTempFolder = null;
       mWorkerClient = null;
       return;
-    }
-
-    if (!mUserHdfsTempFolder.startsWith("hdfs")) {
-      mUserHdfsTempFolder = null;
     }
 
     mToWorkerHeartbeat = new ClientToWorkerHeartbeat(mWorkerClient, mUserId);
@@ -274,20 +271,20 @@ public class TachyonClient {
     return ret;
   }
 
-  public synchronized String createAndGetUserHDFSTempFolder() {
+  public synchronized String createAndGetUserUnderfsTempFolder() throws IOException {
     connect();
 
-    if (mUserHdfsTempFolder == null) {
+    if (mUserUnderfsTempFolder == null) {
       return null;
     }
 
     if (mUnderFileSystem == null) {
-      mUnderFileSystem = UnderFileSystem.getUnderFileSystem(mUserHdfsTempFolder);
+      mUnderFileSystem = UnderFileSystem.getUnderFileSystem(mUserUnderfsTempFolder);
     }
 
-    mUnderFileSystem.mkdirs(mUserHdfsTempFolder, true);
+    mUnderFileSystem.mkdirs(mUserUnderfsTempFolder, true);
 
-    return mUserHdfsTempFolder;
+    return mUserUnderfsTempFolder;
   }
 
   public synchronized int createRawTable(String path, int columns) throws InvalidPathException {
@@ -498,7 +495,6 @@ public class TachyonClient {
     return new TachyonFile(this, clientFileInfo);
   }
 
-  // TODO fileId should not be exposed to applications, it should be an internal value.
   public synchronized TachyonFile getFile(int fileId) {
     ClientFileInfo clientFileInfo = getClientFileInfo(fileId);
     if (clientFileInfo == null) {
@@ -712,5 +708,10 @@ public class TachyonClient {
       return false;
     }
     return true;
+  }
+
+  public synchronized String getUnderfsAddress() {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

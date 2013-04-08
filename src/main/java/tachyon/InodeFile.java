@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -65,7 +66,7 @@ public class InodeFile extends Inode {
     mLocations.remove(workerId);
   }
 
-  public synchronized List<NetAddress> getLocations() {
+  public synchronized List<NetAddress> getLocations() throws IOException {
     List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
     ret.addAll(mLocations.values());
     if (ret.isEmpty() && hasCheckpointed()) {

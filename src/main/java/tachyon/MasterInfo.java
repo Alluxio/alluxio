@@ -80,8 +80,6 @@ public class MasterInfo {
 
   /**
    * System periodical status check.
-   * 
-   * @author Haoyuan
    */
   public class MasterHeartbeatExecutor implements HeartbeatExecutor {
     public MasterHeartbeatExecutor() {
@@ -133,9 +131,9 @@ public class MasterInfo {
       }
 
       if (hadFailedWorker) {
-        LOG.warn("Restarting failed workers: Do not restart for now.");
+        LOG.warn("Restarting failed workers.");
         try {
-          java.lang.Runtime.getRuntime().exec(MASTER_CONF.TACHYON_HOME + 
+          java.lang.Runtime.getRuntime().exec(CommonConf.get().TACHYON_HOME + 
               "/bin/restart-failed-workers.sh");
         } catch (IOException e) {
           LOG.error(e.getMessage());
@@ -581,7 +579,8 @@ public class MasterInfo {
     }
   }
 
-  public List<NetAddress> getFileLocations(int fileId) throws FileDoesNotExistException {
+  public List<NetAddress> getFileLocations(int fileId)
+      throws FileDoesNotExistException, IOException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
       if (inode == null || inode.isDirectory()) {
@@ -594,7 +593,7 @@ public class MasterInfo {
   }
 
   public List<NetAddress> getFileLocations(String path) 
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, IOException {
     LOG.info("getFileLocations: " + path);
     synchronized (mRoot) {
       Inode inode = getInode(path);

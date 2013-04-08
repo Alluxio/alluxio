@@ -16,16 +16,16 @@ import tachyon.conf.CommonConf;
 public class Users {
   public static final int sDATASERVER_USER_ID = -1;
   public static final int sCHECKPOINT_USER_ID = -2;
-  
+
   private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private final String USER_FOLDER;
-  private final String USER_HDFS_FOLDER;
+  private final String USER_UNDERFS_FOLDER;
   private final Map<Long, UserInfo> USERS;
 
   public Users(String userfolder, String userHdfsFolder) {
     USER_FOLDER = userfolder;
-    USER_HDFS_FOLDER = userHdfsFolder;
+    USER_UNDERFS_FOLDER = userHdfsFolder;
 
     USERS = new HashMap<Long, UserInfo>();
   }
@@ -64,7 +64,7 @@ public class Users {
   }
 
   public String getUserHdfsTempFolder(long userId) {
-    return USER_HDFS_FOLDER + "/" + userId;
+    return USER_UNDERFS_FOLDER + "/" + userId;
   }
 
   private long removeUser(long userId) {
@@ -89,10 +89,12 @@ public class Users {
         CommonUtils.runtimeException(e);
       }
 
-      if (CommonConf.get().USING_HDFS) {
-        folder = getUserHdfsTempFolder(userId);
-        sb.append(" Also remove users HDFS folder " + folder);
-        UnderFileSystem.getUnderFileSystem(CommonConf.get().HDFS_ADDRESS).delete(folder, true);
+      folder = getUserHdfsTempFolder(userId);
+      sb.append(" Also remove users underfs folder " + folder);
+      try {
+        UnderFileSystem.getUnderFileSystem(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
+      } catch (IOException e) {
+        LOG.error(e);
       }
     }
 
