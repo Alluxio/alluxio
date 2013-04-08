@@ -230,6 +230,10 @@ public class TFsShell {
     String dstPath = argv[2];
     String dstFile = Utils.getFilePath(dstPath);
     File src = new File(srcPath);
+    if (!src.exists()) {
+      System.out.println("Local file " + srcPath + " does not exist.");
+      return -1;
+    }
     TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(dstPath));
     int fileId = tachyonClient.createFile(dstFile);
     if (fileId == -1) {

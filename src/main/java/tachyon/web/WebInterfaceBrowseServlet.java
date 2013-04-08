@@ -199,18 +199,17 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws IOException
    * @throws InvalidPathException
-   * @throws UnknownHostException
    * @throws TException 
    */
   private void displayFile(String path, HttpServletRequest request) 
-      throws FileDoesNotExistException, IOException, InvalidPathException, UnknownHostException {
+      throws FileDoesNotExistException, InvalidPathException, IOException {
     TachyonClient tachyonClient = TachyonClient.getClient(mMasterInfo.getMasterAddress());
     TachyonFile tFile = tachyonClient.getFile(path);
     if (tFile == null) {
       throw new FileDoesNotExistException(path);
     }
 
-    tFile.open(OpType.READ_TRY_CACHE);
+    tFile.open(OpType.READ_NO_CACHE);
     InputStream is = tFile.getInputStream();
     int len = Math.min(5 * Constants.KB, (int) tFile.getSize());
     byte[] data = new byte[len];

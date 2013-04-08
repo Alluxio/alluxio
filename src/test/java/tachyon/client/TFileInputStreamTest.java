@@ -9,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.CommonUtils;
 import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 import tachyon.thrift.FileAlreadyExistException;
@@ -67,7 +68,11 @@ public class TFileInputStreamTest {
           int fileId = createSimpleFile("/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
-          file.open(OpType.READ_TRY_CACHE);
+          if (k < 150) {
+            file.open(OpType.READ_TRY_CACHE);
+          } else {
+            file.open(OpType.READ_NO_CACHE);
+          }
           InputStream is = file.getInputStream();
           byte[] ret = new byte[k];
           int value = is.read();
@@ -87,13 +92,17 @@ public class TFileInputStreamTest {
    */
   @Test
   public void readTest2() throws IOException, InvalidPathException, FileAlreadyExistException {
-    for (int k = 100; k <= 200; k += 33) {
+    for (int k = 100; k <= 300; k += 33) {
       for (OpType op : OpType.values()) {
         if (op.isWrite()) {
           int fileId = createSimpleFile("/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
-          file.open(OpType.READ_TRY_CACHE);
+          if (k < 200) {
+            file.open(OpType.READ_TRY_CACHE);
+          } else {
+            file.open(OpType.READ_NO_CACHE);
+          }
           InputStream is = file.getInputStream();
           byte[] ret = new byte[k];
           Assert.assertEquals(k, is.read(ret));
@@ -108,20 +117,28 @@ public class TFileInputStreamTest {
    */
   @Test
   public void readTest3() throws IOException, InvalidPathException, FileAlreadyExistException {
-    for (int k = 100; k <= 200; k += 33) {
+    for (int k = 100; k <= 300; k += 33) {
       for (OpType op : OpType.values()) {
         if (op.isWrite()) {
           int fileId = createSimpleFile("/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
-          file.open(OpType.READ_TRY_CACHE);
+          if (k < 200) {
+            file.open(OpType.READ_TRY_CACHE);
+          } else {
+            file.open(OpType.READ_NO_CACHE);
+          }
           InputStream is = file.getInputStream();
           byte[] ret = new byte[k / 2];
           Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
           Assert.assertTrue(TestUtils.equalIncreasingByteArray(k / 2, ret));
-          
+
           file = mClient.getFile(fileId);
-          file.open(OpType.READ_TRY_CACHE);
+          if (k < 200) {
+            file.open(OpType.READ_TRY_CACHE);
+          } else {
+            file.open(OpType.READ_NO_CACHE);
+          }
           is = file.getInputStream();
           ret = new byte[k];
           Assert.assertEquals(k, is.read(ret, 0, k));
