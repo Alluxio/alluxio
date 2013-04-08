@@ -24,9 +24,9 @@ public abstract class UnderFileSystem {
 
   public abstract OutputStream create(String path) throws IOException;
 
-  public abstract void delete(String path, boolean recursive) throws IOException;
+  public abstract boolean delete(String path, boolean recursive) throws IOException;
 
-  public abstract boolean exist(String src) throws IOException;
+  public abstract boolean exists(String path) throws IOException;
 
   public abstract List<String> getFileLocations(String path) throws IOException;
 
