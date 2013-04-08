@@ -16,8 +16,9 @@ public final class TestUtils {
       return false;
     }
     for (int k = 0; k < len; k ++) {
-      if (arr[k] != (byte) k)
+      if (arr[k] != (byte) k) {
         return false;
+      }
     }
     return true;
   }

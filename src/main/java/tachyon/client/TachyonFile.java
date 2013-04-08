@@ -270,6 +270,9 @@ public class TachyonFile {
   }
 
   public long getSize() {
+    if (mIoType.isRead()) {
+      return mClientFileInfo.getSizeBytes();
+    }
     return mSizeBytes;
   }
 
@@ -324,16 +327,14 @@ public class TachyonFile {
       mTachyonClient.lockFile(mId);
       mBuffer = null;
       mCheckpointInputStream = null;
-      if (mIoType.isReadTryCache()) {
-        try {
-          mBuffer = readByteBuffer();
-        } catch (IOException e) {
-          mTachyonClient.unlockFile(mId);
-          throw e;
-        }
+      try {
+        mBuffer = readByteBuffer();
+      } catch (IOException e) {
+        mTachyonClient.unlockFile(mId);
+        throw e;
       }
       if (mBuffer == null && !mClientFileInfo.checkpointPath.equals("")) {
-        LOG.warn("Will stream from underlayer fs.");
+        LOG.info("Will stream from underlayer fs: " + mClientFileInfo.checkpointPath);
         UnderFileSystem underfsClient =
             UnderFileSystem.getUnderFileSystem(mClientFileInfo.checkpointPath);
         mCheckpointInputStream = underfsClient.open(mClientFileInfo.checkpointPath);
@@ -481,29 +482,37 @@ public class TachyonFile {
     return ret;
   }
 
-  private boolean recacheData() throws IOException {
+  private boolean recacheData() {
+    boolean succeed = true;
     String path = mClientFileInfo.checkpointPath;
     UnderFileSystem tHdfsClient = UnderFileSystem.getUnderFileSystem(path);
-    InputStream inputStream = tHdfsClient.open(path);
+    InputStream inputStream;
+    try {
+      inputStream = tHdfsClient.open(path);
+    } catch (IOException e) {
+      return false;
+    }
     TachyonFile tTFile = mTachyonClient.getFile(mClientFileInfo.getId());
-    tTFile.open(OpType.WRITE_CACHE);
-    byte buffer[] = new byte[USER_CONF.FILE_BUFFER_BYTES * 4];
+    try {
+      tTFile.open(OpType.WRITE_CACHE);
+      byte buffer[] = new byte[USER_CONF.FILE_BUFFER_BYTES * 4];
 
-    int limit;
-    boolean succeed = true;
-    while ((limit = inputStream.read(buffer)) >= 0) {
-      if (limit != 0) {
-        try {
-          tTFile.append(buffer, 0, limit);
-        } catch (IOException e) {
-          LOG.warn(e);
-          succeed = false;
-          break;
+      int limit;
+      while ((limit = inputStream.read(buffer)) >= 0) {
+        if (limit != 0) {
+          try {
+            tTFile.append(buffer, 0, limit);
+          } catch (IOException e) {
+            LOG.warn(e);
+            succeed = false;
+            break;
+          }
         }
       }
+      tTFile.close(!succeed);
+    } catch (IOException e) {
+      return false;
     }
-
-    tTFile.close(!succeed);
 
     return succeed;
   }

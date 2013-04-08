@@ -3,9 +3,9 @@ package tachyon.client;
 import java.io.IOException;
 
 public enum OpType {
+  // Read the file and but do not cache it explicitly.
+  READ_NO_CACHE(1),
   // Read the file and cache it.
-  //  READ_NO_CACHE(1),
-  // Read the file and but do not cache it explictly.
   READ_TRY_CACHE(2),
   // Write the file and must cache it on the client machine.
   // TODO This is for local testing only for now.
@@ -42,7 +42,9 @@ public enum OpType {
   }
 
   public static OpType getOpType(String op) throws IOException {
-    if (op.equals("READ_TRY_CACHE")) {
+    if (op.equals("READ_NO_CACHE")) {
+      return READ_NO_CACHE;
+    } else if (op.equals("READ_TRY_CACHE")) {
       return READ_TRY_CACHE;
     } else if (op.equals("WRITE_CACHE")) {
       return WRITE_CACHE;

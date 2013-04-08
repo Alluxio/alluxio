@@ -233,10 +233,12 @@ public class TachyonClient {
       return;
     }
 
-    mToWorkerHeartbeat = new ClientToWorkerHeartbeat(mWorkerClient, mUserId);
-    Thread thread = new Thread(mToWorkerHeartbeat);
-    thread.setDaemon(true);
-    thread.start();
+    if (mWorkerClient != null) {
+      mToWorkerHeartbeat = new ClientToWorkerHeartbeat(mWorkerClient, mUserId);
+      Thread thread = new Thread(mToWorkerHeartbeat);
+      thread.setDaemon(true);
+      thread.start();
+    }
   }
 
   public synchronized void close() throws TException {
