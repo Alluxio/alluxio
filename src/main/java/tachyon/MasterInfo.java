@@ -787,7 +787,7 @@ public class MasterInfo {
         }
       } else {
         for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
-          if (address.getHostName().equals(host)) {
+          if (address.getHostName().equals(host) || address.getAddress().getHostAddress().equals(host)) {
             LOG.debug("getLocalWorker: " + address);
             return new NetAddress(address.getHostName(), address.getPort());
           }
