@@ -79,7 +79,7 @@ public class Worker implements Runnable {
     while (true) {
       long diff = System.currentTimeMillis() - lastHeartbeatMs;
       if (diff < WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS) {
-        LOG.warn("Heartbeat process takes " + diff + " ms.");
+        LOG.debug("Heartbeat process takes " + diff + " ms.");
         CommonUtils.sleepMs(LOG, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS - diff);
       } else {
         LOG.debug("Heartbeat process takes " + diff + " ms.");
@@ -177,5 +177,13 @@ public class Worker implements Runnable {
         wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
         wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
     worker.start();
+  }
+
+  /**
+   * Get the worker server handler class. This is for unit test only. 
+   * @return
+   */
+  WorkerServiceHandler getWorkerServiceHandler() {
+    return mWorkerServiceHandler;
   }
 }

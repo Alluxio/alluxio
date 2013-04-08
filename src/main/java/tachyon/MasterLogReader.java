@@ -1,7 +1,7 @@
 package tachyon;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
@@ -21,11 +21,11 @@ public class MasterLogReader {
 
   private Pair<LogType, Object> mCurrent = null;
 
-  public MasterLogReader(String fileName) {
+  public MasterLogReader(String fileName) throws IOException {
     LOG_FILE_NAME = fileName;
     mKryo = KryoFactory.createLogKryo();
     try {
-      mInput = new Input(new FileInputStream(LOG_FILE_NAME));
+      mInput = new Input(UnderFileSystem.getUnderFileSystem(LOG_FILE_NAME).open(LOG_FILE_NAME));
     } catch (FileNotFoundException e) {
       CommonUtils.runtimeException(e);
     }

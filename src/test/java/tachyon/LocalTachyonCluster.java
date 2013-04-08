@@ -50,6 +50,10 @@ public class LocalTachyonCluster {
     return mMasterPort;
   }
 
+  WorkerServiceHandler getWorkerServiceHandler() {
+    return mWorker.getWorkerServiceHandler();    
+  }
+
   private void mkdir(String path) throws IOException {
     if (!(new File(path)).mkdirs()) {
       throw new IOException("Failed to make folder: " + path);
