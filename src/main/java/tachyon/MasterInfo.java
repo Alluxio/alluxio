@@ -182,7 +182,7 @@ public class MasterInfo {
     }
   }
 
-  public MasterInfo(InetSocketAddress address) {
+  public MasterInfo(InetSocketAddress address) throws IOException {
     MASTER_CONF = MasterConf.get();
 
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1);
@@ -895,11 +895,11 @@ public class MasterInfo {
     return ret;
   }
 
-  private void recoveryFromFile(String fileName, String msg) {
+  private void recoveryFromFile(String fileName, String msg) throws IOException {
     MasterLogReader reader;
-
-    File file = new File(fileName);
-    if (!file.exists()) {
+    
+    UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(fileName);
+    if (!ufs.exists(fileName)) {
       LOG.info(msg + fileName + " does not exist.");
     } else {
       LOG.info("Reading " + msg + fileName);
@@ -941,7 +941,7 @@ public class MasterInfo {
     }
   }
 
-  private void recoveryFromLog() {
+  private void recoveryFromLog() throws IOException {
     recoveryFromFile(MASTER_CONF.CHECKPOINT_FILE, "Master Checkpoint file ");
     recoveryFromFile(MASTER_CONF.LOG_FILE, "Master Log file ");
   }
@@ -1079,7 +1079,7 @@ public class MasterInfo {
     return new Command(CommandType.Nothing, ByteBuffer.allocate(0));
   }
 
-  private void writeCheckpoint() {
+  private void writeCheckpoint() throws IOException {
     LOG.info("Files recoveried from logs: ");
     MasterLogWriter checkpointWriter =
         new MasterLogWriter(MASTER_CONF.CHECKPOINT_FILE + ".tmp");
@@ -1107,9 +1107,12 @@ public class MasterInfo {
       checkpointWriter.appendAndFlush(new CheckpointInfo(mInodeCounter.get()));
       checkpointWriter.close();
 
-      CommonUtils.renameFile(MASTER_CONF.CHECKPOINT_FILE + ".tmp", MASTER_CONF.CHECKPOINT_FILE);
+      UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(MASTER_CONF.CHECKPOINT_FILE);
+      ufs.rename(MASTER_CONF.CHECKPOINT_FILE + ".tmp", MASTER_CONF.CHECKPOINT_FILE);
+      ufs.delete(MASTER_CONF.CHECKPOINT_FILE + ".tmp", false);
 
-      CommonUtils.deleteFile(MASTER_CONF.LOG_FILE);
+      ufs = UnderFileSystem.getUnderFileSystem(MASTER_CONF.LOG_FILE);
+      ufs.delete(MASTER_CONF.LOG_FILE, false);
     }
     LOG.info("Files recovery done. Current mInodeCounter: " + mInodeCounter.get());
   }

@@ -16,7 +16,6 @@ import java.util.concurrent.BlockingQueue;
 import org.apache.thrift.TException;
 import org.apache.log4j.Logger;
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.fs.Path;
 
 import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
@@ -53,7 +52,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
 
   private File mDataFolder;
   private File mUserFolder;
-  private Path mHdfsWorkerFolder;
+  private String mUnderfsWorkerFolder;
   private UnderFileSystem mUnderFs;
 
   private Users mUsers;
@@ -82,9 +81,9 @@ public class WorkerServiceHandler implements WorkerService.Iface {
     mDataFolder = new File(dataFolder);
     mUserFolder = new File(mDataFolder.toString(), WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
     mWorkerInfo = new WorkerInfo(id, workerAddress, spaceLimitBytes);
-    mHdfsWorkerFolder = new Path(COMMON_CONF.UNDERFS_ADDRESS + "/" + COMMON_CONF.WORKERS_FOLDER + "/" + id);
+    mUnderfsWorkerFolder = COMMON_CONF.WORKERS_FOLDER + "/" + id;
     mUnderFs = UnderFileSystem.getUnderFileSystem(COMMON_CONF.UNDERFS_ADDRESS);
-    mUsers = new Users(mUserFolder.toString(), mHdfsWorkerFolder.toString());
+    mUsers = new Users(mUserFolder.toString(), mUnderfsWorkerFolder);
 
     try {
       initializeWorkerInfo();
@@ -110,7 +109,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       FailedToCheckpointException, TException {
     // TODO This part need to be changed.
     String srcPath = getUserUnderfsTempFolder(userId) + "/" + fileId;
-    String dstPath = COMMON_CONF.UNDERFS_ADDRESS + COMMON_CONF.DATA_FOLDER + "/" + fileId;
+    String dstPath = COMMON_CONF.DATA_FOLDER + "/" + fileId;
     try {
       if (!mUnderFs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);

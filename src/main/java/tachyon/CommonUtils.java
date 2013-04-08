@@ -1,6 +1,5 @@
 package tachyon;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -109,20 +108,6 @@ public final class CommonUtils {
   public static String convertMsToSimpleDate(long Millis) {
     DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy");
     return formatter.format(new Date(Millis));
-  }
-
-  public static void deleteFile(String fileName) {
-    File file = new File(fileName);
-    if (file.exists()) {
-      while (!file.delete()) {
-        LOG.info("Trying to delete " + file.toString());
-        sleepMs(LOG, 1000);
-      }
-    }
-  }
-
-  public static boolean existFile(String fileName) {
-    return (new File(fileName)).exists();
   }
 
   public static String getCurrentMemStatsInBytes() {
@@ -300,14 +285,6 @@ public final class CommonUtils {
 
   public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
     logger.info(message + " took " + (getCurrentNs() - startTimeNs) + " ns.");
-  }
-
-  public static void renameFile(String src, String dst) {
-    File srcFile = new File(src);
-    File dstFile = new File(dst);
-    if (!srcFile.renameTo(dstFile)) {
-      CommonUtils.runtimeException("Failed to rename file from " + src + " to " + dst);
-    }
   }
 
   public static void runtimeException(String msg) {

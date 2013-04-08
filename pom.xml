@@ -102,6 +102,7 @@
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
+        <version>1.2.1</version>
         <executions>
           <execution>
             <id>Version Calculation</id>

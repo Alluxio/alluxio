@@ -18,7 +18,7 @@ public class WorkerConf extends Utils {
   public final int SELECTOR_THREADS;
   public final int QUEUE_SIZE_PER_SELECTOR;
   public final int SERVER_THREADS;
-  public final int USER_TIMEOUT_MS = 60 * 1000;
+  public final int USER_TIMEOUT_MS;
   public final String USER_TEMP_RELATIVE_FOLDER = "users";
 
   private WorkerConf() {
@@ -37,6 +37,7 @@ public class WorkerConf extends Utils {
     SELECTOR_THREADS = getIntProperty("tachyon.worker.selector.threads", 3);
     QUEUE_SIZE_PER_SELECTOR = getIntProperty("tachyon.worker.queue.size.per.selector", 3000);
     SERVER_THREADS = getIntProperty("tachyon.worker.server.threads", 128);
+    USER_TIMEOUT_MS = getIntProperty("tachyon.worker.user.timeout.ms", 10 * 1000);
   }
 
   public static synchronized WorkerConf get() {

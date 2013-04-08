@@ -41,12 +41,12 @@ public class TachyonFileTest {
       file.append((byte) k);
     }
     file.close();
-    
+
     file = mClient.getFile("/root/testFile1");
     file.open(OpType.READ_TRY_CACHE);
     Assert.assertTrue(TestUtils.equalIncreasingByteBuffer(100, file.readByteBuffer()));
   }
-  
+
   @Test
   public void appendTest2() throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mClient.createFile("/root/testFile1");
@@ -58,7 +58,7 @@ public class TachyonFileTest {
       file.append(k);
     }
     file.close();
-    
+
     file = mClient.getFile("/root/testFile1");
     file.open(OpType.READ_TRY_CACHE);
     Assert.assertTrue(TestUtils.equalIncreasingIntBuffer(100, file.readByteBuffer()));

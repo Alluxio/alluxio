@@ -1,10 +1,11 @@
 package tachyon;
 
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
@@ -19,14 +20,14 @@ public class MasterLogWriter {
 
   private Kryo mKryo;
   private Output mOutput;
-  private FileOutputStream mFileOutputStream;
+  private OutputStream mOutputStream;
 
-  public MasterLogWriter(String fileName) {
+  public MasterLogWriter(String fileName) throws IOException {
     LOG_FILE_NAME = fileName;
     mKryo = KryoFactory.createLogKryo();
     try {
-      mFileOutputStream = new FileOutputStream(LOG_FILE_NAME);
-      mOutput = new Output(mFileOutputStream);
+      mOutputStream = UnderFileSystem.getUnderFileSystem(LOG_FILE_NAME).create(LOG_FILE_NAME);
+      mOutput = new Output(mOutputStream);
     } catch (FileNotFoundException e) {
       CommonUtils.runtimeException(e);
     }
@@ -74,7 +75,10 @@ public class MasterLogWriter {
   public synchronized void flush() {
     mOutput.flush();
     try {
-      mFileOutputStream.flush();
+      mOutputStream.flush();
+      if (mOutputStream instanceof FSDataOutputStream) {
+        ((FSDataOutputStream) mOutputStream).sync();
+      }
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
@@ -83,7 +87,7 @@ public class MasterLogWriter {
   public synchronized void close() {
     mOutput.close();
     try {
-      mFileOutputStream.close();
+      mOutputStream.close();
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
