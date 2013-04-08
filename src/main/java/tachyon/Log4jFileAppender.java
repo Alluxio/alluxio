@@ -2,6 +2,7 @@ package tachyon;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.Math;
@@ -110,7 +111,21 @@ public class Log4jFileAppender extends FileAppender {
         !CommonUtils.convertMsToSimpleDate(System.currentTimeMillis()).equals(mLastDate)) {
       activateOptions();
     }
-    super.subAppend(event);
+    if (currentLog.exists()) {
+      super.subAppend(event);
+    } else { 
+      String parentName = currentLog.getParent();
+      if (parentName != null) {
+        File parent = new File(parentName);
+        if (parent.exists()) {
+          super.subAppend(event);
+        } else {
+          if (parent.mkdirs()) {
+            super.subAppend(event);
+          }
+        }
+      }
+    }   
   }
 
   /**
