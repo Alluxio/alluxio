@@ -53,6 +53,10 @@ public class LocalTachyonCluster {
   WorkerServiceHandler getWorkerServiceHandler() {
     return mWorker.getWorkerServiceHandler();    
   }
+  
+  MasterInfo getMasterInfo() {
+    return mMaster.getMasterInfo();
+  }
 
   private void mkdir(String path) throws IOException {
     if (!(new File(path)).mkdirs()) {
