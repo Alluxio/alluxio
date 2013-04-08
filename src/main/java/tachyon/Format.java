@@ -29,13 +29,17 @@ public class Format {
     CommonConf commonConf = CommonConf.get();
     String folder = commonConf.UNDERFS_ADDRESS + commonConf.DATA_FOLDER;
     UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(folder);
-    LOG.info("Deleting " + folder);
+    LOG.info("Formatting " + folder);
     ufs.delete(folder, true);
-    ufs.mkdirs(folder, true);
+    if (!ufs.mkdirs(folder, true)) {
+      LOG.info("Failed to create " + folder);
+    }
 
     folder = commonConf.UNDERFS_ADDRESS + commonConf.WORKERS_FOLDER;
-    LOG.info("Deleting " + folder);
+    LOG.info("Formatting " + folder);
     ufs.delete(folder, true);
-    ufs.mkdirs(folder, true);
+    if (!ufs.mkdirs(folder, true)) {
+      LOG.info("Failed to create " + folder);
+    }
   }
 }

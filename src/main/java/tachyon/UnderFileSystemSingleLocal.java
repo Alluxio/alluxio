@@ -1,9 +1,13 @@
 package tachyon;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,49 +29,51 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    return new FileOutputStream(path);
   }
 
   @Override
-  public void delete(String path, boolean recursive) throws IOException {
-    // TODO Auto-generated method stub
-    
+  public boolean delete(String path, boolean recursive) throws IOException {
+    File file = new File(path);
+    return file.delete();
   }
 
   @Override
-  public boolean exist(String src) throws IOException {
-    // TODO Auto-generated method stub
-    return false;
+  public boolean exists(String path) throws IOException {
+    File file = new File(path);
+    return file.exists();
   }
 
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    List<String> ret = new ArrayList<String>();
+    ret.add(InetAddress.getLocalHost().getCanonicalHostName());
+    return ret;
   }
 
   @Override
   public long getFileSize(String path) throws IOException {
-    // TODO Auto-generated method stub
-    return 0;
+    File file = new File(path);
+    return file.length();
   }
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    // TODO Auto-generated method stub
-    return false;
+    File file = new File(path);
+    if (createParent) {
+      return file.mkdirs();
+    }
+    return file.mkdir();
   }
 
   @Override
   public InputStream open(String path) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    return new FileInputStream(path);
   }
 
   @Override
   public boolean rename(String src, String dst) throws IOException {
-    // TODO Auto-generated method stub
-    return false;
+    File file = new File(src);
+    return file.renameTo(new File(dst));
   }
 }

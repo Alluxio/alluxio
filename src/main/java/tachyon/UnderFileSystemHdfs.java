@@ -61,26 +61,25 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public void delete(String path, boolean recursive) throws IOException {
+  public boolean delete(String path, boolean recursive) throws IOException {
     LOG.debug("deleting " + path + " " + recursive);
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        mFs.delete(new Path(path), recursive);
+        return mFs.delete(new Path(path), recursive);
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
         te = e;
         continue;
       }
-      return;
     }
     throw te;
   }
 
   @Override
-  public boolean exist(String path) {
+  public boolean exists(String path) {
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
@@ -176,11 +175,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     IOException te = null;
     int cnt = 0;
     LOG.debug("Renaming from " + src + " to " + dst);
-    if (!exist(src)) {
+    if (!exists(src)) {
       LOG.error("File " + src + " does not exist. Therefore rename to " + dst + " failed.");
     }
 
-    if (exist(dst)) {
+    if (exists(dst)) {
       LOG.error("File " + dst + " does exist. Therefore rename from " + src + " failed.");
     }
 
