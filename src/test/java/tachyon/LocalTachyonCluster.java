@@ -51,6 +51,7 @@ public class LocalTachyonCluster {
     mWorkerDataFolder = mTachyonHome + "/ramdisk";
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
+    String underfsFolder = mTachyonHome + "/underfs";
     mkdir(mTachyonHome);
     mkdir(mWorkerDataFolder);
     mkdir(masterDataFolder);
@@ -59,6 +60,7 @@ public class LocalTachyonCluster {
     mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
 
     System.setProperty("tachyon.home", mTachyonHome);
+    System.setProperty("tachyon.underfs.address", underfsFolder);
     System.setProperty("tachyon.master.hostname", mLocalhostName);
     System.setProperty("tachyon.master.port", mMasterPort + "");
     System.setProperty("tachyon.master.web.port", (mMasterPort + 1) + "");

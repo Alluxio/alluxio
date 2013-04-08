@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 import tachyon.thrift.InvalidPathException;
 
 /**
- * Utility class shared by all components of the system.
+ * Common utilities shared by all components in Tachyon.
  */
 public final class CommonUtils {
   private static final Logger LOG = Logger.getLogger("");
@@ -29,17 +29,19 @@ public final class CommonUtils {
   }
 
   /**
-   * Whether the pathname is valid.  Currently prohibits relative paths, 
-   * and names which contain a ":" or "/" 
+   * Test whether the path is valid. Currently prohibits relative paths, and names which contain
+   * a ":" or "/".
+   * @param path
+   * @return true if valid, false otherwise.
    */
-  public static boolean isValidName(String src) {
+  public static boolean isValidName(String path) {
     // Path must be absolute.
-    if (!src.startsWith(Path.SEPARATOR)) {
+    if (!path.startsWith(Path.SEPARATOR)) {
       return false;
     }
 
     // Check for ".." "." ":" "/"
-    StringTokenizer tokens = new StringTokenizer(src, Path.SEPARATOR);
+    StringTokenizer tokens = new StringTokenizer(path, Path.SEPARATOR);
     while(tokens.hasMoreTokens()) {
       String element = tokens.nextToken();
       if (element.equals("..") || 
