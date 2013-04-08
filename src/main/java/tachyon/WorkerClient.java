@@ -62,8 +62,8 @@ public class WorkerClient {
     return CLIENT.getUserTempFolder(userId);
   }
 
-  public synchronized String getUserHdfsTempFolder(long userId) throws TException {
-    return CLIENT.getUserHdfsTempFolder(userId);
+  public synchronized String getUserUnderfsTempFolder(long userId) throws TException {
+    return CLIENT.getUserUnderfsTempFolder(userId);
   }
 
   public synchronized String getDataFolder() throws TException {

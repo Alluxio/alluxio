@@ -8,7 +8,6 @@ import tachyon.Constants;
 public class MasterConf extends Utils {
   private static MasterConf MASTER_CONF = null;
 
-  public final String TACHYON_HOME;
   public final String CHECKPOINT_FILE;
   public final String LOG_FILE;
 
@@ -26,10 +25,10 @@ public class MasterConf extends Utils {
   public final ArrayList<String> PINLIST = new ArrayList<String>();
 
   private MasterConf() {
-    TACHYON_HOME = getProperty("tachyon.home");
-    CHECKPOINT_FILE = getProperty(
-        "tachyon.master.checkpoint.file", TACHYON_HOME + "/data/tachyon_checkpoint.data");
-    LOG_FILE = getProperty("tachyon.master.log.file", TACHYON_HOME + "/data/tachyon_log.data");
+    CHECKPOINT_FILE = getProperty("tachyon.master.checkpoint.file",
+        CommonConf.get().TACHYON_HOME + "/data/tachyon_checkpoint.data");
+    LOG_FILE = getProperty("tachyon.master.log.file", 
+        CommonConf.get().TACHYON_HOME + "/data/tachyon_log.data");
 
     HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);

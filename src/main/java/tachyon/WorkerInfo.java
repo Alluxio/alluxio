@@ -10,7 +10,6 @@ import tachyon.thrift.NetAddress;
 
 /**
  * The structure to store a worker's information.
- * @author Haoyuan
  */
 public class WorkerInfo {
   public final InetSocketAddress ADDRESS;

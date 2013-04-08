@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.List;
@@ -92,13 +93,25 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public List<NetAddress> user_getFileLocationsById(int fileId)
       throws FileDoesNotExistException, TException {
-    return mMasterInfo.getFileLocations(fileId);
+    List<NetAddress> ret = null;
+    try {
+      ret = mMasterInfo.getFileLocations(fileId);
+    } catch (IOException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    }
+    return ret;
   }
 
   @Override
   public List<NetAddress> user_getFileLocationsByPath(String filePath)
       throws FileDoesNotExistException, InvalidPathException, TException {
-    return mMasterInfo.getFileLocations(filePath);
+    List<NetAddress> ret = null;
+    try {
+      ret = mMasterInfo.getFileLocations(filePath);
+    } catch (IOException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    }
+    return ret;
   }
 
   @Override
