@@ -11,12 +11,16 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+
 import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.MasterInfo;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 import tachyon.client.OpType;
+import tachyon.conf.CommonConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -27,6 +31,7 @@ import tachyon.thrift.NetAddress;
  */
 public class WebInterfaceBrowseServlet extends HttpServlet {
   private static final long serialVersionUID = 6121623049981468871L;
+  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
 
   private MasterInfo mMasterInfo;
 
@@ -195,6 +200,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws IOException
    * @throws InvalidPathException
    * @throws UnknownHostException
+   * @throws TException 
    */
   private void displayFile(String path, HttpServletRequest request) 
       throws FileDoesNotExistException, IOException, InvalidPathException, UnknownHostException {
@@ -203,14 +209,25 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     if (tFile == null) {
       throw new FileDoesNotExistException(path);
     }
-    tFile.open(OpType.READ_TRY_CACHE);
-    ByteBuffer buf = tFile.readByteBuffer();
-    byte[] data = new byte[Math.min(5120, (int) tFile.getSize())];
-    buf.get(data);
-    String fileData = CommonUtils.convertByteArrayToString(data);
-    if (fileData == null) {
-      fileData = "The requested file is not completely encoded in ascii";
-    } 
+    String fileData = "The file size is bigger than 10MB, do not show it for now.";
+    // TODO provide API to read partial file.
+    if (tFile.length() < 10 * Constants.MB) {
+      tFile.open(OpType.READ_TRY_CACHE);
+      ByteBuffer buf = tFile.readByteBuffer();
+      byte[] data = new byte[Math.min(5120, (int) tFile.getSize())];
+      buf.get(data);
+      fileData = CommonUtils.convertByteArrayToString(data);
+      if (fileData == null) {
+        fileData = "The requested file is not completely encoded in ascii";
+      } 
+    }
+
+    tFile.close();
+    try {
+      tachyonClient.close();
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+    }
     request.setAttribute("fileData", fileData);
     return;
   }

@@ -285,6 +285,10 @@ public class TachyonFile {
     return ret;
   }
 
+  public long length() {
+    return mClientFileInfo.sizeBytes;
+  }
+
   public void open(OpType io) throws IOException {
     if (io == null) {
       throw new IOException("OpType can not be null.");
