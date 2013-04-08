@@ -10,9 +10,9 @@ public class Constants {
   public static final long TB = GB * 1024L;
   public static final long TWO_32 = 1L << 32;
 
-  public static final int DEFAULT_MASTER_PORT = 16000;
+  public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
-  public static final int DEFAULT_WORKER_PORT = 18000;
+  public static final int DEFAULT_WORKER_PORT = 29998;
   public static final int DEFAULT_WORKER_DATA_SERVER_PORT = DEFAULT_WORKER_PORT + 1;
 
   public static final String PATH_SEPARATOR = "/";

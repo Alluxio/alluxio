@@ -1,11 +1,10 @@
 package tachyon;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.thrift.NetAddress;
@@ -32,7 +31,7 @@ public class InodeFileTest {
 	}
 	
 	@Test
-	public void inMemoryLocationsTest() {
+	public void inMemoryLocationsTest() throws IOException {
 		InodeFile inodeFile = new InodeFile("testFile1", 1, 0);
 		List<NetAddress> testAddresses = new ArrayList<NetAddress>(3);
 		testAddresses.add(new NetAddress("testhost1", 1000));
