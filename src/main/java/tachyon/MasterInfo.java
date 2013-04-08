@@ -1080,7 +1080,7 @@ public class MasterInfo {
   }
 
   private void writeCheckpoint() throws IOException {
-    LOG.info("Files recoveried from logs: ");
+    LOG.info("Write checkpoint on files recoveried from logs. ");
     MasterLogWriter checkpointWriter =
         new MasterLogWriter(MASTER_CONF.CHECKPOINT_FILE + ".tmp");
     Queue<Inode> nodesQueue = new LinkedList<Inode>();
@@ -1108,6 +1108,7 @@ public class MasterInfo {
       checkpointWriter.close();
 
       UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(MASTER_CONF.CHECKPOINT_FILE);
+      ufs.delete(MASTER_CONF.CHECKPOINT_FILE, false);
       ufs.rename(MASTER_CONF.CHECKPOINT_FILE + ".tmp", MASTER_CONF.CHECKPOINT_FILE);
       ufs.delete(MASTER_CONF.CHECKPOINT_FILE + ".tmp", false);
 
