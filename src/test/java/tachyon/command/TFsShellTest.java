@@ -27,7 +27,7 @@ public class TFsShellTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(5555, 6666, 1000);
+    mLocalTachyonCluster = new LocalTachyonCluster(1000);
     mLocalTachyonCluster.start();
     mClient = mLocalTachyonCluster.getClient();
     mFsShell = new TFsShell();
@@ -42,7 +42,8 @@ public class TFsShellTest {
   @Test
   public void mkdirTest() throws InvalidPathException, FileAlreadyExistException, TException, UnknownHostException {
     mFsShell.mkdir(new String[]{"mkdir", "tachyon://" + 
-        InetAddress.getLocalHost().getCanonicalHostName() + ":5555/root/testFile1"});
+        InetAddress.getLocalHost().getCanonicalHostName() + ":" +
+        mLocalTachyonCluster.getMasterPort() + "/root/testFile1"});
     Assert.assertTrue(mClient.getFile("/root/testFile1") != null);
   }
 }

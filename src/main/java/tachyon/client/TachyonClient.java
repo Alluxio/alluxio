@@ -710,8 +710,12 @@ public class TachyonClient {
     return true;
   }
 
-  public synchronized String getUnderfsAddress() {
-    // TODO Auto-generated method stub
-    return null;
+  public synchronized String getUnderfsAddress() throws IOException {
+    connect();
+    try {
+      return mMasterClient.user_getUnderfsAddress();
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 }

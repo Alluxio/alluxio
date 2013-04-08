@@ -148,6 +148,11 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public String user_getUnderfsAddress() throws TException {
+    return CommonConf.get().UNDERFS_ADDRESS;
+  }
+
+  @Override
   public List<Integer> user_listFiles(String path, boolean recursive)
       throws FileDoesNotExistException, InvalidPathException, TException {
     return mMasterInfo.listFiles(path, recursive);

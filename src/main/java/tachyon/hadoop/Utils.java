@@ -10,7 +10,6 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.conf.CommonConf;
-import tachyon.conf.UserConf;
 
 public final class Utils {
   private static final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);

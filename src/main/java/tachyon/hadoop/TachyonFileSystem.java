@@ -21,7 +21,6 @@ import org.apache.thrift.TException;
 import tachyon.CommonUtils;
 import tachyon.client.TachyonClient;
 import tachyon.conf.CommonConf;
-import tachyon.conf.UserConf;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
