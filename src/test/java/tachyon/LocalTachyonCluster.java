@@ -88,6 +88,9 @@ public class LocalTachyonCluster {
     WorkerConf.clear();
     UserConf.clear();
 
+    mkdir(CommonConf.get().DATA_FOLDER);
+    mkdir(CommonConf.get().WORKERS_FOLDER);
+
     mMaster = Master.createMaster(
         new InetSocketAddress(mLocalhostName, mMasterPort), mMasterPort + 1, 1, 1, 1);
 
