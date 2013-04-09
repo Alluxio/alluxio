@@ -124,14 +124,6 @@ public class TachyonFile {
     mBuffer.put(b);
   }
 
-  public void append(int b) throws IOException {
-    //    validateIO(false);
-
-    appendCurrentBuffer(USER_CONF.FILE_BUFFER_BYTES);
-
-    mBuffer.putInt(b);
-  }
-
   public void append(byte[] buf) throws IOException {
     append(buf, 0, buf.length);
   }
