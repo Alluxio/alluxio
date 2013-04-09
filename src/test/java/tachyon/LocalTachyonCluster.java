@@ -31,8 +31,8 @@ public class LocalTachyonCluster {
   private String mLocalhostName = null;
 
   public LocalTachyonCluster(long workerCapacityBytes) {
-    mMasterPort = Constants.DEFAULT_MASTER_PORT;
-    mWorkerPort = Constants.DEFAULT_WORKER_PORT;
+    mMasterPort = Constants.DEFAULT_MASTER_PORT - 1000;
+    mWorkerPort = Constants.DEFAULT_WORKER_PORT - 1000;
     mWorkerCapacityBytes = workerCapacityBytes;
   }
 
@@ -53,7 +53,7 @@ public class LocalTachyonCluster {
   WorkerServiceHandler getWorkerServiceHandler() {
     return mWorker.getWorkerServiceHandler();    
   }
-  
+
   MasterInfo getMasterInfo() {
     return mMaster.getMasterInfo();
   }

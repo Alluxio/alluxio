@@ -2,13 +2,8 @@ package tachyon;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.util.List;
-import java.util.ArrayList;
 
 import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.NetAddress;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -23,10 +18,9 @@ import org.junit.Test;
  * Unit tests for MasterInfo
  */
 public class MasterInfoTest {
-  
   LocalTachyonCluster mLocalTachyonCluster = null;
   MasterInfo mMasterInfo = null;
-  
+
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
@@ -40,14 +34,14 @@ public class MasterInfoTest {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
   }
-  
+
   @Test
   public void createFileTest() 
       throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException {
     mMasterInfo.createFile("/testFile", false);
     Assert.assertFalse(mMasterInfo.getFileInfo("/testFile").isFolder());
   }
-  
+
   @Test
   public void createDirectoryTest() 
       throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException {
@@ -55,37 +49,37 @@ public class MasterInfoTest {
     ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFolder");
     Assert.assertTrue(fileInfo.isFolder());
   }
-  
+
   @Test(expected = InvalidPathException.class)
   public void createFileInvalidPathTest() throws InvalidPathException, FileAlreadyExistException {
     mMasterInfo.createFile("testFile", false);
   }
-  
+
   @Test(expected = FileAlreadyExistException.class)
   public void createAlreadyExistFileTest() throws InvalidPathException, FileAlreadyExistException {
     mMasterInfo.createFile("/testFile", false);
     mMasterInfo.createFile("/testFile", true);
   }
-  
+
   @Test
   public void createRawTableTest() throws InvalidPathException, FileAlreadyExistException, 
-      TableColumnException, FileDoesNotExistException {
+  TableColumnException, FileDoesNotExistException {
     mMasterInfo.createRawTable("/testTable", 1, (ByteBuffer) null);
     Assert.assertTrue(mMasterInfo.getFileInfo("/testTable").isFolder());    
   }
-  
+
   @Test(expected = TableColumnException.class)
   public void negativeColumnTest() 
       throws InvalidPathException, FileAlreadyExistException, TableColumnException {
     mMasterInfo.createRawTable("/testTable", -1, (ByteBuffer) null);
   }
-  
+
   @Test(expected = TableColumnException.class)
   public void tooManyColumnsTest()
       throws InvalidPathException, FileAlreadyExistException, TableColumnException {
     mMasterInfo.createRawTable("/testTable", Constants.MAX_COLUMNS + 1, (ByteBuffer) null);
   }
-  
+
   @Test
   public void deleteFileTest() throws InvalidPathException, FileAlreadyExistException {
     int fileId = mMasterInfo.createFile("/testFile", false);
@@ -93,7 +87,7 @@ public class MasterInfoTest {
     mMasterInfo.delete(fileId);
     Assert.assertEquals(-1, mMasterInfo.getFileId("/testFile"));
   }
-  
+
   @Test
   public void deleteEmptyDirectoryTest() throws InvalidPathException, FileAlreadyExistException {
     int fileId = mMasterInfo.createFile("/testFolder", true);
@@ -101,7 +95,7 @@ public class MasterInfoTest {
     mMasterInfo.delete(fileId);
     Assert.assertEquals(-1, mMasterInfo.getFileId("/testFolder"));
   }
-  
+
   @Test
   public void deleteDirectoryWithFilesTest() throws InvalidPathException, FileAlreadyExistException {
     int folderId = mMasterInfo.createFile("/testFolder", true);
@@ -112,7 +106,7 @@ public class MasterInfoTest {
     Assert.assertEquals(-1, mMasterInfo.getFileId("/testFolder"));
     Assert.assertEquals(-1, mMasterInfo.getFileId("/testFolder/testFile"));
   }
-  
+
   @Test
   public void deleteDirectoryWithDirectoriesTest() 
       throws InvalidPathException, FileAlreadyExistException {
@@ -130,12 +124,12 @@ public class MasterInfoTest {
     Assert.assertEquals(-1, mMasterInfo.getFileId("/testFolder/testFile"));
     Assert.assertEquals(-1, mMasterInfo.getFileId("/testFolder/testFolder2/testFile2"));
   }
-  
+
   @Test
   public void getCapacityBytesTest() {
     Assert.assertEquals(1000, mMasterInfo.getCapacityBytes());
   }
-  
+
   @Test
   public void clientFileInfoEmptyFileTest() 
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException {
@@ -150,7 +144,7 @@ public class MasterInfoTest {
     Assert.assertTrue(fileInfo.isNeedCache());
     Assert.assertFalse(fileInfo.isReady());
   }
-  
+
   @Test
   public void clientFileInfoDirectoryTest() 
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException {

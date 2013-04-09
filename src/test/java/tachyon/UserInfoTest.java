@@ -23,7 +23,7 @@ public class UserInfoTest {
       Assert.fail("UserId " + k + " should be invalid.");
     }
   }
-  
+
   @Test
   public void addOwnBytesTest() {
     UserInfo tUserInfo = new UserInfo(1);
@@ -33,7 +33,7 @@ public class UserInfoTest {
     tUserInfo.addOwnBytes(7000);
     Assert.assertEquals(7777, tUserInfo.getOwnBytes());
   }
-  
+
   @Test
   public void generalTest() {
     UserInfo tUserInfo = new UserInfo(1);
