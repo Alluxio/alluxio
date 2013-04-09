@@ -160,7 +160,6 @@ public class Worker implements Runnable {
     mHeartbeatThread.stop();
     mServer.stop();
     while (!mDataServer.isClosed()) {
-      CommonUtils.tempoaryLog("Waiting to close dataserver");
       CommonUtils.sleepMs(null, 100);
     }
   }

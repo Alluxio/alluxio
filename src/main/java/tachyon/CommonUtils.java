@@ -1,19 +1,13 @@
 package tachyon;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.StringTokenizer;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
 import tachyon.thrift.InvalidPathException;
@@ -25,32 +19,6 @@ public final class CommonUtils {
   private static final Logger LOG = Logger.getLogger("");
 
   private CommonUtils () {
-  }
-
-  /**
-   * Test whether the path is valid. Currently prohibits relative paths, and names which contain
-   * a ":" or "/".
-   * @param path
-   * @return true if valid, false otherwise.
-   */
-  public static boolean isValidName(String path) {
-    // Path must be absolute.
-    if (!path.startsWith(Path.SEPARATOR)) {
-      return false;
-    }
-
-    // Check for ".." "." ":" "/"
-    StringTokenizer tokens = new StringTokenizer(path, Path.SEPARATOR);
-    while(tokens.hasMoreTokens()) {
-      String element = tokens.nextToken();
-      if (element.equals("..") || 
-          element.equals(".")  ||
-          (element.indexOf(":") >= 0)  ||
-          (element.indexOf("/") >= 0)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   public static String cleanPath(String path) {
@@ -110,33 +78,6 @@ public final class CommonUtils {
     return formatter.format(new Date(Millis));
   }
 
-  public static String getCurrentMemStatsInBytes() {
-    Runtime runtime = Runtime.getRuntime();
-    StringBuilder sb = new StringBuilder();
-    sb.append(" MaxMemory=").append((runtime.maxMemory())).append(" bytes");
-    sb.append(" TotalMemory=").append((runtime.totalMemory())).append(" bytes");
-    sb.append(" FreeMemory=").append((runtime.freeMemory())).append(" bytes");
-    sb.append(" UsedMemory=").append((runtime.totalMemory() - runtime.freeMemory())).append(" bytes");
-    return sb.toString();
-  }
-
-  public static String getCurrentMemStats() {
-    Runtime runtime = Runtime.getRuntime();
-    StringBuilder sb = new StringBuilder();
-    sb.append(" MaxMemory=").append(getSizeFromBytes(runtime.maxMemory()));
-    sb.append(" TotalMemory=").append(getSizeFromBytes(runtime.totalMemory()));
-    sb.append(" FreeMemory=").append(getSizeFromBytes(runtime.freeMemory()));
-    sb.append(" UsedMemory=").append(getSizeFromBytes(runtime.totalMemory() - runtime.freeMemory()));
-    return sb.toString();
-  }
-
-  public static String getCurrentMemStatsAfterGCs() {
-    for (int k = 0; k < 10; k ++) {
-      System.gc();
-    }
-    return getCurrentMemStats();
-  }
-
   public static long getCurrentMs() {
     return System.currentTimeMillis();
   }
@@ -155,45 +96,8 @@ public final class CommonUtils {
     return fileId;
   }
 
-  public static String getLocalFilePath(String localFolder, int fileId) {
-    return localFolder + "/" + fileId;
-  }
-
-  public static int getKB(int bytes) {
-    return bytes / 1024;
-  }
-
-  public static long getKB(long bytes) {
-    return bytes / 1024;
-  }
-
   public static int getMB(int bytes) {
-    return bytes / 1024 / 1024;
-  }
-
-  public static long getMB(long bytes) {
-    return bytes / 1024 / 1024;
-  }
-
-  public static byte[] getMd5(byte[] data) {
-    return DigestUtils.md5(data);
-  }
-
-  public static String getMd5Hex(byte[] data) {
-    return DigestUtils.md5Hex(data);
-  }
-
-  public static String getMd5Hex(String fileName) {
-    String ret = null;
-    try {
-      FileInputStream fis = new FileInputStream(fileName);
-      ret = DigestUtils.md5Hex(fis);
-    } catch (FileNotFoundException e) {
-      runtimeException(e);
-    } catch (IOException e) {
-      runtimeException(e);
-    }
-    return ret;
+    return bytes / Constants.MB;
   }
 
   public static String getSizeFromBytes(long bytes) {
