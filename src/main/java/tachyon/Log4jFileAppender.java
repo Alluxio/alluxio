@@ -23,7 +23,6 @@ public class Log4jFileAppender extends FileAppender {
   private int mMaxFileSize = 1;
   private int mCurrentFileBackupIndex = -1;
   private int mDeletionPercentage = 10;
-  private long mMaxFileBytes = mMaxFileSize * 1024 * 1024;
   private String mCurrentFileName = "";
   private String mOriginalFileName = "";
   private String mLastDate = "";
@@ -106,7 +105,7 @@ public class Log4jFileAppender extends FileAppender {
   @Override
   public synchronized void subAppend(LoggingEvent event) {
     File currentLog = new File(mCurrentFileName);
-    if (currentLog.length() > mMaxFileBytes || 
+    if (currentLog.length() > (mMaxFileSize * 1024 * 1024) || 
         !CommonUtils.convertMsToSimpleDate(System.currentTimeMillis()).equals(mLastDate)) {
       activateOptions();
     }
