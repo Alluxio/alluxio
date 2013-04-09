@@ -20,7 +20,6 @@ import org.apache.tools.ant.util.LazyFileOutputStream;
  */
 public class Log4jFileAppender extends FileAppender { 
   private int mMaxBackupIndex = 1;
-  private int mMaxFileSizeMB = 1;
   private int mMaxFileSizeBytes = Constants.MB;
   private int mCurrentFileBackupIndex = -1;
   private int mDeletionPercentage = 10;
@@ -33,7 +32,6 @@ public class Log4jFileAppender extends FileAppender {
   }
 
   public void setMaxFileSize(int maxFileSizeMB) {
-    mMaxFileSizeMB = maxFileSizeMB;
     mMaxFileSizeBytes = maxFileSizeMB * Constants.MB;
   }
 
@@ -66,7 +64,7 @@ public class Log4jFileAppender extends FileAppender {
       }
     }
   }
-  
+
   /**
    * Creates a LazyFileOutputStream so logs are only created when a message is logged.
    * @param fileName
@@ -200,7 +198,7 @@ public class Log4jFileAppender extends FileAppender {
         }
       }
     }
-    
+
     File oldFile = new File(fileName); 
     if (mCurrentFileBackupIndex >= mMaxBackupIndex) {
       int deleteToIndex = (int) Math.ceil(mMaxBackupIndex*mDeletionPercentage/100.0);
