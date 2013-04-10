@@ -253,12 +253,12 @@ public class TachyonFile {
 
   public InputStream getInputStream() throws IOException {
     //    validateIO(true);
-    return new TFileInputStream(this);
+    return new FileInputStream(this);
   }
 
   public OutputStream getOutputStream() throws IOException {
     //    validateIO(false);
-    return new TFileOutputStream(this);
+    return new FileOutputStream(this);
   }
 
   public long getSize() {
