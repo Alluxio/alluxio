@@ -8,6 +8,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.TableColumnException;
+import tachyon.thrift.SuspectedFileSizeException;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -35,6 +36,27 @@ public class MasterInfoTest {
     System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
+  @Test
+  public void addCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException, 
+      FileAlreadyExistException, InvalidPathException {
+    int fileId = mMasterInfo.createFile("/testFile", false);
+    ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFile");
+    Assert.assertEquals("", fileInfo.getCheckpointPath());
+    mMasterInfo.addCheckpoint(-1, fileId, 0, "/testPath");
+    fileInfo = mMasterInfo.getFileInfo("/testFile");
+    Assert.assertEquals("/testPath", fileInfo.getCheckpointPath());
+    mMasterInfo.addCheckpoint(-1, fileId, 0, "/testPath2");
+    fileInfo = mMasterInfo.getFileInfo("/testFile");
+    Assert.assertEquals("/testPath", fileInfo.getCheckpointPath());
+  }
+  
+  @Test(expected = FileDoesNotExistException.class)
+  public void notFileCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException, 
+      FileAlreadyExistException, InvalidPathException {
+    int fileId = mMasterInfo.createFile("/testFile", true);
+    mMasterInfo.addCheckpoint(-1, fileId, 0, "/testPath");    
+  }  
+  
   @Test
   public void createFileTest() 
       throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException {
@@ -138,7 +160,7 @@ public class MasterInfoTest {
     Assert.assertEquals(fileInfo.getName(), "testFile");
     Assert.assertEquals(fileInfo.getId(), fileId);
     Assert.assertEquals(fileInfo.getSizeBytes(), -1);
-    Assert.assertTrue(fileInfo.getCheckpointPath().equals(""));
+    Assert.assertEquals("", fileInfo.getCheckpointPath());
     Assert.assertFalse(fileInfo.isFolder());
     Assert.assertFalse(fileInfo.isNeedPin());
     Assert.assertTrue(fileInfo.isNeedCache());
@@ -153,7 +175,7 @@ public class MasterInfoTest {
     Assert.assertEquals(fileInfo.getName(), "testFolder");
     Assert.assertEquals(fileInfo.getId(), fileId);
     Assert.assertEquals(fileInfo.getSizeBytes(), 0);
-    Assert.assertTrue(fileInfo.getCheckpointPath().equals(""));
+    Assert.assertEquals("", fileInfo.getCheckpointPath());
     Assert.assertTrue(fileInfo.isFolder());
     Assert.assertFalse(fileInfo.isNeedPin());
     Assert.assertFalse(fileInfo.isNeedCache());
