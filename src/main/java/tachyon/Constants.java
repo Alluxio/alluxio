@@ -10,6 +10,11 @@ public class Constants {
   public static final long TB = GB * 1024L;
   public static final long TWO_32 = 1L << 32;
 
+  public static final long SECOND_MS = 1000;
+  public static final long MINUTE_MS = SECOND_MS * 60;
+  public static final long HOUR_MS = MINUTE_MS * 60;
+  public static final long DAY_MS = HOUR_MS * 24;
+
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
   public static final int DEFAULT_WORKER_PORT = 29998;
