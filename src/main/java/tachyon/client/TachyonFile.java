@@ -224,6 +224,7 @@ public class TachyonFile {
       }
       if (succeed) {
         os.close();
+        CLIENT_FILE_INFO.setInMemory(true);
       } else {
         os.cancel();
       }
@@ -275,6 +276,11 @@ public class TachyonFile {
     }
 
     return recvMsg.getReadOnlyData();
+  }
+
+  public boolean isInMemory() {
+    // TODO Make this query the master.
+    return CLIENT_FILE_INFO.isInMemory();
   }
 
   public boolean isReady() {

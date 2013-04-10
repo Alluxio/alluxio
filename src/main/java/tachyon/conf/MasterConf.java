@@ -42,7 +42,7 @@ public class MasterConf extends Utils {
 
     WHITELIST.addAll(Arrays.asList(getProperty("tachyon.master.whitelist", "/").split(";")));
     String tPinList = getProperty("tachyon.master.pinlist", null);
-    if (tPinList != null) {
+    if (tPinList != null && !tPinList.isEmpty()) {
       PINLIST.addAll(Arrays.asList(tPinList.split(";")));
     }
   }
