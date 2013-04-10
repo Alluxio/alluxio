@@ -265,7 +265,7 @@ public class MasterInfo {
    */
   public void cachedFile(long workerId, long workerUsedBytes, int fileId,
       long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException {
-    LOG.info(CommonUtils.parametersToString(workerId, workerUsedBytes, fileId, fileSizeBytes));
+    LOG.debug(CommonUtils.parametersToString(workerId, workerUsedBytes, fileId, fileSizeBytes));
 
     WorkerInfo tWorkerInfo = getWorkerInfo(workerId);
     tWorkerInfo.updateFile(true, fileId);
@@ -897,7 +897,7 @@ public class MasterInfo {
 
   private void recoveryFromFile(String fileName, String msg) throws IOException {
     MasterLogReader reader;
-    
+
     UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(fileName);
     if (!ufs.exists(fileName)) {
       LOG.info(msg + fileName + " does not exist.");
@@ -1070,7 +1070,7 @@ public class MasterInfo {
             LOG.error("Data " + id + " does not exist");
           } else if (inode.isFile()) {
             ((InodeFile) inode).removeLocation(workerId);
-            LOG.error("Data " + id + " was evicted from worker " + workerId);
+            LOG.debug("Data " + id + " was evicted from worker " + workerId);
           }
         }
       }

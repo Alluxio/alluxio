@@ -331,7 +331,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
         mMasterClient.open();
         id = mMasterClient.worker_register(
             new NetAddress(mWorkerInfo.ADDRESS.getHostName(), mWorkerInfo.ADDRESS.getPort()),
-            mWorkerInfo.getCapacityBytes(), 0, new ArrayList<Integer>());
+            mWorkerInfo.getCapacityBytes(), 0, new ArrayList<Integer>(mMemoryData));
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
