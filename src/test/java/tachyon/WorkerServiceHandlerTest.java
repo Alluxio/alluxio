@@ -13,7 +13,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 
 import org.apache.thrift.TException;
 import tachyon.thrift.FileAlreadyExistException;
@@ -32,10 +31,13 @@ public class WorkerServiceHandlerTest {
   private WorkerServiceHandler mWorkerServiceHandler = null;
   private TachyonClient mClient = null;
   private final long WORKER_CAPACITY_BYTES = 10000;
+  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 5;
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
+    System.setProperty("tachyon.user.quota.unit.bytes", WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
+    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms",
+        WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mWorkerServiceHandler = mLocalTachyonCluster.getWorkerServiceHandler();
@@ -90,28 +92,18 @@ public class WorkerServiceHandlerTest {
     Assert.assertTrue(mWorkerServiceHandler.sDataAccessQueue.poll() == 2);
   }
   
-  @Test @Ignore // not sure about this
-  public void addCheckpointTest() 
-      throws FileDoesNotExistException, SuspectedFileSizeException, InvalidPathException,
-      FailedToCheckpointException, TException, FileAlreadyExistException {
-    int fileId = mMasterInfo.createFile("/testFile", false);
-    mWorkerServiceHandler.addCheckpoint(1L, fileId);
-    ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFile");
-    Assert.assertFalse(fileInfo.getCheckpointPath().equals(""));
-  }    
-  
   @Test
   public void overCapacityRequestSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES/10L));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES*10L));
+    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L));
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES * 10L));
   }
   
   @Test
   public void totalOverCapacityRequestSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES/2L));
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES/2L));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES/2L));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES/2L));
+    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 2L));
+    Assert.assertTrue(mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES / 2L));
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 2L));
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES / 2L));
   }
   
   @Test // Seems there is a bug
@@ -121,13 +113,13 @@ public class WorkerServiceHandlerTest {
     mWorkerServiceHandler.returnSpace(1L, WORKER_CAPACITY_BYTES);
     Assert.assertTrue(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES));
     mWorkerServiceHandler.returnSpace(2L, WORKER_CAPACITY_BYTES);
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES/10L));
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES / 10L));
   }
   
-  @Test @Ignore // Seems there is a bug
+  @Test // Seems there is a bug
   public void overReturnSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES/10L));
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES/10L));
+    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L));
+    Assert.assertTrue(mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES / 10L));
     mWorkerServiceHandler.returnSpace(1L, WORKER_CAPACITY_BYTES);
     Assert.assertFalse(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES));
   }
@@ -135,17 +127,18 @@ public class WorkerServiceHandlerTest {
   @Test
   public void evictionTest() throws InvalidPathException, FileAlreadyExistException, IOException, 
       TException, FileDoesNotExistException {
-    int fileId1 = createSimpleFile("/testFile1", OpType.WRITE_CACHE, (int) WORKER_CAPACITY_BYTES/3);
+    int fileId1 = createSimpleFile("/testFile1", OpType.WRITE_CACHE, (int) WORKER_CAPACITY_BYTES / 3);
     Assert.assertTrue(fileId1 >= 0);
     ClientFileInfo fileInfo1 = mMasterInfo.getFileInfo("/testFile1");
     Assert.assertTrue(fileInfo1.isInMemory());
-    int fileId2 = createSimpleFile("/testFile2", OpType.WRITE_CACHE, (int) WORKER_CAPACITY_BYTES/3);
+    int fileId2 = createSimpleFile("/testFile2", OpType.WRITE_CACHE, (int) WORKER_CAPACITY_BYTES / 3);
     Assert.assertTrue(fileId2 >= 0);
     fileInfo1 = mMasterInfo.getFileInfo("/testFile1");
     ClientFileInfo fileInfo2 = mMasterInfo.getFileInfo("/testFile2");
     Assert.assertTrue(fileInfo1.isInMemory());
     Assert.assertTrue(fileInfo2.isInMemory());
-    int fileId3 = createSimpleFile("/testFile3", OpType.WRITE_CACHE, (int) WORKER_CAPACITY_BYTES/2);
+    int fileId3 = createSimpleFile("/testFile3", OpType.WRITE_CACHE, (int) WORKER_CAPACITY_BYTES / 2);
+    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
     fileInfo1 = mMasterInfo.getFileInfo("/testFile1");
     fileInfo2 = mMasterInfo.getFileInfo("/testFile2");
     ClientFileInfo fileInfo3 = mMasterInfo.getFileInfo("/testFile3");

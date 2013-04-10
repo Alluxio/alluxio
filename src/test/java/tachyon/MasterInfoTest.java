@@ -41,13 +41,13 @@ public class MasterInfoTest {
       FileAlreadyExistException, InvalidPathException {
     int fileId = mMasterInfo.createFile("/testFile", false);
     ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFile");
-    Assert.assertTrue(fileInfo.getCheckpointPath().equals(""));
+    Assert.assertEquals("", fileInfo.getCheckpointPath());
     mMasterInfo.addCheckpoint(-1, fileId, 0, "/testPath");
     fileInfo = mMasterInfo.getFileInfo("/testFile");
-    Assert.assertTrue(fileInfo.getCheckpointPath().equals("/testPath"));
+    Assert.assertEquals("/testPath", fileInfo.getCheckpointPath());
     mMasterInfo.addCheckpoint(-1, fileId, 0, "/testPath2");
     fileInfo = mMasterInfo.getFileInfo("/testFile");
-    Assert.assertTrue(fileInfo.getCheckpointPath().equals("/testPath"));
+    Assert.assertEquals("/testPath", fileInfo.getCheckpointPath());
   }
   
   @Test(expected = FileDoesNotExistException.class)
@@ -160,7 +160,7 @@ public class MasterInfoTest {
     Assert.assertEquals(fileInfo.getName(), "testFile");
     Assert.assertEquals(fileInfo.getId(), fileId);
     Assert.assertEquals(fileInfo.getSizeBytes(), -1);
-    Assert.assertTrue(fileInfo.getCheckpointPath().equals(""));
+    Assert.assertEquals("", fileInfo.getCheckpointPath());
     Assert.assertFalse(fileInfo.isFolder());
     Assert.assertFalse(fileInfo.isNeedPin());
     Assert.assertTrue(fileInfo.isNeedCache());
@@ -175,7 +175,7 @@ public class MasterInfoTest {
     Assert.assertEquals(fileInfo.getName(), "testFolder");
     Assert.assertEquals(fileInfo.getId(), fileId);
     Assert.assertEquals(fileInfo.getSizeBytes(), 0);
-    Assert.assertTrue(fileInfo.getCheckpointPath().equals(""));
+    Assert.assertEquals("", fileInfo.getCheckpointPath());
     Assert.assertTrue(fileInfo.isFolder());
     Assert.assertFalse(fileInfo.isNeedPin());
     Assert.assertFalse(fileInfo.isNeedCache());
