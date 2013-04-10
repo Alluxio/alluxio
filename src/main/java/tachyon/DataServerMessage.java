@@ -79,6 +79,7 @@ public class DataServerMessage {
         ret.mIsMessageReady = true;
         ret.generateHeader();
         WorkerServiceHandler.sDataAccessQueue.add(ret.mFileId);
+        ret.LOG.info("Response remote requst by reading from " + filePath + " preparation done."); 
       } catch (Exception e) {
         // TODO This is a trick for now. The data may have been removed before remote retrieving. 
         ret.mFileId = - ret.mFileId;
