@@ -1,11 +1,42 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>tachyon</groupId>
-  <artifactId>tachyon</artifactId>
-  <version>0.2-SNAPSHOT</version>
+  <groupId>org.tachyonproject</groupId>
+  <artifactId>parent</artifactId>
+  <version>0.2.0</version>
   <packaging>jar</packaging>
-  <name>tachyon</name>
-  <url>http://maven.apache.org</url>
+  <name>Tachyon Project Parent POM</name>
+  <url>http://tachyonproject.org/</url>
+  <licenses>
+    <license>
+      <name>BSD License</name>
+      <url>https://github.com/amplab/tachyon/blob/master/LICENSE</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:git:git@github.com:amplab/tachyon.git</connection>
+    <url>scm:git:git@github.com:amplab/tachyon.git</url>
+  </scm>
+  <developers>
+    <developer>
+      <id>haoyuan</id>
+      <name>Haoyuan Li</name>
+      <email>haoyuan.li@gmail.com</email>
+      <url>http://www.cs.berkeley.edu/~haoyuan</url>
+      <organization>U.C. Berkeley Computer Science</organization>
+      <organizationUrl>http://www.cs.berkeley.edu/</organizationUrl>
+    </developer>
+  </developers>
+  <issueManagement>
+    <system>github</system>
+    <url>https://spark-project.atlassian.net/browse/TACH</url>
+  </issueManagement>
+
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -17,6 +48,9 @@
 
   <repositories>
   </repositories>
+
+  <pluginRepositories>
+  </pluginRepositories>
 
   <dependencies>
     <dependency>
