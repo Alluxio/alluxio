@@ -162,7 +162,14 @@
             <table class="table table-hover table-condensed">
               <thead>
                 <th>Node Name</th>
-                <th>Uptime</th>
+                <!--
+                  <c:if test="${debug}">
+                    <th>[D]Uptime</th>
+                  </c:if>
+                  -->
+                <% if ((Boolean) request.getAttribute("debug")) { %>
+                  <th>[D]Uptime</th>
+                <% } %>
                 <th>Last Heartbeat</th>
                 <th>State</th>
                 <th>Capacity</th>
@@ -171,7 +178,9 @@
                 <c:forEach var="nodeInfo" items="${nodeInfos}">
                   <tr>
                     <th>${nodeInfo.name}</th>
-                    <th>${nodeInfo.uptimeClockTime}</th>
+                    <c:if test="${debug}">
+                      <th>${nodeInfo.uptimeClockTime}</th>
+                    </c:if>
                     <th>${nodeInfo.lastHeartbeat} seconds ago</th>
                     <th>${nodeInfo.state}</th>
                     <th>
@@ -194,7 +203,9 @@
                 <% for (WebInterfaceGeneralServlet.NodeInfo nodeInfo : ((WebInterfaceGeneralServlet.NodeInfo[]) request.getAttribute("nodeInfos"))) { %>
                   <tr>
                     <th><%= nodeInfo.getName() %></th>
-                    <th><%= nodeInfo.getUptimeClockTime() %></th>
+                    <% if ((Boolean) request.getAttribute("debug")) { %>
+                      <th><%= nodeInfo.getUptimeClockTime() %></th>
+                    <% } %>
                     <th><%= nodeInfo.getLastHeartbeat() %></th>
                     <th><%= nodeInfo.getState() %></th>
                     <th>
