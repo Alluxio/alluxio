@@ -342,13 +342,17 @@ public class WorkerServiceHandler implements WorkerService.Iface {
 
   @Override
   public void returnSpace(long userId, long returnedBytes) throws TException {
+    long preAvailableBytes = mWorkerInfo.getAvailableBytes();
+    if (returnedBytes > mUsers.ownBytes(userId)) {
+      LOG.error("User " + userId + " does not own " + returnedBytes + " bytes.");
+    } else {
+      mWorkerInfo.returnUsedBytes(returnedBytes);
+      mUsers.addOwnBytes(userId, - returnedBytes);
+    }
+
     LOG.info("returnSpace(" + userId + ", " + returnedBytes + ") : " +
-        mWorkerInfo.getAvailableBytes() + " returned: " + returnedBytes);
-
-    mWorkerInfo.returnUsedBytes(returnedBytes);
-    mUsers.addOwnBytes(userId, - returnedBytes);
-
-    LOG.info("user_returnSpace(): new available: " + mWorkerInfo.getAvailableBytes());
+        preAvailableBytes + " returned: " + returnedBytes + ". New Available: " +
+        mWorkerInfo.getAvailableBytes());
   }
 
   @Override
