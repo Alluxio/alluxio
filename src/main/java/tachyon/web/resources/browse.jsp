@@ -54,9 +54,9 @@
             </c:if>
           -->
             <% if ((Boolean) request.getAttribute("debug")) { %>
-              <th>[DEBUG]Inode Number</th>
-              <th>[DEBUG]Checkpoint Path</th>
-              <th>[DEBUG]File Locations</th>
+              <th>[D]Inode Number</th>
+              <th>[D]Checkpoint Path</th>
+              <th>[D]File Locations</th>
             <% } %>
           </thead>
           <tbody>
