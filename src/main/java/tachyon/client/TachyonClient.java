@@ -98,19 +98,28 @@ public class TachyonClient {
     LOG.error("TachyonClient accessLocalFile(" + fileId + ") failed");
   }
 
-  public synchronized void addCheckpoint(int fileId) 
-      throws FileDoesNotExistException, SuspectedFileSizeException, FailedToCheckpointException {
+  public synchronized void addCheckpoint(int fileId) throws IOException {
     connect();
     if (!mConnected) {
-      throw new FailedToCheckpointException("Failed to add checkpoint for file " + fileId);
+      throw new IOException("Failed to add checkpoint for file " + fileId);
     }
     if (mWorkerClient != null) {
       try {
         mWorkerClient.addCheckpoint(mUserId, fileId);
-      } catch (TException e) {
+      } catch (FileDoesNotExistException e) {
+        LOG.error(e.getMessage(), e);
+        throw new IOException(e);
+      } catch (SuspectedFileSizeException e) {
+        LOG.error(e.getMessage(), e);
+        throw new IOException(e);
+      } catch (FailedToCheckpointException e) {
+        LOG.error(e.getMessage(), e);
+        throw new IOException(e);
+      }catch (TException e) {
         LOG.error(e.getMessage(), e);
         mWorkerClient = null;
-      }
+        throw new IOException(e);
+      } 
     }
   }
 
@@ -132,8 +141,7 @@ public class TachyonClient {
     return mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path);
   }
 
-  public synchronized void cacheFile(int fileId) 
-      throws FileDoesNotExistException, SuspectedFileSizeException {
+  public synchronized void cacheFile(int fileId) throws IOException  {
     connect();
     if (!mConnected) {
       return;
@@ -142,12 +150,18 @@ public class TachyonClient {
     if (mWorkerClient != null) {
       try {
         mWorkerClient.cacheFile(mUserId, fileId);
+      } catch (FileDoesNotExistException e) {
+        LOG.error(e.getMessage(), e);
+        throw new IOException(e);
+      } catch (SuspectedFileSizeException e) {
+        LOG.error(e.getMessage(), e);
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mWorkerClient = null;
-      }
+        throw new IOException(e);
+      } 
     }
-    return;
   }
 
   // Lazy connection
@@ -437,16 +451,14 @@ public class TachyonClient {
       return null;
     }
 
-    List<NetAddress> ret = null;
     try {
-      ret = mMasterClient.user_getFileLocations(fileId);
+      return mMasterClient.user_getFileLocations(fileId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
     }
-    return ret;
   }
 
   public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fileIds) 
@@ -594,6 +606,7 @@ public class TachyonClient {
     }
   }
 
+  // TODO Make it work for lock/unlock file multiple times.
   public synchronized boolean lockFile(int fileId) {
     connect();
     if (!mConnected || mWorkerClient == null || !mIsWorkerLocal) {
@@ -698,6 +711,7 @@ public class TachyonClient {
     return true;
   }
 
+  // TODO Make it work for lock/unlock file multiple times.
   public synchronized boolean unlockFile(int fileId) {
     connect();
     if (!mConnected || mWorkerClient == null || !mIsWorkerLocal) {

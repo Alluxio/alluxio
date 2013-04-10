@@ -1,7 +1,6 @@
 package tachyon.client;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -13,7 +12,7 @@ import tachyon.TestUtils;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
-public class TFileOutputStreamTest {
+public class OutStreamTest {
   LocalTachyonCluster mLocalTachyonCluster = null;
   TachyonClient mClient = null;
 
@@ -35,17 +34,19 @@ public class TFileOutputStreamTest {
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mClient.createFile(filePath);
     TachyonFile file = mClient.getFile(fileId);
-    file.open(op);
-    OutputStream os = file.getOutputStream();
+    OutStream os = file.createOutStream(op);
     for (int k = 0; k < len; k ++) {
       os.write((byte) k);
     }
     os.close();
-    file.close();
 
     file = mClient.getFile(filePath);
-    file.open(OpType.READ_TRY_CACHE);
-    Assert.assertTrue(TestUtils.equalIncreasingByteBuffer(len, file.readByteBuffer()));
+    InStream is = file.createInStream(OpType.READ_NO_CACHE);
+    byte[] res = new byte[(int) file.getSize()];
+    is.read(res);
+    boolean t = TestUtils.equalIncreasingByteArray(len, res);
+    Assert.assertTrue(t);
+    file.releaseFileLock();
   }
 
   /**
@@ -66,16 +67,18 @@ public class TFileOutputStreamTest {
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mClient.createFile(filePath);
     TachyonFile file = mClient.getFile(fileId);
-    file.open(op);
-    OutputStream os = file.getOutputStream();
+    OutStream os = file.createOutStream(op);
 
     os.write(TestUtils.getIncreasingByteArray(len));
     os.close();
-    file.close();
 
     file = mClient.getFile(filePath);
-    file.open(OpType.READ_TRY_CACHE);
-    Assert.assertTrue(TestUtils.equalIncreasingByteBuffer(len, file.readByteBuffer()));
+    InStream is = file.createInStream(OpType.READ_NO_CACHE);
+    byte[] res = new byte[(int) file.getSize()];
+    is.read(res);
+    boolean t = TestUtils.equalIncreasingByteArray(len, res);
+    Assert.assertTrue(t);
+    file.releaseFileLock();
   }
 
   /**
@@ -96,16 +99,18 @@ public class TFileOutputStreamTest {
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mClient.createFile(filePath);
     TachyonFile file = mClient.getFile(fileId);
-    file.open(op);
-    OutputStream os = file.getOutputStream();
+    OutStream os = file.createOutStream(op);
 
     os.write(TestUtils.getIncreasingByteArray(len), 0, len / 2);
     os.close();
-    file.close();
 
     file = mClient.getFile(filePath);
-    file.open(OpType.READ_TRY_CACHE);
-    Assert.assertTrue(TestUtils.equalIncreasingByteBuffer(len / 2, file.readByteBuffer()));
+    InStream is = file.createInStream(OpType.READ_NO_CACHE);
+    byte[] res = new byte[(int) file.getSize()];
+    is.read(res);
+    boolean t = TestUtils.equalIncreasingByteArray(len / 2, res);
+    Assert.assertTrue(t);
+    file.releaseFileLock();
   }
   /**
    * Test <code>void write(byte[] b, int off, int len)</code>.

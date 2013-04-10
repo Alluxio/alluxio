@@ -1,8 +1,6 @@
 package tachyon.client;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -14,7 +12,7 @@ import tachyon.TestUtils;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
-public class TFileInputStreamTest {
+public class InStreamTest {
   LocalTachyonCluster mLocalTachyonCluster = null;
   TachyonClient mClient = null;
 
@@ -44,14 +42,12 @@ public class TFileInputStreamTest {
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mClient.createFile(fileName);
     TachyonFile file = mClient.getFile(fileId);
-    file.open(op);
-    OutputStream os = file.getOutputStream();
+    OutStream os = file.createOutStream(op);
 
     for (int k = 0; k < len; k ++) {
       os.write((byte) k);
     }
     os.close();
-    file.close();
 
     return fileId;
   }
@@ -67,12 +63,12 @@ public class TFileInputStreamTest {
           int fileId = createSimpleFile("/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
+          InStream is;
           if (k < 150) {
-            file.open(OpType.READ_TRY_CACHE);
+            is = file.createInStream(OpType.READ_TRY_CACHE);
           } else {
-            file.open(OpType.READ_NO_CACHE);
+            is = file.createInStream(OpType.READ_NO_CACHE);
           }
-          InputStream is = file.getInputStream();
           byte[] ret = new byte[k];
           int value = is.read();
           int cnt = 0;
@@ -81,6 +77,7 @@ public class TFileInputStreamTest {
             value = is.read();
           }
           Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+          is.close();
         }
       }
     }
@@ -97,15 +94,16 @@ public class TFileInputStreamTest {
           int fileId = createSimpleFile("/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
+          InStream is;
           if (k < 200) {
-            file.open(OpType.READ_TRY_CACHE);
+            is = file.createInStream(OpType.READ_TRY_CACHE);
           } else {
-            file.open(OpType.READ_NO_CACHE);
+            is = file.createInStream(OpType.READ_NO_CACHE);
           }
-          InputStream is = file.getInputStream();
           byte[] ret = new byte[k];
           Assert.assertEquals(k, is.read(ret));
           Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+          is.close();
         }
       }
     }
@@ -122,26 +120,27 @@ public class TFileInputStreamTest {
           int fileId = createSimpleFile("/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
+          InStream is;
           if (k < 200) {
-            file.open(OpType.READ_TRY_CACHE);
+            is = file.createInStream(OpType.READ_TRY_CACHE);
           } else {
-            file.open(OpType.READ_NO_CACHE);
+            is = file.createInStream(OpType.READ_NO_CACHE);
           }
-          InputStream is = file.getInputStream();
           byte[] ret = new byte[k / 2];
           Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
           Assert.assertTrue(TestUtils.equalIncreasingByteArray(k / 2, ret));
+          is.close();
 
-          file = mClient.getFile(fileId);
           if (k < 200) {
-            file.open(OpType.READ_TRY_CACHE);
+            is = file.createInStream(OpType.READ_TRY_CACHE);
           } else {
-            file.open(OpType.READ_NO_CACHE);
+            // TODO Fix this.
+            is = file.createInStream(OpType.READ_NO_CACHE);
           }
-          is = file.getInputStream();
           ret = new byte[k];
           Assert.assertEquals(k, is.read(ret, 0, k));
           Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+          is.close();
         }
       }
     }

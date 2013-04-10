@@ -8,6 +8,7 @@ import org.apache.log4j.Logger;
 
 import tachyon.CommonUtils;
 import tachyon.Version;
+import tachyon.client.OutStream;
 import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
@@ -31,9 +32,6 @@ public class BasicOperations {
 
   public static void writeFile()
       throws SuspectedFileSizeException, InvalidPathException, IOException {
-    TachyonFile file = sTachyonClient.getFile(sFilePath);
-    file.open(sWriteType);
-
     ByteBuffer buf = ByteBuffer.allocate(80);
     buf.order(ByteOrder.nativeOrder());
     for (int k = 0; k < 20; k ++) {
@@ -44,18 +42,20 @@ public class BasicOperations {
     LOG.info("Writing data...");
     CommonUtils.printByteBuffer(LOG, buf);
     buf.flip();
-    file.append(buf);
-    file.close();
+
+    TachyonFile file = sTachyonClient.getFile(sFilePath);
+    OutStream os = file.createOutStream(sWriteType);
+    os.write(buf);
+    os.close();
   }
 
   public static void readFile()
       throws SuspectedFileSizeException, InvalidPathException, IOException {
     LOG.info("Reading data...");
     TachyonFile file = sTachyonClient.getFile(sFilePath);
-    file.open(OpType.READ_TRY_CACHE);
     ByteBuffer buf = file.readByteBuffer();
     CommonUtils.printByteBuffer(LOG, buf);
-    file.close();
+    file.releaseFileLock();
   }
 
   public static void main(String[] args)

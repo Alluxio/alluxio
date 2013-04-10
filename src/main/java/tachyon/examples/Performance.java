@@ -12,6 +12,7 @@ import org.apache.thrift.TException;
 
 import tachyon.CommonUtils;
 import tachyon.Version;
+import tachyon.client.OutStream;
 import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
@@ -174,12 +175,12 @@ public class Performance {
       for (int pId = mLeft; pId < mRight; pId ++) {
         long startTimeMs = System.currentTimeMillis();
         TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
-        file.open(OpType.WRITE_CACHE);
+        OutStream os = file.createOutStream(OpType.WRITE_CACHE);
         for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
           mBuf.array()[0] = (byte) (k + mWorkerId);
-          file.append(mBuf);
+          os.write(mBuf);
         }
-        file.close();
+        os.close();
         logPerIteration(startTimeMs, pId, "th WriteTachyonFile @ Worker ", pId);
       }
     }
@@ -211,7 +212,6 @@ public class Performance {
 
         for (int pId = mLeft; pId < mRight; pId ++) {
           TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-          file.open(OpType.READ_TRY_CACHE);
           buf = file.readByteBuffer();
           IntBuffer intBuf;
           intBuf = buf.asIntBuffer();
@@ -225,6 +225,7 @@ public class Performance {
               }
             }
           }
+          file.readByteBuffer();
         }
       }
 
@@ -232,7 +233,6 @@ public class Performance {
       for (int pId = mLeft; pId < mRight; pId ++) {
         long startTimeMs = System.currentTimeMillis();
         TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
-        file.open(OpType.READ_TRY_CACHE);
         buf = file.readByteBuffer();
         for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
           buf.get(mBuf.array());
@@ -244,7 +244,7 @@ public class Performance {
           CommonUtils.printByteBuffer(LOG, buf);
         }
         buf.clear();
-        file.close();
+        file.releaseFileLock();
         logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
       }
       Results[mWorkerId] = sum;
