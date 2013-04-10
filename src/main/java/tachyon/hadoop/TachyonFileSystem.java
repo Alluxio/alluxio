@@ -224,15 +224,16 @@ public class TachyonFileSystem extends FileSystem {
     LOG.info("TachyonFileSystem listStatus(" + path + "): Corresponding HDFS Path: " + hdfsPath);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
     FileStatus[] hfs = fs.listStatus(hdfsPath);
-    for (FileStatus thfs : hfs) {
-      if (thfs.isDir()) {
-        CommonUtils.illegalArgumentException(new IOException("Not a file: " +
-            mTachyonHeader + Utils.getPathWithoutScheme(thfs.getPath())));
-      }
-    }
     ArrayList<FileStatus> tRet = new ArrayList<FileStatus>();
     for (int k = 0; k < hfs.length; k ++) {
-      tRet.add(getFileStatus(hfs[k].getPath()));
+      if (hfs[k].isDir()) {
+        FileStatus[] tFileStatus = listStatus(hfs[k].getPath());
+        for (FileStatus tfs : tFileStatus) {
+          tRet.add(tfs);
+        }
+      } else {
+        tRet.add(getFileStatus(hfs[k].getPath()));
+      }
     }
     FileStatus[] ret = new FileStatus[hfs.length];
     ret = tRet.toArray(ret);
