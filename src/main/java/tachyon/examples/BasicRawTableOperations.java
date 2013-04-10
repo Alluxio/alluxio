@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 
 import tachyon.CommonUtils;
 import tachyon.Version;
+import tachyon.client.OutStream;
 import tachyon.client.OpType;
 import tachyon.client.RawColumn;
 import tachyon.client.RawTable;
@@ -53,21 +54,19 @@ public class BasicRawTableOperations {
             " under column " + column);
       }
 
-      TachyonFile tFile = rawColumn.getPartition(0);
-      tFile.open(sWriteType);
-
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
       for (int k = 0; k < 20; k ++) {
         buf.putInt(k);
       }
-
       buf.flip();
       CommonUtils.printByteBuffer(LOG, buf);
-
       buf.flip();
-      tFile.append(buf);
-      tFile.close();
+
+      TachyonFile tFile = rawColumn.getPartition(0);
+      OutStream os = tFile.createOutStream(sWriteType);
+      os.write(buf);
+      os.close();
     }
   }
 
@@ -84,12 +83,11 @@ public class BasicRawTableOperations {
     for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
-      tFile.open(OpType.READ_TRY_CACHE);
 
       ByteBuffer buf;
       buf = tFile.readByteBuffer();
       CommonUtils.printByteBuffer(LOG, buf);
-      tFile.close();
+      tFile.releaseFileLock();
     }
   }
 

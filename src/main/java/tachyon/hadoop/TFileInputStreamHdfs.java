@@ -11,6 +11,7 @@ import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
 import org.apache.log4j.Logger;
 
+import tachyon.client.InStream;
 import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
@@ -30,7 +31,7 @@ implements Seekable, PositionedReadable {
 
   private FSDataInputStream mHdfsInputStream = null;
 
-  private InputStream mTachyonFileInputStream = null;
+  private InStream mTachyonFileInputStream = null;
 
   private int mBufferLimit = 0;
   private int mBufferPosition = 0;
@@ -49,8 +50,7 @@ implements Seekable, PositionedReadable {
 
     TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
     try {
-      tachyonFile.open(OpType.READ_TRY_CACHE);
-      mTachyonFileInputStream = tachyonFile.getInputStream();
+      mTachyonFileInputStream = tachyonFile.createInStream(OpType.READ_TRY_CACHE);
     } catch (IOException e) {
       LOG.error(e.getMessage());
       return;

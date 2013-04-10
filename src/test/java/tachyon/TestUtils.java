@@ -37,9 +37,12 @@ public final class TestUtils {
       return false;
     }
     for (int k = 0; k < len; k ++) {
-      if (buf.get() != (byte) k)
+      byte t = buf.get();
+      System.out.println(k + " : " + t + " " + (byte) k);
+      if (t != (byte) k)
         return false;
     }
+    System.out.println("Good");
     return true;
   }
 

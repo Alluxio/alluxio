@@ -20,6 +20,7 @@ import tachyon.thrift.ClientFileInfo;
 
 import tachyon.CommonUtils;
 import tachyon.client.OpType;
+import tachyon.client.OutStream;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 
@@ -80,7 +81,7 @@ public class TFsShell {
       return -1;
     }
   }
-  
+
   /**
    * Removes the file or directory specified by argv. Will remove all files and directories in
    * the directory if a directory is specified.
@@ -169,7 +170,6 @@ public class TFsShell {
       throw new FileDoesNotExistException(folder);
     }
 
-    tFile.open(OpType.READ_TRY_CACHE);
     ByteBuffer buf = tFile.readByteBuffer();
     FileOutputStream out = new FileOutputStream(dst);
     FileChannel channel = out.getChannel();
@@ -178,7 +178,7 @@ public class TFsShell {
     }
     channel.close();
     out.close();
-    tFile.close();
+    tFile.releaseFileLock();
     System.out.println("Copied " + srcPath + " to " + dstPath);
     return 0;
   }
@@ -240,15 +240,15 @@ public class TFsShell {
       return -1;
     }
     TachyonFile tFile = tachyonClient.getFile(fileId);
-    tFile.open(OpType.WRITE_THROUGH);
+    OutStream os = tFile.createOutStream(OpType.WRITE_THROUGH);
     FileInputStream in = new FileInputStream(src);
     FileChannel channel = in.getChannel();
     ByteBuffer buf = ByteBuffer.allocate(1024);
     while (channel.read(buf) != -1) {
       buf.flip();
-      tFile.append(buf);
+      os.write(buf);
     }
-    tFile.close();
+    os.close();
     channel.close();
     in.close();
     System.out.println("Copied " + srcPath + " to " + dstPath);

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.UnknownHostException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -17,6 +16,7 @@ import org.apache.thrift.TException;
 import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.MasterInfo;
+import tachyon.client.InStream;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
 import tachyon.client.OpType;
@@ -209,8 +209,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       throw new FileDoesNotExistException(path);
     }
 
-    tFile.open(OpType.READ_NO_CACHE);
-    InputStream is = tFile.getInputStream();
+    InStream is = tFile.createInStream(OpType.READ_NO_CACHE);
     int len = Math.min(5 * Constants.KB, (int) tFile.getSize());
     byte[] data = new byte[len];
     is.read(data, 0, len);
@@ -220,7 +219,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
     is.close();
 
-    tFile.close();
     try {
       tachyonClient.close();
     } catch (TException e) {
