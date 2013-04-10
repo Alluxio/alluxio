@@ -195,7 +195,7 @@ public class TachyonFile {
     return ret;
   }
 
-  boolean recacheData() {
+  public boolean recacheData() {
     boolean succeed = true;
     String path = CLIENT_FILE_INFO.checkpointPath;
     UnderFileSystem tHdfsClient = UnderFileSystem.getUnderFileSystem(path);

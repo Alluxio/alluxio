@@ -84,9 +84,11 @@ public class BasicRawTableOperations {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
 
-      ByteBuffer buf;
-      buf = tFile.readByteBuffer();
-      CommonUtils.printByteBuffer(LOG, buf);
+      ByteBuffer buf = tFile.readByteBuffer();
+      if (buf == null) {
+        tFile.recacheData();
+      }
+      CommonUtils.printByteBuffer(LOG, tFile.readByteBuffer());
       tFile.releaseFileLock();
     }
   }
