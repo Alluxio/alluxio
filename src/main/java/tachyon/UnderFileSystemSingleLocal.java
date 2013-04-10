@@ -14,8 +14,6 @@ import java.util.List;
  * Single node UnderFilesystem implementation.
  * 
  * This only works for single machine. It is for local unit test and single machine mode.
- * 
- * TODO Make it work for multiple machines.
  */
 public class UnderFileSystemSingleLocal extends UnderFileSystem {
 

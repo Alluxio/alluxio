@@ -3,10 +3,10 @@ package tachyon.client;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class TFileOutputStream extends OutputStream {
+public class FileOutputStream extends OutputStream {
   private final TachyonFile FILE; 
 
-  public TFileOutputStream(TachyonFile file) {
+  public FileOutputStream(TachyonFile file) {
     FILE = file;
   }
 
