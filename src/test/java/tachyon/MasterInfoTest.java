@@ -8,6 +8,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.TableColumnException;
+import tachyon.thrift.SuspectedFileSizeException;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -35,6 +36,27 @@ public class MasterInfoTest {
     System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
+  @Test
+  public void addCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException, 
+      FileAlreadyExistException, InvalidPathException {
+    int fileId = mMasterInfo.createFile("/testFile", false);
+    ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFile");
+    Assert.assertTrue(fileInfo.getCheckpointPath().equals(""));
+    mMasterInfo.addCheckpoint(-1, fileId, 0, "/testPath");
+    fileInfo = mMasterInfo.getFileInfo("/testFile");
+    Assert.assertTrue(fileInfo.getCheckpointPath().equals("/testPath"));
+    mMasterInfo.addCheckpoint(-1, fileId, 0, "/testPath2");
+    fileInfo = mMasterInfo.getFileInfo("/testFile");
+    Assert.assertTrue(fileInfo.getCheckpointPath().equals("/testPath"));
+  }
+  
+  @Test(expected = FileDoesNotExistException.class)
+  public void notFileCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException, 
+      FileAlreadyExistException, InvalidPathException {
+    int fileId = mMasterInfo.createFile("/testFile", true);
+    mMasterInfo.addCheckpoint(-1, fileId, 0, "/testPath");    
+  }  
+  
   @Test
   public void createFileTest() 
       throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException {
