@@ -43,7 +43,7 @@ public class TachyonFileSystem extends FileSystem {
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
       throws IOException {
-    LOG.info("TachyonFileSystem append(" + path + ", " + bufferSize + ", " + progress + ")");
+    LOG.debug("TachyonFileSystem append(" + path + ", " + bufferSize + ", " + progress + ")");
     throw new IOException("Not supported");
   }
 
@@ -51,14 +51,14 @@ public class TachyonFileSystem extends FileSystem {
   public FSDataOutputStream create(Path cPath, FsPermission permission, boolean overwrite,
       int bufferSize, short replication, long blockSize, Progressable progress)
           throws IOException {
-    LOG.info("TachyonFileSystem create(" + cPath + ", " + permission + ", " + overwrite + 
+    LOG.debug("TachyonFileSystem create(" + cPath + ", " + permission + ", " + overwrite + 
         ", " + bufferSize + ", " + replication + ", " + blockSize + ", " + progress + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
 
     Path hdfsPath = Utils.getHDFSPath(path);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
-    LOG.info("TachyonFileSystem mkdirs: making dir " + hdfsPath);
+    LOG.debug("TachyonFileSystem mkdirs: making dir " + hdfsPath);
 
     return fs.create(hdfsPath, permission, overwrite, bufferSize, replication, blockSize,
         progress);
@@ -95,7 +95,7 @@ public class TachyonFileSystem extends FileSystem {
     String filePath = Utils.getPathWithoutScheme(path);
     Path hdfsPath = Utils.getHDFSPath(filePath);
 
-    LOG.info("TachyonFileSystem getFilesStatus(" + path + "): Corresponding HDFS Path: " + hdfsPath);
+    LOG.debug("TachyonFileSystem getFilesStatus(" + path + "): Corresponding HDFS Path: " + hdfsPath);
 
     FileSystem fs = hdfsPath.getFileSystem(getConf());
     FileStatus hfs = fs.getFileStatus(hdfsPath);
@@ -105,15 +105,15 @@ public class TachyonFileSystem extends FileSystem {
         int fileId;
         fileId = mTachyonClient.getFileId(filePath);
         if (fileId > 0) {
-          LOG.info("Tachyon has file " + filePath);
+          LOG.debug("Tachyon has file " + filePath);
         } else {
-          LOG.info("Tachyon does not have file " + filePath);
+          LOG.debug("Tachyon does not have file " + filePath);
           int tmp = mTachyonClient.createFile(filePath);
           if (tmp != -1) {
             mTachyonClient.addCheckpointPath(tmp, hdfsPath.toString());
-            LOG.info("Tachyon does not have file " + filePath + " checkpoint added.");
+            LOG.debug("Tachyon does not have file " + filePath + " checkpoint added.");
           } else {
-            LOG.info("Tachyon does not have file " + filePath + " and creation failed.");
+            LOG.debug("Tachyon does not have file " + filePath + " and creation failed.");
           }
         }
       }
@@ -132,7 +132,7 @@ public class TachyonFileSystem extends FileSystem {
     FileStatus ret = new FileStatus(hfs.getLen(), hfs.isDir(), hfs.getReplication(),
         Integer.MAX_VALUE, hfs.getModificationTime(), hfs.getAccessTime(), hfs.getPermission(),
         hfs.getOwner(), hfs.getGroup(), new Path(mTachyonHeader + filePath));
-    LOG.info(mTachyonHeader + filePath);
+    LOG.debug(mTachyonHeader + filePath);
 
     LOG.debug("HFS: " + Utils.toStringHadoopFileStatus(hfs));
     LOG.debug("TFS: " + Utils.toStringHadoopFileStatus(ret));
@@ -142,13 +142,13 @@ public class TachyonFileSystem extends FileSystem {
 
   @Override
   public URI getUri() {
-    LOG.info("TachyonFileSystem getUri() with return " + mUri);
+    LOG.debug("TachyonFileSystem getUri() with return " + mUri);
     return mUri;
   }
 
   @Override
   public Path getWorkingDirectory() {
-    LOG.info("TachyonFileSystem getWorkingDirectory() with return " + mWorkingDir);
+    LOG.debug("TachyonFileSystem getWorkingDirectory() with return " + mWorkingDir);
     return mWorkingDir;
   }
 
@@ -207,7 +207,7 @@ public class TachyonFileSystem extends FileSystem {
    * Initialize the class, have a lazy connection with Tachyon through mTC.
    */
   public void initialize(URI uri, Configuration conf) throws IOException {
-    LOG.info("TachyonFileSystem initialize(" + uri + ", " + conf + "). Connecting TachyonSystem: " +
+    LOG.debug("TachyonFileSystem initialize(" + uri + ", " + conf + "). Connecting TachyonSystem: " +
         uri.getHost() + ":" + uri.getPort());
     mTachyonClient = TachyonClient.getClient(new InetSocketAddress(uri.getHost(), uri.getPort()));
     mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort() + "";
@@ -221,7 +221,7 @@ public class TachyonFileSystem extends FileSystem {
   public FileStatus[] listStatus(Path path) throws IOException {
     String filePath = Utils.getPathWithoutScheme(path);
     Path hdfsPath = Utils.getHDFSPath(filePath);
-    LOG.info("TachyonFileSystem listStatus(" + path + "): Corresponding HDFS Path: " + hdfsPath);
+    LOG.debug("TachyonFileSystem listStatus(" + path + "): Corresponding HDFS Path: " + hdfsPath);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
     FileStatus[] hfs = fs.listStatus(hdfsPath);
     ArrayList<FileStatus> tRet = new ArrayList<FileStatus>();
@@ -243,12 +243,12 @@ public class TachyonFileSystem extends FileSystem {
 
   @Override
   public boolean mkdirs(Path cPath, FsPermission permission) throws IOException {
-    LOG.info("TachyonFileSystem mkdirs(" + cPath + ", " + permission + ")");
+    LOG.debug("TachyonFileSystem mkdirs(" + cPath + ", " + permission + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
     Path hdfsPath = Utils.getHDFSPath(path);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
-    LOG.info("TachyonFileSystem mkdirs: making dir " + hdfsPath);
+    LOG.debug("TachyonFileSystem mkdirs: making dir " + hdfsPath);
     return fs.mkdirs(hdfsPath);
   }
 
@@ -257,7 +257,7 @@ public class TachyonFileSystem extends FileSystem {
    * Return the inputstream of a file.
    */
   public FSDataInputStream open(Path cPath, int bufferSize) throws IOException {
-    LOG.info("TachyonFileSystem open(" + cPath + ", " + bufferSize + ")");
+    LOG.debug("TachyonFileSystem open(" + cPath + ", " + bufferSize + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
 
@@ -299,7 +299,7 @@ public class TachyonFileSystem extends FileSystem {
 
   @Override
   public void setWorkingDirectory(Path path) {
-    LOG.info("TachyonFileSystem setWorkingDirectory(" + path + ")");
+    LOG.debug("TachyonFileSystem setWorkingDirectory(" + path + ")");
     if (path.isAbsolute()) {
       mWorkingDir = path;
     } else {
