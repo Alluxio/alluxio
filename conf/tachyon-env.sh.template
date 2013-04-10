@@ -2,18 +2,16 @@
 
 CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-export TACHYON_RAM_FOLDER=/mnt/ramdisk
-export TACHYON_MASTER_ADDRESS=localhost
-export TACHYON_HDFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_IP
-export TACHYON_MASTER_SUBSUME_HDFS=false
-export TACHYON_WORKER_MEMORY_SIZE=512MB
+export TACHYON_HDFS_ADDRESS=hdfs://localhost:54310
 
 export TACHYON_JAVA_OPTS="
-  -Dtachyon.hdfs.address=$TACHYON_HDFS_ADDRESS
-  -Dtachyon.worker.memory.size=$TACHYON_WORKER_MEMORY_SIZE
-  -Dtachyon.worker.data.folder=$TACHYON_RAM_FOLDER/tachyonworker/
-  -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
-  -Dtachyon.master.log.file=$TACHYON_HOME/data/tachyon_log.data
-  -Dtachyon.master.checkpoint.file=$TACHYON_HOME/data/tachyon_checkpoint.data
-  -Dtachyon.master.subsume.hdfs=$TACHYON_MASTER_SUBSUME_HDFS
+  -Dtachyon.debug=true
+  -Dtachyon.worker.timeout.ms=60000
+  -Dtachyon.underfs.address=$TACHYON_HDFS_ADDRESS
+  -Dtachyon.worker.memory.size=1024MB
+  -Dtachyon.worker.data.folder=/mnt/ramdisk/tachyonworker/
+  -Dtachyon.master.hostname=localhost
+  -Dtachyon.master.log.file=$TACHYON_HDFS_ADDRESS/tachyon/tachyon_log.data
+  -Dtachyon.master.checkpoint.file=$TACHYON_HDFS_ADDRESS/tachyon/tachyon_checkpoint.data
+  -Dtachyon.master.pinlist=/pinfiles;/pindata
 "
