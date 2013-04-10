@@ -40,6 +40,13 @@ public class Users {
     tUser.addOwnBytes(newBytes);
   }
 
+  public long ownBytes(long userId) {
+    synchronized (USERS) {
+      UserInfo tUser = USERS.get(userId);
+      return tUser == null ? 0 : tUser.getOwnBytes();
+    }
+  }
+
   public List<Long> checkStatus(WorkerInfo workerInfo) {
     LOG.debug("Worker is checking all users' status.");
     List<Long> ret = new ArrayList<Long>();

@@ -31,28 +31,6 @@ public class InStreamTest {
   }
 
   /**
-   * Create a simple file with length <code>len</code>.
-   * @param len
-   * @return file id of the new created file.
-   * @throws FileAlreadyExistException 
-   * @throws InvalidPathException 
-   * @throws IOException 
-   */
-  private int createSimpleFile(String fileName, OpType op, int len)
-      throws InvalidPathException, FileAlreadyExistException, IOException {
-    int fileId = mClient.createFile(fileName);
-    TachyonFile file = mClient.getFile(fileId);
-    OutStream os = file.createOutStream(op);
-
-    for (int k = 0; k < len; k ++) {
-      os.write((byte) k);
-    }
-    os.close();
-
-    return fileId;
-  }
-
-  /**
    * Test <code>void read()</code>.
    */
   @Test
@@ -60,7 +38,7 @@ public class InStreamTest {
     for (int k = 100; k <= 200; k += 33) {
       for (OpType op : OpType.values()) {
         if (op.isWrite()) {
-          int fileId = createSimpleFile("/root/testFile_" + k + "_" + op, op, k);
+          int fileId = TestUtils.createSimpleFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
           InStream is;
@@ -91,7 +69,7 @@ public class InStreamTest {
     for (int k = 100; k <= 300; k += 33) {
       for (OpType op : OpType.values()) {
         if (op.isWrite()) {
-          int fileId = createSimpleFile("/root/testFile_" + k + "_" + op, op, k);
+          int fileId = TestUtils.createSimpleFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
           InStream is;
@@ -117,7 +95,7 @@ public class InStreamTest {
     for (int k = 100; k <= 300; k += 33) {
       for (OpType op : OpType.values()) {
         if (op.isWrite()) {
-          int fileId = createSimpleFile("/root/testFile_" + k + "_" + op, op, k);
+          int fileId = TestUtils.createSimpleFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
           InStream is;
