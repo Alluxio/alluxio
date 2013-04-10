@@ -13,8 +13,8 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
 public class InStreamTest {
-  LocalTachyonCluster mLocalTachyonCluster = null;
-  TachyonClient mClient = null;
+  private LocalTachyonCluster mLocalTachyonCluster = null;
+  private TachyonClient mClient = null;
 
   @Before
   public final void before() throws IOException {

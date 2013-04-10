@@ -128,8 +128,12 @@ public class DataServer implements Runnable {
       } catch (TException e) {
         CommonUtils.runtimeException(e);
       }
-      mSendingData.put(socketChannel, DataServerMessage.createPartitionResponseMessage(
-          true, tMessage.getFileId()));
+      DataServerMessage tResponseMessage = 
+          DataServerMessage.createPartitionResponseMessage(true, tMessage.getFileId()); 
+      if (tResponseMessage.getFileId() > 0) {
+        mWorkerServiceHandler.sDataAccessQueue.add(tResponseMessage.getFileId());
+      }
+      mSendingData.put(socketChannel, tResponseMessage);
     }
   }
 

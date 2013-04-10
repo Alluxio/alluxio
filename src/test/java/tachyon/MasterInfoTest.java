@@ -18,8 +18,8 @@ import org.junit.Test;
  * Unit tests for MasterInfo
  */
 public class MasterInfoTest {
-  LocalTachyonCluster mLocalTachyonCluster = null;
-  MasterInfo mMasterInfo = null;
+  private LocalTachyonCluster mLocalTachyonCluster = null;
+  private MasterInfo mMasterInfo = null;
 
   @Before
   public final void before() throws IOException {

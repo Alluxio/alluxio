@@ -13,8 +13,8 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
 public class OutStreamTest {
-  LocalTachyonCluster mLocalTachyonCluster = null;
-  TachyonClient mClient = null;
+  private LocalTachyonCluster mLocalTachyonCluster = null;
+  private TachyonClient mClient = null;
 
   @Before
   public final void before() throws IOException {
@@ -112,6 +112,7 @@ public class OutStreamTest {
     Assert.assertTrue(t);
     file.releaseFileLock();
   }
+
   /**
    * Test <code>void write(byte[] b, int off, int len)</code>.
    */

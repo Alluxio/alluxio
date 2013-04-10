@@ -71,7 +71,6 @@ public class LocalTachyonCluster {
     String masterLogFolder = mTachyonHome + "/logs";
     String underfsFolder = mTachyonHome + "/underfs";
     mkdir(mTachyonHome);
-    mkdir(mWorkerDataFolder);
     mkdir(masterDataFolder);
     mkdir(masterLogFolder);
 

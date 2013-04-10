@@ -27,8 +27,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.WorkerService;
 
 public class WorkerServiceHandler implements WorkerService.Iface {
-  // TODO The reason this is public is for DataServerMessage to access. Need to re-organize this.
-  public static final BlockingQueue<Integer> sDataAccessQueue = 
+  public final BlockingQueue<Integer> sDataAccessQueue = 
       new ArrayBlockingQueue<Integer>(Constants.WORKER_FILES_QUEUE_SIZE);
 
   private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);

@@ -2,19 +2,33 @@ package tachyon.client;
 
 import java.io.IOException;
 
+import junit.framework.Assert;
+
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 
+import tachyon.CommonUtils;
 import tachyon.LocalTachyonCluster;
+import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.InvalidPathException;
 
 public class TachyonFileTest {
-  LocalTachyonCluster mLocalTachyonCluster = null;
-  TachyonClient mClient = null;
+  private LocalTachyonCluster mLocalTachyonCluster = null;
+  private TachyonClient mClient = null;
+  private final int WORKER_CAPACITY_BYTES = 1000;
+  private final int USER_QUOTA_UNIT_BYTES = 100;
+  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 5;
+  private final String PIN_DATA = "/pin";
+  private final int MAX_FILES = WORKER_CAPACITY_BYTES / USER_QUOTA_UNIT_BYTES;
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(1000);
+    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
+    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms",
+        WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
+    System.setProperty("tachyon.master.pinlist", PIN_DATA);
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mClient = mLocalTachyonCluster.getClient();
   }
@@ -23,5 +37,132 @@ public class TachyonFileTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
+    System.clearProperty("tachyon.master.pinlist");
+  }
+
+  /**
+   * Create a simple file with length <code>len</code>.
+   * @param len
+   * @return file id of the new created file.
+   * @throws FileAlreadyExistException 
+   * @throws InvalidPathException 
+   * @throws IOException 
+   */
+  private int createSimpleFile(String fileName, OpType op, int len)
+      throws InvalidPathException, FileAlreadyExistException, IOException {
+    int fileId = mClient.createFile(fileName);
+    TachyonFile file = mClient.getFile(fileId);
+    OutStream os = file.createOutStream(op);
+
+    for (int k = 0; k < len; k ++) {
+      os.write((byte) k);
+    }
+    os.close();
+
+    return fileId;
+  }
+
+  /**
+   * Basic isInMemory Test.
+   * @throws InvalidPathException
+   * @throws FileAlreadyExistException
+   * @throws IOException
+   */
+  @Test
+  public void isInMemoryTest() throws InvalidPathException, FileAlreadyExistException, IOException {
+    int fileId = createSimpleFile("/file1", OpType.WRITE_CACHE, USER_QUOTA_UNIT_BYTES);
+    TachyonFile file = mClient.getFile(fileId);
+    Assert.assertTrue(file.isInMemory());
+
+    fileId = createSimpleFile("/file2", OpType.WRITE_CACHE_THROUGH, USER_QUOTA_UNIT_BYTES);
+    file = mClient.getFile(fileId);
+    Assert.assertTrue(file.isInMemory());
+
+    fileId = createSimpleFile("/file3", OpType.WRITE_THROUGH, USER_QUOTA_UNIT_BYTES);
+    file = mClient.getFile(fileId);
+    Assert.assertFalse(file.isInMemory());
+    Assert.assertTrue(file.recacheData());
+    Assert.assertTrue(file.isInMemory());
+
+    fileId = createSimpleFile("/file4", OpType.WRITE_THROUGH, WORKER_CAPACITY_BYTES + 1);
+    file = mClient.getFile(fileId);
+    Assert.assertFalse(file.isInMemory());
+    Assert.assertFalse(file.recacheData());
+    Assert.assertFalse(file.isInMemory());
+
+    fileId = createSimpleFile("/file5", OpType.WRITE_THROUGH, WORKER_CAPACITY_BYTES);
+    file = mClient.getFile(fileId);
+    Assert.assertFalse(file.isInMemory());
+    Assert.assertTrue(file.recacheData());
+    Assert.assertTrue(file.isInMemory());
+  }
+
+  /**
+   * Test LRU Cache Eviction.
+   * @throws InvalidPathException
+   * @throws FileAlreadyExistException
+   * @throws IOException
+   */
+  @Test
+  public void isInMemoryTest2() 
+      throws InvalidPathException, FileAlreadyExistException, IOException {
+    for (int k = 0; k < MAX_FILES; k ++) {
+      int fileId = createSimpleFile("/file" + k, OpType.WRITE_CACHE, USER_QUOTA_UNIT_BYTES);
+      TachyonFile file = mClient.getFile(fileId);
+      Assert.assertTrue(file.isInMemory());
+    }
+
+    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    for (int k = 0; k < MAX_FILES; k ++) {
+      TachyonFile file = mClient.getFile("/file" + k);
+      Assert.assertTrue(file.isInMemory());
+    }
+
+    for (int k = MAX_FILES; k < MAX_FILES + 1; k ++) {
+      int fileId = createSimpleFile("/file" + k, OpType.WRITE_CACHE, USER_QUOTA_UNIT_BYTES);
+      TachyonFile file = mClient.getFile(fileId);
+      Assert.assertTrue(file.isInMemory());
+    }
+
+    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+    TachyonFile file = mClient.getFile("/file" + 0);
+    Assert.assertFalse(file.isInMemory());
+
+    for (int k = 1; k < MAX_FILES + 1; k ++) {
+      file = mClient.getFile("/file" + k);
+      Assert.assertTrue(file.isInMemory());
+    }
+  }
+
+  /**
+   * Test LRU Cache Eviction + PIN.
+   * @throws InvalidPathException
+   * @throws FileAlreadyExistException
+   * @throws IOException
+   */
+  @Test
+  public void isInMemoryTest3() 
+      throws InvalidPathException, FileAlreadyExistException, IOException {
+    int fileId = createSimpleFile("/pin/file", OpType.WRITE_CACHE, USER_QUOTA_UNIT_BYTES);
+    TachyonFile file = mClient.getFile(fileId);
+    Assert.assertTrue(file.isInMemory());
+
+    for (int k = 0; k < MAX_FILES; k ++) {
+      fileId = createSimpleFile("/file" + k, OpType.WRITE_CACHE, USER_QUOTA_UNIT_BYTES);
+      file = mClient.getFile(fileId);
+      Assert.assertTrue(file.isInMemory());
+    }
+
+    CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
+
+    file = mClient.getFile("/pin/file");
+    Assert.assertTrue(file.isInMemory());
+    file = mClient.getFile("/file0");
+    Assert.assertFalse(file.isInMemory());
+    for (int k = 1; k < MAX_FILES; k ++) {
+      file = mClient.getFile("/file" + k);
+      Assert.assertTrue(file.isInMemory());
+    }
   }
 }

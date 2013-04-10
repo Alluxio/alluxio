@@ -15,8 +15,8 @@ import tachyon.thrift.InvalidPathException;
  * Unit tests on TachyonClient.
  */
 public class TachyonClientTest {
-  LocalTachyonCluster mLocalTachyonCluster = null;
-  TachyonClient mClient = null;
+  private LocalTachyonCluster mLocalTachyonCluster = null;
+  private TachyonClient mClient = null;
 
   @Before
   public final void before() throws IOException {
