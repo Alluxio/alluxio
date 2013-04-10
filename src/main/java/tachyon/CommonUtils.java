@@ -57,15 +57,22 @@ public final class CommonUtils {
   }
 
   public static String convertMsToClockTime(long Millis) {
-    return String.format("%d hour(s), %d minute(s), and %d second(s)",
-        Millis / (1000L * 60 * 60), (Millis % (1000L * 60 * 60)) / (1000 * 60),
-        (Millis % (1000L * 60)) / 1000);
+    long days = Millis / Constants.DAY_MS;
+    long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
+    long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
+    long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
+
+    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)",
+        days, hours, mins, secs);
   }
 
   public static String convertMsToShortClockTime(long Millis) {
-    return String.format("%d h, %d m, and %d s",
-        Millis / (1000L * 60 * 60), (Millis % (1000L * 60 * 60)) / (1000 * 60),
-        (Millis % (1000L * 60)) / 1000);
+    long days = Millis / Constants.DAY_MS;
+    long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
+    long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
+    long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
+
+    return String.format("%d d, %d h, %d m, and %d s", days, hours, mins, secs);
   }
 
   public static String convertMsToDate(long Millis) {
