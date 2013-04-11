@@ -10,14 +10,12 @@ public class UserConf extends Utils {
   public final long QUOTA_UNIT_BYTES;
   public final int FILE_BUFFER_BYTES;
   public final int HEARTBEAT_INTERVAL_MS;
-  public final String HDFS_ADDRESS;
 
   private UserConf() {
     FAILED_SPACE_REQUEST_LIMITS = getIntProperty("tachyon.user.failed.space.request.limits", 3);
     QUOTA_UNIT_BYTES = getLongProperty("tachyon.user.quota.unit.bytes", 8 * Constants.MB);
     FILE_BUFFER_BYTES = getIntProperty("tachyon.user.file.buffer.bytes", Constants.MB);
     HEARTBEAT_INTERVAL_MS = getIntProperty("tachyon.user.heartbeat.interval.ms", 1000);
-    HDFS_ADDRESS = getProperty("tachyon.user.hdfs.address", null);
   }
 
   public static synchronized UserConf get() {

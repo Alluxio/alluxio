@@ -30,7 +30,7 @@ public class WorkerConf extends Utils {
         getIntProperty("tachyon.worker.data.port", Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
     DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramdisk");
     MEMORY_SIZE = CommonUtils.parseMemorySize(
-        getProperty("tachyon.worker.memory.size", (8 * Constants.MB) + ""));
+        getProperty("tachyon.worker.memory.size", (128 * Constants.MB) + ""));
     HEARTBEAT_TIMEOUT_MS = getIntProperty("tachyon.worker.heartbeat.timeout.ms", 10 * 1000);
     TO_MASTER_HEARTBEAT_INTERVAL_MS = 
         getIntProperty("tachyon.worker.to.master.heartbeat.interval.ms", 1000);
