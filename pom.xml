@@ -1,10 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.tachyonproject</groupId>
-  <artifactId>parent</artifactId>
-  <version>0.2.1-SNAPSHOT</version>
+  <artifactId>tachyon</artifactId>
+  <version>0.2.0-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <name>Tachyon Project Parent POM</name>
+  <name>Tachyon Project POM</name>
   <url>http://tachyonproject.org/</url>
   <licenses>
     <license>
@@ -17,7 +17,6 @@
     <connection>scm:git:git@github.com:amplab/tachyon.git</connection>
     <developerConnection>scm:git:git@github.com:amplab/tachyon.git</developerConnection>
     <url>scm:git:git@github.com:amplab/tachyon.git</url>
-    <tag>HEAD</tag>
   </scm>
   <developers>
     <developer>
