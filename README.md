@@ -27,10 +27,10 @@ to visit <https://groups.google.com/forum/?fromgroups#!forum/tachyon-users>
 
 ### Apache Ant
 
-    <dependency org="org.tachyonproject" name="tachyon" rev="0.2.1-SNAPSHOT">
+    <dependency org="org.tachyonproject" name="tachyon" rev="0.2.0">
       <artifact name="tachyon" type="jar" />
     </dependency>
 
 ### SBT
 
-    libraryDependencies += "org.tachyonproject" %% "tachyon" % "0.2.1-SNAPSHOT"
+    libraryDependencies += "org.tachyonproject" %% "tachyon" % "0.2.0"
