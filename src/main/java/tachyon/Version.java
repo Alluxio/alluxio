@@ -5,5 +5,5 @@ package tachyon;
  */
 public class Version {
   // TODO Make this auto filled.
-  public static final String VERSION = "0.2-SNAPSHOT";
+  public static final String VERSION = "0.2.1-SNAPSHOT";
 }
