@@ -210,10 +210,6 @@
           <outputFile>${version.file}</outputFile>
           <replacements>
             <replacement>
-              <token>@buildtime@</token>
-              <value>${maven.build.timestamp}</value>
-            </replacement>
-            <replacement>
               <token>@pomversion@</token>
               <value>${project.version}</value>
             </replacement>
