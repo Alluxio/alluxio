@@ -1,0 +1,9 @@
+package tachyon;
+
+/**
+ * This class is auto generated in each compile.
+ */
+public class Version {
+  public static final String VERSION = "@pomversion@";
+  public static final String BUILD_TIME = "@buildtime@";
+}
