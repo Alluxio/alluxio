@@ -5,8 +5,9 @@ Tachyon
 
 The master branch is in 0.2.1-SNAPSHOT.
 
-Release 0.2.0 is taged with v0.2.0.
-Release 0.1.0 is taged with v0.1.0.
+Release 0.2.0 is tagged with v0.2.0.
+
+Release 0.1.0 is tagged with v0.1.0.
 
 ## Online Documentation
 
