@@ -247,14 +247,14 @@ public class TachyonFile {
     socketChannel.connect(address);
 
     LOG.info("Connected to remote machine " + address + " sent");
-    DataServerMessage sendMsg = DataServerMessage.createPartitionRequestMessage(FID);
+    DataServerMessage sendMsg = DataServerMessage.createFileRequestMessage(FID);
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }
 
     LOG.info("Data " + FID + " to remote machine " + address + " sent");
 
-    DataServerMessage recvMsg = DataServerMessage.createPartitionResponseMessage(false, FID);
+    DataServerMessage recvMsg = DataServerMessage.createFileResponseMessage(false, FID);
     while (!recvMsg.isMessageReady()) {
       int numRead = recvMsg.recv(socketChannel);
       if (numRead == -1) {

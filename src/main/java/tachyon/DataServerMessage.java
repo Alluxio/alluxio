@@ -40,7 +40,7 @@ public class DataServerMessage {
     mIsMessageReady = false;
   }
 
-  public static DataServerMessage createPartitionRequestMessage() {
+  public static DataServerMessage createFileRequestMessage() {
     DataServerMessage ret = new DataServerMessage(false, DATA_SERVER_REQUEST_MESSAGE);
 
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
@@ -48,7 +48,7 @@ public class DataServerMessage {
     return ret;
   }
 
-  public static DataServerMessage createPartitionRequestMessage(int fileId) {
+  public static DataServerMessage createFileRequestMessage(int fileId) {
     DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
 
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
@@ -62,14 +62,14 @@ public class DataServerMessage {
     return ret;
   }
 
-  public static DataServerMessage createPartitionResponseMessage(boolean toSend, int fileId) {
+  public static DataServerMessage createFileResponseMessage(boolean toSend, int fileId) {
     DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
 
     if (toSend) {
       ret.mFileId = fileId;
 
       try {
-        String filePath = WorkerConf.get().DATA_FOLDER + fileId;
+        String filePath = WorkerConf.get().DATA_FOLDER + "/" + fileId;
         ret.LOG.info("Try to response remote requst by reading from " + filePath); 
         ret.mFile = new RandomAccessFile(filePath, "r");
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);

@@ -94,7 +94,7 @@ public class DataServer implements Runnable {
     if (mReceivingData.containsKey(socketChannel)) {
       tMessage = mReceivingData.get(socketChannel);
     } else {
-      tMessage = DataServerMessage.createPartitionRequestMessage();
+      tMessage = DataServerMessage.createFileRequestMessage();
       mReceivingData.put(socketChannel, tMessage);
     }
 
@@ -129,7 +129,7 @@ public class DataServer implements Runnable {
         CommonUtils.runtimeException(e);
       }
       DataServerMessage tResponseMessage = 
-          DataServerMessage.createPartitionResponseMessage(true, tMessage.getFileId()); 
+          DataServerMessage.createFileResponseMessage(true, tMessage.getFileId()); 
       if (tResponseMessage.getFileId() > 0) {
         mWorkerServiceHandler.sDataAccessQueue.add(tResponseMessage.getFileId());
       }
