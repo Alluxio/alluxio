@@ -40,7 +40,7 @@ public class DataServerTest {
 
   @Test
   public void readTest() throws InvalidPathException, FileAlreadyExistException, IOException {
-    int fileId = TestUtils.createSimpleFile(mClient, "/testFile", OpType.WRITE_CACHE, 10);
+    int fileId = TestUtils.createSimpleByteFile(mClient, "/testFile", OpType.WRITE_CACHE, 10);
     DataServerMessage sendMsg; 
     sendMsg = DataServerMessage.createFileRequestMessage(fileId);
     SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(

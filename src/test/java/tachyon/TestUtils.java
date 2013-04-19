@@ -14,12 +14,12 @@ public final class TestUtils {
   /**
    * Create a simple file with length <code>len</code>.
    * @param len
-   * @return file id of the new created file.
+   * @return file id of the new created byte file.
    * @throws FileAlreadyExistException 
    * @throws InvalidPathException 
    * @throws IOException 
    */
-  public static int createSimpleFile(TachyonClient client, String fileName, OpType op, int len)
+  public static int createSimpleByteFile(TachyonClient client, String fileName, OpType op, int len)
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = client.createFile(fileName);
     TachyonFile file = client.getFile(fileId);
@@ -68,7 +68,6 @@ public final class TestUtils {
     }
     for (int k = 0; k < len; k ++) {
       byte t = buf.get();
-      System.out.println(k + " : " + t + " " + (byte) k);
       if (t != (byte) k)
         return false;
     }
