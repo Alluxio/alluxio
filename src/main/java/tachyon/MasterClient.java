@@ -107,7 +107,7 @@ public class MasterClient {
     if (metadata == null) {
       metadata = ByteBuffer.allocate(0);
     }
-    return CLIENT.user_createRawTable(path, columns, ByteBuffer.wrap(metadata.array()));
+    return CLIENT.user_createRawTable(path, columns, metadata);
   }
 
   public synchronized void user_delete(String path)

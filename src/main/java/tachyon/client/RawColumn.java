@@ -16,7 +16,7 @@ public class RawColumn {
   private final RawTable RAW_TABLE;
   private final int COLUMN_INDEX;
 
-  public RawColumn(TachyonClient tachyonClient, RawTable rawTable, int columnIndex) {
+  RawColumn(TachyonClient tachyonClient, RawTable rawTable, int columnIndex) {
     TACHYON_CLIENT = tachyonClient;
     RAW_TABLE = rawTable;
     COLUMN_INDEX = columnIndex;
@@ -31,11 +31,11 @@ public class RawColumn {
   // TODO creating file here should be based on id.
   public TachyonFile getPartition(int pId) throws InvalidPathException {
     return TACHYON_CLIENT.getFile(RAW_TABLE.getPath() + Constants.PATH_SEPARATOR + MasterInfo.COL +
-        COLUMN_INDEX + "/" + pId);
+        COLUMN_INDEX + Constants.PATH_SEPARATOR + pId);
   }
 
   // TODO creating file here should be based on id.
-  public int getPartitions() throws FileDoesNotExistException, InvalidPathException, TException {
+  public int partitions() throws FileDoesNotExistException, InvalidPathException, TException {
     return TACHYON_CLIENT.getNumberOfFiles(RAW_TABLE.getPath() + Constants.PATH_SEPARATOR +
         MasterInfo.COL + COLUMN_INDEX);
   }
