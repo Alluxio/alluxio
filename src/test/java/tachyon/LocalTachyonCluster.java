@@ -49,6 +49,10 @@ public class LocalTachyonCluster {
   public int getMasterPort() {
     return mMasterPort;
   }
+  
+  public int getWorkerPort() {
+	return mWorkerPort;
+  }
 
   WorkerServiceHandler getWorkerServiceHandler() {
     return mWorker.getWorkerServiceHandler();    
