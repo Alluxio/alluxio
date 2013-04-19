@@ -85,6 +85,10 @@ public class TachyonFile {
     return new OutStream(this, opType);
   }
 
+  public String getPath() {
+    return CLIENT_FILE_INFO.getPath();
+  }
+
   public long getSize() {
     return CLIENT_FILE_INFO.getSizeBytes();
   }
