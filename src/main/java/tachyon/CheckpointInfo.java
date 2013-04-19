@@ -3,7 +3,7 @@ package tachyon;
 import java.io.Serializable;
 
 /**
- * Class to store global counter in master write head log.
+ * Class to store global counter in master's write head log and checkpoint file.
  */
 public class CheckpointInfo implements Serializable, Comparable<CheckpointInfo> {
   private static final long serialVersionUID = -8873733429025713755L;

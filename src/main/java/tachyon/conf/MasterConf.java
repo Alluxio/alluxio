@@ -5,6 +5,9 @@ import java.util.Arrays;
 
 import tachyon.Constants;
 
+/**
+ * Configurations used by master only.
+ */
 public class MasterConf extends Utils {
   private static MasterConf MASTER_CONF = null;
 

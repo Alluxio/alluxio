@@ -11,7 +11,6 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
-import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.Command;
 import tachyon.thrift.WorkerService;
@@ -20,7 +19,7 @@ import tachyon.thrift.WorkerService;
  * Entry point for a worker daemon.
  */
 public class Worker implements Runnable {
-  private static final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final InetSocketAddress MasterAddress;
   private final InetSocketAddress WorkerAddress;

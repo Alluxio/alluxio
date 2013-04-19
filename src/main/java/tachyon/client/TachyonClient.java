@@ -17,7 +17,6 @@ import tachyon.UnderFileSystem;
 import tachyon.MasterClient;
 import tachyon.CommonUtils;
 import tachyon.WorkerClient;
-import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
@@ -36,7 +35,7 @@ import tachyon.thrift.TableDoesNotExistException;
  * depending on how many workers the client program is interacting with.
  */
 public class TachyonClient {
-  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final long USER_QUOTA_UNIT_BYTES = UserConf.get().QUOTA_UNIT_BYTES;
   private final int USER_FAILED_SPACE_REQUEST_LIMITS = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;

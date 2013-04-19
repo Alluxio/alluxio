@@ -48,7 +48,7 @@ import tachyon.thrift.TableDoesNotExistException;
 public class MasterInfo {
   public static final String COL = "COL_";
 
-  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final InetSocketAddress MASTER_ADDRESS;
   private final long START_TIME_NS_PREFIX;
@@ -203,7 +203,7 @@ public class MasterInfo {
 
     mMasterLogWriter = new MasterLogWriter(MASTER_CONF.LOG_FILE);
 
-    mHeartbeatThread = new Thread(new HeartbeatThread(
+    mHeartbeatThread = new Thread(new HeartbeatThread("Master Heartbeat", 
         new MasterHeartbeatExecutor(), MASTER_CONF.HEARTBEAT_INTERVAL_MS));
     mHeartbeatThread.start();
   }

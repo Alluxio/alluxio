@@ -1,5 +1,8 @@
 package tachyon;
 
+/**
+ * Different class types in Tachyon master write ahead log or checkpoint.
+ */
 public enum LogType {
   Undefined(0),
   CheckpointInfo(1),

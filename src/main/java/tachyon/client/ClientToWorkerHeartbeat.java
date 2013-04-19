@@ -4,12 +4,16 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.CommonUtils;
+import tachyon.Constants;
 import tachyon.WorkerClient;
-import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 
+/**
+ * User client sends periodical heartbeats to the worker it is talking to. It is fails to do so,
+ * the worker may withdraw the space granted to the particular user.  
+ */
 class ClientToWorkerHeartbeat implements Runnable {
-  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final WorkerClient WORKER_CLIENT;
   private final long USER_ID;
   private final long HEARTBEAT_INTERVAL_MS;

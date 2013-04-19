@@ -23,6 +23,6 @@ public class Constants {
   public static final int MAX_COLUMNS = 100;
   public static final int WORKER_FILES_QUEUE_SIZE = 10000;
 
-  // TODO Remove this from constants.
+  public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
   public static final boolean DEBUG = Boolean.valueOf(System.getProperty("tachyon.debug", "false"));
 }

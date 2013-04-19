@@ -13,7 +13,6 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
-import tachyon.conf.CommonConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.Command;
@@ -33,7 +32,7 @@ import tachyon.thrift.TableDoesNotExistException;
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class MasterClient {
-  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final MasterService.Client CLIENT;
 
   private InetSocketAddress mMasterAddress;

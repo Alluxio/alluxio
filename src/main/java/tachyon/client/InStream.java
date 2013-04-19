@@ -6,12 +6,17 @@ import java.nio.ByteBuffer;
 
 import org.apache.log4j.Logger;
 
+import tachyon.Constants;
 import tachyon.UnderFileSystem;
-import tachyon.conf.CommonConf;
 import tachyon.thrift.ClientFileInfo;
 
+/**
+ * <code>InputStream</code> interface implementation of TachyonFile. It can only be gotten by
+ * calling the methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by
+ * the client code.
+ */
 public class InStream extends InputStream {
-  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonFile FILE;
   private final ClientFileInfo CLIENT_FILE_INFO;

@@ -11,16 +11,15 @@ import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
 import org.apache.log4j.Logger;
 
+import tachyon.Constants;
 import tachyon.client.InStream;
 import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
-import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 
-public class TFileInputStreamHdfs extends InputStream
-implements Seekable, PositionedReadable {
-  private static Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+public class TFileInputStreamHdfs extends InputStream implements Seekable, PositionedReadable {
+  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private int mCurrentPosition;
   private TachyonClient mTachyonClient;

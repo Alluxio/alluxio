@@ -9,6 +9,9 @@ import java.util.Map;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 
+/**
+ * Tachyon file system's file representation in master.
+ */
 public class InodeFile extends Inode {
   public static final long UNINITIAL_VALUE = -1;
 

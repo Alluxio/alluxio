@@ -19,8 +19,8 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.CommonUtils;
+import tachyon.Constants;
 import tachyon.client.TachyonClient;
-import tachyon.conf.CommonConf;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -33,7 +33,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  * the Tachyon API in tachyon.client package.
  */
 public class TachyonFileSystem extends FileSystem {
-  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private URI mUri = null;
   private Path mWorkingDir = new Path("/");

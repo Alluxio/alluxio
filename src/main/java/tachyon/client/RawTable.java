@@ -5,6 +5,10 @@ import java.nio.ByteBuffer;
 import tachyon.CommonUtils;
 import tachyon.thrift.ClientRawTableInfo;
 
+/**
+ * Tachyon provides native support for tables with multiple columns. Each table contains one or
+ * more columns. Each columns contains one or more ordered files.
+ */
 public class RawTable {
   private final TachyonClient TACHYON_CLIENT;
 
