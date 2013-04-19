@@ -11,7 +11,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 
 /**
- * Unit tests for InodeFile
+ * Unit tests for tachyon.InodeFile
  */
 public class InodeFileTest {
   @Test

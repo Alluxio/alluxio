@@ -11,7 +11,6 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
 public final class TestUtils {
-
   /**
    * Create a simple file with length <code>len</code>.
    * @param len

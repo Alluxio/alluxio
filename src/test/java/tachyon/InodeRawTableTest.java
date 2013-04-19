@@ -6,7 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for InodeRawTable
+ * Unit tests for tachyon.InodeRawTable
  */
 public class InodeRawTableTest {
   @Test

@@ -17,7 +17,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.ClientFileInfo;
 
 /**
- * Unit tests for WorkerServiceHandler
+ * Unit tests for tachyon.WorkerServiceHandler
  */
 public class WorkerServiceHandlerTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;

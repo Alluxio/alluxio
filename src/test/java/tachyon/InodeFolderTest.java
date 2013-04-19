@@ -7,7 +7,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Unit tests for InodeFolder
+ * Unit tests for tachyon.InodeFolder
  */
 public class InodeFolderTest {
   @Test
