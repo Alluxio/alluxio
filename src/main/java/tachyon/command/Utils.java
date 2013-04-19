@@ -7,7 +7,7 @@ import java.net.InetSocketAddress;
  */
 public class Utils {
   private static final String HEADER = "tachyon://";
-  
+
   /**
    * Validates the path, verifying that it contains the header and a hostname:port specified.
    * @param path The path to be verified.
@@ -23,7 +23,7 @@ public class Utils {
       System.exit(-1);
     }
   }
-  
+
   /**
    * Removes header and hostname:port information from a path, leaving only the local file path.
    * @param path The path to obtain the local path from
@@ -34,7 +34,7 @@ public class Utils {
     path = path.substring(HEADER.length());
     return path.substring(path.indexOf("/"));
   }
-  
+
   /**
    * Obtains the InetSocketAddress from a path by parsing the hostname:port portion of the path.
    * @param path The path to obtain the InetSocketAddress from.

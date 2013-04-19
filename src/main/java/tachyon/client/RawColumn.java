@@ -8,6 +8,9 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 
+/**
+ * The column of a <code>RawTable</code>.
+ */
 public class RawColumn {
   private final TachyonClient TACHYON_CLIENT;
   private final RawTable RAW_TABLE;

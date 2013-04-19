@@ -9,6 +9,9 @@ import com.esotericsoftware.kryo.Kryo;
 import tachyon.thrift.NetAddress;
 import de.javakaffee.kryoserializers.KryoReflectionFactorySupport;
 
+/**
+ * The factory to create a kryo ser/de for Tachyon master write ahead log or checkpoint file.
+ */
 public class KryoFactory {
   public static Kryo createLogKryo() {
     Kryo ret = new KryoReflectionFactorySupport();

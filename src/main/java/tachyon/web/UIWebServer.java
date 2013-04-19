@@ -13,14 +13,14 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.apache.log4j.Logger;
 
 import tachyon.CommonUtils;
+import tachyon.Constants;
 import tachyon.MasterInfo;
-import tachyon.conf.CommonConf;
 
 /**
  * Class that bootstraps and starts the web server for the web interface.
  */
 public class UIWebServer {
-  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private Server mServer;
   private String mServerName;

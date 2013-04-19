@@ -1,5 +1,8 @@
 package tachyon;
 
+/**
+ * Different Inodes in Tachyon Filesystem's master.
+ */
 public enum InodeType {
   File(1),
   Folder(2),

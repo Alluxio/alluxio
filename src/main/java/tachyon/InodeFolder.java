@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Tachyon file system's folder representation in master. 
+ */
 public class InodeFolder extends Inode {
   private Set<Integer> mChildren;
 

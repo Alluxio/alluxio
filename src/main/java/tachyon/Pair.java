@@ -2,8 +2,6 @@ package tachyon;
 
 /**
  * A pair representation defined by two elements (of type First and type Second).
- *   
- * @author Vamsi
  * 
  * @param <First> the first element of the Pair. 
  * @param <Second> the second element of the Pair.

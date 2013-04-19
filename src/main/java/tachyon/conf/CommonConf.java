@@ -1,9 +1,10 @@
 package tachyon.conf;
 
+/**
+ * Configurations shared by master and workers.
+ */
 public class CommonConf extends Utils {
   private static CommonConf COMMON_CONF = null;
-
-  public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
 
   public final String TACHYON_HOME;
   public final String UNDERFS_ADDRESS;

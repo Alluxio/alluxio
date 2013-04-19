@@ -8,13 +8,14 @@ import java.util.List;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.log4j.Logger;
 
-import tachyon.conf.CommonConf;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
 
+/**
+ * <code>MasterLogWriter</code> writes log into master's write-ahead-log or checkpoint data files.
+ */
 public class MasterLogWriter {
-  private static final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final String LOG_FILE_NAME;
 

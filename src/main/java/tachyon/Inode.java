@@ -1,5 +1,8 @@
 package tachyon;
 
+/**
+ * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
+ */
 public abstract class Inode implements Comparable<Inode> {
   private final long CREATION_TIME_MS;
   protected final InodeType TYPE;

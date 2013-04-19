@@ -2,6 +2,9 @@ package tachyon;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Tachyon file system's RawTable representation in master.
+ */
 public class InodeRawTable extends InodeFolder {
   protected final int COLUMNS;
 

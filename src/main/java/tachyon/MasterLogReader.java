@@ -5,14 +5,15 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
-import tachyon.conf.CommonConf;
-
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Input;
 
+/**
+ * <code>MasterLogReader</code> reads log from master's write-ahead-log or checkpoint data files.
+ */
 public class MasterLogReader {
-  private static final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final String LOG_FILE_NAME;
 

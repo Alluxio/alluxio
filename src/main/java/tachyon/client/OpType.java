@@ -2,7 +2,11 @@ package tachyon.client;
 
 import java.io.IOException;
 
+/**
+ * Different read/write types for a TachyonFile. 
+ */
 public enum OpType {
+  // TODO Make this ReadType and WriteType.
   // Read the file and but do not cache it explicitly.
   READ_NO_CACHE(1),
   // Read the file and cache it.

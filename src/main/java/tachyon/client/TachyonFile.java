@@ -16,9 +16,9 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
+import tachyon.Constants;
 import tachyon.DataServerMessage;
 import tachyon.UnderFileSystem;
-import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -29,7 +29,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Tachyon File.
  */
 public class TachyonFile {
-  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final UserConf USER_CONF = UserConf.get();
 
   final TachyonClient CLIENT;

@@ -2,6 +2,9 @@ package tachyon;
 
 import tachyon.conf.WorkerConf;
 
+/**
+ * Represent one user in the worker daemon. 
+ */
 public class UserInfo {
   private long mUserId;
   private long mOwnBytes;

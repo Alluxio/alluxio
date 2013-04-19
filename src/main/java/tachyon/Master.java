@@ -8,7 +8,6 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
-import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.thrift.MasterService;
 import tachyon.web.UIWebServer;
@@ -17,7 +16,7 @@ import tachyon.web.UIWebServer;
  * Entry point for the Master program.
  */
 public class Master {
-  private static final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private MasterInfo mMasterInfo;
   private InetSocketAddress mMasterAddress;

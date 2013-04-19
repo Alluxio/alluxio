@@ -26,11 +26,14 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.WorkerService;
 
+/**
+ * <code>WorkerServiceHandler</code> handles all the RPC call to the worker.
+ */
 public class WorkerServiceHandler implements WorkerService.Iface {
   public final BlockingQueue<Integer> sDataAccessQueue = 
       new ArrayBlockingQueue<Integer>(Constants.WORKER_FILES_QUEUE_SIZE);
 
-  private final Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final CommonConf COMMON_CONF;
 

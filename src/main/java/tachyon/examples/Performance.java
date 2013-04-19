@@ -11,19 +11,19 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.CommonUtils;
+import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.OpType;
 import tachyon.client.TachyonClient;
 import tachyon.client.TachyonFile;
-import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
 public class Performance {
-  private static Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private static final int RESULT_ARRAY_SIZE = 64;
   private static final String FOLDER = "/mnt/ramdisk/";

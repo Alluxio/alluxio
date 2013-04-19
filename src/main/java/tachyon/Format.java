@@ -8,10 +8,10 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 
 /**
- * Format Tachyon.
+ * Format Tachyon File System.
  */
 public class Format {
-  private final static Logger LOG = Logger.getLogger(CommonConf.LOGGER_TYPE);
+  private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   public static void main(String[] args) throws IOException {
     if (args.length != 0) {
