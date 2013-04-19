@@ -38,7 +38,7 @@ public class InStreamTest {
     for (int k = 100; k <= 200; k += 33) {
       for (OpType op : OpType.values()) {
         if (op.isWrite()) {
-          int fileId = TestUtils.createSimpleFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
+          int fileId = TestUtils.createSimpleByteFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
           InStream is;
@@ -69,7 +69,7 @@ public class InStreamTest {
     for (int k = 100; k <= 300; k += 33) {
       for (OpType op : OpType.values()) {
         if (op.isWrite()) {
-          int fileId = TestUtils.createSimpleFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
+          int fileId = TestUtils.createSimpleByteFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
           InStream is;
@@ -95,7 +95,7 @@ public class InStreamTest {
     for (int k = 100; k <= 300; k += 33) {
       for (OpType op : OpType.values()) {
         if (op.isWrite()) {
-          int fileId = TestUtils.createSimpleFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
+          int fileId = TestUtils.createSimpleByteFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
           InStream is;
