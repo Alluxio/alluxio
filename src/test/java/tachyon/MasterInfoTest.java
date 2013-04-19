@@ -16,7 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Unit tests for MasterInfo
+ * Unit tests for tachyon.MasterInfo
  */
 public class MasterInfoTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;

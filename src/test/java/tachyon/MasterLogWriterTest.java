@@ -12,26 +12,28 @@ import org.junit.Test;
 
 import tachyon.conf.MasterConf;
 
+/**
+ * Unit tests for tachyon.MasterLogWriter
+ */
 public class MasterLogWriterTest {
-
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterLogWriter mMasterLogWriter = null;
   private MasterLogReader mMasterLogReader = null;
   private String mLogFile = null;
-  
+
   @Before
   public final void before() throws IOException {
-	mLocalTachyonCluster = new LocalTachyonCluster(1000);
-	mLocalTachyonCluster.start();
-	mLogFile = MasterConf.get().LOG_FILE;
+    mLocalTachyonCluster = new LocalTachyonCluster(1000);
+    mLocalTachyonCluster.start();
+    mLogFile = MasterConf.get().LOG_FILE;
     mMasterLogWriter = new MasterLogWriter(mLogFile);
   }
-  
+
   @After
   public final void after() throws Exception {
-	mLocalTachyonCluster.stop();
+    mLocalTachyonCluster.stop();
   }
-	
+
   @Test
   public void appendAndFlushInodeTest() throws IOException {
     Inode inode = new InodeFile("/testFile", 1, 0);
@@ -55,7 +57,7 @@ public class MasterLogWriterTest {
     Assert.assertEquals(inode3, toCheck.getSecond());
     Assert.assertFalse(mMasterLogReader.hasNext());
   }
-  
+
   @Test
   public void appendAndFlushInodeListTest() throws IOException {
     Inode inode = new InodeFile("/testFile", 1, 0);
@@ -81,17 +83,16 @@ public class MasterLogWriterTest {
     Assert.assertEquals(inode3, toCheck.getSecond());
     Assert.assertFalse(mMasterLogReader.hasNext());
   }
-  
+
   @Test
   public void appendAndFlushCheckpointTest() throws IOException {
-	CheckpointInfo checkpointInfo = new CheckpointInfo(1);
-	mMasterLogWriter.appendAndFlush(checkpointInfo);
-	mMasterLogReader = new MasterLogReader(mLogFile);
-	Assert.assertTrue(mMasterLogReader.hasNext());
-	Pair<LogType, Object> toCheck = mMasterLogReader.getNextPair();
-	Assert.assertEquals(LogType.CheckpointInfo, toCheck.getFirst());
-	// Checkpoint infos are not equal
-	// Assert.assertEquals(checkpointInfo, toCheck.getSecond());
-	Assert.assertFalse(mMasterLogReader.hasNext());
+    CheckpointInfo checkpointInfo = new CheckpointInfo(1);
+    mMasterLogWriter.appendAndFlush(checkpointInfo);
+    mMasterLogReader = new MasterLogReader(mLogFile);
+    Assert.assertTrue(mMasterLogReader.hasNext());
+    Pair<LogType, Object> toCheck = mMasterLogReader.getNextPair();
+    Assert.assertEquals(LogType.CheckpointInfo, toCheck.getFirst());
+    Assert.assertEquals(checkpointInfo, toCheck.getSecond());
+    Assert.assertFalse(mMasterLogReader.hasNext());
   }
 }
