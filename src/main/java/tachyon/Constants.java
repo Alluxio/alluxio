@@ -20,7 +20,7 @@ public class Constants {
   public static final int DEFAULT_WORKER_DATA_SERVER_PORT = DEFAULT_WORKER_PORT + 1;
 
   public static final String PATH_SEPARATOR = "/";
-  public static final int MAX_COLUMNS = 100;
+  public static final int MAX_COLUMNS = 1000;
   public static final int WORKER_FILES_QUEUE_SIZE = 10000;
 
   public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");

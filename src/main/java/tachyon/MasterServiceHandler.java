@@ -58,7 +58,8 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public int user_createRawTable(String path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException, TException {
-    return mMasterInfo.createRawTable(path, columns, metadata);
+    return mMasterInfo.createRawTable(
+        path, columns, CommonUtils.generateNewByteBufferFromThriftRPCResults(metadata));
   }
 
   @Override

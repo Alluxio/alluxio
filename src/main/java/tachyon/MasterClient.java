@@ -107,7 +107,7 @@ public class MasterClient {
     if (metadata == null) {
       metadata = ByteBuffer.allocate(0);
     }
-    return CLIENT.user_createRawTable(path, columns, metadata);
+    return CLIENT.user_createRawTable(path, columns, ByteBuffer.wrap(metadata.array()));
   }
 
   public synchronized void user_delete(String path)
@@ -149,12 +149,16 @@ public class MasterClient {
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
       throws TableDoesNotExistException, InvalidPathException, TException {
-    return CLIENT.user_getClientRawTableInfoByPath(path);
+    ClientRawTableInfo ret = CLIENT.user_getClientRawTableInfoByPath(path);
+    ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
+    return ret;
   }
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoById(int id)
       throws TableDoesNotExistException, TException {
-    return CLIENT.user_getClientRawTableInfoById(id);
+    ClientRawTableInfo ret = CLIENT.user_getClientRawTableInfoById(id);
+    ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
+    return ret;
   }
 
   public synchronized int user_getNumberOfFiles(String folderPath)

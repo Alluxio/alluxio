@@ -12,6 +12,9 @@ import tachyon.TestUtils;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
+/**
+ * Unit tests for <code>tachyon.client.OutStream</code>.
+ */
 public class OutStreamTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonClient mClient = null;
