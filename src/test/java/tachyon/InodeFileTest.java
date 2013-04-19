@@ -17,7 +17,7 @@ public class InodeFileTest {
   @Test
   public void inodeLengthTest() throws SuspectedFileSizeException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0);
-    long testLength = 100L;
+    long testLength = 100;
     inodeFile.setLength(testLength);
     Assert.assertEquals(testLength, inodeFile.getLength());
   }
@@ -25,21 +25,21 @@ public class InodeFileTest {
   @Test(expected = SuspectedFileSizeException.class)
   public void inodeInvalidLengthTest() throws SuspectedFileSizeException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0);
-    inodeFile.setLength(-100L);
+    inodeFile.setLength(-100);
   }
 
   @Test(expected = SuspectedFileSizeException.class)
   public void inodeRepeatedLengthSetTest() throws SuspectedFileSizeException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0);
-    inodeFile.setLength(100L);
-    inodeFile.setLength(200L);
+    inodeFile.setLength(100);
+    inodeFile.setLength(200);
   }
 
   @Test
   public void isReadyTest() throws SuspectedFileSizeException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0);
     Assert.assertFalse(inodeFile.isReady());
-    inodeFile.setLength(100L);
+    inodeFile.setLength(100);
     Assert.assertTrue(inodeFile.isReady());
   }
 
@@ -51,12 +51,12 @@ public class InodeFileTest {
     testAddresses.add(new NetAddress("testhost2", 2000));
     testAddresses.add(new NetAddress("testhost3", 3000));
     inodeFile.addLocation(1, testAddresses.get(0));
-    Assert.assertEquals(inodeFile.getLocations().size(), 1);
+    Assert.assertEquals(1, inodeFile.getLocations().size());
     inodeFile.addLocation(2, testAddresses.get(1));
-    Assert.assertEquals(inodeFile.getLocations().size(), 2);
+    Assert.assertEquals(2, inodeFile.getLocations().size());
     inodeFile.addLocation(3, testAddresses.get(2));
-    Assert.assertEquals(inodeFile.getLocations().size(), 3);
-    Assert.assertEquals(inodeFile.getLocations(), testAddresses);
+    Assert.assertEquals(3, inodeFile.getLocations().size());
+    Assert.assertEquals(testAddresses, inodeFile.getLocations());
   }
 
   @Test
@@ -83,9 +83,9 @@ public class InodeFileTest {
   public void setCheckpointPathTest() {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0);
     Assert.assertFalse(inodeFile.hasCheckpointed());
-    Assert.assertEquals(inodeFile.getCheckpointPath(), "");
+    Assert.assertEquals("", inodeFile.getCheckpointPath());
     inodeFile.setCheckpointPath("/testPath");
-    Assert.assertEquals(inodeFile.getCheckpointPath(), "/testPath");
+    Assert.assertEquals("/testPath", inodeFile.getCheckpointPath());
   }
 
   @Test
@@ -120,10 +120,10 @@ public class InodeFileTest {
   public void comparableTest() {
     InodeFile inode1 = new InodeFile("test1", 1, 0);
     InodeFile inode2 = new InodeFile("test2", 2, 0);
-    Assert.assertEquals(inode1.compareTo(inode2), -1);
-    Assert.assertEquals(inode1.compareTo(inode1), 0);
-    Assert.assertEquals(inode2.compareTo(inode2), 0);
-    Assert.assertEquals(inode2.compareTo(inode1), 1);
+    Assert.assertEquals(-1, inode1.compareTo(inode2));
+    Assert.assertEquals(0, inode1.compareTo(inode1));
+    Assert.assertEquals(0, inode2.compareTo(inode2));
+    Assert.assertEquals(1, inode2.compareTo(inode1));
   }
 
   @Test
@@ -148,35 +148,35 @@ public class InodeFileTest {
   @Test
   public void getInodeTypeTest() {
     InodeFile inode1 = new InodeFile("test1", 1, 0);
-    Assert.assertEquals(inode1.getInodeType(), InodeType.File);
+    Assert.assertEquals(InodeType.File, inode1.getInodeType());
   }
 
   @Test
   public void getIdTest() {
     InodeFile inode1 = new InodeFile("test1", 1, 0);
-    Assert.assertEquals(inode1.getId(), 1);
+    Assert.assertEquals(1, inode1.getId());
   }
 
   @Test
   public void reverseIdTest() {
     InodeFile inode1 = new InodeFile("test1", 1, 0);
     inode1.reverseId();
-    Assert.assertEquals(inode1.getId(), -1);
+    Assert.assertEquals(-1, inode1.getId());
   }
 
   @Test
   public void setNameTest() {
     InodeFile inode1 = new InodeFile("test1", 1, 0);
-    Assert.assertEquals(inode1.getName(), "test1");
+    Assert.assertEquals("test1", inode1.getName());
     inode1.setName("test2");
-    Assert.assertEquals(inode1.getName(), "test2");
+    Assert.assertEquals("test2", inode1.getName());
   }
 
   @Test
   public void setParentIdTest() {
     InodeFile inode1 = new InodeFile("test1", 1, 0);
-    Assert.assertEquals(inode1.getParentId(), 0);
+    Assert.assertEquals(0, inode1.getParentId());
     inode1.setParentId(2);
-    Assert.assertEquals(inode1.getParentId(), 2);
+    Assert.assertEquals(2, inode1.getParentId());
   } 
 }
