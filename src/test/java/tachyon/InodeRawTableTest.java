@@ -12,7 +12,7 @@ public class InodeRawTableTest {
   @Test
   public void getColumnsTest() {
     InodeRawTable inodeRawTable = new InodeRawTable("testTable1", 1, 0, 10, (ByteBuffer) null);
-    Assert.assertEquals(inodeRawTable.getColumns(), 10);
+    Assert.assertEquals(10, inodeRawTable.getColumns());
   }
 
   @Test
@@ -37,10 +37,10 @@ public class InodeRawTableTest {
   public void comparableTest() {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
     InodeRawTable inode2 = new InodeRawTable("test2", 2, 0, 10, (ByteBuffer) null);
-    Assert.assertEquals(inode1.compareTo(inode2), -1);
-    Assert.assertEquals(inode1.compareTo(inode1), 0);
-    Assert.assertEquals(inode2.compareTo(inode2), 0);
-    Assert.assertEquals(inode2.compareTo(inode1), 1);
+    Assert.assertEquals(-1, inode1.compareTo(inode2));
+    Assert.assertEquals(0, inode1.compareTo(inode1));
+    Assert.assertEquals(0, inode2.compareTo(inode2));
+    Assert.assertEquals(1, inode2.compareTo(inode1));
   }
 
   @Test
@@ -73,29 +73,29 @@ public class InodeRawTableTest {
   @Test
   public void getIdTest() {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
-    Assert.assertEquals(inode1.getId(), 1);
+    Assert.assertEquals(1, inode1.getId());
   }
 
   @Test
   public void reverseIdTest() {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
     inode1.reverseId();
-    Assert.assertEquals(inode1.getId(), -1);
+    Assert.assertEquals(-1, inode1.getId());
   }
 
   @Test
   public void setNameTest() {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
-    Assert.assertEquals(inode1.getName(), "test1");
+    Assert.assertEquals("test1", inode1.getName());
     inode1.setName("test2");
-    Assert.assertEquals(inode1.getName(), "test2");
+    Assert.assertEquals("test2", inode1.getName());
   }
 
   @Test
   public void setParentIdTest() {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
-    Assert.assertEquals(inode1.getParentId(), 0);
+    Assert.assertEquals(0, inode1.getParentId());
     inode1.setParentId(2);
-    Assert.assertEquals(inode1.getParentId(), 2);
+    Assert.assertEquals(2, inode1.getParentId());
   } 
 }
