@@ -15,8 +15,8 @@ public class InodeFolderTest {
     InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0);
     inodeFolder.addChild(2);
     inodeFolder.addChild(3);
-    Assert.assertTrue(inodeFolder.getChildrenIds().get(0) == 2);
-    Assert.assertTrue(inodeFolder.getChildrenIds().get(1) == 3);
+    Assert.assertEquals(2, (int) inodeFolder.getChildrenIds().get(0));
+    Assert.assertEquals(3, (int) inodeFolder.getChildrenIds().get(1));
   }
 
   @Test
@@ -25,25 +25,25 @@ public class InodeFolderTest {
     inodeFolder.addChild(2);
     inodeFolder.addChild(2);
     Assert.assertTrue(inodeFolder.getChildrenIds().get(0) == 2);
-    Assert.assertEquals(inodeFolder.getNumberOfChildren(), 1);
+    Assert.assertEquals(1, inodeFolder.getNumberOfChildren());
   }
 
   @Test
   public void removeChildTest() {
     InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0);
     inodeFolder.addChild(2);
-    Assert.assertEquals(inodeFolder.getNumberOfChildren(), 1);
+    Assert.assertEquals(1, inodeFolder.getNumberOfChildren());
     inodeFolder.removeChild(2);
-    Assert.assertEquals(inodeFolder.getNumberOfChildren(), 0);
+    Assert.assertEquals(0, inodeFolder.getNumberOfChildren());
   }
 
   @Test
   public void removeNonExistentChildTest() {
     InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0);
     inodeFolder.addChild(2);
-    Assert.assertEquals(inodeFolder.getNumberOfChildren(), 1);
+    Assert.assertEquals(1, inodeFolder.getNumberOfChildren());
     inodeFolder.removeChild(3);
-    Assert.assertEquals(inodeFolder.getNumberOfChildren(), 1);
+    Assert.assertEquals(1, inodeFolder.getNumberOfChildren());
   }
 
   @Test
@@ -57,9 +57,9 @@ public class InodeFolderTest {
     Map<Integer, Inode> testMap = new HashMap<Integer, Inode>(2);
     testMap.put(2, inodeFile1);
     testMap.put(3, inodeFile2);
-    Assert.assertEquals(inodeFolder.getNumberOfChildren(), 3);
+    Assert.assertEquals(3, inodeFolder.getNumberOfChildren());
     inodeFolder.removeChild("testFile1", testMap);
-    Assert.assertEquals(inodeFolder.getNumberOfChildren(), 2);
+    Assert.assertEquals(2, inodeFolder.getNumberOfChildren());
     Assert.assertFalse(inodeFolder.getChildrenIds().contains(2));
   }
 
@@ -76,7 +76,7 @@ public class InodeFolderTest {
   public void comparableTest() {
     InodeFolder inode1 = new InodeFolder("test1", 1, 0);
     InodeFolder inode2 = new InodeFolder("test2", 2, 0);
-    Assert.assertEquals(inode1.compareTo(inode2), -1);
+    Assert.assertEquals(-1, inode1.compareTo(inode2));
   }
 
   @Test
@@ -101,35 +101,35 @@ public class InodeFolderTest {
   @Test
   public void getInodeTypeTest() {
     InodeFolder inode1 = new InodeFolder("test1", 1, 0);
-    Assert.assertEquals(inode1.getInodeType(), InodeType.Folder);
+    Assert.assertEquals(InodeType.Folder, inode1.getInodeType());
   }
 
   @Test
   public void getIdTest() {
     InodeFolder inode1 = new InodeFolder("test1", 1, 0);
-    Assert.assertEquals(inode1.getId(), 1);
+    Assert.assertEquals(1, inode1.getId());
   }
 
   @Test
   public void reverseIdTest() {
     InodeFolder inode1 = new InodeFolder("test1", 1, 0);
     inode1.reverseId();
-    Assert.assertEquals(inode1.getId(), -1);
+    Assert.assertEquals(-1, inode1.getId());
   }
 
   @Test
   public void setNameTest() {
     InodeFolder inode1 = new InodeFolder("test1", 1, 0);
-    Assert.assertEquals(inode1.getName(), "test1");
+    Assert.assertEquals("test1", inode1.getName());
     inode1.setName("test2");
-    Assert.assertEquals(inode1.getName(), "test2");
+    Assert.assertEquals("test2", inode1.getName());
   }
 
   @Test
   public void setParentIdTest() {
     InodeFolder inode1 = new InodeFolder("test1", 1, 0);
-    Assert.assertEquals(inode1.getParentId(), 0);
+    Assert.assertEquals(0, inode1.getParentId());
     inode1.setParentId(2);
-    Assert.assertEquals(inode1.getParentId(), 2);
+    Assert.assertEquals(2, inode1.getParentId());
   } 
 }
