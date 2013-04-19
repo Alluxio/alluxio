@@ -302,12 +302,13 @@ public class TachyonClient {
     return mUserUnderfsTempFolder;
   }
 
-  public synchronized int createRawTable(String path, int columns) throws InvalidPathException {
+  public synchronized int createRawTable(String path, int columns) 
+      throws InvalidPathException, FileAlreadyExistException, TableColumnException {
     return createRawTable(path, columns, ByteBuffer.allocate(0));
   }
 
   public synchronized int createRawTable(String path, int columns, ByteBuffer metadata)
-      throws InvalidPathException {
+      throws InvalidPathException, FileAlreadyExistException, TableColumnException {
     connect();
     if (!mConnected) {
       return -1;
@@ -315,18 +316,12 @@ public class TachyonClient {
     path = CommonUtils.cleanPath(path);
 
     if (columns < 1 || columns > Constants.MAX_COLUMNS) {
-      CommonUtils.runtimeException("Column count " + columns + " is smaller than 1 or bigger than "
-          + Constants.MAX_COLUMNS);
+      throw new TableColumnException("Column count " + columns + " is smaller than 1 or " +
+          "bigger than " + Constants.MAX_COLUMNS);
     }
 
     try {
       return mMasterClient.user_createRawTable(path, columns, metadata);
-    } catch (TableColumnException e) {
-      LOG.info(e.getMessage());
-      return -1;
-    } catch (FileAlreadyExistException e) {
-      LOG.info(e.getMessage());
-      return -1;
     } catch (TException e) {
       LOG.error(e.getMessage());
       mConnected = false;

@@ -57,6 +57,6 @@ public class DataServerTest {
       }
     }
     socketChannel.close();
-    Assert.assertTrue(TestUtils.equalIncreasingByteBuffer(10, recvMsg.getReadOnlyData()));
+    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), recvMsg.getReadOnlyData());
   }
 }

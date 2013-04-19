@@ -85,6 +85,15 @@ public final class CommonUtils {
     return formatter.format(new Date(Millis));
   }
 
+  public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
+    // TODO this is a trick to fix the issue in thrift. Change the code to use metadata directly
+    // when thrift fixes the issue.
+    ByteBuffer correctData = ByteBuffer.allocate(data.limit() - data.position());
+    correctData.put(data);
+    correctData.flip();
+    return correctData;
+  }
+
   public static long getCurrentMs() {
     return System.currentTimeMillis();
   }
@@ -226,7 +235,8 @@ public final class CommonUtils {
 
   public static void validatePath(String path) throws InvalidPathException {
     if (path == null || !path.startsWith(Constants.PATH_SEPARATOR) || 
-        (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR))) {
+        (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR)) ||
+        path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
   }

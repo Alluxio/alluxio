@@ -27,9 +27,8 @@ public class InodeRawTable extends InodeFolder {
   }
 
   public ByteBuffer getMetadata() {
-    byte[] metadata = METADATA.array();
-    ByteBuffer ret = ByteBuffer.allocate(metadata.length);
-    ret.put(metadata);
+    ByteBuffer ret = ByteBuffer.allocate(METADATA.capacity());
+    ret.put(METADATA.array());
     ret.flip();
     return ret;
   }
@@ -37,7 +36,8 @@ public class InodeRawTable extends InodeFolder {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("InodeRawTable(");
-    sb.append(super.toString()).append(",").append(COLUMNS).append(")");
+    sb.append(super.toString()).append(",").append(COLUMNS).append(",");
+    sb.append(METADATA).append(")");
     return sb.toString();
   }
 }
