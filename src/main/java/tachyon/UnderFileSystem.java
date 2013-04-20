@@ -11,7 +11,7 @@ import java.util.List;
  */
 public abstract class UnderFileSystem {
   public static UnderFileSystem getUnderFileSystem(String path) {
-    if (path.startsWith("hdfs://") || path.startsWith("file://")) {
+    if (path.startsWith("hdfs://") || path.startsWith("file://") || path.startsWith("s3://")) {
       return UnderFileSystemHdfs.getClient(path);
     } else if (path.startsWith("/")) {
       return UnderFileSystemSingleLocal.getClient();
