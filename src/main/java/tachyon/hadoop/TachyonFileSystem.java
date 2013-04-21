@@ -142,7 +142,6 @@ public class TachyonFileSystem extends FileSystem {
 
   @Override
   public URI getUri() {
-    LOG.debug("TachyonFileSystem getUri() with return " + mUri);
     return mUri;
   }
 
@@ -212,6 +211,7 @@ public class TachyonFileSystem extends FileSystem {
     mTachyonClient = TachyonClient.getClient(new InetSocketAddress(uri.getHost(), uri.getPort()));
     mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort() + "";
     Utils.HDFS_ADDRESS = mTachyonClient.getUnderfsAddress();
+    mUri = URI.create("tachyon://" + uri.getHost() + ":" + uri.getPort());
   }
 
   @Override
