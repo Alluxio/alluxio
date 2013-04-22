@@ -188,6 +188,13 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public void user_updateRawTableMetadata(int tableId, ByteBuffer metadata)
+      throws TableDoesNotExistException, TException {
+    mMasterInfo.updateRawTableMetadata(tableId, 
+        CommonUtils.generateNewByteBufferFromThriftRPCResults(metadata));
+  }
+
+  @Override
   public void worker_cacheFile(long workerId, long workerUsedBytes, int fileId,
       long fileSizeBytes) throws FileDoesNotExistException,
       SuspectedFileSizeException, TException {
