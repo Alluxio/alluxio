@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.MasterInfo;
+import tachyon.conf.CommonConf;
 
 /**
  * Class that bootstraps and starts the web server for the web interface.
@@ -41,7 +42,7 @@ public class UIWebServer {
     WebAppContext webappcontext = new WebAppContext();
 
     webappcontext.setContextPath("/");
-    File warPath = new File(new File("").getAbsolutePath(), "src/main/java/tachyon/web/resources");
+    File warPath = new File(CommonConf.get().TACHYON_HOME + "/src/main/java/tachyon/web/resources");
     webappcontext.setWar(warPath.getAbsolutePath());
     HandlerList handlers = new HandlerList();
     webappcontext.addServlet(
