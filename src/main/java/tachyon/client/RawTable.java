@@ -38,8 +38,7 @@ public class RawTable {
   }
 
   public ByteBuffer getMetadata() {
-    ByteBuffer ret = CLIENT_RAW_TABLE_INFO.metadata.duplicate();
-    return ret.asReadOnlyBuffer();
+    return CommonUtils.cloneByteBuffer(CLIENT_RAW_TABLE_INFO.metadata);
   }
 
   public RawColumn getRawColumn(int columnIndex) {

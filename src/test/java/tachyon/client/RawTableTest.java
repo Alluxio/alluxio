@@ -131,7 +131,9 @@ public class RawTableTest {
       fileId = mClient.createRawTable("/y/tab" + k, 1, TestUtils.getIncreasingByteBuffer(k % 7));
       table = mClient.getRawTable(fileId);
       Assert.assertEquals(TestUtils.getIncreasingByteBuffer(k % 7), table.getMetadata());
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(k % 7), table.getMetadata());
       table = mClient.getRawTable("/y/tab" + k);
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(k % 7), table.getMetadata());
       Assert.assertEquals(TestUtils.getIncreasingByteBuffer(k % 7), table.getMetadata());
     }
   }
