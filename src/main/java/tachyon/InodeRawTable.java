@@ -8,27 +8,32 @@ import java.nio.ByteBuffer;
 public class InodeRawTable extends InodeFolder {
   protected final int COLUMNS;
 
-  private final ByteBuffer METADATA;
+  private ByteBuffer mMetadata;
 
   public InodeRawTable(String name, int id, int parentId, int columns, ByteBuffer metadata) {
     super(name, id, parentId, InodeType.RawTable);
     COLUMNS = columns;
-    if (metadata == null) {
-      METADATA = ByteBuffer.allocate(0);
-    } else {
-      METADATA = ByteBuffer.allocate(metadata.limit());
-      METADATA.put(metadata);
-      METADATA.flip();
-    }
+    updateMetadata(metadata);
   }
 
   public int getColumns() {
     return COLUMNS;
   }
 
-  public ByteBuffer getMetadata() {
-    ByteBuffer ret = ByteBuffer.allocate(METADATA.capacity());
-    ret.put(METADATA.array());
+  // TODO add version number.
+  public synchronized void updateMetadata(ByteBuffer metadata) {
+    if (metadata == null) {
+      mMetadata = ByteBuffer.allocate(0);
+    } else {
+      mMetadata = ByteBuffer.allocate(metadata.limit());
+      mMetadata.put(metadata);
+      mMetadata.flip();
+    }
+  }
+
+  public synchronized ByteBuffer getMetadata() {
+    ByteBuffer ret = ByteBuffer.allocate(mMetadata.capacity());
+    ret.put(mMetadata.array());
     ret.flip();
     return ret;
   }
@@ -37,7 +42,7 @@ public class InodeRawTable extends InodeFolder {
   public String toString() {
     StringBuilder sb = new StringBuilder("InodeRawTable(");
     sb.append(super.toString()).append(",").append(COLUMNS).append(",");
-    sb.append(METADATA).append(")");
+    sb.append(mMetadata).append(")");
     return sb.toString();
   }
 }
