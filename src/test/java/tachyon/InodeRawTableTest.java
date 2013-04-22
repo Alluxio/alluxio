@@ -23,13 +23,20 @@ public class InodeRawTableTest {
 
   @Test
   public void getMetadataTest() {
-    ByteBuffer metadata = ByteBuffer.allocate(8);
-    metadata.putInt(1);
-    metadata.putInt(2);
-    metadata.flip();
+    ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(3);
     InodeRawTable inodeRawTable = new InodeRawTable("testTable1", 1, 0, 10, metadata);
     metadata.flip();
-    Assert.assertTrue(inodeRawTable.getMetadata().equals(metadata));
+    Assert.assertEquals(metadata, inodeRawTable.getMetadata());
+  }
+
+  @Test
+  public void updateMetadataTest() {
+    InodeRawTable inodeRawTable = new InodeRawTable("testTable1", 1, 0, 10, null);
+    Assert.assertEquals(ByteBuffer.allocate(0), inodeRawTable.getMetadata());
+    ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(7);
+    inodeRawTable.updateMetadata(metadata);
+    metadata.flip();
+    Assert.assertEquals(metadata, inodeRawTable.getMetadata());
   }
 
   //Tests for Inode methods
