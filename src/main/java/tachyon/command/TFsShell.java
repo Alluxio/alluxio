@@ -91,8 +91,7 @@ public class TFsShell {
    * @throws InvalidPathException
    * @throws TException
    */
-  public int rm(String argv[]) 
-      throws FileDoesNotExistException, InvalidPathException, TException {
+  public int rm(String argv[]) throws InvalidPathException, TException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs rm <path>");
       return -1;

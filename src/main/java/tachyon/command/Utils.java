@@ -1,6 +1,7 @@
 package tachyon.command;
 
 import java.net.InetSocketAddress;
+import tachyon.conf.MasterConf;
 
 /**
  * Class for convenience methods used by TFsShell.
@@ -12,16 +13,31 @@ public class Utils {
    * Validates the path, verifying that it contains the header and a hostname:port specified.
    * @param path The path to be verified.
    */
-  public static void validateTachyonPath(String path) {
+  public static String validateTachyonPath(String path) {
     if (!path.startsWith(HEADER)) {
-      System.out.println("The path format is " + HEADER + "<MASTERHOST>:<PORT>/<PATH_NAME>");
-      System.exit(-1);
+      if (!path.contains(":")) {
+    	if (path.startsWith("/")) {
+          path = MasterConf.get().HOSTNAME + ":" + MasterConf.get().PORT + path;
+    	} else {
+    	  path = MasterConf.get().HOSTNAME + ":" + MasterConf.get().PORT + "/" + path;
+    	}
+      }
+      path = HEADER + path;
+    } else {
+      String tempPath = path.substring(HEADER.length());
+      if (!tempPath.contains(":")) {
+        if (tempPath.startsWith("/")) {
+          tempPath = MasterConf.get().HOSTNAME + ":" + MasterConf.get().PORT + tempPath;
+        } else {
+          tempPath = MasterConf.get().HOSTNAME + ":" + MasterConf.get().PORT + "/" + tempPath;
+        }
+      }
+      path = HEADER + tempPath;
     }
-    path = path.substring(HEADER.length());
-    if (!path.contains(":") || !path.contains("/")) {
-      System.out.println("The path format is " + HEADER + "<MASTERHOST>:<PORT>/<PATH_NAME>");
-      System.exit(-1);
+    if (!path.endsWith("/")) {
+      path = path + "/";
     }
+    return path;
   }
 
   /**
@@ -30,9 +46,13 @@ public class Utils {
    * @return The local path in string format
    */ 
   public static String getFilePath(String path) {
-    validateTachyonPath(path);
+    path = validateTachyonPath(path);
     path = path.substring(HEADER.length());
-    return path.substring(path.indexOf("/"));
+    String ret = path.substring(path.indexOf("/"));
+    while (ret.endsWith("/")) {
+      ret = ret.substring(0, ret.length()-1);
+    }
+    return ret;
   }
 
   /**
@@ -41,7 +61,7 @@ public class Utils {
    * @return The InetSocketAddress of the master node.
    */
   public static InetSocketAddress getTachyonMasterAddress(String path) {
-    validateTachyonPath(path);
+    path = validateTachyonPath(path);
     path = path.substring(HEADER.length());
     String masterAddress = path.substring(0, path.indexOf("/"));
     String masterHost = masterAddress.split(":")[0];
