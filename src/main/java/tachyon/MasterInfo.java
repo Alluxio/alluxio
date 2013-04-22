@@ -1058,6 +1058,8 @@ public class MasterInfo {
       }
 
       ((InodeRawTable) inode).updateMetadata(metadata);
+
+      mMasterLogWriter.appendAndFlush(inode);
     }
   }
 
