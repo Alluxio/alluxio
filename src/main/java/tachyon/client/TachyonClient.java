@@ -720,6 +720,12 @@ public class TachyonClient {
     return true;
   }
 
+  public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata)
+      throws TableDoesNotExistException, TException {
+    connect();
+    mMasterClient.user_updateRawTableMetadata(id, metadata);
+  }
+
   public synchronized String getUnderfsAddress() throws IOException {
     connect();
     try {

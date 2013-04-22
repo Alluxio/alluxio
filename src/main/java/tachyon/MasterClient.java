@@ -198,6 +198,11 @@ public class MasterClient {
     CLIENT.user_unpinFile(id);
   }
 
+  public synchronized void user_updateRawTableMetadata(int id, ByteBuffer metadata)
+      throws TableDoesNotExistException, TException {
+    CLIENT.user_updateRawTableMetadata(id, metadata);
+  }
+
   public synchronized void worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
       long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     CLIENT.worker_cacheFile(workerId, workerUsedBytes, fileId, fileSizeBytes);

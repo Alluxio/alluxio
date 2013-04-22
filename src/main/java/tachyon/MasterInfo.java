@@ -1048,6 +1048,19 @@ public class MasterInfo {
     }
   }
 
+  public void updateRawTableMetadata(int tableId, ByteBuffer metadata)
+      throws TableDoesNotExistException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(tableId);
+
+      if (inode == null || inode.getInodeType() != InodeType.RawTable) {
+        throw new TableDoesNotExistException("Table " + tableId + " does not exist.");
+      }
+
+      ((InodeRawTable) inode).updateMetadata(metadata);
+    }
+  }
+
   public Command workerHeartbeat(long workerId, long usedBytes, List<Integer> removedFileIds) {
     LOG.debug("WorkerId: " + workerId);
     synchronized (mWorkers) {

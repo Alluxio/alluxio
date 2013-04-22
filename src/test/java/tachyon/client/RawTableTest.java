@@ -135,4 +135,25 @@ public class RawTableTest {
       Assert.assertEquals(TestUtils.getIncreasingByteBuffer(k % 7), table.getMetadata());
     }
   }
+
+  @Test
+  public void updateMetadataTest()
+      throws InvalidPathException, FileAlreadyExistException, TableColumnException,
+      TableDoesNotExistException, TException {
+    for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
+      int fileId = mClient.createRawTable("/x/table" + k, 1);
+      RawTable table = mClient.getRawTable(fileId);
+      table.updateMetadata(TestUtils.getIncreasingByteBuffer(k % 17));
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(k % 17), table.getMetadata());
+      table = mClient.getRawTable("/x/table" + k);
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(k % 17), table.getMetadata());
+
+      fileId = mClient.createRawTable("/y/tab" + k, 1, TestUtils.getIncreasingByteBuffer(k % 7));
+      table = mClient.getRawTable(fileId);
+      table.updateMetadata(TestUtils.getIncreasingByteBuffer(k % 16));
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(k % 16), table.getMetadata());
+      table = mClient.getRawTable("/y/tab" + k);
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(k % 16), table.getMetadata());
+    }
+  }
 }

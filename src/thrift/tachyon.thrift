@@ -136,6 +136,8 @@ service MasterService {
     throws (1: TableDoesNotExistException e)        // Get Table info by Table Id.
   ClientRawTableInfo user_getClientRawTableInfoByPath(1: string tablePath)
     throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI) // Get Table info by path
+  void user_updateRawTableMetadata(1: i32 tableId, 2: binary metadata)
+    throws (1: TableDoesNotExistException e)
   i32 user_getNumberOfFiles(1:string path)
     throws (1: FileDoesNotExistException eR, 2: InvalidPathException eI)
   string user_getUnderfsAddress()
