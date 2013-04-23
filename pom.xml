@@ -48,7 +48,6 @@
     <jetty.version>7.5.3.v20111011</jetty.version>
     <version.template.file>src/main/java/tachyon/Version.java.template</version.template.file>
     <version.file>src/main/java/tachyon/Version.java</version.file>
-    <cdh.version>4.1.2</cdh.version>
   </properties>
 
   <repositories>
@@ -240,6 +239,9 @@
   <profiles>
     <profile>
       <id>hadoop1</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
       <properties>
         <classifier>hadoop1</classifier>
         <hadoop.major.version>1</hadoop.major.version>
@@ -259,6 +261,7 @@
       <id>hadoop2</id>
       <properties>
         <hadoop.major.version>2</hadoop.major.version>
+        <cdh.version>4.1.2</cdh.version>
         <hadoop.version>2.0.0-mr1-cdh${cdh.version}</hadoop.version>
         <classifier>hadoop2</classifier>
       </properties>
