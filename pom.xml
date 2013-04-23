@@ -43,15 +43,26 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.5</java.version>
-    <hadoop.version>1.0.4</hadoop.version>
     <libthrift.version>0.7.0</libthrift.version>
     <cxf.version>2.7.0</cxf.version>
     <jetty.version>7.5.3.v20111011</jetty.version>
     <version.template.file>src/main/java/tachyon/Version.java.template</version.template.file>
     <version.file>src/main/java/tachyon/Version.java</version.file>
+    <cdh.version>4.1.2</cdh.version>
   </properties>
 
   <repositories>
+    <repository>
+      <id>cloudera-repo</id>
+      <name>Cloudera Repository</name>
+      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
   </repositories>
 
   <pluginRepositories>
@@ -67,7 +78,7 @@
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-jsp-2.1</artifactId>
       <version>7.5.4.v20111024</version>
-       <type>jar</type>
+      <type>jar</type>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -78,7 +89,7 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-    <groupId>org.eclipse.jetty</groupId>
+      <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
       <version>${jetty.version}</version>
     </dependency>
@@ -106,7 +117,7 @@
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
-      <version>1.2.16</version>
+      <version>1.2.17</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
@@ -123,11 +134,6 @@
           <artifactId>slf4j-api</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-core</artifactId>
-      <version>${hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -230,6 +236,54 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>hadoop1</id>
+      <properties>
+        <classifier>hadoop1</classifier>
+        <hadoop.major.version>1</hadoop.major.version>
+        <hadoop.version>1.0.4</hadoop.version>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-core</artifactId>
+          <version>${hadoop.version}</version>
+          <optional>true</optional>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>hadoop2</id>
+      <properties>
+        <hadoop.major.version>2</hadoop.major.version>
+        <hadoop.version>2.0.0-mr1-cdh${cdh.version}</hadoop.version>
+        <classifier>hadoop2</classifier>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-core</artifactId>
+          <version>${hadoop.version}</version>
+          <optional>true</optional>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <version>${hadoop.version}</version>
+          <optional>true</optional>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant</artifactId>
+          <version>1.9.0</version>
+          <optional>true</optional>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
   <reporting>
     <plugins>
