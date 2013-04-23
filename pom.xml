@@ -43,7 +43,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.5</java.version>
-    <hadoop.version>1.0.4</hadoop.version>
+    <hadoop.version>2.0.0-mr1-cdh4.1.2</hadoop.version>
     <libthrift.version>0.7.0</libthrift.version>
     <cxf.version>2.7.0</cxf.version>
     <jetty.version>7.5.3.v20111011</jetty.version>
@@ -52,6 +52,17 @@
   </properties>
 
   <repositories>
+    <repository>
+      <id>cloudera-repo</id>
+      <name>Cloudera Repository</name>
+      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
   </repositories>
 
   <pluginRepositories>
@@ -106,7 +117,7 @@
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
-      <version>1.2.16</version>
+      <version>1.2.17</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
@@ -128,6 +139,16 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
       <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.9.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
