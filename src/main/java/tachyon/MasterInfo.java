@@ -246,7 +246,7 @@ public class MasterInfo {
       }
 
       if (needLog) {
-        mMasterLogWriter.appendAndFlush(tFile);
+        mMasterLogWriter.append(tFile, true);
       }
       return true;
     }
@@ -295,7 +295,7 @@ public class MasterInfo {
         needLog = true;
       }
       if (needLog) {
-        mMasterLogWriter.appendAndFlush(tFile);
+        mMasterLogWriter.append(tFile, true);
       }
       InetSocketAddress address = tWorkerInfo.ADDRESS;
       tFile.addLocation(workerId, new NetAddress(address.getHostName(), address.getPort()));
@@ -375,8 +375,9 @@ public class MasterInfo {
       ((InodeFolder) inode).addChild(ret.getId());
 
       // TODO this two appends should be atomic;
-      mMasterLogWriter.appendAndFlush(inode);
-      mMasterLogWriter.appendAndFlush(ret);
+      mMasterLogWriter.append(inode, false);
+      mMasterLogWriter.append(ret, false);
+      mMasterLogWriter.flush();
 
       LOG.debug("createFile: File Created: " + ret + " parent: " + inode);
       return ret.getId();
@@ -431,8 +432,9 @@ public class MasterInfo {
       inode.reverseId();
 
       // TODO this following append should be atomic
-      mMasterLogWriter.appendAndFlush(inode);
-      mMasterLogWriter.appendAndFlush(parent);
+      mMasterLogWriter.append(inode, false);
+      mMasterLogWriter.append(parent, false);
+      mMasterLogWriter.flush();
     }
   }
 
@@ -1022,9 +1024,10 @@ public class MasterInfo {
       ((InodeFolder) dstFolderInode).addChild(inode.getId());
 
       // TODO The following should be done atomically.
-      mMasterLogWriter.appendAndFlush(parent);
-      mMasterLogWriter.appendAndFlush(dstFolderInode);
-      mMasterLogWriter.appendAndFlush(inode);
+      mMasterLogWriter.append(parent, false);
+      mMasterLogWriter.append(dstFolderInode, false);
+      mMasterLogWriter.append(inode, false);
+      mMasterLogWriter.flush();
     }
   }
 
@@ -1044,7 +1047,7 @@ public class MasterInfo {
         mIdPinList.remove(fileId);
       }
 
-      mMasterLogWriter.appendAndFlush(inode);
+      mMasterLogWriter.append(inode, true);
     }
   }
 
@@ -1059,7 +1062,7 @@ public class MasterInfo {
 
       ((InodeRawTable) inode).updateMetadata(metadata);
 
-      mMasterLogWriter.appendAndFlush(inode);
+      mMasterLogWriter.append(inode, true);
     }
   }
 
@@ -1100,7 +1103,7 @@ public class MasterInfo {
         new MasterLogWriter(MASTER_CONF.CHECKPOINT_FILE + ".tmp");
     Queue<Inode> nodesQueue = new LinkedList<Inode>();
     synchronized (mRoot) {
-      checkpointWriter.appendAndFlush(mRoot);
+      checkpointWriter.append(mRoot, true);
       nodesQueue.add(mRoot);
       while (!nodesQueue.isEmpty()) {
         InodeFolder tFolder = (InodeFolder) nodesQueue.poll();
@@ -1108,7 +1111,7 @@ public class MasterInfo {
         List<Integer> childrenIds = tFolder.getChildrenIds();
         for (int id : childrenIds) {
           Inode tInode = mInodes.get(id);
-          checkpointWriter.appendAndFlush(tInode);
+          checkpointWriter.append(tInode, true);
           if (tInode.isDirectory()) {
             nodesQueue.add(tInode);
           } else if (((InodeFile) tInode).isPin()) {
