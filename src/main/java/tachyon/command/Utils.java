@@ -16,11 +16,11 @@ public class Utils {
   public static String validateTachyonPath(String path) {
     if (!path.startsWith(HEADER)) {
       if (!path.contains(":")) {
-    	if (path.startsWith("/")) {
+        if (path.startsWith("/")) {
           path = MasterConf.get().HOSTNAME + ":" + MasterConf.get().PORT + path;
-    	} else {
-    	  path = MasterConf.get().HOSTNAME + ":" + MasterConf.get().PORT + "/" + path;
-    	}
+        } else {
+          path = MasterConf.get().HOSTNAME + ":" + MasterConf.get().PORT + "/" + path;
+        }
       }
       path = HEADER + path;
     } else {

@@ -134,7 +134,7 @@ public class Log4jFileAppender extends FileAppender {
   private String getNewLogFileName(String fileName) {
     if (!fileName.isEmpty()) {
       String newFileName = "";
-      int dotIndex = fileName.indexOf(".");
+      int dotIndex = fileName.lastIndexOf(".");
       if (dotIndex != -1 && fileName.indexOf("-") == -1) {
         String baseName = fileName.substring(0, dotIndex);
         String suffix = fileName.substring(dotIndex, fileName.length());

@@ -3,7 +3,6 @@ package tachyon;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import org.junit.Assert;
 import org.junit.After;
@@ -96,37 +95,34 @@ public class MasterLogWriterTest {
     Assert.assertEquals(checkpointInfo, toCheck.getSecond());
     Assert.assertFalse(mMasterLogReader.hasNext());
   }
-  
+
   @Test
   public void largeLogTest() throws IOException {
-	List<Pair<LogType, Object>> loggedObjects = new ArrayList<Pair<LogType, Object>>(1000);
-	Random generator = new Random();
-	int random;
-	Inode inode;
-	CheckpointInfo checkpointInfo;
-	for (int i = 0; i < 1000; i ++) {
-	  random = generator.nextInt(3);
+    List<Pair<LogType, Object>> loggedObjects = new ArrayList<Pair<LogType, Object>>(100000);
+    Inode inode;
+    CheckpointInfo checkpointInfo;
+    for (int i = 0; i < 100000; i ++) {
       switch (i % 3) { 
-        case 0:
-          inode = new InodeFile("/testFile" + i, 1 + i, 0);
-          mMasterLogWriter.appendAndFlush(inode);
-          loggedObjects.add(new Pair<LogType, Object>(LogType.InodeFile, inode));
-          break;
-        case 1:
-          inode = new InodeFolder("/testFolder" + i, 1 + i, 0);
-          mMasterLogWriter.appendAndFlush(inode);
-          loggedObjects.add(new Pair<LogType, Object>(LogType.InodeFolder, inode));
-          break;
-        case 2:
-          checkpointInfo = new CheckpointInfo(i);
-          mMasterLogWriter.appendAndFlush(checkpointInfo);
-          loggedObjects.add(new Pair<LogType, Object>(LogType.CheckpointInfo, checkpointInfo));
-          break;
+      case 0:
+        inode = new InodeFile("/testFile" + i, 1 + i, 0);
+        mMasterLogWriter.appendAndFlush(inode);
+        loggedObjects.add(new Pair<LogType, Object>(LogType.InodeFile, inode));
+        break;
+      case 1:
+        inode = new InodeFolder("/testFolder" + i, 1 + i, 0);
+        mMasterLogWriter.appendAndFlush(inode);
+        loggedObjects.add(new Pair<LogType, Object>(LogType.InodeFolder, inode));
+        break;
+      case 2:
+        checkpointInfo = new CheckpointInfo(i);
+        mMasterLogWriter.appendAndFlush(checkpointInfo);
+        loggedObjects.add(new Pair<LogType, Object>(LogType.CheckpointInfo, checkpointInfo));
+        break;
       }
-	}
-	mMasterLogReader = new MasterLogReader(mLogFile);
-	for (Pair<LogType, Object> pair : loggedObjects) {
-	  Assert.assertEquals(pair, mMasterLogReader.getNextPair());
-	}
+    }
+    mMasterLogReader = new MasterLogReader(mLogFile);
+    for (Pair<LogType, Object> pair : loggedObjects) {
+      Assert.assertEquals(pair, mMasterLogReader.getNextPair());
+    }
   }
 }
