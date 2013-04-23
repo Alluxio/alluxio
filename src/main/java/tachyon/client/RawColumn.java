@@ -25,13 +25,18 @@ public class RawColumn {
   // TODO creating file here should be based on id.
   public boolean createPartition(int pId) throws InvalidPathException, FileAlreadyExistException {
     return TACHYON_CLIENT.createFile(RAW_TABLE.getPath() + Constants.PATH_SEPARATOR + 
-        MasterInfo.COL + COLUMN_INDEX + "/" + pId) > 0;
+        MasterInfo.COL + COLUMN_INDEX + Constants.PATH_SEPARATOR + pId) > 0;
   }
 
   // TODO creating file here should be based on id.
   public TachyonFile getPartition(int pId) throws InvalidPathException {
+    return getPartition(pId, false);
+  }
+
+  // TODO creating file here should be based on id.
+  public TachyonFile getPartition(int pId, boolean cachedMetadata) throws InvalidPathException {
     return TACHYON_CLIENT.getFile(RAW_TABLE.getPath() + Constants.PATH_SEPARATOR + MasterInfo.COL +
-        COLUMN_INDEX + Constants.PATH_SEPARATOR + pId);
+        COLUMN_INDEX + Constants.PATH_SEPARATOR + pId, cachedMetadata);
   }
 
   // TODO creating file here should be based on id.

@@ -119,13 +119,11 @@ public class TachyonFile {
     ByteBuffer ret = null;
     ret = readByteBufferFromLocal();
     if (ret == null) {
-      // TODO Make it local cache if the OpType is try cache.
-      ret = readByteBufferFromRemote();
-    }
-
-    if (ret != null) {
       CLIENT.unlockFile(FID);
       mLockedFile = false;
+
+      // TODO Make it local cache if the OpType is try cache.
+      ret = readByteBufferFromRemote();
     }
 
     return ret;
@@ -133,7 +131,7 @@ public class TachyonFile {
 
   private ByteBuffer readByteBufferFromLocal() {
     if (CLIENT.getRootFolder() != null) {
-      String localFileName = CLIENT.getRootFolder() + "/" + FID;
+      String localFileName = CLIENT.getRootFolder() + Constants.PATH_SEPARATOR + FID;
       try {
         RandomAccessFile localFile = new RandomAccessFile(localFileName, "r");
         FileChannel localFileChannel = localFile.getChannel();

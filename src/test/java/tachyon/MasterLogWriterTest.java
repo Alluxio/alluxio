@@ -37,11 +37,11 @@ public class MasterLogWriterTest {
   @Test
   public void appendAndFlushInodeTest() throws IOException {
     Inode inode = new InodeFile("/testFile", 1, 0);
-    mMasterLogWriter.appendAndFlush(inode);
+    mMasterLogWriter.append(inode, true);
     Inode inode2 = new InodeFolder("/testFolder", 1, 0);
-    mMasterLogWriter.appendAndFlush(inode2);
+    mMasterLogWriter.append(inode2, true);
     Inode inode3 = new InodeRawTable("/testRawTable", 1, 0, 1, null);
-    mMasterLogWriter.appendAndFlush(inode3);
+    mMasterLogWriter.append(inode3, true);
     mMasterLogReader = new MasterLogReader(mLogFile);
     Assert.assertTrue(mMasterLogReader.hasNext());
     Pair<LogType, Object> toCheck = mMasterLogReader.getNextPair();
@@ -67,7 +67,7 @@ public class MasterLogWriterTest {
     inodeList.add(inode);
     inodeList.add(inode2);
     inodeList.add(inode3);
-    mMasterLogWriter.appendAndFlush(inodeList);
+    mMasterLogWriter.append(inodeList, true);
     mMasterLogReader = new MasterLogReader(mLogFile);
     Assert.assertTrue(mMasterLogReader.hasNext());
     Pair<LogType, Object> toCheck = mMasterLogReader.getNextPair();
