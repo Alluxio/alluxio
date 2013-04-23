@@ -250,10 +250,11 @@
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-core</artifactId>
           <version>${hadoop.version}</version>
-	  <optional>true</optional>
+          <optional>true</optional>
         </dependency>
       </dependencies>
     </profile>
+
     <profile>
       <id>hadoop2</id>
       <properties>
@@ -262,24 +263,24 @@
         <classifier>hadoop2</classifier>
       </properties>
       <dependencies>
-	<dependency>
-	  <groupId>org.apache.hadoop</groupId>
-	  <artifactId>hadoop-core</artifactId>
-	  <version>${hadoop.version}</version>
-	  <optional>true</optional>
-	</dependency>
-	<dependency>
-	  <groupId>org.apache.hadoop</groupId>
-	  <artifactId>hadoop-client</artifactId>
-	  <version>${hadoop.version}</version>
-	  <optional>true</optional>
-	</dependency>
-	<dependency>
-	  <groupId>org.apache.ant</groupId>
-	  <artifactId>ant</artifactId>
-	  <version>1.9.0</version>
-	  <optional>true</optional>
-	</dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-core</artifactId>
+          <version>${hadoop.version}</version>
+          <optional>true</optional>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <version>${hadoop.version}</version>
+          <optional>true</optional>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant</artifactId>
+          <version>1.9.0</version>
+          <optional>true</optional>
+        </dependency>
       </dependencies>
     </profile>
   </profiles>
