@@ -94,18 +94,10 @@ public class TFsShellTest {
     Assert.assertEquals(null, mClient.getFile("/testFolder1/testFolder2/testFile2"));
   }
 
-  @Test @Ignore
-  /**
-   * Seems there is a bug, deleting fileId of -1 does not throw file does not exist exception in 
-   * MasterServiceHandler
-   * @throws InvalidPathException
-   * @throws FileAlreadyExistException
-   * @throws UnknownHostException
-   * @throws TException
-   */
+  @Test
   public void rmNotExistingFileTest()
       throws InvalidPathException, FileAlreadyExistException, UnknownHostException, TException {
-    Assert.assertEquals(-1, mFsShell.rm(new String[]{"rm", "/testFile"}));
+    Assert.assertEquals(0, mFsShell.rm(new String[]{"rm", "/testFile"}));
   }
 
   @Test
