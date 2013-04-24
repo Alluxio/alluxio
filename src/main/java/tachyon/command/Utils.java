@@ -1,6 +1,8 @@
 package tachyon.command;
 
 import java.net.InetSocketAddress;
+
+import tachyon.Constants;
 import tachyon.conf.MasterConf;
 
 /**
@@ -8,18 +10,23 @@ import tachyon.conf.MasterConf;
  */
 public class Utils {
   private static final String HEADER = "tachyon://";
-
+  private static String HOSTNAME = null;
+  private static String PORT = null;
   /**
    * Validates the path, verifying that it contains the header and a hostname:port specified.
    * @param path The path to be verified.
    */
   public static String validateTachyonPath(String path) {
+    if (HOSTNAME == null) {
+      HOSTNAME = System.getProperty("tachyon.master.hostname", "localhost");
+      PORT = System.getProperty("tachyon.master.port", "" + Constants.DEFAULT_MASTER_PORT);
+    }
     if (!path.startsWith(HEADER)) {
       if (!path.contains(":")) {
         if (path.startsWith("/")) {
-          path = MasterConf.get().HOSTNAME + ":" + MasterConf.get().PORT + path;
+          path = HOSTNAME + ":" + PORT + path;
         } else {
-          path = MasterConf.get().HOSTNAME + ":" + MasterConf.get().PORT + "/" + path;
+          path = HOSTNAME + ":" + PORT + "/" + path;
         }
       }
       path = HEADER + path;
@@ -27,9 +34,9 @@ public class Utils {
       String tempPath = path.substring(HEADER.length());
       if (!tempPath.contains(":")) {
         if (tempPath.startsWith("/")) {
-          tempPath = MasterConf.get().HOSTNAME + ":" + MasterConf.get().PORT + tempPath;
+          tempPath = HOSTNAME + ":" + PORT + tempPath;
         } else {
-          tempPath = MasterConf.get().HOSTNAME + ":" + MasterConf.get().PORT + "/" + tempPath;
+          tempPath = HOSTNAME + ":" + PORT + "/" + tempPath;
         }
       }
       path = HEADER + tempPath;

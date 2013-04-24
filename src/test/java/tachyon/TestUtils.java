@@ -33,6 +33,38 @@ public final class TestUtils {
     return fileId;
   }
 
+  public static String getCommandOutput(String[] command) {
+    String cmd = command[0];
+    if (command.length == 2) {
+      if (cmd.equals("ls")) {
+        // Not sure how to handle this one.
+        return null; 
+      } else if (cmd.equals("mkdir")) {
+        return "Successfully created directory " + command[1] + "\n";
+      } else if (cmd.equals("rm")) {
+        return command[1] + " has been removed" + "\n";
+      }
+    } else if (command.length == 3) {
+      if (cmd.equals("mv")) {
+        return "Renamed " + command[1] + " to " + command[2] + "\n";
+      } else if (cmd.equals("copyFromLocal")) {
+        return "Copied " + command[1] + " to " + command[2] + "\n";
+      } else if (cmd.equals("copyToLocal")) {
+        return "Copied " + command[1] + " to " + command[2] + "\n";
+      }
+    } else if (command.length > 3) {
+      if (cmd.equals("location")) {
+        StringBuilder ret = new StringBuilder();
+        ret.append(command[1] + " with file id " + command[2] + " are on nodes: \n");
+        for (int i = 3; i < command.length; i ++) {
+          ret.append(command[i]+"\n");
+        }
+        return ret.toString();
+      }
+    }
+    return null;
+  }
+  
   public static byte[] getIncreasingByteArray(int len) {
     byte[] ret = new byte[len];
     for (int k = 0; k < len; k ++) {
