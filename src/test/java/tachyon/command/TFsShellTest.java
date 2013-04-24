@@ -1,6 +1,8 @@
 package tachyon.command;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -13,6 +15,7 @@ import org.junit.Test;
 import org.apache.thrift.TException;
 
 import tachyon.LocalTachyonCluster;
+import tachyon.TestUtils;
 import tachyon.client.TachyonClient;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -22,9 +25,12 @@ import tachyon.thrift.InvalidPathException;
  * Unit tests on TFsShell.
  */
 public class TFsShellTest {
-  LocalTachyonCluster mLocalTachyonCluster = null;
-  TachyonClient mClient = null;
-  TFsShell mFsShell = null;
+  private LocalTachyonCluster mLocalTachyonCluster = null;
+  private TachyonClient mClient = null;
+  private TFsShell mFsShell = null;
+  private ByteArrayOutputStream mOutput = null;
+  private PrintStream mNewOutput = null;
+  private PrintStream mOldOutput = null;
 
   @Before
   public final void before() throws IOException {
@@ -33,12 +39,17 @@ public class TFsShellTest {
     mLocalTachyonCluster.start();
     mClient = mLocalTachyonCluster.getClient();
     mFsShell = new TFsShell();
+    mOutput = new ByteArrayOutputStream();
+    mNewOutput = new PrintStream(mOutput);
+    mOldOutput = System.out;
+    System.setOut(mNewOutput);
   }
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.setOut(mOldOutput);
   }
 
   @Test
@@ -47,21 +58,27 @@ public class TFsShellTest {
     mFsShell.mkdir(new String[]{"mkdir", "tachyon://" + 
         InetAddress.getLocalHost().getCanonicalHostName() + ":" +
         mLocalTachyonCluster.getMasterPort() + "/root/testFile1"});
-    Assert.assertTrue(mClient.getFile("/root/testFile1") != null);
+    Assert.assertNotNull(mClient.getFile("/root/testFile1"));
+    Assert.assertEquals(TestUtils.getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
+        mOutput.toString());
   }
 
   @Test
   public void mkdirShortPathTest()
       throws InvalidPathException, FileAlreadyExistException, TException, UnknownHostException { 
     mFsShell.mkdir(new String[]{"mkdir", "/root/testFile1"});
-    Assert.assertTrue(mClient.getFile("/root/testFile1") != null);
+    Assert.assertNotNull(mClient.getFile("/root/testFile1"));
+    Assert.assertEquals(TestUtils.getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
+        mOutput.toString());
   }
 
   @Test
   public void mkdirComplexPathTest()
       throws InvalidPathException, FileAlreadyExistException, TException, UnknownHostException {
     mFsShell.mkdir(new String[]{"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"});
-    Assert.assertTrue(mClient.getFile("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File") != null);
+    Assert.assertNotNull(mClient.getFile("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
+    Assert.assertEquals(TestUtils.getCommandOutput(
+        new String[] {"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"}), mOutput.toString());
   }
 
   @Test(expected = FileAlreadyExistException.class)
@@ -79,19 +96,27 @@ public class TFsShellTest {
 
   @Test
   public void rmTest() 
-      throws InvalidPathException, FileAlreadyExistException, UnknownHostException, TException {
+      throws InvalidPathException, FileAlreadyExistException, TException, IOException {
+    StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[]{"mkdir", "/testFolder1/testFolder2/testFile2"});
-    Assert.assertTrue(mClient.getFile("/testFolder1") != null);
-    Assert.assertTrue(mClient.getFile("/testFolder1/testFolder2") != null);
-    Assert.assertTrue(mClient.getFile("/testFolder1/testFolder2/testFile2") != null);
+    toCompare.append(TestUtils.getCommandOutput(
+        new String[]{"mkdir", "/testFolder1/testFolder2/testFile2"}));
+    Assert.assertNotNull(mClient.getFile("/testFolder1"));
+    Assert.assertNotNull(mClient.getFile("/testFolder1/testFolder2"));
+    Assert.assertNotNull(mClient.getFile("/testFolder1/testFolder2/testFile2"));
     mFsShell.rm(new String[]{"rm", "/testFolder1/testFolder2/testFile2"});
-    Assert.assertTrue(mClient.getFile("/testFolder1") != null);
-    Assert.assertTrue(mClient.getFile("/testFolder1/testFolder2") != null);
-    Assert.assertEquals(null, mClient.getFile("/testFolder1/testFolder2/testFile2"));
+    toCompare.append(TestUtils.getCommandOutput(
+        new String[] {"rm", "/testFolder1/testFolder2/testFile2"}));
+    Assert.assertEquals(toCompare.toString(), mOutput.toString());
+    Assert.assertNotNull(mClient.getFile("/testFolder1"));
+    Assert.assertNotNull(mClient.getFile("/testFolder1/testFolder2"));
+    Assert.assertNull(mClient.getFile("/testFolder1/testFolder2/testFile2"));
     mFsShell.rm(new String[]{"rm", "/testFolder1"});
-    Assert.assertEquals(null, mClient.getFile("/testFolder1"));
-    Assert.assertEquals(null, mClient.getFile("/testFolder1/testFolder2"));
-    Assert.assertEquals(null, mClient.getFile("/testFolder1/testFolder2/testFile2"));
+    toCompare.append(TestUtils.getCommandOutput(new String[]{"rm", "/testFolder1"}));
+    Assert.assertEquals(toCompare.toString(), mOutput.toString());
+    Assert.assertNull(mClient.getFile("/testFolder1"));
+    Assert.assertNull(mClient.getFile("/testFolder1/testFolder2"));
+    Assert.assertNull(mClient.getFile("/testFolder1/testFolder2/testFile2"));
   }
 
   @Test
@@ -104,19 +129,42 @@ public class TFsShellTest {
   public void renameTest()
       throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException, 
       UnknownHostException, TException {
+    StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[]{"mkdir", "/testFolder1"});
-    Assert.assertTrue(mClient.getFile("/testFolder1") != null);
-    mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder2"});
-    Assert.assertTrue(mClient.getFile("/testFolder2") != null);
-    Assert.assertEquals(null, mClient.getFile("/testFolder1"));
+    toCompare.append(TestUtils.getCommandOutput(new String[]{"mkdir", "/testFolder1"}));
+    Assert.assertNotNull(mClient.getFile("/testFolder1"));
+    mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder"});
+    toCompare.append(TestUtils.getCommandOutput(new String[]{"mv", "/testFolder1", "/testFolder"}));
+    Assert.assertEquals(toCompare.toString(), mOutput.toString());
+    Assert.assertNotNull(mClient.getFile("/testFolder"));
+    Assert.assertNull(mClient.getFile("/testFolder1"));
   }
 
   @Test
   public void renameToExistingFileTest()
       throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException, 
       UnknownHostException, TException {
+    StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[]{"mkdir", "/testFolder"});
+    toCompare.append(TestUtils.getCommandOutput(new String[]{"mkdir", "/testFolder"}));
     mFsShell.mkdir(new String[]{"mkdir", "/testFolder1"});
+    toCompare.append(TestUtils.getCommandOutput(new String[]{"mkdir", "/testFolder1"}));
     Assert.assertEquals(-1, mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder"}));
+    Assert.assertEquals(toCompare.toString(), mOutput.toString());
+  }
+  
+  @Test
+  public void renameParentDirectoryTest()
+      throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException, 
+      UnknownHostException, TException {
+    StringBuilder toCompare = new StringBuilder();
+    mFsShell.mkdir(new String[]{"mkdir", "/test/File1"});
+    toCompare.append(TestUtils.getCommandOutput(new String[]{"mkdir", "/test/File1"}));
+    mFsShell.rename(new String[]{"rename", "/test", "/test2"});
+    toCompare.append(TestUtils.getCommandOutput(new String[]{"mv", "/test", "/test2"}));
+    Assert.assertNotNull(mClient.getFile("/test2/File1"));
+    Assert.assertNull(mClient.getFile("/test"));
+    Assert.assertNull(mClient.getFile("/test/File1"));
+    Assert.assertEquals(toCompare.toString(), mOutput.toString());
   }
 }

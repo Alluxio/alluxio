@@ -98,31 +98,44 @@ public class MasterLogWriterTest {
 
   @Test
   public void largeLogTest() throws IOException {
-    List<Pair<LogType, Object>> loggedObjects = new ArrayList<Pair<LogType, Object>>(100000);
     Inode inode;
     CheckpointInfo checkpointInfo;
-    for (int i = 0; i < 100000; i ++) {
+    int numEntries = 1000000;
+    for (int i = 0; i < numEntries; i ++) {
       switch (i % 3) { 
       case 0:
         inode = new InodeFile("/testFile" + i, 1 + i, 0);
-        mMasterLogWriter.appendAndFlush(inode);
-        loggedObjects.add(new Pair<LogType, Object>(LogType.InodeFile, inode));
+        mMasterLogWriter.append(inode, true);
         break;
       case 1:
         inode = new InodeFolder("/testFolder" + i, 1 + i, 0);
-        mMasterLogWriter.appendAndFlush(inode);
-        loggedObjects.add(new Pair<LogType, Object>(LogType.InodeFolder, inode));
+        mMasterLogWriter.append(inode, true);
         break;
       case 2:
         checkpointInfo = new CheckpointInfo(i);
         mMasterLogWriter.appendAndFlush(checkpointInfo);
-        loggedObjects.add(new Pair<LogType, Object>(LogType.CheckpointInfo, checkpointInfo));
         break;
       }
     }
     mMasterLogReader = new MasterLogReader(mLogFile);
-    for (Pair<LogType, Object> pair : loggedObjects) {
-      Assert.assertEquals(pair, mMasterLogReader.getNextPair());
+    for (int i = 0; i < numEntries; i ++) {
+      switch (i % 3) { 
+      case 0:
+        inode = new InodeFile("/testFile" + i, 1 + i, 0);
+        Assert.assertEquals(new Pair<LogType, Object>(LogType.InodeFile, inode), 
+            mMasterLogReader.getNextPair());
+        break;
+      case 1:
+        inode = new InodeFolder("/testFolder" + i, 1 + i, 0);
+        Assert.assertEquals(new Pair<LogType, Object>(LogType.InodeFolder, inode), 
+            mMasterLogReader.getNextPair());
+        break;
+      case 2:
+        checkpointInfo = new CheckpointInfo(i);
+        Assert.assertEquals(new Pair<LogType, Object>(LogType.CheckpointInfo, checkpointInfo), 
+            mMasterLogReader.getNextPair());
+        break;
+      }
     }
   }
 }
