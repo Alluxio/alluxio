@@ -636,6 +636,13 @@ public class TachyonClient {
     return true;
   }
 
+  /**
+   * Create a directory if it does not exist.
+   * @param path Directory path.
+   * @return The inode ID of the directory if it is successfully created. -1 if not.
+   * @throws InvalidPathException
+   * @throws FileAlreadyExistException
+   */
   public synchronized int mkdir(String path) 
       throws InvalidPathException, FileAlreadyExistException {
     connect();
