@@ -67,6 +67,23 @@ public class MasterInfoTest {
   }
 
   @Test
+  public void createFilePerfTest()
+      throws FileAlreadyExistException, InvalidPathException, FileDoesNotExistException {
+//    long sMs = System.currentTimeMillis();
+    for (int k = 0; k < 200; k ++) {
+      mMasterInfo.createFile("/testFile" + Constants.PATH_SEPARATOR + MasterInfo.COL + k + "/" + 0,
+          false);
+    }
+//    System.out.println(System.currentTimeMillis() - sMs);
+//    sMs = System.currentTimeMillis();
+    for (int k = 0; k < 200; k ++) {
+      mMasterInfo.getClientFileInfo("/testFile" + Constants.PATH_SEPARATOR + 
+          MasterInfo.COL + k + "/" + 0);
+    }
+//    System.out.println(System.currentTimeMillis() - sMs);
+  }
+
+  @Test
   public void createDirectoryTest() 
       throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException {
     mMasterInfo.createFile("/testFolder", true);

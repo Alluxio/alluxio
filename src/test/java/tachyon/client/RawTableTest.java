@@ -41,6 +41,52 @@ public class RawTableTest {
   }
 
   @Test
+  public void rawtablePerfTest() throws TableDoesNotExistException, InvalidPathException, 
+  FileAlreadyExistException, TableColumnException, IOException, TException {
+    int col = 200;
+
+    long sMs = System.currentTimeMillis();
+    int fileId = mClient.createRawTable("/table", col);
+//    System.out.println("A " + (System.currentTimeMillis() - sMs));
+
+    sMs = System.currentTimeMillis();
+    RawTable table = mClient.getRawTable(fileId);
+    Assert.assertEquals(col, table.getColumns());
+    table = mClient.getRawTable("/table");
+    Assert.assertEquals(col, table.getColumns());
+//    System.out.println("B " + (System.currentTimeMillis() - sMs));
+
+    sMs = System.currentTimeMillis();
+    for (int k = 0; k < col; k ++) {
+      RawColumn rawCol = table.getRawColumn(k);
+      rawCol.createPartition(0);
+      TachyonFile file = rawCol.getPartition(0);
+      OutStream outStream = file.createOutStream(OpType.WRITE_CACHE);
+      outStream.write(TestUtils.getIncreasingByteArray(10));
+      outStream.close();
+    }
+//    System.out.println("C " + (System.currentTimeMillis() - sMs));
+
+    sMs = System.currentTimeMillis();
+    for (int k = 0; k < col; k ++) {
+      RawColumn rawCol = table.getRawColumn(k);
+      TachyonFile file = rawCol.getPartition(0, true);
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), file.readByteBuffer());
+      file.releaseFileLock();
+    }
+//    System.out.println("D " + (System.currentTimeMillis() - sMs));
+    
+    sMs = System.currentTimeMillis();
+    for (int k = 0; k < col; k ++) {
+      RawColumn rawCol = table.getRawColumn(k);
+      TachyonFile file = rawCol.getPartition(0, true);
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), file.readByteBuffer());
+      file.releaseFileLock();
+    }
+//    System.out.println("E " + (System.currentTimeMillis() - sMs));
+  }
+
+  @Test
   public void getColumnsTest()
       throws InvalidPathException, FileAlreadyExistException, TableColumnException,
       TableDoesNotExistException, TException, FileDoesNotExistException {

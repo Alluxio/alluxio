@@ -1,6 +1,7 @@
 package tachyon;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -10,7 +11,19 @@ public class PrefixList {
   private final List<String> LIST;
 
   public PrefixList(ArrayList<String> prefixList) {
-    LIST = prefixList;
+    if (prefixList == null) {
+      LIST = new ArrayList<String>(0);
+    } else {
+      LIST = prefixList;
+    }
+  }
+
+  public PrefixList(String prefixes, String separator) {
+    if (prefixes == null) {
+      LIST = new ArrayList<String>(0);
+    } else {
+      LIST = Arrays.asList(prefixes.split(separator));
+    }
   }
 
   public boolean inList(String path) {
@@ -22,7 +35,11 @@ public class PrefixList {
 
     return false;
   }
-  
+
+  public boolean outList(String path) {
+    return !inList(path);
+  }
+
   public List<String> getList() {
     return new ArrayList<String>(LIST);
   }

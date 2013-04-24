@@ -7,7 +7,9 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
@@ -44,6 +46,9 @@ public class TachyonClient {
   private MasterClient mMasterClient = null;
   // The Master address.
   private InetSocketAddress mMasterAddress = null;
+  // Cached ClientFileInfo
+  private Map<String, ClientFileInfo> mCachedClientFileInfos = 
+      new HashMap<String, ClientFileInfo>();
   // The RPC client talks to the local worker if there is one.
   private WorkerClient mWorkerClient = null;
   // The local root data folder.
@@ -397,13 +402,17 @@ public class TachyonClient {
     return true;
   }
 
-  private synchronized ClientFileInfo getClientFileInfo(String path) throws InvalidPathException { 
+  private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata)
+      throws InvalidPathException { 
     connect();
     if (!mConnected) {
       return null;
     }
     ClientFileInfo ret;
     path = CommonUtils.cleanPath(path);
+    if (useCachedMetadata && mCachedClientFileInfos.containsKey(path)) {
+      return mCachedClientFileInfos.get(path);
+    }
     try {
       ret = mMasterClient.user_getClientFileInfoByPath(path);
     } catch (FileDoesNotExistException e) {
@@ -413,6 +422,13 @@ public class TachyonClient {
       LOG.error(e.getMessage());
       mConnected = false;
       return null;
+    }
+
+    // TODO LRU on this Map.
+    if (ret != null && useCachedMetadata) {
+      mCachedClientFileInfos.put(path, ret);
+    } else {
+      mCachedClientFileInfos.remove(path);
     }
 
     return ret;
@@ -495,8 +511,13 @@ public class TachyonClient {
   }
 
   public synchronized TachyonFile getFile(String path) throws InvalidPathException {
+    return getFile(path, false);
+  }
+
+  public synchronized TachyonFile getFile(String path, boolean useCachedMetadata) 
+      throws InvalidPathException {
     path = CommonUtils.cleanPath(path);
-    ClientFileInfo clientFileInfo = getClientFileInfo(path);
+    ClientFileInfo clientFileInfo = getClientFileInfo(path, useCachedMetadata);
     if (clientFileInfo == null) {
       return null;
     }
@@ -615,6 +636,13 @@ public class TachyonClient {
     return true;
   }
 
+  /**
+   * Create a directory if it does not exist.
+   * @param path Directory path.
+   * @return The inode ID of the directory if it is successfully created. -1 if not.
+   * @throws InvalidPathException
+   * @throws FileAlreadyExistException
+   */
   public synchronized int mkdir(String path) 
       throws InvalidPathException, FileAlreadyExistException {
     connect();
