@@ -49,7 +49,7 @@ public class TFileInputStreamHdfs extends InputStream implements Seekable, Posit
 
     TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
     try {
-      mTachyonFileInputStream = tachyonFile.createInStream(OpType.READ_TRY_CACHE);
+      mTachyonFileInputStream = tachyonFile.getInStream(OpType.READ_TRY_CACHE);
     } catch (IOException e) {
       LOG.error(e.getMessage());
       return;
