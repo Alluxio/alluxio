@@ -23,7 +23,7 @@ public final class TestUtils {
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = client.createFile(fileName);
     TachyonFile file = client.getFile(fileId);
-    OutStream os = file.createOutStream(op);
+    OutStream os = file.getOutStream(op);
 
     for (int k = 0; k < len; k ++) {
       os.write((byte) k);

@@ -66,7 +66,7 @@ public class BasicRawTableOperations {
       buf.flip();
 
       TachyonFile tFile = rawColumn.getPartition(0);
-      OutStream os = tFile.createOutStream(sWriteType);
+      OutStream os = tFile.getOutStream(sWriteType);
       os.write(buf);
       os.close();
     }

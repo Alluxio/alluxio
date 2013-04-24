@@ -67,7 +67,7 @@ public class TachyonFile {
     return false;
   }
 
-  public InStream createInStream(OpType opType) throws IOException {
+  public InStream getInStream(OpType opType) throws IOException {
     if (opType == null) {
       throw new IOException("OpType can not be null.");
     } else if (opType.isWrite()) {
@@ -76,7 +76,7 @@ public class TachyonFile {
     return new InStream(this, opType);
   }
 
-  public OutStream createOutStream(OpType opType) throws IOException {
+  public OutStream getOutStream(OpType opType) throws IOException {
     if (opType == null) {
       throw new IOException("OpType can not be null.");
     } else if (opType.isRead()) {
@@ -209,7 +209,7 @@ public class TachyonFile {
     }
     TachyonFile tTFile = CLIENT.getFile(CLIENT_FILE_INFO.getId());
     try {
-      OutStream os = tTFile.createOutStream(OpType.WRITE_CACHE);
+      OutStream os = tTFile.getOutStream(OpType.WRITE_CACHE);
       byte buffer[] = new byte[USER_CONF.FILE_BUFFER_BYTES * 4];
 
       int limit;

@@ -46,9 +46,9 @@ public class InStreamTest {
           TachyonFile file = mClient.getFile(fileId);
           InStream is;
           if (k < 150) {
-            is = file.createInStream(OpType.READ_TRY_CACHE);
+            is = file.getInStream(OpType.READ_TRY_CACHE);
           } else {
-            is = file.createInStream(OpType.READ_NO_CACHE);
+            is = file.getInStream(OpType.READ_NO_CACHE);
           }
           byte[] ret = new byte[k];
           int value = is.read();
@@ -77,9 +77,9 @@ public class InStreamTest {
           TachyonFile file = mClient.getFile(fileId);
           InStream is;
           if (k < 200) {
-            is = file.createInStream(OpType.READ_TRY_CACHE);
+            is = file.getInStream(OpType.READ_TRY_CACHE);
           } else {
-            is = file.createInStream(OpType.READ_NO_CACHE);
+            is = file.getInStream(OpType.READ_NO_CACHE);
           }
           byte[] ret = new byte[k];
           Assert.assertEquals(k, is.read(ret));
@@ -103,9 +103,9 @@ public class InStreamTest {
           TachyonFile file = mClient.getFile(fileId);
           InStream is;
           if (k < 200) {
-            is = file.createInStream(OpType.READ_TRY_CACHE);
+            is = file.getInStream(OpType.READ_TRY_CACHE);
           } else {
-            is = file.createInStream(OpType.READ_NO_CACHE);
+            is = file.getInStream(OpType.READ_NO_CACHE);
           }
           byte[] ret = new byte[k / 2];
           Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
@@ -113,10 +113,10 @@ public class InStreamTest {
           is.close();
 
           if (k < 200) {
-            is = file.createInStream(OpType.READ_TRY_CACHE);
+            is = file.getInStream(OpType.READ_TRY_CACHE);
           } else {
             // TODO Fix this.
-            is = file.createInStream(OpType.READ_NO_CACHE);
+            is = file.getInStream(OpType.READ_NO_CACHE);
           }
           ret = new byte[k];
           Assert.assertEquals(k, is.read(ret, 0, k));

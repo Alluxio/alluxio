@@ -19,6 +19,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.ClientFileInfo;
 
 import tachyon.CommonUtils;
+import tachyon.client.InStream;
 import tachyon.client.OpType;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonClient;
@@ -169,13 +170,14 @@ public class TFsShell {
       throw new FileDoesNotExistException(folder);
     }
 
-    ByteBuffer buf = tFile.readByteBuffer();
+    InStream is = tFile.getInStream(OpType.READ_NO_CACHE);
     FileOutputStream out = new FileOutputStream(dst);
-    FileChannel channel = out.getChannel();
-    while (buf.hasRemaining()) {
-      channel.write(buf);
+    byte[] buf = new byte[512];
+    int t = is.read(buf);
+    while (t != -1) {
+      out.write(buf, 0, t);
+      t = is.read(buf);
     }
-    channel.close();
     out.close();
     tFile.releaseFileLock();
     System.out.println("Copied " + srcPath + " to " + dstPath);
@@ -239,7 +241,7 @@ public class TFsShell {
       return -1;
     }
     TachyonFile tFile = tachyonClient.getFile(fileId);
-    OutStream os = tFile.createOutStream(OpType.WRITE_THROUGH);
+    OutStream os = tFile.getOutStream(OpType.WRITE_THROUGH);
     FileInputStream in = new FileInputStream(src);
     FileChannel channel = in.getChannel();
     ByteBuffer buf = ByteBuffer.allocate(1024);

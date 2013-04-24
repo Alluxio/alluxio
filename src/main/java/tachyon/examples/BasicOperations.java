@@ -44,7 +44,7 @@ public class BasicOperations {
     buf.flip();
 
     TachyonFile file = sTachyonClient.getFile(sFilePath);
-    OutStream os = file.createOutStream(sWriteType);
+    OutStream os = file.getOutStream(sWriteType);
     os.write(buf);
     os.close();
   }

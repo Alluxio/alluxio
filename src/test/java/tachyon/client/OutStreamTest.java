@@ -37,14 +37,14 @@ public class OutStreamTest {
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mClient.createFile(filePath);
     TachyonFile file = mClient.getFile(fileId);
-    OutStream os = file.createOutStream(op);
+    OutStream os = file.getOutStream(op);
     for (int k = 0; k < len; k ++) {
       os.write((byte) k);
     }
     os.close();
 
     file = mClient.getFile(filePath);
-    InStream is = file.createInStream(OpType.READ_NO_CACHE);
+    InStream is = file.getInStream(OpType.READ_NO_CACHE);
     byte[] res = new byte[(int) file.getSize()];
     is.read(res);
     boolean t = TestUtils.equalIncreasingByteArray(len, res);
@@ -70,13 +70,13 @@ public class OutStreamTest {
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mClient.createFile(filePath);
     TachyonFile file = mClient.getFile(fileId);
-    OutStream os = file.createOutStream(op);
+    OutStream os = file.getOutStream(op);
 
     os.write(TestUtils.getIncreasingByteArray(len));
     os.close();
 
     file = mClient.getFile(filePath);
-    InStream is = file.createInStream(OpType.READ_NO_CACHE);
+    InStream is = file.getInStream(OpType.READ_NO_CACHE);
     byte[] res = new byte[(int) file.getSize()];
     is.read(res);
     boolean t = TestUtils.equalIncreasingByteArray(len, res);
@@ -102,13 +102,13 @@ public class OutStreamTest {
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mClient.createFile(filePath);
     TachyonFile file = mClient.getFile(fileId);
-    OutStream os = file.createOutStream(op);
+    OutStream os = file.getOutStream(op);
 
     os.write(TestUtils.getIncreasingByteArray(len), 0, len / 2);
     os.close();
 
     file = mClient.getFile(filePath);
-    InStream is = file.createInStream(OpType.READ_NO_CACHE);
+    InStream is = file.getInStream(OpType.READ_NO_CACHE);
     byte[] res = new byte[(int) file.getSize()];
     is.read(res);
     boolean t = TestUtils.equalIncreasingByteArray(len / 2, res);
