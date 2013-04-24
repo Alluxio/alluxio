@@ -1,4 +1,4 @@
-package tachyon.examples;
+package tachyon;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -11,44 +11,57 @@ import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import tachyon.Constants;
-import tachyon.Version;
 import tachyon.client.TachyonClient;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
-public class ConsumeHdfs {
+public class SubsumeHdfs {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private static TachyonClient sTachyonClient;
   private static String sFilePath = null;
   private static String sHdfsAddress = null;
+  private static PrefixList sExcludePathPrefix = null;
 
   public static void main(String[] args)
       throws SuspectedFileSizeException, InvalidPathException, IOException,
       FileDoesNotExistException, FileAlreadyExistException, TException {
-    if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION + 
-          "-jar-with-dependencies.jar " + 
-          "tachyon.examples.ConsumeHdfs <TachyonAddress> <HdfsAddress> <Path>");
+    if (!(args.length == 3 || args.length == 4)) {
+      String prefix = "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " + 
+          "tachyon.SubsumeHdfs ";
+      System.out.println("Usage: " + prefix + "<TachyonAddress> <HdfsAddress> <Path> " +
+          "[<ExcludePathPrefix, separated by ;>]");
+      System.out.println("Example: " + prefix + 
+          "127.0.0.1:19998 hdfs://localhost:54310 / /tachyon");
       System.exit(-1);
     }
     sTachyonClient = TachyonClient.getClient(args[0]);
     sHdfsAddress = args[1];
     sFilePath = args[2];
+    if (args.length == 4) {
+      sExcludePathPrefix = new PrefixList(args[3], ";");
+    } else {
+      sExcludePathPrefix = new PrefixList(null);
+    }
 
     Configuration tConf = new Configuration();
     tConf.set("fs.default.name", sHdfsAddress + sFilePath);
     FileSystem fs = FileSystem.get(tConf);
 
     Queue<String> pathQueue = new LinkedList<String>();
-    pathQueue.add(sHdfsAddress + sFilePath);
+    if (sExcludePathPrefix.outList(sFilePath)) {
+      pathQueue.add(sHdfsAddress + sFilePath);
+    }
     while (!pathQueue.isEmpty()) {
       String path = pathQueue.poll();
       if (fs.isFile(new Path(path))) {
         String filePath =  path.substring(sHdfsAddress.length());
+        if (sTachyonClient.exist(filePath)) {
+          LOG.info("File " + filePath + " already exists in Tachyon.");
+          continue;
+        }
         int fileId = sTachyonClient.createFile(filePath);
         if (fileId == -1) {
           LOG.info("Failed to create tachyon file: " + filePath);
@@ -61,7 +74,17 @@ public class ConsumeHdfs {
         FileStatus[] files = fs.listStatus(new Path(path));
         for (FileStatus status : files) {
           LOG.info("Get: " + status.getPath());
-          pathQueue.add(status.getPath().toString());
+          String filePath = status.getPath().toString().substring(sHdfsAddress.length());
+          if (sExcludePathPrefix.outList(filePath)) {
+            pathQueue.add(status.getPath().toString());
+          }
+        }
+        String filePath = path.substring(sHdfsAddress.length());
+        try {
+          if (!sTachyonClient.exist(filePath)) {
+            sTachyonClient.mkdir(filePath);
+          }
+        } catch (FileAlreadyExistException e) {
         }
       }
     }

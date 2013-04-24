@@ -56,7 +56,9 @@ public class MasterLogWriter {
     for (int k = 0; k < inodeList.size(); k ++) {
       append(inodeList.get(k), false);
     }
-    flush();
+    if (flush) {
+      flush();
+    }
   }
 
   public synchronized void appendAndFlush(CheckpointInfo checkpointInfo) {
