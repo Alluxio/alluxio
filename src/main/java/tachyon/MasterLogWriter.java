@@ -34,7 +34,7 @@ public class MasterLogWriter {
     }
   }
 
-  public synchronized void appendAndFlush(Inode inode) {
+  public synchronized void append(Inode inode, boolean flush) {
     LOG.debug("Append and Flush " + inode);
     if (inode.isFile()) {
       mKryo.writeClassAndObject(mOutput, LogType.InodeFile);
@@ -46,25 +46,19 @@ public class MasterLogWriter {
       mKryo.writeClassAndObject(mOutput, LogType.InodeRawTable);
       mKryo.writeClassAndObject(mOutput, (InodeRawTable) inode);
     }
-    flush();
+    if (flush) {
+      flush();
+    }
   }
 
-  public void appendAndFlush(List<Inode> inodeList) {
+  public void append(List<Inode> inodeList, boolean flush) {
     LOG.debug("Append and Flush List<Inode> " + inodeList);
     for (int k = 0; k < inodeList.size(); k ++) {
-      Inode inode = inodeList.get(k);
-      if (inode.isFile()) {
-        mKryo.writeClassAndObject(mOutput, LogType.InodeFile);
-        mKryo.writeClassAndObject(mOutput, (InodeFile) inode);
-      } else if (!((InodeFolder) inode).isRawTable()) {
-        mKryo.writeClassAndObject(mOutput, LogType.InodeFolder);
-        mKryo.writeClassAndObject(mOutput, (InodeFolder) inode);
-      } else {
-        mKryo.writeClassAndObject(mOutput, LogType.InodeRawTable);
-        mKryo.writeClassAndObject(mOutput, (InodeRawTable) inode);
-      }
+      append(inodeList.get(k), false);
     }
-    flush();
+    if (flush) {
+      flush();
+    }
   }
 
   public synchronized void appendAndFlush(CheckpointInfo checkpointInfo) {
