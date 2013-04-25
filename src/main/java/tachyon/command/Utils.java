@@ -3,7 +3,6 @@ package tachyon.command;
 import java.net.InetSocketAddress;
 
 import tachyon.Constants;
-import tachyon.conf.MasterConf;
 import tachyon.thrift.InvalidPathException;
 
 /**
