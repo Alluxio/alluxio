@@ -280,6 +280,10 @@ public class TachyonFile {
     return recvMsg.getReadOnlyData();
   }
 
+  public boolean isDirectory() {
+    return CLIENT_FILE_INFO.isFolder();
+  }
+  
   public boolean isInMemory() {
     // TODO Make this query the master.
     return CLIENT_FILE_INFO.isInMemory();
