@@ -33,4 +33,13 @@ public class Pair<First, Second> {
   public Second getSecond() {
     return mSecond;
   }
+
+  @Override
+  public synchronized boolean equals(Object o) {
+    if (!(o instanceof Pair)) {
+      return false;
+    }
+    return mFirst.equals(((Pair<?, ?>) o).getFirst()) 
+        && mSecond.equals(((Pair<?, ?>) o).getSecond());
+  }
 }

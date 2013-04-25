@@ -134,19 +134,14 @@ public class Log4jFileAppender extends FileAppender {
   private String getNewLogFileName(String fileName) {
     if (!fileName.isEmpty()) {
       String newFileName = "";
-      int dotIndex = fileName.indexOf(".");
-      if (dotIndex != -1 && fileName.indexOf("-") == -1) {
-        String baseName = fileName.substring(0, dotIndex);
-        String suffix = fileName.substring(dotIndex, fileName.length());
-        String address = "";
-        try {
-          address = "@" + InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException uhe) {
-          address = "@UnknownHost";
-        }
-        newFileName = baseName + address + "_" 
-            + CommonUtils.convertMsToSimpleDate(System.currentTimeMillis()) + suffix;
+      String address = "";
+      try {
+        address = "@" + InetAddress.getLocalHost().getHostAddress();
+      } catch (UnknownHostException uhe) {
+        address = "@UnknownHost";
       }
+      newFileName = fileName + address + "_" 
+          + CommonUtils.convertMsToSimpleDate(System.currentTimeMillis());
       File file = new File(newFileName);
       if (file.exists()) {
         rotateLogs(newFileName);
@@ -166,12 +161,6 @@ public class Log4jFileAppender extends FileAppender {
    * @param fileName The fileName of the new current log.
    */
   private void rotateLogs(String fileName) {
-    String suffix = "";
-    if (fileName.indexOf(".") != -1) {
-      suffix = fileName.substring(fileName.lastIndexOf("."), fileName.length());
-    }
-    String prefix = fileName.substring(0, fileName.length() - suffix.length());
-
     if (mCurrentFileBackupIndex == -1) {
       int lo = 0;
       int hi = mMaxBackupIndex;
@@ -181,15 +170,15 @@ public class Log4jFileAppender extends FileAppender {
           mCurrentFileBackupIndex = 1;
           break;
         }
-        if (new File(prefix + "_" + mid + suffix).exists()) {
-          if (new File(prefix + "_" + (mid+1) + suffix).exists()) {
+        if (new File(fileName + "_" + mid).exists()) {
+          if (new File(fileName + "_" + (mid+1)).exists()) {
             lo = mid;
           } else {
             mCurrentFileBackupIndex = mid + 1;
             break;
           }
         } else {
-          if (new File(prefix + "_" + (mid-1) + suffix).exists()) {
+          if (new File(fileName + "_" + (mid-1)).exists()) {
             mCurrentFileBackupIndex = mid;
             break;
           } else {
@@ -203,15 +192,15 @@ public class Log4jFileAppender extends FileAppender {
     if (mCurrentFileBackupIndex >= mMaxBackupIndex) {
       int deleteToIndex = (int) Math.ceil(mMaxBackupIndex*mDeletionPercentage/100.0);
       for (int i = 1; i < deleteToIndex; i ++) {
-        new File(prefix + "_" + i + suffix).delete();
+        new File(fileName + "_" + i).delete();
       }
       for (int i = deleteToIndex + 1; i <= mMaxBackupIndex; i ++) {
-        new File(prefix + "_" + i + suffix).renameTo(
-            new File(prefix + "_" + (i - deleteToIndex) + suffix));
+        new File(fileName + "_" + i).renameTo(
+            new File(fileName + "_" + (i - deleteToIndex)));
       }
       mCurrentFileBackupIndex = mCurrentFileBackupIndex - deleteToIndex;
     }
-    oldFile.renameTo(new File(prefix + "_" + mCurrentFileBackupIndex + suffix));
+    oldFile.renameTo(new File(fileName + "_" + mCurrentFileBackupIndex));
     mCurrentFileBackupIndex ++;
   }
 }

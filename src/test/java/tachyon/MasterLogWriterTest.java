@@ -95,4 +95,47 @@ public class MasterLogWriterTest {
     Assert.assertEquals(checkpointInfo, toCheck.getSecond());
     Assert.assertFalse(mMasterLogReader.hasNext());
   }
+
+  @Test
+  public void largeLogTest() throws IOException {
+    Inode inode;
+    CheckpointInfo checkpointInfo;
+    int numEntries = 100000;
+    for (int i = 0; i < numEntries; i ++) {
+      switch (i % 3) { 
+      case 0:
+        inode = new InodeFile("/testFile" + i, 1 + i, 0);
+        mMasterLogWriter.append(inode, true);
+        break;
+      case 1:
+        inode = new InodeFolder("/testFolder" + i, 1 + i, 0);
+        mMasterLogWriter.append(inode, true);
+        break;
+      case 2:
+        checkpointInfo = new CheckpointInfo(i);
+        mMasterLogWriter.appendAndFlush(checkpointInfo);
+        break;
+      }
+    }
+    mMasterLogReader = new MasterLogReader(mLogFile);
+    for (int i = 0; i < numEntries; i ++) {
+      switch (i % 3) { 
+      case 0:
+        inode = new InodeFile("/testFile" + i, 1 + i, 0);
+        Assert.assertEquals(new Pair<LogType, Object>(LogType.InodeFile, inode), 
+            mMasterLogReader.getNextPair());
+        break;
+      case 1:
+        inode = new InodeFolder("/testFolder" + i, 1 + i, 0);
+        Assert.assertEquals(new Pair<LogType, Object>(LogType.InodeFolder, inode), 
+            mMasterLogReader.getNextPair());
+        break;
+      case 2:
+        checkpointInfo = new CheckpointInfo(i);
+        Assert.assertEquals(new Pair<LogType, Object>(LogType.CheckpointInfo, checkpointInfo), 
+            mMasterLogReader.getNextPair());
+        break;
+      }
+    }
+  }
 }
