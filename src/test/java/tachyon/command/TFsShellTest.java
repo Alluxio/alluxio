@@ -3,7 +3,6 @@ package tachyon.command;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -13,7 +12,6 @@ import java.net.UnknownHostException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import org.apache.thrift.TException;
@@ -161,7 +159,7 @@ public class TFsShellTest {
     Assert.assertEquals(-1, mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
   }
-  
+
   @Test
   public void renameParentDirectoryTest()
       throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException, 
@@ -176,7 +174,7 @@ public class TFsShellTest {
     Assert.assertNull(mClient.getFile("/test/File1"));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
   }
-  
+
   @Test
   public void copyFromLocalTest() 
       throws IOException, InvalidPathException, FileAlreadyExistException {
@@ -197,7 +195,7 @@ public class TFsShellTest {
     tfis.read(read);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, read));
   }
-  
+
   @Test
   public void copyFromLocalLargeTest() 
       throws IOException, InvalidPathException, FileAlreadyExistException {
@@ -218,7 +216,7 @@ public class TFsShellTest {
     tfis.read(read);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(mSizeBytes, read));
   }
-  
+
   @Test
   public void copyToLocalTest() 
       throws InvalidPathException, FileAlreadyExistException, IOException, 
@@ -235,7 +233,7 @@ public class TFsShellTest {
     fis.close();
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, read));
   }
-  
+
   @Test
   public void copyToLocalLargeTest() 
       throws InvalidPathException, FileAlreadyExistException, IOException, 
