@@ -100,7 +100,7 @@ public class MasterLogWriterTest {
   public void largeLogTest() throws IOException {
     Inode inode;
     CheckpointInfo checkpointInfo;
-    int numEntries = 1000000;
+    int numEntries = 100000;
     for (int i = 0; i < numEntries; i ++) {
       switch (i % 3) { 
       case 0:
