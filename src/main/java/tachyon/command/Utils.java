@@ -10,18 +10,12 @@ import tachyon.thrift.InvalidPathException;
  */
 public class Utils {
   private static final String HEADER = "tachyon://";
-  private static String HOSTNAME = null;
-  private static String PORT = null;
   /**
    * Validates the path, verifying that it contains the header and a hostname:port specified.
    * @param path The path to be verified.
    * @throws InvalidPathException 
    */
   public static String validateTachyonPath(String path) throws InvalidPathException {
-    if (HOSTNAME == null) {
-      HOSTNAME = System.getProperty("tachyon.master.hostname", "localhost");
-      PORT = System.getProperty("tachyon.master.port", "" + Constants.DEFAULT_MASTER_PORT);
-    }
     if (path.startsWith(HEADER)) {
       if (!path.contains(":")) {
         throw new InvalidPathException(
@@ -30,6 +24,8 @@ public class Utils {
         return path;
       }
     } else {
+      String HOSTNAME = System.getProperty("tachyon.master.hostname", "localhost");
+      String PORT = System.getProperty("tachyon.master.port", "" + Constants.DEFAULT_MASTER_PORT);
       return HEADER + HOSTNAME + ":" + PORT + path;
     }
   }
@@ -44,9 +40,6 @@ public class Utils {
     path = validateTachyonPath(path);
     path = path.substring(HEADER.length());
     String ret = path.substring(path.indexOf("/"));
-    while (ret.endsWith("/") && ret.length() > 1) {
-      ret = ret.substring(0, ret.length()-1);
-    }
     return ret;
   }
 
