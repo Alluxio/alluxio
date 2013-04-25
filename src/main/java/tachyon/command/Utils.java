@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 
 import tachyon.Constants;
 import tachyon.conf.MasterConf;
+import tachyon.thrift.InvalidPathException;
 
 /**
  * Class for convenience methods used by TFsShell.
@@ -15,48 +16,36 @@ public class Utils {
   /**
    * Validates the path, verifying that it contains the header and a hostname:port specified.
    * @param path The path to be verified.
+   * @throws InvalidPathException 
    */
-  public static String validateTachyonPath(String path) {
+  public static String validateTachyonPath(String path) throws InvalidPathException {
     if (HOSTNAME == null) {
       HOSTNAME = System.getProperty("tachyon.master.hostname", "localhost");
       PORT = System.getProperty("tachyon.master.port", "" + Constants.DEFAULT_MASTER_PORT);
     }
-    if (!path.startsWith(HEADER)) {
+    if (path.startsWith(HEADER)) {
       if (!path.contains(":")) {
-        if (path.startsWith("/")) {
-          path = HOSTNAME + ":" + PORT + path;
-        } else {
-          path = HOSTNAME + ":" + PORT + "/" + path;
-        }
+        throw new InvalidPathException(
+            "Invalid Path: " + path + "\n Use tachyon://host:port/ or /file");
+      } else {
+        return path;
       }
-      path = HEADER + path;
     } else {
-      String tempPath = path.substring(HEADER.length());
-      if (!tempPath.contains(":")) {
-        if (tempPath.startsWith("/")) {
-          tempPath = HOSTNAME + ":" + PORT + tempPath;
-        } else {
-          tempPath = HOSTNAME + ":" + PORT + "/" + tempPath;
-        }
-      }
-      path = HEADER + tempPath;
+      return HEADER + HOSTNAME + ":" + PORT + path;
     }
-    if (!path.endsWith("/")) {
-      path = path + "/";
-    }
-    return path;
   }
 
   /**
    * Removes header and hostname:port information from a path, leaving only the local file path.
    * @param path The path to obtain the local path from
    * @return The local path in string format
+   * @throws InvalidPathException 
    */ 
-  public static String getFilePath(String path) {
+  public static String getFilePath(String path) throws InvalidPathException {
     path = validateTachyonPath(path);
     path = path.substring(HEADER.length());
     String ret = path.substring(path.indexOf("/"));
-    while (ret.endsWith("/")) {
+    while (ret.endsWith("/") && ret.length() > 1) {
       ret = ret.substring(0, ret.length()-1);
     }
     return ret;
@@ -66,8 +55,9 @@ public class Utils {
    * Obtains the InetSocketAddress from a path by parsing the hostname:port portion of the path.
    * @param path The path to obtain the InetSocketAddress from.
    * @return The InetSocketAddress of the master node.
+   * @throws InvalidPathException 
    */
-  public static InetSocketAddress getTachyonMasterAddress(String path) {
+  public static InetSocketAddress getTachyonMasterAddress(String path) throws InvalidPathException {
     path = validateTachyonPath(path);
     path = path.substring(HEADER.length());
     String masterAddress = path.substring(0, path.indexOf("/"));
