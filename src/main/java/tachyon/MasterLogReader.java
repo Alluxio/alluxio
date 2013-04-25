@@ -73,7 +73,7 @@ public class MasterLogReader {
 
   public Pair<LogType, Object> getNextPair() {
     if (mCurrent == null) {
-      getNext();
+      mCurrent = getNext();
     }
 
     Pair<LogType, Object> ret = mCurrent;
