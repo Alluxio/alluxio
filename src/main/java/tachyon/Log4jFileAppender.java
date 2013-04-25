@@ -150,57 +150,57 @@ public class Log4jFileAppender extends FileAppender {
       mCurrentFileName = newFileName;
       return newFileName;
     } else {
-    throw new RuntimeException("Log4j configuration error, null filepath");
-  }
-}
-
-/**
- * Rotates logs. The previous current log is set to the next available index. If the index has
- * reached the maximum backup index, a percent of backup logs will be deleted, started from the
- * earliest first. Then all rolledover logs will be moved up.
- * @param fileName The fileName of the new current log.
- */
-private void rotateLogs(String fileName) {
-  if (mCurrentFileBackupIndex == -1) {
-    int lo = 0;
-    int hi = mMaxBackupIndex;
-    while (lo <= hi) {
-      int mid = lo + (hi - lo) / 2;
-      if (mid == 0) {
-        mCurrentFileBackupIndex = 1;
-        break;
-      }
-      if (new File(fileName + "_" + mid).exists()) {
-        if (new File(fileName + "_" + (mid+1)).exists()) {
-          lo = mid;
-        } else {
-          mCurrentFileBackupIndex = mid + 1;
-          break;
-        }
-      } else {
-        if (new File(fileName + "_" + (mid-1)).exists()) {
-          mCurrentFileBackupIndex = mid;
-          break;
-        } else {
-          hi = mid;
-        }
-      }
+      throw new RuntimeException("Log4j configuration error, null filepath");
     }
   }
 
-  File oldFile = new File(fileName); 
-  if (mCurrentFileBackupIndex >= mMaxBackupIndex) {
-    int deleteToIndex = (int) Math.ceil(mMaxBackupIndex*mDeletionPercentage/100.0);
-    for (int i = 1; i < deleteToIndex; i ++) {
-      new File(fileName + "_" + i).delete();
+  /**
+   * Rotates logs. The previous current log is set to the next available index. If the index has
+   * reached the maximum backup index, a percent of backup logs will be deleted, started from the
+   * earliest first. Then all rolledover logs will be moved up.
+   * @param fileName The fileName of the new current log.
+   */
+  private void rotateLogs(String fileName) {
+    if (mCurrentFileBackupIndex == -1) {
+      int lo = 0;
+      int hi = mMaxBackupIndex;
+      while (lo <= hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (mid == 0) {
+          mCurrentFileBackupIndex = 1;
+          break;
+        }
+        if (new File(fileName + "_" + mid).exists()) {
+          if (new File(fileName + "_" + (mid+1)).exists()) {
+            lo = mid;
+          } else {
+            mCurrentFileBackupIndex = mid + 1;
+            break;
+          }
+        } else {
+          if (new File(fileName + "_" + (mid-1)).exists()) {
+            mCurrentFileBackupIndex = mid;
+            break;
+          } else {
+            hi = mid;
+          }
+        }
+      }
     }
-    for (int i = deleteToIndex + 1; i <= mMaxBackupIndex; i ++) {
-      new File(fileName + "_" + i).renameTo(
-          new File(fileName + "_" + (i - deleteToIndex)));
+
+    File oldFile = new File(fileName); 
+    if (mCurrentFileBackupIndex >= mMaxBackupIndex) {
+      int deleteToIndex = (int) Math.ceil(mMaxBackupIndex*mDeletionPercentage/100.0);
+      for (int i = 1; i < deleteToIndex; i ++) {
+        new File(fileName + "_" + i).delete();
+      }
+      for (int i = deleteToIndex + 1; i <= mMaxBackupIndex; i ++) {
+        new File(fileName + "_" + i).renameTo(
+            new File(fileName + "_" + (i - deleteToIndex)));
+      }
+      mCurrentFileBackupIndex = mCurrentFileBackupIndex - deleteToIndex;
     }
-    mCurrentFileBackupIndex = mCurrentFileBackupIndex - deleteToIndex;
+    oldFile.renameTo(new File(fileName + "_" + mCurrentFileBackupIndex));
+    mCurrentFileBackupIndex ++;
   }
-  oldFile.renameTo(new File(fileName + "_" + mCurrentFileBackupIndex));
-  mCurrentFileBackupIndex ++;
-}
 }
