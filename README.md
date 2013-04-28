@@ -3,7 +3,9 @@ Tachyon
 
 <http://www.tachyonproject.org/>
 
-The master branch is in 0.2.1-SNAPSHOT.
+The master branch is in 0.2.2-SNAPSHOT.
+
+Release 0.2.1 is tagged with v0.2.1.
 
 Release 0.2.0 is tagged with v0.2.0.
 
@@ -23,18 +25,18 @@ to visit <https://groups.google.com/forum/?fromgroups#!forum/tachyon-users>
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon</artifactId>
-      <version>0.2.0</version>
+      <version>0.2.1</version>
     </dependency>
 
 ### Apache Ant
 
-    <dependency org="org.tachyonproject" name="tachyon" rev="0.2.0">
+    <dependency org="org.tachyonproject" name="tachyon" rev="0.2.1">
       <artifact name="tachyon" type="jar" />
     </dependency>
 
 ### SBT
 
-    libraryDependencies += "org.tachyonproject" %% "tachyon" % "0.2.0"
+    libraryDependencies += "org.tachyonproject" %% "tachyon" % "0.2.1"
 
 ## Contributing to Tachyon
 
