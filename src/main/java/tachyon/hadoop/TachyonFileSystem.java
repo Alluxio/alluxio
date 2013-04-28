@@ -229,7 +229,9 @@ public class TachyonFileSystem extends FileSystem {
       if (hfs[k].isDir()) {
         FileStatus[] tFileStatus = listStatus(hfs[k].getPath());
         for (FileStatus tfs : tFileStatus) {
-          tRet.add(tfs);
+          if (tfs != null) {
+            tRet.add(tfs);
+          }
         }
       } else {
         tRet.add(getFileStatus(hfs[k].getPath()));

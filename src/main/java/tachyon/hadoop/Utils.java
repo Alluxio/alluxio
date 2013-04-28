@@ -46,7 +46,10 @@ public final class Utils {
   public static String getPathWithoutScheme(Path path) {
     Path ori = path;
     String ret = "";
-    while (path != null) {
+    if (path.getParent() == null) {
+      ret = "/";
+    } else {
+      while (path != null) {
       if (ret.equals("")) {
         ret = path.getName();
       } else {
@@ -54,6 +57,8 @@ public final class Utils {
       }
       path = path.getParent();
     }
+    }
+    
     if (DEBUG) {
       LOG.info("Utils getPathWithoutScheme(" + ori + ") result: " + ret);
     }
