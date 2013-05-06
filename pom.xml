@@ -31,7 +31,7 @@
   </developers>
   <issueManagement>
     <system>github</system>
-    <url>https://spark-project.atlassian.net/browse/TACH</url>
+    <url>https://spark-project.atlassian.net/browse/TACHYON</url>
   </issueManagement>
 
   <parent>
