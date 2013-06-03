@@ -73,12 +73,12 @@ public class WorkerClient {
     return mRootFolder;
   }
 
-  public synchronized void lockFile(int fileId, long userId) throws TException {
-    CLIENT.lockFile(fileId, userId);
-  }
-
   public synchronized boolean isConnected() {
     return mIsConnected;
+  }
+
+  public synchronized void lockFile(int fileId, long userId) throws TException {
+    CLIENT.lockFile(fileId, userId);
   }
 
   public synchronized boolean open() {
