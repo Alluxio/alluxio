@@ -6,4 +6,3 @@ Architecture: all
 Maintainer: Haoyuan Li <haoyuan.li@gmail.com>
 Description: [[name]]
 Distribution: development
-Depends: jdk (>= 1.5)
