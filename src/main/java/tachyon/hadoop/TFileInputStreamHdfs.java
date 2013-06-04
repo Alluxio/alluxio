@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 import tachyon.Constants;
 import tachyon.client.InStream;
 import tachyon.client.OpType;
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.conf.UserConf;
 
@@ -22,7 +22,7 @@ public class TFileInputStreamHdfs extends InputStream implements Seekable, Posit
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private int mCurrentPosition;
-  private TachyonClient mTachyonClient;
+  private TachyonFS mTachyonClient;
   private int mFileId;
   private Path mHdfsPath;
   private Configuration mHadoopConf;
@@ -36,7 +36,7 @@ public class TFileInputStreamHdfs extends InputStream implements Seekable, Posit
   private int mBufferPosition = 0;
   private byte mBuffer[] = new byte[UserConf.get().FILE_BUFFER_BYTES * 4];
 
-  public TFileInputStreamHdfs(TachyonClient tachyonClient, int fileId, 
+  public TFileInputStreamHdfs(TachyonFS tachyonClient, int fileId, 
       Path hdfsPath, Configuration conf, int bufferSize) {
     LOG.debug("PartitionInputStreamHdfs(" + tachyonClient + ", " + fileId + ", "
         + hdfsPath + ", " + conf + ", " + bufferSize + ")");

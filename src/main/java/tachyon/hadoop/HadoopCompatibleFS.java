@@ -20,7 +20,7 @@ import org.apache.thrift.TException;
 
 import tachyon.CommonUtils;
 import tachyon.Constants;
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -32,12 +32,12 @@ import tachyon.thrift.SuspectedFileSizeException;
  * with Tachyon transparently by using this class. However, it is not as efficient as using
  * the Tachyon API in tachyon.client package.
  */
-public class TachyonFileSystem extends FileSystem {
+public class HadoopCompatibleFS extends FileSystem {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private URI mUri = null;
   private Path mWorkingDir = new Path("/");
-  private TachyonClient mTachyonClient = null;
+  private TachyonFS mTachyonClient = null;
   private String mTachyonHeader = null;
 
   @Override
@@ -208,7 +208,7 @@ public class TachyonFileSystem extends FileSystem {
   public void initialize(URI uri, Configuration conf) throws IOException {
     LOG.debug("TachyonFileSystem initialize(" + uri + ", " + conf + "). Connecting TachyonSystem: " +
         uri.getHost() + ":" + uri.getPort());
-    mTachyonClient = TachyonClient.getClient(new InetSocketAddress(uri.getHost(), uri.getPort()));
+    mTachyonClient = TachyonFS.getClient(new InetSocketAddress(uri.getHost(), uri.getPort()));
     mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort() + "";
     Utils.HDFS_ADDRESS = mTachyonClient.getUnderfsAddress();
     mUri = URI.create("tachyon://" + uri.getHost() + ":" + uri.getPort());

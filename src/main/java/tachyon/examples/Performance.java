@@ -15,7 +15,7 @@ import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.OpType;
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.conf.UserConf;
 import tachyon.thrift.FileAlreadyExistException;
@@ -28,7 +28,7 @@ public class Performance {
   private static final int RESULT_ARRAY_SIZE = 64;
   private static final String FOLDER = "/mnt/ramdisk/";
 
-  private static TachyonClient MTC = null;
+  private static TachyonFS MTC = null;
   private static String MASTER_ADDRESS = null;
   private static String FILE_NAME = null;
   private static int BLOCK_SIZE_BYTES = -1;
@@ -157,11 +157,11 @@ public class Performance {
   }
 
   public static class TachyonWriterWorker extends Worker {
-    private TachyonClient mTC;
+    private TachyonFS mTC;
 
     public TachyonWriterWorker(int id, int left, int right, ByteBuffer buf) {
       super(id, left, right, buf);
-      mTC = TachyonClient.getClient(MASTER_ADDRESS);
+      mTC = TachyonFS.getClient(MASTER_ADDRESS);
     }
 
     public void writeParition()
@@ -197,11 +197,11 @@ public class Performance {
   }
 
   public static class TachyonReadWorker extends Worker {
-    private TachyonClient mTC;
+    private TachyonFS mTC;
 
     public TachyonReadWorker(int id, int left, int right, ByteBuffer buf) {
       super(id, left, right, buf);
-      mTC = TachyonClient.getClient(MASTER_ADDRESS);
+      mTC = TachyonFS.getClient(MASTER_ADDRESS);
     }
 
     public void readPartition() 
@@ -378,13 +378,13 @@ public class Performance {
     if (testCase == 1) {
       RESULT_PREFIX = "TachyonFilesWriteTest " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
-      MTC = TachyonClient.getClient(MASTER_ADDRESS);
+      MTC = TachyonFS.getClient(MASTER_ADDRESS);
       createFiles();
       TachyonTest(true);
     } else if (testCase == 2) {
       RESULT_PREFIX = "TachyonFilesReadTest " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
-      MTC = TachyonClient.getClient(MASTER_ADDRESS);
+      MTC = TachyonFS.getClient(MASTER_ADDRESS);
       TachyonTest(false);
     } else if (testCase == 3) {
       RESULT_PREFIX = "RamFile Write " + RESULT_PREFIX;

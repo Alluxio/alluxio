@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 
 import tachyon.client.OpType;
 import tachyon.client.OutStream;
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
@@ -22,7 +22,7 @@ public final class TestUtils {
    * @throws FileAlreadyExistException
    * @throws IOException
    */
-  public static int createSimpleByteFile(TachyonClient client, String fileName, OpType op, int len)
+  public static int createSimpleByteFile(TachyonFS client, String fileName, OpType op, int len)
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = client.createFile(fileName);
     TachyonFile file = client.getFile(fileId);

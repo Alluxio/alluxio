@@ -23,7 +23,7 @@ import tachyon.thrift.TableDoesNotExistException;
  */
 public class RawColumnTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonClient mClient = null;
+  private TachyonFS mClient = null;
 
   @Before
   public final void before() throws IOException {
