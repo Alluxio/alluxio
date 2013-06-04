@@ -50,7 +50,7 @@ public class Users {
     }
   }
 
-  public List<Long> checkStatus(WorkerInfo workerInfo) {
+  public List<Long> checkStatus(WorkerSpaceCounter workerSpaceCounter) {
     LOG.debug("Worker is checking all users' status.");
     List<Long> ret = new ArrayList<Long>();
     synchronized (USERS) {
@@ -62,7 +62,7 @@ public class Users {
       }
 
       for (Long id : toRemoveUsers) {
-        workerInfo.returnUsedBytes(removeUser(id));
+        workerSpaceCounter.returnUsedBytes(removeUser(id));
         ret.add(id);
       }
     }

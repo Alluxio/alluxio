@@ -64,9 +64,9 @@ public class MasterInfo {
 
   private Map<Integer, Inode> mInodes = new HashMap<Integer, Inode>();
 
-  private Map<Long, WorkerInfo> mWorkers = new HashMap<Long, WorkerInfo>();
+  private Map<Long, MasterWorkerInfo> mWorkers = new HashMap<Long, MasterWorkerInfo>();
   private Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
-  private BlockingQueue<WorkerInfo> mLostWorkers = new ArrayBlockingQueue<WorkerInfo>(32);
+  private BlockingQueue<MasterWorkerInfo> mLostWorkers = new ArrayBlockingQueue<MasterWorkerInfo>(32);
 
   // TODO Check the logic related to this two lists.
   private PrefixList mWhiteList;
@@ -91,7 +91,7 @@ public class MasterInfo {
       Set<Long> lostWorkers = new HashSet<Long>();
 
       synchronized (mWorkers) {
-        for (Entry<Long, WorkerInfo> worker: mWorkers.entrySet()) {
+        for (Entry<Long, MasterWorkerInfo> worker: mWorkers.entrySet()) {
           if (CommonUtils.getCurrentMs() - worker.getValue().getLastUpdatedTimeMs() 
               > MASTER_CONF.WORKER_TIMEOUT_MS) {
             LOG.error("The worker " + worker.getValue() + " got timed out!");
@@ -100,7 +100,7 @@ public class MasterInfo {
           }
         }
         for (long workerId: lostWorkers) {
-          WorkerInfo workerInfo = mWorkers.get(workerId);
+          MasterWorkerInfo workerInfo = mWorkers.get(workerId);
           mWorkerAddressToId.remove(workerInfo.getAddress());
           mWorkers.remove(workerId);
         }
@@ -110,7 +110,7 @@ public class MasterInfo {
 
       while (mLostWorkers.size() != 0) {
         hadFailedWorker = true;
-        WorkerInfo worker = mLostWorkers.poll();
+        MasterWorkerInfo worker = mLostWorkers.poll();
 
         // TODO these a lock is not efficient. Since node failure is rare, this is fine for now.
         synchronized (mRoot) {
@@ -212,7 +212,7 @@ public class MasterInfo {
     LOG.info(CommonUtils.parametersToString(workerId, fileId, fileSizeBytes, checkpointPath));
 
     if (workerId != -1) {
-      WorkerInfo tWorkerInfo = getWorkerInfo(workerId);
+      MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
       tWorkerInfo.updateLastUpdatedTimeMs();
     }
 
@@ -266,7 +266,7 @@ public class MasterInfo {
       long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException {
     LOG.debug(CommonUtils.parametersToString(workerId, workerUsedBytes, fileId, fileSizeBytes));
 
-    WorkerInfo tWorkerInfo = getWorkerInfo(workerId);
+    MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
     tWorkerInfo.updateFile(true, fileId);
     tWorkerInfo.updateUsedBytes(workerUsedBytes);
     tWorkerInfo.updateLastUpdatedTimeMs();
@@ -451,7 +451,7 @@ public class MasterInfo {
   public long getCapacityBytes() {
     long ret = 0;
     synchronized (mWorkers) {
-      for (WorkerInfo worker : mWorkers.values()) {
+      for (MasterWorkerInfo worker : mWorkers.values()) {
         ret += worker.getCapacityBytes();
       }
     }
@@ -763,7 +763,7 @@ public class MasterInfo {
   public long getUsedBytes() {
     long ret = 0;
     synchronized (mWorkers) {
-      for (WorkerInfo worker : mWorkers.values()) {
+      for (MasterWorkerInfo worker : mWorkers.values()) {
         ret += worker.getUsedBytes();
       }
     }
@@ -806,8 +806,8 @@ public class MasterInfo {
     }
   }
 
-  private WorkerInfo getWorkerInfo(long workerId) {
-    WorkerInfo ret = null;
+  private MasterWorkerInfo getWorkerInfo(long workerId) {
+    MasterWorkerInfo ret = null;
     synchronized (mWorkers) {
       ret = mWorkers.get(workerId);
 
@@ -822,7 +822,7 @@ public class MasterInfo {
     List<ClientWorkerInfo> ret = new ArrayList<ClientWorkerInfo>();
 
     synchronized (mWorkers) {
-      for (WorkerInfo worker : mWorkers.values()) {
+      for (MasterWorkerInfo worker : mWorkers.values()) {
         ret.add(worker.generateClientWorkerInfo());
       }
     }
@@ -961,13 +961,13 @@ public class MasterInfo {
         LOG.warn("The worker " + workerAddress + " already exists as id " + id + ".");
       }
       if (id != 0 && mWorkers.containsKey(id)) {
-        WorkerInfo tWorkerInfo = mWorkers.get(id);
+        MasterWorkerInfo tWorkerInfo = mWorkers.get(id);
         mWorkers.remove(id);
         mLostWorkers.add(tWorkerInfo);
         LOG.warn("The worker with id " + id + " has been removed.");
       }
       id = START_TIME_NS_PREFIX + mWorkerCounter.incrementAndGet();
-      WorkerInfo tWorkerInfo = new WorkerInfo(id, workerAddress, totalBytes);
+      MasterWorkerInfo tWorkerInfo = new MasterWorkerInfo(id, workerAddress, totalBytes);
       tWorkerInfo.updateUsedBytes(usedBytes);
       tWorkerInfo.updateFiles(true, currentFileIds);
       tWorkerInfo.updateLastUpdatedTimeMs();
@@ -1068,7 +1068,7 @@ public class MasterInfo {
   public Command workerHeartbeat(long workerId, long usedBytes, List<Integer> removedFileIds) {
     LOG.debug("WorkerId: " + workerId);
     synchronized (mWorkers) {
-      WorkerInfo tWorkerInfo = mWorkers.get(workerId);
+      MasterWorkerInfo tWorkerInfo = mWorkers.get(workerId);
 
       if (tWorkerInfo == null) {
         LOG.info("worker_heartbeat(): Does not contain worker with ID " + workerId +
