@@ -1,8 +1,10 @@
 package tachyon;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import tachyon.thrift.ClientWorkerInfo;
@@ -19,7 +21,8 @@ public class MasterWorkerInfo {
   private long mId;
   private long mUsedBytes;
   private long mLastUpdatedTimeMs;
-  private Set<Integer> mFiles; 
+  private Set<Integer> mFiles;
+  private Set<Integer> mToRemoveFiles;
 
   public MasterWorkerInfo(long id, InetSocketAddress address, long capacityBytes) {
     mId = id;
@@ -29,6 +32,7 @@ public class MasterWorkerInfo {
 
     mUsedBytes = 0;
     mFiles = new HashSet<Integer>();
+    mToRemoveFiles = new HashSet<Integer>();
     mLastUpdatedTimeMs = System.currentTimeMillis();
   }
 
@@ -54,6 +58,10 @@ public class MasterWorkerInfo {
 
   public synchronized Set<Integer> getFiles() {
     return new HashSet<Integer>(mFiles);
+  }
+
+  public synchronized List<Integer> getToRemovedFiles() {
+    return new ArrayList<Integer>(mToRemoveFiles);
   }
 
   public synchronized long getUsedBytes() {
@@ -90,6 +98,22 @@ public class MasterWorkerInfo {
       mFiles.addAll(fileIds);
     } else {
       mFiles.removeAll(fileIds);
+    }
+  }
+
+  public synchronized void updateToRemovedFile(boolean add, int fileId) {
+    if (add) {
+      if (mFiles.contains(fileId)) {
+        mToRemoveFiles.add(fileId);
+      }
+    } else {
+      mToRemoveFiles.remove(fileId);
+    }
+  }
+  
+  public synchronized void updateToRemovedFiles(boolean add, Collection<Integer> fileIds) {
+    for (int fileId: fileIds) {
+      updateToRemovedFile(add, fileId);
     }
   }
 

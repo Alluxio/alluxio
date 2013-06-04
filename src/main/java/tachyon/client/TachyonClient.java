@@ -22,6 +22,7 @@ import tachyon.WorkerClient;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -573,6 +574,11 @@ public class TachyonClient {
   public synchronized String getRootFolder() {
     connect();
     return mDataFolder;
+  }
+
+  public synchronized List<ClientWorkerInfo> getWorkersInfo() throws TException {
+    connect();
+    return mMasterClient.getWorkersInfo();
   }
 
   public synchronized boolean hasLocalWorker() {

@@ -215,7 +215,7 @@ public class WorkerStorage {
    * Remove files from the memory.
    * @param files The list of files to be removed.
    */
-  public void freeFiles(ArrayList<Integer> files) {
+  public void freeFiles(List<Integer> files) {
     for (int fileId: files) {
       freeFile(fileId);
     }

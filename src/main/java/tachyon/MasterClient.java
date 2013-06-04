@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -54,7 +55,7 @@ public class MasterClient {
 
   public synchronized List<ClientFileInfo> ls(String folder)
       throws InvalidPathException, FileDoesNotExistException, TException {
-    return CLIENT.cmd_ls(folder);
+    return CLIENT.liststatus(folder);
   }
 
   public synchronized long getUserId() throws TException {
@@ -95,6 +96,10 @@ public class MasterClient {
       String checkpointPath) 
           throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     return CLIENT.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+  }
+
+  public synchronized List<ClientWorkerInfo> getWorkersInfo() throws TException {
+    return CLIENT.getWorkersInfo();
   }
 
   public synchronized int user_createFile(String path)

@@ -23,11 +23,9 @@ public class Worker implements Runnable {
 
   private final InetSocketAddress MasterAddress;
   private final InetSocketAddress WorkerAddress;
-  private final String DataFolder;
-  private final long MemoryCapacityBytes;
 
   private TServer mServer;
-  
+
   private WorkerStorage mWorkerStorage;
   private WorkerServiceHandler mWorkerServiceHandler;
   private DataServer mDataServer;
@@ -38,14 +36,11 @@ public class Worker implements Runnable {
   private Worker(InetSocketAddress masterAddress, InetSocketAddress workerAddress, int dataPort,
       int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String dataFolder, long memoryCapacityBytes) {
-    DataFolder = dataFolder;
-    MemoryCapacityBytes = memoryCapacityBytes;
-
     MasterAddress = masterAddress;
     WorkerAddress = workerAddress;
-    
+
     mWorkerStorage = 
-        new WorkerStorage(MasterAddress, WorkerAddress, DataFolder, MemoryCapacityBytes);
+        new WorkerStorage(MasterAddress, WorkerAddress, dataFolder, memoryCapacityBytes);
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
@@ -115,6 +110,7 @@ public class Worker implements Runnable {
             LOG.info("Register command: " + cmd);
             break;
           case Free :
+            mWorkerStorage.freeFiles(cmd.mData);
             LOG.info("Free command: " + cmd);
             break;
           case Delete :
@@ -183,7 +179,7 @@ public class Worker implements Runnable {
 
   /**
    * Get the worker server handler class. This is for unit test only. 
-   * @return
+   * @return the WorkerServiceHandler
    */
   WorkerServiceHandler getWorkerServiceHandler() {
     return mWorkerServiceHandler;
