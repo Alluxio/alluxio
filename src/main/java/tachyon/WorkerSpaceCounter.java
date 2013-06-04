@@ -1,5 +1,8 @@
 package tachyon;
 
+/**
+ * The worker space counter, in charge of counting and granting spaces in a worker daemon.
+ */
 public class WorkerSpaceCounter {
   private final long CAPACITY_BYTES;
   private long mUsedBytes;
