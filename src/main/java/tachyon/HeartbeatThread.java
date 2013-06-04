@@ -9,7 +9,7 @@ public class HeartbeatThread implements Runnable {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final String THREAD_NAME;
   private final HeartbeatExecutor EXECUTOR;
-  private final int FIXED_EXECUTION_INTERVAL_MS;
+  private final long FIXED_EXECUTION_INTERVAL_MS;
 
   /**
    * @param threadName
@@ -17,7 +17,7 @@ public class HeartbeatThread implements Runnable {
    * @param fixedExecutionIntervalMs Sleep time between different heartbeat.
    */
   public HeartbeatThread(String threadName, HeartbeatExecutor hbExecutor, 
-      int fixedExecutionIntervalMs) {
+      long fixedExecutionIntervalMs) {
     THREAD_NAME = threadName;
     EXECUTOR = hbExecutor;
     FIXED_EXECUTION_INTERVAL_MS = fixedExecutionIntervalMs;

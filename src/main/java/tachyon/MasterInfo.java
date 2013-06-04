@@ -78,7 +78,7 @@ public class MasterInfo {
   private Thread mHeartbeatThread;
 
   /**
-   * System periodical status check.
+   * Master info periodical status check.
    */
   public class MasterHeartbeatExecutor implements HeartbeatExecutor {
     public MasterHeartbeatExecutor() {

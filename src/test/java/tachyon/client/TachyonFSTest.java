@@ -26,7 +26,7 @@ import tachyon.thrift.TableDoesNotExistException;
 public class TachyonFSTest {
   private final int WORKER_CAPACITY_BYTES = 20000;
   private final int USER_QUOTA_UNIT_BYTES = 1000;
-  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 5;
+  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 3;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mClient = null;
 
@@ -98,7 +98,7 @@ public class TachyonFSTest {
       mClient.delete(fileId);
       Assert.assertFalse(mClient.exist("/file" + k));
 
-      CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + 5);
+      CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 2);
       workers = mClient.getWorkersInfo();
       Assert.assertEquals(1, workers.size());
       Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
