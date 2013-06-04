@@ -46,13 +46,13 @@
     <libthrift.version>0.7.0</libthrift.version>
     <cxf.version>2.7.0</cxf.version>
     <jetty.version>7.5.3.v20111011</jetty.version>
+    <hadoop.version>1.0.4</hadoop.version>
     <version.template.file>src/main/java/tachyon/Version.java.template</version.template.file>
     <version.file>src/main/java/tachyon/Version.java</version.file>
 
     <deb.pkg.name>tachyon-${classifier}</deb.pkg.name>
     <deb.install.path>/usr/share/tachyon-${classifier}</deb.install.path>
     <deb.user>root</deb.user>
-
   </properties>
 
   <repositories>
@@ -73,6 +73,18 @@
   </pluginRepositories>
 
   <dependencies>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <version>${hadoop.version}</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.9.0</version>
+      <optional>true</optional>
+    </dependency>
     <dependency>
       <groupId>de.javakaffee</groupId>
       <artifactId>kryo-serializers</artifactId>
@@ -322,56 +334,6 @@
   </build>
 
   <profiles>
-    <profile>
-      <id>hadoop1</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <properties>
-        <classifier>hadoop1</classifier>
-        <hadoop.major.version>1</hadoop.major.version>
-        <hadoop.version>1.0.4</hadoop.version>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-core</artifactId>
-          <version>${hadoop.version}</version>
-          <optional>true</optional>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <profile>
-      <id>hadoop2</id>
-      <properties>
-        <hadoop.major.version>2</hadoop.major.version>
-        <cdh.version>4.1.2</cdh.version>
-        <hadoop.version>2.0.0-mr1-cdh${cdh.version}</hadoop.version>
-        <classifier>hadoop2</classifier>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-core</artifactId>
-          <version>${hadoop.version}</version>
-          <optional>true</optional>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-client</artifactId>
-          <version>${hadoop.version}</version>
-          <optional>true</optional>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.ant</groupId>
-          <artifactId>ant</artifactId>
-          <version>1.9.0</version>
-          <optional>true</optional>
-        </dependency>
-      </dependencies>
-    </profile>
-
     <profile>
       <id>deb</id>
       <build>
