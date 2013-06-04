@@ -13,6 +13,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
+import tachyon.conf.UserConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
@@ -39,6 +40,9 @@ public class MasterClient {
   private InetSocketAddress mMasterAddress;
   private TProtocol mProtocol;
   private boolean mIsConnected;
+  private long mLastAccessedMs;
+
+  private Thread mHeartbeatThread;
 
   public MasterClient(InetSocketAddress masterAddress) {
     mMasterAddress = masterAddress;
@@ -46,19 +50,32 @@ public class MasterClient {
         new TSocket(mMasterAddress.getHostName(), mMasterAddress.getPort())));
     CLIENT = new MasterService.Client(mProtocol);
     mIsConnected = false;
+
+    mHeartbeatThread = new Thread(new HeartbeatThread("Master_Client Heartbeat",
+        new MasterClientHeartbeatExecutor(this, UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
+        UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2));
+    mHeartbeatThread.start();
   }
 
   public synchronized void close() {
-    mProtocol.getTransport().close();
-    mIsConnected = false;
+    if (mIsConnected) {
+      mProtocol.getTransport().close();
+      mIsConnected = false;
+    }
   }
 
   public synchronized List<ClientFileInfo> ls(String folder)
       throws InvalidPathException, FileDoesNotExistException, TException {
+    open();
     return CLIENT.liststatus(folder);
   }
 
+  synchronized long getLastAccessedMs() {
+    return mLastAccessedMs;
+  }
+
   public synchronized long getUserId() throws TException {
+    open();
     long ret = CLIENT.user_getUserId();
     LOG.info("User registered at the master " + mMasterAddress + " got UserId " + ret);
     return ret;
@@ -69,6 +86,7 @@ public class MasterClient {
   }
 
   public synchronized boolean open() {
+    mLastAccessedMs = System.currentTimeMillis();
     if (!mIsConnected) {
       try {
         mProtocol.getTransport().open();
@@ -95,15 +113,18 @@ public class MasterClient {
   public synchronized boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
       String checkpointPath) 
           throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    open();
     return CLIENT.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
   }
 
   public synchronized List<ClientWorkerInfo> getWorkersInfo() throws TException {
+    open();
     return CLIENT.getWorkersInfo();
   }
 
   public synchronized int user_createFile(String path)
       throws FileAlreadyExistException, InvalidPathException, TException {
+    open();
     return CLIENT.user_createFile(path);
   }
 
@@ -112,48 +133,58 @@ public class MasterClient {
     if (metadata == null) {
       metadata = ByteBuffer.allocate(0);
     }
+    open();
     return CLIENT.user_createRawTable(path, columns, metadata);
   }
 
   public synchronized void user_delete(String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
+    open();
     CLIENT.user_deleteByPath(path);
   }
 
   public synchronized void user_delete(int fileId) throws FileDoesNotExistException, TException {
+    open();
     CLIENT.user_deleteById(fileId);
   }
 
   public synchronized ClientFileInfo user_getClientFileInfoByPath(String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
+    open();
     return CLIENT.user_getClientFileInfoByPath(path);
   }
 
   public synchronized ClientFileInfo user_getClientFileInfoById(int id)
       throws FileDoesNotExistException, TException {
+    open();
     return CLIENT.user_getClientFileInfoById(id);
   }
 
   public synchronized int user_getFileId(String path) throws InvalidPathException, TException {
+    open();
     return CLIENT.user_getFileId(path);
   }
 
   public synchronized int user_getRawTableId(String path) throws InvalidPathException, TException {
+    open();
     return CLIENT.user_getRawTableId(path);
   }
 
   public synchronized List<NetAddress> user_getFileLocations(int id)
       throws FileDoesNotExistException, TException {
+    open();
     return CLIENT.user_getFileLocationsById(id);
   }
 
   public synchronized NetAddress user_getWorker(boolean random, String hostname)
       throws NoLocalWorkerException, TException {
+    open();
     return CLIENT.user_getWorker(random, hostname);
   }
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
       throws TableDoesNotExistException, InvalidPathException, TException {
+    open();
     ClientRawTableInfo ret = CLIENT.user_getClientRawTableInfoByPath(path);
     ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
     return ret;
@@ -161,6 +192,7 @@ public class MasterClient {
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoById(int id)
       throws TableDoesNotExistException, TException {
+    open();
     ClientRawTableInfo ret = CLIENT.user_getClientRawTableInfoById(id);
     ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
     return ret;
@@ -168,62 +200,75 @@ public class MasterClient {
 
   public synchronized int user_getNumberOfFiles(String folderPath)
       throws FileDoesNotExistException, InvalidPathException, TException {
+    open();
     return CLIENT.user_getNumberOfFiles(folderPath);
   }
 
   public synchronized String user_getUnderfsAddress() throws TException {
+    open();
     return CLIENT.user_getUnderfsAddress();
   }
 
   public synchronized List<Integer> user_listFiles(String path, boolean recursive)
       throws FileDoesNotExistException, InvalidPathException, TException {
+    open();
     return CLIENT.user_listFiles(path, recursive);
   }
 
   public synchronized List<String> user_ls(String path, boolean recursive)
       throws FileDoesNotExistException, InvalidPathException, TException {
+    open();
     return CLIENT.user_ls(path, recursive);
   }
 
   public synchronized int user_mkdir(String path) 
       throws FileAlreadyExistException, InvalidPathException, TException {
+    open();
     return CLIENT.user_mkdir(path);
   }
 
   public synchronized void user_outOfMemoryForPinFile(int fileId) throws TException {
+    open();
     CLIENT.user_outOfMemoryForPinFile(fileId);
   }
 
   public synchronized void user_renameFile(String srcPath, String dstPath)
       throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException{
+    open();
     CLIENT.user_renameFile(srcPath, dstPath);
   }
 
   public synchronized void user_unpinFile(int id) throws FileDoesNotExistException, TException {
+    open();
     CLIENT.user_unpinFile(id);
   }
 
   public synchronized void user_updateRawTableMetadata(int id, ByteBuffer metadata)
       throws TableDoesNotExistException, TException {
+    open();
     CLIENT.user_updateRawTableMetadata(id, metadata);
   }
 
   public synchronized void worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
       long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+    open();
     CLIENT.worker_cacheFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
       List<Integer> removedPartitionList) throws TException {
+    open();
     return CLIENT.worker_heartbeat(workerId, usedBytes, removedPartitionList);
   }
 
   public synchronized Set<Integer> worker_getPinIdList() throws TException {
+    open();
     return CLIENT.worker_getPinIdList();
   }
 
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
       long usedBytes, List<Integer> currentFileList) throws TException {
+    open();
     long ret = CLIENT.worker_register(workerNetAddress, totalBytes, usedBytes, currentFileList); 
     LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress +
         " , got WorkerId " + ret);

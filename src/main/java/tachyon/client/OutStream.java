@@ -47,7 +47,7 @@ public class OutStream extends OutputStream {
 
   OutStream(TachyonFile file, OpType opType) throws IOException {
     FILE = file;
-    CLIENT = FILE.CLIENT;
+    CLIENT = FILE.TFS;
     CLIENT_FILE_INFO = FILE.CLIENT_FILE_INFO;
     FID = FILE.FID;
     IO_TYPE = opType;

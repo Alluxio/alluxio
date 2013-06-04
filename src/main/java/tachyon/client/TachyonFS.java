@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
+import tachyon.HeartbeatThread;
 import tachyon.UnderFileSystem;
 import tachyon.MasterClient;
 import tachyon.CommonUtils;
@@ -67,7 +68,7 @@ public class TachyonFS {
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
 
-  private ClientToWorkerHeartbeat mToWorkerHeartbeat = null;
+  private Thread mToWorkerHeartbeatThread = null;
 
   private boolean mConnected = false;
 
@@ -253,10 +254,11 @@ public class TachyonFS {
     }
 
     if (mWorkerClient != null) {
-      mToWorkerHeartbeat = new ClientToWorkerHeartbeat(mWorkerClient, mUserId);
-      Thread thread = new Thread(mToWorkerHeartbeat);
-      thread.setDaemon(true);
-      thread.start();
+      mToWorkerHeartbeatThread = new Thread(new HeartbeatThread("ClientToWorkerHeartbeat", 
+          new ClientToWorkerHeartbeatExecutor(mWorkerClient, mUserId), 
+          UserConf.get().HEARTBEAT_INTERVAL_MS));
+      mToWorkerHeartbeatThread.setDaemon(true);
+      mToWorkerHeartbeatThread.start();
     }
   }
 

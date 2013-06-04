@@ -32,14 +32,14 @@ public class TachyonFile {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final UserConf USER_CONF = UserConf.get();
 
-  final TachyonFS CLIENT;
+  final TachyonFS TFS;
   final ClientFileInfo CLIENT_FILE_INFO;
   final int FID;
 
   private boolean mLockedFile = false;
 
   public TachyonFile(TachyonFS tachyonClient, ClientFileInfo fileInfo) {
-    CLIENT = tachyonClient;
+    TFS = tachyonClient;
     CLIENT_FILE_INFO = fileInfo;
     FID = CLIENT_FILE_INFO.getId();
   }
@@ -58,7 +58,7 @@ public class TachyonFile {
       throws FileDoesNotExistException, SuspectedFileSizeException, TException, IOException {
     UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(path);
     long sizeBytes = ufs.getFileSize(path);
-    if (CLIENT.addCheckpointPath(FID, path)) {
+    if (TFS.addCheckpointPath(FID, path)) {
       CLIENT_FILE_INFO.sizeBytes = sizeBytes;
       CLIENT_FILE_INFO.checkpointPath = path;
       return true;
@@ -94,7 +94,7 @@ public class TachyonFile {
   }
 
   public List<String> getLocationHosts() throws IOException {
-    List<NetAddress> locations = CLIENT.getFileNetAddresses(FID);
+    List<NetAddress> locations = TFS.getFileNetAddresses(FID);
     List<String> ret = new ArrayList<String>(locations.size());
     if (locations != null) {
       for (int k = 0; k < locations.size(); k ++) {
@@ -114,12 +114,12 @@ public class TachyonFile {
       return null;
     }
 
-    mLockedFile = CLIENT.lockFile(FID);
+    mLockedFile = TFS.lockFile(FID);
 
     ByteBuffer ret = null;
     ret = readByteBufferFromLocal();
     if (ret == null) {
-      CLIENT.unlockFile(FID);
+      TFS.unlockFile(FID);
       mLockedFile = false;
 
       // TODO Make it local cache if the OpType is try cache.
@@ -130,15 +130,15 @@ public class TachyonFile {
   }
 
   private ByteBuffer readByteBufferFromLocal() {
-    if (CLIENT.getRootFolder() != null) {
-      String localFileName = CLIENT.getRootFolder() + Constants.PATH_SEPARATOR + FID;
+    if (TFS.getRootFolder() != null) {
+      String localFileName = TFS.getRootFolder() + Constants.PATH_SEPARATOR + FID;
       try {
         RandomAccessFile localFile = new RandomAccessFile(localFileName, "r");
         FileChannel localFileChannel = localFile.getChannel();
         ByteBuffer ret = localFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, localFile.length());
         localFile.close();
         ret.order(ByteOrder.nativeOrder());
-        CLIENT.accessLocalFile(FID);
+        TFS.accessLocalFile(FID);
         return ret;
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");
@@ -155,7 +155,7 @@ public class TachyonFile {
 
     LOG.info("Try to find and read from remote workers.");
     try {
-      List<NetAddress> fileLocations = CLIENT.getFileNetAddresses(FID);
+      List<NetAddress> fileLocations = TFS.getFileNetAddresses(FID);
       LOG.info("readByteBufferFromRemote() " + fileLocations);
 
       for (int k = 0; k < fileLocations.size(); k ++) {
@@ -168,7 +168,7 @@ public class TachyonFile {
         }
         if (host.equals(InetAddress.getLocalHost().getHostName()) 
             || host.equals(InetAddress.getLocalHost().getHostAddress())) {
-          String localFileName = CLIENT.getRootFolder() + "/" + FID;
+          String localFileName = TFS.getRootFolder() + "/" + FID;
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         } else {
           LOG.info(host + ":" + (port + 1) +
@@ -207,7 +207,7 @@ public class TachyonFile {
     } catch (IOException e) {
       return false;
     }
-    TachyonFile tTFile = CLIENT.getFile(CLIENT_FILE_INFO.getId());
+    TachyonFile tTFile = TFS.getFile(CLIENT_FILE_INFO.getId());
     try {
       OutStream os = tTFile.getOutStream(OpType.WRITE_CACHE);
       byte buffer[] = new byte[USER_CONF.FILE_BUFFER_BYTES * 4];
@@ -239,7 +239,7 @@ public class TachyonFile {
 
   public void releaseFileLock() {
     if (mLockedFile) {
-      CLIENT.unlockFile(FID);
+      TFS.unlockFile(FID);
     }
   }
 
