@@ -37,7 +37,7 @@ import tachyon.thrift.TableDoesNotExistException;
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients
  * depending on how many workers the client program is interacting with.
  */
-public class TachyonClient {
+public class TachyonFS {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final long USER_QUOTA_UNIT_BYTES = UserConf.get().QUOTA_UNIT_BYTES;
@@ -71,16 +71,16 @@ public class TachyonClient {
 
   private boolean mConnected = false;
 
-  private TachyonClient(InetSocketAddress masterAddress) {
+  private TachyonFS(InetSocketAddress masterAddress) {
     mMasterAddress = masterAddress;
     mAvailableSpaceBytes = 0L;
   }
 
-  public static synchronized TachyonClient getClient(InetSocketAddress tachyonAddress) {
-    return new TachyonClient(tachyonAddress);
+  public static synchronized TachyonFS getClient(InetSocketAddress tachyonAddress) {
+    return new TachyonFS(tachyonAddress);
   }
 
-  public static synchronized TachyonClient getClient(String tachyonAddress) {
+  public static synchronized TachyonFS getClient(String tachyonAddress) {
     String[] address = tachyonAddress.split(":");
     if (address.length != 2) {
       CommonUtils.illegalArgumentException("Illegal Tachyon Master Address: " + tachyonAddress);

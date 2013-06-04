@@ -32,13 +32,13 @@ public class TachyonFile {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final UserConf USER_CONF = UserConf.get();
 
-  final TachyonClient CLIENT;
+  final TachyonFS CLIENT;
   final ClientFileInfo CLIENT_FILE_INFO;
   final int FID;
 
   private boolean mLockedFile = false;
 
-  public TachyonFile(TachyonClient tachyonClient, ClientFileInfo fileInfo) {
+  public TachyonFile(TachyonFS tachyonClient, ClientFileInfo fileInfo) {
     CLIENT = tachyonClient;
     CLIENT_FILE_INFO = fileInfo;
     FID = CLIENT_FILE_INFO.getId();

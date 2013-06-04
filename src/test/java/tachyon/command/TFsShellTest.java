@@ -21,7 +21,7 @@ import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 import tachyon.client.InStream;
 import tachyon.client.OpType;
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -33,7 +33,7 @@ import tachyon.thrift.InvalidPathException;
 public class TFsShellTest {
   private final int mSizeBytes = Constants.MB * 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonClient mClient = null;
+  private TachyonFS mClient = null;
   private TFsShell mFsShell = null;
   private ByteArrayOutputStream mOutput = null;
   private PrintStream mNewOutput = null;

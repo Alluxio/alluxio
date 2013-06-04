@@ -29,7 +29,7 @@ public class OutStream extends OutputStream {
   private final UserConf USER_CONF = UserConf.get();
 
   private final TachyonFile FILE;
-  private final TachyonClient CLIENT;
+  private final TachyonFS CLIENT;
   private final ClientFileInfo CLIENT_FILE_INFO;
   private final int FID;
   private final OpType IO_TYPE;

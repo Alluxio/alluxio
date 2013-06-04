@@ -23,12 +23,12 @@ import tachyon.thrift.TableDoesNotExistException;
 /**
  * Unit tests on TachyonClient.
  */
-public class TachyonClientTest {
+public class TachyonFSTest {
   private final int WORKER_CAPACITY_BYTES = 20000;
   private final int USER_QUOTA_UNIT_BYTES = 1000;
   private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 5;
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonClient mClient = null;
+  private TachyonFS mClient = null;
 
   @Before
   public final void before() throws IOException {

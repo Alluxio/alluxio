@@ -1,6 +1,6 @@
 package tachyon;
 
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.client.OpType;
 
 import java.io.IOException;
@@ -23,7 +23,7 @@ public class WorkerServiceHandlerTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
   private WorkerServiceHandler mWorkerServiceHandler = null;
-  private TachyonClient mClient = null;
+  private TachyonFS mClient = null;
   private final long WORKER_CAPACITY_BYTES = 10000;
   private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 5;
 

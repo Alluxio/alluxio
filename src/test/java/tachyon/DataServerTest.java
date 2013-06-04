@@ -10,7 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.client.OpType;
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
@@ -22,7 +22,7 @@ public class DataServerTest {
   private final int USER_QUOTA_UNIT_BYTES = 100;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonClient mClient = null;
+  private TachyonFS mClient = null;
 
   @Before
   public final void before() throws IOException {

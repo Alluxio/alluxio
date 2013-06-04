@@ -11,7 +11,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -20,7 +20,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 public class SubsumeHdfs {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private static TachyonClient sTachyonClient;
+  private static TachyonFS sTachyonClient;
   private static String sFilePath = null;
   private static String sHdfsAddress = null;
   private static PrefixList sExcludePathPrefix = null;
@@ -37,7 +37,7 @@ public class SubsumeHdfs {
           "127.0.0.1:19998 hdfs://localhost:54310 / /tachyon");
       System.exit(-1);
     }
-    sTachyonClient = TachyonClient.getClient(args[0]);
+    sTachyonClient = TachyonFS.getClient(args[0]);
     sHdfsAddress = args[1];
     sFilePath = args[2];
     if (args.length == 4) {

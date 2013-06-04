@@ -12,11 +12,11 @@ import tachyon.thrift.InvalidPathException;
  * The column of a <code>RawTable</code>.
  */
 public class RawColumn {
-  private final TachyonClient TACHYON_CLIENT;
+  private final TachyonFS TACHYON_CLIENT;
   private final RawTable RAW_TABLE;
   private final int COLUMN_INDEX;
 
-  RawColumn(TachyonClient tachyonClient, RawTable rawTable, int columnIndex) {
+  RawColumn(TachyonFS tachyonClient, RawTable rawTable, int columnIndex) {
     TACHYON_CLIENT = tachyonClient;
     RAW_TABLE = rawTable;
     COLUMN_INDEX = columnIndex;
