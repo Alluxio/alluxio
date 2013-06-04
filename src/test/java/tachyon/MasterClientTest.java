@@ -5,7 +5,6 @@ import java.io.IOException;
 import junit.framework.Assert;
 
 import org.apache.thrift.TException;
-import org.apache.thrift.transport.TTransportException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,13 +37,13 @@ public class MasterClientTest {
   public void openCloseTest() throws FileAlreadyExistException, InvalidPathException, TException {
     MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress());
     Assert.assertFalse(masterClient.isConnected());
-    masterClient.open();
+    masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
     masterClient.user_createFile("/file");
     Assert.assertTrue(masterClient.user_getFileId("/file") != -1);
-    masterClient.close();
+    masterClient.disconnect();
     Assert.assertFalse(masterClient.isConnected());
-    masterClient.open();
+    masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
     Assert.assertTrue(masterClient.user_getFileId("/file") != -1);
   }

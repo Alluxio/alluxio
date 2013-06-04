@@ -15,7 +15,7 @@ class MasterClientHeartbeatExecutor implements HeartbeatExecutor {
   @Override
   public void heartbeat() {
     if (System.currentTimeMillis() - CLIENT.getLastAccessedMs() > MAX_NONE_ACCESS_INTERVAL) {
-      CLIENT.close();
+      CLIENT.disconnect();
     }
   }
 }

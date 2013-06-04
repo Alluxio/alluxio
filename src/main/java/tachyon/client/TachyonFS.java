@@ -68,7 +68,7 @@ public class TachyonFS {
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
 
-  private Thread mToWorkerHeartbeatThread = null;
+  private HeartbeatThread mToWorkerHeartbeatThread = null;
 
   private boolean mConnected = false;
 
@@ -178,7 +178,7 @@ public class TachyonFS {
     }
     LOG.info("Trying to connect master @ " + mMasterAddress);
     mMasterClient = new MasterClient(mMasterAddress);
-    mConnected = mMasterClient.open();
+    mConnected = mMasterClient.connect();
 
     if (!mConnected) {
       return;
@@ -254,9 +254,9 @@ public class TachyonFS {
     }
 
     if (mWorkerClient != null) {
-      mToWorkerHeartbeatThread = new Thread(new HeartbeatThread("ClientToWorkerHeartbeat", 
+      mToWorkerHeartbeatThread = new HeartbeatThread("ClientToWorkerHeartbeat", 
           new ClientToWorkerHeartbeatExecutor(mWorkerClient, mUserId), 
-          UserConf.get().HEARTBEAT_INTERVAL_MS));
+          UserConf.get().HEARTBEAT_INTERVAL_MS);
       mToWorkerHeartbeatThread.setDaemon(true);
       mToWorkerHeartbeatThread.start();
     }
@@ -264,12 +264,15 @@ public class TachyonFS {
 
   public synchronized void close() throws TException {
     if (mMasterClient != null) {
-      mMasterClient.close();
+      mMasterClient.disconnect();
     }
 
     if (mWorkerClient != null) {
       mWorkerClient.returnSpace(mUserId, mAvailableSpaceBytes);
       mWorkerClient.close();
+
+      // TODO move this thread to the worker client.
+      mToWorkerHeartbeatThread.shutdown();
     }
   }
 
@@ -612,7 +615,7 @@ public class TachyonFS {
     if (!mConnected) {
       return null;
     }
-    return mMasterClient.ls(path);
+    return mMasterClient.listStatus(path);
   }
 
   public synchronized List<String> ls(String path, boolean recursive) throws IOException {
