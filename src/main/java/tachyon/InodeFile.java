@@ -69,14 +69,21 @@ public class InodeFile extends Inode {
     mLocations.remove(workerId);
   }
 
-  public synchronized List<NetAddress> getLocations() throws IOException {
+  public synchronized List<NetAddress> getLocations() {
     List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
     ret.addAll(mLocations.values());
     if (ret.isEmpty() && hasCheckpointed()) {
       UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(mCheckpointPath);
-      List<String> locs = ufs.getFileLocations(mCheckpointPath);
-      for (String loc: locs) {
-        ret.add(new NetAddress(loc, -1));
+      List<String> locs = null;
+      try {
+        locs = ufs.getFileLocations(mCheckpointPath);
+      } catch (IOException e) {
+        return ret;
+      }
+      if (locs != null) {
+        for (String loc: locs) {
+          ret.add(new NetAddress(loc, -1));
+        }
       }
     }
     return ret;

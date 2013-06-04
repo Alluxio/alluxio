@@ -403,8 +403,6 @@ public class MasterInfo {
 
   public void delete(int id) {
     LOG.info("delete(" + id + ")");
-    // Only remove meta data from master. The data in workers will be evicted since no further
-    // application can read them. (Based on LRU) TODO May change it to be active from V0.2. 
     synchronized (mRoot) {
       Inode inode = mInodes.get(id);
 
@@ -423,9 +421,24 @@ public class MasterInfo {
       InodeFolder parent = (InodeFolder) mInodes.get(inode.getParentId());
       parent.removeChild(inode.getId());
       mInodes.remove(inode.getId());
-      if (inode.isFile() && ((InodeFile) inode).isPin()) {
-        synchronized (mIdPinList) {
-          mIdPinList.remove(inode.getId());
+      if (inode.isFile()) {
+        List<NetAddress> locations = ((InodeFile) inode).getLocations();
+        synchronized (mWorkers) {
+          for (NetAddress loc : locations) {
+            Long workerId =
+                mWorkerAddressToId.get(new InetSocketAddress(loc.getMHost(), loc.getMPort()));
+            if (workerId == null) {
+              continue;
+            }
+            MasterWorkerInfo workerInfo = mWorkers.get(workerId);
+            workerInfo.updateToRemovedFile(true, inode.getId());
+          }
+        }
+
+        if (((InodeFile) inode).isPin()) {
+          synchronized (mIdPinList) {
+            mIdPinList.remove(inode.getId());
+          }
         }
       }
       inode.reverseId();
@@ -1073,11 +1086,12 @@ public class MasterInfo {
       if (tWorkerInfo == null) {
         LOG.info("worker_heartbeat(): Does not contain worker with ID " + workerId +
             " . Send command to let it re-register.");
-        return new Command(CommandType.Register, ByteBuffer.allocate(0));
+        return new Command(CommandType.Register, new ArrayList<Integer>());
       }
 
       tWorkerInfo.updateUsedBytes(usedBytes);
       tWorkerInfo.updateFiles(false, removedFileIds);
+      tWorkerInfo.updateToRemovedFiles(false, removedFileIds);
       tWorkerInfo.updateLastUpdatedTimeMs();
 
       synchronized (mRoot) {
@@ -1091,9 +1105,14 @@ public class MasterInfo {
           }
         }
       }
+
+      List<Integer> toRemovedFiles = tWorkerInfo.getToRemovedFiles();
+      if (toRemovedFiles.size() != 0) {
+        return new Command(CommandType.Free, toRemovedFiles);
+      }
     }
 
-    return new Command(CommandType.Nothing, ByteBuffer.allocate(0));
+    return new Command(CommandType.Nothing, new ArrayList<Integer>());
   }
 
   private void writeCheckpoint() throws IOException {
