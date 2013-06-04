@@ -47,24 +47,6 @@ public class WorkerServiceHandlerTest {
   }
 
   @Test
-  public void accessFileTest() throws TException {
-    mWorkerServiceHandler.accessFile(1);
-    Assert.assertEquals(1, (int) mWorkerServiceHandler.sDataAccessQueue.poll());
-    mWorkerServiceHandler.accessFile(1);
-    mWorkerServiceHandler.accessFile(2);
-    mWorkerServiceHandler.accessFile(3);
-    Assert.assertEquals(1, (int) mWorkerServiceHandler.sDataAccessQueue.poll());
-    Assert.assertEquals(2, (int) mWorkerServiceHandler.sDataAccessQueue.poll());
-    Assert.assertEquals(3, (int) mWorkerServiceHandler.sDataAccessQueue.poll());
-    mWorkerServiceHandler.accessFile(1);
-    mWorkerServiceHandler.accessFile(1);
-    mWorkerServiceHandler.accessFile(2);
-    Assert.assertEquals(1, (int) mWorkerServiceHandler.sDataAccessQueue.poll());
-    Assert.assertEquals(1, (int) mWorkerServiceHandler.sDataAccessQueue.poll());
-    Assert.assertEquals(2, (int) mWorkerServiceHandler.sDataAccessQueue.poll());
-  }
-
-  @Test
   public void overCapacityRequestSpaceTest() throws TException {
     Assert.assertTrue(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L));
     Assert.assertFalse(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES * 10L));
