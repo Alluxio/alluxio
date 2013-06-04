@@ -26,16 +26,18 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 
 public class WorkerStorage {
-  private final BlockingQueue<Integer> sDataAccessQueue = 
-      new ArrayBlockingQueue<Integer>(Constants.WORKER_FILES_QUEUE_SIZE);
-
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final CommonConf COMMON_CONF;
 
+  private final BlockingQueue<Integer> DATA_ACCESS_QUEUE = 
+      new ArrayBlockingQueue<Integer>(Constants.WORKER_FILES_QUEUE_SIZE);
+
   private volatile MasterClient mMasterClient;
   private InetSocketAddress mMasterAddress;
-  private WorkerInfo mWorkerInfo;
+  private long mWorkerId;
+  private InetSocketAddress mWorkerAddress;
+  private WorkerSpaceCounter mWorkerSpaceCounter;
 
   // TODO Should merge these three structures, and make it more clean. Define NodeStroage class.
   private Set<Integer> mMemoryData = new HashSet<Integer>();
@@ -58,28 +60,29 @@ public class WorkerStorage {
   public WorkerStorage(InetSocketAddress masterAddress, InetSocketAddress workerAddress, 
       String dataFolder, long memoryCapacityBytes) {
     COMMON_CONF = CommonConf.get();
+    mWorkerSpaceCounter = new WorkerSpaceCounter(memoryCapacityBytes);
 
     mMasterAddress = masterAddress;
     mMasterClient = new MasterClient(mMasterAddress);
 
-    long id = 0;
-    while (id == 0) {
+    mWorkerAddress = workerAddress;
+    mWorkerId = 0;
+    while (mWorkerId == 0) {
       try {
         mMasterClient.open();
-        id = mMasterClient.worker_register(
-            new NetAddress(workerAddress.getHostName(), workerAddress.getPort()),
-            memoryCapacityBytes, 0, new ArrayList<Integer>());
+        mWorkerId = mMasterClient.worker_register(
+            new NetAddress(mWorkerAddress.getHostName(), mWorkerAddress.getPort()),
+            mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Integer>());
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        id = 0;
+        mWorkerId = 0;
         CommonUtils.sleepMs(LOG, 1000);
       }
     }
 
     mDataFolder = new File(dataFolder);
     mUserFolder = new File(mDataFolder.toString(), WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
-    mWorkerInfo = new WorkerInfo(id, workerAddress, memoryCapacityBytes);
-    mUnderfsWorkerFolder = COMMON_CONF.WORKERS_FOLDER + "/" + id;
+    mUnderfsWorkerFolder = COMMON_CONF.WORKERS_FOLDER + "/" + mWorkerId;
     mUnderFs = UnderFileSystem.getUnderFileSystem(COMMON_CONF.UNDERFS_ADDRESS);
     mUsers = new Users(mUserFolder.toString(), mUnderfsWorkerFolder);
 
@@ -93,11 +96,12 @@ public class WorkerStorage {
       CommonUtils.runtimeException(e);
     }
 
-    LOG.info("Current Worker Info: " + mWorkerInfo);
+    LOG.info("Current Worker Info: ID " + mWorkerId + ", ADDRESS: " + mWorkerAddress +
+        ", MemoryCapacityBytes: " + mWorkerSpaceCounter.getCapacityBytes());
   }
 
   public void accessFile(int fileId) {
-    sDataAccessQueue.add(fileId);
+    DATA_ACCESS_QUEUE.add(fileId);
   }
 
   public void addCheckpoint(long userId, int fileId)
@@ -119,19 +123,17 @@ public class WorkerStorage {
     } catch (IOException e) {
       throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
     }
-    mMasterClient.addCheckpoint(mWorkerInfo.getId(), fileId, fileSize, dstPath);
+    mMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
   }
 
   private void addFoundPartition(int fileId, long fileSizeBytes)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     addId(fileId, fileSizeBytes);
-    mMasterClient.worker_cachedFile(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(), fileId,
+    mMasterClient.worker_cachedFile(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), fileId,
         fileSizeBytes);
   }
 
   private void addId(int fileId, long fileSizeBytes) {
-    mWorkerInfo.updateFile(true, fileId);
-
     synchronized (mLatestFileAccessTimeMs) {
       mLatestFileAccessTimeMs.put(fileId, System.currentTimeMillis());
       mFileSizes.put(fileId, fileSizeBytes);
@@ -153,12 +155,12 @@ public class WorkerStorage {
     }
     addId(fileId, fileSizeBytes);
     mUsers.addOwnBytes(userId, - fileSizeBytes);
-    mMasterClient.worker_cachedFile(mWorkerInfo.getId(), 
-        mWorkerInfo.getUsedBytes(), fileId, fileSizeBytes);
+    mMasterClient.worker_cachedFile(mWorkerId, 
+        mWorkerSpaceCounter.getUsedBytes(), fileId, fileSizeBytes);
   }
 
   public void checkStatus() {
-    List<Long> removedUsers = mUsers.checkStatus(mWorkerInfo);
+    List<Long> removedUsers = mUsers.checkStatus(mWorkerSpaceCounter);
 
     for (long userId : removedUsers) {
       synchronized (mUsersPerLockedFile) {
@@ -177,8 +179,8 @@ public class WorkerStorage {
     }
 
     synchronized (mLatestFileAccessTimeMs) {
-      while (!sDataAccessQueue.isEmpty()) {
-        int fileId = sDataAccessQueue.poll();
+      while (!DATA_ACCESS_QUEUE.isEmpty()) {
+        int fileId = DATA_ACCESS_QUEUE.poll();
 
         mLatestFileAccessTimeMs.put(fileId, System.currentTimeMillis());
       }
@@ -186,8 +188,7 @@ public class WorkerStorage {
   }
 
   private void freeFile(int fileId) {
-    mWorkerInfo.returnUsedBytes(mFileSizes.get(fileId));
-    mWorkerInfo.removeFile(fileId);
+    mWorkerSpaceCounter.returnUsedBytes(mFileSizes.get(fileId));
     File srcFile = new File(mDataFolder + "/" + fileId);
     srcFile.delete();
     synchronized (mLatestFileAccessTimeMs) {
@@ -220,7 +221,7 @@ public class WorkerStorage {
     while (mRemovedFileList.size() > 0) {
       sendRemovedPartitionList.add(mRemovedFileList.poll());
     }
-    return mMasterClient.worker_heartbeat(mWorkerInfo.getId(), mWorkerInfo.getUsedBytes(),
+    return mMasterClient.worker_heartbeat(mWorkerId, mWorkerSpaceCounter.getUsedBytes(),
         sendRemovedPartitionList);
   }
 
@@ -249,7 +250,7 @@ public class WorkerStorage {
         LOG.info("File " + cnt + ": " + tFile.getPath() + " with size " + tFile.length() + " Bs.");
 
         int fileId = CommonUtils.getFileIdFromFileName(tFile.getName());
-        boolean success = mWorkerInfo.requestSpaceBytes(tFile.length());
+        boolean success = mWorkerSpaceCounter.requestSpaceBytes(tFile.length());
         addFoundPartition(fileId, tFile.length());
         mAddedFileList.add(fileId);
         if (!success) {
@@ -321,41 +322,41 @@ public class WorkerStorage {
       try {
         mMasterClient.open();
         id = mMasterClient.worker_register(
-            new NetAddress(mWorkerInfo.ADDRESS.getHostName(), mWorkerInfo.ADDRESS.getPort()),
-            mWorkerInfo.getCapacityBytes(), 0, new ArrayList<Integer>(mMemoryData));
+            new NetAddress(mWorkerAddress.getHostName(), mWorkerAddress.getPort()),
+            mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Integer>(mMemoryData));
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
         CommonUtils.sleepMs(LOG, 1000);
       }
     }
-    mWorkerInfo.updateId(id);
+    mWorkerId = id;
   }
 
   public void returnSpace(long userId, long returnedBytes) throws TException {
-    long preAvailableBytes = mWorkerInfo.getAvailableBytes();
+    long preAvailableBytes = mWorkerSpaceCounter.getAvailableBytes();
     if (returnedBytes > mUsers.ownBytes(userId)) {
       LOG.error("User " + userId + " does not own " + returnedBytes + " bytes.");
     } else {
-      mWorkerInfo.returnUsedBytes(returnedBytes);
+      mWorkerSpaceCounter.returnUsedBytes(returnedBytes);
       mUsers.addOwnBytes(userId, - returnedBytes);
     }
 
     LOG.info("returnSpace(" + userId + ", " + returnedBytes + ") : " +
         preAvailableBytes + " returned: " + returnedBytes + ". New Available: " +
-        mWorkerInfo.getAvailableBytes());
+        mWorkerSpaceCounter.getAvailableBytes());
   }
 
   public boolean requestSpace(long userId, long requestBytes) throws TException {
     LOG.info("requestSpace(" + userId + ", " + requestBytes + "): Current available: " +
-        mWorkerInfo.getAvailableBytes() + " requested: " + requestBytes);
-    if (mWorkerInfo.getCapacityBytes() < requestBytes) {
+        mWorkerSpaceCounter.getAvailableBytes() + " requested: " + requestBytes);
+    if (mWorkerSpaceCounter.getCapacityBytes() < requestBytes) {
       LOG.info("user_requestSpace(): requested memory size is larger than the total memory on" +
           " the machine.");
       return false;
     }
 
-    while (!mWorkerInfo.requestSpaceBytes(requestBytes)) {
+    while (!mWorkerSpaceCounter.requestSpaceBytes(requestBytes)) {
       if (!memoryEvictionLRU()) {
         return false;
       }
