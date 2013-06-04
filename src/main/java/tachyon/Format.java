@@ -30,7 +30,7 @@ public class Format {
     ufs.delete(masterConf.LOG_FILE, false);
 
     CommonConf commonConf = CommonConf.get();
-    String folder = commonConf.DATA_FOLDER;
+    String folder = commonConf.UNDERFS_DATA_FOLDER;
     ufs = UnderFileSystem.getUnderFileSystem(folder);
     LOG.info("Formatting " + folder);
     ufs.delete(folder, true);
@@ -38,7 +38,7 @@ public class Format {
       LOG.info("Failed to create " + folder);
     }
 
-    folder = commonConf.WORKERS_FOLDER;
+    folder = commonConf.UNDERFS_WORKERS_FOLDER;
     LOG.info("Formatting " + folder);
     ufs.delete(folder, true);
     if (!ufs.mkdirs(folder, true)) {

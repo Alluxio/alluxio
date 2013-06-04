@@ -30,28 +30,26 @@ public class WorkerStorage {
 
   private final CommonConf COMMON_CONF;
 
-  private final BlockingQueue<Integer> DATA_ACCESS_QUEUE = 
-      new ArrayBlockingQueue<Integer>(Constants.WORKER_FILES_QUEUE_SIZE);
-
   private volatile MasterClient mMasterClient;
   private InetSocketAddress mMasterAddress;
   private long mWorkerId;
   private InetSocketAddress mWorkerAddress;
   private WorkerSpaceCounter mWorkerSpaceCounter;
 
-  // TODO Should merge these three structures, and make it more clean. Define NodeStroage class.
   private Set<Integer> mMemoryData = new HashSet<Integer>();
+  private Map<Integer, Long> mFileSizes = new HashMap<Integer, Long>();
   private Map<Integer, Long> mLatestFileAccessTimeMs = new HashMap<Integer, Long>();
+
   private Map<Integer, Set<Long>> mUsersPerLockedFile = new HashMap<Integer, Set<Long>>();
   private Map<Long, Set<Integer>> mLockedFilesPerUser = new HashMap<Long, Set<Integer>>();
-  private Map<Integer, Long> mFileSizes = new HashMap<Integer, Long>();
+
   private BlockingQueue<Integer> mRemovedFileList = 
       new ArrayBlockingQueue<Integer>(Constants.WORKER_FILES_QUEUE_SIZE);
   private BlockingQueue<Integer> mAddedFileList = 
       new ArrayBlockingQueue<Integer>(Constants.WORKER_FILES_QUEUE_SIZE);
 
-  private File mDataFolder;
-  private File mUserFolder;
+  private File mLocalDataFolder;
+  private File mLocalUserFolder;
   private String mUnderfsWorkerFolder;
   private UnderFileSystem mUnderFs;
 
@@ -60,12 +58,10 @@ public class WorkerStorage {
   public WorkerStorage(InetSocketAddress masterAddress, InetSocketAddress workerAddress, 
       String dataFolder, long memoryCapacityBytes) {
     COMMON_CONF = CommonConf.get();
-    mWorkerSpaceCounter = new WorkerSpaceCounter(memoryCapacityBytes);
 
     mMasterAddress = masterAddress;
     mMasterClient = new MasterClient(mMasterAddress);
 
-    mWorkerAddress = workerAddress;
     mWorkerId = 0;
     while (mWorkerId == 0) {
       try {
@@ -79,12 +75,15 @@ public class WorkerStorage {
         CommonUtils.sleepMs(LOG, 1000);
       }
     }
+    mWorkerAddress = workerAddress;
+    mWorkerSpaceCounter = new WorkerSpaceCounter(memoryCapacityBytes);
 
-    mDataFolder = new File(dataFolder);
-    mUserFolder = new File(mDataFolder.toString(), WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
-    mUnderfsWorkerFolder = COMMON_CONF.WORKERS_FOLDER + "/" + mWorkerId;
+    mLocalDataFolder = new File(dataFolder);
+    mLocalUserFolder =
+        new File(mLocalDataFolder.toString(), WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
+    mUnderfsWorkerFolder = COMMON_CONF.UNDERFS_WORKERS_FOLDER + "/" + mWorkerId;
     mUnderFs = UnderFileSystem.getUnderFileSystem(COMMON_CONF.UNDERFS_ADDRESS);
-    mUsers = new Users(mUserFolder.toString(), mUnderfsWorkerFolder);
+    mUsers = new Users(mLocalUserFolder.toString(), mUnderfsWorkerFolder);
 
     try {
       initializeWorkerStorage();
@@ -101,7 +100,9 @@ public class WorkerStorage {
   }
 
   public void accessFile(int fileId) {
-    DATA_ACCESS_QUEUE.add(fileId);
+    synchronized (mLatestFileAccessTimeMs) {
+      mLatestFileAccessTimeMs.put(fileId, System.currentTimeMillis());
+    }
   }
 
   public void addCheckpoint(long userId, int fileId)
@@ -109,12 +110,12 @@ public class WorkerStorage {
       FailedToCheckpointException, TException {
     // TODO This part need to be changed.
     String srcPath = getUserUnderfsTempFolder(userId) + "/" + fileId;
-    String dstPath = COMMON_CONF.DATA_FOLDER + "/" + fileId;
+    String dstPath = COMMON_CONF.UNDERFS_DATA_FOLDER + "/" + fileId;
     try {
       if (!mUnderFs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
       }
-    } catch (IOException e1) {
+    } catch (IOException e) {
       throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
     }
     long fileSize;
@@ -144,7 +145,7 @@ public class WorkerStorage {
   public void cacheFile(long userId, int fileId)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     File srcFile = new File(getUserTempFolder(userId) + "/" + fileId);
-    File dstFile = new File(mDataFolder + "/" + fileId);
+    File dstFile = new File(mLocalDataFolder + "/" + fileId);
     long fileSizeBytes = srcFile.length(); 
     if (!srcFile.exists()) {
       throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
@@ -159,10 +160,16 @@ public class WorkerStorage {
         mWorkerSpaceCounter.getUsedBytes(), fileId, fileSizeBytes);
   }
 
+  /**
+   * Check worker's status. This should be executed periodically.
+   * <p>
+   * It finds the timeout users and cleans them up.
+   */
   public void checkStatus() {
-    List<Long> removedUsers = mUsers.checkStatus(mWorkerSpaceCounter);
+    List<Long> removedUsers = mUsers.checkStatus();
 
     for (long userId : removedUsers) {
+      mWorkerSpaceCounter.returnUsedBytes(mUsers.removeUser(userId));
       synchronized (mUsersPerLockedFile) {
         Set<Integer> fileIds = mLockedFilesPerUser.get(userId);
         mLockedFilesPerUser.remove(userId);
@@ -177,31 +184,45 @@ public class WorkerStorage {
         }
       }
     }
-
-    synchronized (mLatestFileAccessTimeMs) {
-      while (!DATA_ACCESS_QUEUE.isEmpty()) {
-        int fileId = DATA_ACCESS_QUEUE.poll();
-
-        mLatestFileAccessTimeMs.put(fileId, System.currentTimeMillis());
-      }
-    }
   }
 
-  private void freeFile(int fileId) {
-    mWorkerSpaceCounter.returnUsedBytes(mFileSizes.get(fileId));
-    File srcFile = new File(mDataFolder + "/" + fileId);
-    srcFile.delete();
-    synchronized (mLatestFileAccessTimeMs) {
-      mLatestFileAccessTimeMs.remove(fileId);
-      mFileSizes.remove(fileId);
-      mRemovedFileList.add(fileId);
-      mMemoryData.remove(fileId);
+  /**
+   * Remove a file from the memory.
+   * @param fileId The file to be removed.
+   * @return Removed file size in bytes.
+   */
+  private synchronized long freeFile(int fileId) {
+    Long freedFileBytes = null;
+    if (mFileSizes.containsKey(fileId)) {
+      mWorkerSpaceCounter.returnUsedBytes(mFileSizes.get(fileId));
+      File srcFile = new File(mLocalDataFolder + "/" + fileId);
+      srcFile.delete();
+      synchronized (mLatestFileAccessTimeMs) {
+        mLatestFileAccessTimeMs.remove(fileId);
+        freedFileBytes = mFileSizes.remove(fileId);
+        mRemovedFileList.add(fileId);
+        mMemoryData.remove(fileId);
+      }
+      LOG.info("Removed Data " + fileId);
+    } else {
+      LOG.warn("File " + fileId + " does not exist in memory.");
     }
-    LOG.info("Removed Data " + fileId);
+
+    return freedFileBytes == null ? 0 : freedFileBytes;
+  }
+
+  /**
+   * Remove files from the memory.
+   * @param files The list of files to be removed.
+   */
+  public void freeFiles(ArrayList<Integer> files) {
+    for (int fileId: files) {
+      freeFile(fileId);
+    }
   }
 
   public String getDataFolder() throws TException {
-    return mDataFolder.toString();
+    return mLocalDataFolder.toString();
   }
 
   public String getUserTempFolder(long userId) throws TException {
@@ -211,7 +232,7 @@ public class WorkerStorage {
   }
 
   public String getUserUnderfsTempFolder(long userId) throws TException {
-    String ret = mUsers.getUserHdfsTempFolder(userId);
+    String ret = mUsers.getUserUnderfsTempFolder(userId);
     LOG.info("Return UserHdfsTempFolder for " + userId + " : " + ret);
     return ret;
   }
@@ -228,23 +249,30 @@ public class WorkerStorage {
   private void initializeWorkerStorage() 
       throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     LOG.info("Initializing the worker storage.");
-    if (!mDataFolder.exists()) {
-      LOG.info("Local folder " + mDataFolder.toString() + " does not exist. Creating a new one.");
-
-      mDataFolder.mkdir();
-      mUserFolder.mkdir();
-
+    if (!mLocalDataFolder.exists()) {
+      LOG.info("Local folder " + mLocalDataFolder + " does not exist. Creating a new one.");
+      mLocalDataFolder.mkdir();
+      mLocalUserFolder.mkdir();
       return;
     }
 
-    if (!mDataFolder.isDirectory()) {
-      String tmp = mDataFolder.toString() + " is not a folder!";
+    if (!mLocalDataFolder.isDirectory()) {
+      String tmp = "Data folder " + mLocalDataFolder + " is not a folder!";
       LOG.error(tmp);
       throw new IllegalArgumentException(tmp);
     }
 
+    if (mLocalUserFolder.exists()) {
+      try {
+        FileUtils.deleteDirectory(mLocalUserFolder);
+      } catch (IOException e) {
+        LOG.error(e.getMessage(), e);
+      }
+    }
+    mLocalUserFolder.mkdir();
+
     int cnt = 0;
-    for (File tFile : mDataFolder.listFiles()) {
+    for (File tFile : mLocalDataFolder.listFiles()) {
       if (tFile.isFile()) {
         cnt ++;
         LOG.info("File " + cnt + ": " + tFile.getPath() + " with size " + tFile.length() + " Bs.");
@@ -258,15 +286,6 @@ public class WorkerStorage {
         }
       }
     }
-
-    if (mUserFolder.exists()) {
-      try {
-        FileUtils.deleteDirectory(mUserFolder);
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-      }
-    }
-    mUserFolder.mkdir();
   }
 
   public void lockFile(int fileId, long userId) throws TException {
@@ -283,12 +302,14 @@ public class WorkerStorage {
     }
   }
 
-  private boolean memoryEvictionLRU() {
-    long latestTimeMs = Long.MAX_VALUE;
-    int fileId = -1;
+  /**
+   * Use local LRU to evict data, and get <code> requestBytes </code> available space.
+   * @param requestBytes The data requested.
+   * @return <code> true </code> if the space is granteed, <code> false </code> if not.
+   */
+  private boolean memoryEvictionLRU(long requestBytes) {
     Set<Integer> pinList = new HashSet<Integer>();
 
-    // TODO Cache replacement policy should go through Master.
     try {
       pinList = mMasterClient.worker_getPinIdList();
     } catch (TException e) {
@@ -298,22 +319,27 @@ public class WorkerStorage {
 
     synchronized (mLatestFileAccessTimeMs) {
       synchronized (mUsersPerLockedFile) {
-        for (Entry<Integer, Long> entry : mLatestFileAccessTimeMs.entrySet()) {
-          if (entry.getValue() < latestTimeMs && !pinList.contains(entry.getKey())) {
-            if(!mUsersPerLockedFile.containsKey(entry.getKey())) {
-              fileId = entry.getKey();
-              latestTimeMs = entry.getValue();
+        while (mWorkerSpaceCounter.getAvailableBytes() < requestBytes) {
+          int fileId = -1;
+          long latestTimeMs = Long.MAX_VALUE;
+          for (Entry<Integer, Long> entry : mLatestFileAccessTimeMs.entrySet()) {
+            if (entry.getValue() < latestTimeMs && !pinList.contains(entry.getKey())) {
+              if(!mUsersPerLockedFile.containsKey(entry.getKey())) {
+                fileId = entry.getKey();
+                latestTimeMs = entry.getValue();
+              }
             }
           }
-        }
-        if (fileId != -1) {
-          freeFile(fileId);
-          return true;
+          if (fileId != -1) {
+            freeFile(fileId);
+          } else {
+            return false;
+          }
         }
       }
     }
 
-    return false;
+    return true;
   }
 
   public void register() {
@@ -357,7 +383,7 @@ public class WorkerStorage {
     }
 
     while (!mWorkerSpaceCounter.requestSpaceBytes(requestBytes)) {
-      if (!memoryEvictionLRU()) {
+      if (!memoryEvictionLRU(requestBytes)) {
         return false;
       }
     }
