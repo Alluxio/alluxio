@@ -41,7 +41,7 @@ public class UserInfo {
   }
 
   @Override
-  public String toString() {
+  public synchronized String toString() {
     StringBuilder sb = new StringBuilder("UserInfo(");
     sb.append(" USER_ID: ").append(USER_ID);
     sb.append(", mOwnBytes: ").append(mOwnBytes);
