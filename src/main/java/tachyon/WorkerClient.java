@@ -53,8 +53,10 @@ public class WorkerClient {
   }
 
   public synchronized void close() {
-    mProtocol.getTransport().close();
-    mIsConnected = false;
+    if (mIsConnected) {
+      mProtocol.getTransport().close();
+      mIsConnected = false;
+    }
   }
 
   public synchronized String getUserTempFolder(long userId) throws TException {

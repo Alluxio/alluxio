@@ -67,7 +67,7 @@ public class WorkerStorage {
     mWorkerId = 0;
     while (mWorkerId == 0) {
       try {
-        mMasterClient.open();
+        mMasterClient.connect();
         mWorkerId = mMasterClient.worker_register(
             new NetAddress(mWorkerAddress.getHostName(), mWorkerAddress.getPort()),
             mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Integer>());
@@ -346,7 +346,7 @@ public class WorkerStorage {
     long id = 0;
     while (id == 0) {
       try {
-        mMasterClient.open();
+        mMasterClient.connect();
         id = mMasterClient.worker_register(
             new NetAddress(mWorkerAddress.getHostName(), mWorkerAddress.getPort()),
             mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Integer>(mMemoryData));
@@ -395,7 +395,7 @@ public class WorkerStorage {
 
   public void resetMasterClient() {
     MasterClient tMasterClient = new MasterClient(mMasterAddress);
-    tMasterClient.open();
+    tMasterClient.connect();
     mMasterClient = tMasterClient;
   }
 

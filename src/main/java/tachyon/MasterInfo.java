@@ -75,7 +75,7 @@ public class MasterInfo {
 
   private MasterLogWriter mMasterLogWriter;
 
-  private Thread mHeartbeatThread;
+  private HeartbeatThread mHeartbeatThread;
 
   /**
    * Master info periodical status check.
@@ -202,8 +202,8 @@ public class MasterInfo {
 
     mMasterLogWriter = new MasterLogWriter(MASTER_CONF.LOG_FILE);
 
-    mHeartbeatThread = new Thread(new HeartbeatThread("Master Heartbeat", 
-        new MasterHeartbeatExecutor(), MASTER_CONF.HEARTBEAT_INTERVAL_MS));
+    mHeartbeatThread = new HeartbeatThread("Master Heartbeat", 
+        new MasterHeartbeatExecutor(), MASTER_CONF.HEARTBEAT_INTERVAL_MS);
     mHeartbeatThread.start();
   }
 
@@ -1154,9 +1154,7 @@ public class MasterInfo {
     LOG.info("Files recovery done. Current mInodeCounter: " + mInodeCounter.get());
   }
 
-  @SuppressWarnings("deprecation")
   public void stop() {
-    // TODO Better shutdown.
-    mHeartbeatThread.stop();
+    mHeartbeatThread.shutdown();
   }
 }
