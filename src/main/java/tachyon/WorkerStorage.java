@@ -32,9 +32,9 @@ public class WorkerStorage {
 
   private volatile MasterClient mMasterClient;
   private InetSocketAddress mMasterAddress;
-  private long mWorkerId;
   private InetSocketAddress mWorkerAddress;
   private WorkerSpaceCounter mWorkerSpaceCounter;
+  private long mWorkerId;
 
   private Set<Integer> mMemoryData = new HashSet<Integer>();
   private Map<Integer, Long> mFileSizes = new HashMap<Integer, Long>();
@@ -62,6 +62,8 @@ public class WorkerStorage {
     mMasterAddress = masterAddress;
     mMasterClient = new MasterClient(mMasterAddress);
 
+    mWorkerAddress = workerAddress;
+    mWorkerSpaceCounter = new WorkerSpaceCounter(memoryCapacityBytes);
     mWorkerId = 0;
     while (mWorkerId == 0) {
       try {
@@ -75,8 +77,6 @@ public class WorkerStorage {
         CommonUtils.sleepMs(LOG, 1000);
       }
     }
-    mWorkerAddress = workerAddress;
-    mWorkerSpaceCounter = new WorkerSpaceCounter(memoryCapacityBytes);
 
     mLocalDataFolder = new File(dataFolder);
     mLocalUserFolder =
