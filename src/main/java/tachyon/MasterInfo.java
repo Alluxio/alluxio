@@ -23,7 +23,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.mortbay.log.Log;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
@@ -316,7 +315,7 @@ public class MasterInfo {
     synchronized (mRoot) {
       Inode inode = getInode(pathNames);
       if (inode != null) {
-        Log.info("FileAlreadyExistException: File " + path + " already exist.");
+        LOG.info("FileAlreadyExistException: File " + path + " already exist.");
         throw new FileAlreadyExistException("File " + path + " already exist.");
       }
 
@@ -334,7 +333,7 @@ public class MasterInfo {
           succeed = createFile(true, folderPath, true, -1, null);
         }
         if (!recursive || succeed <= 0) {
-          Log.info("InvalidPathException: File " + path + " creation failed. Folder "
+          LOG.info("InvalidPathException: File " + path + " creation failed. Folder "
               + folderPath + " does not exist.");
           throw new InvalidPathException("InvalidPathException: File " + path + " creation " +
               "failed. Folder " + folderPath + " does not exist.");
@@ -342,7 +341,7 @@ public class MasterInfo {
           inode = mInodes.get(succeed);
         }
       } else if (inode.isFile()) {
-        Log.info("InvalidPathException: File " + path + " creation failed. "
+        LOG.info("InvalidPathException: File " + path + " creation failed. "
             + folderPath + " is a file.");
         throw new InvalidPathException("File " + path + " creation failed. "
             + folderPath + " is a file");
