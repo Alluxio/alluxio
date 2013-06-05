@@ -254,7 +254,7 @@ public class TFsShellTest {
   public void copyToLocalTest() 
       throws InvalidPathException, FileAlreadyExistException, IOException, 
       FileDoesNotExistException, TException{
-    TestUtils.createSimpleByteFile(mClient, "/testFile", OpType.WRITE_CACHE, 10);
+    TestUtils.createByteFile(mClient, "/testFile", OpType.WRITE_CACHE, 10);
     mFsShell.copyToLocal(new String[]{
         "copyToLocal", "/testFile", mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[]{"copyToLocal", "/testFile", 
@@ -271,7 +271,7 @@ public class TFsShellTest {
   public void copyToLocalLargeTest() 
       throws InvalidPathException, FileAlreadyExistException, IOException, 
       FileDoesNotExistException, TException{
-    TestUtils.createSimpleByteFile(mClient, "/testFile", OpType.WRITE_CACHE, mSizeBytes);
+    TestUtils.createByteFile(mClient, "/testFile", OpType.WRITE_CACHE, mSizeBytes);
     mFsShell.copyToLocal(new String[]{
         "copyToLocal", "/testFile", mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[]{"copyToLocal", "/testFile", 

@@ -1,22 +1,18 @@
-package tachyon.client;
+package tachyon;
 
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
-
-import tachyon.Constants;
-import tachyon.HeartbeatExecutor;
-import tachyon.WorkerClient;
 
 /**
  * User client sends periodical heartbeats to the worker it is talking to. It is fails to do so,
  * the worker may withdraw the space granted to the particular user.  
  */
-class ClientToWorkerHeartbeatExecutor implements HeartbeatExecutor {
+class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final WorkerClient WORKER_CLIENT;
   private final long USER_ID;
 
-  public ClientToWorkerHeartbeatExecutor(WorkerClient workerClient, long userId) {
+  public WorkerClientHeartbeatExecutor(WorkerClient workerClient, long userId) {
     WORKER_CLIENT = workerClient;
     USER_ID = userId;
   }
