@@ -10,6 +10,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
+import tachyon.conf.UserConf;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -27,14 +28,22 @@ public class WorkerClient {
   private TProtocol mProtocol;
   private InetSocketAddress mWorkerAddress;
   private boolean mIsConnected = false;
+  private long mUserId;
+  private HeartbeatThread mHeartbeatThread = null;
 
   private String mRootFolder = null;
 
-  public WorkerClient(InetSocketAddress address) {
+  public WorkerClient(InetSocketAddress address, long userId) {
     mWorkerAddress = address;
     mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(
         mWorkerAddress.getHostName(), mWorkerAddress.getPort())));
     CLIENT = new WorkerService.Client(mProtocol);
+
+    mUserId = userId;
+    mHeartbeatThread = new HeartbeatThread("WorkerClientToWorkerHeartbeat", 
+        new WorkerClientHeartbeatExecutor(this, mUserId), 
+        UserConf.get().HEARTBEAT_INTERVAL_MS);
+    mHeartbeatThread.setDaemon(true);
   }
 
   public synchronized void accessFile(int fileId) throws TException {
@@ -55,6 +64,7 @@ public class WorkerClient {
   public synchronized void close() {
     if (mIsConnected) {
       mProtocol.getTransport().close();
+      mHeartbeatThread.shutdown();
       mIsConnected = false;
     }
   }
@@ -91,6 +101,7 @@ public class WorkerClient {
         LOG.error(e.getMessage(), e);
         return false;
       }
+      mHeartbeatThread.start();
       mIsConnected = true;
     }
 

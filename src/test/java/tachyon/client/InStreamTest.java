@@ -41,7 +41,7 @@ public class InStreamTest {
     for (int k = 100; k <= 200; k += 33) {
       for (OpType op : OpType.values()) {
         if (op.isWrite()) {
-          int fileId = TestUtils.createSimpleByteFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
+          int fileId = TestUtils.createByteFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
           InStream is;
@@ -72,7 +72,7 @@ public class InStreamTest {
     for (int k = 100; k <= 300; k += 33) {
       for (OpType op : OpType.values()) {
         if (op.isWrite()) {
-          int fileId = TestUtils.createSimpleByteFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
+          int fileId = TestUtils.createByteFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
           InStream is;
@@ -98,7 +98,7 @@ public class InStreamTest {
     for (int k = 100; k <= 300; k += 33) {
       for (OpType op : OpType.values()) {
         if (op.isWrite()) {
-          int fileId = TestUtils.createSimpleByteFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
+          int fileId = TestUtils.createByteFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
 
           TachyonFile file = mClient.getFile(fileId);
           InStream is;
@@ -112,10 +112,10 @@ public class InStreamTest {
           Assert.assertTrue(TestUtils.equalIncreasingByteArray(k / 2, ret));
           is.close();
 
+          is = null;
           if (k < 200) {
             is = file.getInStream(OpType.READ_TRY_CACHE);
           } else {
-            // TODO Fix this.
             is = file.getInStream(OpType.READ_NO_CACHE);
           }
           ret = new byte[k];

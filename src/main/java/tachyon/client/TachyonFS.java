@@ -15,7 +15,6 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
-import tachyon.HeartbeatThread;
 import tachyon.UnderFileSystem;
 import tachyon.MasterClient;
 import tachyon.CommonUtils;
@@ -67,8 +66,6 @@ public class TachyonFS {
 
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
-
-  private HeartbeatThread mToWorkerHeartbeatThread = null;
 
   private boolean mConnected = false;
 
@@ -233,7 +230,7 @@ public class TachyonFS {
     workerAddress = new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
 
     LOG.info("Connecting " + (mIsWorkerLocal ? "local" : "remote") + " worker @ " + workerAddress);
-    mWorkerClient = new WorkerClient(workerAddress);
+    mWorkerClient = new WorkerClient(workerAddress, mUserId);
     if (!mWorkerClient.open()) {
       LOG.error("Failed to connect " + (mIsWorkerLocal ? "local" : "remote") + 
           " worker @ " + workerAddress);
@@ -252,14 +249,6 @@ public class TachyonFS {
       mWorkerClient = null;
       return;
     }
-
-    if (mWorkerClient != null) {
-      mToWorkerHeartbeatThread = new HeartbeatThread("ClientToWorkerHeartbeat", 
-          new ClientToWorkerHeartbeatExecutor(mWorkerClient, mUserId), 
-          UserConf.get().HEARTBEAT_INTERVAL_MS);
-      mToWorkerHeartbeatThread.setDaemon(true);
-      mToWorkerHeartbeatThread.start();
-    }
   }
 
   public synchronized void close() throws TException {
@@ -270,9 +259,6 @@ public class TachyonFS {
     if (mWorkerClient != null) {
       mWorkerClient.returnSpace(mUserId, mAvailableSpaceBytes);
       mWorkerClient.close();
-
-      // TODO move this thread to the worker client.
-      mToWorkerHeartbeatThread.shutdown();
     }
   }
 
