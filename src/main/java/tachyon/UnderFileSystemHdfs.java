@@ -130,6 +130,13 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
+  public long getSpace(String path, SpaceType type) throws IOException {
+    // TODO Hadoop 1.x does not provide user API to get this. Hadoop 2.x provides.
+    // Use JAVA reflection to get the space info for Hadoop 2.x
+    return -1;
+  }
+
+  @Override
   public boolean mkdirs(String path, boolean createParent) {
     IOException te = null;
     int cnt = 0;

@@ -73,7 +73,7 @@ public class InodeFile extends Inode {
     List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
     ret.addAll(mLocations.values());
     if (ret.isEmpty() && hasCheckpointed()) {
-      UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(mCheckpointPath);
+      UnderFileSystem ufs = UnderFileSystem.get(mCheckpointPath);
       List<String> locs = null;
       try {
         locs = ufs.getFileLocations(mCheckpointPath);

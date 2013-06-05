@@ -80,10 +80,7 @@ public class MasterInfo {
   /**
    * Master info periodical status check.
    */
-  public class MasterHeartbeatExecutor implements HeartbeatExecutor {
-    public MasterHeartbeatExecutor() {
-    }
-
+  public class MasterInfoHeartbeatExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat() {
       LOG.debug("System status checking.");
@@ -203,7 +200,7 @@ public class MasterInfo {
     mMasterLogWriter = new MasterLogWriter(MASTER_CONF.LOG_FILE);
 
     mHeartbeatThread = new HeartbeatThread("Master Heartbeat", 
-        new MasterHeartbeatExecutor(), MASTER_CONF.HEARTBEAT_INTERVAL_MS);
+        new MasterInfoHeartbeatExecutor(), MASTER_CONF.HEARTBEAT_INTERVAL_MS);
     mHeartbeatThread.start();
   }
 
@@ -912,7 +909,7 @@ public class MasterInfo {
   private void recoveryFromFile(String fileName, String msg) throws IOException {
     MasterLogReader reader;
 
-    UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(fileName);
+    UnderFileSystem ufs = UnderFileSystem.get(fileName);
     if (!ufs.exists(fileName)) {
       LOG.info(msg + fileName + " does not exist.");
     } else {
@@ -1143,12 +1140,12 @@ public class MasterInfo {
       checkpointWriter.appendAndFlush(new CheckpointInfo(mInodeCounter.get()));
       checkpointWriter.close();
 
-      UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(MASTER_CONF.CHECKPOINT_FILE);
+      UnderFileSystem ufs = UnderFileSystem.get(MASTER_CONF.CHECKPOINT_FILE);
       ufs.delete(MASTER_CONF.CHECKPOINT_FILE, false);
       ufs.rename(MASTER_CONF.CHECKPOINT_FILE + ".tmp", MASTER_CONF.CHECKPOINT_FILE);
       ufs.delete(MASTER_CONF.CHECKPOINT_FILE + ".tmp", false);
 
-      ufs = UnderFileSystem.getUnderFileSystem(MASTER_CONF.LOG_FILE);
+      ufs = UnderFileSystem.get(MASTER_CONF.LOG_FILE);
       ufs.delete(MASTER_CONF.LOG_FILE, false);
     }
     LOG.info("Files recovery done. Current mInodeCounter: " + mInodeCounter.get());

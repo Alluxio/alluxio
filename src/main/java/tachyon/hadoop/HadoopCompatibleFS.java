@@ -208,7 +208,7 @@ public class HadoopCompatibleFS extends FileSystem {
   public void initialize(URI uri, Configuration conf) throws IOException {
     LOG.debug("TachyonFileSystem initialize(" + uri + ", " + conf + "). Connecting TachyonSystem: " +
         uri.getHost() + ":" + uri.getPort());
-    mTachyonClient = TachyonFS.getClient(new InetSocketAddress(uri.getHost(), uri.getPort()));
+    mTachyonClient = TachyonFS.get(new InetSocketAddress(uri.getHost(), uri.getPort()));
     mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort() + "";
     Utils.HDFS_ADDRESS = mTachyonClient.getUnderfsAddress();
     mUri = URI.create("tachyon://" + uri.getHost() + ":" + uri.getPort());

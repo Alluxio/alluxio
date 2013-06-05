@@ -82,7 +82,7 @@ public class WorkerStorage {
     mLocalUserFolder =
         new File(mLocalDataFolder.toString(), WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
     mUnderfsWorkerFolder = COMMON_CONF.UNDERFS_WORKERS_FOLDER + "/" + mWorkerId;
-    mUnderFs = UnderFileSystem.getUnderFileSystem(COMMON_CONF.UNDERFS_ADDRESS);
+    mUnderFs = UnderFileSystem.get(COMMON_CONF.UNDERFS_ADDRESS);
     mUsers = new Users(mLocalUserFolder.toString(), mUnderfsWorkerFolder);
 
     try {

@@ -26,7 +26,7 @@ public class MasterLogReader {
     LOG_FILE_NAME = fileName;
     mKryo = KryoFactory.createLogKryo();
     try {
-      mInput = new Input(UnderFileSystem.getUnderFileSystem(LOG_FILE_NAME).open(LOG_FILE_NAME));
+      mInput = new Input(UnderFileSystem.get(LOG_FILE_NAME).open(LOG_FILE_NAME));
     } catch (FileNotFoundException e) {
       CommonUtils.runtimeException(e);
     }

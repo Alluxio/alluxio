@@ -161,7 +161,7 @@ public class Performance {
 
     public TachyonWriterWorker(int id, int left, int right, ByteBuffer buf) {
       super(id, left, right, buf);
-      mTC = TachyonFS.getClient(MASTER_ADDRESS);
+      mTC = TachyonFS.get(MASTER_ADDRESS);
     }
 
     public void writeParition()
@@ -201,7 +201,7 @@ public class Performance {
 
     public TachyonReadWorker(int id, int left, int right, ByteBuffer buf) {
       super(id, left, right, buf);
-      mTC = TachyonFS.getClient(MASTER_ADDRESS);
+      mTC = TachyonFS.get(MASTER_ADDRESS);
     }
 
     public void readPartition() 
@@ -378,13 +378,13 @@ public class Performance {
     if (testCase == 1) {
       RESULT_PREFIX = "TachyonFilesWriteTest " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
-      MTC = TachyonFS.getClient(MASTER_ADDRESS);
+      MTC = TachyonFS.get(MASTER_ADDRESS);
       createFiles();
       TachyonTest(true);
     } else if (testCase == 2) {
       RESULT_PREFIX = "TachyonFilesReadTest " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
-      MTC = TachyonFS.getClient(MASTER_ADDRESS);
+      MTC = TachyonFS.get(MASTER_ADDRESS);
       TachyonTest(false);
     } else if (testCase == 3) {
       RESULT_PREFIX = "RamFile Write " + RESULT_PREFIX;

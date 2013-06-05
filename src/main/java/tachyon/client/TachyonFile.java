@@ -28,7 +28,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 /**
  * Tachyon File.
  */
-public class TachyonFile {
+public class TachyonFile implements Comparable<TachyonFile> {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final UserConf USER_CONF = UserConf.get();
 
@@ -56,7 +56,7 @@ public class TachyonFile {
    */
   public boolean addCheckpointPath(String path)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException, IOException {
-    UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(path);
+    UnderFileSystem ufs = UnderFileSystem.get(path);
     long sizeBytes = ufs.getFileSize(path);
     if (TFS.addCheckpointPath(FID, path)) {
       CLIENT_FILE_INFO.sizeBytes = sizeBytes;
@@ -200,7 +200,7 @@ public class TachyonFile {
   public boolean recacheData() {
     boolean succeed = true;
     String path = CLIENT_FILE_INFO.checkpointPath;
-    UnderFileSystem tHdfsClient = UnderFileSystem.getUnderFileSystem(path);
+    UnderFileSystem tHdfsClient = UnderFileSystem.get(path);
     InputStream inputStream;
     try {
       inputStream = tHdfsClient.open(path);
@@ -287,5 +287,23 @@ public class TachyonFile {
 
   public boolean isReady() {
     return CLIENT_FILE_INFO.isReady();
+  }
+
+  @Override
+  public int hashCode() {
+    return getPath().hashCode() ^ 1234321;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if ((obj != null) && (obj instanceof TachyonFile)) {
+      return compareTo((TachyonFile)obj) == 0;
+    }
+    return false;
+  }
+
+  @Override
+  public int compareTo(TachyonFile o) {
+    return getPath().compareTo(o.getPath());
   }
 }

@@ -74,16 +74,16 @@ public class TachyonFS {
     mAvailableSpaceBytes = 0L;
   }
 
-  public static synchronized TachyonFS getClient(InetSocketAddress tachyonAddress) {
+  public static synchronized TachyonFS get(InetSocketAddress tachyonAddress) {
     return new TachyonFS(tachyonAddress);
   }
 
-  public static synchronized TachyonFS getClient(String tachyonAddress) {
+  public static synchronized TachyonFS get(String tachyonAddress) {
     String[] address = tachyonAddress.split(":");
     if (address.length != 2) {
       CommonUtils.illegalArgumentException("Illegal Tachyon Master Address: " + tachyonAddress);
     }
-    return getClient(new InetSocketAddress(address[0], Integer.parseInt(address[1])));
+    return get(new InetSocketAddress(address[0], Integer.parseInt(address[1])));
   }
 
   public synchronized void accessLocalFile(int fileId) {
@@ -139,7 +139,7 @@ public class TachyonFS {
   public synchronized boolean addCheckpointPath(int id, String path)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException, IOException {
     connect();
-    UnderFileSystem hdfsClient = UnderFileSystem.getUnderFileSystem(path);
+    UnderFileSystem hdfsClient = UnderFileSystem.get(path);
     long fileSizeBytes = hdfsClient.getFileSize(path);
     return mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path);
   }
@@ -291,7 +291,7 @@ public class TachyonFS {
     }
 
     if (mUnderFileSystem == null) {
-      mUnderFileSystem = UnderFileSystem.getUnderFileSystem(mUserUnderfsTempFolder);
+      mUnderFileSystem = UnderFileSystem.get(mUserUnderfsTempFolder);
     }
 
     mUnderFileSystem.mkdirs(mUserUnderfsTempFolder, true);

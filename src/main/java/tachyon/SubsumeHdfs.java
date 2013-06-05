@@ -37,7 +37,7 @@ public class SubsumeHdfs {
           "127.0.0.1:19998 hdfs://localhost:54310 / /tachyon");
       System.exit(-1);
     }
-    sTachyonClient = TachyonFS.getClient(args[0]);
+    sTachyonClient = TachyonFS.get(args[0]);
     sHdfsAddress = args[1];
     sFilePath = args[2];
     if (args.length == 4) {
