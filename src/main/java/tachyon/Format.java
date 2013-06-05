@@ -21,17 +21,17 @@ public class Format {
     }
 
     MasterConf masterConf = MasterConf.get();
-    UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(masterConf.CHECKPOINT_FILE);
+    UnderFileSystem ufs = UnderFileSystem.get(masterConf.CHECKPOINT_FILE);
     LOG.info("Deleting " + masterConf.CHECKPOINT_FILE);
     ufs.delete(masterConf.CHECKPOINT_FILE, false);
 
-    ufs = UnderFileSystem.getUnderFileSystem(masterConf.LOG_FILE);
+    ufs = UnderFileSystem.get(masterConf.LOG_FILE);
     LOG.info("Deleting " + masterConf.LOG_FILE);
     ufs.delete(masterConf.LOG_FILE, false);
 
     CommonConf commonConf = CommonConf.get();
     String folder = commonConf.UNDERFS_DATA_FOLDER;
-    ufs = UnderFileSystem.getUnderFileSystem(folder);
+    ufs = UnderFileSystem.get(folder);
     LOG.info("Formatting " + folder);
     ufs.delete(folder, true);
     if (!ufs.mkdirs(folder, true)) {

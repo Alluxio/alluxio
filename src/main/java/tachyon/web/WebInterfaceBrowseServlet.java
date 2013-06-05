@@ -202,7 +202,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void displayFile(String path, HttpServletRequest request) 
       throws FileDoesNotExistException, InvalidPathException, IOException {
-    TachyonFS tachyonClient = TachyonFS.getClient(mMasterInfo.getMasterAddress());
+    TachyonFS tachyonClient = TachyonFS.get(mMasterInfo.getMasterAddress());
     TachyonFile tFile = tachyonClient.getFile(path);
     if (tFile == null) {
       throw new FileDoesNotExistException(path);

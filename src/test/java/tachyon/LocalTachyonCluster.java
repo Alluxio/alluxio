@@ -43,7 +43,7 @@ public class LocalTachyonCluster {
   }
 
   public TachyonFS getClient() {
-    return TachyonFS.getClient(mLocalhostName + ":" + mMasterPort);
+    return TachyonFS.get(mLocalhostName + ":" + mMasterPort);
   }
 
   public int getMasterPort() {

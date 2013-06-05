@@ -70,7 +70,7 @@ public class BasicOperations {
           "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
       System.exit(-1);
     }
-    sTachyonClient = TachyonFS.getClient(args[0]);
+    sTachyonClient = TachyonFS.get(args[0]);
     sFilePath = args[1];
     sWriteType = OpType.getOpType(args[2]);
     createFile();

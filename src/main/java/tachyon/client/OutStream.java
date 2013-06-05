@@ -72,7 +72,7 @@ public class OutStream extends OutputStream {
 
     if (IO_TYPE.isWriteThrough()) {
       String underfsFolder = CLIENT.createAndGetUserUnderfsTempFolder();
-      UnderFileSystem underfsClient = UnderFileSystem.getUnderFileSystem(underfsFolder);
+      UnderFileSystem underfsClient = UnderFileSystem.get(underfsFolder);
       mCheckpointOutputStream = underfsClient.create(underfsFolder + "/" + FID);
     }
   }

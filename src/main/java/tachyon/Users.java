@@ -111,7 +111,7 @@ public class Users {
       folder = getUserUnderfsTempFolder(userId);
       sb.append(" Also remove users underfs folder " + folder);
       try {
-        UnderFileSystem.getUnderFileSystem(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
+        UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
       } catch (IOException e) {
         LOG.error(e);
       }

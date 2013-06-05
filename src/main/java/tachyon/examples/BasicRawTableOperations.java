@@ -104,7 +104,7 @@ public class BasicRawTableOperations {
           "tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>");
       System.exit(-1);
     }
-    sTachyonClient = TachyonFS.getClient(args[0]);
+    sTachyonClient = TachyonFS.get(args[0]);
     sTablePath = args[1];
     sWriteType = OpType.getOpType(args[2]);
     createRawTable();
