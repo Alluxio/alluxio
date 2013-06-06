@@ -39,7 +39,7 @@ public class InStream extends InputStream {
 
     mBuffer = FILE.readByteBuffer();
     if (mBuffer == null && IO_TYPE.isReadTryCache()) {
-      if (FILE.recacheData()) {
+      if (FILE.recache()) {
         mBuffer = FILE.readByteBuffer();
       }
     }

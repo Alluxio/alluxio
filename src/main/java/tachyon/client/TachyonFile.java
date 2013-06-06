@@ -122,19 +122,19 @@ public class TachyonFile implements Comparable<TachyonFile> {
     mLockedFile = TFS.lockFile(FID);
 
     ByteBuffer ret = null;
-    ret = readByteBufferFromLocal();
+    ret = readLocalByteBuffer();
     if (ret == null) {
       TFS.unlockFile(FID);
       mLockedFile = false;
 
       // TODO Make it local cache if the OpType is try cache.
-      ret = readByteBufferFromRemote();
+      ret = readRemoteByteBuffer();
     }
 
     return ret;
   }
 
-  private ByteBuffer readByteBufferFromLocal() {
+  private ByteBuffer readLocalByteBuffer() {
     if (TFS.getRootFolder() != null) {
       String localFileName = TFS.getRootFolder() + Constants.PATH_SEPARATOR + FID;
       try {
@@ -155,7 +155,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return null;
   }
 
-  private ByteBuffer readByteBufferFromRemote() {
+  private ByteBuffer readRemoteByteBuffer() {
     ByteBuffer ret = null;
 
     LOG.info("Try to find and read from remote workers.");
@@ -202,7 +202,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return ret;
   }
 
-  public boolean recacheData() {
+  // TODO remove this method. do streaming cache.
+  public boolean recache() {
     boolean succeed = true;
     String path = TFS.getCheckpointPath(FID);
     UnderFileSystem tHdfsClient = UnderFileSystem.get(path);

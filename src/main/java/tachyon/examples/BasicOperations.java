@@ -55,7 +55,7 @@ public class BasicOperations {
     TachyonFile file = sTachyonClient.getFile(sFilePath);
     ByteBuffer buf = file.readByteBuffer();
     if (buf == null) {
-      file.recacheData();
+      file.recache();
     }
     CommonUtils.printByteBuffer(LOG, file.readByteBuffer());
     file.releaseFileLock();
