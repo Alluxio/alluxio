@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Prefix list is used by PINList and WhiteList to do file filtering. 
+ * Prefix list is used by PinList and WhiteList to do file filtering. 
  */
 public class PrefixList {
   private final List<String> LIST;

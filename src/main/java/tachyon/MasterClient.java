@@ -60,7 +60,7 @@ public class MasterClient {
   }
 
   /**
-   * @param workerId if -1, means the checkpoint is added directly by underlayer fs.
+   * @param workerId if -1, means the checkpoint is added directly by the client from underlayer fs.
    * @param fileId
    * @param fileSizeBytes
    * @param checkpointPath

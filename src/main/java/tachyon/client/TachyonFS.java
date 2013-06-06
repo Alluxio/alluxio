@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
@@ -50,10 +51,11 @@ public class TachyonFS {
   // Cached ClientFileInfo
   private Map<String, ClientFileInfo> mCachedClientFileInfos = 
       new HashMap<String, ClientFileInfo>();
+  private Map<Integer, ClientFileInfo> mClientFileInfos = new HashMap<Integer, ClientFileInfo>();
   // The RPC client talks to the local worker if there is one.
   private WorkerClient mWorkerClient = null;
   // The local root data folder.
-  private String mDataFolder = null;
+  private String mLocalDataFolder = null;
   // Whether the client is local or remote.
   private boolean mIsWorkerLocal = false;
   // The local data folder.
@@ -62,7 +64,10 @@ public class TachyonFS {
   private String mUserUnderfsTempFolder = null;
   private UnderFileSystem mUnderFileSystem = null;
 
+  // The user id of the client.
   private long mUserId = 0;
+
+  private Set<Integer> mLockedFileIds;
 
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
@@ -128,20 +133,30 @@ public class TachyonFS {
 
   /**
    * This API is not recommended to use.
+   * 
    * @param id file id
    * @param path existing checkpoint path
    * @return true if the checkpoint path is added successfully, false otherwise.
-   * @throws TException 
-   * @throws SuspectedFileSizeException 
-   * @throws FileDoesNotExistException 
-   * @throws IOException 
+   * @throws FileDoesNotExistException
+   * @throws SuspectedFileSizeException
+   * @throws TException
+   * @throws IOException
    */
   public synchronized boolean addCheckpointPath(int id, String path)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException, IOException {
     connect();
+
     UnderFileSystem hdfsClient = UnderFileSystem.get(path);
     long fileSizeBytes = hdfsClient.getFileSize(path);
-    return mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path);
+
+    if (mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path)) {
+      ClientFileInfo tInfo = mClientFileInfos.get(id);
+      tInfo.sizeBytes = fileSizeBytes;
+      tInfo.checkpointPath = path;
+      return true;
+    }
+
+    return false;
   }
 
   public synchronized void cacheFile(int fileId) throws IOException  {
@@ -164,6 +179,12 @@ public class TachyonFS {
         mWorkerClient = null;
         throw new IOException(e);
       } 
+    }
+    
+    if (mClientFileInfos.get(fileId) == null) {
+      mClientFileInfos.put(fileId, getClientFileInfo(fileId));
+    } else {
+      mClientFileInfos.get(fileId).inMemory = true;
     }
   }
 
@@ -239,12 +260,12 @@ public class TachyonFS {
     }
 
     try {
-      mDataFolder = mWorkerClient.getDataFolder();
+      mLocalDataFolder = mWorkerClient.getDataFolder();
       mUserTempFolder = mWorkerClient.getUserTempFolder(mUserId);
       mUserUnderfsTempFolder = mWorkerClient.getUserUnderfsTempFolder(mUserId);
     } catch (TException e) {
       LOG.error(e.getMessage());
-      mDataFolder = null;
+      mLocalDataFolder = null;
       mUserTempFolder = null;
       mWorkerClient = null;
       return;
@@ -446,8 +467,16 @@ public class TachyonFS {
     return ret;
   }
 
+  synchronized String getCheckpointPath(int fileId) {
+    if (mClientFileInfos.get(fileId).getCheckpointPath().equals("")) {
+      mClientFileInfos.put(fileId, getClientFileInfo(fileId));
+    }
+    return mClientFileInfos.get(fileId).getCheckpointPath();
+  }
+
   public synchronized List<NetAddress> getFileNetAddresses(int fileId)
       throws IOException {
+    // TODO Should read from mClientFileInfos if possible. Should add timeout to improve this.
     connect();
     if (!mConnected) {
       return null;
@@ -513,15 +542,19 @@ public class TachyonFS {
     if (clientFileInfo == null) {
       return null;
     }
-    return new TachyonFile(this, clientFileInfo);
+    mClientFileInfos.put(clientFileInfo.getId(), clientFileInfo);
+    return new TachyonFile(this, clientFileInfo.getId());
   }
 
   public synchronized TachyonFile getFile(int fileId) {
-    ClientFileInfo clientFileInfo = getClientFileInfo(fileId);
-    if (clientFileInfo == null) {
-      return null;
+    if (!mClientFileInfos.containsKey(fileId)) {
+      ClientFileInfo clientFileInfo = getClientFileInfo(fileId);
+      if (clientFileInfo == null) {
+        return null;
+      }
+      mClientFileInfos.put(fileId, clientFileInfo);
     }
-    return new TachyonFile(this, clientFileInfo);
+    return new TachyonFile(this, fileId);
   }
 
   public synchronized int getFileId(String path) throws InvalidPathException {
@@ -542,10 +575,18 @@ public class TachyonFS {
     return fileId;
   }
 
+  synchronized long getFileSizeBytes(int fid) {
+    return mClientFileInfos.get(fid).getSizeBytes();
+  }
+
   public synchronized int getNumberOfFiles(String folderPath) 
       throws FileDoesNotExistException, InvalidPathException, TException {
     connect();
     return mMasterClient.user_getNumberOfFiles(folderPath);
+  }
+
+  synchronized String getPath(int fileId) {
+    return mClientFileInfos.get(fileId).getPath();
   }
 
   public synchronized RawTable getRawTable(String path)
@@ -564,7 +605,7 @@ public class TachyonFS {
 
   public synchronized String getRootFolder() {
     connect();
-    return mDataFolder;
+    return mLocalDataFolder;
   }
 
   public synchronized List<ClientWorkerInfo> getWorkersInfo() throws TException {
@@ -581,6 +622,25 @@ public class TachyonFS {
     return mConnected;
   }
 
+  synchronized boolean isFolder(int fid) {
+    return mClientFileInfos.get(fid).isFolder();
+  }
+
+  synchronized boolean isInMemory(int fid) {
+    // TODO Make this query the master.
+    return mClientFileInfos.get(fid).isInMemory();
+  }
+
+  synchronized boolean isNeedPin(int fid) {
+    return mClientFileInfos.get(fid).isNeedPin();
+  }
+
+  synchronized boolean isReady(int fid) {
+    if (!mClientFileInfos.get(fid).isReady()) {
+      mClientFileInfos.put(fid, getClientFileInfo(fid));
+    }
+    return mClientFileInfos.get(fid).isReady();
+  }
   public synchronized List<Integer> listFiles(String path, boolean recursive) throws IOException {
     connect();
     try {
