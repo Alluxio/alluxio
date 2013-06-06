@@ -45,7 +45,7 @@ public class OutStreamTest {
 
     file = mClient.getFile(filePath);
     InStream is = file.getInStream(OpType.READ_NO_CACHE);
-    byte[] res = new byte[(int) file.getSize()];
+    byte[] res = new byte[(int) file.length()];
     is.read(res);
     boolean t = TestUtils.equalIncreasingByteArray(len, res);
     Assert.assertTrue(t);
@@ -77,7 +77,7 @@ public class OutStreamTest {
 
     file = mClient.getFile(filePath);
     InStream is = file.getInStream(OpType.READ_NO_CACHE);
-    byte[] res = new byte[(int) file.getSize()];
+    byte[] res = new byte[(int) file.length()];
     is.read(res);
     boolean t = TestUtils.equalIncreasingByteArray(len, res);
     Assert.assertTrue(t);
@@ -109,7 +109,7 @@ public class OutStreamTest {
 
     file = mClient.getFile(filePath);
     InStream is = file.getInStream(OpType.READ_NO_CACHE);
-    byte[] res = new byte[(int) file.getSize()];
+    byte[] res = new byte[(int) file.length()];
     is.read(res);
     boolean t = TestUtils.equalIncreasingByteArray(len / 2, res);
     Assert.assertTrue(t);

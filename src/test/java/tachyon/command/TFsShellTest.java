@@ -222,7 +222,7 @@ public class TFsShellTest {
         "copyFromLocal", testFile.getAbsolutePath(), "/testFile"}), mOutput.toString());
     TachyonFile tFile = mClient.getFile("/testFile");
     Assert.assertNotNull(tFile);
-    Assert.assertEquals(10, tFile.getSize());
+    Assert.assertEquals(10, tFile.length());
     InStream tfis = tFile.getInStream(OpType.READ_NO_CACHE);
     byte read[] = new byte[10];
     tfis.read(read);
@@ -243,7 +243,7 @@ public class TFsShellTest {
         "copyFromLocal", testFile.getAbsolutePath(), "/testFile"}), mOutput.toString());
     TachyonFile tFile = mClient.getFile("/testFile");
     Assert.assertNotNull(tFile);
-    Assert.assertEquals(mSizeBytes, tFile.getSize());
+    Assert.assertEquals(mSizeBytes, tFile.length());
     InStream tfis = tFile.getInStream(OpType.READ_NO_CACHE);
     byte read[] = new byte[mSizeBytes];
     tfis.read(read);
