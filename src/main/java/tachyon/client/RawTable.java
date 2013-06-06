@@ -13,10 +13,10 @@ import tachyon.thrift.TableDoesNotExistException;
  * more columns. Each columns contains one or more ordered files.
  */
 public class RawTable {
-  private final TachyonClient TACHYON_CLIENT;
+  private final TachyonFS TACHYON_CLIENT;
   private final ClientRawTableInfo CLIENT_RAW_TABLE_INFO;
 
-  RawTable(TachyonClient tachyonClient, ClientRawTableInfo clientRawTableInfo) {
+  RawTable(TachyonFS tachyonClient, ClientRawTableInfo clientRawTableInfo) {
     TACHYON_CLIENT = tachyonClient;
     CLIENT_RAW_TABLE_INFO = clientRawTableInfo;
   }

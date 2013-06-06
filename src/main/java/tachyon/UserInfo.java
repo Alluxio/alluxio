@@ -6,7 +6,8 @@ import tachyon.conf.WorkerConf;
  * Represent one user in the worker daemon. 
  */
 public class UserInfo {
-  private long mUserId;
+  private final long USER_ID;
+
   private long mOwnBytes;
   private long mLastHeartbeatMs;
 
@@ -14,7 +15,7 @@ public class UserInfo {
     if (userId <= 0) {
       CommonUtils.runtimeException("Invalid user id " + userId);
     }
-    mUserId = userId;
+    USER_ID = userId;
     mOwnBytes = 0;
     mLastHeartbeatMs = System.currentTimeMillis();
   }
@@ -27,8 +28,8 @@ public class UserInfo {
     return mOwnBytes;
   }
 
-  public synchronized long getUserId() {
-    return mUserId;
+  public long getUserId() {
+    return USER_ID;
   }
 
   public synchronized void heartbeat() {
@@ -37,5 +38,15 @@ public class UserInfo {
 
   public synchronized boolean timeout() {
     return (System.currentTimeMillis() - mLastHeartbeatMs > WorkerConf.get().USER_TIMEOUT_MS); 
+  }
+
+  @Override
+  public synchronized String toString() {
+    StringBuilder sb = new StringBuilder("UserInfo(");
+    sb.append(" USER_ID: ").append(USER_ID);
+    sb.append(", mOwnBytes: ").append(mOwnBytes);
+    sb.append(", mLastHeartbeatMs: ").append(mLastHeartbeatMs);
+    sb.append(")");
+    return sb.toString();
   }
 }

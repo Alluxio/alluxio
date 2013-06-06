@@ -36,16 +36,16 @@ public class DataServer implements Runnable {
   private Map<SocketChannel, DataServerMessage> mReceivingData =
       Collections.synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
-  // The local worker service handler.
-  private WorkerServiceHandler mWorkerServiceHandler;
+  // The local worker storage.
+  private WorkerStorage mWorkerStorage;
 
   private boolean mShutdown = false;
   private boolean mShutdowned = false;
 
-  public DataServer(InetSocketAddress address, WorkerServiceHandler workerServiceHandler) {
+  public DataServer(InetSocketAddress address, WorkerStorage workerStorage) {
     LOG.info("Starting DataServer @ " + address);
     mAddress = address;
-    mWorkerServiceHandler = workerServiceHandler;
+    mWorkerStorage = workerStorage;
     try {
       mSelector = initSelector();
     } catch (IOException e) {
@@ -121,14 +121,14 @@ public class DataServer implements Runnable {
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getFileId());
       try {
-        mWorkerServiceHandler.lockFile(tMessage.getFileId(), Users.sDATASERVER_USER_ID);
+        mWorkerStorage.lockFile(tMessage.getFileId(), Users.sDATASERVER_USER_ID);
       } catch (TException e) {
         CommonUtils.runtimeException(e);
       }
       DataServerMessage tResponseMessage = 
           DataServerMessage.createFileResponseMessage(true, tMessage.getFileId()); 
       if (tResponseMessage.getFileId() > 0) {
-        mWorkerServiceHandler.sDataAccessQueue.add(tResponseMessage.getFileId());
+        mWorkerStorage.accessFile(tResponseMessage.getFileId());
       }
       mSendingData.put(socketChannel, tResponseMessage);
     }
@@ -159,7 +159,7 @@ public class DataServer implements Runnable {
       sendMessage.close();
 
       try {
-        mWorkerServiceHandler.unlockFile(sendMessage.getFileId(), Users.sDATASERVER_USER_ID);
+        mWorkerStorage.unlockFile(sendMessage.getFileId(), Users.sDATASERVER_USER_ID);
       } catch (TException e) {
         CommonUtils.runtimeException(e);
       }

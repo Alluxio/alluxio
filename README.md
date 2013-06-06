@@ -1,20 +1,15 @@
 Tachyon
 =======
 
-<http://www.tachyonproject.org/>
+The master branch is in version 0.2.2-SNAPSHOT: [![Build Status](https://amplab.cs.berkeley.edu/jenkins/job/Tachyon-Hadoop1/badge/icon)](https://amplab.cs.berkeley.edu/jenkins/job/Tachyon-Hadoop1/)
 
-The master branch is in 0.2.1-SNAPSHOT.
+Project Homepage: http://www.tachyonproject.org
 
-Release 0.2.0 is tagged with v0.2.0.
+Previous Releases: https://github.com/amplab/tachyon/tags
 
-Release 0.1.0 is tagged with v0.1.0.
+Documentation: https://github.com/amplab/tachyon/wiki
 
-## Online Documentation
-
-You can find the latest Tachyon documentation, including a programming
-guide at <https://github.com/amplab/tachyon/wiki>. You are also welcome
-to visit <https://groups.google.com/forum/?fromgroups#!forum/tachyon-users>
-
+User Mailing List: https://groups.google.com/forum/?fromgroups#!forum/tachyon-users
 
 ## Dependency Information
 
@@ -23,18 +18,18 @@ to visit <https://groups.google.com/forum/?fromgroups#!forum/tachyon-users>
     <dependency>
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon</artifactId>
-      <version>0.2.0</version>
+      <version>0.2.1</version>
     </dependency>
 
 ### Apache Ant
 
-    <dependency org="org.tachyonproject" name="tachyon" rev="0.2.0">
+    <dependency org="org.tachyonproject" name="tachyon" rev="0.2.1">
       <artifact name="tachyon" type="jar" />
     </dependency>
 
 ### SBT
 
-    libraryDependencies += "org.tachyonproject" %% "tachyon" % "0.2.0"
+    libraryDependencies += "org.tachyonproject" %% "tachyon" % "0.2.1"
 
 ## Contributing to Tachyon
 

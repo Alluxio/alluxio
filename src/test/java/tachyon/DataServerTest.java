@@ -10,7 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.client.OpType;
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
@@ -22,7 +22,7 @@ public class DataServerTest {
   private final int USER_QUOTA_UNIT_BYTES = 100;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonClient mClient = null;
+  private TachyonFS mClient = null;
 
   @Before
   public final void before() throws IOException {
@@ -40,7 +40,7 @@ public class DataServerTest {
 
   @Test
   public void readTest() throws InvalidPathException, FileAlreadyExistException, IOException {
-    int fileId = TestUtils.createSimpleByteFile(mClient, "/testFile", OpType.WRITE_CACHE, 10);
+    int fileId = TestUtils.createByteFile(mClient, "/testFile", OpType.WRITE_CACHE, 10);
     DataServerMessage sendMsg; 
     sendMsg = DataServerMessage.createFileRequestMessage(fileId);
     SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(

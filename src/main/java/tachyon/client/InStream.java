@@ -48,7 +48,7 @@ public class InStream extends InputStream {
     if (mBuffer == null && !CLIENT_FILE_INFO.checkpointPath.equals("")) {
       LOG.info("Will stream from underlayer fs: " + CLIENT_FILE_INFO.checkpointPath);
       UnderFileSystem underfsClient =
-          UnderFileSystem.getUnderFileSystem(CLIENT_FILE_INFO.checkpointPath);
+          UnderFileSystem.get(CLIENT_FILE_INFO.checkpointPath);
       try {
         mCheckpointInputStream = underfsClient.open(CLIENT_FILE_INFO.checkpointPath);
       } catch (IOException e) {

@@ -23,10 +23,10 @@ public class Worker implements Runnable {
 
   private final InetSocketAddress MasterAddress;
   private final InetSocketAddress WorkerAddress;
-  private final String DataFolder;
-  private final long MemoryCapacityBytes;
 
   private TServer mServer;
+
+  private WorkerStorage mWorkerStorage;
   private WorkerServiceHandler mWorkerServiceHandler;
   private DataServer mDataServer;
 
@@ -36,17 +36,16 @@ public class Worker implements Runnable {
   private Worker(InetSocketAddress masterAddress, InetSocketAddress workerAddress, int dataPort,
       int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String dataFolder, long memoryCapacityBytes) {
-    DataFolder = dataFolder;
-    MemoryCapacityBytes = memoryCapacityBytes;
-
     MasterAddress = masterAddress;
     WorkerAddress = workerAddress;
 
-    mWorkerServiceHandler = new WorkerServiceHandler(
-        MasterAddress, WorkerAddress, DataFolder, MemoryCapacityBytes);
+    mWorkerStorage = 
+        new WorkerStorage(MasterAddress, WorkerAddress, dataFolder, memoryCapacityBytes);
+
+    mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
     mDataServer = new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
-        mWorkerServiceHandler);
+        mWorkerStorage);
     mDataServerThread = new Thread(mDataServer);
 
     mHeartbeatThread = new Thread(this);
@@ -85,12 +84,12 @@ public class Worker implements Runnable {
       }
 
       try {
-        cmd = mWorkerServiceHandler.heartbeat();
+        cmd = mWorkerStorage.heartbeat();
 
         lastHeartbeatMs = System.currentTimeMillis();
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        mWorkerServiceHandler.resetMasterClient();
+        mWorkerStorage.resetMasterClient();
         CommonUtils.sleepMs(LOG, 1000);
         cmd = null;
         if (System.currentTimeMillis() - lastHeartbeatMs >= WorkerConf.get().HEARTBEAT_TIMEOUT_MS) {
@@ -107,10 +106,11 @@ public class Worker implements Runnable {
             LOG.debug("Nothing command: " + cmd);
             break;
           case Register :
-            mWorkerServiceHandler.register();
+            mWorkerStorage.register();
             LOG.info("Register command: " + cmd);
             break;
           case Free :
+            mWorkerStorage.freeFiles(cmd.mData);
             LOG.info("Free command: " + cmd);
             break;
           case Delete :
@@ -121,7 +121,7 @@ public class Worker implements Runnable {
         }
       }
 
-      mWorkerServiceHandler.checkStatus();
+      mWorkerStorage.checkStatus();
     }
   }
 
@@ -179,7 +179,7 @@ public class Worker implements Runnable {
 
   /**
    * Get the worker server handler class. This is for unit test only. 
-   * @return
+   * @return the WorkerServiceHandler
    */
   WorkerServiceHandler getWorkerServiceHandler() {
     return mWorkerServiceHandler;

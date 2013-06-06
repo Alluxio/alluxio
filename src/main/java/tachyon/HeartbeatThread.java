@@ -5,11 +5,13 @@ import org.apache.log4j.Logger;
 /**
  * Thread class to execute a heartbeat periodically.
  */
-public class HeartbeatThread implements Runnable {
+public class HeartbeatThread extends Thread {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final String THREAD_NAME;
   private final HeartbeatExecutor EXECUTOR;
-  private final int FIXED_EXECUTION_INTERVAL_MS;
+  private final long FIXED_EXECUTION_INTERVAL_MS;
+
+  private boolean mIsShutdown = false;
 
   /**
    * @param threadName
@@ -17,14 +19,14 @@ public class HeartbeatThread implements Runnable {
    * @param fixedExecutionIntervalMs Sleep time between different heartbeat.
    */
   public HeartbeatThread(String threadName, HeartbeatExecutor hbExecutor, 
-      int fixedExecutionIntervalMs) {
+      long fixedExecutionIntervalMs) {
     THREAD_NAME = threadName;
     EXECUTOR = hbExecutor;
     FIXED_EXECUTION_INTERVAL_MS = fixedExecutionIntervalMs;
   }
 
   public void run() {
-    while (true) {
+    while (!mIsShutdown) {
       long lastMs = System.currentTimeMillis();
       EXECUTOR.heartbeat();
       try {
@@ -39,5 +41,9 @@ public class HeartbeatThread implements Runnable {
         LOG.info(e.getMessage(), e);
       }
     }
+  }
+
+  public void shutdown() {
+    mIsShutdown = true;
   }
 }

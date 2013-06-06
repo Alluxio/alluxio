@@ -22,7 +22,7 @@ import tachyon.CommonUtils;
 import tachyon.client.InStream;
 import tachyon.client.OpType;
 import tachyon.client.OutStream;
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 
 /**
@@ -48,7 +48,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String folder = Utils.getFilePath(path);
-    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
+    TachyonFS tachyonClient = TachyonFS.get(Utils.getTachyonMasterAddress(path));
     List<ClientFileInfo> files = tachyonClient.listStatus(folder);
     Collections.sort(files);
     String format = "%-10s%-25s%-15s%-5s\n";
@@ -74,7 +74,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String folder = Utils.getFilePath(path);
-    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
+    TachyonFS tachyonClient = TachyonFS.get(Utils.getTachyonMasterAddress(path));
     if (tachyonClient.mkdir(folder) != -1) {
       System.out.println("Successfully created directory " + folder);
       return 0;
@@ -99,7 +99,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String file = Utils.getFilePath(path);
-    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
+    TachyonFS tachyonClient = TachyonFS.get(Utils.getTachyonMasterAddress(path));
     if (tachyonClient.delete(file)) {
       System.out.println(file + " has been removed");
       return 0;
@@ -133,7 +133,7 @@ public class TFsShell {
     }
     String srcFile = Utils.getFilePath(srcPath);
     String dstFile = Utils.getFilePath(dstPath);
-    TachyonClient tachyonClient = TachyonClient.getClient(srcMasterAddr);
+    TachyonFS tachyonClient = TachyonFS.get(srcMasterAddr);
     if (tachyonClient.rename(srcFile, dstFile)) {
       System.out.println("Renamed " + srcFile + " to " + dstFile);
       return 0;
@@ -162,7 +162,7 @@ public class TFsShell {
     String dstPath = argv[2];
     String folder = Utils.getFilePath(srcPath);
     File dst = new File(dstPath);
-    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(srcPath));
+    TachyonFS tachyonClient = TachyonFS.get(Utils.getTachyonMasterAddress(srcPath));
     TachyonFile tFile = tachyonClient.getFile(folder);
 
     // tachyonClient.getFile() catches FileDoesNotExist exceptions and returns null
@@ -201,7 +201,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String file = Utils.getFilePath(path);
-    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(path));
+    TachyonFS tachyonClient = TachyonFS.get(Utils.getTachyonMasterAddress(path));
     int fileId = tachyonClient.getFileId(file);
     List<String> hosts = tachyonClient.getFileHosts(fileId);
     System.out.println(file + " with file id " + fileId + " are on nodes: ");
@@ -235,7 +235,7 @@ public class TFsShell {
       System.out.println("Local file " + srcPath + " does not exist.");
       return -1;
     }
-    TachyonClient tachyonClient = TachyonClient.getClient(Utils.getTachyonMasterAddress(dstPath));
+    TachyonFS tachyonClient = TachyonFS.get(Utils.getTachyonMasterAddress(dstPath));
     int fileId = tachyonClient.createFile(dstFile);
     if (fileId == -1) {
       return -1;

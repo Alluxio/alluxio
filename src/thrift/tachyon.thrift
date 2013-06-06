@@ -47,7 +47,7 @@ enum CommandType {
 
 struct Command {
   1: CommandType mCommandType
-  2: binary mData
+  2: list<i32> mData
 }
 
 exception OutOfMemoryForPinFileException {
@@ -89,6 +89,8 @@ exception TableDoesNotExistException {
 service MasterService {
   bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 fileSizeBytes, 4: string checkpointPath)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+  list<ClientWorkerInfo> getWorkersInfo()
+  list<ClientFileInfo> liststatus(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
 
   // Services to Workers
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i32> currentFiles) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
@@ -141,9 +143,6 @@ service MasterService {
   i32 user_getNumberOfFiles(1:string path)
     throws (1: FileDoesNotExistException eR, 2: InvalidPathException eI)
   string user_getUnderfsAddress()
-
-  // cmd to scripts
-  list<ClientFileInfo> cmd_ls(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
 }
 
 service WorkerService {

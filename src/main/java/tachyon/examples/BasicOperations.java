@@ -11,7 +11,7 @@ import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.OpType;
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
@@ -20,7 +20,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 public class BasicOperations {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private static TachyonClient sTachyonClient;
+  private static TachyonFS sTachyonClient;
   private static String sFilePath = null;
   private static OpType sWriteType = null;
 
@@ -70,7 +70,7 @@ public class BasicOperations {
           "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
       System.exit(-1);
     }
-    sTachyonClient = TachyonClient.getClient(args[0]);
+    sTachyonClient = TachyonFS.get(args[0]);
     sFilePath = args[1];
     sWriteType = OpType.getOpType(args[2]);
     createFile();

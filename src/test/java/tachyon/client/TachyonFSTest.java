@@ -2,6 +2,7 @@ package tachyon.client;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import org.apache.thrift.TException;
 import org.junit.After;
@@ -9,9 +10,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
+import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.TableColumnException;
@@ -20,14 +23,19 @@ import tachyon.thrift.TableDoesNotExistException;
 /**
  * Unit tests on TachyonClient.
  */
-public class TachyonClientTest {
+public class TachyonFSTest {
+  private final int WORKER_CAPACITY_BYTES = 20000;
+  private final int USER_QUOTA_UNIT_BYTES = 1000;
+  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 3;
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonClient mClient = null;
+  private TachyonFS mClient = null;
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(1000);
+    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
+    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms",
+        WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mClient = mLocalTachyonCluster.getClient();
   }
@@ -36,6 +44,7 @@ public class TachyonClientTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
   }
 
   @Test
@@ -64,10 +73,37 @@ public class TachyonClientTest {
 
   @Test
   public void deleteFileTest() 
-      throws InvalidPathException, FileAlreadyExistException {
-    int fileId = mClient.createFile("/root/testFile1");
-    mClient.delete(fileId);
-    Assert.assertFalse(mClient.exist("/root/testFile1"));
+      throws InvalidPathException, FileAlreadyExistException, IOException, TException {
+    List<ClientWorkerInfo> workers = mClient.getWorkersInfo();
+    Assert.assertEquals(1, workers.size());
+    Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
+    Assert.assertEquals(0, workers.get(0).getUsedBytes());
+    int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
+
+    for (int k = 0; k < 5; k ++) {
+      int fileId = TestUtils.createByteFile(
+          mClient, "/file" + k, OpType.WRITE_CACHE, writeBytes);
+      TachyonFile file = mClient.getFile(fileId);
+      Assert.assertTrue(file.isInMemory());
+      Assert.assertTrue(mClient.exist("/file" + k));
+
+      workers = mClient.getWorkersInfo();
+      Assert.assertEquals(1, workers.size());
+      Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
+      Assert.assertEquals(writeBytes * (k + 1), workers.get(0).getUsedBytes());
+    }
+
+    for (int k = 0; k < 5; k ++) {
+      int fileId = mClient.getFileId("/file" + k);
+      mClient.delete(fileId);
+      Assert.assertFalse(mClient.exist("/file" + k));
+
+      CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 2);
+      workers = mClient.getWorkersInfo();
+      Assert.assertEquals(1, workers.size());
+      Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
+      Assert.assertEquals(writeBytes * (4 - k), workers.get(0).getUsedBytes());
+    }
   }
 
   @Test

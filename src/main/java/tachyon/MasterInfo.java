@@ -23,7 +23,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.mortbay.log.Log;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
@@ -65,9 +64,9 @@ public class MasterInfo {
 
   private Map<Integer, Inode> mInodes = new HashMap<Integer, Inode>();
 
-  private Map<Long, WorkerInfo> mWorkers = new HashMap<Long, WorkerInfo>();
+  private Map<Long, MasterWorkerInfo> mWorkers = new HashMap<Long, MasterWorkerInfo>();
   private Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
-  private BlockingQueue<WorkerInfo> mLostWorkers = new ArrayBlockingQueue<WorkerInfo>(32);
+  private BlockingQueue<MasterWorkerInfo> mLostWorkers = new ArrayBlockingQueue<MasterWorkerInfo>(32);
 
   // TODO Check the logic related to this two lists.
   private PrefixList mWhiteList;
@@ -76,15 +75,12 @@ public class MasterInfo {
 
   private MasterLogWriter mMasterLogWriter;
 
-  private Thread mHeartbeatThread;
+  private HeartbeatThread mHeartbeatThread;
 
   /**
-   * System periodical status check.
+   * Master info periodical status check.
    */
-  public class MasterHeartbeatExecutor implements HeartbeatExecutor {
-    public MasterHeartbeatExecutor() {
-    }
-
+  public class MasterInfoHeartbeatExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat() {
       LOG.debug("System status checking.");
@@ -92,7 +88,7 @@ public class MasterInfo {
       Set<Long> lostWorkers = new HashSet<Long>();
 
       synchronized (mWorkers) {
-        for (Entry<Long, WorkerInfo> worker: mWorkers.entrySet()) {
+        for (Entry<Long, MasterWorkerInfo> worker: mWorkers.entrySet()) {
           if (CommonUtils.getCurrentMs() - worker.getValue().getLastUpdatedTimeMs() 
               > MASTER_CONF.WORKER_TIMEOUT_MS) {
             LOG.error("The worker " + worker.getValue() + " got timed out!");
@@ -101,7 +97,7 @@ public class MasterInfo {
           }
         }
         for (long workerId: lostWorkers) {
-          WorkerInfo workerInfo = mWorkers.get(workerId);
+          MasterWorkerInfo workerInfo = mWorkers.get(workerId);
           mWorkerAddressToId.remove(workerInfo.getAddress());
           mWorkers.remove(workerId);
         }
@@ -111,7 +107,7 @@ public class MasterInfo {
 
       while (mLostWorkers.size() != 0) {
         hadFailedWorker = true;
-        WorkerInfo worker = mLostWorkers.poll();
+        MasterWorkerInfo worker = mLostWorkers.poll();
 
         // TODO these a lock is not efficient. Since node failure is rare, this is fine for now.
         synchronized (mRoot) {
@@ -203,8 +199,8 @@ public class MasterInfo {
 
     mMasterLogWriter = new MasterLogWriter(MASTER_CONF.LOG_FILE);
 
-    mHeartbeatThread = new Thread(new HeartbeatThread("Master Heartbeat", 
-        new MasterHeartbeatExecutor(), MASTER_CONF.HEARTBEAT_INTERVAL_MS));
+    mHeartbeatThread = new HeartbeatThread("Master Heartbeat", 
+        new MasterInfoHeartbeatExecutor(), MASTER_CONF.HEARTBEAT_INTERVAL_MS);
     mHeartbeatThread.start();
   }
 
@@ -213,7 +209,7 @@ public class MasterInfo {
     LOG.info(CommonUtils.parametersToString(workerId, fileId, fileSizeBytes, checkpointPath));
 
     if (workerId != -1) {
-      WorkerInfo tWorkerInfo = getWorkerInfo(workerId);
+      MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
       tWorkerInfo.updateLastUpdatedTimeMs();
     }
 
@@ -267,7 +263,7 @@ public class MasterInfo {
       long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException {
     LOG.debug(CommonUtils.parametersToString(workerId, workerUsedBytes, fileId, fileSizeBytes));
 
-    WorkerInfo tWorkerInfo = getWorkerInfo(workerId);
+    MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
     tWorkerInfo.updateFile(true, fileId);
     tWorkerInfo.updateUsedBytes(workerUsedBytes);
     tWorkerInfo.updateLastUpdatedTimeMs();
@@ -316,7 +312,7 @@ public class MasterInfo {
     synchronized (mRoot) {
       Inode inode = getInode(pathNames);
       if (inode != null) {
-        Log.info("FileAlreadyExistException: File " + path + " already exist.");
+        LOG.info("FileAlreadyExistException: File " + path + " already exist.");
         throw new FileAlreadyExistException("File " + path + " already exist.");
       }
 
@@ -334,7 +330,7 @@ public class MasterInfo {
           succeed = createFile(true, folderPath, true, -1, null);
         }
         if (!recursive || succeed <= 0) {
-          Log.info("InvalidPathException: File " + path + " creation failed. Folder "
+          LOG.info("InvalidPathException: File " + path + " creation failed. Folder "
               + folderPath + " does not exist.");
           throw new InvalidPathException("InvalidPathException: File " + path + " creation " +
               "failed. Folder " + folderPath + " does not exist.");
@@ -342,7 +338,7 @@ public class MasterInfo {
           inode = mInodes.get(succeed);
         }
       } else if (inode.isFile()) {
-        Log.info("InvalidPathException: File " + path + " creation failed. "
+        LOG.info("InvalidPathException: File " + path + " creation failed. "
             + folderPath + " is a file.");
         throw new InvalidPathException("File " + path + " creation failed. "
             + folderPath + " is a file");
@@ -404,8 +400,6 @@ public class MasterInfo {
 
   public void delete(int id) {
     LOG.info("delete(" + id + ")");
-    // Only remove meta data from master. The data in workers will be evicted since no further
-    // application can read them. (Based on LRU) TODO May change it to be active from V0.2. 
     synchronized (mRoot) {
       Inode inode = mInodes.get(id);
 
@@ -424,9 +418,24 @@ public class MasterInfo {
       InodeFolder parent = (InodeFolder) mInodes.get(inode.getParentId());
       parent.removeChild(inode.getId());
       mInodes.remove(inode.getId());
-      if (inode.isFile() && ((InodeFile) inode).isPin()) {
-        synchronized (mIdPinList) {
-          mIdPinList.remove(inode.getId());
+      if (inode.isFile()) {
+        List<NetAddress> locations = ((InodeFile) inode).getLocations();
+        synchronized (mWorkers) {
+          for (NetAddress loc : locations) {
+            Long workerId =
+                mWorkerAddressToId.get(new InetSocketAddress(loc.getMHost(), loc.getMPort()));
+            if (workerId == null) {
+              continue;
+            }
+            MasterWorkerInfo workerInfo = mWorkers.get(workerId);
+            workerInfo.updateToRemovedFile(true, inode.getId());
+          }
+        }
+
+        if (((InodeFile) inode).isPin()) {
+          synchronized (mIdPinList) {
+            mIdPinList.remove(inode.getId());
+          }
         }
       }
       inode.reverseId();
@@ -452,7 +461,7 @@ public class MasterInfo {
   public long getCapacityBytes() {
     long ret = 0;
     synchronized (mWorkers) {
-      for (WorkerInfo worker : mWorkers.values()) {
+      for (MasterWorkerInfo worker : mWorkers.values()) {
         ret += worker.getCapacityBytes();
       }
     }
@@ -764,7 +773,7 @@ public class MasterInfo {
   public long getUsedBytes() {
     long ret = 0;
     synchronized (mWorkers) {
-      for (WorkerInfo worker : mWorkers.values()) {
+      for (MasterWorkerInfo worker : mWorkers.values()) {
         ret += worker.getUsedBytes();
       }
     }
@@ -807,8 +816,8 @@ public class MasterInfo {
     }
   }
 
-  private WorkerInfo getWorkerInfo(long workerId) {
-    WorkerInfo ret = null;
+  private MasterWorkerInfo getWorkerInfo(long workerId) {
+    MasterWorkerInfo ret = null;
     synchronized (mWorkers) {
       ret = mWorkers.get(workerId);
 
@@ -823,7 +832,7 @@ public class MasterInfo {
     List<ClientWorkerInfo> ret = new ArrayList<ClientWorkerInfo>();
 
     synchronized (mWorkers) {
-      for (WorkerInfo worker : mWorkers.values()) {
+      for (MasterWorkerInfo worker : mWorkers.values()) {
         ret.add(worker.generateClientWorkerInfo());
       }
     }
@@ -900,7 +909,7 @@ public class MasterInfo {
   private void recoveryFromFile(String fileName, String msg) throws IOException {
     MasterLogReader reader;
 
-    UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(fileName);
+    UnderFileSystem ufs = UnderFileSystem.get(fileName);
     if (!ufs.exists(fileName)) {
       LOG.info(msg + fileName + " does not exist.");
     } else {
@@ -962,13 +971,13 @@ public class MasterInfo {
         LOG.warn("The worker " + workerAddress + " already exists as id " + id + ".");
       }
       if (id != 0 && mWorkers.containsKey(id)) {
-        WorkerInfo tWorkerInfo = mWorkers.get(id);
+        MasterWorkerInfo tWorkerInfo = mWorkers.get(id);
         mWorkers.remove(id);
         mLostWorkers.add(tWorkerInfo);
         LOG.warn("The worker with id " + id + " has been removed.");
       }
       id = START_TIME_NS_PREFIX + mWorkerCounter.incrementAndGet();
-      WorkerInfo tWorkerInfo = new WorkerInfo(id, workerAddress, totalBytes);
+      MasterWorkerInfo tWorkerInfo = new MasterWorkerInfo(id, workerAddress, totalBytes);
       tWorkerInfo.updateUsedBytes(usedBytes);
       tWorkerInfo.updateFiles(true, currentFileIds);
       tWorkerInfo.updateLastUpdatedTimeMs();
@@ -1069,16 +1078,17 @@ public class MasterInfo {
   public Command workerHeartbeat(long workerId, long usedBytes, List<Integer> removedFileIds) {
     LOG.debug("WorkerId: " + workerId);
     synchronized (mWorkers) {
-      WorkerInfo tWorkerInfo = mWorkers.get(workerId);
+      MasterWorkerInfo tWorkerInfo = mWorkers.get(workerId);
 
       if (tWorkerInfo == null) {
         LOG.info("worker_heartbeat(): Does not contain worker with ID " + workerId +
             " . Send command to let it re-register.");
-        return new Command(CommandType.Register, ByteBuffer.allocate(0));
+        return new Command(CommandType.Register, new ArrayList<Integer>());
       }
 
       tWorkerInfo.updateUsedBytes(usedBytes);
       tWorkerInfo.updateFiles(false, removedFileIds);
+      tWorkerInfo.updateToRemovedFiles(false, removedFileIds);
       tWorkerInfo.updateLastUpdatedTimeMs();
 
       synchronized (mRoot) {
@@ -1092,9 +1102,14 @@ public class MasterInfo {
           }
         }
       }
+
+      List<Integer> toRemovedFiles = tWorkerInfo.getToRemovedFiles();
+      if (toRemovedFiles.size() != 0) {
+        return new Command(CommandType.Free, toRemovedFiles);
+      }
     }
 
-    return new Command(CommandType.Nothing, ByteBuffer.allocate(0));
+    return new Command(CommandType.Nothing, new ArrayList<Integer>());
   }
 
   private void writeCheckpoint() throws IOException {
@@ -1125,20 +1140,18 @@ public class MasterInfo {
       checkpointWriter.appendAndFlush(new CheckpointInfo(mInodeCounter.get()));
       checkpointWriter.close();
 
-      UnderFileSystem ufs = UnderFileSystem.getUnderFileSystem(MASTER_CONF.CHECKPOINT_FILE);
+      UnderFileSystem ufs = UnderFileSystem.get(MASTER_CONF.CHECKPOINT_FILE);
       ufs.delete(MASTER_CONF.CHECKPOINT_FILE, false);
       ufs.rename(MASTER_CONF.CHECKPOINT_FILE + ".tmp", MASTER_CONF.CHECKPOINT_FILE);
       ufs.delete(MASTER_CONF.CHECKPOINT_FILE + ".tmp", false);
 
-      ufs = UnderFileSystem.getUnderFileSystem(MASTER_CONF.LOG_FILE);
+      ufs = UnderFileSystem.get(MASTER_CONF.LOG_FILE);
       ufs.delete(MASTER_CONF.LOG_FILE, false);
     }
     LOG.info("Files recovery done. Current mInodeCounter: " + mInodeCounter.get());
   }
 
-  @SuppressWarnings("deprecation")
   public void stop() {
-    // TODO Better shutdown.
-    mHeartbeatThread.stop();
+    mHeartbeatThread.shutdown();
   }
 }
