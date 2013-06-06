@@ -1,17 +1,19 @@
 package tachyon;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.NetAddress;
 
 /**
- * The structure to store a worker's information.
+ * The structure to store a worker's information in master node.
  */
-public class WorkerInfo {
+public class MasterWorkerInfo {
   public final InetSocketAddress ADDRESS;
   private final long CAPACITY_BYTES;
   private final long START_TIME_MS;
@@ -19,9 +21,10 @@ public class WorkerInfo {
   private long mId;
   private long mUsedBytes;
   private long mLastUpdatedTimeMs;
-  private Set<Integer> mFiles; 
+  private Set<Integer> mFiles;
+  private Set<Integer> mToRemoveFiles;
 
-  public WorkerInfo(long id, InetSocketAddress address, long capacityBytes) {
+  public MasterWorkerInfo(long id, InetSocketAddress address, long capacityBytes) {
     mId = id;
     ADDRESS = address;
     CAPACITY_BYTES = capacityBytes;
@@ -29,14 +32,11 @@ public class WorkerInfo {
 
     mUsedBytes = 0;
     mFiles = new HashSet<Integer>();
+    mToRemoveFiles = new HashSet<Integer>();
     mLastUpdatedTimeMs = System.currentTimeMillis();
   }
 
-  public synchronized boolean containPartition(long partition) {
-    return mFiles.contains(partition);
-  }
-
-  public synchronized InetSocketAddress getAddress() {
+  public InetSocketAddress getAddress() {
     return ADDRESS;
   }
 
@@ -60,30 +60,17 @@ public class WorkerInfo {
     return new HashSet<Integer>(mFiles);
   }
 
+  public synchronized List<Integer> getToRemovedFiles() {
+    return new ArrayList<Integer>(mToRemoveFiles);
+  }
+
   public synchronized long getUsedBytes() {
     return mUsedBytes;
   }
 
-  public synchronized boolean requestSpaceBytes(long requestSpaceBytes) {
-    if (getAvailableBytes() < requestSpaceBytes) {
-      return false;
-    }
-
-    mUsedBytes += requestSpaceBytes;
-    return true;
-  }
-
-  public synchronized void returnUsedBytes(long returnUsedBytes) {
-    mUsedBytes -= returnUsedBytes;
-  }
-
-  public synchronized void removeFile(int fileId) {
-    mFiles.remove(fileId);
-  }
-
   @Override
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("WorkerInfo(");
+    StringBuilder sb = new StringBuilder("MasterWorkerInfo(");
     sb.append(" ID: ").append(mId);
     sb.append(", ADDRESS: ").append(ADDRESS);
     sb.append(", TOTAL_BYTES: ").append(CAPACITY_BYTES);
@@ -114,8 +101,20 @@ public class WorkerInfo {
     }
   }
 
-  public synchronized void updateId(long id) {
-    mId = id;
+  public synchronized void updateToRemovedFile(boolean add, int fileId) {
+    if (add) {
+      if (mFiles.contains(fileId)) {
+        mToRemoveFiles.add(fileId);
+      }
+    } else {
+      mToRemoveFiles.remove(fileId);
+    }
+  }
+  
+  public synchronized void updateToRemovedFiles(boolean add, Collection<Integer> fileIds) {
+    for (int fileId: fileIds) {
+      updateToRemovedFile(add, fileId);
+    }
   }
 
   public synchronized void updateLastUpdatedTimeMs() {
@@ -126,7 +125,7 @@ public class WorkerInfo {
     mUsedBytes = usedBytes;
   }
 
-  public ClientWorkerInfo generateClientWorkerInfo() {
+  public synchronized ClientWorkerInfo generateClientWorkerInfo() {
     ClientWorkerInfo ret = new ClientWorkerInfo();
     ret.id = mId;
     ret.address = new NetAddress(ADDRESS.getHostName(), ADDRESS.getPort());

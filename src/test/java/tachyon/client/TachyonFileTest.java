@@ -19,7 +19,7 @@ import tachyon.thrift.InvalidPathException;
  */
 public class TachyonFileTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonClient mClient = null;
+  private TachyonFS mClient = null;
   private final int WORKER_CAPACITY_BYTES = 1000;
   private final int USER_QUOTA_UNIT_BYTES = 100;
   private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 5;
@@ -53,31 +53,31 @@ public class TachyonFileTest {
    */
   @Test
   public void isInMemoryTest() throws InvalidPathException, FileAlreadyExistException, IOException {
-    int fileId = TestUtils.createSimpleByteFile(
+    int fileId = TestUtils.createByteFile(
         mClient, "/file1", OpType.WRITE_CACHE, USER_QUOTA_UNIT_BYTES);
     TachyonFile file = mClient.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
 
-    fileId = TestUtils.createSimpleByteFile(
+    fileId = TestUtils.createByteFile(
         mClient, "/file2", OpType.WRITE_CACHE_THROUGH, USER_QUOTA_UNIT_BYTES);
     file = mClient.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
 
-    fileId = TestUtils.createSimpleByteFile(
+    fileId = TestUtils.createByteFile(
         mClient, "/file3", OpType.WRITE_THROUGH, USER_QUOTA_UNIT_BYTES);
     file = mClient.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
     Assert.assertTrue(file.recacheData());
     Assert.assertTrue(file.isInMemory());
 
-    fileId = TestUtils.createSimpleByteFile(
+    fileId = TestUtils.createByteFile(
         mClient, "/file4", OpType.WRITE_THROUGH, WORKER_CAPACITY_BYTES + 1);
     file = mClient.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
     Assert.assertFalse(file.recacheData());
     Assert.assertFalse(file.isInMemory());
 
-    fileId = TestUtils.createSimpleByteFile(
+    fileId = TestUtils.createByteFile(
         mClient, "/file5", OpType.WRITE_THROUGH, WORKER_CAPACITY_BYTES);
     file = mClient.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
@@ -95,7 +95,7 @@ public class TachyonFileTest {
   public void isInMemoryTest2() 
       throws InvalidPathException, FileAlreadyExistException, IOException {
     for (int k = 0; k < MAX_FILES; k ++) {
-      int fileId = TestUtils.createSimpleByteFile(
+      int fileId = TestUtils.createByteFile(
           mClient, "/file" + k, OpType.WRITE_CACHE, USER_QUOTA_UNIT_BYTES);
       TachyonFile file = mClient.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
@@ -108,7 +108,7 @@ public class TachyonFileTest {
     }
 
     for (int k = MAX_FILES; k < MAX_FILES + 1; k ++) {
-      int fileId = TestUtils.createSimpleByteFile(
+      int fileId = TestUtils.createByteFile(
           mClient, "/file" + k, OpType.WRITE_CACHE, USER_QUOTA_UNIT_BYTES);
       TachyonFile file = mClient.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
@@ -133,13 +133,13 @@ public class TachyonFileTest {
   @Test
   public void isInMemoryTest3() 
       throws InvalidPathException, FileAlreadyExistException, IOException {
-    int fileId = TestUtils.createSimpleByteFile(
+    int fileId = TestUtils.createByteFile(
         mClient, "/pin/file", OpType.WRITE_CACHE, USER_QUOTA_UNIT_BYTES);
     TachyonFile file = mClient.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
 
     for (int k = 0; k < MAX_FILES; k ++) {
-      fileId = TestUtils.createSimpleByteFile(
+      fileId = TestUtils.createByteFile(
           mClient, "/file" + k, OpType.WRITE_CACHE, USER_QUOTA_UNIT_BYTES);
       file = mClient.getFile(fileId);
       Assert.assertTrue(file.isInMemory());

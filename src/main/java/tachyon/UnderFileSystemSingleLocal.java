@@ -56,6 +56,20 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
+  public long getSpace(String path, SpaceType type) throws IOException {
+    File file = new File(path);
+    switch (type) {
+      case SPACE_TOTAL:
+        return file.getTotalSpace();
+      case SPACE_FREE:
+        return file.getFreeSpace();
+      case SPACE_USABLE:
+        return file.getUsableSpace();
+    }
+    throw new IOException("Unknown getSpace parameter: " + type);
+  }
+
+  @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     File file = new File(path);
     if (createParent) {

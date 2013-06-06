@@ -26,9 +26,9 @@ public class Users {
   private final String USER_UNDERFS_FOLDER;
   private final Map<Long, UserInfo> USERS;
 
-  public Users(String userfolder, String userHdfsFolder) {
+  public Users(String userfolder, String userUnderfsFolder) {
     USER_FOLDER = userfolder;
-    USER_UNDERFS_FOLDER = userHdfsFolder;
+    USER_UNDERFS_FOLDER = userUnderfsFolder;
 
     USERS = new HashMap<Long, UserInfo>();
   }
@@ -43,6 +43,11 @@ public class Users {
     tUser.addOwnBytes(newBytes);
   }
 
+  /**
+   * Get how much space quote does a user own.
+   * @param userId The queried user.
+   * @return Bytes the user owns.
+   */
   public long ownBytes(long userId) {
     synchronized (USERS) {
       UserInfo tUser = USERS.get(userId);
@@ -50,20 +55,18 @@ public class Users {
     }
   }
 
-  public List<Long> checkStatus(WorkerInfo workerInfo) {
+  /**
+   * Check the status of the users pool.
+   * @return the list of timeout users.
+   */
+  public List<Long> checkStatus() {
     LOG.debug("Worker is checking all users' status.");
     List<Long> ret = new ArrayList<Long>();
     synchronized (USERS) {
-      List<Long> toRemoveUsers = new ArrayList<Long>();
       for (Entry<Long, UserInfo> entry : USERS.entrySet()) {
         if (entry.getValue().timeout()) {
-          toRemoveUsers.add(entry.getKey());
+          ret.add(entry.getKey());
         }
-      }
-
-      for (Long id : toRemoveUsers) {
-        workerInfo.returnUsedBytes(removeUser(id));
-        ret.add(id);
       }
     }
     return ret;
@@ -73,11 +76,16 @@ public class Users {
     return USER_FOLDER + "/" + userId;
   }
 
-  public String getUserHdfsTempFolder(long userId) {
+  public String getUserUnderfsTempFolder(long userId) {
     return USER_UNDERFS_FOLDER + "/" + userId;
   }
 
-  private long removeUser(long userId) {
+  /**
+   * Remove <code> userId </code> from user pool.
+   * @param userId The user to be removed.
+   * @return The space quote the removed user occupied in bytes.
+   */
+  public synchronized long removeUser(long userId) {
     StringBuilder sb = new StringBuilder("Trying to cleanup user " + userId + " : ");
     UserInfo tUser = null;
     synchronized (USERS) {
@@ -85,31 +93,32 @@ public class Users {
       USERS.remove(userId);
     }
 
-    long ret = 0;
+    long returnedBytes = 0;
     if (tUser == null) {
-      ret = 0;
+      returnedBytes = 0;
       sb.append(" The user does not exist in the worker's current user pool.");
     } else {
-      ret = tUser.getOwnBytes();
+      returnedBytes = tUser.getOwnBytes();
       String folder = getUserTempFolder(userId);
-      sb.append(" The user returns " + ret + " bytes. Remove the user's folder " + folder + " ;");
+      sb.append(" The user returns " + returnedBytes + " bytes. Remove the user's folder " + 
+          folder + " ;");
       try {
         FileUtils.deleteDirectory(new File(folder));
       } catch (IOException e) {
         CommonUtils.runtimeException(e);
       }
 
-      folder = getUserHdfsTempFolder(userId);
+      folder = getUserUnderfsTempFolder(userId);
       sb.append(" Also remove users underfs folder " + folder);
       try {
-        UnderFileSystem.getUnderFileSystem(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
+        UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
       } catch (IOException e) {
         LOG.error(e);
       }
     }
 
     LOG.info(sb.toString());
-    return ret;
+    return returnedBytes;
   }
 
   public void userHeartbeat(long userId) {

@@ -8,14 +8,15 @@ public class CommonConf extends Utils {
 
   public final String TACHYON_HOME;
   public final String UNDERFS_ADDRESS;
-  public final String DATA_FOLDER;
-  public final String WORKERS_FOLDER;
+  public final String UNDERFS_DATA_FOLDER;
+  public final String UNDERFS_WORKERS_FOLDER;
 
   private CommonConf() {
     TACHYON_HOME = getProperty("tachyon.home");
     UNDERFS_ADDRESS = getProperty("tachyon.underfs.address", TACHYON_HOME);
-    DATA_FOLDER = UNDERFS_ADDRESS + getProperty("tachyon.data.folder", "/tachyon/data");
-    WORKERS_FOLDER = UNDERFS_ADDRESS + getProperty("tachyon.workers.folder", "/tachyon/workers");
+    UNDERFS_DATA_FOLDER = UNDERFS_ADDRESS + getProperty("tachyon.data.folder", "/tachyon/data");
+    UNDERFS_WORKERS_FOLDER = 
+        UNDERFS_ADDRESS + getProperty("tachyon.workers.folder", "/tachyon/workers");
   }
 
   public static synchronized CommonConf get() {

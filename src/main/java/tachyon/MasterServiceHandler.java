@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import tachyon.conf.CommonConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -44,9 +45,14 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<ClientFileInfo> cmd_ls(String path)
+  public List<ClientFileInfo> liststatus(String path)
       throws InvalidPathException, FileDoesNotExistException, TException {
     return mMasterInfo.getFilesInfo(path);
+  }
+
+  @Override
+  public List<ClientWorkerInfo> getWorkersInfo() throws TException {
+    return mMasterInfo.getWorkersInfo();
   }
 
   @Override

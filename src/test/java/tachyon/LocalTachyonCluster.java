@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
@@ -42,8 +42,8 @@ public class LocalTachyonCluster {
     mWorkerCapacityBytes = workerCapacityBytes;
   }
 
-  public TachyonClient getClient() {
-    return TachyonClient.getClient(mLocalhostName + ":" + mMasterPort);
+  public TachyonFS getClient() {
+    return TachyonFS.get(mLocalhostName + ":" + mMasterPort);
   }
 
   public int getMasterPort() {
@@ -99,8 +99,8 @@ public class LocalTachyonCluster {
     WorkerConf.clear();
     UserConf.clear();
 
-    mkdir(CommonConf.get().DATA_FOLDER);
-    mkdir(CommonConf.get().WORKERS_FOLDER);
+    mkdir(CommonConf.get().UNDERFS_DATA_FOLDER);
+    mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
 
     mMaster = Master.createMaster(
         new InetSocketAddress(mLocalhostName, mMasterPort), mMasterPort + 1, 1, 1, 1);

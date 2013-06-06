@@ -10,7 +10,26 @@ import java.util.List;
  * this interface can be a valid under layer file system
  */
 public abstract class UnderFileSystem {
-  public static UnderFileSystem getUnderFileSystem(String path) {
+  public enum SpaceType {
+    SPACE_TOTAL(0),
+    SPACE_FREE(1),
+    SPACE_USABLE(2);
+
+    private final int value;
+
+    private SpaceType(int value) {
+      this.value = value;
+    }
+
+    /**
+     * Get the integer value of this enum value.
+     */
+    public int getValue() {
+      return value;
+    }
+  }
+
+  public static UnderFileSystem get(String path) {
     if (path.startsWith("hdfs://") || path.startsWith("file://") || path.startsWith("s3://")) {
       return UnderFileSystemHdfs.getClient(path);
     } else if (path.startsWith("/")) {
@@ -31,6 +50,8 @@ public abstract class UnderFileSystem {
   public abstract List<String> getFileLocations(String path) throws IOException;
 
   public abstract long getFileSize(String path) throws IOException;
+
+  public abstract long getSpace(String path, SpaceType type) throws IOException;
 
   public abstract boolean mkdirs(String path, boolean createParent) throws IOException;
 

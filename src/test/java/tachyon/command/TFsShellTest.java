@@ -21,7 +21,7 @@ import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 import tachyon.client.InStream;
 import tachyon.client.OpType;
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -33,7 +33,7 @@ import tachyon.thrift.InvalidPathException;
 public class TFsShellTest {
   private final int mSizeBytes = Constants.MB * 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonClient mClient = null;
+  private TachyonFS mClient = null;
   private TFsShell mFsShell = null;
   private ByteArrayOutputStream mOutput = null;
   private PrintStream mNewOutput = null;
@@ -260,7 +260,7 @@ public class TFsShellTest {
   public void copyToLocalTest() 
       throws InvalidPathException, FileAlreadyExistException, IOException, 
       FileDoesNotExistException, TException{
-    TestUtils.createSimpleByteFile(mClient, "/testFile", OpType.WRITE_CACHE, 10);
+    TestUtils.createByteFile(mClient, "/testFile", OpType.WRITE_CACHE, 10);
     mFsShell.copyToLocal(new String[]{
         "copyToLocal", "/testFile", mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[]{"copyToLocal", "/testFile", 
@@ -277,7 +277,7 @@ public class TFsShellTest {
   public void copyToLocalLargeTest() 
       throws InvalidPathException, FileAlreadyExistException, IOException, 
       FileDoesNotExistException, TException{
-    TestUtils.createSimpleByteFile(mClient, "/testFile", OpType.WRITE_CACHE, mSizeBytes);
+    TestUtils.createByteFile(mClient, "/testFile", OpType.WRITE_CACHE, mSizeBytes);
     mFsShell.copyToLocal(new String[]{
         "copyToLocal", "/testFile", mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[]{"copyToLocal", "/testFile", 

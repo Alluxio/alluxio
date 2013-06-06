@@ -17,7 +17,7 @@ import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.MasterInfo;
 import tachyon.client.InStream;
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.OpType;
 import tachyon.thrift.ClientFileInfo;
@@ -202,7 +202,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void displayFile(String path, HttpServletRequest request) 
       throws FileDoesNotExistException, InvalidPathException, IOException {
-    TachyonClient tachyonClient = TachyonClient.getClient(mMasterInfo.getMasterAddress());
+    TachyonFS tachyonClient = TachyonFS.get(mMasterInfo.getMasterAddress());
     TachyonFile tFile = tachyonClient.getFile(path);
     if (tFile == null) {
       throw new FileDoesNotExistException(path);

@@ -22,6 +22,7 @@ import tachyon.WorkerClient;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
+import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -36,7 +37,7 @@ import tachyon.thrift.TableDoesNotExistException;
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients
  * depending on how many workers the client program is interacting with.
  */
-public class TachyonClient {
+public class TachyonFS {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final long USER_QUOTA_UNIT_BYTES = UserConf.get().QUOTA_UNIT_BYTES;
@@ -66,25 +67,23 @@ public class TachyonClient {
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
 
-  private ClientToWorkerHeartbeat mToWorkerHeartbeat = null;
-
   private boolean mConnected = false;
 
-  private TachyonClient(InetSocketAddress masterAddress) {
+  private TachyonFS(InetSocketAddress masterAddress) {
     mMasterAddress = masterAddress;
     mAvailableSpaceBytes = 0L;
   }
 
-  public static synchronized TachyonClient getClient(InetSocketAddress tachyonAddress) {
-    return new TachyonClient(tachyonAddress);
+  public static synchronized TachyonFS get(InetSocketAddress tachyonAddress) {
+    return new TachyonFS(tachyonAddress);
   }
 
-  public static synchronized TachyonClient getClient(String tachyonAddress) {
+  public static synchronized TachyonFS get(String tachyonAddress) {
     String[] address = tachyonAddress.split(":");
     if (address.length != 2) {
       CommonUtils.illegalArgumentException("Illegal Tachyon Master Address: " + tachyonAddress);
     }
-    return getClient(new InetSocketAddress(address[0], Integer.parseInt(address[1])));
+    return get(new InetSocketAddress(address[0], Integer.parseInt(address[1])));
   }
 
   public synchronized void accessLocalFile(int fileId) {
@@ -140,7 +139,7 @@ public class TachyonClient {
   public synchronized boolean addCheckpointPath(int id, String path)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException, IOException {
     connect();
-    UnderFileSystem hdfsClient = UnderFileSystem.getUnderFileSystem(path);
+    UnderFileSystem hdfsClient = UnderFileSystem.get(path);
     long fileSizeBytes = hdfsClient.getFileSize(path);
     return mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path);
   }
@@ -176,7 +175,7 @@ public class TachyonClient {
     }
     LOG.info("Trying to connect master @ " + mMasterAddress);
     mMasterClient = new MasterClient(mMasterAddress);
-    mConnected = mMasterClient.open();
+    mConnected = mMasterClient.connect();
 
     if (!mConnected) {
       return;
@@ -231,7 +230,7 @@ public class TachyonClient {
     workerAddress = new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
 
     LOG.info("Connecting " + (mIsWorkerLocal ? "local" : "remote") + " worker @ " + workerAddress);
-    mWorkerClient = new WorkerClient(workerAddress);
+    mWorkerClient = new WorkerClient(workerAddress, mUserId);
     if (!mWorkerClient.open()) {
       LOG.error("Failed to connect " + (mIsWorkerLocal ? "local" : "remote") + 
           " worker @ " + workerAddress);
@@ -250,18 +249,11 @@ public class TachyonClient {
       mWorkerClient = null;
       return;
     }
-
-    if (mWorkerClient != null) {
-      mToWorkerHeartbeat = new ClientToWorkerHeartbeat(mWorkerClient, mUserId);
-      Thread thread = new Thread(mToWorkerHeartbeat);
-      thread.setDaemon(true);
-      thread.start();
-    }
   }
 
   public synchronized void close() throws TException {
     if (mMasterClient != null) {
-      mMasterClient.close();
+      mMasterClient.disconnect();
     }
 
     if (mWorkerClient != null) {
@@ -299,7 +291,7 @@ public class TachyonClient {
     }
 
     if (mUnderFileSystem == null) {
-      mUnderFileSystem = UnderFileSystem.getUnderFileSystem(mUserUnderfsTempFolder);
+      mUnderFileSystem = UnderFileSystem.get(mUserUnderfsTempFolder);
     }
 
     mUnderFileSystem.mkdirs(mUserUnderfsTempFolder, true);
@@ -575,6 +567,11 @@ public class TachyonClient {
     return mDataFolder;
   }
 
+  public synchronized List<ClientWorkerInfo> getWorkersInfo() throws TException {
+    connect();
+    return mMasterClient.getWorkersInfo();
+  }
+
   public synchronized boolean hasLocalWorker() {
     connect();
     return (mIsWorkerLocal && mWorkerClient != null);
@@ -604,7 +601,7 @@ public class TachyonClient {
     if (!mConnected) {
       return null;
     }
-    return mMasterClient.ls(path);
+    return mMasterClient.listStatus(path);
   }
 
   public synchronized List<String> ls(String path, boolean recursive) throws IOException {

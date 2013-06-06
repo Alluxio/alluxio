@@ -29,7 +29,7 @@ public class OutStream extends OutputStream {
   private final UserConf USER_CONF = UserConf.get();
 
   private final TachyonFile FILE;
-  private final TachyonClient CLIENT;
+  private final TachyonFS CLIENT;
   private final ClientFileInfo CLIENT_FILE_INFO;
   private final int FID;
   private final OpType IO_TYPE;
@@ -47,7 +47,7 @@ public class OutStream extends OutputStream {
 
   OutStream(TachyonFile file, OpType opType) throws IOException {
     FILE = file;
-    CLIENT = FILE.CLIENT;
+    CLIENT = FILE.TFS;
     CLIENT_FILE_INFO = FILE.CLIENT_FILE_INFO;
     FID = FILE.FID;
     IO_TYPE = opType;
@@ -72,7 +72,7 @@ public class OutStream extends OutputStream {
 
     if (IO_TYPE.isWriteThrough()) {
       String underfsFolder = CLIENT.createAndGetUserUnderfsTempFolder();
-      UnderFileSystem underfsClient = UnderFileSystem.getUnderFileSystem(underfsFolder);
+      UnderFileSystem underfsClient = UnderFileSystem.get(underfsFolder);
       mCheckpointOutputStream = underfsClient.create(underfsFolder + "/" + FID);
     }
   }

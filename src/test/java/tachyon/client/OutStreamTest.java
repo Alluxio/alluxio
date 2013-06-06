@@ -17,7 +17,7 @@ import tachyon.thrift.InvalidPathException;
  */
 public class OutStreamTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonClient mClient = null;
+  private TachyonFS mClient = null;
 
   @Before
   public final void before() throws IOException {

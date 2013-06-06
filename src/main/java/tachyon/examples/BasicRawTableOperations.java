@@ -14,7 +14,7 @@ import tachyon.client.OutStream;
 import tachyon.client.OpType;
 import tachyon.client.RawColumn;
 import tachyon.client.RawTable;
-import tachyon.client.TachyonClient;
+import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
@@ -26,7 +26,7 @@ public class BasicRawTableOperations {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private static final int COLS = 3;
-  private static TachyonClient sTachyonClient;
+  private static TachyonFS sTachyonClient;
   private static String sTablePath = null;
   private static int mId;
   private static OpType sWriteType = null;
@@ -104,7 +104,7 @@ public class BasicRawTableOperations {
           "tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>");
       System.exit(-1);
     }
-    sTachyonClient = TachyonClient.getClient(args[0]);
+    sTachyonClient = TachyonFS.get(args[0]);
     sTablePath = args[1];
     sWriteType = OpType.getOpType(args[2]);
     createRawTable();
