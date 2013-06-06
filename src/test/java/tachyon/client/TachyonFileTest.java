@@ -67,21 +67,21 @@ public class TachyonFileTest {
         mClient, "/file3", OpType.WRITE_THROUGH, USER_QUOTA_UNIT_BYTES);
     file = mClient.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
-    Assert.assertTrue(file.recacheData());
+    Assert.assertTrue(file.recache());
     Assert.assertTrue(file.isInMemory());
 
     fileId = TestUtils.createByteFile(
         mClient, "/file4", OpType.WRITE_THROUGH, WORKER_CAPACITY_BYTES + 1);
     file = mClient.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
-    Assert.assertFalse(file.recacheData());
+    Assert.assertFalse(file.recache());
     Assert.assertFalse(file.isInMemory());
 
     fileId = TestUtils.createByteFile(
         mClient, "/file5", OpType.WRITE_THROUGH, WORKER_CAPACITY_BYTES);
     file = mClient.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
-    Assert.assertTrue(file.recacheData());
+    Assert.assertTrue(file.recache());
     Assert.assertTrue(file.isInMemory());
   }
 

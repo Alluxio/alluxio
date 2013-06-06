@@ -88,7 +88,7 @@ public class BasicRawTableOperations {
 
       ByteBuffer buf = tFile.readByteBuffer();
       if (buf == null) {
-        tFile.recacheData();
+        tFile.recache();
       }
       CommonUtils.printByteBuffer(LOG, tFile.readByteBuffer());
       tFile.releaseFileLock();
