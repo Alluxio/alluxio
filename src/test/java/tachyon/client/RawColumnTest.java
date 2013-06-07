@@ -42,7 +42,7 @@ public class RawColumnTest {
   @Test
   public void basicTest() 
       throws InvalidPathException, FileAlreadyExistException, TableColumnException, 
-      TableDoesNotExistException, FileDoesNotExistException, TException {
+      TableDoesNotExistException, FileDoesNotExistException, IOException, TException {
     int fileId = mClient.createRawTable("/table", Constants.MAX_COLUMNS / 10);
     RawTable table = mClient.getRawTable(fileId);
 

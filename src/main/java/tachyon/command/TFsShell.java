@@ -88,11 +88,10 @@ public class TFsShell {
    * the directory if a directory is specified.
    * @param argv[] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
-   * @throws FileDoesNotExistException
    * @throws InvalidPathException
-   * @throws TException
+   * @throws IOException 
    */
-  public int rm(String argv[]) throws InvalidPathException, TException {
+  public int rm(String argv[]) throws InvalidPathException, IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs rm <path>");
       return -1;
@@ -100,7 +99,7 @@ public class TFsShell {
     String path = argv[1];
     String file = Utils.getFilePath(path);
     TachyonFS tachyonClient = TachyonFS.get(Utils.getTachyonMasterAddress(path));
-    if (tachyonClient.delete(file)) {
+    if (tachyonClient.delete(file, true)) {
       System.out.println(file + " has been removed");
       return 0;
     } else {

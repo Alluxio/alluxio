@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -130,10 +131,17 @@ public class MasterClient {
     return CLIENT.liststatus(folder);
   }
 
-  public synchronized int user_createFile(String path)
-      throws FileAlreadyExistException, InvalidPathException, TException {
+  public synchronized int user_createFile(String path) throws IOException {
     connect();
-    return CLIENT.user_createFile(path);
+    try {
+      return CLIENT.user_createFile(path);
+    } catch (FileAlreadyExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
   }
 
   public synchronized int user_createRawTable(String path, int columns, ByteBuffer metadata)
@@ -145,15 +153,22 @@ public class MasterClient {
     return CLIENT.user_createRawTable(path, columns, metadata);
   }
 
-  public synchronized void user_delete(String path)
-      throws FileDoesNotExistException, InvalidPathException, TException {
+  public synchronized boolean user_delete(String path, boolean recursive) throws IOException {
     connect();
-    CLIENT.user_deleteByPath(path);
+    try {
+      return CLIENT.user_deleteByPath(path, recursive);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
   }
 
-  public synchronized void user_delete(int fileId) throws FileDoesNotExistException, TException {
+  public synchronized boolean user_delete(int fileId, boolean recursive) throws IOException {
     connect();
-    CLIENT.user_deleteById(fileId);
+    try {
+      return CLIENT.user_deleteById(fileId, recursive);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
   }
 
   public synchronized ClientFileInfo user_getClientFileInfoByPath(String path)

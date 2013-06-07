@@ -24,7 +24,7 @@ public class BasicOperations {
   private static String sFilePath = null;
   private static OpType sWriteType = null;
 
-  public static void createFile() throws InvalidPathException, FileAlreadyExistException {
+  public static void createFile() throws IOException {
     long startTimeMs = CommonUtils.getCurrentMs();
     int fileId = sTachyonClient.createFile(sFilePath);
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createFile with fileId " + fileId);

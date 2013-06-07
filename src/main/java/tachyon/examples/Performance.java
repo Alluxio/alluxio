@@ -42,7 +42,7 @@ public class Performance {
   private static long[] Results = new long[RESULT_ARRAY_SIZE];
   private static int BASE_FILE_NUMBER = 0;
 
-  public static void createFiles() throws InvalidPathException, FileAlreadyExistException {
+  public static void createFiles() throws IOException {
     long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < THREADS; k ++) {
       int fileId = MTC.createFile(FILE_NAME + (k + BASE_FILE_NUMBER));
