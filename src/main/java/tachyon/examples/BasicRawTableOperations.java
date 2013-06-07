@@ -31,8 +31,7 @@ public class BasicRawTableOperations {
   private static int mId;
   private static OpType sWriteType = null;
 
-  public static void createRawTable() 
-      throws InvalidPathException, FileAlreadyExistException, TableColumnException {
+  public static void createRawTable() throws IOException {
     long startTimeMs = CommonUtils.getCurrentMs();
     ByteBuffer data = ByteBuffer.allocate(12);
     data.putInt(-1);

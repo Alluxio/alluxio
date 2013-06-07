@@ -7,14 +7,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.LocalTachyonCluster;
@@ -23,9 +20,6 @@ import tachyon.client.InStream;
 import tachyon.client.OpType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
 
 /**
  * Unit tests on TFsShell.
@@ -93,8 +87,7 @@ public class TFsShellTest {
   }
 
   @Test
-  public void mkdirTest() 
-      throws InvalidPathException, FileAlreadyExistException, TException, UnknownHostException {
+  public void mkdirTest() throws IOException {
     mFsShell.mkdir(new String[]{"mkdir", "tachyon://" + 
         InetAddress.getLocalHost().getCanonicalHostName() + ":" +
         mLocalTachyonCluster.getMasterPort() + "/root/testFile1"});
@@ -104,8 +97,7 @@ public class TFsShellTest {
   }
 
   @Test
-  public void mkdirShortPathTest()
-      throws InvalidPathException, FileAlreadyExistException, TException, UnknownHostException { 
+  public void mkdirShortPathTest() throws IOException { 
     mFsShell.mkdir(new String[]{"mkdir", "/root/testFile1"});
     Assert.assertNotNull(mClient.getFile("/root/testFile1"));
     Assert.assertEquals(getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
@@ -113,30 +105,26 @@ public class TFsShellTest {
   }
 
   @Test
-  public void mkdirComplexPathTest()
-      throws InvalidPathException, FileAlreadyExistException, TException, UnknownHostException {
+  public void mkdirComplexPathTest() throws IOException {
     mFsShell.mkdir(new String[]{"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"});
     Assert.assertNotNull(mClient.getFile("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
     Assert.assertEquals(getCommandOutput(
         new String[] {"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"}), mOutput.toString());
   }
 
-  @Test(expected = FileAlreadyExistException.class)
-  public void mkdirExistingTest()
-      throws InvalidPathException, FileAlreadyExistException, TException, UnknownHostException {
+  @Test(expected = IOException.class)
+  public void mkdirExistingTest() throws IOException {
     mFsShell.mkdir(new String[]{"mkdir", "/testFile1"});
     mFsShell.mkdir(new String[]{"mkdir", "/testFile1"});
   }
 
-  @Test(expected = InvalidPathException.class)
-  public void mkdirInvalidPathTest()
-      throws InvalidPathException, FileAlreadyExistException, TException, UnknownHostException {
+  @Test(expected = IOException.class)
+  public void mkdirInvalidPathTest() throws IOException {
     mFsShell.mkdir(new String[]{"mkdir", "/test File Invalid Path"});  
   }
 
   @Test
-  public void rmTest() 
-      throws InvalidPathException, FileAlreadyExistException, TException, IOException {
+  public void rmTest() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[]{"mkdir", "/testFolder1/testFolder2/testFile2"});
     toCompare.append(getCommandOutput(
@@ -160,14 +148,12 @@ public class TFsShellTest {
   }
 
   @Test
-  public void rmNotExistingFileTest() throws InvalidPathException, IOException {
+  public void rmNotExistingFileTest() throws IOException {
     Assert.assertEquals(0, mFsShell.rm(new String[]{"rm", "/testFile"}));
   }
 
   @Test
-  public void renameTest()
-      throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException, 
-      UnknownHostException, TException {
+  public void renameTest() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[]{"mkdir", "/testFolder1"});
     toCompare.append(getCommandOutput(new String[]{"mkdir", "/testFolder1"}));
@@ -179,23 +165,18 @@ public class TFsShellTest {
     Assert.assertNull(mClient.getFile("/testFolder1"));
   }
 
-  @Test
-  public void renameToExistingFileTest()
-      throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException, 
-      UnknownHostException, TException {
+  @Test(expected = IOException.class)
+  public void renameToExistingFileTest() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[]{"mkdir", "/testFolder"});
     toCompare.append(getCommandOutput(new String[]{"mkdir", "/testFolder"}));
     mFsShell.mkdir(new String[]{"mkdir", "/testFolder1"});
     toCompare.append(getCommandOutput(new String[]{"mkdir", "/testFolder1"}));
-    Assert.assertEquals(-1, mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder"}));
-    Assert.assertEquals(toCompare.toString(), mOutput.toString());
+    mFsShell.rename(new String[]{"rename", "/testFolder1", "/testFolder"});
   }
 
   @Test
-  public void renameParentDirectoryTest()
-      throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException, 
-      UnknownHostException, TException {
+  public void renameParentDirectoryTest() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[]{"mkdir", "/test/File1"});
     toCompare.append(getCommandOutput(new String[]{"mkdir", "/test/File1"}));
@@ -208,8 +189,7 @@ public class TFsShellTest {
   }
 
   @Test
-  public void copyFromLocalTest() 
-      throws IOException, InvalidPathException, FileAlreadyExistException {
+  public void copyFromLocalTest() throws IOException {
     File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
@@ -229,8 +209,7 @@ public class TFsShellTest {
   }
 
   @Test
-  public void copyFromLocalLargeTest() 
-      throws IOException, InvalidPathException, FileAlreadyExistException {
+  public void copyFromLocalLargeTest() throws IOException {
     File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
@@ -250,9 +229,7 @@ public class TFsShellTest {
   }
 
   @Test
-  public void copyToLocalTest() 
-      throws InvalidPathException, FileAlreadyExistException, IOException, 
-      FileDoesNotExistException, TException{
+  public void copyToLocalTest() throws IOException {
     TestUtils.createByteFile(mClient, "/testFile", OpType.WRITE_CACHE, 10);
     mFsShell.copyToLocal(new String[]{
         "copyToLocal", "/testFile", mLocalTachyonCluster.getTachyonHome() + "/testFile"});
@@ -267,9 +244,7 @@ public class TFsShellTest {
   }
 
   @Test
-  public void copyToLocalLargeTest() 
-      throws InvalidPathException, FileAlreadyExistException, IOException, 
-      FileDoesNotExistException, TException{
+  public void copyToLocalLargeTest() throws IOException {
     TestUtils.createByteFile(mClient, "/testFile", OpType.WRITE_CACHE, mSizeBytes);
     mFsShell.copyToLocal(new String[]{
         "copyToLocal", "/testFile", mLocalTachyonCluster.getTachyonHome() + "/testFile"});

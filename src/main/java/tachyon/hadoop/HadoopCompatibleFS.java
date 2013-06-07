@@ -21,11 +21,7 @@ import org.apache.thrift.TException;
 import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * An Hadoop FileSystem interface implementation. Any program working with Hadoop HDFS can work
@@ -113,12 +109,6 @@ public class HadoopCompatibleFS extends FileSystem {
           }
         }
       }
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (SuspectedFileSizeException e) {
-      throw new IOException(e);
     } catch (TException e) {
       LOG.error(e.getMessage());
     } 
@@ -158,12 +148,7 @@ public class HadoopCompatibleFS extends FileSystem {
     ArrayList<String> names = new ArrayList<String>();
     ArrayList<String> hosts = new ArrayList<String>();
 
-    try {
-      fileId = mTFS.getFileId(path);
-    } catch (InvalidPathException e) {
-      LOG.warn(e.getMessage());
-      fileId = -1;
-    }
+    fileId = mTFS.getFileId(path);
 
     if (fileId != -1) {
       List<NetAddress> locations = mTFS.getFileNetAddresses(fileId);
@@ -258,12 +243,7 @@ public class HadoopCompatibleFS extends FileSystem {
     String rawPath = path;
     int fileId = -1;
 
-    try {
-      fileId = mTFS.getFileId(path);
-    } catch (InvalidPathException e) {
-      LOG.warn(e.getMessage());
-      fileId = -1;
-    }
+    fileId = mTFS.getFileId(path);
 
     Path hdfsPath = Utils.getHDFSPath(rawPath);
     if (fileId == -1) {
@@ -282,12 +262,7 @@ public class HadoopCompatibleFS extends FileSystem {
     Path hDst = Utils.getHDFSPath(dst);
     FileSystem fs = hSrc.getFileSystem(getConf());
     boolean succeed = false;
-    try {
-      succeed = mTFS.rename(
-          Utils.getPathWithoutScheme(src), Utils.getPathWithoutScheme(dst));
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    }
+    succeed = mTFS.rename(Utils.getPathWithoutScheme(src), Utils.getPathWithoutScheme(dst));
     return fs.rename(hSrc, hDst) && succeed;
   }
 

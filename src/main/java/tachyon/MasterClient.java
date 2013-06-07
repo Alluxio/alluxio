@@ -71,7 +71,7 @@ public class MasterClient {
    * @throws TException
    */
   public synchronized boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
-      String checkpointPath) 
+      String checkpointPath)
           throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     connect();
     return CLIENT.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
@@ -126,12 +126,18 @@ public class MasterClient {
   }
 
   public synchronized List<ClientFileInfo> listStatus(String folder)
-      throws InvalidPathException, FileDoesNotExistException, TException {
+      throws IOException, TException {
     connect();
-    return CLIENT.liststatus(folder);
+    try {
+      return CLIENT.liststatus(folder);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    }
   }
 
-  public synchronized int user_createFile(String path) throws IOException {
+  public synchronized int user_createFile(String path) throws IOException, TException {
     connect();
     try {
       return CLIENT.user_createFile(path);
@@ -139,64 +145,84 @@ public class MasterClient {
       throw new IOException(e);
     } catch (InvalidPathException e) {
       throw new IOException(e);
-    } catch (TException e) {
-      throw new IOException(e);
     }
   }
 
   public synchronized int user_createRawTable(String path, int columns, ByteBuffer metadata)
-      throws FileAlreadyExistException, InvalidPathException, TableColumnException, TException {
+      throws IOException, TException {
     if (metadata == null) {
       metadata = ByteBuffer.allocate(0);
     }
     connect();
-    return CLIENT.user_createRawTable(path, columns, metadata);
-  }
-
-  public synchronized boolean user_delete(String path, boolean recursive) throws IOException {
-    connect();
     try {
-      return CLIENT.user_deleteByPath(path, recursive);
-    } catch (TException e) {
+      return CLIENT.user_createRawTable(path, columns, metadata);
+    } catch (FileAlreadyExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    } catch (TableColumnException e) {
       throw new IOException(e);
     }
   }
 
-  public synchronized boolean user_delete(int fileId, boolean recursive) throws IOException {
+  public synchronized boolean user_delete(String path, boolean recursive) throws TException {
     connect();
-    try {
-      return CLIENT.user_deleteById(fileId, recursive);
-    } catch (TException e) {
-      throw new IOException(e);
-    }
+    return CLIENT.user_deleteByPath(path, recursive);
+  }
+
+  public synchronized boolean user_delete(int fileId, boolean recursive) throws TException {
+    connect();
+    return CLIENT.user_deleteById(fileId, recursive);
   }
 
   public synchronized ClientFileInfo user_getClientFileInfoByPath(String path)
-      throws FileDoesNotExistException, InvalidPathException, TException {
+      throws IOException, TException {
     connect();
-    return CLIENT.user_getClientFileInfoByPath(path);
+    try {
+      return CLIENT.user_getClientFileInfoByPath(path);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
   }
 
   public synchronized ClientFileInfo user_getClientFileInfoById(int id)
-      throws FileDoesNotExistException, TException {
+      throws IOException, TException {
     connect();
-    return CLIENT.user_getClientFileInfoById(id);
+    try {
+      return CLIENT.user_getClientFileInfoById(id);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    }
   }
 
-  public synchronized int user_getFileId(String path) throws InvalidPathException, TException {
+  public synchronized int user_getFileId(String path) throws IOException, TException {
     connect();
-    return CLIENT.user_getFileId(path);
+    try {
+      return CLIENT.user_getFileId(path);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
   }
 
-  public synchronized int user_getRawTableId(String path) throws InvalidPathException, TException {
+  public synchronized int user_getRawTableId(String path) throws IOException, TException {
     connect();
-    return CLIENT.user_getRawTableId(path);
+    try {
+      return CLIENT.user_getRawTableId(path);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
   }
 
-  public synchronized List<NetAddress> user_getFileLocations(int id)
-      throws FileDoesNotExistException, TException {
+  public synchronized List<NetAddress> user_getFileLocations(int id) 
+      throws IOException, TException {
     connect();
-    return CLIENT.user_getFileLocationsById(id);
+    try {
+      return CLIENT.user_getFileLocationsById(id);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    }
   }
 
   public synchronized NetAddress user_getWorker(boolean random, String hostname)
@@ -206,25 +232,43 @@ public class MasterClient {
   }
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
-      throws TableDoesNotExistException, InvalidPathException, TException {
+      throws IOException, TException {
     connect();
-    ClientRawTableInfo ret = CLIENT.user_getClientRawTableInfoByPath(path);
+    ClientRawTableInfo ret;
+    try {
+      ret = CLIENT.user_getClientRawTableInfoByPath(path);
+    } catch (TableDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
     ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
     return ret;
   }
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoById(int id)
-      throws TableDoesNotExistException, TException {
+      throws IOException, TException {
     connect();
-    ClientRawTableInfo ret = CLIENT.user_getClientRawTableInfoById(id);
+    ClientRawTableInfo ret;
+    try {
+      ret = CLIENT.user_getClientRawTableInfoById(id);
+    } catch (TableDoesNotExistException e) {
+      throw new IOException(e);
+    }
     ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
     return ret;
   }
 
   public synchronized int user_getNumberOfFiles(String folderPath)
-      throws FileDoesNotExistException, InvalidPathException, TException {
+      throws IOException, TException {
     connect();
-    return CLIENT.user_getNumberOfFiles(folderPath);
+    try {
+      return CLIENT.user_getNumberOfFiles(folderPath);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
   }
 
   public synchronized String user_getUnderfsAddress() throws TException {
@@ -233,21 +277,39 @@ public class MasterClient {
   }
 
   public synchronized List<Integer> user_listFiles(String path, boolean recursive)
-      throws FileDoesNotExistException, InvalidPathException, TException {
+      throws IOException, TException {
     connect();
-    return CLIENT.user_listFiles(path, recursive);
+    try {
+      return CLIENT.user_listFiles(path, recursive);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
   }
 
   public synchronized List<String> user_ls(String path, boolean recursive)
-      throws FileDoesNotExistException, InvalidPathException, TException {
+      throws IOException, TException {
     connect();
-    return CLIENT.user_ls(path, recursive);
+    try {
+      return CLIENT.user_ls(path, recursive);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
   }
 
   public synchronized int user_mkdir(String path) 
-      throws FileAlreadyExistException, InvalidPathException, TException {
+      throws IOException, TException {
     connect();
-    return CLIENT.user_mkdir(path);
+    try {
+      return CLIENT.user_mkdir(path);
+    } catch (FileAlreadyExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
   }
 
   public synchronized void user_outOfMemoryForPinFile(int fileId) throws TException {
@@ -256,20 +318,36 @@ public class MasterClient {
   }
 
   public synchronized void user_renameFile(String srcPath, String dstPath)
-      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException{
+      throws IOException, TException{
     connect();
-    CLIENT.user_renameFile(srcPath, dstPath);
+    try {
+      CLIENT.user_renameFile(srcPath, dstPath);
+    } catch (FileAlreadyExistException e) {
+      throw new IOException(e);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
   }
 
-  public synchronized void user_unpinFile(int id) throws FileDoesNotExistException, TException {
+  public synchronized void user_unpinFile(int id) throws IOException, TException {
     connect();
-    CLIENT.user_unpinFile(id);
+    try {
+      CLIENT.user_unpinFile(id);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    }
   }
 
   public synchronized void user_updateRawTableMetadata(int id, ByteBuffer metadata)
-      throws TableDoesNotExistException, TException {
+      throws IOException, TException {
     connect();
-    CLIENT.user_updateRawTableMetadata(id, metadata);
+    try {
+      CLIENT.user_updateRawTableMetadata(id, metadata);
+    } catch (TableDoesNotExistException e) {
+      throw new IOException(e);
+    }
   }
 
   public synchronized void worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
