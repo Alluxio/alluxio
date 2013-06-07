@@ -170,12 +170,6 @@ public class TachyonFS {
     if (mWorkerClient != null) {
       try {
         mWorkerClient.cacheFile(mUserId, fid);
-      } catch (FileDoesNotExistException e) {
-        LOG.error(e.getMessage(), e);
-        throw new IOException(e);
-      } catch (SuspectedFileSizeException e) {
-        LOG.error(e.getMessage(), e);
-        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mWorkerClient = null;

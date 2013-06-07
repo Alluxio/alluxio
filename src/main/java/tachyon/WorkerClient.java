@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import org.apache.thrift.TException;
@@ -57,8 +58,14 @@ public class WorkerClient {
   }
 
   public synchronized void cacheFile(long userId, int fileId)
-      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    CLIENT.cacheFile(userId, fileId);
+      throws IOException, TException {
+    try {
+      CLIENT.cacheFile(userId, fileId);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
+    }
   }
 
   public synchronized void close() {
