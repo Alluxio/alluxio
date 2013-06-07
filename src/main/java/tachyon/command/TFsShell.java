@@ -1,7 +1,6 @@
 package tachyon.command;
 
 import java.io.IOException;
-import java.io.FileNotFoundException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -13,9 +12,6 @@ import java.util.Collections;
 
 import org.apache.thrift.TException;
 
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.ClientFileInfo;
 
 import tachyon.CommonUtils;
@@ -36,12 +32,9 @@ public class TFsShell {
    * Displays information for all directories and files directly under the path specified in argv.
    * @param argv[] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
-   * @throws FileDoesNotExistException
-   * @throws InvalidPathException
-   * @throws TException
+   * @throws IOException
    */
-  public int ls(String argv[])
-      throws FileDoesNotExistException, InvalidPathException, TException {
+  public int ls(String argv[]) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs ls <path>");
       return -1;
@@ -65,9 +58,9 @@ public class TFsShell {
    * are required. This method fails if a directory or file with the same path already exists.
    * @param argv[] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
-   * @throws InvalidPathException
+   * @throws IOException
    */
-  public int mkdir(String argv[]) throws InvalidPathException, FileAlreadyExistException {
+  public int mkdir(String argv[]) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs mkdir <path>");
       return -1;
@@ -88,10 +81,9 @@ public class TFsShell {
    * the directory if a directory is specified.
    * @param argv[] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
-   * @throws InvalidPathException
    * @throws IOException 
    */
-  public int rm(String argv[]) throws InvalidPathException, IOException {
+  public int rm(String argv[]) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs rm <path>");
       return -1;
@@ -112,12 +104,9 @@ public class TFsShell {
    * exists.
    * @param argv[] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
-   * @throws FileDoesNotExistException
-   * @throws InvalidPathException
    * @throws TException
    */
-  public int rename(String argv[]) 
-      throws FileDoesNotExistException, InvalidPathException, TException {
+  public int rename(String argv[]) throws IOException {
     if (argv.length != 3) {
       System.out.println("Usage: tfs mv <src> <dst>");
       return -1;
@@ -128,7 +117,7 @@ public class TFsShell {
     InetSocketAddress dstMasterAddr = Utils.getTachyonMasterAddress(dstPath);
     if (!srcMasterAddr.getHostName().equals(dstMasterAddr.getHostName()) || 
         srcMasterAddr.getPort() != dstMasterAddr.getPort()) {
-      throw new InvalidPathException("The file system of source and destination must be the same");
+      throw new IOException("The file system of source and destination must be the same");
     }
     String srcFile = Utils.getFilePath(srcPath);
     String dstFile = Utils.getFilePath(dstPath);
@@ -145,13 +134,9 @@ public class TFsShell {
    * Copies a file specified by argv from the filesystem to the local filesystem.
    * @param argv[] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
-   * @throws FileDoesNotExistException
-   * @throws InvalidPathException
-   * @throws TException
    * @throws IOException
    */
-  public int copyToLocal(String argv[])
-      throws FileDoesNotExistException, InvalidPathException, TException, IOException {
+  public int copyToLocal(String argv[]) throws IOException {
     if (argv.length != 3) {
       System.out.println("Usage: tfs copyToLocal <src> <localdst>");
       return -1;
@@ -166,7 +151,7 @@ public class TFsShell {
 
     // tachyonClient.getFile() catches FileDoesNotExist exceptions and returns null
     if (tFile == null) {
-      throw new FileDoesNotExistException(folder);
+      throw new IOException(folder);
     }
 
     InStream is = tFile.getInStream(OpType.READ_NO_CACHE);
@@ -187,13 +172,9 @@ public class TFsShell {
    * Displays a list of hosts that have the file specified in argv stored.
    * @param argv[] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
-   * @throws FileDoesNotExistException
-   * @throws InvalidPathException
    * @throws IOException
-   * @throws TException
    */
-  public int location(String argv[]) 
-      throws FileDoesNotExistException, InvalidPathException, IOException, TException {
+  public int location(String argv[]) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs location <path>");
       return -1;
@@ -215,12 +196,9 @@ public class TFsShell {
    * the path given already exists in the filesystem.
    * @param argv[] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
-   * @throws FileDoesNotExistException
-   * @throws InvalidPathException
    * @throws IOException
    */
-  public int copyFromLocal(String argv[]) 
-      throws FileNotFoundException, InvalidPathException, IOException, FileAlreadyExistException {
+  public int copyFromLocal(String argv[]) throws IOException {
     if (argv.length != 3) {
       System.out.println("Usage: tfs copyFromLocal <src> <remoteDst>");
       return -1;
@@ -312,14 +290,8 @@ public class TFsShell {
         printUsage();
         return -1;
       }
-    } catch (InvalidPathException ipe) {
-      System.out.println("Invalid Path: " + ipe.getMessage());
-    } catch (FileDoesNotExistException fdne) {
-      System.out.println("File Does Not Exist: " + fdne.getMessage());
-    } catch (FileAlreadyExistException faee) {
-      System.out.println("File Already Exists: " + faee.getMessage());
-    } catch (IOException ioe) {
-      System.out.println(ioe.getMessage());
+    } catch (IOException e) {
+      System.out.println(e.getMessage());
     } finally {
     }
 

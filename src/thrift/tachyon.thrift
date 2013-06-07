@@ -86,10 +86,6 @@ exception TableDoesNotExistException {
   1: string message
 }
 
-exception GeneralException {
-  1: string message
-}
-
 service MasterService {
   bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 fileSizeBytes, 4: string checkpointPath)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
