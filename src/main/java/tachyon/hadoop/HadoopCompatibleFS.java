@@ -37,13 +37,13 @@ public class HadoopCompatibleFS extends FileSystem {
 
   private URI mUri = null;
   private Path mWorkingDir = new Path("/");
-  private TachyonFS mTachyonClient = null;
+  private TachyonFS mTFS = null;
   private String mTachyonHeader = null;
 
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
       throws IOException {
-    LOG.debug("TachyonFileSystem append(" + path + ", " + bufferSize + ", " + progress + ")");
+    LOG.info("TachyonFileSystem append(" + path + ", " + bufferSize + ", " + progress + ")");
     throw new IOException("Not supported");
   }
 
@@ -67,7 +67,7 @@ public class HadoopCompatibleFS extends FileSystem {
   @Override
   @Deprecated
   public boolean delete(Path path) throws IOException {
-    throw new IOException("Not supported");
+    return delete(path, true);
   }
 
   @Override
@@ -77,11 +77,7 @@ public class HadoopCompatibleFS extends FileSystem {
     FileSystem fs = hdfsPath.getFileSystem(getConf());
     LOG.debug("TachyonFileSystem delete(" + hdfsPath + ", " + recursive + ")");
     boolean succeed = false;
-    try {
-      succeed = mTachyonClient.delete(Utils.getPathWithoutScheme(path));
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    }
+    succeed = mTFS.delete(Utils.getPathWithoutScheme(path), recursive);
     return fs.delete(hdfsPath, recursive) && succeed;
   }
 
@@ -103,14 +99,14 @@ public class HadoopCompatibleFS extends FileSystem {
     try {
       if (!hfs.isDir()) {
         int fileId;
-        fileId = mTachyonClient.getFileId(filePath);
+        fileId = mTFS.getFileId(filePath);
         if (fileId > 0) {
           LOG.debug("Tachyon has file " + filePath);
         } else {
           LOG.debug("Tachyon does not have file " + filePath);
-          int tmp = mTachyonClient.createFile(filePath);
+          int tmp = mTFS.createFile(filePath);
           if (tmp != -1) {
-            mTachyonClient.addCheckpointPath(tmp, hdfsPath.toString());
+            mTFS.addCheckpointPath(tmp, hdfsPath.toString());
             LOG.debug("Tachyon does not have file " + filePath + " checkpoint added.");
           } else {
             LOG.debug("Tachyon does not have file " + filePath + " and creation failed.");
@@ -122,8 +118,6 @@ public class HadoopCompatibleFS extends FileSystem {
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
-      throw new IOException(e);
-    } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (TException e) {
       LOG.error(e.getMessage());
@@ -165,14 +159,14 @@ public class HadoopCompatibleFS extends FileSystem {
     ArrayList<String> hosts = new ArrayList<String>();
 
     try {
-      fileId = mTachyonClient.getFileId(path);
+      fileId = mTFS.getFileId(path);
     } catch (InvalidPathException e) {
       LOG.warn(e.getMessage());
       fileId = -1;
     }
 
     if (fileId != -1) {
-      List<NetAddress> locations = mTachyonClient.getFileNetAddresses(fileId);
+      List<NetAddress> locations = mTFS.getFileNetAddresses(fileId);
       if (locations != null) {
         for (int k = 0; k < locations.size(); k ++) {
           names.add(locations.get(k).mHost);
@@ -208,9 +202,9 @@ public class HadoopCompatibleFS extends FileSystem {
   public void initialize(URI uri, Configuration conf) throws IOException {
     LOG.debug("TachyonFileSystem initialize(" + uri + ", " + conf + "). Connecting TachyonSystem: " +
         uri.getHost() + ":" + uri.getPort());
-    mTachyonClient = TachyonFS.get(new InetSocketAddress(uri.getHost(), uri.getPort()));
+    mTFS = TachyonFS.get(new InetSocketAddress(uri.getHost(), uri.getPort()));
     mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort() + "";
-    Utils.HDFS_ADDRESS = mTachyonClient.getUnderfsAddress();
+    Utils.HDFS_ADDRESS = mTFS.getUnderfsAddress();
     mUri = URI.create("tachyon://" + uri.getHost() + ":" + uri.getPort());
   }
 
@@ -265,7 +259,7 @@ public class HadoopCompatibleFS extends FileSystem {
     int fileId = -1;
 
     try {
-      fileId = mTachyonClient.getFileId(path);
+      fileId = mTFS.getFileId(path);
     } catch (InvalidPathException e) {
       LOG.warn(e.getMessage());
       fileId = -1;
@@ -277,7 +271,7 @@ public class HadoopCompatibleFS extends FileSystem {
       return fs.open(hdfsPath, bufferSize);
     }
 
-    return new FSDataInputStream(new TFileInputStreamHdfs(mTachyonClient, fileId,
+    return new FSDataInputStream(new TFileInputStreamHdfs(mTFS, fileId,
         hdfsPath, getConf(), bufferSize));
   }
 
@@ -289,7 +283,7 @@ public class HadoopCompatibleFS extends FileSystem {
     FileSystem fs = hSrc.getFileSystem(getConf());
     boolean succeed = false;
     try {
-      succeed = mTachyonClient.rename(
+      succeed = mTFS.rename(
           Utils.getPathWithoutScheme(src), Utils.getPathWithoutScheme(dst));
     } catch (InvalidPathException e) {
       throw new IOException(e);

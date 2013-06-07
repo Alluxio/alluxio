@@ -349,45 +349,33 @@ public class TachyonFS {
     }
   }
 
-  public synchronized int createFile(String path)
-      throws InvalidPathException, FileAlreadyExistException {
+  public synchronized int createFile(String path) throws IOException {
     connect();
     if (!mConnected) {
       return -1;
     }
     path = CommonUtils.cleanPath(path);
     int fid = -1;
-    try {
-      fid = mMasterClient.user_createFile(path);
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      mConnected = false;
-      fid = -1;
-    }
+    fid = mMasterClient.user_createFile(path);
     return fid;
   }
 
-  public synchronized boolean delete(int fid) {
+  public synchronized boolean delete(int fid, boolean recursive) throws IOException {
     connect();
     if (!mConnected) {
       return false;
     }
 
-    try {
-      mMasterClient.user_delete(fid);
-    } catch (FileDoesNotExistException e) {
-      LOG.error(e.getMessage());
-      return false;
-    } catch (TException e) {
-      LOG.error(e.getMessage());
+    return mMasterClient.user_delete(fid, recursive);
+  }
+
+  public synchronized boolean delete(String path, boolean recursive) throws IOException {
+    connect();
+    if (!mConnected) {
       return false;
     }
 
-    return true;
-  }
-
-  public synchronized boolean delete(String path) throws InvalidPathException {
-    return delete(getFileId(path));
+    return mMasterClient.user_delete(path, recursive);
   }
 
   public synchronized boolean exist(String path) throws InvalidPathException {

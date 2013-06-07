@@ -54,15 +54,15 @@ exception OutOfMemoryForPinFileException {
   1: string message
 }
 
+exception FailedToCheckpointException {
+  1: string message
+}
+
 exception FileAlreadyExistException {
   1: string message
 }
 
 exception FileDoesNotExistException {
-  1: string message
-}
-
-exception FailedToCheckpointException {
   1: string message
 }
 
@@ -83,6 +83,10 @@ exception TableColumnException {
 }
 
 exception TableDoesNotExistException {
+  1: string message
+}
+
+exception GeneralException {
   1: string message
 }
 
@@ -119,9 +123,8 @@ service MasterService {
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
   list<string> user_ls(1: string path, 2: bool recursive)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
-  void user_deleteById(1: i32 fileId) // Delete file
-  void user_deleteByPath(1: string path)
-    throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF) // Delete file
+  bool user_deleteById(1: i32 fileId, 2: bool recursive) // Delete file
+  bool user_deleteByPath(1: string path, 2: bool recursive) // Delete file
   void user_outOfMemoryForPinFile(1: i32 fileId)
   void user_renameFile(1: string srcFilePath, 2: string dstFilePath)
     throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)

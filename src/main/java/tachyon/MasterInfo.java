@@ -398,20 +398,24 @@ public class MasterInfo {
     return id;
   }
 
-  public void delete(int id) {
+  public boolean delete(int id, boolean recursive) {
     LOG.info("delete(" + id + ")");
+    boolean succeed = true;
     synchronized (mRoot) {
       Inode inode = mInodes.get(id);
 
       if (inode == null) {
-        return;
+        return true;
       }
 
       if (inode.isDirectory()) {
         List<Integer> childrenIds = ((InodeFolder) inode).getChildrenIds();
 
+        if (!recursive && childrenIds.size() != 0) {
+          return false;
+        }
         for (int childId : childrenIds) {
-          delete(childId);
+          succeed = succeed && delete(childId, recursive);
         }
       }
 
@@ -444,17 +448,24 @@ public class MasterInfo {
       mMasterLogWriter.append(inode, false);
       mMasterLogWriter.append(parent, false);
       mMasterLogWriter.flush();
+
+      return succeed;
     }
   }
 
-  public void delete(String path) throws InvalidPathException, FileDoesNotExistException {
+  public boolean delete(String path, boolean recursive) {
     LOG.info("delete(" + path + ")");
     synchronized (mRoot) {
-      Inode inode = getInode(path);
-      if (inode == null) {
-        throw new FileDoesNotExistException(path);
+      Inode inode = null;
+      try {
+        inode = getInode(path);
+      } catch (InvalidPathException e) {
+        return false;
       }
-      delete(inode.getId());
+      if (inode == null) {
+        return true;
+      }
+      return delete(inode.getId(), recursive);
     }
   }
 

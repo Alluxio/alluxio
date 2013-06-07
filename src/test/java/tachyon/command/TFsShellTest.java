@@ -71,7 +71,7 @@ public class TFsShellTest {
     return null;
   }
 
-  
+
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
@@ -160,8 +160,7 @@ public class TFsShellTest {
   }
 
   @Test
-  public void rmNotExistingFileTest()
-      throws InvalidPathException, FileAlreadyExistException, UnknownHostException, TException {
+  public void rmNotExistingFileTest() throws InvalidPathException, IOException {
     Assert.assertEquals(0, mFsShell.rm(new String[]{"rm", "/testFile"}));
   }
 
