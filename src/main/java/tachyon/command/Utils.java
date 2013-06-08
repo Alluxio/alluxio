@@ -1,9 +1,9 @@
 package tachyon.command;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import tachyon.Constants;
-import tachyon.thrift.InvalidPathException;
 
 /**
  * Class for convenience methods used by TFsShell.
@@ -13,12 +13,12 @@ public class Utils {
   /**
    * Validates the path, verifying that it contains the header and a hostname:port specified.
    * @param path The path to be verified.
-   * @throws InvalidPathException 
+   * @throws IOException 
    */
-  public static String validateTachyonPath(String path) throws InvalidPathException {
+  public static String validateTachyonPath(String path) throws IOException {
     if (path.startsWith(HEADER)) {
       if (!path.contains(":")) {
-        throw new InvalidPathException(
+        throw new IOException(
             "Invalid Path: " + path + "\n Use tachyon://host:port/ or /file");
       } else {
         return path;
@@ -34,9 +34,9 @@ public class Utils {
    * Removes header and hostname:port information from a path, leaving only the local file path.
    * @param path The path to obtain the local path from
    * @return The local path in string format
-   * @throws InvalidPathException 
+   * @throws IOException 
    */ 
-  public static String getFilePath(String path) throws InvalidPathException {
+  public static String getFilePath(String path) throws IOException {
     path = validateTachyonPath(path);
     path = path.substring(HEADER.length());
     String ret = path.substring(path.indexOf("/"));
@@ -47,9 +47,9 @@ public class Utils {
    * Obtains the InetSocketAddress from a path by parsing the hostname:port portion of the path.
    * @param path The path to obtain the InetSocketAddress from.
    * @return The InetSocketAddress of the master node.
-   * @throws InvalidPathException 
+   * @throws IOException 
    */
-  public static InetSocketAddress getTachyonMasterAddress(String path) throws InvalidPathException {
+  public static InetSocketAddress getTachyonMasterAddress(String path) throws IOException {
     path = validateTachyonPath(path);
     path = path.substring(HEADER.length());
     String masterAddress = path.substring(0, path.indexOf("/"));

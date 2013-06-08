@@ -24,7 +24,7 @@ public class BasicOperations {
   private static String sFilePath = null;
   private static OpType sWriteType = null;
 
-  public static void createFile() throws InvalidPathException, FileAlreadyExistException {
+  public static void createFile() throws IOException {
     long startTimeMs = CommonUtils.getCurrentMs();
     int fileId = sTachyonClient.createFile(sFilePath);
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createFile with fileId " + fileId);
@@ -55,7 +55,7 @@ public class BasicOperations {
     TachyonFile file = sTachyonClient.getFile(sFilePath);
     ByteBuffer buf = file.readByteBuffer();
     if (buf == null) {
-      file.recacheData();
+      file.recache();
     }
     CommonUtils.printByteBuffer(LOG, file.readByteBuffer());
     file.releaseFileLock();

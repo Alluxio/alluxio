@@ -20,7 +20,6 @@ import tachyon.Constants;
 import tachyon.DataServerMessage;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
-import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -33,20 +32,18 @@ public class TachyonFile implements Comparable<TachyonFile> {
   private final UserConf USER_CONF = UserConf.get();
 
   final TachyonFS TFS;
-  final ClientFileInfo CLIENT_FILE_INFO;
   final int FID;
 
   private boolean mLockedFile = false;
 
-  public TachyonFile(TachyonFS tachyonClient, ClientFileInfo fileInfo) {
+  TachyonFile(TachyonFS tachyonClient, int fid) {
     TFS = tachyonClient;
-    CLIENT_FILE_INFO = fileInfo;
-    FID = CLIENT_FILE_INFO.getId();
+    FID = fid;
   }
 
   /**
    * This API is not recommended to use.
-   * 
+   *
    * @param path file's checkpoint path.
    * @return true if the checkpoint path is added successfully, false otherwise.
    * @throws TException 
@@ -56,15 +53,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   public boolean addCheckpointPath(String path)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException, IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
-    long sizeBytes = ufs.getFileSize(path);
-    if (TFS.addCheckpointPath(FID, path)) {
-      CLIENT_FILE_INFO.sizeBytes = sizeBytes;
-      CLIENT_FILE_INFO.checkpointPath = path;
-      return true;
-    }
-
-    return false;
+    return TFS.addCheckpointPath(FID, path);
   }
 
   public InStream getInStream(OpType opType) throws IOException {
@@ -86,11 +75,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   public String getPath() {
-    return CLIENT_FILE_INFO.getPath();
-  }
-
-  public long getSize() {
-    return CLIENT_FILE_INFO.getSizeBytes();
+    return TFS.getPath(FID);
   }
 
   public List<String> getLocationHosts() throws IOException {
@@ -105,8 +90,28 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return ret;
   }
 
+  public boolean isFile() {
+    return !TFS.isFolder(FID);
+  }
+
+  public boolean isFolder() {
+    return TFS.isFolder(FID);
+  }
+
+  public boolean isInLocalMemory() {
+    throw new RuntimeException("Unsupported");
+  }
+
+  public boolean isInMemory() {
+    return TFS.isInMemory(FID);
+  }
+
+  public boolean isReady() {
+    return TFS.isReady(FID);
+  }
+
   public long length() {
-    return CLIENT_FILE_INFO.sizeBytes;
+    return TFS.getFileSizeBytes(FID);
   }
 
   public ByteBuffer readByteBuffer() {
@@ -117,19 +122,19 @@ public class TachyonFile implements Comparable<TachyonFile> {
     mLockedFile = TFS.lockFile(FID);
 
     ByteBuffer ret = null;
-    ret = readByteBufferFromLocal();
+    ret = readLocalByteBuffer();
     if (ret == null) {
       TFS.unlockFile(FID);
       mLockedFile = false;
 
       // TODO Make it local cache if the OpType is try cache.
-      ret = readByteBufferFromRemote();
+      ret = readRemoteByteBuffer();
     }
 
     return ret;
   }
 
-  private ByteBuffer readByteBufferFromLocal() {
+  private ByteBuffer readLocalByteBuffer() {
     if (TFS.getRootFolder() != null) {
       String localFileName = TFS.getRootFolder() + Constants.PATH_SEPARATOR + FID;
       try {
@@ -150,7 +155,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return null;
   }
 
-  private ByteBuffer readByteBufferFromRemote() {
+  private ByteBuffer readRemoteByteBuffer() {
     ByteBuffer ret = null;
 
     LOG.info("Try to find and read from remote workers.");
@@ -197,9 +202,10 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return ret;
   }
 
-  public boolean recacheData() {
+  // TODO remove this method. do streaming cache.
+  public boolean recache() {
     boolean succeed = true;
-    String path = CLIENT_FILE_INFO.checkpointPath;
+    String path = TFS.getCheckpointPath(FID);
     UnderFileSystem tHdfsClient = UnderFileSystem.get(path);
     InputStream inputStream;
     try {
@@ -207,7 +213,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     } catch (IOException e) {
       return false;
     }
-    TachyonFile tTFile = TFS.getFile(CLIENT_FILE_INFO.getId());
+    TachyonFile tTFile = TFS.getFile(FID);
     try {
       OutStream os = tTFile.getOutStream(OpType.WRITE_CACHE);
       byte buffer[] = new byte[USER_CONF.FILE_BUFFER_BYTES * 4];
@@ -226,7 +232,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
       }
       if (succeed) {
         os.close();
-        CLIENT_FILE_INFO.setInMemory(true);
       } else {
         os.cancel();
       }
@@ -241,6 +246,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
     if (mLockedFile) {
       TFS.unlockFile(FID);
     }
+  }
+
+  public boolean renameTo(String path) {
+    // TODO
+    throw new RuntimeException("Rename is not supported yet");
   }
 
   private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address) 
@@ -279,15 +289,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
     return recvMsg.getReadOnlyData();
   }
-  
-  public boolean isInMemory() {
-    // TODO Make this query the master.
-    return CLIENT_FILE_INFO.isInMemory();
-  }
-
-  public boolean isReady() {
-    return CLIENT_FILE_INFO.isReady();
-  }
 
   @Override
   public int hashCode() {
@@ -305,5 +306,10 @@ public class TachyonFile implements Comparable<TachyonFile> {
   @Override
   public int compareTo(TachyonFile o) {
     return getPath().compareTo(o.getPath());
+  }
+
+  @Override
+  public String toString() {
+    return getPath();
   }
 }

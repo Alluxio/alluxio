@@ -23,7 +23,7 @@ public final class TestUtils {
    * @throws IOException
    */
   public static int createByteFile(TachyonFS client, String fileName, OpType op, int len)
-      throws InvalidPathException, FileAlreadyExistException, IOException {
+      throws IOException {
     int fileId = client.createFile(fileName);
     TachyonFile file = client.getFile(fileId);
     OutStream os = file.getOutStream(op);

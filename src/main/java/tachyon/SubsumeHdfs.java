@@ -84,7 +84,7 @@ public class SubsumeHdfs {
           if (!sTachyonClient.exist(filePath)) {
             sTachyonClient.mkdir(filePath);
           }
-        } catch (FileAlreadyExistException e) {
+        } catch (IOException e) {
         }
       }
     }

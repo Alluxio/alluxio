@@ -8,7 +8,6 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
-import tachyon.thrift.ClientFileInfo;
 
 /**
  * <code>InputStream</code> interface implementation of TachyonFile. It can only be gotten by
@@ -18,8 +17,8 @@ import tachyon.thrift.ClientFileInfo;
 public class InStream extends InputStream {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
+  private final TachyonFS TFS;
   private final TachyonFile FILE;
-  private final ClientFileInfo CLIENT_FILE_INFO;
   private final int FID;
   private final OpType IO_TYPE;
 
@@ -29,35 +28,35 @@ public class InStream extends InputStream {
   private boolean mClosed = false;
 
   InStream(TachyonFile file, OpType opType) throws IOException {
+    TFS = file.TFS;
     FILE = file;
-    CLIENT_FILE_INFO = FILE.CLIENT_FILE_INFO;
     FID = FILE.FID;
     IO_TYPE = opType;
 
-    if (!CLIENT_FILE_INFO.isReady()) {
-      throw new IOException("File " + CLIENT_FILE_INFO.getPath() + " is not ready to read");
+    if (!FILE.isReady()) {
+      throw new IOException("File " + FILE.getPath() + " is not ready to read");
     }
 
     mBuffer = FILE.readByteBuffer();
     if (mBuffer == null && IO_TYPE.isReadTryCache()) {
-      if (FILE.recacheData()) {
+      if (FILE.recache()) {
         mBuffer = FILE.readByteBuffer();
       }
     }
 
-    if (mBuffer == null && !CLIENT_FILE_INFO.checkpointPath.equals("")) {
-      LOG.info("Will stream from underlayer fs: " + CLIENT_FILE_INFO.checkpointPath);
-      UnderFileSystem underfsClient =
-          UnderFileSystem.get(CLIENT_FILE_INFO.checkpointPath);
+    String checkpointPath = TFS.getCheckpointPath(FID);
+    if (mBuffer == null && !checkpointPath.equals("")) {
+      LOG.info("Will stream from underlayer fs: " + checkpointPath);
+      UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath);
       try {
-        mCheckpointInputStream = underfsClient.open(CLIENT_FILE_INFO.checkpointPath);
+        mCheckpointInputStream = underfsClient.open(checkpointPath);
       } catch (IOException e) {
         LOG.error("Failed to read from checkpoint " + FID);
         mCheckpointInputStream = null;
       }
     }
     if (mBuffer == null && mCheckpointInputStream == null) {
-      throw new IOException("Can not find the file " + CLIENT_FILE_INFO.getPath());
+      throw new IOException("Can not find the file " + FILE.getPath());
     }
   }
 

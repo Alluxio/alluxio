@@ -8,8 +8,10 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
@@ -24,14 +26,10 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FailedToCheckpointException;
-import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoLocalWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
-import tachyon.thrift.TableColumnException;
-import tachyon.thrift.TableDoesNotExistException;
 
 /**
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients
@@ -50,10 +48,11 @@ public class TachyonFS {
   // Cached ClientFileInfo
   private Map<String, ClientFileInfo> mCachedClientFileInfos = 
       new HashMap<String, ClientFileInfo>();
+  private Map<Integer, ClientFileInfo> mClientFileInfos = new HashMap<Integer, ClientFileInfo>();
   // The RPC client talks to the local worker if there is one.
   private WorkerClient mWorkerClient = null;
   // The local root data folder.
-  private String mDataFolder = null;
+  private String mLocalDataFolder = null;
   // Whether the client is local or remote.
   private boolean mIsWorkerLocal = false;
   // The local data folder.
@@ -62,7 +61,11 @@ public class TachyonFS {
   private String mUserUnderfsTempFolder = null;
   private UnderFileSystem mUnderFileSystem = null;
 
+  // The user id of the client.
   private long mUserId = 0;
+
+  // All files has been locked.
+  private Set<Integer> mLockedFileIds = new HashSet<Integer>();
 
   // Available memory space for this client.
   private Long mAvailableSpaceBytes;
@@ -86,11 +89,11 @@ public class TachyonFS {
     return get(new InetSocketAddress(address[0], Integer.parseInt(address[1])));
   }
 
-  public synchronized void accessLocalFile(int fileId) {
+  public synchronized void accessLocalFile(int fid) {
     connect();
     if (mWorkerClient != null && mIsWorkerLocal) {
       try {
-        mWorkerClient.accessFile(fileId);
+        mWorkerClient.accessFile(fid);
         return;
       } catch (TException e) {
         mWorkerClient = null;
@@ -98,17 +101,17 @@ public class TachyonFS {
       }
     }
 
-    LOG.error("TachyonClient accessLocalFile(" + fileId + ") failed");
+    LOG.error("TachyonClient accessLocalFile(" + fid + ") failed");
   }
 
-  public synchronized void addCheckpoint(int fileId) throws IOException {
+  public synchronized void addCheckpoint(int fid) throws IOException {
     connect();
     if (!mConnected) {
-      throw new IOException("Failed to add checkpoint for file " + fileId);
+      throw new IOException("Failed to add checkpoint for file " + fid);
     }
     if (mWorkerClient != null) {
       try {
-        mWorkerClient.addCheckpoint(mUserId, fileId);
+        mWorkerClient.addCheckpoint(mUserId, fid);
       } catch (FileDoesNotExistException e) {
         LOG.error(e.getMessage(), e);
         throw new IOException(e);
@@ -128,23 +131,37 @@ public class TachyonFS {
 
   /**
    * This API is not recommended to use.
+   * 
    * @param id file id
    * @param path existing checkpoint path
    * @return true if the checkpoint path is added successfully, false otherwise.
-   * @throws TException 
-   * @throws SuspectedFileSizeException 
-   * @throws FileDoesNotExistException 
-   * @throws IOException 
+   * @throws IOException
+   * @throws TException
    */
   public synchronized boolean addCheckpointPath(int id, String path)
-      throws FileDoesNotExistException, SuspectedFileSizeException, TException, IOException {
+      throws IOException, TException {
     connect();
+
     UnderFileSystem hdfsClient = UnderFileSystem.get(path);
     long fileSizeBytes = hdfsClient.getFileSize(path);
-    return mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path);
+
+    try {
+      if (mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path)) {
+        ClientFileInfo tInfo = mClientFileInfos.get(id);
+        tInfo.sizeBytes = fileSizeBytes;
+        tInfo.checkpointPath = path;
+        return true;
+      }
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
+    }
+
+    return false;
   }
 
-  public synchronized void cacheFile(int fileId) throws IOException  {
+  public synchronized void cacheFile(int fid) throws IOException  {
     connect();
     if (!mConnected) {
       return;
@@ -152,18 +169,18 @@ public class TachyonFS {
 
     if (mWorkerClient != null) {
       try {
-        mWorkerClient.cacheFile(mUserId, fileId);
-      } catch (FileDoesNotExistException e) {
-        LOG.error(e.getMessage(), e);
-        throw new IOException(e);
-      } catch (SuspectedFileSizeException e) {
-        LOG.error(e.getMessage(), e);
-        throw new IOException(e);
+        mWorkerClient.cacheFile(mUserId, fid);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mWorkerClient = null;
         throw new IOException(e);
       } 
+    }
+
+    if (mClientFileInfos.get(fid) == null) {
+      mClientFileInfos.put(fid, getClientFileInfo(fid));
+    } else {
+      mClientFileInfos.get(fid).inMemory = true;
     }
   }
 
@@ -239,12 +256,12 @@ public class TachyonFS {
     }
 
     try {
-      mDataFolder = mWorkerClient.getDataFolder();
+      mLocalDataFolder = mWorkerClient.getDataFolder();
       mUserTempFolder = mWorkerClient.getUserTempFolder(mUserId);
       mUserUnderfsTempFolder = mWorkerClient.getUserUnderfsTempFolder(mUserId);
     } catch (TException e) {
       LOG.error(e.getMessage());
-      mDataFolder = null;
+      mLocalDataFolder = null;
       mUserTempFolder = null;
       mWorkerClient = null;
       return;
@@ -299,13 +316,12 @@ public class TachyonFS {
     return mUserUnderfsTempFolder;
   }
 
-  public synchronized int createRawTable(String path, int columns) 
-      throws InvalidPathException, FileAlreadyExistException, TableColumnException {
+  public synchronized int createRawTable(String path, int columns) throws IOException {
     return createRawTable(path, columns, ByteBuffer.allocate(0));
   }
 
   public synchronized int createRawTable(String path, int columns, ByteBuffer metadata)
-      throws InvalidPathException, FileAlreadyExistException, TableColumnException {
+      throws IOException {
     connect();
     if (!mConnected) {
       return -1;
@@ -313,7 +329,7 @@ public class TachyonFS {
     path = CommonUtils.cleanPath(path);
 
     if (columns < 1 || columns > Constants.MAX_COLUMNS) {
-      throw new TableColumnException("Column count " + columns + " is smaller than 1 or " +
+      throw new IOException("Column count " + columns + " is smaller than 1 or " +
           "bigger than " + Constants.MAX_COLUMNS);
     }
 
@@ -326,53 +342,56 @@ public class TachyonFS {
     }
   }
 
-  public synchronized int createFile(String path)
-      throws InvalidPathException, FileAlreadyExistException {
+  public synchronized int createFile(String path) throws IOException {
     connect();
     if (!mConnected) {
       return -1;
     }
     path = CommonUtils.cleanPath(path);
-    int fileId = -1;
+    int fid = -1;
     try {
-      fileId = mMasterClient.user_createFile(path);
+      fid = mMasterClient.user_createFile(path);
     } catch (TException e) {
-      LOG.error(e.getMessage());
       mConnected = false;
-      fileId = -1;
+      throw new IOException(e);
     }
-    return fileId;
+    return fid;
   }
 
-  public synchronized boolean delete(int fileId) {
+  public synchronized boolean delete(int fid, boolean recursive) throws IOException {
     connect();
     if (!mConnected) {
       return false;
     }
 
     try {
-      mMasterClient.user_delete(fileId);
-    } catch (FileDoesNotExistException e) {
-      LOG.error(e.getMessage());
-      return false;
+      return mMasterClient.user_delete(fid, recursive);
     } catch (TException e) {
-      LOG.error(e.getMessage());
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized boolean delete(String path, boolean recursive)
+      throws IOException {
+    connect();
+    if (!mConnected) {
       return false;
     }
 
-    return true;
+    try {
+      return mMasterClient.user_delete(path, recursive);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
   }
 
-  public synchronized boolean delete(String path) throws InvalidPathException {
-    return delete(getFileId(path));
-  }
-
-  public synchronized boolean exist(String path) throws InvalidPathException {
+  public synchronized boolean exist(String path) throws IOException {
     return getFileId(path) != -1;
   }
 
   public synchronized boolean rename(String srcPath, String dstPath) 
-      throws InvalidPathException {
+      throws IOException {
     connect();
     if (!mConnected) {
       return false;
@@ -380,12 +399,6 @@ public class TachyonFS {
 
     try {
       mMasterClient.user_renameFile(srcPath, dstPath);
-    } catch (FileDoesNotExistException e) {
-      LOG.error(e.getMessage());
-      return false;
-    } catch (FileAlreadyExistException e) {
-      LOG.error(e.getMessage());
-      return false;
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;
@@ -394,8 +407,7 @@ public class TachyonFS {
     return true;
   }
 
-  private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata)
-      throws InvalidPathException { 
+  private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata) { 
     connect();
     if (!mConnected) {
       return null;
@@ -407,8 +419,8 @@ public class TachyonFS {
     }
     try {
       ret = mMasterClient.user_getClientFileInfoByPath(path);
-    } catch (FileDoesNotExistException e) {
-      LOG.info("File " + path + " does not exist.");
+    } catch (IOException e) {
+      LOG.info(e.getMessage() + path);
       return null;
     } catch (TException e) {
       LOG.error(e.getMessage());
@@ -426,16 +438,16 @@ public class TachyonFS {
     return ret;
   }
 
-  private synchronized ClientFileInfo getClientFileInfo(int fileId) {
+  private synchronized ClientFileInfo getClientFileInfo(int fid) {
     connect();
     if (!mConnected) {
       return null;
     }
     ClientFileInfo ret = null;
     try {
-      ret = mMasterClient.user_getClientFileInfoById(fileId);
-    } catch (FileDoesNotExistException e) {
-      LOG.info("File with id " + fileId + " does not exist.");
+      ret = mMasterClient.user_getClientFileInfoById(fid);
+    } catch (IOException e) {
+      LOG.info(e.getMessage() + fid);
       return null;
     } catch (TException e) {
       LOG.error(e.getMessage());
@@ -446,41 +458,47 @@ public class TachyonFS {
     return ret;
   }
 
-  public synchronized List<NetAddress> getFileNetAddresses(int fileId)
+  synchronized String getCheckpointPath(int fid) {
+    if (mClientFileInfos.get(fid).getCheckpointPath().equals("")) {
+      mClientFileInfos.put(fid, getClientFileInfo(fid));
+    }
+    return mClientFileInfos.get(fid).getCheckpointPath();
+  }
+
+  public synchronized List<NetAddress> getFileNetAddresses(int fid)
       throws IOException {
+    // TODO Should read from mClientFileInfos if possible. Should add timeout to improve this.
     connect();
     if (!mConnected) {
       return null;
     }
 
     try {
-      return mMasterClient.user_getFileLocations(fileId);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
+      return mMasterClient.user_getFileLocations(fid);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
     }
   }
 
-  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fileIds) 
+  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fids) 
       throws IOException {
     List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
-    for (int k = 0; k < fileIds.size(); k ++) {
-      ret.add(getFileNetAddresses(fileIds.get(k)));
+    for (int k = 0; k < fids.size(); k ++) {
+      ret.add(getFileNetAddresses(fids.get(k)));
     }
 
     return ret;
   }
 
-  public synchronized List<String> getFileHosts(int fileId)
+  public synchronized List<String> getFileHosts(int fid)
       throws IOException {
     connect();
     if (!mConnected) {
       return null;
     }
 
-    List<NetAddress> adresses = getFileNetAddresses(fileId);
+    List<NetAddress> adresses = getFileNetAddresses(fid);
     List<String> ret = new ArrayList<String>(adresses.size());
     for (NetAddress address: adresses) {
       ret.add(address.mHost);
@@ -492,84 +510,116 @@ public class TachyonFS {
     return ret;
   }
 
-  public synchronized List<List<String>> getFilesHosts(List<Integer> fileIds) 
+  public synchronized List<List<String>> getFilesHosts(List<Integer> fids) 
       throws IOException {
     List<List<String>> ret = new ArrayList<List<String>>();
-    for (int k = 0; k < fileIds.size(); k ++) {
-      ret.add(getFileHosts(fileIds.get(k)));
+    for (int k = 0; k < fids.size(); k ++) {
+      ret.add(getFileHosts(fids.get(k)));
     }
 
     return ret;
   }
 
-  public synchronized TachyonFile getFile(String path) throws InvalidPathException {
+  public synchronized TachyonFile getFile(String path) throws IOException {
     return getFile(path, false);
   }
 
-  public synchronized TachyonFile getFile(String path, boolean useCachedMetadata) 
-      throws InvalidPathException {
+  public synchronized TachyonFile getFile(String path, boolean useCachedMetadata) {
     path = CommonUtils.cleanPath(path);
     ClientFileInfo clientFileInfo = getClientFileInfo(path, useCachedMetadata);
     if (clientFileInfo == null) {
       return null;
     }
-    return new TachyonFile(this, clientFileInfo);
+    mClientFileInfos.put(clientFileInfo.getId(), clientFileInfo);
+    return new TachyonFile(this, clientFileInfo.getId());
   }
 
-  public synchronized TachyonFile getFile(int fileId) {
-    ClientFileInfo clientFileInfo = getClientFileInfo(fileId);
-    if (clientFileInfo == null) {
-      return null;
+  public synchronized TachyonFile getFile(int fid) {
+    if (!mClientFileInfos.containsKey(fid)) {
+      ClientFileInfo clientFileInfo = getClientFileInfo(fid);
+      if (clientFileInfo == null) {
+        return null;
+      }
+      mClientFileInfos.put(fid, clientFileInfo);
     }
-    return new TachyonFile(this, clientFileInfo);
+    return new TachyonFile(this, fid);
   }
 
-  public synchronized int getFileId(String path) throws InvalidPathException {
+  public synchronized int getFileId(String path) throws IOException {
     connect();
     if (!mConnected) {
       return -1;
     }
-    int fileId = -1;
+    int fid = -1;
     path = CommonUtils.cleanPath(path);
     try {
-      fileId = mMasterClient.user_getFileId(path);
+      fid = mMasterClient.user_getFileId(path);
     } catch (TException e) {
-      // TODO Ideally, this exception should be throws to the upper upper layer.
       LOG.error(e.getMessage());
       mConnected = false;
       return -1;
     }
-    return fileId;
+    return fid;
+  }
+
+  synchronized long getFileSizeBytes(int fid) {
+    return mClientFileInfos.get(fid).getSizeBytes();
   }
 
   public synchronized int getNumberOfFiles(String folderPath) 
-      throws FileDoesNotExistException, InvalidPathException, TException {
+      throws IOException {
     connect();
-    return mMasterClient.user_getNumberOfFiles(folderPath);
+    try {
+      return mMasterClient.user_getNumberOfFiles(folderPath);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  synchronized String getPath(int fid) {
+    return mClientFileInfos.get(fid).getPath();
   }
 
   public synchronized RawTable getRawTable(String path)
-      throws TableDoesNotExistException, InvalidPathException, TException {
+      throws IOException {
     connect();
     path = CommonUtils.cleanPath(path);
-    ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfoByPath(path);
+    ClientRawTableInfo clientRawTableInfo;
+    try {
+      clientRawTableInfo = mMasterClient.user_getClientRawTableInfoByPath(path);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
     return new RawTable(this, clientRawTableInfo);
   }
 
-  public synchronized RawTable getRawTable(int id) throws TableDoesNotExistException, TException {
+  public synchronized RawTable getRawTable(int id) throws IOException {
     connect();
-    ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfoById(id);
+    ClientRawTableInfo clientRawTableInfo = null;
+    try {
+      clientRawTableInfo = mMasterClient.user_getClientRawTableInfoById(id);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
     return new RawTable(this, clientRawTableInfo);
   }
 
   public synchronized String getRootFolder() {
     connect();
-    return mDataFolder;
+    return mLocalDataFolder;
   }
 
-  public synchronized List<ClientWorkerInfo> getWorkersInfo() throws TException {
+  public synchronized List<ClientWorkerInfo> getWorkersInfo() throws IOException {
     connect();
-    return mMasterClient.getWorkersInfo();
+    try {
+      return mMasterClient.getWorkersInfo();
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   public synchronized boolean hasLocalWorker() {
@@ -581,14 +631,29 @@ public class TachyonFS {
     return mConnected;
   }
 
+  synchronized boolean isFolder(int fid) {
+    return mClientFileInfos.get(fid).isFolder();
+  }
+
+  synchronized boolean isInMemory(int fid) {
+    // TODO Make this query the master.
+    return mClientFileInfos.get(fid).isInMemory();
+  }
+
+  synchronized boolean isNeedPin(int fid) {
+    return mClientFileInfos.get(fid).isNeedPin();
+  }
+
+  synchronized boolean isReady(int fid) {
+    if (!mClientFileInfos.get(fid).isReady()) {
+      mClientFileInfos.put(fid, getClientFileInfo(fid));
+    }
+    return mClientFileInfos.get(fid).isReady();
+  }
   public synchronized List<Integer> listFiles(String path, boolean recursive) throws IOException {
     connect();
     try {
       return mMasterClient.user_listFiles(path, recursive);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -596,36 +661,40 @@ public class TachyonFS {
   }
 
   public synchronized List<ClientFileInfo> listStatus(String path)
-      throws FileDoesNotExistException, InvalidPathException, TException {
+      throws IOException {
     connect();
     if (!mConnected) {
       return null;
     }
-    return mMasterClient.listStatus(path);
-  }
-
-  public synchronized List<String> ls(String path, boolean recursive) throws IOException {
-    connect();
     try {
-      return mMasterClient.user_ls(path, recursive);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
+      return mMasterClient.listStatus(path);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
     }
   }
 
-  // TODO Make it work for lock/unlock file multiple times.
-  public synchronized boolean lockFile(int fileId) {
+  public synchronized List<String> ls(String path, boolean recursive) throws IOException {
+    connect();
+    try {
+      return mMasterClient.user_ls(path, recursive);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized boolean lockFile(int fid) {
+    if (mLockedFileIds.contains(fid)) {
+      return true;
+    }
     connect();
     if (!mConnected || mWorkerClient == null || !mIsWorkerLocal) {
       return false;
     }
     try {
-      mWorkerClient.lockFile(fileId, mUserId);
+      mWorkerClient.lockFile(fid, mUserId);
+      mLockedFileIds.add(fid);
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;
@@ -637,11 +706,9 @@ public class TachyonFS {
    * Create a directory if it does not exist.
    * @param path Directory path.
    * @return The inode ID of the directory if it is successfully created. -1 if not.
-   * @throws InvalidPathException
-   * @throws FileAlreadyExistException
+   * @throws IOException
    */
-  public synchronized int mkdir(String path) 
-      throws InvalidPathException, FileAlreadyExistException {
+  public synchronized int mkdir(String path) throws IOException {
     connect();
     if (!mConnected) {
       return -1;
@@ -657,11 +724,11 @@ public class TachyonFS {
     return id;
   }
 
-  public synchronized void outOfMemoryForPinFile(int fileId) {
+  public synchronized void outOfMemoryForPinFile(int fid) {
     connect();
     if (mConnected) {
       try {
-        mMasterClient.user_outOfMemoryForPinFile(fileId);
+        mMasterClient.user_outOfMemoryForPinFile(fid);
       } catch (TException e) {
         LOG.error(e.getMessage());
       }
@@ -711,17 +778,14 @@ public class TachyonFS {
     return true;
   }
 
-  public synchronized boolean unpinFile(int fileId) {
+  public synchronized boolean unpinFile(int fid) throws IOException {
     connect();
     if (!mConnected) {
       return false;
     }
 
     try {
-      mMasterClient.user_unpinFile(fileId);
-    } catch (FileDoesNotExistException e) {
-      LOG.error(e.getMessage());
-      return false;
+      mMasterClient.user_unpinFile(fid);
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;
@@ -730,14 +794,17 @@ public class TachyonFS {
     return true;
   }
 
-  // TODO Make it work for lock/unlock file multiple times.
-  public synchronized boolean unlockFile(int fileId) {
+  public synchronized boolean unlockFile(int fid) {
+    if (!mLockedFileIds.contains(fid)) {
+      return true;
+    }
     connect();
     if (!mConnected || mWorkerClient == null || !mIsWorkerLocal) {
       return false;
     }
     try {
-      mWorkerClient.unlockFile(fileId, mUserId);
+      mWorkerClient.unlockFile(fid, mUserId);
+      mLockedFileIds.remove(fid);
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;
@@ -746,9 +813,14 @@ public class TachyonFS {
   }
 
   public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata)
-      throws TableDoesNotExistException, TException {
+      throws IOException {
     connect();
-    mMasterClient.user_updateRawTableMetadata(id, metadata);
+    try {
+      mMasterClient.user_updateRawTableMetadata(id, metadata);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   public synchronized String getUnderfsAddress() throws IOException {
