@@ -102,7 +102,7 @@ public class TFsShellTest {
     Assert.assertNotNull(tFile);
     Assert.assertEquals(getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
         mOutput.toString());
-    Assert.assertTrue(tFile.isDirectory());
+    Assert.assertTrue(tFile.isFolder());
   }
 
   @Test
@@ -113,7 +113,7 @@ public class TFsShellTest {
     Assert.assertNotNull(tFile);
     Assert.assertEquals(getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
         mOutput.toString());
-    Assert.assertTrue(tFile.isDirectory());
+    Assert.assertTrue(tFile.isFolder());
   }
 
   @Test
@@ -124,7 +124,7 @@ public class TFsShellTest {
     Assert.assertNotNull(tFile);
     Assert.assertEquals(getCommandOutput(
         new String[] {"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"}), mOutput.toString());
-    Assert.assertTrue(tFile.isDirectory());
+    Assert.assertTrue(tFile.isFolder());
   }
 
   @Test(expected = FileAlreadyExistException.class)
