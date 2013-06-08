@@ -10,7 +10,7 @@ import org.junit.Before;
 
 import org.junit.Test;
 
-import tachyon.conf.MasterConf;
+import tachyon.conf.CommonConf;
 
 /**
  * Unit tests for tachyon.MasterLogWriter
@@ -25,7 +25,8 @@ public class MasterLogWriterTest {
   public final void before() throws IOException {
     mLocalTachyonCluster = new LocalTachyonCluster(1000);
     mLocalTachyonCluster.start();
-    mLogFile = MasterConf.get().LOG_FILE;
+    mLogFile = System.getProperty("tachyon.master.log.file", 
+        CommonConf.get().TACHYON_HOME + "/data/tachyon_log.data");
     mMasterLogWriter = new MasterLogWriter(mLogFile);
   }
 
