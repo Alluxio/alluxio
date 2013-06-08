@@ -91,25 +91,31 @@ public class TFsShellTest {
     mFsShell.mkdir(new String[]{"mkdir", "tachyon://" + 
         InetAddress.getLocalHost().getCanonicalHostName() + ":" +
         mLocalTachyonCluster.getMasterPort() + "/root/testFile1"});
-    Assert.assertNotNull(mClient.getFile("/root/testFile1"));
+    TachyonFile tFile = mClient.getFile("/root/testFile1");
+    Assert.assertNotNull(tFile);
     Assert.assertEquals(getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
         mOutput.toString());
+    Assert.assertTrue(tFile.isFolder());
   }
 
   @Test
   public void mkdirShortPathTest() throws IOException { 
     mFsShell.mkdir(new String[]{"mkdir", "/root/testFile1"});
-    Assert.assertNotNull(mClient.getFile("/root/testFile1"));
+    TachyonFile tFile = mClient.getFile("/root/testFile1");
+    Assert.assertNotNull(tFile);
     Assert.assertEquals(getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
         mOutput.toString());
+    Assert.assertTrue(tFile.isFolder());
   }
 
   @Test
   public void mkdirComplexPathTest() throws IOException {
     mFsShell.mkdir(new String[]{"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"});
-    Assert.assertNotNull(mClient.getFile("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"));
+    TachyonFile tFile = mClient.getFile("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File");
+    Assert.assertNotNull(tFile);
     Assert.assertEquals(getCommandOutput(
         new String[] {"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"}), mOutput.toString());
+    Assert.assertTrue(tFile.isFolder());
   }
 
   @Test(expected = IOException.class)
