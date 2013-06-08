@@ -53,7 +53,6 @@
     <deb.pkg.name>tachyon-${classifier}</deb.pkg.name>
     <deb.install.path>/usr/share/tachyon-${classifier}</deb.install.path>
     <deb.user>root</deb.user>
-
   </properties>
 
   <repositories>
@@ -90,6 +89,11 @@
       <groupId>de.javakaffee</groupId>
       <artifactId>kryo-serializers</artifactId>
       <version>0.22</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jsp-2.1-glassfish</artifactId>
+      <version>2.1.v20100127</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -157,17 +161,6 @@
       <artifactId>commons-lang3</artifactId>
       <version>3.0</version>
     </dependency>
-    <dependency>
-    	<groupId>tomcat</groupId>
-    	<artifactId>jasper-compiler</artifactId>
-    	<version>5.5.23</version>
-    </dependency>
-    <dependency>
-    	<groupId>tomcat</groupId>
-    	<artifactId>jasper-runtime</artifactId>
-    	<version>5.5.23</version>
-    </dependency>
-            
   </dependencies>
 
   <build>
@@ -409,7 +402,6 @@
         </plugins>
       </build>
     </profile>
-
   </profiles>
 
   <reporting>
