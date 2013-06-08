@@ -376,11 +376,12 @@
                   <goal>jdeb</goal>
                 </goals>
                 <configuration>
-<deb>${project.build.directory}/${deb.pkg.name}_${project.version}-${buildNumber}_all.deb</deb>
+                  <deb>${project.build.directory}/${deb.pkg.name}_${project.version}-${buildNumber}_all.deb</deb>
                   <attach>false</attach>
                   <compression>gzip</compression>
                   <dataSet>
-                    <data>      <src>${project.build.directory}/${project.artifactId}-${project.version}-shaded-${classifier}.jar</src>
+                    <data>                            
+                      <src>${project.build.directory}/${project.artifactId}-${project.version}-shaded-${classifier}.jar</src>
                       <type>file</type>
                       <mapper>
                         <type>perm</type>
