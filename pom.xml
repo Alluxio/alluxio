@@ -158,16 +158,10 @@
       <version>3.0</version>
     </dependency>
     <dependency>
-    	<groupId>tomcat</groupId>
-    	<artifactId>jasper-compiler</artifactId>
-    	<version>5.5.23</version>
-    </dependency>
-    <dependency>
-    	<groupId>tomcat</groupId>
-    	<artifactId>jasper-runtime</artifactId>
-    	<version>5.5.23</version>
-    </dependency>
-            
+      <groupId>org.mortbay.jetty</groupId>
+      <artifactId>jsp-2.1-glassfish</artifactId>
+      <version>2.1.v20100127</version>
+    </dependency>        
   </dependencies>
 
   <build>
