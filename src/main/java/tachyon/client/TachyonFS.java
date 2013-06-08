@@ -650,6 +650,7 @@ public class TachyonFS {
     }
     return mClientFileInfos.get(fid).isReady();
   }
+
   public synchronized List<Integer> listFiles(String path, boolean recursive) throws IOException {
     connect();
     try {
