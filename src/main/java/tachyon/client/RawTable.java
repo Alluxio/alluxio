@@ -1,12 +1,10 @@
 package tachyon.client;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import org.apache.thrift.TException;
 
 import tachyon.CommonUtils;
 import tachyon.thrift.ClientRawTableInfo;
-import tachyon.thrift.TableDoesNotExistException;
 
 /**
  * Tachyon provides native support for tables with multiple columns. Each table contains one or
@@ -50,7 +48,7 @@ public class RawTable {
     return new RawColumn(TACHYON_CLIENT, this, columnIndex);
   }
 
-  public void updateMetadata(ByteBuffer metadata) throws TableDoesNotExistException, TException {
+  public void updateMetadata(ByteBuffer metadata) throws IOException {
     TACHYON_CLIENT.updateRawTableMetadata(CLIENT_RAW_TABLE_INFO.getId(), metadata);
     CLIENT_RAW_TABLE_INFO.setMetadata(CommonUtils.cloneByteBuffer(metadata));
   }

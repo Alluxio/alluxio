@@ -17,7 +17,6 @@ import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
-import tachyon.thrift.ClientFileInfo;
 
 /**
  * <code>OutputStream</code> interface implementation of TachyonFile. It can only be gotten by
@@ -28,9 +27,7 @@ public class OutStream extends OutputStream {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final UserConf USER_CONF = UserConf.get();
 
-  private final TachyonFile FILE;
-  private final TachyonFS CLIENT;
-  private final ClientFileInfo CLIENT_FILE_INFO;
+  private final TachyonFS TFS;
   private final int FID;
   private final OpType IO_TYPE;
 
@@ -46,20 +43,18 @@ public class OutStream extends OutputStream {
   private boolean mCancel = false;
 
   OutStream(TachyonFile file, OpType opType) throws IOException {
-    FILE = file;
-    CLIENT = FILE.TFS;
-    CLIENT_FILE_INFO = FILE.CLIENT_FILE_INFO;
-    FID = FILE.FID;
+    TFS = file.TFS;
+    FID = file.FID;
     IO_TYPE = opType;
 
     mBuffer = ByteBuffer.allocate(USER_CONF.FILE_BUFFER_BYTES + 4);
     mBuffer.order(ByteOrder.nativeOrder());
 
     if (IO_TYPE.isWriteCache()) {
-      if (!CLIENT.hasLocalWorker()) {
+      if (!TFS.hasLocalWorker()) {
         throw new IOException("No local worker on this machine.");
       }
-      File localFolder = CLIENT.createAndGetUserTempFolder();
+      File localFolder = TFS.createAndGetUserTempFolder();
       if (localFolder == null) {
         throw new IOException("Failed to create temp user folder for tachyon client.");
       }
@@ -71,7 +66,7 @@ public class OutStream extends OutputStream {
     }
 
     if (IO_TYPE.isWriteThrough()) {
-      String underfsFolder = CLIENT.createAndGetUserUnderfsTempFolder();
+      String underfsFolder = TFS.createAndGetUserUnderfsTempFolder();
       UnderFileSystem underfsClient = UnderFileSystem.get(underfsFolder);
       mCheckpointOutputStream = underfsClient.create(underfsFolder + "/" + FID);
     }
@@ -86,9 +81,9 @@ public class OutStream extends OutputStream {
               String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
         }
 
-        if (!CLIENT.requestSpace(mBuffer.position())) {
-          if (CLIENT_FILE_INFO.isNeedPin()) {
-            CLIENT.outOfMemoryForPinFile(FID);
+        if (!TFS.requestSpace(mBuffer.position())) {
+          if (TFS.isNeedPin(FID)) {
+            TFS.outOfMemoryForPinFile(FID);
             throw new IOException("Local tachyon worker does not have enough " +
                 "space or no worker for " + FID);
           }
@@ -138,9 +133,9 @@ public class OutStream extends OutputStream {
               String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
         }
 
-        if (!CLIENT.requestSpace(mBuffer.position() + len)) {
-          if (CLIENT_FILE_INFO.isNeedPin()) {
-            CLIENT.outOfMemoryForPinFile(FID);
+        if (!TFS.requestSpace(mBuffer.position() + len)) {
+          if (TFS.isNeedPin(FID)) {
+            TFS.outOfMemoryForPinFile(FID);
             throw new IOException("Local tachyon worker does not have enough " +
                 "space or no worker for " + FID);
           }
@@ -176,7 +171,7 @@ public class OutStream extends OutputStream {
       write(bufs.get(k));
     }
   }
-  
+
   public void cancel() throws IOException {
     mCancel = true;
     close();
@@ -195,17 +190,17 @@ public class OutStream extends OutputStream {
       }
 
       if (mCancel) {
-        CLIENT.releaseSpace(mSizeBytes);
+        TFS.releaseSpace(mSizeBytes);
       } else {
         if (IO_TYPE.isWriteThrough()) {
           mCheckpointOutputStream.flush();
           mCheckpointOutputStream.close();
-          CLIENT.addCheckpoint(FID);
+          TFS.addCheckpoint(FID);
         }
 
         if (IO_TYPE.isWriteCache()) {
           try {
-            CLIENT.cacheFile(FID);
+            TFS.cacheFile(FID);
           } catch (IOException e) {
             if (IO_TYPE == OpType.WRITE_CACHE) {
               throw e;

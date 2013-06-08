@@ -34,7 +34,8 @@ public class MasterClientTest {
   }
 
   @Test
-  public void openCloseTest() throws FileAlreadyExistException, InvalidPathException, TException {
+  public void openCloseTest() throws FileAlreadyExistException, InvalidPathException, TException,
+      IOException {
     MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();

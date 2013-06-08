@@ -5,7 +5,6 @@ import java.nio.ByteBuffer;
 
 import junit.framework.Assert;
 
-import org.apache.thrift.TException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,11 +12,6 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.TableColumnException;
-import tachyon.thrift.TableDoesNotExistException;
 
 /**
  * Unit tests for tachyon.client.RawTable.
@@ -41,20 +35,19 @@ public class RawTableTest {
   }
 
   @Test
-  public void rawtablePerfTest() throws TableDoesNotExistException, InvalidPathException, 
-  FileAlreadyExistException, TableColumnException, IOException, TException {
+  public void rawtablePerfTest() throws IOException {
     int col = 200;
 
     long sMs = System.currentTimeMillis();
     int fileId = mClient.createRawTable("/table", col);
-//    System.out.println("A " + (System.currentTimeMillis() - sMs));
+    //    System.out.println("A " + (System.currentTimeMillis() - sMs));
 
     sMs = System.currentTimeMillis();
     RawTable table = mClient.getRawTable(fileId);
     Assert.assertEquals(col, table.getColumns());
     table = mClient.getRawTable("/table");
     Assert.assertEquals(col, table.getColumns());
-//    System.out.println("B " + (System.currentTimeMillis() - sMs));
+    //    System.out.println("B " + (System.currentTimeMillis() - sMs));
 
     sMs = System.currentTimeMillis();
     for (int k = 0; k < col; k ++) {
@@ -65,7 +58,7 @@ public class RawTableTest {
       outStream.write(TestUtils.getIncreasingByteArray(10));
       outStream.close();
     }
-//    System.out.println("C " + (System.currentTimeMillis() - sMs));
+    //    System.out.println("C " + (System.currentTimeMillis() - sMs));
 
     sMs = System.currentTimeMillis();
     for (int k = 0; k < col; k ++) {
@@ -74,8 +67,8 @@ public class RawTableTest {
       Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), file.readByteBuffer());
       file.releaseFileLock();
     }
-//    System.out.println("D " + (System.currentTimeMillis() - sMs));
-    
+    //    System.out.println("D " + (System.currentTimeMillis() - sMs));
+
     sMs = System.currentTimeMillis();
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
@@ -83,13 +76,11 @@ public class RawTableTest {
       Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), file.readByteBuffer());
       file.releaseFileLock();
     }
-//    System.out.println("E " + (System.currentTimeMillis() - sMs));
+    //    System.out.println("E " + (System.currentTimeMillis() - sMs));
   }
 
   @Test
-  public void getColumnsTest()
-      throws InvalidPathException, FileAlreadyExistException, TableColumnException,
-      TableDoesNotExistException, TException, FileDoesNotExistException {
+  public void getColumnsTest() throws IOException {
     for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
       int fileId = mClient.createRawTable("/table" + k, k);
       RawTable table = mClient.getRawTable(fileId);
@@ -106,9 +97,7 @@ public class RawTableTest {
   }
 
   @Test
-  public void getIdTest()
-      throws InvalidPathException, FileAlreadyExistException, TableColumnException,
-      TableDoesNotExistException, TException {
+  public void getIdTest() throws IOException {
     for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
       int fileId = mClient.createRawTable("/table" + k, 1);
       RawTable table = mClient.getRawTable(fileId);
@@ -125,9 +114,7 @@ public class RawTableTest {
   }
 
   @Test
-  public void getNameTest()
-      throws InvalidPathException, FileAlreadyExistException, TableColumnException,
-      TableDoesNotExistException, TException {
+  public void getNameTest() throws IOException {
     for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
       int fileId = mClient.createRawTable("/x/table" + k, 1);
       RawTable table = mClient.getRawTable(fileId);
@@ -144,9 +131,7 @@ public class RawTableTest {
   }
 
   @Test
-  public void getPathTest()
-      throws InvalidPathException, FileAlreadyExistException, TableColumnException,
-      TableDoesNotExistException, TException {
+  public void getPathTest() throws IOException {
     for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
       int fileId = mClient.createRawTable("/x/table" + k, 1);
       RawTable table = mClient.getRawTable(fileId);
@@ -163,9 +148,7 @@ public class RawTableTest {
   }
 
   @Test
-  public void getMetadataTest()
-      throws InvalidPathException, FileAlreadyExistException, TableColumnException,
-      TableDoesNotExistException, TException {
+  public void getMetadataTest() throws IOException {
     for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
       int fileId = mClient.createRawTable("/x/table" + k, 1);
       RawTable table = mClient.getRawTable(fileId);
@@ -185,9 +168,7 @@ public class RawTableTest {
   }
 
   @Test
-  public void updateMetadataTest()
-      throws InvalidPathException, FileAlreadyExistException, TableColumnException,
-      TableDoesNotExistException, TException {
+  public void updateMetadataTest() throws IOException {
     for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
       int fileId = mClient.createRawTable("/x/table" + k, 1);
       RawTable table = mClient.getRawTable(fileId);

@@ -69,14 +69,13 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void user_deleteById(int id) throws TException {
-    mMasterInfo.delete(id);
+  public boolean user_deleteById(int id, boolean recursive) throws TException {
+    return mMasterInfo.delete(id, recursive);
   }
 
   @Override
-  public void user_deleteByPath(String path)
-      throws InvalidPathException, FileDoesNotExistException, TException {
-    mMasterInfo.delete(path);
+  public boolean user_deleteByPath(String path, boolean recursive) throws TException {
+    return mMasterInfo.delete(path, recursive);
   }
 
   @Override
