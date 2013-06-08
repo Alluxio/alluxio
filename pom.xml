@@ -380,7 +380,7 @@
                   <attach>false</attach>
                   <compression>gzip</compression>
                   <dataSet>
-                    <data>                            
+                    <data>
                       <src>${project.build.directory}/${project.artifactId}-${project.version}-shaded-${classifier}.jar</src>
                       <type>file</type>
                       <mapper>
@@ -409,6 +409,7 @@
         </plugins>
       </build>
     </profile>
+    
   </profiles>
 
   <reporting>
