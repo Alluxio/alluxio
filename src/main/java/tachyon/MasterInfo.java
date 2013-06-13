@@ -23,7 +23,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.mortbay.log.Log;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
@@ -93,7 +92,7 @@ public class MasterInfo {
 
       synchronized (mWorkers) {
         for (Entry<Long, WorkerInfo> worker: mWorkers.entrySet()) {
-          if (CommonUtils.getCurrentMs() - worker.getValue().getLastUpdatedTimeMs() 
+          if (CommonUtils.getCurrentMs() - worker.getValue().getLastUpdatedTimeMs()
               > MASTER_CONF.WORKER_TIMEOUT_MS) {
             LOG.error("The worker " + worker.getValue() + " got timed out!");
             mLostWorkers.add(worker.getValue());
@@ -125,7 +124,7 @@ public class MasterInfo {
                 LOG.info("File " + tFile + " only lost an in memory copy from worker " +
                     worker.getId());
               }
-            } 
+            }
           }
         }
       }
@@ -133,7 +132,7 @@ public class MasterInfo {
       if (hadFailedWorker) {
         LOG.warn("Restarting failed workers.");
         try {
-          java.lang.Runtime.getRuntime().exec(CommonConf.get().TACHYON_HOME + 
+          java.lang.Runtime.getRuntime().exec(CommonConf.get().TACHYON_HOME +
               "/bin/restart-failed-workers.sh");
         } catch (IOException e) {
           LOG.error(e.getMessage());
@@ -203,7 +202,7 @@ public class MasterInfo {
 
     mMasterLogWriter = new MasterLogWriter(MASTER_CONF.LOG_FILE);
 
-    mHeartbeatThread = new Thread(new HeartbeatThread("Master Heartbeat", 
+    mHeartbeatThread = new Thread(new HeartbeatThread("Master Heartbeat",
         new MasterHeartbeatExecutor(), MASTER_CONF.HEARTBEAT_INTERVAL_MS));
     mHeartbeatThread.start();
   }
@@ -253,12 +252,11 @@ public class MasterInfo {
   }
 
   /**
-   * 
    * @param workerId
    * @param workerUsedBytes
    * @param fileId
    * @param fileSizeBytes
-   * @return the dependency id of the file if it has not been checkpointed. -1 means the file 
+   * @return the dependency id of the file if it has not been checkpointed. -1 means the file
    * either does not have dependency or has already been checkpointed.
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
@@ -316,14 +314,14 @@ public class MasterInfo {
     synchronized (mRoot) {
       Inode inode = getInode(pathNames);
       if (inode != null) {
-        Log.info("FileAlreadyExistException: File " + path + " already exist.");
+        LOG.info("FileAlreadyExistException: File " + path + " already exist.");
         throw new FileAlreadyExistException("File " + path + " already exist.");
       }
 
       String name = pathNames[pathNames.length - 1];
       String folderPath = null;
       if (path.length() - name.length() == 1) {
-        folderPath = path.substring(0, path.length() - name.length()); 
+        folderPath = path.substring(0, path.length() - name.length());
       } else {
         folderPath = path.substring(0, path.length() - name.length() - 1);
       }
@@ -334,7 +332,7 @@ public class MasterInfo {
           succeed = createFile(true, folderPath, true, -1, null);
         }
         if (!recursive || succeed <= 0) {
-          Log.info("InvalidPathException: File " + path + " creation failed. Folder "
+          LOG.info("InvalidPathException: File " + path + " creation failed. Folder "
               + folderPath + " does not exist.");
           throw new InvalidPathException("InvalidPathException: File " + path + " creation " +
               "failed. Folder " + folderPath + " does not exist.");
@@ -342,7 +340,7 @@ public class MasterInfo {
           inode = mInodes.get(succeed);
         }
       } else if (inode.isFile()) {
-        Log.info("InvalidPathException: File " + path + " creation failed. "
+        LOG.info("InvalidPathException: File " + path + " creation failed. "
             + folderPath + " is a file.");
         throw new InvalidPathException("File " + path + " creation failed. "
             + folderPath + " is a file");
@@ -389,7 +387,7 @@ public class MasterInfo {
     LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
 
     if (columns <= 0 || columns >= Constants.MAX_COLUMNS) {
-      throw new TableColumnException("Column " + columns + " should between 0 to " + 
+      throw new TableColumnException("Column " + columns + " should between 0 to " +
           Constants.MAX_COLUMNS);
     }
 
@@ -405,7 +403,7 @@ public class MasterInfo {
   public void delete(int id) {
     LOG.info("delete(" + id + ")");
     // Only remove meta data from master. The data in workers will be evicted since no further
-    // application can read them. (Based on LRU) TODO May change it to be active from V0.2. 
+    // application can read them. (Based on LRU) TODO May change it to be active from V0.2.
     synchronized (mRoot) {
       Inode inode = mInodes.get(id);
 
@@ -534,7 +532,7 @@ public class MasterInfo {
     }
   }
 
-  public List<ClientFileInfo> getFilesInfo(String path) 
+  public List<ClientFileInfo> getFilesInfo(String path)
       throws FileDoesNotExistException, InvalidPathException {
     List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
 
@@ -594,7 +592,7 @@ public class MasterInfo {
     }
   }
 
-  public List<NetAddress> getFileLocations(String path) 
+  public List<NetAddress> getFileLocations(String path)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     LOG.info("getFileLocations: " + path);
     synchronized (mRoot) {
@@ -788,7 +786,7 @@ public class MasterInfo {
         }
       } else {
         for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
-          if (address.getHostName().equals(host) 
+          if (address.getHostName().equals(host)
               || address.getAddress().getHostAddress().equals(host)
               || address.getAddress().getCanonicalHostName().equals(host)) {
             LOG.debug("getLocalWorker: " + address);
@@ -835,9 +833,9 @@ public class MasterInfo {
     return mWhiteList.getList();
   }
 
-  public List<Integer> listFiles(String path, boolean recursive) 
+  public List<Integer> listFiles(String path, boolean recursive)
       throws InvalidPathException, FileDoesNotExistException {
-    List<Integer> ret = new ArrayList<Integer>(); 
+    List<Integer> ret = new ArrayList<Integer>();
     synchronized (mRoot) {
       Inode inode = getInode(path);
       if (inode == null) {
@@ -866,7 +864,7 @@ public class MasterInfo {
     return ret;
   }
 
-  public List<String> ls(String path, boolean recursive) 
+  public List<String> ls(String path, boolean recursive)
       throws InvalidPathException, FileDoesNotExistException {
     List<String> ret = new ArrayList<String>();
 
@@ -933,7 +931,7 @@ public class MasterInfo {
             break;
           }
           case Undefined:
-            CommonUtils.runtimeException("Corruptted data from " + fileName + 
+            CommonUtils.runtimeException("Corruptted data from " + fileName +
                 ". It has undefined data type.");
             break;
           default:
@@ -991,7 +989,7 @@ public class MasterInfo {
     return id;
   }
 
-  public void renameFile(String srcPath, String dstPath) 
+  public void renameFile(String srcPath, String dstPath)
       throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
       Inode inode = getInode(srcPath);
@@ -1013,7 +1011,7 @@ public class MasterInfo {
 
       Inode dstFolderInode = getInode(dstFolderPath);
       if (dstFolderInode == null || dstFolderInode.isFile()) {
-        throw new FileDoesNotExistException("Failed to rename: " + dstFolderPath + 
+        throw new FileDoesNotExistException("Failed to rename: " + dstFolderPath +
             " does not exist.");
       }
 
@@ -1032,7 +1030,7 @@ public class MasterInfo {
   }
 
   public void unpinFile(int fileId) throws FileDoesNotExistException {
-    // TODO Change meta data only. Data will be evicted from worker based on data replacement 
+    // TODO Change meta data only. Data will be evicted from worker based on data replacement
     // policy. TODO May change it to be active from V0.2
     LOG.info("unpinFile(" + fileId + ")");
     synchronized (mRoot) {
