@@ -2,16 +2,19 @@
 
 CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-export TACHYON_HDFS_ADDRESS=hdfs://localhost:54310
+export TACHYON_RAM_FOLDER=/mnt/ramdisk
+export TACHYON_MASTER_ADDRESS=localhost
+export TACHYON_HDFS_ADDRESS=hdfs://localhost:8020
 
 export TACHYON_JAVA_OPTS="
-  -Dtachyon.debug=true
-  -Dtachyon.worker.timeout.ms=60000
+  -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
+  -Dtachyon.debug=false
   -Dtachyon.underfs.address=$TACHYON_HDFS_ADDRESS
-  -Dtachyon.worker.memory.size=1024MB
-  -Dtachyon.worker.data.folder=/mnt/ramdisk/tachyonworker/
-  -Dtachyon.master.hostname=localhost
-  -Dtachyon.master.log.file=$TACHYON_HDFS_ADDRESS/tachyon/tachyon_log.data
-  -Dtachyon.master.checkpoint.file=$TACHYON_HDFS_ADDRESS/tachyon/tachyon_checkpoint.data
+  -Dtachyon.worker.timeout.ms=60000
+  -Dtachyon.worker.memory.size=1GB
+  -Dtachyon.worker.data.folder=$TACHYON_RAM_FOLDER/tachyonworker/
+  -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
+  -Dtachyon.master.log.file=$TACHYON_HOME/data/tachyon_log.data
+  -Dtachyon.master.checkpoint.file=$TACHYON_HOME/data/tachyon_checkpoint.data
   -Dtachyon.master.pinlist=/pinfiles;/pindata
 "
