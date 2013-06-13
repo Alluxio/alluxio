@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
  * HDFS UnderFilesystem implementation.
  */
 public class UnderFileSystemHdfs extends UnderFileSystem {
-  private static final int MAX_TRY = 5; 
+  private static final int MAX_TRY = 5;
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private FileSystem mFs = null;
@@ -30,6 +30,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     try {
       Configuration tConf = new Configuration();
       tConf.set("fs.default.name", fsDefaultName);
+      tConf.set("fs.defaultFS", fsDefaultName);
       mFs = FileSystem.get(tConf);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
