@@ -14,9 +14,10 @@ import tachyon.thrift.SuspectedFileSizeException;
 public class InodeFile extends Inode {
   private static final long UNINITIAL_VALUE = -1;
 
-  private final int BLOCK_SIZE_BYTE;
+  private final long BLOCK_SIZE_BYTE;
 
   private long mLength;
+  private boolean mIsComplete = false;
   private boolean mPin = false;
   private boolean mCache = false;
   private String mCheckpointPath = "";
@@ -46,16 +47,20 @@ public class InodeFile extends Inode {
     }
     mLength = 0;
     while (length >= BLOCK_SIZE_BYTE) {
-      addBlock(new BlockInfo(this, mBlocks.size(), mLength, BLOCK_SIZE_BYTE));
+      addBlock(new BlockInfo(this, mBlocks.size(), BLOCK_SIZE_BYTE));
       length -= BLOCK_SIZE_BYTE;
     }
     if (length > 0) {
-      addBlock(new BlockInfo(this, mBlocks.size(), mLength, (int) length));
+      addBlock(new BlockInfo(this, mBlocks.size(), (int) length));
     }
   }
 
-  public synchronized boolean isReady() {
-    return mLength != UNINITIAL_VALUE;
+  public synchronized boolean isComplete() {
+    return mIsComplete;
+  }
+
+  public synchronized void setComplete() {
+    mIsComplete = true;
   }
 
   @Override
@@ -76,6 +81,9 @@ public class InodeFile extends Inode {
   }
 
   public synchronized void addBlock(BlockInfo blockInfo) throws BlockInfoException {
+    if (mIsComplete) {
+      throw new BlockInfoException("The file is complete: " + this);
+    }
     if (mBlocks.size() > 0 && mBlocks.get(mBlocks.size() - 1).LENGTH != BLOCK_SIZE_BYTE) {
       throw new BlockInfoException("BLOCK_SIZE_BYTE is " + BLOCK_SIZE_BYTE + ", but the " +
           "previous block size is " + mBlocks.get(mBlocks.size() - 1).LENGTH);
@@ -100,15 +108,22 @@ public class InodeFile extends Inode {
     mBlocks.add(blockInfo);
   }
 
-  public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress) {
+  public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress) 
+      throws BlockInfoException {
+    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
+      throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
+    }
     mBlocks.get(blockIndex).addLocation(workerId, workerAddress);
   }
 
-  public synchronized void removeLocation(int blockIndex, long workerId) {
+  public synchronized void removeLocation(int blockIndex, long workerId) throws BlockInfoException {
+    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
+      throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
+    }
     mBlocks.get(blockIndex).removeLocation(workerId);
   }
 
-  public int getBlockSizeByte() {
+  public long getBlockSizeByte() {
     return BLOCK_SIZE_BYTE;
   }
 
@@ -172,5 +187,13 @@ public class InodeFile extends Inode {
 
   public synchronized boolean hasCheckpointed() {
     return !mCheckpointPath.equals("");
+  }
+
+  public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
+    List<Pair<Long, Long>> ret = new ArrayList<Pair<Long, Long>>();
+    for (BlockInfo info: mBlocks) {
+      ret.addAll(info.getBlockIdWorkerIdPairs());
+    }
+    return ret;
   }
 }

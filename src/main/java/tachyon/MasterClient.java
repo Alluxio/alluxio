@@ -15,6 +15,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.UserConf;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
@@ -69,13 +70,15 @@ public class MasterClient {
    * @return
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
+   * @throws BlockInfoException 
    * @throws TException
    */
-  public synchronized boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
+  public synchronized boolean addCheckpoint(long workerId, int fileId, long length, 
       String checkpointPath)
-          throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+          throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
+          TException {
     connect();
-    return CLIENT.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+    return CLIENT.addCheckpoint(workerId, fileId, length, checkpointPath);
   }
 
   public synchronized boolean connect() {
@@ -352,13 +355,14 @@ public class MasterClient {
   }
 
   public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, 
-      long length) throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+      long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, 
+      TException {
     connect();
     CLIENT.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
-      List<Long> removedPartitionList) throws TException {
+      List<Long> removedPartitionList) throws BlockInfoException, TException {
     connect();
     return CLIENT.worker_heartbeat(workerId, usedBytes, removedPartitionList);
   }
@@ -369,7 +373,7 @@ public class MasterClient {
   }
 
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
-      long usedBytes, List<Long> currentBlockList) throws TException {
+      long usedBytes, List<Long> currentBlockList) throws BlockInfoException, TException {
     connect();
     long ret = CLIENT.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList); 
     LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress +

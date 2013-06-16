@@ -2,6 +2,7 @@ package tachyon;
 
 import org.apache.thrift.TException;
 
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -25,13 +26,13 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   @Override
   public void addCheckpoint(long userId, int fileId)
       throws FileDoesNotExistException, SuspectedFileSizeException, 
-      FailedToCheckpointException, TException {
+      FailedToCheckpointException, BlockInfoException, TException {
     mWorkerStorage.addCheckpoint(userId, fileId);
   }
 
   @Override
   public void cacheBlock(long userId, long blockId)
-      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     mWorkerStorage.cacheBlock(userId, blockId);
   }
 
