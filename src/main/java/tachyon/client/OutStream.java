@@ -29,7 +29,7 @@ public class OutStream extends OutputStream {
 
   private final TachyonFS TFS;
   private final int FID;
-  private final OpType IO_TYPE;
+  private final WriteType WRITE_TYPE;
 
   private long mSizeBytes;
   private ByteBuffer mBuffer;
@@ -42,15 +42,15 @@ public class OutStream extends OutputStream {
   private boolean mClosed = false;
   private boolean mCancel = false;
 
-  OutStream(TachyonFile file, OpType opType) throws IOException {
+  OutStream(TachyonFile file, WriteType opType) throws IOException {
     TFS = file.TFS;
     FID = file.FID;
-    IO_TYPE = opType;
+    WRITE_TYPE = opType;
 
     mBuffer = ByteBuffer.allocate(USER_CONF.FILE_BUFFER_BYTES + 4);
     mBuffer.order(ByteOrder.nativeOrder());
 
-    if (IO_TYPE.isWriteCache()) {
+    if (WRITE_TYPE.isCache()) {
       if (!TFS.hasLocalWorker()) {
         throw new IOException("No local worker on this machine.");
       }
@@ -65,7 +65,7 @@ public class OutStream extends OutputStream {
       LOG.info("File " + localFilePath + " was created!");
     }
 
-    if (IO_TYPE.isWriteThrough()) {
+    if (WRITE_TYPE.isThrough()) {
       String underfsFolder = TFS.createAndGetUserUnderfsTempFolder();
       UnderFileSystem underfsClient = UnderFileSystem.get(underfsFolder);
       mCheckpointOutputStream = underfsClient.create(underfsFolder + "/" + FID);
@@ -75,7 +75,7 @@ public class OutStream extends OutputStream {
   // TODO mBuffer.limit() seems wrong here, unit test it to confirm.
   private synchronized void appendCurrentBuffer(int minimalPosition) throws IOException {
     if (mBuffer.position() >= minimalPosition) {
-      if (IO_TYPE.isWriteCache()) {
+      if (WRITE_TYPE.isCache()) {
         if (Constants.DEBUG && mSizeBytes != mLocalFile.length()) {
           CommonUtils.runtimeException(
               String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
@@ -95,7 +95,7 @@ public class OutStream extends OutputStream {
         out.put(mBuffer);
       }
 
-      if (IO_TYPE.isWriteThrough()) {
+      if (WRITE_TYPE.isThrough()) {
         mBuffer.flip();
         mCheckpointOutputStream.write(mBuffer.array(), 0, mBuffer.limit());
       }
@@ -127,7 +127,7 @@ public class OutStream extends OutputStream {
     }
 
     if (mBuffer.position() + len >= USER_CONF.FILE_BUFFER_BYTES) {
-      if (IO_TYPE.isWriteCache()) {
+      if (WRITE_TYPE.isCache()) {
         if (Constants.DEBUG && mSizeBytes != mLocalFile.length()) {
           CommonUtils.runtimeException(
               String.format("mSize (%d) != mFile.length() (%d)", mSizeBytes, mLocalFile.length()));
@@ -149,7 +149,7 @@ public class OutStream extends OutputStream {
         out.put(b, off, len);
       }
 
-      if (IO_TYPE.isWriteThrough()) {
+      if (WRITE_TYPE.isThrough()) {
         mBuffer.flip();
         mCheckpointOutputStream.write(mBuffer.array(), 0, mBuffer.limit());
         mCheckpointOutputStream.write(b, off, len);
@@ -192,17 +192,17 @@ public class OutStream extends OutputStream {
       if (mCancel) {
         TFS.releaseSpace(mSizeBytes);
       } else {
-        if (IO_TYPE.isWriteThrough()) {
+        if (WRITE_TYPE.isThrough()) {
           mCheckpointOutputStream.flush();
           mCheckpointOutputStream.close();
           TFS.addCheckpoint(FID);
         }
 
-        if (IO_TYPE.isWriteCache()) {
+        if (WRITE_TYPE.isCache()) {
           try {
             TFS.cacheFile(FID);
           } catch (IOException e) {
-            if (IO_TYPE == OpType.WRITE_CACHE) {
+            if (WRITE_TYPE == WriteType.CACHE) {
               throw e;
             }
           }

@@ -3,10 +3,10 @@ package tachyon;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import tachyon.client.OpType;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.WriteType;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
@@ -22,7 +22,7 @@ public final class TestUtils {
    * @throws FileAlreadyExistException
    * @throws IOException
    */
-  public static int createByteFile(TachyonFS client, String fileName, OpType op, int len)
+  public static int createByteFile(TachyonFS client, String fileName, WriteType op, int len)
       throws IOException {
     int fileId = client.createFile(fileName);
     TachyonFile file = client.getFile(fileId);

@@ -56,24 +56,22 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return TFS.addCheckpointPath(FID, path);
   }
 
-  public InStream getInStream(OpType opType) throws IOException {
+  public InStream getInStream(ReadType opType) throws IOException {
     // TODO Return different types of streams based on file info.
     // E.g.: file size, in memory or not etc.
     // BlockInputStream, FileInputStream.
     if (opType == null) {
       throw new IOException("OpType can not be null.");
-    } else if (opType.isWrite()) {
-      throw new IOException("OpType is not read type: " + opType);
     }
+
     return new InStream(this, opType);
   }
 
-  public OutStream getOutStream(OpType opType) throws IOException {
+  public OutStream getOutStream(WriteType opType) throws IOException {
     if (opType == null) {
       throw new IOException("OpType can not be null.");
-    } else if (opType.isRead()) {
-      throw new IOException("OpType is not write type: " + opType);
     }
+
     return new OutStream(this, opType);
   }
 

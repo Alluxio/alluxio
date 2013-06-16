@@ -13,7 +13,7 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.client.InStream;
-import tachyon.client.OpType;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.conf.UserConf;
@@ -49,7 +49,7 @@ public class TFileInputStreamHdfs extends InputStream implements Seekable, Posit
 
     TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
     try {
-      mTachyonFileInputStream = tachyonFile.getInStream(OpType.READ_TRY_CACHE);
+      mTachyonFileInputStream = tachyonFile.getInStream(ReadType.CACHE);
     } catch (IOException e) {
       LOG.error(e.getMessage());
       return;

@@ -20,25 +20,25 @@ public class InStream extends InputStream {
   private final TachyonFS TFS;
   private final TachyonFile FILE;
   private final int FID;
-  private final OpType IO_TYPE;
+  private final ReadType READ_TYPE;
 
   private ByteBuffer mBuffer = null;
   private InputStream mCheckpointInputStream = null;
 
   private boolean mClosed = false;
 
-  InStream(TachyonFile file, OpType opType) throws IOException {
+  InStream(TachyonFile file, ReadType opType) throws IOException {
     TFS = file.TFS;
     FILE = file;
     FID = FILE.FID;
-    IO_TYPE = opType;
+    READ_TYPE = opType;
 
     if (!FILE.isReady()) {
       throw new IOException("File " + FILE.getPath() + " is not ready to read");
     }
 
     mBuffer = FILE.readByteBuffer();
-    if (mBuffer == null && IO_TYPE.isReadTryCache()) {
+    if (mBuffer == null && READ_TYPE.isCache()) {
       if (FILE.recache()) {
         mBuffer = FILE.readByteBuffer();
       }
