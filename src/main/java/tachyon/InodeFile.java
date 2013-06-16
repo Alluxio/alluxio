@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 
@@ -13,17 +15,25 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Tachyon file system's file representation in master.
  */
 public class InodeFile extends Inode {
-  public static final long UNINITIAL_VALUE = -1;
+  private static final long UNINITIAL_VALUE = -1;
+
+  private final int BLOCK_SIZE_BYTE;
 
   private long mLength;
   private boolean mPin = false;
   private boolean mCache = false;
   private String mCheckpointPath = "";
+  private List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(5);
 
   private Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>();
 
   public InodeFile(String name, int id, int parentId) {
+    this(name, id, parentId, Constants.DEFAULT_BLOCK_SIZE_BYTE);
+  }
+
+  public InodeFile(String name, int id, int parentId, int blockSizeByte) {
     super(name, id, parentId, InodeType.File);
+    BLOCK_SIZE_BYTE = blockSizeByte;
     mLength = UNINITIAL_VALUE;
   }
 
@@ -32,6 +42,7 @@ public class InodeFile extends Inode {
   }
 
   public synchronized void setLength(long length) throws SuspectedFileSizeException {
+    // TODO Set block info at the same time.
     if (mLength != UNINITIAL_VALUE) {
       throw new SuspectedFileSizeException("InodeFile length was set previously.");
     }
@@ -60,16 +71,51 @@ public class InodeFile extends Inode {
   public synchronized String getCheckpointPath() {
     return mCheckpointPath;
   }
+  
+  public synchronized void addBlock(BlockInfo blockInfo) throws BlockInfoException {
+    if (mBlocks.size() > 0 && mBlocks.get(mBlocks.size() - 1).LENGTH != BLOCK_SIZE_BYTE) {
+      throw new BlockInfoException("BLOCK_SIZE_BYTE is " + BLOCK_SIZE_BYTE + ", but the " +
+      		"previous block size is " + mBlocks.get(mBlocks.size() - 1).LENGTH);
+    }
+    if (blockInfo.getInodeFile() != this) {
+      throw new BlockInfoException("Inode");
+    }
+  }
 
-  public synchronized void addLocation(long workerId, NetAddress workerAddress) {
+  public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress) {
     mLocations.put(workerId, workerAddress);
   }
 
-  public synchronized void removeLocation(long workerId) {
+  public synchronized void removeLocation(int blockIndex, long workerId) {
     mLocations.remove(workerId);
   }
 
-  public synchronized List<NetAddress> getLocations() {
+  public int getBlockSizeByte() {
+    return BLOCK_SIZE_BYTE;
+  }
+
+  public synchronized List<ClientBlockInfo> getBlockLocations(int blockId) {
+    // TODO Implement this.
+    List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
+    ret.addAll(mLocations.values());
+    if (ret.isEmpty() && hasCheckpointed()) {
+      UnderFileSystem ufs = UnderFileSystem.get(mCheckpointPath);
+      List<String> locs = null;
+      try {
+        locs = ufs.getFileLocations(mCheckpointPath);
+      } catch (IOException e) {
+        return ret;
+      }
+      if (locs != null) {
+        for (String loc: locs) {
+          ret.add(new NetAddress(loc, -1));
+        }
+      }
+    }
+    return ret;
+  }
+
+  public synchronized List<ClientBlockInfo> getLocations() {
     List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
     ret.addAll(mLocations.values());
     if (ret.isEmpty() && hasCheckpointed()) {

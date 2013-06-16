@@ -21,6 +21,7 @@ public class KryoFactory {
     ret.register(LogType.class);
     ret.register(InodeType.class);
     ret.register(NetAddress.class);
+    ret.register(BlockInfo.class);
     ret.register(InodeFile.class);
     ret.register(InodeFolder.class);
     ret.register(InodeRawTable.class);

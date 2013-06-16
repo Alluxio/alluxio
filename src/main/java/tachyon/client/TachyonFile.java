@@ -57,6 +57,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   public InStream getInStream(OpType opType) throws IOException {
+    // TODO Return different types of streams based on file info.
+    // E.g.: file size, in memory or not etc.
     if (opType == null) {
       throw new IOException("OpType can not be null.");
     } else if (opType.isWrite()) {

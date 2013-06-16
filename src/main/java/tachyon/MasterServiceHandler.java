@@ -10,6 +10,7 @@ import org.apache.thrift.TException;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
+import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
@@ -97,9 +98,21 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<NetAddress> user_getFileLocationsById(int fileId)
+  public List<ClientBlockInfo> user_getBlockLocations(int blockId)
       throws FileDoesNotExistException, TException {
-    List<NetAddress> ret = null;
+    List<ClientBlockInfo> ret = null;
+    try {
+      ret = mMasterInfo.getBlockLocations(blockId);
+    } catch (IOException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    }
+    return ret;
+  }
+
+  @Override
+  public List<ClientBlockInfo> user_getFileLocationsById(int fileId)
+      throws FileDoesNotExistException, TException {
+    List<ClientBlockInfo> ret = null;
     try {
       ret = mMasterInfo.getFileLocations(fileId);
     } catch (IOException e) {
@@ -109,11 +122,11 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<NetAddress> user_getFileLocationsByPath(String filePath)
+  public List<ClientBlockInfo> user_getFileLocationsByPath(String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
-    List<NetAddress> ret = null;
+    List<ClientBlockInfo> ret = null;
     try {
-      ret = mMasterInfo.getFileLocations(filePath);
+      ret = mMasterInfo.getFileLocations(path);
     } catch (IOException e) {
       throw new FileDoesNotExistException(e.getMessage());
     }
@@ -200,10 +213,10 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void worker_cacheFile(long workerId, long workerUsedBytes, int fileId,
-      long fileSizeBytes) throws FileDoesNotExistException,
+  public void worker_cacheBlock(long workerId, long workerUsedBytes, int blockId,
+      long length) throws FileDoesNotExistException,
       SuspectedFileSizeException, TException {
-    mMasterInfo.cachedFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
+    mMasterInfo.cacheBlock(workerId, workerUsedBytes, blockId, length);
   }
 
   @Override

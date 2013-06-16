@@ -96,10 +96,15 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   public List<String> getFileLocations(String path) {
+    return getFileLocations(path, 0);
+  }
+
+  @Override
+  public List<String> getFileLocations(String path, long offset) {
     List<String> ret = new ArrayList<String>();
     try {
       FileStatus fStatus = mFs.getFileStatus(new Path(path));
-      BlockLocation[] bLocations = mFs.getFileBlockLocations(fStatus, 0, 1);
+      BlockLocation[] bLocations = mFs.getFileBlockLocations(fStatus, offset, 1);
       if (bLocations.length > 0) {
         String[] hosts = bLocations[0].getHosts();
         for (String host: hosts) {

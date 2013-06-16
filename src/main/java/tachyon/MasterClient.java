@@ -15,6 +15,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.UserConf;
+import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
@@ -215,7 +216,7 @@ public class MasterClient {
     }
   }
 
-  public synchronized List<NetAddress> user_getFileLocations(int id) 
+  public synchronized List<ClientBlockInfo> user_getFileLocations(int id) 
       throws IOException, TException {
     connect();
     try {
@@ -350,14 +351,14 @@ public class MasterClient {
     }
   }
 
-  public synchronized void worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
-      long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+  public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, 
+      long length) throws FileDoesNotExistException, SuspectedFileSizeException, TException {
     connect();
-    CLIENT.worker_cacheFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
+    CLIENT.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
-      List<Integer> removedPartitionList) throws TException {
+      List<Long> removedPartitionList) throws TException {
     connect();
     return CLIENT.worker_heartbeat(workerId, usedBytes, removedPartitionList);
   }
@@ -368,9 +369,9 @@ public class MasterClient {
   }
 
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
-      long usedBytes, List<Integer> currentFileList) throws TException {
+      long usedBytes, List<Long> currentBlockList) throws TException {
     connect();
-    long ret = CLIENT.worker_register(workerNetAddress, totalBytes, usedBytes, currentFileList); 
+    long ret = CLIENT.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList); 
     LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress +
         " , got WorkerId " + ret);
     return ret;

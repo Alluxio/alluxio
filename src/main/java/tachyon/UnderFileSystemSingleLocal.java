@@ -50,6 +50,11 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
+  public List<String> getFileLocations(String path, long offset) throws IOException {
+    return getFileLocations(path);
+  }
+
+  @Override
   public long getFileSize(String path) throws IOException {
     File file = new File(path);
     return file.length();
