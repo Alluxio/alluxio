@@ -17,9 +17,10 @@ import tachyon.Constants;
 import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 import tachyon.client.InStream;
-import tachyon.client.OpType;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.WriteType;
 
 /**
  * Unit tests on TFsShell.
@@ -208,7 +209,7 @@ public class TFsShellTest {
     TachyonFile tFile = mClient.getFile("/testFile");
     Assert.assertNotNull(tFile);
     Assert.assertEquals(10, tFile.length());
-    InStream tfis = tFile.getInStream(OpType.READ_NO_CACHE);
+    InStream tfis = tFile.getInStream(ReadType.NO_CACHE);
     byte read[] = new byte[10];
     tfis.read(read);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, read));
@@ -228,7 +229,7 @@ public class TFsShellTest {
     TachyonFile tFile = mClient.getFile("/testFile");
     Assert.assertNotNull(tFile);
     Assert.assertEquals(mSizeBytes, tFile.length());
-    InStream tfis = tFile.getInStream(OpType.READ_NO_CACHE);
+    InStream tfis = tFile.getInStream(ReadType.NO_CACHE);
     byte read[] = new byte[mSizeBytes];
     tfis.read(read);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(mSizeBytes, read));
@@ -236,7 +237,7 @@ public class TFsShellTest {
 
   @Test
   public void copyToLocalTest() throws IOException {
-    TestUtils.createByteFile(mClient, "/testFile", OpType.WRITE_CACHE, 10);
+    TestUtils.createByteFile(mClient, "/testFile", WriteType.CACHE, 10);
     mFsShell.copyToLocal(new String[]{
         "copyToLocal", "/testFile", mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[]{"copyToLocal", "/testFile", 
@@ -251,7 +252,7 @@ public class TFsShellTest {
 
   @Test
   public void copyToLocalLargeTest() throws IOException {
-    TestUtils.createByteFile(mClient, "/testFile", OpType.WRITE_CACHE, mSizeBytes);
+    TestUtils.createByteFile(mClient, "/testFile", WriteType.CACHE, mSizeBytes);
     mFsShell.copyToLocal(new String[]{
         "copyToLocal", "/testFile", mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[]{"copyToLocal", "/testFile", 

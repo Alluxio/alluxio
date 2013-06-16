@@ -33,7 +33,7 @@ public class OutStreamTest {
     System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
-  private void writeTest1Util(String filePath, OpType op, int len)
+  private void writeTest1Util(String filePath, WriteType op, int len)
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mClient.createFile(filePath);
     TachyonFile file = mClient.getFile(fileId);
@@ -44,7 +44,7 @@ public class OutStreamTest {
     os.close();
 
     file = mClient.getFile(filePath);
-    InStream is = file.getInStream(OpType.READ_NO_CACHE);
+    InStream is = file.getInStream(ReadType.NO_CACHE);
     byte[] res = new byte[(int) file.length()];
     is.read(res);
     boolean t = TestUtils.equalIncreasingByteArray(len, res);
@@ -58,15 +58,13 @@ public class OutStreamTest {
   @Test
   public void writeTest1() throws IOException, InvalidPathException, FileAlreadyExistException {
     for (int k = 100; k <= 200; k += 33) {
-      for (OpType op : OpType.values()) {
-        if (op.isWrite()) {
-          writeTest1Util("/root/testFile_" + k + "_" + op, op, k);
-        }
+      for (WriteType op : WriteType.values()) {
+        writeTest1Util("/root/testFile_" + k + "_" + op, op, k);
       }
     }
   }
 
-  private void writeTest2Util(String filePath, OpType op, int len)
+  private void writeTest2Util(String filePath, WriteType op, int len)
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mClient.createFile(filePath);
     TachyonFile file = mClient.getFile(fileId);
@@ -76,7 +74,7 @@ public class OutStreamTest {
     os.close();
 
     file = mClient.getFile(filePath);
-    InStream is = file.getInStream(OpType.READ_NO_CACHE);
+    InStream is = file.getInStream(ReadType.NO_CACHE);
     byte[] res = new byte[(int) file.length()];
     is.read(res);
     boolean t = TestUtils.equalIncreasingByteArray(len, res);
@@ -90,15 +88,13 @@ public class OutStreamTest {
   @Test
   public void writeTest2() throws IOException, InvalidPathException, FileAlreadyExistException {
     for (int k = 100; k <= 200; k += 33) {
-      for (OpType op : OpType.values()) {
-        if (op.isWrite()) {
-          writeTest2Util("/root/testFile_" + k + "_" + op, op, k);
-        }
+      for (WriteType op : WriteType.values()) {
+        writeTest2Util("/root/testFile_" + k + "_" + op, op, k);
       }
     }
   }
 
-  private void writeTest3Util(String filePath, OpType op, int len)
+  private void writeTest3Util(String filePath, WriteType op, int len)
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mClient.createFile(filePath);
     TachyonFile file = mClient.getFile(fileId);
@@ -108,7 +104,7 @@ public class OutStreamTest {
     os.close();
 
     file = mClient.getFile(filePath);
-    InStream is = file.getInStream(OpType.READ_NO_CACHE);
+    InStream is = file.getInStream(ReadType.NO_CACHE);
     byte[] res = new byte[(int) file.length()];
     is.read(res);
     boolean t = TestUtils.equalIncreasingByteArray(len / 2, res);
@@ -122,10 +118,8 @@ public class OutStreamTest {
   @Test
   public void writeTest3() throws IOException, InvalidPathException, FileAlreadyExistException {
     for (int k = 100; k <= 200; k += 33) {
-      for (OpType op : OpType.values()) {
-        if (op.isWrite()) {
-          writeTest3Util("/root/testFile_" + k + "_" + op, op, k);
-        }
+      for (WriteType op : WriteType.values()) {
+        writeTest3Util("/root/testFile_" + k + "_" + op, op, k);
       }
     }
   }

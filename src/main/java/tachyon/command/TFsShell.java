@@ -16,10 +16,11 @@ import tachyon.thrift.ClientFileInfo;
 
 import tachyon.CommonUtils;
 import tachyon.client.InStream;
-import tachyon.client.OpType;
 import tachyon.client.OutStream;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.WriteType;
 
 /**
  * Class for handling command line inputs.
@@ -154,7 +155,7 @@ public class TFsShell {
       throw new IOException(folder);
     }
 
-    InStream is = tFile.getInStream(OpType.READ_NO_CACHE);
+    InStream is = tFile.getInStream(ReadType.NO_CACHE);
     FileOutputStream out = new FileOutputStream(dst);
     byte[] buf = new byte[512];
     int t = is.read(buf);
@@ -218,7 +219,7 @@ public class TFsShell {
       return -1;
     }
     TachyonFile tFile = tachyonClient.getFile(fileId);
-    OutStream os = tFile.getOutStream(OpType.WRITE_THROUGH);
+    OutStream os = tFile.getOutStream(WriteType.THROUGH);
     FileInputStream in = new FileInputStream(src);
     FileChannel channel = in.getChannel();
     ByteBuffer buf = ByteBuffer.allocate(1024);

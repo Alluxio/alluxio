@@ -11,11 +11,11 @@ import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
-import tachyon.client.OpType;
 import tachyon.client.RawColumn;
 import tachyon.client.RawTable;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.WriteType;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfMemoryForPinFileException;
@@ -29,7 +29,7 @@ public class BasicRawTableOperations {
   private static TachyonFS sTachyonClient;
   private static String sTablePath = null;
   private static int mId;
-  private static OpType sWriteType = null;
+  private static WriteType sWriteType = null;
 
   public static void createRawTable() throws IOException {
     long startTimeMs = CommonUtils.getCurrentMs();
@@ -105,7 +105,7 @@ public class BasicRawTableOperations {
     }
     sTachyonClient = TachyonFS.get(args[0]);
     sTablePath = args[1];
-    sWriteType = OpType.getOpType(args[2]);
+    sWriteType = WriteType.getOpType(args[2]);
     createRawTable();
     writeParition();
     readPartition();

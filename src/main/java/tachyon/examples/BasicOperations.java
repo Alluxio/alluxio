@@ -10,9 +10,9 @@ import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
-import tachyon.client.OpType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.WriteType;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -22,7 +22,7 @@ public class BasicOperations {
 
   private static TachyonFS sTachyonClient;
   private static String sFilePath = null;
-  private static OpType sWriteType = null;
+  private static WriteType sWriteType = null;
 
   public static void createFile() throws IOException {
     long startTimeMs = CommonUtils.getCurrentMs();
@@ -72,7 +72,7 @@ public class BasicOperations {
     }
     sTachyonClient = TachyonFS.get(args[0]);
     sFilePath = args[1];
-    sWriteType = OpType.getOpType(args[2]);
+    sWriteType = WriteType.getOpType(args[2]);
     createFile();
     writeFile();
     readFile();

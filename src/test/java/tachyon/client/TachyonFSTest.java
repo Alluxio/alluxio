@@ -74,7 +74,7 @@ public class TachyonFSTest {
 
     for (int k = 0; k < 5; k ++) {
       int fileId = TestUtils.createByteFile(
-          mClient, "/file" + k, OpType.WRITE_CACHE, writeBytes);
+          mClient, "/file" + k, WriteType.CACHE, writeBytes);
       TachyonFile file = mClient.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
       Assert.assertTrue(mClient.exist("/file" + k));

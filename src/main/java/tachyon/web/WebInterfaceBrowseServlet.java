@@ -17,9 +17,9 @@ import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.MasterInfo;
 import tachyon.client.InStream;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.OpType;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -208,7 +208,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       throw new FileDoesNotExistException(path);
     }
 
-    InStream is = tFile.getInStream(OpType.READ_NO_CACHE);
+    InStream is = tFile.getInStream(ReadType.NO_CACHE);
     int len = Math.min(5 * Constants.KB, (int) tFile.length());
     byte[] data = new byte[len];
     is.read(data, 0, len);
