@@ -27,6 +27,7 @@ import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
+import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
@@ -249,22 +250,21 @@ public class MasterInfo {
   }
 
   /**
+   * A worker cache a block in its memory.
    * 
    * @param workerId
    * @param workerUsedBytes
-   * @param fileId
-   * @param fileSizeBytes
-   * @return the dependency id of the file if it has not been checkpointed. -1 means the file 
-   * either does not have dependency or has already been checkpointed.
+   * @param blockId
+   * @param length
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    */
-  public void cachedFile(long workerId, long workerUsedBytes, int fileId,
-      long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException {
-    LOG.debug(CommonUtils.parametersToString(workerId, workerUsedBytes, fileId, fileSizeBytes));
+  public void cacheBlock(long workerId, long workerUsedBytes, int blockId, long length)
+      throws FileDoesNotExistException, SuspectedFileSizeException {
+    LOG.debug(CommonUtils.parametersToString(workerId, workerUsedBytes, blockId, length));
 
     MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
-    tWorkerInfo.updateFile(true, fileId);
+    tWorkerInfo.updateFile(true, blockId);
     tWorkerInfo.updateUsedBytes(workerUsedBytes);
     tWorkerInfo.updateLastUpdatedTimeMs();
 
@@ -490,7 +490,7 @@ public class MasterInfo {
       ret.name = inode.getName();
       ret.path = getPath(inode);
       ret.checkpointPath = "";
-      ret.sizeBytes = 0;
+      ret.length = 0;
       ret.creationTimeMs = inode.getCreationTimeMs();
       ret.inMemory = false;
       ret.ready = true;
@@ -500,7 +500,8 @@ public class MasterInfo {
 
       if (inode.isFile()) {
         InodeFile tInode = (InodeFile) inode;
-        ret.sizeBytes = tInode.getLength();
+        ret.length = tInode.getLength();
+        ret.blockSizeByte = tInode.getBlockSizeByte();
         ret.inMemory = tInode.isInMemory();
         ret.ready = tInode.isReady();
         ret.checkpointPath = tInode.getCheckpointPath();
@@ -601,20 +602,35 @@ public class MasterInfo {
     }
   }
 
-  public List<NetAddress> getFileLocations(int fileId)
+  public List<ClientBlockInfo> getBlockLocations(int blockId)
+      throws FileDoesNotExistException, IOException {
+    // TODO Implement this.
+    throw new IOException("This has not been implemented");
+    //    synchronized (mRoot) {
+    //      Inode inode = mInodes.get(blockId);
+    //      if (inode == null || inode.isDirectory()) {
+    //        throw new FileDoesNotExistException("Block " + blockId + " does not exist.");
+    //      }
+    //      List<ClientBlockInfo> ret = ((InodeFile) inode).getLocations();
+    //      LOG.debug("getBlockLocations: " + blockId + ret);
+    //      return ret;
+    //    }
+  }
+
+  public List<ClientBlockInfo> getFileLocations(int fileId)
       throws FileDoesNotExistException, IOException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
       if (inode == null || inode.isDirectory()) {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
-      List<NetAddress> ret = ((InodeFile) inode).getLocations();
+      List<ClientBlockInfo> ret = ((InodeFile) inode).getLocations();
       LOG.debug("getFileLocations: " + fileId + ret);
       return ret;
     }
   }
 
-  public List<NetAddress> getFileLocations(String path) 
+  public List<ClientBlockInfo> getFileLocations(String path) 
       throws FileDoesNotExistException, InvalidPathException, IOException {
     LOG.info("getFileLocations: " + path);
     synchronized (mRoot) {

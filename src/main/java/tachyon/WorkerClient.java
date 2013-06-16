@@ -48,7 +48,7 @@ public class WorkerClient {
   }
 
   public synchronized void accessFile(int fileId) throws TException {
-    CLIENT.accessFile(fileId);
+    CLIENT.accessBlock(fileId);
   }
 
   public synchronized void addCheckpoint(long userId, int fileId) 
@@ -60,7 +60,7 @@ public class WorkerClient {
   public synchronized void cacheFile(long userId, int fileId)
       throws IOException, TException {
     try {
-      CLIENT.cacheFile(userId, fileId);
+      CLIENT.cacheBlock(userId, fileId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
@@ -97,7 +97,7 @@ public class WorkerClient {
   }
 
   public synchronized void lockFile(int fileId, long userId) throws TException {
-    CLIENT.lockFile(fileId, userId);
+    CLIENT.lockBlock(fileId, userId);
   }
 
   public synchronized boolean open() {
@@ -124,7 +124,7 @@ public class WorkerClient {
   }
 
   public synchronized void unlockFile(int fileId, long userId) throws TException {
-    CLIENT.unlockFile(fileId, userId);
+    CLIENT.unlockBlock(fileId, userId);
   }
 
   public synchronized void userHeartbeat(long userId) throws TException {

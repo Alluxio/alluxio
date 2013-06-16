@@ -110,7 +110,7 @@ public class Worker implements Runnable {
             LOG.info("Register command: " + cmd);
             break;
           case Free :
-            mWorkerStorage.freeFiles(cmd.mData);
+            mWorkerStorage.freeBlocks(cmd.mData);
             LOG.info("Free command: " + cmd);
             break;
           case Delete :

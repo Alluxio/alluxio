@@ -18,8 +18,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void accessFile(int fileId) throws TException {
-    mWorkerStorage.accessFile(fileId);
+  public void accessBlock(long blockId) throws TException {
+    mWorkerStorage.accessBlock(blockId);
   }
 
   @Override
@@ -30,9 +30,9 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void cacheFile(long userId, int fileId)
+  public void cacheBlock(long userId, long blockId)
       throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    mWorkerStorage.cacheFile(userId, fileId);
+    mWorkerStorage.cacheBlock(userId, blockId);
   }
 
   @Override
@@ -51,8 +51,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void lockFile(int fileId, long userId) throws TException {
-    mWorkerStorage.lockFile(fileId, userId);
+  public void lockBlock(long blockId, long userId) throws TException {
+    mWorkerStorage.lockBlock(blockId, userId);
   }
 
   @Override
@@ -66,8 +66,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void unlockFile(int fileId, long userId) throws TException {
-    mWorkerStorage.unlockFile(fileId, userId);
+  public void unlockBlock(long blockId, long userId) throws TException {
+    mWorkerStorage.unlockBlock(blockId, userId);
   }
 
   @Override
