@@ -59,6 +59,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   public InStream getInStream(OpType opType) throws IOException {
     // TODO Return different types of streams based on file info.
     // E.g.: file size, in memory or not etc.
+    // BlockInputStream, FileInputStream.
     if (opType == null) {
       throw new IOException("OpType can not be null.");
     } else if (opType.isWrite()) {
@@ -81,7 +82,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   public List<String> getLocationHosts() throws IOException {
-    List<NetAddress> locations = TFS.getFileNetAddresses(FID);
+    List<NetAddress> locations = TFS.getFileBlocks(FID);
     List<String> ret = new ArrayList<String>(locations.size());
     if (locations != null) {
       for (int k = 0; k < locations.size(); k ++) {
@@ -109,11 +110,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   public boolean isReady() {
-    return TFS.isReady(FID);
+    return TFS.isComplete(FID);
   }
 
   public long length() {
-    return TFS.getFileSizeBytes(FID);
+    return TFS.getFileLength(FID);
   }
 
   public ByteBuffer readByteBuffer() {
@@ -162,7 +163,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
     LOG.info("Try to find and read from remote workers.");
     try {
-      List<NetAddress> fileLocations = TFS.getFileNetAddresses(FID);
+      List<NetAddress> fileLocations = TFS.getFileBlocks(FID);
       LOG.info("readByteBufferFromRemote() " + fileLocations);
 
       for (int k = 0; k < fileLocations.size(); k ++) {

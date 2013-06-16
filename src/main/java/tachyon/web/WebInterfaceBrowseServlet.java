@@ -54,7 +54,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       NAME = fileInfo.getName();
       ABSOLUATE_PATH = fileInfo.getPath();
       CHECKPOINT_PATH = fileInfo.getCheckpointPath();
-      SIZE = fileInfo.getSizeBytes();
+      SIZE = fileInfo.getLength();
       CREATION_TIME_MS = fileInfo.getCreationTimeMs();
       IN_MEMORY = fileInfo.isInMemory();
       IS_DIRECTORY = fileInfo.isFolder();
