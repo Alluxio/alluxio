@@ -13,7 +13,6 @@ public class BlockInfoTest {
   @Test
   public void constructorTest() {
     BlockInfo tInfo = new BlockInfo(new InodeFile("t", 100, 0), 300, 1500, 800);
-    Assert.assertEquals(tInfo.INODE_ID, 100);
     Assert.assertEquals(tInfo.BLOCK_INDEX, 300);
     Assert.assertEquals(tInfo.BLOCK_ID, BlockInfo.computeBlockId(100, 300));
     Assert.assertEquals(tInfo.OFFSET, 1500);

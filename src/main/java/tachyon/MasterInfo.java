@@ -116,7 +116,7 @@ public class MasterInfo {
             InodeFile tFile = (InodeFile) mInodes.get(id);
             if (tFile != null) {
               tFile.removeLocation(worker.getId());
-              if (!tFile.hasCheckpointed() && !tFile.isInMemory()) {
+              if (!tFile.hasCheckpointed() && !tFile.isFullyInMemory()) {
                 LOG.info("File " + id + " got lost from worker " + worker.getId() + " .");
               } else {
                 LOG.info("File " + tFile + " only lost an in memory copy from worker " +
@@ -502,7 +502,7 @@ public class MasterInfo {
         InodeFile tInode = (InodeFile) inode;
         ret.length = tInode.getLength();
         ret.blockSizeByte = tInode.getBlockSizeByte();
-        ret.inMemory = tInode.isInMemory();
+        ret.inMemory = tInode.isFullyInMemory();
         ret.ready = tInode.isReady();
         ret.checkpointPath = tInode.getCheckpointPath();
         ret.needPin = tInode.isPin();
@@ -716,7 +716,7 @@ public class MasterInfo {
           String newPath = curPath + Constants.PATH_SEPARATOR + tInode.getName();
           if (tInode.isDirectory()) {
             nodesQueue.add(new Pair<InodeFolder, String>((InodeFolder) tInode, newPath));
-          } else if (((InodeFile) tInode).isInMemory()) {
+          } else if (((InodeFile) tInode).isFullyInMemory()) {
             ret.add(newPath);
           }
         }
