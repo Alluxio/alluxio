@@ -27,6 +27,7 @@ import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
@@ -72,7 +73,7 @@ public class MasterInfo {
   // TODO Check the logic related to this two lists.
   private PrefixList mWhiteList;
   private PrefixList mPinList;
-  private Set<Integer> mIdPinList;
+  private Set<Integer> mFileIdPinList;
 
   private MasterLogWriter mMasterLogWriter;
 
@@ -112,17 +113,23 @@ public class MasterInfo {
 
         // TODO these a lock is not efficient. Since node failure is rare, this is fine for now.
         synchronized (mRoot) {
-          for (int id: worker.getFiles()) {
-            InodeFile tFile = (InodeFile) mInodes.get(id);
-            if (tFile != null) {
-              tFile.removeLocation(worker.getId());
-              if (!tFile.hasCheckpointed() && !tFile.isFullyInMemory()) {
-                LOG.info("File " + id + " got lost from worker " + worker.getId() + " .");
-              } else {
-                LOG.info("File " + tFile + " only lost an in memory copy from worker " +
-                    worker.getId());
-              }
-            } 
+          try {
+            for (long blockId: worker.getBlocks()) {
+              int fileId = BlockInfo.computeInodeId(blockId);
+              InodeFile tFile = (InodeFile) mInodes.get(fileId);
+              if (tFile != null) {
+                int blockIndex = BlockInfo.computeBlockIndex(blockId);
+                tFile.removeLocation(blockIndex, worker.getId());
+                if (!tFile.hasCheckpointed() && tFile.getBlockLocations(blockIndex).size() == 0) {
+                  LOG.info("Block " + blockId + " got lost from worker " + worker.getId() + " .");
+                } else {
+                  LOG.info("Block " + blockId + " only lost an in memory copy from worker " +
+                      worker.getId());
+                }
+              } 
+            }
+          } catch (BlockInfoException e) {
+            LOG.error(e);
           }
         }
       }
@@ -192,7 +199,7 @@ public class MasterInfo {
 
     mWhiteList = new PrefixList(MASTER_CONF.WHITELIST);
     mPinList = new PrefixList(MASTER_CONF.PINLIST);
-    mIdPinList = Collections.synchronizedSet(new HashSet<Integer>());
+    mFileIdPinList = Collections.synchronizedSet(new HashSet<Integer>());
 
     // TODO Fault recovery: need user counter info;
     recoveryFromLog();
@@ -205,9 +212,9 @@ public class MasterInfo {
     mHeartbeatThread.start();
   }
 
-  public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes,
-      String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException {
-    LOG.info(CommonUtils.parametersToString(workerId, fileId, fileSizeBytes, checkpointPath));
+  public boolean addCheckpoint(long workerId, int fileId, long length, String checkpointPath)
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
+    LOG.info(CommonUtils.parametersToString(workerId, fileId, length, checkpointPath));
 
     if (workerId != -1) {
       MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
@@ -227,13 +234,13 @@ public class MasterInfo {
       InodeFile tFile = (InodeFile) inode;
       boolean needLog = false;
 
-      if (tFile.isReady()) {
-        if (tFile.getLength() != fileSizeBytes) {
+      if (tFile.isComplete()) {
+        if (tFile.getLength() != length) {
           throw new SuspectedFileSizeException(fileId + ". Original Size: " +
-              tFile.getLength() + ". New Size: " + fileSizeBytes);
+              tFile.getLength() + ". New Size: " + length);
         }
       } else {
-        tFile.setLength(fileSizeBytes);
+        tFile.setLength(length);
         needLog = true;
       }
 
@@ -258,16 +265,19 @@ public class MasterInfo {
    * @param length
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
+   * @throws BlockInfoException 
    */
-  public void cacheBlock(long workerId, long workerUsedBytes, int blockId, long length)
-      throws FileDoesNotExistException, SuspectedFileSizeException {
+  public void cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
     LOG.debug(CommonUtils.parametersToString(workerId, workerUsedBytes, blockId, length));
 
     MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
-    tWorkerInfo.updateFile(true, blockId);
+    tWorkerInfo.updateBlock(true, blockId);
     tWorkerInfo.updateUsedBytes(workerUsedBytes);
     tWorkerInfo.updateLastUpdatedTimeMs();
 
+    int fileId = BlockInfo.computeInodeId(blockId);
+    int blockIndex = BlockInfo.computeBlockIndex(blockId);
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
 
@@ -279,22 +289,15 @@ public class MasterInfo {
       }
 
       InodeFile tFile = (InodeFile) inode;
-      boolean needLog = false;
+      if (tFile.isComplete()) {
+        throw new BlockInfoException("The file is complete: " + tFile);
+      }
+      tFile.addBlock(new BlockInfo(tFile, blockIndex, length));
 
-      if (tFile.isReady()) {
-        if (tFile.getLength() != fileSizeBytes) {
-          throw new SuspectedFileSizeException(fileId + ". Original Size: " +
-              tFile.getLength() + ". New Size: " + fileSizeBytes);
-        }
-      } else {
-        tFile.setLength(fileSizeBytes);
-        needLog = true;
-      }
-      if (needLog) {
-        mMasterLogWriter.append(tFile, true);
-      }
+      mMasterLogWriter.append(tFile, true);
       InetSocketAddress address = tWorkerInfo.ADDRESS;
-      tFile.addLocation(workerId, new NetAddress(address.getHostName(), address.getPort()));
+      tFile.addLocation(blockIndex, workerId,
+          new NetAddress(address.getHostName(), address.getPort()));
     }
   }
 
@@ -357,8 +360,8 @@ public class MasterInfo {
         ret = new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId());
         String curPath = getPath(ret);
         if (mPinList.inList(curPath)) {
-          synchronized (mIdPinList) {
-            mIdPinList.add(ret.getId());
+          synchronized (mFileIdPinList) {
+            mFileIdPinList.add(ret.getId());
             ((InodeFile) ret).setPin(true);
           }
         }
@@ -398,11 +401,17 @@ public class MasterInfo {
     return id;
   }
 
-  public boolean delete(int id, boolean recursive) {
-    LOG.info("delete(" + id + ")");
+  /**
+   * Delete a file.
+   * @param fileId The file to be deleted. 
+   * @param recursive
+   * @return
+   */
+  public boolean delete(int fileId, boolean recursive) {
+    LOG.info("delete(" + fileId + ")");
     boolean succeed = true;
     synchronized (mRoot) {
-      Inode inode = mInodes.get(id);
+      Inode inode = mInodes.get(fileId);
 
       if (inode == null) {
         return true;
@@ -423,22 +432,19 @@ public class MasterInfo {
       parent.removeChild(inode.getId());
       mInodes.remove(inode.getId());
       if (inode.isFile()) {
-        List<NetAddress> locations = ((InodeFile) inode).getLocations();
+        List<Pair<Long, Long>> blockIdWorkerIdList = ((InodeFile) inode).getBlockIdWorkerIdPairs();
         synchronized (mWorkers) {
-          for (NetAddress loc : locations) {
-            Long workerId =
-                mWorkerAddressToId.get(new InetSocketAddress(loc.getMHost(), loc.getMPort()));
-            if (workerId == null) {
-              continue;
+          for (Pair<Long, Long> blockIdWorkerId: blockIdWorkerIdList) {
+            MasterWorkerInfo workerInfo = mWorkers.get(blockIdWorkerId.getSecond());
+            if (workerInfo != null) {
+              workerInfo.updateToRemovedBlock(true, blockIdWorkerId.getFirst());
             }
-            MasterWorkerInfo workerInfo = mWorkers.get(workerId);
-            workerInfo.updateToRemovedFile(true, inode.getId());
           }
         }
 
         if (((InodeFile) inode).isPin()) {
-          synchronized (mIdPinList) {
-            mIdPinList.remove(inode.getId());
+          synchronized (mFileIdPinList) {
+            mFileIdPinList.remove(inode.getId());
           }
         }
       }
@@ -493,7 +499,7 @@ public class MasterInfo {
       ret.length = 0;
       ret.creationTimeMs = inode.getCreationTimeMs();
       ret.inMemory = false;
-      ret.ready = true;
+      ret.complete = true;
       ret.folder = inode.isDirectory();
       ret.needPin = false;
       ret.needCache = false;
@@ -503,7 +509,7 @@ public class MasterInfo {
         ret.length = tInode.getLength();
         ret.blockSizeByte = tInode.getBlockSizeByte();
         ret.inMemory = tInode.isFullyInMemory();
-        ret.ready = tInode.isReady();
+        ret.complete = tInode.isComplete();
         ret.checkpointPath = tInode.getCheckpointPath();
         ret.needPin = tInode.isPin();
         ret.needCache = tInode.isCache();
@@ -602,19 +608,19 @@ public class MasterInfo {
     }
   }
 
-  public List<ClientBlockInfo> getBlockLocations(int blockId)
-      throws FileDoesNotExistException, IOException {
-    // TODO Implement this.
-    throw new IOException("This has not been implemented");
-    //    synchronized (mRoot) {
-    //      Inode inode = mInodes.get(blockId);
-    //      if (inode == null || inode.isDirectory()) {
-    //        throw new FileDoesNotExistException("Block " + blockId + " does not exist.");
-    //      }
-    //      List<ClientBlockInfo> ret = ((InodeFile) inode).getLocations();
-    //      LOG.debug("getBlockLocations: " + blockId + ret);
-    //      return ret;
-    //    }
+  public ClientBlockInfo getClientBlockInfo(long blockId)
+      throws FileDoesNotExistException, IOException, BlockInfoException {
+    int fileId = BlockInfo.computeInodeId(blockId);
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+      if (inode == null || inode.isDirectory()) {
+        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
+      }
+      ClientBlockInfo ret = 
+          ((InodeFile) inode).getClientBlockInfo(BlockInfo.computeBlockIndex(blockId));
+      LOG.debug("getClientBlockInfo: " + blockId + ret);
+      return ret;
+    }
   }
 
   public List<ClientBlockInfo> getFileLocations(int fileId)
@@ -776,9 +782,9 @@ public class MasterInfo {
   }
 
   public List<Integer> getPinIdList() {
-    synchronized (mIdPinList) {
+    synchronized (mFileIdPinList) {
       List<Integer> ret = new ArrayList<Integer>();
-      for (int id : mIdPinList) {
+      for (int id : mFileIdPinList) {
         ret.add(id);
       }
       return ret;
@@ -985,7 +991,7 @@ public class MasterInfo {
   }
 
   public long registerWorker(NetAddress workerNetAddress, long totalBytes,
-      long usedBytes, List<Integer> currentFileIds) {
+      long usedBytes, List<Long> currentBlockIds) throws BlockInfoException {
     long id = 0;
     InetSocketAddress workerAddress =
         new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
@@ -1006,7 +1012,7 @@ public class MasterInfo {
       id = START_TIME_NS_PREFIX + mWorkerCounter.incrementAndGet();
       MasterWorkerInfo tWorkerInfo = new MasterWorkerInfo(id, workerAddress, totalBytes);
       tWorkerInfo.updateUsedBytes(usedBytes);
-      tWorkerInfo.updateFiles(true, currentFileIds);
+      tWorkerInfo.updateBlocks(true, currentBlockIds);
       tWorkerInfo.updateLastUpdatedTimeMs();
       mWorkers.put(id, tWorkerInfo);
       mWorkerAddressToId.put(workerAddress, id);
@@ -1014,12 +1020,14 @@ public class MasterInfo {
     }
 
     synchronized (mRoot) {
-      for (long fileId: currentFileIds) {
+      for (long blockId: currentBlockIds) {
+        int fileId = BlockInfo.computeInodeId(blockId);
+        int blockIndex = BlockInfo.computeBlockIndex(blockId);
         Inode inode = mInodes.get(fileId);
         if (inode != null && inode.isFile()) {
-          ((InodeFile) inode).addLocation(id, workerNetAddress);
+          ((InodeFile) inode).addLocation(blockIndex, id, workerNetAddress);
         } else {
-          LOG.warn("registerWorker failed to add fileId " + fileId);
+          LOG.warn("registerWorker failed to add fileId " + fileId + " blockIndex " + blockIndex);
         }
       }
     }
@@ -1079,8 +1087,8 @@ public class MasterInfo {
       }
 
       ((InodeFile) inode).setPin(false);
-      synchronized (mIdPinList) {
-        mIdPinList.remove(fileId);
+      synchronized (mFileIdPinList) {
+        mFileIdPinList.remove(fileId);
       }
 
       mMasterLogWriter.append(inode, true);
@@ -1102,7 +1110,8 @@ public class MasterInfo {
     }
   }
 
-  public Command workerHeartbeat(long workerId, long usedBytes, List<Integer> removedFileIds) {
+  public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds) 
+      throws BlockInfoException {
     LOG.debug("WorkerId: " + workerId);
     synchronized (mWorkers) {
       MasterWorkerInfo tWorkerInfo = mWorkers.get(workerId);
@@ -1110,33 +1119,36 @@ public class MasterInfo {
       if (tWorkerInfo == null) {
         LOG.info("worker_heartbeat(): Does not contain worker with ID " + workerId +
             " . Send command to let it re-register.");
-        return new Command(CommandType.Register, new ArrayList<Integer>());
+        return new Command(CommandType.Register, new ArrayList<Long>());
       }
 
       tWorkerInfo.updateUsedBytes(usedBytes);
-      tWorkerInfo.updateFiles(false, removedFileIds);
-      tWorkerInfo.updateToRemovedFiles(false, removedFileIds);
+      tWorkerInfo.updateBlocks(false, removedBlockIds);
+      tWorkerInfo.updateToRemovedBlocks(false, removedBlockIds);
       tWorkerInfo.updateLastUpdatedTimeMs();
 
       synchronized (mRoot) {
-        for (int id : removedFileIds) {
-          Inode inode = mInodes.get(id);
+        for (long blockId : removedBlockIds) {
+          int fileId = BlockInfo.computeInodeId(blockId);
+          int blockIndex = BlockInfo.computeBlockIndex(blockId);
+          Inode inode = mInodes.get(fileId);
           if (inode == null) {
-            LOG.error("Data " + id + " does not exist");
+            LOG.error("File " + fileId + " does not exist");
           } else if (inode.isFile()) {
-            ((InodeFile) inode).removeLocation(workerId);
-            LOG.debug("Data " + id + " was evicted from worker " + workerId);
+            ((InodeFile) inode).removeLocation(blockIndex, workerId);
+            LOG.debug("File " + fileId + " block " + blockIndex + 
+                " was evicted from worker " + workerId);
           }
         }
       }
 
-      List<Integer> toRemovedFiles = tWorkerInfo.getToRemovedFiles();
-      if (toRemovedFiles.size() != 0) {
-        return new Command(CommandType.Free, toRemovedFiles);
+      List<Long> toRemovedBlocks = tWorkerInfo.getToRemovedBlocks();
+      if (toRemovedBlocks.size() != 0) {
+        return new Command(CommandType.Free, toRemovedBlocks);
       }
     }
 
-    return new Command(CommandType.Nothing, new ArrayList<Integer>());
+    return new Command(CommandType.Nothing, new ArrayList<Long>());
   }
 
   private void writeCheckpoint() throws IOException {
@@ -1157,8 +1169,8 @@ public class MasterInfo {
           if (tInode.isDirectory()) {
             nodesQueue.add(tInode);
           } else if (((InodeFile) tInode).isPin()) {
-            synchronized (mIdPinList) {
-              mIdPinList.add(tInode.getId());
+            synchronized (mFileIdPinList) {
+              mFileIdPinList.add(tInode.getId());
             }
           }
         }

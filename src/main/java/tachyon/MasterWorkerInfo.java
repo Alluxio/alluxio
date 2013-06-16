@@ -21,8 +21,8 @@ public class MasterWorkerInfo {
   private long mId;
   private long mUsedBytes;
   private long mLastUpdatedTimeMs;
-  private Set<Integer> mFiles;
-  private Set<Integer> mToRemoveFiles;
+  private Set<Long> mBlocks;
+  private Set<Long> mToRemoveBlocks;
 
   public MasterWorkerInfo(long id, InetSocketAddress address, long capacityBytes) {
     mId = id;
@@ -31,8 +31,8 @@ public class MasterWorkerInfo {
     START_TIME_MS = System.currentTimeMillis();
 
     mUsedBytes = 0;
-    mFiles = new HashSet<Integer>();
-    mToRemoveFiles = new HashSet<Integer>();
+    mBlocks = new HashSet<Long>();
+    mToRemoveBlocks = new HashSet<Long>();
     mLastUpdatedTimeMs = System.currentTimeMillis();
   }
 
@@ -56,12 +56,20 @@ public class MasterWorkerInfo {
     return mLastUpdatedTimeMs;
   }
 
-  public synchronized Set<Integer> getFiles() {
-    return new HashSet<Integer>(mFiles);
+  /**
+   * Get all blocks in the worker's memory.
+   * @return ids of the blocks.
+   */
+  public synchronized Set<Long> getBlocks() {
+    return new HashSet<Long>(mBlocks);
   }
 
-  public synchronized List<Integer> getToRemovedFiles() {
-    return new ArrayList<Integer>(mToRemoveFiles);
+  /**
+   * Get all blocks in the worker's memory need to be removed.
+   * @return ids of the blocks need to be removed.
+   */
+  public synchronized List<Long> getToRemovedBlocks() {
+    return new ArrayList<Long>(mToRemoveBlocks);
   }
 
   public synchronized long getUsedBytes() {
@@ -77,43 +85,43 @@ public class MasterWorkerInfo {
     sb.append(", mUsedBytes: ").append(mUsedBytes);
     sb.append(", mAvailableBytes: ").append(CAPACITY_BYTES - mUsedBytes);
     sb.append(", mLastUpdatedTimeMs: ").append(mLastUpdatedTimeMs);
-    sb.append(", mFiles: [ ");
-    for (int file : mFiles) {
-      sb.append(file).append(", ");
+    sb.append(", mBlocks: [ ");
+    for (long blockId : mBlocks) {
+      sb.append(blockId).append(", ");
     }
     sb.append("] )");
     return sb.toString();
   }
 
-  public synchronized void updateFile(boolean add, int fileId) {
+  public synchronized void updateBlock(boolean add, long blockId) {
     if (add) {
-      mFiles.add(fileId);
+      mBlocks.add(blockId);
     } else {
-      mFiles.remove(fileId);
+      mBlocks.remove(blockId);
     }
   }
 
-  public synchronized void updateFiles(boolean add, Collection<Integer> fileIds) {
+  public synchronized void updateBlocks(boolean add, Collection<Long> blockIds) {
     if (add) {
-      mFiles.addAll(fileIds);
+      mBlocks.addAll(blockIds);
     } else {
-      mFiles.removeAll(fileIds);
+      mBlocks.removeAll(blockIds);
     }
   }
 
-  public synchronized void updateToRemovedFile(boolean add, int fileId) {
+  public synchronized void updateToRemovedBlock(boolean add, long blockId) {
     if (add) {
-      if (mFiles.contains(fileId)) {
-        mToRemoveFiles.add(fileId);
+      if (mBlocks.contains(blockId)) {
+        mToRemoveBlocks.add(blockId);
       }
     } else {
-      mToRemoveFiles.remove(fileId);
+      mToRemoveBlocks.remove(blockId);
     }
   }
-  
-  public synchronized void updateToRemovedFiles(boolean add, Collection<Integer> fileIds) {
-    for (int fileId: fileIds) {
-      updateToRemovedFile(add, fileId);
+
+  public synchronized void updateToRemovedBlocks(boolean add, Collection<Long> blockIds) {
+    for (long blockId: blockIds) {
+      updateToRemovedBlock(add, blockId);
     }
   }
 

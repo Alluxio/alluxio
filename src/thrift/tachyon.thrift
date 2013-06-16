@@ -6,9 +6,10 @@ struct NetAddress {
 }
 
 struct ClientBlockInfo {
-  1: i64 offset
-  2: i64 length
-  3: list<NetAddress> locations
+  1: i64 blockId
+  2: i64 offset
+  3: i64 length
+  4: list<NetAddress> locations
 }
 
 struct ClientWorkerInfo {
@@ -27,9 +28,9 @@ struct ClientFileInfo {
   3: string path
   4: string checkpointPath
   5: i64 length
-  6: i32 blockSizeByte
+  6: i64 blockSizeByte
   7: i64 creationTimeMs
-  8: bool ready
+  8: bool complete
   9: bool folder
   10: bool inMemory
   11: bool needPin
@@ -99,7 +100,7 @@ exception TableDoesNotExistException {
 
 service MasterService {
   bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 length, 4: string checkpointPath)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
   list<ClientWorkerInfo> getWorkersInfo()
   list<ClientFileInfo> liststatus(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
 
@@ -108,9 +109,11 @@ service MasterService {
    * Worker register. Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
    */
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i64> currentBlocks)
+    throws (1: BlockInfoException e)
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedBlocks)
+    throws (1: BlockInfoException e)
   void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 blockId, 4: i64 length)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
   set<i32> worker_getPinIdList()
 
   // Services to Users
@@ -132,10 +135,10 @@ service MasterService {
   ClientFileInfo user_getClientFileInfoByPath(1: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
   /**
-   * Get block locations.
+   * Get block's ClientBlockInfo.
    */
-  list<ClientBlockInfo> user_getBlockLocations(1: i64 blockId)
-    throws (1: FileDoesNotExistException e)
+  ClientBlockInfo user_getClientBlockInfo(1: i64 blockId)
+    throws (1: FileDoesNotExistException eF, 2: BlockInfoException eB)
   /**
    * Get file locations by file Id.
    */
@@ -178,9 +181,9 @@ service MasterService {
 service WorkerService {
   void accessBlock(1: i64 blockId)
   void addCheckpoint(1: i64 userId, 2: i32 fileId)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: FailedToCheckpointException eF)
+    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: FailedToCheckpointException eF, 4: BlockInfoException eB)
   void cacheBlock(1: i64 userId, 2: i64 blockId)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
   string getDataFolder()
   string getUserTempFolder(1: i64 userId)
   string getUserUnderfsTempFolder(1: i64 userId)

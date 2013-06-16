@@ -37,46 +37,54 @@ public class InodeFileTest {
   }
 
   @Test
-  public void isReadyTest() throws SuspectedFileSizeException, BlockInfoException {
+  public void isCompleteTest() throws SuspectedFileSizeException, BlockInfoException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0);
-    Assert.assertFalse(inodeFile.isReady());
-    inodeFile.setLength(100);
-    Assert.assertTrue(inodeFile.isReady());
+    Assert.assertFalse(inodeFile.isComplete());
+    inodeFile.setComplete();
+    Assert.assertTrue(inodeFile.isComplete());
+  }
+
+  @Test(expected = BlockInfoException.class)
+  public void inMemoryLocationsTestWithBlockInfoException() throws IOException, BlockInfoException {
+    InodeFile inodeFile = new InodeFile("testFile1", 1, 0);
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
   }
 
   @Test
-  public void inMemoryLocationsTest() throws IOException {
+  public void inMemoryLocationsTest() throws IOException, BlockInfoException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0);
     List<NetAddress> testAddresses = new ArrayList<NetAddress>(3);
     testAddresses.add(new NetAddress("testhost1", 1000));
     testAddresses.add(new NetAddress("testhost2", 2000));
     testAddresses.add(new NetAddress("testhost3", 3000));
+    inodeFile.addBlock(new BlockInfo(inodeFile, 0, 5));
     inodeFile.addLocation(0, 1, testAddresses.get(0));
-    Assert.assertEquals(1, inodeFile.getLocations().size());
+    Assert.assertEquals(1, inodeFile.getBlockLocations(0).size());
     inodeFile.addLocation(0, 2, testAddresses.get(1));
-    Assert.assertEquals(2, inodeFile.getLocations().size());
+    Assert.assertEquals(2, inodeFile.getBlockLocations(0).size());
     inodeFile.addLocation(0, 3, testAddresses.get(2));
-    Assert.assertEquals(3, inodeFile.getLocations().size());
-    Assert.assertEquals(testAddresses, inodeFile.getLocations());
+    Assert.assertEquals(3, inodeFile.getBlockLocations(0).size());
+    Assert.assertEquals(testAddresses, inodeFile.getBlockLocations(0));
   }
 
   @Test
-  public void inMemoryTest() {
+  public void inMemoryTest() throws BlockInfoException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0);
+    inodeFile.addBlock(new BlockInfo(inodeFile, 0, 5));
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(1, new NetAddress("testhost1", 1000));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
     Assert.assertTrue(inodeFile.isFullyInMemory());
-    inodeFile.removeLocation(1);
+    inodeFile.removeLocation(0, 1);
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(1, new NetAddress("testhost1", 1000));
-    inodeFile.addLocation(1, new NetAddress("testhost1", 1000));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
     Assert.assertTrue(inodeFile.isFullyInMemory());
-    inodeFile.removeLocation(1);
+    inodeFile.removeLocation(0, 1);
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(1, new NetAddress("testhost1", 1000));
-    inodeFile.addLocation(2, new NetAddress("testhost1", 1000));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
+    inodeFile.addLocation(0, 2, new NetAddress("testhost1", 1000));
     Assert.assertTrue(inodeFile.isFullyInMemory());
-    inodeFile.removeLocation(1);
+    inodeFile.removeLocation(0, 1);
     Assert.assertTrue(inodeFile.isFullyInMemory());
   }
 
@@ -87,13 +95,6 @@ public class InodeFileTest {
     Assert.assertEquals("", inodeFile.getCheckpointPath());
     inodeFile.setCheckpointPath("/testPath");
     Assert.assertEquals("/testPath", inodeFile.getCheckpointPath());
-  }
-
-  @Test
-  public void notInMemoryLocationsTest() throws IOException {
-    InodeFile inodeFile = new InodeFile("testFile1", 1, 0);
-    inodeFile.setCheckpointPath("/testPath");
-    Assert.assertTrue(inodeFile.getLocations().size() > 0);
   }
 
   @Test

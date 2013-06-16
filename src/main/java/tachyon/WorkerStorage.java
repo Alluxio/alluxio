@@ -19,12 +19,16 @@ import org.apache.thrift.TException;
 
 import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 
+/**
+ * The structure to store a worker's information in worker node.
+ */
 public class WorkerStorage {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
@@ -71,6 +75,10 @@ public class WorkerStorage {
         mWorkerId = mMasterClient.worker_register(
             new NetAddress(mWorkerAddress.getHostName(), mWorkerAddress.getPort()),
             mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Long>());
+      } catch (BlockInfoException e) {
+        LOG.error(e.getMessage(), e);
+        mWorkerId = 0;
+        CommonUtils.sleepMs(LOG, 1000);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mWorkerId = 0;
@@ -91,9 +99,11 @@ public class WorkerStorage {
       CommonUtils.runtimeException(e);
     } catch (SuspectedFileSizeException e) {
       CommonUtils.runtimeException(e);
+    } catch (BlockInfoException e) {
+      CommonUtils.runtimeException(e);
     } catch (TException e) {
       CommonUtils.runtimeException(e);
-    }
+    } 
 
     LOG.info("Current Worker Info: ID " + mWorkerId + ", ADDRESS: " + mWorkerAddress +
         ", MemoryCapacityBytes: " + mWorkerSpaceCounter.getCapacityBytes());
@@ -107,7 +117,7 @@ public class WorkerStorage {
 
   public void addCheckpoint(long userId, int fileId)
       throws FileDoesNotExistException, SuspectedFileSizeException, 
-      FailedToCheckpointException, TException {
+      FailedToCheckpointException, BlockInfoException, TException {
     // TODO This part need to be changed.
     String srcPath = getUserUnderfsTempFolder(userId) + "/" + fileId;
     String dstPath = COMMON_CONF.UNDERFS_DATA_FOLDER + "/" + fileId;
@@ -128,7 +138,7 @@ public class WorkerStorage {
   }
 
   private void addFoundBlock(long blockId, long length)
-      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     addBlockId(blockId, length);
     mMasterClient.worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId, length);
   }
@@ -142,7 +152,7 @@ public class WorkerStorage {
   }
 
   public void cacheBlock(long userId, long blockId)
-      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     File srcFile = new File(getUserTempFolder(userId) + "/" + blockId);
     File dstFile = new File(mLocalDataFolder + "/" + blockId);
     long fileSizeBytes = srcFile.length(); 
@@ -236,7 +246,7 @@ public class WorkerStorage {
     return ret;
   }
 
-  public Command heartbeat() throws TException {
+  public Command heartbeat() throws BlockInfoException, TException {
     ArrayList<Long> sendRemovedPartitionList = new ArrayList<Long>();
     while (mRemovedBlockList.size() > 0) {
       sendRemovedPartitionList.add(mRemovedBlockList.poll());
@@ -246,7 +256,7 @@ public class WorkerStorage {
   }
 
   private void initializeWorkerStorage() 
-      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     LOG.info("Initializing the worker storage.");
     if (!mLocalDataFolder.exists()) {
       LOG.info("Local folder " + mLocalDataFolder + " does not exist. Creating a new one.");
@@ -349,6 +359,10 @@ public class WorkerStorage {
         id = mMasterClient.worker_register(
             new NetAddress(mWorkerAddress.getHostName(), mWorkerAddress.getPort()),
             mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Long>(mMemoryData));
+      } catch (BlockInfoException e) {
+        LOG.error(e.getMessage(), e);
+        id = 0;
+        CommonUtils.sleepMs(LOG, 1000);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         id = 0;

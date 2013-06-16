@@ -10,6 +10,7 @@ import org.apache.thrift.TException;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
@@ -41,7 +42,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath) 
-      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
   }
 
@@ -98,11 +99,11 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<ClientBlockInfo> user_getBlockLocations(int blockId)
-      throws FileDoesNotExistException, TException {
-    List<ClientBlockInfo> ret = null;
+  public ClientBlockInfo user_getClientBlockInfo(long blockId)
+      throws FileDoesNotExistException, BlockInfoException, TException {
+    ClientBlockInfo ret = null;
     try {
-      ret = mMasterInfo.getBlockLocations(blockId);
+      ret = mMasterInfo.getClientBlockInfo(blockId);
     } catch (IOException e) {
       throw new FileDoesNotExistException(e.getMessage());
     }
@@ -213,9 +214,8 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void worker_cacheBlock(long workerId, long workerUsedBytes, int blockId,
-      long length) throws FileDoesNotExistException,
-      SuspectedFileSizeException, TException {
+  public void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     mMasterInfo.cacheBlock(workerId, workerUsedBytes, blockId, length);
   }
 
@@ -226,14 +226,14 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public Command worker_heartbeat(long workerId, long usedBytes, List<Integer> removedFileIds)
-      throws TException {
-    return mMasterInfo.workerHeartbeat(workerId, usedBytes, removedFileIds);
+  public Command worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlockIds)
+      throws BlockInfoException, TException {
+    return mMasterInfo.workerHeartbeat(workerId, usedBytes, removedBlockIds);
   }
 
   @Override
   public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes,
-      List<Integer> currentFileIds) throws TException {
-    return mMasterInfo.registerWorker(workerNetAddress, totalBytes, usedBytes, currentFileIds);
+      List<Long> currentBlockIds) throws BlockInfoException, TException {
+    return mMasterInfo.registerWorker(workerNetAddress, totalBytes, usedBytes, currentBlockIds);
   }
 }

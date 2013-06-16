@@ -18,15 +18,20 @@ public class BlockInfo {
   public final int BLOCK_INDEX;
   public final long BLOCK_ID;
   public final long OFFSET;
-  public final int LENGTH;
+  public final long LENGTH;
 
   private Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>(5);
 
-  BlockInfo(InodeFile inodeFile, int blockIndex, long offset, int length) {
+  /**
+   * @param inodeFile
+   * @param blockIndex
+   * @param length Can not be no bigger than 2^31 - 1
+   */
+  BlockInfo(InodeFile inodeFile, int blockIndex, long length) {
     INODE_FILE = inodeFile;
     BLOCK_INDEX = blockIndex;
     BLOCK_ID = computeBlockId(INODE_FILE.getId(), BLOCK_INDEX);
-    OFFSET = offset;
+    OFFSET = (long) inodeFile.getBlockSizeByte() * blockIndex;
     LENGTH = length;
   }
 
@@ -61,10 +66,19 @@ public class BlockInfo {
   public synchronized ClientBlockInfo generateClientBlockInfo() {
     ClientBlockInfo ret = new ClientBlockInfo();
 
+    ret.blockId = BLOCK_ID;
     ret.offset = OFFSET;
     ret.length = LENGTH;
     ret.locations = getLocations();
 
+    return ret;
+  }
+
+  public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
+    List<Pair<Long, Long>> ret = new ArrayList<Pair<Long, Long>>(mLocations.size());
+    for (long workerId: mLocations.keySet()) {
+      ret.add(new Pair<Long, Long>(BLOCK_ID, workerId));
+    }
     return ret;
   }
 
