@@ -151,7 +151,7 @@ public class HadoopCompatibleFS extends FileSystem {
     fileId = mTFS.getFileId(path);
 
     if (fileId != -1) {
-      List<NetAddress> locations = mTFS.getFileNetAddresses(fileId);
+      List<NetAddress> locations = mTFS.getFileBlocks(fileId);
       if (locations != null) {
         for (int k = 0; k < locations.size(); k ++) {
           names.add(locations.get(k).mHost);

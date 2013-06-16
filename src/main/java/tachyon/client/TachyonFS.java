@@ -22,6 +22,8 @@ import tachyon.MasterClient;
 import tachyon.CommonUtils;
 import tachyon.WorkerClient;
 import tachyon.conf.UserConf;
+import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
@@ -112,16 +114,7 @@ public class TachyonFS {
     if (mWorkerClient != null) {
       try {
         mWorkerClient.addCheckpoint(mUserId, fid);
-      } catch (FileDoesNotExistException e) {
-        LOG.error(e.getMessage(), e);
-        throw new IOException(e);
-      } catch (SuspectedFileSizeException e) {
-        LOG.error(e.getMessage(), e);
-        throw new IOException(e);
-      } catch (FailedToCheckpointException e) {
-        LOG.error(e.getMessage(), e);
-        throw new IOException(e);
-      }catch (TException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mWorkerClient = null;
         throw new IOException(e);
@@ -148,13 +141,15 @@ public class TachyonFS {
     try {
       if (mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path)) {
         ClientFileInfo tInfo = mClientFileInfos.get(id);
-        tInfo.sizeBytes = fileSizeBytes;
+        tInfo.length = fileSizeBytes;
         tInfo.checkpointPath = path;
         return true;
       }
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
+    } catch (BlockInfoException e) {
       throw new IOException(e);
     }
 
@@ -465,7 +460,7 @@ public class TachyonFS {
     return mClientFileInfos.get(fid).getCheckpointPath();
   }
 
-  public synchronized List<NetAddress> getFileNetAddresses(int fid)
+  public synchronized List<ClientBlockInfo> getFileBlocks(int fid)
       throws IOException {
     // TODO Should read from mClientFileInfos if possible. Should add timeout to improve this.
     connect();
@@ -485,7 +480,7 @@ public class TachyonFS {
       throws IOException {
     List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
     for (int k = 0; k < fids.size(); k ++) {
-      ret.add(getFileNetAddresses(fids.get(k)));
+      ret.add(getFileBlocks(fids.get(k)));
     }
 
     return ret;
@@ -498,7 +493,7 @@ public class TachyonFS {
       return null;
     }
 
-    List<NetAddress> adresses = getFileNetAddresses(fid);
+    List<NetAddress> adresses = getFileBlocks(fid);
     List<String> ret = new ArrayList<String>(adresses.size());
     for (NetAddress address: adresses) {
       ret.add(address.mHost);
@@ -562,8 +557,8 @@ public class TachyonFS {
     return fid;
   }
 
-  synchronized long getFileSizeBytes(int fid) {
-    return mClientFileInfos.get(fid).getSizeBytes();
+  synchronized long getFileLength(int fid) {
+    return mClientFileInfos.get(fid).getLength();
   }
 
   public synchronized int getNumberOfFiles(String folderPath) 
@@ -644,11 +639,11 @@ public class TachyonFS {
     return mClientFileInfos.get(fid).isNeedPin();
   }
 
-  synchronized boolean isReady(int fid) {
-    if (!mClientFileInfos.get(fid).isReady()) {
+  synchronized boolean isComplete(int fid) {
+    if (!mClientFileInfos.get(fid).isComplete()) {
       mClientFileInfos.put(fid, getClientFileInfo(fid));
     }
-    return mClientFileInfos.get(fid).isReady();
+    return mClientFileInfos.get(fid).isComplete();
   }
 
   public synchronized List<Integer> listFiles(String path, boolean recursive) throws IOException {

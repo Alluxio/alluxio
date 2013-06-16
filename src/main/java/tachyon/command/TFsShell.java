@@ -46,7 +46,7 @@ public class TFsShell {
     Collections.sort(files);
     String format = "%-10s%-25s%-15s%-5s\n";
     for (ClientFileInfo file : files) {
-      System.out.format(format, CommonUtils.getSizeFromBytes(file.getSizeBytes()),
+      System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
           CommonUtils.convertMsToDate(file.getCreationTimeMs()), 
           file.isInMemory() ? "In Memory" : "Not In Memory", file.getPath());
     }

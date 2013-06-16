@@ -12,6 +12,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.UserConf;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -52,9 +53,18 @@ public class WorkerClient {
   }
 
   public synchronized void addCheckpoint(long userId, int fileId) 
-      throws FileDoesNotExistException, SuspectedFileSizeException,
-      FailedToCheckpointException, TException {
-    CLIENT.addCheckpoint(userId, fileId);
+      throws IOException, TException {
+    try {
+      CLIENT.addCheckpoint(userId, fileId);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
+    } catch (FailedToCheckpointException e) {
+      throw new IOException(e);
+    } catch (BlockInfoException e) {
+      throw new IOException(e);
+    }
   }
 
   public synchronized void cacheFile(long userId, int fileId)
@@ -64,6 +74,7 @@ public class WorkerClient {
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
+    } catch (BlockInfoException e) {
       throw new IOException(e);
     }
   }

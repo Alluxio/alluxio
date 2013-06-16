@@ -44,8 +44,8 @@ public class DataServerTest {
     DataServerMessage sendMsg; 
     sendMsg = DataServerMessage.createFileRequestMessage(fileId);
     SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(
-        mClient.getFileNetAddresses(fileId).get(0).mHost,
-        mClient.getFileNetAddresses(fileId).get(0).mPort + 1));
+        mClient.getFileBlocks(fileId).get(0).mHost,
+        mClient.getFileBlocks(fileId).get(0).mPort + 1));
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }
