@@ -15,7 +15,6 @@ import tachyon.thrift.NetAddress;
 public class BlockInfo {
   private final InodeFile INODE_FILE;
 
-  public final int INODE_ID;
   public final int BLOCK_INDEX;
   public final long BLOCK_ID;
   public final long OFFSET;
@@ -25,9 +24,8 @@ public class BlockInfo {
 
   BlockInfo(InodeFile inodeFile, int blockIndex, long offset, int length) {
     INODE_FILE = inodeFile;
-    INODE_ID = inodeFile.getId();
     BLOCK_INDEX = blockIndex;
-    BLOCK_ID = computeBlockId(INODE_ID, BLOCK_INDEX);
+    BLOCK_ID = computeBlockId(INODE_FILE.getId(), BLOCK_INDEX);
     OFFSET = offset;
     LENGTH = length;
   }
@@ -47,7 +45,7 @@ public class BlockInfo {
       UnderFileSystem ufs = UnderFileSystem.get(INODE_FILE.getCheckpointPath());
       List<String> locs = null;
       try {
-        locs = ufs.getFileLocations(INODE_FILE.getCheckpointPath());
+        locs = ufs.getFileLocations(INODE_FILE.getCheckpointPath(), OFFSET);
       } catch (IOException e) {
         return ret;
       }
@@ -68,6 +66,10 @@ public class BlockInfo {
     ret.locations = getLocations();
 
     return ret;
+  }
+
+  public synchronized boolean isInMemory() {
+    return mLocations.size() > 0;
   }
 
   public synchronized void removeLocation(long workerId) {
