@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import tachyon.thrift.ClientFileInfo;
+
 /**
  * Tachyon file system's folder representation in master. 
  */
@@ -77,5 +79,26 @@ public class InodeFolder extends Inode {
     StringBuilder sb = new StringBuilder("InodeFolder(");
     sb.append(super.toString()).append(",").append(mChildren).append(")");
     return sb.toString();
+  }
+
+  @Override
+  public ClientFileInfo generateClientFileInfo(String path) {
+    ClientFileInfo ret = new ClientFileInfo();
+
+    ret.id = getId();
+    ret.name = getName();
+    ret.path = path;
+    ret.checkpointPath = "";
+    ret.length = 0;
+    ret.blockSizeByte = 0;
+    ret.creationTimeMs = getCreationTimeMs();
+    ret.complete = true;
+    ret.folder = true;
+    ret.inMemory = true;
+    ret.needPin = false;
+    ret.needCache = false;
+    ret.blockIds = null;
+
+    return ret;
   }
 }

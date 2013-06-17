@@ -491,30 +491,8 @@ public class MasterInfo {
       if (inode == null) {
         throw new FileDoesNotExistException("FileId " + id + " does not exist.");
       }
-      ClientFileInfo ret = new ClientFileInfo();
-      ret.id = inode.getId();
-      ret.name = inode.getName();
-      ret.path = getPath(inode);
-      ret.checkpointPath = "";
-      ret.length = 0;
-      ret.creationTimeMs = inode.getCreationTimeMs();
-      ret.inMemory = false;
-      ret.complete = true;
-      ret.folder = inode.isDirectory();
-      ret.needPin = false;
-      ret.needCache = false;
 
-      if (inode.isFile()) {
-        InodeFile tInode = (InodeFile) inode;
-        ret.length = tInode.getLength();
-        ret.blockSizeByte = tInode.getBlockSizeByte();
-        ret.inMemory = tInode.isFullyInMemory();
-        ret.complete = tInode.isComplete();
-        ret.checkpointPath = tInode.getCheckpointPath();
-        ret.needPin = tInode.isPin();
-        ret.needCache = tInode.isCache();
-      }
-
+      ClientFileInfo ret = inode.generateClientFileInfo(getPath(inode));
       LOG.debug("getClientFileInfo(" + id + "): "  + ret);
       return ret;
     }
