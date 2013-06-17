@@ -23,7 +23,7 @@ import tachyon.conf.UserConf;
  * calling the methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by
  * the client code.
  */
-public class OutStream extends OutputStream {
+public abstract class OutStream extends OutputStream {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final UserConf USER_CONF = UserConf.get();
 

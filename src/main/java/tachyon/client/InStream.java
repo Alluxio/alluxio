@@ -14,7 +14,7 @@ import tachyon.UnderFileSystem;
  * calling the methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by
  * the client code.
  */
-public class InStream extends InputStream {
+public abstract class InStream extends InputStream {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonFS TFS;

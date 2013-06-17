@@ -5,6 +5,7 @@ import java.util.List;
 
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
 
@@ -189,11 +190,40 @@ public class InodeFile extends Inode {
     return !mCheckpointPath.equals("");
   }
 
+  public synchronized List<Long> getBlockIds() {
+    List<Long> ret = new ArrayList<Long>(mBlocks.size());
+    for (int k = 0; k < mBlocks.size(); k ++) {
+      ret.add(mBlocks.get(k).BLOCK_ID);
+    }
+    return ret;
+  }
+
   public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
     List<Pair<Long, Long>> ret = new ArrayList<Pair<Long, Long>>();
     for (BlockInfo info: mBlocks) {
       ret.addAll(info.getBlockIdWorkerIdPairs());
     }
+    return ret;
+  }
+
+  @Override
+  public ClientFileInfo generateClientFileInfo(String path) {
+    ClientFileInfo ret = new ClientFileInfo();
+
+    ret.id = getId();
+    ret.name = getName();
+    ret.path = path;
+    ret.checkpointPath = mCheckpointPath;
+    ret.length = mLength;
+    ret.blockSizeByte = BLOCK_SIZE_BYTE;
+    ret.creationTimeMs = getCreationTimeMs();
+    ret.complete = isComplete();
+    ret.folder = false;
+    ret.inMemory = isFullyInMemory();
+    ret.needPin = mPin;
+    ret.needCache = mCache;
+    ret.blockIds = getBlockIds();
+
     return ret;
   }
 }

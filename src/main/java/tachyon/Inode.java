@@ -1,5 +1,7 @@
 package tachyon;
 
+import tachyon.thrift.ClientFileInfo;
+
 /**
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
@@ -47,20 +49,22 @@ public abstract class Inode implements Comparable<Inode> {
     return TYPE == InodeType.File;
   }
 
-  public InodeType getInodeType() {
-    return TYPE;
-  }
-
   public long getCreationTimeMs() {
     return CREATION_TIME_MS;
+  }
+
+  public InodeType getInodeType() {
+    return TYPE;
   }
 
   public synchronized int getId() {
     return mId;
   }
 
+  public abstract ClientFileInfo generateClientFileInfo(String path);
+
   public synchronized void reverseId() {
-    mId = -mId;
+    mId = - mId;
   }
 
   public synchronized String getName() {

@@ -35,6 +35,7 @@ struct ClientFileInfo {
   10: bool inMemory
   11: bool needPin
   12: bool needCache
+  13: list<i64> blockIds
 }
 
 struct ClientRawTableInfo {
