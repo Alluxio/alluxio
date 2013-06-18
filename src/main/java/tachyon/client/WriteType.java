@@ -32,6 +32,10 @@ public enum WriteType {
     return (mValue == CACHE.mValue) || (mValue == CACHE_THROUGH.mValue);
   }
 
+  public boolean isMustCache() {
+    return mValue == CACHE.mValue;
+  }
+
   public static WriteType getOpType(String op) throws IOException {
     if (op.equals("CACHE")) {
       return CACHE;

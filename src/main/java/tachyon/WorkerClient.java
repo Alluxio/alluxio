@@ -67,10 +67,10 @@ public class WorkerClient {
     }
   }
 
-  public synchronized void cacheFile(long userId, int fileId)
+  public synchronized void cacheBlock(long userId, long blockId)
       throws IOException, TException {
     try {
-      CLIENT.cacheBlock(userId, fileId);
+      CLIENT.cacheBlock(userId, blockId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
