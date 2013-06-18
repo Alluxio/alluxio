@@ -45,7 +45,7 @@
     <java.version>1.5</java.version>
     <libthrift.version>0.7.0</libthrift.version>
     <cxf.version>2.7.0</cxf.version>
-    <jetty.version>7.5.3.v20111011</jetty.version>
+    <jetty.version>7.6.8.v20121106</jetty.version>
     <version.template.file>src/main/java/tachyon/Version.java.template</version.template.file>
     <version.file>src/main/java/tachyon/Version.java</version.file>
   </properties>
@@ -283,6 +283,48 @@
           <artifactId>ant</artifactId>
           <version>1.9.0</version>
           <optional>true</optional>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>hadoop3</id>
+      <properties>
+        <classifier>hadoop3</classifier>
+        <hadoop.major.version>MRv1</hadoop.major.version>
+        <hadoop.version>2.0.0-mr1-cdh4.3.0</hadoop.version>
+        <hadoop.version.minor>2.0.0-cdh4.3.0</hadoop.version.minor>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-auth</artifactId>
+          <version>${hadoop.version.minor}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+          <version>${hadoop.version.minor}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-core</artifactId>
+          <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs</artifactId>
+          <version>${hadoop.version.minor}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant</artifactId>
+          <version>1.9.0</version>
         </dependency>
       </dependencies>
     </profile>
