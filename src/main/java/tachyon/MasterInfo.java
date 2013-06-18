@@ -301,13 +301,20 @@ public class MasterInfo {
     }
   }
 
-  public int createFile(String path, boolean directory)
+  public int mkdir(String path)
       throws FileAlreadyExistException, InvalidPathException {
-    return createFile(true, path, directory, -1, null);
+    return createFile(true, path, true, -1, null, 0);
   }
 
+  public int createFile(String path, long blockSizeByte)
+      throws FileAlreadyExistException, InvalidPathException {
+    return createFile(true, path, false, -1, null, blockSizeByte);
+  }
+
+  // TODO Make this API better.
   public int createFile(boolean recursive, String path, boolean directory, int columns,
-      ByteBuffer metadata) throws FileAlreadyExistException, InvalidPathException {
+      ByteBuffer metadata, long blockSizeByte)
+          throws FileAlreadyExistException, InvalidPathException {
     LOG.debug("createFile" + CommonUtils.parametersToString(path));
 
     String[] pathNames = getPathNames(path);
@@ -330,7 +337,7 @@ public class MasterInfo {
       if (inode == null) {
         int succeed = 0;
         if (recursive) {
-          succeed = createFile(true, folderPath, true, -1, null);
+          succeed = createFile(true, folderPath, true, -1, null, blockSizeByte);
         }
         if (!recursive || succeed <= 0) {
           LOG.info("InvalidPathException: File " + path + " creation failed. Folder "
@@ -357,7 +364,7 @@ public class MasterInfo {
           ret = new InodeFolder(name, mInodeCounter.incrementAndGet(), inode.getId());
         }
       } else {
-        ret = new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId());
+        ret = new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId(), blockSizeByte);
         String curPath = getPath(ret);
         if (mPinList.inList(curPath)) {
           synchronized (mFileIdPinList) {
@@ -392,10 +399,10 @@ public class MasterInfo {
           Constants.MAX_COLUMNS);
     }
 
-    int id = createFile(true, path, true, columns, metadata);
+    int id = createFile(true, path, true, columns, metadata, 0);
 
     for (int k = 0; k < columns; k ++) {
-      createFile(path + Constants.PATH_SEPARATOR + COL + k, true);
+      mkdir(path + Constants.PATH_SEPARATOR + COL + k);
     }
 
     return id;

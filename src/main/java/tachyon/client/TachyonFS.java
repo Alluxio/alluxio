@@ -21,6 +21,7 @@ import tachyon.UnderFileSystem;
 import tachyon.MasterClient;
 import tachyon.CommonUtils;
 import tachyon.WorkerClient;
+import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
@@ -338,6 +339,10 @@ public class TachyonFS {
   }
 
   public synchronized int createFile(String path) throws IOException {
+    return createFile(path, UserConf.get().DEFAULT_BLOCK_SIZE_BYTE);
+  }
+
+  public synchronized int createFile(String path, long blockSizeByte) throws IOException {
     connect();
     if (!mConnected) {
       return -1;
@@ -345,7 +350,7 @@ public class TachyonFS {
     path = CommonUtils.cleanPath(path);
     int fid = -1;
     try {
-      fid = mMasterClient.user_createFile(path);
+      fid = mMasterClient.user_createFile(path, blockSizeByte);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -400,6 +405,35 @@ public class TachyonFS {
     }
 
     return true;
+  }
+
+  public synchronized long getBlockId(int fId, int blockIndex) throws IOException {
+    boolean fetch = false;
+    if (!mClientFileInfos.containsKey(fId)) {
+      fetch = true;
+    }
+    ClientFileInfo info = null;
+    if (!fetch) {
+      info = mClientFileInfos.get(fId);
+      if (info.blockIds.size() <= blockIndex) {
+        fetch = true;
+      }
+    }
+
+    if (fetch) {
+      connect();
+      info = getClientFileInfo(fId);
+      mClientFileInfos.put(fId, info);
+    }
+
+    if (info == null) {
+      throw new IOException("File " + fId + " does not exist.");
+    }
+    if (info.blockIds.size() <= blockIndex) {
+      throw new IOException("BlockIndex " + blockIndex + " is out of the bound in file " + info);
+    }
+
+    return info.blockIds.get(blockIndex);
   }
 
   private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata) { 
@@ -561,6 +595,11 @@ public class TachyonFS {
     return mClientFileInfos.get(fid).getLength();
   }
 
+  synchronized long getNextBlockId(int fId) {
+    // TODO: implement it.
+    throw new RuntimeException("Implement it");
+  }
+
   public synchronized int getNumberOfFiles(String folderPath) 
       throws IOException {
     connect();
@@ -605,6 +644,15 @@ public class TachyonFS {
   public synchronized String getRootFolder() {
     connect();
     return mLocalDataFolder;
+  }
+
+  public synchronized String getUnderfsAddress() throws IOException {
+    connect();
+    try {
+      return mMasterClient.user_getUnderfsAddress();
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   public synchronized List<ClientWorkerInfo> getWorkersInfo() throws IOException {
@@ -816,15 +864,6 @@ public class TachyonFS {
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
-    }
-  }
-
-  public synchronized String getUnderfsAddress() throws IOException {
-    connect();
-    try {
-      return mMasterClient.user_getUnderfsAddress();
-    } catch (TException e) {
-      throw new IOException(e.getMessage());
     }
   }
 }

@@ -12,6 +12,8 @@ public class UserConf extends Utils {
   public final long HEARTBEAT_INTERVAL_MS;
   public final long MASTER_CLIENT_TIMEOUT_MS;
 
+  public final long DEFAULT_BLOCK_SIZE_BYTE = 512 * Constants.MB;
+
   private UserConf() {
     FAILED_SPACE_REQUEST_LIMITS = getIntProperty("tachyon.user.failed.space.request.limits", 3);
     QUOTA_UNIT_BYTES = getLongProperty("tachyon.user.quota.unit.bytes", 8 * Constants.MB);

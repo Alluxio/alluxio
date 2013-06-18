@@ -141,10 +141,11 @@ public class MasterClient {
     }
   }
 
-  public synchronized int user_createFile(String path) throws IOException, TException {
+  public synchronized int user_createFile(String path, long blockSizeByte) 
+      throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_createFile(path);
+      return CLIENT.user_createFile(path, blockSizeByte);
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {

@@ -118,7 +118,7 @@ service MasterService {
   set<i32> worker_getPinIdList()
 
   // Services to Users
-  i32 user_createFile(1: string path)
+  i32 user_createFile(1: string path, 2: i64 blockSizeByte)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
   /**
    * Return -1 if does not contain the file, return fileId if it exists.

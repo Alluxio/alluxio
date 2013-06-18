@@ -36,7 +36,7 @@ public class MasterLogWriterTest {
 
   @Test
   public void appendAndFlushInodeTest() throws IOException {
-    Inode inode = new InodeFile("/testFile", 1, 0);
+    Inode inode = new InodeFile("/testFile", 1, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE);
     mMasterLogWriter.append(inode, true);
     Inode inode2 = new InodeFolder("/testFolder", 1, 0);
     mMasterLogWriter.append(inode2, true);
@@ -60,7 +60,7 @@ public class MasterLogWriterTest {
 
   @Test
   public void appendAndFlushInodeListTest() throws IOException {
-    Inode inode = new InodeFile("/testFile", 1, 0);
+    Inode inode = new InodeFile("/testFile", 1, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE);
     Inode inode2 = new InodeFolder("/testFolder", 1, 0);
     Inode inode3 = new InodeRawTable("/testRawTable", 1, 0, 1, null);
     List<Inode> inodeList = new ArrayList<Inode>();
@@ -104,7 +104,7 @@ public class MasterLogWriterTest {
     for (int i = 0; i < numEntries; i ++) {
       switch (i % 3) { 
       case 0:
-        inode = new InodeFile("/testFile" + i, 1 + i, 0);
+        inode = new InodeFile("/testFile" + i, 1 + i, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE);
         mMasterLogWriter.append(inode, true);
         break;
       case 1:
@@ -121,7 +121,7 @@ public class MasterLogWriterTest {
     for (int i = 0; i < numEntries; i ++) {
       switch (i % 3) { 
       case 0:
-        inode = new InodeFile("/testFile" + i, 1 + i, 0);
+        inode = new InodeFile("/testFile" + i, 1 + i, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE);
         Assert.assertEquals(new Pair<LogType, Object>(LogType.InodeFile, inode), 
             mMasterLogReader.getNextPair());
         break;
