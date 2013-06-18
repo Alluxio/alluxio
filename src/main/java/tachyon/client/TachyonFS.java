@@ -157,7 +157,7 @@ public class TachyonFS {
     return false;
   }
 
-  public synchronized void cacheFile(int fid) throws IOException  {
+  public synchronized void cacheBlock(long blockId) throws IOException  {
     connect();
     if (!mConnected) {
       return;
@@ -165,18 +165,12 @@ public class TachyonFS {
 
     if (mWorkerClient != null) {
       try {
-        mWorkerClient.cacheFile(mUserId, fid);
+        mWorkerClient.cacheBlock(mUserId, blockId);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mWorkerClient = null;
         throw new IOException(e);
       } 
-    }
-
-    if (mClientFileInfos.get(fid) == null) {
-      mClientFileInfos.put(fid, getClientFileInfo(fid));
-    } else {
-      mClientFileInfos.get(fid).inMemory = true;
     }
   }
 
@@ -508,6 +502,10 @@ public class TachyonFS {
       mConnected = false;
       throw new IOException(e);
     }
+  }
+
+  public long getBlockSizeByte(int fId) {
+    return mClientFileInfos.get(fId).getBlockSizeByte();
   }
 
   public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fids) 
