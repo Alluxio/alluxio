@@ -24,11 +24,7 @@ public class InodeFile extends Inode {
   private String mCheckpointPath = "";
   private List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(5);
 
-  public InodeFile(String name, int id, int parentId) {
-    this(name, id, parentId, Constants.DEFAULT_BLOCK_SIZE_BYTE);
-  }
-
-  public InodeFile(String name, int id, int parentId, int blockSizeByte) {
+  public InodeFile(String name, int id, int parentId, long blockSizeByte) {
     super(name, id, parentId, InodeType.File);
     BLOCK_SIZE_BYTE = blockSizeByte;
     mLength = UNINITIAL_VALUE;

@@ -58,9 +58,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_createFile(String filePath)
+  public int user_createFile(String path, long blockSizeByte)
       throws FileAlreadyExistException, InvalidPathException, TException {
-    return mMasterInfo.createFile(filePath, false);
+    return mMasterInfo.createFile(path, blockSizeByte);
   }
 
   @Override
@@ -187,7 +187,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public int user_mkdir(String path) 
       throws FileAlreadyExistException, InvalidPathException, TException {
-    return mMasterInfo.createFile(path, true);
+    return mMasterInfo.mkdir(path);
   }
 
   @Override

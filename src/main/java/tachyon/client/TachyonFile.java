@@ -72,7 +72,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("OpType can not be null.");
     }
 
-    return new OutStream(this, opType);
+    return new FileOutStream(this, opType);
   }
 
   public String getPath() {
@@ -89,6 +89,10 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
 
     return ret;
+  }
+
+  private long getBlockId(int blockIndex) throws IOException {
+    return TFS.getBlockId(FID, blockIndex);
   }
 
   public boolean isFile() {
