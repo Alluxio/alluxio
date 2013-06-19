@@ -23,4 +23,6 @@ public abstract class OutStream extends OutputStream {
 
   @Override
   public abstract void close() throws IOException;
+
+  public abstract void cancel() throws IOException;
 }

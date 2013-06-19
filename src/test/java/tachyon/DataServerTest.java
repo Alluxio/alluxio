@@ -42,14 +42,14 @@ public class DataServerTest {
   public void readTest() throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = TestUtils.createByteFile(mClient, "/testFile", WriteType.CACHE, 10);
     DataServerMessage sendMsg; 
-    sendMsg = DataServerMessage.createFileRequestMessage(fileId);
+    sendMsg = DataServerMessage.createBlockRequestMessage(fileId);
     SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(
         mClient.getFileBlocks(fileId).get(0).getLocations().get(0).mHost,
         mClient.getFileBlocks(fileId).get(0).getLocations().get(0).mPort + 1));
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }
-    DataServerMessage recvMsg = DataServerMessage.createFileResponseMessage(false, fileId);
+    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, fileId);
     while (!recvMsg.isMessageReady()) {
       int numRead = recvMsg.recv(socketChannel);
       if (numRead == -1) {

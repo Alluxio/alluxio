@@ -8,61 +8,80 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
+import tachyon.thrift.ClientBlockInfo;
 
+/**
+ * <code>InputStream</code> interface implementation of TachyonFile. It can only be gotten by
+ * calling the methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by
+ * the client code.
+ * 
+ * TODO(Haoyuan) Further separate this into RemoteBlockInStream and LocalBlockInStream.
+ */
 public class BlockInStream extends InStream {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonFS TFS;
   private final TachyonFile FILE;
-  private final long BLOCK_ID;
+  private final int BLOCK_INDEX;
   private final ReadType READ_TYPE;
 
+  private ClientBlockInfo mBlockInfo;
   private ByteBuffer mBuffer = null;
   private InputStream mCheckpointInputStream = null;
+  private long mCheckpointReadByte;
 
   private boolean mClosed = false;
 
-  InStream(TachyonFile file, ReadType opType, long blockId) throws IOException {
+  BlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
     TFS = file.TFS;
     FILE = file;
-    BLOCK_ID = blockId;
-    READ_TYPE = opType;
+    READ_TYPE = readType;
+    BLOCK_INDEX = blockIndex;
+    mBlockInfo = TFS.getClientBlockInfo(FILE.FID, BLOCK_INDEX);
+    mCheckpointReadByte = 0;
 
-    if (!FILE.isReady()) {
+    if (!FILE.isComplete()) {
       throw new IOException("File " + FILE.getPath() + " is not ready to read");
     }
 
-    mBuffer = FILE.readByteBuffer();
+    mBuffer = FILE.readByteBuffer(blockIndex);
     if (mBuffer == null && READ_TYPE.isCache()) {
       if (FILE.recache()) {
-        mBuffer = FILE.readByteBuffer();
+        mBuffer = FILE.readByteBuffer(blockIndex);
       }
     }
 
-    String checkpointPath = TFS.getCheckpointPath(FID);
+    String checkpointPath = TFS.getCheckpointPath(FILE.FID);
     if (mBuffer == null && !checkpointPath.equals("")) {
       LOG.info("Will stream from underlayer fs: " + checkpointPath);
       UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath);
       try {
         mCheckpointInputStream = underfsClient.open(checkpointPath);
+        mCheckpointInputStream.skip(mBlockInfo.offset);
       } catch (IOException e) {
-        LOG.error("Failed to read from checkpoint " + FID);
+        LOG.error("Failed to read from checkpoint " + FILE.FID);
         mCheckpointInputStream = null;
       }
     }
+
     if (mBuffer == null && mCheckpointInputStream == null) {
-      throw new IOException("Can not find the file " + FILE.getPath());
+      throw new IOException("Can not find the block " + FILE + " " + BLOCK_INDEX);
     }
   }
 
   @Override
   public int read() throws IOException {
-    try {
+    if (mBuffer != null) {
+      if (mBuffer.remaining() == 0) {
+        close();
+        return -1;
+      }
       return mBuffer.get();
-    } catch (java.nio.BufferUnderflowException e) {
-      close();
+    }
+
+    mCheckpointReadByte ++;
+    if (mCheckpointReadByte > mBlockInfo.length) {
       return -1;
-    } catch (NullPointerException e) {
     }
     return mCheckpointInputStream.read();
   }
@@ -99,7 +118,7 @@ public class BlockInStream extends InStream {
   public void close() throws IOException {
     if (!mClosed) {
       if (mBuffer != null) {
-        FILE.releaseFileLock();
+        FILE.releaseBlockLock(BLOCK_INDEX);
       }
       if (mCheckpointInputStream != null) {
         mCheckpointInputStream.close();

@@ -48,8 +48,8 @@ public class WorkerClient {
     mHeartbeatThread.setDaemon(true);
   }
 
-  public synchronized void accessFile(int fileId) throws TException {
-    CLIENT.accessBlock(fileId);
+  public synchronized void accessBlock(long blockId) throws TException {
+    CLIENT.accessBlock(blockId);
   }
 
   public synchronized void addCheckpoint(long userId, int fileId) 
@@ -107,8 +107,8 @@ public class WorkerClient {
     return mIsConnected;
   }
 
-  public synchronized void lockFile(int fileId, long userId) throws TException {
-    CLIENT.lockBlock(fileId, userId);
+  public synchronized void lockBlock(long blockId, long userId) throws TException {
+    CLIENT.lockBlock(blockId, userId);
   }
 
   public synchronized boolean open() {
@@ -134,8 +134,8 @@ public class WorkerClient {
     CLIENT.returnSpace(userId, returnSpaceBytes);
   }
 
-  public synchronized void unlockFile(int fileId, long userId) throws TException {
-    CLIENT.unlockBlock(fileId, userId);
+  public synchronized void unlockBlock(long blockId, long userId) throws TException {
+    CLIENT.unlockBlock(blockId, userId);
   }
 
   public synchronized void userHeartbeat(long userId) throws TException {

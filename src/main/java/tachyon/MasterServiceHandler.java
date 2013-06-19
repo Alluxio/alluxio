@@ -64,6 +64,13 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public int user_createFileOnCheckpoint(String path, String checkpointPath)
+      throws FileAlreadyExistException, InvalidPathException, TException {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
   public int user_createRawTable(String path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException, TException {
     return mMasterInfo.createRawTable(
@@ -111,7 +118,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<ClientBlockInfo> user_getFileLocationsById(int fileId)
+  public List<ClientBlockInfo> user_getFileBlocksById(int fileId)
       throws FileDoesNotExistException, TException {
     List<ClientBlockInfo> ret = null;
     try {
@@ -123,7 +130,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<ClientBlockInfo> user_getFileLocationsByPath(String path)
+  public List<ClientBlockInfo> user_getFileBlocksByPath(String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
     List<ClientBlockInfo> ret = null;
     try {

@@ -34,4 +34,10 @@ public class BlockOutStream extends OutStream {
 
   }
 
+  @Override
+  public void cancel() throws IOException {
+    // TODO Auto-generated method stub
+    
+  }
+
 }
