@@ -153,6 +153,18 @@ public class MasterClient {
     }
   }
 
+  public int user_createFileOnCheckpoint(String path, String checkpointPath)
+      throws IOException, TException {
+    connect();
+    try {
+      return CLIENT.user_createFileOnCheckpoint(path, checkpointPath);
+    } catch (FileAlreadyExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
+  }
+
   public synchronized int user_createRawTable(String path, int columns, ByteBuffer metadata)
       throws IOException, TException {
     if (metadata == null) {
@@ -220,11 +232,11 @@ public class MasterClient {
     }
   }
 
-  public synchronized List<ClientBlockInfo> user_getFileLocations(int id) 
+  public synchronized List<ClientBlockInfo> user_getFileBlocks(int id) 
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_getFileLocationsById(id);
+      return CLIENT.user_getFileBlocksById(id);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }

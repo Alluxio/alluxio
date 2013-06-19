@@ -18,7 +18,6 @@ import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 
-
 /**
  * <code>FileOutStream</code> implementation of TachyonFile. It can only be gotten by
  * calling the methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by

@@ -12,6 +12,7 @@ import java.util.Collections;
 
 import org.apache.thrift.TException;
 
+import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 
 import tachyon.CommonUtils;
@@ -170,24 +171,24 @@ public class TFsShell {
   }
 
   /**
-   * Displays a list of hosts that have the file specified in argv stored.
+   * Displays the file's all blocks info
    * @param argv[] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int location(String argv[]) throws IOException {
+  public int fileinfo(String argv[]) throws IOException {
     if (argv.length != 2) {
-      System.out.println("Usage: tfs location <path>");
+      System.out.println("Usage: tfs fileinfo <path>");
       return -1;
     }
     String path = argv[1];
     String file = Utils.getFilePath(path);
     TachyonFS tachyonClient = TachyonFS.get(Utils.getTachyonMasterAddress(path));
     int fileId = tachyonClient.getFileId(file);
-    List<String> hosts = tachyonClient.getFileHosts(fileId);
-    System.out.println(file + " with file id " + fileId + " are on nodes: ");
-    for (String host: hosts) {
-      System.out.println(host);
+    List<ClientBlockInfo> blocks = tachyonClient.getFileBlocks(fileId);
+    System.out.println(file + " with file id " + fileId + " have following blocks: ");
+    for (ClientBlockInfo block: blocks) {
+      System.out.println(block);
     }
     return 0;
   }
@@ -285,8 +286,8 @@ public class TFsShell {
         exitCode = copyFromLocal(argv);
       } else if (cmd.equals("copyToLocal")) {
         exitCode = copyToLocal(argv);
-      } else if (cmd.equals("location")) {
-        exitCode = location(argv);
+      } else if (cmd.equals("fileinfo")) {
+        exitCode = fileinfo(argv);
       } else {
         printUsage();
         return -1;

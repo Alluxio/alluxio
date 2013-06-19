@@ -120,6 +120,8 @@ service MasterService {
   // Services to Users
   i32 user_createFile(1: string path, 2: i64 blockSizeByte)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
+  i32 user_createFileOnCheckpoint(1: string path, 2: string checkpointPath)
+    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
   /**
    * Return -1 if does not contain the file, return fileId if it exists.
    */
@@ -143,12 +145,12 @@ service MasterService {
   /**
    * Get file locations by file Id.
    */
-  list<ClientBlockInfo> user_getFileLocationsById(1: i32 fileId)
+  list<ClientBlockInfo> user_getFileBlocksById(1: i32 fileId)
     throws (1: FileDoesNotExistException e)
   /**
    * Get file locations by path
    */
-  list<ClientBlockInfo> user_getFileLocationsByPath(1: string path)
+  list<ClientBlockInfo> user_getFileBlocksByPath(1: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
   list<i32> user_listFiles(1: string path, 2: bool recursive)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
