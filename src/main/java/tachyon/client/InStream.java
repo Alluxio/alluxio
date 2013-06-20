@@ -20,4 +20,7 @@ public abstract class InStream extends InputStream {
 
   @Override
   public abstract void close() throws IOException;
+  
+  @Override
+  public abstract long skip(long n) throws IOException;
 }

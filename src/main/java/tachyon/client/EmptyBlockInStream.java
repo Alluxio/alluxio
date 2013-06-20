@@ -24,4 +24,9 @@ public class EmptyBlockInStream extends InStream {
   @Override
   public void close() throws IOException {
   }
+
+  @Override
+  public long skip(long n) throws IOException {
+    return 0;
+  }
 }
