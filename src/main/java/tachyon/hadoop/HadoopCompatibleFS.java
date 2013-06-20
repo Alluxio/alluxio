@@ -16,7 +16,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
 import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 
 import tachyon.CommonUtils;
 import tachyon.Constants;

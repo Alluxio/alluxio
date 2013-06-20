@@ -16,16 +16,13 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.DataServerMessage;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * Tachyon File.
@@ -89,10 +86,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
 
     return ret;
-  }
-
-  private long getBlockId(int blockIndex) throws IOException {
-    return TFS.getBlockId(FID, blockIndex);
   }
 
   public boolean isFile() {
