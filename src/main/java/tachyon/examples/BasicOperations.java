@@ -75,5 +75,6 @@ public class BasicOperations {
     createFile();
     writeFile();
     readFile();
+    System.exit(0);
   }
 }

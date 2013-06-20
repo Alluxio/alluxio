@@ -409,5 +409,6 @@ public class Performance {
       System.out.print(Results[k] + " ");
     }
     System.out.println();
+    System.exit(0);
   }
 }
