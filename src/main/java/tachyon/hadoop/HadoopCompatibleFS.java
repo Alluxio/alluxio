@@ -92,26 +92,21 @@ public class HadoopCompatibleFS extends FileSystem {
     FileSystem fs = hdfsPath.getFileSystem(getConf());
     FileStatus hfs = fs.getFileStatus(hdfsPath);
 
-    try {
-      if (!hfs.isDir()) {
-        int fileId;
-        fileId = mTFS.getFileId(filePath);
-        if (fileId > 0) {
-          LOG.debug("Tachyon has file " + filePath);
+    if (!hfs.isDir()) {
+      int fileId;
+      fileId = mTFS.getFileId(filePath);
+      if (fileId > 0) {
+        LOG.debug("Tachyon has file " + filePath);
+      } else {
+        LOG.debug("Tachyon does not have file " + filePath);
+        int tmp = mTFS.createFile(filePath, hdfsPath.toString());
+        if (tmp == -1) {
+          LOG.debug("Tachyon does have file " + filePath + " and creation failed.");
         } else {
-          LOG.debug("Tachyon does not have file " + filePath);
-          int tmp = mTFS.createFile(filePath);
-          if (tmp != -1) {
-            mTFS.addCheckpointPath(tmp, hdfsPath.toString());
-            LOG.debug("Tachyon does not have file " + filePath + " checkpoint added.");
-          } else {
-            LOG.debug("Tachyon does not have file " + filePath + " and creation failed.");
-          }
+          LOG.debug("Tachyon does not have file " + filePath + " checkpoint added.");
         }
       }
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-    } 
+    }
 
     FileStatus ret = new FileStatus(hfs.getLen(), hfs.isDir(), hfs.getReplication(),
         Integer.MAX_VALUE, hfs.getModificationTime(), hfs.getAccessTime(), hfs.getPermission(),
@@ -151,7 +146,7 @@ public class HadoopCompatibleFS extends FileSystem {
     fileId = mTFS.getFileId(path);
 
     if (fileId != -1) {
-      List<NetAddress> locations = mTFS.getFileBlocks(fileId);
+      List<NetAddress> locations = mTFS.getClientBlockInfo(fileId, 0).getLocations();
       if (locations != null) {
         for (int k = 0; k < locations.size(); k ++) {
           names.add(locations.get(k).mHost);

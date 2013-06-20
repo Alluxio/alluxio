@@ -49,7 +49,7 @@ public class OutStreamTest {
     is.read(res);
     boolean t = TestUtils.equalIncreasingByteArray(len, res);
     Assert.assertTrue(t);
-    file.releaseFileLock();
+//    file.releaseFileLock();
   }
 
   /**
@@ -79,7 +79,7 @@ public class OutStreamTest {
     is.read(res);
     boolean t = TestUtils.equalIncreasingByteArray(len, res);
     Assert.assertTrue(t);
-    file.releaseFileLock();
+//    file.releaseFileLock();
   }
 
   /**
@@ -109,7 +109,7 @@ public class OutStreamTest {
     is.read(res);
     boolean t = TestUtils.equalIncreasingByteArray(len / 2, res);
     Assert.assertTrue(t);
-    file.releaseFileLock();
+//    file.releaseFileLock();
   }
 
   /**

@@ -65,7 +65,7 @@ public class RawTableTest {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
       Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), file.readByteBuffer());
-      file.releaseFileLock();
+//      file.releaseFileLock();
     }
     //    System.out.println("D " + (System.currentTimeMillis() - sMs));
 
@@ -74,7 +74,7 @@ public class RawTableTest {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
       Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), file.readByteBuffer());
-      file.releaseFileLock();
+//      file.releaseFileLock();
     }
     //    System.out.println("E " + (System.currentTimeMillis() - sMs));
   }

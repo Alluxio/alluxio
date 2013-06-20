@@ -163,7 +163,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
         ByteBuffer ret = localFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, localFile.length());
         localFile.close();
         ret.order(ByteOrder.nativeOrder());
-        TFS.accessLocalFile(FID);
+        TFS.accessLocalBlock(blockInfo.blockId);
         return ret;
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");
@@ -180,12 +180,12 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
     LOG.info("Try to find and read from remote workers.");
     try {
-      List<NetAddress> fileLocations = TFS.getFileBlocks(FID);
-      LOG.info("readByteBufferFromRemote() " + fileLocations);
+      List<NetAddress> blockLocations = blockInfo.getLocations();
+      LOG.info("readByteBufferFromRemote() " + blockLocations);
 
-      for (int k = 0; k < fileLocations.size(); k ++) {
-        String host = fileLocations.get(k).mHost;
-        int port = fileLocations.get(k).mPort;
+      for (int k = 0; k < blockLocations.size(); k ++) {
+        String host = blockLocations.get(k).mHost;
+        int port = blockLocations.get(k).mPort;
 
         // The data is not in remote machine's memory if port == -1.
         if (port == -1) {
@@ -201,7 +201,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
               InetAddress.getLocalHost().getHostAddress());
 
           try {
-            ret = retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port + 1));
+            ret = retrieveByteBufferFromRemoteMachine(
+                new InetSocketAddress(host, port + 1), blockInfo);
             if (ret != null) {
               break;
             }
@@ -270,12 +271,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return TFS.rename(FID, path);
   }
 
-  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, long blockId) 
-      throws IOException {
+  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, 
+      ClientBlockInfo blockInfo) throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
     socketChannel.connect(address);
 
     LOG.info("Connected to remote machine " + address + " sent");
+    long blockId = blockInfo.blockId;
     DataServerMessage sendMsg = DataServerMessage.createBlockRequestMessage(blockId);
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
