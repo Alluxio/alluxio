@@ -110,7 +110,6 @@ public class BlockInStream extends InStream {
       mBuffer.get(b, off, ret);
       return ret;
     }
-
     return mCheckpointInputStream.read(b, off, len);
   }
 
@@ -125,5 +124,23 @@ public class BlockInStream extends InStream {
       }
     }
     mClosed = true;
+  }
+
+  @Override
+  public long skip(long n) throws IOException {
+    if (n <= 0) {
+      return 0;
+    }
+
+    if (mBuffer != null) {
+      int ret = mBuffer.remaining();
+      if (ret > n) {
+        ret = (int) n;
+      }
+      mBuffer.position(mBuffer.position() + ret);
+      return ret;
+    }
+
+    return mCheckpointInputStream.skip(n);
   }
 }

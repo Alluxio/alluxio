@@ -5,8 +5,7 @@ import java.util.List;
 
 public class FileInStream extends InStream {
 
-  public FileInStream(TachyonFile tachyonFile, ReadType opType,
-      List<Long> blocks) {
+  public FileInStream(TachyonFile tachyonFile, ReadType opType, List<Long> blocks) {
     // TODO Auto-generated constructor stub
   }
 
@@ -32,6 +31,12 @@ public class FileInStream extends InStream {
   public void close() throws IOException {
     // TODO Auto-generated method stub
 
+  }
+
+  @Override
+  public long skip(long n) throws IOException {
+    // TODO Auto-generated method stub
+    return 0;
   }
 
 }
