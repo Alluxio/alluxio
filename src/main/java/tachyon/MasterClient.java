@@ -65,7 +65,7 @@ public class MasterClient {
   /**
    * @param workerId if -1, means the checkpoint is added directly by the client from underlayer fs.
    * @param fileId
-   * @param fileSizeBytes
+   * @param length
    * @param checkpointPath
    * @return
    * @throws FileDoesNotExistException
@@ -141,6 +141,16 @@ public class MasterClient {
     }
   }
 
+  public synchronized void user_completeFile(int fId)
+      throws IOException, TException {
+    connect();
+    try {
+      CLIENT.user_completeFile(fId);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    }
+  }
+
   public synchronized int user_createFile(String path, long blockSizeByte) 
       throws IOException, TException {
     connect();
@@ -161,6 +171,15 @@ public class MasterClient {
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized long user_createNewBlock(int fId) throws IOException, TException {
+    connect();
+    try {
+      return CLIENT.user_createNewBlock(fId);
+    } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }
   }
@@ -190,6 +209,22 @@ public class MasterClient {
   public synchronized boolean user_delete(int fileId, boolean recursive) throws TException {
     connect();
     return CLIENT.user_deleteById(fileId, recursive);
+  }
+
+  public synchronized long user_getBlockIdBasedOnOffset(int fId, long offset)
+      throws IOException, TException {
+    connect();
+    try {
+      return CLIENT.user_getBlockIdBasedOnOffset(fId, offset);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public ClientBlockInfo user_getClientBlockInfo(long blockId) 
+      throws FileDoesNotExistException, BlockInfoException, TException {
+    connect();
+    return CLIENT.user_getClientBlockInfo(blockId);
   }
 
   public synchronized ClientFileInfo user_getClientFileInfoByPath(String path)

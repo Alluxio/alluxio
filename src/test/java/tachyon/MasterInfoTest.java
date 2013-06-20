@@ -44,10 +44,10 @@ public class MasterInfoTest {
     int fileId = mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFile");
     Assert.assertEquals("", fileInfo.getCheckpointPath());
-    mMasterInfo.addCheckpoint(-1, fileId, 0, "/testPath");
+    mMasterInfo.addCheckpoint(-1, fileId, 1, "/testPath");
     fileInfo = mMasterInfo.getFileInfo("/testFile");
     Assert.assertEquals("/testPath", fileInfo.getCheckpointPath());
-    mMasterInfo.addCheckpoint(-1, fileId, 0, "/testPath2");
+    mMasterInfo.addCheckpoint(-1, fileId, 1, "/testPath");
     fileInfo = mMasterInfo.getFileInfo("/testFile");
     Assert.assertEquals("/testPath", fileInfo.getCheckpointPath());
   }
