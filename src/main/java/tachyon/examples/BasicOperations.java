@@ -45,7 +45,7 @@ public class BasicOperations {
 
     TachyonFile file = sTachyonClient.getFile(sFilePath);
     OutStream os = file.getOutStream(sWriteType);
-    os.write(buf);
+    os.write(buf.array());
     os.close();
   }
 
@@ -58,7 +58,6 @@ public class BasicOperations {
       file.recache();
     }
     CommonUtils.printByteBuffer(LOG, file.readByteBuffer());
-    file.releaseFileLock();
   }
 
   public static void main(String[] args)

@@ -66,7 +66,7 @@ public class BasicRawTableOperations {
 
       TachyonFile tFile = rawColumn.getPartition(0);
       OutStream os = tFile.getOutStream(sWriteType);
-      os.write(buf);
+      os.write(buf.array());
       os.close();
     }
   }
@@ -90,7 +90,6 @@ public class BasicRawTableOperations {
         tFile.recache();
       }
       CommonUtils.printByteBuffer(LOG, tFile.readByteBuffer());
-      tFile.releaseFileLock();
     }
   }
 

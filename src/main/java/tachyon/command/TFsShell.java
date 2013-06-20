@@ -16,6 +16,7 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 
 import tachyon.CommonUtils;
+import tachyon.client.FileOutStream;
 import tachyon.client.InStream;
 import tachyon.client.OutStream;
 import tachyon.client.ReadType;
@@ -165,7 +166,6 @@ public class TFsShell {
       t = is.read(buf);
     }
     out.close();
-    tFile.releaseFileLock();
     System.out.println("Copied " + srcPath + " to " + dstPath);
     return 0;
   }
@@ -220,13 +220,13 @@ public class TFsShell {
       return -1;
     }
     TachyonFile tFile = tachyonClient.getFile(fileId);
-    OutStream os = tFile.getOutStream(WriteType.THROUGH);
+    OutStream os = (FileOutStream) tFile.getOutStream(WriteType.THROUGH);
     FileInputStream in = new FileInputStream(src);
     FileChannel channel = in.getChannel();
     ByteBuffer buf = ByteBuffer.allocate(1024);
     while (channel.read(buf) != -1) {
       buf.flip();
-      os.write(buf);
+      os.write(buf.array());
     }
     os.close();
     channel.close();

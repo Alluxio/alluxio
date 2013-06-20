@@ -106,7 +106,7 @@ public class TachyonFS {
       }
     }
 
-    LOG.error("TachyonClient accessLocalFile(" + fid + ") failed");
+    LOG.error("TachyonClient accessLocalBlock(" + blockId + ") failed");
   }
 
   public synchronized void addCheckpoint(int fid) throws IOException {
@@ -134,30 +134,30 @@ public class TachyonFS {
    * @throws IOException
    * @throws TException
    */
-//  public synchronized boolean addCheckpointPath(int id, String path)
-//      throws IOException, TException {
-//    connect();
-//
-//    UnderFileSystem hdfsClient = UnderFileSystem.get(path);
-//    long fileSizeBytes = hdfsClient.getFileSize(path);
-//
-//    try {
-//      if (mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path)) {
-//        ClientFileInfo tInfo = mClientFileInfos.get(id);
-//        tInfo.length = fileSizeBytes;
-//        tInfo.checkpointPath = path;
-//        return true;
-//      }
-//    } catch (FileDoesNotExistException e) {
-//      throw new IOException(e);
-//    } catch (SuspectedFileSizeException e) {
-//      throw new IOException(e);
-//    } catch (BlockInfoException e) {
-//      throw new IOException(e);
-//    }
-//
-//    return false;
-//  }
+  //  public synchronized boolean addCheckpointPath(int id, String path)
+  //      throws IOException, TException {
+  //    connect();
+  //
+  //    UnderFileSystem hdfsClient = UnderFileSystem.get(path);
+  //    long fileSizeBytes = hdfsClient.getFileSize(path);
+  //
+  //    try {
+  //      if (mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path)) {
+  //        ClientFileInfo tInfo = mClientFileInfos.get(id);
+  //        tInfo.length = fileSizeBytes;
+  //        tInfo.checkpointPath = path;
+  //        return true;
+  //      }
+  //    } catch (FileDoesNotExistException e) {
+  //      throw new IOException(e);
+  //    } catch (SuspectedFileSizeException e) {
+  //      throw new IOException(e);
+  //    } catch (BlockInfoException e) {
+  //      throw new IOException(e);
+  //    }
+  //
+  //    return false;
+  //  }
 
   public synchronized void cacheBlock(long blockId) throws IOException  {
     connect();
@@ -353,7 +353,7 @@ public class TachyonFS {
     }
     return fid;
   }
-  
+
   public synchronized int createFile(String path, String checkpointPath) throws IOException {
     connect();
     if (!mConnected) {
@@ -447,7 +447,7 @@ public class TachyonFS {
 
     return info.blockIds.get(blockIndex);
   }
-  
+
   public synchronized ClientBlockInfo getClientBlockInfo(int fId, int blockIndex) 
       throws IOException {
     boolean fetch = false;
@@ -476,7 +476,7 @@ public class TachyonFS {
     }
 
     throw new RuntimeException("Implement");
-//    return info.blockIds.get(blockIndex);
+    //    return info.blockIds.get(blockIndex);
   }
 
   private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata) { 
@@ -569,44 +569,44 @@ public class TachyonFS {
     return mClientFileInfos.get(fId).getBlockSizeByte();
   }
 
-//  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fids) 
-//      throws IOException {
-//    List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
-//    for (int k = 0; k < fids.size(); k ++) {
-//      ret.add(getFileBlocks(fids.get(k)));
-//    }
-//
-//    return ret;
-//  }
+  //  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fids) 
+  //      throws IOException {
+  //    List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
+  //    for (int k = 0; k < fids.size(); k ++) {
+  //      ret.add(getFileBlocks(fids.get(k)));
+  //    }
+  //
+  //    return ret;
+  //  }
 
-//  public synchronized List<ClientBlockInfo> getFileHosts(int fid)
-//      throws IOException {
-//    connect();
-//    if (!mConnected) {
-//      return null;
-//    }
-//
-//    List<NetAddress> adresses = getFileBlocks(fid);
-//    List<String> ret = new ArrayList<String>(adresses.size());
-//    for (NetAddress address: adresses) {
-//      ret.add(address.mHost);
-//      if (address.mHost.endsWith(".ec2.internal")) {
-//        ret.add(address.mHost.substring(0, address.mHost.length() - 13));
-//      }
-//    }
-//
-//    return ret;
-//  }
-//
-//  public synchronized List<List<String>> getFilesHosts(List<Integer> fids) 
-//      throws IOException {
-//    List<List<String>> ret = new ArrayList<List<String>>();
-//    for (int k = 0; k < fids.size(); k ++) {
-//      ret.add(getFileHosts(fids.get(k)));
-//    }
-//
-//    return ret;
-//  }
+  //  public synchronized List<ClientBlockInfo> getFileHosts(int fid)
+  //      throws IOException {
+  //    connect();
+  //    if (!mConnected) {
+  //      return null;
+  //    }
+  //
+  //    List<NetAddress> adresses = getFileBlocks(fid);
+  //    List<String> ret = new ArrayList<String>(adresses.size());
+  //    for (NetAddress address: adresses) {
+  //      ret.add(address.mHost);
+  //      if (address.mHost.endsWith(".ec2.internal")) {
+  //        ret.add(address.mHost.substring(0, address.mHost.length() - 13));
+  //      }
+  //    }
+  //
+  //    return ret;
+  //  }
+  //
+  //  public synchronized List<List<String>> getFilesHosts(List<Integer> fids) 
+  //      throws IOException {
+  //    List<List<String>> ret = new ArrayList<List<String>>();
+  //    for (int k = 0; k < fids.size(); k ++) {
+  //      ret.add(getFileHosts(fids.get(k)));
+  //    }
+  //
+  //    return ret;
+  //  }
 
   public synchronized TachyonFile getFile(String path) throws IOException {
     return getFile(path, false);

@@ -178,7 +178,7 @@ public class Performance {
         OutStream os = file.getOutStream(WriteType.CACHE);
         for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
           mBuf.array()[0] = (byte) (k + mWorkerId);
-          os.write(mBuf);
+          os.write(mBuf.array());
         }
         os.close();
         logPerIteration(startTimeMs, pId, "th WriteTachyonFile @ Worker ", pId);
@@ -244,7 +244,6 @@ public class Performance {
           CommonUtils.printByteBuffer(LOG, buf);
         }
         buf.clear();
-        file.releaseFileLock();
         logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
       }
       Results[mWorkerId] = sum;
