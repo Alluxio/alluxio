@@ -329,18 +329,19 @@ public class WorkerStorage {
     synchronized (mLatestBlockAccessTimeMs) {
       synchronized (mUsersPerLockedBlock) {
         while (mWorkerSpaceCounter.getAvailableBytes() < requestBytes) {
-          long fileId = -1;
+          long blockId = -1;
           long latestTimeMs = Long.MAX_VALUE;
           for (Entry<Long, Long> entry : mLatestBlockAccessTimeMs.entrySet()) {
-            if (entry.getValue() < latestTimeMs && !pinList.contains(entry.getKey())) {
+            if (entry.getValue() < latestTimeMs 
+                && !pinList.contains(BlockInfo.computeInodeId(entry.getKey()))) {
               if(!mUsersPerLockedBlock.containsKey(entry.getKey())) {
-                fileId = entry.getKey();
+                blockId = entry.getKey();
                 latestTimeMs = entry.getValue();
               }
             }
           }
-          if (fileId != -1) {
-            freeBlock(fileId);
+          if (blockId != -1) {
+            freeBlock(blockId);
           } else {
             return false;
           }

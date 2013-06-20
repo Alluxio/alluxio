@@ -58,6 +58,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public void user_completeFile(int fileId) throws FileDoesNotExistException,
+      TException {
+    mMasterInfo.completeFile(fileId);
+  }
+
+  @Override
   public int user_createFile(String path, long blockSizeByte)
       throws FileAlreadyExistException, InvalidPathException, TException {
     return mMasterInfo.createFile(path, blockSizeByte);
@@ -68,6 +74,11 @@ public class MasterServiceHandler implements MasterService.Iface {
       throws FileAlreadyExistException, InvalidPathException, TException {
     // TODO Auto-generated method stub
     return 0;
+  }
+
+  @Override
+  public long user_createNewBlock(int fileId) throws FileDoesNotExistException, TException {
+    return mMasterInfo.createNewBlock(fileId);
   }
 
   @Override
@@ -91,6 +102,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   public NetAddress user_getWorker(boolean random, String host) 
       throws NoLocalWorkerException, TException {
     return mMasterInfo.getWorker(random, host);
+  }
+
+  @Override
+  public long user_getBlockIdBasedOnOffset(int fileId, long offset)
+      throws FileDoesNotExistException, TException {
+    return mMasterInfo.getBlockIdBasedOnOffset(fileId, offset);
   }
 
   @Override

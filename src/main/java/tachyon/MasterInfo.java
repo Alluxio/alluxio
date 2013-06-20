@@ -249,6 +249,8 @@ public class MasterInfo {
         needLog = true;
       }
 
+      tFile.setComplete();
+
       if (needLog) {
         mMasterLogWriter.append(tFile, true);
       }
@@ -289,21 +291,15 @@ public class MasterInfo {
       }
 
       InodeFile tFile = (InodeFile) inode;
-      if (tFile.isComplete()) {
-        throw new BlockInfoException("The file is complete: " + tFile);
+      if (tFile.getNumberOfBlocks() <= blockIndex) {
+        tFile.addBlock(new BlockInfo(tFile, blockIndex, length));
+        mMasterLogWriter.append(tFile, true);
       }
-      tFile.addBlock(new BlockInfo(tFile, blockIndex, length));
 
-      mMasterLogWriter.append(tFile, true);
       InetSocketAddress address = tWorkerInfo.ADDRESS;
       tFile.addLocation(blockIndex, workerId,
           new NetAddress(address.getHostName(), address.getPort()));
     }
-  }
-
-  public int mkdir(String path)
-      throws FileAlreadyExistException, InvalidPathException {
-    return createFile(true, path, true, -1, null, 0);
   }
 
   public int createFile(String path, long blockSizeByte)
@@ -387,6 +383,36 @@ public class MasterInfo {
 
       LOG.debug("createFile: File Created: " + ret + " parent: " + inode);
       return ret.getId();
+    }
+  }
+
+  public long createNewBlock(int fileId) throws FileDoesNotExistException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+
+      if (inode == null) {
+        throw new FileDoesNotExistException("File " + fileId + " does not exit.");
+      }
+      if (!inode.isFile()) {
+        throw new FileDoesNotExistException("File " + fileId + " is not a file.");
+      }
+
+      return ((InodeFile) inode).getNewBlockId();
+    }
+  }
+
+  public void completeFile(int fileId) throws FileDoesNotExistException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+
+      if (inode == null) {
+        throw new FileDoesNotExistException("File " + fileId + " does not exit.");
+      }
+      if (!inode.isFile()) {
+        throw new FileDoesNotExistException("File " + fileId + " is not a file.");
+      }
+
+      ((InodeFile) inode).setComplete();
     }
   }
 
@@ -479,6 +505,20 @@ public class MasterInfo {
         return true;
       }
       return delete(inode.getId(), recursive);
+    }
+  }
+
+  public long getBlockIdBasedOnOffset(int fileId, long offset) throws FileDoesNotExistException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+      if (inode == null) {
+        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
+      }
+      if (!inode.isFile()) {
+        throw new FileDoesNotExistException(fileId + " is not a file.");
+      }
+
+      return ((InodeFile) inode).getBlockIdBasedOnOffset(offset);
     }
   }
 
@@ -922,6 +962,11 @@ public class MasterInfo {
     }
 
     return ret;
+  }
+
+  public int mkdir(String path)
+      throws FileAlreadyExistException, InvalidPathException {
+    return createFile(true, path, true, -1, null, 0);
   }
 
   private void recoveryFromFile(String fileName, String msg) throws IOException {

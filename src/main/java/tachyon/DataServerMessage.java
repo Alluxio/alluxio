@@ -24,7 +24,7 @@ public class DataServerMessage {
   private boolean mIsMessageReady;
 
   private ByteBuffer mHeader;
-  private static final int HEADER_LENGTH = 12;
+  private static final int HEADER_LENGTH = 16;
   private long mBlockId;
   private long mDataLength;
   RandomAccessFile mFile;

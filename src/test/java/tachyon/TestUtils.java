@@ -13,19 +13,19 @@ import tachyon.thrift.InvalidPathException;
 public final class TestUtils {
   /**
    * Create a simple file with <code>len</code> bytes.
-   * @param client
+   * @param tfs
    * @param fileName
    * @param op
    * @param len
-   * @return
+   * @return created file id.
    * @throws InvalidPathException
    * @throws FileAlreadyExistException
    * @throws IOException
    */
-  public static int createByteFile(TachyonFS client, String fileName, WriteType op, int len)
+  public static int createByteFile(TachyonFS tfs, String fileName, WriteType op, int len)
       throws IOException {
-    int fileId = client.createFile(fileName);
-    TachyonFile file = client.getFile(fileId);
+    int fileId = tfs.createFile(fileName);
+    TachyonFile file = tfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
 
     for (int k = 0; k < len; k ++) {

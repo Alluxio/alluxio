@@ -176,8 +176,18 @@ public class TachyonFS {
     }
   }
 
-  // Lazy connection
-  // TODO This should be removed since the Thrift server has been fixed.
+  public synchronized void close() throws TException {
+    if (mMasterClient != null) {
+      mMasterClient.disconnect();
+    }
+
+    if (mWorkerClient != null) {
+      mWorkerClient.returnSpace(mUserId, mAvailableSpaceBytes);
+      mWorkerClient.close();
+    }
+  }
+
+  // Lazy connection TODO This should be removed since the Thrift server has been fixed.
   public synchronized void connect() {
     if (mMasterClient != null) {
       return;
@@ -260,14 +270,13 @@ public class TachyonFS {
     }
   }
 
-  public synchronized void close() throws TException {
-    if (mMasterClient != null) {
-      mMasterClient.disconnect();
-    }
-
-    if (mWorkerClient != null) {
-      mWorkerClient.returnSpace(mUserId, mAvailableSpaceBytes);
-      mWorkerClient.close();
+  public synchronized void completeFile(int fId) throws IOException {
+    connect();
+    try {
+      mMasterClient.user_completeFile(fId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
     }
   }
 
@@ -448,6 +457,28 @@ public class TachyonFS {
     return info.blockIds.get(blockIndex);
   }
 
+  public synchronized long getBlockIdBasedOnOffset(int fId, long offset) 
+      throws IOException {
+    ClientFileInfo info;
+    if (!mClientFileInfos.containsKey(fId)) {
+      info = getClientFileInfo(fId);
+      mClientFileInfos.put(fId, info);
+    }
+    info = mClientFileInfos.get(fId);
+
+    int index = (int) (offset / info.getBlockSizeByte());
+
+    if (info.getBlockIds().size() > index) {
+      return info.getBlockIds().get(index);
+    }
+
+    try {
+      return mMasterClient.user_getBlockIdBasedOnOffset(fId, offset);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
+  }
+
   public synchronized ClientBlockInfo getClientBlockInfo(int fId, int blockIndex) 
       throws IOException {
     boolean fetch = false;
@@ -475,8 +506,15 @@ public class TachyonFS {
       throw new IOException("BlockIndex " + blockIndex + " is out of the bound in file " + info);
     }
 
-    throw new RuntimeException("Implement");
-    //    return info.blockIds.get(blockIndex);
+    try {
+      return mMasterClient.user_getClientBlockInfo(info.blockIds.get(blockIndex));
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (BlockInfoException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
   }
 
   private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata) { 
@@ -654,9 +692,14 @@ public class TachyonFS {
     return mClientFileInfos.get(fid).getLength();
   }
 
-  synchronized long getNextBlockId(int fId) {
-    // TODO: implement it.
-    throw new RuntimeException("Implement it");
+  synchronized long getNextBlockId(int fId) throws IOException {
+    connect();
+    try {
+      return mMasterClient.user_createNewBlock(fId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   public synchronized int getNumberOfFiles(String folderPath) 
@@ -738,8 +781,9 @@ public class TachyonFS {
   }
 
   synchronized boolean isInMemory(int fid) {
-    // TODO Make this query the master.
-    return mClientFileInfos.get(fid).isInMemory();
+    ClientFileInfo info = getClientFileInfo(fid);
+    mClientFileInfos.put(info.getId(), info);
+    return info.isInMemory();
   }
 
   synchronized boolean isNeedPin(int fid) {
@@ -931,7 +975,7 @@ public class TachyonFS {
     throw new RuntimeException("Implement");
   }
 
-  public int getNumberOfBlocks(int fId) {
+  public synchronized int getNumberOfBlocks(int fId) {
     // TODO Auto-generated method stub
     return 0;
   }

@@ -77,6 +77,10 @@ public class InodeFile extends Inode {
     return mCheckpointPath;
   }
 
+  public synchronized long getNewBlockId() {
+    return BlockInfo.computeBlockId(getId(), mBlocks.size());
+  }
+
   public synchronized void addBlock(BlockInfo blockInfo) throws BlockInfoException {
     if (mIsComplete) {
       throw new BlockInfoException("The file is complete: " + this);
@@ -120,6 +124,11 @@ public class InodeFile extends Inode {
     mBlocks.get(blockIndex).removeLocation(workerId);
   }
 
+  public long getBlockIdBasedOnOffset(long offset) {
+    int index = (int) (offset / BLOCK_SIZE_BYTE);
+    return BlockInfo.computeBlockId(getId(), index);
+  }
+
   public long getBlockSizeByte() {
     return BLOCK_SIZE_BYTE;
   }
@@ -156,7 +165,11 @@ public class InodeFile extends Inode {
     return getInMemoryPercentage() == 100;
   }
 
-  public synchronized int getInMemoryPercentage() {
+  private synchronized int getInMemoryPercentage() {
+    if (mLength == 0) {
+      return 100;
+    }
+
     long inMemoryLength = 0;
     for (BlockInfo info: mBlocks) {
       if (info.isInMemory()) {
@@ -192,6 +205,10 @@ public class InodeFile extends Inode {
       ret.add(mBlocks.get(k).BLOCK_ID);
     }
     return ret;
+  }
+
+  public synchronized int getNumberOfBlocks() {
+    return mBlocks.size();
   }
 
   public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {

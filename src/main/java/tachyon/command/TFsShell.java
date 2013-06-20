@@ -226,7 +226,7 @@ public class TFsShell {
     ByteBuffer buf = ByteBuffer.allocate(1024);
     while (channel.read(buf) != -1) {
       buf.flip();
-      os.write(buf.array());
+      os.write(buf.array(), 0, buf.limit());
     }
     os.close();
     channel.close();

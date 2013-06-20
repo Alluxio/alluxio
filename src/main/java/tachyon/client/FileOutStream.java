@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -85,7 +86,11 @@ public class FileOutStream extends OutStream {
 
         // TODO this should be okay if it is not must cache.
         throw new IOException("Local tachyon worker does not have enough " +
-            "space or no worker for " + FID);
+            "space (" + length + ") or no worker for " + FID);
+      }
+
+      if (mCurrentBlockId == -1) {
+        getNextBlock();
       }
 
       int addByte = length;
@@ -99,7 +104,7 @@ public class FileOutStream extends OutStream {
       mCurrentBlockLeftByte -= addByte;
 
       if (addByte < length) {
-        getNewBlock();
+        getNextBlock();
         int moreAddByte = length - addByte;
         out = mLocalFileChannel.map(MapMode.READ_WRITE, mCurrentBlockWrittenByte, moreAddByte);
         out.put(buf, addByte, moreAddByte);
@@ -116,7 +121,7 @@ public class FileOutStream extends OutStream {
     }
   }
 
-  private void getNewBlock() throws IOException {
+  private void getNextBlock() throws IOException {
     if (mCurrentBlockId != -1) {
       if (mCurrentBlockLeftByte != 0) {
         throw new IOException("The current block still has space left, no need to get new block");
@@ -125,7 +130,7 @@ public class FileOutStream extends OutStream {
       mPreviousBlockIds.add(mCurrentBlockId);
     }
 
-    mCurrentBlockId = TFS.getNextBlockId(FID);
+    mCurrentBlockId = TFS.getBlockIdBasedOnOffset(FID, mCurrentBlockWrittenByte);
     mCurrentBlockWrittenByte = 0;
     mCurrentBlockLeftByte = TFS.getBlockSizeByte(FID);
 
@@ -256,6 +261,7 @@ public class FileOutStream extends OutStream {
             for (int k = 0; k < mPreviousBlockIds.size(); k ++) {
               TFS.cacheBlock(mPreviousBlockIds.get(k));
             }
+            TFS.completeFile(FID);
           } catch (IOException e) {
             if (WRITE_TYPE == WriteType.CACHE) {
               throw e;
@@ -268,6 +274,8 @@ public class FileOutStream extends OutStream {
           mCheckpointOutputStream.close();
           TFS.addCheckpoint(FID);
         }
+
+        TFS.completeFile(FID);
       }
     }
     mClosed = true;

@@ -122,12 +122,18 @@ service MasterService {
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
   i32 user_createFileOnCheckpoint(1: string path, 2: string checkpointPath)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
+  i64 user_createNewBlock(1: i32 fileId)
+    throws (1: FileDoesNotExistException e)
+  void user_completeFile(1: i32 fileId)
+    throws (1: FileDoesNotExistException e)
   /**
    * Return -1 if does not contain the file, return fileId if it exists.
    */
   i32 user_getFileId(1: string path)
     throws (1: InvalidPathException e)
   i64 user_getUserId()
+  i64 user_getBlockIdBasedOnOffset(1: i32 fileId, 2: i64 offset)
+    throws (1: FileDoesNotExistException e)
   /**
    * Get local worker NetAddress
    */

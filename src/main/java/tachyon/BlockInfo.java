@@ -91,9 +91,8 @@ public class BlockInfo {
   }
 
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("BlockInfo(INODE_FILE: ");
-    sb.append(INODE_FILE.toString());
-    sb.append(", BLOCK_INDEX: ").append(BLOCK_INDEX);
+    StringBuilder sb = new StringBuilder("BlockInfo(BLOCK_INDEX: ");
+    sb.append(BLOCK_INDEX);
     sb.append(", BLOCK_ID: ").append(BLOCK_ID);
     sb.append(", OFFSET: ").append(OFFSET);
     sb.append(", LENGTH: ").append(LENGTH);

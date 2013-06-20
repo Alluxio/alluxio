@@ -227,13 +227,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
   public boolean recache() {
     boolean succeed = true;
     String path = TFS.getCheckpointPath(FID);
-    UnderFileSystem tHdfsClient = UnderFileSystem.get(path);
+    UnderFileSystem underFsClient = UnderFileSystem.get(path);
     InputStream inputStream;
     try {
-      inputStream = tHdfsClient.open(path);
+      inputStream = underFsClient.open(path);
     } catch (IOException e) {
       return false;
     }
+
     TachyonFile tTFile = TFS.getFile(FID);
     try {
       OutStream os = tTFile.getOutStream(WriteType.CACHE);
