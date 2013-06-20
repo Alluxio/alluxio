@@ -108,5 +108,6 @@ public class BasicRawTableOperations {
     createRawTable();
     writeParition();
     readPartition();
+    System.exit(0);
   }
 }
