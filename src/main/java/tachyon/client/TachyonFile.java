@@ -111,16 +111,20 @@ public class TachyonFile implements Comparable<TachyonFile> {
   public long length() {
     return TFS.getFileLength(FID);
   }
-  
+
   public int getNumberOfBlocks() {
     return TFS.getNumberOfBlocks(FID);
+  }
+
+  public long getBlockSizeByte() {
+    return TFS.getBlockSizeByte(FID);
   }
 
   public ByteBuffer readByteBuffer() throws IOException {
     if (TFS.getNumberOfBlocks(FID) > 1) {
       throw new IOException("The file has more than one block. This API does not support this.");
     }
-    
+
     return readByteBuffer(0);
   }
 
