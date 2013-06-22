@@ -49,7 +49,7 @@ public class TachyonFS {
       new HashMap<String, ClientFileInfo>();
   private Map<Integer, ClientFileInfo> mClientFileInfos = new HashMap<Integer, ClientFileInfo>();
   // Cached ClientBlockInfo
-//  private Map<Long, ClientBlockInfo> mClientBlockInfos = new HashMap<Long, ClientBlockInfo>();
+  //  private Map<Long, ClientBlockInfo> mClientBlockInfos = new HashMap<Long, ClientBlockInfo>();
   // The RPC client talks to the local worker if there is one.
   private WorkerClient mWorkerClient = null;
   // The local root data folder.
@@ -685,6 +685,10 @@ public class TachyonFS {
   }
 
   synchronized long getFileLength(int fid) {
+    if (!mClientFileInfos.get(fid).isComplete()) {
+      ClientFileInfo info = getClientFileInfo(fid);
+      mClientFileInfos.put(fid, info);
+    }
     return mClientFileInfos.get(fid).getLength();
   }
 
