@@ -38,7 +38,7 @@ public class HadoopCompatibleFS extends FileSystem {
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
       throws IOException {
-    LOG.info("TachyonFileSystem append(" + path + ", " + bufferSize + ", " + progress + ")");
+    LOG.info("append(" + path + ", " + bufferSize + ", " + progress + ")");
     throw new IOException("Not supported");
   }
 
@@ -46,14 +46,14 @@ public class HadoopCompatibleFS extends FileSystem {
   public FSDataOutputStream create(Path cPath, FsPermission permission, boolean overwrite,
       int bufferSize, short replication, long blockSize, Progressable progress)
           throws IOException {
-    LOG.debug("TachyonFileSystem create(" + cPath + ", " + permission + ", " + overwrite + 
+    LOG.debug("create(" + cPath + ", " + permission + ", " + overwrite + 
         ", " + bufferSize + ", " + replication + ", " + blockSize + ", " + progress + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
 
     Path hdfsPath = Utils.getHDFSPath(path);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
-    LOG.debug("TachyonFileSystem mkdirs: making dir " + hdfsPath);
+    LOG.debug("mkdirs: making dir " + hdfsPath);
 
     return fs.create(hdfsPath, permission, overwrite, bufferSize, replication, blockSize,
         progress);
@@ -67,10 +67,10 @@ public class HadoopCompatibleFS extends FileSystem {
 
   @Override
   public boolean delete(Path path, boolean recursive) throws IOException {
-    LOG.debug("TachyonFileSystem delete(" + path + ", " + recursive + ")");
+    LOG.debug("delete(" + path + ", " + recursive + ")");
     Path hdfsPath = Utils.getHDFSPath(path);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
-    LOG.debug("TachyonFileSystem delete(" + hdfsPath + ", " + recursive + ")");
+    LOG.debug("delete(" + hdfsPath + ", " + recursive + ")");
     boolean succeed = false;
     succeed = mTFS.delete(Utils.getPathWithoutScheme(path), recursive);
     return fs.delete(hdfsPath, recursive) && succeed;

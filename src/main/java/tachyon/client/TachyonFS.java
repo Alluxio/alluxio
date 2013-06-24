@@ -344,6 +344,10 @@ public class TachyonFS {
   }
 
   public synchronized int createFile(String path, long blockSizeByte) throws IOException {
+    if (blockSizeByte > (long) Constants.GB * 2) {
+      throw new IOException("Block size must be less than 2GB: " + blockSizeByte);
+    }
+
     connect();
     if (!mConnected) {
       return -1;

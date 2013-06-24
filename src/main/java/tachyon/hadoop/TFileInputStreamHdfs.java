@@ -22,7 +22,7 @@ public class TFileInputStreamHdfs extends InputStream implements Seekable, Posit
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private int mCurrentPosition;
-  private TachyonFS mTachyonClient;
+  private TachyonFS mTFS;
   private int mFileId;
   private Path mHdfsPath;
   private Configuration mHadoopConf;
@@ -36,18 +36,18 @@ public class TFileInputStreamHdfs extends InputStream implements Seekable, Posit
   private int mBufferPosition = 0;
   private byte mBuffer[] = new byte[UserConf.get().FILE_BUFFER_BYTES * 4];
 
-  public TFileInputStreamHdfs(TachyonFS tachyonClient, int fileId, 
-      Path hdfsPath, Configuration conf, int bufferSize) {
-    LOG.debug("PartitionInputStreamHdfs(" + tachyonClient + ", " + fileId + ", "
-        + hdfsPath + ", " + conf + ", " + bufferSize + ")");
+  public TFileInputStreamHdfs(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
+      int bufferSize) {
+    LOG.debug("PartitionInputStreamHdfs(" + tfs + ", " + fileId + ", " + hdfsPath + ", " + 
+      conf + ", " + bufferSize + ")");
     mCurrentPosition = 0;
-    mTachyonClient = tachyonClient;
+    mTFS = tfs;
     mFileId = fileId;
     mHdfsPath = hdfsPath;
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;
 
-    TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
+    TachyonFile tachyonFile = mTFS.getFile(mFileId);
     try {
       mTachyonFileInputStream = tachyonFile.getInStream(ReadType.CACHE);
     } catch (IOException e) {
@@ -110,7 +110,7 @@ public class TFileInputStreamHdfs extends InputStream implements Seekable, Posit
   }
 
   /**
-   * Seeks a different copy of the data.  Returns true if found a new source, false otherwise.
+   * Seeks a different copy of the data. Returns true if found a new source, false otherwise.
    */
   @Override
   public boolean seekToNewSource(long targetPos) throws IOException {

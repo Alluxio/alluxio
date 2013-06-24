@@ -6,6 +6,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.apache.hadoop.hdfs.server.common.HdfsConstants.StartupOption;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,20 +32,17 @@ public class HadoopCompatibleFSTest {
     mLocalTachyonCluster.start();
     mClient = mLocalTachyonCluster.getClient();
 
-    Configuration conf = new Configuration();
-    mDfsCluster = new MiniDFSCluster(conf, 1, true, null);
-    FileSystem fs = mDfsCluster.getFileSystem();
-    Assert.assertTrue("Not a HDFS: "+fs.getUri(), fs instanceof DistributedFileSystem);
-    mDfs = (DistributedFileSystem) fs;
+    //    Configuration conf = new Configuration();
+    //    System.setProperty("fs.default.name", "hdfs://localhost:54310");
+    //    mDfsCluster = new MiniDFSCluster();
+    //    FileSystem fs = mDfsCluster.getFileSystem();
+    //    Assert.assertTrue("Not a HDFS: "+fs.getUri(), fs instanceof DistributedFileSystem);
+    //    mDfs = (DistributedFileSystem) fs;
   }
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
-  }
-
-  @Test
-  public void test() {
   }
 }

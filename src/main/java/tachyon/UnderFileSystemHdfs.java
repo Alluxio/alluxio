@@ -29,8 +29,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   private UnderFileSystemHdfs(String fsDefaultName) {
     try {
       Configuration tConf = new Configuration();
-      tConf.set("fs.default.name", fsDefaultName);
-      mFs = FileSystem.get(tConf);
+      tConf.set("fs.defaultFS", fsDefaultName);
+      tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
+      Path path = new Path(fsDefaultName);
+      mFs = path.getFileSystem(tConf);// FileSystem.get(tConf);
+      //      mFs = FileSystem.get(new URI(fsDefaultName), tConf);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
