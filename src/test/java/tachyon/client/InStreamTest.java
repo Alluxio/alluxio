@@ -17,14 +17,14 @@ import tachyon.thrift.InvalidPathException;
  */
 public class InStreamTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mClient = null;
+  private TachyonFS mTfs = null;
 
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
-    mClient = mLocalTachyonCluster.getClient();
+    mTfs = mLocalTachyonCluster.getClient();
   }
 
   @After
@@ -40,9 +40,9 @@ public class InStreamTest {
   public void readTest1() throws IOException, InvalidPathException, FileAlreadyExistException {
     for (int k = 100; k <= 200; k += 33) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = mClient.getFile(fileId);
+        TachyonFile file = mTfs.getFile(fileId);
         InStream is;
         if (k < 150) {
           is = file.getInStream(ReadType.CACHE);
@@ -69,9 +69,9 @@ public class InStreamTest {
   public void readTest2() throws IOException, InvalidPathException, FileAlreadyExistException {
     for (int k = 100; k <= 300; k += 33) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = mClient.getFile(fileId);
+        TachyonFile file = mTfs.getFile(fileId);
         InStream is;
         if (k < 200) {
           is = file.getInStream(ReadType.CACHE);
@@ -93,9 +93,9 @@ public class InStreamTest {
   public void readTest3() throws IOException, InvalidPathException, FileAlreadyExistException {
     for (int k = 100; k <= 300; k += 33) {
       for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mClient, "/root/testFile_" + k + "_" + op, op, k);
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
-        TachyonFile file = mClient.getFile(fileId);
+        TachyonFile file = mTfs.getFile(fileId);
         InStream is;
         if (k < 200) {
           is = file.getInStream(ReadType.CACHE);

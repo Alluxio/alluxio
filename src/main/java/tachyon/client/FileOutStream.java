@@ -31,18 +31,16 @@ public class FileOutStream extends OutStream {
   private final int FID;
   private final WriteType WRITE_TYPE;
 
+  private BlockOutStream mCurrentBlockOutStream;
+  private boolean mCanCache;
   private long mCurrentBlockId;
   private long mCurrentBlockWrittenByte;
   private long mCurrentBlockLeftByte;
-  private List<Long> mPreviousBlockIds;
+  private List<BlockOutStream> mPreviousBlockOutStreams;
   private long mWrittenBytes;
 
-  private RandomAccessFile mLocalFile;
-  private FileChannel mLocalFileChannel;
-
-  private OutputStream mCheckpointOutputStream;
-
-  private ByteBuffer mBuffer;
+  private OutputStream mCheckpointOutputStream = null;
+  private String mUnderFsFile = null;
 
   private boolean mClosed = false;
   private boolean mCancel = false;
@@ -52,71 +50,18 @@ public class FileOutStream extends OutStream {
     FID = file.FID;
     WRITE_TYPE = opType;
 
+    mCurrentBlockOutStream = null;
+    mCanCache = true;
     mCurrentBlockId = -1;
     mCurrentBlockWrittenByte = 0;
     mCurrentBlockLeftByte = 0;
-    mPreviousBlockIds = new ArrayList<Long>();
+    mPreviousBlockOutStreams = new ArrayList<BlockOutStream>();
     mWrittenBytes = 0;
 
     if (WRITE_TYPE.isThrough()) {
-      String underfsFolder = TFS.createAndGetUserUnderfsTempFolder();
-      UnderFileSystem underfsClient = UnderFileSystem.get(underfsFolder);
-      mCheckpointOutputStream = underfsClient.create(underfsFolder + "/" + FID);
-    }
-
-    mBuffer = ByteBuffer.allocate(USER_CONF.FILE_BUFFER_BYTES + 4);
-    mBuffer.order(ByteOrder.nativeOrder());
-  }
-
-  private synchronized void appendCurrentBuffer(byte[] buf, int offset, 
-      int length) throws IOException {
-    if (WRITE_TYPE.isThrough()) {
-      mCheckpointOutputStream.write(buf, 0, length);
-    }
-    mWrittenBytes += length;
-
-    if (WRITE_TYPE.isCache()) {
-      if (!TFS.requestSpace(length)) {
-        if (TFS.isNeedPin(FID)) {
-          TFS.outOfMemoryForPinFile(FID);
-          throw new IOException("Local tachyon worker does not have enough " +
-              "space or no worker for " + FID);
-        }
-
-        // TODO this should be okay if it is not must cache.
-        throw new IOException("Local tachyon worker does not have enough " +
-            "space (" + length + ") or no worker for " + FID);
-      }
-
-      if (mCurrentBlockId == -1) {
-        getNextBlock();
-      }
-
-      int addByte = length;
-      if (addByte > mCurrentBlockLeftByte) {
-        addByte = (int) mCurrentBlockLeftByte;
-      }
-      MappedByteBuffer out = 
-          mLocalFileChannel.map(MapMode.READ_WRITE, mCurrentBlockWrittenByte, addByte);
-      out.put(buf, 0, addByte);
-      mCurrentBlockWrittenByte += addByte;
-      mCurrentBlockLeftByte -= addByte;
-
-      if (addByte < length) {
-        getNextBlock();
-        int moreAddByte = length - addByte;
-        out = mLocalFileChannel.map(MapMode.READ_WRITE, mCurrentBlockWrittenByte, moreAddByte);
-        out.put(buf, addByte, moreAddByte);
-        mCurrentBlockWrittenByte += moreAddByte;
-        mCurrentBlockLeftByte -= moreAddByte;
-      }
-    }
-  }
-
-  private void closeCurrentBlock() throws IOException {
-    if (mLocalFileChannel != null) {
-      mLocalFileChannel.close();
-      mLocalFile.close();
+      mUnderFsFile = TFS.createAndGetUserUnderfsTempFolder() + "/" + FID;
+      UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile);
+      mCheckpointOutputStream = underfsClient.create(mUnderFsFile);
     }
   }
 
@@ -125,47 +70,35 @@ public class FileOutStream extends OutStream {
       if (mCurrentBlockLeftByte != 0) {
         throw new IOException("The current block still has space left, no need to get new block");
       }
-      closeCurrentBlock();
-      mPreviousBlockIds.add(mCurrentBlockId);
+      mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
-    mCurrentBlockId = TFS.getBlockIdBasedOnOffset(FID, mCurrentBlockWrittenByte);
-    mCurrentBlockWrittenByte = 0;
-    mCurrentBlockLeftByte = TFS.getBlockSizeByte(FID);
-
     if (WRITE_TYPE.isCache()) {
-      if (!TFS.hasLocalWorker()) {
-        mLocalFileChannel = null;
-        mLocalFile = null;
-        if (WRITE_TYPE.isMustCache()) {
-          throw new IOException("No local worker on this machine.");
-        }
-        return;
-      }
-      File localFolder = TFS.createAndGetUserTempFolder();
-      if (localFolder == null) {
-        mLocalFileChannel = null;
-        mLocalFile = null;
-        if (WRITE_TYPE.isMustCache()) {
-          throw new IOException("Failed to create temp user folder for tachyon client.");
-        }
-        return;
-      }
-      String localFilePath = localFolder.getPath() + "/" + mCurrentBlockId;
-      mLocalFile = new RandomAccessFile(localFilePath, "rw");
-      mLocalFileChannel = mLocalFile.getChannel();
-      LOG.info("File " + localFilePath + " was created!");
+      mCurrentBlockId = TFS.getBlockIdBasedOnOffset(FID, mWrittenBytes);
+      mCurrentBlockWrittenByte = 0;
+      mCurrentBlockLeftByte = TFS.getBlockSizeByte(FID);
+
+      mCurrentBlockOutStream = new BlockOutStream(TFS, FID, WRITE_TYPE, mCurrentBlockId,
+          mWrittenBytes, mCurrentBlockLeftByte, false);
     }
   }
 
   @Override
   public void write(int b) throws IOException {
-    if (mBuffer.position() >= USER_CONF.FILE_BUFFER_BYTES) {
-      appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-      mBuffer.clear();
+    if (WRITE_TYPE.isCache() && mCanCache) {
+      if (mCurrentBlockId == -1 || mCurrentBlockLeftByte == 0) {
+        getNextBlock();
+      }
+      // TODO Cache the exception here.
+      mCurrentBlockOutStream.write(b);
+      mCurrentBlockLeftByte --;
     }
 
-    mBuffer.put((byte) (b & 0xFF));
+    if (WRITE_TYPE.isThrough()) {
+      mCheckpointOutputStream.write(b);
+    }
+
+    mWrittenBytes ++;
   }
 
   @Override
@@ -182,17 +115,33 @@ public class FileOutStream extends OutStream {
       throw new IndexOutOfBoundsException();
     }
 
-    if (mBuffer.position() + len >= USER_CONF.FILE_BUFFER_BYTES) {
-      if (mBuffer.position() > 0) {
-        appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-        mBuffer.clear();
+    if (WRITE_TYPE.isCache()) {
+      if (mCanCache) {
+        int tLen = len;
+        int tOff = off;
+        while (tLen > 0) {
+          if (mCurrentBlockLeftByte == 0) {
+            getNextBlock();
+          }
+          if (mCurrentBlockLeftByte > tLen) {
+            mCurrentBlockOutStream.write(b, tOff, tLen);
+            mCurrentBlockLeftByte -= tLen;
+            tOff += tLen;
+            tLen = 0;
+          } else {
+            mCurrentBlockOutStream.write(b, tOff, (int) mCurrentBlockLeftByte);
+            tOff += mCurrentBlockLeftByte;
+            tLen -= mCurrentBlockLeftByte;
+            mCurrentBlockLeftByte = 0;
+          }
+        }
+      } else if (WRITE_TYPE.isMustCache()) {
+        throw new IOException("Can not cache: " + WRITE_TYPE);
       }
+    }
 
-      if (len > 0) {
-        appendCurrentBuffer(b, off, len);
-      }
-    } else {
-      mBuffer.put(b, off, len);
+    if (WRITE_TYPE.isThrough()) {
+      mCheckpointOutputStream.write(b, off, len);
     }
   }
 
@@ -211,55 +160,35 @@ public class FileOutStream extends OutStream {
    */
   @Override
   public void flush() throws IOException {
-    throw new IOException("Not implemented yet.");
-  }
-
-  public void cancel() throws IOException {
-    mCancel = true;
-    close();
+    throw new IOException("Not supported yet.");
   }
 
   @Override
   public void close() throws IOException {
     if (!mClosed) {
-      if (!mCancel && mBuffer.position() > 0) {
-        appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-      }
-
-      if (mLocalFileChannel != null) {
-        mLocalFileChannel.close();
-        mLocalFile.close();
+      if (mCurrentBlockOutStream != null) {
+        mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
       }
 
       if (mCancel) {
         if (WRITE_TYPE.isCache()) {
-          try {
-            if (mCurrentBlockId != -1) {
-              mPreviousBlockIds.add(mCurrentBlockId);
-            }
-            for (int k = 0; k < mPreviousBlockIds.size(); k ++) {
-              TFS.cacheBlock(mPreviousBlockIds.get(k));
-            }
-          } catch (IOException e) {
-            if (WRITE_TYPE == WriteType.CACHE) {
-              throw e;
-            }
+          for (BlockOutStream bos : mPreviousBlockOutStreams) {
+            bos.cancel();
           }
         }
 
         if (WRITE_TYPE.isThrough()) {
-          // TODO activately delete the partial file in the underlayer fs.
+          mCheckpointOutputStream.close();
+          UnderFileSystem underFsClient = UnderFileSystem.get(mUnderFsFile);
+          underFsClient.delete(mUnderFsFile, false);
         }
-        TFS.releaseSpace(mWrittenBytes);
       } else {
         if (WRITE_TYPE.isCache()) {
           try {
-            if (mCurrentBlockId != -1) {
-              mPreviousBlockIds.add(mCurrentBlockId);
+            for (int k = 0; k < mPreviousBlockOutStreams.size(); k ++) {
+              mPreviousBlockOutStreams.get(k).close();
             }
-            for (int k = 0; k < mPreviousBlockIds.size(); k ++) {
-              TFS.cacheBlock(mPreviousBlockIds.get(k));
-            }
+
             TFS.completeFile(FID);
           } catch (IOException e) {
             if (WRITE_TYPE == WriteType.CACHE) {
@@ -272,11 +201,16 @@ public class FileOutStream extends OutStream {
           mCheckpointOutputStream.flush();
           mCheckpointOutputStream.close();
           TFS.addCheckpoint(FID);
+          TFS.completeFile(FID);
         }
-
-        TFS.completeFile(FID);
       }
     }
     mClosed = true;
+  }
+
+  @Override
+  public void cancel() throws IOException {
+    mCancel = true;
+    close();
   }
 }

@@ -23,14 +23,14 @@ import tachyon.thrift.TableDoesNotExistException;
  */
 public class RawColumnTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mClient = null;
+  private TachyonFS mTfs = null;
 
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
-    mClient = mLocalTachyonCluster.getClient();
+    mTfs = mLocalTachyonCluster.getClient();
   }
 
   @After
@@ -43,8 +43,8 @@ public class RawColumnTest {
   public void basicTest() 
       throws InvalidPathException, FileAlreadyExistException, TableColumnException, 
       TableDoesNotExistException, FileDoesNotExistException, IOException, TException {
-    int fileId = mClient.createRawTable("/table", Constants.MAX_COLUMNS / 10);
-    RawTable table = mClient.getRawTable(fileId);
+    int fileId = mTfs.createRawTable("/table", Constants.MAX_COLUMNS / 10);
+    RawTable table = mTfs.getRawTable(fileId);
 
     for (int col = 0; col < Constants.MAX_COLUMNS / 10; col ++) {
       RawColumn column = table.getRawColumn(col);

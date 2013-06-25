@@ -6,13 +6,14 @@ import java.io.IOException;
  * Different write types for a TachyonFile. 
  */
 public enum WriteType {
-  // Write the file and must cache it on the client machine.
-  // TODO This is for local testing only for now.
+  // Write the file and must cache it.
   CACHE(1),
-  // Write the file synchronously, must cache it,
-  CACHE_THROUGH(2),
-  // Write the file synchronously, no cache.
-  THROUGH(3);
+  // Write the file and try to cache it.
+  TRY_CACHE(2),
+  // Write the file synchronously to the under fs, and also try to cache it,
+  CACHE_THROUGH(3),
+  // Write the file synchronously to the under fs, no cache.
+  THROUGH(4);
 
   private final int mValue;
 
@@ -29,7 +30,9 @@ public enum WriteType {
   }
 
   public boolean isCache() {
-    return (mValue == CACHE.mValue) || (mValue == CACHE_THROUGH.mValue);
+    return (mValue == CACHE.mValue) 
+        || (mValue == CACHE_THROUGH.mValue)
+        || (mValue == TRY_CACHE.mValue);
   }
 
   public boolean isMustCache() {
