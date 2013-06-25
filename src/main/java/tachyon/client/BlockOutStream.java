@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
@@ -213,5 +212,9 @@ public class BlockOutStream extends OutStream {
 
   public long getBlockId() {
     return BLOCK_ID;
+  }
+
+  public long getBlockOffset() {
+    return BLOCK_OFFSET;
   }
 }
