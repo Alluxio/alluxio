@@ -30,6 +30,8 @@ public class BlockInStream extends InStream {
   private InputStream mCheckpointInputStream = null;
   private long mCheckpointReadByte;
 
+  private BlockOutStream mBlockOutStream = null;
+
   private boolean mClosed = false;
 
   BlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
