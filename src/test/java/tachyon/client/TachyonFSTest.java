@@ -23,7 +23,7 @@ public class TachyonFSTest {
   private final int USER_QUOTA_UNIT_BYTES = 1000;
   private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 3;
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mClient = null;
+  private TachyonFS mTfs = null;
 
   @Before
   public final void before() throws IOException {
@@ -32,7 +32,7 @@ public class TachyonFSTest {
         WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
-    mClient = mLocalTachyonCluster.getClient();
+    mTfs = mLocalTachyonCluster.getClient();
   }
 
   @After
@@ -44,54 +44,53 @@ public class TachyonFSTest {
 
   @Test
   public void createFileTest() throws Exception {
-    int fileId = mClient.createFile("/root/testFile1");
+    int fileId = mTfs.createFile("/root/testFile1");
     Assert.assertEquals(3, fileId);
-    fileId = mClient.createFile("/root/testFile2");
+    fileId = mTfs.createFile("/root/testFile2");
     Assert.assertEquals(4, fileId);
-    fileId = mClient.createFile("/root/testFile3");
+    fileId = mTfs.createFile("/root/testFile3");
     Assert.assertEquals(5, fileId);
   }
 
   @Test(expected = IOException.class)
   public void createFileWithInvalidPathExceptionTest() throws IOException {
-    mClient.createFile("root/testFile1");
+    mTfs.createFile("root/testFile1");
   }
 
   @Test(expected = IOException.class)
   public void createFileWithFileAlreadyExistExceptionTest() throws IOException {
-    int fileId = mClient.createFile("/root/testFile1");
+    int fileId = mTfs.createFile("/root/testFile1");
     Assert.assertEquals(3, fileId);
-    fileId = mClient.createFile("/root/testFile1");
+    fileId = mTfs.createFile("/root/testFile1");
   }
 
   @Test
   public void deleteFileTest() throws IOException {
-    List<ClientWorkerInfo> workers = mClient.getWorkersInfo();
+    List<ClientWorkerInfo> workers = mTfs.getWorkersInfo();
     Assert.assertEquals(1, workers.size());
     Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
     Assert.assertEquals(0, workers.get(0).getUsedBytes());
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
 
     for (int k = 0; k < 5; k ++) {
-      int fileId = TestUtils.createByteFile(
-          mClient, "/file" + k, WriteType.CACHE, writeBytes);
-      TachyonFile file = mClient.getFile(fileId);
+      int fileId = TestUtils.createByteFile(mTfs, "/file" + k, WriteType.CACHE, writeBytes);
+      TachyonFile file = mTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
-      Assert.assertTrue(mClient.exist("/file" + k));
+      Assert.assertTrue(mTfs.exist("/file" + k));
 
-      workers = mClient.getWorkersInfo();
+      workers = mTfs.getWorkersInfo();
       Assert.assertEquals(1, workers.size());
       Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
       Assert.assertEquals(writeBytes * (k + 1), workers.get(0).getUsedBytes());
     }
 
     for (int k = 0; k < 5; k ++) {
-      int fileId = mClient.getFileId("/file" + k);
-      mClient.delete(fileId, true);
-      Assert.assertFalse(mClient.exist("/file" + k));
+      int fileId = mTfs.getFileId("/file" + k);
+      mTfs.delete(fileId, true);
+      Assert.assertFalse(mTfs.exist("/file" + k));
 
       CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 2);
-      workers = mClient.getWorkersInfo();
+      workers = mTfs.getWorkersInfo();
       Assert.assertEquals(1, workers.size());
       Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
       Assert.assertEquals(writeBytes * (4 - k), workers.get(0).getUsedBytes());
@@ -100,14 +99,14 @@ public class TachyonFSTest {
 
   @Test
   public void createRawTableTestEmptyMetadata() throws IOException {
-    int fileId = mClient.createRawTable("/tables/table1", 20);
-    RawTable table = mClient.getRawTable(fileId);
+    int fileId = mTfs.createRawTable("/tables/table1", 20);
+    RawTable table = mTfs.getRawTable(fileId);
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals("/tables/table1", table.getPath());
     Assert.assertEquals(20, table.getColumns());
     Assert.assertEquals(ByteBuffer.allocate(0), table.getMetadata());
 
-    table = mClient.getRawTable("/tables/table1");
+    table = mTfs.getRawTable("/tables/table1");
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals("/tables/table1", table.getPath());
     Assert.assertEquals(20, table.getColumns());
@@ -116,14 +115,14 @@ public class TachyonFSTest {
 
   @Test
   public void createRawTableTestWithMetadata() throws IOException {
-    int fileId = mClient.createRawTable("/tables/table1", 20, TestUtils.getIncreasingByteBuffer(9));
-    RawTable table = mClient.getRawTable(fileId);
+    int fileId = mTfs.createRawTable("/tables/table1", 20, TestUtils.getIncreasingByteBuffer(9));
+    RawTable table = mTfs.getRawTable(fileId);
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals("/tables/table1", table.getPath());
     Assert.assertEquals(20, table.getColumns());
     Assert.assertEquals(TestUtils.getIncreasingByteBuffer(9), table.getMetadata());
 
-    table = mClient.getRawTable("/tables/table1");
+    table = mTfs.getRawTable("/tables/table1");
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals("/tables/table1", table.getPath());
     Assert.assertEquals(20, table.getColumns());
@@ -132,40 +131,40 @@ public class TachyonFSTest {
 
   @Test(expected = IOException.class)
   public void createRawTableWithInvalidPathExceptionTest1() throws IOException {
-    mClient.createRawTable("tables/table1", 20);
+    mTfs.createRawTable("tables/table1", 20);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithInvalidPathExceptionTest2() throws IOException {
-    mClient.createRawTable("/tab les/table1", 20);
+    mTfs.createRawTable("/tab les/table1", 20);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithFileAlreadyExistExceptionTest() throws IOException {
-    mClient.createRawTable("/table", 20);
-    mClient.createRawTable("/table", 20);
+    mTfs.createRawTable("/table", 20);
+    mTfs.createRawTable("/table", 20);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest1() throws IOException {
-    mClient.createRawTable("/table", Constants.MAX_COLUMNS);
+    mTfs.createRawTable("/table", Constants.MAX_COLUMNS);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest2() throws IOException {
-    mClient.createRawTable("/table", 0);
+    mTfs.createRawTable("/table", 0);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest3() throws IOException {
-    mClient.createRawTable("/table", -1);
+    mTfs.createRawTable("/table", -1);
   }
 
   @Test
   public void renameFileTest() throws IOException {
-    int fileId = mClient.createFile("/root/testFile1");
-    mClient.rename("/root/testFile1", "/root/testFile2");
-    Assert.assertEquals(fileId, mClient.getFileId("/root/testFile2"));
-    Assert.assertFalse(mClient.exist("/root/testFile1"));
+    int fileId = mTfs.createFile("/root/testFile1");
+    mTfs.rename("/root/testFile1", "/root/testFile2");
+    Assert.assertEquals(fileId, mTfs.getFileId("/root/testFile2"));
+    Assert.assertFalse(mTfs.exist("/root/testFile1"));
   }
 }

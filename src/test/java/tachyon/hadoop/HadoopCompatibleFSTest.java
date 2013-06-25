@@ -20,7 +20,7 @@ import tachyon.client.TachyonFS;
  */
 public class HadoopCompatibleFSTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mClient = null;
+  private TachyonFS mTfs = null;
 
   private MiniDFSCluster mDfsCluster = null;
   private DistributedFileSystem mDfs = null;
@@ -30,7 +30,7 @@ public class HadoopCompatibleFSTest {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
-    mClient = mLocalTachyonCluster.getClient();
+    mTfs = mLocalTachyonCluster.getClient();
 
     //    Configuration conf = new Configuration();
     //    System.setProperty("fs.default.name", "hdfs://localhost:54310");

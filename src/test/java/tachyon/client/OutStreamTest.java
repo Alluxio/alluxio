@@ -17,14 +17,14 @@ import tachyon.thrift.InvalidPathException;
  */
 public class OutStreamTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mClient = null;
+  private TachyonFS mTfs = null;
 
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
-    mClient = mLocalTachyonCluster.getClient();
+    mTfs = mLocalTachyonCluster.getClient();
   }
 
   @After
@@ -35,15 +35,15 @@ public class OutStreamTest {
 
   private void writeTest1Util(String filePath, WriteType op, int len)
       throws InvalidPathException, FileAlreadyExistException, IOException {
-    int fileId = mClient.createFile(filePath);
-    TachyonFile file = mClient.getFile(fileId);
+    int fileId = mTfs.createFile(filePath);
+    TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
     for (int k = 0; k < len; k ++) {
       os.write((byte) k);
     }
     os.close();
 
-    file = mClient.getFile(filePath);
+    file = mTfs.getFile(filePath);
     InStream is = file.getInStream(ReadType.NO_CACHE);
     byte[] res = new byte[(int) file.length()];
     is.read(res);
@@ -66,14 +66,14 @@ public class OutStreamTest {
 
   private void writeTest2Util(String filePath, WriteType op, int len)
       throws InvalidPathException, FileAlreadyExistException, IOException {
-    int fileId = mClient.createFile(filePath);
-    TachyonFile file = mClient.getFile(fileId);
+    int fileId = mTfs.createFile(filePath);
+    TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
 
     os.write(TestUtils.getIncreasingByteArray(len));
     os.close();
 
-    file = mClient.getFile(filePath);
+    file = mTfs.getFile(filePath);
     InStream is = file.getInStream(ReadType.NO_CACHE);
     byte[] res = new byte[(int) file.length()];
     is.read(res);
@@ -96,14 +96,14 @@ public class OutStreamTest {
 
   private void writeTest3Util(String filePath, WriteType op, int len)
       throws InvalidPathException, FileAlreadyExistException, IOException {
-    int fileId = mClient.createFile(filePath);
-    TachyonFile file = mClient.getFile(fileId);
+    int fileId = mTfs.createFile(filePath);
+    TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
 
     os.write(TestUtils.getIncreasingByteArray(len), 0, len / 2);
     os.close();
 
-    file = mClient.getFile(filePath);
+    file = mTfs.getFile(filePath);
     InStream is = file.getInStream(ReadType.NO_CACHE);
     byte[] res = new byte[(int) file.length()];
     is.read(res);
