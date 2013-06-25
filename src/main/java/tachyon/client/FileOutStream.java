@@ -1,14 +1,8 @@
 package tachyon.client;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileChannel.MapMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +10,6 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
-import tachyon.conf.UserConf;
 
 /**
  * <code>FileOutStream</code> implementation of TachyonFile. It can only be gotten by
@@ -25,16 +18,15 @@ import tachyon.conf.UserConf;
  */
 public class FileOutStream extends OutStream {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private final UserConf USER_CONF = UserConf.get();
 
   private final TachyonFS TFS;
   private final int FID;
   private final WriteType WRITE_TYPE;
+  private final long BLOCK_CAPACITY;
 
   private BlockOutStream mCurrentBlockOutStream;
   private boolean mCanCache;
   private long mCurrentBlockId;
-  private long mCurrentBlockWrittenByte;
   private long mCurrentBlockLeftByte;
   private List<BlockOutStream> mPreviousBlockOutStreams;
   private long mWrittenBytes;
@@ -49,11 +41,11 @@ public class FileOutStream extends OutStream {
     TFS = file.TFS;
     FID = file.FID;
     WRITE_TYPE = opType;
+    BLOCK_CAPACITY = file.getBlockSizeByte();
 
     mCurrentBlockOutStream = null;
     mCanCache = true;
     mCurrentBlockId = -1;
-    mCurrentBlockWrittenByte = 0;
     mCurrentBlockLeftByte = 0;
     mPreviousBlockOutStreams = new ArrayList<BlockOutStream>();
     mWrittenBytes = 0;
@@ -75,11 +67,10 @@ public class FileOutStream extends OutStream {
 
     if (WRITE_TYPE.isCache()) {
       mCurrentBlockId = TFS.getBlockIdBasedOnOffset(FID, mWrittenBytes);
-      mCurrentBlockWrittenByte = 0;
-      mCurrentBlockLeftByte = TFS.getBlockSizeByte(FID);
+      mCurrentBlockLeftByte = BLOCK_CAPACITY;
 
       mCurrentBlockOutStream = new BlockOutStream(TFS, FID, WRITE_TYPE, mCurrentBlockId,
-          mWrittenBytes, mCurrentBlockLeftByte, false);
+          mWrittenBytes, BLOCK_CAPACITY, false);
     }
   }
 

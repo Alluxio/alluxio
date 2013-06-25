@@ -221,6 +221,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   // TODO remove this method. do streaming cache.
+  // This is not a right API.
   public boolean recache() {
     boolean succeed = true;
     String path = TFS.getCheckpointPath(FID);
