@@ -577,8 +577,12 @@ public class TachyonFS {
 
   public synchronized List<Long> getFileBlockIdList(int fId) throws IOException {
     connect();
-    ClientFileInfo info = getClientFileInfo(fId);
-    mClientFileInfos.put(fId, info);
+
+    ClientFileInfo info = mClientFileInfos.get(fId);
+    if (info == null || !info.isComplete()) {
+      info = getClientFileInfo(fId);
+      mClientFileInfos.put(fId, info);
+    }
 
     if (info == null) {
       throw new IOException("File " + fId + " does not exist.");
