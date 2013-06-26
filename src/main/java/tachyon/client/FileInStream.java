@@ -53,6 +53,10 @@ public class FileInStream extends InStream {
 
   @Override
   public int read() throws IOException {
+    if (mCurrentPosition >= FILE_LENGTH) {
+      return -1;
+    }
+
     checkAndAdvanceBlockInStream();
 
     mCurrentPosition ++;

@@ -119,10 +119,12 @@ public class FileOutStream extends OutStream {
             mCurrentBlockLeftByte -= tLen;
             tOff += tLen;
             tLen = 0;
+            mWrittenBytes += tLen;
           } else {
             mCurrentBlockOutStream.write(b, tOff, (int) mCurrentBlockLeftByte);
             tOff += mCurrentBlockLeftByte;
             tLen -= mCurrentBlockLeftByte;
+            mWrittenBytes += mCurrentBlockLeftByte;
             mCurrentBlockLeftByte = 0;
           }
         }

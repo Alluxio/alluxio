@@ -138,8 +138,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     mLockedBlocks.add(blockIndex);
     TFS.lockBlock(blockInfo.blockId);
 
-    ByteBuffer ret = null;
-    ret = readLocalByteBuffer(blockInfo);
+    ByteBuffer ret = readLocalByteBuffer(blockInfo);
     if (ret == null) {
       TFS.unlockBlock(blockInfo.blockId);
       mLockedBlocks.remove(blockIndex);
