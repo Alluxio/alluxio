@@ -2,11 +2,11 @@ package tachyon.hadoop;
 
 import java.io.IOException;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.apache.hadoop.hdfs.server.common.HdfsConstants.StartupOption;
+//import org.apache.hadoop.conf.Configuration;
+//import org.apache.hadoop.fs.FileSystem;
+//import org.apache.hadoop.hdfs.DistributedFileSystem;
+//import org.apache.hadoop.hdfs.MiniDFSCluster;
+//import org.apache.hadoop.hdfs.server.common.HdfsConstants.StartupOption;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,8 +22,8 @@ public class HadoopCompatibleFSTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
-  private MiniDFSCluster mDfsCluster = null;
-  private DistributedFileSystem mDfs = null;
+//  private MiniDFSCluster mDfsCluster = null;
+//  private DistributedFileSystem mDfs = null;
 
   @Before
   public final void before() throws IOException {
