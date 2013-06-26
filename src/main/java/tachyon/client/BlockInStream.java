@@ -112,7 +112,17 @@ public class BlockInStream extends InStream {
       mBuffer.get(b, off, ret);
       return ret;
     }
-    return mCheckpointInputStream.read(b, off, len);
+
+    long ret = mBlockInfo.length - mCheckpointReadByte;
+    if (ret < len) {
+      ret = mCheckpointInputStream.read(b, off, (int) ret);
+      mCheckpointReadByte += ret;
+      return (int) ret;
+    }
+
+    ret = mCheckpointInputStream.read(b, off, len);
+    mCheckpointReadByte += ret;
+    return (int) ret;
   }
 
   @Override
@@ -140,9 +150,19 @@ public class BlockInStream extends InStream {
         ret = (int) n;
       }
       mBuffer.position(mBuffer.position() + ret);
+      mCheckpointReadByte += ret;
       return ret;
     }
 
-    return mCheckpointInputStream.skip(n);
+    long ret = mBlockInfo.length - mCheckpointReadByte;
+    if (ret > n) {
+      ret = n;
+    }
+
+    long tmp = mCheckpointInputStream.skip(ret);
+    ret = Math.min(ret, tmp);
+    mCheckpointReadByte += ret;
+
+    return ret;
   }
 }

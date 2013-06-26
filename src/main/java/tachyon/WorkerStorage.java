@@ -167,6 +167,7 @@ public class WorkerStorage {
     mUsers.addOwnBytes(userId, - fileSizeBytes);
     mMasterClient.worker_cacheBlock(mWorkerId, 
         mWorkerSpaceCounter.getUsedBytes(), blockId, fileSizeBytes);
+    LOG.info(userId + " " + dstFile);
   }
 
   /**

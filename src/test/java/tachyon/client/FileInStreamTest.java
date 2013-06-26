@@ -13,15 +13,16 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
 /**
- * Unit tests for <code>tachyon.client.InStream</code>.
+ * Unit tests for <code>tachyon.client.FileInStream</code>.
  */
-public class InStreamTest {
+public class FileInStreamTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
+    System.setProperty("tachyon.user.default.block.size.byte", "50");
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
@@ -31,6 +32,7 @@ public class InStreamTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   /**
@@ -43,15 +45,24 @@ public class InStreamTest {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
-        InStream is;
-        if (k < 150) {
-          is = file.getInStream(ReadType.CACHE);
-        } else {
-          is = file.getInStream(ReadType.NO_CACHE);
-        }
+        InStream is = (k < 150 ?
+            file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        Assert.assertTrue(is instanceof FileInStream);
         byte[] ret = new byte[k];
         int value = is.read();
         int cnt = 0;
+        while (value != -1) {
+          ret[cnt ++] = (byte) value;
+          value = is.read();
+        }
+        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        is.close();
+
+        is = (k < 150 ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        Assert.assertTrue(is instanceof FileInStream);
+        ret = new byte[k];
+        value = is.read();
+        cnt = 0;
         while (value != -1) {
           ret[cnt ++] = (byte) value;
           value = is.read();
@@ -72,13 +83,17 @@ public class InStreamTest {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
-        InStream is;
-        if (k < 200) {
-          is = file.getInStream(ReadType.CACHE);
-        } else {
-          is = file.getInStream(ReadType.NO_CACHE);
-        }
+        InStream is = 
+            (k < 200 ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        Assert.assertTrue(is instanceof FileInStream);
         byte[] ret = new byte[k];
+        Assert.assertEquals(k, is.read(ret));
+        Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
+        is.close();
+
+        is =  (k < 200 ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        Assert.assertTrue(is instanceof FileInStream);
+        ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
         is.close();
@@ -96,23 +111,16 @@ public class InStreamTest {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
-        InStream is;
-        if (k < 200) {
-          is = file.getInStream(ReadType.CACHE);
-        } else {
-          is = file.getInStream(ReadType.NO_CACHE);
-        }
+        InStream is = 
+            (k < 200 ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        Assert.assertTrue(is instanceof FileInStream);
         byte[] ret = new byte[k / 2];
         Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k / 2, ret));
         is.close();
 
-        is = null;
-        if (k < 200) {
-          is = file.getInStream(ReadType.CACHE);
-        } else {
-          is = file.getInStream(ReadType.NO_CACHE);
-        }
+        is = (k < 200 ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        Assert.assertTrue(is instanceof FileInStream);
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret, 0, k));
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));

@@ -11,8 +11,7 @@ public class UserConf extends Utils {
   public final int FILE_BUFFER_BYTES;
   public final long HEARTBEAT_INTERVAL_MS;
   public final long MASTER_CLIENT_TIMEOUT_MS;
-
-  public final long DEFAULT_BLOCK_SIZE_BYTE = 512 * Constants.MB;
+  public final long DEFAULT_BLOCK_SIZE_BYTE;
 
   private UserConf() {
     FAILED_SPACE_REQUEST_LIMITS = getIntProperty("tachyon.user.failed.space.request.limits", 3);
@@ -20,6 +19,8 @@ public class UserConf extends Utils {
     FILE_BUFFER_BYTES = getIntProperty("tachyon.user.file.buffer.bytes", Constants.MB);
     HEARTBEAT_INTERVAL_MS = getLongProperty("tachyon.user.heartbeat.interval.ms", 1000);
     MASTER_CLIENT_TIMEOUT_MS = getLongProperty("tachyon.user.master.client.timeout.ms", 10000);
+    DEFAULT_BLOCK_SIZE_BYTE =
+        getLongProperty("tachyon.user.default.block.size.byte", 512 * Constants.MB);
   }
 
   public static synchronized UserConf get() {

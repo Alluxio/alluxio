@@ -13,9 +13,9 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
 /**
- * Unit tests for <code>tachyon.client.OutStream</code>.
+ * Unit tests for <code>tachyon.client.FileOutStream</code>.
  */
-public class OutStreamTest {
+public class FileOutStreamTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
@@ -38,6 +38,7 @@ public class OutStreamTest {
     int fileId = mTfs.createFile(filePath);
     TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
+    Assert.assertTrue(os instanceof FileOutStream);
     for (int k = 0; k < len; k ++) {
       os.write((byte) k);
     }
@@ -69,7 +70,7 @@ public class OutStreamTest {
     int fileId = mTfs.createFile(filePath);
     TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
-
+    Assert.assertTrue(os instanceof FileOutStream);
     os.write(TestUtils.getIncreasingByteArray(len));
     os.close();
 
@@ -99,7 +100,7 @@ public class OutStreamTest {
     int fileId = mTfs.createFile(filePath);
     TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
-
+    Assert.assertTrue(os instanceof FileOutStream);
     os.write(TestUtils.getIncreasingByteArray(len), 0, len / 2);
     os.close();
 
