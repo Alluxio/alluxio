@@ -61,7 +61,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       return new BlockInStream(this, opType, 0);
     }
 
-    return new FileInStream(this, opType, blocks);
+    return new FileInStream(this, opType);
   }
 
   public OutStream getOutStream(WriteType opType) throws IOException {
