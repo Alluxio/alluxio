@@ -18,10 +18,6 @@ import tachyon.UnderFileSystem;
  */
 public class FileOutStream extends OutStream {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-
-  private final TachyonFS TFS;
-  private final int FID;
-  private final WriteType WRITE_TYPE;
   private final long BLOCK_CAPACITY;
 
   private BlockOutStream mCurrentBlockOutStream;
@@ -38,9 +34,8 @@ public class FileOutStream extends OutStream {
   private boolean mCancel = false;
 
   FileOutStream(TachyonFile file, WriteType opType) throws IOException {
-    TFS = file.TFS;
-    FID = file.FID;
-    WRITE_TYPE = opType;
+    super(file, opType);
+
     BLOCK_CAPACITY = file.getBlockSizeByte();
 
     mCurrentBlockOutStream = null;
@@ -51,7 +46,7 @@ public class FileOutStream extends OutStream {
     mWrittenBytes = 0;
 
     if (WRITE_TYPE.isThrough()) {
-      mUnderFsFile = TFS.createAndGetUserUnderfsTempFolder() + "/" + FID;
+      mUnderFsFile = TFS.createAndGetUserUnderfsTempFolder() + "/" + FILE.FID;
       UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile);
       mCheckpointOutputStream = underfsClient.create(mUnderFsFile);
     }
@@ -66,11 +61,11 @@ public class FileOutStream extends OutStream {
     }
 
     if (WRITE_TYPE.isCache()) {
-      mCurrentBlockId = TFS.getBlockIdBasedOnOffset(FID, mWrittenBytes);
+      mCurrentBlockId = TFS.getBlockIdBasedOnOffset(FILE.FID, mWrittenBytes);
       mCurrentBlockLeftByte = BLOCK_CAPACITY;
 
-      mCurrentBlockOutStream = new BlockOutStream(TFS, FID, WRITE_TYPE, mCurrentBlockId,
-          mWrittenBytes, BLOCK_CAPACITY, false);
+      mCurrentBlockOutStream =
+          new BlockOutStream(FILE, WRITE_TYPE, (int) (mWrittenBytes / BLOCK_CAPACITY));
     }
   }
 
@@ -182,7 +177,7 @@ public class FileOutStream extends OutStream {
               mPreviousBlockOutStreams.get(k).close();
             }
 
-            TFS.completeFile(FID);
+            TFS.completeFile(FILE.FID);
           } catch (IOException e) {
             if (WRITE_TYPE == WriteType.CACHE) {
               throw e;
@@ -193,8 +188,8 @@ public class FileOutStream extends OutStream {
         if (WRITE_TYPE.isThrough()) {
           mCheckpointOutputStream.flush();
           mCheckpointOutputStream.close();
-          TFS.addCheckpoint(FID);
-          TFS.completeFile(FID);
+          TFS.addCheckpoint(FILE.FID);
+          TFS.completeFile(FILE.FID);
         }
       }
     }

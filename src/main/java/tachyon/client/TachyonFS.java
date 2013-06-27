@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
@@ -72,6 +73,8 @@ public class TachyonFS {
   private Long mAvailableSpaceBytes;
 
   private boolean mConnected = false;
+
+  private AtomicInteger mStreamIds = new AtomicInteger(0);
 
   private TachyonFS(InetSocketAddress masterAddress) {
     mMasterAddress = masterAddress;
@@ -429,54 +432,40 @@ public class TachyonFS {
   }
 
   public synchronized long getBlockId(int fId, int blockIndex) throws IOException {
-    boolean fetch = false;
-    if (!mClientFileInfos.containsKey(fId)) {
-      fetch = true;
-    }
-    ClientFileInfo info = null;
-    if (!fetch) {
-      info = mClientFileInfos.get(fId);
-      if (info.blockIds.size() <= blockIndex) {
-        fetch = true;
+    ClientFileInfo info = mClientFileInfos.get(fId);
+    if (info == null) {
+      info = fetchClientFileInfo(fId);
+      if (info != null) {
+        mClientFileInfos.put(fId, info);
+      } else {
+        throw new IOException("File " + fId + " does not exist.");
       }
     }
 
-    if (fetch) {
-      connect();
-      info = getClientFileInfo(fId);
-      mClientFileInfos.put(fId, info);
+    if (info.blockIds.size() > blockIndex) {
+      return info.blockIds.get(blockIndex);
     }
 
-    if (info == null) {
-      throw new IOException("File " + fId + " does not exist.");
+    connect();
+    try {
+      return mMasterClient.user_getBlockId(fId, blockIndex);
+    } catch (TException e) {
+      throw new IOException(e);
     }
-    if (info.blockIds.size() <= blockIndex) {
-      throw new IOException("BlockIndex " + blockIndex + " is out of the bound in file " + info);
-    }
-
-    return info.blockIds.get(blockIndex);
   }
 
   public synchronized long getBlockIdBasedOnOffset(int fId, long offset) 
       throws IOException {
     ClientFileInfo info;
     if (!mClientFileInfos.containsKey(fId)) {
-      info = getClientFileInfo(fId);
+      info = fetchClientFileInfo(fId);
       mClientFileInfos.put(fId, info);
     }
     info = mClientFileInfos.get(fId);
 
     int index = (int) (offset / info.getBlockSizeByte());
 
-    if (info.getBlockIds().size() > index) {
-      return info.getBlockIds().get(index);
-    }
-
-    try {
-      return mMasterClient.user_getBlockIdBasedOnOffset(fId, offset);
-    } catch (TException e) {
-      throw new IOException(e);
-    }
+    return getBlockId(fId, index);
   }
 
   public synchronized ClientBlockInfo getClientBlockInfo(int fId, int blockIndex) 
@@ -495,7 +484,7 @@ public class TachyonFS {
 
     if (fetch) {
       connect();
-      info = getClientFileInfo(fId);
+      info = fetchClientFileInfo(fId);
       mClientFileInfos.put(fId, info);
     }
 
@@ -548,7 +537,7 @@ public class TachyonFS {
     return ret;
   }
 
-  private synchronized ClientFileInfo getClientFileInfo(int fid) {
+  private synchronized ClientFileInfo fetchClientFileInfo(int fid) {
     connect();
     if (!mConnected) {
       return null;
@@ -570,7 +559,7 @@ public class TachyonFS {
 
   synchronized String getCheckpointPath(int fid) {
     if (mClientFileInfos.get(fid).getCheckpointPath().equals("")) {
-      mClientFileInfos.put(fid, getClientFileInfo(fid));
+      mClientFileInfos.put(fid, fetchClientFileInfo(fid));
     }
     return mClientFileInfos.get(fid).getCheckpointPath();
   }
@@ -580,7 +569,7 @@ public class TachyonFS {
 
     ClientFileInfo info = mClientFileInfos.get(fId);
     if (info == null || !info.isComplete()) {
-      info = getClientFileInfo(fId);
+      info = fetchClientFileInfo(fId);
       mClientFileInfos.put(fId, info);
     }
 
@@ -666,7 +655,7 @@ public class TachyonFS {
 
   public synchronized TachyonFile getFile(int fid) {
     if (!mClientFileInfos.containsKey(fid)) {
-      ClientFileInfo clientFileInfo = getClientFileInfo(fid);
+      ClientFileInfo clientFileInfo = fetchClientFileInfo(fid);
       if (clientFileInfo == null) {
         return null;
       }
@@ -694,7 +683,7 @@ public class TachyonFS {
 
   synchronized long getFileLength(int fid) {
     if (!mClientFileInfos.get(fid).isComplete()) {
-      ClientFileInfo info = getClientFileInfo(fid);
+      ClientFileInfo info = fetchClientFileInfo(fid);
       mClientFileInfos.put(fid, info);
     }
     return mClientFileInfos.get(fid).getLength();
@@ -789,7 +778,7 @@ public class TachyonFS {
   }
 
   synchronized boolean isInMemory(int fid) {
-    ClientFileInfo info = getClientFileInfo(fid);
+    ClientFileInfo info = fetchClientFileInfo(fid);
     mClientFileInfos.put(info.getId(), info);
     return info.isInMemory();
   }
@@ -800,7 +789,7 @@ public class TachyonFS {
 
   synchronized boolean isComplete(int fid) {
     if (!mClientFileInfos.get(fid).isComplete()) {
-      mClientFileInfos.put(fid, getClientFileInfo(fid));
+      mClientFileInfos.put(fid, fetchClientFileInfo(fid));
     }
     return mClientFileInfos.get(fid).isComplete();
   }
@@ -986,5 +975,9 @@ public class TachyonFS {
   public synchronized int getNumberOfBlocks(int fId) {
     // TODO Auto-generated method stub
     return 0;
+  }
+
+  public int getStreamId() {
+    return mStreamIds.getAndIncrement();
   }
 }

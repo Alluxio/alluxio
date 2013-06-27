@@ -9,10 +9,7 @@ import tachyon.Constants;
 public class FileInStream extends InStream {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private final TachyonFS TFS;
-  private final TachyonFile FILE;
   private final long FILE_LENGTH;
-  private final ReadType READ_TYPE;
   private final long BLOCK_CAPACITY;
 
   private long mCurrentPosition;
@@ -23,10 +20,9 @@ public class FileInStream extends InStream {
   private boolean mClosed = false;
 
   public FileInStream(TachyonFile file, ReadType opType) throws IOException {
-    TFS = file.TFS;
-    FILE = file;
+    super(file, opType);
+
     FILE_LENGTH = file.length();
-    READ_TYPE = opType;
     BLOCK_CAPACITY = file.getBlockSizeByte();
 
     mCurrentPosition = 0;

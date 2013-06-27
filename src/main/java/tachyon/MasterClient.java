@@ -211,11 +211,11 @@ public class MasterClient {
     return CLIENT.user_deleteById(fileId, recursive);
   }
 
-  public synchronized long user_getBlockIdBasedOnOffset(int fId, long offset)
+  public synchronized long user_getBlockId(int fId, int index)
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_getBlockIdBasedOnOffset(fId, offset);
+      return CLIENT.user_getBlockId(fId, index);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }

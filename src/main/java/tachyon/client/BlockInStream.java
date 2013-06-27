@@ -20,24 +20,21 @@ import tachyon.thrift.ClientBlockInfo;
 public class BlockInStream extends InStream {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private final TachyonFS TFS;
-  private final TachyonFile FILE;
   private final int BLOCK_INDEX;
-  private final ReadType READ_TYPE;
 
   private ClientBlockInfo mBlockInfo;
   private ByteBuffer mBuffer = null;
   private InputStream mCheckpointInputStream = null;
   private long mCheckpointReadByte;
 
+  private boolean mRecache = true;
   private BlockOutStream mBlockOutStream = null;
 
   private boolean mClosed = false;
 
   BlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
-    TFS = file.TFS;
-    FILE = file;
-    READ_TYPE = readType;
+    super(file, readType);
+
     BLOCK_INDEX = blockIndex;
     mBlockInfo = TFS.getClientBlockInfo(FILE.FID, BLOCK_INDEX);
     mCheckpointReadByte = 0;
@@ -51,6 +48,8 @@ public class BlockInStream extends InStream {
       if (FILE.recache()) {
         mBuffer = FILE.readByteBuffer(blockIndex);
       }
+      //      mBlockOutStream = new BlockOutStream();
+      mRecache = true;
     }
 
     String checkpointPath = TFS.getCheckpointPath(FILE.FID);

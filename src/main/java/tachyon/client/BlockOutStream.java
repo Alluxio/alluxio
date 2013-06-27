@@ -18,14 +18,11 @@ import tachyon.conf.UserConf;
  */
 public class BlockOutStream extends OutStream {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private final UserConf USER_CONF = UserConf.get();
 
-  private final TachyonFS TFS;
-  private final WriteType WRITE_TYPE;
-  private final int FILE_ID;
+  private final int BLOCK_INDEX;
+  private final long BLOCK_CAPACITY_BYTE;
   private final long BLOCK_ID;
   private final long BLOCK_OFFSET;
-  private final long BLOCK_CAPACITY_BYTE;
   private final boolean PIN;
 
   private long mInFileBytes = 0;
@@ -41,19 +38,18 @@ public class BlockOutStream extends OutStream {
   private boolean mClosed = false;
   private boolean mCancel = false;
 
-  BlockOutStream(TachyonFS tfs, int fid, WriteType opType, long blockId, long blockOffset,
-      long blockCapacityByte, boolean pin) throws IOException {
+  BlockOutStream(TachyonFile file, WriteType opType, int blockIndex) throws IOException {
+    super(file, opType);
+
     if (!opType.isCache()) {
       throw new IOException("BlockOutStream only support WriteType.CACHE");
     }
 
-    TFS = tfs;
-    WRITE_TYPE = opType;
-    FILE_ID = fid;
-    BLOCK_ID = blockId;
-    BLOCK_OFFSET = blockOffset;
-    BLOCK_CAPACITY_BYTE = blockCapacityByte;
-    PIN = pin;
+    BLOCK_INDEX = blockIndex;
+    BLOCK_CAPACITY_BYTE = FILE.getBlockSizeByte();
+    BLOCK_ID = FILE.getBlockId(BLOCK_INDEX);
+    BLOCK_OFFSET = BLOCK_CAPACITY_BYTE * blockIndex;
+    PIN = FILE.needPin();
 
     mCanWrite = true;
 
@@ -92,9 +88,9 @@ public class BlockOutStream extends OutStream {
       mCanWrite = false;
 
       String msg = "Local tachyon worker does not have enough " +
-          "space (" + length + ") or no worker for " + FILE_ID + " " + BLOCK_ID;
+          "space (" + length + ") or no worker for " + FILE.FID + " " + BLOCK_ID;
       if (PIN) {
-        TFS.outOfMemoryForPinFile(FILE_ID);
+        TFS.outOfMemoryForPinFile(FILE.FID);
         throw new IOException(msg);
       }
 
