@@ -56,7 +56,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     List<Long> blocks = TFS.getFileBlockIdList(FID);
 
     if (blocks.size() == 0) {
-      return new EmptyBlockInStream();
+      return new EmptyBlockInStream(this, opType);
     } else if (blocks.size() == 1) {
       return new BlockInStream(this, opType, 0);
     }
@@ -128,7 +128,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return readByteBuffer(0);
   }
 
-  public ByteBuffer readByteBuffer(int blockIndex) throws IOException {
+  ByteBuffer readByteBuffer(int blockIndex) throws IOException {
     if (!isComplete()) {
       return null;
     }
@@ -219,8 +219,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return ret;
   }
 
-  // TODO remove this method. do streaming cache.
-  // This is not a right API.
+  // TODO remove this method. do streaming cache. This is not a right API.
   public boolean recache() {
     boolean succeed = true;
     String path = TFS.getCheckpointPath(FID);
@@ -328,5 +327,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
   @Override
   public String toString() {
     return getPath();
+  }
+
+  public long getBlockId(int blockIndex) throws IOException {
+    return TFS.getBlockId(FID, blockIndex);
+  }
+
+  public boolean needPin() {
+    // TODO Auto-generated method stub
+    return false;
   }
 }

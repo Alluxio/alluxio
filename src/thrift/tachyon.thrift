@@ -132,7 +132,7 @@ service MasterService {
   i32 user_getFileId(1: string path)
     throws (1: InvalidPathException e)
   i64 user_getUserId()
-  i64 user_getBlockIdBasedOnOffset(1: i32 fileId, 2: i64 offset)
+  i64 user_getBlockId(1: i32 fileId, 2: i32 index)
     throws (1: FileDoesNotExistException e)
   /**
    * Get local worker NetAddress

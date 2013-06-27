@@ -6,6 +6,10 @@ import java.io.IOException;
  * <code> EmptyBlockInStream </code> is a <code> InStream </code> can not read anything.
  */
 public class EmptyBlockInStream extends InStream {
+  EmptyBlockInStream(TachyonFile file, ReadType readType) {
+    super(file, readType);
+  }
+
   @Override
   public int read() throws IOException {
     return -1;
