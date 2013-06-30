@@ -45,7 +45,7 @@ public class BlockInStream extends InStream {
 
     mBuffer = FILE.readByteBuffer(blockIndex);
     if (mBuffer == null && READ_TYPE.isCache()) {
-      if (FILE.recache()) {
+      if (FILE.recache(blockIndex)) {
         mBuffer = FILE.readByteBuffer(blockIndex);
       }
       //      mBlockOutStream = new BlockOutStream();

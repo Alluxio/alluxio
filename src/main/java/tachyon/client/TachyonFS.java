@@ -600,45 +600,6 @@ public class TachyonFS {
     return mClientFileInfos.get(fId).getBlockSizeByte();
   }
 
-  //  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fids) 
-  //      throws IOException {
-  //    List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
-  //    for (int k = 0; k < fids.size(); k ++) {
-  //      ret.add(getFileBlocks(fids.get(k)));
-  //    }
-  //
-  //    return ret;
-  //  }
-
-  //  public synchronized List<ClientBlockInfo> getFileHosts(int fid)
-  //      throws IOException {
-  //    connect();
-  //    if (!mConnected) {
-  //      return null;
-  //    }
-  //
-  //    List<NetAddress> adresses = getFileBlocks(fid);
-  //    List<String> ret = new ArrayList<String>(adresses.size());
-  //    for (NetAddress address: adresses) {
-  //      ret.add(address.mHost);
-  //      if (address.mHost.endsWith(".ec2.internal")) {
-  //        ret.add(address.mHost.substring(0, address.mHost.length() - 13));
-  //      }
-  //    }
-  //
-  //    return ret;
-  //  }
-  //
-  //  public synchronized List<List<String>> getFilesHosts(List<Integer> fids) 
-  //      throws IOException {
-  //    List<List<String>> ret = new ArrayList<List<String>>();
-  //    for (int k = 0; k < fids.size(); k ++) {
-  //      ret.add(getFileHosts(fids.get(k)));
-  //    }
-  //
-  //    return ret;
-  //  }
-
   public synchronized TachyonFile getFile(String path) throws IOException {
     return getFile(path, false);
   }
@@ -972,9 +933,16 @@ public class TachyonFS {
     throw new RuntimeException("Implement");
   }
 
-  public synchronized int getNumberOfBlocks(int fId) {
-    // TODO Auto-generated method stub
-    return 0;
+  synchronized int getNumberOfBlocks(int fId) throws IOException {
+    ClientFileInfo info = mClientFileInfos.get(fId);
+    if (info == null || !info.isComplete()) {
+      info = fetchClientFileInfo(fId);
+      mClientFileInfos.put(fId, info);
+    }
+    if (info == null) {
+      throw new IOException("File " + fId + " doex not exist.");
+    }
+    return info.getBlockIds().size();
   }
 
   public int getStreamId() {

@@ -112,7 +112,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return TFS.getFileLength(FID);
   }
 
-  public int getNumberOfBlocks() {
+  public int getNumberOfBlocks() throws IOException {
     return TFS.getNumberOfBlocks(FID);
   }
 
@@ -220,27 +220,46 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   // TODO remove this method. do streaming cache. This is not a right API.
-  public boolean recache() {
+  public boolean recache() throws IOException {
+    int numberOfBlocks = TFS.getNumberOfBlocks(FID);
+    if (numberOfBlocks == 0) {
+      return true;
+    }
+
+    boolean succeed = true;
+    for (int k = 0; k < numberOfBlocks; k ++) {
+      succeed &= recache(k);
+    }
+
+    return succeed;
+  }
+
+  boolean recache(int blockIndex) {
     boolean succeed = true;
     String path = TFS.getCheckpointPath(FID);
     UnderFileSystem underFsClient = UnderFileSystem.get(path);
-    InputStream inputStream;
-    try {
-      inputStream = underFsClient.open(path);
-    } catch (IOException e) {
-      return false;
-    }
 
-    TachyonFile tTFile = TFS.getFile(FID);
     try {
-      OutStream os = tTFile.getOutStream(WriteType.CACHE);
+      InputStream inputStream = underFsClient.open(path);
+
+      long length = TFS.getBlockSizeByte(FID);
+      long offset = blockIndex * length;
+      inputStream.skip(offset);
+
       byte buffer[] = new byte[USER_CONF.FILE_BUFFER_BYTES * 4];
 
+      BlockOutStream bos = new BlockOutStream(this, WriteType.TRY_CACHE, blockIndex);
       int limit;
-      while ((limit = inputStream.read(buffer)) >= 0) {
+      while (length > 0 && ((limit = inputStream.read(buffer)) >= 0)) {
         if (limit != 0) {
           try {
-            os.write(buffer, 0, limit);
+            if (length >= limit) {
+              bos.write(buffer, 0, limit);
+              length -= limit;
+            } else {
+              bos.write(buffer, 0, (int) length);
+              length = 0;
+            }
           } catch (IOException e) {
             LOG.warn(e);
             succeed = false;
@@ -249,9 +268,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
         }
       }
       if (succeed) {
-        os.close();
+        bos.close();
       } else {
-        os.cancel();
+        bos.cancel();
       }
     } catch (IOException e) {
       return false;
@@ -334,7 +353,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   public boolean needPin() {
-    // TODO Auto-generated method stub
-    return false;
+    return TFS.isNeedPin(FID);
   }
 }

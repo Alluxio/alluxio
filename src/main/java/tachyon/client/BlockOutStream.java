@@ -11,7 +11,6 @@ import java.nio.channels.FileChannel.MapMode;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
-import tachyon.conf.UserConf;
 
 /**
  * <code>BlockOutStream</code> implementation of TachyonFile. This class is not client facing.
@@ -94,9 +93,7 @@ public class BlockOutStream extends OutStream {
         throw new IOException(msg);
       }
 
-      if (WRITE_TYPE.isMustCache()) {
-        throw new IOException(msg);
-      }
+      throw new IOException(msg);
     }
 
     MappedByteBuffer out = 
