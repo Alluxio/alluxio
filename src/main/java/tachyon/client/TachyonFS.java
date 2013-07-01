@@ -851,6 +851,10 @@ public class TachyonFS {
     }
 
     try {
+      if (srcPath.equals(dstPath) && exist(srcPath)) {
+        return true;
+      }
+
       mMasterClient.user_rename(srcPath, dstPath);
     } catch (TException e) {
       LOG.error(e.getMessage());

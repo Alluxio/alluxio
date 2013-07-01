@@ -161,10 +161,31 @@ public class TachyonFSTest {
   }
 
   @Test
-  public void renameFileTest() throws IOException {
+  public void renameFileTest1() throws IOException {
     int fileId = mTfs.createFile("/root/testFile1");
-    mTfs.rename("/root/testFile1", "/root/testFile2");
-    Assert.assertEquals(fileId, mTfs.getFileId("/root/testFile2"));
-    Assert.assertFalse(mTfs.exist("/root/testFile1"));
+    for (int k = 1; k < 10; k ++) {
+      Assert.assertTrue(mTfs.exist("/root/testFile" + k));
+      Assert.assertTrue(mTfs.rename("/root/testFile" + k, "/root/testFile" + (k + 1)));
+      Assert.assertEquals(fileId, mTfs.getFileId("/root/testFile" + (k + 1)));
+      Assert.assertFalse(mTfs.exist("/root/testFile" + k));
+    }
+  }
+
+  @Test
+  public void renameFileTest2() throws IOException {
+    mTfs.createFile("/root/testFile1");
+    Assert.assertTrue(mTfs.rename("/root/testFile1", "/root/testFile1"));
+  }
+
+  @Test
+  public void renameFileTest3() throws IOException {
+    int fileId = mTfs.createFile("/root/testFile0");
+    TachyonFile file = mTfs.getFile("/root/testFile0");
+    for (int k = 1; k < 10; k ++) {
+      Assert.assertTrue(mTfs.exist("/root/testFile" + (k - 1)));
+      Assert.assertTrue(file.rename("/root/testFile" + k));
+      Assert.assertEquals(fileId, mTfs.getFileId("/root/testFile" + k));
+      Assert.assertFalse(mTfs.exist("/root/testFile" + (k - 1)));
+    }
   }
 }
