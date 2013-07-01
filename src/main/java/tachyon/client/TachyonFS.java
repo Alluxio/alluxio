@@ -414,23 +414,6 @@ public class TachyonFS {
     return getFileId(path) != -1;
   }
 
-  public synchronized boolean rename(String srcPath, String dstPath) 
-      throws IOException {
-    connect();
-    if (!mConnected) {
-      return false;
-    }
-
-    try {
-      mMasterClient.user_renameFile(srcPath, dstPath);
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      return false;
-    }
-
-    return true;
-  }
-
   public synchronized long getBlockId(int fId, int blockIndex) throws IOException {
     ClientFileInfo info = mClientFileInfos.get(fId);
     if (info == null) {
@@ -660,6 +643,18 @@ public class TachyonFS {
     }
   }
 
+  synchronized int getNumberOfBlocks(int fId) throws IOException {
+    ClientFileInfo info = mClientFileInfos.get(fId);
+    if (info == null || !info.isComplete()) {
+      info = fetchClientFileInfo(fId);
+      mClientFileInfos.put(fId, info);
+    }
+    if (info == null) {
+      throw new IOException("File " + fId + " doex not exist.");
+    }
+    return info.getBlockIds().size();
+  }
+
   public synchronized int getNumberOfFiles(String folderPath) 
       throws IOException {
     connect();
@@ -704,6 +699,10 @@ public class TachyonFS {
   public synchronized String getRootFolder() {
     connect();
     return mLocalDataFolder;
+  }
+
+  public int getStreamId() {
+    return mStreamIds.getAndIncrement();
   }
 
   public synchronized String getUnderfsAddress() throws IOException {
@@ -844,6 +843,39 @@ public class TachyonFS {
     mAvailableSpaceBytes += releaseSpaceBytes;
   }
 
+  public synchronized boolean rename(String srcPath, String dstPath) 
+      throws IOException {
+    connect();
+    if (!mConnected) {
+      return false;
+    }
+
+    try {
+      mMasterClient.user_rename(srcPath, dstPath);
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      return false;
+    }
+
+    return true;
+  }
+
+  public synchronized boolean rename(int fId, String path) throws IOException {
+    connect();
+    if (!mConnected) {
+      return false;
+    }
+
+    try {
+      mMasterClient.user_renameTo(fId, path);
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      return false;
+    }
+
+    return true;
+  }
+
   public synchronized boolean requestSpace(long requestSpaceBytes) {
     connect();
     if (mWorkerClient == null || !mIsWorkerLocal) {
@@ -926,26 +958,5 @@ public class TachyonFS {
       mConnected = false;
       throw new IOException(e);
     }
-  }
-
-  public synchronized boolean rename(int fId, String path) {
-    // TODO Auto-generated method stub
-    throw new RuntimeException("Implement");
-  }
-
-  synchronized int getNumberOfBlocks(int fId) throws IOException {
-    ClientFileInfo info = mClientFileInfos.get(fId);
-    if (info == null || !info.isComplete()) {
-      info = fetchClientFileInfo(fId);
-      mClientFileInfos.put(fId, info);
-    }
-    if (info == null) {
-      throw new IOException("File " + fId + " doex not exist.");
-    }
-    return info.getBlockIds().size();
-  }
-
-  public int getStreamId() {
-    return mStreamIds.getAndIncrement();
   }
 }

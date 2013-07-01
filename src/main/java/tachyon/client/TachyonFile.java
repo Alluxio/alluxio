@@ -283,7 +283,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     TFS.unlockBlock(TFS.getBlockId(FID, blockIndex));
   }
 
-  public boolean renameTo(String path) {
+  public boolean renameTo(String path) throws IOException {
     return TFS.rename(FID, path);
   }
 

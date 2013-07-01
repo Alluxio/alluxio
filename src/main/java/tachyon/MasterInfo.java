@@ -1065,7 +1065,52 @@ public class MasterInfo {
     return id;
   }
 
-  public void renameFile(String srcPath, String dstPath) 
+  private void rename(Inode srcInode, String dstPath)
+      throws FileAlreadyExistException, InvalidPathException, FileDoesNotExistException {
+    if (getInode(dstPath) != null) {
+      throw new FileAlreadyExistException("Failed to rename: " + dstPath + " already exist");
+    }
+
+    String dstName = getName(dstPath);
+    String dstFolderPath = dstPath.substring(0, dstPath.length() - dstName.length() - 1);
+
+    // If we are renaming into the root folder
+    if (dstFolderPath.isEmpty()) {
+      dstFolderPath = "/";
+    }
+
+    Inode dstFolderInode = getInode(dstFolderPath);
+    if (dstFolderInode == null || dstFolderInode.isFile()) {
+      throw new FileDoesNotExistException("Failed to rename: " + dstFolderPath + 
+          " does not exist.");
+    }
+
+    srcInode.setName(dstName);
+    InodeFolder parent = (InodeFolder) mInodes.get(srcInode.getParentId());
+    parent.removeChild(srcInode.getId());
+    srcInode.setParentId(dstFolderInode.getId());
+    ((InodeFolder) dstFolderInode).addChild(srcInode.getId());
+
+    // TODO The following should be done atomically.
+    mMasterLogWriter.append(parent, false);
+    mMasterLogWriter.append(dstFolderInode, false);
+    mMasterLogWriter.append(srcInode, false);
+    mMasterLogWriter.flush();
+  }
+
+  public void rename(int fileId, String dstPath) 
+      throws FileDoesNotExistException, FileAlreadyExistException, InvalidPathException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+      if (inode == null) {
+        throw new FileDoesNotExistException("Failed to rename: " + fileId + " does not exist");
+      }
+
+      rename(inode, dstPath);
+    }
+  }
+
+  public void rename(String srcPath, String dstPath)
       throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
       Inode inode = getInode(srcPath);
@@ -1073,35 +1118,7 @@ public class MasterInfo {
         throw new FileDoesNotExistException("Failed to rename: " + srcPath + " does not exist");
       }
 
-      if (getInode(dstPath) != null) {
-        throw new FileAlreadyExistException("Failed to rename: " + dstPath + " already exist");
-      }
-
-      String dstName = getName(dstPath);
-      String dstFolderPath = dstPath.substring(0, dstPath.length() - dstName.length() - 1);
-
-      // If we are renaming into the root folder
-      if (dstFolderPath.isEmpty()) {
-        dstFolderPath = "/";
-      }
-
-      Inode dstFolderInode = getInode(dstFolderPath);
-      if (dstFolderInode == null || dstFolderInode.isFile()) {
-        throw new FileDoesNotExistException("Failed to rename: " + dstFolderPath + 
-            " does not exist.");
-      }
-
-      inode.setName(dstName);
-      InodeFolder parent = (InodeFolder) mInodes.get(inode.getParentId());
-      parent.removeChild(inode.getId());
-      inode.setParentId(dstFolderInode.getId());
-      ((InodeFolder) dstFolderInode).addChild(inode.getId());
-
-      // TODO The following should be done atomically.
-      mMasterLogWriter.append(parent, false);
-      mMasterLogWriter.append(dstFolderInode, false);
-      mMasterLogWriter.append(inode, false);
-      mMasterLogWriter.flush();
+      rename(inode, dstPath);
     }
   }
 

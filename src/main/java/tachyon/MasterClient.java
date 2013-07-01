@@ -369,11 +369,24 @@ public class MasterClient {
     CLIENT.user_outOfMemoryForPinFile(fileId);
   }
 
-  public synchronized void user_renameFile(String srcPath, String dstPath)
+  public synchronized void user_rename(String srcPath, String dstPath)
       throws IOException, TException{
     connect();
     try {
-      CLIENT.user_renameFile(srcPath, dstPath);
+      CLIENT.user_rename(srcPath, dstPath);
+    } catch (FileAlreadyExistException e) {
+      throw new IOException(e);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public void user_renameTo(int fId, String path) throws IOException, TException {
+    connect();
+    try {
+      CLIENT.user_renameTo(fId, path);
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (FileDoesNotExistException e) {
