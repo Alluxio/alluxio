@@ -2,13 +2,7 @@ package tachyon.client;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
-
-import tachyon.Constants;
-
 public class FileInStream extends InStream {
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-
   private final long FILE_LENGTH;
   private final long BLOCK_CAPACITY;
 
@@ -94,7 +88,7 @@ public class FileInStream extends InStream {
 
   @Override
   public void close() throws IOException {
-    if (mCurrentBlockInStream != null) {
+    if (!mClosed && mCurrentBlockInStream != null) {
       mCurrentBlockInStream.close();
     }
 
@@ -125,6 +119,7 @@ public class FileInStream extends InStream {
       mCurrentBlockInStream = new BlockInStream(FILE, READ_TYPE, mCurrentBlockIndex);
       long shouldSkip = mCurrentPosition % BLOCK_CAPACITY;
       long skip = mCurrentBlockInStream.skip(shouldSkip);
+      mCurrentBlockLeft = BLOCK_CAPACITY - skip;
       if (skip != shouldSkip) {
         throw new IOException("The underlayer BlockInStream only skip " + skip + 
             " instead of " + shouldSkip);

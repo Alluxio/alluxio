@@ -32,6 +32,12 @@ public class BlockInStream extends InStream {
 
   private boolean mClosed = false;
 
+  /**
+   * @param file
+   * @param readType
+   * @param blockIndex
+   * @throws IOException
+   */
   BlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
     super(file, readType);
 
