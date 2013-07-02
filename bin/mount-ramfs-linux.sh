@@ -17,4 +17,4 @@ fi
 F=$TACHYON_RAM_FOLDER
 
 echo "Formatting RamFS: $F"
-umount -f $F; mkdir -p $F; mount -t ramfs -o size=15g ramfs $F ; chmod a+w $F ;
+umount -f $F ; mkdir -p $F; mount -t ramfs -o size=15g ramfs $F ; chmod a+w $F ;

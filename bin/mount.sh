@@ -4,7 +4,7 @@
 # Starts the master on this node.
 # Starts a worker on each node specified in conf/slaves
 
-Usage="Usage: start.sh [Mount|SudoMount|NoMount]"
+Usage="Usage: mount.sh [Mount|SudoMount]"
 
 if [ "$#" -ne 1 ]; then
   echo $Usage
@@ -16,14 +16,11 @@ bin=`cd "$( dirname "$0" )"; pwd`
 # Load the Tachyon configuration
 . "$bin/tachyon-config.sh"
 
-mkdir -p $TACHYON_HOME/logs
-mkdir -p $TACHYON_HOME/data
-
-$bin/stop.sh
-
-$bin/start-master.sh
-
-sleep 1
-
-# $bin/slaves.sh $bin/clear-cache.sh
-$bin/slaves.sh $bin/start-worker.sh $1
+if [[ "$1" == "Mount" ]] ; then
+  $bin/slaves.sh $bin/mount-ramfs.sh $1
+elif [[ "$1" == "SudoMount" ]]; then
+  $bin/slaves.sh $bin/mount-ramfs.sh $1
+else
+  echo $Usage
+  exit 1
+fi
