@@ -27,7 +27,7 @@ import tachyon.thrift.NetAddress;
  * with Tachyon transparently by using this class. However, it is not as efficient as using
  * the Tachyon API in tachyon.client package.
  */
-public class HadoopCompatibleFS extends FileSystem {
+public class TFS extends FileSystem {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private URI mUri = null;
