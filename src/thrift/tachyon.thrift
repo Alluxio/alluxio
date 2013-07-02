@@ -99,6 +99,10 @@ exception TableDoesNotExistException {
   1: string message
 }
 
+exception TachyonException {
+  1: string message
+}
+
 service MasterService {
   bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 length, 4: string checkpointPath)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
@@ -163,7 +167,9 @@ service MasterService {
   list<string> user_ls(1: string path, 2: bool recursive)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
   bool user_deleteById(1: i32 fileId, 2: bool recursive) // Delete file
+    throws (1: TachyonException e)
   bool user_deleteByPath(1: string path, 2: bool recursive) // Delete file
+    throws (1: TachyonException e)
   void user_outOfMemoryForPinFile(1: i32 fileId)
   void user_rename(1: string srcPath, 2: string dstPath)
     throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)

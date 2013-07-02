@@ -42,6 +42,7 @@ import tachyon.thrift.NoLocalWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
+import tachyon.thrift.TachyonException;
 
 /**
  * A global view of filesystem in master.
@@ -439,8 +440,9 @@ public class MasterInfo {
    * @param fileId The file to be deleted. 
    * @param recursive
    * @return
+   * @throws TachyonException
    */
-  public boolean delete(int fileId, boolean recursive) {
+  public boolean delete(int fileId, boolean recursive) throws TachyonException {
     LOG.info("delete(" + fileId + ")");
     boolean succeed = true;
     synchronized (mRoot) {
@@ -465,6 +467,19 @@ public class MasterInfo {
       parent.removeChild(inode.getId());
       mInodes.remove(inode.getId());
       if (inode.isFile()) {
+        String checkpointPath = ((InodeFile) inode).getCheckpointPath();
+        if (!checkpointPath.equals("")) {
+          UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
+          
+          try {
+            if (!ufs.delete(checkpointPath, true)) {
+              return false;
+            }
+          } catch (IOException e) {
+            throw new TachyonException(e.getMessage());
+          }
+        }
+
         List<Pair<Long, Long>> blockIdWorkerIdList = ((InodeFile) inode).getBlockIdWorkerIdPairs();
         synchronized (mWorkers) {
           for (Pair<Long, Long> blockIdWorkerId: blockIdWorkerIdList) {
@@ -492,7 +507,7 @@ public class MasterInfo {
     }
   }
 
-  public boolean delete(String path, boolean recursive) {
+  public boolean delete(String path, boolean recursive) throws TachyonException {
     LOG.info("delete(" + path + ")");
     synchronized (mRoot) {
       Inode inode = null;

@@ -30,6 +30,7 @@ import tachyon.thrift.NoLocalWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
+import tachyon.thrift.TachyonException;
 
 /**
  * The master server client side.
@@ -201,14 +202,24 @@ public class MasterClient {
     }
   }
 
-  public synchronized boolean user_delete(String path, boolean recursive) throws TException {
+  public synchronized boolean user_delete(String path, boolean recursive) 
+      throws IOException, TException {
     connect();
-    return CLIENT.user_deleteByPath(path, recursive);
+    try {
+      return CLIENT.user_deleteByPath(path, recursive);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
-  public synchronized boolean user_delete(int fileId, boolean recursive) throws TException {
+  public synchronized boolean user_delete(int fileId, boolean recursive)
+      throws IOException, TException {
     connect();
-    return CLIENT.user_deleteById(fileId, recursive);
+    try {
+      return CLIENT.user_deleteById(fileId, recursive);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
   public synchronized long user_getBlockId(int fId, int index)

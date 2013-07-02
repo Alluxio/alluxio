@@ -25,6 +25,7 @@ import tachyon.thrift.NoLocalWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
+import tachyon.thrift.TachyonException;
 
 /**
  * The Master server program.
@@ -89,12 +90,13 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean user_deleteById(int id, boolean recursive) throws TException {
+  public boolean user_deleteById(int id, boolean recursive) throws TachyonException, TException {
     return mMasterInfo.delete(id, recursive);
   }
 
   @Override
-  public boolean user_deleteByPath(String path, boolean recursive) throws TException {
+  public boolean user_deleteByPath(String path, boolean recursive) 
+      throws TachyonException, TException {
     return mMasterInfo.delete(path, recursive);
   }
 
