@@ -3,7 +3,6 @@ package tachyon.conf;
 import tachyon.Constants;
 
 public class UserConf extends Utils {
-
   private static UserConf USER_CONF = null;
 
   public final int FAILED_SPACE_REQUEST_LIMITS;
