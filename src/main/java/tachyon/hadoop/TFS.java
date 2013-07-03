@@ -46,17 +46,13 @@ public class TFS extends FileSystem {
   public FSDataOutputStream create(Path cPath, FsPermission permission, boolean overwrite,
       int bufferSize, short replication, long blockSize, Progressable progress)
           throws IOException {
-    LOG.debug("create(" + cPath + ", " + permission + ", " + overwrite + 
+    LOG.info("create(" + cPath + ", " + permission + ", " + overwrite + 
         ", " + bufferSize + ", " + replication + ", " + blockSize + ", " + progress + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
-
     Path hdfsPath = Utils.getHDFSPath(path);
     FileSystem fs = hdfsPath.getFileSystem(getConf());
-    LOG.debug("mkdirs: making dir " + hdfsPath);
-
-    return fs.create(hdfsPath, permission, overwrite, bufferSize, replication, blockSize,
-        progress);
+    return fs.create(hdfsPath, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
 
   @Override
@@ -68,12 +64,11 @@ public class TFS extends FileSystem {
   @Override
   public boolean delete(Path path, boolean recursive) throws IOException {
     LOG.debug("delete(" + path + ", " + recursive + ")");
-    Path hdfsPath = Utils.getHDFSPath(path);
-    FileSystem fs = hdfsPath.getFileSystem(getConf());
-    LOG.debug("delete(" + hdfsPath + ", " + recursive + ")");
-    boolean succeed = false;
-    succeed = mTFS.delete(Utils.getPathWithoutScheme(path), recursive);
-    return fs.delete(hdfsPath, recursive) && succeed;
+    String tPath = Utils.getPathWithoutScheme(path);
+    if (!mTFS.exist(tPath)) {
+      getFileStatus(path);
+    }
+    return mTFS.delete(tPath, recursive);
   }
 
   @Override
@@ -83,34 +78,34 @@ public class TFS extends FileSystem {
    * If the file does not exist in Tachyon, query it from HDFS. 
    */
   public FileStatus getFileStatus(Path path) throws IOException {
-    String filePath = Utils.getPathWithoutScheme(path);
-    Path hdfsPath = Utils.getHDFSPath(filePath);
+    String tPath = Utils.getPathWithoutScheme(path);
+    Path hdfsPath = Utils.getHDFSPath(tPath);
 
-    LOG.debug("TachyonFileSystem getFilesStatus(" + path + "): Corresponding HDFS Path: " + hdfsPath);
+    LOG.debug("getFileStatus(" + path + "): Corresponding HDFS Path: " + hdfsPath);
 
     FileSystem fs = hdfsPath.getFileSystem(getConf());
     FileStatus hfs = fs.getFileStatus(hdfsPath);
 
     if (!hfs.isDir()) {
       int fileId;
-      fileId = mTFS.getFileId(filePath);
+      fileId = mTFS.getFileId(tPath);
       if (fileId > 0) {
-        LOG.debug("Tachyon has file " + filePath);
+        LOG.debug("Tachyon has file " + tPath);
       } else {
-        LOG.debug("Tachyon does not have file " + filePath);
-        int tmp = mTFS.createFile(filePath, hdfsPath.toString());
+        LOG.debug("Tachyon does not have file " + tPath);
+        int tmp = mTFS.createFile(tPath, hdfsPath.toString());
         if (tmp == -1) {
-          LOG.debug("Tachyon does have file " + filePath + " and creation failed.");
+          LOG.debug("Tachyon does have file " + tPath + " and creation failed.");
         } else {
-          LOG.debug("Tachyon does not have file " + filePath + " checkpoint added.");
+          LOG.debug("Tachyon does not have file " + tPath + " checkpoint added.");
         }
       }
     }
 
     FileStatus ret = new FileStatus(hfs.getLen(), hfs.isDir(), hfs.getReplication(),
         Integer.MAX_VALUE, hfs.getModificationTime(), hfs.getAccessTime(), hfs.getPermission(),
-        hfs.getOwner(), hfs.getGroup(), new Path(mTachyonHeader + filePath));
-    LOG.debug(mTachyonHeader + filePath);
+        hfs.getOwner(), hfs.getGroup(), new Path(mTachyonHeader + tPath));
+    LOG.debug(mTachyonHeader + tPath);
 
     LOG.debug("HFS: " + Utils.toStringHadoopFileStatus(hfs));
     LOG.debug("TFS: " + Utils.toStringHadoopFileStatus(ret));
@@ -252,8 +247,8 @@ public class TFS extends FileSystem {
   @Override
   public boolean rename(Path src, Path dst) throws IOException {
     LOG.debug("TachyonFileSystem rename(" + src + ", " + dst + ")");
-    Path hSrc = Utils.getHDFSPath(src);
-    Path hDst = Utils.getHDFSPath(dst);
+    Path hSrc = Utils.getHDFSPath(src.toString());
+    Path hDst = Utils.getHDFSPath(dst.toString());
     FileSystem fs = hSrc.getFileSystem(getConf());
     boolean succeed = false;
     succeed = mTFS.rename(Utils.getPathWithoutScheme(src), Utils.getPathWithoutScheme(dst));

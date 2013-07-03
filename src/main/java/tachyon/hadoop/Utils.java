@@ -28,10 +28,6 @@ public final class Utils {
     return path;
   }
 
-  public static Path getHDFSPath(Path path) {
-    return getHDFSPath(path.toString());
-  }
-
   public static Path getHDFSPath(String path) {
     path = getTachyonFileName(path);
 
