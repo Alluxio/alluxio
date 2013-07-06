@@ -150,10 +150,10 @@ public class InodeFile extends Inode {
   }
 
   /**
-   * Get file's complete location information.
-   * @return all blocks locations
+   * Get file's all blocks' ClientBlockInfo information.
+   * @return all blocks ClientBlockInfo
    */
-  public synchronized List<ClientBlockInfo> getLocations() {
+  public synchronized List<ClientBlockInfo> getClientBlockInfos() {
     List<ClientBlockInfo> ret = new ArrayList<ClientBlockInfo>(mBlocks.size());
     for (BlockInfo tInfo: mBlocks) {
       ret.add(tInfo.generateClientBlockInfo());
