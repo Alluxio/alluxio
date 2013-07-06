@@ -540,11 +540,19 @@ public class TachyonFS {
     return ret;
   }
 
+  public synchronized long getBlockSizeByte(int fId) {
+    return mClientFileInfos.get(fId).getBlockSizeByte();
+  }
+
   synchronized String getCheckpointPath(int fid) {
     if (mClientFileInfos.get(fid).getCheckpointPath().equals("")) {
       mClientFileInfos.put(fid, fetchClientFileInfo(fid));
     }
     return mClientFileInfos.get(fid).getCheckpointPath();
+  }
+
+  public synchronized long getCreationTimeMs(int fId) {
+    return mClientFileInfos.get(fId).getCreationTimeMs();
   }
 
   public synchronized List<Long> getFileBlockIdList(int fId) throws IOException {
@@ -579,10 +587,12 @@ public class TachyonFS {
     }
   }
 
-  public long getBlockSizeByte(int fId) {
-    return mClientFileInfos.get(fId).getBlockSizeByte();
-  }
-
+  /**
+   * Get <code>TachyonFile</code> based on the path.
+   * @param path file path.
+   * @return TachyonFile of the path, or null if the file does not exist.
+   * @throws IOException
+   */
   public synchronized TachyonFile getFile(String path) throws IOException {
     return getFile(path, false);
   }
@@ -597,6 +607,11 @@ public class TachyonFS {
     return new TachyonFile(this, clientFileInfo.getId());
   }
 
+  /**
+   * Get <code>TachyonFile</code> based on the file id.
+   * @param fid file id.
+   * @return TachyonFile of the file id, or null if the first does not exist.
+   */
   public synchronized TachyonFile getFile(int fid) {
     if (!mClientFileInfos.containsKey(fid)) {
       ClientFileInfo clientFileInfo = fetchClientFileInfo(fid);
@@ -733,7 +748,7 @@ public class TachyonFS {
     return mConnected;
   }
 
-  synchronized boolean isFolder(int fid) {
+  synchronized boolean isDirectory(int fid) {
     return mClientFileInfos.get(fid).isFolder();
   }
 

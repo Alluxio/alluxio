@@ -670,7 +670,7 @@ public class MasterInfo {
       if (inode == null || inode.isDirectory()) {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
-      List<ClientBlockInfo> ret = ((InodeFile) inode).getLocations();
+      List<ClientBlockInfo> ret = ((InodeFile) inode).getClientBlockInfos();
       LOG.debug("getFileLocations: " + fileId + ret);
       return ret;
     }
