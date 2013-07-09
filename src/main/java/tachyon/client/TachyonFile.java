@@ -89,11 +89,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   public boolean isFile() {
-    return !TFS.isFolder(FID);
+    return !TFS.isDirectory(FID);
   }
 
-  public boolean isFolder() {
-    return TFS.isFolder(FID);
+  public boolean isDirectory() {
+    return TFS.isDirectory(FID);
   }
 
   public boolean isInLocalMemory() {
@@ -354,5 +354,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   public boolean needPin() {
     return TFS.isNeedPin(FID);
+  }
+
+  public int getDiskReplication() {
+    // TODO Implement it.
+    return 3;
+  }
+
+  public long getCreationTimeMs() {
+    return TFS.getCreationTimeMs(FID);
   }
 }

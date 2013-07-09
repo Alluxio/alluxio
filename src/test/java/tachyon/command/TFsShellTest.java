@@ -96,7 +96,7 @@ public class TFsShellTest {
     Assert.assertNotNull(tFile);
     Assert.assertEquals(getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
         mOutput.toString());
-    Assert.assertTrue(tFile.isFolder());
+    Assert.assertTrue(tFile.isDirectory());
   }
 
   @Test
@@ -106,7 +106,7 @@ public class TFsShellTest {
     Assert.assertNotNull(tFile);
     Assert.assertEquals(getCommandOutput(new String[] {"mkdir", "/root/testFile1"}),
         mOutput.toString());
-    Assert.assertTrue(tFile.isFolder());
+    Assert.assertTrue(tFile.isDirectory());
   }
 
   @Test
@@ -116,7 +116,7 @@ public class TFsShellTest {
     Assert.assertNotNull(tFile);
     Assert.assertEquals(getCommandOutput(
         new String[] {"mkdir", "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File"}), mOutput.toString());
-    Assert.assertTrue(tFile.isFolder());
+    Assert.assertTrue(tFile.isDirectory());
   }
 
   @Test(expected = IOException.class)
