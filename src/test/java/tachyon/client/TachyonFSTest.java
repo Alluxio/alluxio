@@ -75,7 +75,7 @@ public class TachyonFSTest {
     Assert.assertTrue(mTfs.exist("/abc"));
     Assert.assertEquals(tempFolder + "/temp", mTfs.getCheckpointPath(mTfs.getFileId("/abc")));
   }
-  
+
   @Test
   public void deleteFileTest() throws IOException {
     List<ClientWorkerInfo> workers = mTfs.getWorkersInfo();

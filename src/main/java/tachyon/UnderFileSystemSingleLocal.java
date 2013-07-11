@@ -67,7 +67,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
     if (!file.exists()) {
       throw new FileNotFoundException(path);
     }
-    return Constants.GB * 2;
+    return Constants.GB * 2L;
   }
 
   @Override

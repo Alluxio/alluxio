@@ -71,7 +71,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public int user_createFile(String path, long blockSizeByte)
-      throws FileAlreadyExistException, InvalidPathException, TException {
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TException {
     return mMasterInfo.createFile(path, blockSizeByte);
   }
 
@@ -83,7 +83,7 @@ public class MasterServiceHandler implements MasterService.Iface {
     try {
       long blockSizeByte = underfs.getBlockSizeByte(checkpointPath);
       long fileSizeByte = underfs.getFileSize(checkpointPath);
-      int fileId = mMasterInfo.createFile(checkpointPath, blockSizeByte);
+      int fileId = mMasterInfo.createFile(path, blockSizeByte);
       if (fileId != -1 && mMasterInfo.addCheckpoint(-1, fileId, fileSizeByte, checkpointPath)) {
         return fileId;
       }
