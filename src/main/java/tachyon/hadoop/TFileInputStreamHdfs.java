@@ -21,7 +21,7 @@ import tachyon.conf.UserConf;
 public class TFileInputStreamHdfs extends InputStream implements Seekable, PositionedReadable {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private int mCurrentPosition;
+  private long mCurrentPosition;
   private TachyonFS mTFS;
   private int mFileId;
   private Path mHdfsPath;
@@ -39,7 +39,7 @@ public class TFileInputStreamHdfs extends InputStream implements Seekable, Posit
   public TFileInputStreamHdfs(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
       int bufferSize) {
     LOG.debug("PartitionInputStreamHdfs(" + tfs + ", " + fileId + ", " + hdfsPath + ", " + 
-      conf + ", " + bufferSize + ")");
+        conf + ", " + bufferSize + ")");
     mCurrentPosition = 0;
     mTFS = tfs;
     mFileId = fileId;
@@ -105,8 +105,20 @@ public class TFileInputStreamHdfs extends InputStream implements Seekable, Posit
     if (pos == mCurrentPosition) {
       return;
     }
-    throw new IOException("Not supported to seek to " + pos + " . Current Position is " 
-        + mCurrentPosition);
+    if (pos < mCurrentPosition) {
+      throw new IOException("Not supported to seek to " + pos + " . Current Position is " 
+          + mCurrentPosition);
+    }
+    if (mTachyonFileInputStream != null) {
+      long needSkip = pos - mCurrentPosition;
+      while (needSkip > 0) {
+        needSkip -= mTachyonFileInputStream.skip(needSkip);
+      }
+      mCurrentPosition = pos;
+    } else if (mHdfsInputStream != null) {
+      mHdfsInputStream.seek(pos);
+      mCurrentPosition = pos;
+    }
   }
 
   /**
