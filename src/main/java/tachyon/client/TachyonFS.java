@@ -779,6 +779,13 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * If the <code>path</code> is a directory, return all the direct entries in it. If the 
+   * <code>path</code> is a file, return its ClientFileInfo. 
+   * @param path the target directory/file path
+   * @return A list of ClientFileInfo
+   * @throws IOException
+   */
   public synchronized List<ClientFileInfo> listStatus(String path)
       throws IOException {
     connect();

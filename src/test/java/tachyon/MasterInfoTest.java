@@ -43,13 +43,13 @@ public class MasterInfoTest {
       throws FileDoesNotExistException, SuspectedFileSizeException, FileAlreadyExistException, 
       InvalidPathException, BlockInfoException {
     int fileId = mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFile");
+    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFile");
     Assert.assertEquals("", fileInfo.getCheckpointPath());
     mMasterInfo.addCheckpoint(-1, fileId, 1, "/testPath");
-    fileInfo = mMasterInfo.getFileInfo("/testFile");
+    fileInfo = mMasterInfo.getClientFileInfo("/testFile");
     Assert.assertEquals("/testPath", fileInfo.getCheckpointPath());
     mMasterInfo.addCheckpoint(-1, fileId, 1, "/testPath");
-    fileInfo = mMasterInfo.getFileInfo("/testFile");
+    fileInfo = mMasterInfo.getClientFileInfo("/testFile");
     Assert.assertEquals("/testPath", fileInfo.getCheckpointPath());
   }
 
@@ -65,7 +65,7 @@ public class MasterInfoTest {
   public void createFileTest() 
       throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException {
     mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    Assert.assertFalse(mMasterInfo.getFileInfo("/testFile").isFolder());
+    Assert.assertFalse(mMasterInfo.getClientFileInfo("/testFile").isFolder());
   }
 
   @Test
@@ -88,7 +88,7 @@ public class MasterInfoTest {
   public void createDirectoryTest() 
       throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException {
     mMasterInfo.mkdir("/testFolder");
-    ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFolder");
+    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFolder");
     Assert.assertTrue(fileInfo.isFolder());
   }
 
@@ -108,7 +108,7 @@ public class MasterInfoTest {
       throws InvalidPathException, FileAlreadyExistException, TableColumnException,
       FileDoesNotExistException {
     mMasterInfo.createRawTable("/testTable", 1, (ByteBuffer) null);
-    Assert.assertTrue(mMasterInfo.getFileInfo("/testTable").isFolder());    
+    Assert.assertTrue(mMasterInfo.getClientFileInfo("/testTable").isFolder());    
   }
 
   @Test(expected = TableColumnException.class)
@@ -212,7 +212,7 @@ public class MasterInfoTest {
   public void clientFileInfoEmptyFileTest() 
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException {
     int fileId = mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFile");
+    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFile");
     Assert.assertEquals("testFile", fileInfo.getName());
     Assert.assertEquals(fileId, fileInfo.getId());
     Assert.assertEquals(-1, fileInfo.getLength());
@@ -227,7 +227,7 @@ public class MasterInfoTest {
   public void clientFileInfoDirectoryTest() 
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException {
     int fileId = mMasterInfo.mkdir("/testFolder");
-    ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFolder");
+    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFolder");
     Assert.assertEquals("testFolder", fileInfo.getName());
     Assert.assertEquals(fileId, fileInfo.getId());
     Assert.assertEquals(0, fileInfo.getLength());

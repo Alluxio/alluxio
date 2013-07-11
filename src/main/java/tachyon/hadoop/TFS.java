@@ -22,6 +22,7 @@ import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 
 /**
@@ -210,24 +211,37 @@ public class TFS extends FileSystem {
     String tPath = Utils.getPathWithoutScheme(path);
     Path hdfsPath = Utils.getHDFSPath(tPath);
     LOG.debug("listStatus(" + path + "): HDFS Path: " + hdfsPath);
-    FileSystem fs = hdfsPath.getFileSystem(getConf());
-    FileStatus[] hfs = fs.listStatus(hdfsPath);
-    ArrayList<FileStatus> tRet = new ArrayList<FileStatus>();
 
-    for (int k = 0; k < hfs.length; k ++) {
-      if (hfs[k].isDir()) {
-        FileStatus[] tFileStatus = listStatus(hfs[k].getPath());
-        for (FileStatus tfs : tFileStatus) {
-          tRet.add(tfs);
-        }
-      } else {
-        tRet.add(getFileStatus(hfs[k].getPath()));
+    if (mTFS.exist(tPath)) {
+      List<ClientFileInfo> files = mTFS.listStatus(tPath);
+      FileStatus[] ret = new FileStatus[files.size()];
+      for (int k = 0; k < files.size(); k ++) {
+        ClientFileInfo info = files.get(k);
+        // TODO replicate 3 with the number of disk replications.
+        ret[k] = new FileStatus(info.getLength(), info.isFolder(), 3, info.getBlockSizeByte(),
+            info.getCreationTimeMs(), info.getCreationTimeMs(), 
+            null, null, null, new Path(mTachyonHeader + info.getPath()));
       }
-    }
-    FileStatus[] ret = new FileStatus[hfs.length];
-    ret = tRet.toArray(ret);
+      return ret;
+    } else {
+      FileSystem fs = hdfsPath.getFileSystem(getConf());
+      FileStatus[] hfs = fs.listStatus(hdfsPath);
+      ArrayList<FileStatus> tRet = new ArrayList<FileStatus>();
 
-    return ret;
+      for (int k = 0; k < hfs.length; k ++) {
+        if (hfs[k].isDir()) {
+          FileStatus[] tFileStatus = listStatus(hfs[k].getPath());
+          for (FileStatus tfs : tFileStatus) {
+            tRet.add(tfs);
+          }
+        } else {
+          tRet.add(getFileStatus(hfs[k].getPath()));
+        }
+      }
+      FileStatus[] ret = new FileStatus[hfs.length];
+      ret = tRet.toArray(ret);
+      return ret;
+    }
   }
 
   @Override
@@ -271,8 +285,10 @@ public class TFS extends FileSystem {
     Path hSrc = Utils.getHDFSPath(src.toString());
     Path hDst = Utils.getHDFSPath(dst.toString());
     FileSystem fs = hSrc.getFileSystem(getConf());
-    boolean succeed = false;
-    succeed = mTFS.rename(Utils.getPathWithoutScheme(src), Utils.getPathWithoutScheme(dst));
+    if (!mTFS.exist(Utils.getPathWithoutScheme(src))) {
+      getFileStatus(src);
+    }
+    boolean succeed = mTFS.rename(Utils.getPathWithoutScheme(src), Utils.getPathWithoutScheme(dst));
     return fs.rename(hSrc, hDst) && succeed;
   }
 

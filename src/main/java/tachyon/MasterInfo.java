@@ -470,7 +470,7 @@ public class MasterInfo {
         String checkpointPath = ((InodeFile) inode).getCheckpointPath();
         if (!checkpointPath.equals("")) {
           UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
-          
+
           try {
             if (!ufs.delete(checkpointPath, true)) {
               return false;
@@ -547,15 +547,15 @@ public class MasterInfo {
     return ret;
   }
 
-  public ClientFileInfo getClientFileInfo(int id) throws FileDoesNotExistException {
+  public ClientFileInfo getClientFileInfo(int fid) throws FileDoesNotExistException {
     synchronized (mRoot) {
-      Inode inode = mInodes.get(id);
+      Inode inode = mInodes.get(fid);
       if (inode == null) {
-        throw new FileDoesNotExistException("FileId " + id + " does not exist.");
+        throw new FileDoesNotExistException("FileId " + fid + " does not exist.");
       }
 
       ClientFileInfo ret = inode.generateClientFileInfo(getPath(inode));
-      LOG.debug("getClientFileInfo(" + id + "): "  + ret);
+      LOG.debug("getClientFileInfo(" + fid + "): "  + ret);
       return ret;
     }
   }
@@ -601,6 +601,14 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * If the <code>path</code> is a directory, return all the direct entries in it. If the 
+   * <code>path</code> is a file, return its ClientFileInfo. 
+   * @param path the target directory/file path
+   * @return A list of ClientFileInfo
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
+   */
   public List<ClientFileInfo> getFilesInfo(String path) 
       throws FileDoesNotExistException, InvalidPathException {
     List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
@@ -627,15 +635,6 @@ public class MasterInfo {
     }
 
     return ret;
-  }
-
-  public ClientFileInfo getFileInfo(String path)
-      throws FileDoesNotExistException, InvalidPathException {
-    Inode inode = getInode(path);
-    if (inode == null) {
-      throw new FileDoesNotExistException(path);
-    }
-    return getClientFileInfo(inode.getId());
   }
 
   public String getFileNameById(int fileId) throws FileDoesNotExistException {
@@ -696,15 +695,6 @@ public class MasterInfo {
       ret = inode.getId();
     }
     LOG.debug("getFileId(" + filePath + "): " + ret);
-    return ret;
-  }
-
-  public List<Integer> getFilesIds(List<String> pathList)
-      throws InvalidPathException, FileDoesNotExistException {
-    List<Integer> ret = new ArrayList<Integer>(pathList.size());
-    for (int k = 0; k < pathList.size(); k ++) {
-      ret.addAll(listFiles(pathList.get(k), true));
-    }
     return ret;
   }
 
