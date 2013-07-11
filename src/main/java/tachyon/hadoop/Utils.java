@@ -15,6 +15,10 @@ public final class Utils {
   private static final boolean DEBUG = Constants.DEBUG;
 
   public static String getTachyonFileName(String path) {
+    if (path.isEmpty()) {
+      return "/";
+    }
+
     while (path.contains(":")) {
       int index = path.indexOf(":");
       path = path.substring(index + 1);
@@ -51,6 +55,9 @@ public final class Utils {
     }
     if (DEBUG) {
       LOG.info("Utils getPathWithoutScheme(" + ori + ") result: " + ret);
+    }
+    if (ret.isEmpty()) {
+      return "/";
     }
     return ret;
   }
