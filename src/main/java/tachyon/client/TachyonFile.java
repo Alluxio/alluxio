@@ -364,4 +364,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
   public long getCreationTimeMs() {
     return TFS.getCreationTimeMs(FID);
   }
+  
+  String getCheckpointPath() {
+    return TFS.getCheckpointPath(FID);
+  }
 }

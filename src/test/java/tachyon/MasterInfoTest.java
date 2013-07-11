@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -41,7 +42,7 @@ public class MasterInfoTest {
   @Test
   public void addCheckpointTest() 
       throws FileDoesNotExistException, SuspectedFileSizeException, FileAlreadyExistException, 
-      InvalidPathException, BlockInfoException {
+      InvalidPathException, BlockInfoException, FileNotFoundException {
     int fileId = mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFile");
     Assert.assertEquals("", fileInfo.getCheckpointPath());
@@ -53,9 +54,9 @@ public class MasterInfoTest {
     Assert.assertEquals("/testPath", fileInfo.getCheckpointPath());
   }
 
-  @Test(expected = FileDoesNotExistException.class)
+  @Test(expected = FileNotFoundException.class)
   public void notFileCheckpointTest()
-      throws FileDoesNotExistException, SuspectedFileSizeException, FileAlreadyExistException,
+      throws FileNotFoundException, SuspectedFileSizeException, FileAlreadyExistException,
       InvalidPathException, BlockInfoException {
     int fileId = mMasterInfo.mkdir("/testFile");
     mMasterInfo.addCheckpoint(-1, fileId, 0, "/testPath");    

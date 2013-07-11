@@ -173,6 +173,12 @@ public class MasterClient {
       throw new IOException(e);
     } catch (InvalidPathException e) {
       throw new IOException(e);
+    } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
+    } catch (BlockInfoException e) {
+      throw new IOException(e);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     }
   }
 

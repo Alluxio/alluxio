@@ -72,6 +72,10 @@ public class LocalTachyonCluster {
     }
   }
 
+  public String getTempFolderInUnderFs() {
+    return CommonConf.get().UNDERFS_ADDRESS;
+  }
+
   public void start() throws IOException {
     mTachyonHome = File.createTempFile("Tachyon", "").getAbsoluteFile() + "UnitTest";
     mWorkerDataFolder = mTachyonHome + "/ramdisk";

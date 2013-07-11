@@ -3,6 +3,7 @@ package tachyon;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -214,7 +215,7 @@ public class MasterInfo {
   }
 
   public boolean addCheckpoint(long workerId, int fileId, long length, String checkpointPath)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
+      throws FileNotFoundException, SuspectedFileSizeException, BlockInfoException {
     LOG.info(CommonUtils.parametersToString(workerId, fileId, length, checkpointPath));
 
     if (workerId != -1) {
@@ -226,10 +227,10 @@ public class MasterInfo {
       Inode inode = mInodes.get(fileId);
 
       if (inode == null) {
-        throw new FileDoesNotExistException("File " + fileId + " does not exist.");
+        throw new FileNotFoundException("File " + fileId + " does not exist.");
       }
       if (inode.isDirectory()) {
-        throw new FileDoesNotExistException("File " + fileId + " is a folder.");
+        throw new FileNotFoundException("File " + fileId + " is a folder.");
       }
 
       InodeFile tFile = (InodeFile) inode;
