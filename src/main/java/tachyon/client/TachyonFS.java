@@ -545,10 +545,13 @@ public class TachyonFS {
   }
 
   synchronized String getCheckpointPath(int fid) {
-    if (mClientFileInfos.get(fid).getCheckpointPath().equals("")) {
-      mClientFileInfos.put(fid, fetchClientFileInfo(fid));
+    ClientFileInfo info = mClientFileInfos.get(fid);
+    if (info == null || !info.getCheckpointPath().equals("")) {
+      info = fetchClientFileInfo(fid);
+      mClientFileInfos.put(fid, info);
     }
-    return mClientFileInfos.get(fid).getCheckpointPath();
+
+    return info.getCheckpointPath();
   }
 
   public synchronized long getCreationTimeMs(int fId) {

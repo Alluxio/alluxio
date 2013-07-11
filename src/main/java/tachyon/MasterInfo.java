@@ -305,14 +305,18 @@ public class MasterInfo {
   }
 
   public int createFile(String path, long blockSizeByte)
-      throws FileAlreadyExistException, InvalidPathException {
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException {
     return createFile(true, path, false, -1, null, blockSizeByte);
   }
 
   // TODO Make this API better.
   public int createFile(boolean recursive, String path, boolean directory, int columns,
       ByteBuffer metadata, long blockSizeByte)
-          throws FileAlreadyExistException, InvalidPathException {
+          throws FileAlreadyExistException, InvalidPathException, BlockInfoException {
+    if (!directory && blockSizeByte < 1) {
+      throw new BlockInfoException("Invalid block size " + blockSizeByte);
+    }
+
     LOG.debug("createFile" + CommonUtils.parametersToString(path));
 
     String[] pathNames = getPathNames(path);
@@ -427,7 +431,12 @@ public class MasterInfo {
           Constants.MAX_COLUMNS);
     }
 
-    int id = createFile(true, path, true, columns, metadata, 0);
+    int id;
+    try {
+      id = createFile(true, path, true, columns, metadata, 0);
+    } catch (BlockInfoException e) {
+      throw new FileAlreadyExistException(e.getMessage());
+    }
 
     for (int k = 0; k < columns; k ++) {
       mkdir(path + Constants.PATH_SEPARATOR + COL + k);
@@ -972,7 +981,11 @@ public class MasterInfo {
 
   public int mkdir(String path)
       throws FileAlreadyExistException, InvalidPathException {
-    return createFile(true, path, true, -1, null, 0);
+    try {
+      return createFile(true, path, true, -1, null, 0);
+    } catch (BlockInfoException e) {
+      throw new FileAlreadyExistException(e.getMessage());
+    }
   }
 
   private void recoveryFromFile(String fileName, String msg) throws IOException {

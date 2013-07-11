@@ -123,7 +123,7 @@ service MasterService {
 
   // Services to Users
   i32 user_createFile(1: string path, 2: i64 blockSizeByte)
-    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
+    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: BlockInfoException eB)
   i32 user_createFileOnCheckpoint(1: string path, 2: string checkpointPath)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: SuspectedFileSizeException eS, 4: BlockInfoException eB, 5: TachyonException eT)
   i64 user_createNewBlock(1: i32 fileId)
