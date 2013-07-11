@@ -20,10 +20,49 @@ import tachyon.thrift.SuspectedFileSizeException;
 public class SubsumeHdfs {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private static TachyonFS sTFS;
-  private static String sFilePath = null;
-  private static String sHdfsAddress = null;
-  private static PrefixList sExcludePathPrefix = null;
+  public static void subsume(TachyonFS tfs, String hdfsAddress, String rootPath, 
+      PrefixList excludePathPrefix) throws IOException {
+    LOG.info(tfs + " " + hdfsAddress + " " + rootPath + " " + excludePathPrefix);
+
+    Configuration tConf = new Configuration();
+    tConf.set("fs.default.name", hdfsAddress + rootPath);
+    FileSystem fs = FileSystem.get(tConf);
+
+    Queue<String> pathQueue = new LinkedList<String>();
+    if (excludePathPrefix.outList(rootPath)) {
+      pathQueue.add(hdfsAddress + rootPath);
+    }
+    while (!pathQueue.isEmpty()) {
+      String path = pathQueue.poll();
+      if (fs.isFile(new Path(path))) {
+        String filePath =  path.substring(hdfsAddress.length());
+        if (tfs.exist(filePath)) {
+          LOG.info("File " + filePath + " already exists in Tachyon.");
+          continue;
+        }
+        int fileId = tfs.createFile(filePath, path);
+        if (fileId == -1) {
+          LOG.info("Failed to create tachyon file: " + filePath);
+        } else {
+          LOG.info("Create tachyon file " + filePath + " with file id " + fileId + " and "
+              + "checkpoint location " + path);
+        }
+      } else {
+        FileStatus[] files = fs.listStatus(new Path(path));
+        for (FileStatus status : files) {
+          LOG.info("Get: " + status.getPath());
+          String filePath = status.getPath().toString().substring(hdfsAddress.length());
+          if (excludePathPrefix.outList(filePath)) {
+            pathQueue.add(status.getPath().toString());
+          }
+        }
+        String filePath = path.substring(hdfsAddress.length());
+        if (!tfs.exist(filePath)) {
+          tfs.mkdir(filePath);
+        }
+      }
+    }
+  }
 
   public static void main(String[] args)
       throws SuspectedFileSizeException, InvalidPathException, IOException,
@@ -37,55 +76,14 @@ public class SubsumeHdfs {
           "127.0.0.1:19998 hdfs://localhost:54310 / /tachyon");
       System.exit(-1);
     }
-    sTFS = TachyonFS.get(args[0]);
-    sHdfsAddress = args[1];
-    sFilePath = args[2];
+
+    PrefixList tExcludePathPrefix = null;
     if (args.length == 4) {
-      sExcludePathPrefix = new PrefixList(args[3], ";");
+      tExcludePathPrefix = new PrefixList(args[3], ";");
     } else {
-      sExcludePathPrefix = new PrefixList(null);
+      tExcludePathPrefix = new PrefixList(null);
     }
 
-    Configuration tConf = new Configuration();
-    tConf.set("fs.default.name", sHdfsAddress + sFilePath);
-    FileSystem fs = FileSystem.get(tConf);
-
-    Queue<String> pathQueue = new LinkedList<String>();
-    if (sExcludePathPrefix.outList(sFilePath)) {
-      pathQueue.add(sHdfsAddress + sFilePath);
-    }
-    while (!pathQueue.isEmpty()) {
-      String path = pathQueue.poll();
-      if (fs.isFile(new Path(path))) {
-        String filePath =  path.substring(sHdfsAddress.length());
-        if (sTFS.exist(filePath)) {
-          LOG.info("File " + filePath + " already exists in Tachyon.");
-          continue;
-        }
-        int fileId = sTFS.createFile(filePath, path);
-        if (fileId == -1) {
-          LOG.info("Failed to create tachyon file: " + filePath);
-        } else {
-          LOG.info("Create tachyon file " + filePath + " with file id " + fileId + " and "
-              + "checkpoint location " + path);
-        }
-      } else {
-        FileStatus[] files = fs.listStatus(new Path(path));
-        for (FileStatus status : files) {
-          LOG.info("Get: " + status.getPath());
-          String filePath = status.getPath().toString().substring(sHdfsAddress.length());
-          if (sExcludePathPrefix.outList(filePath)) {
-            pathQueue.add(status.getPath().toString());
-          }
-        }
-        String filePath = path.substring(sHdfsAddress.length());
-        try {
-          if (!sTFS.exist(filePath)) {
-            sTFS.mkdir(filePath);
-          }
-        } catch (IOException e) {
-        }
-      }
-    }
+    subsume(TachyonFS.get(args[0]), args[1], args[2], tExcludePathPrefix);
   }
 }

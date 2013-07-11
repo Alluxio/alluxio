@@ -13,6 +13,7 @@ import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
+import tachyon.UnderFileSystem;
 import tachyon.thrift.ClientWorkerInfo;
 
 /**
@@ -64,6 +65,17 @@ public class TachyonFSTest {
     fileId = mTfs.createFile("/root/testFile1");
   }
 
+
+  @Test
+  public void createFileWithCheckpointFileTest() throws IOException {
+    String tempFolder = mLocalTachyonCluster.getTempFolderInUnderFs();
+    UnderFileSystem underFs = UnderFileSystem.get(tempFolder);
+    underFs.create(tempFolder + "/temp");
+    mTfs.createFile("/abc", tempFolder + "/temp");
+    Assert.assertTrue(mTfs.exist("/abc"));
+    Assert.assertEquals(tempFolder + "/temp", mTfs.getCheckpointPath(mTfs.getFileId("/abc")));
+  }
+  
   @Test
   public void deleteFileTest() throws IOException {
     List<ClientWorkerInfo> workers = mTfs.getWorkersInfo();

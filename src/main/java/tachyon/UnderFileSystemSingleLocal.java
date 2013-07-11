@@ -2,6 +2,7 @@ package tachyon;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,6 +59,15 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   public long getFileSize(String path) throws IOException {
     File file = new File(path);
     return file.length();
+  }
+
+  @Override
+  public long getBlockSizeByte(String path) throws IOException {
+    File file = new File(path);
+    if (!file.exists()) {
+      throw new FileNotFoundException(path);
+    }
+    return Constants.GB * 2;
   }
 
   @Override
