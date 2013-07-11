@@ -130,11 +130,11 @@ public class MasterClient {
     mHeartbeatThread.shutdown();
   }
 
-  public synchronized List<ClientFileInfo> listStatus(String folder)
+  public synchronized List<ClientFileInfo> listStatus(String path)
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.liststatus(folder);
+      return CLIENT.liststatus(path);
     } catch (InvalidPathException e) {
       throw new IOException(e);
     } catch (FileDoesNotExistException e) {

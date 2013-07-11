@@ -146,7 +146,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
     request.setAttribute("currentPath", currentPath);
     try {
-      UiFileInfo currentFileInfo = new UiFileInfo(mMasterInfo.getFileInfo(currentPath));
+      UiFileInfo currentFileInfo = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
       request.setAttribute("currentDirectory", currentFileInfo);
       if (!currentFileInfo.getIsDirectory()) {
         displayFile(currentFileInfo.getAbsolutePath(), request);
@@ -245,10 +245,10 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     String[] splitPath = path.split(Constants.PATH_SEPARATOR);
     UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length - 1];
     String currentPath = Constants.PATH_SEPARATOR;
-    pathInfos[0] = new UiFileInfo(mMasterInfo.getFileInfo(currentPath));
+    pathInfos[0] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     for (int i = 1; i < splitPath.length - 1; i ++) {
       currentPath = currentPath + splitPath[i];
-      pathInfos[i] = new UiFileInfo(mMasterInfo.getFileInfo(currentPath));
+      pathInfos[i] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
       currentPath = currentPath + Constants.PATH_SEPARATOR;
     }
     request.setAttribute("pathInfos", pathInfos);
