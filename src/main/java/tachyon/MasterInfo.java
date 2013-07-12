@@ -3,6 +3,7 @@ package tachyon;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -214,7 +215,7 @@ public class MasterInfo {
   }
 
   public boolean addCheckpoint(long workerId, int fileId, long length, String checkpointPath)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
+      throws FileNotFoundException, SuspectedFileSizeException, BlockInfoException {
     LOG.info(CommonUtils.parametersToString(workerId, fileId, length, checkpointPath));
 
     if (workerId != -1) {
@@ -226,10 +227,10 @@ public class MasterInfo {
       Inode inode = mInodes.get(fileId);
 
       if (inode == null) {
-        throw new FileDoesNotExistException("File " + fileId + " does not exist.");
+        throw new FileNotFoundException("File " + fileId + " does not exist.");
       }
       if (inode.isDirectory()) {
-        throw new FileDoesNotExistException("File " + fileId + " is a folder.");
+        throw new FileNotFoundException("File " + fileId + " is a folder.");
       }
 
       InodeFile tFile = (InodeFile) inode;
@@ -304,14 +305,18 @@ public class MasterInfo {
   }
 
   public int createFile(String path, long blockSizeByte)
-      throws FileAlreadyExistException, InvalidPathException {
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException {
     return createFile(true, path, false, -1, null, blockSizeByte);
   }
 
   // TODO Make this API better.
   public int createFile(boolean recursive, String path, boolean directory, int columns,
       ByteBuffer metadata, long blockSizeByte)
-          throws FileAlreadyExistException, InvalidPathException {
+          throws FileAlreadyExistException, InvalidPathException, BlockInfoException {
+    if (!directory && blockSizeByte < 1) {
+      throw new BlockInfoException("Invalid block size " + blockSizeByte);
+    }
+
     LOG.debug("createFile" + CommonUtils.parametersToString(path));
 
     String[] pathNames = getPathNames(path);
@@ -426,7 +431,12 @@ public class MasterInfo {
           Constants.MAX_COLUMNS);
     }
 
-    int id = createFile(true, path, true, columns, metadata, 0);
+    int id;
+    try {
+      id = createFile(true, path, true, columns, metadata, 0);
+    } catch (BlockInfoException e) {
+      throw new FileAlreadyExistException(e.getMessage());
+    }
 
     for (int k = 0; k < columns; k ++) {
       mkdir(path + Constants.PATH_SEPARATOR + COL + k);
@@ -470,7 +480,7 @@ public class MasterInfo {
         String checkpointPath = ((InodeFile) inode).getCheckpointPath();
         if (!checkpointPath.equals("")) {
           UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
-          
+
           try {
             if (!ufs.delete(checkpointPath, true)) {
               return false;
@@ -547,15 +557,15 @@ public class MasterInfo {
     return ret;
   }
 
-  public ClientFileInfo getClientFileInfo(int id) throws FileDoesNotExistException {
+  public ClientFileInfo getClientFileInfo(int fid) throws FileDoesNotExistException {
     synchronized (mRoot) {
-      Inode inode = mInodes.get(id);
+      Inode inode = mInodes.get(fid);
       if (inode == null) {
-        throw new FileDoesNotExistException("FileId " + id + " does not exist.");
+        throw new FileDoesNotExistException("FileId " + fid + " does not exist.");
       }
 
       ClientFileInfo ret = inode.generateClientFileInfo(getPath(inode));
-      LOG.debug("getClientFileInfo(" + id + "): "  + ret);
+      LOG.debug("getClientFileInfo(" + fid + "): "  + ret);
       return ret;
     }
   }
@@ -601,6 +611,14 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * If the <code>path</code> is a directory, return all the direct entries in it. If the 
+   * <code>path</code> is a file, return its ClientFileInfo. 
+   * @param path the target directory/file path
+   * @return A list of ClientFileInfo
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
+   */
   public List<ClientFileInfo> getFilesInfo(String path) 
       throws FileDoesNotExistException, InvalidPathException {
     List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
@@ -627,15 +645,6 @@ public class MasterInfo {
     }
 
     return ret;
-  }
-
-  public ClientFileInfo getFileInfo(String path)
-      throws FileDoesNotExistException, InvalidPathException {
-    Inode inode = getInode(path);
-    if (inode == null) {
-      throw new FileDoesNotExistException(path);
-    }
-    return getClientFileInfo(inode.getId());
   }
 
   public String getFileNameById(int fileId) throws FileDoesNotExistException {
@@ -696,15 +705,6 @@ public class MasterInfo {
       ret = inode.getId();
     }
     LOG.debug("getFileId(" + filePath + "): " + ret);
-    return ret;
-  }
-
-  public List<Integer> getFilesIds(List<String> pathList)
-      throws InvalidPathException, FileDoesNotExistException {
-    List<Integer> ret = new ArrayList<Integer>(pathList.size());
-    for (int k = 0; k < pathList.size(); k ++) {
-      ret.addAll(listFiles(pathList.get(k), true));
-    }
     return ret;
   }
 
@@ -981,7 +981,11 @@ public class MasterInfo {
 
   public int mkdir(String path)
       throws FileAlreadyExistException, InvalidPathException {
-    return createFile(true, path, true, -1, null, 0);
+    try {
+      return createFile(true, path, true, -1, null, 0);
+    } catch (BlockInfoException e) {
+      throw new FileAlreadyExistException(e.getMessage());
+    }
   }
 
   private void recoveryFromFile(String fileName, String msg) throws IOException {

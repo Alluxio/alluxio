@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -135,6 +136,16 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       }
     }
     return -1;
+  }
+
+  @Override
+  public long getBlockSizeByte(String path) throws IOException {
+    Path tPath = new Path(path);
+    if (!mFs.exists(tPath)) {
+      throw new FileNotFoundException(path);
+    }
+    FileStatus fs = mFs.getFileStatus(tPath);
+    return fs.getBlockSize();
   }
 
   @Override

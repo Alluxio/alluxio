@@ -12,10 +12,13 @@ import tachyon.Constants;
 
 public final class Utils {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  public static String HDFS_ADDRESS;
   private static final boolean DEBUG = Constants.DEBUG;
 
   public static String getTachyonFileName(String path) {
+    if (path.isEmpty()) {
+      return "/";
+    }
+
     while (path.contains(":")) {
       int index = path.indexOf(":");
       path = path.substring(index + 1);
@@ -36,7 +39,7 @@ public final class Utils {
       mid = "";
     }
 
-    return new Path(HDFS_ADDRESS + mid + path);
+    return new Path(TFS.HDFS_ADDRESS + mid + path);
   }
 
   public static String getPathWithoutScheme(Path path) {
@@ -52,6 +55,9 @@ public final class Utils {
     }
     if (DEBUG) {
       LOG.info("Utils getPathWithoutScheme(" + ori + ") result: " + ret);
+    }
+    if (ret.isEmpty()) {
+      return "/";
     }
     return ret;
   }

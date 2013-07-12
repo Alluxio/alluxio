@@ -1,5 +1,6 @@
 package tachyon.hadoop;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -19,9 +20,12 @@ import org.apache.log4j.Logger;
 
 import tachyon.CommonUtils;
 import tachyon.Constants;
+import tachyon.PrefixList;
+import tachyon.SubsumeHdfs;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 
 /**
@@ -30,12 +34,24 @@ import tachyon.thrift.NetAddress;
  * the Tachyon API in tachyon.client package.
  */
 public class TFS extends FileSystem {
+  public static String HDFS_ADDRESS;
+
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private URI mUri = null;
   private Path mWorkingDir = new Path("/");
   private TachyonFS mTFS = null;
   private String mTachyonHeader = null;
+
+  private void fromHdfsToTachyon(String path) throws IOException {
+    if (!mTFS.exist(path)) {
+      Path hdfsPath = Utils.getHDFSPath(path);
+      FileSystem fs = hdfsPath.getFileSystem(getConf());
+      if (fs.exists(hdfsPath)) {
+        SubsumeHdfs.subsume(mTFS, HDFS_ADDRESS, path, new PrefixList(null));
+      }
+    }
+  }
 
   @Override
   public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
@@ -65,11 +81,9 @@ public class TFS extends FileSystem {
 
   @Override
   public boolean delete(Path path, boolean recursive) throws IOException {
-    LOG.debug("delete(" + path + ", " + recursive + ")");
+    LOG.info("delete(" + path + ", " + recursive + ")");
     String tPath = Utils.getPathWithoutScheme(path);
-    if (!mTFS.exist(tPath)) {
-      getFileStatus(path);
-    }
+    fromHdfsToTachyon(tPath);
     return mTFS.delete(tPath, recursive);
   }
 
@@ -83,43 +97,18 @@ public class TFS extends FileSystem {
     String tPath = Utils.getPathWithoutScheme(path);
     Path hdfsPath = Utils.getHDFSPath(tPath);
 
-    LOG.debug("getFileStatus(" + path + "): HDFS Path: " + hdfsPath + 
-        " TPath: " + mTachyonHeader + tPath);
+    LOG.info("getFileStatus(" + path + "): HDFS Path: " + hdfsPath + " TPath: " +
+        mTachyonHeader + tPath);
 
+    fromHdfsToTachyon(tPath);
     TachyonFile file = mTFS.getFile(tPath);
-    FileStatus ret;
-    if (file != null) {
-      ret = new FileStatus(file.length(), file.isDirectory(), file.getDiskReplication(),
-          file.getBlockSizeByte(), file.getCreationTimeMs(), file.getCreationTimeMs(),
-          null, null, null, new Path(mTachyonHeader + tPath));
-    } else {
-      FileSystem fs = hdfsPath.getFileSystem(getConf());
-      FileStatus hfs = fs.getFileStatus(hdfsPath);
-
-      int fid;
-      String type;
-      if (hfs.isDir()) {
-        fid = mTFS.mkdir(tPath);
-        type = " directory ";
-      } else {
-        fid = mTFS.createFile(tPath, hdfsPath.toString());
-        type = " file ";
-      }
-
-      if (fid == -1) {
-        LOG.debug("Tachyon does have" + type + tPath + " and creation failed.");
-      } else {
-        LOG.debug("Tachyon does not have" + type + tPath + " and creation succeed.");
-      }
-
-      ret = new FileStatus(hfs.getLen(), hfs.isDir(), hfs.getReplication(),
-          Integer.MAX_VALUE, hfs.getModificationTime(), hfs.getAccessTime(), hfs.getPermission(),
-          hfs.getOwner(), hfs.getGroup(), new Path(mTachyonHeader + tPath));
-
-      LOG.debug("HFS: " + Utils.toStringHadoopFileStatus(hfs));
-      LOG.debug("TFS: " + Utils.toStringHadoopFileStatus(ret));
+    if (file == null) {
+      throw new FileNotFoundException("File does not exist: " + path);
     }
 
+    FileStatus ret = new FileStatus(file.length(), file.isDirectory(), file.getDiskReplication(),
+        file.getBlockSizeByte(), file.getCreationTimeMs(), file.getCreationTimeMs(),
+        null, null, null, new Path(mTachyonHeader + tPath));
     return ret;
   }
 
@@ -130,7 +119,7 @@ public class TFS extends FileSystem {
 
   @Override
   public Path getWorkingDirectory() {
-    LOG.debug("getWorkingDirectory: " + mWorkingDir);
+    LOG.info("getWorkingDirectory: " + mWorkingDir);
     return mWorkingDir;
   }
 
@@ -142,46 +131,31 @@ public class TFS extends FileSystem {
     }
 
     String path = Utils.getPathWithoutScheme(file.getPath());
-    List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
-
-    int fileId = -1;
-
-    fileId = mTFS.getFileId(path);
+    fromHdfsToTachyon(path);
+    int fileId = mTFS.getFileId(path);
 
     if (fileId == -1) {
-      getFileStatus(file.getPath());
-      fileId = mTFS.getFileId(path);
+      throw new FileNotFoundException("File does not exist: " + file.getPath());
     }
 
-    if (fileId != -1) {
-      List<ClientBlockInfo> blocks = mTFS.getFileBlocks(fileId);
-      for (int k = 0; k < blocks.size(); k ++) {
-        ClientBlockInfo info = blocks.get(k);
-        long offset = info.getOffset();
-        long end = offset + info.getLength();
-        if ((offset >= start && offset <= start + len) ||
-            (end >= start && end <= start + len)) {
-          ArrayList<String> names = new ArrayList<String>();
-          ArrayList<String> hosts = new ArrayList<String>();
-          for (NetAddress addr : info.getLocations()) {
-            names.add(addr.mHost);
-            hosts.add(addr.mHost);
-          }
-          blockLocations.add(new BlockLocation(CommonUtils.toStringArray(names),
-              CommonUtils.toStringArray(hosts), offset, info.getLength()));
+    List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
+    List<ClientBlockInfo> blocks = mTFS.getFileBlocks(fileId);
+    for (int k = 0; k < blocks.size(); k ++) {
+      ClientBlockInfo info = blocks.get(k);
+      long offset = info.getOffset();
+      long end = offset + info.getLength();
+      if ((offset >= start && offset <= start + len) ||
+          (end >= start && end <= start + len)) {
+        ArrayList<String> names = new ArrayList<String>();
+        ArrayList<String> hosts = new ArrayList<String>();
+        for (NetAddress addr : info.getLocations()) {
+          names.add(addr.mHost);
+          hosts.add(addr.mHost);
         }
+        blockLocations.add(new BlockLocation(CommonUtils.toStringArray(names),
+            CommonUtils.toStringArray(hosts), offset, info.getLength()));
       }
     }
-
-    //    if (blockLocations == null) {
-    //      Path hdfsPath = Utils.getHDFSPath(path);
-    //      FileSystem fs = hdfsPath.getFileSystem(getConf());
-    //      FileStatus hdfsFileStatus = new FileStatus(file.getLen(), file.isDir(),
-    //          file.getReplication(), file.getBlockSize(), file.getModificationTime(), 
-    //          file.getAccessTime(), file.getPermission(), file.getOwner(), file.getGroup(),
-    //          hdfsPath);
-    //      return fs.getFileBlockLocations(hdfsFileStatus, 0, 1);
-    //    }
 
     BlockLocation[] ret = new BlockLocation[blockLocations.size()];
     for (int k = 0; k < blockLocations.size(); k ++) {
@@ -191,94 +165,77 @@ public class TFS extends FileSystem {
   }
 
   /**
-   * Initialize the class, have a lazy connection with Tachyon through mTC.
+   * Initialize the class, have a lazy connection with Tachyon through mTFS.
    */
   @Override
   public void initialize(URI uri, Configuration conf) throws IOException {
-    LOG.debug("initialize(" + uri + ", " + conf + "). Connecting to Tachyon: " + uri.toString());
+    LOG.info("initialize(" + uri + ", " + conf + "). Connecting to Tachyon: " + uri.toString());
     mTFS = TachyonFS.get(new InetSocketAddress(uri.getHost(), uri.getPort()));
     mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort();
     mUri = URI.create(mTachyonHeader);
-    Utils.HDFS_ADDRESS = mTFS.getUnderfsAddress();
+    HDFS_ADDRESS = mTFS.getUnderfsAddress();
+    LOG.info(mTachyonHeader + " " + mUri + " " + HDFS_ADDRESS);
   }
 
   @Override
   /**
-   * Return all files in the path.
+   * List entries of a path
    */
   public FileStatus[] listStatus(Path path) throws IOException {
     String tPath = Utils.getPathWithoutScheme(path);
     Path hdfsPath = Utils.getHDFSPath(tPath);
-    LOG.debug("listStatus(" + path + "): HDFS Path: " + hdfsPath);
-    FileSystem fs = hdfsPath.getFileSystem(getConf());
-    FileStatus[] hfs = fs.listStatus(hdfsPath);
-    ArrayList<FileStatus> tRet = new ArrayList<FileStatus>();
+    LOG.info("listStatus(" + path + "): HDFS Path: " + hdfsPath);
 
-    for (int k = 0; k < hfs.length; k ++) {
-      if (hfs[k].isDir()) {
-        FileStatus[] tFileStatus = listStatus(hfs[k].getPath());
-        for (FileStatus tfs : tFileStatus) {
-          tRet.add(tfs);
-        }
-      } else {
-        tRet.add(getFileStatus(hfs[k].getPath()));
-      }
+    fromHdfsToTachyon(tPath);
+    if (!mTFS.exist(tPath)) {
+      throw new FileNotFoundException("File does not exist: " + path);
     }
-    FileStatus[] ret = new FileStatus[hfs.length];
-    ret = tRet.toArray(ret);
 
+    List<ClientFileInfo> files = mTFS.listStatus(tPath);
+    FileStatus[] ret = new FileStatus[files.size()];
+    for (int k = 0; k < files.size(); k ++) {
+      ClientFileInfo info = files.get(k);
+      // TODO replicate 3 with the number of disk replications.
+      ret[k] = new FileStatus(info.getLength(), info.isFolder(), 3, info.getBlockSizeByte(),
+          info.getCreationTimeMs(), info.getCreationTimeMs(), 
+          null, null, null, new Path(mTachyonHeader + info.getPath()));
+    }
     return ret;
   }
 
   @Override
   public boolean mkdirs(Path cPath, FsPermission permission) throws IOException {
-    LOG.debug("mkdirs(" + cPath + ", " + permission + ")");
-
-    String path = Utils.getPathWithoutScheme(cPath);
-    Path hdfsPath = Utils.getHDFSPath(path);
-    FileSystem fs = hdfsPath.getFileSystem(getConf());
-    LOG.debug("mkdirs: making dir " + hdfsPath);
-    return fs.mkdirs(hdfsPath) && (mTFS.mkdir(path) > 0);
+    LOG.info("mkdirs(" + cPath + ", " + permission + ")");
+    return mTFS.mkdir(Utils.getPathWithoutScheme(cPath)) > 0;
   }
 
   @Override
   /**
-   * Return the inputstream of a file.
+   * Return the FSDataInputStream of a file.
    */
   public FSDataInputStream open(Path cPath, int bufferSize) throws IOException {
-    LOG.debug("open(" + cPath + ", " + bufferSize + ")");
+    LOG.info("open(" + cPath + ", " + bufferSize + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
-
-    String rawPath = path;
-    int fileId = -1;
-
-    fileId = mTFS.getFileId(path);
-
-    Path hdfsPath = Utils.getHDFSPath(rawPath);
-    if (fileId == -1) {
-      FileSystem fs = hdfsPath.getFileSystem(getConf());
-      return fs.open(hdfsPath, bufferSize);
-    }
+    fromHdfsToTachyon(path);
+    int fileId = mTFS.getFileId(path);
 
     return new FSDataInputStream(new TFileInputStreamHdfs(mTFS, fileId,
-        hdfsPath, getConf(), bufferSize));
+        Utils.getHDFSPath(path), getConf(), bufferSize));
   }
 
   @Override
   public boolean rename(Path src, Path dst) throws IOException {
-    LOG.debug("rename(" + src + ", " + dst + ")");
-    Path hSrc = Utils.getHDFSPath(src.toString());
-    Path hDst = Utils.getHDFSPath(dst.toString());
-    FileSystem fs = hSrc.getFileSystem(getConf());
-    boolean succeed = false;
-    succeed = mTFS.rename(Utils.getPathWithoutScheme(src), Utils.getPathWithoutScheme(dst));
-    return fs.rename(hSrc, hDst) && succeed;
+    LOG.info("rename(" + src + ", " + dst + ")");
+    String hSrc = Utils.getPathWithoutScheme(src);
+    String hDst = Utils.getPathWithoutScheme(dst);
+    fromHdfsToTachyon(hSrc);
+    return mTFS.rename(hSrc, hDst);
   }
 
   @Override
   public void setWorkingDirectory(Path path) {
-    LOG.debug("setWorkingDirectory(" + path + ")");
+    LOG.info("setWorkingDirectory(" + path + ")");
     if (path.isAbsolute()) {
       mWorkingDir = path;
     } else {

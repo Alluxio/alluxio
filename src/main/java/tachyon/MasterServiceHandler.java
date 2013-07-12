@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
@@ -44,7 +45,11 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath) 
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
-    return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+    try {
+      return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+    } catch (FileNotFoundException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    }
   }
 
   @Override
@@ -66,15 +71,26 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public int user_createFile(String path, long blockSizeByte)
-      throws FileAlreadyExistException, InvalidPathException, TException {
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TException {
     return mMasterInfo.createFile(path, blockSizeByte);
   }
 
   @Override
   public int user_createFileOnCheckpoint(String path, String checkpointPath)
-      throws FileAlreadyExistException, InvalidPathException, TException {
-    // TODO Auto-generated method stub
-    return 0;
+      throws FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException, 
+      BlockInfoException, TachyonException, TException {
+    UnderFileSystem underfs = UnderFileSystem.get(checkpointPath);
+    try {
+      long blockSizeByte = underfs.getBlockSizeByte(checkpointPath);
+      long fileSizeByte = underfs.getFileSize(checkpointPath);
+      int fileId = mMasterInfo.createFile(path, blockSizeByte);
+      if (fileId != -1 && mMasterInfo.addCheckpoint(-1, fileId, fileSizeByte, checkpointPath)) {
+        return fileId;
+      }
+    } catch (IOException e) {
+      throw new TachyonException(e.getMessage());
+    }
+    return -1;
   }
 
   @Override

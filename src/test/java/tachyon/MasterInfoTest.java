@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -41,21 +42,21 @@ public class MasterInfoTest {
   @Test
   public void addCheckpointTest() 
       throws FileDoesNotExistException, SuspectedFileSizeException, FileAlreadyExistException, 
-      InvalidPathException, BlockInfoException {
+      InvalidPathException, BlockInfoException, FileNotFoundException {
     int fileId = mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFile");
+    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFile");
     Assert.assertEquals("", fileInfo.getCheckpointPath());
     mMasterInfo.addCheckpoint(-1, fileId, 1, "/testPath");
-    fileInfo = mMasterInfo.getFileInfo("/testFile");
+    fileInfo = mMasterInfo.getClientFileInfo("/testFile");
     Assert.assertEquals("/testPath", fileInfo.getCheckpointPath());
     mMasterInfo.addCheckpoint(-1, fileId, 1, "/testPath");
-    fileInfo = mMasterInfo.getFileInfo("/testFile");
+    fileInfo = mMasterInfo.getClientFileInfo("/testFile");
     Assert.assertEquals("/testPath", fileInfo.getCheckpointPath());
   }
 
-  @Test(expected = FileDoesNotExistException.class)
+  @Test(expected = FileNotFoundException.class)
   public void notFileCheckpointTest()
-      throws FileDoesNotExistException, SuspectedFileSizeException, FileAlreadyExistException,
+      throws FileNotFoundException, SuspectedFileSizeException, FileAlreadyExistException,
       InvalidPathException, BlockInfoException {
     int fileId = mMasterInfo.mkdir("/testFile");
     mMasterInfo.addCheckpoint(-1, fileId, 0, "/testPath");    
@@ -63,9 +64,10 @@ public class MasterInfoTest {
 
   @Test
   public void createFileTest() 
-      throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException {
+      throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException, 
+      BlockInfoException {
     mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    Assert.assertFalse(mMasterInfo.getFileInfo("/testFile").isFolder());
+    Assert.assertFalse(mMasterInfo.getClientFileInfo("/testFile").isFolder());
   }
 
   @Test
@@ -88,17 +90,19 @@ public class MasterInfoTest {
   public void createDirectoryTest() 
       throws InvalidPathException, FileAlreadyExistException, FileDoesNotExistException {
     mMasterInfo.mkdir("/testFolder");
-    ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFolder");
+    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFolder");
     Assert.assertTrue(fileInfo.isFolder());
   }
 
   @Test(expected = InvalidPathException.class)
-  public void createFileInvalidPathTest() throws InvalidPathException, FileAlreadyExistException {
+  public void createFileInvalidPathTest() throws InvalidPathException, FileAlreadyExistException,
+  BlockInfoException {
     mMasterInfo.createFile("testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
   }
 
   @Test(expected = FileAlreadyExistException.class)
-  public void createAlreadyExistFileTest() throws InvalidPathException, FileAlreadyExistException {
+  public void createAlreadyExistFileTest() throws InvalidPathException, FileAlreadyExistException,
+  BlockInfoException {
     mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     mMasterInfo.mkdir("/testFile");
   }
@@ -108,7 +112,7 @@ public class MasterInfoTest {
       throws InvalidPathException, FileAlreadyExistException, TableColumnException,
       FileDoesNotExistException {
     mMasterInfo.createRawTable("/testTable", 1, (ByteBuffer) null);
-    Assert.assertTrue(mMasterInfo.getFileInfo("/testTable").isFolder());    
+    Assert.assertTrue(mMasterInfo.getClientFileInfo("/testTable").isFolder());    
   }
 
   @Test(expected = TableColumnException.class)
@@ -125,7 +129,7 @@ public class MasterInfoTest {
 
   @Test
   public void deleteFileTest() 
-      throws InvalidPathException, FileAlreadyExistException, TachyonException {
+      throws InvalidPathException, FileAlreadyExistException, TachyonException, BlockInfoException {
     int fileId = mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     Assert.assertEquals(fileId, mMasterInfo.getFileId("/testFile"));
     Assert.assertTrue(mMasterInfo.delete(fileId, true));
@@ -143,7 +147,7 @@ public class MasterInfoTest {
 
   @Test
   public void deleteDirectoryWithFilesTest() 
-      throws InvalidPathException, FileAlreadyExistException, TachyonException {
+      throws InvalidPathException, FileAlreadyExistException, TachyonException, BlockInfoException {
     int folderId = mMasterInfo.mkdir("/testFolder");
     int fileId = mMasterInfo.createFile("/testFolder/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     Assert.assertEquals(folderId, mMasterInfo.getFileId("/testFolder"));
@@ -155,7 +159,7 @@ public class MasterInfoTest {
 
   @Test
   public void deleteDirectoryWithFilesTest2() 
-      throws InvalidPathException, FileAlreadyExistException, TachyonException {
+      throws InvalidPathException, FileAlreadyExistException, TachyonException, BlockInfoException {
     int folderId = mMasterInfo.mkdir("/testFolder");
     int fileId = mMasterInfo.createFile("/testFolder/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     Assert.assertEquals(folderId, mMasterInfo.getFileId("/testFolder"));
@@ -167,7 +171,7 @@ public class MasterInfoTest {
 
   @Test
   public void deleteDirectoryWithDirectoriesTest() 
-      throws InvalidPathException, FileAlreadyExistException, TachyonException {
+      throws InvalidPathException, FileAlreadyExistException, TachyonException, BlockInfoException {
     int folderId = mMasterInfo.mkdir("/testFolder");
     int folderId2 = mMasterInfo.mkdir("/testFolder/testFolder2");
     int fileId = mMasterInfo.createFile("/testFolder/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
@@ -186,7 +190,7 @@ public class MasterInfoTest {
 
   @Test
   public void deleteDirectoryWithDirectoriesTest2() 
-      throws InvalidPathException, FileAlreadyExistException, TachyonException {
+      throws InvalidPathException, FileAlreadyExistException, TachyonException, BlockInfoException {
     int folderId = mMasterInfo.mkdir("/testFolder");
     int folderId2 = mMasterInfo.mkdir("/testFolder/testFolder2");
     int fileId = mMasterInfo.createFile("/testFolder/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
@@ -210,9 +214,10 @@ public class MasterInfoTest {
 
   @Test
   public void clientFileInfoEmptyFileTest() 
-      throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException {
+      throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
+      BlockInfoException {
     int fileId = mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFile");
+    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFile");
     Assert.assertEquals("testFile", fileInfo.getName());
     Assert.assertEquals(fileId, fileInfo.getId());
     Assert.assertEquals(-1, fileInfo.getLength());
@@ -227,7 +232,7 @@ public class MasterInfoTest {
   public void clientFileInfoDirectoryTest() 
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException {
     int fileId = mMasterInfo.mkdir("/testFolder");
-    ClientFileInfo fileInfo = mMasterInfo.getFileInfo("/testFolder");
+    ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFolder");
     Assert.assertEquals("testFolder", fileInfo.getName());
     Assert.assertEquals(fileId, fileInfo.getId());
     Assert.assertEquals(0, fileInfo.getLength());

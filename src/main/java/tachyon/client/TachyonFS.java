@@ -545,10 +545,13 @@ public class TachyonFS {
   }
 
   synchronized String getCheckpointPath(int fid) {
-    if (mClientFileInfos.get(fid).getCheckpointPath().equals("")) {
-      mClientFileInfos.put(fid, fetchClientFileInfo(fid));
+    ClientFileInfo info = mClientFileInfos.get(fid);
+    if (info == null || !info.getCheckpointPath().equals("")) {
+      info = fetchClientFileInfo(fid);
+      mClientFileInfos.put(fid, info);
     }
-    return mClientFileInfos.get(fid).getCheckpointPath();
+
+    return info.getCheckpointPath();
   }
 
   public synchronized long getCreationTimeMs(int fId) {
@@ -779,6 +782,13 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * If the <code>path</code> is a directory, return all the direct entries in it. If the 
+   * <code>path</code> is a file, return its ClientFileInfo. 
+   * @param path the target directory/file path
+   * @return A list of ClientFileInfo
+   * @throws IOException
+   */
   public synchronized List<ClientFileInfo> listStatus(String path)
       throws IOException {
     connect();

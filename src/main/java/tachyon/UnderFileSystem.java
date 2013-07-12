@@ -53,6 +53,8 @@ public abstract class UnderFileSystem {
 
   public abstract long getFileSize(String path) throws IOException;
 
+  public abstract long getBlockSizeByte(String path) throws IOException;
+
   public abstract long getSpace(String path, SpaceType type) throws IOException;
 
   public abstract boolean mkdirs(String path, boolean createParent) throws IOException;

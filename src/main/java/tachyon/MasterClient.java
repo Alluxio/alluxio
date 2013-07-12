@@ -130,11 +130,11 @@ public class MasterClient {
     mHeartbeatThread.shutdown();
   }
 
-  public synchronized List<ClientFileInfo> listStatus(String folder)
+  public synchronized List<ClientFileInfo> listStatus(String path)
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.liststatus(folder);
+      return CLIENT.liststatus(path);
     } catch (InvalidPathException e) {
       throw new IOException(e);
     } catch (FileDoesNotExistException e) {
@@ -161,6 +161,8 @@ public class MasterClient {
       throw new IOException(e);
     } catch (InvalidPathException e) {
       throw new IOException(e);
+    } catch (BlockInfoException e) {
+      throw new IOException(e);
     }
   }
 
@@ -172,6 +174,12 @@ public class MasterClient {
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {
+      throw new IOException(e);
+    } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
+    } catch (BlockInfoException e) {
+      throw new IOException(e);
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
   }
