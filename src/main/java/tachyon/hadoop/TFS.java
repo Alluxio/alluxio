@@ -157,16 +157,6 @@ public class TFS extends FileSystem {
       }
     }
 
-    //    if (blockLocations == null) {
-    //      Path hdfsPath = Utils.getHDFSPath(path);
-    //      FileSystem fs = hdfsPath.getFileSystem(getConf());
-    //      FileStatus hdfsFileStatus = new FileStatus(file.getLen(), file.isDir(),
-    //          file.getReplication(), file.getBlockSize(), file.getModificationTime(), 
-    //          file.getAccessTime(), file.getPermission(), file.getOwner(), file.getGroup(),
-    //          hdfsPath);
-    //      return fs.getFileBlockLocations(hdfsFileStatus, 0, 1);
-    //    }
-
     BlockLocation[] ret = new BlockLocation[blockLocations.size()];
     for (int k = 0; k < blockLocations.size(); k ++) {
       ret[k] = blockLocations.get(k);
@@ -221,7 +211,7 @@ public class TFS extends FileSystem {
 
   @Override
   /**
-   * Return the inputstream of a file.
+   * Return the FSDataInputStream of a file.
    */
   public FSDataInputStream open(Path cPath, int bufferSize) throws IOException {
     LOG.info("open(" + cPath + ", " + bufferSize + ")");
