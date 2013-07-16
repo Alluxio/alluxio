@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +30,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   private UnderFileSystemHdfs(String fsDefaultName) {
     try {
       Configuration tConf = new Configuration();
-      tConf.set("fs.default.name", fsDefaultName);
-      mFs = FileSystem.get(tConf);
+      tConf.set("fs.defaultFS", fsDefaultName);
+      tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
+      Path path = new Path(fsDefaultName);
+      mFs = path.getFileSystem(tConf);// FileSystem.get(tConf);
+      //      mFs = FileSystem.get(new URI(fsDefaultName), tConf);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
@@ -96,10 +100,15 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   public List<String> getFileLocations(String path) {
+    return getFileLocations(path, 0);
+  }
+
+  @Override
+  public List<String> getFileLocations(String path, long offset) {
     List<String> ret = new ArrayList<String>();
     try {
       FileStatus fStatus = mFs.getFileStatus(new Path(path));
-      BlockLocation[] bLocations = mFs.getFileBlockLocations(fStatus, 0, 1);
+      BlockLocation[] bLocations = mFs.getFileBlockLocations(fStatus, offset, 1);
       if (bLocations.length > 0) {
         String[] hosts = bLocations[0].getHosts();
         for (String host: hosts) {
@@ -127,6 +136,16 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       }
     }
     return -1;
+  }
+
+  @Override
+  public long getBlockSizeByte(String path) throws IOException {
+    Path tPath = new Path(path);
+    if (!mFs.exists(tPath)) {
+      throw new FileNotFoundException(path);
+    }
+    FileStatus fs = mFs.getFileStatus(tPath);
+    return fs.getBlockSize();
   }
 
   @Override

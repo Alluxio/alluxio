@@ -14,7 +14,7 @@ import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
-import tachyon.client.OpType;
+import tachyon.client.WriteType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.conf.UserConf;
@@ -175,10 +175,10 @@ public class Performance {
       for (int pId = mLeft; pId < mRight; pId ++) {
         long startTimeMs = System.currentTimeMillis();
         TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
-        OutStream os = file.getOutStream(OpType.WRITE_CACHE);
+        OutStream os = file.getOutStream(WriteType.CACHE);
         for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
           mBuf.array()[0] = (byte) (k + mWorkerId);
-          os.write(mBuf);
+          os.write(mBuf.array());
         }
         os.close();
         logPerIteration(startTimeMs, pId, "th WriteTachyonFile @ Worker ", pId);
@@ -244,7 +244,6 @@ public class Performance {
           CommonUtils.printByteBuffer(LOG, buf);
         }
         buf.clear();
-        file.releaseFileLock();
         logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
       }
       Results[mWorkerId] = sum;
@@ -410,5 +409,6 @@ public class Performance {
       System.out.print(Results[k] + " ");
     }
     System.out.println();
+    System.exit(0);
   }
 }

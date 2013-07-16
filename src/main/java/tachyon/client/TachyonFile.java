@@ -11,18 +11,18 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.DataServerMessage;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
-import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.SuspectedFileSizeException;
 
 /**
  * Tachyon File.
@@ -34,44 +34,42 @@ public class TachyonFile implements Comparable<TachyonFile> {
   final TachyonFS TFS;
   final int FID;
 
-  private boolean mLockedFile = false;
+  private Set<Integer> mLockedBlocks = new HashSet<Integer>();
 
-  TachyonFile(TachyonFS tachyonClient, int fid) {
-    TFS = tachyonClient;
+  TachyonFile(TachyonFS tfs, int fid) {
+    TFS = tfs;
     FID = fid;
   }
 
-  /**
-   * This API is not recommended to use.
-   *
-   * @param path file's checkpoint path.
-   * @return true if the checkpoint path is added successfully, false otherwise.
-   * @throws TException 
-   * @throws SuspectedFileSizeException 
-   * @throws FileDoesNotExistException 
-   * @throws IOException 
-   */
-  public boolean addCheckpointPath(String path)
-      throws FileDoesNotExistException, SuspectedFileSizeException, TException, IOException {
-    return TFS.addCheckpointPath(FID, path);
-  }
-
-  public InStream getInStream(OpType opType) throws IOException {
+  public InStream getInStream(ReadType opType) throws IOException {
+    // TODO Return different types of streams based on file info.
+    // E.g.: file size, in memory or not etc.
+    // BlockInputStream, FileInputStream.
     if (opType == null) {
       throw new IOException("OpType can not be null.");
-    } else if (opType.isWrite()) {
-      throw new IOException("OpType is not read type: " + opType);
     }
-    return new InStream(this, opType);
+
+    if (!isComplete()) {
+      throw new IOException("The file " + this + " is not complete.");
+    }
+
+    List<Long> blocks = TFS.getFileBlockIdList(FID);
+
+    if (blocks.size() == 0) {
+      return new EmptyBlockInStream(this, opType);
+    } else if (blocks.size() == 1) {
+      return new BlockInStream(this, opType, 0);
+    }
+
+    return new FileInStream(this, opType);
   }
 
-  public OutStream getOutStream(OpType opType) throws IOException {
+  public OutStream getOutStream(WriteType opType) throws IOException {
     if (opType == null) {
       throw new IOException("OpType can not be null.");
-    } else if (opType.isRead()) {
-      throw new IOException("OpType is not write type: " + opType);
     }
-    return new OutStream(this, opType);
+
+    return new FileOutStream(this, opType);
   }
 
   public String getPath() {
@@ -79,7 +77,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   public List<String> getLocationHosts() throws IOException {
-    List<NetAddress> locations = TFS.getFileNetAddresses(FID);
+    List<NetAddress> locations = TFS.getClientBlockInfo(FID, 0).getLocations();
     List<String> ret = new ArrayList<String>(locations.size());
     if (locations != null) {
       for (int k = 0; k < locations.size(); k ++) {
@@ -91,11 +89,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   public boolean isFile() {
-    return !TFS.isFolder(FID);
+    return !TFS.isDirectory(FID);
   }
 
-  public boolean isFolder() {
-    return TFS.isFolder(FID);
+  public boolean isDirectory() {
+    return TFS.isDirectory(FID);
   }
 
   public boolean isInLocalMemory() {
@@ -106,44 +104,62 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return TFS.isInMemory(FID);
   }
 
-  public boolean isReady() {
-    return TFS.isReady(FID);
+  public boolean isComplete() {
+    return TFS.isComplete(FID);
   }
 
   public long length() {
-    return TFS.getFileSizeBytes(FID);
+    return TFS.getFileLength(FID);
   }
 
-  public ByteBuffer readByteBuffer() {
-    if (!isReady()) {
+  public int getNumberOfBlocks() throws IOException {
+    return TFS.getNumberOfBlocks(FID);
+  }
+
+  public long getBlockSizeByte() {
+    return TFS.getBlockSizeByte(FID);
+  }
+
+  public ByteBuffer readByteBuffer() throws IOException {
+    if (TFS.getNumberOfBlocks(FID) > 1) {
+      throw new IOException("The file has more than one block. This API does not support this.");
+    }
+
+    return readByteBuffer(0);
+  }
+
+  ByteBuffer readByteBuffer(int blockIndex) throws IOException {
+    if (!isComplete()) {
       return null;
     }
 
-    mLockedFile = TFS.lockFile(FID);
+    ClientBlockInfo blockInfo = TFS.getClientBlockInfo(FID, blockIndex);    
 
-    ByteBuffer ret = null;
-    ret = readLocalByteBuffer();
+    mLockedBlocks.add(blockIndex);
+    TFS.lockBlock(blockInfo.blockId);
+
+    ByteBuffer ret = readLocalByteBuffer(blockInfo);
     if (ret == null) {
-      TFS.unlockFile(FID);
-      mLockedFile = false;
+      TFS.unlockBlock(blockInfo.blockId);
+      mLockedBlocks.remove(blockIndex);
 
       // TODO Make it local cache if the OpType is try cache.
-      ret = readRemoteByteBuffer();
+      ret = readRemoteByteBuffer(blockInfo);
     }
 
     return ret;
   }
 
-  private ByteBuffer readLocalByteBuffer() {
+  private ByteBuffer readLocalByteBuffer(ClientBlockInfo blockInfo) {
     if (TFS.getRootFolder() != null) {
-      String localFileName = TFS.getRootFolder() + Constants.PATH_SEPARATOR + FID;
+      String localFileName = TFS.getRootFolder() + Constants.PATH_SEPARATOR + blockInfo.blockId;
       try {
         RandomAccessFile localFile = new RandomAccessFile(localFileName, "r");
         FileChannel localFileChannel = localFile.getChannel();
         ByteBuffer ret = localFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, localFile.length());
         localFile.close();
         ret.order(ByteOrder.nativeOrder());
-        TFS.accessLocalFile(FID);
+        TFS.accessLocalBlock(blockInfo.blockId);
         return ret;
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");
@@ -155,17 +171,17 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return null;
   }
 
-  private ByteBuffer readRemoteByteBuffer() {
+  private ByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) {
     ByteBuffer ret = null;
 
     LOG.info("Try to find and read from remote workers.");
     try {
-      List<NetAddress> fileLocations = TFS.getFileNetAddresses(FID);
-      LOG.info("readByteBufferFromRemote() " + fileLocations);
+      List<NetAddress> blockLocations = blockInfo.getLocations();
+      LOG.info("readByteBufferFromRemote() " + blockLocations);
 
-      for (int k = 0; k < fileLocations.size(); k ++) {
-        String host = fileLocations.get(k).mHost;
-        int port = fileLocations.get(k).mPort;
+      for (int k = 0; k < blockLocations.size(); k ++) {
+        String host = blockLocations.get(k).mHost;
+        int port = blockLocations.get(k).mPort;
 
         // The data is not in remote machine's memory if port == -1.
         if (port == -1) {
@@ -181,7 +197,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
               InetAddress.getLocalHost().getHostAddress());
 
           try {
-            ret = retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port + 1));
+            ret = retrieveByteBufferFromRemoteMachine(
+                new InetSocketAddress(host, port + 1), blockInfo);
             if (ret != null) {
               break;
             }
@@ -202,27 +219,47 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return ret;
   }
 
-  // TODO remove this method. do streaming cache.
-  public boolean recache() {
+  // TODO remove this method. do streaming cache. This is not a right API.
+  public boolean recache() throws IOException {
+    int numberOfBlocks = TFS.getNumberOfBlocks(FID);
+    if (numberOfBlocks == 0) {
+      return true;
+    }
+
+    boolean succeed = true;
+    for (int k = 0; k < numberOfBlocks; k ++) {
+      succeed &= recache(k);
+    }
+
+    return succeed;
+  }
+
+  boolean recache(int blockIndex) {
     boolean succeed = true;
     String path = TFS.getCheckpointPath(FID);
-    UnderFileSystem tHdfsClient = UnderFileSystem.get(path);
-    InputStream inputStream;
+    UnderFileSystem underFsClient = UnderFileSystem.get(path);
+
     try {
-      inputStream = tHdfsClient.open(path);
-    } catch (IOException e) {
-      return false;
-    }
-    TachyonFile tTFile = TFS.getFile(FID);
-    try {
-      OutStream os = tTFile.getOutStream(OpType.WRITE_CACHE);
+      InputStream inputStream = underFsClient.open(path);
+
+      long length = TFS.getBlockSizeByte(FID);
+      long offset = blockIndex * length;
+      inputStream.skip(offset);
+
       byte buffer[] = new byte[USER_CONF.FILE_BUFFER_BYTES * 4];
 
+      BlockOutStream bos = new BlockOutStream(this, WriteType.TRY_CACHE, blockIndex);
       int limit;
-      while ((limit = inputStream.read(buffer)) >= 0) {
+      while (length > 0 && ((limit = inputStream.read(buffer)) >= 0)) {
         if (limit != 0) {
           try {
-            os.write(buffer, 0, limit);
+            if (length >= limit) {
+              bos.write(buffer, 0, limit);
+              length -= limit;
+            } else {
+              bos.write(buffer, 0, (int) length);
+              length = 0;
+            }
           } catch (IOException e) {
             LOG.warn(e);
             succeed = false;
@@ -231,9 +268,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
         }
       }
       if (succeed) {
-        os.close();
+        bos.close();
       } else {
-        os.cancel();
+        bos.cancel();
       }
     } catch (IOException e) {
       return false;
@@ -242,48 +279,46 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return succeed;
   }
 
-  public void releaseFileLock() {
-    if (mLockedFile) {
-      TFS.unlockFile(FID);
-    }
+  public void releaseBlockLock(int blockIndex) throws IOException {
+    TFS.unlockBlock(TFS.getBlockId(FID, blockIndex));
   }
 
-  public boolean renameTo(String path) {
-    // TODO
-    throw new RuntimeException("Rename is not supported yet");
+  public boolean rename(String path) throws IOException {
+    return TFS.rename(FID, path);
   }
 
-  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address) 
-      throws IOException {
+  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, 
+      ClientBlockInfo blockInfo) throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
     socketChannel.connect(address);
 
     LOG.info("Connected to remote machine " + address + " sent");
-    DataServerMessage sendMsg = DataServerMessage.createFileRequestMessage(FID);
+    long blockId = blockInfo.blockId;
+    DataServerMessage sendMsg = DataServerMessage.createBlockRequestMessage(blockId);
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }
 
-    LOG.info("Data " + FID + " to remote machine " + address + " sent");
+    LOG.info("Data " + blockId + " to remote machine " + address + " sent");
 
-    DataServerMessage recvMsg = DataServerMessage.createFileResponseMessage(false, FID);
+    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
     while (!recvMsg.isMessageReady()) {
       int numRead = recvMsg.recv(socketChannel);
       if (numRead == -1) {
         break;
       }
     }
-    LOG.info("Data " + FID + " from remote machine " + address + " received");
+    LOG.info("Data " + blockId + " from remote machine " + address + " received");
 
     socketChannel.close();
 
     if (!recvMsg.isMessageReady()) {
-      LOG.info("Data " + FID + " from remote machine is not ready.");
+      LOG.info("Data " + blockId + " from remote machine is not ready.");
       return null;
     }
 
-    if (recvMsg.getFileId() < 0) {
-      LOG.info("Data " + recvMsg.getFileId() + " is not in remote machine.");
+    if (recvMsg.getBlockId() < 0) {
+      LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
       return null;
     }
 
@@ -311,5 +346,26 @@ public class TachyonFile implements Comparable<TachyonFile> {
   @Override
   public String toString() {
     return getPath();
+  }
+
+  public long getBlockId(int blockIndex) throws IOException {
+    return TFS.getBlockId(FID, blockIndex);
+  }
+
+  public boolean needPin() {
+    return TFS.isNeedPin(FID);
+  }
+
+  public int getDiskReplication() {
+    // TODO Implement it.
+    return 3;
+  }
+
+  public long getCreationTimeMs() {
+    return TFS.getCreationTimeMs(FID);
+  }
+  
+  String getCheckpointPath() {
+    return TFS.getCheckpointPath(FID);
   }
 }

@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
@@ -10,6 +11,8 @@ import org.apache.thrift.TException;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
+import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
@@ -23,6 +26,7 @@ import tachyon.thrift.NoLocalWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
+import tachyon.thrift.TachyonException;
 
 /**
  * The Master server program.
@@ -40,8 +44,12 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath) 
-      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
+    try {
+      return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+    } catch (FileNotFoundException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    }
   }
 
   @Override
@@ -56,9 +64,38 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_createFile(String filePath)
-      throws FileAlreadyExistException, InvalidPathException, TException {
-    return mMasterInfo.createFile(filePath, false);
+  public void user_completeFile(int fileId) throws FileDoesNotExistException,
+  TException {
+    mMasterInfo.completeFile(fileId);
+  }
+
+  @Override
+  public int user_createFile(String path, long blockSizeByte)
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TException {
+    return mMasterInfo.createFile(path, blockSizeByte);
+  }
+
+  @Override
+  public int user_createFileOnCheckpoint(String path, String checkpointPath)
+      throws FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException, 
+      BlockInfoException, TachyonException, TException {
+    UnderFileSystem underfs = UnderFileSystem.get(checkpointPath);
+    try {
+      long blockSizeByte = underfs.getBlockSizeByte(checkpointPath);
+      long fileSizeByte = underfs.getFileSize(checkpointPath);
+      int fileId = mMasterInfo.createFile(path, blockSizeByte);
+      if (fileId != -1 && mMasterInfo.addCheckpoint(-1, fileId, fileSizeByte, checkpointPath)) {
+        return fileId;
+      }
+    } catch (IOException e) {
+      throw new TachyonException(e.getMessage());
+    }
+    return -1;
+  }
+
+  @Override
+  public long user_createNewBlock(int fileId) throws FileDoesNotExistException, TException {
+    return mMasterInfo.createNewBlock(fileId);
   }
 
   @Override
@@ -69,12 +106,13 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean user_deleteById(int id, boolean recursive) throws TException {
+  public boolean user_deleteById(int id, boolean recursive) throws TachyonException, TException {
     return mMasterInfo.delete(id, recursive);
   }
 
   @Override
-  public boolean user_deleteByPath(String path, boolean recursive) throws TException {
+  public boolean user_deleteByPath(String path, boolean recursive) 
+      throws TachyonException, TException {
     return mMasterInfo.delete(path, recursive);
   }
 
@@ -82,6 +120,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   public NetAddress user_getWorker(boolean random, String host) 
       throws NoLocalWorkerException, TException {
     return mMasterInfo.getWorker(random, host);
+  }
+
+  @Override
+  public long user_getBlockId(int fileId, int index)
+      throws FileDoesNotExistException, TException {
+    return BlockInfo.computeBlockId(fileId, index);
   }
 
   @Override
@@ -97,9 +141,21 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<NetAddress> user_getFileLocationsById(int fileId)
+  public ClientBlockInfo user_getClientBlockInfo(long blockId)
+      throws FileDoesNotExistException, BlockInfoException, TException {
+    ClientBlockInfo ret = null;
+    try {
+      ret = mMasterInfo.getClientBlockInfo(blockId);
+    } catch (IOException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    }
+    return ret;
+  }
+
+  @Override
+  public List<ClientBlockInfo> user_getFileBlocksById(int fileId)
       throws FileDoesNotExistException, TException {
-    List<NetAddress> ret = null;
+    List<ClientBlockInfo> ret = null;
     try {
       ret = mMasterInfo.getFileLocations(fileId);
     } catch (IOException e) {
@@ -109,11 +165,11 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<NetAddress> user_getFileLocationsByPath(String filePath)
+  public List<ClientBlockInfo> user_getFileBlocksByPath(String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
-    List<NetAddress> ret = null;
+    List<ClientBlockInfo> ret = null;
     try {
-      ret = mMasterInfo.getFileLocations(filePath);
+      ret = mMasterInfo.getFileLocations(path);
     } catch (IOException e) {
       throw new FileDoesNotExistException(e.getMessage());
     }
@@ -173,7 +229,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public int user_mkdir(String path) 
       throws FileAlreadyExistException, InvalidPathException, TException {
-    return mMasterInfo.createFile(path, true);
+    return mMasterInfo.mkdir(path);
   }
 
   @Override
@@ -182,9 +238,15 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void user_renameFile(String srcFilePath, String dstFilePath)
+  public void user_rename(String srcPath, String dstPath)
       throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException{
-    mMasterInfo.renameFile(srcFilePath, dstFilePath);
+    mMasterInfo.rename(srcPath, dstPath);
+  }
+
+  @Override
+  public void user_renameTo(int fileId, String dstPath)
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException{
+    mMasterInfo.rename(fileId, dstPath);
   }
 
   @Override
@@ -200,10 +262,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void worker_cacheFile(long workerId, long workerUsedBytes, int fileId,
-      long fileSizeBytes) throws FileDoesNotExistException,
-      SuspectedFileSizeException, TException {
-    mMasterInfo.cachedFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
+  public void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
+    mMasterInfo.cacheBlock(workerId, workerUsedBytes, blockId, length);
   }
 
   @Override
@@ -213,14 +274,14 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public Command worker_heartbeat(long workerId, long usedBytes, List<Integer> removedFileIds)
-      throws TException {
-    return mMasterInfo.workerHeartbeat(workerId, usedBytes, removedFileIds);
+  public Command worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlockIds)
+      throws BlockInfoException, TException {
+    return mMasterInfo.workerHeartbeat(workerId, usedBytes, removedBlockIds);
   }
 
   @Override
   public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes,
-      List<Integer> currentFileIds) throws TException {
-    return mMasterInfo.registerWorker(workerNetAddress, totalBytes, usedBytes, currentFileIds);
+      List<Long> currentBlockIds) throws BlockInfoException, TException {
+    return mMasterInfo.registerWorker(workerNetAddress, totalBytes, usedBytes, currentBlockIds);
   }
 }

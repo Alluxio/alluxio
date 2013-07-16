@@ -13,16 +13,16 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.client.InStream;
-import tachyon.client.OpType;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.conf.UserConf;
 
-public class TFileInputStreamHdfs extends InputStream implements Seekable, PositionedReadable {
+public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private int mCurrentPosition;
-  private TachyonFS mTachyonClient;
+  private long mCurrentPosition;
+  private TachyonFS mTFS;
   private int mFileId;
   private Path mHdfsPath;
   private Configuration mHadoopConf;
@@ -36,20 +36,20 @@ public class TFileInputStreamHdfs extends InputStream implements Seekable, Posit
   private int mBufferPosition = 0;
   private byte mBuffer[] = new byte[UserConf.get().FILE_BUFFER_BYTES * 4];
 
-  public TFileInputStreamHdfs(TachyonFS tachyonClient, int fileId, 
-      Path hdfsPath, Configuration conf, int bufferSize) {
-    LOG.debug("PartitionInputStreamHdfs(" + tachyonClient + ", " + fileId + ", "
-        + hdfsPath + ", " + conf + ", " + bufferSize + ")");
+  public HdfsFileInputStream(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
+      int bufferSize) {
+    LOG.debug("PartitionInputStreamHdfs(" + tfs + ", " + fileId + ", " + hdfsPath + ", " + 
+        conf + ", " + bufferSize + ")");
     mCurrentPosition = 0;
-    mTachyonClient = tachyonClient;
+    mTFS = tfs;
     mFileId = fileId;
     mHdfsPath = hdfsPath;
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;
 
-    TachyonFile tachyonFile = mTachyonClient.getFile(mFileId);
+    TachyonFile tachyonFile = mTFS.getFile(mFileId);
     try {
-      mTachyonFileInputStream = tachyonFile.getInStream(OpType.READ_TRY_CACHE);
+      mTachyonFileInputStream = tachyonFile.getInStream(ReadType.CACHE);
     } catch (IOException e) {
       LOG.error(e.getMessage());
       return;
@@ -105,12 +105,24 @@ public class TFileInputStreamHdfs extends InputStream implements Seekable, Posit
     if (pos == mCurrentPosition) {
       return;
     }
-    throw new IOException("Not supported to seek to " + pos + " . Current Position is " 
-        + mCurrentPosition);
+    if (pos < mCurrentPosition) {
+      throw new IOException("Not supported to seek to " + pos + " . Current Position is " 
+          + mCurrentPosition);
+    }
+    if (mTachyonFileInputStream != null) {
+      long needSkip = pos - mCurrentPosition;
+      while (needSkip > 0) {
+        needSkip -= mTachyonFileInputStream.skip(needSkip);
+      }
+      mCurrentPosition = pos;
+    } else if (mHdfsInputStream != null) {
+      mHdfsInputStream.seek(pos);
+      mCurrentPosition = pos;
+    }
   }
 
   /**
-   * Seeks a different copy of the data.  Returns true if found a new source, false otherwise.
+   * Seeks a different copy of the data. Returns true if found a new source, false otherwise.
    */
   @Override
   public boolean seekToNewSource(long targetPos) throws IOException {

@@ -91,7 +91,7 @@ public class DataServer implements Runnable {
     if (mReceivingData.containsKey(socketChannel)) {
       tMessage = mReceivingData.get(socketChannel);
     } else {
-      tMessage = DataServerMessage.createFileRequestMessage();
+      tMessage = DataServerMessage.createBlockRequestMessage();
       mReceivingData.put(socketChannel, tMessage);
     }
 
@@ -119,16 +119,16 @@ public class DataServer implements Runnable {
 
     if (tMessage.isMessageReady()) {
       key.interestOps(SelectionKey.OP_WRITE);
-      LOG.info("Get request for " + tMessage.getFileId());
+      LOG.info("Get request for " + tMessage.getBlockId());
       try {
-        mWorkerStorage.lockFile(tMessage.getFileId(), Users.sDATASERVER_USER_ID);
+        mWorkerStorage.lockBlock(tMessage.getBlockId(), Users.sDATASERVER_USER_ID);
       } catch (TException e) {
         CommonUtils.runtimeException(e);
       }
       DataServerMessage tResponseMessage = 
-          DataServerMessage.createFileResponseMessage(true, tMessage.getFileId()); 
-      if (tResponseMessage.getFileId() > 0) {
-        mWorkerStorage.accessFile(tResponseMessage.getFileId());
+          DataServerMessage.createBlockResponseMessage(true, tMessage.getBlockId()); 
+      if (tResponseMessage.getBlockId() > 0) {
+        mWorkerStorage.accessBlock(tResponseMessage.getBlockId());
       }
       mSendingData.put(socketChannel, tResponseMessage);
     }
@@ -159,7 +159,7 @@ public class DataServer implements Runnable {
       sendMessage.close();
 
       try {
-        mWorkerStorage.unlockFile(sendMessage.getFileId(), Users.sDATASERVER_USER_ID);
+        mWorkerStorage.unlockBlock(sendMessage.getBlockId(), Users.sDATASERVER_USER_ID);
       } catch (TException e) {
         CommonUtils.runtimeException(e);
       }

@@ -12,6 +12,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.UserConf;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -47,23 +48,33 @@ public class WorkerClient {
     mHeartbeatThread.setDaemon(true);
   }
 
-  public synchronized void accessFile(int fileId) throws TException {
-    CLIENT.accessFile(fileId);
+  public synchronized void accessBlock(long blockId) throws TException {
+    CLIENT.accessBlock(blockId);
   }
 
   public synchronized void addCheckpoint(long userId, int fileId) 
-      throws FileDoesNotExistException, SuspectedFileSizeException,
-      FailedToCheckpointException, TException {
-    CLIENT.addCheckpoint(userId, fileId);
-  }
-
-  public synchronized void cacheFile(long userId, int fileId)
       throws IOException, TException {
     try {
-      CLIENT.cacheFile(userId, fileId);
+      CLIENT.addCheckpoint(userId, fileId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
+    } catch (FailedToCheckpointException e) {
+      throw new IOException(e);
+    } catch (BlockInfoException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized void cacheBlock(long userId, long blockId)
+      throws IOException, TException {
+    try {
+      CLIENT.cacheBlock(userId, blockId);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (SuspectedFileSizeException e) {
+    } catch (BlockInfoException e) {
       throw new IOException(e);
     }
   }
@@ -96,8 +107,8 @@ public class WorkerClient {
     return mIsConnected;
   }
 
-  public synchronized void lockFile(int fileId, long userId) throws TException {
-    CLIENT.lockFile(fileId, userId);
+  public synchronized void lockBlock(long blockId, long userId) throws TException {
+    CLIENT.lockBlock(blockId, userId);
   }
 
   public synchronized boolean open() {
@@ -123,8 +134,8 @@ public class WorkerClient {
     CLIENT.returnSpace(userId, returnSpaceBytes);
   }
 
-  public synchronized void unlockFile(int fileId, long userId) throws TException {
-    CLIENT.unlockFile(fileId, userId);
+  public synchronized void unlockBlock(long blockId, long userId) throws TException {
+    CLIENT.unlockBlock(blockId, userId);
   }
 
   public synchronized void userHeartbeat(long userId) throws TException {

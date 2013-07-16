@@ -9,8 +9,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.client.OpType;
 import tachyon.client.TachyonFS;
+import tachyon.client.WriteType;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
@@ -22,14 +22,14 @@ public class DataServerTest {
   private final int USER_QUOTA_UNIT_BYTES = 100;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mClient = null;
+  private TachyonFS mTFS = null;
 
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
-    mClient = mLocalTachyonCluster.getClient();
+    mTFS = mLocalTachyonCluster.getClient();
   }
 
   @After
@@ -40,16 +40,16 @@ public class DataServerTest {
 
   @Test
   public void readTest() throws InvalidPathException, FileAlreadyExistException, IOException {
-    int fileId = TestUtils.createByteFile(mClient, "/testFile", OpType.WRITE_CACHE, 10);
+    int fileId = TestUtils.createByteFile(mTFS, "/testFile", WriteType.CACHE, 10);
     DataServerMessage sendMsg; 
-    sendMsg = DataServerMessage.createFileRequestMessage(fileId);
+    sendMsg = DataServerMessage.createBlockRequestMessage(mTFS.getBlockId(fileId, 0));
     SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress(
-        mClient.getFileNetAddresses(fileId).get(0).mHost,
-        mClient.getFileNetAddresses(fileId).get(0).mPort + 1));
+        mTFS.getFileBlocks(fileId).get(0).getLocations().get(0).mHost,
+        mTFS.getFileBlocks(fileId).get(0).getLocations().get(0).mPort + 1));
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }
-    DataServerMessage recvMsg = DataServerMessage.createFileResponseMessage(false, fileId);
+    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, fileId);
     while (!recvMsg.isMessageReady()) {
       int numRead = recvMsg.recv(socketChannel);
       if (numRead == -1) {

@@ -24,8 +24,8 @@ public class DataServerMessage {
   private boolean mIsMessageReady;
 
   private ByteBuffer mHeader;
-  private static final int HEADER_LENGTH = 12;
-  private int mFileId;
+  private static final int HEADER_LENGTH = 16;
+  private long mBlockId;
   private long mDataLength;
   RandomAccessFile mFile;
 
@@ -39,7 +39,7 @@ public class DataServerMessage {
     mIsMessageReady = false;
   }
 
-  public static DataServerMessage createFileRequestMessage() {
+  public static DataServerMessage createBlockRequestMessage() {
     DataServerMessage ret = new DataServerMessage(false, DATA_SERVER_REQUEST_MESSAGE);
 
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
@@ -47,11 +47,11 @@ public class DataServerMessage {
     return ret;
   }
 
-  public static DataServerMessage createFileRequestMessage(int fileId) {
+  public static DataServerMessage createBlockRequestMessage(long blockId) {
     DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
 
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
-    ret.mFileId = fileId;
+    ret.mBlockId = blockId;
     ret.mDataLength = 0;
     ret.generateHeader();
     ret.mData = ByteBuffer.allocate(0);
@@ -61,14 +61,14 @@ public class DataServerMessage {
     return ret;
   }
 
-  public static DataServerMessage createFileResponseMessage(boolean toSend, int fileId) {
+  public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId) {
     DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
 
     if (toSend) {
-      ret.mFileId = fileId;
+      ret.mBlockId = blockId;
 
       try {
-        String filePath = WorkerConf.get().DATA_FOLDER + "/" + fileId;
+        String filePath = WorkerConf.get().DATA_FOLDER + "/" + blockId;
         ret.LOG.info("Try to response remote requst by reading from " + filePath); 
         ret.mFile = new RandomAccessFile(filePath, "r");
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
@@ -80,7 +80,7 @@ public class DataServerMessage {
         ret.LOG.info("Response remote requst by reading from " + filePath + " preparation done."); 
       } catch (Exception e) {
         // TODO This is a trick for now. The data may have been removed before remote retrieving. 
-        ret.mFileId = - ret.mFileId;
+        ret.mBlockId = - ret.mBlockId;
         ret.mDataLength = 0;
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
         ret.mData = ByteBuffer.allocate(0);
@@ -112,7 +112,7 @@ public class DataServerMessage {
 
   private void generateHeader() {
     mHeader.clear();
-    mHeader.putInt(mFileId);
+    mHeader.putLong(mBlockId);
     mHeader.putLong(mDataLength);
     mHeader.flip();
   }
@@ -125,12 +125,12 @@ public class DataServerMessage {
       numRead = socketChannel.read(mHeader);
       if (mHeader.remaining() == 0) {
         mHeader.flip();
-        mFileId = mHeader.getInt();
+        mBlockId = mHeader.getLong();
         mDataLength = mHeader.getLong();
         // TODO make this better to truncate the file.
         assert mDataLength < Integer.MAX_VALUE;
         mData = ByteBuffer.allocate((int) mDataLength);
-        LOG.info("recv(): mData: " + mData + " mFileId " + mFileId);
+        LOG.info("recv(): mData: " + mData + " mFileId " + mBlockId);
         if (mDataLength == 0) {
           mIsMessageReady = true;
         }
@@ -175,11 +175,11 @@ public class DataServerMessage {
     return mIsMessageReady;
   }
 
-  public int getFileId() {
+  public long getBlockId() {
     if (!mIsMessageReady) {
       CommonUtils.runtimeException("Message is not ready.");
     }
-    return mFileId;
+    return mBlockId;
   }
 
   public ByteBuffer getReadOnlyData() {

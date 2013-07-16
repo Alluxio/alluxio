@@ -1,8 +1,8 @@
 #!/bin/bash
 
-Usage="Usage: start-worker.sh"
+Usage="Usage: start-worker.sh [Mount|SudoMount|NoMount]"
 
-if [ "$#" -ne 0 ]; then
+if [ "$#" -ne 1 ]; then
   echo $Usage
   exit 1
 fi
@@ -16,7 +16,14 @@ if [ -e $TACHYON_HOME/conf/tachyon-env.sh ] ; then
   . $TACHYON_HOME/conf/tachyon-env.sh
 fi
 
-$bin/mount-ramfs-linux.sh
+if [[ "$1" == "Mount" ]] ; then
+  $bin/mount-ramfs.sh $1
+elif [[ "$1" == "SudoMount" ]]; then
+  $bin/mount-ramfs.sh $1
+elif [[ "$1" != "NoMount" ]]; then
+  echo $Usage
+  exit 1
+fi
 
 mkdir -p $TACHYON_HOME/logs
 

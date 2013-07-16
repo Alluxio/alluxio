@@ -1,13 +1,15 @@
 Tachyon
 =======
 
-The master branch is in version 0.2.2-SNAPSHOT: [![Build Status](https://amplab.cs.berkeley.edu/jenkins/job/Tachyon-Hadoop1/badge/icon)](https://amplab.cs.berkeley.edu/jenkins/job/Tachyon-Hadoop1/)
+The master branch is in version 0.3.0-SNAPSHOT: [![Build Status](https://amplab.cs.berkeley.edu/jenkins/job/Tachyon-Hadoop1/badge/icon)](https://amplab.cs.berkeley.edu/jenkins/job/Tachyon-Hadoop1/)
 
 Project Homepage: http://www.tachyonproject.org
 
 Previous Releases: https://github.com/amplab/tachyon/tags
 
 Documentation: https://github.com/amplab/tachyon/wiki
+
+JIRA: https://spark-project.atlassian.net/browse/TACHYON
 
 User Mailing List: https://groups.google.com/forum/?fromgroups#!forum/tachyon-users
 

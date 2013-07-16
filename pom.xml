@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon</artifactId>
-  <version>0.2.2-SNAPSHOT</version>
+  <version>0.3.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Tachyon Project POM</name>
   <url>http://tachyonproject.org/</url>
@@ -17,7 +17,7 @@
     <connection>scm:git:git@github.com:amplab/tachyon.git</connection>
     <developerConnection>scm:git:git@github.com:amplab/tachyon.git</developerConnection>
     <url>scm:git:git@github.com:amplab/tachyon.git</url>
-    <tag>HEAD</tag>
+    <tag>v0.2.1</tag>
   </scm>
   <developers>
     <developer>
@@ -31,7 +31,7 @@
   </developers>
   <issueManagement>
     <system>github</system>
-    <url>https://spark-project.atlassian.net/browse/TACHYON</url>
+    <url>https://spark-project.atlassian.net/browse/TACH</url>
   </issueManagement>
 
   <parent>
@@ -46,14 +46,8 @@
     <libthrift.version>0.7.0</libthrift.version>
     <cxf.version>2.7.0</cxf.version>
     <jetty.version>7.6.8.v20121106</jetty.version>
-    <hadoop.version>1.0.4</hadoop.version>
     <version.template.file>src/main/java/tachyon/Version.java.template</version.template.file>
     <version.file>src/main/java/tachyon/Version.java</version.file>
-
-    <deb.pkg.name>tachyon-${classifier}</deb.pkg.name>
-    <deb.install.path>/usr/share/tachyon-${classifier}</deb.install.path>
-    <deb.user>root</deb.user>
-
   </properties>
 
   <repositories>
@@ -74,18 +68,6 @@
   </pluginRepositories>
 
   <dependencies>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client</artifactId>
-      <version>${hadoop.version}</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.ant</groupId>
-      <artifactId>ant</artifactId>
-      <version>1.9.0</version>
-      <optional>true</optional>
-    </dependency>
     <dependency>
       <groupId>de.javakaffee</groupId>
       <artifactId>kryo-serializers</artifactId>
@@ -157,11 +139,6 @@
       <artifactId>commons-lang3</artifactId>
       <version>3.0</version>
     </dependency>
-    <dependency>
-      <groupId>org.mortbay.jetty</groupId>
-      <artifactId>jsp-2.1-glassfish</artifactId>
-      <version>2.1.v20100127</version>
-    </dependency>        
   </dependencies>
 
   <build>
@@ -256,154 +233,106 @@
           </replacements>
         </configuration>
       </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.2.1</version>
-        <configuration>
-          <attach>true</attach>
-        </configuration>
-        <executions>
-          <execution>
-            <id>create-source-jar</id>
-            <goals>
-              <goal>jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
-        <executions>
-          <execution>
-            <!-- To make the shade plugin happy (hack to work around MSHADE-134) -->
-            <id>normal-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>classifier-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <configuration>
-              <classifier>${classifier}</classifier>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>2.0</version>
-        <configuration>
-          <shadedArtifactAttached>true</shadedArtifactAttached>
-          <shadedClassifierName>shaded-${classifier}</shadedClassifierName>
-          <artifactSet>
-          </artifactSet>
-          <filters>
-            <filter>
-              <artifact>*:*</artifact>
-              <excludes>
-                <exclude>META-INF/*.SF</exclude>
-                <exclude>META-INF/*.DSA</exclude>
-                <exclude>META-INF/*.RSA</exclude>
-              </excludes>
-            </filter>
-          </filters>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                  <resource>reference.conf</resource>
-                </transformer>
-              </transformers>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
   <profiles>
     <profile>
-      <id>deb</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>buildnumber-maven-plugin</artifactId>
-            <version>1.1</version>
-            <executions>
-              <execution>
-                <phase>validate</phase>
-                <goals>
-                  <goal>create</goal>
-                </goals>
-                <configuration>
-                  <shortRevisionLength>8</shortRevisionLength>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.vafer</groupId>
-            <artifactId>jdeb</artifactId>
-            <version>0.11</version>
-            <executions>
-              <execution>
-                <phase>package</phase>
-                <goals>
-                  <goal>jdeb</goal>
-                </goals>
-                <configuration>
-                  <deb>${project.build.directory}/${deb.pkg.name}_${project.version}-${buildNumber}_all.deb</deb>
-                  <attach>false</attach>
-                  <compression>gzip</compression>
-                  <dataSet>
-                    <data>
-                      <src>${project.build.directory}/${project.artifactId}-${project.version}-shaded-${classifier}.jar</src>
-                      <type>file</type>
-                      <mapper>
-                        <type>perm</type>
-                        <user>${deb.user}</user>
-                        <group>${deb.user}</group>
-                        <prefix>${deb.install.path}/lib</prefix>
-                      </mapper>
-                    </data>
-                    <data>
-                      <src>${basedir}/bin</src>
-                      <type>directory</type>
-                      <mapper>
-                        <type>perm</type>
-                        <user>${deb.user}</user>
-                        <group>${deb.user}</group>
-                        <prefix>${deb.install.path}/bin</prefix>
-                        <filemode>744</filemode>
-                      </mapper>
-                    </data>
-                  </dataSet>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
+      <id>hadoop1</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <classifier>hadoop1</classifier>
+        <hadoop.major.version>1</hadoop.major.version>
+        <hadoop.version>1.0.4</hadoop.version>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-core</artifactId>
+          <version>${hadoop.version}</version>
+          <optional>true</optional>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-test</artifactId>
+          <version>${hadoop.version}</version>
+        </dependency>
+      </dependencies>
     </profile>
 
+    <profile>
+      <id>hadoop2</id>
+      <properties>
+        <hadoop.major.version>2</hadoop.major.version>
+        <cdh.version>4.1.2</cdh.version>
+        <hadoop.version>2.0.0-mr1-cdh${cdh.version}</hadoop.version>
+        <classifier>hadoop2</classifier>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-core</artifactId>
+          <version>${hadoop.version}</version>
+          <optional>true</optional>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <version>${hadoop.version}</version>
+          <optional>true</optional>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant</artifactId>
+          <version>1.9.0</version>
+          <optional>true</optional>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>hadoop3</id>
+      <properties>
+        <classifier>hadoop3</classifier>
+        <hadoop.major.version>MRv1</hadoop.major.version>
+        <hadoop.version>2.0.0-mr1-cdh4.3.0</hadoop.version>
+        <hadoop.version.minor>2.0.0-cdh4.3.0</hadoop.version.minor>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-auth</artifactId>
+          <version>${hadoop.version.minor}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-common</artifactId>
+          <version>${hadoop.version.minor}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-core</artifactId>
+          <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-hdfs</artifactId>
+          <version>${hadoop.version.minor}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.ant</groupId>
+          <artifactId>ant</artifactId>
+          <version>1.9.0</version>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
 
   <reporting>
