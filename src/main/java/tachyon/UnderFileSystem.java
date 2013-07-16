@@ -49,7 +49,11 @@ public abstract class UnderFileSystem {
 
   public abstract List<String> getFileLocations(String path) throws IOException;
 
+  public abstract List<String> getFileLocations(String path, long offset) throws IOException;
+
   public abstract long getFileSize(String path) throws IOException;
+
+  public abstract long getBlockSizeByte(String path) throws IOException;
 
   public abstract long getSpace(String path, SpaceType type) throws IOException;
 

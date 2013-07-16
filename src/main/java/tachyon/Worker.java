@@ -12,6 +12,7 @@ import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.WorkerConf;
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.WorkerService;
 
@@ -87,6 +88,8 @@ public class Worker implements Runnable {
         cmd = mWorkerStorage.heartbeat();
 
         lastHeartbeatMs = System.currentTimeMillis();
+      } catch (BlockInfoException e) {
+        LOG.error(e.getMessage(), e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mWorkerStorage.resetMasterClient();
@@ -110,7 +113,7 @@ public class Worker implements Runnable {
             LOG.info("Register command: " + cmd);
             break;
           case Free :
-            mWorkerStorage.freeFiles(cmd.mData);
+            mWorkerStorage.freeBlocks(cmd.mData);
             LOG.info("Free command: " + cmd);
             break;
           case Delete :

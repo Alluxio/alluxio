@@ -102,10 +102,10 @@ public final class CommonUtils {
     return System.nanoTime();
   }
 
-  public static int getFileIdFromFileName(String name) {
-    int fileId;
+  public static long getBlockIdFromFileName(String name) {
+    long fileId;
     try {
-      fileId = Integer.parseInt(name);
+      fileId = Long.parseLong(name);
     } catch (Exception e) {
       throw new IllegalArgumentException("Wrong file name: " + name);
     }

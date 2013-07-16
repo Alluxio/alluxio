@@ -27,15 +27,7 @@ $bin/stop.sh
 
 sleep 1
 
-if [[ `uname -a` == Darwin* ]]; then
-  # Assuming Mac OS X
-  echo "Mounting ramfs on Mac OS X..."
-  $bin/mount-ramfs-mac.sh
-else
-  # Assuming Linux
-  echo "Mounting ramfs on Linux..."
-  sudo $bin/mount-ramfs-linux.sh
-fi
+$bin/mount-ramfs.sh SudoMount
 
 $bin/start-master.sh
 

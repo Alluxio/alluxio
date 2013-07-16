@@ -2,6 +2,7 @@ package tachyon;
 
 import org.apache.thrift.TException;
 
+import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -18,21 +19,21 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void accessFile(int fileId) throws TException {
-    mWorkerStorage.accessFile(fileId);
+  public void accessBlock(long blockId) throws TException {
+    mWorkerStorage.accessBlock(blockId);
   }
 
   @Override
   public void addCheckpoint(long userId, int fileId)
       throws FileDoesNotExistException, SuspectedFileSizeException, 
-      FailedToCheckpointException, TException {
+      FailedToCheckpointException, BlockInfoException, TException {
     mWorkerStorage.addCheckpoint(userId, fileId);
   }
 
   @Override
-  public void cacheFile(long userId, int fileId)
-      throws FileDoesNotExistException, SuspectedFileSizeException, TException {
-    mWorkerStorage.cacheFile(userId, fileId);
+  public void cacheBlock(long userId, long blockId)
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
+    mWorkerStorage.cacheBlock(userId, blockId);
   }
 
   @Override
@@ -51,8 +52,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void lockFile(int fileId, long userId) throws TException {
-    mWorkerStorage.lockFile(fileId, userId);
+  public void lockBlock(long blockId, long userId) throws TException {
+    mWorkerStorage.lockBlock(blockId, userId);
   }
 
   @Override
@@ -66,8 +67,8 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void unlockFile(int fileId, long userId) throws TException {
-    mWorkerStorage.unlockFile(fileId, userId);
+  public void unlockBlock(long blockId, long userId) throws TException {
+    mWorkerStorage.unlockBlock(blockId, userId);
   }
 
   @Override

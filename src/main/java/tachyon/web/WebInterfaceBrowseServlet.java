@@ -17,9 +17,9 @@ import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.MasterInfo;
 import tachyon.client.InStream;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.OpType;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -54,7 +54,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       NAME = fileInfo.getName();
       ABSOLUATE_PATH = fileInfo.getPath();
       CHECKPOINT_PATH = fileInfo.getCheckpointPath();
-      SIZE = fileInfo.getSizeBytes();
+      SIZE = fileInfo.getLength();
       CREATION_TIME_MS = fileInfo.getCreationTimeMs();
       IN_MEMORY = fileInfo.isInMemory();
       IS_DIRECTORY = fileInfo.isFolder();
@@ -146,7 +146,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
     request.setAttribute("currentPath", currentPath);
     try {
-      UiFileInfo currentFileInfo = new UiFileInfo(mMasterInfo.getFileInfo(currentPath));
+      UiFileInfo currentFileInfo = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
       request.setAttribute("currentDirectory", currentFileInfo);
       if (!currentFileInfo.getIsDirectory()) {
         displayFile(currentFileInfo.getAbsolutePath(), request);
@@ -171,7 +171,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       UiFileInfo toAdd = new UiFileInfo(fileInfo);
       try {
         if (!toAdd.getIsDirectory()) {
-          toAdd.setFileLocations(mMasterInfo.getFileLocations(toAdd.getId()));
+          toAdd.setFileLocations(mMasterInfo.getFileLocations(toAdd.getId()).get(0).getLocations());
         }
       } catch (FileDoesNotExistException fdne) {
         request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
@@ -208,7 +208,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       throw new FileDoesNotExistException(path);
     }
 
-    InStream is = tFile.getInStream(OpType.READ_NO_CACHE);
+    InStream is = tFile.getInStream(ReadType.NO_CACHE);
     int len = Math.min(5 * Constants.KB, (int) tFile.length());
     byte[] data = new byte[len];
     is.read(data, 0, len);
@@ -245,10 +245,10 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     String[] splitPath = path.split(Constants.PATH_SEPARATOR);
     UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length - 1];
     String currentPath = Constants.PATH_SEPARATOR;
-    pathInfos[0] = new UiFileInfo(mMasterInfo.getFileInfo(currentPath));
+    pathInfos[0] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     for (int i = 1; i < splitPath.length - 1; i ++) {
       currentPath = currentPath + splitPath[i];
-      pathInfos[i] = new UiFileInfo(mMasterInfo.getFileInfo(currentPath));
+      pathInfos[i] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
       currentPath = currentPath + Constants.PATH_SEPARATOR;
     }
     request.setAttribute("pathInfos", pathInfos);

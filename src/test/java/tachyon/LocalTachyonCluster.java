@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 import tachyon.client.TachyonFS;
 import tachyon.conf.CommonConf;
@@ -30,6 +32,8 @@ public class LocalTachyonCluster {
 
   private String mLocalhostName = null;
 
+  private List<TachyonFS> mClients = new ArrayList<TachyonFS>();
+
   public LocalTachyonCluster(long workerCapacityBytes) {
     mMasterPort = Constants.DEFAULT_MASTER_PORT - 1000;
     mWorkerPort = Constants.DEFAULT_WORKER_PORT - 1000;
@@ -42,8 +46,9 @@ public class LocalTachyonCluster {
     mWorkerCapacityBytes = workerCapacityBytes;
   }
 
-  public TachyonFS getClient() {
-    return TachyonFS.get(mLocalhostName + ":" + mMasterPort);
+  public synchronized TachyonFS getClient() {
+    mClients.add(TachyonFS.get(mLocalhostName + ":" + mMasterPort));
+    return mClients.get(mClients.size() - 1);
   }
 
   public int getMasterPort() {
@@ -53,7 +58,7 @@ public class LocalTachyonCluster {
   public int getWorkerPort() {
     return mWorkerPort;
   }
-  
+
   public String getTachyonHome(){
     return mTachyonHome;
   }
@@ -70,6 +75,10 @@ public class LocalTachyonCluster {
     if (!(new File(path)).mkdirs()) {
       throw new IOException("Failed to make folder: " + path);
     }
+  }
+
+  public String getTempFolderInUnderFs() {
+    return CommonConf.get().UNDERFS_ADDRESS;
   }
 
   public void start() throws IOException {
@@ -129,6 +138,10 @@ public class LocalTachyonCluster {
   }
 
   public void stop() throws Exception {
+    for (TachyonFS fs : mClients) {
+      fs.close();
+    }
+
     mMaster.stop();
     mWorker.stop();
 

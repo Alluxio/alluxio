@@ -49,8 +49,8 @@ public class InodeFolderTest {
   @Test
   public void batchRemoveChildTest() {
     InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0);
-    InodeFile inodeFile1 = new InodeFile("testFile1", 2, 1);
-    InodeFile inodeFile2 = new InodeFile("testFile2", 3, 1);
+    InodeFile inodeFile1 = new InodeFile("testFile1", 2, 1, 1000);
+    InodeFile inodeFile2 = new InodeFile("testFile2", 3, 1, 1000);
     inodeFolder.addChild(2);
     inodeFolder.addChild(3);
     inodeFolder.addChild(4);

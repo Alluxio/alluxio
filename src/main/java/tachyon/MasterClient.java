@@ -15,6 +15,8 @@ import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.UserConf;
+import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
@@ -28,6 +30,7 @@ import tachyon.thrift.NoLocalWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
+import tachyon.thrift.TachyonException;
 
 /**
  * The master server client side.
@@ -63,18 +66,20 @@ public class MasterClient {
   /**
    * @param workerId if -1, means the checkpoint is added directly by the client from underlayer fs.
    * @param fileId
-   * @param fileSizeBytes
+   * @param length
    * @param checkpointPath
    * @return
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
+   * @throws BlockInfoException 
    * @throws TException
    */
-  public synchronized boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, 
+  public synchronized boolean addCheckpoint(long workerId, int fileId, long length, 
       String checkpointPath)
-          throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+          throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
+          TException {
     connect();
-    return CLIENT.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+    return CLIENT.addCheckpoint(workerId, fileId, length, checkpointPath);
   }
 
   public synchronized boolean connect() {
@@ -125,11 +130,11 @@ public class MasterClient {
     mHeartbeatThread.shutdown();
   }
 
-  public synchronized List<ClientFileInfo> listStatus(String folder)
+  public synchronized List<ClientFileInfo> listStatus(String path)
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.liststatus(folder);
+      return CLIENT.liststatus(path);
     } catch (InvalidPathException e) {
       throw new IOException(e);
     } catch (FileDoesNotExistException e) {
@@ -137,13 +142,53 @@ public class MasterClient {
     }
   }
 
-  public synchronized int user_createFile(String path) throws IOException, TException {
+  public synchronized void user_completeFile(int fId)
+      throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_createFile(path);
+      CLIENT.user_completeFile(fId);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized int user_createFile(String path, long blockSizeByte) 
+      throws IOException, TException {
+    connect();
+    try {
+      return CLIENT.user_createFile(path, blockSizeByte);
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {
+      throw new IOException(e);
+    } catch (BlockInfoException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public int user_createFileOnCheckpoint(String path, String checkpointPath)
+      throws IOException, TException {
+    connect();
+    try {
+      return CLIENT.user_createFileOnCheckpoint(path, checkpointPath);
+    } catch (FileAlreadyExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
+    } catch (BlockInfoException e) {
+      throw new IOException(e);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized long user_createNewBlock(int fId) throws IOException, TException {
+    connect();
+    try {
+      return CLIENT.user_createNewBlock(fId);
+    } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }
   }
@@ -165,14 +210,40 @@ public class MasterClient {
     }
   }
 
-  public synchronized boolean user_delete(String path, boolean recursive) throws TException {
+  public synchronized boolean user_delete(String path, boolean recursive) 
+      throws IOException, TException {
     connect();
-    return CLIENT.user_deleteByPath(path, recursive);
+    try {
+      return CLIENT.user_deleteByPath(path, recursive);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
   }
 
-  public synchronized boolean user_delete(int fileId, boolean recursive) throws TException {
+  public synchronized boolean user_delete(int fileId, boolean recursive)
+      throws IOException, TException {
     connect();
-    return CLIENT.user_deleteById(fileId, recursive);
+    try {
+      return CLIENT.user_deleteById(fileId, recursive);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized long user_getBlockId(int fId, int index)
+      throws IOException, TException {
+    connect();
+    try {
+      return CLIENT.user_getBlockId(fId, index);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public ClientBlockInfo user_getClientBlockInfo(long blockId) 
+      throws FileDoesNotExistException, BlockInfoException, TException {
+    connect();
+    return CLIENT.user_getClientBlockInfo(blockId);
   }
 
   public synchronized ClientFileInfo user_getClientFileInfoByPath(String path)
@@ -215,11 +286,11 @@ public class MasterClient {
     }
   }
 
-  public synchronized List<NetAddress> user_getFileLocations(int id) 
+  public synchronized List<ClientBlockInfo> user_getFileBlocks(int id) 
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_getFileLocationsById(id);
+      return CLIENT.user_getFileBlocksById(id);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }
@@ -317,11 +388,24 @@ public class MasterClient {
     CLIENT.user_outOfMemoryForPinFile(fileId);
   }
 
-  public synchronized void user_renameFile(String srcPath, String dstPath)
+  public synchronized void user_rename(String srcPath, String dstPath)
       throws IOException, TException{
     connect();
     try {
-      CLIENT.user_renameFile(srcPath, dstPath);
+      CLIENT.user_rename(srcPath, dstPath);
+    } catch (FileAlreadyExistException e) {
+      throw new IOException(e);
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (InvalidPathException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public void user_renameTo(int fId, String path) throws IOException, TException {
+    connect();
+    try {
+      CLIENT.user_renameTo(fId, path);
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (FileDoesNotExistException e) {
@@ -350,14 +434,15 @@ public class MasterClient {
     }
   }
 
-  public synchronized void worker_cachedFile(long workerId, long workerUsedBytes, int fileId, 
-      long fileSizeBytes) throws FileDoesNotExistException, SuspectedFileSizeException, TException {
+  public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, 
+      long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, 
+      TException {
     connect();
-    CLIENT.worker_cacheFile(workerId, workerUsedBytes, fileId, fileSizeBytes);
+    CLIENT.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
-      List<Integer> removedPartitionList) throws TException {
+      List<Long> removedPartitionList) throws BlockInfoException, TException {
     connect();
     return CLIENT.worker_heartbeat(workerId, usedBytes, removedPartitionList);
   }
@@ -368,9 +453,9 @@ public class MasterClient {
   }
 
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
-      long usedBytes, List<Integer> currentFileList) throws TException {
+      long usedBytes, List<Long> currentBlockList) throws BlockInfoException, TException {
     connect();
-    long ret = CLIENT.worker_register(workerNetAddress, totalBytes, usedBytes, currentFileList); 
+    long ret = CLIENT.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList); 
     LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress +
         " , got WorkerId " + ret);
     return ret;

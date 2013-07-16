@@ -5,6 +5,13 @@ struct NetAddress {
   2: i32 mPort
 }
 
+struct ClientBlockInfo {
+  1: i64 blockId
+  2: i64 offset
+  3: i64 length
+  4: list<NetAddress> locations
+}
+
 struct ClientWorkerInfo {
   1: i64 id
   2: NetAddress address
@@ -20,13 +27,15 @@ struct ClientFileInfo {
   2: string name
   3: string path
   4: string checkpointPath
-  5: i64 sizeBytes
-  6: i64 creationTimeMs
-  8: bool ready
+  5: i64 length
+  6: i64 blockSizeByte
+  7: i64 creationTimeMs
+  8: bool complete
   9: bool folder
   10: bool inMemory
   11: bool needPin
   12: bool needCache
+  13: list<i64> blockIds
 }
 
 struct ClientRawTableInfo {
@@ -47,7 +56,11 @@ enum CommandType {
 
 struct Command {
   1: CommandType mCommandType
-  2: list<i32> mData
+  2: list<i64> mData
+}
+
+exception BlockInfoException {
+  1: string message
 }
 
 exception OutOfMemoryForPinFileException {
@@ -86,43 +99,81 @@ exception TableDoesNotExistException {
   1: string message
 }
 
+exception TachyonException {
+  1: string message
+}
+
 service MasterService {
-  bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 fileSizeBytes, 4: string checkpointPath)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+  bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 length, 4: string checkpointPath)
+    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
   list<ClientWorkerInfo> getWorkersInfo()
   list<ClientFileInfo> liststatus(1: string path) throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
 
   // Services to Workers
-  i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i32> currentFiles) // Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
-  Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i32> removedFiles)
-  void worker_cacheFile(1: i64 workerId, 2: i64 workerUsedBytes, 3: i32 fileId, 4: i64 fileSizeBytes)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+  /**
+   * Worker register. Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
+   */
+  i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i64> currentBlocks)
+    throws (1: BlockInfoException e)
+  Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedBlocks)
+    throws (1: BlockInfoException e)
+  void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 blockId, 4: i64 length)
+    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
   set<i32> worker_getPinIdList()
 
   // Services to Users
-  i32 user_createFile(1: string filePath)
-    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
-  i32 user_getFileId(1: string filePath)
-    throws (1: InvalidPathException e) // Return -1 if does not contain the file, return fileId if it exists.
+  i32 user_createFile(1: string path, 2: i64 blockSizeByte)
+    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: BlockInfoException eB)
+  i32 user_createFileOnCheckpoint(1: string path, 2: string checkpointPath)
+    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: SuspectedFileSizeException eS, 4: BlockInfoException eB, 5: TachyonException eT)
+  i64 user_createNewBlock(1: i32 fileId)
+    throws (1: FileDoesNotExistException e)
+  void user_completeFile(1: i32 fileId)
+    throws (1: FileDoesNotExistException e)
+  /**
+   * Return -1 if does not contain the file, return fileId if it exists.
+   */
+  i32 user_getFileId(1: string path)
+    throws (1: InvalidPathException e)
   i64 user_getUserId()
+  i64 user_getBlockId(1: i32 fileId, 2: i32 index)
+    throws (1: FileDoesNotExistException e)
+  /**
+   * Get local worker NetAddress
+   */
   NetAddress user_getWorker(1: bool random, 2: string host)
-    throws (1: NoLocalWorkerException e) // Get local worker NetAddress
+    throws (1: NoLocalWorkerException e)
   ClientFileInfo user_getClientFileInfoById(1: i32 fileId)
     throws (1: FileDoesNotExistException e)
-  ClientFileInfo user_getClientFileInfoByPath(1: string filePath)
+  ClientFileInfo user_getClientFileInfoByPath(1: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
-  list<NetAddress> user_getFileLocationsById(1: i32 fileId)
-    throws (1: FileDoesNotExistException e)        // Get file locations by file Id.
-  list<NetAddress> user_getFileLocationsByPath(1: string filePath)
-    throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI) // Get file locations by path
+  /**
+   * Get block's ClientBlockInfo.
+   */
+  ClientBlockInfo user_getClientBlockInfo(1: i64 blockId)
+    throws (1: FileDoesNotExistException eF, 2: BlockInfoException eB)
+  /**
+   * Get file locations by file Id.
+   */
+  list<ClientBlockInfo> user_getFileBlocksById(1: i32 fileId)
+    throws (1: FileDoesNotExistException e)
+  /**
+   * Get file locations by path
+   */
+  list<ClientBlockInfo> user_getFileBlocksByPath(1: string path)
+    throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
   list<i32> user_listFiles(1: string path, 2: bool recursive)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
   list<string> user_ls(1: string path, 2: bool recursive)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
   bool user_deleteById(1: i32 fileId, 2: bool recursive) // Delete file
+    throws (1: TachyonException e)
   bool user_deleteByPath(1: string path, 2: bool recursive) // Delete file
+    throws (1: TachyonException e)
   void user_outOfMemoryForPinFile(1: i32 fileId)
-  void user_renameFile(1: string srcFilePath, 2: string dstFilePath)
+  void user_rename(1: string srcPath, 2: string dstPath)
+    throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)
+  void user_renameTo(1: i32 fileId, 2: string dstPath)
     throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)
   void user_unpinFile(1: i32 fileId)
     throws (1: FileDoesNotExistException e)   // Remove file from memory
@@ -145,17 +196,17 @@ service MasterService {
 }
 
 service WorkerService {
-  void accessFile(1: i32 fileId)
+  void accessBlock(1: i64 blockId)
   void addCheckpoint(1: i64 userId, 2: i32 fileId)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: FailedToCheckpointException eF)
-  void cacheFile(1: i64 userId, 2: i32 fileId)
-    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS)
+    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: FailedToCheckpointException eF, 4: BlockInfoException eB)
+  void cacheBlock(1: i64 userId, 2: i64 blockId)
+    throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
   string getDataFolder()
   string getUserTempFolder(1: i64 userId)
   string getUserUnderfsTempFolder(1: i64 userId)
-  void lockFile(1: i32 fileId, 2: i64 userId) // Lock the file in memory while the user is reading it.
+  void lockBlock(1: i64 blockId, 2: i64 userId) // Lock the file in memory while the user is reading it.
   void returnSpace(1: i64 userId, 2: i64 returnedBytes)
   bool requestSpace(1: i64 userId, 2: i64 requestBytes)   // Should change this to return i64, means how much space to grant.
-  void unlockFile(1: i32 fileId, 2: i64 userId) // unlock the file
+  void unlockBlock(1: i64 blockId, 2: i64 userId) // unlock the file
   void userHeartbeat(1: i64 userId)   // Local user send heartbeat to local worker to keep its temp folder.
 }
