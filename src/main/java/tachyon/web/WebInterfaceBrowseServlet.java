@@ -204,17 +204,22 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       throws FileDoesNotExistException, InvalidPathException, IOException {
     TachyonFS tachyonClient = TachyonFS.get(mMasterInfo.getMasterAddress());
     TachyonFile tFile = tachyonClient.getFile(path);
+    String fileData = null;
     if (tFile == null) {
       throw new FileDoesNotExistException(path);
     }
 
     InStream is = tFile.getInStream(ReadType.NO_CACHE);
     int len = Math.min(5 * Constants.KB, (int) tFile.length());
-    byte[] data = new byte[len];
-    is.read(data, 0, len);
-    String fileData = CommonUtils.convertByteArrayToString(data);
-    if (fileData == null) {
-      fileData = "The requested file is not completely encoded in ascii";
+    if (len > 0) {
+      byte[] data = new byte[len];
+      is.read(data, 0, len);
+      fileData = CommonUtils.convertByteArrayToString(data);
+      if (fileData == null) {
+        fileData = "The requested file is not completely encoded in ascii";
+      }
+    } else {
+      fileData = "The requested file has not finished initializing.";
     }
     is.close();
 
