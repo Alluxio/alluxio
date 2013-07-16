@@ -18,7 +18,7 @@ import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.conf.UserConf;
 
-public class TFileInputStreamHdfs extends InputStream implements Seekable, PositionedReadable {
+public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private long mCurrentPosition;
@@ -36,7 +36,7 @@ public class TFileInputStreamHdfs extends InputStream implements Seekable, Posit
   private int mBufferPosition = 0;
   private byte mBuffer[] = new byte[UserConf.get().FILE_BUFFER_BYTES * 4];
 
-  public TFileInputStreamHdfs(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
+  public HdfsFileInputStream(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
       int bufferSize) {
     LOG.debug("PartitionInputStreamHdfs(" + tfs + ", " + fileId + ", " + hdfsPath + ", " + 
         conf + ", " + bufferSize + ")");
