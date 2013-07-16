@@ -5,6 +5,7 @@ CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 if [[ `uname -a` == Darwin* ]]; then
   # Assuming Mac OS X
   export TACHYON_RAM_FOLDER=/Volumes/ramdisk
+  export TACHYON_JAVA_OPTS="-Djava.security.krb5.realm=OX.AC.UK -Djava.security.krb5.kdc=kdc0.ox.ac.uk:kdc1.ox.ac.uk"
 else
   # Assuming Linux
   export TACHYON_RAM_FOLDER=/mnt/ramdisk
@@ -14,7 +15,7 @@ export TACHYON_MASTER_ADDRESS=localhost
 export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:8020
 export TACHYON_WORKER_MEMORY_SIZE=1GB
 
-export TACHYON_JAVA_OPTS="
+export TACHYON_JAVA_OPTS+="
   -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
   -Dtachyon.debug=false
   -Dtachyon.underfs.address=$TACHYON_UNDERFS_ADDRESS
