@@ -208,21 +208,19 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     if (tFile == null) {
       throw new FileDoesNotExistException(path);
     }
-
-    InStream is = tFile.getInStream(ReadType.NO_CACHE);
-    int len = Math.min(5 * Constants.KB, (int) tFile.length());
-    if (len > 0) {
+    if (tFile.isComplete()) {
+      InStream is = tFile.getInStream(ReadType.NO_CACHE);
+      int len = Math.min(5 * Constants.KB, (int) tFile.length());
       byte[] data = new byte[len];
       is.read(data, 0, len);
       fileData = CommonUtils.convertByteArrayToString(data);
       if (fileData == null) {
         fileData = "The requested file is not completely encoded in ascii";
       }
+      is.close();
     } else {
-      fileData = "The requested file has not finished initializing.";
+      fileData = "The requested file is not complete yet.";
     }
-    is.close();
-
     try {
       tachyonClient.close();
     } catch (TException e) {
