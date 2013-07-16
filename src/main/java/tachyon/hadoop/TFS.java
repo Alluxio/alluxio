@@ -24,6 +24,7 @@ import tachyon.PrefixList;
 import tachyon.SubsumeHdfs;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.WriteType;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
@@ -68,9 +69,13 @@ public class TFS extends FileSystem {
         ", " + bufferSize + ", " + replication + ", " + blockSize + ", " + progress + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
-    Path hdfsPath = Utils.getHDFSPath(path);
-    FileSystem fs = hdfsPath.getFileSystem(getConf());
-    return fs.create(hdfsPath, permission, overwrite, bufferSize, replication, blockSize, progress);
+    int fileId = mTFS.createFile(path, blockSize);
+    TachyonFile file = mTFS.getFile(fileId);
+    file.getOutStream(WriteType.CACHE_THROUGH);
+//  Path hdfsPath = Utils.getHDFSPath(path);
+//  FileSystem fs = hdfsPath.getFileSystem(getConf());
+//  return fs.create(hdfsPath, permission, overwrite, bufferSize, replication, blockSize, progress);
+    return new FSDataOutputStream(file.getOutStream(WriteType.CACHE_THROUGH), null);
   }
 
   @Override
@@ -220,7 +225,7 @@ public class TFS extends FileSystem {
     fromHdfsToTachyon(path);
     int fileId = mTFS.getFileId(path);
 
-    return new FSDataInputStream(new TFileInputStreamHdfs(mTFS, fileId,
+    return new FSDataInputStream(new HdfsFileInputStream(mTFS, fileId,
         Utils.getHDFSPath(path), getConf(), bufferSize));
   }
 
