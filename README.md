@@ -9,6 +9,8 @@ Previous Releases: https://github.com/amplab/tachyon/tags
 
 Documentation: https://github.com/amplab/tachyon/wiki
 
+JIRA: https://spark-project.atlassian.net/browse/TACHYON
+
 User Mailing List: https://groups.google.com/forum/?fromgroups#!forum/tachyon-users
 
 ## Dependency Information
