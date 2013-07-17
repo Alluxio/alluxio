@@ -132,7 +132,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws UnknownHostException
    */
   @Override
-  protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+  protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException, UnknownHostException {
     request.setAttribute("debug", Constants.DEBUG);
 
@@ -198,9 +198,9 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws IOException
    * @throws InvalidPathException
-   * @throws TException 
+   * @throws TException
    */
-  private void displayFile(String path, HttpServletRequest request) 
+  private void displayFile(String path, HttpServletRequest request)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     TachyonFS tachyonClient = TachyonFS.get(mMasterInfo.getMasterAddress());
     TachyonFile tFile = tachyonClient.getFile(path);
@@ -208,7 +208,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     if (tFile == null) {
       throw new FileDoesNotExistException(path);
     }
-    if (tFile.isComplete()) {
+    if (tFile.isComplete() || tFile.length() > 0) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
       int len = Math.min(5 * Constants.KB, (int) tFile.length());
       byte[] data = new byte[len];
@@ -232,13 +232,13 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
   /**
    * This function sets the fileinfos for folders that are in the path to the current directory.
-   * 
+   *
    * @param path The path of the current directory.
    * @param request The HttpServletRequest object
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  private void setPathDirectories(String path, HttpServletRequest request) 
+  private void setPathDirectories(String path, HttpServletRequest request)
       throws FileDoesNotExistException, InvalidPathException {
     if (path.equals(Constants.PATH_SEPARATOR)) {
       request.setAttribute("pathInfos", new UiFileInfo[0]);
