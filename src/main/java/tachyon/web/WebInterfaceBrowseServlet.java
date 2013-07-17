@@ -208,7 +208,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     if (tFile == null) {
       throw new FileDoesNotExistException(path);
     }
-    if (tFile.isComplete() || tFile.length() > 0) {
+    if (tFile.isComplete()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
       int len = Math.min(5 * Constants.KB, (int) tFile.length());
       byte[] data = new byte[len];
