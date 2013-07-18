@@ -72,7 +72,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   public WebInterfaceGeneralServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
   }
-  
+
   /**
    * Redirects the request to a jsp after populating attributes via populateValues.
    * @param request The HttpServletRequest object
@@ -114,6 +114,16 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("liveWorkerNodes", Integer.toString(mMasterInfo.getWorkerCount()));
 
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
+    for (int i = 0; i < workerInfos.size(); i ++) {
+      for (int j = i + 1; j < workerInfos.size(); j ++) {
+        if (workerInfos.get(i).getAddress().getMHost().compareTo(
+            workerInfos.get(j).getAddress().getMHost()) > 0) {
+          ClientWorkerInfo temp = workerInfos.get(i);
+          workerInfos.set(i, workerInfos.get(j));
+          workerInfos.set(j, temp);
+        }
+      }
+    }
     int index = 0;
     NodeInfo[] nodeInfos = new NodeInfo[workerInfos.size()];
     for (ClientWorkerInfo workerInfo : workerInfos) {
