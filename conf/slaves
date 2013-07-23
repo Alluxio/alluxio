@@ -1,2 +1,3 @@
 # A Tachyon Worker will be started on each of the machines listes below.
-localhost
+tachyon-ec2-0
+#tachyon-ec2-1
