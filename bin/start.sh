@@ -26,4 +26,4 @@ $bin/start-master.sh
 sleep 1
 
 # $bin/slaves.sh $bin/clear-cache.sh
-$bin/slaves.sh $bin/start-worker.sh $1
+WAIT_FOR_SSH=false $bin/slaves.sh $bin/start-worker.sh $1

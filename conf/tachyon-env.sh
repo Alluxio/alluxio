@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [[ `uname -a` == Darwin* ]]; then
+  # Assuming Mac OS X
+  export TACHYON_RAM_FOLDER=/Volumes/ramdisk
+  export TACHYON_JAVA_OPTS="-Djava.security.krb5.realm=OX.AC.UK -Djava.security.krb5.kdc=kdc0.ox.ac.uk:kdc1.ox.ac.uk"
+else
+  # Assuming Linux
+  export TACHYON_RAM_FOLDER=/mnt/ramdisk
+fi
+
+export TACHYON_MASTER_ADDRESS=tachyon-ec2-0
+export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:9000
+export TACHYON_WORKER_MEMORY_SIZE=1.5GB
+
+export TACHYON_JAVA_OPTS+="
+  -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
+  -Dtachyon.debug=false
+  -Dtachyon.underfs.address=$TACHYON_UNDERFS_ADDRESS
+  -Dtachyon.worker.memory.size=$TACHYON_WORKER_MEMORY_SIZE
+  -Dtachyon.worker.data.folder=$TACHYON_RAM_FOLDER/tachyonworker/
+  -Dtachyon.master.worker.timeout.ms=60000
+  -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
+  -Dtachyon.master.log.file=$TACHYON_HOME/data/tachyon_log.data
+  -Dtachyon.master.checkpoint.file=$TACHYON_HOME/data/tachyon_checkpoint.data
+  -Dtachyon.master.pinlist=/pinfiles;/pindata
+"

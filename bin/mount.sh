@@ -17,9 +17,9 @@ bin=`cd "$( dirname "$0" )"; pwd`
 . "$bin/tachyon-config.sh"
 
 if [[ "$1" == "Mount" ]] ; then
-  $bin/slaves.sh $bin/mount-ramfs.sh $1
+  WAIT_FOR_SSH=true $bin/slaves.sh $bin/mount-ramfs.sh $1
 elif [[ "$1" == "SudoMount" ]]; then
-  $bin/slaves.sh $bin/mount-ramfs.sh $1
+  WAIT_FOR_SSH=true $bin/slaves.sh $bin/mount-ramfs.sh $1
 else
   echo $Usage
   exit 1

@@ -12,4 +12,4 @@ bin=`cd "$( dirname "$0" )"; pwd`
 $bin/killall.sh tachyon.Master
 $bin/killall.sh tachyon.Worker
 
-$bin/slaves.sh $bin/killall.sh tachyon.Worker
+WAIT_FOR_SSH=true $bin/slaves.sh $bin/killall.sh tachyon.Worker
