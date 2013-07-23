@@ -12,4 +12,4 @@ bin=`cd "$( dirname "$0" )"; pwd`
 # Load the Tachyon configuration
 . "$bin/tachyon-config.sh"
 
-$bin/slaves.sh $bin/restart-failed-worker.sh
+WAIT_FOR_SSH=false $bin/slaves.sh $bin/restart-failed-worker.sh

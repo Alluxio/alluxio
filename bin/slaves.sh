@@ -17,4 +17,9 @@ for slave in `cat "$HOSTLIST"|sed  "s/#.*$//;/^$/d"`; do
   sleep 0.02
 done
 
-wait
+if $WAIT_FOR_SSH
+then
+	echo -n "waiting ... "
+	wait
+	echo "done."
+fi
