@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.conf.MasterConf;
+import tachyon.thrift.TachyonException;
 
 /**
  * Unit tests for tachyon.MasterLogWriter
@@ -35,7 +36,7 @@ public class MasterLogWriterTest {
   }
 
   @Test
-  public void appendAndFlushInodeTest() throws IOException {
+  public void appendAndFlushInodeTest() throws IOException, TachyonException {
     Inode inode = new InodeFile("/testFile", 1, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE);
     mMasterLogWriter.append(inode, true);
     Inode inode2 = new InodeFolder("/testFolder", 1, 0);
@@ -59,7 +60,7 @@ public class MasterLogWriterTest {
   }
 
   @Test
-  public void appendAndFlushInodeListTest() throws IOException {
+  public void appendAndFlushInodeListTest() throws IOException, TachyonException {
     Inode inode = new InodeFile("/testFile", 1, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE);
     Inode inode2 = new InodeFolder("/testFolder", 1, 0);
     Inode inode3 = new InodeRawTable("/testRawTable", 1, 0, 1, null);

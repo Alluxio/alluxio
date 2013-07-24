@@ -163,6 +163,8 @@ public class MasterClient {
       throw new IOException(e);
     } catch (BlockInfoException e) {
       throw new IOException(e);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     }
   }
 
@@ -206,6 +208,8 @@ public class MasterClient {
     } catch (InvalidPathException e) {
       throw new IOException(e);
     } catch (TableColumnException e) {
+      throw new IOException(e);
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
   }
@@ -380,6 +384,8 @@ public class MasterClient {
       throw new IOException(e);
     } catch (InvalidPathException e) {
       throw new IOException(e);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     }
   }
 
@@ -430,6 +436,8 @@ public class MasterClient {
     try {
       CLIENT.user_updateRawTableMetadata(id, metadata);
     } catch (TableDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (TachyonException e) {
       throw new IOException(e);
     }
   }

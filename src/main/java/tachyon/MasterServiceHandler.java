@@ -71,7 +71,8 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public int user_createFile(String path, long blockSizeByte)
-      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TException {
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException,
+      TException {
     return mMasterInfo.createFile(path, blockSizeByte);
   }
 
@@ -100,7 +101,8 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public int user_createRawTable(String path, int columns, ByteBuffer metadata)
-      throws FileAlreadyExistException, InvalidPathException, TableColumnException, TException {
+      throws FileAlreadyExistException, InvalidPathException, TableColumnException,
+      TachyonException, TException {
     return mMasterInfo.createRawTable(
         path, columns, CommonUtils.generateNewByteBufferFromThriftRPCResults(metadata));
   }
@@ -228,7 +230,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public int user_mkdir(String path) 
-      throws FileAlreadyExistException, InvalidPathException, TException {
+      throws FileAlreadyExistException, InvalidPathException, TachyonException, TException {
     return mMasterInfo.mkdir(path);
   }
 
@@ -256,7 +258,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public void user_updateRawTableMetadata(int tableId, ByteBuffer metadata)
-      throws TableDoesNotExistException, TException {
+      throws TableDoesNotExistException, TachyonException, TException {
     mMasterInfo.updateRawTableMetadata(tableId, 
         CommonUtils.generateNewByteBufferFromThriftRPCResults(metadata));
   }

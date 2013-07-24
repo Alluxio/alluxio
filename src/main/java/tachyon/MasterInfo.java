@@ -305,14 +305,15 @@ public class MasterInfo {
   }
 
   public int createFile(String path, long blockSizeByte)
-      throws FileAlreadyExistException, InvalidPathException, BlockInfoException {
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
     return createFile(true, path, false, -1, null, blockSizeByte);
   }
 
   // TODO Make this API better.
   public int createFile(boolean recursive, String path, boolean directory, int columns,
       ByteBuffer metadata, long blockSizeByte)
-          throws FileAlreadyExistException, InvalidPathException, BlockInfoException {
+          throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
+          TachyonException {
     if (!directory && blockSizeByte < 1) {
       throw new BlockInfoException("Invalid block size " + blockSizeByte);
     }
@@ -423,7 +424,8 @@ public class MasterInfo {
   }
 
   public int createRawTable(String path, int columns, ByteBuffer metadata)
-      throws FileAlreadyExistException, InvalidPathException, TableColumnException {
+      throws FileAlreadyExistException, InvalidPathException, TableColumnException, 
+      TachyonException {
     LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
 
     if (columns <= 0 || columns >= Constants.MAX_COLUMNS) {
@@ -980,7 +982,7 @@ public class MasterInfo {
   }
 
   public int mkdir(String path)
-      throws FileAlreadyExistException, InvalidPathException {
+      throws FileAlreadyExistException, InvalidPathException, TachyonException {
     try {
       return createFile(true, path, true, -1, null, 0);
     } catch (BlockInfoException e) {
@@ -1162,7 +1164,7 @@ public class MasterInfo {
   }
 
   public void updateRawTableMetadata(int tableId, ByteBuffer metadata)
-      throws TableDoesNotExistException {
+      throws TableDoesNotExistException, TachyonException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(tableId);
 

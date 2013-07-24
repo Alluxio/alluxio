@@ -23,7 +23,7 @@ $bin/stop.sh
 
 $bin/start-master.sh
 
-sleep 1
+sleep 2
 
 # $bin/slaves.sh $bin/clear-cache.sh
 $bin/slaves.sh $bin/start-worker.sh $1

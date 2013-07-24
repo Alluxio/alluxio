@@ -5,24 +5,26 @@ import java.nio.ByteBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.thrift.TachyonException;
+
 /**
  * Unit tests for tachyon.InodeRawTable
  */
 public class InodeRawTableTest {
   @Test
-  public void getColumnsTest() {
+  public void getColumnsTest() throws TachyonException {
     InodeRawTable inodeRawTable = new InodeRawTable("testTable1", 1, 0, 10, (ByteBuffer) null);
     Assert.assertEquals(10, inodeRawTable.getColumns());
   }
 
   @Test
-  public void getNullMetadataTest() {
+  public void getNullMetadataTest() throws TachyonException {
     InodeRawTable inodeRawTable = new InodeRawTable("testTable1", 1, 0, 10, (ByteBuffer) null);
     Assert.assertTrue(inodeRawTable.getMetadata().equals(ByteBuffer.allocate(0)));
   }
 
   @Test
-  public void getMetadataTest() {
+  public void getMetadataTest() throws TachyonException {
     ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(3);
     InodeRawTable inodeRawTable = new InodeRawTable("testTable1", 1, 0, 10, metadata);
     metadata.flip();
@@ -30,7 +32,7 @@ public class InodeRawTableTest {
   }
 
   @Test
-  public void updateMetadataTest() {
+  public void updateMetadataTest() throws TachyonException {
     InodeRawTable inodeRawTable = new InodeRawTable("testTable1", 1, 0, 10, null);
     Assert.assertEquals(ByteBuffer.allocate(0), inodeRawTable.getMetadata());
     ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(7);
@@ -41,7 +43,7 @@ public class InodeRawTableTest {
 
   //Tests for Inode methods
   @Test
-  public void comparableTest() {
+  public void comparableTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
     InodeRawTable inode2 = new InodeRawTable("test2", 2, 0, 10, (ByteBuffer) null);
     Assert.assertEquals(-1, inode1.compareTo(inode2));
@@ -51,7 +53,7 @@ public class InodeRawTableTest {
   }
 
   @Test
-  public void equalsTest() {
+  public void equalsTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
     InodeRawTable inode2 = new InodeRawTable("test2", 1, 0, 10, (ByteBuffer) null);
     InodeRawTable inode3 = new InodeRawTable("test3", 2, 0, 10, (ByteBuffer) null);
@@ -60,38 +62,38 @@ public class InodeRawTableTest {
   }
 
   @Test
-  public void isDirectoryTest() {
+  public void isDirectoryTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
     Assert.assertTrue(inode1.isDirectory());
   }
 
   @Test
-  public void isFileTest() {
+  public void isFileTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
     Assert.assertFalse(inode1.isFile());
   }
 
   @Test
-  public void getInodeTypeTest() {
+  public void getInodeTypeTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
     Assert.assertEquals(inode1.getInodeType(), InodeType.RawTable);
   }
 
   @Test
-  public void getIdTest() {
+  public void getIdTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
     Assert.assertEquals(1, inode1.getId());
   }
 
   @Test
-  public void reverseIdTest() {
+  public void reverseIdTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
     inode1.reverseId();
     Assert.assertEquals(-1, inode1.getId());
   }
 
   @Test
-  public void setNameTest() {
+  public void setNameTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
     Assert.assertEquals("test1", inode1.getName());
     inode1.setName("test2");
@@ -99,7 +101,7 @@ public class InodeRawTableTest {
   }
 
   @Test
-  public void setParentIdTest() {
+  public void setParentIdTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
     Assert.assertEquals(0, inode1.getParentId());
     inode1.setParentId(2);
