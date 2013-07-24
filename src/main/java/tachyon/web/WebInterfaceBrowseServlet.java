@@ -170,7 +170,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     for (ClientFileInfo fileInfo : filesInfo) {
       UiFileInfo toAdd = new UiFileInfo(fileInfo);
       try {
-        if (!toAdd.getIsDirectory()) {
+        if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
           toAdd.setFileLocations(mMasterInfo.getFileLocations(toAdd.getId()).get(0).getLocations());
         }
       } catch (FileDoesNotExistException fdne) {

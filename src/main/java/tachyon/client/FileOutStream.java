@@ -36,6 +36,7 @@ public class FileOutStream extends OutStream {
   FileOutStream(TachyonFile file, WriteType opType) throws IOException {
     super(file, opType);
 
+    LOG.info("BUG: " + file + opType);
     BLOCK_CAPACITY = file.getBlockSizeByte();
 
     mCurrentBlockOutStream = null;
@@ -47,6 +48,7 @@ public class FileOutStream extends OutStream {
 
     if (WRITE_TYPE.isThrough()) {
       mUnderFsFile = TFS.createAndGetUserUnderfsTempFolder() + "/" + FILE.FID;
+      LOG.info("BUG: isThrough " + file + opType + " " + mUnderFsFile);
       UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile);
       mCheckpointOutputStream = underfsClient.create(mUnderFsFile);
     }
@@ -70,7 +72,7 @@ public class FileOutStream extends OutStream {
   }
 
   @Override
-  public void write(int b) throws IOException {
+    public void write(int b) throws IOException {
     if (WRITE_TYPE.isCache() && mCanCache) {
       if (mCurrentBlockId == -1 || mCurrentBlockLeftByte == 0) {
         getNextBlock();

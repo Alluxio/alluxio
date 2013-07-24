@@ -13,11 +13,9 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Tachyon file system's file representation in master.
  */
 public class InodeFile extends Inode {
-  private static final long UNINITIAL_VALUE = -1;
-
   private final long BLOCK_SIZE_BYTE;
 
-  private long mLength;
+  private long mLength = 0;
   private boolean mIsComplete = false;
   private boolean mPin = false;
   private boolean mCache = false;
@@ -27,7 +25,6 @@ public class InodeFile extends Inode {
   public InodeFile(String name, int id, int parentId, long blockSizeByte) {
     super(name, id, parentId, InodeType.File);
     BLOCK_SIZE_BYTE = blockSizeByte;
-    mLength = UNINITIAL_VALUE;
   }
 
   public synchronized long getLength() {
@@ -36,7 +33,7 @@ public class InodeFile extends Inode {
 
   public synchronized void setLength(long length) 
       throws SuspectedFileSizeException, BlockInfoException {
-    if (mLength != UNINITIAL_VALUE) {
+    if (isComplete()) {
       throw new SuspectedFileSizeException("InodeFile length was set previously.");
     }
     if (length < 0) {
@@ -50,6 +47,7 @@ public class InodeFile extends Inode {
     if (length > 0) {
       addBlock(new BlockInfo(this, mBlocks.size(), (int) length));
     }
+    mIsComplete = true;
   }
 
   public synchronized boolean isComplete() {
@@ -101,9 +99,6 @@ public class InodeFile extends Inode {
     }
     if (blockInfo.LENGTH > BLOCK_SIZE_BYTE) {
       throw new BlockInfoException("LENGTH too big: " + BLOCK_SIZE_BYTE + " " + blockInfo);
-    }
-    if (mLength == UNINITIAL_VALUE) {
-      mLength = 0;
     }
     mLength += blockInfo.LENGTH;
     mBlocks.add(blockInfo);

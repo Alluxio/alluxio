@@ -123,7 +123,7 @@ service MasterService {
 
   // Services to Users
   i32 user_createFile(1: string path, 2: i64 blockSizeByte)
-    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: BlockInfoException eB)
+    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: BlockInfoException eB, 4: TachyonException eT)
   i32 user_createFileOnCheckpoint(1: string path, 2: string checkpointPath)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: SuspectedFileSizeException eS, 4: BlockInfoException eB, 5: TachyonException eT)
   i64 user_createNewBlock(1: i32 fileId)
@@ -178,10 +178,10 @@ service MasterService {
   void user_unpinFile(1: i32 fileId)
     throws (1: FileDoesNotExistException e)   // Remove file from memory
   i32 user_mkdir(1: string path)
-    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI)
+    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TachyonException eT)
 
   i32 user_createRawTable(1: string path, 2: i32 columns, 3: binary metadata)
-    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TableColumnException eT)
+    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TableColumnException eT, 4: TachyonException eTa)
   i32 user_getRawTableId(1: string path)
     throws (1: InvalidPathException e) // Return 0 if does not contain the Table, return fileId if it exists.
   ClientRawTableInfo user_getClientRawTableInfoById(1: i32 tableId)
@@ -189,7 +189,7 @@ service MasterService {
   ClientRawTableInfo user_getClientRawTableInfoByPath(1: string tablePath)
     throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI) // Get Table info by path
   void user_updateRawTableMetadata(1: i32 tableId, 2: binary metadata)
-    throws (1: TableDoesNotExistException e)
+    throws (1: TableDoesNotExistException eT, 2: TachyonException eTa)
   i32 user_getNumberOfFiles(1:string path)
     throws (1: FileDoesNotExistException eR, 2: InvalidPathException eI)
   string user_getUnderfsAddress()

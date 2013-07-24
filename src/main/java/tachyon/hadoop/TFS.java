@@ -71,10 +71,6 @@ public class TFS extends FileSystem {
     String path = Utils.getPathWithoutScheme(cPath);
     int fileId = mTFS.createFile(path, blockSize);
     TachyonFile file = mTFS.getFile(fileId);
-    file.getOutStream(WriteType.CACHE_THROUGH);
-//  Path hdfsPath = Utils.getHDFSPath(path);
-//  FileSystem fs = hdfsPath.getFileSystem(getConf());
-//  return fs.create(hdfsPath, permission, overwrite, bufferSize, replication, blockSize, progress);
     return new FSDataOutputStream(file.getOutStream(WriteType.CACHE_THROUGH), null);
   }
 
@@ -108,6 +104,7 @@ public class TFS extends FileSystem {
     fromHdfsToTachyon(tPath);
     TachyonFile file = mTFS.getFile(tPath);
     if (file == null) {
+      LOG.info("File does not exist: " + path);
       throw new FileNotFoundException("File does not exist: " + path);
     }
 
@@ -209,9 +206,13 @@ public class TFS extends FileSystem {
   }
 
   @Override
-  public boolean mkdirs(Path cPath, FsPermission permission) throws IOException {
+  public boolean mkdirs(Path cPath, FsPermission permission)  {
     LOG.info("mkdirs(" + cPath + ", " + permission + ")");
-    return mTFS.mkdir(Utils.getPathWithoutScheme(cPath)) > 0;
+    try {
+      return mTFS.mkdir(Utils.getPathWithoutScheme(cPath)) > 0;
+    } catch (IOException e) {
+      return true;
+    }
   }
 
   @Override
