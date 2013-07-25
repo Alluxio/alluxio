@@ -11,6 +11,15 @@ fi
 COMMAND=$1
 shift
 
+bin=`cd "$( dirname "$0" )"; pwd`
+
+# Load the Tachyon configuration
+. "$bin/tachyon-config.sh"
+
+if [ -e $TACHYON_HOME/conf/tachyon-env.sh ] ; then
+  . $TACHYON_HOME/conf/tachyon-env.sh
+fi
+
 if [ "$COMMAND" == "tfs" ]; then
   CLASS=tachyon.command.TFsShell
 else
@@ -20,6 +29,5 @@ else
   echo "Commands print help when invoked without parameters."
   exit 1
 fi
-bin=`cd "$( dirname "$0" )"; pwd`
-. "$bin/tachyon-config.sh"
-java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dlog4j.configuration=file:$TACHYON_HOME/conf/log4j.properties -Dtachyon.logger.type=USER_LOGGER $CLASS $@
+
+java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dlog4j.configuration=file:$TACHYON_HOME/conf/log4j.properties -Dtachyon.logger.type=USER_LOGGER $CLASS $@
