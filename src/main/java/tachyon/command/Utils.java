@@ -10,6 +10,7 @@ import tachyon.Constants;
  */
 public class Utils {
   private static final String HEADER = "tachyon://";
+
   /**
    * Validates the path, verifying that it contains the header and a hostname:port specified.
    * @param path The path to be verified.
@@ -18,8 +19,7 @@ public class Utils {
   public static String validateTachyonPath(String path) throws IOException {
     if (path.startsWith(HEADER)) {
       if (!path.contains(":")) {
-        throw new IOException(
-            "Invalid Path: " + path + "\n Use tachyon://host:port/ or /file");
+        throw new IOException("Invalid Path: " + path + "\n Use tachyon://host:port/ or /file");
       } else {
         return path;
       }
