@@ -31,7 +31,7 @@ public class BlockOutStream extends OutStream {
   private RandomAccessFile mLocalFile = null;
   private FileChannel mLocalFileChannel = null;
 
-  private ByteBuffer mBuffer = null;
+  private ByteBuffer mBuffer = ByteBuffer.allocate(0);
 
   private boolean mCanWrite = false;
   private boolean mClosed = false;
