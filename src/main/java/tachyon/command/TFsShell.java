@@ -26,7 +26,7 @@ import tachyon.client.WriteType;
 
 /**
  * Class for handling command line inputs.
- */ 
+ */
 public class TFsShell {
   public void printUsage(String cmd) {}
   public void close() {}

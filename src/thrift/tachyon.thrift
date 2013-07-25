@@ -79,7 +79,7 @@ exception FileDoesNotExistException {
   1: string message
 }
 
-exception NoLocalWorkerException {
+exception NoWorkerException {
   1: string message
 }
 
@@ -142,7 +142,7 @@ service MasterService {
    * Get local worker NetAddress
    */
   NetAddress user_getWorker(1: bool random, 2: string host)
-    throws (1: NoLocalWorkerException e)
+    throws (1: NoWorkerException e)
   ClientFileInfo user_getClientFileInfoById(1: i32 fileId)
     throws (1: FileDoesNotExistException e)
   ClientFileInfo user_getClientFileInfoByPath(1: string path)

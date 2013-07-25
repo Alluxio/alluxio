@@ -22,7 +22,7 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.MasterService;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.NoLocalWorkerException;
+import tachyon.thrift.NoWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
@@ -120,8 +120,16 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public NetAddress user_getWorker(boolean random, String host) 
-      throws NoLocalWorkerException, TException {
-    return mMasterInfo.getWorker(random, host);
+      throws NoWorkerException, TException {
+    NetAddress ret = mMasterInfo.getWorker(random, host);
+    if (ret == null) {
+      if (random) {
+        throw new NoWorkerException("No worker in the system");
+      } else {
+        throw new NoWorkerException("No local worker on " + host);
+      }
+    }
+    return ret; 
   }
 
   @Override

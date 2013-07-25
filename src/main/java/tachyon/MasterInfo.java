@@ -40,7 +40,6 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.NoLocalWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
@@ -869,8 +868,11 @@ public class MasterInfo {
     return ret;
   }
 
-  public NetAddress getWorker(boolean random, String host) throws NoLocalWorkerException {
+  public NetAddress getWorker(boolean random, String host) {
     synchronized (mWorkers) {
+      if (mWorkerAddressToId.isEmpty()) {
+        return null;
+      }
       if (random) {
         int index = new Random(mWorkerAddressToId.size()).nextInt(mWorkerAddressToId.size());
         for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
@@ -896,7 +898,7 @@ public class MasterInfo {
       }
     }
     LOG.info("getLocalWorker: no local worker on " + host);
-    throw new NoLocalWorkerException("getLocalWorker: no local worker on " + host);
+    return null;
   }
 
   public int getWorkerCount() {
