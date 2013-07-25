@@ -1,6 +1,7 @@
 package tachyon.client;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -80,7 +81,8 @@ public class TachyonFSTest {
   public void createFileWithCheckpointFileTest() throws IOException {
     String tempFolder = mLocalTachyonCluster.getTempFolderInUnderFs();
     UnderFileSystem underFs = UnderFileSystem.get(tempFolder);
-    underFs.create(tempFolder + "/temp");
+    OutputStream os = underFs.create(tempFolder + "/temp", 100);
+    os.close();
     mTfs.createFile("/abc", tempFolder + "/temp");
     Assert.assertTrue(mTfs.exist("/abc"));
     Assert.assertEquals(tempFolder + "/temp", mTfs.getCheckpointPath(mTfs.getFileId("/abc")));

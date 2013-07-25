@@ -47,12 +47,18 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public FSDataOutputStream create(String path) throws IOException {
+  public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
+    return create(path, (short) 3, blockSizeByte);
+  }
+
+  @Override
+  public FSDataOutputStream create(String path, short replication, int blockSizeByte)
+      throws IOException {
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        return mFs.create(new Path(path));
+        return mFs.create(new Path(path), true, 4096, replication, blockSizeByte);
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);

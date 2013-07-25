@@ -27,7 +27,7 @@ public class MasterLogWriter {
     LOG_FILE_NAME = fileName;
     mKryo = KryoFactory.createLogKryo();
     try {
-      mOutputStream = UnderFileSystem.get(LOG_FILE_NAME).create(LOG_FILE_NAME);
+      mOutputStream = UnderFileSystem.get(LOG_FILE_NAME).create(LOG_FILE_NAME, Integer.MAX_VALUE);
       mOutput = new Output(mOutputStream);
     } catch (FileNotFoundException e) {
       CommonUtils.runtimeException(e);
