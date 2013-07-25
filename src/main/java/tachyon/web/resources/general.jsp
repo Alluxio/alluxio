@@ -49,6 +49,11 @@
                   <!-- <th>${version}</th> -->
                   <th><%= request.getAttribute("version") %></th>
                 </tr>
+                <tr>
+                  <th>Running Workers:</th>
+                  <!-- <th>${liveWorkerNodes}</th> -->
+                  <th><%= request.getAttribute("liveWorkerNodes") %></th>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -60,7 +65,7 @@
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#data2">
-            <h4>Cluster Summary</h4>
+            <h4>Cluster Usage Summary</h4>
           </a>
         </div>
         <div id="data2" class="accordion-body collapse in">
@@ -68,19 +73,24 @@
             <table class="table">
               <tbody>
                 <tr>
-                  <th>Memory Storage Capacity:</th>
+                  <th>Memory Capacity:</th>
                   <!-- <th>${capacity}</th> -->
                   <th><%= request.getAttribute("capacity") %></th>
                 </tr>
                 <tr>
-                  <th>Memory Storage In-Use</th>
+                  <th>Memory Used:</th>
                   <!-- <th>${usedCapacity}</th> -->
                   <th><%= request.getAttribute("usedCapacity") %></th>
                 </tr>
                 <tr>
-                  <th>Workers Running</th>
-                  <!-- <th>${liveWorkerNodes}</th> -->
-                  <th><%= request.getAttribute("liveWorkerNodes") %></th>
+                  <th>Disk Capacity:</th>
+                  <!-- <th>${capacity}</th> -->
+                  <th><%= request.getAttribute("diskCapacity") %></th>
+                </tr>
+                <tr>
+                  <th>Disk Used:</th>
+                  <!-- <th>${usedCapacity}</th> -->
+                  <th><%= request.getAttribute("diskUsedCapacity") %></th>
                 </tr>
               </tbody>
             </table>
@@ -172,7 +182,7 @@
                 <% } %>
                 <th>Last Heartbeat</th>
                 <th>State</th>
-                <th>Capacity</th>
+                <th>Memory Capacity</th>
               <tbody>
                 <!--
                 <c:forEach var="nodeInfo" items="${nodeInfos}">
