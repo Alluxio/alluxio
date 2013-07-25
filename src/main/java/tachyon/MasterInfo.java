@@ -325,6 +325,9 @@ public class MasterInfo {
     synchronized (mRoot) {
       Inode inode = getInode(pathNames);
       if (inode != null) {
+        if (inode.isDirectory() && (directory && columns == -1)) {
+          return inode.getId();
+        }
         LOG.info("FileAlreadyExistException: File " + path + " already exist.");
         throw new FileAlreadyExistException("File " + path + " already exist.");
       }
@@ -981,10 +984,10 @@ public class MasterInfo {
     return ret;
   }
 
-  public int mkdir(String path)
+  public boolean mkdir(String path)
       throws FileAlreadyExistException, InvalidPathException, TachyonException {
     try {
-      return createFile(true, path, true, -1, null, 0);
+      return createFile(true, path, true, -1, null, 0) > 0;
     } catch (BlockInfoException e) {
       throw new FileAlreadyExistException(e.getMessage());
     }

@@ -177,7 +177,7 @@ service MasterService {
     throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)
   void user_unpinFile(1: i32 fileId)
     throws (1: FileDoesNotExistException e)   // Remove file from memory
-  i32 user_mkdir(1: string path)
+  bool user_mkdir(1: string path)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TachyonException eT)
 
   i32 user_createRawTable(1: string path, 2: i32 columns, 3: binary metadata)

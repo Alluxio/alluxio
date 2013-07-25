@@ -375,7 +375,7 @@ public class MasterClient {
     }
   }
 
-  public synchronized int user_mkdir(String path) 
+  public synchronized boolean user_mkdir(String path) 
       throws IOException, TException {
     connect();
     try {

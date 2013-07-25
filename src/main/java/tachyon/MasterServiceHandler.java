@@ -229,7 +229,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_mkdir(String path) 
+  public boolean user_mkdir(String path) 
       throws FileAlreadyExistException, InvalidPathException, TachyonException, TException {
     return mMasterInfo.mkdir(path);
   }
