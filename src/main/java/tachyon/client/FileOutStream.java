@@ -44,7 +44,11 @@ public class FileOutStream extends OutStream {
     if (WRITE_TYPE.isThrough()) {
       mUnderFsFile = TFS.createAndGetUserUnderfsTempFolder() + "/" + FILE.FID;
       UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile);
-      mCheckpointOutputStream = underfsClient.create(mUnderFsFile);
+      if (BLOCK_CAPACITY > Integer.MAX_VALUE) {
+        throw new IOException("BLOCK_CAPCAITY (" + BLOCK_CAPACITY + ") can not bigger than "
+            + Integer.MAX_VALUE);
+      }
+      mCheckpointOutputStream = underfsClient.create(mUnderFsFile, (int) BLOCK_CAPACITY);
     }
   }
 
