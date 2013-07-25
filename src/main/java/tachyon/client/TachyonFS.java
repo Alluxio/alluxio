@@ -124,40 +124,6 @@ public class TachyonFS {
     }
   }
 
-  /**
-   * This API is not recommended to use.
-   * 
-   * @param id file id
-   * @param path existing checkpoint path
-   * @return true if the checkpoint path is added successfully, false otherwise.
-   * @throws IOException
-   * @throws TException
-   */
-  //  public synchronized boolean addCheckpointPath(int id, String path)
-  //      throws IOException, TException {
-  //    connect();
-  //
-  //    UnderFileSystem hdfsClient = UnderFileSystem.get(path);
-  //    long fileSizeBytes = hdfsClient.getFileSize(path);
-  //
-  //    try {
-  //      if (mMasterClient.addCheckpoint(-1, id, fileSizeBytes, path)) {
-  //        ClientFileInfo tInfo = mClientFileInfos.get(id);
-  //        tInfo.length = fileSizeBytes;
-  //        tInfo.checkpointPath = path;
-  //        return true;
-  //      }
-  //    } catch (FileDoesNotExistException e) {
-  //      throw new IOException(e);
-  //    } catch (SuspectedFileSizeException e) {
-  //      throw new IOException(e);
-  //    } catch (BlockInfoException e) {
-  //      throw new IOException(e);
-  //    }
-  //
-  //    return false;
-  //  }
-
   public synchronized void cacheBlock(long blockId) throws IOException  {
     connect();
     if (!mConnected) {
@@ -834,23 +800,20 @@ public class TachyonFS {
   /**
    * Create a directory if it does not exist.
    * @param path Directory path.
-   * @return The inode ID of the directory if it is successfully created. -1 if not.
+   * @return true if the folder is created succeefully. faluse otherwise.
    * @throws IOException
    */
-  public synchronized int mkdir(String path) throws IOException {
+  public synchronized boolean mkdir(String path) throws IOException {
     connect();
     if (!mConnected) {
-      return -1;
+      return false;
     }
     path = CommonUtils.cleanPath(path);
-    int id = -1;
     try {
-      id = mMasterClient.user_mkdir(path);
+      return mMasterClient.user_mkdir(path);
     } catch (TException e) {
-      LOG.info(e.getMessage());
-      id = -1;
+      throw new IOException(e);
     }
-    return id;
   }
 
   public synchronized void outOfMemoryForPinFile(int fid) {
