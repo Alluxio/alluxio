@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
 
+import tachyon.UnderFileSystem.SpaceType;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.thrift.BlockInfoException;
@@ -846,6 +847,16 @@ public class MasterInfo {
 
   public long getStarttimeMs() {
     return START_TIME_MS;
+  }
+
+  public long getUnderFsCapacityBytes() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
+    return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_TOTAL);
+  }
+
+  public long getUnderFsUsedBytes() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
+    return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_USED);
   }
 
   public long getUsedBytes() {

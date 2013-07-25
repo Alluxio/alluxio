@@ -758,9 +758,6 @@ public class TachyonFS {
   public synchronized List<ClientFileInfo> listStatus(String path)
       throws IOException {
     connect();
-    if (!mConnected) {
-      return null;
-    }
     try {
       return mMasterClient.listStatus(path);
     } catch (TException e) {

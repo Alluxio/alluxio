@@ -13,7 +13,7 @@ public abstract class UnderFileSystem {
   public enum SpaceType {
     SPACE_TOTAL(0),
     SPACE_FREE(1),
-    SPACE_USABLE(2);
+    SPACE_USED(2);
 
     private final int value;
 

@@ -93,8 +93,9 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Populates key, value pairs for UI display
    * @param request The HttpServletRequest object
+   * @throws IOException 
    */
-  private void populateValues(HttpServletRequest request) {
+  private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);
 
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
@@ -106,12 +107,25 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("version", Version.VERSION);
 
+    request.setAttribute("liveWorkerNodes", Integer.toString(mMasterInfo.getWorkerCount()));
+
     request.setAttribute("capacity", CommonUtils.getSizeFromBytes(mMasterInfo.getCapacityBytes()));
 
-    request.setAttribute("usedCapacity", 
-        CommonUtils.getSizeFromBytes(mMasterInfo.getUsedBytes()));
+    request.setAttribute("usedCapacity", CommonUtils.getSizeFromBytes(mMasterInfo.getUsedBytes()));
 
-    request.setAttribute("liveWorkerNodes", Integer.toString(mMasterInfo.getWorkerCount()));
+    long sizeBytes = mMasterInfo.getUnderFsCapacityBytes();
+    if (sizeBytes >= 0) {
+      request.setAttribute("diskCapacity", CommonUtils.getSizeFromBytes(sizeBytes));
+    } else {
+      request.setAttribute("diskCapacity", "UNKNOWN");
+    }
+
+    sizeBytes = mMasterInfo.getUnderFsUsedBytes();
+    if (sizeBytes >= 0) {
+      request.setAttribute("diskUsedCapacity", CommonUtils.getSizeFromBytes(sizeBytes));
+    } else {
+      request.setAttribute("diskUsedCapacity", "UNKNOWN");
+    }
 
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
     for (int i = 0; i < workerInfos.size(); i ++) {

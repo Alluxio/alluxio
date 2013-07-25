@@ -78,8 +78,8 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
         return file.getTotalSpace();
       case SPACE_FREE:
         return file.getFreeSpace();
-      case SPACE_USABLE:
-        return file.getUsableSpace();
+      case SPACE_USED:
+        return file.getTotalSpace() - file.getFreeSpace();
     }
     throw new IOException("Unknown getSpace parameter: " + type);
   }
