@@ -26,7 +26,7 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.MasterService;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.NoLocalWorkerException;
+import tachyon.thrift.NoWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
@@ -301,7 +301,7 @@ public class MasterClient {
   }
 
   public synchronized NetAddress user_getWorker(boolean random, String hostname)
-      throws NoLocalWorkerException, TException {
+      throws NoWorkerException, TException {
     connect();
     return CLIENT.user_getWorker(random, hostname);
   }

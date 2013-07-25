@@ -29,7 +29,7 @@ import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.NoLocalWorkerException;
+import tachyon.thrift.NoWorkerException;
 
 /**
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients
@@ -181,7 +181,7 @@ public class TachyonFS {
       LOG.info("Trying to get local worker host : " + localHostName);
       workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
       mIsWorkerLocal = true;
-    } catch (NoLocalWorkerException e) {
+    } catch (NoWorkerException e) {
       LOG.info(e.getMessage());
       workerNetAddress = null;
     } catch (UnknownHostException e) {
@@ -196,7 +196,7 @@ public class TachyonFS {
     if (workerNetAddress == null) {
       try {
         workerNetAddress = mMasterClient.user_getWorker(true, "");
-      } catch (NoLocalWorkerException e) {
+      } catch (NoWorkerException e) {
         LOG.info(e.getMessage());
         workerNetAddress = null;
       } catch (TException e) {
@@ -207,7 +207,7 @@ public class TachyonFS {
     }
 
     if (workerNetAddress == null) {
-      LOG.error("No worker running in the system");
+      LOG.info("No worker running in the system");
       return;
     }
 
