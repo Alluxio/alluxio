@@ -139,6 +139,11 @@
       <artifactId>commons-lang3</artifactId>
       <version>3.0</version>
     </dependency>
+	<dependency>
+		<groupId>org.ow2.asm</groupId>
+		<artifactId>asm</artifactId>
+		<version>4.0</version>
+	</dependency>
   </dependencies>
 
   <build>
