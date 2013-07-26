@@ -19,7 +19,7 @@ public class UserConf extends Utils {
     HEARTBEAT_INTERVAL_MS = getLongProperty("tachyon.user.heartbeat.interval.ms", 1000);
     MASTER_CLIENT_TIMEOUT_MS = getLongProperty("tachyon.user.master.client.timeout.ms", 10000);
     DEFAULT_BLOCK_SIZE_BYTE =
-        getLongProperty("tachyon.user.default.block.size.byte", 512 * Constants.MB);
+        getLongProperty("tachyon.user.default.block.size.byte", Constants.GB);
   }
 
   public static synchronized UserConf get() {

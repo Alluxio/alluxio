@@ -27,6 +27,11 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
+  public OutputStream create(String path) throws IOException {
+    return new FileOutputStream(path);
+  }
+
+  @Override
   public OutputStream create(String path, int blockSizeByte) throws IOException {
     return create(path, (short) 1, blockSizeByte);
   }

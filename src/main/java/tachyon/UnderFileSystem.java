@@ -41,6 +41,8 @@ public abstract class UnderFileSystem {
 
   public abstract void close() throws IOException;
 
+  public abstract OutputStream create(String path) throws IOException;
+
   public abstract OutputStream create(String path, int blockSizeByte) throws IOException;
 
   public abstract OutputStream create(String path, short replication, int blockSizeByte)

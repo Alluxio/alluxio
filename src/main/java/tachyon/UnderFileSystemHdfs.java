@@ -18,7 +18,7 @@ import org.apache.log4j.Logger;
  * HDFS UnderFilesystem implementation.
  */
 public class UnderFileSystemHdfs extends UnderFileSystem {
-  private static final int MAX_TRY = 5; 
+  private static final int MAX_TRY = 5;
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private FileSystem mFs = null;
@@ -47,18 +47,12 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
-    return create(path, (short) 3, blockSizeByte);
-  }
-
-  @Override
-  public FSDataOutputStream create(String path, short replication, int blockSizeByte)
-      throws IOException {
+  public FSDataOutputStream create(String path) throws IOException {
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        return mFs.create(new Path(path), true, 4096, replication, blockSizeByte);
+        return mFs.create(new Path(path));
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
@@ -67,6 +61,36 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       }
     }
     throw te;
+  }
+
+  @Override
+  // BlockSize should be a multiple of 512
+  public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
+    // TODO Fix this
+    //return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
+    return create(path);
+  }
+
+  @Override
+  public FSDataOutputStream create(String path, short replication, int blockSizeByte)
+      throws IOException {
+    // TODO Fix this
+    //return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
+    return create(path);
+//    LOG.info(path + " " + replication + " " + blockSizeByte);
+//    IOException te = null;
+//    int cnt = 0;
+//    while (cnt < MAX_TRY) {
+//      try {
+//        return mFs.create(new Path(path), true, 4096, replication, blockSizeByte);
+//      } catch (IOException e) {
+//        cnt ++;
+//        LOG.error(cnt + " : " + e.getMessage(), e);
+//        te = e;
+//        continue;
+//      }
+//    }
+//    throw te;
   }
 
   @Override
