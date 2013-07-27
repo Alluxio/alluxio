@@ -11,6 +11,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
@@ -188,6 +189,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) {
+    short DEFAULT_FS_PERM = 0755;
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
@@ -195,7 +197,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         if (mFs.exists(new Path(path))) {
           return true;
         }
-        return mFs.mkdirs(new Path(path), null);
+        return mFs.mkdirs(new Path(path), new FsPermission(DEFAULT_FS_PERM));
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
