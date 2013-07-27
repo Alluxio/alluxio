@@ -4,6 +4,7 @@
 .metadata/
 .settings/
 conf/tachyon-env.sh
+conf/slaves
 data/
 logs/
 src/main/java/tachyon/thrift
