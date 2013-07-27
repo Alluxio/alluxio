@@ -17,25 +17,29 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 
-public class SubsumeHdfs {
+/**
+ * Utilities related to under filesystem
+ */
+public class UnderfsUtil {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  public static void subsume(TachyonFS tfs, String hdfsAddress, String rootPath, 
+  public static void getInfo(TachyonFS tfs, String underfsAddress, String rootPath, 
       PrefixList excludePathPrefix) throws IOException {
-    LOG.info(tfs + " " + hdfsAddress + " " + rootPath + " " + excludePathPrefix);
+    LOG.info(tfs + " " + underfsAddress + " " + rootPath + " " + excludePathPrefix);
 
     Configuration tConf = new Configuration();
-    tConf.set("fs.default.name", hdfsAddress + rootPath);
+    tConf.set("fs.default.name", underfsAddress + rootPath);
+    // TODO Use underfs to make this generic.
     FileSystem fs = FileSystem.get(tConf);
 
     Queue<String> pathQueue = new LinkedList<String>();
     if (excludePathPrefix.outList(rootPath)) {
-      pathQueue.add(hdfsAddress + rootPath);
+      pathQueue.add(underfsAddress + rootPath);
     }
     while (!pathQueue.isEmpty()) {
       String path = pathQueue.poll();
       if (fs.isFile(new Path(path))) {
-        String filePath =  path.substring(hdfsAddress.length());
+        String filePath =  path.substring(underfsAddress.length());
         if (tfs.exist(filePath)) {
           LOG.info("File " + filePath + " already exists in Tachyon.");
           continue;
@@ -51,12 +55,12 @@ public class SubsumeHdfs {
         FileStatus[] files = fs.listStatus(new Path(path));
         for (FileStatus status : files) {
           LOG.info("Get: " + status.getPath());
-          String filePath = status.getPath().toString().substring(hdfsAddress.length());
+          String filePath = status.getPath().toString().substring(underfsAddress.length());
           if (excludePathPrefix.outList(filePath)) {
             pathQueue.add(status.getPath().toString());
           }
         }
-        String filePath = path.substring(hdfsAddress.length());
+        String filePath = path.substring(underfsAddress.length());
         if (!tfs.exist(filePath)) {
           tfs.mkdir(filePath);
         }
@@ -69,8 +73,8 @@ public class SubsumeHdfs {
       FileDoesNotExistException, FileAlreadyExistException, TException {
     if (!(args.length == 3 || args.length == 4)) {
       String prefix = "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " + 
-          "tachyon.SubsumeHdfs ";
-      System.out.println("Usage: " + prefix + "<TachyonAddress> <HdfsAddress> <Path> " +
+          "tachyon.UnderfsUtil ";
+      System.out.println("Usage: " + prefix + "<TachyonAddress> <UnderfsAddress> <Path> " +
           "[<ExcludePathPrefix, separated by ;>]");
       System.out.println("Example: " + prefix + 
           "127.0.0.1:19998 hdfs://localhost:54310 / /tachyon");
@@ -84,6 +88,6 @@ public class SubsumeHdfs {
       tExcludePathPrefix = new PrefixList(null);
     }
 
-    subsume(TachyonFS.get(args[0]), args[1], args[2], tExcludePathPrefix);
+    getInfo(TachyonFS.get(args[0]), args[1], args[2], tExcludePathPrefix);
   }
 }

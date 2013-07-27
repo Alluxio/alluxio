@@ -39,7 +39,7 @@ public final class Utils {
       mid = "";
     }
 
-    return new Path(TFS.HDFS_ADDRESS + mid + path);
+    return new Path(TFS.UNDERFS_ADDRESS + mid + path);
   }
 
   public static String getPathWithoutScheme(Path path) {

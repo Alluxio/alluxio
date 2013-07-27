@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
 import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.PrefixList;
-import tachyon.SubsumeHdfs;
+import tachyon.UnderfsUtil;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
@@ -35,7 +35,7 @@ import tachyon.thrift.NetAddress;
  * the Tachyon API in tachyon.client package.
  */
 public class TFS extends FileSystem {
-  public static String HDFS_ADDRESS;
+  public static String UNDERFS_ADDRESS;
 
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
@@ -49,7 +49,7 @@ public class TFS extends FileSystem {
       Path hdfsPath = Utils.getHDFSPath(path);
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       if (fs.exists(hdfsPath)) {
-        SubsumeHdfs.subsume(mTFS, HDFS_ADDRESS, path, new PrefixList(null));
+        UnderfsUtil.getInfo(mTFS, UNDERFS_ADDRESS, path, new PrefixList(null));
       }
     }
   }
@@ -175,8 +175,8 @@ public class TFS extends FileSystem {
     mTFS = TachyonFS.get(new InetSocketAddress(uri.getHost(), uri.getPort()));
     mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort();
     mUri = URI.create(mTachyonHeader);
-    HDFS_ADDRESS = mTFS.getUnderfsAddress();
-    LOG.info(mTachyonHeader + " " + mUri + " " + HDFS_ADDRESS);
+    UNDERFS_ADDRESS = mTFS.getUnderfsAddress();
+    LOG.info(mTachyonHeader + " " + mUri + " " + UNDERFS_ADDRESS);
   }
 
   @Override
