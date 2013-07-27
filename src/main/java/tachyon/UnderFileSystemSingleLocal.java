@@ -102,10 +102,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     File file = new File(path);
-    if (createParent) {
-      return file.mkdirs();
-    }
-    return file.mkdir();
+    return createParent ? file.mkdirs(): file.mkdir();
   }
 
   @Override
