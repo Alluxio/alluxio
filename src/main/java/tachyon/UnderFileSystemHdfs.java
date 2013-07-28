@@ -32,10 +32,12 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       Configuration tConf = new Configuration();
       tConf.set("fs.defaultFS", fsDefaultName);
       tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
-      if (System.getProperty("fs.s3n.awsAccessKeyId") != null)
+      if (System.getProperty("fs.s3n.awsAccessKeyId") != null) {
         tConf.set("fs.s3n.awsAccessKeyId", System.getProperty("fs.s3n.awsAccessKeyId"));
-      if (System.getProperty("fs.s3n.awsSecretAccessKey") != null)
+      }
+      if (System.getProperty("fs.s3n.awsSecretAccessKey") != null) {
         tConf.set("fs.s3n.awsSecretAccessKey", System.getProperty("fs.s3n.awsSecretAccessKey"));
+      }
       Path path = new Path(fsDefaultName);
       mFs = path.getFileSystem(tConf);
       // FileSystem.get(tConf);
