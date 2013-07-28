@@ -16,5 +16,8 @@ fi
 
 F=$TACHYON_RAM_FOLDER
 
-echo "Formatting RamFS: $F"
-umount -f $F ; mkdir -p $F; mount -t ramfs -o size=15g ramfs $F ; chmod a+w $F ;
+# Lower case memory size.
+MEM_SIZE=$(echo "$TACHYON_WORKER_MEMORY_SIZE" | tr -s '[:upper:]' '[:lower:]')
+
+echo "Formatting RamFS: $F ($MEM_SIZE)"
+umount -f $F ; mkdir -p $F; mount -t ramfs -o size=$MEM_SIZE ramfs $F ; chmod a+w $F ;
