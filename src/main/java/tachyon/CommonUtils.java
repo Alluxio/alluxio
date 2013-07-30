@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -21,7 +22,10 @@ public final class CommonUtils {
   private CommonUtils () {
   }
 
-  public static String cleanPath(String path) {
+  public static String cleanPath(String path) throws IOException {
+    if (path == null || path.isEmpty()) {
+      throw new IOException("Path is (" + path + ") is invalid.");
+    }
     while (path.endsWith("/") && path.length() > 1) {
       path = path.substring(0, path.length() - 1);
     }
