@@ -455,7 +455,8 @@ public class TachyonFS {
     }
   }
 
-  private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata) { 
+  private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata)
+      throws IOException { 
     connect();
     if (!mConnected) {
       return null;
@@ -566,7 +567,8 @@ public class TachyonFS {
     return getFile(path, false);
   }
 
-  public synchronized TachyonFile getFile(String path, boolean useCachedMetadata) {
+  public synchronized TachyonFile getFile(String path, boolean useCachedMetadata) 
+      throws IOException {
     path = CommonUtils.cleanPath(path);
     ClientFileInfo clientFileInfo = getClientFileInfo(path, useCachedMetadata);
     if (clientFileInfo == null) {
