@@ -16,22 +16,25 @@ User Mailing List: https://groups.google.com/forum/?fromgroups#!forum/tachyon-us
 ## Dependency Information
 
 ### Apache Maven
-
-    <dependency>
-      <groupId>org.tachyonproject</groupId>
-      <artifactId>tachyon</artifactId>
-      <version>0.2.1</version>
-    </dependency>
+```xml
+<dependency>
+  <groupId>org.tachyonproject</groupId>
+  <artifactId>tachyon</artifactId>
+  <version>0.2.1</version>
+</dependency>
+```
 
 ### Apache Ant
-
-    <dependency org="org.tachyonproject" name="tachyon" rev="0.2.1">
-      <artifact name="tachyon" type="jar" />
-    </dependency>
+```xml
+<dependency org="org.tachyonproject" name="tachyon" rev="0.2.1">
+  <artifact name="tachyon" type="jar" />
+</dependency>
+```
 
 ### SBT
-
-    libraryDependencies += "org.tachyonproject" %% "tachyon" % "0.2.1"
+```
+libraryDependencies += "org.tachyonproject" %% "tachyon" % "0.2.1"
+```
 
 ## Contributing to Tachyon
 
