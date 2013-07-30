@@ -14,6 +14,9 @@ import org.apache.thrift.TException;
 
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.InvalidPathException;
 
 import tachyon.CommonUtils;
 import tachyon.client.FileOutStream;
@@ -234,6 +237,33 @@ public class TFsShell {
     System.out.println("Copied " + srcPath + " to " + dstPath);
     return 0;
   }
+  
+  /**
+   * Displays a list of hosts that have the file specified in argv stored.
+   * @param argv[] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
+   * @throws IOException
+   * @throws TException
+   */
+  public int location(String argv[]) 
+      throws FileDoesNotExistException, InvalidPathException, IOException, TException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs location <path>");
+      return -1;
+    }
+    String path = argv[1];
+    String file = Utils.getFilePath(path);
+    TachyonFS tachyonClient = TachyonFS.get(Utils.getTachyonMasterAddress(path));
+    int fileId = tachyonClient.getFileId(file);
+    List<String> hosts = tachyonClient.getFile(fileId).getLocationHosts();
+    System.out.println(file + " with file id " + fileId + " are on nodes: ");
+    for (String host: hosts) {
+      System.out.println(host);
+    }
+    return 0;
+  }
 
   /**
    * Method which prints the method to use all the commands.
@@ -246,6 +276,7 @@ public class TFsShell {
     System.out.println("       [mv <src> <dst>");
     System.out.println("       [copyFromLocal <src> <remoteDst>]");
     System.out.println("       [copyToLocal <src> <localDst>]");
+    System.out.println("       [fileinfo <path>]");
     System.out.println("       [location <path>]");
   }
 
@@ -288,12 +319,18 @@ public class TFsShell {
         exitCode = copyToLocal(argv);
       } else if (cmd.equals("fileinfo")) {
         exitCode = fileinfo(argv);
+      } else if (cmd.equals("location")) {
+          exitCode = location(argv);
       } else {
         printUsage();
         return -1;
       }
-    } catch (IOException e) {
-      System.out.println(e.getMessage());
+    } catch (InvalidPathException ipe) {
+        System.out.println("Invalid Path: " + ipe.getMessage());
+      } catch (FileDoesNotExistException fdne) {
+        System.out.println("File Does Not Exist: " + fdne.getMessage());
+      } catch (IOException ioe) {
+        System.out.println(ioe.getMessage());
     } finally {
     }
 
