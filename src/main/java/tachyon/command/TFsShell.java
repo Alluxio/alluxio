@@ -241,8 +241,7 @@ public class TFsShell {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int location(String argv[]) 
-      throws IOException {
+  public int location(String argv[]) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs location <path>");
       return -1;
