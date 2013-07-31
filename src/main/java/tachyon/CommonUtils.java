@@ -24,7 +24,7 @@ public final class CommonUtils {
 
   public static String cleanPath(String path) throws IOException {
     if (path == null || path.isEmpty()) {
-      throw new IOException("Path is (" + path + ") is invalid.");
+      throw new IOException("Path (" + path + ") is invalid.");
     }
     while (path.endsWith("/") && path.length() > 1) {
       path = path.substring(0, path.length() - 1);
