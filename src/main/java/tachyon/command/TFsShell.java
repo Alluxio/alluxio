@@ -14,9 +14,6 @@ import org.apache.thrift.TException;
 
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
 
 import tachyon.CommonUtils;
 import tachyon.client.FileOutStream;
@@ -242,13 +239,10 @@ public class TFsShell {
    * Displays a list of hosts that have the file specified in argv stored.
    * @param argv[] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
-   * @throws FileDoesNotExistException
-   * @throws InvalidPathException
    * @throws IOException
-   * @throws TException
    */
   public int location(String argv[]) 
-      throws FileDoesNotExistException, InvalidPathException, IOException, TException {
+      throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs location <path>");
       return -1;
@@ -320,16 +314,12 @@ public class TFsShell {
       } else if (cmd.equals("fileinfo")) {
         exitCode = fileinfo(argv);
       } else if (cmd.equals("location")) {
-          exitCode = location(argv);
+        exitCode = location(argv);
       } else {
         printUsage();
         return -1;
       }
-    } catch (InvalidPathException ipe) {
-        System.out.println("Invalid Path: " + ipe.getMessage());
-      } catch (FileDoesNotExistException fdne) {
-        System.out.println("File Does Not Exist: " + fdne.getMessage());
-      } catch (IOException ioe) {
+    } catch (IOException ioe) {
         System.out.println(ioe.getMessage());
     } finally {
     }
