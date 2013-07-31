@@ -320,7 +320,7 @@ public class TFsShell {
         return -1;
       }
     } catch (IOException ioe) {
-        System.out.println(ioe.getMessage());
+    	System.out.println(ioe.getMessage());
     } finally {
     }
 
