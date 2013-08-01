@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.InetAddress;
+import java.util.Iterator;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -21,6 +23,7 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.thrift.ClientBlockInfo;
 
 /**
  * Unit tests on TFsShell.
@@ -58,7 +61,14 @@ public class TFsShellTest {
         StringBuilder ret = new StringBuilder();
         ret.append(command[1] + " with file id " + command[2] + " are on nodes: \n");
         for (int i = 3; i < command.length; i ++) {
-          ret.append(command[i]+"\n");
+          ret.append(command[i] + "\n");
+        }
+        return ret.toString();
+      }else if (cmd.equals("fileinfo")) {
+        StringBuilder ret = new StringBuilder();
+        ret.append(command[1] + " with file id " + command[2] + " have following blocks: \n");
+        for (int i = 3; i < command.length; i ++) {
+          ret.append(command[i] + "\n");
         }
         return ret.toString();
       }
@@ -263,5 +273,43 @@ public class TFsShellTest {
     fis.read(read);
     fis.close();
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(mSizeBytes, read));
+  }
+  
+  @Test
+  public void fileinfoTest() throws IOException {
+    int fileId = TestUtils.createByteFile(mTfs, "/testFile", WriteType.CACHE, 10);
+    mFsShell.fileinfo(new String[]{"fileinfo", "/testFile"});
+    TachyonFile tFile = mTfs.getFile("/testFile");
+    Assert.assertNotNull(tFile);
+    List<ClientBlockInfo> blocks = mTfs.getFileBlocks(fileId);
+    String[] commandParameters = new String[3 + blocks.size()];
+    commandParameters[0] = "fileinfo";
+    commandParameters[1] = "/testFile";
+    commandParameters[2] = String.valueOf(fileId);
+    Iterator<ClientBlockInfo> iter = blocks.iterator();
+    int i = 3;
+    while (iter.hasNext()) {
+      commandParameters[i ++] = iter.next().toString();
+    }
+    Assert.assertEquals(getCommandOutput(commandParameters), mOutput.toString());
+  }
+  
+  @Test
+  public void locationTest() throws IOException {
+    int fileId = TestUtils.createByteFile(mTfs, "/testFile", WriteType.CACHE, 10);
+    mFsShell.location(new String[]{"location", "/testFile"});
+    TachyonFile tFile = mTfs.getFile("/testFile");
+    Assert.assertNotNull(tFile);
+    List<String> locationsList = tFile.getLocationHosts();
+    String[] commandParameters = new String[3 + locationsList.size()];
+    commandParameters[0] = "location";
+    commandParameters[1] = "/testFile";
+    commandParameters[2] = String.valueOf(fileId);
+    Iterator<String> iter = locationsList.iterator();
+    int i = 3;
+    while (iter.hasNext()) {
+      commandParameters[i ++] = iter.next();
+    }
+    Assert.assertEquals(getCommandOutput(commandParameters), mOutput.toString());
   }
 }
