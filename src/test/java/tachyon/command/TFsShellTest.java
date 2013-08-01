@@ -61,14 +61,14 @@ public class TFsShellTest {
         StringBuilder ret = new StringBuilder();
         ret.append(command[1] + " with file id " + command[2] + " are on nodes: \n");
         for (int i = 3; i < command.length; i ++) {
-          ret.append(command[i]+"\n");
+          ret.append(command[i] + "\n");
         }
         return ret.toString();
       }else if (cmd.equals("fileinfo")) {
         StringBuilder ret = new StringBuilder();
         ret.append(command[1] + " with file id " + command[2] + " have following blocks: \n");
         for (int i = 3; i < command.length; i ++) {
-          ret.append(command[i]+"\n");
+          ret.append(command[i] + "\n");
         }
         return ret.toString();
       }
@@ -282,14 +282,14 @@ public class TFsShellTest {
     TachyonFile tFile = mTfs.getFile("/testFile");
     Assert.assertNotNull(tFile);
     List<ClientBlockInfo> blocks = mTfs.getFileBlocks(fileId);
-    String[] commandParameters = new String[3+blocks.size()];
+    String[] commandParameters = new String[3 + blocks.size()];
     commandParameters[0] = "fileinfo";
     commandParameters[1] = "/testFile";
     commandParameters[2] = String.valueOf(fileId);
     Iterator<ClientBlockInfo> iter = blocks.iterator();
     int i = 3;
     while (iter.hasNext()) {
-      commandParameters[i++] = iter.next().toString();
+      commandParameters[i ++] = iter.next().toString();
     }
     Assert.assertEquals(getCommandOutput(commandParameters), mOutput.toString());
   }
@@ -301,14 +301,14 @@ public class TFsShellTest {
     TachyonFile tFile = mTfs.getFile("/testFile");
     Assert.assertNotNull(tFile);
     List<String> locationsList = tFile.getLocationHosts();
-    String[] commandParameters = new String[3+locationsList.size()];
+    String[] commandParameters = new String[3 + locationsList.size()];
     commandParameters[0] = "location";
     commandParameters[1] = "/testFile";
     commandParameters[2] = String.valueOf(fileId);
     Iterator<String> iter = locationsList.iterator();
     int i = 3;
     while (iter.hasNext()) {
-      commandParameters[i++] = iter.next();
+      commandParameters[i ++] = iter.next();
     }
     Assert.assertEquals(getCommandOutput(commandParameters), mOutput.toString());
   }
