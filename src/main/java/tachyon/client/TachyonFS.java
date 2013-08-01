@@ -636,7 +636,7 @@ public class TachyonFS {
       mClientFileInfos.put(fId, info);
     }
     if (info == null) {
-      throw new IOException("File " + fId + " doex not exist.");
+      throw new IOException("File " + fId + " does not exist.");
     }
     return info.getBlockIds().size();
   }
