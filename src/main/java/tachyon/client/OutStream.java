@@ -14,13 +14,11 @@ public abstract class OutStream extends OutputStream {
   protected final UserConf USER_CONF = UserConf.get();
   protected final TachyonFile FILE;
   protected final TachyonFS TFS;
-  protected final int STREAM_ID;
   protected final WriteType WRITE_TYPE;
 
   OutStream(TachyonFile file, WriteType writeType) {
     FILE = file;
     TFS = FILE.TFS;
-    STREAM_ID = TFS.getStreamId();
     WRITE_TYPE = writeType;
   }
 

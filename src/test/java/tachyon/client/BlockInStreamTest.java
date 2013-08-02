@@ -36,7 +36,7 @@ public class BlockInStreamTest {
    */
   @Test
   public void readTest1() throws IOException {
-    for (int k = 100; k <= 200; k += 33) {
+    for (int k = 100; k <= 100; k += 33) {
       for (WriteType op : WriteType.values()) {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 

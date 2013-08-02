@@ -23,6 +23,7 @@ public class BlockInStream extends InStream {
   private final int BLOCK_INDEX;
 
   private ClientBlockInfo mBlockInfo;
+  private TachyonByteBuffer mTachyonBuffer = null;
   private ByteBuffer mBuffer = null;
   private InputStream mCheckpointInputStream = null;
   private long mCheckpointReadByte;
@@ -49,31 +50,47 @@ public class BlockInStream extends InStream {
       throw new IOException("File " + FILE.getPath() + " is not ready to read");
     }
 
-    mBuffer = FILE.readByteBuffer(blockIndex);
-    if (mBuffer == null && READ_TYPE.isCache()) {
+    mTachyonBuffer = FILE.readByteBuffer(blockIndex);
+    if (mTachyonBuffer == null && READ_TYPE.isCache()) {
       if (FILE.recache(blockIndex)) {
-        mBuffer = FILE.readByteBuffer(blockIndex);
+        mTachyonBuffer = FILE.readByteBuffer(blockIndex);
       }
       //      mBlockOutStream = new BlockOutStream();
       mRecache = true;
     }
 
+    if (mTachyonBuffer != null) {
+      mBuffer = mTachyonBuffer.DATA;
+    }
+
     String checkpointPath = TFS.getCheckpointPath(FILE.FID);
-    if (mBuffer == null && !checkpointPath.equals("")) {
+    if (mTachyonBuffer == null && !checkpointPath.equals("")) {
       LOG.info("Will stream from underlayer fs: " + checkpointPath);
       UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath);
       try {
         mCheckpointInputStream = underfsClient.open(checkpointPath);
         mCheckpointInputStream.skip(mBlockInfo.offset);
       } catch (IOException e) {
-        LOG.error("Failed to read from checkpoint " + FILE.FID);
+        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " + FILE.FID + 
+            "\n" + e);
         mCheckpointInputStream = null;
       }
     }
 
-    if (mBuffer == null && mCheckpointInputStream == null) {
+    if (mTachyonBuffer == null && mCheckpointInputStream == null) {
       throw new IOException("Can not find the block " + FILE + " " + BLOCK_INDEX);
     }
+  }
+
+  public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex)
+      throws IOException {
+
+    //    ByteBuffer buf = tachyonFile.readLocalByteBuffer(blockIndex);
+    //    if (buf != null) {
+    //      return new LocalBlockInStream(buf);
+    //    }
+
+    return new BlockInStream(tachyonFile, readType, blockIndex);
   }
 
   @Override
@@ -133,8 +150,8 @@ public class BlockInStream extends InStream {
   @Override
   public void close() throws IOException {
     if (!mClosed) {
-      if (mBuffer != null) {
-        FILE.releaseBlockLock(BLOCK_INDEX);
+      if (mTachyonBuffer != null) {
+        mTachyonBuffer.close();
       }
       if (mCheckpointInputStream != null) {
         mCheckpointInputStream.close();

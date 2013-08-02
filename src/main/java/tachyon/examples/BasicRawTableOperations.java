@@ -11,11 +11,12 @@ import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
-import tachyon.client.RawColumn;
-import tachyon.client.RawTable;
+import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.client.table.RawColumn;
+import tachyon.client.table.RawTable;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfMemoryForPinFileException;
@@ -85,11 +86,12 @@ public class BasicRawTableOperations {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
 
-      ByteBuffer buf = tFile.readByteBuffer();
+      TachyonByteBuffer buf = tFile.readByteBuffer();
       if (buf == null) {
         tFile.recache();
       }
-      CommonUtils.printByteBuffer(LOG, tFile.readByteBuffer());
+      CommonUtils.printByteBuffer(LOG, buf.DATA);
+      buf.close();
     }
   }
 

@@ -14,13 +14,11 @@ public abstract class InStream extends InputStream {
   protected final UserConf USER_CONF = UserConf.get();
   protected final TachyonFile FILE;
   protected final TachyonFS TFS;
-  protected final int STREAM_ID;
   protected final ReadType READ_TYPE;
 
   InStream(TachyonFile file, ReadType readType) {
     FILE = file;
     TFS = FILE.TFS;
-    STREAM_ID = TFS.getStreamId();
     READ_TYPE = readType;
   }
 

@@ -10,6 +10,7 @@ import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
+import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
@@ -53,11 +54,12 @@ public class BasicOperations {
       throws SuspectedFileSizeException, InvalidPathException, IOException {
     LOG.info("Reading data...");
     TachyonFile file = sTachyonClient.getFile(sFilePath);
-    ByteBuffer buf = file.readByteBuffer();
+    TachyonByteBuffer buf = file.readByteBuffer();
     if (buf == null) {
       file.recache();
     }
-    CommonUtils.printByteBuffer(LOG, file.readByteBuffer());
+    CommonUtils.printByteBuffer(LOG, buf.DATA);
+    buf.close();
   }
 
   public static void main(String[] args)

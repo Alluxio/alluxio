@@ -14,6 +14,7 @@ import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
+import tachyon.client.TachyonByteBuffer;
 import tachyon.client.WriteType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
@@ -206,7 +207,7 @@ public class Performance {
 
     public void readPartition() 
         throws IOException, SuspectedFileSizeException, InvalidPathException, TException {
-      ByteBuffer buf;
+      TachyonByteBuffer buf;
       if (DEBUG_MODE) {
         LOG.info("Verifying the reading data...");
 
@@ -214,7 +215,7 @@ public class Performance {
           TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
           buf = file.readByteBuffer();
           IntBuffer intBuf;
-          intBuf = buf.asIntBuffer();
+          intBuf = buf.DATA.asIntBuffer();
           int tmp;
           for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
             for (int k = 0; k < BLOCK_SIZE_BYTES / 4; k ++) {
@@ -225,7 +226,7 @@ public class Performance {
               }
             }
           }
-          file.readByteBuffer();
+          buf.close();
         }
       }
 
@@ -235,16 +236,17 @@ public class Performance {
         TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
         buf = file.readByteBuffer();
         for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
-          buf.get(mBuf.array());
+          buf.DATA.get(mBuf.array());
         }
         sum += mBuf.get(pId % 16);
 
         if (DEBUG_MODE) {
-          buf.flip();
-          CommonUtils.printByteBuffer(LOG, buf);
+          buf.DATA.flip();
+          CommonUtils.printByteBuffer(LOG, buf.DATA);
         }
-        buf.clear();
+        buf.DATA.clear();
         logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
+        buf.close();
       }
       Results[mWorkerId] = sum;
     }
