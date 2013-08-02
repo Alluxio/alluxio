@@ -1,4 +1,4 @@
-package tachyon.client;
+package tachyon.client.table;
 
 import java.io.IOException;
 
@@ -12,6 +12,10 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonCluster;
 import tachyon.MasterInfo;
+import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
+import tachyon.client.table.RawColumn;
+import tachyon.client.table.RawTable;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;

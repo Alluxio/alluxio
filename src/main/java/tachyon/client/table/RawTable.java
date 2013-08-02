@@ -1,9 +1,10 @@
-package tachyon.client;
+package tachyon.client.table;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import tachyon.CommonUtils;
+import tachyon.client.TachyonFS;
 import tachyon.thrift.ClientRawTableInfo;
 
 /**
@@ -14,7 +15,7 @@ public class RawTable {
   private final TachyonFS TACHYON_CLIENT;
   private final ClientRawTableInfo CLIENT_RAW_TABLE_INFO;
 
-  RawTable(TachyonFS tachyonClient, ClientRawTableInfo clientRawTableInfo) {
+  public RawTable(TachyonFS tachyonClient, ClientRawTableInfo clientRawTableInfo) {
     TACHYON_CLIENT = tachyonClient;
     CLIENT_RAW_TABLE_INFO = clientRawTableInfo;
   }

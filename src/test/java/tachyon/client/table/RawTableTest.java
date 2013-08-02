@@ -1,4 +1,4 @@
-package tachyon.client;
+package tachyon.client.table;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -12,6 +12,13 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
+import tachyon.client.OutStream;
+import tachyon.client.TachyonByteBuffer;
+import tachyon.client.TachyonFS;
+import tachyon.client.TachyonFile;
+import tachyon.client.WriteType;
+import tachyon.client.table.RawColumn;
+import tachyon.client.table.RawTable;
 
 /**
  * Unit tests for tachyon.client.RawTable.
@@ -64,8 +71,9 @@ public class RawTableTest {
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), file.readByteBuffer());
-//      file.releaseFileLock();
+      TachyonByteBuffer buf = file.readByteBuffer();
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
+      buf.close();
     }
     //    System.out.println("D " + (System.currentTimeMillis() - sMs));
 
@@ -73,8 +81,9 @@ public class RawTableTest {
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), file.readByteBuffer());
-//      file.releaseFileLock();
+      TachyonByteBuffer buf = file.readByteBuffer();
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
+      buf.close();
     }
     //    System.out.println("E " + (System.currentTimeMillis() - sMs));
   }

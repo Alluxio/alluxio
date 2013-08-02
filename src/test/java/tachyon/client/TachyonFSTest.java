@@ -15,6 +15,7 @@ import tachyon.Constants;
 import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
+import tachyon.client.table.RawTable;
 import tachyon.thrift.ClientWorkerInfo;
 
 /**
