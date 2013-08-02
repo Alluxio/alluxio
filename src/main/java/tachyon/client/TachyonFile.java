@@ -149,7 +149,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
     ClientBlockInfo blockInfo = TFS.getClientBlockInfo(FID, blockIndex);
     mLockedBlocks.add(blockIndex);
     int blockLockId = TFS.getBlockLockId();
-    TFS.lockBlock(blockInfo.blockId, blockLockId);
+    if (!TFS.lockBlock(blockInfo.blockId, blockLockId)) {
+      return null;
+    }
     if (TFS.getRootFolder() != null) {
       String localFileName = TFS.getRootFolder() + Constants.PATH_SEPARATOR + blockInfo.blockId;
       try {
