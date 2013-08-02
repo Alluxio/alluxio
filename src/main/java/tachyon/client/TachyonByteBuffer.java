@@ -30,7 +30,7 @@ public class TachyonByteBuffer {
     }
 
     mClosed = true;
-    if (BLOCK_LOCK_ID > 0) {
+    if (BLOCK_LOCK_ID >= 0) {
       TFS.unlockBlock(BLOCK_ID, BLOCK_LOCK_ID);
     }
   }

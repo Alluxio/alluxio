@@ -783,11 +783,11 @@ public class TachyonFS {
    * Lock a block in the current TachyonFS.
    * @param blockId The id of the block to lock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of lock. 
-   * <code>blockLockId</code> must be positive.
+   * <code>blockLockId</code> must be non-negative.
    * @return true if successfully lock the block, false otherwise (or invalid parameter).
    */
   public synchronized boolean lockBlock(long blockId, int blockLockId) {
-    if (blockId <= 0 || blockLockId <= 0) {
+    if (blockId <= 0 || blockLockId < 0) {
       return false;
     }
 
@@ -802,13 +802,13 @@ public class TachyonFS {
     }
     try {
       mWorkerClient.lockBlock(blockId, mUserId);
-      Set<Integer> lockIds = new HashSet<Integer>(4);
-      lockIds.add(blockLockId);
-      mLockedBlockIds.put(blockId, lockIds);
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;
     }
+    Set<Integer> lockIds = new HashSet<Integer>(4);
+    lockIds.add(blockLockId);
+    mLockedBlockIds.put(blockId, lockIds);
     return true;
   }
 
@@ -942,12 +942,12 @@ public class TachyonFS {
    * Unlock a block in the current TachyonFS.
    * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
    * @param blockLockId The block lock id of the block of unlock. 
-   * <code>blockLockId</code> must be positive.
+   * <code>blockLockId</code> must be non-negative.
    * @return true if successfully unlock the block with <code>blockLockId</code>,
    * false otherwise (or invalid parameter).
    */
   synchronized boolean unlockBlock(long blockId, int blockLockId) {
-    if (blockId <= 0 || blockLockId <= 0) {
+    if (blockId <= 0 || blockLockId < 0) {
       return false;
     }
 
