@@ -131,7 +131,8 @@ public class BlockOutStream extends OutStream {
       throw new NullPointerException();
     } else if ((off < 0) || (off > b.length) || (len < 0) ||
         ((off + len) > b.length) || ((off + len) < 0)) {
-      throw new IndexOutOfBoundsException();
+      throw new IndexOutOfBoundsException(String.format(
+          "Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
     }
 
     if (!mCanWrite) {

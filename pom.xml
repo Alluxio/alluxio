@@ -77,8 +77,8 @@
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-jsp-2.1</artifactId>
-      <version>7.5.4.v20111024</version>
+      <artifactId>jetty-jsp</artifactId>
+      <version>${jetty.version}</version>
       <type>jar</type>
       <scope>compile</scope>
     </dependency>
