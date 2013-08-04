@@ -35,9 +35,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   public InStream getInStream(ReadType readType) throws IOException {
-    // TODO Return different types of streams based on file info.
-    // E.g.: file size, in memory or not etc.
-    // BlockInputStream, FileInputStream.
     if (readType == null) {
       throw new IOException("ReadType can not be null.");
     }

@@ -42,6 +42,8 @@ public enum WriteType {
   public static WriteType getOpType(String op) throws IOException {
     if (op.equals("CACHE")) {
       return CACHE;
+    } else if (op.equals("TRY_CACHE")) {
+      return TRY_CACHE;
     } else if (op.equals("CACHE_THROUGH")) {
       return CACHE_THROUGH;
     } else if (op.equals("THROUGH")) {
