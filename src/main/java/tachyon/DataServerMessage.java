@@ -8,6 +8,7 @@ import java.nio.channels.SocketChannel;
 
 import org.apache.log4j.Logger;
 
+import tachyon.client.TachyonByteBuffer;
 import tachyon.conf.WorkerConf;
 
 /**
@@ -24,14 +25,13 @@ public class DataServerMessage {
   private boolean mIsMessageReady;
 
   private ByteBuffer mHeader;
-  private static final int HEADER_LENGTH = 16;
+  private static final int HEADER_LENGTH = 26;
   private long mBlockId;
+  private long mOffset;
   private long mDataLength;
-  RandomAccessFile mFile;
 
+  private TachyonByteBuffer mTachyonData;
   private ByteBuffer mData;
-
-  FileChannel mInChannel;
 
   private DataServerMessage(boolean isToSendData, short msgType) {
     IS_TO_SEND_DATA = isToSendData;
@@ -41,43 +41,80 @@ public class DataServerMessage {
 
   public static DataServerMessage createBlockRequestMessage() {
     DataServerMessage ret = new DataServerMessage(false, DATA_SERVER_REQUEST_MESSAGE);
-
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
-
     return ret;
   }
 
   public static DataServerMessage createBlockRequestMessage(long blockId) {
+    return createBlockRequestMessage(blockId, 0, -1);
+  }
+
+  public static DataServerMessage createBlockRequestMessage(long blockId, long offset, long len) {
     DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
 
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
     ret.mBlockId = blockId;
-    ret.mDataLength = 0;
+    ret.mOffset = offset;
+    ret.mDataLength = len;
     ret.generateHeader();
     ret.mData = ByteBuffer.allocate(0);
-
     ret.mIsMessageReady = true;
 
     return ret;
   }
 
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId) {
+    return createBlockResponseMessage(toSend, blockId, 0, -1);
+  }
+
+  public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
+      long offset, long len) {
     DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
 
     if (toSend) {
       ret.mBlockId = blockId;
 
       try {
+        if (offset < 0) {
+          throw new IOException("Offset can not be negative: " + offset);
+        }
+        if (len < 0 && len != -1) {
+          throw new IOException("Length can not be negative except -1: " + len);
+        }
+
         String filePath = WorkerConf.get().DATA_FOLDER + "/" + blockId;
         ret.LOG.info("Try to response remote requst by reading from " + filePath); 
-        ret.mFile = new RandomAccessFile(filePath, "r");
+        RandomAccessFile file = new RandomAccessFile(filePath, "r");
+
+        long fileLength = file.length();
+        String error = null;
+        if (offset > fileLength) {
+          error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
+        }
+        if (error == null && len != -1 && offset + len > fileLength) {
+          error = String.format("Offset(%d) plus length(%d) is larger than file length(%d)", 
+              offset, len, fileLength);
+        }
+        if (error != null) {
+          file.close();
+          throw new IOException(error);
+        }
+
+        if (len == -1) {
+          len = fileLength - offset;
+        }
+
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
-        ret.mDataLength = ret.mFile.length();
-        ret.mInChannel = ret.mFile.getChannel();
-        ret.mData = ret.mInChannel.map(FileChannel.MapMode.READ_ONLY, 0, ret.mDataLength);
+        ret.mOffset = offset;
+        ret.mDataLength = len;
+        FileChannel channel = file.getChannel();
+        ret.mTachyonData = null;
+        ret.mData = channel.map(FileChannel.MapMode.READ_ONLY, offset, len);
+        channel.close();
+        file.close();
         ret.mIsMessageReady = true;
         ret.generateHeader();
-        ret.LOG.info("Response remote requst by reading from " + filePath + " preparation done."); 
+        ret.LOG.info("Response remote requst by reading from " + filePath + " preparation done.");
       } catch (Exception e) {
         // TODO This is a trick for now. The data may have been removed before remote retrieving. 
         ret.mBlockId = - ret.mBlockId;
@@ -99,20 +136,20 @@ public class DataServerMessage {
   public void close() {
     if (mMsgType == DATA_SERVER_RESPONSE_MESSAGE) {
       try {
-        if (mFile != null) {
-          mFile.close();
+        if (mTachyonData != null) {
+          mTachyonData.close();
         }
-      } catch (IOException e) {
-        LOG.error(mFile + " " + e.getMessage());
       } catch (Exception e) {
-        LOG.error(mFile + " " + e.getMessage());
+        LOG.error(e.getMessage());
       }
     }
   }
 
   private void generateHeader() {
     mHeader.clear();
+    mHeader.putShort(mMsgType);
     mHeader.putLong(mBlockId);
+    mHeader.putLong(mOffset);
     mHeader.putLong(mDataLength);
     mHeader.flip();
   }
@@ -125,13 +162,23 @@ public class DataServerMessage {
       numRead = socketChannel.read(mHeader);
       if (mHeader.remaining() == 0) {
         mHeader.flip();
+        short msgType = mHeader.getShort();
+        assert (mMsgType == msgType);
         mBlockId = mHeader.getLong();
+        mOffset = mHeader.getLong();
         mDataLength = mHeader.getLong();
         // TODO make this better to truncate the file.
         assert mDataLength < Integer.MAX_VALUE;
-        mData = ByteBuffer.allocate((int) mDataLength);
-        LOG.info("recv(): mData: " + mData + " mFileId " + mBlockId);
-        if (mDataLength == 0) {
+        if (mMsgType == DATA_SERVER_RESPONSE_MESSAGE) {
+          if (mDataLength == -1) {
+            mData = ByteBuffer.allocate(0);
+          } else {
+            mData = ByteBuffer.allocate((int) mDataLength);
+          }
+        }
+        LOG.info(String.format("data" + mData + ", blockId(%d), offset(%d), dataLength(%d)", 
+            mBlockId, mOffset, mDataLength));
+        if (mMsgType == DATA_SERVER_REQUEST_MESSAGE || mDataLength <= 0) {
           mIsMessageReady = true;
         }
       }
@@ -175,19 +222,33 @@ public class DataServerMessage {
     return mIsMessageReady;
   }
 
-  public long getBlockId() {
+  public void checkReady() {
     if (!mIsMessageReady) {
       CommonUtils.runtimeException("Message is not ready.");
     }
+  }
+
+  public long getBlockId() {
+    checkReady();
     return mBlockId;
+  }
+
+  public long getOffset() {
+    checkReady();
+    return mOffset;
+  }
+
+  public long getLength() {
+    checkReady();
+    return mDataLength;
   }
 
   public ByteBuffer getReadOnlyData() {
     if (!mIsMessageReady) {
       CommonUtils.runtimeException("Message is not ready.");
     }
-    ByteBuffer ret = ByteBuffer.wrap(mData.array());
-    ret.asReadOnlyBuffer();
+    ByteBuffer ret = mData.asReadOnlyBuffer();
+    ret.flip();
     return ret;
   }
 }

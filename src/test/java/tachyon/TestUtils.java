@@ -84,6 +84,15 @@ public final class TestUtils {
     ret.flip();
     return ret;
   }
+  
+  public static ByteBuffer getIncreasingByteBuffer(int start, int len) {
+    ByteBuffer ret = ByteBuffer.allocate(len);
+    for (int k = start; k < start + len; k ++) {
+      ret.put((byte) k);
+    }
+    ret.flip();
+    return ret;
+  }
 
   public static ByteBuffer getIncreasingIntBuffer(int len) {
     ByteBuffer ret = ByteBuffer.allocate(len * 4);

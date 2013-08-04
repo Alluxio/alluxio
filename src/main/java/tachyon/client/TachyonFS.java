@@ -1,11 +1,15 @@
 package tachyon.client;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -786,7 +790,7 @@ public class TachyonFS {
    * <code>blockLockId</code> must be non-negative.
    * @return true if successfully lock the block, false otherwise (or invalid parameter).
    */
-  public synchronized boolean lockBlock(long blockId, int blockLockId) {
+  synchronized boolean lockBlock(long blockId, int blockLockId) {
     if (blockId <= 0 || blockLockId < 0) {
       return false;
     }
@@ -840,6 +844,78 @@ public class TachyonFS {
         LOG.error(e.getMessage());
       }
     }
+  }
+
+  /**
+   * Read the whole local block.
+   * @param blockId The id of the block to read.
+   * @return <code>TachyonByteBuffer</code> containing the whole block.
+   * @throws IOException
+   */
+  TachyonByteBuffer readLocalByteBuffer(long blockId) throws IOException {
+    return readLocalByteBuffer(blockId, 0, -1);
+  }
+
+  /**
+   * Read local block return a TachyonByteBuffer
+   * @param blockId The id of the block.
+   * @param offset The start position to read.
+   * @param len The length to read. -1 represents read the whole block.
+   * @return <code>TachyonByteBuffer</code> containing the block.
+   * @throws IOException
+   */
+  TachyonByteBuffer readLocalByteBuffer(long blockId, long offset, long len) throws IOException {
+    if (offset < 0) {
+      throw new IOException("Offset can not be negative: " + offset);
+    }
+    if (len < 0 && len != -1) {
+      throw new IOException("Length can not be negative except -1: " + len);
+    }
+
+    int blockLockId = getBlockLockId();
+    if (!lockBlock(blockId, blockLockId)) {
+      return null;
+    }
+    String rootFolder = getRootFolder();
+    if (rootFolder != null) {
+      String localFileName = rootFolder + Constants.PATH_SEPARATOR + blockId;
+      try {
+        RandomAccessFile localFile = new RandomAccessFile(localFileName, "r");
+
+        long fileLength = localFile.length();
+        String error = null;
+        if (offset > fileLength) {
+          error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
+        }
+        if (error == null && len != -1 && offset + len > fileLength) {
+          error = String.format("Offset(%d) plus length(%d) is larger than file length(%d)", 
+              offset, len, fileLength);
+        }
+        if (error != null) {
+          localFile.close();
+          throw new IOException(error);
+        }
+
+        if (len == -1) {
+          len = fileLength - offset;
+        }
+
+        FileChannel localFileChannel = localFile.getChannel();
+        ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
+        localFileChannel.close();
+        localFile.close();
+        buf.order(ByteOrder.nativeOrder());
+        accessLocalBlock(blockId);
+        return new TachyonByteBuffer(this, buf, blockId, blockLockId);
+      } catch (FileNotFoundException e) {
+        LOG.info(localFileName + " is not on local disk.");
+      } catch (IOException e) {
+        LOG.info("Failed to read local file " + localFileName + " because: \n" + e.getMessage());
+      }
+    }
+
+    unlockBlock(blockId, blockLockId);
+    return null;
   }
 
   public synchronized void releaseSpace(long releaseSpaceBytes) {
