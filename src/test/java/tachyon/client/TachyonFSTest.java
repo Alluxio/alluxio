@@ -100,7 +100,7 @@ public class TachyonFSTest {
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
 
     for (int k = 0; k < 5; k ++) {
-      int fileId = TestUtils.createByteFile(mTfs, "/file" + k, WriteType.CACHE, writeBytes);
+      int fileId = TestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, writeBytes);
       TachyonFile file = mTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
       Assert.assertTrue(mTfs.exist("/file" + k));

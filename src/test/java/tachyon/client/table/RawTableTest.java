@@ -61,7 +61,7 @@ public class RawTableTest {
       RawColumn rawCol = table.getRawColumn(k);
       rawCol.createPartition(0);
       TachyonFile file = rawCol.getPartition(0);
-      OutStream outStream = file.getOutStream(WriteType.CACHE);
+      OutStream outStream = file.getOutStream(WriteType.MUST_CACHE);
       outStream.write(TestUtils.getIncreasingByteArray(10));
       outStream.close();
     }

@@ -54,7 +54,7 @@ public class TachyonFileTest {
   @Test
   public void isInMemoryTest() throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = TestUtils.createByteFile(
-        mTfs, "/file1", WriteType.CACHE, USER_QUOTA_UNIT_BYTES);
+        mTfs, "/file1", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
     TachyonFile file = mTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
 
@@ -96,7 +96,7 @@ public class TachyonFileTest {
       throws InvalidPathException, FileAlreadyExistException, IOException {
     for (int k = 0; k < MAX_FILES; k ++) {
       int fileId = TestUtils.createByteFile(
-          mTfs, "/file" + k, WriteType.CACHE, USER_QUOTA_UNIT_BYTES);
+          mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
       TachyonFile file = mTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
     }
@@ -109,7 +109,7 @@ public class TachyonFileTest {
 
     for (int k = MAX_FILES; k < MAX_FILES + 1; k ++) {
       int fileId = TestUtils.createByteFile(
-          mTfs, "/file" + k, WriteType.CACHE, USER_QUOTA_UNIT_BYTES);
+          mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
       TachyonFile file = mTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
     }
@@ -134,13 +134,13 @@ public class TachyonFileTest {
   public void isInMemoryTest3() 
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = TestUtils.createByteFile(
-        mTfs, "/pin/file", WriteType.CACHE, USER_QUOTA_UNIT_BYTES);
+        mTfs, "/pin/file", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
     TachyonFile file = mTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
 
     for (int k = 0; k < MAX_FILES; k ++) {
       fileId = TestUtils.createByteFile(
-          mTfs, "/file" + k, WriteType.CACHE, USER_QUOTA_UNIT_BYTES);
+          mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
       file = mTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
     }

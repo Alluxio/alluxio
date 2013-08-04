@@ -247,7 +247,7 @@ public class TFsShellTest {
 
   @Test
   public void copyToLocalTest() throws IOException {
-    TestUtils.createByteFile(mTfs, "/testFile", WriteType.CACHE, 10);
+    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.copyToLocal(new String[]{
         "copyToLocal", "/testFile", mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[]{"copyToLocal", "/testFile", 
@@ -262,7 +262,7 @@ public class TFsShellTest {
 
   @Test
   public void copyToLocalLargeTest() throws IOException {
-    TestUtils.createByteFile(mTfs, "/testFile", WriteType.CACHE, mSizeBytes);
+    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, mSizeBytes);
     mFsShell.copyToLocal(new String[]{
         "copyToLocal", "/testFile", mLocalTachyonCluster.getTachyonHome() + "/testFile"});
     Assert.assertEquals(getCommandOutput(new String[]{"copyToLocal", "/testFile", 
@@ -277,7 +277,7 @@ public class TFsShellTest {
   
   @Test
   public void fileinfoTest() throws IOException {
-    int fileId = TestUtils.createByteFile(mTfs, "/testFile", WriteType.CACHE, 10);
+    int fileId = TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.fileinfo(new String[]{"fileinfo", "/testFile"});
     TachyonFile tFile = mTfs.getFile("/testFile");
     Assert.assertNotNull(tFile);
@@ -296,7 +296,7 @@ public class TFsShellTest {
   
   @Test
   public void locationTest() throws IOException {
-    int fileId = TestUtils.createByteFile(mTfs, "/testFile", WriteType.CACHE, 10);
+    int fileId = TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.location(new String[]{"location", "/testFile"});
     TachyonFile tFile = mTfs.getFile("/testFile");
     Assert.assertNotNull(tFile);

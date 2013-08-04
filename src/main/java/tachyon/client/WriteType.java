@@ -7,7 +7,7 @@ import java.io.IOException;
  */
 public enum WriteType {
   // Write the file and must cache it.
-  CACHE(1),
+  MUST_CACHE(1),
   // Write the file and try to cache it.
   TRY_CACHE(2),
   // Write the file synchronously to the under fs, and also try to cache it,
@@ -30,18 +30,18 @@ public enum WriteType {
   }
 
   public boolean isCache() {
-    return (mValue == CACHE.mValue) 
+    return (mValue == MUST_CACHE.mValue) 
         || (mValue == CACHE_THROUGH.mValue)
         || (mValue == TRY_CACHE.mValue);
   }
 
   public boolean isMustCache() {
-    return mValue == CACHE.mValue;
+    return mValue == MUST_CACHE.mValue;
   }
 
   public static WriteType getOpType(String op) throws IOException {
-    if (op.equals("CACHE")) {
-      return CACHE;
+    if (op.equals("MUST_CACHE")) {
+      return MUST_CACHE;
     } else if (op.equals("TRY_CACHE")) {
       return TRY_CACHE;
     } else if (op.equals("CACHE_THROUGH")) {
