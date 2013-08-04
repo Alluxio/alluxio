@@ -65,11 +65,16 @@ public final class TestUtils {
   }
 
   public static boolean equalIncreasingByteArray(int len, byte[] arr) {
-    if (arr == null || arr.length != len) {
+    return equalIncreasingByteArray(0, len, arr);
+  }
+
+  public static boolean equalIncreasingByteArray(int start, int len, byte[] arr) {
+    if (arr == null || arr.length < len) {
       return false;
     }
     for (int k = 0; k < len; k ++) {
-      if (arr[k] != (byte) k) {
+      if (arr[k] != (byte) (start + k)) {
+        System.out.println(k + " " + arr[k] + " " + (start + k));
         return false;
       }
     }
@@ -77,14 +82,9 @@ public final class TestUtils {
   }
 
   public static ByteBuffer getIncreasingByteBuffer(int len) {
-    ByteBuffer ret = ByteBuffer.allocate(len);
-    for (int k = 0; k < len; k ++) {
-      ret.put((byte) k);
-    }
-    ret.flip();
-    return ret;
+    return getIncreasingByteBuffer(0, len);
   }
-  
+
   public static ByteBuffer getIncreasingByteBuffer(int start, int len) {
     ByteBuffer ret = ByteBuffer.allocate(len);
     for (int k = start; k < start + len; k ++) {
