@@ -238,6 +238,10 @@ public class RemoteBlockInStream extends BlockInStream {
       len = (int) ret;
     }
 
+    if (ret == 0) {
+      return -1;
+    }
+
     if (mCurrentBuffer != null) {
       if (mCurrentBuffer.remaining() == 0) {
         mBufferStartPosition = mReadByte;
@@ -260,6 +264,7 @@ public class RemoteBlockInStream extends BlockInStream {
     }
 
     ret = mCheckpointInputStream.read(b, off, len);
+
     mReadByte += ret;
     if (mRecache) {
       mBlockOutStream.write(b, off, (int) ret);
