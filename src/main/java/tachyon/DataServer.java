@@ -36,8 +36,8 @@ public class DataServer implements Runnable {
   private Map<SocketChannel, DataServerMessage> mReceivingData =
       Collections.synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
-  // The local worker storage.
-  private final WorkerStorage mWorkerStorage;
+  // The blocks locker manager.
+  private final BlocksLocker mBlocksLocker;
 
   private boolean mShutdown = false;
   private boolean mShutdowned = false;
@@ -50,7 +50,7 @@ public class DataServer implements Runnable {
   public DataServer(InetSocketAddress address, WorkerStorage workerStorage) {
     LOG.info("Starting DataServer @ " + address);
     mAddress = address;
-    mWorkerStorage = workerStorage;
+    mBlocksLocker = new BlocksLocker(workerStorage, Users.sDATASERVER_USER_ID);
     try {
       mSelector = initSelector();
     } catch (IOException e) {
@@ -130,14 +130,10 @@ public class DataServer implements Runnable {
 
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getBlockId());
-      try {
-        mWorkerStorage.lockBlock(tMessage.getBlockId(), Users.sDATASERVER_USER_ID);
-      } catch (TException e) {
-        CommonUtils.runtimeException(e);
-      }
-      DataServerMessage tResponseMessage = 
-          DataServerMessage.createBlockResponseMessage(true, tMessage.getBlockId(), 
-              tMessage.getOffset(), tMessage.getLength());
+      int lockId = mBlocksLocker.lock(tMessage.getBlockId());
+      DataServerMessage tResponseMessage = DataServerMessage.createBlockResponseMessage(
+          true, tMessage.getBlockId(), tMessage.getOffset(), tMessage.getLength());
+      tResponseMessage.setLockId(lockId);
       mSendingData.put(socketChannel, tResponseMessage);
     }
   }
@@ -165,12 +161,7 @@ public class DataServer implements Runnable {
       mReceivingData.remove(socketChannel);
       mSendingData.remove(socketChannel);
       sendMessage.close();
-
-      try {
-        mWorkerStorage.unlockBlock(sendMessage.getBlockId(), Users.sDATASERVER_USER_ID);
-      } catch (TException e) {
-        CommonUtils.runtimeException(e);
-      }
+      mBlocksLocker.unlock(Math.abs(sendMessage.getBlockId()), sendMessage.getLockId());
     }
   }
 

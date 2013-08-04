@@ -29,9 +29,18 @@ public class DataServerMessage {
   private long mBlockId;
   private long mOffset;
   private long mDataLength;
+  private int mLockId = -1;
 
-  private TachyonByteBuffer mTachyonData;
-  private ByteBuffer mData;
+  private TachyonByteBuffer mTachyonData = null;
+  private ByteBuffer mData = null;
+
+  void setLockId(int lockId) {
+    mLockId = lockId;
+  }
+
+  int getLockId() {
+    return mLockId;
+  }
 
   private DataServerMessage(boolean isToSendData, short msgType) {
     IS_TO_SEND_DATA = isToSendData;
