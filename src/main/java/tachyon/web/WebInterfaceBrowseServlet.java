@@ -210,7 +210,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
     if (tFile.isComplete()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
-      int len = Math.min(5 * Constants.KB, (int) tFile.length());
+      int len = (int) Math.min(5 * Constants.KB, tFile.length());
       byte[] data = new byte[len];
       is.read(data, 0, len);
       fileData = CommonUtils.convertByteArrayToString(data);
