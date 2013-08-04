@@ -25,7 +25,7 @@ public class LocalBlockInStreamTest {
     mTfs = mLocalTachyonCluster.getClient();
 
     mWriteCacheType = new HashSet<WriteType>();
-    mWriteCacheType.add(WriteType.CACHE);
+    mWriteCacheType.add(WriteType.MUST_CACHE);
     mWriteCacheType.add(WriteType.CACHE_THROUGH);
   }
 

@@ -180,7 +180,7 @@ public class BlockOutStream extends OutStream {
         try {
           TFS.cacheBlock(BLOCK_ID);
         } catch (IOException e) {
-          if (WRITE_TYPE == WriteType.CACHE) {
+          if (WRITE_TYPE == WriteType.MUST_CACHE) {
             throw e;
           }
         }
