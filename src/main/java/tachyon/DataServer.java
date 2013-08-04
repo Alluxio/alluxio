@@ -37,11 +37,16 @@ public class DataServer implements Runnable {
       Collections.synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
   // The local worker storage.
-  private WorkerStorage mWorkerStorage;
+  private final WorkerStorage mWorkerStorage;
 
   private boolean mShutdown = false;
   private boolean mShutdowned = false;
 
+  /**
+   * Create a data server with direct access to worker storage.
+   * @param address The address of the data server.
+   * @param workerStorage The handler of the directly accessed worker storage.
+   */
   public DataServer(InetSocketAddress address, WorkerStorage workerStorage) {
     LOG.info("Starting DataServer @ " + address);
     mAddress = address;
@@ -118,6 +123,11 @@ public class DataServer implements Runnable {
     }
 
     if (tMessage.isMessageReady()) {
+      if (tMessage.getBlockId() <= 0) {
+        LOG.error("Invalide block id " + tMessage.getBlockId());
+        return;
+      }
+
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getBlockId());
       try {
@@ -126,10 +136,8 @@ public class DataServer implements Runnable {
         CommonUtils.runtimeException(e);
       }
       DataServerMessage tResponseMessage = 
-          DataServerMessage.createBlockResponseMessage(true, tMessage.getBlockId()); 
-      if (tResponseMessage.getBlockId() > 0) {
-        mWorkerStorage.accessBlock(tResponseMessage.getBlockId());
-      }
+          DataServerMessage.createBlockResponseMessage(true, tMessage.getBlockId(), 
+              tMessage.getOffset(), tMessage.getLength());
       mSendingData.put(socketChannel, tResponseMessage);
     }
   }

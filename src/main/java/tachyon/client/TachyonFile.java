@@ -1,20 +1,14 @@
 package tachyon.client;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -34,8 +28,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   final TachyonFS TFS;
   final int FID;
-
-  private Set<Integer> mLockedBlocks = Collections.synchronizedSet(new HashSet<Integer>());
 
   TachyonFile(TachyonFS tfs, int fid) {
     TFS = tfs;
@@ -145,33 +137,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return ret;
   }
 
+  /**
+   * Get the the whole block.
+   * @param blockIndex The block index of the current file to read.
+   * @return TachyonByteBuffer containing the block.
+   * @throws IOException
+   */
   TachyonByteBuffer readLocalByteBuffer(int blockIndex) throws IOException {
-    ClientBlockInfo blockInfo = TFS.getClientBlockInfo(FID, blockIndex);
-    mLockedBlocks.add(blockIndex);
-    int blockLockId = TFS.getBlockLockId();
-    if (!TFS.lockBlock(blockInfo.blockId, blockLockId)) {
-      return null;
-    }
-    if (TFS.getRootFolder() != null) {
-      String localFileName = TFS.getRootFolder() + Constants.PATH_SEPARATOR + blockInfo.blockId;
-      try {
-        RandomAccessFile localFile = new RandomAccessFile(localFileName, "r");
-        FileChannel localFileChannel = localFile.getChannel();
-        ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, 0, localFile.length());
-        localFile.close();
-        buf.order(ByteOrder.nativeOrder());
-        TFS.accessLocalBlock(blockInfo.blockId);
-        return new TachyonByteBuffer(TFS, buf, blockInfo.blockId, blockLockId);
-      } catch (FileNotFoundException e) {
-        LOG.info(localFileName + " is not on local disk.");
-      } catch (IOException e) {
-        LOG.info("Failed to read local file " + localFileName + " with " + e.getMessage());
-      } 
-    }
-
-    TFS.unlockBlock(blockInfo.blockId, blockLockId);
-    mLockedBlocks.remove(blockIndex);
-    return null;
+    return TFS.readLocalByteBuffer(TFS.getClientBlockInfo(FID, blockIndex).blockId);
   }
 
   TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) {

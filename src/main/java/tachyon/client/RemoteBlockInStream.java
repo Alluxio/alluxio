@@ -2,6 +2,7 @@ package tachyon.client;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import org.apache.log4j.Logger;
 
@@ -13,11 +14,13 @@ import tachyon.thrift.ClientBlockInfo;
  * BlockInStream for remote block.
  */
 public class RemoteBlockInStream extends BlockInStream {
+  private static final int BUFFER_SIZE = Constants.MB;
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private ClientBlockInfo mBlockInfo;
   private InputStream mCheckpointInputStream = null;
   private long mCheckpointReadByte;
+  private ByteBuffer mCurrentBuffer = null; 
 
   private boolean mRecache = true;
   private BlockOutStream mBlockOutStream = null;
