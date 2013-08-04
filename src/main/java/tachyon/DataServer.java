@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.thrift.TException;
 import org.apache.log4j.Logger;
 
 /**
