@@ -167,6 +167,7 @@ public final class CommonUtils {
   }
 
   public static long parseMemorySize(String memorySize) {
+    double alpha = 0.0001;
     String ori = memorySize;
     String end = "";
     int tIndex = memorySize.length() - 1;
@@ -179,16 +180,18 @@ public final class CommonUtils {
       tIndex --;
     }
     memorySize = memorySize.substring(0, tIndex + 1);
-    long ret = Long.parseLong(memorySize);
+    double ret = Double.parseDouble(memorySize);
     end = end.toLowerCase();
     if (end.equals("") || end.equals("b")) {
-      return ret;
+      return (long) (ret + alpha);
     } else if (end.equals("kb")) {
-      return ret * Constants.KB;
+      return (long) (ret * Constants.KB + alpha);
     } else if (end.equals("mb")) {
-      return ret * Constants.MB;
+      return (long) (ret * Constants.MB + alpha);
     } else if (end.equals("gb")) {
-      return ret * Constants.GB;
+      return (long) (ret * Constants.GB + alpha);
+    } else if (end.equals("tb")) {
+      return (long) (ret * Constants.TB + alpha);
     }
     runtimeException("Fail to parse " + ori + " as memory size");
     return -1;
