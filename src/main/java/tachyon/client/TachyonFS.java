@@ -8,7 +8,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -904,7 +903,6 @@ public class TachyonFS {
         ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
         localFileChannel.close();
         localFile.close();
-        buf.order(ByteOrder.nativeOrder());
         accessLocalBlock(blockId);
         return new TachyonByteBuffer(this, buf, blockId, blockLockId);
       } catch (FileNotFoundException e) {

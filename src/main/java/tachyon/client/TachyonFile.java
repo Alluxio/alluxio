@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
@@ -183,10 +182,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
       }
     } catch (IOException e) {
       LOG.error("Failed to get read data from remote " + e.getMessage());
-    }
-
-    if (buf != null) {
-      buf.order(ByteOrder.nativeOrder());
     }
 
     return buf == null ? null : new TachyonByteBuffer(TFS, buf, blockInfo.blockId, -1);

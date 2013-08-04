@@ -19,8 +19,9 @@ public class RemoteBlockInStream extends BlockInStream {
 
   private ClientBlockInfo mBlockInfo;
   private InputStream mCheckpointInputStream = null;
-  private long mCheckpointReadByte;
-  private ByteBuffer mCurrentBuffer = null; 
+  private long mReadByte;
+  private ByteBuffer mCurrentBuffer = null;
+  private long mBufferStartPosition = 0;
 
   private boolean mRecache = true;
   private BlockOutStream mBlockOutStream = null;
@@ -29,7 +30,8 @@ public class RemoteBlockInStream extends BlockInStream {
     super(file, readType, blockIndex);
 
     mBlockInfo = TFS.getClientBlockInfo(FILE.FID, BLOCK_INDEX);
-    mCheckpointReadByte = 0;
+    mReadByte = 0;
+    mBufferStartPosition = mBlockInfo.offset;
 
     if (!FILE.isComplete()) {
       throw new IOException("File " + FILE.getPath() + " is not ready to read");
@@ -75,6 +77,10 @@ public class RemoteBlockInStream extends BlockInStream {
       throw new IOException("Can not find the block " + FILE + " " + BLOCK_INDEX);
     }
   }
+  
+  private void updateCurrentBuffer() {
+    
+  }
 
   private void doneRecache() throws IOException {
     if (mRecache) {
@@ -84,8 +90,8 @@ public class RemoteBlockInStream extends BlockInStream {
 
   @Override
   public int read() throws IOException {
-    mCheckpointReadByte ++;
-    if (mCheckpointReadByte > mBlockInfo.length) {
+    mReadByte ++;
+    if (mReadByte > mBlockInfo.length) {
       doneRecache();
       return -1;
     }
@@ -111,16 +117,16 @@ public class RemoteBlockInStream extends BlockInStream {
       return 0;
     }
 
-    long ret = mBlockInfo.length - mCheckpointReadByte;
+    long ret = mBlockInfo.length - mReadByte;
     if (ret < len) {
       len = (int) ret;
     }
 
     ret = mCheckpointInputStream.read(b, off, len);
-    mCheckpointReadByte += ret;
+    mReadByte += ret;
     if (mRecache) {
       mBlockOutStream.write(b, off, (int) ret);
-      if (mCheckpointReadByte == mBlockInfo.length) {
+      if (mReadByte == mBlockInfo.length) {
         doneRecache();
       }
     }
@@ -144,14 +150,14 @@ public class RemoteBlockInStream extends BlockInStream {
       return 0;
     }
 
-    long ret = mBlockInfo.length - mCheckpointReadByte;
+    long ret = mBlockInfo.length - mReadByte;
     if (ret > n) {
       ret = n;
     }
 
     long tmp = mCheckpointInputStream.skip(ret);
     ret = Math.min(ret, tmp);
-    mCheckpointReadByte += ret;
+    mReadByte += ret;
 
     if (ret > 0) {
       if (mRecache) {

@@ -28,7 +28,7 @@ public class DataServerMessage {
   private static final int HEADER_LENGTH = 26;
   private long mBlockId;
   private long mOffset;
-  private long mDataLength;
+  private long mLength;
   private int mLockId = -1;
 
   private TachyonByteBuffer mTachyonData = null;
@@ -64,7 +64,7 @@ public class DataServerMessage {
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
     ret.mBlockId = blockId;
     ret.mOffset = offset;
-    ret.mDataLength = len;
+    ret.mLength = len;
     ret.generateHeader();
     ret.mData = ByteBuffer.allocate(0);
     ret.mIsMessageReady = true;
@@ -115,7 +115,7 @@ public class DataServerMessage {
 
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
         ret.mOffset = offset;
-        ret.mDataLength = len;
+        ret.mLength = len;
         FileChannel channel = file.getChannel();
         ret.mTachyonData = null;
         ret.mData = channel.map(FileChannel.MapMode.READ_ONLY, offset, len);
@@ -127,7 +127,7 @@ public class DataServerMessage {
       } catch (Exception e) {
         // TODO This is a trick for now. The data may have been removed before remote retrieving. 
         ret.mBlockId = - ret.mBlockId;
-        ret.mDataLength = 0;
+        ret.mLength = 0;
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
         ret.mData = ByteBuffer.allocate(0);
         ret.mIsMessageReady = true;
@@ -159,7 +159,7 @@ public class DataServerMessage {
     mHeader.putShort(mMsgType);
     mHeader.putLong(mBlockId);
     mHeader.putLong(mOffset);
-    mHeader.putLong(mDataLength);
+    mHeader.putLong(mLength);
     mHeader.flip();
   }
 
@@ -175,19 +175,19 @@ public class DataServerMessage {
         assert (mMsgType == msgType);
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();
-        mDataLength = mHeader.getLong();
+        mLength = mHeader.getLong();
         // TODO make this better to truncate the file.
-        assert mDataLength < Integer.MAX_VALUE;
+        assert mLength < Integer.MAX_VALUE;
         if (mMsgType == DATA_SERVER_RESPONSE_MESSAGE) {
-          if (mDataLength == -1) {
+          if (mLength == -1) {
             mData = ByteBuffer.allocate(0);
           } else {
-            mData = ByteBuffer.allocate((int) mDataLength);
+            mData = ByteBuffer.allocate((int) mLength);
           }
         }
         LOG.info(String.format("data" + mData + ", blockId(%d), offset(%d), dataLength(%d)", 
-            mBlockId, mOffset, mDataLength));
-        if (mMsgType == DATA_SERVER_REQUEST_MESSAGE || mDataLength <= 0) {
+            mBlockId, mOffset, mLength));
+        if (mMsgType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
           mIsMessageReady = true;
         }
       }
@@ -249,7 +249,7 @@ public class DataServerMessage {
 
   public long getLength() {
     checkReady();
-    return mDataLength;
+    return mLength;
   }
 
   public ByteBuffer getReadOnlyData() {
