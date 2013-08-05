@@ -22,5 +22,5 @@ if [ -z $TACHYON_MASTER_ADDRESS ] ; then
 fi
 
 echo "Formatting Tachyon @ $MASTER_ADDRESS"
-# echo "Starting master: (java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true $TACHYON_JAVA_OPTS tachyon.Master ) &> $TACHYON_HOME/logs/master.log &"
-java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true $TACHYON_JAVA_OPTS tachyon.Format
+# echo "$JAVA_HOME/bin/java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true $TACHYON_JAVA_OPTS tachyon.Format"
+$JAVA_HOME/bin/java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true $TACHYON_JAVA_OPTS tachyon.Format
