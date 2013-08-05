@@ -30,4 +30,4 @@ else
   exit 1
 fi
 
-java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dlog4j.configuration=file:$TACHYON_HOME/conf/log4j.properties -Dtachyon.logger.type=USER_LOGGER $CLASS $@
+$JAVA_HOME/bin/java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dlog4j.configuration=file:$TACHYON_HOME/conf/log4j.properties -Dtachyon.logger.type=USER_LOGGER $CLASS $@
