@@ -1,6 +1,7 @@
 package tachyon.client;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -9,6 +10,7 @@ import org.junit.Test;
 
 import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
+import tachyon.UnderFileSystem;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 
@@ -16,6 +18,9 @@ import tachyon.thrift.InvalidPathException;
  * Unit tests for <code>tachyon.client.FileOutStream</code>.
  */
 public class FileOutStreamTest {
+  private final int MIN_LEN = 0;
+  private final int MAX_LEN = 255;
+  private final int DELTA = 33;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
@@ -44,13 +49,24 @@ public class FileOutStreamTest {
     }
     os.close();
 
-    file = mTfs.getFile(filePath);
-    InStream is = file.getInStream(ReadType.NO_CACHE);
-    byte[] res = new byte[(int) file.length()];
-    is.read(res);
-    boolean t = TestUtils.equalIncreasingByteArray(len, res);
-    Assert.assertTrue(t);
-//    file.releaseFileLock();
+    for (ReadType rOp : ReadType.values()) {
+      file = mTfs.getFile(filePath);
+      InStream is = file.getInStream(rOp);
+      byte[] res = new byte[(int) file.length()];
+      Assert.assertEquals((int) file.length(), is.read(res));
+      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len, res));
+    }
+
+    if (op.isThrough()) {
+      file = mTfs.getFile(filePath);
+      String checkpointPath = file.getCheckpointPath();
+      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
+
+      InputStream is = ufs.open(checkpointPath);
+      byte[] res = new byte[(int) file.length()];
+      Assert.assertEquals((int) file.length(), is.read(res));
+      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len, res));
+    }
   }
 
   /**
@@ -58,7 +74,7 @@ public class FileOutStreamTest {
    */
   @Test
   public void writeTest1() throws IOException, InvalidPathException, FileAlreadyExistException {
-    for (int k = 100; k <= 200; k += 33) {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         writeTest1Util("/root/testFile_" + k + "_" + op, op, k);
       }
@@ -74,13 +90,24 @@ public class FileOutStreamTest {
     os.write(TestUtils.getIncreasingByteArray(len));
     os.close();
 
-    file = mTfs.getFile(filePath);
-    InStream is = file.getInStream(ReadType.NO_CACHE);
-    byte[] res = new byte[(int) file.length()];
-    is.read(res);
-    boolean t = TestUtils.equalIncreasingByteArray(len, res);
-    Assert.assertTrue(t);
-//    file.releaseFileLock();
+    for (ReadType rOp : ReadType.values()) {
+      file = mTfs.getFile(filePath);
+      InStream is = file.getInStream(rOp);
+      byte[] res = new byte[(int) file.length()];
+      Assert.assertEquals((int) file.length(), is.read(res));
+      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len, res));
+    }
+
+    if (op.isThrough()) {
+      file = mTfs.getFile(filePath);
+      String checkpointPath = file.getCheckpointPath();
+      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
+
+      InputStream is = ufs.open(checkpointPath);
+      byte[] res = new byte[(int) file.length()];
+      Assert.assertEquals((int) file.length(), is.read(res));
+      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len, res));
+    }
   }
 
   /**
@@ -88,7 +115,7 @@ public class FileOutStreamTest {
    */
   @Test
   public void writeTest2() throws IOException, InvalidPathException, FileAlreadyExistException {
-    for (int k = 100; k <= 200; k += 33) {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         writeTest2Util("/root/testFile_" + k + "_" + op, op, k);
       }
@@ -104,13 +131,24 @@ public class FileOutStreamTest {
     os.write(TestUtils.getIncreasingByteArray(len), 0, len / 2);
     os.close();
 
-    file = mTfs.getFile(filePath);
-    InStream is = file.getInStream(ReadType.NO_CACHE);
-    byte[] res = new byte[(int) file.length()];
-    is.read(res);
-    boolean t = TestUtils.equalIncreasingByteArray(len / 2, res);
-    Assert.assertTrue(t);
-//    file.releaseFileLock();
+    for (ReadType rOp : ReadType.values()) {
+      file = mTfs.getFile(filePath);
+      InStream is = file.getInStream(rOp);
+      byte[] res = new byte[(int) file.length()];
+      Assert.assertEquals((int) file.length(), is.read(res));
+      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len / 2, res));
+    }
+
+    if (op.isThrough()) {
+      file = mTfs.getFile(filePath);
+      String checkpointPath = file.getCheckpointPath();
+      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
+
+      InputStream is = ufs.open(checkpointPath);
+      byte[] res = new byte[(int) file.length()];
+      Assert.assertEquals((int) file.length(), is.read(res));
+      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len / 2, res));
+    }
   }
 
   /**
@@ -118,7 +156,7 @@ public class FileOutStreamTest {
    */
   @Test
   public void writeTest3() throws IOException, InvalidPathException, FileAlreadyExistException {
-    for (int k = 100; k <= 200; k += 33) {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         writeTest3Util("/root/testFile_" + k + "_" + op, op, k);
       }

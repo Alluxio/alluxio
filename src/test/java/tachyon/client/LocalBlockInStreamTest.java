@@ -13,6 +13,10 @@ import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 
 public class LocalBlockInStreamTest {
+  private final int MIN_LEN = 0;
+  private final int MAX_LEN = 255;
+  private final int DELTA = 33;
+
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
   private Set<WriteType> mWriteCacheType;
@@ -40,13 +44,17 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void readTest1() throws IOException {
-    for (int k = 100; k <= 100; k += 33) {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : mWriteCacheType) {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
-        Assert.assertTrue(is instanceof LocalBlockInStream);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
         byte[] ret = new byte[k];
         int value = is.read();
         int cnt = 0;
@@ -59,7 +67,11 @@ public class LocalBlockInStreamTest {
         Assert.assertTrue(file.isInMemory());
 
         is = file.getInStream(ReadType.CACHE);
-        Assert.assertTrue(is instanceof LocalBlockInStream);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
         ret = new byte[k];
         value = is.read();
         cnt = 0;
@@ -79,13 +91,17 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void readTest2() throws IOException {
-    for (int k = 100; k <= 300; k += 33) {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : mWriteCacheType) {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
-        Assert.assertTrue(is instanceof LocalBlockInStream);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
         byte[] ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
@@ -93,7 +109,11 @@ public class LocalBlockInStreamTest {
         Assert.assertTrue(file.isInMemory());
 
         is = file.getInStream(ReadType.CACHE);
-        Assert.assertTrue(is instanceof LocalBlockInStream);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
@@ -108,13 +128,17 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void readTest3() throws IOException {
-    for (int k = 100; k <= 300; k += 33) {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : mWriteCacheType) {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
         InStream is = file.getInStream(ReadType.NO_CACHE);
-        Assert.assertTrue(is instanceof LocalBlockInStream);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
         byte[] ret = new byte[k / 2];
         Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k / 2, ret));
@@ -122,7 +146,11 @@ public class LocalBlockInStreamTest {
         Assert.assertTrue(file.isInMemory());
 
         is = file.getInStream(ReadType.CACHE);
-        Assert.assertTrue(is instanceof LocalBlockInStream);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret, 0, k));
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
@@ -137,7 +165,7 @@ public class LocalBlockInStreamTest {
    */
   @Test
   public void skipTest() throws IOException {
-    for (int k = 10; k <= 200; k += 33) {
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : mWriteCacheType) {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
@@ -155,7 +183,7 @@ public class LocalBlockInStreamTest {
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(t, is.read());
         Assert.assertEquals(t, is.skip(t));
-        Assert.assertEquals((byte) (2 * t + 1), is.read());
+        Assert.assertEquals(2 * t + 1, is.read());
         is.close();
         Assert.assertTrue(file.isInMemory());
       }

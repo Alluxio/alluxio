@@ -11,7 +11,7 @@ import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 
 public class RemoteBlockInStreamTest {
-  private final int MIN_LEN = 1;
+  private final int MIN_LEN = 0;
   private final int MAX_LEN = 255;
   private final int DELTA = 33;
 
@@ -45,7 +45,11 @@ public class RemoteBlockInStreamTest {
 
       TachyonFile file = mTfs.getFile(fileId);
       InStream is = file.getInStream(ReadType.NO_CACHE);
-      Assert.assertTrue(is instanceof RemoteBlockInStream);
+      if (k == 0) {
+        Assert.assertTrue(is instanceof EmptyBlockInStream);
+      } else {
+        Assert.assertTrue(is instanceof RemoteBlockInStream);
+      }
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -55,10 +59,18 @@ public class RemoteBlockInStreamTest {
       }
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertFalse(file.isInMemory());
+      if (k == 0) {
+        Assert.assertTrue(file.isInMemory());
+      } else {
+        Assert.assertFalse(file.isInMemory());
+      }
 
       is = file.getInStream(ReadType.CACHE);
-      Assert.assertTrue(is instanceof RemoteBlockInStream);
+      if (k == 0) {
+        Assert.assertTrue(is instanceof EmptyBlockInStream);
+      } else {
+        Assert.assertTrue(is instanceof RemoteBlockInStream);
+      }
       ret = new byte[k];
       value = is.read();
       cnt = 0;
@@ -71,7 +83,11 @@ public class RemoteBlockInStreamTest {
       Assert.assertTrue(file.isInMemory());
 
       is = file.getInStream(ReadType.CACHE);
-      Assert.assertTrue(is instanceof LocalBlockInStream);
+      if (k == 0) {
+        Assert.assertTrue(is instanceof EmptyBlockInStream);
+      } else {
+        Assert.assertTrue(is instanceof LocalBlockInStream);
+      }
       ret = new byte[k];
       value = is.read();
       cnt = 0;
@@ -96,15 +112,27 @@ public class RemoteBlockInStreamTest {
 
       TachyonFile file = mTfs.getFile(fileId);
       InStream is = file.getInStream(ReadType.NO_CACHE);
-      Assert.assertTrue(is instanceof RemoteBlockInStream);
+      if (k == 0) {
+        Assert.assertTrue(is instanceof EmptyBlockInStream);
+      } else {
+        Assert.assertTrue(is instanceof RemoteBlockInStream);
+      }
       byte[] ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertFalse(file.isInMemory());
+      if (k == 0) {
+        Assert.assertTrue(file.isInMemory());
+      } else {
+        Assert.assertFalse(file.isInMemory());
+      }
 
       is = file.getInStream(ReadType.CACHE);
-      Assert.assertTrue(is instanceof RemoteBlockInStream);
+      if (k == 0) {
+        Assert.assertTrue(is instanceof EmptyBlockInStream);
+      } else {
+        Assert.assertTrue(is instanceof RemoteBlockInStream);
+      }
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
@@ -112,7 +140,11 @@ public class RemoteBlockInStreamTest {
       Assert.assertTrue(file.isInMemory());
 
       is = file.getInStream(ReadType.CACHE);
-      Assert.assertTrue(is instanceof LocalBlockInStream);
+      if (k == 0) {
+        Assert.assertTrue(is instanceof EmptyBlockInStream);
+      } else {
+        Assert.assertTrue(is instanceof LocalBlockInStream);
+      }
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
@@ -132,15 +164,27 @@ public class RemoteBlockInStreamTest {
 
       TachyonFile file = mTfs.getFile(fileId);
       InStream is = file.getInStream(ReadType.NO_CACHE);
-      Assert.assertTrue(is instanceof RemoteBlockInStream);
+      if (k == 0) {
+        Assert.assertTrue(is instanceof EmptyBlockInStream);
+      } else {
+        Assert.assertTrue(is instanceof RemoteBlockInStream);
+      }
       byte[] ret = new byte[k / 2];
       Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(k / 2, ret));
       is.close();
-      Assert.assertFalse(file.isInMemory());
+      if (k == 0) {
+        Assert.assertTrue(file.isInMemory());
+      } else {
+        Assert.assertFalse(file.isInMemory());
+      }
 
       is = file.getInStream(ReadType.CACHE);
-      Assert.assertTrue(is instanceof RemoteBlockInStream);
+      if (k == 0) {
+        Assert.assertTrue(is instanceof EmptyBlockInStream);
+      } else {
+        Assert.assertTrue(is instanceof RemoteBlockInStream);
+      }
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret, 0, k));
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
@@ -148,7 +192,11 @@ public class RemoteBlockInStreamTest {
       Assert.assertTrue(file.isInMemory());
 
       is = file.getInStream(ReadType.CACHE);
-      Assert.assertTrue(is instanceof LocalBlockInStream);
+      if (k == 0) {
+        Assert.assertTrue(is instanceof EmptyBlockInStream);
+      } else {
+        Assert.assertTrue(is instanceof LocalBlockInStream);
+      }
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
@@ -162,7 +210,7 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void readTest4() throws IOException {
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.MUST_CACHE;
       int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
@@ -187,7 +235,7 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void readTest5() throws IOException {
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.MUST_CACHE;
       int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
@@ -211,7 +259,7 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void readTest6() throws IOException {
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.MUST_CACHE;
       int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
@@ -235,13 +283,17 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void readTest7() throws IOException {
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
       int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
       TachyonFile file = mTfs.getFile(fileId);
       InStream is = file.getInStream(ReadType.NO_CACHE);
-      Assert.assertTrue(is instanceof RemoteBlockInStream);
+      if (k == 0) {
+        Assert.assertTrue(is instanceof EmptyBlockInStream);
+      } else {
+        Assert.assertTrue(is instanceof RemoteBlockInStream);
+      }
       byte[] ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
@@ -256,7 +308,7 @@ public class RemoteBlockInStreamTest {
    */
   @Test
   public void skipTest() throws IOException {
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
       int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 

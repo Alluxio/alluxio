@@ -17,12 +17,12 @@ public class EmptyBlockInStream extends InStream {
 
   @Override
   public int read(byte[] b) throws IOException {
-    return -1;
+    return read(b, 0, b.length);
   }
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    return -1;
+    return b.length == 0 ? 0 : -1;
   }
 
   @Override

@@ -123,7 +123,7 @@ public class DataServer implements Runnable {
 
     if (tMessage.isMessageReady()) {
       if (tMessage.getBlockId() <= 0) {
-        LOG.error("Invalide block id " + tMessage.getBlockId());
+        LOG.error("Invalid block id " + tMessage.getBlockId());
         return;
       }
 
