@@ -24,7 +24,7 @@ public class LocalBlockInStream extends BlockInStream {
       close();
       return -1;
     }
-    return mBuffer.get();
+    return mBuffer.get() & 0xFF;
   }
 
   @Override
