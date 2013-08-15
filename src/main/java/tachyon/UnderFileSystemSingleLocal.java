@@ -89,12 +89,12 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   public long getSpace(String path, SpaceType type) throws IOException {
     File file = new File(path);
     switch (type) {
-      case SPACE_TOTAL:
-        return file.getTotalSpace();
-      case SPACE_FREE:
-        return file.getFreeSpace();
-      case SPACE_USED:
-        return file.getTotalSpace() - file.getFreeSpace();
+    case SPACE_TOTAL:
+      return file.getTotalSpace();
+    case SPACE_FREE:
+      return file.getFreeSpace();
+    case SPACE_USED:
+      return file.getTotalSpace() - file.getFreeSpace();
     }
     throw new IOException("Unknown getSpace parameter: " + type);
   }

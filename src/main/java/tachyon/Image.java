@@ -3,6 +3,7 @@ package tachyon;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 import org.apache.log4j.Logger;
 
@@ -47,7 +48,8 @@ public class Image {
     String tPath = path + ".tmp";
     LOG.info("Creating the image file: " + tPath);
     UnderFileSystem ufs = UnderFileSystem.get(path);
-    DataOutputStream imageOs = new DataOutputStream(ufs.create(tPath));
+    OutputStream os = ufs.create(tPath);
+    DataOutputStream imageOs = new DataOutputStream(os);
 
     imageOs.writeInt(Constants.JOURNAL_VERSION);
     info.createImage(imageOs);
