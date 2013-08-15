@@ -11,10 +11,7 @@ import tachyon.Constants;
 public class MasterConf extends Utils {
   private static MasterConf MASTER_CONF = null;
 
-  public final String CHECKPOINT_FILE;
-  public final String LOG_FILE;
   public final String JOURNAL_FOLDER;
-
   public final String HOSTNAME;
   public final int PORT;
   public final int WEB_PORT;
@@ -29,10 +26,6 @@ public class MasterConf extends Utils {
   public final ArrayList<String> PINLIST = new ArrayList<String>();
 
   private MasterConf() {
-    CHECKPOINT_FILE = getProperty("tachyon.master.checkpoint.file",
-        CommonConf.get().TACHYON_HOME + "/data/tachyon_checkpoint.data");
-    LOG_FILE = getProperty("tachyon.master.log.file", 
-        CommonConf.get().TACHYON_HOME + "/data/tachyon_log.data");
     JOURNAL_FOLDER = getProperty("tachyon.master.journal.folder", 
         CommonConf.get().TACHYON_HOME + "/journal/");
 

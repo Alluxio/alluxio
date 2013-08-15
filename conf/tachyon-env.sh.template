@@ -36,7 +36,6 @@ export TACHYON_JAVA_OPTS+="
   -Dtachyon.worker.data.folder=$TACHYON_RAM_FOLDER/tachyonworker/
   -Dtachyon.master.worker.timeout.ms=60000
   -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
-  -Dtachyon.master.log.file=$TACHYON_HOME/data/tachyon_log.data
-  -Dtachyon.master.checkpoint.file=$TACHYON_HOME/data/tachyon_checkpoint.data
+  -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
   -Dtachyon.master.pinlist=/pinfiles;/pindata
 "

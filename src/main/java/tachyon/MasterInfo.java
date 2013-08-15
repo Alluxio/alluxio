@@ -1252,52 +1252,6 @@ public class MasterInfo {
     }
   }
 
-  private void recoveryFromFile(String fileName, String msg) throws IOException {
-    MasterLogReader reader;
-
-    UnderFileSystem ufs = UnderFileSystem.get(fileName);
-    if (!ufs.exists(fileName)) {
-      LOG.info(msg + fileName + " does not exist.");
-    } else {
-      LOG.info("Reading " + msg + fileName);
-      reader = new MasterLogReader(fileName);
-      while (reader.hasNext()) {
-        Pair<LogType, Object> pair = reader.getNextPair();
-        switch (pair.getFirst()) {
-        case CheckpointInfo: {
-          CheckpointInfo checkpointInfo = (CheckpointInfo) pair.getSecond();
-          mInodeCounter.set(checkpointInfo.COUNTER_INODE);
-          break;
-        }
-        case InodeFile:
-        case InodeFolder:
-        case InodeRawTable: {
-          Inode inode = (Inode) pair.getSecond();
-          LOG.info("Putting " + inode);
-          if (Math.abs(inode.getId()) > mInodeCounter.get()) {
-            mInodeCounter.set(Math.abs(inode.getId()));
-          }
-          if (inode.getId() > 0) {
-            mInodes.put(inode.getId(), inode);
-            if (inode.getId() == 1) {
-              mRoot = (InodeFolder) inode;
-            }
-          } else {
-            mInodes.remove(- inode.getId());
-          }
-          break;
-        }
-        case Undefined:
-          CommonUtils.runtimeException("Corruptted data from " + fileName +
-              ". It has undefined data type.");
-          break;
-        default:
-          CommonUtils.runtimeException("Corruptted data from " + fileName);
-        }
-      }
-    }
-  }
-
   public long registerWorker(NetAddress workerNetAddress, long totalBytes,
       long usedBytes, List<Long> currentBlockIds) throws BlockInfoException {
     long id = 0;
