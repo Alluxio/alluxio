@@ -21,13 +21,9 @@ public class Format {
     }
 
     MasterConf masterConf = MasterConf.get();
-    UnderFileSystem ufs = UnderFileSystem.get(masterConf.CHECKPOINT_FILE);
-    LOG.info("Deleting " + masterConf.CHECKPOINT_FILE);
-    ufs.delete(masterConf.CHECKPOINT_FILE, false);
-
-    ufs = UnderFileSystem.get(masterConf.LOG_FILE);
-    LOG.info("Deleting " + masterConf.LOG_FILE);
-    ufs.delete(masterConf.LOG_FILE, false);
+    UnderFileSystem ufs = UnderFileSystem.get(masterConf.JOURNAL_FOLDER);
+    LOG.info("Deleting " + masterConf.JOURNAL_FOLDER);
+    ufs.delete(masterConf.JOURNAL_FOLDER, false);
 
     CommonConf commonConf = CommonConf.get();
     String folder = commonConf.UNDERFS_DATA_FOLDER;
