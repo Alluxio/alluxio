@@ -12,7 +12,7 @@ import org.junit.Test;
 public class InodeFolderTest {
   @Test
   public void addChildrenTest() {
-    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0);
+    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0, System.currentTimeMillis());
     inodeFolder.addChild(2);
     inodeFolder.addChild(3);
     Assert.assertEquals(2, (int) inodeFolder.getChildrenIds().get(0));
@@ -21,7 +21,7 @@ public class InodeFolderTest {
 
   @Test
   public void sameIdChildrenTest() {
-    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0);
+    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0, System.currentTimeMillis());
     inodeFolder.addChild(2);
     inodeFolder.addChild(2);
     Assert.assertTrue(inodeFolder.getChildrenIds().get(0) == 2);
@@ -30,7 +30,7 @@ public class InodeFolderTest {
 
   @Test
   public void removeChildTest() {
-    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0);
+    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0, System.currentTimeMillis());
     inodeFolder.addChild(2);
     Assert.assertEquals(1, inodeFolder.getNumberOfChildren());
     inodeFolder.removeChild(2);
@@ -39,7 +39,7 @@ public class InodeFolderTest {
 
   @Test
   public void removeNonExistentChildTest() {
-    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0);
+    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0, System.currentTimeMillis());
     inodeFolder.addChild(2);
     Assert.assertEquals(1, inodeFolder.getNumberOfChildren());
     inodeFolder.removeChild(3);
@@ -48,9 +48,9 @@ public class InodeFolderTest {
 
   @Test
   public void batchRemoveChildTest() {
-    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0);
-    InodeFile inodeFile1 = new InodeFile("testFile1", 2, 1, 1000);
-    InodeFile inodeFile2 = new InodeFile("testFile2", 3, 1, 1000);
+    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0, System.currentTimeMillis());
+    InodeFile inodeFile1 = new InodeFile("testFile1", 2, 1, 1000, System.currentTimeMillis());
+    InodeFile inodeFile2 = new InodeFile("testFile2", 3, 1, 1000, System.currentTimeMillis());
     inodeFolder.addChild(2);
     inodeFolder.addChild(3);
     inodeFolder.addChild(4);
@@ -65,8 +65,9 @@ public class InodeFolderTest {
 
   @Test
   public void isRawTableTest() {
-    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0);
-    InodeFolder inodeRawTable = new InodeFolder("testRawTable1", 2, 0, InodeType.RawTable);
+    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0, System.currentTimeMillis());
+    InodeFolder inodeRawTable =
+        new InodeFolder("testRawTable1", 2, 0, InodeType.RawTable, System.currentTimeMillis());
     Assert.assertFalse(inodeFolder.isRawTable());
     Assert.assertTrue(inodeRawTable.isRawTable());
   }
@@ -74,52 +75,52 @@ public class InodeFolderTest {
   //Tests for Inode methods
   @Test
   public void comparableTest() {
-    InodeFolder inode1 = new InodeFolder("test1", 1, 0);
-    InodeFolder inode2 = new InodeFolder("test2", 2, 0);
+    InodeFolder inode1 = new InodeFolder("test1", 1, 0, System.currentTimeMillis());
+    InodeFolder inode2 = new InodeFolder("test2", 2, 0, System.currentTimeMillis());
     Assert.assertEquals(-1, inode1.compareTo(inode2));
   }
 
   @Test
   public void equalsTest() {
-    InodeFolder inode1 = new InodeFolder("test1", 1, 0);
-    InodeFolder inode2 = new InodeFolder("test2", 1, 0);
+    InodeFolder inode1 = new InodeFolder("test1", 1, 0, System.currentTimeMillis());
+    InodeFolder inode2 = new InodeFolder("test2", 1, 0, System.currentTimeMillis());
     Assert.assertTrue(inode1.equals(inode2));
   }
 
   @Test
   public void isDirectoryTest() {
-    InodeFolder inode1 = new InodeFolder("test1", 1, 0);
+    InodeFolder inode1 = new InodeFolder("test1", 1, 0, System.currentTimeMillis());
     Assert.assertTrue(inode1.isDirectory());
   }
 
   @Test
   public void isFileTest() {
-    InodeFolder inode1 = new InodeFolder("test1", 1, 0);
+    InodeFolder inode1 = new InodeFolder("test1", 1, 0, System.currentTimeMillis());
     Assert.assertFalse(inode1.isFile());
   }
 
   @Test
   public void getInodeTypeTest() {
-    InodeFolder inode1 = new InodeFolder("test1", 1, 0);
+    InodeFolder inode1 = new InodeFolder("test1", 1, 0, System.currentTimeMillis());
     Assert.assertEquals(InodeType.Folder, inode1.getInodeType());
   }
 
   @Test
   public void getIdTest() {
-    InodeFolder inode1 = new InodeFolder("test1", 1, 0);
+    InodeFolder inode1 = new InodeFolder("test1", 1, 0, System.currentTimeMillis());
     Assert.assertEquals(1, inode1.getId());
   }
 
   @Test
   public void reverseIdTest() {
-    InodeFolder inode1 = new InodeFolder("test1", 1, 0);
+    InodeFolder inode1 = new InodeFolder("test1", 1, 0, System.currentTimeMillis());
     inode1.reverseId();
     Assert.assertEquals(-1, inode1.getId());
   }
 
   @Test
   public void setNameTest() {
-    InodeFolder inode1 = new InodeFolder("test1", 1, 0);
+    InodeFolder inode1 = new InodeFolder("test1", 1, 0, System.currentTimeMillis());
     Assert.assertEquals("test1", inode1.getName());
     inode1.setName("test2");
     Assert.assertEquals("test2", inode1.getName());
@@ -127,7 +128,7 @@ public class InodeFolderTest {
 
   @Test
   public void setParentIdTest() {
-    InodeFolder inode1 = new InodeFolder("test1", 1, 0);
+    InodeFolder inode1 = new InodeFolder("test1", 1, 0, System.currentTimeMillis());
     Assert.assertEquals(0, inode1.getParentId());
     inode1.setParentId(2);
     Assert.assertEquals(2, inode1.getParentId());

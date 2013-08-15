@@ -12,13 +12,6 @@ public class InodeRawTable extends InodeFolder {
 
   private ByteBuffer mMetadata;
 
-  public InodeRawTable(String name, int id, int parentId, int columns, ByteBuffer metadata)
-      throws TachyonException {
-    super(name, id, parentId, InodeType.RawTable);
-    COLUMNS = columns;
-    updateMetadata(metadata);
-  }
-
   public InodeRawTable(String name, int id, int parentId, int columns, ByteBuffer metadata,
       long creationTimeMs) throws TachyonException {
     super(name, id, parentId, InodeType.RawTable, creationTimeMs);

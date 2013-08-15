@@ -37,11 +37,12 @@ public class MasterLogWriterTest {
 
   @Test
   public void appendAndFlushInodeTest() throws IOException, TachyonException {
-    Inode inode = new InodeFile("/testFile", 1, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    Inode inode = new InodeFile(
+        "/testFile", 1, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis());
     mMasterLogWriter.append(inode, true);
-    Inode inode2 = new InodeFolder("/testFolder", 1, 0);
+    Inode inode2 = new InodeFolder("/testFolder", 1, 0, System.currentTimeMillis());
     mMasterLogWriter.append(inode2, true);
-    Inode inode3 = new InodeRawTable("/testRawTable", 1, 0, 1, null);
+    Inode inode3 = new InodeRawTable("/testRawTable", 1, 0, 1, null, System.currentTimeMillis());
     mMasterLogWriter.append(inode3, true);
     mMasterLogReader = new MasterLogReader(mLogFile);
     Assert.assertTrue(mMasterLogReader.hasNext());
@@ -61,9 +62,10 @@ public class MasterLogWriterTest {
 
   @Test
   public void appendAndFlushInodeListTest() throws IOException, TachyonException {
-    Inode inode = new InodeFile("/testFile", 1, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    Inode inode2 = new InodeFolder("/testFolder", 1, 0);
-    Inode inode3 = new InodeRawTable("/testRawTable", 1, 0, 1, null);
+    Inode inode = new InodeFile(
+        "/testFile", 1, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis());
+    Inode inode2 = new InodeFolder("/testFolder", 1, 0, System.currentTimeMillis());
+    Inode inode3 = new InodeRawTable("/testRawTable", 1, 0, 1, null, System.currentTimeMillis());
     List<Inode> inodeList = new ArrayList<Inode>();
     inodeList.add(inode);
     inodeList.add(inode2);
@@ -105,11 +107,12 @@ public class MasterLogWriterTest {
     for (int i = 0; i < numEntries; i ++) {
       switch (i % 3) { 
       case 0:
-        inode = new InodeFile("/testFile" + i, 1 + i, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE);
+        inode = new InodeFile("/testFile" + i, 1 + i, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE,
+            System.currentTimeMillis());
         mMasterLogWriter.append(inode, true);
         break;
       case 1:
-        inode = new InodeFolder("/testFolder" + i, 1 + i, 0);
+        inode = new InodeFolder("/testFolder" + i, 1 + i, 0, System.currentTimeMillis());
         mMasterLogWriter.append(inode, true);
         break;
       case 2:
@@ -122,12 +125,13 @@ public class MasterLogWriterTest {
     for (int i = 0; i < numEntries; i ++) {
       switch (i % 3) { 
       case 0:
-        inode = new InodeFile("/testFile" + i, 1 + i, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE);
+        inode = new InodeFile("/testFile" + i, 1 + i, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE,
+            System.currentTimeMillis());
         Assert.assertEquals(new Pair<LogType, Object>(LogType.InodeFile, inode), 
             mMasterLogReader.getNextPair());
         break;
       case 1:
-        inode = new InodeFolder("/testFolder" + i, 1 + i, 0);
+        inode = new InodeFolder("/testFolder" + i, 1 + i, 0, System.currentTimeMillis());
         Assert.assertEquals(new Pair<LogType, Object>(LogType.InodeFolder, inode), 
             mMasterLogReader.getNextPair());
         break;

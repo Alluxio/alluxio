@@ -6,8 +6,8 @@ import java.io.IOException;
  * The Journal manages Tachyon image and journal log.
  */
 public class Journal {
-  private static final String EDIT_LOG_FILE = "log.data";
-  private static final String IMAGE_FILE = "image.data";
+  static final String EDIT_LOG_FILE = "log.data";
+  static final String IMAGE_FILE = "image.data";
 
   private EditLog mEditLog = new EditLog(null, true);
 
