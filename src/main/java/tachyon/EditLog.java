@@ -29,6 +29,7 @@ public class EditLog {
   static final byte OP_RENAME = 4;
   static final byte OP_UNPIN_FILE = 5;
   static final byte OP_UPDATE_RAW_TABLE_METADATA = 6;
+  static final byte OP_COMPLETE_FILE = 7;
 
   private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
@@ -65,8 +66,8 @@ public class EditLog {
           break;
         }
         case OP_CREATE_FILE: {
-          info.createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(), is.readInt(), 
-              Utils.readByteBuffer(is), is.readLong());
+          info._createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(), is.readInt(), 
+              Utils.readByteBuffer(is), is.readLong(), is.readLong());
           break;
         }
         case OP_DELETE: {
@@ -83,6 +84,10 @@ public class EditLog {
         }
         case OP_UPDATE_RAW_TABLE_METADATA: {
           info.updateRawTableMetadata(is.readInt(), Utils.readByteBuffer(is));
+          break;
+        }
+        case OP_COMPLETE_FILE: {
+          info.completeFile(is.readInt());
           break;
         }
         default :
@@ -141,7 +146,7 @@ public class EditLog {
   }
 
   public void createFile(boolean recursive, String path, boolean directory, int columns,
-      ByteBuffer metadata, long blockSizeByte) {
+      ByteBuffer metadata, long blockSizeByte, long creationTimeMs) {
     if (INACTIVE) {
       return;
     }
@@ -154,6 +159,7 @@ public class EditLog {
       DOS.writeInt(columns);
       Utils.writeByteBuffer(metadata, DOS);
       DOS.writeLong(blockSizeByte);
+      DOS.writeLong(creationTimeMs);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
@@ -209,6 +215,19 @@ public class EditLog {
       DOS.writeByte(OP_UPDATE_RAW_TABLE_METADATA);
       DOS.writeInt(tableId);
       Utils.writeByteBuffer(metadata, DOS);
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+  }
+
+  public void completeFile(int fileId) {
+    if (INACTIVE) {
+      return;
+    }
+
+    try {
+      DOS.writeByte(OP_COMPLETE_FILE);
+      DOS.writeInt(fileId);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }

@@ -12,8 +12,8 @@ import tachyon.thrift.NetAddress;
 public class BlockInfoTest {
   @Test
   public void constructorTest() {
-    BlockInfo tInfo = 
-        new BlockInfo(new InodeFile("t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE), 300, 800);
+    BlockInfo tInfo = new BlockInfo(new InodeFile(
+        "t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis()), 300, 800);
     Assert.assertEquals(tInfo.BLOCK_INDEX, 300);
     Assert.assertEquals(tInfo.BLOCK_ID, BlockInfo.computeBlockId(100, 300));
     Assert.assertEquals(tInfo.OFFSET, (long) Constants.DEFAULT_BLOCK_SIZE_BYTE * 300);
@@ -22,8 +22,8 @@ public class BlockInfoTest {
 
   @Test
   public void localtionTest() {
-    BlockInfo tInfo =
-        new BlockInfo(new InodeFile("t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE), 300, 800);
+    BlockInfo tInfo = new BlockInfo(new InodeFile(
+        "t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis()), 300, 800);
     tInfo.addLocation(15, new NetAddress("abc", 1));
     Assert.assertEquals(1, tInfo.getLocations().size());
     tInfo.addLocation(22, new NetAddress("def", 2));
@@ -44,8 +44,8 @@ public class BlockInfoTest {
 
   @Test
   public void generateClientBlockInfoTest() {
-    BlockInfo tInfo =
-        new BlockInfo(new InodeFile("t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE), 300, 800);
+    BlockInfo tInfo = new BlockInfo(new InodeFile(
+        "t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis()), 300, 800);
     tInfo.addLocation(15, new NetAddress("abc", 1));
     tInfo.addLocation(22, new NetAddress("def", 2));
     tInfo.addLocation(29, new NetAddress("gh", 3));

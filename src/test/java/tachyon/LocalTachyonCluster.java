@@ -71,6 +71,14 @@ public class LocalTachyonCluster {
     return mMaster.getMasterInfo();
   }
 
+  String getEditLogPath() {
+    return mTachyonHome + "/journal/log.data";
+  }
+
+  String getImagePath() {
+    return mTachyonHome + "/journal/image.data";
+  }
+
   private void mkdir(String path) throws IOException {
     if (!(new File(path)).mkdirs()) {
       throw new IOException("Failed to make folder: " + path);

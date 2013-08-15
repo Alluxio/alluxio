@@ -13,26 +13,30 @@ import tachyon.thrift.TachyonException;
 public class InodeRawTableTest {
   @Test
   public void getColumnsTest() throws TachyonException {
-    InodeRawTable inodeRawTable = new InodeRawTable("testTable1", 1, 0, 10, (ByteBuffer) null);
+    InodeRawTable inodeRawTable =
+        new InodeRawTable("testTable1", 1, 0, 10, null, System.currentTimeMillis());
     Assert.assertEquals(10, inodeRawTable.getColumns());
   }
 
   @Test
   public void getNullMetadataTest() throws TachyonException {
-    InodeRawTable inodeRawTable = new InodeRawTable("testTable1", 1, 0, 10, (ByteBuffer) null);
+    InodeRawTable inodeRawTable =
+        new InodeRawTable("testTable1", 1, 0, 10, null, System.currentTimeMillis());
     Assert.assertTrue(inodeRawTable.getMetadata().equals(ByteBuffer.allocate(0)));
   }
 
   @Test
   public void getMetadataTest() throws TachyonException {
     ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(3);
-    InodeRawTable inodeRawTable = new InodeRawTable("testTable1", 1, 0, 10, metadata);
+    InodeRawTable inodeRawTable = 
+        new InodeRawTable("testTable1", 1, 0, 10, metadata, System.currentTimeMillis());
     Assert.assertEquals(metadata, inodeRawTable.getMetadata());
   }
 
   @Test
   public void updateMetadataTest() throws TachyonException {
-    InodeRawTable inodeRawTable = new InodeRawTable("testTable1", 1, 0, 10, null);
+    InodeRawTable inodeRawTable =
+        new InodeRawTable("testTable1", 1, 0, 10, null, System.currentTimeMillis());
     Assert.assertEquals(ByteBuffer.allocate(0), inodeRawTable.getMetadata());
     ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(7);
     inodeRawTable.updateMetadata(metadata);
@@ -42,8 +46,8 @@ public class InodeRawTableTest {
   //Tests for Inode methods
   @Test
   public void comparableTest() throws TachyonException {
-    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
-    InodeRawTable inode2 = new InodeRawTable("test2", 2, 0, 10, (ByteBuffer) null);
+    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
+    InodeRawTable inode2 = new InodeRawTable("test2", 2, 0, 10, null, System.currentTimeMillis());
     Assert.assertEquals(-1, inode1.compareTo(inode2));
     Assert.assertEquals(0, inode1.compareTo(inode1));
     Assert.assertEquals(0, inode2.compareTo(inode2));
@@ -52,47 +56,47 @@ public class InodeRawTableTest {
 
   @Test
   public void equalsTest() throws TachyonException {
-    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
-    InodeRawTable inode2 = new InodeRawTable("test2", 1, 0, 10, (ByteBuffer) null);
-    InodeRawTable inode3 = new InodeRawTable("test3", 2, 0, 10, (ByteBuffer) null);
+    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
+    InodeRawTable inode2 = new InodeRawTable("test2", 1, 0, 10, null, System.currentTimeMillis());
+    InodeRawTable inode3 = new InodeRawTable("test3", 2, 0, 10, null, System.currentTimeMillis());
     Assert.assertTrue(inode1.equals(inode2));
     Assert.assertFalse(inode1.equals(inode3));
   }
 
   @Test
   public void isDirectoryTest() throws TachyonException {
-    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
+    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
     Assert.assertTrue(inode1.isDirectory());
   }
 
   @Test
   public void isFileTest() throws TachyonException {
-    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
+    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
     Assert.assertFalse(inode1.isFile());
   }
 
   @Test
   public void getInodeTypeTest() throws TachyonException {
-    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
+    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
     Assert.assertEquals(inode1.getInodeType(), InodeType.RawTable);
   }
 
   @Test
   public void getIdTest() throws TachyonException {
-    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
+    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
     Assert.assertEquals(1, inode1.getId());
   }
 
   @Test
   public void reverseIdTest() throws TachyonException {
-    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
+    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
     inode1.reverseId();
     Assert.assertEquals(-1, inode1.getId());
   }
 
   @Test
   public void setNameTest() throws TachyonException {
-    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
+    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
     Assert.assertEquals("test1", inode1.getName());
     inode1.setName("test2");
     Assert.assertEquals("test2", inode1.getName());
@@ -100,7 +104,7 @@ public class InodeRawTableTest {
 
   @Test
   public void setParentIdTest() throws TachyonException {
-    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, (ByteBuffer) null);
+    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
     Assert.assertEquals(0, inode1.getParentId());
     inode1.setParentId(2);
     Assert.assertEquals(2, inode1.getParentId());

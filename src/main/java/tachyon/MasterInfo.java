@@ -196,7 +196,7 @@ public class MasterInfo {
   public MasterInfo(InetSocketAddress address) throws IOException {
     MASTER_CONF = MasterConf.get();
 
-    mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1);
+    mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1, System.currentTimeMillis());
     mInodes.put(mRoot.getId(), mRoot);
 
     MASTER_ADDRESS = address;
@@ -356,8 +356,23 @@ public class MasterInfo {
   }
 
   // TODO Make this API better.
-  private int _createFile(boolean recursive, String path, boolean directory, int columns,
-      ByteBuffer metadata, long blockSizeByte)
+  /**
+   * Internal API.
+   * @param recursive
+   * @param path
+   * @param directory
+   * @param columns
+   * @param metadata
+   * @param blockSizeByte
+   * @param creationTimeMs
+   * @return
+   * @throws FileAlreadyExistException
+   * @throws InvalidPathException
+   * @throws BlockInfoException
+   * @throws TachyonException
+   */
+  int _createFile(boolean recursive, String path, boolean directory, int columns,
+      ByteBuffer metadata, long blockSizeByte, long creationTimeMs)
           throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
           TachyonException {
     if (!directory && blockSizeByte < 1) {
@@ -411,12 +426,14 @@ public class MasterInfo {
       if (directory) {
         if (columns != -1) {
           ret = new InodeRawTable(name, mInodeCounter.incrementAndGet(), inode.getId(),
-              columns, metadata);
+              columns, metadata, creationTimeMs);
         } else {
-          ret = new InodeFolder(name, mInodeCounter.incrementAndGet(), inode.getId());
+          ret = new InodeFolder(
+              name, mInodeCounter.incrementAndGet(), inode.getId(), creationTimeMs);
         }
       } else {
-        ret = new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId(), blockSizeByte);
+        ret = new InodeFile(
+            name, mInodeCounter.incrementAndGet(), inode.getId(), blockSizeByte, creationTimeMs);
         String curPath = getPath(ret);
         if (mPinList.inList(curPath)) {
           synchronized (mFileIdPinList) {
@@ -442,8 +459,11 @@ public class MasterInfo {
       ByteBuffer metadata, long blockSizeByte)
           throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
           TachyonException {
-    int ret = _createFile(recursive, path, directory, columns, metadata, blockSizeByte);
-    mJournal.getEditLog().createFile(recursive, path, directory, columns, metadata, blockSizeByte);
+    long creationTimeMs = System.currentTimeMillis();
+    int ret =
+        _createFile(recursive, path, directory, columns, metadata, blockSizeByte, creationTimeMs);
+    mJournal.getEditLog().createFile(
+        recursive, path, directory, columns, metadata, blockSizeByte, creationTimeMs);
     mJournal.getEditLog().flush();
     return ret;
   }
@@ -482,14 +502,12 @@ public class MasterInfo {
    * @throws IOException
    */
   public void loadImage(DataInputStream is) throws IOException {
-
     while (true) {
       byte type = -1;
       try {
         type = is.readByte();
       } catch (EOFException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        return;
       }
 
       if (type == Image.T_CHECKPOINT) {
@@ -561,6 +579,7 @@ public class MasterInfo {
         if (inode.getId() == 1) {
           mRoot = (InodeFolder) inode;
         }
+        mInodes.put(inode.getId(), inode);
       }
     }
   }
@@ -583,9 +602,9 @@ public class MasterInfo {
     } else {
       InodeFolder folder = (InodeFolder) inode;
       if (folder.isRawTable()) {
-        os.writeByte(Image.T_INODE_FOLDER);
-      } else {
         os.writeByte(Image.T_INODE_RAW_TABLE);
+      } else {
+        os.writeByte(Image.T_INODE_FOLDER);
       }
 
       os.writeLong(folder.getCreationTimeMs());
@@ -634,6 +653,8 @@ public class MasterInfo {
       }
 
       ((InodeFile) inode).setComplete();
+      mJournal.getEditLog().completeFile(fileId);
+      mJournal.getEditLog().flush();
     }
   }
 
@@ -751,10 +772,6 @@ public class MasterInfo {
     }
   }
 
-  public void flushEditLog() {
-    mJournal.getEditLog().flush();
-  }
-
   public long getBlockIdBasedOnOffset(int fileId, long offset) throws FileDoesNotExistException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
@@ -777,6 +794,21 @@ public class MasterInfo {
       }
     }
     return ret;
+  }
+
+  public ClientBlockInfo getClientBlockInfo(long blockId)
+      throws FileDoesNotExistException, IOException, BlockInfoException {
+    int fileId = BlockInfo.computeInodeId(blockId);
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+      if (inode == null || inode.isDirectory()) {
+        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
+      }
+      ClientBlockInfo ret =
+          ((InodeFile) inode).getClientBlockInfo(BlockInfo.computeBlockIndex(blockId));
+      LOG.debug("getClientBlockInfo: " + blockId + ret);
+      return ret;
+    }
   }
 
   public ClientFileInfo getClientFileInfo(int fid) throws FileDoesNotExistException {
@@ -879,21 +911,6 @@ public class MasterInfo {
     }
   }
 
-  public ClientBlockInfo getClientBlockInfo(long blockId)
-      throws FileDoesNotExistException, IOException, BlockInfoException {
-    int fileId = BlockInfo.computeInodeId(blockId);
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-      if (inode == null || inode.isDirectory()) {
-        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
-      }
-      ClientBlockInfo ret =
-          ((InodeFile) inode).getClientBlockInfo(BlockInfo.computeBlockIndex(blockId));
-      LOG.debug("getClientBlockInfo: " + blockId + ret);
-      return ret;
-    }
-  }
-
   public List<ClientBlockInfo> getFileLocations(int fileId)
       throws FileDoesNotExistException, IOException {
     synchronized (mRoot) {
@@ -919,14 +936,20 @@ public class MasterInfo {
     }
   }
 
-  public int getFileId(String filePath) throws InvalidPathException {
-    LOG.debug("getFileId(" + filePath + ")");
-    Inode inode = getInode(filePath);
+  /**
+   * Get the file id of the file.
+   * @param path The path of the file
+   * @return The file id of the file. -1 if the file does not exist.
+   * @throws InvalidPathException
+   */
+  public int getFileId(String path) throws InvalidPathException {
+    LOG.debug("getFileId(" + path + ")");
+    Inode inode = getInode(path);
     int ret = -1;
     if (inode != null) {
       ret = inode.getId();
     }
-    LOG.debug("getFileId(" + filePath + "): " + ret);
+    LOG.debug("getFileId(" + path + "): " + ret);
     return ret;
   }
 
@@ -1195,17 +1218,23 @@ public class MasterInfo {
 
     if (inode.isFile()) {
       ret.add(path);
-    } else if (recursive) {
+    } else {
       List<Integer> childernIds = ((InodeFolder) inode).getChildrenIds();
 
       if (!path.endsWith("/")) {
         path += "/";
       }
+      ret.add(path);
+
       synchronized (mRoot) {
         for (int k : childernIds) {
           inode = mInodes.get(k);
           if (inode != null) {
-            ret.add(path + inode.getName());
+            if (recursive) {
+              ret.addAll(ls(path + inode.getName(), true));
+            } else {
+              ret.add(path + inode.getName());
+            }
           }
         }
       }

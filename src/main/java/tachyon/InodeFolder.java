@@ -14,17 +14,8 @@ import tachyon.thrift.ClientFileInfo;
 public class InodeFolder extends Inode {
   private Set<Integer> mChildren;
 
-  public InodeFolder(String name, int id, int parentId) {
-    this(name, id, parentId, InodeType.Folder);
-  }
-
   public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
     this(name, id, parentId, InodeType.Folder, creationTimeMs);
-  }
-
-  public InodeFolder(String name, int id, int parentId, InodeType type) {
-    super(name, id, parentId, type);
-    mChildren = new HashSet<Integer>();
   }
 
   public InodeFolder(String name, int id, int parentId, InodeType type, long creationTimeMs) {

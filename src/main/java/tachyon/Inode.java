@@ -13,10 +13,6 @@ public abstract class Inode implements Comparable<Inode> {
   private String mName;
   private int mParentId;
 
-  protected Inode(String name, int id, int parentId, InodeType type) {
-    this(name, id, parentId, type, System.currentTimeMillis());
-  }
-
   protected Inode(String name, int id, int parentId, InodeType type, long creationTimeMs) {
     TYPE = type;
 
