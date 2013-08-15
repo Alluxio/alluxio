@@ -13,6 +13,7 @@ public class MasterConf extends Utils {
 
   public final String CHECKPOINT_FILE;
   public final String LOG_FILE;
+  public final String JOURNAL_FOLDER;
 
   public final String HOSTNAME;
   public final int PORT;
@@ -32,6 +33,8 @@ public class MasterConf extends Utils {
         CommonConf.get().TACHYON_HOME + "/data/tachyon_checkpoint.data");
     LOG_FILE = getProperty("tachyon.master.log.file", 
         CommonConf.get().TACHYON_HOME + "/data/tachyon_log.data");
+    JOURNAL_FOLDER = getProperty("tachyon.master.journal.folder", 
+        CommonConf.get().TACHYON_HOME + "/journal/");
 
     HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);

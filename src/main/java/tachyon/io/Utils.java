@@ -5,6 +5,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+/**
+ * Utilities to do ser/de String, and ByteBuffer
+ */
 public class Utils {
   public static void writeString(String str, DataOutputStream os) throws IOException {
     if (str == null) {
@@ -42,7 +45,7 @@ public class Utils {
     os.write(buf.array(), buf.position(), len);
   }
 
-  public static ByteBuffer ReadByteBuffer(DataInputStream is) throws IOException {
+  public static ByteBuffer readByteBuffer(DataInputStream is) throws IOException {
     int len = is.readInt();
     if (len == -1) {
       return null;

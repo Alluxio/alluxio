@@ -2,6 +2,9 @@ package tachyon;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -29,6 +32,7 @@ import org.apache.log4j.Logger;
 import tachyon.UnderFileSystem.SpaceType;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
+import tachyon.io.Utils;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -77,7 +81,8 @@ public class MasterInfo {
   private PrefixList mPinList;
   private Set<Integer> mFileIdPinList;
 
-  private MasterLogWriter mMasterLogWriter;
+  private Journal mJournal;
+  //  private MasterLogWriter mMasterLogWriter;
 
   private HeartbeatThread mHeartbeatThread;
 
@@ -203,11 +208,7 @@ public class MasterInfo {
     mPinList = new PrefixList(MASTER_CONF.PINLIST);
     mFileIdPinList = Collections.synchronizedSet(new HashSet<Integer>());
 
-    // TODO Fault recovery: need user counter info;
-    recoveryFromLog();
-    writeCheckpoint();
-
-    mMasterLogWriter = new MasterLogWriter(MASTER_CONF.LOG_FILE);
+    mJournal = new Journal(MASTER_CONF.JOURNAL_FOLDER, this);
 
     mHeartbeatThread = new HeartbeatThread("Master Heartbeat", 
         new MasterInfoHeartbeatExecutor(), MASTER_CONF.HEARTBEAT_INTERVAL_MS);
@@ -254,7 +255,8 @@ public class MasterInfo {
       tFile.setComplete();
 
       if (needLog) {
-        mMasterLogWriter.append(tFile, true);
+        mJournal.getEditLog().addCheckpoint(fileId, length, checkpointPath);
+        mJournal.getEditLog().flush();
       }
       return true;
     }
@@ -294,8 +296,7 @@ public class MasterInfo {
 
       InodeFile tFile = (InodeFile) inode;
       if (tFile.getNumberOfBlocks() <= blockIndex) {
-        tFile.addBlock(new BlockInfo(tFile, blockIndex, length));
-        mMasterLogWriter.append(tFile, true);
+        addBlock(tFile, new BlockInfo(tFile, blockIndex, length));
       }
 
       InetSocketAddress address = tWorkerInfo.ADDRESS;
@@ -304,13 +305,19 @@ public class MasterInfo {
     }
   }
 
+  private void addBlock(InodeFile tFile, BlockInfo blockInfo) throws BlockInfoException {
+    tFile.addBlock(blockInfo);
+    mJournal.getEditLog().addBlock(tFile.getId(), blockInfo.BLOCK_INDEX, blockInfo.LENGTH);
+    mJournal.getEditLog().flush();
+  }
+
   public int createFile(String path, long blockSizeByte)
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
     return createFile(true, path, false, -1, null, blockSizeByte);
   }
 
   // TODO Make this API better.
-  public int createFile(boolean recursive, String path, boolean directory, int columns,
+  private int _createFile(boolean recursive, String path, boolean directory, int columns,
       ByteBuffer metadata, long blockSizeByte)
           throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
           TachyonException {
@@ -386,13 +393,178 @@ public class MasterInfo {
       mInodes.put(ret.getId(), ret);
       ((InodeFolder) inode).addChild(ret.getId());
 
-      // TODO this two appends should be atomic;
-      mMasterLogWriter.append(inode, false);
-      mMasterLogWriter.append(ret, false);
-      mMasterLogWriter.flush();
-
       LOG.debug("createFile: File Created: " + ret + " parent: " + inode);
       return ret.getId();
+    }
+  }
+
+
+  public int createFile(boolean recursive, String path, boolean directory, int columns,
+      ByteBuffer metadata, long blockSizeByte)
+          throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
+          TachyonException {
+    int ret = _createFile(recursive, path, directory, columns, metadata, blockSizeByte);
+    mJournal.getEditLog().createFile(recursive, path, directory, columns, metadata, blockSizeByte);
+    mJournal.getEditLog().flush();
+    return ret;
+  }
+
+  public void createImage(DataOutputStream os) throws IOException {
+    Queue<Inode> nodesQueue = new LinkedList<Inode>();
+
+    synchronized (mRoot) {
+      createImageInodeWriter(mRoot, os);
+      nodesQueue.add(mRoot);
+      while (!nodesQueue.isEmpty()) {
+        InodeFolder tFolder = (InodeFolder) nodesQueue.poll();
+
+        List<Integer> childrenIds = tFolder.getChildrenIds();
+        for (int id : childrenIds) {
+          Inode tInode = mInodes.get(id);
+          createImageInodeWriter(tInode, os);
+          if (tInode.isDirectory()) {
+            nodesQueue.add(tInode);
+          } else if (((InodeFile) tInode).isPin()) {
+            synchronized (mFileIdPinList) {
+              mFileIdPinList.add(tInode.getId());
+            }
+          }
+        }
+      }
+
+      os.writeByte(Image.T_CHECKPOINT);
+      os.writeInt(mInodeCounter.get());
+    }
+  }
+
+  /**
+   * Load the image from <code>is</code>. Assume this blocks the whole MasterInfo.
+   * @param is the inputstream to load the image.
+   * @throws IOException 
+   */
+  public void loadImage(DataInputStream is) throws IOException {
+
+    while (true) {
+      byte type = -1;
+      try {
+        type = is.readByte();
+      } catch (EOFException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+
+      if (type == Image.T_CHECKPOINT) {
+        mInodeCounter.set(is.readInt());
+      } else {
+        if (type > Image.T_INODE_RAW_TABLE) {
+          throw new IOException("Corrupted image with unknown element type: " + type);
+        }
+
+        long creationTimeMs = is.readLong();
+        int fileId = is.readInt();
+        String fileName = Utils.readString(is);
+        int parentId = is.readInt();
+
+        Inode inode = null;
+
+        if (type == Image.T_INODE_FILE) {
+          long blockSizeByte = is.readLong();
+          long length = is.readLong();
+          boolean isComplete = is.readBoolean();
+          boolean isPin = is.readBoolean();
+          boolean isCache = is.readBoolean();
+          String checkpointPath = Utils.readString(is);
+
+          InodeFile tInode =
+              new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
+
+          try {
+            tInode.setLength(length);
+          } catch (Exception e) {
+            throw new IOException(e);
+          }
+          tInode.setComplete(isComplete);
+          tInode.setPin(isPin);
+          tInode.setCache(isCache);
+          tInode.setCheckpointPath(checkpointPath);
+          inode = tInode;
+        } else {
+          int numberOfChildren = is.readInt();
+          int[] children = new int[numberOfChildren];
+          for (int k = 0; k < numberOfChildren; k ++) {
+            children[k] = is.readInt();
+          }
+
+          if (type == Image.T_INODE_FOLDER) {
+            InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs);
+            folder.addChildren(children);
+            inode = folder;
+          } else {
+            int columns = is.readInt();
+            ByteBuffer metadata = Utils.readByteBuffer(is);
+
+            try {
+              InodeRawTable table = new InodeRawTable(
+                  fileName, fileId, parentId, columns, metadata, creationTimeMs);
+              table.addChildren(children);
+              inode = table;
+            } catch (TachyonException e) {
+              throw new IOException(e);
+            }
+          }
+        }
+
+        LOG.info("Putting " + inode);
+        if (inode.getId() > mInodeCounter.get()) {
+          mInodeCounter.set(inode.getId());
+        }
+
+        if (inode.getId() == 1) {
+          mRoot = (InodeFolder) inode;
+        }
+      }
+    }
+  }
+
+  private void createImageInodeWriter(Inode inode, DataOutputStream os) throws IOException {
+    if (inode.isFile()) {
+      InodeFile file = (InodeFile) inode;
+      os.writeByte(Image.T_INODE_FILE);
+      os.writeLong(file.getCreationTimeMs());
+      os.writeInt(file.getId());
+      Utils.writeString(file.getName(), os);
+      os.writeInt(file.getParentId());
+
+      os.writeLong(file.getBlockSizeByte());
+      os.writeLong(file.getLength());
+      os.writeBoolean(file.isComplete());
+      os.writeBoolean(file.isPin());
+      os.writeBoolean(file.isCache());
+      Utils.writeString(file.getCheckpointPath(), os);
+    } else {
+      InodeFolder folder = (InodeFolder) inode;
+      if (folder.isRawTable()) {
+        os.writeByte(Image.T_INODE_FOLDER);
+      } else {
+        os.writeByte(Image.T_INODE_RAW_TABLE);
+      }
+
+      os.writeLong(folder.getCreationTimeMs());
+      os.writeInt(folder.getId());
+      Utils.writeString(folder.getName(), os);
+      os.writeInt(folder.getParentId());
+
+      List<Integer> children = folder.getChildrenIds();
+      os.writeInt(children.size());
+      for (int k = 0; k < children.size(); k ++) {
+        os.writeInt(children.get(k));
+      }
+
+      if (folder.isRawTable()) {
+        InodeRawTable table = (InodeRawTable) folder;
+        os.writeInt(table.getColumns());
+        Utils.writeByteBuffer(table.getMetadata(), os);
+      }
     }
   }
 
@@ -450,14 +622,7 @@ public class MasterInfo {
     return id;
   }
 
-  /**
-   * Delete a file.
-   * @param fileId The file to be deleted. 
-   * @param recursive
-   * @return
-   * @throws TachyonException
-   */
-  public boolean delete(int fileId, boolean recursive) throws TachyonException {
+  private boolean _delete(int fileId, boolean recursive) throws TachyonException {
     LOG.info("delete(" + fileId + ")");
     boolean succeed = true;
     synchronized (mRoot) {
@@ -513,13 +678,22 @@ public class MasterInfo {
       }
       inode.reverseId();
 
-      // TODO this following append should be atomic
-      mMasterLogWriter.append(inode, false);
-      mMasterLogWriter.append(parent, false);
-      mMasterLogWriter.flush();
-
       return succeed;
     }
+  }
+
+  /**
+   * Delete a file.
+   * @param fileId The file to be deleted. 
+   * @param recursive whether delete the file recursively or not.
+   * @return succeed or not
+   * @throws TachyonException
+   */
+  public boolean delete(int fileId, boolean recursive) throws TachyonException {
+    boolean ret = _delete(fileId, recursive);
+    mJournal.getEditLog().delete(fileId, recursive);
+    mJournal.getEditLog().flush();
+    return ret;
   }
 
   public boolean delete(String path, boolean recursive) throws TachyonException {
@@ -536,6 +710,10 @@ public class MasterInfo {
       }
       return delete(inode.getId(), recursive);
     }
+  }
+
+  public void flushEditLog() {
+    mJournal.getEditLog().flush();
   }
 
   public long getBlockIdBasedOnOffset(int fileId, long offset) throws FileDoesNotExistException {
@@ -1018,43 +1196,38 @@ public class MasterInfo {
       while (reader.hasNext()) {
         Pair<LogType, Object> pair = reader.getNextPair();
         switch (pair.getFirst()) {
-          case CheckpointInfo: {
-            CheckpointInfo checkpointInfo = (CheckpointInfo) pair.getSecond();
-            mInodeCounter.set(checkpointInfo.COUNTER_INODE);
-            break;
+        case CheckpointInfo: {
+          CheckpointInfo checkpointInfo = (CheckpointInfo) pair.getSecond();
+          mInodeCounter.set(checkpointInfo.COUNTER_INODE);
+          break;
+        }
+        case InodeFile:
+        case InodeFolder:
+        case InodeRawTable: {
+          Inode inode = (Inode) pair.getSecond();
+          LOG.info("Putting " + inode);
+          if (Math.abs(inode.getId()) > mInodeCounter.get()) {
+            mInodeCounter.set(Math.abs(inode.getId()));
           }
-          case InodeFile:
-          case InodeFolder:
-          case InodeRawTable: {
-            Inode inode = (Inode) pair.getSecond();
-            LOG.info("Putting " + inode);
-            if (Math.abs(inode.getId()) > mInodeCounter.get()) {
-              mInodeCounter.set(Math.abs(inode.getId()));
+          if (inode.getId() > 0) {
+            mInodes.put(inode.getId(), inode);
+            if (inode.getId() == 1) {
+              mRoot = (InodeFolder) inode;
             }
-            if (inode.getId() > 0) {
-              mInodes.put(inode.getId(), inode);
-              if (inode.getId() == 1) {
-                mRoot = (InodeFolder) inode;
-              }
-            } else {
-              mInodes.remove(- inode.getId());
-            }
-            break;
+          } else {
+            mInodes.remove(- inode.getId());
           }
-          case Undefined:
-            CommonUtils.runtimeException("Corruptted data from " + fileName + 
-                ". It has undefined data type.");
-            break;
-          default:
-            CommonUtils.runtimeException("Corruptted data from " + fileName);
+          break;
+        }
+        case Undefined:
+          CommonUtils.runtimeException("Corruptted data from " + fileName + 
+              ". It has undefined data type.");
+          break;
+        default:
+          CommonUtils.runtimeException("Corruptted data from " + fileName);
         }
       }
     }
-  }
-
-  private void recoveryFromLog() throws IOException {
-    recoveryFromFile(MASTER_CONF.CHECKPOINT_FILE, "Master Checkpoint file ");
-    recoveryFromFile(MASTER_CONF.LOG_FILE, "Master Log file ");
   }
 
   public long registerWorker(NetAddress workerNetAddress, long totalBytes,
@@ -1128,11 +1301,8 @@ public class MasterInfo {
     srcInode.setParentId(dstFolderInode.getId());
     ((InodeFolder) dstFolderInode).addChild(srcInode.getId());
 
-    // TODO The following should be done atomically.
-    mMasterLogWriter.append(parent, false);
-    mMasterLogWriter.append(dstFolderInode, false);
-    mMasterLogWriter.append(srcInode, false);
-    mMasterLogWriter.flush();
+    mJournal.getEditLog().rename(srcInode.getId(), dstPath);
+    mJournal.getEditLog().flush();
   }
 
   public void rename(int fileId, String dstPath) 
@@ -1175,7 +1345,8 @@ public class MasterInfo {
         mFileIdPinList.remove(fileId);
       }
 
-      mMasterLogWriter.append(inode, true);
+      mJournal.getEditLog().unpinFile(fileId);
+      mJournal.getEditLog().flush();
     }
   }
 
@@ -1190,7 +1361,8 @@ public class MasterInfo {
 
       ((InodeRawTable) inode).updateMetadata(metadata);
 
-      mMasterLogWriter.append(inode, true);
+      mJournal.getEditLog().updateRawTableMetadata(tableId, metadata);
+      mJournal.getEditLog().flush();
     }
   }
 
@@ -1233,45 +1405,6 @@ public class MasterInfo {
     }
 
     return new Command(CommandType.Nothing, new ArrayList<Long>());
-  }
-
-  private void writeCheckpoint() throws IOException {
-    LOG.info("Write checkpoint on files recoveried from logs. ");
-    MasterLogWriter checkpointWriter =
-        new MasterLogWriter(MASTER_CONF.CHECKPOINT_FILE + ".tmp");
-    Queue<Inode> nodesQueue = new LinkedList<Inode>();
-    synchronized (mRoot) {
-      checkpointWriter.append(mRoot, true);
-      nodesQueue.add(mRoot);
-      while (!nodesQueue.isEmpty()) {
-        InodeFolder tFolder = (InodeFolder) nodesQueue.poll();
-
-        List<Integer> childrenIds = tFolder.getChildrenIds();
-        for (int id : childrenIds) {
-          Inode tInode = mInodes.get(id);
-          checkpointWriter.append(tInode, true);
-          if (tInode.isDirectory()) {
-            nodesQueue.add(tInode);
-          } else if (((InodeFile) tInode).isPin()) {
-            synchronized (mFileIdPinList) {
-              mFileIdPinList.add(tInode.getId());
-            }
-          }
-        }
-      }
-
-      checkpointWriter.appendAndFlush(new CheckpointInfo(mInodeCounter.get()));
-      checkpointWriter.close();
-
-      UnderFileSystem ufs = UnderFileSystem.get(MASTER_CONF.CHECKPOINT_FILE);
-      ufs.delete(MASTER_CONF.CHECKPOINT_FILE, false);
-      ufs.rename(MASTER_CONF.CHECKPOINT_FILE + ".tmp", MASTER_CONF.CHECKPOINT_FILE);
-      ufs.delete(MASTER_CONF.CHECKPOINT_FILE + ".tmp", false);
-
-      ufs = UnderFileSystem.get(MASTER_CONF.LOG_FILE);
-      ufs.delete(MASTER_CONF.LOG_FILE, false);
-    }
-    LOG.info("Files recovery done. Current mInodeCounter: " + mInodeCounter.get());
   }
 
   public void stop() {

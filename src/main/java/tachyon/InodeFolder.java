@@ -18,8 +18,17 @@ public class InodeFolder extends Inode {
     this(name, id, parentId, InodeType.Folder);
   }
 
+  public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
+    this(name, id, parentId, InodeType.Folder, creationTimeMs);
+  }
+
   public InodeFolder(String name, int id, int parentId, InodeType type) {
     super(name, id, parentId, type);
+    mChildren = new HashSet<Integer>();
+  }
+
+  public InodeFolder(String name, int id, int parentId, InodeType type, long creationTimeMs) {
+    super(name, id, parentId, type, creationTimeMs);
     mChildren = new HashSet<Integer>();
   }
 
