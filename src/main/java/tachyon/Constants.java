@@ -28,4 +28,6 @@ public class Constants {
 
   public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
   public static final boolean DEBUG = Boolean.valueOf(System.getProperty("tachyon.debug", "false"));
+  
+  public static final int JOURNAL_VERSION = 1; // The version keeps increasing.
 }

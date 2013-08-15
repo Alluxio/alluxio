@@ -20,10 +20,15 @@ public class InodeFile extends Inode {
   private boolean mPin = false;
   private boolean mCache = false;
   private String mCheckpointPath = "";
-  private List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(5);
+  private List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(3);
 
   public InodeFile(String name, int id, int parentId, long blockSizeByte) {
     super(name, id, parentId, InodeType.File);
+    BLOCK_SIZE_BYTE = blockSizeByte;
+  }
+
+  public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs) {
+    super(name, id, parentId, InodeType.File, creationTimeMs);
     BLOCK_SIZE_BYTE = blockSizeByte;
   }
 
@@ -56,6 +61,10 @@ public class InodeFile extends Inode {
 
   public synchronized void setComplete() {
     mIsComplete = true;
+  }
+
+  public synchronized void setComplete(boolean complete) {
+    mIsComplete = complete;
   }
 
   @Override

@@ -33,16 +33,13 @@ public class UtilsTest {
       Utils.writeString(strings.get(k), dos);
     }
 
-    ByteArrayInputStream is = new ByteArrayInputStream(os.toByteArray());
-    DataInputStream dis = new DataInputStream(is);
+    DataInputStream dis = new DataInputStream(new ByteArrayInputStream(os.toByteArray()));
 
     for (int k = 0; k < strings.size(); k ++) {
       Assert.assertEquals(strings.get(k), Utils.readString(dis));
     }
 
-    os.close();
     dos.close();
-    is.close();
     dis.close();
   }
 
@@ -65,17 +62,14 @@ public class UtilsTest {
     buf.get();
     Utils.writeByteBuffer(buf, dos);
 
-    ByteArrayInputStream is = new ByteArrayInputStream(os.toByteArray());
-    DataInputStream dis = new DataInputStream(is);
+    DataInputStream dis = new DataInputStream(new ByteArrayInputStream(os.toByteArray()));
 
     for (int k = 0; k < bufs.size(); k ++) {
-      Assert.assertEquals(bufs.get(k), Utils.ReadByteBuffer(dis));
+      Assert.assertEquals(bufs.get(k), Utils.readByteBuffer(dis));
     }
-    Assert.assertEquals(buf, Utils.ReadByteBuffer(dis));
+    Assert.assertEquals(buf, Utils.readByteBuffer(dis));
 
-    os.close();
     dos.close();
-    is.close();
     dis.close();
   }
 }
