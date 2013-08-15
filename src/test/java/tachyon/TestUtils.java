@@ -78,7 +78,6 @@ public final class TestUtils {
     }
     for (int k = 0; k < len; k ++) {
       if (arr[k] != (byte) (start + k)) {
-        System.out.println(k + " " + arr[k] + " " + (start + k));
         return false;
       }
     }

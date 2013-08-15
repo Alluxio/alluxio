@@ -98,7 +98,7 @@ public class MasterInfo {
 
       synchronized (mWorkers) {
         for (Entry<Long, MasterWorkerInfo> worker: mWorkers.entrySet()) {
-          if (CommonUtils.getCurrentMs() - worker.getValue().getLastUpdatedTimeMs() 
+          if (CommonUtils.getCurrentMs() - worker.getValue().getLastUpdatedTimeMs()
               > MASTER_CONF.WORKER_TIMEOUT_MS) {
             LOG.error("The worker " + worker.getValue() + " got timed out!");
             mLostWorkers.add(worker.getValue());
@@ -133,7 +133,7 @@ public class MasterInfo {
                   LOG.info("Block " + blockId + " only lost an in memory copy from worker " +
                       worker.getId());
                 }
-              } 
+              }
             }
           } catch (BlockInfoException e) {
             LOG.error(e);
@@ -144,7 +144,7 @@ public class MasterInfo {
       if (hadFailedWorker) {
         LOG.warn("Restarting failed workers.");
         try {
-          java.lang.Runtime.getRuntime().exec(CommonConf.get().TACHYON_HOME + 
+          java.lang.Runtime.getRuntime().exec(CommonConf.get().TACHYON_HOME +
               "/bin/restart-failed-workers.sh");
         } catch (IOException e) {
           LOG.error(e.getMessage());
@@ -208,13 +208,28 @@ public class MasterInfo {
     mPinList = new PrefixList(MASTER_CONF.PINLIST);
     mFileIdPinList = Collections.synchronizedSet(new HashSet<Integer>());
 
-    mJournal = new Journal(MASTER_CONF.JOURNAL_FOLDER, this);
+    mJournal = new Journal(MASTER_CONF.JOURNAL_FOLDER);
+    mJournal.loadImage(this);
+    mJournal.loadEditLog(this);
+    mJournal.createImage(this);
+    mJournal.createEditLog();
 
-    mHeartbeatThread = new HeartbeatThread("Master Heartbeat", 
+    mHeartbeatThread = new HeartbeatThread("Master Heartbeat",
         new MasterInfoHeartbeatExecutor(), MASTER_CONF.HEARTBEAT_INTERVAL_MS);
     mHeartbeatThread.start();
   }
 
+  /**
+   * Add a checkpoint to a file.
+   * @param workerId The worker which submitted the request. -1 if the request is not from a worker.
+   * @param fileId The file to add the checkpoint.
+   * @param length The length of the checkpoint.
+   * @param checkpointPath The path of the checkpoint.
+   * @return true if the checkpoint is added successfully, false if not.
+   * @throws FileNotFoundException
+   * @throws SuspectedFileSizeException
+   * @throws BlockInfoException
+   */
   public boolean addCheckpoint(long workerId, int fileId, long length, String checkpointPath)
       throws FileNotFoundException, SuspectedFileSizeException, BlockInfoException {
     LOG.info(CommonUtils.parametersToString(workerId, fileId, length, checkpointPath));
@@ -264,14 +279,14 @@ public class MasterInfo {
 
   /**
    * A worker cache a block in its memory.
-   * 
+   *
    * @param workerId
    * @param workerUsedBytes
    * @param blockId
    * @param length
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
-   * @throws BlockInfoException 
+   * @throws BlockInfoException
    */
   public void cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
@@ -302,6 +317,30 @@ public class MasterInfo {
       InetSocketAddress address = tWorkerInfo.ADDRESS;
       tFile.addLocation(blockIndex, workerId,
           new NetAddress(address.getHostName(), address.getPort()));
+    }
+  }
+
+  /**
+   * Called by edit log only.
+   * @param fileId
+   * @param blockIndex
+   * @param blockLength
+   * @throws FileDoesNotExistException
+   * @throws BlockInfoException
+   */
+  void opAddBlock(int fileId, int blockIndex, long blockLength)
+      throws FileDoesNotExistException, BlockInfoException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+
+      if (inode == null) {
+        throw new FileDoesNotExistException("File " + fileId + " does not exist.");
+      }
+      if (inode.isDirectory()) {
+        throw new FileDoesNotExistException("File " + fileId + " is a folder.");
+      }
+
+      addBlock((InodeFile) inode, new BlockInfo((InodeFile) inode, blockIndex, blockLength));
     }
   }
 
@@ -342,7 +381,7 @@ public class MasterInfo {
       String name = pathNames[pathNames.length - 1];
       String folderPath = null;
       if (path.length() - name.length() == 1) {
-        folderPath = path.substring(0, path.length() - name.length()); 
+        folderPath = path.substring(0, path.length() - name.length());
       } else {
         folderPath = path.substring(0, path.length() - name.length() - 1);
       }
@@ -440,7 +479,7 @@ public class MasterInfo {
   /**
    * Load the image from <code>is</code>. Assume this blocks the whole MasterInfo.
    * @param is the inputstream to load the image.
-   * @throws IOException 
+   * @throws IOException
    */
   public void loadImage(DataInputStream is) throws IOException {
 
@@ -599,12 +638,12 @@ public class MasterInfo {
   }
 
   public int createRawTable(String path, int columns, ByteBuffer metadata)
-      throws FileAlreadyExistException, InvalidPathException, TableColumnException, 
+      throws FileAlreadyExistException, InvalidPathException, TableColumnException,
       TachyonException {
     LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
 
     if (columns <= 0 || columns >= Constants.MAX_COLUMNS) {
-      throw new TableColumnException("Column " + columns + " should between 0 to " + 
+      throw new TableColumnException("Column " + columns + " should between 0 to " +
           Constants.MAX_COLUMNS);
     }
 
@@ -684,7 +723,7 @@ public class MasterInfo {
 
   /**
    * Delete a file.
-   * @param fileId The file to be deleted. 
+   * @param fileId The file to be deleted.
    * @param recursive whether delete the file recursively or not.
    * @return succeed or not
    * @throws TachyonException
@@ -795,14 +834,14 @@ public class MasterInfo {
   }
 
   /**
-   * If the <code>path</code> is a directory, return all the direct entries in it. If the 
-   * <code>path</code> is a file, return its ClientFileInfo. 
+   * If the <code>path</code> is a directory, return all the direct entries in it. If the
+   * <code>path</code> is a file, return its ClientFileInfo.
    * @param path the target directory/file path
    * @return A list of ClientFileInfo
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public List<ClientFileInfo> getFilesInfo(String path) 
+  public List<ClientFileInfo> getFilesInfo(String path)
       throws FileDoesNotExistException, InvalidPathException {
     List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
 
@@ -848,7 +887,7 @@ public class MasterInfo {
       if (inode == null || inode.isDirectory()) {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
-      ClientBlockInfo ret = 
+      ClientBlockInfo ret =
           ((InodeFile) inode).getClientBlockInfo(BlockInfo.computeBlockIndex(blockId));
       LOG.debug("getClientBlockInfo: " + blockId + ret);
       return ret;
@@ -868,7 +907,7 @@ public class MasterInfo {
     }
   }
 
-  public List<ClientBlockInfo> getFileLocations(String path) 
+  public List<ClientBlockInfo> getFileLocations(String path)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     LOG.info("getFileLocations: " + path);
     synchronized (mRoot) {
@@ -1066,7 +1105,7 @@ public class MasterInfo {
         }
       } else {
         for (InetSocketAddress address: mWorkerAddressToId.keySet()) {
-          if (address.getHostName().equals(host) 
+          if (address.getHostName().equals(host)
               || address.getAddress().getHostAddress().equals(host)
               || address.getAddress().getCanonicalHostName().equals(host)) {
             LOG.debug("getLocalWorker: " + address);
@@ -1113,9 +1152,9 @@ public class MasterInfo {
     return mWhiteList.getList();
   }
 
-  public List<Integer> listFiles(String path, boolean recursive) 
+  public List<Integer> listFiles(String path, boolean recursive)
       throws InvalidPathException, FileDoesNotExistException {
-    List<Integer> ret = new ArrayList<Integer>(); 
+    List<Integer> ret = new ArrayList<Integer>();
     synchronized (mRoot) {
       Inode inode = getInode(path);
       if (inode == null) {
@@ -1144,7 +1183,7 @@ public class MasterInfo {
     return ret;
   }
 
-  public List<String> ls(String path, boolean recursive) 
+  public List<String> ls(String path, boolean recursive)
       throws InvalidPathException, FileDoesNotExistException {
     List<String> ret = new ArrayList<String>();
 
@@ -1220,7 +1259,7 @@ public class MasterInfo {
           break;
         }
         case Undefined:
-          CommonUtils.runtimeException("Corruptted data from " + fileName + 
+          CommonUtils.runtimeException("Corruptted data from " + fileName +
               ". It has undefined data type.");
           break;
         default:
@@ -1291,7 +1330,7 @@ public class MasterInfo {
 
     Inode dstFolderInode = getInode(dstFolderPath);
     if (dstFolderInode == null || dstFolderInode.isFile()) {
-      throw new FileDoesNotExistException("Failed to rename: " + dstFolderPath + 
+      throw new FileDoesNotExistException("Failed to rename: " + dstFolderPath +
           " does not exist.");
     }
 
@@ -1305,7 +1344,7 @@ public class MasterInfo {
     mJournal.getEditLog().flush();
   }
 
-  public void rename(int fileId, String dstPath) 
+  public void rename(int fileId, String dstPath)
       throws FileDoesNotExistException, FileAlreadyExistException, InvalidPathException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
@@ -1330,7 +1369,7 @@ public class MasterInfo {
   }
 
   public void unpinFile(int fileId) throws FileDoesNotExistException {
-    // TODO Change meta data only. Data will be evicted from worker based on data replacement 
+    // TODO Change meta data only. Data will be evicted from worker based on data replacement
     // policy. TODO May change it to be active from V0.2
     LOG.info("unpinFile(" + fileId + ")");
     synchronized (mRoot) {
@@ -1366,7 +1405,7 @@ public class MasterInfo {
     }
   }
 
-  public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds) 
+  public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds)
       throws BlockInfoException {
     LOG.debug("WorkerId: " + workerId);
     synchronized (mWorkers) {
@@ -1392,7 +1431,7 @@ public class MasterInfo {
             LOG.error("File " + fileId + " does not exist");
           } else if (inode.isFile()) {
             ((InodeFile) inode).removeLocation(blockIndex, workerId);
-            LOG.debug("File " + fileId + " block " + blockIndex + 
+            LOG.debug("File " + fileId + " block " + blockIndex +
                 " was evicted from worker " + workerId);
           }
         }

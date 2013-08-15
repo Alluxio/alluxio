@@ -27,7 +27,6 @@ public class InodeRawTableTest {
   public void getMetadataTest() throws TachyonException {
     ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(3);
     InodeRawTable inodeRawTable = new InodeRawTable("testTable1", 1, 0, 10, metadata);
-    metadata.flip();
     Assert.assertEquals(metadata, inodeRawTable.getMetadata());
   }
 
@@ -37,7 +36,6 @@ public class InodeRawTableTest {
     Assert.assertEquals(ByteBuffer.allocate(0), inodeRawTable.getMetadata());
     ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(7);
     inodeRawTable.updateMetadata(metadata);
-    metadata.flip();
     Assert.assertEquals(metadata, inodeRawTable.getMetadata());
   }
 

@@ -9,23 +9,30 @@ public class Journal {
   private static final String EDIT_LOG_FILE = "log.data";
   private static final String IMAGE_FILE = "image.data";
 
-  private final MasterInfo MASTER_INFO;
-
-  private EditLog mEditLog;
+  private EditLog mEditLog = new EditLog(null, true);
 
   private String mImagePath;
   private String mEditLogPath;
 
-  public Journal(String folder, MasterInfo masterInfo) throws IOException {
-    MASTER_INFO = masterInfo;
-
+  public Journal(String folder) throws IOException {
     mEditLogPath = folder + EDIT_LOG_FILE;
     mImagePath = folder + IMAGE_FILE;
+  }
 
-    Image.load(MASTER_INFO, mImagePath);
-    EditLog.load(MASTER_INFO, mEditLogPath);
+  public void loadImage(MasterInfo info) throws IOException {
+    Image.load(info, mImagePath);
+  }
 
-    Image.create(MASTER_INFO, mImagePath);
+  public void loadEditLog(MasterInfo info) throws IOException {
+    EditLog.load(info, mEditLogPath);
+  }
+
+  public void createImage(MasterInfo info) throws IOException {
+    Image.create(info, mImagePath);
+  }
+  
+  public void createEditLog() throws IOException {
+    mEditLog = new EditLog(mEditLogPath, false);
   }
 
   public EditLog getEditLog() {

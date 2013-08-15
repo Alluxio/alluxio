@@ -9,6 +9,13 @@ import java.nio.ByteBuffer;
 import org.apache.log4j.Logger;
 
 import tachyon.io.Utils;
+import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.FileAlreadyExistException;
+import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.thrift.TableDoesNotExistException;
+import tachyon.thrift.TachyonException;
 
 /**
  * Master operation journal.
@@ -47,30 +54,44 @@ public class EditLog {
         break;
       }
 
-      switch (op) {
-      case OP_ADD_CHECKPOINT: {
-        break;
-      }
-      case OP_ADD_BLOCK: {
-        break;
-      }
-      case OP_CREATE_FILE: {
-        break;
-      }
-      case OP_DELETE: {
-        break;
-      }
-      case OP_RENAME: {
-        break;
-      }
-      case OP_UNPIN_FILE: {
-        break;
-      }
-      case OP_UPDATE_RAW_TABLE_METADATA: {
-        break;
-      }
-      default :
-        throw new IOException("Invalid op type " + op);
+      try {
+        switch (op) {
+        case OP_ADD_CHECKPOINT: {
+          info.addCheckpoint(-1, is.readInt(), is.readLong(), Utils.readString(is));
+          break;
+        }
+        case OP_ADD_BLOCK: {
+          info.opAddBlock(is.readInt(), is.readInt(), is.readLong());
+          break;
+        }
+        case OP_CREATE_FILE: {
+          info.createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(), is.readInt(), 
+              Utils.readByteBuffer(is), is.readLong());
+          break;
+        }
+        case OP_DELETE: {
+          info.delete(is.readInt(), is.readBoolean());
+          break;
+        }
+        case OP_RENAME: {
+          info.rename(is.readInt(), Utils.readString(is));
+          break;
+        }
+        case OP_UNPIN_FILE: {
+          info.unpinFile(is.readInt());
+          break;
+        }
+        case OP_UPDATE_RAW_TABLE_METADATA: {
+          info.updateRawTableMetadata(is.readInt(), Utils.readByteBuffer(is));
+          break;
+        }
+        default :
+          throw new IOException("Invalid op type " + op);
+        }
+      } catch (SuspectedFileSizeException | BlockInfoException | FileDoesNotExistException |
+          FileAlreadyExistException | InvalidPathException | TachyonException |
+          TableDoesNotExistException e) {
+        throw new IOException(e);
       }
     }
 
@@ -86,29 +107,6 @@ public class EditLog {
       DOS = new DataOutputStream(ufs.create(path));
     } else {
       DOS = null;
-    }
-  }
-
-  public synchronized void flush() {
-    if (INACTIVE) {
-      return;
-    }
-
-    try {
-      DOS.flush();
-    } catch (IOException e) {
-      CommonUtils.runtimeException(e);
-    }
-  }
-
-  public synchronized void close() {
-    if (INACTIVE) {
-      return;
-    }
-    try {
-      DOS.close();
-    } catch (IOException e) {
-      CommonUtils.runtimeException(e);
     }
   }
 
@@ -154,10 +152,7 @@ public class EditLog {
       Utils.writeString(path, DOS);
       DOS.writeBoolean(directory);
       DOS.writeInt(columns);
-      if (columns != -1) {
-        DOS.writeInt(metadata.limit() - metadata.position());
-        DOS.write(metadata.array(), metadata.position(), metadata.limit() - metadata.position());
-      }
+      Utils.writeByteBuffer(metadata, DOS);
       DOS.writeLong(blockSizeByte);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
@@ -214,6 +209,29 @@ public class EditLog {
       DOS.writeByte(OP_UPDATE_RAW_TABLE_METADATA);
       DOS.writeInt(tableId);
       Utils.writeByteBuffer(metadata, DOS);
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+  }
+
+  public synchronized void flush() {
+    if (INACTIVE) {
+      return;
+    }
+
+    try {
+      DOS.flush();
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+  }
+
+  public synchronized void close() {
+    if (INACTIVE) {
+      return;
+    }
+    try {
+      DOS.close();
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
