@@ -82,7 +82,6 @@ public class MasterInfo {
   private Set<Integer> mFileIdPinList;
 
   private Journal mJournal;
-  //  private MasterLogWriter mMasterLogWriter;
 
   private HeartbeatThread mHeartbeatThread;
 
