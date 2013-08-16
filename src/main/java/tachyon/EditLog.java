@@ -37,24 +37,37 @@ public class EditLog {
   private final boolean INACTIVE;
   private final DataOutputStream DOS;
 
-  public static void load(MasterInfo info, String path) throws IOException {
+  // Starting from 1.
+  private long mTransactionId = 0;
+
+  /**
+   * Load edit log.
+   * @param info The Master Info.
+   * @return The last transaction id.
+   * @throws IOException
+   */
+  public static long load(MasterInfo info, String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
     if (!ufs.exists(path)) {
       LOG.info("Edit Log " + path + " does not exist.");
-      return;
+      return 0;
     }
     LOG.info("Loading Edit Log " + path);
 
     DataInputStream is = new DataInputStream(ufs.open(path));
+    long transactionId = 0;
 
     while (true) {
       byte op;
+      long tId;
       try {
-        op = is.readByte();
+        tId = is.readLong();
       } catch (EOFException e) {
         break;
       }
 
+      transactionId = tId;
+      op = is.readByte();
       try {
         switch (op) {
         case OP_ADD_CHECKPOINT: {
@@ -101,15 +114,17 @@ public class EditLog {
     }
 
     is.close();
+    return transactionId;
   }
 
-  public EditLog(String path, boolean inactive) throws IOException {
+  public EditLog(String path, boolean inactive, long transactionId) throws IOException {
     INACTIVE = inactive;
 
     if (!INACTIVE) {
       LOG.info("Creating edit log file " + path);
       UnderFileSystem ufs = UnderFileSystem.get(path);
       DOS = new DataOutputStream(ufs.create(path));
+      mTransactionId = transactionId;
     } else {
       DOS = null;
     }
@@ -121,6 +136,7 @@ public class EditLog {
     }
 
     try {
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_ADD_CHECKPOINT);
       DOS.writeInt(fileId);
       DOS.writeLong(length);
@@ -136,6 +152,7 @@ public class EditLog {
     }
 
     try {
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_ADD_BLOCK);
       DOS.writeInt(fileId);
       DOS.writeInt(blockIndex);
@@ -145,13 +162,14 @@ public class EditLog {
     }
   }
 
-  public synchronized void createFile(boolean recursive, String path, boolean directory, int columns,
-      ByteBuffer metadata, long blockSizeByte, long creationTimeMs) {
+  public synchronized void createFile(boolean recursive, String path, boolean directory,
+      int columns, ByteBuffer metadata, long blockSizeByte, long creationTimeMs) {
     if (INACTIVE) {
       return;
     }
 
     try {
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_CREATE_FILE);
       DOS.writeBoolean(recursive);
       Utils.writeString(path, DOS);
@@ -171,6 +189,7 @@ public class EditLog {
     }
 
     try {
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_DELETE);
       DOS.writeInt(fileId);
       DOS.writeBoolean(recursive);
@@ -185,6 +204,7 @@ public class EditLog {
     }
 
     try {
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_RENAME);
       DOS.writeInt(fileId);
       Utils.writeString(dstPath, DOS);
@@ -199,6 +219,7 @@ public class EditLog {
     }
 
     try {
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_UNPIN_FILE);
       DOS.writeInt(fileId);
     } catch (IOException e) {
@@ -212,6 +233,7 @@ public class EditLog {
     }
 
     try {
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_UPDATE_RAW_TABLE_METADATA);
       DOS.writeInt(tableId);
       Utils.writeByteBuffer(metadata, DOS);
@@ -226,6 +248,7 @@ public class EditLog {
     }
 
     try {
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_COMPLETE_FILE);
       DOS.writeInt(fileId);
     } catch (IOException e) {

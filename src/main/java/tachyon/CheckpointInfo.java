@@ -8,15 +8,39 @@ import java.io.Serializable;
 public class CheckpointInfo implements Serializable, Comparable<CheckpointInfo> {
   private static final long serialVersionUID = -8873733429025713755L;
 
-  public final int COUNTER_INODE;
+  private int mInodeCounter;
+  private long mEditTransactionId;
 
-  public CheckpointInfo(int inodeCounter) {
-    COUNTER_INODE = inodeCounter;
+  public CheckpointInfo(int inodeCounter, long editTransactionId) {
+    mInodeCounter = inodeCounter;
+    mEditTransactionId = editTransactionId;
+  }
+
+  public synchronized void updateInodeCounter(int inodeCounter) {
+    mInodeCounter = Math.max(mInodeCounter, inodeCounter);
+  }
+
+  public synchronized void updateEditTransactionCounter(long id) {
+    mEditTransactionId = Math.max(mEditTransactionId, id);
+  }
+
+  public synchronized int getInodeCounter() {
+    return mInodeCounter;
+  }
+
+  public synchronized long getEditTransactionCounter() {
+    return mEditTransactionId;
   }
 
   @Override
   public synchronized int compareTo(CheckpointInfo o) {
-    return COUNTER_INODE - o.COUNTER_INODE;
+    if (mInodeCounter != o.mInodeCounter) {
+      return mInodeCounter - o.mInodeCounter;
+    }
+    if (mEditTransactionId == o.mEditTransactionId) {
+      return 0;
+    }
+    return mEditTransactionId > o.mEditTransactionId ? 1 : -1;
   }
 
   @Override
@@ -24,11 +48,11 @@ public class CheckpointInfo implements Serializable, Comparable<CheckpointInfo> 
     if (!(o instanceof CheckpointInfo)) {
       return false;
     }
-    return COUNTER_INODE == ((CheckpointInfo)o).COUNTER_INODE;
+    return compareTo((CheckpointInfo)o) == 0;
   }
 
   @Override
   public synchronized int hashCode() {
-    return COUNTER_INODE;
+    return (int) (mInodeCounter + mEditTransactionId);
   }
 }
