@@ -57,6 +57,7 @@ public class BasicOperations {
     TachyonByteBuffer buf = file.readByteBuffer();
     if (buf == null) {
       file.recache();
+      buf = file.readByteBuffer();
     }
     CommonUtils.printByteBuffer(LOG, buf.DATA);
     buf.close();

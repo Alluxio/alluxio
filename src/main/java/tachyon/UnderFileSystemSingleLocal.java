@@ -49,7 +49,15 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     File file = new File(path);
-    return file.delete();
+    boolean success = true;
+    if (recursive && file.isDirectory()) {
+      String[] files = file.list();
+      for (String child : files) {
+        success = success && delete(path + "/" + child, true);
+      }
+    }
+
+    return success && file.delete();
   }
 
   @Override

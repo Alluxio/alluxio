@@ -89,6 +89,7 @@ public class BasicRawTableOperations {
       TachyonByteBuffer buf = tFile.readByteBuffer();
       if (buf == null) {
         tFile.recache();
+        buf = tFile.readByteBuffer();
       }
       CommonUtils.printByteBuffer(LOG, buf.DATA);
       buf.close();
