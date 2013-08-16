@@ -9,7 +9,7 @@ fi
 
 bin=`cd "$( dirname "$0" )"; pwd`
 
-declare -a opArr=(CACHE CACHE_THROUGH THROUGH)
+declare -a opArr=(MUST_CACHE TRY_CACHE CACHE_THROUGH THROUGH)
 
 for op in ${opArr[@]}
 do

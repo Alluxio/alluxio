@@ -23,7 +23,10 @@ public class Format {
     MasterConf masterConf = MasterConf.get();
     UnderFileSystem ufs = UnderFileSystem.get(masterConf.JOURNAL_FOLDER);
     LOG.info("Deleting " + masterConf.JOURNAL_FOLDER);
-    ufs.delete(masterConf.JOURNAL_FOLDER, false);
+    if (!ufs.delete(masterConf.JOURNAL_FOLDER, true)) {
+      LOG.error("Failed to remove " + masterConf.JOURNAL_FOLDER);
+    }
+    ufs.mkdirs(masterConf.JOURNAL_FOLDER, true);
 
     CommonConf commonConf = CommonConf.get();
     String folder = commonConf.UNDERFS_DATA_FOLDER;

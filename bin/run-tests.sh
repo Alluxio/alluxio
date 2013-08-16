@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-Usage="Usage: run-tests.sh <Basic|BasicRawTable> <CACHE|CACHE_THROUGH|THROUGH>"
+Usage="Usage: run-tests.sh <Basic|BasicRawTable> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH>"
 
 if [ "$#" -ne 2 ]; then
   echo $Usage
