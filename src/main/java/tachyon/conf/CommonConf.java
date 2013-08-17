@@ -11,12 +11,28 @@ public class CommonConf extends Utils {
   public final String UNDERFS_DATA_FOLDER;
   public final String UNDERFS_WORKERS_FOLDER;
 
+  public final boolean USE_ZOOKEEPER;
+  public final String ZOOKEEPER_ADDRESS;
+  public final String ZOOKEEPER_ELECTION_PATH;
+  public final String ZOOKEEPER_LEADER_PATH;
+
   private CommonConf() {
     TACHYON_HOME = getProperty("tachyon.home");
     UNDERFS_ADDRESS = getProperty("tachyon.underfs.address", TACHYON_HOME);
     UNDERFS_DATA_FOLDER = UNDERFS_ADDRESS + getProperty("tachyon.data.folder", "/tachyon/data");
     UNDERFS_WORKERS_FOLDER = 
         UNDERFS_ADDRESS + getProperty("tachyon.workers.folder", "/tachyon/workers");
+
+    USE_ZOOKEEPER = getBooleanProperty("tachyon.usezookeeper", false);
+    if (USE_ZOOKEEPER) {
+      ZOOKEEPER_ADDRESS = getProperty("tachyon.zookeeper.address");
+      ZOOKEEPER_ELECTION_PATH = getProperty("tachyon.zookeeper.election.path", "/election");
+      ZOOKEEPER_LEADER_PATH = getProperty("tachyon.zookeeper.leader.path", "/leader");
+    } else {
+      ZOOKEEPER_ADDRESS = null;
+      ZOOKEEPER_ELECTION_PATH = null;
+      ZOOKEEPER_LEADER_PATH = null;
+    }
   }
 
   public static synchronized CommonConf get() {

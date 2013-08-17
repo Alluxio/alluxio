@@ -103,6 +103,10 @@ exception TachyonException {
   1: string message
 }
 
+service CoordinatorService {
+  bool iAmTheLeader(1: NetAddress addr)
+}
+
 service MasterService {
   bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 length, 4: string checkpointPath)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
