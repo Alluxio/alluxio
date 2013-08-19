@@ -63,6 +63,7 @@ public class MasterInfo {
 
   private final MasterConf MASTER_CONF;
 
+  private CheckpointInfo mCheckpointInfo = new CheckpointInfo(0, 0);
   private AtomicInteger mInodeCounter = new AtomicInteger(0);
   private AtomicInteger mUserCounter = new AtomicInteger(0);
   private AtomicInteger mWorkerCounter = new AtomicInteger(0);
@@ -209,9 +210,9 @@ public class MasterInfo {
 
     mJournal = new Journal(MASTER_CONF.JOURNAL_FOLDER);
     mJournal.loadImage(this);
-    mJournal.loadEditLog(this);
+    mCheckpointInfo.updateEditTransactionCounter(mJournal.loadEditLog(this));
     mJournal.createImage(this);
-    mJournal.createEditLog();
+    mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
 
     mHeartbeatThread = new HeartbeatThread("Master Heartbeat",
         new MasterInfoHeartbeatExecutor(), MASTER_CONF.HEARTBEAT_INTERVAL_MS);
@@ -492,6 +493,7 @@ public class MasterInfo {
 
       os.writeByte(Image.T_CHECKPOINT);
       os.writeInt(mInodeCounter.get());
+      os.writeLong(mCheckpointInfo.getEditTransactionCounter());
     }
   }
 
@@ -511,6 +513,7 @@ public class MasterInfo {
 
       if (type == Image.T_CHECKPOINT) {
         mInodeCounter.set(is.readInt());
+        mCheckpointInfo.updateEditTransactionCounter(is.readLong());
       } else {
         if (type > Image.T_INODE_RAW_TABLE) {
           throw new IOException("Corrupted image with unknown element type: " + type);
