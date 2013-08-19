@@ -39,8 +39,10 @@ import tachyon.thrift.TachyonException;
  */
 public class MasterClient {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private final MasterService.Client CLIENT;
 
+  private boolean mUseZookeeper;
+  private String mZookeeperAddress;
+  private MasterService.Client mClient;
   private InetSocketAddress mMasterAddress;
   private TProtocol mProtocol;
   private boolean mIsConnected;
@@ -50,17 +52,35 @@ public class MasterClient {
   private HeartbeatThread mHeartbeatThread;
 
   public MasterClient(InetSocketAddress masterAddress) {
-    mMasterAddress = masterAddress;
-    mProtocol = new TBinaryProtocol(new TFramedTransport(
-        new TSocket(mMasterAddress.getHostName(), mMasterAddress.getPort())));
-    CLIENT = new MasterService.Client(mProtocol);
-    mIsConnected = false;
-    mIsShutdown = false;
+    this(masterAddress, false);
+  }
+
+  public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper) {
+    mUseZookeeper = useZookeeper;
+    if (mUseZookeeper) {
+      
+    } else {
+      mMasterAddress = masterAddress;
+      mProtocol = new TBinaryProtocol(new TFramedTransport(
+          new TSocket(mMasterAddress.getHostName(), mMasterAddress.getPort())));
+      mClient = new MasterService.Client(mProtocol);
+      mIsConnected = false;
+      mIsShutdown = false;
+    }
 
     mHeartbeatThread = new HeartbeatThread("Master_Client Heartbeat",
         new MasterClientHeartbeatExecutor(this, UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
         UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2);
     mHeartbeatThread.start();
+  }
+  
+  private InetSocketAddress getMasterAddress() {
+    if (!mUseZookeeper) {
+      return mMasterAddress;
+    }
+    
+    // TODO Use ZooKeeper to get master address;
+    return null;
   }
 
   /**
@@ -79,7 +99,7 @@ public class MasterClient {
           throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
           TException {
     connect();
-    return CLIENT.addCheckpoint(workerId, fileId, length, checkpointPath);
+    return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
   }
 
   public synchronized boolean connect() {
@@ -110,14 +130,14 @@ public class MasterClient {
 
   public synchronized long getUserId() throws TException {
     connect();
-    long ret = CLIENT.user_getUserId();
+    long ret = mClient.user_getUserId();
     LOG.info("User registered at the master " + mMasterAddress + " got UserId " + ret);
     return ret;
   }
 
   public synchronized List<ClientWorkerInfo> getWorkersInfo() throws TException {
     connect();
-    return CLIENT.getWorkersInfo();
+    return mClient.getWorkersInfo();
   }
 
   public synchronized boolean isConnected() {
@@ -134,7 +154,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.liststatus(path);
+      return mClient.liststatus(path);
     } catch (InvalidPathException e) {
       throw new IOException(e);
     } catch (FileDoesNotExistException e) {
@@ -146,7 +166,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      CLIENT.user_completeFile(fId);
+      mClient.user_completeFile(fId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }
@@ -156,7 +176,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_createFile(path, blockSizeByte);
+      return mClient.user_createFile(path, blockSizeByte);
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {
@@ -172,7 +192,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_createFileOnCheckpoint(path, checkpointPath);
+      return mClient.user_createFileOnCheckpoint(path, checkpointPath);
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {
@@ -189,7 +209,7 @@ public class MasterClient {
   public synchronized long user_createNewBlock(int fId) throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_createNewBlock(fId);
+      return mClient.user_createNewBlock(fId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }
@@ -202,7 +222,7 @@ public class MasterClient {
     }
     connect();
     try {
-      return CLIENT.user_createRawTable(path, columns, metadata);
+      return mClient.user_createRawTable(path, columns, metadata);
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {
@@ -218,7 +238,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_deleteByPath(path, recursive);
+      return mClient.user_deleteByPath(path, recursive);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -228,7 +248,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_deleteById(fileId, recursive);
+      return mClient.user_deleteById(fileId, recursive);
     } catch (TachyonException e) {
       throw new IOException(e);
     }
@@ -238,7 +258,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_getBlockId(fId, index);
+      return mClient.user_getBlockId(fId, index);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }
@@ -247,14 +267,14 @@ public class MasterClient {
   public ClientBlockInfo user_getClientBlockInfo(long blockId) 
       throws FileDoesNotExistException, BlockInfoException, TException {
     connect();
-    return CLIENT.user_getClientBlockInfo(blockId);
+    return mClient.user_getClientBlockInfo(blockId);
   }
 
   public synchronized ClientFileInfo user_getClientFileInfoByPath(String path)
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_getClientFileInfoByPath(path);
+      return mClient.user_getClientFileInfoByPath(path);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {
@@ -266,7 +286,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_getClientFileInfoById(id);
+      return mClient.user_getClientFileInfoById(id);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }
@@ -275,7 +295,7 @@ public class MasterClient {
   public synchronized int user_getFileId(String path) throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_getFileId(path);
+      return mClient.user_getFileId(path);
     } catch (InvalidPathException e) {
       throw new IOException(e);
     }
@@ -284,7 +304,7 @@ public class MasterClient {
   public synchronized int user_getRawTableId(String path) throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_getRawTableId(path);
+      return mClient.user_getRawTableId(path);
     } catch (InvalidPathException e) {
       throw new IOException(e);
     }
@@ -294,7 +314,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_getFileBlocksById(id);
+      return mClient.user_getFileBlocksById(id);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }
@@ -303,7 +323,7 @@ public class MasterClient {
   public synchronized NetAddress user_getWorker(boolean random, String hostname)
       throws NoWorkerException, TException {
     connect();
-    return CLIENT.user_getWorker(random, hostname);
+    return mClient.user_getWorker(random, hostname);
   }
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
@@ -311,7 +331,7 @@ public class MasterClient {
     connect();
     ClientRawTableInfo ret;
     try {
-      ret = CLIENT.user_getClientRawTableInfoByPath(path);
+      ret = mClient.user_getClientRawTableInfoByPath(path);
     } catch (TableDoesNotExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {
@@ -326,7 +346,7 @@ public class MasterClient {
     connect();
     ClientRawTableInfo ret;
     try {
-      ret = CLIENT.user_getClientRawTableInfoById(id);
+      ret = mClient.user_getClientRawTableInfoById(id);
     } catch (TableDoesNotExistException e) {
       throw new IOException(e);
     }
@@ -338,7 +358,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_getNumberOfFiles(folderPath);
+      return mClient.user_getNumberOfFiles(folderPath);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {
@@ -348,14 +368,14 @@ public class MasterClient {
 
   public synchronized String user_getUnderfsAddress() throws TException {
     connect();
-    return CLIENT.user_getUnderfsAddress();
+    return mClient.user_getUnderfsAddress();
   }
 
   public synchronized List<Integer> user_listFiles(String path, boolean recursive)
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_listFiles(path, recursive);
+      return mClient.user_listFiles(path, recursive);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {
@@ -367,7 +387,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_ls(path, recursive);
+      return mClient.user_ls(path, recursive);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {
@@ -379,7 +399,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      return CLIENT.user_mkdir(path);
+      return mClient.user_mkdir(path);
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {
@@ -391,14 +411,14 @@ public class MasterClient {
 
   public synchronized void user_outOfMemoryForPinFile(int fileId) throws TException {
     connect();
-    CLIENT.user_outOfMemoryForPinFile(fileId);
+    mClient.user_outOfMemoryForPinFile(fileId);
   }
 
   public synchronized void user_rename(String srcPath, String dstPath)
       throws IOException, TException{
     connect();
     try {
-      CLIENT.user_rename(srcPath, dstPath);
+      mClient.user_rename(srcPath, dstPath);
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (FileDoesNotExistException e) {
@@ -411,7 +431,7 @@ public class MasterClient {
   public void user_renameTo(int fId, String path) throws IOException, TException {
     connect();
     try {
-      CLIENT.user_renameTo(fId, path);
+      mClient.user_renameTo(fId, path);
     } catch (FileAlreadyExistException e) {
       throw new IOException(e);
     } catch (FileDoesNotExistException e) {
@@ -424,7 +444,7 @@ public class MasterClient {
   public synchronized void user_unpinFile(int id) throws IOException, TException {
     connect();
     try {
-      CLIENT.user_unpinFile(id);
+      mClient.user_unpinFile(id);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     }
@@ -434,7 +454,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      CLIENT.user_updateRawTableMetadata(id, metadata);
+      mClient.user_updateRawTableMetadata(id, metadata);
     } catch (TableDoesNotExistException e) {
       throw new IOException(e);
     } catch (TachyonException e) {
@@ -446,24 +466,24 @@ public class MasterClient {
       long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, 
       TException {
     connect();
-    CLIENT.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
+    mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
       List<Long> removedPartitionList) throws BlockInfoException, TException {
     connect();
-    return CLIENT.worker_heartbeat(workerId, usedBytes, removedPartitionList);
+    return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
   }
 
   public synchronized Set<Integer> worker_getPinIdList() throws TException {
     connect();
-    return CLIENT.worker_getPinIdList();
+    return mClient.worker_getPinIdList();
   }
 
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
       long usedBytes, List<Long> currentBlockList) throws BlockInfoException, TException {
     connect();
-    long ret = CLIENT.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList); 
+    long ret = mClient.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList); 
     LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress +
         " , got WorkerId " + ret);
     return ret;
