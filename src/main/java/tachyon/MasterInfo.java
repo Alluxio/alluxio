@@ -193,7 +193,7 @@ public class MasterInfo {
     }
   }
 
-  public MasterInfo(InetSocketAddress address) throws IOException {
+  public MasterInfo(InetSocketAddress address, Journal journal) throws IOException {
     MASTER_CONF = MasterConf.get();
 
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1, System.currentTimeMillis());
@@ -208,7 +208,7 @@ public class MasterInfo {
     mPinList = new PrefixList(MASTER_CONF.PINLIST);
     mFileIdPinList = Collections.synchronizedSet(new HashSet<Integer>());
 
-    mJournal = new Journal(MASTER_CONF.JOURNAL_FOLDER);
+    mJournal = journal;
     mJournal.loadImage(this);
     mCheckpointInfo.updateEditTransactionCounter(mJournal.loadEditLog(this));
     mJournal.createImage(this);

@@ -2,6 +2,8 @@ package tachyon;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -9,6 +11,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
 import org.apache.curator.framework.recipes.leader.LeaderSelectorListener;
+import org.apache.curator.framework.recipes.leader.Participant;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
@@ -61,8 +64,23 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
     return NAME;
   }
 
+  public synchronized List<String> getParticipants() {
+    try {
+      List<Participant> participants = 
+          new ArrayList<Participant>(LEADER_SELECTOR.getParticipants());
+      List<String> results = new ArrayList<String>();
+      for (Participant part : participants) {
+        results.add(part.getId());
+      }
+      return results;
+    } catch (Exception e) {
+      LOG.error(e.getMessage(), e);
+      return null;
+    }
+  }
+
   @Override
-  public void close() throws IOException {
+  public synchronized void close() throws IOException {
     if (mOurThread != null) {
       mOurThread.interrupt();
     }
@@ -71,7 +89,7 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
   }
 
   @Override
-  public void takeLeadership(CuratorFramework client) throws Exception {
+  public synchronized void takeLeadership(CuratorFramework client) throws Exception {
     mIsLeader.set(true);
     mOurThread = Thread.currentThread();
     if (client.checkExists().forPath(LEADER_PATH + NAME) != null) {
@@ -96,7 +114,7 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
   }
 
   @Override
-  public void stateChanged(CuratorFramework client, ConnectionState newState) {
+  public synchronized void stateChanged(CuratorFramework client, ConnectionState newState) {
     mIsLeader.set(false);
 
     if ((newState == ConnectionState.LOST) || (newState == ConnectionState.SUSPENDED)) {

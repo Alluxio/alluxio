@@ -104,14 +104,17 @@ exception TachyonException {
 }
 
 service CoordinatorService {
-  bool iAmTheLeader(1: NetAddress addr)
-
   /**
    * Get the max transaction id of one master.
+   * @return max transaction of the master
    */
   i64 getMaxTransactionId()
 
-  boolean sendNewTransaction(int transactionId)
+  /**
+   * Send transactions.
+   * @return max transaction id.
+   */
+  i64 sendNewTransactions(1: i64 leftTransactionId, 2: i64 rightTransactionId, 3: list<binary> transactions)
 }
 
 service MasterService {
