@@ -49,6 +49,8 @@ public class TachyonFS {
   private MasterClient mMasterClient = null;
   // The Master address.
   private InetSocketAddress mMasterAddress = null;
+  // Whether use ZooKeeper or not
+  private boolean mZookeeperMode;
   // Cached ClientFileInfo
   private Map<String, ClientFileInfo> mCachedClientFileInfos = 
       new HashMap<String, ClientFileInfo>();
@@ -80,21 +82,32 @@ public class TachyonFS {
 
   private boolean mConnected = false;
 
-  private TachyonFS(InetSocketAddress masterAddress) {
+  private TachyonFS(InetSocketAddress masterAddress, boolean zookeeperMode) {
     mMasterAddress = masterAddress;
+    mZookeeperMode = zookeeperMode;
     mAvailableSpaceBytes = 0L;
   }
 
   public static synchronized TachyonFS get(InetSocketAddress tachyonAddress) {
-    return new TachyonFS(tachyonAddress);
+    return get(tachyonAddress, false);
+  }
+
+  public static synchronized TachyonFS get(InetSocketAddress tachyonAddress, boolean zookeeper) {
+    return new TachyonFS(tachyonAddress, zookeeper);
   }
 
   public static synchronized TachyonFS get(String tachyonAddress) {
-    String[] address = tachyonAddress.split(":");
+    boolean zookeeperMode = false;
+    String tempAddress = tachyonAddress;
+    if (tachyonAddress.startsWith("zookeeper://")) {
+      zookeeperMode = true;
+      tempAddress = tachyonAddress.substring(12);
+    }
+    String[] address = tempAddress.split(":");
     if (address.length != 2) {
       CommonUtils.illegalArgumentException("Illegal Tachyon Master Address: " + tachyonAddress);
     }
-    return get(new InetSocketAddress(address[0], Integer.parseInt(address[1])));
+    return get(new InetSocketAddress(address[0], Integer.parseInt(address[1])), zookeeperMode);
   }
 
   public synchronized void accessLocalBlock(long blockId) {
@@ -162,7 +175,7 @@ public class TachyonFS {
       return;
     }
     LOG.info("Trying to connect master @ " + mMasterAddress);
-    mMasterClient = new MasterClient(mMasterAddress);
+    mMasterClient = new MasterClient(mMasterAddress, mZookeeperMode);
     mConnected = mMasterClient.connect();
 
     if (!mConnected) {
