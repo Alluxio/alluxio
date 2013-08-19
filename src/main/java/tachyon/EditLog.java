@@ -38,6 +38,7 @@ public class EditLog {
   private final DataOutputStream DOS;
 
   // Starting from 1.
+  private long mFlushedTransactionId = 0;
   private long mTransactionId = 0;
 
   /**
@@ -124,6 +125,7 @@ public class EditLog {
       LOG.info("Creating edit log file " + path);
       UnderFileSystem ufs = UnderFileSystem.get(path);
       DOS = new DataOutputStream(ufs.create(path));
+      mFlushedTransactionId = transactionId;
       mTransactionId = transactionId;
     } else {
       DOS = null;
@@ -256,6 +258,17 @@ public class EditLog {
     }
   }
 
+  /**
+   * Get the current TransactionId and FlushedTransactionId
+   * @return (TransactionId, FlushedTransactionId)
+   */
+  public synchronized Pair<Long, Long> getTransactionIds() {
+    return new Pair<Long, Long>(mTransactionId, mFlushedTransactionId);
+  }
+
+  /**
+   * Flush the log onto the storage.
+   */
   public synchronized void flush() {
     if (INACTIVE) {
       return;
@@ -266,8 +279,13 @@ public class EditLog {
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
+
+    mFlushedTransactionId = mTransactionId;
   }
 
+  /**
+   * Close the log.
+   */
   public synchronized void close() {
     if (INACTIVE) {
       return;
