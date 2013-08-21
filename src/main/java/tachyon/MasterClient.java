@@ -14,6 +14,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
@@ -38,48 +39,53 @@ import tachyon.thrift.TachyonException;
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class MasterClient {
+  private final static int MAX_CONNECT_TRY = 5;
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private boolean mUseZookeeper;
-  private String mZookeeperAddress;
-  private MasterService.Client mClient;
-  private InetSocketAddress mMasterAddress;
-  private TProtocol mProtocol;
+  private MasterService.Client mClient = null;
+  private InetSocketAddress mZookeeperAddress = null;
+  private InetSocketAddress mMasterAddress = null;
+  private TProtocol mProtocol = null;
   private boolean mIsConnected;
   private boolean mIsShutdown;
   private long mLastAccessedMs;
 
-  private HeartbeatThread mHeartbeatThread;
+  private HeartbeatThread mHeartbeatThread = null;
 
   public MasterClient(InetSocketAddress masterAddress) {
-    this(masterAddress, false);
+    this(masterAddress, CommonConf.get().USE_ZOOKEEPER);
   }
 
   public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper) {
     mUseZookeeper = useZookeeper;
     if (mUseZookeeper) {
-      
+      mZookeeperAddress = masterAddress;
     } else {
       mMasterAddress = masterAddress;
-      mProtocol = new TBinaryProtocol(new TFramedTransport(
-          new TSocket(mMasterAddress.getHostName(), mMasterAddress.getPort())));
-      mClient = new MasterService.Client(mProtocol);
-      mIsConnected = false;
-      mIsShutdown = false;
     }
-
-    mHeartbeatThread = new HeartbeatThread("Master_Client Heartbeat",
-        new MasterClientHeartbeatExecutor(this, UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
-        UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2);
-    mHeartbeatThread.start();
+    mIsConnected = false;
+    mIsShutdown = false;
   }
-  
+
   private InetSocketAddress getMasterAddress() {
     if (!mUseZookeeper) {
       return mMasterAddress;
     }
-    
-    // TODO Use ZooKeeper to get master address;
+
+    System.out.println("MC 1");
+    LeaderInquireClient leaderInquireClient = new LeaderInquireClient(
+        mZookeeperAddress.toString().substring(1), CommonConf.get().ZOOKEEPER_LEADER_PATH);
+    System.out.println("MC 2");
+    try {
+      System.out.println("MC 3");
+      String temp = leaderInquireClient.getMasterAddress();
+      System.out.println(temp + " is the result of the leader require");
+      return CommonUtils.parseInetSocketAddress(temp);
+    } catch (IOException e) {
+      LOG.error(e.getMessage(), e);
+      CommonUtils.runtimeException(e);
+    }
     return null;
   }
 
@@ -102,25 +108,65 @@ public class MasterClient {
     return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
   }
 
+  /**
+   * Try to connect to the master
+   * @return true if connection succeed, false otherwise.
+   */
   public synchronized boolean connect() {
-    mLastAccessedMs = System.currentTimeMillis();
-    if (!mIsConnected && !mIsShutdown) {
-      try {
-        mProtocol.getTransport().open();
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage(), e);
-        return false;
+    if (mIsConnected) {
+      return true;
+    }
+    cleanConnect();
+    if (mIsShutdown) {
+      return false;
+    }
+
+    int tries = 0;
+    while (tries ++ < MAX_CONNECT_TRY) {
+      System.out.println("M 1");
+      mMasterAddress = getMasterAddress();
+      System.out.println("M 2 " + mMasterAddress + " " + mMasterAddress.getHostName() + " " + mMasterAddress.getPort());
+      mProtocol = new TBinaryProtocol(new TFramedTransport(
+          new TSocket(mMasterAddress.getHostName(), mMasterAddress.getPort())));
+      mClient = new MasterService.Client(mProtocol);
+      mLastAccessedMs = System.currentTimeMillis();
+      System.out.println("M 3");
+      if (!mIsConnected && !mIsShutdown) {
+        try {
+          System.out.println("M 4");
+          mProtocol.getTransport().open();
+
+          System.out.println("M 5");
+          mHeartbeatThread = new HeartbeatThread("Master_Client Heartbeat",
+              new MasterClientHeartbeatExecutor(this, UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
+              UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2);
+          mHeartbeatThread.start();
+          System.out.println("M 6");
+
+        } catch (TTransportException e) {
+          LOG.error("Failed to connect (" +tries + ") to master " + mMasterAddress + 
+              " : " + e.getMessage(), e);
+          continue;
+        }
+        System.out.println("M 7");
+        mIsConnected = true;
+        break;
       }
-      mIsConnected = true;
     }
 
     return mIsConnected;
   }
 
-  public synchronized void disconnect() {
+  public synchronized void cleanConnect() {
     if (mIsConnected) {
-      mProtocol.getTransport().close();
+      LOG.info("Disconnecting from the master " + mMasterAddress);
       mIsConnected = false;
+    }
+    if (mProtocol != null) {
+      mProtocol.getTransport().close();
+    }
+    if (mHeartbeatThread != null) {
+      mHeartbeatThread.shutdown();
     }
   }
 
@@ -146,7 +192,7 @@ public class MasterClient {
 
   public synchronized void shutdown() {
     mIsShutdown = true;
-    disconnect();
+    cleanConnect();
     mHeartbeatThread.shutdown();
   }
 

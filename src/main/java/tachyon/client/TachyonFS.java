@@ -99,7 +99,7 @@ public class TachyonFS {
   public static synchronized TachyonFS get(String tachyonAddress) {
     boolean zookeeperMode = false;
     String tempAddress = tachyonAddress;
-    if (tachyonAddress.startsWith("zookeeper://")) {
+    if (tachyonAddress.startsWith(Constants.FT_HEADER)) {
       zookeeperMode = true;
       tempAddress = tachyonAddress.substring(12);
     }
@@ -160,7 +160,7 @@ public class TachyonFS {
 
   public synchronized void close() throws TException {
     if (mMasterClient != null) {
-      mMasterClient.disconnect();
+      mMasterClient.cleanConnect();
     }
 
     if (mWorkerClient != null) {

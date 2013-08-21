@@ -1,6 +1,7 @@
 package tachyon;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -246,5 +247,22 @@ public final class CommonUtils {
         path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
+  }
+
+  /**
+   * Parse InetSocketAddress from a String
+   * @param address
+   * @return
+   * @throws IOException
+   */
+  public static InetSocketAddress parseInetSocketAddress(String address) throws IOException {
+    if (address == null) {
+      return null;
+    }
+    String[] strArr = address.split(":");
+    if (strArr.length != 2) {
+      throw new IOException("Invalid InetSocketAddress " + address);
+    }
+    return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
   }
 }

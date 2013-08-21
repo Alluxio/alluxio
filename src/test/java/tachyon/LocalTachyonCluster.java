@@ -121,7 +121,7 @@ public class LocalTachyonCluster {
     mkdir(CommonConf.get().UNDERFS_DATA_FOLDER);
     mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
 
-    mMaster = Master.createMaster(
+    mMaster = new Master(
         new InetSocketAddress(mLocalhostName, mMasterPort), mMasterPort + 1, 1, 1, 1);
     Runnable runMaster = new Runnable() {
       public void run() {

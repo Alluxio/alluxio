@@ -11,7 +11,6 @@ import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
-import tachyon.thrift.CoordinatorService;
 import tachyon.thrift.MasterService;
 import tachyon.web.UIWebServer;
 
@@ -21,12 +20,12 @@ import tachyon.web.UIWebServer;
 public class Master {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
+  private boolean mIsStarted;
   private MasterInfo mMasterInfo;
   private InetSocketAddress mMasterAddress;
   private UIWebServer mWebServer;
   private TServer mMasterServiceServer;
   private MasterServiceHandler mMasterServiceHandler;
-  private Thread mMasterThread;
   private Journal mJournal;
   private int mWebPort;
   private int mWorkerThreads;
@@ -34,41 +33,28 @@ public class Master {
   private boolean mZookeeperMode = false;
   private boolean mIsLeader = false;
   private LeaderSelectorClient mLeaderSelectorClient = null;
-  private InetSocketAddress mMasterCoordinatorAddress;
-  private TServer mCoordinatorServiceServer = null;
-  private CoordinatorServiceHandler mCoordinatorServiceHandler = null;
-  private Thread mCoordinatorServiceThread = null;
 
   public Master(InetSocketAddress address, int webPort, int selectorThreads, 
-      int acceptQueueSizePerThreads, int workerThreads, String imageFile, String editLogFile) {
+      int acceptQueueSizePerThreads, int workerThreads) {
+    //      String imageFileName, String editLogFileName) {
     if (CommonConf.get().USE_ZOOKEEPER) {
       mZookeeperMode = true;
     }
 
+    mIsStarted = false;
     mWebPort = webPort;
     mWorkerThreads = workerThreads;
 
     try {
       mMasterAddress = address;
 
-      mJournal = new Journal(MasterConf.get().JOURNAL_FOLDER, imageFile, editLogFile);
+      mJournal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
 
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
         mLeaderSelectorClient = new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS,
-            conf.ZOOKEEPER_ELECTION_PATH, conf.ZOOKEEPER_LEADER_PATH, address.toString());
-        mCoordinatorServiceHandler = new CoordinatorServiceHandler(mJournal);
-        CoordinatorService.Processor<CoordinatorServiceHandler> coordinatorServiceProcessor = 
-            new CoordinatorService.Processor<CoordinatorServiceHandler>(mCoordinatorServiceHandler);
-        mMasterCoordinatorAddress =
-            new InetSocketAddress(mMasterAddress.getHostName(), mMasterAddress.getPort() + 2);
-        mCoordinatorServiceServer = new THsHaServer(new THsHaServer.Args(
-            new TNonblockingServerSocket(mMasterCoordinatorAddress)).
-            processor(coordinatorServiceProcessor).workerThreads(1));
+            conf.ZOOKEEPER_ELECTION_PATH, conf.ZOOKEEPER_LEADER_PATH, address.getHostString() + ":" + address.getPort());
       }
-    } catch (TTransportException e) {
-      LOG.error(e.getMessage(), e);
-      System.exit(-1);
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       System.exit(-1);
@@ -94,24 +80,12 @@ public class Master {
     // This is for Thrift 0.7.0, for Hive compatibility. 
     mMasterServiceServer = new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(
         mMasterAddress)).processor(masterServiceProcessor).workerThreads(mWorkerThreads));
+
+    mIsStarted = true;
   }
 
   public void start() {
     if (mZookeeperMode) {
-      Runnable runCoordinatorServiceServer = new Runnable() {
-        public void run() {
-          mCoordinatorServiceServer.serve();
-        }
-      };
-      mCoordinatorServiceThread = new Thread(runCoordinatorServiceServer);
-      mCoordinatorServiceThread.start();
-
-      Runnable runMaster = new Runnable() {
-        public void run() {
-          mMasterServiceServer.serve();
-        }
-      };
-
       try {
         mLeaderSelectorClient.start();
       } catch (IOException e) {
@@ -119,13 +93,23 @@ public class Master {
         System.exit(-1);
       }
 
+      Thread currentThread = Thread.currentThread();
+      mLeaderSelectorClient.setCurrentMasterThread(currentThread);
       boolean running = false;
       while (true) {
         if (mLeaderSelectorClient.isLeader()) {
           if (!running) {
-            mMasterThread = new Thread(runMaster);
-            mMasterThread.start();
             running = true;
+            try {
+              setup();
+            } catch (TTransportException | IOException e) {
+              LOG.error(e.getMessage(), e);
+              System.exit(-1);
+            }
+            mWebServer.startWebServer();
+            LOG.info("The master (leader) server started @ " + mMasterAddress);
+            mMasterServiceServer.serve();
+            LOG.info("The master (previous leader) server ended @ " + mMasterAddress);
           }
         } else {
           if (running) {
@@ -152,9 +136,23 @@ public class Master {
   }
 
   public void stop() throws Exception {
-    mWebServer.shutdownWebServer();
-    mMasterInfo.stop();
-    mMasterServiceServer.stop();
+    System.out.println("MS " + 0);
+    if (mIsStarted) {
+      System.out.println("MS " + 1);
+      mWebServer.shutdownWebServer();
+      System.out.println("MS " + 2);
+      mMasterInfo.stop();
+      System.out.println("MS " + 3);
+      mMasterServiceServer.stop();
+      System.out.println("MS " + 4);
+
+      if (mZookeeperMode) {
+        mLeaderSelectorClient.close();
+      }
+      System.out.println("MS " + 5);
+
+      mIsStarted = false;
+    }
   }
 
   public static void main(String[] args) {
@@ -164,9 +162,8 @@ public class Master {
       System.exit(-1);
     }
     MasterConf mConf = MasterConf.get();
-    Master master = new Master(new InetSocketAddress(mConf.HOSTNAME, mConf.PORT),
-        mConf.WEB_PORT, mConf.SELECTOR_THREADS, mConf.QUEUE_SIZE_PER_SELECTOR, 
-        mConf.SERVER_THREADS, "image.data", "log.data");
+    Master master = new Master(new InetSocketAddress(mConf.HOSTNAME, mConf.PORT), mConf.WEB_PORT,
+        mConf.SELECTOR_THREADS, mConf.QUEUE_SIZE_PER_SELECTOR, mConf.SERVER_THREADS);
     master.start();
   }
 

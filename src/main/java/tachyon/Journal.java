@@ -11,9 +11,12 @@ public class Journal {
   private String mImagePath;
   private String mEditLogPath;
 
-  public Journal(String folder, String imageFile, String editLogFile) throws IOException {
-    mImagePath = folder + imageFile;
-    mEditLogPath = folder + editLogFile;
+  public Journal(String folder, String imageFileName, String editLogFileName) throws IOException {
+    if (!folder.endsWith("/")) {
+      folder += "/";
+    }
+    mImagePath = folder + imageFileName;
+    mEditLogPath = folder + editLogFileName;
   }
 
   public void loadImage(MasterInfo info) throws IOException {
