@@ -64,14 +64,18 @@ public class WorkerStorage {
     COMMON_CONF = CommonConf.get();
 
     mMasterAddress = masterAddress;
+    System.out.println("WS 1");
     mMasterClient = new MasterClient(mMasterAddress);
+    System.out.println("WS 2");
 
     mWorkerAddress = workerAddress;
     mWorkerSpaceCounter = new WorkerSpaceCounter(memoryCapacityBytes);
     mWorkerId = 0;
     while (mWorkerId == 0) {
       try {
+        System.out.println("WS 3");
         mMasterClient.connect();
+        System.out.println("WS 4");
         mWorkerId = mMasterClient.worker_register(
             new NetAddress(mWorkerAddress.getHostName(), mWorkerAddress.getPort()),
             mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Long>());

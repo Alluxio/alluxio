@@ -1,9 +1,12 @@
 package tachyon;
 
+import org.apache.log4j.Logger;
+
 /**
  * Heartbeat executor for master client.
  */
 class MasterClientHeartbeatExecutor implements HeartbeatExecutor {
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final MasterClient CLIENT;
   private final long MAX_NONE_ACCESS_INTERVAL;
 
@@ -14,8 +17,10 @@ class MasterClientHeartbeatExecutor implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    if (System.currentTimeMillis() - CLIENT.getLastAccessedMs() > MAX_NONE_ACCESS_INTERVAL) {
-      CLIENT.disconnect();
+    long internalMs = System.currentTimeMillis() - CLIENT.getLastAccessedMs();
+    if (internalMs > MAX_NONE_ACCESS_INTERVAL) {
+      LOG.error("The last Heartbeat was " + internalMs + " ago. Try to shutdown the client.");
+      CLIENT.shutdown();
     }
   }
 }

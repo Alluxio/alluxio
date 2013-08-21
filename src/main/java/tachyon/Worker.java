@@ -39,15 +39,21 @@ public class Worker implements Runnable {
       String dataFolder, long memoryCapacityBytes) {
     MasterAddress = masterAddress;
     WorkerAddress = workerAddress;
+    
+    System.out.println("W 1");
 
     mWorkerStorage = 
         new WorkerStorage(MasterAddress, WorkerAddress, dataFolder, memoryCapacityBytes);
+    System.out.println("W 2");
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
+    System.out.println("W 3");
 
     mDataServer = new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
         mWorkerStorage);
+    System.out.println("W 4");
     mDataServerThread = new Thread(mDataServer);
+    System.out.println("W 5");
 
     mHeartbeatThread = new Thread(this);
 
@@ -102,25 +108,25 @@ public class Worker implements Runnable {
 
       if (cmd != null) {
         switch (cmd.mCommandType) {
-          case Unknown :
-            LOG.error("Unknown command: " + cmd);
-            break;
-          case Nothing :
-            LOG.debug("Nothing command: " + cmd);
-            break;
-          case Register :
-            mWorkerStorage.register();
-            LOG.info("Register command: " + cmd);
-            break;
-          case Free :
-            mWorkerStorage.freeBlocks(cmd.mData);
-            LOG.info("Free command: " + cmd);
-            break;
-          case Delete :
-            LOG.info("Delete command: " + cmd);
-            break;
-          default :
-            CommonUtils.runtimeException("Un-recognized command from master " + cmd.toString());
+        case Unknown :
+          LOG.error("Unknown command: " + cmd);
+          break;
+        case Nothing :
+          LOG.debug("Nothing command: " + cmd);
+          break;
+        case Register :
+          mWorkerStorage.register();
+          LOG.info("Register command: " + cmd);
+          break;
+        case Free :
+          mWorkerStorage.freeBlocks(cmd.mData);
+          LOG.info("Free command: " + cmd);
+          break;
+        case Delete :
+          LOG.info("Delete command: " + cmd);
+          break;
+        default :
+          CommonUtils.runtimeException("Un-recognized command from master " + cmd.toString());
         }
       }
 

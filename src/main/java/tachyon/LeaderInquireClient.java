@@ -24,6 +24,7 @@ public class LeaderInquireClient {
     ZOOKEEPER_ADDRESS = zookeeperAddress;
     LEADER_PATH = leaderPath;
 
+    System.out.println(ZOOKEEPER_ADDRESS + " " + LEADER_PATH);
     CLIENT = CuratorFrameworkFactory.newClient(
         ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(1000, 3));
     CLIENT.start();
@@ -33,9 +34,12 @@ public class LeaderInquireClient {
     int tried = 0;
     try {
       while (tried < MAX_TRY) {
+        System.out.println("LIC 1");
         if (CLIENT.checkExists().forPath(LEADER_PATH) != null) {
+          System.out.println("LIC 2");
           List<String> masters = CLIENT.getChildren().forPath(LEADER_PATH);
           LOG.info(masters);
+          System.out.println("LIC 3" + masters);
           if (masters.size() >= 1) {
             if (masters.size() == 1) {
               return masters.get(0);
@@ -54,6 +58,7 @@ public class LeaderInquireClient {
           }
         } else {
           LOG.info(LEADER_PATH + " does not exist (" + (++ tried) + ")");
+          System.out.println(LEADER_PATH + " does not exist (" + (++ tried) + ")");
         }
         CommonUtils.sleepMs(LOG, 1000);
       }

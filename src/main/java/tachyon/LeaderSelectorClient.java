@@ -24,20 +24,25 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
 
   private final String ZOOKEEPER_ADDRESS;
   private final String ELECTION_PATH;
-  private final String LEADER_PATH;
+  private final String LEADER_FOLDER;
   private final String NAME;
   private final LeaderSelector LEADER_SELECTOR;
 
   private AtomicBoolean mIsLeader = new AtomicBoolean(false);
-
-  private volatile Thread mOurThread = null;
+  private volatile Thread mCurrentMasterThread = null;
 
   public LeaderSelectorClient(String zookeeperAddress, String electionPath, String leaderPath,
       String name) {
     ZOOKEEPER_ADDRESS = zookeeperAddress;
     ELECTION_PATH = electionPath;
-    LEADER_PATH = leaderPath;
+    if (leaderPath.endsWith("/")) {
+      LEADER_FOLDER = leaderPath;
+    } else {
+      LEADER_FOLDER = leaderPath + "/";
+    }
     NAME = name;
+
+    System.out.println(ZOOKEEPER_ADDRESS + " " + ELECTION_PATH + " " + LEADER_FOLDER + " " + NAME);
 
     // create a leader selector using the given path for management
     // all participants in a given leader selection must use the same path
@@ -64,7 +69,7 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
     return NAME;
   }
 
-  public synchronized List<String> getParticipants() {
+  public List<String> getParticipants() {
     try {
       List<Participant> participants = 
           new ArrayList<Participant>(LEADER_SELECTOR.getParticipants());
@@ -80,22 +85,28 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
   }
 
   @Override
-  public synchronized void close() throws IOException {
-    if (mOurThread != null) {
-      mOurThread.interrupt();
+  public void close() throws IOException {
+    System.out.println("LSC 1");
+    if (mCurrentMasterThread != null) {
+      System.out.println("LSC 2");
+      mCurrentMasterThread.interrupt();
+      System.out.println("LSC 3");
     }
+    System.out.println("LSC 4");
 
     LEADER_SELECTOR.close();
+    System.out.println("LSC 5");
   }
 
   @Override
-  public synchronized void takeLeadership(CuratorFramework client) throws Exception {
+  public void takeLeadership(CuratorFramework client) throws Exception {
     mIsLeader.set(true);
-    mOurThread = Thread.currentThread();
-    if (client.checkExists().forPath(LEADER_PATH + NAME) != null) {
-      client.delete().forPath(LEADER_PATH + NAME);
+    System.out.println(NAME + " is becoming the leader.");
+    if (client.checkExists().forPath(LEADER_FOLDER + NAME) != null) {
+      client.delete().forPath(LEADER_FOLDER + NAME);
     }
-    client.create().creatingParentsIfNeeded().forPath(LEADER_PATH + NAME);
+    client.create().creatingParentsIfNeeded().forPath(LEADER_FOLDER + NAME);
+    System.out.println(NAME + " is now the leader.");
     LOG.info(NAME + " is now the leader.");
     try {
       while (true) {
@@ -105,21 +116,21 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
       LOG.error(NAME + " was interrupted.", e);
       Thread.currentThread().interrupt();
     } finally {
-      mOurThread = null;
+      mCurrentMasterThread = null;
       LOG.warn(NAME + " relinquishing leadership.");
     }
     LOG.info("The current leader is " + LEADER_SELECTOR.getLeader().getId());
     LOG.info("All partitations: " + LEADER_SELECTOR.getParticipants());
-    client.delete().forPath(LEADER_PATH + NAME);
+    client.delete().forPath(LEADER_FOLDER + NAME);
   }
 
   @Override
-  public synchronized void stateChanged(CuratorFramework client, ConnectionState newState) {
+  public void stateChanged(CuratorFramework client, ConnectionState newState) {
     mIsLeader.set(false);
 
     if ((newState == ConnectionState.LOST) || (newState == ConnectionState.SUSPENDED)) {
-      if (mOurThread != null) {
-        mOurThread.interrupt();
+      if (mCurrentMasterThread != null) {
+        mCurrentMasterThread.interrupt();
       }
     } else {
       try {
@@ -128,5 +139,13 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
         LOG.error(e.getMessage(), e);
       }
     }
+  }
+
+  /**
+   * Set the current master thread.
+   * @param currentMasterThread
+   */
+  public void setCurrentMasterThread(Thread currentMasterThread) {
+    mCurrentMasterThread = currentMasterThread;
   }
 }
