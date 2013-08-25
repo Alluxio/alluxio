@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.curator.test.TestingServer;
+import org.apache.log4j.Logger;
 
 import tachyon.client.TachyonFS;
 import tachyon.conf.CommonConf;
@@ -19,6 +20,8 @@ import tachyon.conf.WorkerConf;
  * A local Tachyon cluster with Multiple masters 
  */
 public class LocalTachyonClusterMultiMaster {
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+
   private TestingServer mCuratorServer = null;
 
   private int mNumOfMasters = 0;
@@ -66,6 +69,10 @@ public class LocalTachyonClusterMultiMaster {
     return mClients.get(mClients.size() - 1);
   }
 
+  public synchronized List<TachyonFS> getClients() {
+    return mClients;
+  }
+
   public List<Integer> getMastersPorts() {
     return mMastersPorts;
   }
@@ -92,6 +99,21 @@ public class LocalTachyonClusterMultiMaster {
 
   String getImagePath() {
     return mTachyonHome + "/journal/image.data";
+  }
+
+  boolean killLeader() {
+    for (int k = 0; k < mNumOfMasters; k ++) {
+      if (mMasters.get(k).isStarted()) {
+        try {
+          mMasters.get(k).stop();
+        } catch (Exception e) {
+          LOG.error(e.getMessage(), e);
+          return false;
+        }
+        return true;
+      }
+    }
+    return false;
   }
 
   private void mkdir(String path) throws IOException {
@@ -163,52 +185,38 @@ public class LocalTachyonClusterMultiMaster {
     mMasters = new ArrayList<Master>();
     mMasterThreads = new ArrayList<MasterThread>();
     for (int k = 0; k < mNumOfMasters; k ++) {
-      System.out.println(0);
       mMasters.add(new Master(new InetSocketAddress(mLocalhostName, mMastersPorts.get(k)),
           mMastersPorts.get(k) + 1, 1, 1, 1));
-      System.out.println(1);
       MasterThread thread = new MasterThread(mMasters.get(k));
-      System.out.println(2);
       thread.start();
-      System.out.println(3);
       mMasterThreads.add(thread);
-      System.out.println(4);
     }
 
     CommonUtils.sleepMs(null, 10);
-    System.out.println(5);
 
     mWorker = Worker.createWorker(
         CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()), 
         new InetSocketAddress(mLocalhostName, mWorkerPort),
         mWorkerPort + 1, 1, 1, 1, mWorkerDataFolder, mWorkerCapacityBytes);
-    System.out.println(6);
     Runnable runWorker = new Runnable() {
       public void run() {
         mWorker.start();
       }
     };
-    System.out.println(7);
     mWorkerThread = new Thread(runWorker);
-    System.out.println(8);
     mWorkerThread.start();
-    System.out.println(9);
   }
 
   public void stop() throws Exception {
-    System.out.println("LTC Stop " + 1);
     for (TachyonFS fs : mClients) {
       fs.close();
     }
 
-    System.out.println("LTC Stop " + 2);
-
     for (int k = 0; k < mNumOfMasters; k ++) {
       mMasterThreads.get(k).shutdown();
     }
-    System.out.println("LTC Stop " + 3);
     mWorker.stop();
-    System.out.println("LTC Stop " + 4);
+    mCuratorServer.stop();
 
     System.clearProperty("tachyon.home");
     System.clearProperty("tachyon.underfs.address");

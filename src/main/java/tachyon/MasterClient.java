@@ -73,14 +73,10 @@ public class MasterClient {
       return mMasterAddress;
     }
 
-    System.out.println("MC 1");
     LeaderInquireClient leaderInquireClient = new LeaderInquireClient(
         mZookeeperAddress.toString().substring(1), CommonConf.get().ZOOKEEPER_LEADER_PATH);
-    System.out.println("MC 2");
     try {
-      System.out.println("MC 3");
       String temp = leaderInquireClient.getMasterAddress();
-      System.out.println(temp + " is the result of the leader require");
       return CommonUtils.parseInetSocketAddress(temp);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
@@ -433,7 +429,10 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      return mClient.user_ls(path, recursive);
+      System.out.println("XXX A");
+      List<String> ret = mClient.user_ls(path, recursive);
+      System.out.println("XXX B");
+      return ret;
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {

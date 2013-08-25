@@ -42,8 +42,6 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
     }
     NAME = name;
 
-    System.out.println(ZOOKEEPER_ADDRESS + " " + ELECTION_PATH + " " + LEADER_FOLDER + " " + NAME);
-
     // create a leader selector using the given path for management
     // all participants in a given leader selection must use the same path
     // ExampleClient here is also a LeaderSelectorListener but this isn't required
@@ -86,27 +84,20 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
 
   @Override
   public void close() throws IOException {
-    System.out.println("LSC 1");
     if (mCurrentMasterThread != null) {
-      System.out.println("LSC 2");
       mCurrentMasterThread.interrupt();
-      System.out.println("LSC 3");
     }
-    System.out.println("LSC 4");
 
     LEADER_SELECTOR.close();
-    System.out.println("LSC 5");
   }
 
   @Override
   public void takeLeadership(CuratorFramework client) throws Exception {
     mIsLeader.set(true);
-    System.out.println(NAME + " is becoming the leader.");
     if (client.checkExists().forPath(LEADER_FOLDER + NAME) != null) {
       client.delete().forPath(LEADER_FOLDER + NAME);
     }
     client.create().creatingParentsIfNeeded().forPath(LEADER_FOLDER + NAME);
-    System.out.println(NAME + " is now the leader.");
     LOG.info(NAME + " is now the leader.");
     try {
       while (true) {
