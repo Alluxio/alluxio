@@ -31,7 +31,6 @@ public class Master {
   private int mWorkerThreads;
 
   private boolean mZookeeperMode = false;
-  private boolean mIsLeader = false;
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
   public Master(InetSocketAddress address, int webPort, int selectorThreads, 
@@ -187,7 +186,7 @@ public class Master {
    * Get wehether the system is the leader under zookeeper mode, for unit test only.
    * @return true if the system is the leader under zookeeper mode, false otherwise.
    */
-  boolean isLeader() {
-    return mIsLeader;
+  boolean isStarted() {
+    return mIsStarted;
   }
 }
