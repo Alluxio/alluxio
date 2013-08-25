@@ -135,20 +135,14 @@ public class Master {
   }
 
   public void stop() throws Exception {
-    System.out.println("MS " + 0);
     if (mIsStarted) {
-      System.out.println("MS " + 1);
       mWebServer.shutdownWebServer();
-      System.out.println("MS " + 2);
       mMasterInfo.stop();
-      System.out.println("MS " + 3);
       mMasterServiceServer.stop();
-      System.out.println("MS " + 4);
 
       if (mZookeeperMode) {
         mLeaderSelectorClient.close();
       }
-      System.out.println("MS " + 5);
 
       mIsStarted = false;
     }

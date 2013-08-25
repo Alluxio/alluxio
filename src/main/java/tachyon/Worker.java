@@ -39,21 +39,15 @@ public class Worker implements Runnable {
       String dataFolder, long memoryCapacityBytes) {
     MasterAddress = masterAddress;
     WorkerAddress = workerAddress;
-    
-    System.out.println("W 1");
 
     mWorkerStorage = 
         new WorkerStorage(MasterAddress, WorkerAddress, dataFolder, memoryCapacityBytes);
-    System.out.println("W 2");
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
-    System.out.println("W 3");
 
     mDataServer = new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
         mWorkerStorage);
-    System.out.println("W 4");
     mDataServerThread = new Thread(mDataServer);
-    System.out.println("W 5");
 
     mHeartbeatThread = new Thread(this);
 
