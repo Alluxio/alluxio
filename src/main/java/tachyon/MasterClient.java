@@ -119,32 +119,24 @@ public class MasterClient {
 
     int tries = 0;
     while (tries ++ < MAX_CONNECT_TRY) {
-      System.out.println("M 1");
       mMasterAddress = getMasterAddress();
-      System.out.println("M 2 " + mMasterAddress + " " + mMasterAddress.getHostName() + " " + mMasterAddress.getPort());
       mProtocol = new TBinaryProtocol(new TFramedTransport(
           new TSocket(mMasterAddress.getHostName(), mMasterAddress.getPort())));
       mClient = new MasterService.Client(mProtocol);
       mLastAccessedMs = System.currentTimeMillis();
-      System.out.println("M 3");
       if (!mIsConnected && !mIsShutdown) {
         try {
-          System.out.println("M 4");
           mProtocol.getTransport().open();
 
-          System.out.println("M 5");
           mHeartbeatThread = new HeartbeatThread("Master_Client Heartbeat",
               new MasterClientHeartbeatExecutor(this, UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
               UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2);
           mHeartbeatThread.start();
-          System.out.println("M 6");
-
         } catch (TTransportException e) {
           LOG.error("Failed to connect (" +tries + ") to master " + mMasterAddress + 
               " : " + e.getMessage(), e);
           continue;
         }
-        System.out.println("M 7");
         mIsConnected = true;
         break;
       }
@@ -429,10 +421,7 @@ public class MasterClient {
       throws IOException, TException {
     connect();
     try {
-      System.out.println("XXX A");
-      List<String> ret = mClient.user_ls(path, recursive);
-      System.out.println("XXX B");
-      return ret;
+      return mClient.user_ls(path, recursive);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (InvalidPathException e) {

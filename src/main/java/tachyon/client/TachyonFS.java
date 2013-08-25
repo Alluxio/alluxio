@@ -788,12 +788,8 @@ public class TachyonFS {
   public synchronized List<String> ls(String path, boolean recursive) throws IOException {
     connect();
     try {
-      System.out.println("HAHA A");
-      List<String> ret = mMasterClient.user_ls(path, recursive);
-      System.out.println("HAHA B");
-      return ret;
+      return mMasterClient.user_ls(path, recursive);
     } catch (TException e) {
-      System.out.println("HAHA C " + e.getMessage());
       mConnected = false;
       throw new IOException(e);
     }

@@ -37,10 +37,6 @@ public class MasterFaultToleranceTest {
   }
 
   @Test
-  public void emptyTest() {
-  }
-
-  @Test
   public void getClientsTest() throws IOException {
     int clients = 10;
     mTfs.createFile("/0", 1024);
@@ -71,18 +67,16 @@ public class MasterFaultToleranceTest {
       Assert.assertEquals("/" + k, files.get(k + 1));
     }
 
-    Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
-    CommonUtils.sleepMs(null, 2000);
-
-    mTfs = mLocalTachyonClusterMultiMaster.getClient();
-    files = mTfs.ls("/", true);
-    for (int k = 0; k < files.size(); k ++) {
-      System.out.println(k + " " + files.get(k));
-    }
-    Assert.assertEquals(clients + 1, files.size());
-    Assert.assertEquals("/", files.get(0));
-    for (int k = 0; k < clients; k ++) {
-      Assert.assertEquals("/" + k, files.get(k + 1));
+    for (int kills = 1; kills <= 3; kills ++) {
+      Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
+      CommonUtils.sleepMs(null, 1500);
+      mTfs = mLocalTachyonClusterMultiMaster.getClient();
+      files = mTfs.ls("/", true);
+      Assert.assertEquals(clients + 1, files.size());
+      Assert.assertEquals("/", files.get(0));
+      for (int k = 0; k < clients; k ++) {
+        Assert.assertEquals("/" + k, files.get(k + 1));
+      }
     }
   }
 }
