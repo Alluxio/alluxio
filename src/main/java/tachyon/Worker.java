@@ -109,8 +109,8 @@ public class Worker implements Runnable {
           LOG.debug("Nothing command: " + cmd);
           break;
         case Register :
-          mWorkerStorage.register();
           LOG.info("Register command: " + cmd);
+          mWorkerStorage.register();
           break;
         case Free :
           mWorkerStorage.freeBlocks(cmd.mData);
