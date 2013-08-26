@@ -100,8 +100,15 @@ public class MasterClient {
       String checkpointPath)
           throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
           TException {
-    connect();
-    return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
+    while (true) {
+      connect();
+      try {
+        return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
   }
 
   /**
@@ -109,6 +116,7 @@ public class MasterClient {
    * @return true if connection succeed, false otherwise.
    */
   public synchronized boolean connect() {
+    mLastAccessedMs = System.currentTimeMillis();
     if (mIsConnected) {
       return true;
     }
@@ -134,7 +142,7 @@ public class MasterClient {
           mHeartbeatThread.start();
         } catch (TTransportException e) {
           LOG.error("Failed to connect (" +tries + ") to master " + mMasterAddress + 
-              " : " + e.getMessage(), e);
+              " : " + e.getMessage());
           CommonUtils.sleepMs(LOG, 1000);
           continue;
         }
@@ -164,15 +172,29 @@ public class MasterClient {
   }
 
   public synchronized long getUserId() throws TException {
-    connect();
-    long ret = mClient.user_getUserId();
-    LOG.info("User registered at the master " + mMasterAddress + " got UserId " + ret);
-    return ret;
+    while (true) {
+      connect();
+      try {
+        long ret = mClient.user_getUserId();
+        LOG.info("User registered at the master " + mMasterAddress + " got UserId " + ret);
+        return ret;
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
   }
 
   public synchronized List<ClientWorkerInfo> getWorkersInfo() throws TException {
-    connect();
-    return mClient.getWorkersInfo();
+    while (true) {
+      connect();
+      try {
+        return mClient.getWorkersInfo();
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
   }
 
   public synchronized boolean isConnected() {
@@ -187,66 +209,90 @@ public class MasterClient {
 
   public synchronized List<ClientFileInfo> listStatus(String path)
       throws IOException, TException {
-    connect();
-    try {
-      return mClient.liststatus(path);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.liststatus(path);
+      } catch (InvalidPathException | FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized void user_completeFile(int fId)
       throws IOException, TException {
-    connect();
-    try {
-      mClient.user_completeFile(fId);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        mClient.user_completeFile(fId);
+        return;
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized int user_createFile(String path, long blockSizeByte) 
       throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_createFile(path, blockSizeByte);
-    } catch (FileAlreadyExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    } catch (BlockInfoException e) {
-      throw new IOException(e);
-    } catch (TachyonException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_createFile(path, blockSizeByte);
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public int user_createFileOnCheckpoint(String path, String checkpointPath)
       throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_createFileOnCheckpoint(path, checkpointPath);
-    } catch (FileAlreadyExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    } catch (SuspectedFileSizeException e) {
-      throw new IOException(e);
-    } catch (BlockInfoException e) {
-      throw new IOException(e);
-    } catch (TachyonException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_createFileOnCheckpoint(path, checkpointPath);
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (SuspectedFileSizeException e) {
+        throw new IOException(e);
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized long user_createNewBlock(int fId) throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_createNewBlock(fId);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_createNewBlock(fId);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
@@ -255,272 +301,438 @@ public class MasterClient {
     if (metadata == null) {
       metadata = ByteBuffer.allocate(0);
     }
-    connect();
-    try {
-      return mClient.user_createRawTable(path, columns, metadata);
-    } catch (FileAlreadyExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    } catch (TableColumnException e) {
-      throw new IOException(e);
-    } catch (TachyonException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_createRawTable(path, columns, metadata);
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TableColumnException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized boolean user_delete(String path, boolean recursive) 
       throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_deleteByPath(path, recursive);
-    } catch (TachyonException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_deleteByPath(path, recursive);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized boolean user_delete(int fileId, boolean recursive)
       throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_deleteById(fileId, recursive);
-    } catch (TachyonException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_deleteById(fileId, recursive);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized long user_getBlockId(int fId, int index)
       throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_getBlockId(fId, index);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_getBlockId(fId, index);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public ClientBlockInfo user_getClientBlockInfo(long blockId) 
       throws FileDoesNotExistException, BlockInfoException, TException {
-    connect();
-    return mClient.user_getClientBlockInfo(blockId);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_getClientBlockInfo(blockId);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
   }
 
   public synchronized ClientFileInfo user_getClientFileInfoByPath(String path)
       throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_getClientFileInfoByPath(path);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_getClientFileInfoByPath(path);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized ClientFileInfo user_getClientFileInfoById(int id)
       throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_getClientFileInfoById(id);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_getClientFileInfoById(id);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized int user_getFileId(String path) throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_getFileId(path);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_getFileId(path);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized int user_getRawTableId(String path) throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_getRawTableId(path);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_getRawTableId(path);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized List<ClientBlockInfo> user_getFileBlocks(int id) 
       throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_getFileBlocksById(id);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_getFileBlocksById(id);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized NetAddress user_getWorker(boolean random, String hostname)
       throws NoWorkerException, TException {
-    connect();
-    return mClient.user_getWorker(random, hostname);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_getWorker(random, hostname);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
   }
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
       throws IOException, TException {
-    connect();
-    ClientRawTableInfo ret;
-    try {
-      ret = mClient.user_getClientRawTableInfoByPath(path);
-    } catch (TableDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        ClientRawTableInfo ret = mClient.user_getClientRawTableInfoByPath(path);
+        ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
+        return ret;
+      } catch (TableDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
-    ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
-    return ret;
   }
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoById(int id)
       throws IOException, TException {
-    connect();
-    ClientRawTableInfo ret;
-    try {
-      ret = mClient.user_getClientRawTableInfoById(id);
-    } catch (TableDoesNotExistException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        ClientRawTableInfo ret = mClient.user_getClientRawTableInfoById(id);
+        ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
+        return ret;
+      } catch (TableDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
-    ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
-    return ret;
   }
 
   public synchronized int user_getNumberOfFiles(String folderPath)
       throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_getNumberOfFiles(folderPath);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_getNumberOfFiles(folderPath);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized String user_getUnderfsAddress() throws TException {
-    connect();
-    return mClient.user_getUnderfsAddress();
+    while (true) {
+      connect();
+      try {
+        return mClient.user_getUnderfsAddress();
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
   }
 
   public synchronized List<Integer> user_listFiles(String path, boolean recursive)
       throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_listFiles(path, recursive);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_listFiles(path, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized List<String> user_ls(String path, boolean recursive)
       throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_ls(path, recursive);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_ls(path, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized boolean user_mkdir(String path) 
       throws IOException, TException {
-    connect();
-    try {
-      return mClient.user_mkdir(path);
-    } catch (FileAlreadyExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
-    } catch (TachyonException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        return mClient.user_mkdir(path);
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized void user_outOfMemoryForPinFile(int fileId) throws TException {
-    connect();
-    mClient.user_outOfMemoryForPinFile(fileId);
+    while (true) {
+      connect();
+      try {
+        mClient.user_outOfMemoryForPinFile(fileId);
+        return;
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
   }
 
   public synchronized void user_rename(String srcPath, String dstPath)
       throws IOException, TException{
-    connect();
-    try {
-      mClient.user_rename(srcPath, dstPath);
-    } catch (FileAlreadyExistException e) {
-      throw new IOException(e);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        mClient.user_rename(srcPath, dstPath);
+        return;
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public void user_renameTo(int fId, String path) throws IOException, TException {
-    connect();
-    try {
-      mClient.user_renameTo(fId, path);
-    } catch (FileAlreadyExistException e) {
-      throw new IOException(e);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        mClient.user_renameTo(fId, path);
+        return;
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized void user_unpinFile(int id) throws IOException, TException {
-    connect();
-    try {
-      mClient.user_unpinFile(id);
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        mClient.user_unpinFile(id);
+        return;
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized void user_updateRawTableMetadata(int id, ByteBuffer metadata)
       throws IOException, TException {
-    connect();
-    try {
-      mClient.user_updateRawTableMetadata(id, metadata);
-    } catch (TableDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (TachyonException e) {
-      throw new IOException(e);
+    while (true) {
+      connect();
+      try {
+        mClient.user_updateRawTableMetadata(id, metadata);
+        return;
+      } catch (TableDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
   }
 
   public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, 
       long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, 
       TException {
-    connect();
-    mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
+    while (true) {
+      connect();
+      try {
+        mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
+        return;
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
       List<Long> removedPartitionList) throws BlockInfoException, TException {
-    connect();
-    return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
+    while (true) {
+      connect();
+      try {
+        return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
   }
 
   public synchronized Set<Integer> worker_getPinIdList() throws TException {
-    connect();
-    return mClient.worker_getPinIdList();
+    while (true) {
+      connect();
+      try {
+        return mClient.worker_getPinIdList();
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
   }
 
+  /**
+   * Register the worker to the master.
+   * @param workerNetAddress Worker's NetAddress
+   * @param totalBytes Worker's capacity
+   * @param usedBytes Worker's used storage
+   * @param currentBlockList Blocks in worker's space.
+   * @return the worker id assigned by the master.
+   * @throws BlockInfoException
+   * @throws TException
+   */
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
       long usedBytes, List<Long> currentBlockList) throws BlockInfoException, TException {
-    connect();
-    long ret = mClient.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList); 
-    LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress +
-        " , got WorkerId " + ret);
-    return ret;
+    while (true) {
+      connect();
+      try {
+        long ret = 
+            mClient.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList); 
+        LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress +
+            " , got WorkerId " + ret);
+        return ret;
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
   }
 }
