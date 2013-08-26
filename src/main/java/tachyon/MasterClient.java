@@ -135,6 +135,7 @@ public class MasterClient {
         } catch (TTransportException e) {
           LOG.error("Failed to connect (" +tries + ") to master " + mMasterAddress + 
               " : " + e.getMessage(), e);
+          CommonUtils.sleepMs(LOG, 1000);
           continue;
         }
         mIsConnected = true;
