@@ -137,17 +137,6 @@
       <artifactId>commons-lang3</artifactId>
       <version>3.0</version>
     </dependency>
-
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-client</artifactId>
-      <version>${apache.curator.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-framework</artifactId>
-      <version>${apache.curator.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.apache.curator</groupId>
       <artifactId>curator-recipes</artifactId>
@@ -155,14 +144,9 @@
     </dependency>
     <dependency>
       <groupId>org.apache.curator</groupId>
-      <artifactId>curator-x-discovery</artifactId>
-      <version>${apache.curator.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
       <artifactId>curator-test</artifactId>
       <version>${apache.curator.version}</version>
-      <!-- <scope>test</scope> -->
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
