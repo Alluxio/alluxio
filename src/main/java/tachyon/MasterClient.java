@@ -154,6 +154,10 @@ public class MasterClient {
     return mIsConnected;
   }
 
+  /**
+   * Clean the connect. E.g. if the client has not connect the master for a while, the connection
+   * should be shut down.
+   */
   public synchronized void cleanConnect() {
     if (mIsConnected) {
       LOG.info("Disconnecting from the master " + mMasterAddress);
