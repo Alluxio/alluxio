@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
+import org.apache.hadoop.fs.ContentSummary;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -187,9 +188,20 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
-    // TODO Hadoop 1.x does not provide user API to get this. Hadoop 2.x provides.
-    // Use JAVA reflection to get the space info for Hadoop 2.x
-    return -1;
+	// Using ContentSummary from Hadoop available across Hadoop 1 and 2. 
+	// Using SpaceQuota and SpaceConsumed for info 
+	ContentSummary summary = mFs.getContentSummary(new Path(path));
+	switch(type) {
+	case SPACE_TOTAL:
+		return summary.getSpaceQuota();
+		break;
+	case SPACE_USED:
+		return summary.getSpaceConsumed();
+		break;
+	case SPACE_FREE:
+		return summary.getSpaceQuota() - summary.getSpaceConsumed();
+		break;
+	}
   }
 
   @Override
