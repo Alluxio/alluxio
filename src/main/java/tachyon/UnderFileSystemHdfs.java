@@ -7,11 +7,13 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
+import org.apache.hadoop.fs.ContentSummary;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
 /**
@@ -187,9 +189,28 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
-    // TODO Hadoop 1.x does not provide user API to get this. Hadoop 2.x provides.
-    // Use JAVA reflection to get the space info for Hadoop 2.x
-    return -1;
+	// Using ContentSummary from Hadoop available across Hadoop 1 and 2. 
+	// Using SpaceQuota and SpaceConsumed for info 
+	ContentSummary summary = mFs.getContentSummary(new Path(path));
+	switch(type) {
+	case SPACE_TOTAL:
+		long capacity = summary.getSpaceQuota();
+		// if there is no SpaceQuota on the Tachyon root directory in HDFS, 
+		// then default capacity to the capacity of the entire HDFS cluster
+		if (capacity < 0 && mFs instanceof DistributedFileSystem) {
+			capacity = ((DistributedFileSystem)mFs).getDiskStatus().getCapacity();
+		}
+		return capacity;
+	case SPACE_USED:
+		return summary.getSpaceConsumed();
+	case SPACE_FREE:
+		capacity = summary.getSpaceQuota();
+		if (capacity < 0 && mFs instanceof DistributedFileSystem) {
+			return ((DistributedFileSystem)mFs).getDiskStatus().getRemaining();
+		}
+		return capacity - summary.getSpaceConsumed();
+	}
+	return -1;
   }
 
   @Override
