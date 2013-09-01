@@ -18,11 +18,6 @@ public class JavaByteBufferWriter extends ByteBufferWriter {
   }
 
   @Override
-  public void put(byte[] src) {
-    mBuf.put(src);
-  }
-
-  @Override
   public void put(byte[] src, int offset, int length) {
     mBuf.put(src, offset, length);
   }

@@ -45,12 +45,6 @@ public class UnsafeDirectByteBufferWriter extends ByteBufferWriter {
   }
 
   @Override
-  public void put(byte[] src) {
-    mUnsafe.copyMemory(src, UnsafeUtils.sByteArrayBaseOffset, null, mOffset, src.length);
-    mOffset += src.length;
-  }
-
-  @Override
   public void put(byte[] src, int offset, int length) {
     mUnsafe.copyMemory(src, UnsafeUtils.sByteArrayBaseOffset + offset, null, mOffset, length);
     mOffset += length;
