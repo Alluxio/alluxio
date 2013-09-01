@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+/**
+ * Reader for bytebuffer.
+ */
 public abstract class ByteBufferReader {
   protected ByteBuffer mBuf;
 

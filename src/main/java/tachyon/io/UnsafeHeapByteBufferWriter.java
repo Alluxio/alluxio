@@ -1,94 +1,93 @@
 package tachyon.io;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import sun.misc.Unsafe;
 
 /**
- * Unsafe writer for direct bytebuffer.
+ * Unsafe writer for bytebuffer with backing array.
  */
-public class UnsafeDirectByteBufferWriter extends ByteBufferWriter {
+public class UnsafeHeapByteBufferWriter extends ByteBufferWriter {
   private Unsafe mUnsafe;
   private long mBaseOffset;
   private long mOffset;
+  private byte[] mArr;
 
-  public UnsafeDirectByteBufferWriter(ByteBuffer buf) throws IOException {
+  UnsafeHeapByteBufferWriter(ByteBuffer buf) throws IOException {
     super(buf);
 
-    if (!buf.isDirect()) {
-      throw new IOException("ByteBuffer " + buf + " is not Direct ByteBuffer");
+    if (!buf.hasArray()) {
+      throw new IOException("ByteBuffer " + buf + " does not have backing array");
     }
     if (buf.order() != ByteOrder.nativeOrder()) {
       throw new IOException("ByteBuffer " + buf + " has non-native ByteOrder");
     }
 
+    mArr = buf.array();
+
     try {
       mUnsafe = UnsafeUtils.getUnsafe();
-
-      Field addressField = Buffer.class.getDeclaredField("address");
-      addressField.setAccessible(true);
-      mBaseOffset = (long) addressField.get(buf);
-      mOffset = mBaseOffset;
     } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | 
         IllegalAccessException e) {
       throw new IOException(e);
     }
+
+    mBaseOffset = mUnsafe.arrayBaseOffset(byte[].class);
+    mOffset = mBaseOffset;
   }
 
   @Override
   public void put(Byte b) {
-    mUnsafe.putByte(mOffset ++,  b);
+    mUnsafe.putByte(mArr, mOffset ++, b);
   }
 
   @Override
   public void put(byte[] src) {
-    mUnsafe.copyMemory(src, UnsafeUtils.sByteArrayBaseOffset, null, mOffset, src.length);
+    mUnsafe.copyMemory(src, mBaseOffset, mArr, mOffset, src.length);
     mOffset += src.length;
   }
 
   @Override
   public void put(byte[] src, int offset, int length) {
-    mUnsafe.copyMemory(src, UnsafeUtils.sByteArrayBaseOffset + offset, null, mOffset, length);
+    mUnsafe.copyMemory(src, mBaseOffset + offset, mArr, mOffset, length);
     mOffset += length;
   }
 
   @Override
   public void putChar(char value) {
-    mUnsafe.putChar(mOffset, value);
+    mUnsafe.putChar(mArr, mOffset, value);
     mOffset += 2;
   }
 
   @Override
   public void putDouble(double value) {
-    mUnsafe.putDouble(mOffset, value);
+    mUnsafe.putDouble(mArr, mOffset, value);
     mOffset += 8;
   }
 
   @Override
   public void putFloat(float value) {
-    mUnsafe.putFloat(mOffset, value);
+    mUnsafe.putFloat(mArr, mOffset, value);
     mOffset += 4;
   }
 
   @Override
   public void putInt(int value) {
-    mUnsafe.putInt(mOffset, value);
+    mUnsafe.putInt(mArr, mOffset, value);
     mOffset += 4;
   }
 
   @Override
   public void putLong(long value) {
-    mUnsafe.putLong(mOffset, value);
+    mUnsafe.putLong(mArr, mOffset, value);
     mOffset += 8;
   }
 
   @Override
   public void putShort(short value) {
-    mUnsafe.putShort(mOffset, value);
+    mUnsafe.putShort(mArr, mOffset, value);
     mOffset += 2;
   }
 

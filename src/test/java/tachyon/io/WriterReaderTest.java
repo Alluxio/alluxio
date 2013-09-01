@@ -19,9 +19,10 @@ public class WriterReaderTest {
 
     for (ByteOrder order : mOrders) {
       buf.clear();
+      buf.order(order);
       ByteBufferWriter writer = new JavaByteBufferWriter(buf);
       generateByteBuffer(writer, order);
-      ByteBufferReader reader = new JavaByteBufferReader(writer.generateByteBuffer());
+      ByteBufferReader reader = new JavaByteBufferReader(writer.getByteBuffer());
       byteBufferReaderMatcher(reader, order);
     }
 
@@ -29,9 +30,10 @@ public class WriterReaderTest {
 
     for (ByteOrder order : mOrders) {
       buf.clear();
+      buf.order(order);
       ByteBufferWriter writer = new JavaByteBufferWriter(buf);
       generateByteBuffer(writer, order);
-      ByteBufferReader reader = new JavaByteBufferReader(writer.generateByteBuffer());
+      ByteBufferReader reader = new JavaByteBufferReader(writer.getByteBuffer());
       byteBufferReaderMatcher(reader, order);
     }
   }
@@ -45,9 +47,10 @@ public class WriterReaderTest {
         continue;
       }
       buf.clear();
+      buf.order(order);
       ByteBufferWriter writer = new JavaByteBufferWriter(buf);
       generateByteBuffer(writer, order);
-      ByteBufferReader reader = new UnsafeDirectByteBufferReader(writer.generateByteBuffer());
+      ByteBufferReader reader = new UnsafeDirectByteBufferReader(writer.getByteBuffer());
       byteBufferReaderMatcher(reader, order);
     }
   }
@@ -61,15 +64,83 @@ public class WriterReaderTest {
         continue;
       }
       buf.clear();
+      buf.order(order);
       ByteBufferWriter writer = new JavaByteBufferWriter(buf);
       generateByteBuffer(writer, order);
-      ByteBufferReader reader = new UnsafeHeapByteBufferReader(writer.generateByteBuffer());
+      ByteBufferReader reader = new UnsafeHeapByteBufferReader(writer.getByteBuffer());
+      byteBufferReaderMatcher(reader, order);
+    }
+  }
+
+  @Test
+  public void UnsafeDirectWriterJavaReaderTest() throws IOException {
+    ByteBuffer buf = ByteBuffer.allocateDirect(mDataLength);
+
+    for (ByteOrder order : mOrders) {
+      if (order != ByteOrder.nativeOrder()) {
+        continue;
+      }
+      buf.clear();
+      buf.order(order);
+      ByteBufferWriter writer = new UnsafeDirectByteBufferWriter(buf);
+      generateByteBuffer(writer, order);
+      ByteBufferReader reader = new JavaByteBufferReader(writer.getByteBuffer());
+      byteBufferReaderMatcher(reader, order);
+    }
+  }
+
+  @Test
+  public void UnsafeDirectWriterUnsafeDirectReaderTest() throws IOException {
+    ByteBuffer buf = ByteBuffer.allocateDirect(mDataLength);
+
+    for (ByteOrder order : mOrders) {
+      if (order != ByteOrder.nativeOrder()) {
+        continue;
+      }
+      buf.clear();
+      buf.order(order);
+      ByteBufferWriter writer = new UnsafeDirectByteBufferWriter(buf);
+      generateByteBuffer(writer, order);
+      ByteBufferReader reader = new UnsafeDirectByteBufferReader(writer.getByteBuffer());
+      byteBufferReaderMatcher(reader, order);
+    }
+  }
+
+  @Test
+  public void UnsafeHeapWriterJavaReaderTest() throws IOException {
+    ByteBuffer buf = ByteBuffer.allocate(mDataLength);
+
+    for (ByteOrder order : mOrders) {
+      if (order != ByteOrder.nativeOrder()) {
+        continue;
+      }
+      buf.clear();
+      buf.order(order);
+      ByteBufferWriter writer = new UnsafeHeapByteBufferWriter(buf);
+      generateByteBuffer(writer, order);
+      ByteBufferReader reader = new JavaByteBufferReader(writer.getByteBuffer());
+      byteBufferReaderMatcher(reader, order);
+    }
+  }
+
+  @Test
+  public void UnsafeHeapWriterUnsafeHeapReaderTest() throws IOException {
+    ByteBuffer buf = ByteBuffer.allocate(mDataLength);
+
+    for (ByteOrder order : mOrders) {
+      if (order != ByteOrder.nativeOrder()) {
+        continue;
+      }
+      buf.clear();
+      buf.order(order);
+      ByteBufferWriter writer = new UnsafeHeapByteBufferWriter(buf);
+      generateByteBuffer(writer, order);
+      ByteBufferReader reader = new UnsafeHeapByteBufferReader(writer.getByteBuffer());
       byteBufferReaderMatcher(reader, order);
     }
   }
 
   private void generateByteBuffer(ByteBufferWriter writer, ByteOrder order) {
-    writer.order(order);
     writer.put((byte) -128);
     writer.put((byte) 55);
     writer.put((byte) 127);

@@ -3,6 +3,9 @@ package tachyon.io;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+/**
+ * The wrapper for to write ByteBuffer using ByteBuffer's default methods.
+ */
 public class JavaByteBufferWriter extends ByteBufferWriter {
 
   public JavaByteBufferWriter(ByteBuffer buf) throws IOException {
@@ -10,47 +13,56 @@ public class JavaByteBufferWriter extends ByteBufferWriter {
   }
 
   @Override
-  public ByteBuffer put(Byte b) {
-    return mBuf.put(b);
+  public void put(Byte b) {
+    mBuf.put(b);
   }
 
   @Override
-  public ByteBuffer put(byte[] src) {
-    return mBuf.put(src);
+  public void put(byte[] src) {
+    mBuf.put(src);
   }
 
   @Override
-  public ByteBuffer put(byte[] src, int offset, int length) {
-    return mBuf.put(src, offset, length);
+  public void put(byte[] src, int offset, int length) {
+    mBuf.put(src, offset, length);
   }
 
   @Override
-  public ByteBuffer putChar(char value) {
-    return mBuf.putChar(value);
+  public void putChar(char value) {
+    mBuf.putChar(value);
   }
 
   @Override
-  public ByteBuffer putDouble(double value) {
-    return mBuf.putDouble(value);
+  public void putDouble(double value) {
+    mBuf.putDouble(value);
   }
 
   @Override
-  public ByteBuffer putFloat(float value) {
-    return mBuf.putFloat(value);
+  public void putFloat(float value) {
+    mBuf.putFloat(value);
   }
 
   @Override
-  public ByteBuffer putInt(int value) {
-    return mBuf.putInt(value);
+  public void putInt(int value) {
+    mBuf.putInt(value);
   }
 
   @Override
-  public ByteBuffer putLong(long value) {
-    return mBuf.putLong(value);
+  public void putLong(long value) {
+    mBuf.putLong(value);
   }
 
   @Override
-  public ByteBuffer putShort(short value) {
-    return mBuf.putShort(value);
+  public void putShort(short value) {
+    mBuf.putShort(value);
+  }
+
+  @Override
+  public ByteBuffer getByteBuffer() {
+    ByteBuffer buf = mBuf.duplicate();
+    buf.position(0);
+    buf.limit(mBuf.position());
+    buf.order(mBuf.order());
+    return buf;
   }
 }
