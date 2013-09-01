@@ -44,12 +44,6 @@ public class UnsafeHeapByteBufferWriter extends ByteBufferWriter {
   }
 
   @Override
-  public void put(byte[] src) {
-    mUnsafe.copyMemory(src, mBaseOffset, mArr, mOffset, src.length);
-    mOffset += src.length;
-  }
-
-  @Override
   public void put(byte[] src, int offset, int length) {
     mUnsafe.copyMemory(src, mBaseOffset + offset, mArr, mOffset, length);
     mOffset += length;

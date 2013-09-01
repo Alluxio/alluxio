@@ -35,9 +35,24 @@ public abstract class ByteBufferWriter {
     mBuf = buf;
   }
 
+  /**
+   * Writes the given byte into this buffer at the current position, and then increments the
+   * position.
+   * @param b The byte to be written
+   */
   public abstract void put(Byte b);
 
-  public abstract void put(byte[] src);
+  /**
+   * This method transfers the entire content of the given source byte array into this buffer. An
+   * invocation of this method of the form <tt>dst.put(a)</tt> behaves in exactly the same way as
+   * the invocation
+   * <pre> 
+   * dst.put(a, 0, a.length) </pre>
+   * @param src
+   */
+  public final void put(byte[] src) {
+    put(src, 0, src.length);
+  }
 
   public abstract void put(byte[] src, int offset, int length);
 
