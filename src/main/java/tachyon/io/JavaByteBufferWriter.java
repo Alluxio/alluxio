@@ -1,10 +1,11 @@
 package tachyon.io;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class JavaByteBufferWriter extends ByteBufferWriter {
 
-  public JavaByteBufferWriter(ByteBuffer buf) {
+  public JavaByteBufferWriter(ByteBuffer buf) throws IOException {
     super(buf);
   }
 

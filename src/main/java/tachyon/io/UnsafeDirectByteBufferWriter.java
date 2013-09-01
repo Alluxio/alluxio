@@ -1,10 +1,11 @@
 package tachyon.io;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public class UnsafeByteBufferWriter extends ByteBufferWriter {
+public class UnsafeDirectByteBufferWriter extends ByteBufferWriter {
 
-  public UnsafeByteBufferWriter(ByteBuffer buf) {
+  public UnsafeDirectByteBufferWriter(ByteBuffer buf) throws IOException {
     super(buf);
     // TODO Auto-generated constructor stub
   }

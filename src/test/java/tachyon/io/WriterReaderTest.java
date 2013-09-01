@@ -1,5 +1,6 @@
 package tachyon.io;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -10,10 +11,10 @@ import org.junit.Test;
 public class WriterReaderTest {
   private int mDataLength = 80;
   private ByteOrder[] mOrders =
-    {ByteOrder.LITTLE_ENDIAN, ByteOrder.BIG_ENDIAN, ByteOrder.nativeOrder()};
+    {ByteOrder.nativeOrder(), ByteOrder.LITTLE_ENDIAN, ByteOrder.BIG_ENDIAN};
 
   @Test
-  public void javaByteBufferWriterReaderTest() {
+  public void javaByteBufferWriterReaderTest() throws IOException {
     ByteBuffer buf = ByteBuffer.allocate(mDataLength);
     ByteBufferWriter writer = new JavaByteBufferWriter(buf);
     generateByteBuffer(writer, ByteOrder.BIG_ENDIAN);
@@ -22,7 +23,7 @@ public class WriterReaderTest {
   }
 
   @Test
-  public void javaWriterJavaReaderTest() {
+  public void javaWriterJavaReaderTest() throws IOException {
     ByteBuffer buf = ByteBuffer.allocate(mDataLength);
 
     for (ByteOrder order : mOrders) {
@@ -30,6 +31,48 @@ public class WriterReaderTest {
       ByteBufferWriter writer = new JavaByteBufferWriter(buf);
       generateByteBuffer(writer, order);
       ByteBufferReader reader = new JavaByteBufferReader(writer.generateByteBuffer());
+      byteBufferReaderMatcher(reader, order);
+    }
+
+    buf = ByteBuffer.allocateDirect(mDataLength);
+
+    for (ByteOrder order : mOrders) {
+      buf.clear();
+      ByteBufferWriter writer = new JavaByteBufferWriter(buf);
+      generateByteBuffer(writer, order);
+      ByteBufferReader reader = new JavaByteBufferReader(writer.generateByteBuffer());
+      byteBufferReaderMatcher(reader, order);
+    }
+  }
+
+  @Test
+  public void javaWriterUnsafeDirectReaderTest() throws IOException {
+    ByteBuffer buf = ByteBuffer.allocateDirect(mDataLength);
+
+    for (ByteOrder order : mOrders) {
+      if (order != ByteOrder.nativeOrder()) {
+        continue;
+      }
+      buf.clear();
+      ByteBufferWriter writer = new JavaByteBufferWriter(buf);
+      generateByteBuffer(writer, order);
+      ByteBufferReader reader = new UnsafeDirectByteBufferReader(writer.generateByteBuffer());
+      byteBufferReaderMatcher(reader, order);
+    }
+  }
+
+  @Test
+  public void javaWriterUnsafeHeapReaderTest() throws IOException {
+    ByteBuffer buf = ByteBuffer.allocate(mDataLength);
+
+    for (ByteOrder order : mOrders) {
+      if (order != ByteOrder.nativeOrder()) {
+        continue;
+      }
+      buf.clear();
+      ByteBufferWriter writer = new JavaByteBufferWriter(buf);
+      generateByteBuffer(writer, order);
+      ByteBufferReader reader = new UnsafeHeapByteBufferReader(writer.generateByteBuffer());
       byteBufferReaderMatcher(reader, order);
     }
   }

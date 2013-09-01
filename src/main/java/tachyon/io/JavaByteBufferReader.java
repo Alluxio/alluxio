@@ -1,10 +1,13 @@
 package tachyon.io;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
+/**
+ * The wrapper for to read ByteBuffer using ByteBuffer's default methods.
+ */
 public class JavaByteBufferReader extends ByteBufferReader {
-
-  public JavaByteBufferReader(ByteBuffer buf) {
+  public JavaByteBufferReader(ByteBuffer buf) throws IOException {
     super(buf);
   }
 
@@ -14,13 +17,13 @@ public class JavaByteBufferReader extends ByteBufferReader {
   }
 
   @Override
-  public ByteBuffer get(byte[] dst) {
-    return mBuf.get(dst);
+  public void get(byte[] dst) {
+    mBuf.get(dst);
   }
 
   @Override
-  public ByteBuffer get(byte[] dst, int offset, int length) {
-    return mBuf.get(dst, offset, length);
+  public void get(byte[] dst, int offset, int length) {
+    mBuf.get(dst, offset, length);
   }
 
   @Override
