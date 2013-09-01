@@ -33,7 +33,6 @@ public class UnsafeDirectByteBufferReader extends ByteBufferReader {
       addressField.setAccessible(true);
       mBaseOffset = (long) addressField.get(buf);
       mOffset = mBaseOffset;
-      System.out.println(mOffset);
     } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | 
         IllegalAccessException e) {
       throw new IOException(e);
