@@ -1,12 +1,17 @@
 package tachyon.io;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public abstract class ByteBufferWriter {
   protected ByteBuffer mBuf;
 
-  public ByteBufferWriter(ByteBuffer buf) {
+  public ByteBufferWriter(ByteBuffer buf) throws IOException {
+    if (buf == null) {
+      throw new IOException("ByteBuffer is null");
+    }
+
     mBuf = buf;
   }
 
@@ -35,7 +40,7 @@ public abstract class ByteBufferWriter {
   public ByteBuffer order(ByteOrder bo) {
     return mBuf.order(bo);
   }
-  
+
   public ByteBuffer generateByteBuffer() {
     mBuf.flip();
     return mBuf;
