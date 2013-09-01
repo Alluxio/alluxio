@@ -9,18 +9,9 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 public class WriterReaderTest {
-  private int mDataLength = 80;
+  private int mDataLength = 122;
   private ByteOrder[] mOrders =
     {ByteOrder.nativeOrder(), ByteOrder.LITTLE_ENDIAN, ByteOrder.BIG_ENDIAN};
-
-  @Test
-  public void javaByteBufferWriterReaderTest() throws IOException {
-    ByteBuffer buf = ByteBuffer.allocate(mDataLength);
-    ByteBufferWriter writer = new JavaByteBufferWriter(buf);
-    generateByteBuffer(writer, ByteOrder.BIG_ENDIAN);
-    ByteBufferReader reader = new JavaByteBufferReader(writer.generateByteBuffer());
-    byteBufferReaderMatcher(reader, ByteOrder.BIG_ENDIAN);
-  }
 
   @Test
   public void javaWriterJavaReaderTest() throws IOException {
@@ -103,8 +94,17 @@ public class WriterReaderTest {
     writer.putFloat((float) 5555.5);
     writer.putFloat((float) -5555.5);
     writer.putInt(9999);
+    writer.putInt(-9999);
+    writer.putInt(2147483647);
+    writer.putInt(-2147483648);
+    writer.putLong(99999);
+    writer.putLong(-99999);
     writer.putLong(9223372036854775807L);
+    writer.putLong(-9223372036854775808L);
+    writer.putShort((short) 99);
+    writer.putShort((short) -99);
     writer.putShort((short) 32767);
+    writer.putShort((short) -32768);
   }
 
   private void byteBufferReaderMatcher(ByteBufferReader reader, ByteOrder order) {
@@ -136,7 +136,16 @@ public class WriterReaderTest {
     Assert.assertEquals((float) 5555.5, reader.getFloat());
     Assert.assertEquals((float) -5555.5, reader.getFloat());
     Assert.assertEquals(9999, reader.getInt());
+    Assert.assertEquals(-9999, reader.getInt());
+    Assert.assertEquals(2147483647, reader.getInt());
+    Assert.assertEquals(-2147483648, reader.getInt());
+    Assert.assertEquals(99999, reader.getLong());
+    Assert.assertEquals(-99999, reader.getLong());
     Assert.assertEquals(9223372036854775807L, reader.getLong());
+    Assert.assertEquals(-9223372036854775808L, reader.getLong());
+    Assert.assertEquals((short) 99, reader.getShort());
+    Assert.assertEquals((short) -99, reader.getShort());
     Assert.assertEquals((short) 32767, reader.getShort());
+    Assert.assertEquals((short) -32768, reader.getShort());
   }
 }
