@@ -34,6 +34,7 @@ import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoWorkerException;
+import tachyon.thrift.TachyonException;
 
 /**
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients
@@ -1066,6 +1067,51 @@ public class TachyonFS {
     connect();
     try {
       mMasterClient.user_updateRawTableMetadata(id, metadata);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized int createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+      String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException{
+    connect();
+    try {
+      return mMasterClient.user_createDependency(parents, children, commandPrefix, data, comment, 
+          framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized void reportLostFile(int fileId) throws IOException {
+    connect();
+    try {
+      mMasterClient.user_reportLostFile(fileId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized void requestFilesInDependency(int depId) throws IOException {
+    connect();
+    try {
+      mMasterClient.user_requestFilesInDependency(depId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized boolean asyncCheckpoint(int fid) throws IOException {
+    connect();
+    try {
+      return mWorkerClient.asyncCheckpoint(fid);
+    } catch (TachyonException e) {
+      throw new IOException(e);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

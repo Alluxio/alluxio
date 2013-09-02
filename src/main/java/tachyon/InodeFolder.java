@@ -98,6 +98,7 @@ public class InodeFolder extends Inode {
     ret.needPin = false;
     ret.needCache = false;
     ret.blockIds = null;
+    ret.dependencyId = -1;
 
     return ret;
   }

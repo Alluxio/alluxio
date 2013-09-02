@@ -1,11 +1,14 @@
 package tachyon;
 
+import java.io.IOException;
+
 import org.apache.thrift.TException;
 
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
 
 /**
@@ -28,6 +31,15 @@ public class WorkerServiceHandler implements WorkerService.Iface {
       throws FileDoesNotExistException, SuspectedFileSizeException, 
       FailedToCheckpointException, BlockInfoException, TException {
     mWorkerStorage.addCheckpoint(userId, fileId);
+  }
+
+  @Override
+  public boolean asyncCheckpoint(int fileId) throws TachyonException, TException {
+    try {
+      return mWorkerStorage.asyncCheckpoint(fileId);
+    } catch (IOException e) {
+      throw new TachyonException(e.getMessage());
+    }
   }
 
   @Override

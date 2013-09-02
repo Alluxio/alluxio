@@ -14,7 +14,6 @@ import org.apache.thrift.TException;
 
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
-
 import tachyon.CommonUtils;
 import tachyon.client.FileOutStream;
 import tachyon.client.InStream;
@@ -234,7 +233,7 @@ public class TFsShell {
     System.out.println("Copied " + srcPath + " to " + dstPath);
     return 0;
   }
-  
+
   /**
    * Displays a list of hosts that have the file specified in argv stored.
    * @param argv[] Array of arguments given by the user's input from the terminal
@@ -258,6 +257,33 @@ public class TFsShell {
     return 0;
   }
 
+  public int report(String argv[]) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs report <path>");
+      return -1;
+    }
+    String path = argv[1];
+    String file = Utils.getFilePath(path);
+    TachyonFS tachyonClient = TachyonFS.get(Utils.getTachyonMasterAddress(path));
+    int fileId = tachyonClient.getFileId(file);
+    tachyonClient.reportLostFile(fileId);
+    System.out.println(file + " with file id " + fileId + " has reported been report lost.");
+    return 0;
+  }
+
+  public int request(String argv[]) throws IOException {
+    if (argv.length != 3) {
+      System.out.println("Usage: tfs request <tachyonaddress> <dependencyId>");
+      return -1;
+    }
+    String path = argv[1];
+    int depId = Integer.parseInt(argv[2]);
+    TachyonFS tachyonClient = TachyonFS.get(Utils.getTachyonMasterAddress(path));
+    tachyonClient.requestFilesInDependency(depId);
+    System.out.println("Dependency with ID " + depId + " has been requested.");
+    return 0;
+  }
+
   /**
    * Method which prints the method to use all the commands.
    */
@@ -271,6 +297,8 @@ public class TFsShell {
     System.out.println("       [copyToLocal <src> <localDst>]");
     System.out.println("       [fileinfo <path>]");
     System.out.println("       [location <path>]");
+    System.out.println("       [report <path>]");
+    System.out.println("       [request <tachyonaddress> <dependencyId>]");
   }
 
   /**
@@ -314,12 +342,16 @@ public class TFsShell {
         exitCode = fileinfo(argv);
       } else if (cmd.equals("location")) {
         exitCode = location(argv);
+      } else if (cmd.equals("report")) {
+        exitCode = report(argv);
+      } else if (cmd.equals("request")) {
+        exitCode = request(argv); 
       } else {
         printUsage();
         return -1;
       }
     } catch (IOException ioe) {
-    	System.out.println(ioe.getMessage());
+      System.out.println(ioe.getMessage());
     } finally {
     }
 

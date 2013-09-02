@@ -15,6 +15,7 @@ public class MasterConf extends Utils {
   public final String HOSTNAME;
   public final int PORT;
   public final int WEB_PORT;
+  public final String TEMPORARY_FOLDER;
 
   public final int HEARTBEAT_INTERVAL_MS;
   public final int SELECTOR_THREADS;
@@ -32,6 +33,7 @@ public class MasterConf extends Utils {
     HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
     WEB_PORT = getIntProperty("tachyon.master.web.port", Constants.DEFAULT_MASTER_WEB_PORT);
+    TEMPORARY_FOLDER = getProperty("tachyon.master.hostname", "/tmp");
 
     HEARTBEAT_INTERVAL_MS = getIntProperty("tachyon.master.heartbeat.interval.ms", 1000);
     SELECTOR_THREADS = getIntProperty("tachyon.master.selector.threads", 3);
