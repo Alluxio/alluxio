@@ -17,7 +17,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
@@ -78,7 +77,7 @@ public class WorkerStorage {
   public class CheckpointThread implements Runnable {
     private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
     private final int ID;
-    private UnderFileSystem mLocalHdfsClient = null;
+    private UnderFileSystem mCheckpointUnderFs = null;
 
     public CheckpointThread(int id) {
       ID = id;
@@ -140,8 +139,8 @@ public class WorkerStorage {
           LOG.info("Thread " + ID + " is checkpointing file " + fileId + " from " +
               mLocalDataFolder.toString() + " to " + midPath + " to " + dstPath);
 
-          if (mLocalHdfsClient == null) {
-            mLocalHdfsClient = UnderFileSystem.get(midPath);
+          if (mCheckpointUnderFs == null) {
+            mCheckpointUnderFs = UnderFileSystem.get(midPath);
           }
 
           long startCopyTimeMs = System.currentTimeMillis();
@@ -153,7 +152,7 @@ public class WorkerStorage {
           for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
             lockBlock(fileInfo.blockIds.get(k), Users.sCHECKPOINT_USER_ID);
           }
-          OutputStream os = mLocalHdfsClient.create(midPath, (int) fileInfo.getBlockSizeByte());
+          OutputStream os = mCheckpointUnderFs.create(midPath, (int) fileInfo.getBlockSizeByte());
           long fileSizeByte = 0;
           for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
             File tempFile = new File(mLocalDataFolder.toString() + "/" + fileInfo.blockIds.get(k));
@@ -161,14 +160,14 @@ public class WorkerStorage {
             InputStream is = new FileInputStream(tempFile);
             byte[] buf = new byte[16 * Constants.KB];
             int got = is.read(buf);
-            while (got != 1) {
+            while (got != -1) {
               os.write(buf, 0, got);
               got = is.read(buf);
             }
             is.close();
           }
           os.close();
-          if (!mLocalHdfsClient.rename(midPath, dstPath)) {
+          if (!mCheckpointUnderFs.rename(midPath, dstPath)) {
             LOG.error("Failed to rename from " + midPath + " to " + dstPath);
           }
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
@@ -185,12 +184,10 @@ public class WorkerStorage {
                 (currentTimeMs - startCopyTimeMs) + " ms. Need to sleep " + shouldSleepMs + " ms.");
             CommonUtils.sleepMs(LOG, shouldSleepMs);
           } 
-        } catch (FileDoesNotExistException e) {
+        } catch (FileDoesNotExistException | TException e) {
           LOG.warn(e);
         } catch (SuspectedFileSizeException | BlockInfoException | IOException e) {
           LOG.error(e);
-        } catch (TException e) {
-          LOG.warn(e); 
         }
       }
     }
@@ -366,8 +363,8 @@ public class WorkerStorage {
     }
     addBlockId(blockId, fileSizeBytes);
     mUsers.addOwnBytes(userId, - fileSizeBytes);
-    int dependencyId = mMasterClient.worker_cacheBlock(mWorkerId, 
-        mWorkerSpaceCounter.getUsedBytes(), blockId, fileSizeBytes);
+    mMasterClient.worker_cacheBlock(
+        mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId, fileSizeBytes);
     LOG.info(userId + " " + dstFile);
   }
 
@@ -528,7 +525,7 @@ public class WorkerStorage {
       pinList = new HashSet<Integer>();
     }
 
-//    synchronized (mLatestFileAccessTimeMs) {}
+    //    synchronized (mLatestFileAccessTimeMs) {}
     //    synchronized (mLatestFileAccessTimeMs) {
     //      synchronized (mUsersPerLockedFile) {
     //        synchronized (mDependencyLock) {
