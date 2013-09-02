@@ -55,6 +55,8 @@ public class RemoteBlockInStream extends BlockInStream {
       setupStreamFromUnderFs(mBlockInfo.offset);
 
       if (mCheckpointInputStream == null) {
+        TFS.reportLostFile(FILE.FID);
+
         throw new IOException("Can not find the block " + FILE + " " + BLOCK_INDEX);
       }
     }

@@ -26,7 +26,7 @@ public class Constants {
   public static final String PATH_SEPARATOR = "/";
   public static final int MAX_COLUMNS = 1000;
   public static final int MAX_TABLE_METADATA_BYTE = MB * 5;
-  public static final int WORKER_FILES_QUEUE_SIZE = 10000;
+  public static final int WORKER_BLOCKS_QUEUE_SIZE = 10000;
 
   public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
   public static final boolean DEBUG = Boolean.valueOf(System.getProperty("tachyon.debug", "false"));

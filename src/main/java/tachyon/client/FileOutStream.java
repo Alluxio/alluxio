@@ -190,6 +190,8 @@ public class FileOutStream extends OutStream {
           mCheckpointOutputStream.close();
           TFS.addCheckpoint(FILE.FID);
           TFS.completeFile(FILE.FID);
+        } else {
+          TFS.asyncCheckpoint(FILE.FID);
         }
       }
     }

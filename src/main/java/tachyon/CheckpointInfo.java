@@ -10,10 +10,12 @@ public class CheckpointInfo implements Serializable, Comparable<CheckpointInfo> 
 
   private int mInodeCounter;
   private long mEditTransactionId;
+  private int mDependencyCounter;
 
-  public CheckpointInfo(int inodeCounter, long editTransactionId) {
+  public CheckpointInfo(int inodeCounter, long editTransactionId, int dependencyCounter) {
     mInodeCounter = inodeCounter;
     mEditTransactionId = editTransactionId;
+    mDependencyCounter = dependencyCounter;
   }
 
   public synchronized void updateInodeCounter(int inodeCounter) {
@@ -24,6 +26,10 @@ public class CheckpointInfo implements Serializable, Comparable<CheckpointInfo> 
     mEditTransactionId = Math.max(mEditTransactionId, id);
   }
 
+  public synchronized void updateDependencyCounter(int dependencyCounter) {
+    mDependencyCounter = Math.max(mDependencyCounter, dependencyCounter);
+  }
+
   public synchronized int getInodeCounter() {
     return mInodeCounter;
   }
@@ -32,15 +38,22 @@ public class CheckpointInfo implements Serializable, Comparable<CheckpointInfo> 
     return mEditTransactionId;
   }
 
+  public synchronized int getDependencyCounter() {
+    return mDependencyCounter;
+  }
+
   @Override
   public synchronized int compareTo(CheckpointInfo o) {
     if (mInodeCounter != o.mInodeCounter) {
       return mInodeCounter - o.mInodeCounter;
     }
-    if (mEditTransactionId == o.mEditTransactionId) {
+    if (mEditTransactionId != o.mEditTransactionId) {
+      return mEditTransactionId > o.mEditTransactionId ? 1 : -1;
+    }
+    if (mDependencyCounter == o.mDependencyCounter) {
       return 0;
     }
-    return mEditTransactionId > o.mEditTransactionId ? 1 : -1;
+    return mDependencyCounter > o.mDependencyCounter ? 1 : -1;
   }
 
   @Override
@@ -53,6 +66,6 @@ public class CheckpointInfo implements Serializable, Comparable<CheckpointInfo> 
 
   @Override
   public synchronized int hashCode() {
-    return (int) (mInodeCounter + mEditTransactionId);
+    return (int) (mInodeCounter + mEditTransactionId + mDependencyCounter);
   }
 }

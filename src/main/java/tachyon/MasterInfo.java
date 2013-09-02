@@ -35,11 +35,13 @@ import tachyon.conf.MasterConf;
 import tachyon.io.Utils;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.CommandType;
+import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -63,8 +65,10 @@ public class MasterInfo {
 
   private final MasterConf MASTER_CONF;
 
-  private CheckpointInfo mCheckpointInfo = new CheckpointInfo(0, 0);
+  private CheckpointInfo mCheckpointInfo = new CheckpointInfo(0, 0, 0);
   private AtomicInteger mInodeCounter = new AtomicInteger(0);
+  private AtomicInteger mDependencyCounter = new AtomicInteger(0);
+  private AtomicInteger mRerunCounter = new AtomicInteger(0);
   private AtomicInteger mUserCounter = new AtomicInteger(0);
   private AtomicInteger mWorkerCounter = new AtomicInteger(0);
 
@@ -72,10 +76,19 @@ public class MasterInfo {
   private InodeFolder mRoot;
 
   private Map<Integer, Inode> mInodes = new HashMap<Integer, Inode>();
+  private Map<Integer, Dependency> mDependencies = new HashMap<Integer, Dependency>();
+
+  // TODO add initialization part for master failover or restart.
+  private Set<Integer> mUncheckpointedDependencies = new HashSet<Integer>();
+  private Set<Integer> mPriorityDependencies = new HashSet<Integer>();
+  private Set<Integer> mLostFiles = new HashSet<Integer>();
+  private Set<Integer> mBeingRecomputedFiles = new HashSet<Integer>();
+  private Set<Integer> mMustRecomputeDependencies = new HashSet<Integer>();
 
   private Map<Long, MasterWorkerInfo> mWorkers = new HashMap<Long, MasterWorkerInfo>();
   private Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
-  private BlockingQueue<MasterWorkerInfo> mLostWorkers = new ArrayBlockingQueue<MasterWorkerInfo>(32);
+  private BlockingQueue<MasterWorkerInfo> mLostWorkers =
+      new ArrayBlockingQueue<MasterWorkerInfo>(32);
 
   // TODO Check the logic related to this two lists.
   private PrefixList mWhiteList;
@@ -85,6 +98,7 @@ public class MasterInfo {
   private Journal mJournal;
 
   private HeartbeatThread mHeartbeatThread;
+  private Thread mRecomputeThread;
 
   /**
    * Master info periodical status check.
@@ -118,25 +132,40 @@ public class MasterInfo {
         hadFailedWorker = true;
         MasterWorkerInfo worker = mLostWorkers.poll();
 
-        // TODO these a lock is not efficient. Since node failure is rare, this is fine for now.
+        // TODO these two locks are not efficient. Since node failure is rare, this is fine for now 
         synchronized (mRoot) {
-          try {
-            for (long blockId: worker.getBlocks()) {
-              int fileId = BlockInfo.computeInodeId(blockId);
-              InodeFile tFile = (InodeFile) mInodes.get(fileId);
-              if (tFile != null) {
-                int blockIndex = BlockInfo.computeBlockIndex(blockId);
-                tFile.removeLocation(blockIndex, worker.getId());
-                if (!tFile.hasCheckpointed() && tFile.getBlockLocations(blockIndex).size() == 0) {
-                  LOG.info("Block " + blockId + " got lost from worker " + worker.getId() + " .");
-                } else {
-                  LOG.info("Block " + blockId + " only lost an in memory copy from worker " +
-                      worker.getId());
+          synchronized (mDependencies) {
+            try {
+              for (long blockId: worker.getBlocks()) {
+                int fileId = BlockInfo.computeInodeId(blockId);
+                InodeFile tFile = (InodeFile) mInodes.get(fileId);
+                if (tFile != null) {
+                  int blockIndex = BlockInfo.computeBlockIndex(blockId);
+                  tFile.removeLocation(blockIndex, worker.getId());
+                  if (!tFile.hasCheckpointed() && tFile.getBlockLocations(blockIndex).size() == 0) {
+                    LOG.info("Block " + blockId + " got lost from worker " + worker.getId() + " .");
+                    int depId = tFile.getDependencyId();
+                    if (depId == -1) {
+                      LOG.error("Permanent Data loss: " + tFile);
+                    } else {
+                      mLostFiles.add(tFile.getId());
+                      Dependency dep = mDependencies.get(depId);
+                      dep.addLostFile(tFile.getId());
+                      LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId() +
+                          " . Trying to recompute it using dependency " + dep.ID);
+                      if (getPath(tFile).startsWith(MASTER_CONF.TEMPORARY_FOLDER)) {
+                        mMustRecomputeDependencies.add(depId);
+                      }
+                    }
+                  } else {
+                    LOG.info("Block " + blockId + " only lost an in memory copy from worker " +
+                        worker.getId());
+                  }
                 }
               }
+            } catch (BlockInfoException e) {
+              LOG.error(e);
             }
-          } catch (BlockInfoException e) {
-            LOG.error(e);
           }
         }
       }
@@ -193,6 +222,71 @@ public class MasterInfo {
     }
   }
 
+  public class RecomputationScheduler implements Runnable {
+    @Override
+    public void run() {
+      while (true) {
+        boolean hasLostFiles = false;
+        boolean launched = false;
+        List<String> cmds = new ArrayList<String>();
+        synchronized (mRoot) {
+          synchronized (mDependencies) {
+            if (!mMustRecomputeDependencies.isEmpty()) {
+              List<Integer> recomputeList = new ArrayList<Integer>();
+              Queue<Integer> checkQueue = new LinkedList<Integer>();
+
+              checkQueue.addAll(mMustRecomputeDependencies);
+              while (!checkQueue.isEmpty()) {
+                int depId = checkQueue.poll();
+                Dependency dep = mDependencies.get(depId);
+                boolean canLaunch = true;
+                for (int k = 0; k < dep.PARENT_FILES.size(); k ++) {
+                  int fildId = dep.PARENT_FILES.get(k);
+                  if (mLostFiles.contains(fildId)) {
+                    canLaunch = false;
+                    InodeFile iFile = (InodeFile) mInodes.get(fildId);
+                    if (!mBeingRecomputedFiles.contains(fildId)) {
+                      int tDepId = iFile.getDependencyId();
+                      if (tDepId != -1 && !mMustRecomputeDependencies.contains(tDepId)) {
+                        mMustRecomputeDependencies.add(tDepId);
+                        checkQueue.add(tDepId);
+                      }
+                    }
+                  }
+                }
+                if (canLaunch) {
+                  recomputeList.add(depId);
+                }
+              }
+              hasLostFiles = !mMustRecomputeDependencies.isEmpty();
+              launched = (recomputeList.size() > 0);
+
+              for (int k = 0; k < recomputeList.size(); k ++) {
+                mMustRecomputeDependencies.remove(recomputeList.get(k));
+                Dependency dep = mDependencies.get(recomputeList.get(k));
+                mBeingRecomputedFiles.addAll(dep.getLostFiles());
+                cmds.add(dep.getCommand());
+              }
+            }
+          }
+        }
+
+        for (String cmd : cmds) {
+          String filePath = CommonConf.get().TACHYON_HOME + "/logs/rerun-" + 
+              mRerunCounter.incrementAndGet();
+          new Thread(new RecomputeCmd(cmd, filePath)).start();
+        }
+
+        if (!launched) {
+          if (hasLostFiles) {
+            LOG.info("HasLostFiles, but no job can be launched.");
+          }
+          CommonUtils.sleepMs(LOG, 1000);
+        }
+      }
+    }
+  }
+
   public MasterInfo(InetSocketAddress address, Journal journal) throws IOException {
     MASTER_CONF = MasterConf.get();
 
@@ -217,6 +311,9 @@ public class MasterInfo {
     mHeartbeatThread = new HeartbeatThread("Master Heartbeat",
         new MasterInfoHeartbeatExecutor(), MASTER_CONF.HEARTBEAT_INTERVAL_MS);
     mHeartbeatThread.start();
+
+    mRecomputeThread = new Thread(new RecomputationScheduler());
+    mRecomputeThread.start();
   }
 
   /**
@@ -265,8 +362,20 @@ public class MasterInfo {
       if (!tFile.hasCheckpointed()) {
         tFile.setCheckpointPath(checkpointPath);
         needLog = true;
-      }
 
+        synchronized (mDependencies) {
+          int depId = tFile.getDependencyId();
+          if (depId != -1) {
+            Dependency dep = mDependencies.get(depId);
+            dep.childCheckpointed(tFile.getId());
+            if (dep.hasCheckpointed()) {
+              mUncheckpointedDependencies.remove(dep.ID);
+              mPriorityDependencies.remove(dep.ID);
+            }
+          }
+        }
+      }
+      addFile(fileId, tFile.getDependencyId());
       tFile.setComplete();
 
       if (needLog) {
@@ -277,6 +386,18 @@ public class MasterInfo {
     }
   }
 
+  // TODO Assume each file only has one block for now.
+  private void addFile(int fileId, int dependencyId) {
+    synchronized (mDependencies) {
+      if (mLostFiles.contains(fileId)) {
+        mLostFiles.remove(fileId);
+      }
+      if (mBeingRecomputedFiles.contains(fileId)) {
+        mBeingRecomputedFiles.remove(fileId);
+      }
+    }
+  }
+
   /**
    * A worker cache a block in its memory.
    *
@@ -284,11 +405,13 @@ public class MasterInfo {
    * @param workerUsedBytes
    * @param blockId
    * @param length
+   * @return the dependency id of the file if it has not been checkpointed. -1 means the file 
+   * either does not have dependency or has already been checkpointed.
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    */
-  public void cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
+  public int cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
     LOG.debug(CommonUtils.parametersToString(workerId, workerUsedBytes, blockId, length));
 
@@ -317,6 +440,14 @@ public class MasterInfo {
       InetSocketAddress address = tWorkerInfo.ADDRESS;
       tFile.addLocation(blockIndex, workerId,
           new NetAddress(address.getHostName(), address.getPort()));
+
+      addFile(fileId, tFile.getDependencyId());
+
+      if (tFile.hasCheckpointed()) {
+        return -1;
+      } else {
+        return tFile.getDependencyId();
+      }
     }
   }
 
@@ -349,6 +480,66 @@ public class MasterInfo {
     mJournal.getEditLog().addBlock(tFile.getId(), blockInfo.BLOCK_INDEX, blockInfo.LENGTH);
     mJournal.getEditLog().flush();
   }
+
+  public int createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment,
+      String framework, String frameworkVersion, DependencyType dependencyType)
+          throws InvalidPathException, FileDoesNotExistException {
+    Dependency dep = null;
+    synchronized (mRoot) {
+      LOG.info("ParentList: " + CommonUtils.listToString(parents));
+      List<Integer> parentsIdList = getFilesIds(parents);
+      List<Integer> childrenIdList = getFilesIds(children);
+
+      Set<Integer> parentDependencyIds = new HashSet<Integer>();
+      for (int k = 0; k < parentsIdList.size(); k ++) {
+        int parentId = parentsIdList.get(k);
+        Inode inode = mInodes.get(parentId);
+        if (inode.isFile()) {
+          LOG.info("PARENT DEPENDENCY ID IS " + ((InodeFile) inode).getDependencyId() + " " +
+              ((InodeFile) inode));
+          if (((InodeFile) inode).getDependencyId() != -1) {
+            parentDependencyIds.add(((InodeFile) inode).getDependencyId());
+          }
+        } else {
+          throw new InvalidPathException("Parent " + parentId + " is not a file.");
+        }
+      }
+
+      dep = new Dependency(mDependencyCounter.incrementAndGet(), parentsIdList,
+          childrenIdList, commandPrefix, data, comment, framework, frameworkVersion,
+          dependencyType, parentDependencyIds);
+
+      List<Inode> childrenInodeList = new ArrayList<Inode>();
+      for (int k = 0; k < childrenIdList.size(); k ++) {
+        InodeFile inode = (InodeFile) mInodes.get(childrenIdList.get(k));
+        inode.setDependencyId(dep.ID);
+        childrenInodeList.add(inode);
+        if (inode.hasCheckpointed()) {
+          dep.childCheckpointed(inode.getId());
+        }
+      }
+      // TODO Logging.
+      //      mMasterLogWriter.appendAndFlush(childrenInodeList);
+    }
+
+    synchronized (mDependencies) {
+      mDependencies.put(dep.ID, dep);
+      // TODO Logging.
+      //      mMasterLogWriter.appendAndFlush(dep);
+      if (!dep.hasCheckpointed()) {
+        mUncheckpointedDependencies.add(dep.ID);
+      }
+      for (int parentDependencyId: dep.PARENT_DEPENDENCIES) {
+        mDependencies.get(parentDependencyId).addChildrenDependency(dep.ID);
+      }
+    }
+
+    LOG.info("Dependency created: " + dep);
+
+    return dep.ID;
+  }
+
 
   public int createFile(String path, long blockSizeByte)
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
@@ -494,6 +685,7 @@ public class MasterInfo {
       os.writeByte(Image.T_CHECKPOINT);
       os.writeInt(mInodeCounter.get());
       os.writeLong(mCheckpointInfo.getEditTransactionCounter());
+      os.writeInt(mCheckpointInfo.getDependencyCounter());
     }
   }
 
@@ -514,6 +706,7 @@ public class MasterInfo {
       if (type == Image.T_CHECKPOINT) {
         mInodeCounter.set(is.readInt());
         mCheckpointInfo.updateEditTransactionCounter(is.readLong());
+        mCheckpointInfo.updateDependencyCounter(is.readInt());
       } else {
         if (type > Image.T_INODE_RAW_TABLE) {
           throw new IOException("Corrupted image with unknown element type: " + type);
@@ -798,6 +991,18 @@ public class MasterInfo {
     return ret;
   }
 
+  public ClientDependencyInfo getClientDependencyInfo(int dependencyId) 
+      throws DependencyDoesNotExistException {
+    Dependency dep = null;
+    synchronized (mDependencies) {
+      dep = mDependencies.get(dependencyId);
+      if (dep == null) {
+        throw new DependencyDoesNotExistException("No dependency with id " + dependencyId);
+      }
+    }
+    return dep.generateClientDependencyInfo();
+  }
+
   public ClientBlockInfo getClientBlockInfo(long blockId)
       throws FileDoesNotExistException, IOException, BlockInfoException {
     int fileId = BlockInfo.computeInodeId(blockId);
@@ -955,6 +1160,15 @@ public class MasterInfo {
     return ret;
   }
 
+  private List<Integer> getFilesIds(List<String> pathList)
+      throws InvalidPathException, FileDoesNotExistException {
+    List<Integer> ret = new ArrayList<Integer>(pathList.size());
+    for (int k = 0; k < pathList.size(); k ++) {
+      ret.addAll(listFiles(pathList.get(k), true));
+    }
+    return ret;
+  }
+
   private Inode getInode(String path) throws InvalidPathException {
     return getInode(getPathNames(path));
   }
@@ -1031,7 +1245,8 @@ public class MasterInfo {
     return mUserCounter.incrementAndGet();
   }
 
-  public int getNumberOfFiles(String path) throws InvalidPathException, FileDoesNotExistException {
+  public int getNumberOfFiles(String path)
+      throws InvalidPathException, FileDoesNotExistException {
     Inode inode = getInode(path);
     if (inode == null) {
       throw new FileDoesNotExistException(path);
@@ -1074,6 +1289,39 @@ public class MasterInfo {
       for (int id : mFileIdPinList) {
         ret.add(id);
       }
+      return ret;
+    }
+  }
+
+  public List<Integer> getPriorityDependencyList() {
+    synchronized (mDependencies) {
+      int earliestDepId = -1;
+      if (mPriorityDependencies.isEmpty()) {
+        long earliest = Long.MAX_VALUE;
+        for (int depId: mUncheckpointedDependencies) {
+          Dependency dep = mDependencies.get(depId); 
+          if (!dep.hasChildrenDependency()) {
+            mPriorityDependencies.add(dep.ID);
+          } else {
+          }
+          if (dep.CREATION_TIME_MS < earliest) {
+            earliest = dep.CREATION_TIME_MS;
+            earliestDepId = dep.ID;
+          }
+        }
+
+        if (!mPriorityDependencies.isEmpty()) {
+          LOG.info("New computed priority dependency list " + mPriorityDependencies);
+        }
+      }
+
+      if (mPriorityDependencies.isEmpty() && earliestDepId != -1) {
+        mPriorityDependencies.add(earliestDepId);
+        LOG.info("Priority dependency list by earliest creation time: " + mPriorityDependencies);
+      }
+
+      List<Integer> ret = new ArrayList<Integer>(mPriorityDependencies.size());
+      ret.addAll(mPriorityDependencies);
       return ret;
     }
   }
@@ -1350,6 +1598,46 @@ public class MasterInfo {
       }
 
       rename(inode, dstPath);
+    }
+  }
+
+  public void reportLostFile(int fileId) {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+      if (inode == null) {
+        LOG.warn("Tachyon does not have file " +fileId);
+      } else if (inode.isDirectory()) {
+        LOG.warn("Reported file is a directory " + inode);
+      } else {
+        InodeFile iFile = (InodeFile) inode;
+        int depId = iFile.getDependencyId();
+        synchronized (mDependencies) {
+          mLostFiles.add(fileId);
+          if (depId == -1) {
+            LOG.error("There is no dependency info for " + iFile + " . No recovery on that");
+          } else {
+            LOG.info("Reported file loss. Tachyon will recompute it: " + iFile.toString());
+
+            Dependency dep = mDependencies.get(depId);
+            dep.addLostFile(fileId);
+            mMustRecomputeDependencies.add(depId);
+          }
+        }
+      }
+    }
+  }
+
+  public void requestFilesInDependency(int depId) {
+    synchronized (mDependencies) {
+      if (mDependencies.containsKey(depId)) {
+        Dependency dep = mDependencies.get(depId);
+        LOG.info("Request files in dependency " + dep);
+        if (dep.hasLostFile()) {
+          mMustRecomputeDependencies.add(depId);
+        }
+      } else {
+        LOG.error("There is no dependency with id " + depId);
+      }
     }
   }
 
