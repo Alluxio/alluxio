@@ -634,13 +634,14 @@ public class MasterClient {
     }
   }
 
-  public synchronized int worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, 
-      long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, 
-      TException {
+  public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, 
+      long length) throws FileDoesNotExistException, SuspectedFileSizeException, 
+      BlockInfoException, TException {
     while (true) {
       connect();
       try {
-        return mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
+        mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
+        return;
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
         mIsConnected = false;

@@ -27,14 +27,14 @@ public class BasicCheckpoint {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private static TachyonFS sTachyonClient;
-  private static String sFilePath = null;
+  private static String sFileFolder = null;
   private static int sFiles;
 
   public static void createDependency() throws IOException {
     long startTimeMs = CommonUtils.getCurrentMs();
     List<String> children = new ArrayList<String>();
     for (int k = 0; k < sFiles; k ++) {
-      children.add(sFilePath + "/part-" + k);
+      children.add(sFileFolder + "/part-" + k);
     }
     List<ByteBuffer> data = new ArrayList<ByteBuffer>();
     data.add(ByteBuffer.allocate(10));
@@ -47,7 +47,7 @@ public class BasicCheckpoint {
 
   public static void writeFile() throws IOException {
     for (int i = 0; i < sFiles; i ++) {
-      String filePath = sFilePath + "/part-" + i;
+      String filePath = sFileFolder + "/part-" + i;
       TachyonFile file = sTachyonClient.getFile(filePath);
       OutputStream os = file.getOutStream(WriteType.MUST_CACHE);
 
@@ -67,7 +67,7 @@ public class BasicCheckpoint {
 
   public static void readFile() throws IOException {
     for (int i = 0; i < sFiles; i ++) {
-      String filePath = sFilePath + "/part-" + i;
+      String filePath = sFileFolder + "/part-" + i;
       LOG.info("Reading data from " + filePath);
       TachyonFile file = sTachyonClient.getFile(filePath);
       TachyonByteBuffer buf = file.readByteBuffer();
@@ -75,6 +75,7 @@ public class BasicCheckpoint {
         file.recache();
         buf = file.readByteBuffer();
       }
+      buf.DATA.order(ByteOrder.nativeOrder());
       CommonUtils.printByteBuffer(LOG, buf.DATA);
       buf.close();
     }
@@ -86,14 +87,15 @@ public class BasicCheckpoint {
     if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar " +
-          "tachyon.examples.BasicCheckpoint <TachyonMasterAddress> <FilePath> <Files>");
+          "tachyon.examples.BasicCheckpoint <TachyonMasterAddress> <FileFolder> <Files>");
       System.exit(-1);
     }
     sTachyonClient = TachyonFS.get(args[0]);
-    sFilePath = args[1];
+    sFileFolder = args[1];
     sFiles = Integer.parseInt(args[2]);
     createDependency();
     writeFile();
     readFile();
+    System.exit(0);
   }
 }

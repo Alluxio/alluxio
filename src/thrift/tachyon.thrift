@@ -143,7 +143,7 @@ service MasterService {
     throws (1: BlockInfoException e)
   Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedBlocks)
     throws (1: BlockInfoException e)
-  i32 worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 blockId, 4: i64 length)
+  void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 blockId, 4: i64 length)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
   set<i32> worker_getPinIdList()
   list<i32> worker_getPriorityDependencyList()
