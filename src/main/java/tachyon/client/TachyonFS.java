@@ -28,6 +28,7 @@ import tachyon.client.table.RawTable;
 import tachyon.conf.UserConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
@@ -1112,6 +1113,16 @@ public class TachyonFS {
       return mWorkerClient.asyncCheckpoint(fid);
     } catch (TachyonException e) {
       throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
+    connect();
+    try {
+      return mMasterClient.getClientDependencyInfo(did);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
