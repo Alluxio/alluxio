@@ -18,6 +18,7 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
@@ -752,6 +753,20 @@ public class MasterClient {
       connect();
       try {
         mClient.user_requestFilesInDependency(depId);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      } catch (DependencyDoesNotExistException e) {
+        throw new IOException(e);
+      }
+    }
+  }
+
+  public ClientDependencyInfo getClientDependencyInfo(int did) throws IOException, TException {
+    while (true) {
+      connect();
+      try {
+        return mClient.user_getClientDependencyInfo(did);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
         mIsConnected = false;
