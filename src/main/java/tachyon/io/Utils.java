@@ -110,4 +110,29 @@ public class Utils {
     }
     return ret;
   }
+
+  public static List<Integer> readIntegerList(DataInputStream is) throws IOException {
+    int size = is.readInt();
+    if (size == -1) {
+      return null;
+    }
+    List<Integer> ret = new ArrayList<Integer>(size);
+    for (int k = 0; k < size; k ++) {
+      ret.add(is.readInt());
+    }
+    return ret;
+  }
+
+  public static void writeIntegerList(List<Integer> list, DataOutputStream os)
+      throws IOException {
+    if (list == null) {
+      os.writeInt(-1);
+      return;
+    }
+
+    os.writeInt(list.size());
+    for (int k = 0; k < list.size(); k ++) {
+      os.writeInt(list.get(k));
+    }
+  }
 }
