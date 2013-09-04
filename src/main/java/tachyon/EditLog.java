@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -30,6 +31,7 @@ public class EditLog {
   static final byte OP_UNPIN_FILE = 5;
   static final byte OP_UPDATE_RAW_TABLE_METADATA = 6;
   static final byte OP_COMPLETE_FILE = 7;
+  static final byte OP_CREATE_DEPENDENCY = 8;
 
   private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
@@ -102,6 +104,13 @@ public class EditLog {
         }
         case OP_COMPLETE_FILE: {
           info.completeFile(is.readInt());
+          break;
+        }
+        case OP_CREATE_DEPENDENCY: {
+          info._createDependency(Utils.readStringList(is), Utils.readStringList(is), 
+              Utils.readString(is), Utils.readByteBufferList(is), Utils.readString(is),
+              Utils.readString(is), Utils.readString(is),
+              DependencyType.getDependencyType(is.readInt()), is.readInt());
           break;
         }
         default :
@@ -180,6 +189,30 @@ public class EditLog {
       Utils.writeByteBuffer(metadata, DOS);
       DOS.writeLong(blockSizeByte);
       DOS.writeLong(creationTimeMs);
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+  }
+
+  public synchronized void createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework, 
+      String frameworkVersion, DependencyType dependencyType, int depId) {
+    if (INACTIVE) {
+      return;
+    }
+
+    try {
+      DOS.writeLong(++ mTransactionId);
+      DOS.writeByte(OP_CREATE_DEPENDENCY);
+      Utils.writeStringList(parents, DOS);
+      Utils.writeStringList(children, DOS);
+      Utils.writeString(commandPrefix, DOS);
+      Utils.writeByteBufferList(data, DOS);
+      Utils.writeString(comment, DOS);
+      Utils.writeString(framework, DOS);
+      Utils.writeString(frameworkVersion, DOS);
+      DOS.writeInt(dependencyType.getValue());
+      DOS.writeInt(depId);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
