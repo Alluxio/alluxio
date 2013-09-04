@@ -485,6 +485,22 @@ public class MasterInfo {
       String commandPrefix, List<ByteBuffer> data, String comment,
       String framework, String frameworkVersion, DependencyType dependencyType)
           throws InvalidPathException, FileDoesNotExistException {
+    int depId = mDependencyCounter.incrementAndGet();
+    int ret = _createDependency(parents, children, commandPrefix, data, comment, framework,
+        frameworkVersion, dependencyType, depId);
+
+    mJournal.getEditLog().createDependency(parents, children, commandPrefix, data, comment,
+        framework, frameworkVersion, dependencyType, depId);
+    mJournal.getEditLog().flush();
+
+    return ret;
+  }
+
+  public int _createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment,
+      String framework, String frameworkVersion, DependencyType dependencyType,
+      int dependencyId)
+          throws InvalidPathException, FileDoesNotExistException {
     Dependency dep = null;
     synchronized (mRoot) {
       LOG.info("ParentList: " + CommonUtils.listToString(parents));
@@ -519,8 +535,6 @@ public class MasterInfo {
           dep.childCheckpointed(inode.getId());
         }
       }
-      // TODO Logging.
-      //      mMasterLogWriter.appendAndFlush(childrenInodeList);
     }
 
     synchronized (mDependencies) {

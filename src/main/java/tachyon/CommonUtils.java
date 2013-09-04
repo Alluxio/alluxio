@@ -35,9 +35,8 @@ public final class CommonUtils {
 
   public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
     ByteBuffer ret = ByteBuffer.allocate(buf.limit() - buf.position());
-    ret.put(buf);
+    ret.put(buf.array(), buf.position(), buf.limit() - buf.position());
     ret.flip();
-    buf.flip();
     return ret;
   }
 
