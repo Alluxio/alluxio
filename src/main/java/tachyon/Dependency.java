@@ -2,6 +2,7 @@ package tachyon;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,9 +35,9 @@ public class Dependency {
 
   public Dependency(int id, List<Integer> parents, List<Integer> children, String commandPrefix,
       List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
-      DependencyType type, Set<Integer> parentDependencies) {
+      DependencyType type, Collection<Integer> parentDependencies, long creationTimeMs) {
     ID = id;
-    CREATION_TIME_MS = System.currentTimeMillis();
+    CREATION_TIME_MS = creationTimeMs;
 
     PARENT_FILES = new ArrayList<Integer>(parents.size());
     PARENT_FILES.addAll(parents);
@@ -129,6 +130,18 @@ public class Dependency {
   public synchronized void childCheckpointed(int childFileId) {
     mUncheckpointedChildrenFiles.remove(childFileId);
     LOG.debug("Child got checkpointed " + childFileId + " : " + toString());
+  }
+
+  synchronized List<Integer> getUncheckpointedChildrenFiles() {
+    List<Integer> ret = new ArrayList<Integer>(mUncheckpointedChildrenFiles.size());
+    ret.addAll(mUncheckpointedChildrenFiles);
+    return ret;
+  }
+
+  synchronized void resetUncheckpointedChildrenFiles(
+      Collection<Integer> uncheckpointedChildrenFiles) {
+    mUncheckpointedChildrenFiles.clear();
+    mUncheckpointedChildrenFiles.addAll(uncheckpointedChildrenFiles);
   }
 
   public synchronized void addLostFile(int fileId) {
