@@ -107,7 +107,7 @@ public class EditLog {
           break;
         }
         case OP_CREATE_DEPENDENCY: {
-          info._createDependency(Utils.readStringList(is), Utils.readStringList(is), 
+          info._createDependency(Utils.readIntegerList(is), Utils.readIntegerList(is), 
               Utils.readString(is), Utils.readByteBufferList(is), Utils.readString(is),
               Utils.readString(is), Utils.readString(is),
               DependencyType.getDependencyType(is.readInt()), is.readInt());
@@ -194,7 +194,7 @@ public class EditLog {
     }
   }
 
-  public synchronized void createDependency(List<String> parents, List<String> children,
+  public synchronized void createDependency(List<Integer> parents, List<Integer> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework, 
       String frameworkVersion, DependencyType dependencyType, int depId) {
     if (INACTIVE) {
@@ -204,8 +204,8 @@ public class EditLog {
     try {
       DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_CREATE_DEPENDENCY);
-      Utils.writeStringList(parents, DOS);
-      Utils.writeStringList(children, DOS);
+      Utils.writeIntegerList(parents, DOS);
+      Utils.writeIntegerList(children, DOS);
       Utils.writeString(commandPrefix, DOS);
       Utils.writeByteBufferList(data, DOS);
       Utils.writeString(comment, DOS);

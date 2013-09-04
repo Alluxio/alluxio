@@ -485,28 +485,30 @@ public class MasterInfo {
       String commandPrefix, List<ByteBuffer> data, String comment,
       String framework, String frameworkVersion, DependencyType dependencyType)
           throws InvalidPathException, FileDoesNotExistException {
-    int depId = mDependencyCounter.incrementAndGet();
-    int ret = _createDependency(parents, children, commandPrefix, data, comment, framework,
-        frameworkVersion, dependencyType, depId);
+    synchronized (mRoot) {
+      LOG.info("ParentList: " + CommonUtils.listToString(parents));
+      List<Integer> parentsIdList = getFilesIds(parents);
+      List<Integer> childrenIdList = getFilesIds(children);
 
-    mJournal.getEditLog().createDependency(parents, children, commandPrefix, data, comment,
-        framework, frameworkVersion, dependencyType, depId);
-    mJournal.getEditLog().flush();
+      int depId = mDependencyCounter.incrementAndGet();
+      int ret = _createDependency(parentsIdList, childrenIdList, commandPrefix, data, comment,
+          framework, frameworkVersion, dependencyType, depId);
 
-    return ret;
+      mJournal.getEditLog().createDependency(parentsIdList, childrenIdList, commandPrefix, data, 
+          comment, framework, frameworkVersion, dependencyType, depId);
+      mJournal.getEditLog().flush();
+
+      return ret;
+    }
   }
 
-  public int _createDependency(List<String> parents, List<String> children,
+  int _createDependency(List<Integer> parentsIdList, List<Integer> childrenIdList,
       String commandPrefix, List<ByteBuffer> data, String comment,
       String framework, String frameworkVersion, DependencyType dependencyType,
       int dependencyId)
           throws InvalidPathException, FileDoesNotExistException {
     Dependency dep = null;
     synchronized (mRoot) {
-      LOG.info("ParentList: " + CommonUtils.listToString(parents));
-      List<Integer> parentsIdList = getFilesIds(parents);
-      List<Integer> childrenIdList = getFilesIds(children);
-
       Set<Integer> parentDependencyIds = new HashSet<Integer>();
       for (int k = 0; k < parentsIdList.size(); k ++) {
         int parentId = parentsIdList.get(k);
