@@ -110,7 +110,7 @@ public class EditLog {
           info._createDependency(Utils.readIntegerList(is), Utils.readIntegerList(is), 
               Utils.readString(is), Utils.readByteBufferList(is), Utils.readString(is),
               Utils.readString(is), Utils.readString(is),
-              DependencyType.getDependencyType(is.readInt()), is.readInt());
+              DependencyType.getDependencyType(is.readInt()), is.readInt(), is.readLong());
           break;
         }
         default :
@@ -196,7 +196,7 @@ public class EditLog {
 
   public synchronized void createDependency(List<Integer> parents, List<Integer> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework, 
-      String frameworkVersion, DependencyType dependencyType, int depId) {
+      String frameworkVersion, DependencyType dependencyType, int depId, long creationTimeMs) {
     if (INACTIVE) {
       return;
     }
@@ -213,6 +213,7 @@ public class EditLog {
       Utils.writeString(frameworkVersion, DOS);
       DOS.writeInt(dependencyType.getValue());
       DOS.writeInt(depId);
+      DOS.writeLong(creationTimeMs);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }

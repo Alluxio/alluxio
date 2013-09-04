@@ -491,11 +491,12 @@ public class MasterInfo {
       List<Integer> childrenIdList = getFilesIds(children);
 
       int depId = mDependencyCounter.incrementAndGet();
+      long creationTimeMs = System.currentTimeMillis();
       int ret = _createDependency(parentsIdList, childrenIdList, commandPrefix, data, comment,
-          framework, frameworkVersion, dependencyType, depId);
+          framework, frameworkVersion, dependencyType, depId, creationTimeMs);
 
       mJournal.getEditLog().createDependency(parentsIdList, childrenIdList, commandPrefix, data, 
-          comment, framework, frameworkVersion, dependencyType, depId);
+          comment, framework, frameworkVersion, dependencyType, depId, creationTimeMs);
       mJournal.getEditLog().flush();
 
       return ret;
@@ -505,7 +506,7 @@ public class MasterInfo {
   int _createDependency(List<Integer> parentsIdList, List<Integer> childrenIdList,
       String commandPrefix, List<ByteBuffer> data, String comment,
       String framework, String frameworkVersion, DependencyType dependencyType,
-      int dependencyId)
+      int dependencyId, long creationTimeMs)
           throws InvalidPathException, FileDoesNotExistException {
     Dependency dep = null;
     synchronized (mRoot) {
@@ -524,9 +525,9 @@ public class MasterInfo {
         }
       }
 
-      dep = new Dependency(mDependencyCounter.incrementAndGet(), parentsIdList,
-          childrenIdList, commandPrefix, data, comment, framework, frameworkVersion,
-          dependencyType, parentDependencyIds);
+      dep = new Dependency(dependencyId, parentsIdList, childrenIdList, commandPrefix, data,
+          comment, framework, frameworkVersion, dependencyType, parentDependencyIds,
+          creationTimeMs);
 
       List<Inode> childrenInodeList = new ArrayList<Inode>();
       for (int k = 0; k < childrenIdList.size(); k ++) {
@@ -679,6 +680,10 @@ public class MasterInfo {
     Queue<Inode> nodesQueue = new LinkedList<Inode>();
 
     synchronized (mRoot) {
+      for (Dependency dep : mDependencies.values()) {
+        createImageDependencyWriter(dep, os);
+      }
+
       createImageInodeWriter(mRoot, os);
       nodesQueue.add(mRoot);
       while (!nodesQueue.isEmpty()) {
@@ -723,6 +728,21 @@ public class MasterInfo {
         mInodeCounter.set(is.readInt());
         mCheckpointInfo.updateEditTransactionCounter(is.readLong());
         mCheckpointInfo.updateDependencyCounter(is.readInt());
+      } else if (type == Image.T_DEPENDENCY) {
+        Dependency dep = new Dependency(is.readInt(), Utils.readIntegerList(is),
+            Utils.readIntegerList(is), Utils.readString(is), Utils.readByteBufferList(is),
+            Utils.readString(is), Utils.readString(is), Utils.readString(is),
+            DependencyType.getDependencyType(is.readInt()), Utils.readIntegerList(is),
+            is.readLong());
+        dep.resetUncheckpointedChildrenFiles(Utils.readIntegerList(is));
+
+        mDependencies.put(dep.ID, dep);
+        if (!dep.hasCheckpointed()) {
+          mUncheckpointedDependencies.add(dep.ID);
+        }
+        for (int parentDependencyId: dep.PARENT_DEPENDENCIES) {
+          mDependencies.get(parentDependencyId).addChildrenDependency(dep.ID);
+        }
       } else {
         if (type > Image.T_INODE_RAW_TABLE) {
           throw new IOException("Corrupted image with unknown element type: " + type);
@@ -755,6 +775,7 @@ public class MasterInfo {
           tInode.setPin(isPin);
           tInode.setCache(isCache);
           tInode.setCheckpointPath(checkpointPath);
+          tInode.setDependencyId(is.readInt());
           inode = tInode;
         } else {
           int numberOfChildren = is.readInt();
@@ -795,6 +816,23 @@ public class MasterInfo {
     }
   }
 
+  private void createImageDependencyWriter(Dependency dep, DataOutputStream os)
+      throws IOException {
+    os.writeByte(Image.T_DEPENDENCY);
+    os.writeInt(dep.ID);
+    Utils.writeIntegerList(dep.PARENT_FILES, os);
+    Utils.writeIntegerList(dep.CHILDREN_FILES, os);
+    Utils.writeString(dep.COMMAND_PREFIX, os);
+    Utils.writeByteBufferList(dep.DATA, os);
+    Utils.writeString(dep.COMMENT, os);
+    Utils.writeString(dep.FRAMEWORK, os);
+    Utils.writeString(dep.FRAMEWORK_VERSION, os);
+    os.writeInt(dep.TYPE.getValue());
+    Utils.writeIntegerList(dep.PARENT_DEPENDENCIES, os);
+    os.writeLong(dep.CREATION_TIME_MS);
+    Utils.writeIntegerList(dep.getUncheckpointedChildrenFiles(), os);
+  }
+
   private void createImageInodeWriter(Inode inode, DataOutputStream os) throws IOException {
     if (inode.isFile()) {
       InodeFile file = (InodeFile) inode;
@@ -810,6 +848,7 @@ public class MasterInfo {
       os.writeBoolean(file.isPin());
       os.writeBoolean(file.isCache());
       Utils.writeString(file.getCheckpointPath(), os);
+      os.writeInt(file.getDependencyId());
     } else {
       InodeFolder folder = (InodeFolder) inode;
       if (folder.isRawTable()) {

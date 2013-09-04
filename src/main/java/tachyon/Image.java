@@ -16,6 +16,7 @@ public class Image {
   static final byte T_INODE_FILE = 1;
   static final byte T_INODE_FOLDER = 2;
   static final byte T_INODE_RAW_TABLE = 3;
+  static final byte T_DEPENDENCY = 4;
 
   private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
