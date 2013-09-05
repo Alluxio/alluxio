@@ -189,28 +189,31 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
-	// Using ContentSummary from Hadoop available across Hadoop 1 and 2. 
-	// Using SpaceQuota and SpaceConsumed for info 
-	ContentSummary summary = mFs.getContentSummary(new Path(path));
-	switch(type) {
-	case SPACE_TOTAL:
-		long capacity = summary.getSpaceQuota();
-		// if there is no SpaceQuota on the Tachyon root directory in HDFS, 
-		// then default capacity to the capacity of the entire HDFS cluster
-		if (capacity < 0 && mFs instanceof DistributedFileSystem) {
-			capacity = ((DistributedFileSystem)mFs).getDiskStatus().getCapacity();
-		}
-		return capacity;
-	case SPACE_USED:
-		return summary.getSpaceConsumed();
-	case SPACE_FREE:
-		capacity = summary.getSpaceQuota();
-		if (capacity < 0 && mFs instanceof DistributedFileSystem) {
-			return ((DistributedFileSystem)mFs).getDiskStatus().getRemaining();
-		}
-		return capacity - summary.getSpaceConsumed();
-	}
-	return -1;
+    // Using ContentSummary from Hadoop available across Hadoop 1 and 2. 
+    // Using SpaceQuota and SpaceConsumed for info 
+    ContentSummary summary = mFs.getContentSummary(new Path(path));
+    long capacity = summary.getSpaceQuota();
+    // if there is no SpaceQuota on the Tachyon root directory in HDFS, 
+    // then default capacity to the capacity of the entire HDFS cluster
+    if (capacity < 0 && mFs instanceof DistributedFileSystem) {
+      capacity = ((DistributedFileSystem)mFs).getDiskStatus().getCapacity();
+    }
+    switch(type) {
+      case SPACE_TOTAL:
+        return capacity;
+      case SPACE_USED:
+	return summary.getSpaceConsumed();
+      case SPACE_FREE:
+      	// check to see if space quota is enabled. if it isn't, go to HDFS and 
+      	// ask for how much is remaining. else, subtract space consumed from
+      	// the space quota 
+        if (summary.getSpaceQuota() < 0 && mFs instanceof DistributedFileSystem) {
+	  return ((DistributedFileSystem)mFs).getDiskStatus().getRemaining();
+        } else {
+          return capacity - summary.getSpaceConsumed();
+        }
+    }
+    return -1;
   }
 
   @Override
