@@ -153,6 +153,7 @@
   <build>
     <plugins>
       <plugin>
+<!--
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
         <version>1.2.1</version>
@@ -169,6 +170,7 @@
           </execution>
         </executions>
       </plugin>
+-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
