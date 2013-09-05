@@ -202,13 +202,13 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       case SPACE_TOTAL:
         return capacity;
       case SPACE_USED:
-	return summary.getSpaceConsumed();
+        return summary.getSpaceConsumed();
       case SPACE_FREE:
       	// check to see if space quota is enabled. if it isn't, go to HDFS and 
       	// ask for how much is remaining. else, subtract space consumed from
       	// the space quota 
         if (summary.getSpaceQuota() < 0 && mFs instanceof DistributedFileSystem) {
-	  return ((DistributedFileSystem)mFs).getDiskStatus().getRemaining();
+          return ((DistributedFileSystem)mFs).getDiskStatus().getRemaining();
         } else {
           return capacity - summary.getSpaceConsumed();
         }
