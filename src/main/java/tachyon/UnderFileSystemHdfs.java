@@ -13,6 +13,7 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
 /**
@@ -193,15 +194,23 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 	ContentSummary summary = mFs.getContentSummary(new Path(path));
 	switch(type) {
 	case SPACE_TOTAL:
-		return summary.getSpaceQuota();
-		break;
+		long capacity = summary.getSpaceQuota();
+		// if there is no SpaceQuota on the Tachyon root directory in HDFS, 
+		// then default capacity to the capacity of the entire HDFS cluster
+		if (capacity < 0 && mFs instanceof DistributedFileSystem) {
+			capacity = ((DistributedFileSystem)mFs).getDiskStatus().getCapacity();
+		}
+		return capacity;
 	case SPACE_USED:
 		return summary.getSpaceConsumed();
-		break;
 	case SPACE_FREE:
-		return summary.getSpaceQuota() - summary.getSpaceConsumed();
-		break;
+		capacity = summary.getSpaceQuota();
+		if (capacity < 0 && mFs instanceof DistributedFileSystem) {
+			return ((DistributedFileSystem)mFs).getDiskStatus().getRemaining();
+		}
+		return capacity - summary.getSpaceConsumed();
 	}
+	return -1;
   }
 
   @Override
