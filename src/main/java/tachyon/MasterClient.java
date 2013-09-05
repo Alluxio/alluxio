@@ -738,6 +738,7 @@ public class MasterClient {
       connect();
       try {
         mClient.user_reportLostFile(fileId);
+        return;
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
         mIsConnected = false;
@@ -753,6 +754,7 @@ public class MasterClient {
       connect();
       try {
         mClient.user_requestFilesInDependency(depId);
+        return;
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
         mIsConnected = false;
