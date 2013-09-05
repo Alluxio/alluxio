@@ -7,6 +7,5 @@ conf/tachyon-env.sh
 data/
 journal/
 logs/
-src/main/java/tachyon/thrift
 tachyon.iml
 target/
