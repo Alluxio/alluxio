@@ -92,11 +92,11 @@
                   <!-- <th>${usedCapacity}</th> -->
                   <th><%= request.getAttribute("diskUsedCapacity") %></th>
                 </tr>
-		<tr>
-		  <th>Disk Free:</th>
-		  <!-- <th>${usedCapacity}</th> -->
-		  <th><%= request.getAttribute("diskFreeCapacity") %></th>
-		</tr>
+                <tr>
+                  <th>Disk Free:</th>
+                  <!-- <th>${usedCapacity}</th> -->
+                  <th><%= request.getAttribute("diskFreeCapacity") %></th>
+                </tr>
               </tbody>
             </table>
           </div>
