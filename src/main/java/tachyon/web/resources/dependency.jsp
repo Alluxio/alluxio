@@ -31,7 +31,7 @@
     <h3 class="offset2">Dependency info for <%= request.getAttribute("filePath") %>.</h3>
     <div class="well span5">
       <table class="table">
-        <caption>Parent Dependencies</caption>
+        <caption>Parent Files</caption>
         <tbody>
      <!-- <c:forEach var="parent" items="${parentFileNames}">
             <tr><th><c:out value=${parent}/></th></tr>
@@ -44,7 +44,7 @@
     </div>
     <div class="well offset1 span5">
       <table class="table">
-        <caption>Child Dependencies</caption>
+        <caption>Children Files</caption>
         <tbody>
      <!-- <c:forEach var="child" items="${childrenFileNames}">
             <tr><th><c:out value=${child}/></th></tr>
