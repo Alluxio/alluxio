@@ -9,6 +9,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1127,5 +1128,66 @@ public class TachyonFS {
       mConnected = false;
       throw new IOException(e);
     }
+  }
+
+  public synchronized List<NetAddress> getFileNetAddresses(int fileId)
+      throws IOException {
+    connect();
+    if (!mConnected) {
+      return null;
+    }
+
+    List<NetAddress> ret = new ArrayList<NetAddress>();
+    try {
+      List<ClientBlockInfo> blocks = mMasterClient.user_getFileBlocks(fileId);
+      Set<NetAddress> locationSet = new HashSet<NetAddress>();
+      for (ClientBlockInfo info: blocks) {
+        locationSet.addAll(info.getLocations());
+      }
+      ret.addAll(locationSet);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+    return ret;
+  }
+
+  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fileIds) 
+      throws IOException {
+    List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
+    for (int k = 0; k < fileIds.size(); k ++) {
+      ret.add(getFileNetAddresses(fileIds.get(k)));
+    }
+
+    return ret;
+  }
+
+  public synchronized List<String> getFileHosts(int fileId)
+      throws IOException {
+    connect();
+    if (!mConnected) {
+      return null;
+    }
+
+    List<NetAddress> adresses = getFileNetAddresses(fileId);
+    List<String> ret = new ArrayList<String>(adresses.size());
+    for (NetAddress address: adresses) {
+      ret.add(address.mHost);
+      if (address.mHost.endsWith(".ec2.internal")) {
+        ret.add(address.mHost.substring(0, address.mHost.length() - 13));
+      }
+    }
+
+    return ret;
+  }
+
+  public synchronized List<List<String>> getFilesHosts(List<Integer> fileIds) 
+      throws IOException {
+    List<List<String>> ret = new ArrayList<List<String>>();
+    for (int k = 0; k < fileIds.size(); k ++) {
+      ret.add(getFileHosts(fileIds.get(k)));
+    }
+
+    return ret;
   }
 }
