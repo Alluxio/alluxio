@@ -116,7 +116,7 @@ public final class CommonUtils {
     return fileId;
   }
 
-  public static int getMB(int bytes) {
+  public static long getMB(long bytes) {
     return bytes / Constants.MB;
   }
 
