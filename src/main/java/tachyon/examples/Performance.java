@@ -37,7 +37,7 @@ public class Performance {
   private static int THREADS = -1;
   private static int FILES = -1;
   private static boolean DEBUG_MODE = false;
-  private static int FILE_BYTES = -1;
+  private static long FILE_BYTES = -1;
   private static long FILES_BYTES = -1;
   private static String RESULT_PREFIX = null;
   private static long[] Results = new long[RESULT_ARRAY_SIZE];
@@ -98,7 +98,7 @@ public class Performance {
         ByteBuffer dst = null;
         RandomAccessFile file = null;
         if (mMemoryOnly) {
-          dst = ByteBuffer.allocateDirect(FILE_BYTES);
+          dst = ByteBuffer.allocateDirect((int) FILE_BYTES);
         }
         for (int times = mLeft; times < mRight; times ++) {
           long startTimeMs = System.currentTimeMillis();
@@ -123,7 +123,7 @@ public class Performance {
         ByteBuffer dst = null;
         RandomAccessFile file = null;
         if (mMemoryOnly) {
-          dst = ByteBuffer.allocateDirect(FILE_BYTES);
+          dst = ByteBuffer.allocateDirect((int) FILE_BYTES);
         }
         for (int times = mLeft; times < mRight; times ++) {
           long startTimeMs = System.currentTimeMillis();
