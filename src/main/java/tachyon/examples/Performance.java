@@ -33,7 +33,7 @@ public class Performance {
   private static String MASTER_ADDRESS = null;
   private static String FILE_NAME = null;
   private static int BLOCK_SIZE_BYTES = -1;
-  private static int BLOCKS_PER_FILE = -1;
+  private static long BLOCKS_PER_FILE = -1;
   private static int THREADS = -1;
   private static int FILES = -1;
   private static boolean DEBUG_MODE = false;
@@ -359,7 +359,7 @@ public class Performance {
     MASTER_ADDRESS = args[0];
     FILE_NAME = args[1];
     BLOCK_SIZE_BYTES = Integer.parseInt(args[2]);
-    BLOCKS_PER_FILE = Integer.parseInt(args[3]);
+    BLOCKS_PER_FILE = Long.parseLong(args[3]);
     DEBUG_MODE = ("true".equals(args[4]));
     THREADS = Integer.parseInt(args[5]);
     FILES = Integer.parseInt(args[6]) * THREADS;
