@@ -36,27 +36,34 @@ public class TextSerializerComparsion {
     }
     sInputFile = args[0];
     getData(sInputFile);
+    //    createJavaPerfData();
+    createKryoPerfData();
 
     for (int k = 0; k < 1000000; k ++);
+    int times = 3; 
     long startTimeMs = System.currentTimeMillis();
-    int cnt = TextPerf();
+    int cnt = 0;
+    for (int k = 0; k < times; k ++) {
+      cnt = TextPerf();
+    }
     System.out.println("Text Perf " + cnt + " took " + (System.currentTimeMillis() - startTimeMs) + " ms.");
-
-    createJavaPerfData();
-    createKryoPerfData();
 
     getData(sInputFile + ".java");
 
     for (int k = 0; k < 1000000; k ++);
     startTimeMs = System.currentTimeMillis();
-    cnt = JavaPerf();
+    for (int k = 0; k < times; k ++) {
+      cnt = JavaPerf();
+    }
     System.out.println("Java Perf " + cnt + " took " + (System.currentTimeMillis() - startTimeMs) + " ms.");
 
     getData(sInputFile + ".kryo");
 
     for (int k = 0; k < 1000000; k ++);
     startTimeMs = System.currentTimeMillis();
-    cnt = KryoPerf();
+    for (int k = 0; k < times; k ++) {
+      cnt = KryoPerf();
+    }
     System.out.println("Kryo Perf " + cnt + " took " + (System.currentTimeMillis() - startTimeMs) + " ms.");
 
     System.exit(0);
@@ -69,6 +76,8 @@ public class TextSerializerComparsion {
     ByteArrayInputStream is = new ByteArrayInputStream(sData);
     Kryo kryo = new Kryo();
     kryo.register(Text.class);
+    kryo.register(String.class);
+    kryo.register(Byte.class);
     Input input = new Input(is);
 
     int cnt = 0;
@@ -123,6 +132,8 @@ public class TextSerializerComparsion {
 
     Kryo kryo = new Kryo();
     kryo.register(Text.class);
+    kryo.register(String.class);
+    kryo.register(Byte.class);
     Output output = null;
     try {
       output = new Output(new FileOutputStream(sInputFile + ".kryo"));
