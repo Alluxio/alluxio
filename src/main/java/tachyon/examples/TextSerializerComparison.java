@@ -69,7 +69,7 @@ public class TextSerializerComparison {
     sInputFile = args[0];
     //    sInputFile = "/home/haoyuan/Tachyon/data/0";
     getData(sInputFile);
-    //    createJavaPerfData();
+    createJavaPerfData();
     createKryoPerfData();
     createKryoCustomPerfData();
 
@@ -129,9 +129,6 @@ public class TextSerializerComparison {
       if (text == null) {
         break;
       }
-      //      if (cnt < 30) {
-      //        System.out.println(text);
-      //      }
       cnt ++;
     }
     input.close();
@@ -155,9 +152,6 @@ public class TextSerializerComparison {
       if (text == null) {
         break;
       }
-      //      if (cnt < 30) {
-      //        System.out.println(text);
-      //      }
       cnt ++;
     }
     input.close();
