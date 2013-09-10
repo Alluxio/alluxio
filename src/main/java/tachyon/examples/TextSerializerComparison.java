@@ -30,38 +30,37 @@ public class TextSerializerComparison {
 
   public static class KryoTextSerializer extends Serializer<Text> {
     private Text mText = new Text();
+    private Input mInput = null;
+    private DataInputStream mDis = null;
 
     @Override
     public void write(Kryo kryo, Output output, Text text) {
       try {
         text.write(new DataOutputStream(output));
       } catch (IOException e) {
-        // TODO Auto-generated catch block
         e.printStackTrace();
       }
-      //      output.writeInt(text.getLength());
-      //      output.write(text.getBytes(), 0, text.getLength());
     }
 
     @Override
     public Text read(Kryo kryo, Input input, Class<Text> textClass) {
-      //      System.out.println("Reading data .....");
-      //      int length = input.readInt();
-      //      input.read(buf, 0, length);
+      if (input != mInput) {
+        mInput = input;
+        mDis = new DataInputStream(mInput);
+      }
+
       try {
-        mText.readFields(new DataInputStream(input));
+        mText.readFields(mDis);
       } catch (IOException e) {
         e.printStackTrace();
         return null;
       }
-      //      mText.set(buf, 0, length);
-      //      System.out.println(mText);
+
       return mText;
     }
   }
 
-  public static void main(String[] args) 
-      throws IOException, ClassNotFoundException {
+  public static void main(String[] args) throws IOException, ClassNotFoundException {
     if (args.length != 1) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar tachyon.examples.TextSerializerComparison " + "<FileName>\n");
@@ -192,7 +191,7 @@ public class TextSerializerComparison {
   }
 
   private static void createKryoCustomPerfData() throws IOException {
-    System.out.println("CreateKryoPerfData.");
+    System.out.println("CreateKryoCustomPerfData.");
     Text text = new Text();
 
     Kryo kryo = new Kryo();
