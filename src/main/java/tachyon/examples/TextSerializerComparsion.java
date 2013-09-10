@@ -48,15 +48,6 @@ public class TextSerializerComparsion {
     }
     System.out.println("Text Perf " + cnt + " took " + (System.currentTimeMillis() - startTimeMs) + " ms.");
 
-    getData(sInputFile + ".java");
-
-    for (int k = 0; k < 1000000; k ++);
-    startTimeMs = System.currentTimeMillis();
-    for (int k = 0; k < times; k ++) {
-      cnt = JavaPerf();
-    }
-    System.out.println("Java Perf " + cnt + " took " + (System.currentTimeMillis() - startTimeMs) + " ms.");
-
     getData(sInputFile + ".kryo");
 
     for (int k = 0; k < 1000000; k ++);
@@ -65,6 +56,15 @@ public class TextSerializerComparsion {
       cnt = KryoPerf();
     }
     System.out.println("Kryo Perf " + cnt + " took " + (System.currentTimeMillis() - startTimeMs) + " ms.");
+
+    getData(sInputFile + ".java");
+
+    for (int k = 0; k < 1000000; k ++);
+    startTimeMs = System.currentTimeMillis();
+    for (int k = 0; k < times; k ++) {
+      cnt = JavaPerf();
+    }
+    System.out.println("Java Perf " + cnt + " took " + (System.currentTimeMillis() - startTimeMs) + " ms.");
 
     System.exit(0);
   }
