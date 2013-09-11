@@ -376,6 +376,10 @@ public class Performance {
         BLOCKS_PER_FILE, CommonUtils.getMB(FILE_BYTES), 
         UserConf.get().FILE_BUFFER_BYTES / 1024, BASE_FILE_NUMBER);
 
+    for (int k = 0; k < 10000000; k ++) {
+      // Warmup
+    }
+
     if (testCase == 1) {
       RESULT_PREFIX = "TachyonFilesWriteTest " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
