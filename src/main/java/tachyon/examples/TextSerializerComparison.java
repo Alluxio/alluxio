@@ -17,10 +17,10 @@ import org.apache.hadoop.io.ObjectWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.util.LineReader;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.Serializer;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
+//import com.esotericsoftware.kryo.Kryo;
+//import com.esotericsoftware.kryo.Serializer;
+//import com.esotericsoftware.kryo.io.Input;
+//import com.esotericsoftware.kryo.io.Output;
 
 import tachyon.Version;
 
@@ -28,37 +28,37 @@ public class TextSerializerComparison {
   public static String sInputFile;
   public static byte[] sData;
 
-  public static class KryoTextSerializer extends Serializer<Text> {
-    private Text mText = new Text();
-    private Input mInput = null;
-    private DataInputStream mDis = null;
-
-    @Override
-    public void write(Kryo kryo, Output output, Text text) {
-      try {
-        text.write(new DataOutputStream(output));
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
-
-    @Override
-    public Text read(Kryo kryo, Input input, Class<Text> textClass) {
-      if (input != mInput) {
-        mInput = input;
-        mDis = new DataInputStream(mInput);
-      }
-
-      try {
-        mText.readFields(mDis);
-      } catch (IOException e) {
-        e.printStackTrace();
-        return null;
-      }
-
-      return mText;
-    }
-  }
+//  public static class KryoTextSerializer extends Serializer<Text> {
+//    private Text mText = new Text();
+//    private Input mInput = null;
+//    private DataInputStream mDis = null;
+//
+//    @Override
+//    public void write(Kryo kryo, Output output, Text text) {
+//      try {
+//        text.write(new DataOutputStream(output));
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//      }
+//    }
+//
+//    @Override
+//    public Text read(Kryo kryo, Input input, Class<Text> textClass) {
+//      if (input != mInput) {
+//        mInput = input;
+//        mDis = new DataInputStream(mInput);
+//      }
+//
+//      try {
+//        mText.readFields(mDis);
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        return null;
+//      }
+//
+//      return mText;
+//    }
+//  }
 
   public static void main(String[] args) throws IOException, ClassNotFoundException {
     if (args.length != 1) {
@@ -70,20 +70,20 @@ public class TextSerializerComparison {
     //    sInputFile = "/home/haoyuan/Tachyon/data/0";
     getData(sInputFile);
     createJavaPerfData();
-    createKryoPerfData();
-    createKryoCustomPerfData();
+//    createKryoPerfData();
+//    createKryoCustomPerfData();
 
     int times = 3;
     long startTimeMs;
     int cnt = 0;
 
-    getData(sInputFile + ".kryotext");
-    for (int k = 0; k < 1000000; k ++);
-    startTimeMs = System.currentTimeMillis();
-    for (int k = 0; k < times; k ++) {
-      cnt = KryoCustomPerf();
-    }
-    System.out.println("Kryo Custom Text Perf " + cnt + " took " + (System.currentTimeMillis() - startTimeMs) + " ms.");
+//    getData(sInputFile + ".kryotext");
+//    for (int k = 0; k < 1000000; k ++);
+//    startTimeMs = System.currentTimeMillis();
+//    for (int k = 0; k < times; k ++) {
+//      cnt = KryoCustomPerf();
+//    }
+//    System.out.println("Kryo Custom Text Perf " + cnt + " took " + (System.currentTimeMillis() - startTimeMs) + " ms.");
 
     getData(sInputFile);
     for (int k = 0; k < 1000000; k ++);
@@ -93,13 +93,13 @@ public class TextSerializerComparison {
     }
     System.out.println("Text Perf " + cnt + " took " + (System.currentTimeMillis() - startTimeMs) + " ms.");
 
-    getData(sInputFile + ".kryo");
-    for (int k = 0; k < 1000000; k ++);
-    startTimeMs = System.currentTimeMillis();
-    for (int k = 0; k < times; k ++) {
-      cnt = KryoPerf();
-    }
-    System.out.println("Kryo Perf " + cnt + " took " + (System.currentTimeMillis() - startTimeMs) + " ms.");
+//    getData(sInputFile + ".kryo");
+//    for (int k = 0; k < 1000000; k ++);
+//    startTimeMs = System.currentTimeMillis();
+//    for (int k = 0; k < times; k ++) {
+//      cnt = KryoPerf();
+//    }
+//    System.out.println("Kryo Perf " + cnt + " took " + (System.currentTimeMillis() - startTimeMs) + " ms.");
 
     getData(sInputFile + ".java");
     for (int k = 0; k < 1000000; k ++);
@@ -112,51 +112,51 @@ public class TextSerializerComparison {
     System.exit(0);
   }
 
-  private static int KryoCustomPerf() {
-    System.out.println("Starting Kryo Customized Perf.");
-    Text text = new Text();
-
-    ByteArrayInputStream is = new ByteArrayInputStream(sData);
-    Kryo kryo = new Kryo();
-    kryo.register(Text.class, new KryoTextSerializer());
-    kryo.register(String.class);
-    kryo.register(Byte.class);
-    Input input = new Input(is);
-
-    int cnt = 0;
-    while (input.canReadInt()) {
-      text = kryo.readObject(input, Text.class);
-      if (text == null) {
-        break;
-      }
-      cnt ++;
-    }
-    input.close();
-    return cnt;
-  }
-
-  private static int KryoPerf() {
-    System.out.println("Starting Kryo Perf.");
-    Text text = new Text();
-
-    ByteArrayInputStream is = new ByteArrayInputStream(sData);
-    Kryo kryo = new Kryo();
-    kryo.register(Text.class);
-    kryo.register(String.class);
-    kryo.register(Byte.class);
-    Input input = new Input(is);
-
-    int cnt = 0;
-    while (input.canReadInt()) {
-      text = kryo.readObject(input, Text.class);
-      if (text == null) {
-        break;
-      }
-      cnt ++;
-    }
-    input.close();
-    return cnt;
-  }
+//  private static int KryoCustomPerf() {
+//    System.out.println("Starting Kryo Customized Perf.");
+//    Text text = new Text();
+//
+//    ByteArrayInputStream is = new ByteArrayInputStream(sData);
+//    Kryo kryo = new Kryo();
+//    kryo.register(Text.class, new KryoTextSerializer());
+//    kryo.register(String.class);
+//    kryo.register(Byte.class);
+//    Input input = new Input(is);
+//
+//    int cnt = 0;
+//    while (input.canReadInt()) {
+//      text = kryo.readObject(input, Text.class);
+//      if (text == null) {
+//        break;
+//      }
+//      cnt ++;
+//    }
+//    input.close();
+//    return cnt;
+//  }
+//
+//  private static int KryoPerf() {
+//    System.out.println("Starting Kryo Perf.");
+//    Text text = new Text();
+//
+//    ByteArrayInputStream is = new ByteArrayInputStream(sData);
+//    Kryo kryo = new Kryo();
+//    kryo.register(Text.class);
+//    kryo.register(String.class);
+//    kryo.register(Byte.class);
+//    Input input = new Input(is);
+//
+//    int cnt = 0;
+//    while (input.canReadInt()) {
+//      text = kryo.readObject(input, Text.class);
+//      if (text == null) {
+//        break;
+//      }
+//      cnt ++;
+//    }
+//    input.close();
+//    return cnt;
+//  }
 
   private static int JavaPerf() throws ClassNotFoundException {
     System.out.println("Starting Java Perf.");
@@ -184,69 +184,69 @@ public class TextSerializerComparison {
     return cnt;
   }
 
-  private static void createKryoCustomPerfData() throws IOException {
-    System.out.println("CreateKryoCustomPerfData.");
-    Text text = new Text();
-
-    Kryo kryo = new Kryo();
-    kryo.register(Text.class, new KryoTextSerializer());
-    kryo.register(String.class);
-    kryo.register(Byte.class);
-    Output output = null;
-    try {
-      output = new Output(new FileOutputStream(sInputFile + ".kryotext"));
-    } catch (FileNotFoundException e1) {
-      e1.printStackTrace();
-    }
-
-    ByteArrayInputStream is = new ByteArrayInputStream(sData);
-    LineReader reader = new LineReader(is);
-    while (true) {
-      try {
-        if (reader.readLine(text) == 0) {
-          break;
-        }
-        kryo.writeObject(output, text);
-      } catch (IOException e) {
-        e.printStackTrace();
-        break;
-      }
-    }
-    reader.close();
-    output.close();
-  }
-
-  private static void createKryoPerfData() throws IOException {
-    System.out.println("CreateKryoPerfData.");
-    Text text = new Text();
-
-    Kryo kryo = new Kryo();
-    kryo.register(Text.class);
-    kryo.register(String.class);
-    kryo.register(Byte.class);
-    Output output = null;
-    try {
-      output = new Output(new FileOutputStream(sInputFile + ".kryo"));
-    } catch (FileNotFoundException e1) {
-      e1.printStackTrace();
-    }
-
-    ByteArrayInputStream is = new ByteArrayInputStream(sData);
-    LineReader reader = new LineReader(is);
-    while (true) {
-      try {
-        if (reader.readLine(text) == 0) {
-          break;
-        }
-        kryo.writeObject(output, text);
-      } catch (IOException e) {
-        e.printStackTrace();
-        break;
-      }
-    }
-    reader.close();
-    output.close();
-  }
+//  private static void createKryoCustomPerfData() throws IOException {
+//    System.out.println("CreateKryoCustomPerfData.");
+//    Text text = new Text();
+//
+//    Kryo kryo = new Kryo();
+//    kryo.register(Text.class, new KryoTextSerializer());
+//    kryo.register(String.class);
+//    kryo.register(Byte.class);
+//    Output output = null;
+//    try {
+//      output = new Output(new FileOutputStream(sInputFile + ".kryotext"));
+//    } catch (FileNotFoundException e1) {
+//      e1.printStackTrace();
+//    }
+//
+//    ByteArrayInputStream is = new ByteArrayInputStream(sData);
+//    LineReader reader = new LineReader(is);
+//    while (true) {
+//      try {
+//        if (reader.readLine(text) == 0) {
+//          break;
+//        }
+//        kryo.writeObject(output, text);
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        break;
+//      }
+//    }
+//    reader.close();
+//    output.close();
+//  }
+//
+//  private static void createKryoPerfData() throws IOException {
+//    System.out.println("CreateKryoPerfData.");
+//    Text text = new Text();
+//
+//    Kryo kryo = new Kryo();
+//    kryo.register(Text.class);
+//    kryo.register(String.class);
+//    kryo.register(Byte.class);
+//    Output output = null;
+//    try {
+//      output = new Output(new FileOutputStream(sInputFile + ".kryo"));
+//    } catch (FileNotFoundException e1) {
+//      e1.printStackTrace();
+//    }
+//
+//    ByteArrayInputStream is = new ByteArrayInputStream(sData);
+//    LineReader reader = new LineReader(is);
+//    while (true) {
+//      try {
+//        if (reader.readLine(text) == 0) {
+//          break;
+//        }
+//        kryo.writeObject(output, text);
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        break;
+//      }
+//    }
+//    reader.close();
+//    output.close();
+//  }
 
   private static void createJavaPerfData() throws FileNotFoundException, IOException {
     System.out.println("CreateJavaPerfData.");
