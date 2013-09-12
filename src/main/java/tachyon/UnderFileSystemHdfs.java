@@ -194,11 +194,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     if (mFs instanceof DistributedFileSystem) {
       switch(type) {
         case SPACE_TOTAL:
-          return ((DistributedFileSystem)mFs).getDiskStatus().getCapacity();
+          return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
         case SPACE_USED:
-          return ((DistributedFileSystem)mFs).getDiskStatus().getDfsUsed();
+          return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
         case SPACE_FREE:
-          return ((DistributedFileSystem)mFs).getDiskStatus().getRemaining();
+          return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
       }
     }
     return -1;
