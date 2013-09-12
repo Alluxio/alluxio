@@ -113,6 +113,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("usedCapacity", CommonUtils.getSizeFromBytes(mMasterInfo.getUsedBytes()));
       
+    request.setAttribute("freeCapacity", CommonUtils.getSizeFromBytes((mMasterInfo.getCapacityBytes()
+      - mMasterInfo.getUsedBytes()));
 
     long sizeBytes = mMasterInfo.getUnderFsCapacityBytes();
     if (sizeBytes >= 0) {
