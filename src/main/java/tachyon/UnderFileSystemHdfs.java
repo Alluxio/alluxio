@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
-import org.apache.hadoop.fs.ContentSummary;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -189,29 +188,18 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
-    // Using ContentSummary from Hadoop available across Hadoop 1 and 2. 
-    // Using SpaceQuota and SpaceConsumed for info 
-    ContentSummary summary = mFs.getContentSummary(new Path(path));
-    long capacity = summary.getSpaceQuota();
-    // if there is no SpaceQuota on the Tachyon root directory in HDFS, 
-    // then default capacity to the capacity of the entire HDFS cluster
-    if (capacity < 0 && mFs instanceof DistributedFileSystem) {
-      capacity = ((DistributedFileSystem)mFs).getDiskStatus().getCapacity();
-    }
-    switch(type) {
-      case SPACE_TOTAL:
-        return capacity;
-      case SPACE_USED:
-        return summary.getSpaceConsumed();
-      case SPACE_FREE:
-      	// check to see if space quota is enabled. if it isn't, go to HDFS and 
-      	// ask for how much is remaining. else, subtract space consumed from
-      	// the space quota 
-        if (summary.getSpaceQuota() < 0 && mFs instanceof DistributedFileSystem) {
+    long capacity = -1;
+    // Ignoring the path given, will give information for entire cluster
+    // as Tachyon can load/store data out of entire HDFS cluster
+    if (mFs instanceof DistributedFileSystem) {
+      switch(type) {
+        case SPACE_TOTAL:
+          return ((DistributedFileSystem)mFs).getDiskStatus().getCapacity();
+        case SPACE_USED:
+          return ((DistributedFileSystem)mFs).getDiskStatus().getDfsUsed();
+        case SPACE_FREE:
           return ((DistributedFileSystem)mFs).getDiskStatus().getRemaining();
-        } else {
-          return capacity - summary.getSpaceConsumed();
-        }
+      }
     }
     return -1;
   }
