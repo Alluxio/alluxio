@@ -4,30 +4,36 @@
 
 # cd /root/tachyon;
 
-mkdir -p results;
+TACH_JAR=/home/haoyuan/Tachyon/tachyon-haoyuan/target/tachyon-0.3.0-SNAPSHOT-jar-with-dependencies.jar
 
-mem_size=2g
+RESULT_FOLDER=/home/haoyuan/Tachyon/tachyon-haoyuan/results
+
+mkdir -p $RESULT_FOLDER
+
+JVM_SIZE=2g
 
 MASTER_IP=localhost:19998
 
 HOSTNAME=`hostname`
 
-PATH=hdfs://localhost:54310/performance/$HOSTNAME_
+# PATH=hdfs://localhost:54310/performance/$HOSTNAME_
+PATH=/performance/$HOSTNAME_
 
 JAVA=/home/haoyuan/tools/jdk1.7.0_25/bin/java
+
 # BLOCKS=4096
 BLOCKS=64
 
-for task in {8..8}
+for task in {1..1}
 do
   sync && echo 3 > /proc/sys/vm/drop_caches
   for i in {0..1}
   do
     j=$(($i*1))
-    echo $JAVA -Xmx$mem_size -Xms$mem_size -cp target/tachyon-0.3.0-SNAPSHOT-jar-with-dependencies.jar \
-      tachyon.examples.Performance $MASTER_IP $PATH 262144 $BLOCKS false 1 1 $task $j "&> results/Task_$task\_$i\_$HOSTNAME.txt" \&
-    $JAVA -Xmx$mem_size -Xms$mem_size -cp target/tachyon-0.3.0-SNAPSHOT-jar-with-dependencies.jar \
-      tachyon.examples.Performance $MASTER_IP $PATH 262144 $BLOCKS false 1 1 $task $j &> results/Task_$task\_$i\_$HOSTNAME.txt &
+    echo $JAVA -Xmx$JVM_SIZE -Xms$JVM_SIZE -cp $TACH_JAR tachyon.examples.Performance \
+      $MASTER_IP $PATH 262144 $BLOCKS false 1 1 $task $j "&> $RESULT_FOLDER/Task_$task\_$i\_$HOSTNAME.txt" \&
+    $JAVA -Xmx$JVM_SIZE -Xms$JVM_SIZE -cp $TACH_JAR tachyon.examples.Performance \
+      $MASTER_IP $PATH 262144 $BLOCKS false 1 1 $task $j &> $RESULT_FOLDER/Task_$task\_$i\_$HOSTNAME.txt &
   done
   # sleep 1
 done
