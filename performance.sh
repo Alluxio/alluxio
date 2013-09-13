@@ -16,8 +16,8 @@ MASTER_IP=localhost:19998
 
 HOSTNAME=`hostname`
 
-# PATH=hdfs://localhost:54310/performance/$HOSTNAME_
-PATH=/performance/$HOSTNAME_
+# DATA_PATH="hdfs://localhost:54310/performance/$HOSTNAME-"
+DATA_PATH="/performance/$HOSTNAME-"
 
 JAVA=/home/haoyuan/tools/jdk1.7.0_25/bin/java
 
@@ -31,9 +31,9 @@ do
   do
     j=$(($i*1))
     echo $JAVA -Xmx$JVM_SIZE -Xms$JVM_SIZE -cp $TACH_JAR tachyon.examples.Performance \
-      $MASTER_IP $PATH 262144 $BLOCKS false 1 1 $task $j "&> $RESULT_FOLDER/Task_$task\_$i\_$HOSTNAME.txt" \&
+      $MASTER_IP $DATA_PATH 262144 $BLOCKS false 1 1 $task $j "&> $RESULT_FOLDER/Task_$task\_$i\_$HOSTNAME.txt" \&
     $JAVA -Xmx$JVM_SIZE -Xms$JVM_SIZE -cp $TACH_JAR tachyon.examples.Performance \
-      $MASTER_IP $PATH 262144 $BLOCKS false 1 1 $task $j &> $RESULT_FOLDER/Task_$task\_$i\_$HOSTNAME.txt &
+      $MASTER_IP $DATA_PATH 262144 $BLOCKS false 1 1 $task $j &> $RESULT_FOLDER/Task_$task\_$i\_$HOSTNAME.txt &
   done
   # sleep 1
 done
