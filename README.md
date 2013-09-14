@@ -1,7 +1,7 @@
 Tachyon
 =======
 
-The master branch is in version 0.3.0-SNAPSHOT: [![Build Status](https://amplab.cs.berkeley.edu/jenkins/job/Tachyon-Hadoop1/badge/icon)](https://amplab.cs.berkeley.edu/jenkins/job/Tachyon-Hadoop1/)
+The master branch is in version 0.3.0-SNAPSHOT:
 
 Project Homepage: http://www.tachyonproject.org
 
