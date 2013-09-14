@@ -14,7 +14,7 @@ HOSTLIST=$bin/../conf/slaves
 
 for slave in `cat "$HOSTLIST"|sed  "s/#.*$//;/^$/d"`; do
   ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no $slave $"${@// /\\ }" 2>&1 | sed "s/^/$slave: /" &
-  sleep 0.02
+  sleep 0.001
 done
 
 wait
