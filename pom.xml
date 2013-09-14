@@ -367,8 +367,8 @@
       <properties>
         <classifier>hadoop3</classifier>
         <hadoop.major.version>MRv1</hadoop.major.version>
-        <hadoop.version>2.0.0-mr1-cdh4.3.0</hadoop.version>
-        <hadoop.version.minor>2.0.0-cdh4.3.0</hadoop.version.minor>
+        <hadoop.version>2.0.0-mr1-cdh4.2.0</hadoop.version>
+        <hadoop.version.minor>2.0.0-cdh4.2.0</hadoop.version.minor>
       </properties>
       <dependencies>
         <dependency>
