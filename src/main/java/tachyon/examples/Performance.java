@@ -290,6 +290,7 @@ public class Performance {
       Configuration tConf = new Configuration();
       tConf.set("fs.default.name", FILE_NAME);
       tConf.set("fs.defaultFS", FILE_NAME);
+      tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
 //      tConf.set("fs.default.name", "hdfs://localhost:54310");
 //      tConf.addResource("/home/haoyuan/Tachyon/hadoop-1.0.4/conf/core-site.xml");
       FileSystem fs = FileSystem.get(tConf);
