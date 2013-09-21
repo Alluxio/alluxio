@@ -186,18 +186,18 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     return fs.getBlockSize();
   }
 
-   @Override
+  @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     // Ignoring the path given, will give information for entire cluster
     // as Tachyon can load/store data out of entire HDFS cluster
     if (mFs instanceof DistributedFileSystem) {
       switch(type) {
-        case SPACE_TOTAL:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
-        case SPACE_USED:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
-        case SPACE_FREE:
-          return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
+      case SPACE_TOTAL:
+        return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
+      case SPACE_USED:
+        return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
+      case SPACE_FREE:
+        return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
       }
     }
     return -1;
