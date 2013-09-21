@@ -7,11 +7,13 @@ import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
+import org.apache.hadoop.fs.ContentSummary;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
 /**
@@ -187,8 +189,18 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
-    // TODO Hadoop 1.x does not provide user API to get this. Hadoop 2.x provides.
-    // Use JAVA reflection to get the space info for Hadoop 2.x
+    // Ignoring the path given, will give information for entire cluster
+    // as Tachyon can load/store data out of entire HDFS cluster
+    if (mFs instanceof DistributedFileSystem) {
+      switch(type) {
+        case SPACE_TOTAL:
+          return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
+        case SPACE_USED:
+          return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
+        case SPACE_FREE:
+          return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
+      }
+    }
     return -1;
   }
 
