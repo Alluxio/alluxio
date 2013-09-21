@@ -83,6 +83,11 @@
                   <th><%= request.getAttribute("usedCapacity") %></th>
                 </tr>
                 <tr>
+                  <th>Memory Free:</th>
+                  <!-- <th>${freeCapacity}</th> -->
+                  <th><%= request.getAttribute("freeCapacity") %></th>
+                </tr>
+                <tr>
                   <th>Disk Capacity:</th>
                   <!-- <th>${capacity}</th> -->
                   <th><%= request.getAttribute("diskCapacity") %></th>
