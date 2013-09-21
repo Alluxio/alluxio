@@ -93,9 +93,9 @@
                   <th><%= request.getAttribute("diskCapacity") %></th>
                 </tr>
                 <tr>
-                  <th>Disk Used:</th>
-                  <!-- <th>${usedCapacity}</th> -->
-                  <th><%= request.getAttribute("diskUsedCapacity") %></th>
+                  <th>Disk Free:</th>
+                  <!-- <th>${freeCapacity}</th> -->
+                  <th><%= request.getAttribute("diskFreeCapacity") %></th>
                 </tr>
               </tbody>
             </table>

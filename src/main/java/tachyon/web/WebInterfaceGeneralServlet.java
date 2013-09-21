@@ -129,7 +129,14 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     } else {
       request.setAttribute("diskUsedCapacity", "UNKNOWN");
     }
-      
+
+    sizeBytes = mMasterInfo.getUnderFsFreeBytes();
+    if (sizeBytes >= 0) {
+      request.setAttribute("diskFreeCapacity", CommonUtils.getSizeFromBytes(sizeBytes));
+    } else {
+      request.setAttribute("diskFreeCapacity", "UNKNOWN");
+    }      
+
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
     for (int i = 0; i < workerInfos.size(); i ++) {
       for (int j = i + 1; j < workerInfos.size(); j ++) {
