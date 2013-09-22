@@ -112,6 +112,9 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("capacity", CommonUtils.getSizeFromBytes(mMasterInfo.getCapacityBytes()));
 
     request.setAttribute("usedCapacity", CommonUtils.getSizeFromBytes(mMasterInfo.getUsedBytes()));
+      
+    request.setAttribute("freeCapacity", CommonUtils.getSizeFromBytes((mMasterInfo.getCapacityBytes()
+      - mMasterInfo.getUsedBytes()));
 
     long sizeBytes = mMasterInfo.getUnderFsCapacityBytes();
     if (sizeBytes >= 0) {
@@ -126,6 +129,13 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     } else {
       request.setAttribute("diskUsedCapacity", "UNKNOWN");
     }
+
+    sizeBytes = mMasterInfo.getUnderFsFreeBytes();
+    if (sizeBytes >= 0) {
+      request.setAttribute("diskFreeCapacity", CommonUtils.getSizeFromBytes(sizeBytes));
+    } else {
+      request.setAttribute("diskFreeCapacity", "UNKNOWN");
+    }      
 
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
     for (int i = 0; i < workerInfos.size(); i ++) {
