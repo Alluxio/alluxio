@@ -1402,6 +1402,11 @@ public class MasterInfo {
     UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
     return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_USED);
   }
+  
+  public long getUnderFsFreeBytes() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
+    return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_FREE);
+  }
 
   public long getUsedBytes() {
     long ret = 0;
