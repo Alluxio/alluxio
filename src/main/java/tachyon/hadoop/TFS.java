@@ -26,6 +26,7 @@ import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 
@@ -35,6 +36,8 @@ import tachyon.thrift.NetAddress;
  * the Tachyon API in tachyon.client package.
  */
 public class TFS extends FileSystem {
+  public static final  String SPECIAL_PATH = "tachyon_special_path";
+
   public static String UNDERFS_ADDRESS;
 
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
@@ -68,10 +71,45 @@ public class TFS extends FileSystem {
     LOG.info("create(" + cPath + ", " + permission + ", " + overwrite + 
         ", " + bufferSize + ", " + replication + ", " + blockSize + ", " + progress + ")");
 
-    String path = Utils.getPathWithoutScheme(cPath);
-    int fileId = mTFS.createFile(path, blockSize);
-    TachyonFile file = mTFS.getFile(fileId);
-    return new FSDataOutputStream(file.getOutStream(WriteType.CACHE_THROUGH), null);
+    if (cPath.toString().contains(SPECIAL_PATH) && !cPath.toString().contains("SUCCESS")) {
+      String path = cPath.toString();
+      mTFS.createFile(path, blockSize);
+      path = path.substring(
+          path.indexOf("tachyon_special_path/dep/") + "tachyon_special_path/dep/".length());
+      path = path.substring(0, path.indexOf("/"));
+      int depId = Integer.parseInt(path);
+      LOG.info("create(" + cPath + ") : " + path + " " + depId);
+      path = cPath.toString();
+      path = path.substring(path.indexOf("part-") + 5);
+      int index = Integer.parseInt(path);
+      ClientDependencyInfo info = mTFS.getClientDependencyInfo(depId);
+      int fileId = info.getChildren().get(index);
+      LOG.info("create(" + cPath + ") : " + path + " " + index + " " + info + " " + fileId);
+
+      TachyonFile file = mTFS.getFile(fileId);
+      if (file.getBlockSizeByte() != blockSize) {
+        throw new IOException("File already exist with a different blocksize " +
+            file.getBlockSizeByte() + " != " + blockSize);
+      }
+      return new FSDataOutputStream(file.getOutStream(WriteType.MUST_CACHE), null);
+    } else {
+      String path = Utils.getPathWithoutScheme(cPath);
+      int fileId;
+      WriteType type = WriteType.CACHE_THROUGH;
+      if (mTFS.exist(path)) {
+        fileId = mTFS.getFileId(path);
+        type = WriteType.MUST_CACHE;
+      } else {
+        fileId = mTFS.createFile(path, blockSize);
+      }
+
+      TachyonFile file = mTFS.getFile(fileId);
+      if (file.getBlockSizeByte() != blockSize) {
+        throw new IOException("File already exist with a different blocksize " +
+            file.getBlockSizeByte() + " != " + blockSize);
+      }
+      return new FSDataOutputStream(file.getOutStream(type), null);
+    }
   }
 
   @Override
@@ -207,7 +245,7 @@ public class TFS extends FileSystem {
 
   @Override
   public boolean mkdirs(Path cPath, FsPermission permission) throws IOException  {
-    LOG.info("mkdirs(" + cPath + ", " + permission + ")");
+    LOG.info("mkdirs(" + cPath + ", " + permission + ") " + cPath.toString().contains(SPECIAL_PATH));
     return mTFS.mkdir(Utils.getPathWithoutScheme(cPath));
   }
 
