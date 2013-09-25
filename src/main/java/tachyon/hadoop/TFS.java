@@ -94,6 +94,7 @@ public class TFS extends FileSystem {
       return new FSDataOutputStream(file.getOutStream(WriteType.MUST_CACHE), null);
     } if (cPath.toString().contains(RECOMPUTE_PATH) && !cPath.toString().contains("SUCCESS")) {
       String path = Utils.getPathWithoutScheme(cPath);
+      mTFS.createFile(path, blockSize);
       path = path.substring(path.indexOf(RECOMPUTE_PATH) + RECOMPUTE_PATH.length());
       path = path.substring(0, path.indexOf("/"));
       int depId = Integer.parseInt(path);
