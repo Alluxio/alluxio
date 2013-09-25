@@ -264,7 +264,7 @@ public class TFS extends FileSystem {
 
   @Override
   public boolean mkdirs(Path cPath, FsPermission permission) throws IOException  {
-    LOG.info("mkdirs(" + cPath + ", " + permission + ") " + cPath.toString().contains(SPECIAL_PATH));
+    LOG.info("mkdirs(" + cPath + ", " + permission + ") ");
     return mTFS.mkdir(Utils.getPathWithoutScheme(cPath));
   }
 
