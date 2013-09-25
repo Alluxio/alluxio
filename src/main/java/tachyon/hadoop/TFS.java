@@ -72,14 +72,14 @@ public class TFS extends FileSystem {
         ", " + bufferSize + ", " + replication + ", " + blockSize + ", " + progress + ")");
 
     if (cPath.toString().contains(SPECIAL_PATH) && !cPath.toString().contains("SUCCESS")) {
-      String path = cPath.toString();
+      String path = Utils.getPathWithoutScheme(cPath);
       mTFS.createFile(path, blockSize);
       path = path.substring(
           path.indexOf("tachyon_special_path/dep/") + "tachyon_special_path/dep/".length());
       path = path.substring(0, path.indexOf("/"));
       int depId = Integer.parseInt(path);
       LOG.info("create(" + cPath + ") : " + path + " " + depId);
-      path = cPath.toString();
+      path = Utils.getPathWithoutScheme(cPath);
       path = path.substring(path.indexOf("part-") + 5);
       int index = Integer.parseInt(path);
       ClientDependencyInfo info = mTFS.getClientDependencyInfo(depId);
