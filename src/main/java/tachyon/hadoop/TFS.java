@@ -36,7 +36,8 @@ import tachyon.thrift.NetAddress;
  * the Tachyon API in tachyon.client package.
  */
 public class TFS extends FileSystem {
-  public static final  String SPECIAL_PATH = "tachyon_special_path";
+  public static final  String FIRST_COM_PATH = "tachyon_dep/";
+  public static final  String RECOMPUTE_PATH = "tachyon_recompute/";
 
   public static String UNDERFS_ADDRESS;
 
@@ -71,11 +72,29 @@ public class TFS extends FileSystem {
     LOG.info("create(" + cPath + ", " + permission + ", " + overwrite + 
         ", " + bufferSize + ", " + replication + ", " + blockSize + ", " + progress + ")");
 
-    if (cPath.toString().contains(SPECIAL_PATH) && !cPath.toString().contains("SUCCESS")) {
+    if (cPath.toString().contains(FIRST_COM_PATH) && !cPath.toString().contains("SUCCESS")) {
       String path = Utils.getPathWithoutScheme(cPath);
       mTFS.createFile(path, blockSize);
-      path = path.substring(
-          path.indexOf("tachyon_special_path/dep/") + "tachyon_special_path/dep/".length());
+      path = path.substring(path.indexOf(FIRST_COM_PATH) + FIRST_COM_PATH.length());
+      path = path.substring(0, path.indexOf("/"));
+      int depId = Integer.parseInt(path);
+      LOG.info("create(" + cPath + ") : " + path + " " + depId);
+      path = Utils.getPathWithoutScheme(cPath);
+      path = path.substring(path.indexOf("part-") + 5);
+      int index = Integer.parseInt(path);
+      ClientDependencyInfo info = mTFS.getClientDependencyInfo(depId);
+      int fileId = info.getChildren().get(index);
+      LOG.info("create(" + cPath + ") : " + path + " " + index + " " + info + " " + fileId);
+
+      TachyonFile file = mTFS.getFile(fileId);
+//      if (file.getBlockSizeByte() != blockSize) {
+//        throw new IOException("File already exist with a different blocksize " +
+//            file.getBlockSizeByte() + " != " + blockSize);
+//      }
+      return new FSDataOutputStream(file.getOutStream(WriteType.MUST_CACHE), null);
+    } if (cPath.toString().contains(RECOMPUTE_PATH) && !cPath.toString().contains("SUCCESS")) {
+      String path = Utils.getPathWithoutScheme(cPath);
+      path = path.substring(path.indexOf(RECOMPUTE_PATH) + RECOMPUTE_PATH.length());
       path = path.substring(0, path.indexOf("/"));
       int depId = Integer.parseInt(path);
       LOG.info("create(" + cPath + ") : " + path + " " + depId);
