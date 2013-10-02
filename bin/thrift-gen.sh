@@ -9,6 +9,6 @@ fi
 
 bin=`cd "$( dirname "$0" )"; pwd`
 
-rm -rf $bin/../src/main/java/tachyon/thrift
+rm -rf $bin/../tachyon/src/main/java/tachyon/thrift
 
-thrift --gen java -out $bin/../src/main/java/. $bin/../src/thrift/tachyon.thrift
+thrift --gen java -out $bin/../tachyon/src/main/java/. $bin/../tachyon/src/thrift/tachyon.thrift

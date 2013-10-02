@@ -168,7 +168,7 @@ public class Worker implements Runnable {
 
   public static void main(String[] args) throws UnknownHostException {
     if (args.length != 1) {
-      LOG.info("Usage: java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
+      LOG.info("Usage: java -cp tachyon-server/target/tachyon-server-" + Version.VERSION + "-jar-with-dependencies.jar " +
           "tachyon.Worker <WorkerHost>");
       System.exit(-1);
     }

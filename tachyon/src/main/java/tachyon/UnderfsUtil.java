@@ -72,7 +72,7 @@ public class UnderfsUtil {
       throws SuspectedFileSizeException, InvalidPathException, IOException,
       FileDoesNotExistException, FileAlreadyExistException, TException {
     if (!(args.length == 3 || args.length == 4)) {
-      String prefix = "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " + 
+      String prefix = "java -cp tachyon-server/target/tachyon-server-" + Version.VERSION + "-jar-with-dependencies.jar " +
           "tachyon.UnderfsUtil ";
       System.out.println("Usage: " + prefix + "<TachyonAddress> <UnderfsAddress> <Path> " +
           "[<ExcludePathPrefix, separated by ;>]");

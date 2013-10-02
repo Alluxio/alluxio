@@ -150,7 +150,7 @@ public class Master {
 
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
+      LOG.info("java -cp tachyon-server/target/tachyon-server-" + Version.VERSION + "-jar-with-dependencies.jar " +
           "tachyon.Master");
       System.exit(-1);
     }
