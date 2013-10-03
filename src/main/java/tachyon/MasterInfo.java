@@ -352,7 +352,12 @@ public class MasterInfo {
 
   public int createFile(String path, long blockSizeByte)
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
-    return createFile(true, path, false, -1, null, blockSizeByte);
+    return createFile(path, blockSizeByte, false);
+  }
+
+  public int createFile(String path, long blockSizeByte, boolean transparent)
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
+    return createFile(true, path, false, -1, null, blockSizeByte, transparent);
   }
 
   // TODO Make this API better.
@@ -372,11 +377,24 @@ public class MasterInfo {
    * @throws TachyonException
    */
   int _createFile(boolean recursive, String path, boolean directory, int columns,
-      ByteBuffer metadata, long blockSizeByte, long creationTimeMs)
+      ByteBuffer metadata, long blockSizeByte, long creationTimeMs, boolean transparent)
           throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
           TachyonException {
     if (!directory && blockSizeByte < 1) {
       throw new BlockInfoException("Invalid block size " + blockSizeByte);
+    }
+
+    if (!directory && transparent) {
+      try {
+	String underFSPath = CommonConf.get().UNDERFS_ADDRESS + path;
+        UnderFileSystem ufs = UnderFileSystem.get(underFSPath);
+        if (ufs.exists(path)) {
+	  throw new FileAlreadyExistException("File is transparent and path: " + underFSPath +
+	    				         " already exists in the underlayer filesystem");
+        }
+      } catch (IOException e) {
+        throw new TachyonException(e.getMessage());
+      }
     }
 
     LOG.debug("createFile" + CommonUtils.parametersToString(path));
@@ -404,7 +422,7 @@ public class MasterInfo {
       if (inode == null) {
         int succeed = 0;
         if (recursive) {
-          succeed = createFile(true, folderPath, true, -1, null, blockSizeByte);
+	  succeed = createFile(true, folderPath, true, -1, null, blockSizeByte, false);
         }
         if (!recursive || succeed <= 0) {
           LOG.info("InvalidPathException: File " + path + " creation failed. Folder "
@@ -444,6 +462,7 @@ public class MasterInfo {
         if (mWhiteList.inList(curPath)) {
           ((InodeFile) ret).setCache(true);
         }
+         ((InodeFile) ret).setTransparent(transparent);
       }
 
       mInodes.put(ret.getId(), ret);
@@ -456,14 +475,15 @@ public class MasterInfo {
 
 
   public int createFile(boolean recursive, String path, boolean directory, int columns,
-      ByteBuffer metadata, long blockSizeByte)
+      ByteBuffer metadata, long blockSizeByte, boolean transparent)
           throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
           TachyonException {
     long creationTimeMs = System.currentTimeMillis();
     int ret =
-        _createFile(recursive, path, directory, columns, metadata, blockSizeByte, creationTimeMs);
+        _createFile(recursive, path, directory, columns, metadata, blockSizeByte, creationTimeMs, 
+            transparent);
     mJournal.getEditLog().createFile(
-        recursive, path, directory, columns, metadata, blockSizeByte, creationTimeMs);
+        recursive, path, directory, columns, metadata, blockSizeByte, creationTimeMs, transparent);
     mJournal.getEditLog().flush();
     return ret;
   }
@@ -533,6 +553,7 @@ public class MasterInfo {
           boolean isPin = is.readBoolean();
           boolean isCache = is.readBoolean();
           String checkpointPath = Utils.readString(is);
+          boolean isTransparent = is.readBoolean();
 
           InodeFile tInode =
               new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
@@ -546,6 +567,7 @@ public class MasterInfo {
           tInode.setPin(isPin);
           tInode.setCache(isCache);
           tInode.setCheckpointPath(checkpointPath);
+          tInode.setTransparent(isTransparent);
           inode = tInode;
         } else {
           int numberOfChildren = is.readInt();
@@ -601,6 +623,7 @@ public class MasterInfo {
       os.writeBoolean(file.isPin());
       os.writeBoolean(file.isCache());
       Utils.writeString(file.getCheckpointPath(), os);
+      os.writeBoolean(file.isTransparent());
     } else {
       InodeFolder folder = (InodeFolder) inode;
       if (folder.isRawTable()) {
@@ -672,7 +695,7 @@ public class MasterInfo {
 
     int id;
     try {
-      id = createFile(true, path, true, columns, metadata, 0);
+      id = createFile(true, path, true, columns, metadata, 0, false);
     } catch (BlockInfoException e) {
       throw new FileAlreadyExistException(e.getMessage());
     }
@@ -1248,7 +1271,7 @@ public class MasterInfo {
   public boolean mkdir(String path)
       throws FileAlreadyExistException, InvalidPathException, TachyonException {
     try {
-      return createFile(true, path, true, -1, null, 0) > 0;
+      return createFile(true, path, true, -1, null, 0, false) > 0;
     } catch (BlockInfoException e) {
       throw new FileAlreadyExistException(e.getMessage());
     }
@@ -1300,7 +1323,8 @@ public class MasterInfo {
   }
 
   private void rename(Inode srcInode, String dstPath)
-      throws FileAlreadyExistException, InvalidPathException, FileDoesNotExistException {
+      throws FileAlreadyExistException, InvalidPathException, FileDoesNotExistException,
+      TachyonException {
     if (getInode(dstPath) != null) {
       throw new FileAlreadyExistException("Failed to rename: " + dstPath + " already exist");
     }
@@ -1319,6 +1343,20 @@ public class MasterInfo {
           " does not exist.");
     }
 
+    if (!srcInode.isDirectory() && ((InodeFile)srcInode).isTransparent()) {
+      try {
+	String underFSPath = CommonConf.get().UNDERFS_ADDRESS + dstPath;
+        UnderFileSystem ufs = UnderFileSystem.get(underFSPath);
+        if (ufs.exists(dstPath)) {
+	  throw new FileAlreadyExistException("File is transparent and dst path: " + underFSPath +
+	    				         " already exists in the underlayer filesystem");
+        }
+	ufs.rename(((InodeFile) srcInode).getCheckpointPath(), underFSPath);
+      } catch (IOException e) {
+          throw new TachyonException(e.getMessage());
+      }
+    }
+
     srcInode.setName(dstName);
     InodeFolder parent = (InodeFolder) mInodes.get(srcInode.getParentId());
     parent.removeChild(srcInode.getId());
@@ -1330,7 +1368,8 @@ public class MasterInfo {
   }
 
   public void rename(int fileId, String dstPath)
-      throws FileDoesNotExistException, FileAlreadyExistException, InvalidPathException {
+      throws FileDoesNotExistException, FileAlreadyExistException, InvalidPathException,
+      TachyonException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
       if (inode == null) {
@@ -1342,7 +1381,8 @@ public class MasterInfo {
   }
 
   public void rename(String srcPath, String dstPath)
-      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException {
+       throws FileAlreadyExistException, InvalidPathException, FileDoesNotExistException,
+       TachyonException {
     synchronized (mRoot) {
       Inode inode = getInode(srcPath);
       if (inode == null) {

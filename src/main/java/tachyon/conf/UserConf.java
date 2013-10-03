@@ -12,6 +12,7 @@ public class UserConf extends Utils {
   public final long MASTER_CLIENT_TIMEOUT_MS;
   public final long DEFAULT_BLOCK_SIZE_BYTE;
   public final int REMOTE_READ_BUFFER_SIZE_BYTE;
+  public final boolean TRANSPARENT_UNDERLAYER_FILE;
 
   private UserConf() {
     FAILED_SPACE_REQUEST_LIMITS = getIntProperty("tachyon.user.failed.space.request.limits", 3);
@@ -23,6 +24,8 @@ public class UserConf extends Utils {
         getLongProperty("tachyon.user.default.block.size.byte", Constants.GB);
     REMOTE_READ_BUFFER_SIZE_BYTE =
         getIntProperty("tachyon.user.remote.read.buffer.size.byte", Constants.MB);
+    TRANSPARENT_UNDERLAYER_FILE = getBooleanProperty("tachyon.user.file.underlayer.transparent", false); 
+
   }
 
   public static synchronized UserConf get() {

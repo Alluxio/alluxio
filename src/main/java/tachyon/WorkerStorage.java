@@ -25,6 +25,8 @@ import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.thrift.ClientFileInfo;
+
 
 /**
  * The structure to store a worker's information in worker node.
@@ -135,8 +137,8 @@ public class WorkerStorage {
     // TODO This part need to be changed.
     String srcPath = getUserUnderfsTempFolder(userId) + "/" + fileId;
     String dstPath = COMMON_CONF.UNDERFS_DATA_FOLDER + "/" + fileId;
-    if (COMMON_CONF.USE_FIXED_CHECKPOINT) {
-      ClientFileInfo info = fetchClientFileInfo(fileId);
+    ClientFileInfo info = fetchClientFileInfo(fileId);
+    if (info.transparent) {
       dstPath = COMMON_CONF.UNDERFS_ADDRESS + info.path;
     }
     try {

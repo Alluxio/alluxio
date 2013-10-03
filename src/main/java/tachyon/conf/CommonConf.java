@@ -10,7 +10,6 @@ public class CommonConf extends Utils {
   public final String UNDERFS_ADDRESS;
   public final String UNDERFS_DATA_FOLDER;
   public final String UNDERFS_WORKERS_FOLDER;
-  public final boolean USE_FIXED_CHECKPOINT;
 
   public final boolean USE_ZOOKEEPER;
   public final String ZOOKEEPER_ADDRESS;
@@ -23,7 +22,6 @@ public class CommonConf extends Utils {
     UNDERFS_DATA_FOLDER = UNDERFS_ADDRESS + getProperty("tachyon.data.folder", "/tachyon/data");
     UNDERFS_WORKERS_FOLDER = 
         UNDERFS_ADDRESS + getProperty("tachyon.workers.folder", "/tachyon/workers");
-    FIXED_CHECKPOINT = getBooleanProperty("tachyon.fixed.checkpoint", false); 
 
     USE_ZOOKEEPER = getBooleanProperty("tachyon.usezookeeper", false);
     if (USE_ZOOKEEPER) {

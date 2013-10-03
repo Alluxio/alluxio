@@ -46,7 +46,7 @@ public class MasterService {
 
     public Set<Integer> worker_getPinIdList() throws org.apache.thrift.TException;
 
-    public int user_createFile(String path, long blockSizeByte) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException, org.apache.thrift.TException;
+    public int user_createFile(String path, long blockSizeByte, boolean transparent) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException, org.apache.thrift.TException;
 
     public int user_createFileOnCheckpoint(String path, String checkpointPath) throws FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException, BlockInfoException, TachyonException, org.apache.thrift.TException;
 
@@ -108,9 +108,9 @@ public class MasterService {
 
     public void user_outOfMemoryForPinFile(int fileId) throws org.apache.thrift.TException;
 
-    public void user_rename(String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public void user_rename(String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TachyonException, org.apache.thrift.TException;
 
-    public void user_renameTo(int fileId, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public void user_renameTo(int fileId, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TachyonException, org.apache.thrift.TException;
 
     public void user_unpinFile(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
 
@@ -148,7 +148,7 @@ public class MasterService {
 
     public void worker_getPinIdList(org.apache.thrift.async.AsyncMethodCallback<AsyncClient.worker_getPinIdList_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void user_createFile(String path, long blockSizeByte, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_createFile_call> resultHandler) throws org.apache.thrift.TException;
+    public void user_createFile(String path, long blockSizeByte, boolean transparent, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_createFile_call> resultHandler) throws org.apache.thrift.TException;
 
     public void user_createFileOnCheckpoint(String path, String checkpointPath, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_createFileOnCheckpoint_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -425,17 +425,18 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "worker_getPinIdList failed: unknown result");
     }
 
-    public int user_createFile(String path, long blockSizeByte) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException, org.apache.thrift.TException
+    public int user_createFile(String path, long blockSizeByte, boolean transparent) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException, org.apache.thrift.TException
     {
-      send_user_createFile(path, blockSizeByte);
+      send_user_createFile(path, blockSizeByte, transparent);
       return recv_user_createFile();
     }
 
-    public void send_user_createFile(String path, long blockSizeByte) throws org.apache.thrift.TException
+    public void send_user_createFile(String path, long blockSizeByte, boolean transparent) throws org.apache.thrift.TException
     {
       user_createFile_args args = new user_createFile_args();
       args.setPath(path);
       args.setBlockSizeByte(blockSizeByte);
+      args.setTransparent(transparent);
       sendBase("user_createFile", args);
     }
 
@@ -924,7 +925,7 @@ public class MasterService {
       return;
     }
 
-    public void user_rename(String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public void user_rename(String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TachyonException, org.apache.thrift.TException
     {
       send_user_rename(srcPath, dstPath);
       recv_user_rename();
@@ -938,7 +939,7 @@ public class MasterService {
       sendBase("user_rename", args);
     }
 
-    public void recv_user_rename() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public void recv_user_rename() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TachyonException, org.apache.thrift.TException
     {
       user_rename_result result = new user_rename_result();
       receiveBase(result, "user_rename");
@@ -951,10 +952,13 @@ public class MasterService {
       if (result.eI != null) {
         throw result.eI;
       }
+      if (result.eTa != null) {
+        throw result.eTa;
+      }
       return;
     }
 
-    public void user_renameTo(int fileId, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public void user_renameTo(int fileId, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TachyonException, org.apache.thrift.TException
     {
       send_user_renameTo(fileId, dstPath);
       recv_user_renameTo();
@@ -968,7 +972,7 @@ public class MasterService {
       sendBase("user_renameTo", args);
     }
 
-    public void recv_user_renameTo() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public void recv_user_renameTo() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TachyonException, org.apache.thrift.TException
     {
       user_renameTo_result result = new user_renameTo_result();
       receiveBase(result, "user_renameTo");
@@ -980,6 +984,9 @@ public class MasterService {
       }
       if (result.eI != null) {
         throw result.eI;
+      }
+      if (result.eTa != null) {
+        throw result.eTa;
       }
       return;
     }
@@ -1504,9 +1511,9 @@ public class MasterService {
       }
     }
 
-    public void user_createFile(String path, long blockSizeByte, org.apache.thrift.async.AsyncMethodCallback<user_createFile_call> resultHandler) throws org.apache.thrift.TException {
+    public void user_createFile(String path, long blockSizeByte, boolean transparent, org.apache.thrift.async.AsyncMethodCallback<user_createFile_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_createFile_call method_call = new user_createFile_call(path, blockSizeByte, resultHandler, this, ___protocolFactory, ___transport);
+      user_createFile_call method_call = new user_createFile_call(path, blockSizeByte, transparent, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -1514,10 +1521,12 @@ public class MasterService {
     public static class user_createFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String path;
       private long blockSizeByte;
-      public user_createFile_call(String path, long blockSizeByte, org.apache.thrift.async.AsyncMethodCallback<user_createFile_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private boolean transparent;
+      public user_createFile_call(String path, long blockSizeByte, boolean transparent, org.apache.thrift.async.AsyncMethodCallback<user_createFile_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
         this.blockSizeByte = blockSizeByte;
+        this.transparent = transparent;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -1525,6 +1534,7 @@ public class MasterService {
         user_createFile_args args = new user_createFile_args();
         args.setPath(path);
         args.setBlockSizeByte(blockSizeByte);
+        args.setTransparent(transparent);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -2126,7 +2136,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
+      public void getResult() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TachyonException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -2161,7 +2171,7 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
+      public void getResult() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TachyonException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -2673,7 +2683,7 @@ public class MasterService {
       protected user_createFile_result getResult(I iface, user_createFile_args args) throws org.apache.thrift.TException {
         user_createFile_result result = new user_createFile_result();
         try {
-          result.success = iface.user_createFile(args.path, args.blockSizeByte);
+          result.success = iface.user_createFile(args.path, args.blockSizeByte, args.transparent);
           result.setSuccessIsSet(true);
         } catch (FileAlreadyExistException eR) {
           result.eR = eR;
@@ -3064,6 +3074,8 @@ public class MasterService {
           result.eF = eF;
         } catch (InvalidPathException eI) {
           result.eI = eI;
+        } catch (TachyonException eTa) {
+          result.eTa = eTa;
         }
         return result;
       }
@@ -3088,6 +3100,8 @@ public class MasterService {
           result.eF = eF;
         } catch (InvalidPathException eI) {
           result.eI = eI;
+        } catch (TachyonException eTa) {
+          result.eTa = eTa;
         }
         return result;
       }
@@ -4400,6 +4414,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -6727,6 +6743,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -9192,14 +9210,17 @@ public class MasterService {
 
     private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField BLOCK_SIZE_BYTE_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSizeByte", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField TRANSPARENT_FIELD_DESC = new org.apache.thrift.protocol.TField("transparent", org.apache.thrift.protocol.TType.BOOL, (short)3);
 
     public String path; // required
     public long blockSizeByte; // required
+    public boolean transparent; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       PATH((short)1, "path"),
-      BLOCK_SIZE_BYTE((short)2, "blockSizeByte");
+      BLOCK_SIZE_BYTE((short)2, "blockSizeByte"),
+      TRANSPARENT((short)3, "transparent");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -9218,6 +9239,8 @@ public class MasterService {
             return PATH;
           case 2: // BLOCK_SIZE_BYTE
             return BLOCK_SIZE_BYTE;
+          case 3: // TRANSPARENT
+            return TRANSPARENT;
           default:
             return null;
         }
@@ -9259,7 +9282,8 @@ public class MasterService {
 
     // isset id assignments
     private static final int __BLOCKSIZEBYTE_ISSET_ID = 0;
-    private BitSet __isset_bit_vector = new BitSet(1);
+    private static final int __TRANSPARENT_ISSET_ID = 1;
+    private BitSet __isset_bit_vector = new BitSet(2);
 
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
@@ -9268,6 +9292,8 @@ public class MasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.BLOCK_SIZE_BYTE, new org.apache.thrift.meta_data.FieldMetaData("blockSizeByte", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.TRANSPARENT, new org.apache.thrift.meta_data.FieldMetaData("transparent", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_createFile_args.class, metaDataMap);
     }
@@ -9277,12 +9303,15 @@ public class MasterService {
 
     public user_createFile_args(
       String path,
-      long blockSizeByte)
+      long blockSizeByte,
+      boolean transparent)
     {
       this();
       this.path = path;
       this.blockSizeByte = blockSizeByte;
       setBlockSizeByteIsSet(true);
+      this.transparent = transparent;
+      setTransparentIsSet(true);
     }
 
     /**
@@ -9295,6 +9324,7 @@ public class MasterService {
         this.path = other.path;
       }
       this.blockSizeByte = other.blockSizeByte;
+      this.transparent = other.transparent;
     }
 
     public user_createFile_args deepCopy() {
@@ -9306,6 +9336,8 @@ public class MasterService {
       this.path = null;
       setBlockSizeByteIsSet(false);
       this.blockSizeByte = 0;
+      setTransparentIsSet(false);
+      this.transparent = false;
     }
 
     public String getPath() {
@@ -9355,6 +9387,29 @@ public class MasterService {
       __isset_bit_vector.set(__BLOCKSIZEBYTE_ISSET_ID, value);
     }
 
+    public boolean isTransparent() {
+      return this.transparent;
+    }
+
+    public user_createFile_args setTransparent(boolean transparent) {
+      this.transparent = transparent;
+      setTransparentIsSet(true);
+      return this;
+    }
+
+    public void unsetTransparent() {
+      __isset_bit_vector.clear(__TRANSPARENT_ISSET_ID);
+    }
+
+    /** Returns true if field transparent is set (has been assigned a value) and false otherwise */
+    public boolean isSetTransparent() {
+      return __isset_bit_vector.get(__TRANSPARENT_ISSET_ID);
+    }
+
+    public void setTransparentIsSet(boolean value) {
+      __isset_bit_vector.set(__TRANSPARENT_ISSET_ID, value);
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case PATH:
@@ -9373,6 +9428,14 @@ public class MasterService {
         }
         break;
 
+      case TRANSPARENT:
+        if (value == null) {
+          unsetTransparent();
+        } else {
+          setTransparent((Boolean)value);
+        }
+        break;
+
       }
     }
 
@@ -9383,6 +9446,9 @@ public class MasterService {
 
       case BLOCK_SIZE_BYTE:
         return Long.valueOf(getBlockSizeByte());
+
+      case TRANSPARENT:
+        return Boolean.valueOf(isTransparent());
 
       }
       throw new IllegalStateException();
@@ -9399,6 +9465,8 @@ public class MasterService {
         return isSetPath();
       case BLOCK_SIZE_BYTE:
         return isSetBlockSizeByte();
+      case TRANSPARENT:
+        return isSetTransparent();
       }
       throw new IllegalStateException();
     }
@@ -9431,6 +9499,15 @@ public class MasterService {
         if (!(this_present_blockSizeByte && that_present_blockSizeByte))
           return false;
         if (this.blockSizeByte != that.blockSizeByte)
+          return false;
+      }
+
+      boolean this_present_transparent = true;
+      boolean that_present_transparent = true;
+      if (this_present_transparent || that_present_transparent) {
+        if (!(this_present_transparent && that_present_transparent))
+          return false;
+        if (this.transparent != that.transparent)
           return false;
       }
 
@@ -9470,6 +9547,16 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetTransparent()).compareTo(typedOther.isSetTransparent());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetTransparent()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.transparent, typedOther.transparent);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -9502,6 +9589,14 @@ public class MasterService {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             }
             break;
+          case 3: // TRANSPARENT
+            if (field.type == org.apache.thrift.protocol.TType.BOOL) {
+              this.transparent = iprot.readBool();
+              setTransparentIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
         }
@@ -9525,6 +9620,9 @@ public class MasterService {
       oprot.writeFieldBegin(BLOCK_SIZE_BYTE_FIELD_DESC);
       oprot.writeI64(this.blockSizeByte);
       oprot.writeFieldEnd();
+      oprot.writeFieldBegin(TRANSPARENT_FIELD_DESC);
+      oprot.writeBool(this.transparent);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -9544,6 +9642,10 @@ public class MasterService {
       if (!first) sb.append(", ");
       sb.append("blockSizeByte:");
       sb.append(this.blockSizeByte);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("transparent:");
+      sb.append(this.transparent);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -10217,6 +10319,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -11344,6 +11448,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -12026,6 +12132,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -13302,6 +13410,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -13800,6 +13910,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -14566,6 +14678,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -21654,6 +21768,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -22425,6 +22541,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -23323,16 +23441,19 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TField E_A_FIELD_DESC = new org.apache.thrift.protocol.TField("eA", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)2);
     private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField E_TA_FIELD_DESC = new org.apache.thrift.protocol.TField("eTa", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
     public FileAlreadyExistException eA; // required
     public FileDoesNotExistException eF; // required
     public InvalidPathException eI; // required
+    public TachyonException eTa; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       E_A((short)1, "eA"),
       E_F((short)2, "eF"),
-      E_I((short)3, "eI");
+      E_I((short)3, "eI"),
+      E_TA((short)4, "eTa");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -23353,6 +23474,8 @@ public class MasterService {
             return E_F;
           case 3: // E_I
             return E_I;
+          case 4: // E_TA
+            return E_TA;
           default:
             return null;
         }
@@ -23403,6 +23526,8 @@ public class MasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_TA, new org.apache.thrift.meta_data.FieldMetaData("eTa", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_rename_result.class, metaDataMap);
     }
@@ -23413,12 +23538,14 @@ public class MasterService {
     public user_rename_result(
       FileAlreadyExistException eA,
       FileDoesNotExistException eF,
-      InvalidPathException eI)
+      InvalidPathException eI,
+      TachyonException eTa)
     {
       this();
       this.eA = eA;
       this.eF = eF;
       this.eI = eI;
+      this.eTa = eTa;
     }
 
     /**
@@ -23434,6 +23561,9 @@ public class MasterService {
       if (other.isSetEI()) {
         this.eI = new InvalidPathException(other.eI);
       }
+      if (other.isSetETa()) {
+        this.eTa = new TachyonException(other.eTa);
+      }
     }
 
     public user_rename_result deepCopy() {
@@ -23445,6 +23575,7 @@ public class MasterService {
       this.eA = null;
       this.eF = null;
       this.eI = null;
+      this.eTa = null;
     }
 
     public FileAlreadyExistException getEA() {
@@ -23519,6 +23650,30 @@ public class MasterService {
       }
     }
 
+    public TachyonException getETa() {
+      return this.eTa;
+    }
+
+    public user_rename_result setETa(TachyonException eTa) {
+      this.eTa = eTa;
+      return this;
+    }
+
+    public void unsetETa() {
+      this.eTa = null;
+    }
+
+    /** Returns true if field eTa is set (has been assigned a value) and false otherwise */
+    public boolean isSetETa() {
+      return this.eTa != null;
+    }
+
+    public void setETaIsSet(boolean value) {
+      if (!value) {
+        this.eTa = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case E_A:
@@ -23545,6 +23700,14 @@ public class MasterService {
         }
         break;
 
+      case E_TA:
+        if (value == null) {
+          unsetETa();
+        } else {
+          setETa((TachyonException)value);
+        }
+        break;
+
       }
     }
 
@@ -23558,6 +23721,9 @@ public class MasterService {
 
       case E_I:
         return getEI();
+
+      case E_TA:
+        return getETa();
 
       }
       throw new IllegalStateException();
@@ -23576,6 +23742,8 @@ public class MasterService {
         return isSetEF();
       case E_I:
         return isSetEI();
+      case E_TA:
+        return isSetETa();
       }
       throw new IllegalStateException();
     }
@@ -23617,6 +23785,15 @@ public class MasterService {
         if (!(this_present_eI && that_present_eI))
           return false;
         if (!this.eI.equals(that.eI))
+          return false;
+      }
+
+      boolean this_present_eTa = true && this.isSetETa();
+      boolean that_present_eTa = true && that.isSetETa();
+      if (this_present_eTa || that_present_eTa) {
+        if (!(this_present_eTa && that_present_eTa))
+          return false;
+        if (!this.eTa.equals(that.eTa))
           return false;
       }
 
@@ -23666,6 +23843,16 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetETa()).compareTo(typedOther.isSetETa());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetETa()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eTa, typedOther.eTa);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -23707,6 +23894,14 @@ public class MasterService {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             }
             break;
+          case 4: // E_TA
+            if (field.type == org.apache.thrift.protocol.TType.STRUCT) {
+              this.eTa = new TachyonException();
+              this.eTa.read(iprot);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
         }
@@ -23732,6 +23927,10 @@ public class MasterService {
       } else if (this.isSetEI()) {
         oprot.writeFieldBegin(E_I_FIELD_DESC);
         this.eI.write(oprot);
+        oprot.writeFieldEnd();
+      } else if (this.isSetETa()) {
+        oprot.writeFieldBegin(E_TA_FIELD_DESC);
+        this.eTa.write(oprot);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -23764,6 +23963,14 @@ public class MasterService {
         sb.append("null");
       } else {
         sb.append(this.eI);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eTa:");
+      if (this.eTa == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eTa);
       }
       first = false;
       sb.append(")");
@@ -24184,16 +24391,19 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TField E_A_FIELD_DESC = new org.apache.thrift.protocol.TField("eA", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)2);
     private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+    private static final org.apache.thrift.protocol.TField E_TA_FIELD_DESC = new org.apache.thrift.protocol.TField("eTa", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
     public FileAlreadyExistException eA; // required
     public FileDoesNotExistException eF; // required
     public InvalidPathException eI; // required
+    public TachyonException eTa; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       E_A((short)1, "eA"),
       E_F((short)2, "eF"),
-      E_I((short)3, "eI");
+      E_I((short)3, "eI"),
+      E_TA((short)4, "eTa");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -24214,6 +24424,8 @@ public class MasterService {
             return E_F;
           case 3: // E_I
             return E_I;
+          case 4: // E_TA
+            return E_TA;
           default:
             return null;
         }
@@ -24264,6 +24476,8 @@ public class MasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_TA, new org.apache.thrift.meta_data.FieldMetaData("eTa", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_renameTo_result.class, metaDataMap);
     }
@@ -24274,12 +24488,14 @@ public class MasterService {
     public user_renameTo_result(
       FileAlreadyExistException eA,
       FileDoesNotExistException eF,
-      InvalidPathException eI)
+      InvalidPathException eI,
+      TachyonException eTa)
     {
       this();
       this.eA = eA;
       this.eF = eF;
       this.eI = eI;
+      this.eTa = eTa;
     }
 
     /**
@@ -24295,6 +24511,9 @@ public class MasterService {
       if (other.isSetEI()) {
         this.eI = new InvalidPathException(other.eI);
       }
+      if (other.isSetETa()) {
+        this.eTa = new TachyonException(other.eTa);
+      }
     }
 
     public user_renameTo_result deepCopy() {
@@ -24306,6 +24525,7 @@ public class MasterService {
       this.eA = null;
       this.eF = null;
       this.eI = null;
+      this.eTa = null;
     }
 
     public FileAlreadyExistException getEA() {
@@ -24380,6 +24600,30 @@ public class MasterService {
       }
     }
 
+    public TachyonException getETa() {
+      return this.eTa;
+    }
+
+    public user_renameTo_result setETa(TachyonException eTa) {
+      this.eTa = eTa;
+      return this;
+    }
+
+    public void unsetETa() {
+      this.eTa = null;
+    }
+
+    /** Returns true if field eTa is set (has been assigned a value) and false otherwise */
+    public boolean isSetETa() {
+      return this.eTa != null;
+    }
+
+    public void setETaIsSet(boolean value) {
+      if (!value) {
+        this.eTa = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case E_A:
@@ -24406,6 +24650,14 @@ public class MasterService {
         }
         break;
 
+      case E_TA:
+        if (value == null) {
+          unsetETa();
+        } else {
+          setETa((TachyonException)value);
+        }
+        break;
+
       }
     }
 
@@ -24419,6 +24671,9 @@ public class MasterService {
 
       case E_I:
         return getEI();
+
+      case E_TA:
+        return getETa();
 
       }
       throw new IllegalStateException();
@@ -24437,6 +24692,8 @@ public class MasterService {
         return isSetEF();
       case E_I:
         return isSetEI();
+      case E_TA:
+        return isSetETa();
       }
       throw new IllegalStateException();
     }
@@ -24478,6 +24735,15 @@ public class MasterService {
         if (!(this_present_eI && that_present_eI))
           return false;
         if (!this.eI.equals(that.eI))
+          return false;
+      }
+
+      boolean this_present_eTa = true && this.isSetETa();
+      boolean that_present_eTa = true && that.isSetETa();
+      if (this_present_eTa || that_present_eTa) {
+        if (!(this_present_eTa && that_present_eTa))
+          return false;
+        if (!this.eTa.equals(that.eTa))
           return false;
       }
 
@@ -24527,6 +24793,16 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetETa()).compareTo(typedOther.isSetETa());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetETa()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eTa, typedOther.eTa);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -24568,6 +24844,14 @@ public class MasterService {
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             }
             break;
+          case 4: // E_TA
+            if (field.type == org.apache.thrift.protocol.TType.STRUCT) {
+              this.eTa = new TachyonException();
+              this.eTa.read(iprot);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
         }
@@ -24593,6 +24877,10 @@ public class MasterService {
       } else if (this.isSetEI()) {
         oprot.writeFieldBegin(E_I_FIELD_DESC);
         this.eI.write(oprot);
+        oprot.writeFieldEnd();
+      } else if (this.isSetETa()) {
+        oprot.writeFieldBegin(E_TA_FIELD_DESC);
+        this.eTa.write(oprot);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -24625,6 +24913,14 @@ public class MasterService {
         sb.append("null");
       } else {
         sb.append(this.eI);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eTa:");
+      if (this.eTa == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eTa);
       }
       first = false;
       sb.append(")");
@@ -26099,6 +26395,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -27237,6 +27535,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -27919,6 +28219,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -30926,6 +31228,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
