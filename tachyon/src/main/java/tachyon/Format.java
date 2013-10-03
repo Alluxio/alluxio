@@ -15,7 +15,7 @@ public class Format {
 
   public static void main(String[] args) throws IOException {
     if (args.length != 0) {
-      LOG.info("java -cp target/tachyon-" + Version.VERSION +
+      LOG.info("java -cp tachyon-server/target/tachyon-server-" + Version.VERSION +
           "-jar-with-dependencies.jar tachyon.Format");
       System.exit(-1);
     }
