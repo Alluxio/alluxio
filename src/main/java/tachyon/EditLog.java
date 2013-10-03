@@ -4,9 +4,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import org.apache.log4j.Logger;
+import org.apache.hadoop.fs.FSDataOutputStream;
 
 import tachyon.io.Utils;
 import tachyon.thrift.BlockInfoException;
@@ -36,6 +38,7 @@ public class EditLog {
   // When a master is replaying an edit log, make the current edit log as an INACTIVE one.
   private final boolean INACTIVE;
   private final DataOutputStream DOS;
+  private final OutputStream OS;
 
   // Starting from 1.
   private long mFlushedTransactionId = 0;
@@ -124,10 +127,13 @@ public class EditLog {
     if (!INACTIVE) {
       LOG.info("Creating edit log file " + path);
       UnderFileSystem ufs = UnderFileSystem.get(path);
-      DOS = new DataOutputStream(ufs.create(path));
+      OS = ufs.create(path);
+      DOS = new DataOutputStream(OS);
+      LOG.info("Created file " + path);
       mFlushedTransactionId = transactionId;
       mTransactionId = transactionId;
     } else {
+      OS = null;
       DOS = null;
     }
   }
@@ -276,6 +282,9 @@ public class EditLog {
 
     try {
       DOS.flush();
+      if (OS instanceof FSDataOutputStream) {
+        ((FSDataOutputStream) OS).sync();
+      }
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }

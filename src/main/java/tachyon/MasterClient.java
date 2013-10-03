@@ -60,7 +60,12 @@ public class MasterClient {
   public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper) {
     mUseZookeeper = useZookeeper;
     if (mUseZookeeper) {
-      mZookeeperAddress = masterAddress;
+      try {
+        mZookeeperAddress = CommonUtils.parseInetSocketAddress(CommonConf.get().ZOOKEEPER_ADDRESS);
+      } catch (IOException e) {
+        LOG.error(e.getMessage(), e);
+        CommonUtils.runtimeException(e);
+      }
     } else {
       mMasterAddress = masterAddress;
     }
@@ -73,8 +78,8 @@ public class MasterClient {
       return mMasterAddress;
     }
 
-    LeaderInquireClient leaderInquireClient = new LeaderInquireClient(
-        mZookeeperAddress.toString().substring(1), CommonConf.get().ZOOKEEPER_LEADER_PATH);
+    LeaderInquireClient leaderInquireClient = LeaderInquireClient.getClient(
+        CommonConf.get().ZOOKEEPER_ADDRESS, CommonConf.get().ZOOKEEPER_LEADER_PATH);
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return CommonUtils.parseInetSocketAddress(temp);
