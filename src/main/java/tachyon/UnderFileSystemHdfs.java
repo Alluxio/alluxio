@@ -59,6 +59,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
+        LOG.debug("Creating HDFS file at " + path);
         return mFs.create(new Path(path));
       } catch (IOException e) {
         cnt ++;
