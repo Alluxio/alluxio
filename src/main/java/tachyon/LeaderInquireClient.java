@@ -1,6 +1,7 @@
 package tachyon;
 
 import java.util.List;
+import java.util.HashMap;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -20,13 +21,25 @@ public class LeaderInquireClient {
   private final String LEADER_PATH;
   private final CuratorFramework CLIENT;
 
-  public LeaderInquireClient(String zookeeperAddress, String leaderPath) {
+  private static HashMap<String, LeaderInquireClient> createdClients =
+      new HashMap<String, LeaderInquireClient>();
+
+  private LeaderInquireClient(String zookeeperAddress, String leaderPath) {
     ZOOKEEPER_ADDRESS = zookeeperAddress;
     LEADER_PATH = leaderPath;
 
     CLIENT = CuratorFrameworkFactory.newClient(
         ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(1000, 3));
     CLIENT.start();
+  }
+
+  public static synchronized LeaderInquireClient
+      getClient(String zookeeperAddress, String leaderPath) {
+    String key = zookeeperAddress + leaderPath;
+    if (!createdClients.containsKey(key)) {
+      createdClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
+    }
+    return createdClients.get(key);
   }
 
   public synchronized String getMasterAddress() {
