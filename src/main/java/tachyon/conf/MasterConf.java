@@ -27,13 +27,13 @@ public class MasterConf extends Utils {
   public final ArrayList<String> PINLIST = new ArrayList<String>();
 
   private MasterConf() {
-    JOURNAL_FOLDER = getProperty("tachyon.master.journal.folder", 
+    JOURNAL_FOLDER = getProperty("tachyon.master.journal.folder",
         CommonConf.get().TACHYON_HOME + "/journal/");
 
     HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
     WEB_PORT = getIntProperty("tachyon.master.web.port", Constants.DEFAULT_MASTER_WEB_PORT);
-    TEMPORARY_FOLDER = getProperty("tachyon.master.hostname", "/tmp");
+    TEMPORARY_FOLDER = getProperty("tachyon.master.temporary.folder", "/tmp");
 
     HEARTBEAT_INTERVAL_MS = getIntProperty("tachyon.master.heartbeat.interval.ms", 1000);
     SELECTOR_THREADS = getIntProperty("tachyon.master.selector.threads", 3);
