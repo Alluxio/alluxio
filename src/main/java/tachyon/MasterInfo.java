@@ -132,7 +132,7 @@ public class MasterInfo {
         hadFailedWorker = true;
         MasterWorkerInfo worker = mLostWorkers.poll();
 
-        // TODO these two locks are not efficient. Since node failure is rare, this is fine for now 
+        // TODO these two locks are not efficient. Since node failure is rare, this is fine for now
         synchronized (mRoot) {
           synchronized (mDependencies) {
             try {
@@ -153,7 +153,7 @@ public class MasterInfo {
                       dep.addLostFile(tFile.getId());
                       LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId() +
                           " . Trying to recompute it using dependency " + dep.ID);
-                      if (getPath(tFile).startsWith(MASTER_CONF.TEMPORARY_FOLDER)) {
+                      if (!getPath(tFile).startsWith(MASTER_CONF.TEMPORARY_FOLDER)) {
                         mMustRecomputeDependencies.add(depId);
                       }
                     }
@@ -272,7 +272,7 @@ public class MasterInfo {
         }
 
         for (String cmd : cmds) {
-          String filePath = CommonConf.get().TACHYON_HOME + "/logs/rerun-" + 
+          String filePath = CommonConf.get().TACHYON_HOME + "/logs/rerun-" +
               mRerunCounter.incrementAndGet();
           new Thread(new RecomputeCmd(cmd, filePath)).start();
         }
@@ -405,7 +405,7 @@ public class MasterInfo {
    * @param workerUsedBytes
    * @param blockId
    * @param length
-   * @return the dependency id of the file if it has not been checkpointed. -1 means the file 
+   * @return the dependency id of the file if it has not been checkpointed. -1 means the file
    * either does not have dependency or has already been checkpointed.
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
@@ -495,7 +495,7 @@ public class MasterInfo {
       int ret = _createDependency(parentsIdList, childrenIdList, commandPrefix, data, comment,
           framework, frameworkVersion, dependencyType, depId, creationTimeMs);
 
-      mJournal.getEditLog().createDependency(parentsIdList, childrenIdList, commandPrefix, data, 
+      mJournal.getEditLog().createDependency(parentsIdList, childrenIdList, commandPrefix, data,
           comment, framework, frameworkVersion, dependencyType, depId, creationTimeMs);
       mJournal.getEditLog().flush();
 
@@ -1046,7 +1046,7 @@ public class MasterInfo {
     return ret;
   }
 
-  public ClientDependencyInfo getClientDependencyInfo(int dependencyId) 
+  public ClientDependencyInfo getClientDependencyInfo(int dependencyId)
       throws DependencyDoesNotExistException {
     Dependency dep = null;
     synchronized (mDependencies) {
@@ -1354,7 +1354,7 @@ public class MasterInfo {
       if (mPriorityDependencies.isEmpty()) {
         long earliest = Long.MAX_VALUE;
         for (int depId: mUncheckpointedDependencies) {
-          Dependency dep = mDependencies.get(depId); 
+          Dependency dep = mDependencies.get(depId);
           if (!dep.hasChildrenDependency()) {
             mPriorityDependencies.add(dep.ID);
           } else {
