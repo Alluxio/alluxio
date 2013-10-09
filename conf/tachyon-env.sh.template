@@ -14,14 +14,15 @@
 
 if [[ `uname -a` == Darwin* ]]; then
   # Assuming Mac OS X
-  export TACHYON_RAM_FOLDER=/Volumes/ramdisk
-  export TACHYON_JAVA_OPTS="-Djava.security.krb5.realm=OX.AC.UK -Djava.security.krb5.kdc=kdc0.ox.ac.uk:kdc1.ox.ac.uk"
+  export TACHYON_RAM_FOLDER=/Volumes/tachyon
+  export TACHYON_JAVA_OPTS="-Djava.security.krb5.realm= -Djava.security.krb5.kdc="
+  export JAVA_HOME=$(/usr/libexec/java_home)
 else
   # Assuming Linux
   export TACHYON_RAM_FOLDER=/mnt/ramdisk
+  export JAVA_HOME=/usr/lib/jvm/java-7-oracle
 fi
 
-export JAVA_HOME=/usr/lib/jvm/java-7-oracle
 export TACHYON_MASTER_ADDRESS=localhost
 export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:8020
 export TACHYON_WORKER_MEMORY_SIZE=1GB
