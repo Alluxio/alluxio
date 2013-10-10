@@ -59,6 +59,7 @@ public class BasicOperations {
       file.recache();
       buf = file.readByteBuffer();
     }
+    buf.DATA.order(ByteOrder.nativeOrder());
     CommonUtils.printByteBuffer(LOG, buf.DATA);
     buf.close();
   }
