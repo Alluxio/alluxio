@@ -3,7 +3,6 @@ package tachyon;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
@@ -141,17 +140,18 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public String[] getChildren(String path) throws IOException {
+  public String[] list(String path) throws IOException {
     FileStatus[] files = mFs.listStatus(new Path(path));
-    String[] rtn = new String[files.length];
-    int i = 0;
     if (files != null) {
+      String[] rtn = new String[files.length];
+      int i = 0;
       for (FileStatus status : files) {
-        LOG.info("Get: " + status.getPath());
         rtn[i ++] = status.getPath().toString().substring(mUfsPrefix.length());
       }
+      return rtn;
+    } else {
+      return null;
     }
-    return Arrays.copyOfRange(rtn, 0, i);
   }
 
   @Override

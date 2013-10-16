@@ -67,15 +67,19 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public String[] getChildren(String path) throws IOException {
+  public String[] list(String path) throws IOException {
     File file = new File(path);
     File[] files = file.listFiles();
-    String[] rtn = new String[files.length];
-    int i = 0;
-    for (File f : files) {
-      rtn[i ++] = f.getAbsolutePath();
+    if (files != null) {
+      String[] rtn = new String[files.length];
+      int i = 0;
+      for (File f : files) {
+        rtn[i ++] = f.getAbsolutePath();
+      }
+      return rtn;
+    } else {
+      return null;
     }
-    return rtn;
   }
 
   @Override
