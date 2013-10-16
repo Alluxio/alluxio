@@ -52,7 +52,7 @@ public class UnderfsUtil {
               + "checkpoint location " + path);
         }
       } else {
-        String[] files = fs.getChildren(path);
+        String[] files = fs.list(path);
         if (files != null) {
           for (String filePath : files) {
             LOG.info("Get: " + filePath);

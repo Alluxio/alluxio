@@ -53,7 +53,7 @@ public abstract class UnderFileSystem {
 
   public abstract boolean exists(String path) throws IOException;
 
-  public abstract String[] getChildren(String path) throws IOException;
+  public abstract String[] list(String path) throws IOException;
 
   public abstract List<String> getFileLocations(String path) throws IOException;
 
