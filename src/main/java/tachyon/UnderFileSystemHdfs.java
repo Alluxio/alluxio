@@ -3,6 +3,7 @@ package tachyon;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
@@ -23,6 +24,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private FileSystem mFs = null;
+  private String mUfsPrefix = null;
 
   public static UnderFileSystemHdfs getClient(String path) {
     return new UnderFileSystemHdfs(path);
@@ -30,6 +32,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   private UnderFileSystemHdfs(String fsDefaultName) {
     try {
+      mUfsPrefix = fsDefaultName;
       Configuration tConf = new Configuration();
       tConf.set("fs.defaultFS", fsDefaultName);
       tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
@@ -138,6 +141,20 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
+  public String[] getChildren(String path) throws IOException {
+    FileStatus[] files = mFs.listStatus(new Path(path));
+    String[] rtn = new String[files.length];
+    int i = 0;
+    if (files != null) {
+      for (FileStatus status : files) {
+        LOG.info("Get: " + status.getPath());
+        rtn[i ++] = status.getPath().toString().substring(mUfsPrefix.length());
+      }
+    }
+    return Arrays.copyOfRange(rtn, 0, i);
+  }
+
+  @Override
   public List<String> getFileLocations(String path) {
     return getFileLocations(path, 0);
   }
@@ -202,6 +219,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       }
     }
     return -1;
+  }
+
+  @Override
+  public boolean isFile(String path) throws IOException {
+    return mFs.isFile(new Path(path));
   }
 
   @Override

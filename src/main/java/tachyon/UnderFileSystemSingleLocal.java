@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Single node UnderFilesystem implementation.
- * 
+ *
  * This only works for single machine. It is for local unit test and single machine mode.
  */
 public class UnderFileSystemSingleLocal extends UnderFileSystem {
@@ -67,6 +67,18 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
+  public String[] getChildren(String path) throws IOException {
+    File file = new File(path);
+    File[] files = file.listFiles();
+    String[] rtn = new String[files.length];
+    int i = 0;
+    for (File f : files) {
+      rtn[i ++] = f.getAbsolutePath();
+    }
+    return rtn;
+  }
+
+  @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<String>();
     ret.add(InetAddress.getLocalHost().getCanonicalHostName());
@@ -105,6 +117,12 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
       return file.getTotalSpace() - file.getFreeSpace();
     }
     throw new IOException("Unknown getSpace parameter: " + type);
+  }
+
+  @Override
+  public boolean isFile(String path) throws IOException {
+    File file = new File(path);
+    return file.isFile();
   }
 
   @Override
