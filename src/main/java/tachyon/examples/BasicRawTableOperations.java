@@ -35,6 +35,7 @@ public class BasicRawTableOperations {
   public static void createRawTable() throws IOException {
     long startTimeMs = CommonUtils.getCurrentMs();
     ByteBuffer data = ByteBuffer.allocate(12);
+    data.order(ByteOrder.nativeOrder());
     data.putInt(-1);
     data.putInt(-2);
     data.putInt(-3);
@@ -78,6 +79,7 @@ public class BasicRawTableOperations {
     RawTable rawTable = sTachyonClient.getRawTable(mId);
     ByteBuffer metadata = rawTable.getMetadata();
     LOG.info("Metadata: ");
+    metadata.order(ByteOrder.nativeOrder());
     LOG.info(metadata.getInt() + " ");
     LOG.info(metadata.getInt() + " ");
     LOG.info(metadata.getInt() + " ");
@@ -91,6 +93,7 @@ public class BasicRawTableOperations {
         tFile.recache();
         buf = tFile.readByteBuffer();
       }
+      buf.DATA.order(ByteOrder.nativeOrder());
       CommonUtils.printByteBuffer(LOG, buf.DATA);
       buf.close();
     }
