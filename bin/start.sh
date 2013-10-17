@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#start up tachyhon
+#start up tachyon
 
 Usage="Usage: start.sh [-h] WHAT [MOPT]
 Where WHAT is one of:
@@ -40,8 +40,7 @@ check_mount_mode() {
     SudoMount);;
     NoMount);;
     *)
-      if [ -z $1 ]
-      then
+      if [ -z $1 ] ; then
         echo "This command requires a mount mode be specified"
       else
         echo "Invalid mount mode: $1"
