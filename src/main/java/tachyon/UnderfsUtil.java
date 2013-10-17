@@ -23,14 +23,14 @@ import tachyon.thrift.SuspectedFileSizeException;
 public class UnderfsUtil {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  public static void getInfo(TachyonFS tfs, String underfsAddress, String rootPath, 
+  public static void getInfo(TachyonFS tfs, String underfsAddress, String rootPath,
       PrefixList excludePathPrefix) throws IOException {
     LOG.info(tfs + " " + underfsAddress + " " + rootPath + " " + excludePathPrefix);
 
     Configuration tConf = new Configuration();
     tConf.set("fs.default.name", underfsAddress + rootPath);
     // TODO Use underfs to make this generic.
-    FileSystem fs = FileSystem.get(tConf);
+    UnderFileSystem fs = UnderFileSystem.get(underfsAddress);
 
     Queue<String> pathQueue = new LinkedList<String>();
     if (excludePathPrefix.outList(rootPath)) {
@@ -38,8 +38,8 @@ public class UnderfsUtil {
     }
     while (!pathQueue.isEmpty()) {
       String path = pathQueue.poll();
-      if (fs.isFile(new Path(path))) {
-        String filePath =  path.substring(underfsAddress.length());
+      if (fs.isFile(path)) {
+        String filePath = path.substring(underfsAddress.length());
         if (tfs.exist(filePath)) {
           LOG.info("File " + filePath + " already exists in Tachyon.");
           continue;
@@ -52,12 +52,13 @@ public class UnderfsUtil {
               + "checkpoint location " + path);
         }
       } else {
-        FileStatus[] files = fs.listStatus(new Path(path));
-        for (FileStatus status : files) {
-          LOG.info("Get: " + status.getPath());
-          String filePath = status.getPath().toString().substring(underfsAddress.length());
-          if (excludePathPrefix.outList(filePath)) {
-            pathQueue.add(status.getPath().toString());
+        String[] files = fs.list(path);
+        if (files != null) {
+          for (String filePath : files) {
+            LOG.info("Get: " + filePath);
+            if (excludePathPrefix.outList(filePath)) {
+              pathQueue.add(underfsAddress + filePath);
+            }
           }
         }
         String filePath = path.substring(underfsAddress.length());
@@ -72,11 +73,11 @@ public class UnderfsUtil {
       throws SuspectedFileSizeException, InvalidPathException, IOException,
       FileDoesNotExistException, FileAlreadyExistException, TException {
     if (!(args.length == 3 || args.length == 4)) {
-      String prefix = "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " + 
+      String prefix = "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
           "tachyon.UnderfsUtil ";
       System.out.println("Usage: " + prefix + "<TachyonAddress> <UnderfsAddress> <Path> " +
           "[<ExcludePathPrefix, separated by ;>]");
-      System.out.println("Example: " + prefix + 
+      System.out.println("Example: " + prefix +
           "127.0.0.1:19998 hdfs://localhost:54310 / /tachyon");
       System.exit(-1);
     }
@@ -89,5 +90,6 @@ public class UnderfsUtil {
     }
 
     getInfo(TachyonFS.get(args[0]), args[1], args[2], tExcludePathPrefix);
+    System.exit(0);
   }
 }
