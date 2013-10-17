@@ -3,7 +3,8 @@
 if [ "$#" == 0 ]; then
   echo "Usage: tachyon COMMAND"
   echo "where COMMAND is one of:"
-  echo -e "    tfs\t command line input for generic filesystem user client"
+  echo -e "    tfs    \t command line input for generic filesystem user client"
+  echo -e "    loadufs\t syncs Tachyon's file meta-data with the underlying file system's"
   echo "Commands print help when invoked without parameters."
   exit 1
 fi
@@ -27,7 +28,7 @@ elif [ "$COMMAND" == "loadufs" ]; then
 else
   echo "Usage: tachyon COMMAND"
   echo "where COMMAND is one of:"
-  echo -e "    tfs\t command line input for generic filesystem user client"
+  echo -e "    tfs    \t command line input for generic filesystem user client"
   echo -e "    loadufs\t syncs Tachyon's file meta-data with the underlying file system's"
   echo "Commands print help when invoked without parameters."
   exit 1
