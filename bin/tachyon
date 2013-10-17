@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 
-if [ "$#" == 0 ]; then
+function printUsage {
   echo "Usage: tachyon COMMAND"
   echo "where COMMAND is one of:"
-  echo -e "    tfs    \t command line input for generic filesystem user client"
-  echo -e "    loadufs\t syncs Tachyon's file meta-data with the underlying file system's"
+  echo -e "    tfs     \t Command line input for generic filesystem user client."
+  echo -e "    loadufs \t Load existing files in underlayer filesystem into Tachyon."
+  echo -e "    runTests\t Run all end-to-end tests on a Tachyon cluster."
   echo "Commands print help when invoked without parameters."
+}
+
+if [ "$#" == 0 ]; then
+  printUsage
   exit 1
 fi
 
@@ -25,12 +30,20 @@ if [ "$COMMAND" == "tfs" ]; then
   CLASS=tachyon.command.TFsShell
 elif [ "$COMMAND" == "loadufs" ]; then
   CLASS=tachyon.UnderfsUtil
+elif [ "$COMMAND" == "runTests" ]; then
+  declare -a opArr=(MUST_CACHE TRY_CACHE CACHE_THROUGH THROUGH)
+
+  for op in ${opArr[@]}
+  do
+    echo $bin/run-tests.sh Basic $op
+    $bin/run-tests.sh Basic $op
+    echo $bin/run-tests.sh BasicRawTable $op
+    $bin/run-tests.sh BasicRawTable $op
+  done
+
+  exit
 else
-  echo "Usage: tachyon COMMAND"
-  echo "where COMMAND is one of:"
-  echo -e "    tfs    \t command line input for generic filesystem user client"
-  echo -e "    loadufs\t syncs Tachyon's file meta-data with the underlying file system's"
-  echo "Commands print help when invoked without parameters."
+  printUsage
   exit 1
 fi
 
