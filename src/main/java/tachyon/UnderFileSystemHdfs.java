@@ -23,6 +23,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private FileSystem mFs = null;
+  private String mUfsPrefix = null;
 
   public static UnderFileSystemHdfs getClient(String path) {
     return new UnderFileSystemHdfs(path);
@@ -30,6 +31,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   private UnderFileSystemHdfs(String fsDefaultName) {
     try {
+      mUfsPrefix = fsDefaultName;
       Configuration tConf = new Configuration();
       tConf.set("fs.defaultFS", fsDefaultName);
       tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
@@ -138,6 +140,21 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
+  public String[] list(String path) throws IOException {
+    FileStatus[] files = mFs.listStatus(new Path(path));
+    if (files != null) {
+      String[] rtn = new String[files.length];
+      int i = 0;
+      for (FileStatus status : files) {
+        rtn[i ++] = status.getPath().toString().substring(mUfsPrefix.length());
+      }
+      return rtn;
+    } else {
+      return null;
+    }
+  }
+
+  @Override
   public List<String> getFileLocations(String path) {
     return getFileLocations(path, 0);
   }
@@ -202,6 +219,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       }
     }
     return -1;
+  }
+
+  @Override
+  public boolean isFile(String path) throws IOException {
+    return mFs.isFile(new Path(path));
   }
 
   @Override
