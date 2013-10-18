@@ -4,20 +4,19 @@
 
 Usage="Usage: start.sh [-h] WHAT [MOPT]
 Where WHAT is one of:
-  all MOPT\tStart master and all slaves.
-  local\t\tStart a master and slave locally
-  master\tStart the master on this node
-  safe\t\tScript will run continuously and start the master if it's not
-\t\trunning
-  worker MOPT\tStart a worker on this node
-  workers MOPT\tStart workers on slaves
+  all MOPT\t\tStart master and all slaves.
+  local\t\t\tStart a master and slave locally
+  master\t\tStart the master on this node
+  safe\t\t\tScript will run continuously and start the master if it's not running
+  worker MOPT\t\tStart a worker on this node
+  workers MOPT\t\tStart workers on slaves
   restart_worker\tRestart a failed worker on this node
   restart_workers\tRestart any failed workers on slaves
 
 MOPT is one of:
-  Mount\t\tMount the configured RamFS
-  SudoMount\tMount the configured RamFS using sudo
-  NoMount\tDo not mount the configured RamFS
+  Mount\t\t\tMount the configured RamFS
+  SudoMount\t\tMount the configured RamFS using sudo
+  NoMount\t\tDo not mount the configured RamFS
 
 -h  display this help."
 
