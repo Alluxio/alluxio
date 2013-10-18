@@ -36,9 +36,9 @@ elif [ "$COMMAND" == "runTests" ]; then
   for op in ${opArr[@]}
   do
     echo $bin/run-tests.sh Basic $op
-    $bin/run-tests.sh Basic $op
+    $bin/run-test.sh Basic $op
     echo $bin/run-tests.sh BasicRawTable $op
-    $bin/run-tests.sh BasicRawTable $op
+    $bin/run-test.sh BasicRawTable $op
   done
 
   exit
