@@ -68,11 +68,8 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
 
     public String getName() {
-      if (ABSOLUATE_PATH.equals(Constants.PATH_SEPARATOR)) {
-        return "root";
-      } else {
-        return NAME;
-      }
+      if (ABSOLUATE_PATH.equals(Constants.PATH_SEPARATOR)) return "root";
+      else return NAME;
     }
 
     public String getAbsolutePath() {
@@ -80,8 +77,8 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
 
     public String getBlockSizeBytes() {
-      if (BLOCK_SIZE_BYTES > 0) return (BLOCK_SIZE_BYTES / Constants.MB) + "MB";
-      else return "";
+      if (IS_DIRECTORY) return " ";
+      else return CommonUtils.getSizeFromBytes(BLOCK_SIZE_BYTES);
     }
 
     public String getCheckpointPath() {
@@ -89,11 +86,8 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
 
     public String getSize() {
-      if (IS_DIRECTORY) {
-        return " ";
-      } else {
-        return CommonUtils.getSizeFromBytes(SIZE);
-      }
+      if (IS_DIRECTORY) return " ";
+      else return CommonUtils.getSizeFromBytes(SIZE);
     }
 
     public String getCreationTime() {
