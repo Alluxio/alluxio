@@ -80,7 +80,8 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
 
     public String getBlockSizeBytes() {
-      return (BLOCK_SIZE_BYTES / Constants.MB) + "MB";
+      if (BLOCK_SIZE_BYTES > 0) return (BLOCK_SIZE_BYTES / Constants.MB) + "MB";
+      else return "";
     }
 
     public String getCheckpointPath() {
