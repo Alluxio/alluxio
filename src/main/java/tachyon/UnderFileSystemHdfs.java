@@ -168,7 +168,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       BlockLocation[] bLocations = mFs.getFileBlockLocations(fStatus, offset, 1);
       if (bLocations.length > 0) {
         String[] hosts = bLocations[0].getHosts();
-          Collections.addAll(ret, hosts);
+        Collections.addAll(ret, hosts);
       }
     } catch (IOException e) {
       LOG.error(e);
