@@ -3,6 +3,7 @@ package tachyon;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
@@ -167,9 +168,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       BlockLocation[] bLocations = mFs.getFileBlockLocations(fStatus, offset, 1);
       if (bLocations.length > 0) {
         String[] hosts = bLocations[0].getHosts();
-        for (String host: hosts) {
-          ret.add(host);
-        }
+        Collections.addAll(ret, hosts);
       }
     } catch (IOException e) {
       LOG.error(e);
