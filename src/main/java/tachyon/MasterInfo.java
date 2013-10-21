@@ -1269,7 +1269,7 @@ public class MasterInfo {
     synchronized (mWorkers) {
       if (mWorkerAddressToId.containsKey(workerAddress)) {
         id = mWorkerAddressToId.get(workerAddress);
-        mWorkerAddressToId.remove(id);
+        mWorkerAddressToId.remove(workerAddress);
         LOG.warn("The worker " + workerAddress + " already exists as id " + id + ".");
       }
       if (id != 0 && mWorkers.containsKey(id)) {
