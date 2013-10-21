@@ -183,19 +183,19 @@ public final class CommonUtils {
     memorySize = memorySize.substring(0, tIndex + 1);
     double ret = Double.parseDouble(memorySize);
     end = end.toLowerCase();
-      switch (end) {
-          case "":
-          case "b":
-              return (long) (ret + alpha);
-          case "kb":
-              return (long) (ret * Constants.KB + alpha);
-          case "mb":
-              return (long) (ret * Constants.MB + alpha);
-          case "gb":
-              return (long) (ret * Constants.GB + alpha);
-          case "tb":
-              return (long) (ret * Constants.TB + alpha);
-      }
+    switch (end) {
+    case "":
+    case "b":
+      return (long) (ret + alpha);
+    case "kb":
+      return (long) (ret * Constants.KB + alpha);
+    case "mb":
+      return (long) (ret * Constants.MB + alpha);
+    case "gb":
+      return (long) (ret * Constants.GB + alpha);
+    case "tb":
+      return (long) (ret * Constants.TB + alpha);
+    }
     runtimeException("Fail to parse " + ori + " as memory size");
     return -1;
   }
