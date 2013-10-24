@@ -53,10 +53,10 @@ check_mount_mode() {
 do_mount() {
   case "${1}" in
     Mount)
-      $bin/mount-ramfs.sh $1
+      $bin/mount.sh $1
       ;;
     SudoMount)
-      $bin/mount-ramfs.sh $1
+      $bin/mount.sh $1
       ;;
     NoMount)
       ;;
@@ -160,7 +160,7 @@ case "${WHAT}" in
   local)
     stop $bin
     sleep 1
-    $bin/mount-ramfs.sh SudoMount
+    $bin/mount.sh SudoMount
     start_master
     sleep 2
     start_worker NoMount
