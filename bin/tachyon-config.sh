@@ -18,4 +18,4 @@ export TACHYON_PREFIX=`dirname "$this"`/..
 export TACHYON_HOME=${TACHYON_PREFIX}
 export TACHYON_CONF_DIR="$TACHYON_HOME/conf"
 export TACHYON_LOGS_DIR="$TACHYON_HOME/logs"
-export TACHYON_JAR=$TACHYON_HOME/target/tachyon-0.3.0-SNAPSHOT-jar-with-dependencies.jar
+export TACHYON_JAR=$TACHYON_HOME/target/tachyon-0.4.0-SNAPSHOT-jar-with-dependencies.jar
