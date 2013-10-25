@@ -19,16 +19,16 @@ public class Version {
     try {
       in = Version.class.getClassLoader().getResourceAsStream("version.properties");
       p.load(in);
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       LOG.error(e.getMessage(), e);
-    }
-    finally {
+    } finally {
       try {
         in.close();
-      } catch (Exception e){e.printStackTrace();}
+      } catch (Exception e){
+        LOG.error(e.getMessage(), e);
+      }
     }
 
-    VERSION = p.getProperty("tachyon.version","UNDEFINED");
+    VERSION = p.getProperty("tachyon.version", "UNDEFINED");
   }
 }
