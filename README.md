@@ -1,7 +1,7 @@
 Tachyon
 =======
 
-The master branch is in version 0.3.0:
+The branch is in version 0.3.1-SNAPSHOT:
 
 Project Homepage: http://www.tachyonproject.org
 
