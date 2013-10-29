@@ -328,4 +328,9 @@ public class RemoteBlockInStream extends BlockInStream {
     }
     return ret;
   }
+
+  @Override
+  public void seek(long pos) throws IOException {
+    setupStreamFromUnderFs(pos);
+  }
 }
