@@ -10,7 +10,7 @@ Usage="Usage: mount.sh [Mount|SudoMount] [MACHINE]
   workers\t\tMount all the workers on slaves"
 
 function init_env(){
-  bin=`cd "$( dirname "$0" )"; pwd`
+  bin=`cd "$( dirname "$1" )"; pwd`
 
   # Load the Tachyon configuration
   . "$bin/tachyon-config.sh"
@@ -27,7 +27,7 @@ function init_env(){
 }
 
 function mount_ramfs_linux(){
-  init_env
+  init_env $1
   if [ -z $TACHYON_RAM_FOLDER ] ; then
     TACHYON_RAM_FOLDER=/mnt/ramdisk
     echo "TACHYON_RAM_FOLDER was not set. Using the default one: $TACHYON_RAM_FOLDER"
@@ -44,9 +44,10 @@ function mount_ramfs_linux(){
   mount -t ramfs -o size=$MEM_SIZE ramfs $F ; chmod a+w $F ;
 }
 
+#enable the regexp case match
 shopt -s extglob
 function mount_ramfs_mac(){
-  init_env
+  init_env $0
   if [ -z $TACHYON_RAM_FOLDER ] ; then
     TACHYON_RAM_FOLDER=/Volumes/ramdisk
     echo "TACHYON_RAM_FOLDER was not set. Using the default one: $TACHYON_RAM_FOLDER"
@@ -100,9 +101,9 @@ function mount_local(){
     if [[ "$1" == "SudoMount" ]]; then
       DECL_INIT=`declare -f init_env`
       DECL_MOUNT_LINUX=`declare -f mount_ramfs_linux`
-      sudo bash -c "$DECL_INIT; $DECL_MOUNT_LINUX; mount_ramfs_linux"
+      sudo bash -c "$DECL_INIT; $DECL_MOUNT_LINUX; mount_ramfs_linux $0"
     else
-      mount_ramfs_linux
+      mount_ramfs_linux $0
     fi
   fi
 }
