@@ -9,7 +9,7 @@ Usage="Usage: mount.sh [Mount|SudoMount] [MACHINE]
   local\t\t\tMount local marchine\n
   workers\t\tMount all the workers on slaves"
 
-function init_env(){
+function init_env() {
   bin=`cd "$( dirname "$1" )"; pwd`
 
   # Load the Tachyon configuration
@@ -19,14 +19,14 @@ function init_env(){
   if [ -e $TACHYON_HOME/conf/tachyon-env.sh ] ; then
     . $TACHYON_HOME/conf/tachyon-env.sh
   else
-    echo "TACHYON_HOME/conf/tachyon-env.sh was not configured"
-    exit 1
+    echo -e "$TACHYON_HOME/conf/tachyon-env.sh was not configured, set TACHYON_WORKER_MEMORY_SIZE=128MB"
+    TACHYON_WORKER_MEMORY_SIZE=128MB
   fi
 
   MEM_SIZE=$(echo "$TACHYON_WORKER_MEMORY_SIZE" | tr -s '[:upper:]' '[:lower:]')
 }
 
-function mount_ramfs_linux(){
+function mount_ramfs_linux() {
   init_env $1
   if [ -z $TACHYON_RAM_FOLDER ] ; then
     TACHYON_RAM_FOLDER=/mnt/ramdisk
@@ -46,7 +46,7 @@ function mount_ramfs_linux(){
 
 #enable the regexp case match
 shopt -s extglob
-function mount_ramfs_mac(){
+function mount_ramfs_mac() {
   init_env $0
   if [ -z $TACHYON_RAM_FOLDER ] ; then
     TACHYON_RAM_FOLDER=/Volumes/ramdisk
@@ -92,7 +92,7 @@ function mount_ramfs_mac(){
   diskutil erasevolume HFS+ $F `hdiutil attach -nomount ram://$NUM_SECTORS`
 }
 
-function mount_local(){
+function mount_local() {
   if [[ `uname -a` == Darwin* ]]; then
     # Assuming Mac OS X
     mount_ramfs_mac
@@ -107,7 +107,6 @@ function mount_local(){
     fi
   fi
 }
-
 
 case "${1}" in
   Mount|SudoMount)
