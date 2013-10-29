@@ -140,12 +140,14 @@ public class FileInStream extends InStream {
 
   @Override
   public void seek(long pos) throws IOException {
-    if (mCurrentPosition == pos)
+    if (mCurrentPosition == pos) {
       return;
+    }
 
     mCurrentBlockIndex = (int) (pos / BLOCK_CAPACITY);
-    if (mCurrentBlockInStream != null)
+    if (mCurrentBlockInStream != null) {
       mCurrentBlockInStream.close();
+    }
     mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex);
     mCurrentBlockInStream.seek(pos % BLOCK_CAPACITY);
   }
