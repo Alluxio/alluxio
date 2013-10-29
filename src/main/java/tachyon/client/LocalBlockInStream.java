@@ -72,4 +72,9 @@ public class LocalBlockInStream extends BlockInStream {
     mBuffer.position(mBuffer.position() + ret);
     return ret;
   }
+
+  @Override
+  public void seek(long pos) throws IOException {
+    mBuffer.position((int) pos);
+  }
 }

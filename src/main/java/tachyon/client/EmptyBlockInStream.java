@@ -33,4 +33,9 @@ public class EmptyBlockInStream extends InStream {
   public long skip(long n) throws IOException {
     return 0;
   }
+
+  @Override
+  public void seek(long pos) throws IOException {
+    // do nothing
+  }
 }
