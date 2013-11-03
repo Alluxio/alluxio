@@ -112,7 +112,7 @@ public class FileInStream extends InStream {
       mCurrentPosition += n;
     }
 
-    int tBlockIndex = (int) (mCurrentPosition / FILE.getBlockSizeByte());
+    int tBlockIndex = (int) (mCurrentPosition / BLOCK_CAPACITY);
     if (tBlockIndex != mCurrentBlockIndex) {
       if (mCurrentBlockInStream != null) {
         mCurrentBlockInStream.close();
@@ -143,12 +143,24 @@ public class FileInStream extends InStream {
     if (mCurrentPosition == pos) {
       return;
     }
-
-    mCurrentBlockIndex = (int) (pos / BLOCK_CAPACITY);
-    if (mCurrentBlockInStream != null) {
-      mCurrentBlockInStream.close();
+    if (pos < 0) {
+      throw new IOException("pos is negative: " + pos);
     }
-    mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex);
+
+    if ((int) (pos / BLOCK_CAPACITY) != mCurrentBlockIndex){
+      mCurrentBlockIndex = (int) (pos / BLOCK_CAPACITY);
+      if (mCurrentBlockInStream != null) {
+        mCurrentBlockInStream.close();
+      }
+      System.out.println(pos + "A");
+      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex);
+    }
+    if (mCurrentBlockInStream == null) {
+      System.out.println("BAD");
+    }
+    System.out.println(pos);
     mCurrentBlockInStream.seek(pos % BLOCK_CAPACITY);
+    mCurrentPosition = pos;
+    mCurrentBlockLeft = BLOCK_CAPACITY - (pos % BLOCK_CAPACITY);
   }
 }
