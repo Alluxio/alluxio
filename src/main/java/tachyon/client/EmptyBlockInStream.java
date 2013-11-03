@@ -36,6 +36,8 @@ public class EmptyBlockInStream extends InStream {
 
   @Override
   public void seek(long pos) throws IOException {
-    // do nothing
+    if (pos < 0) {
+      throw new IOException("pos is negative: " + pos);
+    }
   }
 }

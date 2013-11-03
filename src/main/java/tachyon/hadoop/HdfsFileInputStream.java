@@ -105,26 +105,17 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     if (pos == mCurrentPosition) {
       return;
     }
-    if (pos < mCurrentPosition) {
-      if (mTachyonFileInputStream != null) {
-        mTachyonFileInputStream.seek(pos);
-        mCurrentPosition = pos;
-      } else if (mHdfsInputStream != null) {
-        mHdfsInputStream.seek(pos);
-        mCurrentPosition = pos;
-      }
-      return;
-    }
     if (mTachyonFileInputStream != null) {
-      long needSkip = pos - mCurrentPosition;
-      while (needSkip > 0) {
-        needSkip -= mTachyonFileInputStream.skip(needSkip);
-      }
-      mCurrentPosition = pos;
+      mTachyonFileInputStream.seek(pos);
     } else if (mHdfsInputStream != null) {
       mHdfsInputStream.seek(pos);
-      mCurrentPosition = pos;
+    } else {
+      FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
+      mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
+      mHdfsInputStream.seek(pos);
     }
+
+    mCurrentPosition = pos;
   }
 
   /**
