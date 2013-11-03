@@ -152,13 +152,8 @@ public class FileInStream extends InStream {
       if (mCurrentBlockInStream != null) {
         mCurrentBlockInStream.close();
       }
-      System.out.println(pos + "A");
       mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex);
     }
-    if (mCurrentBlockInStream == null) {
-      System.out.println("BAD");
-    }
-    System.out.println(pos);
     mCurrentBlockInStream.seek(pos % BLOCK_CAPACITY);
     mCurrentPosition = pos;
     mCurrentBlockLeft = BLOCK_CAPACITY - (pos % BLOCK_CAPACITY);
