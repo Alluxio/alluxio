@@ -44,8 +44,6 @@ public class MasterClient {
 
   private boolean mUseZookeeper;
   private MasterService.Client mClient = null;
-  // TODO mZookeeperAddress is not really used. Remove it. 
-  private InetSocketAddress mZookeeperAddress = null;
   private InetSocketAddress mMasterAddress = null;
   private TProtocol mProtocol = null;
   private volatile boolean mIsConnected;
@@ -60,14 +58,7 @@ public class MasterClient {
 
   public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper) {
     mUseZookeeper = useZookeeper;
-    if (mUseZookeeper) {
-      try {
-        mZookeeperAddress = CommonUtils.parseInetSocketAddress(CommonConf.get().ZOOKEEPER_ADDRESS);
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-        CommonUtils.runtimeException(e);
-      }
-    } else {
+    if (!mUseZookeeper) {
       mMasterAddress = masterAddress;
     }
     mIsConnected = false;
