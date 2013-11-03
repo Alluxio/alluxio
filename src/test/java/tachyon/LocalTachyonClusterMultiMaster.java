@@ -212,10 +212,10 @@ public class LocalTachyonClusterMultiMaster {
       fs.close();
     }
 
+    mWorker.stop();
     for (int k = 0; k < mNumOfMasters; k ++) {
       mMasterThreads.get(k).shutdown();
     }
-    mWorker.stop();
     mCuratorServer.stop();
 
     System.clearProperty("tachyon.home");
