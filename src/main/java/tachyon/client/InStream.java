@@ -36,4 +36,6 @@ public abstract class InStream extends InputStream {
 
   @Override
   public abstract long skip(long n) throws IOException;
+
+  public abstract void seek(long pos) throws IOException;
 }
