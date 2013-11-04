@@ -20,7 +20,7 @@
       </ul>
     </div>
   </div>
-  
+
   <div class="container-fluid">
     <div class="row-fluid">
       <div class="span12 well">
@@ -45,6 +45,7 @@
           <thead>
             <th>File Name</th>
             <th>Size</th>
+            <th>Block Size</th>
             <th>In-Memory</th>
             <th>Creation Time</th>
             <th>Dependency Id</th>
@@ -74,6 +75,7 @@
                   <a href="./browse?path=${fileInfo.absolutePath}"><c:out value="${fileInfo.name}"/></a>
                 </th>
                 <th>${fileInfo.size} Bytes</th>
+                <th>${fileInfo.blockSizeBytes}</th>
                 <th>
                   <c:if test = "${fileInfo.inMemory}">
                     <i class="icon-hdd"></i>
@@ -113,6 +115,7 @@
                     <a href="./browse?path=<%=fileInfo.getAbsolutePath()%>"><%= fileInfo.getName() %></a>
                   </th>
                   <th><%= fileInfo.getSize() %></th>
+                  <th><%= fileInfo.getBlockSizeBytes() %></th>
                   <th>
                     <% if (fileInfo.getInMemory()) { %>
                       <i class="icon-hdd"></i>

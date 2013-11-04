@@ -38,8 +38,8 @@ public class DataServer implements Runnable {
   // The blocks locker manager.
   private final BlocksLocker mBlocksLocker;
 
-  private boolean mShutdown = false;
-  private boolean mShutdowned = false;
+  private volatile boolean mShutdown = false;
+  private volatile boolean mShutdowned = false;
 
   /**
    * Create a data server with direct access to worker storage.
@@ -176,13 +176,12 @@ public class DataServer implements Runnable {
 
   @Override
   public void run() {
-    while (true) {
+    while (!mShutdown) {
       try {
         // Wait for an event one of the registered channels.
         mSelector.select();
         if (mShutdown) {
-          mShutdowned = true;
-          return;
+          break;
         }
 
         // Iterate over the set of keys for which events are available
@@ -207,8 +206,12 @@ public class DataServer implements Runnable {
         }
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
+        if (mShutdown) {
+          break;
+        }
         throw new RuntimeException(e);
       }
     }
+    mShutdowned = true;
   }
 }
