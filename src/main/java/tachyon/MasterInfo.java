@@ -145,7 +145,7 @@ public class MasterInfo {
         LOG.warn("Restarting failed workers.");
         try {
           java.lang.Runtime.getRuntime().exec(CommonConf.get().TACHYON_HOME +
-              "/bin/restart-failed-workers.sh");
+              "/bin/start.sh restart_workers");
         } catch (IOException e) {
           LOG.error(e.getMessage());
         }
