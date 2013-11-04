@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon</artifactId>
-  <version>0.3.0-SNAPSHOT</version>
+  <version>0.4.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Tachyon Project POM</name>
   <url>http://tachyonproject.org/</url>
@@ -17,7 +17,7 @@
     <connection>scm:git:git@github.com:amplab/tachyon.git</connection>
     <developerConnection>scm:git:git@github.com:amplab/tachyon.git</developerConnection>
     <url>scm:git:git@github.com:amplab/tachyon.git</url>
-    <tag>v0.2.1</tag>
+    <tag>v0.3.0</tag>
   </scm>
   <developers>
     <developer>
@@ -50,8 +50,6 @@
     <slf4j.version>1.7.2</slf4j.version>
     <log4j.version>1.2.17</log4j.version>
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
-    <version.template.file>src/main/java/tachyon/Version.java.template</version.template.file>
-    <version.file>src/main/java/tachyon/Version.java</version.file>
   </properties>
 
   <repositories>
@@ -201,6 +199,12 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
     <plugins>
 <!--
        <plugin>
@@ -269,30 +273,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
         <version>2.4.1</version>
-      </plugin>
-
-      <plugin>
-        <groupId>com.google.code.maven-replacer-plugin</groupId>
-        <artifactId>maven-replacer-plugin</artifactId>
-        <version>1.4.0</version>
-        <executions>
-          <execution>
-            <phase>process-sources</phase>
-            <goals>
-              <goal>replace</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <file>${version.template.file}</file>
-          <outputFile>${version.file}</outputFile>
-          <replacements>
-            <replacement>
-              <token>@pomversion@</token>
-              <value>${project.version}</value>
-            </replacement>
-          </replacements>
-        </configuration>
       </plugin>
     </plugins>
   </build>

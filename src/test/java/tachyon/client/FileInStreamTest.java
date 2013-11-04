@@ -158,4 +158,56 @@ public class FileInStreamTest {
       }
     }
   }
+
+  /**
+   * Test <code>void seek(long pos)</code>.
+   * @throws IOException 
+   */
+  @Test
+  public void seekExceptionTest() throws IOException {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+      for (WriteType op : WriteType.values()) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+
+        TachyonFile file = mTfs.getFile(fileId);
+        InStream is = (k < MEAN ?
+            file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+
+        try {
+          is.seek(-1);
+        } catch (IOException e) {
+          // This is expected
+          continue;
+        }
+        is.close();
+        throw new IOException("Except seek IOException");
+      }
+    }
+  }
+
+  /**
+   * Test <code>void seek(long pos)</code>.
+   * @throws IOException 
+   */
+  @Test
+  public void seekTest() throws IOException {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+      for (WriteType op : WriteType.values()) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+
+        TachyonFile file = mTfs.getFile(fileId);
+        InStream is = (k < MEAN ?
+            file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+
+        Assert.assertTrue(is instanceof FileInStream);
+        is.seek(k / 3);
+        Assert.assertEquals(k / 3, is.read());
+        is.seek(k / 2);
+        Assert.assertEquals(k / 2, is.read());
+        is.seek(k / 4);
+        Assert.assertEquals(k / 4, is.read());
+        is.close();
+      }
+    }
+  }
 }

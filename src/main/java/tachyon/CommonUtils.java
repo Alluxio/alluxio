@@ -123,7 +123,7 @@ public final class CommonUtils {
   public static String getSizeFromBytes(long bytes) {
     double ret = bytes;
     if (ret <= 1024 * 5) {
-      return String.format("%.2f B", ret); 
+      return String.format("%.2f B", ret);
     }
     ret /= 1024;
     if (ret <= 1024 * 5) {
@@ -182,15 +182,17 @@ public final class CommonUtils {
     memorySize = memorySize.substring(0, tIndex + 1);
     double ret = Double.parseDouble(memorySize);
     end = end.toLowerCase();
-    if (end.equals("") || end.equals("b")) {
+    switch (end) {
+    case "":
+    case "b":
       return (long) (ret + alpha);
-    } else if (end.equals("kb")) {
+    case "kb":
       return (long) (ret * Constants.KB + alpha);
-    } else if (end.equals("mb")) {
+    case "mb":
       return (long) (ret * Constants.MB + alpha);
-    } else if (end.equals("gb")) {
+    case "gb":
       return (long) (ret * Constants.GB + alpha);
-    } else if (end.equals("tb")) {
+    case "tb":
       return (long) (ret * Constants.TB + alpha);
     }
     runtimeException("Fail to parse " + ori + " as memory size");
@@ -241,7 +243,7 @@ public final class CommonUtils {
   }
 
   public static void validatePath(String path) throws InvalidPathException {
-    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR) || 
+    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR) ||
         (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR)) ||
         path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
