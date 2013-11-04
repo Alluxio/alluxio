@@ -3,6 +3,7 @@ package tachyon;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -730,7 +731,7 @@ public class MasterClient {
   }
 
   public synchronized List<Integer> worker_getPriorityDependencyList() throws TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.worker_getPriorityDependencyList();
@@ -739,13 +740,14 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return new ArrayList<Integer>();
   }
 
   public synchronized int user_createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte)
           throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_createDependency(parents, children, commandPrefix, data, comment,
@@ -758,10 +760,11 @@ public class MasterClient {
         throw new IOException(e);
       }
     }
+    return -1;
   }
 
   public synchronized void user_reportLostFile(int fileId) throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         mClient.user_reportLostFile(fileId);
@@ -777,7 +780,7 @@ public class MasterClient {
 
   public synchronized void user_requestFilesInDependency(int depId)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         mClient.user_requestFilesInDependency(depId);
@@ -792,7 +795,7 @@ public class MasterClient {
   }
 
   public ClientDependencyInfo getClientDependencyInfo(int did) throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getClientDependencyInfo(did);
@@ -803,5 +806,6 @@ public class MasterClient {
         throw new IOException(e);
       }
     }
+    return null;
   }
 }
