@@ -267,4 +267,32 @@ public final class CommonUtils {
     }
     return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
   }
+
+  /**
+   * @param folder that will be changed to full permission
+   */
+  public static void changeToFullPermission(String folder) {
+    //set the full permission to everyone.
+    String OS = System.getProperty("os.name").toLowerCase();
+
+    try {
+      Runtime.getRuntime().exec("chmod 777 "+folder);
+      //set the folder to be full permission inheritable using setfacl
+      Runtime.getRuntime().exec("setfacl -Rm d:u::rwx,d:g::rwx,d:o::rwx "+folder);
+    } catch (IOException e) {
+      LOG.warn("Can not change the permission of the following folder to inheritable '777':"+folder);
+    }
+  }
+
+  /**
+   * if the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the the owner of the folder containing the 'file'.
+   * @param file absolute file path
+   */
+  public static void setStickyBit(String file){
+    try {
+      Runtime.getRuntime().exec("chmod o+t "+file);
+    } catch (IOException e) {
+      LOG.info("Can not set the sticky bit of the file : "+file);
+    }
+  }
 }
