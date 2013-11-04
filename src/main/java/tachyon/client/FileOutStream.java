@@ -150,12 +150,11 @@ public class FileOutStream extends OutStream {
     }
   }
 
-  /**
-   * Not implemented yet.
-   */
   @Override
   public void flush() throws IOException {
-    throw new IOException("Not supported yet.");
+    // We only flush the checkpoint output stream.
+    // TODO flushing for RAMFS block streams.
+    mCheckpointOutputStream.flush();
   }
 
   @Override

@@ -36,4 +36,13 @@ public abstract class InStream extends InputStream {
 
   @Override
   public abstract long skip(long n) throws IOException;
+
+  /**
+   * Sets the stream pointer offset, measured from the beginning of this stream, at which the next
+   * read or write occurs. The offset may be set beyond the end of the stream.
+   * @param pos the offset position, measured in bytes from the beginning of the InStream, at which
+   * to set the stream pointer.
+   * @throws IOException if pos is less than 0 or if an I/O error occurs.
+   */
+  public abstract void seek(long pos) throws IOException;
 }
