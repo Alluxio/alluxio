@@ -6,7 +6,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import tachyon.CommonUtils;
 import tachyon.UnderFileSystem;
+import tachyon.UnderFileSystemSingleLocal;
 
 /**
  * <code>FileOutStream</code> implementation of TachyonFile. It can only be gotten by
@@ -49,6 +51,11 @@ public class FileOutStream extends OutStream {
             + Integer.MAX_VALUE);
       }
       mCheckpointOutputStream = underfsClient.create(mUnderFsFile, (int) BLOCK_CAPACITY);
+      if(underfsClient instanceof UnderFileSystemSingleLocal){
+        //change the permission of the temporary file in order that the worker can move it.
+        CommonUtils.changeToFullPermission(mUnderFsFile);
+        CommonUtils.setStickyBit(mUnderFsFile);
+      }
     }
   }
 
