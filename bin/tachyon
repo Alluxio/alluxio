@@ -3,10 +3,13 @@
 function printUsage {
   echo "Usage: tachyon COMMAND"
   echo "where COMMAND is one of:"
-  echo -e "    tfs     \t Command line input for generic filesystem user client."
-  echo -e "    loadufs \t Load existing files in underlayer filesystem into Tachyon."
-  echo -e "    runTest \t Run a end-to-end test on a Tachyon cluster."
-  echo -e "    runTests\t Run all end-to-end tests on a Tachyon cluster."
+  echo -e "    format       \t Format Tachyon"
+  echo -e "    tfs          \t Command line input for generic filesystem user client."
+  echo -e "    loadufs      \t Load existing files in underlayer filesystem into Tachyon."
+  echo -e "    runTest      \t Run a end-to-end test on a Tachyon cluster."
+  echo -e "    runTests     \t Run all end-to-end tests on a Tachyon cluster."
+  echo -e "    thriftGen    \t Generate all thrift code."
+  echo -e "    clearCache   \t Clear OS buffer cache of the machine"
   echo "Commands print help when invoked without parameters."
 }
 
@@ -51,7 +54,14 @@ function runTest {
   echo $Usage
 }
 
-if [ "$COMMAND" == "tfs" ]; then
+
+if [ "$COMMAND" == "format" ]; then
+  if [ -z $TACHYON_MASTER_ADDRESS ] ; then
+    TACHYON_MASTER_ADDRESS=localhost
+  fi
+  echo "Formatting Tachyon @ $TACHYON_MASTER_ADDRESS"
+  CLASS=tachyon.Format
+elif [ "$COMMAND" == "tfs" ]; then
   CLASS=tachyon.command.TFsShell
 elif [ "$COMMAND" == "loadufs" ]; then
   CLASS=tachyon.UnderfsUtil
@@ -69,6 +79,13 @@ elif [ "$COMMAND" == "runTests" ]; then
     $bin/tachyon runTest BasicRawTable $op
   done
 
+  exit 0
+elif [ "$COMMAND" == "thriftGen" ]; then
+  rm -rf $bin/../src/main/java/tachyon/thrift
+  thrift --gen java -out $bin/../src/main/java/. $bin/../src/thrift/tachyon.thrift
+  exit 0
+elif [ "$COMMAND" == "clearCache" ]; then
+  sync; echo 3 > /proc/sys/vm/drop_caches ;
   exit 0
 else
   printUsage
