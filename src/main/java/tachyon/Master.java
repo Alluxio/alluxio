@@ -33,7 +33,7 @@ public class Master {
   private boolean mZookeeperMode = false;
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  public Master(InetSocketAddress address, int webPort, int selectorThreads, 
+  public Master(InetSocketAddress address, int webPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads) {
     //      String imageFileName, String editLogFileName) {
     if (CommonConf.get().USE_ZOOKEEPER) {
@@ -52,7 +52,7 @@ public class Master {
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
         mLeaderSelectorClient = new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS,
-            conf.ZOOKEEPER_ELECTION_PATH, conf.ZOOKEEPER_LEADER_PATH, address.getHostString() + ":" + address.getPort());
+            conf.ZOOKEEPER_ELECTION_PATH, conf.ZOOKEEPER_LEADER_PATH, address.getHostName() + ":" + address.getPort());
       }
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
@@ -67,7 +67,7 @@ public class Master {
         new InetSocketAddress(mMasterAddress.getHostName(), mWebPort), mMasterInfo);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
-    MasterService.Processor<MasterServiceHandler> masterServiceProcessor = 
+    MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
     // TODO This is for Thrift 0.8 or newer.
@@ -76,7 +76,7 @@ public class Master {
     //          .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
     //          .workerThreads(workerThreads));
 
-    // This is for Thrift 0.7.0, for Hive compatibility. 
+    // This is for Thrift 0.7.0, for Hive compatibility.
     mMasterServiceServer = new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(
         mMasterAddress)).processor(masterServiceProcessor).workerThreads(mWorkerThreads));
 
@@ -162,7 +162,7 @@ public class Master {
 
   /**
    * Get MasterInfo instance for Unit Test
-   * @return MasterInfo of the Master  
+   * @return MasterInfo of the Master
    */
   MasterInfo getMasterInfo() {
     return mMasterInfo;
