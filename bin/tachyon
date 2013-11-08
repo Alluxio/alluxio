@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 
 function printUsage {
-  echo "Usage: tachyon COMMAND"
+  echo "Usage: tachyon COMMAND "
   echo "where COMMAND is one of:"
-  echo -e "    format       \t Format Tachyon"
-  echo -e "    tfs          \t Command line input for generic filesystem user client."
-  echo -e "    loadufs      \t Load existing files in underlayer filesystem into Tachyon."
-  echo -e "    runTest      \t Run a end-to-end test on a Tachyon cluster."
-  echo -e "    runTests     \t Run all end-to-end tests on a Tachyon cluster."
-  echo -e "    thriftGen    \t Generate all thrift code."
-  echo -e "    clearCache   \t Clear OS buffer cache of the machine"
+  echo -e "    format         \t Format Tachyon"
+  echo -e "    tfs            \t Command line input for generic filesystem user client."
+  echo -e "    loadufs        \t Load existing files in underlayer filesystem into Tachyon."
+  echo -e "    runTest        \t Run a end-to-end test on a Tachyon cluster."
+  echo -e "    runTests       \t Run all end-to-end tests on a Tachyon cluster."
+  echo -e "    killAll <WORD> \t Kill processes containing the WORD"
+  echo -e "    thriftGen      \t Generate all thrift code."
+  echo -e "    clearCache     \t Clear OS buffer cache of the machine"
   echo "Commands print help when invoked without parameters."
 }
 
@@ -43,6 +44,8 @@ function runTest {
     MASTER_ADDRESS=localhost
   fi
 
+  echo $MASTER_ADDRESS
+
   if [[ "$1" == "Basic" ]]; then
     $JAVA_HOME/bin/java -cp $bin/../conf/:$TACHYON_JAR tachyon.examples.BasicOperations $MASTER_ADDRESS:19998 /Basic_File_$2 $2
     exit 0
@@ -54,6 +57,21 @@ function runTest {
   echo $Usage
 }
 
+function killAll {
+  if [ "$#" -ne 1 ]
+  then
+    echo "Usage: tachyon killAll <WORD>"
+    exit
+  fi
+
+  keyword=$1
+  count=0
+  for pid in `ps -A -o pid,command | grep -i "[j]ava" | grep $keyword | awk '{print $1}'`; do
+    kill -9 $pid 2> /dev/null
+    count=`expr $count + 1`
+  done
+  echo "Killed $count processes"
+}
 
 if [ "$COMMAND" == "format" ]; then
   if [ -z $TACHYON_MASTER_ADDRESS ] ; then
@@ -80,6 +98,9 @@ elif [ "$COMMAND" == "runTests" ]; then
   done
 
   exit 0
+elif [ "$COMMAND" == "killAll" ]; then
+  killAll "$@"
+  exit 0
 elif [ "$COMMAND" == "thriftGen" ]; then
   rm -rf $bin/../src/main/java/tachyon/thrift
   thrift --gen java -out $bin/../src/main/java/. $bin/../src/thrift/tachyon.thrift
@@ -92,4 +113,4 @@ else
   exit 1
 fi
 
-$JAVA_HOME/bin/java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dlog4j.configuration=file:$TACHYON_HOME/conf/log4j.properties -Dtachyon.logger.type=USER_LOGGER $CLASS $@
+$JAVA_HOME/bin/java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $@
