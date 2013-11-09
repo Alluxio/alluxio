@@ -8,7 +8,9 @@ import java.io.IOException;
 public class Journal {
   private EditLog mEditLog = new EditLog(null, true, 0);
 
+  private int mCurrentLogNum = 0;
   private String mImagePath;
+  private String mStandbyImagePath = "";
   private String mEditLogPath;
 
   public Journal(String folder, String imageFileName, String editLogFileName) throws IOException {
@@ -30,14 +32,29 @@ public class Journal {
    * @throws IOException
    */
   public long loadEditLog(MasterInfo info) throws IOException {
-    return EditLog.load(info, mEditLogPath);
+    return EditLog.load(info, mEditLogPath, mCurrentLogNum);
+  }
+
+  public void LoadSingleLog(MasterInfo info, String path) throws IOException {
+    EditLog.loadSingleLog(info, path);
+    mCurrentLogNum ++;
   }
 
   public void createImage(MasterInfo info) throws IOException {
-    Image.create(info, mImagePath);
+    if (!EditLog.getIsBackUpCurrentLog() || mStandbyImagePath == "") {
+      Image.create(info, mImagePath);
+    } else {
+      Image.rename(mStandbyImagePath, mImagePath);
+    }
+  }
+
+  public void createImage(MasterInfo info, String imagePath) throws IOException {
+    Image.create(info, imagePath);
+    mStandbyImagePath = imagePath;
   }
 
   public void createEditLog(long transactionId) throws IOException {
+    EditLog.deleteCompletedLogs(mEditLogPath);
     mEditLog = new EditLog(mEditLogPath, false, transactionId);
   }
 

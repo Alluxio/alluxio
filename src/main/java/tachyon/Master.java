@@ -27,13 +27,14 @@ public class Master {
   private TServer mMasterServiceServer;
   private MasterServiceHandler mMasterServiceHandler;
   private Journal mJournal;
+  private EditLogProcessor mEditLogProcessor;
   private int mWebPort;
   private int mWorkerThreads;
 
   private boolean mZookeeperMode = false;
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  public Master(InetSocketAddress address, int webPort, int selectorThreads, 
+  public Master(InetSocketAddress address, int webPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads) {
     //      String imageFileName, String editLogFileName) {
     if (CommonConf.get().USE_ZOOKEEPER) {
@@ -46,13 +47,17 @@ public class Master {
 
     try {
       mMasterAddress = address;
-
-      mJournal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
+      String journalFolder = MasterConf.get().JOURNAL_FOLDER;
+      mJournal = new Journal(journalFolder, "image.data", "log.data");
+      mMasterInfo = new MasterInfo(mMasterAddress, mJournal);
 
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
         mLeaderSelectorClient = new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS,
             conf.ZOOKEEPER_ELECTION_PATH, conf.ZOOKEEPER_LEADER_PATH, address.getHostString() + ":" + address.getPort());
+        mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
+        Thread logProcessor = new Thread(mEditLogProcessor);
+        logProcessor.start();
       }
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
@@ -61,13 +66,33 @@ public class Master {
   }
 
   private void setup() throws IOException, TTransportException {
-    mMasterInfo = new MasterInfo(mMasterAddress, mJournal);
+    if (mZookeeperMode) {
+      mEditLogProcessor.stop();
+    }
+    mMasterInfo.init();
+
+    LOG.info("Now adding 1 million empty files!");
+    long startMs = System.currentTimeMillis();
+    try {
+      for (int i = 0; i < 1000000; i ++) {
+        if (i % 10000 == 0) LOG.info("Created " + i + " files so far! Elapsed time: " +
+            (System.currentTimeMillis() - startMs));
+        String s = "";
+        for (char c : String.format("%07d%n", i).toCharArray()) {
+          s += "/";
+          s += c;
+        }
+        mMasterInfo.createFile(s.substring(0, s.length() - 2), 4);
+      }
+    } catch (Exception e) {
+
+    }
 
     mWebServer = new UIWebServer("Tachyon Master Server",
         new InetSocketAddress(mMasterAddress.getHostName(), mWebPort), mMasterInfo);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
-    MasterService.Processor<MasterServiceHandler> masterServiceProcessor = 
+    MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
     // TODO This is for Thrift 0.8 or newer.
@@ -76,7 +101,7 @@ public class Master {
     //          .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
     //          .workerThreads(workerThreads));
 
-    // This is for Thrift 0.7.0, for Hive compatibility. 
+    // This is for Thrift 0.7.0, for Hive compatibility.
     mMasterServiceServer = new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(
         mMasterAddress)).processor(masterServiceProcessor).workerThreads(mWorkerThreads));
 
@@ -162,7 +187,7 @@ public class Master {
 
   /**
    * Get MasterInfo instance for Unit Test
-   * @return MasterInfo of the Master  
+   * @return MasterInfo of the Master
    */
   MasterInfo getMasterInfo() {
     return mMasterInfo;

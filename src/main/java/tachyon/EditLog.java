@@ -35,32 +35,70 @@ public class EditLog {
 
   private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  // When a master is replaying an edit log, make the current edit log as an INACTIVE one.
+  // When a master is replaying an edit log, make the current edit log as an
+  // INACTIVE one.
   private final boolean INACTIVE;
-  private final DataOutputStream DOS;
-  private final OutputStream OS;
+  private final String PATH;
+  private DataOutputStream DOS;
+  private OutputStream OS;
+  private static boolean mBackUpCurrentLog = false;
+  private static long mCurrentTId = 0;
 
   // Starting from 1.
   private long mFlushedTransactionId = 0;
   private long mTransactionId = 0;
+  private int mCurrentLogNum = 0;
 
   /**
    * Load edit log.
-   * @param info The Master Info.
+   *
+   * @param info
+   *          The Master Info.
    * @return The last transaction id.
    * @throws IOException
    */
-  public static long load(MasterInfo info, String path) throws IOException {
+  public static long load(MasterInfo info, String path, int currentLogNum) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
     if (!ufs.exists(path)) {
       LOG.info("Edit Log " + path + " does not exist.");
       return 0;
     }
-    LOG.info("Loading Edit Log " + path);
+    LOG.info("currentLogNum passed in was " + currentLogNum);
+    int completedLogs = currentLogNum;
+    int numFiles = 1;
+    String completedPath = path.substring(0, path.lastIndexOf("/"))
+        + "/completed";
+    if (!ufs.exists(completedPath)) {
+      LOG.info("No completed edit logs to be parsed");
+    } else {
+      while (ufs.exists(completedPath + "/" + (completedLogs ++) + ".editLog")) {
+        numFiles ++;
+      }
+    }
+    if (numFiles == 1) {
+      mBackUpCurrentLog = true;
+    }
+    String editLogs[] = new String[numFiles];
+    for (int i = 0; i < numFiles; i ++) {
+      if (i != numFiles - 1) {
+        editLogs[i] = completedPath + "/" + (i + currentLogNum) + ".editLog";
+      } else {
+        editLogs[i] = path;
+      }
+    }
+
+    for (String currentPath : editLogs) {
+      LOG.info("Loading Edit Log " + currentPath);
+      loadSingleLog(info, currentPath);
+    }
+
+    return mCurrentTId;
+  }
+
+  public static void loadSingleLog(MasterInfo info, String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
 
     DataInputStream is = new DataInputStream(ufs.open(path));
-    long transactionId = 0;
-
     while (true) {
       byte op;
       long tId;
@@ -70,12 +108,13 @@ public class EditLog {
         break;
       }
 
-      transactionId = tId;
+      mCurrentTId = tId;
       op = is.readByte();
       try {
         switch (op) {
         case OP_ADD_CHECKPOINT: {
-          info.addCheckpoint(-1, is.readInt(), is.readLong(), Utils.readString(is));
+          info.addCheckpoint(-1, is.readInt(), is.readLong(),
+              Utils.readString(is));
           break;
         }
         case OP_ADD_BLOCK: {
@@ -83,8 +122,9 @@ public class EditLog {
           break;
         }
         case OP_CREATE_FILE: {
-          info._createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(), is.readInt(), 
-              Utils.readByteBuffer(is), is.readLong(), is.readLong());
+          info._createFile(is.readBoolean(), Utils.readString(is),
+              is.readBoolean(), is.readInt(), Utils.readByteBuffer(is),
+              is.readLong(), is.readLong());
           break;
         }
         case OP_DELETE: {
@@ -107,44 +147,97 @@ public class EditLog {
           info.completeFile(is.readInt());
           break;
         }
-        default :
+        default:
           throw new IOException("Invalid op type " + op);
         }
-      } catch (SuspectedFileSizeException | BlockInfoException | FileDoesNotExistException |
-          FileAlreadyExistException | InvalidPathException | TachyonException |
-          TableDoesNotExistException e) {
+      } catch (SuspectedFileSizeException | BlockInfoException
+          | FileDoesNotExistException | FileAlreadyExistException
+          | InvalidPathException | TachyonException
+          | TableDoesNotExistException e) {
         throw new IOException(e);
       }
     }
 
     is.close();
-    return transactionId;
   }
 
-  public EditLog(String path, boolean inactive, long transactionId) throws IOException {
+  public static boolean getIsBackUpCurrentLog() {
+    return mBackUpCurrentLog;
+  }
+
+  public EditLog(String path, boolean inactive, long transactionId)
+      throws IOException {
     INACTIVE = inactive;
 
     if (!INACTIVE) {
       LOG.info("Creating edit log file " + path);
+      PATH = path;
       UnderFileSystem ufs = UnderFileSystem.get(path);
+      if (mBackUpCurrentLog) {
+        String folder = path.substring(0, path.lastIndexOf("/")) + "/completed";
+        LOG.info("Backing up current log since image is not updated.");
+        ufs.mkdirs(folder, true);
+        ufs.rename(path, folder + "/" + (mCurrentLogNum ++) + ".editLog");
+        LOG.info("Renaming " + path + " to " + folder + "/" + (mCurrentLogNum ++) +
+            ".editLog");
+        mBackUpCurrentLog = false;
+      }
       OS = ufs.create(path);
       DOS = new DataOutputStream(OS);
       LOG.info("Created file " + path);
       mFlushedTransactionId = transactionId;
       mTransactionId = transactionId;
     } else {
+      PATH = null;
       OS = null;
       DOS = null;
     }
   }
 
-  public synchronized void addCheckpoint(int fileId, long length, String checkpointPath) {
+  public static void deleteCompletedLogs(String path) {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+    String folder = path.substring(0, path.lastIndexOf("/")) + "/completed";
+    try {
+      if (ufs.exists(folder)) {
+        LOG.info("Deleting folder " + folder);
+        ufs.delete(folder, true);
+      }
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+  }
+
+  public void rotateEditLog(String path) {
+    if (INACTIVE) {
+      return;
+    }
+    close();
+    LOG.info("Edit log max size reached, rotating edit log");
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+    String pathPrefix = path.substring(0, path.lastIndexOf("/")) + "/completed";
+    try {
+      if (!ufs.exists(pathPrefix)) {
+        ufs.mkdirs(pathPrefix, true);
+      }
+      String newPath = pathPrefix + "/" + (mCurrentLogNum++) + ".editLog";
+      ufs.rename(path, newPath);
+      LOG.info("Renamed " + path + " to " + newPath);
+      OS = ufs.create(path);
+      DOS = new DataOutputStream(OS);
+      LOG.info("Created new log file " + path);
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+  }
+
+  public synchronized void addCheckpoint(int fileId, long length,
+      String checkpointPath) {
     if (INACTIVE) {
       return;
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong(++mTransactionId);
       DOS.writeByte(OP_ADD_CHECKPOINT);
       DOS.writeInt(fileId);
       DOS.writeLong(length);
@@ -160,7 +253,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong(++mTransactionId);
       DOS.writeByte(OP_ADD_BLOCK);
       DOS.writeInt(fileId);
       DOS.writeInt(blockIndex);
@@ -170,14 +263,15 @@ public class EditLog {
     }
   }
 
-  public synchronized void createFile(boolean recursive, String path, boolean directory,
-      int columns, ByteBuffer metadata, long blockSizeByte, long creationTimeMs) {
+  public synchronized void createFile(boolean recursive, String path,
+      boolean directory, int columns, ByteBuffer metadata, long blockSizeByte,
+      long creationTimeMs) {
     if (INACTIVE) {
       return;
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong(++mTransactionId);
       DOS.writeByte(OP_CREATE_FILE);
       DOS.writeBoolean(recursive);
       Utils.writeString(path, DOS);
@@ -197,7 +291,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong(++mTransactionId);
       DOS.writeByte(OP_DELETE);
       DOS.writeInt(fileId);
       DOS.writeBoolean(recursive);
@@ -212,7 +306,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong(++mTransactionId);
       DOS.writeByte(OP_RENAME);
       DOS.writeInt(fileId);
       Utils.writeString(dstPath, DOS);
@@ -227,7 +321,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong(++mTransactionId);
       DOS.writeByte(OP_UNPIN_FILE);
       DOS.writeInt(fileId);
     } catch (IOException e) {
@@ -235,13 +329,14 @@ public class EditLog {
     }
   }
 
-  public synchronized void updateRawTableMetadata(int tableId, ByteBuffer metadata) {
+  public synchronized void updateRawTableMetadata(int tableId,
+      ByteBuffer metadata) {
     if (INACTIVE) {
       return;
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong(++mTransactionId);
       DOS.writeByte(OP_UPDATE_RAW_TABLE_METADATA);
       DOS.writeInt(tableId);
       Utils.writeByteBuffer(metadata, DOS);
@@ -256,7 +351,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong(++mTransactionId);
       DOS.writeByte(OP_COMPLETE_FILE);
       DOS.writeInt(fileId);
     } catch (IOException e) {
@@ -266,6 +361,7 @@ public class EditLog {
 
   /**
    * Get the current TransactionId and FlushedTransactionId
+   *
    * @return (TransactionId, FlushedTransactionId)
    */
   public synchronized Pair<Long, Long> getTransactionIds() {
@@ -284,6 +380,9 @@ public class EditLog {
       DOS.flush();
       if (OS instanceof FSDataOutputStream) {
         ((FSDataOutputStream) OS).sync();
+      }
+      if (DOS.size() > 1024 * 1024) {
+        rotateEditLog(PATH);
       }
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
