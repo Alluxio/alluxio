@@ -1104,6 +1104,11 @@ public class MasterInfo {
     return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_USED);
   }
 
+  public long getUnderFsFreeBytes() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
+    return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_FREE);
+  }
+
   public long getUsedBytes() {
     long ret = 0;
     synchronized (mWorkers) {
@@ -1268,7 +1273,7 @@ public class MasterInfo {
     synchronized (mWorkers) {
       if (mWorkerAddressToId.containsKey(workerAddress)) {
         id = mWorkerAddressToId.get(workerAddress);
-        mWorkerAddressToId.remove(id);
+        mWorkerAddressToId.remove(workerAddress);
         LOG.warn("The worker " + workerAddress + " already exists as id " + id + ".");
       }
       if (id != 0 && mWorkers.containsKey(id)) {
@@ -1397,21 +1402,21 @@ public class MasterInfo {
   public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds)
       throws BlockInfoException {
     LOG.debug("WorkerId: " + workerId);
-    synchronized (mWorkers) {
-      MasterWorkerInfo tWorkerInfo = mWorkers.get(workerId);
+    synchronized (mRoot) {
+      synchronized (mWorkers) {
+        MasterWorkerInfo tWorkerInfo = mWorkers.get(workerId);
 
-      if (tWorkerInfo == null) {
-        LOG.info("worker_heartbeat(): Does not contain worker with ID " + workerId +
-            " . Send command to let it re-register.");
-        return new Command(CommandType.Register, new ArrayList<Long>());
-      }
+        if (tWorkerInfo == null) {
+          LOG.info("worker_heartbeat(): Does not contain worker with ID " + workerId +
+              " . Send command to let it re-register.");
+          return new Command(CommandType.Register, new ArrayList<Long>());
+        }
 
-      tWorkerInfo.updateUsedBytes(usedBytes);
-      tWorkerInfo.updateBlocks(false, removedBlockIds);
-      tWorkerInfo.updateToRemovedBlocks(false, removedBlockIds);
-      tWorkerInfo.updateLastUpdatedTimeMs();
+        tWorkerInfo.updateUsedBytes(usedBytes);
+        tWorkerInfo.updateBlocks(false, removedBlockIds);
+        tWorkerInfo.updateToRemovedBlocks(false, removedBlockIds);
+        tWorkerInfo.updateLastUpdatedTimeMs();
 
-      synchronized (mRoot) {
         for (long blockId : removedBlockIds) {
           int fileId = BlockInfo.computeInodeId(blockId);
           int blockIndex = BlockInfo.computeBlockIndex(blockId);
@@ -1424,11 +1429,11 @@ public class MasterInfo {
                 " was evicted from worker " + workerId);
           }
         }
-      }
 
-      List<Long> toRemovedBlocks = tWorkerInfo.getToRemovedBlocks();
-      if (toRemovedBlocks.size() != 0) {
-        return new Command(CommandType.Free, toRemovedBlocks);
+        List<Long> toRemovedBlocks = tWorkerInfo.getToRemovedBlocks();
+        if (toRemovedBlocks.size() != 0) {
+          return new Command(CommandType.Free, toRemovedBlocks);
+        }
       }
     }
 

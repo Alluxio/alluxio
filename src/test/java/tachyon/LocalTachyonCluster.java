@@ -151,8 +151,8 @@ public class LocalTachyonCluster {
       fs.close();
     }
 
-    mMaster.stop();
     mWorker.stop();
+    mMaster.stop();
 
     System.clearProperty("tachyon.home");
     System.clearProperty("tachyon.master.hostname");
