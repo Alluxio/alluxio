@@ -37,6 +37,7 @@ public class EditLog {
 
   // When a master is replaying an edit log, make the current edit log as an INACTIVE one.
   private final boolean INACTIVE;
+  private final UnderFileSystem ufs;
   private final DataOutputStream DOS;
   private final OutputStream OS;
 
@@ -126,13 +127,14 @@ public class EditLog {
 
     if (!INACTIVE) {
       LOG.info("Creating edit log file " + path);
-      UnderFileSystem ufs = UnderFileSystem.get(path);
+      ufs = UnderFileSystem.get(path);
       OS = ufs.create(path);
       DOS = new DataOutputStream(OS);
       LOG.info("Created file " + path);
       mFlushedTransactionId = transactionId;
       mTransactionId = transactionId;
     } else {
+      ufs = null;
       OS = null;
       DOS = null;
     }
@@ -301,6 +303,8 @@ public class EditLog {
     }
     try {
       DOS.close();
+      OS.close();
+      ufs.close();
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }

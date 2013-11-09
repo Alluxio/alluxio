@@ -44,4 +44,10 @@ public class Journal {
   public EditLog getEditLog() {
     return mEditLog;
   }
+
+  /* Close down the edit log */
+  public void close() {
+    if (mEditLog != null)
+      mEditLog.close();
+  }
 }
