@@ -52,11 +52,10 @@ public class TFsShell {
     }
     if (tFile.isFile()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
-      OutputStream out = System.out;
       byte[] buf = new byte[512];
       int read = is.read(buf);
       while (read != -1) {
-        out.write(buf, 0, read);
+        System.out.write(buf, 0, read);
         read = is.read(buf);
       }
       return 0;
@@ -227,7 +226,6 @@ public class TFsShell {
     }
     if (tFile.isFile()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
-      OutputStream out = System.out;
       byte[] buf = new byte[1024];
       long bytesToRead = 0L;
       if (tFile.length() > 1024) {
@@ -237,7 +235,7 @@ public class TFsShell {
       }
       is.skip(tFile.length() - bytesToRead);
       int read = is.read(buf);
-      out.write(buf, 0, read);
+      System.out.write(buf, 0, read);
       return 0;
     } else {
       System.out.println(file + " is not a file.");
