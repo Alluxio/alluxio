@@ -195,22 +195,26 @@ public class MasterInfo {
 
   public MasterInfo(InetSocketAddress address, Journal journal) throws IOException {
     MASTER_CONF = MasterConf.get();
-
-    mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1, System.currentTimeMillis());
-    mInodes.put(mRoot.getId(), mRoot);
-
     MASTER_ADDRESS = address;
     START_TIME_MS = System.currentTimeMillis();
     // TODO This name need to be changed.
     START_TIME_NS_PREFIX = START_TIME_MS - (START_TIME_MS % 1000000);
+    mJournal = journal;
+
+
+    mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1, System.currentTimeMillis());
+    mInodes.put(mRoot.getId(), mRoot);
 
     mWhiteList = new PrefixList(MASTER_CONF.WHITELIST);
     mPinList = new PrefixList(MASTER_CONF.PINLIST);
     mFileIdPinList = Collections.synchronizedSet(new HashSet<Integer>());
 
-    mJournal = journal;
     mJournal.loadImage(this);
+  }
+
+  public void init() throws IOException {
     mCheckpointInfo.updateEditTransactionCounter(mJournal.loadEditLog(this));
+
     mJournal.createImage(this);
     mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
 
