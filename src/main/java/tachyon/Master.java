@@ -54,7 +54,7 @@ public class Master {
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
         mLeaderSelectorClient = new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS,
-            conf.ZOOKEEPER_ELECTION_PATH, conf.ZOOKEEPER_LEADER_PATH, address.getHostString() + ":" + address.getPort());
+            conf.ZOOKEEPER_ELECTION_PATH, conf.ZOOKEEPER_LEADER_PATH, address.getHostName() + ":" + address.getPort());
         mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
         Thread logProcessor = new Thread(mEditLogProcessor);
         logProcessor.start();

@@ -26,6 +26,7 @@ public class Worker implements Runnable {
   private final InetSocketAddress WorkerAddress;
 
   private TServer mServer;
+  private TNonblockingServerSocket mServerTNonblockingServerSocket;
 
   private WorkerStorage mWorkerStorage;
   private WorkerServiceHandler mWorkerServiceHandler;
@@ -33,6 +34,8 @@ public class Worker implements Runnable {
 
   private Thread mDataServerThread;
   private Thread mHeartbeatThread;
+
+  private volatile boolean mStop = false;
 
   private Worker(InetSocketAddress masterAddress, InetSocketAddress workerAddress, int dataPort,
       int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
@@ -50,7 +53,6 @@ public class Worker implements Runnable {
     mDataServerThread = new Thread(mDataServer);
 
     mHeartbeatThread = new Thread(this);
-
     try {
       LOG.info("The worker server tries to start @ " + workerAddress);
       WorkerService.Processor<WorkerServiceHandler> processor =
@@ -63,11 +65,12 @@ public class Worker implements Runnable {
       //          .workerThreads(workerThreads));
 
       // This is for Thrift 0.7.0, for Hive compatibility. 
-      mServer = new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(workerAddress)).
+      mServerTNonblockingServerSocket = new TNonblockingServerSocket(workerAddress);
+      mServer = new THsHaServer(new THsHaServer.Args(mServerTNonblockingServerSocket).
           processor(processor).workerThreads(workerThreads));
     } catch (TTransportException e) {
       LOG.error(e.getMessage(), e);
-      System.exit(-1);
+      CommonUtils.runtimeException(e);
     }
   }
 
@@ -75,7 +78,7 @@ public class Worker implements Runnable {
   public void run() {
     long lastHeartbeatMs = System.currentTimeMillis();
     Command cmd = null;
-    while (true) {
+    while (!mStop) {
       long diff = System.currentTimeMillis() - lastHeartbeatMs;
       if (diff < WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS) {
         LOG.debug("Heartbeat process takes " + diff + " ms.");
@@ -155,15 +158,19 @@ public class Worker implements Runnable {
     LOG.info("The worker server ends @ " + WorkerAddress);
   }
 
-  @SuppressWarnings("deprecation")
-  public void stop() throws IOException {
+  public void stop() throws IOException, InterruptedException {
+    mStop = true;
+    mWorkerStorage.stop();
     mDataServer.close();
-    // TODO better stop for these two threads.
-    mHeartbeatThread.stop();
     mServer.stop();
-    while (!mDataServer.isClosed()) {
+    mServerTNonblockingServerSocket.close();
+    while (!mDataServer.isClosed() || mServer.isServing() || mHeartbeatThread.isAlive()) {
+      // TODO The reason to stop and close again is due to some issues in Thrift.
+      mServer.stop();
+      mServerTNonblockingServerSocket.close();
       CommonUtils.sleepMs(null, 100);
     }
+    mHeartbeatThread.join();
   }
 
   public static void main(String[] args) throws UnknownHostException {

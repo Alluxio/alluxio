@@ -9,7 +9,7 @@ fi
 
 bin=`cd "$( dirname "$0" )"; pwd`
 
-$bin/killall.sh tachyon.Master
-$bin/killall.sh tachyon.Worker
+$bin/tachyon killAll tachyon.Master
+$bin/tachyon killAll tachyon.Worker
 
-$bin/slaves.sh $bin/killall.sh tachyon.Worker
+$bin/slaves.sh $bin/tachyon killAll tachyon.Worker

@@ -328,4 +328,21 @@ public class RemoteBlockInStream extends BlockInStream {
     }
     return ret;
   }
+
+  @Override
+  public void seek(long pos) throws IOException {
+    if (pos < 0) {
+      throw new IOException("pos is negative: " + pos);
+    }
+    mRecache = false;
+    if (mCurrentBuffer != null) {
+      mCurrentBuffer.position((int) pos);
+    } else {
+      if (mCheckpointInputStream != null) {
+        mCheckpointInputStream.close();
+      }
+
+      setupStreamFromUnderFs(mBlockInfo.offset + pos);
+    }
+  }
 }

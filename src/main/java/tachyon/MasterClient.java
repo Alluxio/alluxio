@@ -44,11 +44,10 @@ public class MasterClient {
 
   private boolean mUseZookeeper;
   private MasterService.Client mClient = null;
-  private InetSocketAddress mZookeeperAddress = null;
   private InetSocketAddress mMasterAddress = null;
   private TProtocol mProtocol = null;
-  private boolean mIsConnected;
-  private boolean mIsShutdown;
+  private volatile boolean mIsConnected;
+  private volatile boolean mIsShutdown;
   private long mLastAccessedMs;
 
   private HeartbeatThread mHeartbeatThread = null;
@@ -59,14 +58,7 @@ public class MasterClient {
 
   public MasterClient(InetSocketAddress masterAddress, boolean useZookeeper) {
     mUseZookeeper = useZookeeper;
-    if (mUseZookeeper) {
-      try {
-        mZookeeperAddress = CommonUtils.parseInetSocketAddress(CommonConf.get().ZOOKEEPER_ADDRESS);
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-        CommonUtils.runtimeException(e);
-      }
-    } else {
+    if (!mUseZookeeper) {
       mMasterAddress = masterAddress;
     }
     mIsConnected = false;
@@ -105,7 +97,7 @@ public class MasterClient {
       String checkpointPath)
           throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
           TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
@@ -114,6 +106,7 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return false;
   }
 
   /**
@@ -181,7 +174,7 @@ public class MasterClient {
   }
 
   public synchronized long getUserId() throws TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         long ret = mClient.user_getUserId();
@@ -192,10 +185,11 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return -1;
   }
 
   public synchronized List<ClientWorkerInfo> getWorkersInfo() throws TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.getWorkersInfo();
@@ -204,21 +198,24 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   public synchronized boolean isConnected() {
     return mIsConnected;
   }
 
-  public synchronized void shutdown() {
+  public void shutdown() {
     mIsShutdown = true;
+    if (mProtocol != null) {
+      mProtocol.getTransport().close();
+    }
     cleanConnect();
-    mHeartbeatThread.shutdown();
   }
 
   public synchronized List<ClientFileInfo> listStatus(String path)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.liststatus(path);
@@ -229,11 +226,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   public synchronized void user_completeFile(int fId)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         mClient.user_completeFile(fId);
@@ -249,7 +247,7 @@ public class MasterClient {
 
   public synchronized int user_createFile(String path, long blockSizeByte) 
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_createFile(path, blockSizeByte);
@@ -262,11 +260,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return -1;
   }
 
   public int user_createFileOnCheckpoint(String path, String checkpointPath)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_createFileOnCheckpoint(path, checkpointPath);
@@ -278,10 +277,11 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return -1;
   }
 
   public synchronized long user_createNewBlock(int fId) throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_createNewBlock(fId);
@@ -292,6 +292,7 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return -1;
   }
 
   public synchronized int user_createRawTable(String path, int columns, ByteBuffer metadata)
@@ -299,7 +300,7 @@ public class MasterClient {
     if (metadata == null) {
       metadata = ByteBuffer.allocate(0);
     }
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_createRawTable(path, columns, metadata);
@@ -311,11 +312,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return -1;
   }
 
   public synchronized boolean user_delete(String path, boolean recursive) 
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_deleteByPath(path, recursive);
@@ -326,11 +328,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return false;
   }
 
   public synchronized boolean user_delete(int fileId, boolean recursive)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_deleteById(fileId, recursive);
@@ -341,11 +344,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return false;
   }
 
   public synchronized long user_getBlockId(int fId, int index)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getBlockId(fId, index);
@@ -356,11 +360,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return -1;
   }
 
   public ClientBlockInfo user_getClientBlockInfo(long blockId) 
       throws FileDoesNotExistException, BlockInfoException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getClientBlockInfo(blockId);
@@ -369,11 +374,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   public synchronized ClientFileInfo user_getClientFileInfoByPath(String path)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getClientFileInfoByPath(path);
@@ -384,11 +390,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   public synchronized ClientFileInfo user_getClientFileInfoById(int id)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getClientFileInfoById(id);
@@ -399,10 +406,11 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   public synchronized int user_getFileId(String path) throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getFileId(path);
@@ -413,10 +421,11 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return -1;
   }
 
   public synchronized int user_getRawTableId(String path) throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getRawTableId(path);
@@ -427,11 +436,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return -1;
   }
 
   public synchronized List<ClientBlockInfo> user_getFileBlocks(int id) 
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getFileBlocksById(id);
@@ -442,11 +452,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   public synchronized NetAddress user_getWorker(boolean random, String hostname)
       throws NoWorkerException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getWorker(random, hostname);
@@ -455,11 +466,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         ClientRawTableInfo ret = mClient.user_getClientRawTableInfoByPath(path);
@@ -472,11 +484,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoById(int id)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         ClientRawTableInfo ret = mClient.user_getClientRawTableInfoById(id);
@@ -489,11 +502,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   public synchronized int user_getNumberOfFiles(String folderPath)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getNumberOfFiles(folderPath);
@@ -504,10 +518,11 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return -1;
   }
 
   public synchronized String user_getUnderfsAddress() throws TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getUnderfsAddress();
@@ -516,11 +531,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   public synchronized List<Integer> user_listFiles(String path, boolean recursive)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_listFiles(path, recursive);
@@ -531,11 +547,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   public synchronized List<String> user_ls(String path, boolean recursive)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_ls(path, recursive);
@@ -546,11 +563,12 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   public synchronized boolean user_mkdir(String path) 
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_mkdir(path);
@@ -561,10 +579,11 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return false;
   }
 
   public synchronized void user_outOfMemoryForPinFile(int fileId) throws TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         mClient.user_outOfMemoryForPinFile(fileId);
@@ -578,7 +597,7 @@ public class MasterClient {
 
   public synchronized void user_rename(String srcPath, String dstPath)
       throws IOException, TException{
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         mClient.user_rename(srcPath, dstPath);
@@ -593,7 +612,7 @@ public class MasterClient {
   }
 
   public void user_renameTo(int fId, String path) throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         mClient.user_renameTo(fId, path);
@@ -608,7 +627,7 @@ public class MasterClient {
   }
 
   public synchronized void user_unpinFile(int id) throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         mClient.user_unpinFile(id);
@@ -624,7 +643,7 @@ public class MasterClient {
 
   public synchronized void user_updateRawTableMetadata(int id, ByteBuffer metadata)
       throws IOException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         mClient.user_updateRawTableMetadata(id, metadata);
@@ -641,7 +660,7 @@ public class MasterClient {
   public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, 
       long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, 
       TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
@@ -655,7 +674,7 @@ public class MasterClient {
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
       List<Long> removedPartitionList) throws BlockInfoException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
@@ -664,10 +683,11 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   public synchronized Set<Integer> worker_getPinIdList() throws TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         return mClient.worker_getPinIdList();
@@ -676,6 +696,7 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return null;
   }
 
   /**
@@ -690,7 +711,7 @@ public class MasterClient {
    */
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
       long usedBytes, List<Long> currentBlockList) throws BlockInfoException, TException {
-    while (true) {
+    while (!mIsShutdown) {
       connect();
       try {
         long ret = 
@@ -703,5 +724,6 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return -1;
   }
 }

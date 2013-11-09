@@ -414,6 +414,10 @@ public class WorkerStorage {
     mMasterClient = tMasterClient;
   }
 
+  public void stop() {
+    mMasterClient.shutdown();
+  }
+
   public void unlockBlock(long blockId, long userId) throws TException {
     synchronized (mUsersPerLockedBlock) {
       if (mUsersPerLockedBlock.containsKey(blockId)) {
