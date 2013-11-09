@@ -109,6 +109,7 @@ public class Master {
             LOG.info("The master (leader) server started @ " + mMasterAddress);
             mMasterServiceServer.serve();
             LOG.info("The master (previous leader) server ended @ " + mMasterAddress);
+            mJournal.close();
           }
         } else {
           if (running) {
