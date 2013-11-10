@@ -47,7 +47,8 @@ public class Journal {
 
   /* Close down the edit log */
   public void close() {
-    if (mEditLog != null)
+    if (mEditLog != null) {
       mEditLog.close();
+    }
   }
 }
