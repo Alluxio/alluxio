@@ -71,23 +71,6 @@ public class Master {
     }
     mMasterInfo.init();
 
-    LOG.info("Now adding 1 million empty files!");
-    long startMs = System.currentTimeMillis();
-    try {
-      for (int i = 0; i < 1000000; i ++) {
-        if (i % 10000 == 0) LOG.info("Created " + i + " files so far! Elapsed time: " +
-            (System.currentTimeMillis() - startMs));
-        String s = "";
-        for (char c : String.format("%07d%n", i).toCharArray()) {
-          s += "/";
-          s += c;
-        }
-        mMasterInfo.createFile(s.substring(0, s.length() - 2), 4);
-      }
-    } catch (Exception e) {
-
-    }
-
     mWebServer = new UIWebServer("Tachyon Master Server",
         new InetSocketAddress(mMasterAddress.getHostName(), mWebPort), mMasterInfo);
 

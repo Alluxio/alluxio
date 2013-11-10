@@ -201,7 +201,6 @@ public class MasterInfo {
     START_TIME_NS_PREFIX = START_TIME_MS - (START_TIME_MS % 1000000);
     mJournal = journal;
 
-
     mRoot = new InodeFolder("", mInodeCounter.incrementAndGet(), -1, System.currentTimeMillis());
     mInodes.put(mRoot.getId(), mRoot);
 
