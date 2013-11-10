@@ -381,7 +381,7 @@ public class EditLog {
       if (OS instanceof FSDataOutputStream) {
         ((FSDataOutputStream) OS).sync();
       }
-      if (DOS.size() > 1024 * 1024) {
+      if (DOS.size() > Constants.MB) {
         rotateEditLog(PATH);
       }
     } catch (IOException e) {
