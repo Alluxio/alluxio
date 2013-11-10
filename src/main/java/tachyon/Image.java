@@ -36,6 +36,7 @@ public class Image {
 
     info.loadImage(imageIs);
     imageIs.close();
+    ufs.close();
   }
 
   /**
@@ -61,5 +62,7 @@ public class Image {
     ufs.rename(tPath, path);
     ufs.delete(tPath, false);
     LOG.info("Renamed " + tPath + " to " + path);
+    // safe to close, nothing created here with scope outside function
+    ufs.close();
   }
 }
