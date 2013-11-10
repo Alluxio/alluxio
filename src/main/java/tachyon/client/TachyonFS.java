@@ -465,7 +465,7 @@ public class TachyonFS {
 
     try {
       return mMasterClient.user_getClientBlockInfo(info.blockIds.get(blockIndex));
-    } catch (FileDoesNotExistException|BlockInfoException|TException e) {
+    } catch (FileDoesNotExistException | BlockInfoException | TException e) {
       throw new IOException(e);
     }
   }

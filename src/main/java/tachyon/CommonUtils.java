@@ -2,11 +2,16 @@ package tachyon;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -269,27 +274,37 @@ public final class CommonUtils {
   }
 
   /**
-   * @param folder that will be changed to full permission
+   * @param file that will be changed to full permission
    */
-  public static void changeToFullPermission(String folder) {
+  public static void changeToFullPermission(String file) {
     //set the full permission to everyone.
-    String OS = System.getProperty("os.name").toLowerCase();
-
     try {
-      Runtime.getRuntime().exec("chmod 777 "+folder);
-      //set the folder to be full permission inheritable using setfacl
-      Runtime.getRuntime().exec("setfacl -Rm d:u::rwx,d:g::rwx,d:o::rwx "+folder);
+      HashSet<PosixFilePermission> permissions = new HashSet<PosixFilePermission>();
+      permissions.add(PosixFilePermission.OTHERS_EXECUTE);
+      permissions.add(PosixFilePermission.OTHERS_WRITE);
+      permissions.add(PosixFilePermission.OTHERS_READ);
+      permissions.add(PosixFilePermission.OWNER_EXECUTE);
+      permissions.add(PosixFilePermission.OWNER_WRITE);
+      permissions.add(PosixFilePermission.OWNER_READ);
+      permissions.add(PosixFilePermission.GROUP_EXECUTE);
+      permissions.add(PosixFilePermission.GROUP_WRITE);
+      Files.setPosixFilePermissions(Paths.get(URI.create(file)), permissions);
+      //set the file to be full permission inheritable using setfacl
+      //acl permission is not implemented in PosixFilePermission
+      Runtime.getRuntime().exec("setfacl -Rm d:u::rwx,d:g::rwx,d:o::rwx "+file);
     } catch (IOException e) {
-      LOG.warn("Can not change the permission of the following folder to inheritable '777':"+folder);
+      LOG.warn("Can not change the permission of the following file to '777':"+file);
     }
   }
 
   /**
-   * if the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the the owner of the folder containing the 'file'.
+   * if the sticky bit of the 'file' is set, the 'file' is only writable to its owner and
+   * the the owner of the folder containing the 'file'.
    * @param file absolute file path
    */
   public static void setStickyBit(String file){
     try {
+      //sticky bit is not implemented in PosixFilePermission
       Runtime.getRuntime().exec("chmod o+t "+file);
     } catch (IOException e) {
       LOG.info("Can not set the sticky bit of the file : "+file);
