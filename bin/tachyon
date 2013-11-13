@@ -25,12 +25,9 @@ shift
 
 bin=`cd "$( dirname "$0" )"; pwd`
 
-# Load the Tachyon configuration
-. "$bin/tachyon-config.sh"
-
-if [ -e $TACHYON_HOME/conf/tachyon-env.sh ] ; then
-  . $TACHYON_HOME/conf/tachyon-env.sh
-fi
+DEFAULT_LIBEXEC_DIR="$bin"/../libexec
+TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+. $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
 function runTest {
   Usage="Usage: tachyon runTest <Basic|BasicRawTable> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH>"
@@ -46,10 +43,10 @@ function runTest {
   fi
 
   if [[ "$1" == "Basic" ]]; then
-    $JAVA_HOME/bin/java -cp $bin/../conf/:$TACHYON_JAR tachyon.examples.BasicOperations $MASTER_ADDRESS:19998 /Basic_File_$2 $2
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicOperations $MASTER_ADDRESS:19998 /Basic_File_$2 $2
     exit 0
   elif [[ "$1" == "BasicRawTable" ]]; then
-    $JAVA_HOME/bin/java -cp $bin/../conf/:$TACHYON_JAR tachyon.examples.BasicRawTableOperations $MASTER_ADDRESS:19998 /Basic_Raw_Table_$2 $2
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicRawTableOperations $MASTER_ADDRESS:19998 /Basic_Raw_Table_$2 $2
     exit 0
   fi
 
@@ -79,7 +76,7 @@ function copyDir {
   fi
 
   bin=`cd "$( dirname "$0" )"; pwd`
-  SLAVES=`cat $bin/../conf/slaves`
+  SLAVES=`cat $TACHYON_CONF_DIR/slaves`
 
   DIR=`readlink -f "$1"`
   DIR=`echo "$DIR"|sed 's@/$@@'`
@@ -138,4 +135,4 @@ else
   exit 1
 fi
 
-$JAVA_HOME/bin/java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $@
+$JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $@
