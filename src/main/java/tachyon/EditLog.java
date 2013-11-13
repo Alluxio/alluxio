@@ -130,8 +130,7 @@ public class EditLog {
       try {
         switch (op) {
         case OP_ADD_CHECKPOINT: {
-          info.addCheckpoint(-1, is.readInt(), is.readLong(),
-              Utils.readString(is));
+          info.addCheckpoint(-1, is.readInt(), is.readLong(), Utils.readString(is));
           break;
         }
         case OP_ADD_BLOCK: {
@@ -139,9 +138,8 @@ public class EditLog {
           break;
         }
         case OP_CREATE_FILE: {
-          info._createFile(is.readBoolean(), Utils.readString(is),
-              is.readBoolean(), is.readInt(), Utils.readByteBuffer(is),
-              is.readLong(), is.readLong());
+          info._createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(), is.readInt(),
+              Utils.readByteBuffer(is), is.readLong(), is.readLong());
           break;
         }
         case OP_DELETE: {
@@ -246,8 +244,7 @@ public class EditLog {
     }
   }
 
-  public synchronized void addCheckpoint(int fileId, long length,
-      String checkpointPath) {
+  public synchronized void addCheckpoint(int fileId, long length, String checkpointPath) {
     if (INACTIVE) {
       return;
     }
@@ -279,9 +276,8 @@ public class EditLog {
     }
   }
 
-  public synchronized void createFile(boolean recursive, String path,
-      boolean directory, int columns, ByteBuffer metadata, long blockSizeByte,
-      long creationTimeMs) {
+  public synchronized void createFile(boolean recursive, String path, boolean directory,
+      int columns, ByteBuffer metadata, long blockSizeByte, long creationTimeMs) {
     if (INACTIVE) {
       return;
     }
@@ -345,8 +341,7 @@ public class EditLog {
     }
   }
 
-  public synchronized void updateRawTableMetadata(int tableId,
-      ByteBuffer metadata) {
+  public synchronized void updateRawTableMetadata(int tableId, ByteBuffer metadata) {
     if (INACTIVE) {
       return;
     }
