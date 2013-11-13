@@ -38,9 +38,9 @@ this="$config_bin/$script"
 [ -f "$common_bin/tachyon-layout.sh" ] && . "$common_bin/tachyon-layout.sh"
 
 # this will set the default installation for a tarball installation
-# while os distributors can create their own tachyon-layout.sh file 
+# while os distributors can create their own tachyon-layout.sh file
 # to set system installation locations.
-if [ -z "TACHYON_SYSTEM_INSTALLATION" ]; then
+if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
   export TACHYON_PREFIX=`dirname "$this"`/..
   export TACHYON_HOME=${TACHYON_PREFIX}
   export TACHYON_CONF_DIR="$TACHYON_HOME/conf"
