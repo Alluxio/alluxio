@@ -26,8 +26,11 @@ if [ $# -le 0 ]; then
 fi
 
 bin=`cd "$( dirname "$0" )"; pwd`
+DEFAULT_LIBEXEC_DIR="$bin"/../libexec
+TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+. $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
-HOSTLIST=$bin/../conf/slaves
+HOSTLIST=$TACHYON_CONF_DIR/slaves
 
 for slave in `cat "$HOSTLIST"|sed  "s/#.*$//;/^$/d"`; do
   ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no $slave $"${@// /\\ }" 2>&1 | sed "s/^/$slave: /" &
