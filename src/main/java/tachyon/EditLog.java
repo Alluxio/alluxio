@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package tachyon;
 
 import java.io.DataInputStream;
@@ -35,12 +51,13 @@ public class EditLog {
 
   private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  // When a master is replaying an edit log, make the current edit log as an
-  // INACTIVE one.
+  // When a master is replaying an edit log, make the current edit log as an INACTIVE one.
   private final boolean INACTIVE;
   private final String PATH;
+  private UnderFileSystem UFS;
   private DataOutputStream DOS;
   private OutputStream OS;
+
   private static boolean mBackUpCurrentLog = false;
   private static long mCurrentTId = 0;
 
@@ -91,7 +108,7 @@ public class EditLog {
       LOG.info("Loading Edit Log " + currentPath);
       loadSingleLog(info, currentPath);
     }
-
+    ufs.close();
     return mCurrentTId;
   }
 
@@ -158,6 +175,7 @@ public class EditLog {
     }
 
     is.close();
+    ufs.close();
   }
 
   public static boolean getIsBackUpCurrentLog() {
@@ -170,23 +188,24 @@ public class EditLog {
     if (!INACTIVE) {
       LOG.info("Creating edit log file " + path);
       PATH = path;
-      UnderFileSystem ufs = UnderFileSystem.get(path);
+      UFS = UnderFileSystem.get(path);
       if (mBackUpCurrentLog) {
         String folder = path.substring(0, path.lastIndexOf("/")) + "/completed";
         LOG.info("Backing up current log since image is not updated.");
-        ufs.mkdirs(folder, true);
-        ufs.rename(path, folder + "/" + (mCurrentLogNum ++) + ".editLog");
+        UFS.mkdirs(folder, true);
+        UFS.rename(path, folder + "/" + (mCurrentLogNum ++) + ".editLog");
         LOG.info("Renaming " + path + " to " + folder + "/" + (mCurrentLogNum ++) +
             ".editLog");
         mBackUpCurrentLog = false;
       }
-      OS = ufs.create(path);
+      OS = UFS.create(path);
       DOS = new DataOutputStream(OS);
       LOG.info("Created file " + path);
       mFlushedTransactionId = transactionId;
       mTransactionId = transactionId;
     } else {
       PATH = null;
+      UFS = null;
       OS = null;
       DOS = null;
     }
@@ -211,16 +230,15 @@ public class EditLog {
     }
     close();
     LOG.info("Edit log max size reached, rotating edit log");
-    UnderFileSystem ufs = UnderFileSystem.get(path);
     String pathPrefix = path.substring(0, path.lastIndexOf("/")) + "/completed";
     try {
-      if (!ufs.exists(pathPrefix)) {
-        ufs.mkdirs(pathPrefix, true);
+      if (!UFS.exists(pathPrefix)) {
+        UFS.mkdirs(pathPrefix, true);
       }
       String newPath = pathPrefix + "/" + (mCurrentLogNum ++) + ".editLog";
-      ufs.rename(path, newPath);
+      UFS.rename(path, newPath);
       LOG.info("Renamed " + path + " to " + newPath);
-      OS = ufs.create(path);
+      OS = UFS.create(path);
       DOS = new DataOutputStream(OS);
       LOG.info("Created new log file " + path);
     } catch (IOException e) {
@@ -398,6 +416,8 @@ public class EditLog {
     }
     try {
       DOS.close();
+      OS.close();
+      UFS.close();
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
