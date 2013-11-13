@@ -150,10 +150,9 @@ public class EditLog {
         default:
           throw new IOException("Invalid op type " + op);
         }
-      } catch (SuspectedFileSizeException | BlockInfoException
-          | FileDoesNotExistException | FileAlreadyExistException
-          | InvalidPathException | TachyonException
-          | TableDoesNotExistException e) {
+      } catch (SuspectedFileSizeException | BlockInfoException | FileDoesNotExistException |
+          FileAlreadyExistException | InvalidPathException | TachyonException |
+          TableDoesNotExistException e) {
         throw new IOException(e);
       }
     }
@@ -165,8 +164,7 @@ public class EditLog {
     return mBackUpCurrentLog;
   }
 
-  public EditLog(String path, boolean inactive, long transactionId)
-      throws IOException {
+  public EditLog(String path, boolean inactive, long transactionId) throws IOException {
     INACTIVE = inactive;
 
     if (!INACTIVE) {
