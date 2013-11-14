@@ -67,8 +67,6 @@ public class FileOutStream extends OutStream {
             + Integer.MAX_VALUE);
       }
       mCheckpointOutputStream = underfsClient.create(mUnderFsFile, (int) BLOCK_CAPACITY);
-      //change the permission of the temporary file in order that the worker can move it.
-      underfsClient.changePermission(mUnderFsFile);
     }
   }
 

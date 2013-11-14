@@ -312,7 +312,6 @@ public class TachyonFS {
     }
 
     mUnderFileSystem.mkdirs(mUserUnderfsTempFolder, true);
-    CommonUtils.changeToFullPermission(mUserUnderfsTempFolder);
 
     return mUserUnderfsTempFolder;
   }
