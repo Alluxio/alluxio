@@ -21,7 +21,7 @@
 # Starts the master on this node.
 # Starts a worker on each node specified in conf/slaves
 
-Usage="Usage: mount.sh [Mount|SudoMount] [MACHINE]
+Usage="Usage: tachyon-mount.sh [Mount|SudoMount] [MACHINE]
 \nIf ommited, MARCHINE is default to be 'local'. MARCHINE is one of:\n
   local\t\t\tMount local marchine\n
   workers\t\tMount all the workers on slaves"
@@ -131,7 +131,7 @@ case "${1}" in
         mount_local $1
         ;;
       workers)
-        $bin/slaves.sh $bin/mount.sh $1
+        $bin/tachyon-slaves.sh $bin/tachyon-mount.sh $1
         ;;
     esac
     ;;

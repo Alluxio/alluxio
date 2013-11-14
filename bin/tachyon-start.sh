@@ -19,7 +19,7 @@
 
 #start up tachyon
 
-Usage="Usage: start.sh [-h] WHAT [MOPT]
+Usage="Usage: tachyon-start.sh [-h] WHAT [MOPT]
 Where WHAT is one of:
   all MOPT\t\tStart master and all slaves.
   local\t\t\tStart a master and slave locally
@@ -72,10 +72,10 @@ check_mount_mode() {
 do_mount() {
   case "${1}" in
     Mount)
-      $bin/mount.sh $1
+      $bin/tachyon-mount.sh $1
       ;;
     SudoMount)
-      $bin/mount.sh $1
+      $bin/tachyon-mount.sh $1
       ;;
     NoMount)
       ;;
@@ -87,7 +87,7 @@ do_mount() {
 }
 
 stop() {
-  $bin/stop.sh
+  $bin/tachyon-stop.sh
 }
 
 
@@ -171,12 +171,12 @@ case "${WHAT}" in
     stop $bin
     start_master
     sleep 2
-    run_on_slaves $bin/start.sh worker $2
+    run_on_slaves $bin/tachyon-start.sh worker $2
     ;;
   local)
     stop $bin
     sleep 1
-    $bin/mount.sh SudoMount
+    $bin/tachyon-mount.sh SudoMount
     start_master
     sleep 2
     start_worker NoMount
@@ -193,13 +193,13 @@ case "${WHAT}" in
     ;;
   workers)
     check_mount_mode $2
-    run_on_slaves $bin/start.sh worker $2
+    run_on_slaves $bin/tachyon-start.sh worker $2
     ;;
   restart_worker)
     restart_worker
     ;;
   restart_workers)
-    run_on_slaves $bin/start.sh restart_worker
+    run_on_slaves $bin/tachyon-start.sh restart_worker
     ;;
   *)
     echo "Error: Invalid WHAT: $WHAT"
