@@ -26,9 +26,8 @@ Usage="Usage: mount.sh [Mount|SudoMount] [MACHINE]
   local\t\t\tMount local marchine\n
   workers\t\tMount all the workers on slaves"
 
-bin=`cd "$( dirname "$0" )"; pwd`
-
 function init_env() {
+  bin=`cd "$( dirname "$1" )"; pwd`
 
   DEFAULT_LIBEXEC_DIR="$bin"/../libexec
   TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
@@ -36,12 +35,14 @@ function init_env() {
 
   if [ -z TACHYON_WORKER_MEMORY_SIZE ] ; then
     TACHYON_WORKER_MEMORY_SIZE=128MB
-  fi 
+  fi
 
   MEM_SIZE=$(echo "$TACHYON_WORKER_MEMORY_SIZE" | tr -s '[:upper:]' '[:lower:]')
 }
 
 function mount_ramfs_linux() {
+  init_env $1
+
   if [ -z $TACHYON_RAM_FOLDER ] ; then
     TACHYON_RAM_FOLDER=/mnt/ramdisk
     echo "TACHYON_RAM_FOLDER was not set. Using the default one: $TACHYON_RAM_FOLDER"
@@ -61,6 +62,8 @@ function mount_ramfs_linux() {
 #enable the regexp case match
 shopt -s extglob
 function mount_ramfs_mac() {
+  init_env $0
+
   if [ -z $TACHYON_RAM_FOLDER ] ; then
     TACHYON_RAM_FOLDER=/Volumes/ramdisk
     echo "TACHYON_RAM_FOLDER was not set. Using the default one: $TACHYON_RAM_FOLDER"
@@ -120,8 +123,6 @@ function mount_local() {
     fi
   fi
 }
-
-init_env
 
 case "${1}" in
   Mount|SudoMount)
