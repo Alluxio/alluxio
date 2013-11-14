@@ -305,7 +305,14 @@ public class WorkerStorage {
 
         long blockId = CommonUtils.getBlockIdFromFileName(tFile.getName());
         boolean success = mWorkerSpaceCounter.requestSpaceBytes(tFile.length());
-        addFoundBlock(blockId, tFile.length());
+        try {
+          addFoundBlock(blockId, tFile.length());
+        } catch (FileDoesNotExistException e) {
+          LOG.error("BlockId: " + blockId + "becomes orphan for " + e.message);
+          LOG.info("Sweep the file " + cnt + ": blockId: " + blockId );
+          freeBlock(blockId);
+          continue;
+        }
         mAddedBlockList.add(blockId);
         if (!success) {
           CommonUtils.runtimeException("Pre-existing files exceed the local memory capacity.");
