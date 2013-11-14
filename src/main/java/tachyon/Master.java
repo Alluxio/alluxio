@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package tachyon;
 
 import java.io.IOException;
@@ -33,7 +49,7 @@ public class Master {
   private boolean mZookeeperMode = false;
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  public Master(InetSocketAddress address, int webPort, int selectorThreads, 
+  public Master(InetSocketAddress address, int webPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads) {
     //      String imageFileName, String editLogFileName) {
     if (CommonConf.get().USE_ZOOKEEPER) {
@@ -52,7 +68,7 @@ public class Master {
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
         mLeaderSelectorClient = new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS,
-            conf.ZOOKEEPER_ELECTION_PATH, conf.ZOOKEEPER_LEADER_PATH, address.getHostString() + ":" + address.getPort());
+            conf.ZOOKEEPER_ELECTION_PATH, conf.ZOOKEEPER_LEADER_PATH, address.getHostName() + ":" + address.getPort());
       }
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
@@ -67,7 +83,7 @@ public class Master {
         new InetSocketAddress(mMasterAddress.getHostName(), mWebPort), mMasterInfo);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
-    MasterService.Processor<MasterServiceHandler> masterServiceProcessor = 
+    MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
     // TODO This is for Thrift 0.8 or newer.
@@ -76,7 +92,7 @@ public class Master {
     //          .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
     //          .workerThreads(workerThreads));
 
-    // This is for Thrift 0.7.0, for Hive compatibility. 
+    // This is for Thrift 0.7.0, for Hive compatibility.
     mMasterServiceServer = new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(
         mMasterAddress)).processor(masterServiceProcessor).workerThreads(mWorkerThreads));
 
@@ -109,6 +125,7 @@ public class Master {
             LOG.info("The master (leader) server started @ " + mMasterAddress);
             mMasterServiceServer.serve();
             LOG.info("The master (previous leader) server ended @ " + mMasterAddress);
+            mJournal.close();
           }
         } else {
           if (running) {
@@ -162,7 +179,7 @@ public class Master {
 
   /**
    * Get MasterInfo instance for Unit Test
-   * @return MasterInfo of the Master  
+   * @return MasterInfo of the Master
    */
   MasterInfo getMasterInfo() {
     return mMasterInfo;

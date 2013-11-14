@@ -1,5 +1,22 @@
 #!/usr/bin/env bash
 
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 #start up tachyon
 
 Usage="Usage: start.sh [-h] WHAT [MOPT]
@@ -23,14 +40,19 @@ MOPT is one of:
 bin=`cd "$( dirname "$0" )"; pwd`
 
 ensure_dirs() {
-  mkdir -p $TACHYON_HOME/logs
-  mkdir -p $TACHYON_HOME/data
+  if [ ! -d "$TACHYON_LOGS_DIR" ]; then
+    mkdir -p $TACHYON_LOGS_DIR
+  fi
+  
+  if [ ! -d "TACHYON_DATA_DIR" ]; then
+    mkdir -p $TACHYON_DATA_DIR
+  fi
 }
 
 get_env() {
-  if [ -e $TACHYON_HOME/conf/tachyon-env.sh ] ; then
-    . $TACHYON_HOME/conf/tachyon-env.sh
-  fi
+  DEFAULT_LIBEXEC_DIR="$bin"/../libexec
+  TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+  . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 }
 
 check_mount_mode() {
@@ -79,25 +101,25 @@ start_master() {
   fi
 
   echo "Starting master @ $MASTER_ADDRESS"
-  ($JAVA_HOME/bin/java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="MASTER_LOGGER" -Dlog4j.configuration=file:$TACHYON_HOME/conf/log4j.properties $TACHYON_JAVA_OPTS tachyon.Master) &
+  ($JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="MASTER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS tachyon.Master) &
 }
 
 start_worker() {
   do_mount $1
   echo "Starting worker @ `hostname`"
-  ($JAVA_HOME/bin/java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="WORKER_LOGGER" -Dlog4j.configuration=file:$TACHYON_HOME/conf/log4j.properties $TACHYON_JAVA_OPTS tachyon.Worker `hostname` > /dev/null 2>&1 ) &
+  ($JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="WORKER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS tachyon.Worker `hostname` > /dev/null 2>&1 ) &
 }
 
 restart_worker() {
   RUN=`ps -ef | grep "tachyon.Worker" | grep "java" | wc | cut -d" " -f7`
   if [[ $RUN -eq 0 ]] ; then
     echo "Restarting worker @ `hostname`"
-    ($JAVA_HOME/bin/java -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true -Dtachyon.logger.type="WORKER_LOGGER" $TACHYON_JAVA_OPTS tachyon.Worker `hostname`) &
+    ($JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true -Dtachyon.logger.type="WORKER_LOGGER" $TACHYON_JAVA_OPTS tachyon.Worker `hostname`) &
   fi
 }
 
 run_on_slaves() {
-  HOSTLIST=$bin/../conf/slaves
+  HOSTLIST=$TACHYON_CONF_DIR/slaves
   for slave in `cat "$HOSTLIST"|sed  "s/#.*$//;/^$/d"`; do
     ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no $slave $"${@// /\\ }" 2>&1 | sed "s/^/$slave: /" &
     sleep 0.02
@@ -139,9 +161,6 @@ if [ -z "${WHAT}" ]; then
   echo -e "$Usage"
   exit 1
 fi
-
-# Load the Tachyon configuration
-. "$bin/tachyon-config.sh"
 
 # get environment
 get_env

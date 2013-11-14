@@ -23,6 +23,7 @@ else
   export JAVA_HOME=/usr/lib/jvm/java-7-oracle
 fi
 
+export JAVA="$JAVA_HOME/bin/java"
 export TACHYON_MASTER_ADDRESS=localhost
 export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:8020
 export TACHYON_WORKER_MEMORY_SIZE=1GB
