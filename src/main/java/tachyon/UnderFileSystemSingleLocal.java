@@ -44,7 +44,9 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
-    return new FileOutputStream(path);
+    FileOutputStream stream = new FileOutputStream(path);
+    changePermission(path);
+    return stream;
   }
 
   @Override
@@ -59,7 +61,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
       throw new IOException("UnderFileSystemSingleLocal does not provide more than one" +
           " replication factor");
     }
-    return new FileOutputStream(path);
+    return create(path);
   }
 
   @Override
@@ -148,7 +150,9 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     File file = new File(path);
-    return createParent ? file.mkdirs(): file.mkdir();
+    boolean created = createParent ? file.mkdirs() : file.mkdir();
+    changePermission(path);
+    return created;
   }
 
   @Override

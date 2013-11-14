@@ -42,6 +42,9 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   private FileSystem mFs = null;
   private String mUfsPrefix = null;
+  //TODO add sticky bit and narrow down the permission in hadoop 2
+  private static final FsPermission PERMISSION =
+      new FsPermission((short) 0777).applyUMask(FsPermission.createImmutable((short)0000));
 
   public static UnderFileSystemHdfs getClient(String path) {
     return new UnderFileSystemHdfs(path);
@@ -80,7 +83,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     while (cnt < MAX_TRY) {
       try {
         LOG.debug("Creating HDFS file at " + path);
-        return mFs.create(new Path(path));
+        return FileSystem.create(mFs,new Path(path), PERMISSION);
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
@@ -251,7 +254,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         if (mFs.exists(new Path(path))) {
           return true;
         }
-        return mFs.mkdirs(new Path(path));
+        return mFs.mkdirs(new Path(path), PERMISSION);
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
@@ -310,15 +313,12 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   public void changePermission(String path) {
-    FileSystem fs = null;
     try {
-      fs = FileSystem.get(new Configuration());
-      FileStatus fileStatus = fs.getFileStatus(new Path(path));
-      LOG.info("Changing file " + fileStatus.getPath() + " perms from: " + fileStatus.getPermission() + " to 777");
-      //TODO add sticky bit and narrow down the permission in hadoop 2
-      fs.setPermission(fileStatus.getPath(), FsPermission.createImmutable((short) 0777));
+      FileStatus fileStatus = mFs.getFileStatus(new Path(path));
+      LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: " + fileStatus.getPermission() + " to 777");
+      mFs.setPermission(fileStatus.getPath(), PERMISSION);
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      LOG.error(e);
     }
 
   }
