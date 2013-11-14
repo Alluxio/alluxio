@@ -40,6 +40,7 @@ import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.utils.NetUtils;
 
 /**
  * Unit tests on TFsShell.
@@ -116,7 +117,7 @@ public class TFsShellTest {
   @Test
   public void mkdirTest() throws IOException {
     mFsShell.mkdir(new String[]{"mkdir", "tachyon://" + 
-        InetAddress.getLocalHost().getCanonicalHostName() + ":" +
+        NetUtils.getLocalHostName() + ":" +
         mLocalTachyonCluster.getMasterPort() + "/root/testFile1"});
     TachyonFile tFile = mTfs.getFile("/root/testFile1");
     Assert.assertNotNull(tFile);

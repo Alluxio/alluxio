@@ -27,6 +27,8 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import tachyon.utils.NetUtils;
+
 /**
  * Single node UnderFilesystem implementation.
  *
@@ -101,7 +103,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<String>();
-    ret.add(InetAddress.getLocalHost().getCanonicalHostName());
+    ret.add(NetUtils.getLocalHostName());
     return ret;
   }
 

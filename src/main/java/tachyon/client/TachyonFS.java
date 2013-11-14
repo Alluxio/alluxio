@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -50,6 +51,7 @@ import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoWorkerException;
+import tachyon.utils.NetUtils;
 
 /**
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients
@@ -210,11 +212,16 @@ public class TachyonFS {
     NetAddress workerNetAddress = null;
     mIsWorkerLocal = false;
     try {
-      String localHostName = InetAddress.getLocalHost().getCanonicalHostName();
+      String localHostName = NetUtils.getLocalHostName();
+	
       LOG.info("Trying to get local worker host : " + localHostName);
       workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
       mIsWorkerLocal = true;
-    } catch (NoWorkerException e) {
+    } catch (SocketException e) {
+		// TODO Auto-generated catch block
+    	LOG.info(e.getMessage());
+        workerNetAddress = null;
+	} catch (NoWorkerException e) {
       LOG.info(e.getMessage());
       workerNetAddress = null;
     } catch (UnknownHostException e) {

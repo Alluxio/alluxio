@@ -31,6 +31,7 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
+import tachyon.utils.NetUtils;
 
 /**
  * A local Tachyon cluster with Multiple masters 
@@ -174,7 +175,7 @@ public class LocalTachyonClusterMultiMaster {
     mkdir(masterDataFolder);
     mkdir(masterLogFolder);
 
-    mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
+    mLocalhostName = NetUtils.getLocalHostName();
 
     System.setProperty("tachyon.home", mTachyonHome);
     System.setProperty("tachyon.underfs.address", underfsFolder);
