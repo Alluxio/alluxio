@@ -13,6 +13,7 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
@@ -289,5 +290,20 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     }
     CommonUtils.runtimeException(te);
     return false;
+  }
+
+  @Override
+  public void changePermission(String path) {
+    FileSystem fs = null;
+    try {
+      fs = FileSystem.get(new Configuration());
+      FileStatus fileStatus = fs.getFileStatus(new Path(path));
+      LOG.info("Changing file " + fileStatus.getPath() + " perms from: " + fileStatus.getPermission() + " to 777");
+      //TODO add sticky bit and narrow down the permission in hadoop 2
+      fs.setPermission(fileStatus.getPath(), FsPermission.createImmutable((short) 0777));
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+
   }
 }

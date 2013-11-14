@@ -145,4 +145,10 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
     File file = new File(src);
     return file.renameTo(new File(dst));
   }
+
+  @Override
+  public void changePermission(String path) {
+    CommonUtils.changeToFullPermission(path);
+    CommonUtils.setStickyBit(path);
+  }
 }
