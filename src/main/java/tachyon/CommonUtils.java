@@ -21,14 +21,13 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
+import static java.nio.file.attribute.PosixFilePermission.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
@@ -295,20 +294,16 @@ public final class CommonUtils {
   public static void changeToFullPermission(String file) {
     //set the full permission to everyone.
     try {
-      HashSet<PosixFilePermission> permissions = new HashSet<PosixFilePermission>();
-      permissions.add(PosixFilePermission.OTHERS_EXECUTE);
-      permissions.add(PosixFilePermission.OTHERS_WRITE);
-      permissions.add(PosixFilePermission.OTHERS_READ);
-      permissions.add(PosixFilePermission.OWNER_EXECUTE);
-      permissions.add(PosixFilePermission.OWNER_WRITE);
-      permissions.add(PosixFilePermission.OWNER_READ);
-      permissions.add(PosixFilePermission.GROUP_EXECUTE);
-      permissions.add(PosixFilePermission.GROUP_WRITE);
+      Set<PosixFilePermission> permissions =EnumSet.of(
+          OWNER_READ,OWNER_WRITE,OWNER_EXECUTE,
+          GROUP_READ,GROUP_WRITE,GROUP_EXECUTE,
+          OTHERS_READ,OTHERS_WRITE,OTHERS_EXECUTE);
       String fileURI=file;
       if(file.startsWith("/")) {
         fileURI="file://"+file;
       }
-      Files.setPosixFilePermissions(Paths.get(URI.create(fileURI)), permissions);
+      Path path = Paths.get(URI.create(fileURI));
+      Files.setPosixFilePermissions(path, permissions);
     } catch (IOException e) {
       LOG.warn("Can not change the permission of the following file to '777':"+file);
     }
