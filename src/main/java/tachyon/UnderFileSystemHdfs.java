@@ -315,7 +315,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   public void changePermission(String path) {
     try {
       FileStatus fileStatus = mFs.getFileStatus(new Path(path));
-      LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: " + fileStatus.getPermission() + " to 777");
+      LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: " +
+          fileStatus.getPermission() + " to 777");
       mFs.setPermission(fileStatus.getPath(), PERMISSION);
     } catch (IOException e) {
       LOG.error(e);
