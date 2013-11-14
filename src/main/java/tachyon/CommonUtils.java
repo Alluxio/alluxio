@@ -288,10 +288,11 @@ public final class CommonUtils {
       permissions.add(PosixFilePermission.OWNER_READ);
       permissions.add(PosixFilePermission.GROUP_EXECUTE);
       permissions.add(PosixFilePermission.GROUP_WRITE);
-      Files.setPosixFilePermissions(Paths.get(URI.create(file)), permissions);
-      //set the file to be full permission inheritable using setfacl
-      //acl permission is not implemented in PosixFilePermission
-      Runtime.getRuntime().exec("setfacl -Rm d:u::rwx,d:g::rwx,d:o::rwx "+file);
+      String fileURI=file;
+      if(file.startsWith("/")) {
+        fileURI="file://"+file;
+      }
+      Files.setPosixFilePermissions(Paths.get(URI.create(fileURI)), permissions);
     } catch (IOException e) {
       LOG.warn("Can not change the permission of the following file to '777':"+file);
     }
@@ -302,10 +303,12 @@ public final class CommonUtils {
    * the the owner of the folder containing the 'file'.
    * @param file absolute file path
    */
-  public static void setStickyBit(String file){
+  public static void setStickyBit(String file) {
     try {
       //sticky bit is not implemented in PosixFilePermission
-      Runtime.getRuntime().exec("chmod o+t "+file);
+      if(file.startsWith("/")) {
+        Runtime.getRuntime().exec("chmod o+t "+file);
+      }
     } catch (IOException e) {
       LOG.info("Can not set the sticky bit of the file : "+file);
     }

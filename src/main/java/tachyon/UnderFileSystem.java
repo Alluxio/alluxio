@@ -72,4 +72,6 @@ public abstract class UnderFileSystem {
   public abstract InputStream open(String path) throws IOException;
 
   public abstract boolean rename(String src, String dst) throws IOException;
+
+  public abstract void changePermission(String path);
 }
