@@ -41,11 +41,8 @@ bin=`cd "$( dirname "$0" )"; pwd`
 
 ensure_dirs() {
   if [ ! -d "$TACHYON_LOGS_DIR" ]; then
+    echo "TACHYON_LOGS_DIR: $TACHYON_LOGS_DIR"
     mkdir -p $TACHYON_LOGS_DIR
-  fi
-  
-  if [ ! -d "TACHYON_DATA_DIR" ]; then
-    mkdir -p $TACHYON_DATA_DIR
   fi
 }
 
