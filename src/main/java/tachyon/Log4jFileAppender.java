@@ -22,12 +22,15 @@ import java.io.IOException;
 import java.io.Writer;
 import java.lang.Math;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.spi.ErrorCode;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.tools.ant.util.LazyFileOutputStream;
+
+import tachyon.utils.NetUtils;
 
 /**
  * Custom log4j appender which preserves old logs on system restart, rolls over logs based on
@@ -152,8 +155,11 @@ public class Log4jFileAppender extends FileAppender {
       String newFileName = "";
       String address = "";
       try {
-        address = "@" + InetAddress.getLocalHost().getHostAddress();
+        address = "@" + NetUtils.getLocalHostName();
       } catch (UnknownHostException uhe) {
+        address = "@UnknownHost";
+      } catch (SocketException e) {
+        // TODO Auto-generated catch block
         address = "@UnknownHost";
       }
       newFileName = fileName + address + "_" 

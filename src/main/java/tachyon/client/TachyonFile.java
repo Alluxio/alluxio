@@ -33,6 +33,7 @@ import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.utils.NetUtils;
 
 /**
  * Tachyon File.
@@ -175,14 +176,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
         if (port == -1) {
           continue;
         }
-        if (host.equals(InetAddress.getLocalHost().getHostName()) 
-            || host.equals(InetAddress.getLocalHost().getHostAddress())) {
+        if (host.equals(NetUtils.getLocalHostName()) 
+            || host.equals(NetUtils.getLocalHostAddress())) {
           String localFileName = TFS.getRootFolder() + "/" + FID;
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         } else {
           LOG.info(host + ":" + (port + 1) +
-              " current host is " + InetAddress.getLocalHost().getHostName() + " " +
-              InetAddress.getLocalHost().getHostAddress());
+              " current host is " + NetUtils.getLocalHostName() + " " +
+              NetUtils.getLocalHostAddress());
 
           try {
             buf = retrieveByteBufferFromRemoteMachine(
