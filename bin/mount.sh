@@ -1,5 +1,22 @@
 #!/usr/bin/env bash
 
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 # Start all Tachyon workers.
 # Starts the master on this node.
 # Starts a worker on each node specified in conf/slaves
@@ -9,25 +26,22 @@ Usage="Usage: mount.sh [Mount|SudoMount] [MACHINE]
   local\t\t\tMount local marchine\n
   workers\t\tMount all the workers on slaves"
 
+bin=`cd "$( dirname "$0" )"; pwd`
+
 function init_env() {
-  bin=`cd "$( dirname "$1" )"; pwd`
 
-  # Load the Tachyon configuration
-  . "$bin/tachyon-config.sh"
+  DEFAULT_LIBEXEC_DIR="$bin"/../libexec
+  TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+  . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
-  # Lower case memory size.
-  if [ -e $TACHYON_HOME/conf/tachyon-env.sh ] ; then
-    . $TACHYON_HOME/conf/tachyon-env.sh
-  else
-    echo -e "$TACHYON_HOME/conf/tachyon-env.sh was not configured, set TACHYON_WORKER_MEMORY_SIZE=128MB"
+  if [ -z TACHYON_WORKER_MEMORY_SIZE ] ; then
     TACHYON_WORKER_MEMORY_SIZE=128MB
-  fi
+  fi 
 
   MEM_SIZE=$(echo "$TACHYON_WORKER_MEMORY_SIZE" | tr -s '[:upper:]' '[:lower:]')
 }
 
 function mount_ramfs_linux() {
-  init_env $1
   if [ -z $TACHYON_RAM_FOLDER ] ; then
     TACHYON_RAM_FOLDER=/mnt/ramdisk
     echo "TACHYON_RAM_FOLDER was not set. Using the default one: $TACHYON_RAM_FOLDER"
@@ -47,7 +61,6 @@ function mount_ramfs_linux() {
 #enable the regexp case match
 shopt -s extglob
 function mount_ramfs_mac() {
-  init_env $0
   if [ -z $TACHYON_RAM_FOLDER ] ; then
     TACHYON_RAM_FOLDER=/Volumes/ramdisk
     echo "TACHYON_RAM_FOLDER was not set. Using the default one: $TACHYON_RAM_FOLDER"
@@ -108,6 +121,8 @@ function mount_local() {
   fi
 }
 
+init_env
+
 case "${1}" in
   Mount|SudoMount)
     case "${2}" in
@@ -123,4 +138,3 @@ case "${1}" in
     echo -e $Usage
     exit 1
 esac
-

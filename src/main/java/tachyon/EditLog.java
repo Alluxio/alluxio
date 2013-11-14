@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package tachyon;
 
 import java.io.DataInputStream;
@@ -37,6 +53,7 @@ public class EditLog {
 
   // When a master is replaying an edit log, make the current edit log as an INACTIVE one.
   private final boolean INACTIVE;
+  private final UnderFileSystem UFS;
   private final DataOutputStream DOS;
   private final OutputStream OS;
 
@@ -118,6 +135,7 @@ public class EditLog {
     }
 
     is.close();
+    ufs.close();
     return transactionId;
   }
 
@@ -126,13 +144,14 @@ public class EditLog {
 
     if (!INACTIVE) {
       LOG.info("Creating edit log file " + path);
-      UnderFileSystem ufs = UnderFileSystem.get(path);
-      OS = ufs.create(path);
+      UFS = UnderFileSystem.get(path);
+      OS = UFS.create(path);
       DOS = new DataOutputStream(OS);
       LOG.info("Created file " + path);
       mFlushedTransactionId = transactionId;
       mTransactionId = transactionId;
     } else {
+      UFS = null;
       OS = null;
       DOS = null;
     }
@@ -301,6 +320,8 @@ public class EditLog {
     }
     try {
       DOS.close();
+      OS.close();
+      UFS.close();
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
