@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-usage="Usage: slaves.sh command..."
+usage="Usage: tachyon-slaves.sh command..."
 
 # if no args specified, show usage
 if [ $# -le 0 ]; then
