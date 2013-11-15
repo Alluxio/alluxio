@@ -21,10 +21,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-
-import tachyon.CommonUtils;
 import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystemSingleLocal;
 
 /**
  * <code>FileOutStream</code> implementation of TachyonFile. It can only be gotten by
