@@ -18,7 +18,6 @@ package tachyon;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +27,7 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
+import tachyon.utils.NetUtils;
 
 /**
  * Local Tachyon cluster for unit tests.
@@ -75,12 +75,12 @@ public class LocalTachyonCluster {
     return mWorkerPort;
   }
 
-  public String getTachyonHome(){
+  public String getTachyonHome() {
     return mTachyonHome;
   }
 
   WorkerServiceHandler getWorkerServiceHandler() {
-    return mWorker.getWorkerServiceHandler();    
+    return mWorker.getWorkerServiceHandler();
   }
 
   MasterInfo getMasterInfo() {
@@ -117,7 +117,7 @@ public class LocalTachyonCluster {
     mkdir(masterDataFolder);
     mkdir(masterLogFolder);
 
-    mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
+    mLocalhostName = NetUtils.getLocalHostName();
 
     System.setProperty("tachyon.home", mTachyonHome);
     System.setProperty("tachyon.underfs.address", underfsFolder);
@@ -137,8 +137,8 @@ public class LocalTachyonCluster {
     mkdir(CommonConf.get().UNDERFS_DATA_FOLDER);
     mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
 
-    mMaster = new Master(
-        new InetSocketAddress(mLocalhostName, mMasterPort), mMasterPort + 1, 1, 1, 1);
+    mMaster = new Master(new InetSocketAddress(mLocalhostName, mMasterPort), mMasterPort + 1, 1, 1,
+        1);
     Runnable runMaster = new Runnable() {
       public void run() {
         mMaster.start();
@@ -149,10 +149,9 @@ public class LocalTachyonCluster {
 
     CommonUtils.sleepMs(null, 10);
 
-    mWorker = Worker.createWorker(
-        new InetSocketAddress(mLocalhostName, mMasterPort), 
-        new InetSocketAddress(mLocalhostName, mWorkerPort),
-        mWorkerPort + 1, 1, 1, 1, mWorkerDataFolder, mWorkerCapacityBytes);
+    mWorker = Worker.createWorker(new InetSocketAddress(mLocalhostName, mMasterPort),
+        new InetSocketAddress(mLocalhostName, mWorkerPort), mWorkerPort + 1, 1, 1, 1,
+        mWorkerDataFolder, mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {
       public void run() {
         mWorker.start();

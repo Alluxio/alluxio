@@ -18,7 +18,6 @@ package tachyon.client;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -33,6 +32,7 @@ import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.utils.NetUtils;
 
 /**
  * Tachyon File.
@@ -85,7 +85,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     List<NetAddress> locations = TFS.getClientBlockInfo(FID, 0).getLocations();
     List<String> ret = new ArrayList<String>(locations.size());
     if (locations != null) {
-      for (int k = 0; k < locations.size(); k ++) {
+      for (int k = 0; k < locations.size(); k++) {
         ret.add(locations.get(k).mHost);
       }
     }
@@ -138,7 +138,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       return null;
     }
 
-    ClientBlockInfo blockInfo = TFS.getClientBlockInfo(FID, blockIndex);    
+    ClientBlockInfo blockInfo = TFS.getClientBlockInfo(FID, blockIndex);
 
     TachyonByteBuffer ret = readLocalByteBuffer(blockIndex);
     if (ret == null) {
@@ -151,7 +151,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Get the the whole block.
-   * @param blockIndex The block index of the current file to read.
+   * 
+   * @param blockIndex
+   *          The block index of the current file to read.
    * @return TachyonByteBuffer containing the block.
    * @throws IOException
    */
@@ -163,41 +165,35 @@ public class TachyonFile implements Comparable<TachyonFile> {
     ByteBuffer buf = null;
 
     LOG.info("Try to find and read from remote workers.");
-    try {
-      List<NetAddress> blockLocations = blockInfo.getLocations();
-      LOG.info("readByteBufferFromRemote() " + blockLocations);
+    List<NetAddress> blockLocations = blockInfo.getLocations();
+    LOG.info("readByteBufferFromRemote() " + blockLocations);
 
-      for (int k = 0; k < blockLocations.size(); k ++) {
-        String host = blockLocations.get(k).mHost;
-        int port = blockLocations.get(k).mPort;
+    for (int k = 0; k < blockLocations.size(); k++) {
+      String host = blockLocations.get(k).mHost;
+      int port = blockLocations.get(k).mPort;
 
-        // The data is not in remote machine's memory if port == -1.
-        if (port == -1) {
-          continue;
-        }
-        if (host.equals(InetAddress.getLocalHost().getHostName()) 
-            || host.equals(InetAddress.getLocalHost().getHostAddress())) {
-          String localFileName = TFS.getRootFolder() + "/" + FID;
-          LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
-        } else {
-          LOG.info(host + ":" + (port + 1) +
-              " current host is " + InetAddress.getLocalHost().getHostName() + " " +
-              InetAddress.getLocalHost().getHostAddress());
+      // The data is not in remote machine's memory if port == -1.
+      if (port == -1) {
+        continue;
+      }
+      if (host.equals(NetUtils.getLocalHostName()) || host.equals(NetUtils.getLocalHostAddress())) {
+        String localFileName = TFS.getRootFolder() + "/" + FID;
+        LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
+      } else {
+        LOG.info(host + ":" + (port + 1) + " current host is " + NetUtils.getLocalHostName() + " "
+            + NetUtils.getLocalHostAddress());
 
-          try {
-            buf = retrieveByteBufferFromRemoteMachine(
-                new InetSocketAddress(host, port + 1), blockInfo);
-            if (buf != null) {
-              break;
-            }
-          } catch (IOException e) {
-            LOG.error(e.getMessage());
-            buf = null;
+        try {
+          buf = retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port + 1),
+              blockInfo);
+          if (buf != null) {
+            break;
           }
+        } catch (IOException e) {
+          LOG.error(e.getMessage());
+          buf = null;
         }
       }
-    } catch (IOException e) {
-      LOG.error("Failed to get read data from remote " + e.getMessage());
     }
 
     return buf == null ? null : new TachyonByteBuffer(TFS, buf, blockInfo.blockId, -1);
@@ -211,7 +207,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
 
     boolean succeed = true;
-    for (int k = 0; k < numberOfBlocks; k ++) {
+    for (int k = 0; k < numberOfBlocks; k++) {
       succeed &= recache(k);
     }
 
@@ -268,7 +264,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return TFS.rename(FID, path);
   }
 
-  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, 
+  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
       ClientBlockInfo blockInfo) throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
     socketChannel.connect(address);
@@ -314,7 +310,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   @Override
   public boolean equals(Object obj) {
     if ((obj != null) && (obj instanceof TachyonFile)) {
-      return compareTo((TachyonFile)obj) == 0;
+      return compareTo((TachyonFile) obj) == 0;
     }
     return false;
   }

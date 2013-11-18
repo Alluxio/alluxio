@@ -23,13 +23,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import tachyon.utils.NetUtils;
+
 /**
  * Single node UnderFilesystem implementation.
- *
+ * 
  * This only works for single machine. It is for local unit test and single machine mode.
  */
 public class UnderFileSystemSingleLocal extends UnderFileSystem {
@@ -53,11 +54,10 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public OutputStream create(String path, short replication, int blockSizeByte)
-      throws IOException {
+  public OutputStream create(String path, short replication, int blockSizeByte) throws IOException {
     if (replication != 1) {
-      throw new IOException("UnderFileSystemSingleLocal does not provide more than one" +
-          " replication factor");
+      throw new IOException("UnderFileSystemSingleLocal does not provide more than one"
+          + " replication factor");
     }
     return new FileOutputStream(path);
   }
@@ -101,7 +101,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<String>();
-    ret.add(InetAddress.getLocalHost().getCanonicalHostName());
+    ret.add(NetUtils.getLocalHostName());
     return ret;
   }
 
@@ -148,7 +148,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     File file = new File(path);
-    return createParent ? file.mkdirs(): file.mkdir();
+    return createParent ? file.mkdirs() : file.mkdir();
   }
 
   @Override
