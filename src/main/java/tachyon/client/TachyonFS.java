@@ -459,7 +459,7 @@ public class TachyonFS {
     ClientFileInfo info = null;
     if (!fetch) {
       info = mClientFileInfos.get(fId);
-      if (!info.isFolder() && info.blockIds.size() <= blockIndex) {
+      if (info.isFolder() || info.blockIds.size() <= blockIndex) {
         fetch = true;
       }
     }
