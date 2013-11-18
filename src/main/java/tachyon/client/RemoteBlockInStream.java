@@ -122,7 +122,7 @@ public class RemoteBlockInStream extends BlockInStream {
     List<NetAddress> blockLocations = blockInfo.getLocations();
     LOG.info("Block locations:" + blockLocations);
 
-    for (int k = 0; k < blockLocations.size(); k++) {
+    for (int k = 0; k < blockLocations.size(); k ++) {
       String host = blockLocations.get(k).mHost;
       int port = blockLocations.get(k).mPort;
 
@@ -198,7 +198,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
   @Override
   public int read() throws IOException {
-    mReadByte++;
+    mReadByte ++;
     if (mReadByte > mBlockInfo.length) {
       doneRecache();
       return -1;
