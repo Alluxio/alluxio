@@ -29,9 +29,8 @@ import org.apache.tools.ant.util.LazyFileOutputStream;
 import tachyon.utils.NetUtils;
 
 /**
- * Custom log4j appender which preserves old logs on system restart, rolls over
- * logs based on both size and day. Also implements batch deletion of logs when
- * the maximum backup index is reached.
+ * Custom log4j appender which preserves old logs on system restart, rolls over logs based on both
+ * size and day. Also implements batch deletion of logs when the maximum backup index is reached.
  */
 public class Log4jFileAppender extends FileAppender {
   private int mMaxBackupIndex = 1;
@@ -59,9 +58,8 @@ public class Log4jFileAppender extends FileAppender {
   }
 
   /**
-   * Called when a new log attempt is made, either due to server restart or
-   * rollover. The filename is modified to identify the logging node in
-   * getNewFileName.
+   * Called when a new log attempt is made, either due to server restart or rollover. The filename
+   * is modified to identify the logging node in getNewFileName.
    */
   @Override
   public void activateOptions() {
@@ -81,8 +79,7 @@ public class Log4jFileAppender extends FileAppender {
   }
 
   /**
-   * Creates a LazyFileOutputStream so logs are only created when a message is
-   * logged.
+   * Creates a LazyFileOutputStream so logs are only created when a message is logged.
    * 
    * @param fileName
    * @param append
@@ -116,8 +113,8 @@ public class Log4jFileAppender extends FileAppender {
   }
 
   /**
-   * Called whenever a new message is logged. Checks both the date and size to
-   * determine if rollover is necessary.
+   * Called whenever a new message is logged. Checks both the date and size to determine if rollover
+   * is necessary.
    * 
    * @param event
    */
@@ -173,10 +170,9 @@ public class Log4jFileAppender extends FileAppender {
   }
 
   /**
-   * Rotates logs. The previous current log is set to the next available index.
-   * If the index has reached the maximum backup index, a percent of backup logs
-   * will be deleted, started from the earliest first. Then all rolledover logs
-   * will be moved up.
+   * Rotates logs. The previous current log is set to the next available index. If the index has
+   * reached the maximum backup index, a percent of backup logs will be deleted, started from the
+   * earliest first. Then all rolledover logs will be moved up.
    * 
    * @param fileName
    *          The fileName of the new current log.
@@ -212,15 +208,15 @@ public class Log4jFileAppender extends FileAppender {
     File oldFile = new File(fileName);
     if (mCurrentFileBackupIndex >= mMaxBackupIndex) {
       int deleteToIndex = (int) Math.ceil(mMaxBackupIndex * mDeletionPercentage / 100.0);
-      for (int i = 1; i < deleteToIndex; i++) {
+      for (int i = 1; i < deleteToIndex; i ++) {
         new File(fileName + "_" + i).delete();
       }
-      for (int i = deleteToIndex + 1; i <= mMaxBackupIndex; i++) {
+      for (int i = deleteToIndex + 1; i <= mMaxBackupIndex; i ++) {
         new File(fileName + "_" + i).renameTo(new File(fileName + "_" + (i - deleteToIndex)));
       }
       mCurrentFileBackupIndex = mCurrentFileBackupIndex - deleteToIndex;
     }
     oldFile.renameTo(new File(fileName + "_" + mCurrentFileBackupIndex));
-    mCurrentFileBackupIndex++;
+    mCurrentFileBackupIndex ++;
   }
 }
