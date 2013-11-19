@@ -4,6 +4,10 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
+/**
+ * Class that periodically looks for completed edit logs to update metadata of failover nodes.
+ */
+
 public class EditLogProcessor implements Runnable {
 
   private Journal mJournal;
@@ -18,12 +22,12 @@ public class EditLogProcessor implements Runnable {
     mJournal = journal;
     mPath = path;
     mMasterInfo = info;
-    LOG.info("Created edit log processor!");
+    LOG.info("Created edit log processor with path " + mPath);
   }
 
   @Override
   public void run() {
-    LOG.info("Running edit log processor!");
+    LOG.info("Edit log processor with path " + mPath + " started.");
     UnderFileSystem ufs = UnderFileSystem.get(mPath);
     while (mIsStandby) {
       try {
@@ -46,16 +50,16 @@ public class EditLogProcessor implements Runnable {
             }
           }
         }
-        Thread.sleep(1000);
-      } catch (IOException | InterruptedException e) {
+        CommonUtils.sleepMs(LOG, 1000);
+      } catch (IOException e) {
         CommonUtils.runtimeException(e);
       }
     }
-    LOG.info("Standy log processor stopped.");
+    LOG.info("Standy log processor with path " + mPath + " stopped.");
   }
 
   public void stop() {
-    LOG.info("Stopping standby log processor");
+    LOG.info("Stopping standby log processor with path " + mPath);
     mIsStandby = false;
   }
 }
