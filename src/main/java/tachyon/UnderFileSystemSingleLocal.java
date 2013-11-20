@@ -39,13 +39,19 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
+  public void changeToFullPermission(String path) {
+    CommonUtils.changeLocalFileToFullPermission(path);
+    CommonUtils.setStickyBit(path);
+  }
+
+  @Override
   public void close() throws IOException {
   }
 
   @Override
   public OutputStream create(String path) throws IOException {
     FileOutputStream stream = new FileOutputStream(path);
-    changePermission(path);
+    changeToFullPermission(path);
     return stream;
   }
 
@@ -151,7 +157,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     File file = new File(path);
     boolean created = createParent ? file.mkdirs() : file.mkdir();
-    changePermission(path);
+    changeToFullPermission(path);
     return created;
   }
 
@@ -164,11 +170,5 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   public boolean rename(String src, String dst) throws IOException {
     File file = new File(src);
     return file.renameTo(new File(dst));
-  }
-
-  @Override
-  public void changePermission(String path) {
-    CommonUtils.changeToFullPermission(path);
-    CommonUtils.setStickyBit(path);
   }
 }

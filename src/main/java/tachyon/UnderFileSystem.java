@@ -56,6 +56,8 @@ public abstract class UnderFileSystem {
     return null;
   }
 
+  public abstract void changeToFullPermission(String path);
+
   public abstract void close() throws IOException;
 
   public abstract OutputStream create(String path) throws IOException;
@@ -88,6 +90,4 @@ public abstract class UnderFileSystem {
   public abstract InputStream open(String path) throws IOException;
 
   public abstract boolean rename(String src, String dst) throws IOException;
-
-  public abstract void changePermission(String path);
 }

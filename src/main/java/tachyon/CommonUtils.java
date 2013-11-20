@@ -296,7 +296,7 @@ public final class CommonUtils {
   /**
    * @param file that will be changed to full permission
    */
-  public static void changeToFullPermission(String file) {
+  public static void changeLocalFileToFullPermission(String file) {
     //set the full permission to everyone.
     try {
       Set<PosixFilePermission> permissions = EnumSet.of(
@@ -315,8 +315,8 @@ public final class CommonUtils {
   }
 
   /**
-   * if the sticky bit of the 'file' is set, the 'file' is only writable to its owner and
-   * the the owner of the folder containing the 'file'.
+   * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and
+   * the owner of the folder containing the 'file'.
    *
    * @param file absolute file path
    */
