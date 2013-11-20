@@ -289,7 +289,7 @@ public class TachyonFS {
 
     if (!ret.exists()) {
       if (ret.mkdir()) {
-        CommonUtils.changeToFullPermission(ret.getAbsolutePath());
+        CommonUtils.changeLocalFileToFullPermission(ret.getAbsolutePath());
         LOG.info("Folder " + ret + " was created!");
       } else {
         LOG.error("Failed to create folder " + ret);

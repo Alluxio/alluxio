@@ -72,6 +72,18 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
+  public void changeToFullPermission(String path) {
+    try {
+      FileStatus fileStatus = mFs.getFileStatus(new Path(path));
+      LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: " +
+          fileStatus.getPermission() + " to 777");
+      mFs.setPermission(fileStatus.getPath(), PERMISSION);
+    } catch (IOException e) {
+      LOG.error(e);
+    }
+  }
+
+  @Override
   public void close() throws IOException {
     mFs.close();
   }
@@ -108,20 +120,20 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     // TODO Fix this
     //return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
     return create(path);
-//    LOG.info(path + " " + replication + " " + blockSizeByte);
-//    IOException te = null;
-//    int cnt = 0;
-//    while (cnt < MAX_TRY) {
-//      try {
-//        return mFs.create(new Path(path), true, 4096, replication, blockSizeByte);
-//      } catch (IOException e) {
-//        cnt ++;
-//        LOG.error(cnt + " : " + e.getMessage(), e);
-//        te = e;
-//        continue;
-//      }
-//    }
-//    throw te;
+    //    LOG.info(path + " " + replication + " " + blockSizeByte);
+    //    IOException te = null;
+    //    int cnt = 0;
+    //    while (cnt < MAX_TRY) {
+    //      try {
+    //        return mFs.create(new Path(path), true, 4096, replication, blockSizeByte);
+    //      } catch (IOException e) {
+    //        cnt ++;
+    //        LOG.error(cnt + " : " + e.getMessage(), e);
+    //        te = e;
+    //        continue;
+    //      }
+    //    }
+    //    throw te;
   }
 
   @Override
@@ -309,18 +321,5 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     }
     CommonUtils.runtimeException(te);
     return false;
-  }
-
-  @Override
-  public void changePermission(String path) {
-    try {
-      FileStatus fileStatus = mFs.getFileStatus(new Path(path));
-      LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: " +
-          fileStatus.getPermission() + " to 777");
-      mFs.setPermission(fileStatus.getPath(), PERMISSION);
-    } catch (IOException e) {
-      LOG.error(e);
-    }
-
   }
 }
