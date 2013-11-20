@@ -96,7 +96,7 @@ public class BlockOutStream extends OutStream {
     //change the permission of the temporary file in order that the worker can move it.
     CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
     //use the sticky bit, only the client and the worker can write to the block
-    CommonUtils.setStickyBit(mLocalFilePath);
+    CommonUtils.setLocalFileStickyBit(mLocalFilePath);
     LOG.info(mLocalFilePath + " was created!");
 
     mBuffer = ByteBuffer.allocate(USER_CONF.FILE_BUFFER_BYTES + 4);

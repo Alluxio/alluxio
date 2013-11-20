@@ -320,7 +320,7 @@ public final class CommonUtils {
    *
    * @param file absolute file path
    */
-  public static void setStickyBit(String file) {
+  public static void setLocalFileStickyBit(String file) {
     try {
       //sticky bit is not implemented in PosixFilePermission
       if (file.startsWith("/")) {
