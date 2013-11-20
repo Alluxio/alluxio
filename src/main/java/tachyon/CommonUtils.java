@@ -18,17 +18,26 @@ package tachyon;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
 import tachyon.thrift.InvalidPathException;
+
+import static java.nio.file.attribute.PosixFilePermission.*;
 
 /**
  * Common utilities shared by all components in Tachyon.
@@ -282,5 +291,43 @@ public final class CommonUtils {
       throw new IOException("Invalid InetSocketAddress " + address);
     }
     return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
+  }
+
+  /**
+   * @param file that will be changed to full permission
+   */
+  public static void changeToFullPermission(String file) {
+    //set the full permission to everyone.
+    try {
+      Set<PosixFilePermission> permissions = EnumSet.of(
+          OWNER_READ, OWNER_WRITE, OWNER_EXECUTE,
+          GROUP_READ, GROUP_WRITE, GROUP_EXECUTE,
+          OTHERS_READ, OTHERS_WRITE, OTHERS_EXECUTE);
+      String fileURI = file;
+      if (file.startsWith("/")) {
+        fileURI = "file://" + file;
+      }
+      Path path = Paths.get(URI.create(fileURI));
+      Files.setPosixFilePermissions(path, permissions);
+    } catch (IOException e) {
+      LOG.warn("Can not change the permission of the following file to '777':" + file);
+    }
+  }
+
+  /**
+   * if the sticky bit of the 'file' is set, the 'file' is only writable to its owner and
+   * the the owner of the folder containing the 'file'.
+   *
+   * @param file absolute file path
+   */
+  public static void setStickyBit(String file) {
+    try {
+      //sticky bit is not implemented in PosixFilePermission
+      if (file.startsWith("/")) {
+        Runtime.getRuntime().exec("chmod o+t " + file);
+      }
+    } catch (IOException e) {
+      LOG.info("Can not set the sticky bit of the file : " + file);
+    }
   }
 }
