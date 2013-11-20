@@ -18,7 +18,6 @@ package tachyon;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +33,7 @@ import tachyon.conf.WorkerConf;
 import tachyon.utils.NetUtils;
 
 /**
- * A local Tachyon cluster with Multiple masters 
+ * A local Tachyon cluster with Multiple masters
  */
 public class LocalTachyonClusterMultiMaster {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
@@ -98,12 +97,12 @@ public class LocalTachyonClusterMultiMaster {
     return mWorkerPort;
   }
 
-  public String getTachyonHome(){
+  public String getTachyonHome() {
     return mTachyonHome;
   }
 
   WorkerServiceHandler getWorkerServiceHandler() {
-    return mWorker.getWorkerServiceHandler();    
+    return mWorker.getWorkerServiceHandler();
   }
 
   MasterInfo getMasterInfo(int masterIndex) {
@@ -161,7 +160,7 @@ public class LocalTachyonClusterMultiMaster {
         e.printStackTrace();
       }
     }
-  } 
+  }
 
   public void start() throws IOException {
     mTachyonHome = File.createTempFile("Tachyon", "").getAbsoluteFile() + "UnitTest";
@@ -212,9 +211,9 @@ public class LocalTachyonClusterMultiMaster {
     CommonUtils.sleepMs(null, 10);
 
     mWorker = Worker.createWorker(
-        CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()), 
-        new InetSocketAddress(mLocalhostName, mWorkerPort),
-        mWorkerPort + 1, 1, 1, 1, mWorkerDataFolder, mWorkerCapacityBytes);
+        CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
+        new InetSocketAddress(mLocalhostName, mWorkerPort), mWorkerPort + 1, 1, 1, 1,
+        mWorkerDataFolder, mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {
       public void run() {
         mWorker.start();
