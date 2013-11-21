@@ -18,7 +18,12 @@ package tachyon;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel.MapMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,6 +76,7 @@ public class WorkerStorage {
   private File mLocalDataFolder;
   private File mLocalUserFolder;
   private String mUnderfsWorkerFolder;
+  private String mUnderfsOrphansFolder;
   private UnderFileSystem mUnderFs;
 
   private Users mUsers;
@@ -247,6 +253,27 @@ public class WorkerStorage {
     }
   }
 
+  /**
+   * Swap out those blocks missing INode information onto underFS
+   * which can be retrieved by user later.
+   * Its cleanup only happens while formating the whole TFS.
+   */
+  private void swapoutOrphanBlocks(long blockId, File file) 
+      throws IOException{    
+    RandomAccessFile localFile = new RandomAccessFile(file, "r");
+    ByteBuffer buf = localFile.getChannel().map(MapMode.READ_ONLY, 0, file.length());
+    buf.order(ByteOrder.nativeOrder());
+        
+    String ufsOrphanBlock = mUnderfsOrphansFolder + Constants.PATH_SEPARATOR + blockId;
+    OutputStream os = mUnderFs.create(ufsOrphanBlock);
+    for (int k = 0; k < buf.limit(); k ++) {
+      os.write(buf.get());
+    }
+    os.close();
+    
+    localFile.close();
+  }
+  
   public String getDataFolder() throws TException {
     return mLocalDataFolder.toString();
   }
@@ -262,7 +289,7 @@ public class WorkerStorage {
     LOG.info("Return UserHdfsTempFolder for " + userId + " : " + ret);
     return ret;
   }
-
+  
   public Command heartbeat() throws BlockInfoException, TException {
     ArrayList<Long> sendRemovedPartitionList = new ArrayList<Long>();
     while (mRemovedBlockList.size() > 0) {
@@ -297,6 +324,15 @@ public class WorkerStorage {
     }
     mLocalUserFolder.mkdir();
 
+    mUnderfsOrphansFolder = mUnderfsWorkerFolder + "/orphans";
+    try {
+      if(!mUnderFs.exists(mUnderfsOrphansFolder)) {
+        mUnderFs.mkdirs(mUnderfsOrphansFolder, true);
+      }
+    } catch (IOException ioe) {
+      CommonUtils.runtimeException("Failed to create " + mUnderfsOrphansFolder);
+    }
+    
     int cnt = 0;
     for (File tFile : mLocalDataFolder.listFiles()) {
       if (tFile.isFile()) {
@@ -308,8 +344,14 @@ public class WorkerStorage {
         try {
           addFoundBlock(blockId, tFile.length());
         } catch (FileDoesNotExistException e) {
-          LOG.error("BlockId: " + blockId + "becomes orphan for " + e.message);
-          LOG.info("Sweep the file " + cnt + ": blockId: " + blockId );
+          LOG.error("BlockId: " + blockId + " becomes orphan for: \"" + e.message + "\"");
+          LOG.info("Swapout File " + cnt + ": blockId: " + blockId + " to " + mUnderfsOrphansFolder);
+          try {
+            swapoutOrphanBlocks(blockId, tFile);
+          } catch (IOException ioe) {
+            //stop to free that block file if any IOException here.
+            CommonUtils.runtimeException("Failed to swapout orphan block: " + blockId);
+          }
           freeBlock(blockId);
           continue;
         }
