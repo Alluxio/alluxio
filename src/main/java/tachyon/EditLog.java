@@ -64,27 +64,30 @@ public class EditLog {
   // Starting from 1.
   private long mFlushedTransactionId = 0;
   private long mTransactionId = 0;
-  private int mCurrentLogNum = 0;
+  private int mCurrentLogFileNum = 0;
 
   /**
    * Load edit log.
    *
    * @param info
    *          The Master Info.
+   *        path
+   *          The path of the edit logs.
+   *        currentLogNum
+   *          The smallest completed log number that this master has not loaded
    * @return The last transaction id.
    * @throws IOException
    */
-  public static long load(MasterInfo info, String path, int currentLogNum) throws IOException {
+  public static long load(MasterInfo info, String path, int currentLogFileNum) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
     if (!ufs.exists(path)) {
       LOG.info("Edit Log " + path + " does not exist.");
       return 0;
     }
-    LOG.info("currentLogNum passed in was " + currentLogNum);
-    int completedLogs = currentLogNum;
+    LOG.info("currentLogNum passed in was " + currentLogFileNum);
+    int completedLogs = currentLogFileNum;
     int numFiles = 1;
-    String completedPath = path.substring(0, path.lastIndexOf("/"))
-        + "/completed";
+    String completedPath = path.substring(0, path.lastIndexOf("/")) + "/completed";
     if (!ufs.exists(completedPath)) {
       LOG.info("No completed edit logs to be parsed");
     } else {
@@ -98,7 +101,7 @@ public class EditLog {
     String editLogs[] = new String[numFiles];
     for (int i = 0; i < numFiles; i ++) {
       if (i != numFiles - 1) {
-        editLogs[i] = completedPath + "/" + (i + currentLogNum) + ".editLog";
+        editLogs[i] = completedPath + "/" + (i + currentLogFileNum) + ".editLog";
       } else {
         editLogs[i] = path;
       }
@@ -191,8 +194,8 @@ public class EditLog {
         String folder = path.substring(0, path.lastIndexOf("/")) + "/completed";
         LOG.info("Backing up current log since image is not updated.");
         UFS.mkdirs(folder, true);
-        UFS.rename(path, folder + "/" + (mCurrentLogNum ++) + ".editLog");
-        LOG.info("Renaming " + path + " to " + folder + "/" + (mCurrentLogNum ++) +
+        UFS.rename(path, folder + "/" + (mCurrentLogFileNum ++) + ".editLog");
+        LOG.info("Renaming " + path + " to " + folder + "/" + (mCurrentLogFileNum ++) +
             ".editLog");
         mBackUpCurrentLog = false;
       }
@@ -233,7 +236,7 @@ public class EditLog {
       if (!UFS.exists(pathPrefix)) {
         UFS.mkdirs(pathPrefix, true);
       }
-      String newPath = pathPrefix + "/" + (mCurrentLogNum ++) + ".editLog";
+      String newPath = pathPrefix + "/" + (mCurrentLogFileNum ++) + ".editLog";
       UFS.rename(path, newPath);
       LOG.info("Renamed " + path + " to " + newPath);
       OS = UFS.create(path);
