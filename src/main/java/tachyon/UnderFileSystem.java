@@ -56,6 +56,8 @@ public abstract class UnderFileSystem {
     return null;
   }
 
+  public abstract void changeToFullPermission(String path);
+
   public abstract void close() throws IOException;
 
   public abstract OutputStream create(String path) throws IOException;

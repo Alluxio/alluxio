@@ -21,7 +21,7 @@
 # Starts the master on this node.
 # Starts a worker on each node specified in conf/slaves
 
-Usage="Usage: mount.sh [Mount|SudoMount] [MACHINE]
+Usage="Usage: tachyon-mount.sh [Mount|SudoMount] [MACHINE]
 \nIf ommited, MARCHINE is default to be 'local'. MARCHINE is one of:\n
   local\t\t\tMount local marchine\n
   workers\t\tMount all the workers on slaves"
@@ -29,14 +29,11 @@ Usage="Usage: mount.sh [Mount|SudoMount] [MACHINE]
 function init_env() {
   bin=`cd "$( dirname "$1" )"; pwd`
 
-  # Load the Tachyon configuration
-  . "$bin/tachyon-config.sh"
+  DEFAULT_LIBEXEC_DIR="$bin"/../libexec
+  TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+  . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
-  # Lower case memory size.
-  if [ -e $TACHYON_HOME/conf/tachyon-env.sh ] ; then
-    . $TACHYON_HOME/conf/tachyon-env.sh
-  else
-    echo -e "$TACHYON_HOME/conf/tachyon-env.sh was not configured, set TACHYON_WORKER_MEMORY_SIZE=128MB"
+  if [ -z TACHYON_WORKER_MEMORY_SIZE ] ; then
     TACHYON_WORKER_MEMORY_SIZE=128MB
   fi
 
@@ -45,6 +42,7 @@ function init_env() {
 
 function mount_ramfs_linux() {
   init_env $1
+
   if [ -z $TACHYON_RAM_FOLDER ] ; then
     TACHYON_RAM_FOLDER=/mnt/ramdisk
     echo "TACHYON_RAM_FOLDER was not set. Using the default one: $TACHYON_RAM_FOLDER"
@@ -65,6 +63,7 @@ function mount_ramfs_linux() {
 shopt -s extglob
 function mount_ramfs_mac() {
   init_env $0
+
   if [ -z $TACHYON_RAM_FOLDER ] ; then
     TACHYON_RAM_FOLDER=/Volumes/ramdisk
     echo "TACHYON_RAM_FOLDER was not set. Using the default one: $TACHYON_RAM_FOLDER"
@@ -132,7 +131,7 @@ case "${1}" in
         mount_local $1
         ;;
       workers)
-        $bin/slaves.sh $bin/mount.sh $1
+        $bin/tachyon-slaves.sh $bin/tachyon-mount.sh $1
         ;;
     esac
     ;;

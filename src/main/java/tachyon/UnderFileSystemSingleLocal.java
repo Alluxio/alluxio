@@ -39,12 +39,20 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
+  public void changeToFullPermission(String path) {
+    CommonUtils.changeLocalFileToFullPermission(path);
+    CommonUtils.setLocalFileStickyBit(path);
+  }
+
+  @Override
   public void close() throws IOException {
   }
 
   @Override
   public OutputStream create(String path) throws IOException {
-    return new FileOutputStream(path);
+    FileOutputStream stream = new FileOutputStream(path);
+    changeToFullPermission(path);
+    return stream;
   }
 
   @Override
@@ -59,7 +67,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
       throw new IOException("UnderFileSystemSingleLocal does not provide more than one" +
           " replication factor");
     }
-    return new FileOutputStream(path);
+    return create(path);
   }
 
   @Override
@@ -148,7 +156,9 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     File file = new File(path);
-    return createParent ? file.mkdirs(): file.mkdir();
+    boolean created = createParent ? file.mkdirs() : file.mkdir();
+    changeToFullPermission(path);
+    return created;
   }
 
   @Override

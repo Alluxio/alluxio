@@ -26,6 +26,7 @@ import java.nio.channels.FileChannel.MapMode;
 
 import org.apache.log4j.Logger;
 
+import tachyon.CommonUtils;
 import tachyon.Constants;
 
 /**
@@ -92,12 +93,16 @@ public class BlockOutStream extends OutStream {
     mLocalFilePath = localFolder.getPath() + "/" + BLOCK_ID;
     mLocalFile = new RandomAccessFile(mLocalFilePath, "rw");
     mLocalFileChannel = mLocalFile.getChannel();
+    //change the permission of the temporary file in order that the worker can move it.
+    CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
+    //use the sticky bit, only the client and the worker can write to the block
+    CommonUtils.setLocalFileStickyBit(mLocalFilePath);
     LOG.info(mLocalFilePath + " was created!");
 
     mBuffer = ByteBuffer.allocate(USER_CONF.FILE_BUFFER_BYTES + 4);
   }
 
-  private synchronized void appendCurrentBuffer(byte[] buf, int offset, 
+  private synchronized void appendCurrentBuffer(byte[] buf, int offset,
       int length) throws IOException {
     if (!TFS.requestSpace(length)) {
       mCanWrite = false;

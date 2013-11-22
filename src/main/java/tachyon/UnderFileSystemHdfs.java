@@ -29,6 +29,7 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
@@ -41,6 +42,9 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   private FileSystem mFs = null;
   private String mUfsPrefix = null;
+  //TODO add sticky bit and narrow down the permission in hadoop 2
+  private static final FsPermission PERMISSION =
+      new FsPermission((short) 0777).applyUMask(FsPermission.createImmutable((short)0000));
 
   public static UnderFileSystemHdfs getClient(String path) {
     return new UnderFileSystemHdfs(path);
@@ -68,6 +72,18 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
+  public void changeToFullPermission(String path) {
+    try {
+      FileStatus fileStatus = mFs.getFileStatus(new Path(path));
+      LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: " +
+          fileStatus.getPermission() + " to 777");
+      mFs.setPermission(fileStatus.getPath(), PERMISSION);
+    } catch (IOException e) {
+      LOG.error(e);
+    }
+  }
+
+  @Override
   public void close() throws IOException {
     mFs.close();
   }
@@ -79,7 +95,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     while (cnt < MAX_TRY) {
       try {
         LOG.debug("Creating HDFS file at " + path);
-        return mFs.create(new Path(path));
+        return FileSystem.create(mFs,new Path(path), PERMISSION);
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
@@ -104,20 +120,20 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     // TODO Fix this
     //return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
     return create(path);
-//    LOG.info(path + " " + replication + " " + blockSizeByte);
-//    IOException te = null;
-//    int cnt = 0;
-//    while (cnt < MAX_TRY) {
-//      try {
-//        return mFs.create(new Path(path), true, 4096, replication, blockSizeByte);
-//      } catch (IOException e) {
-//        cnt ++;
-//        LOG.error(cnt + " : " + e.getMessage(), e);
-//        te = e;
-//        continue;
-//      }
-//    }
-//    throw te;
+    //    LOG.info(path + " " + replication + " " + blockSizeByte);
+    //    IOException te = null;
+    //    int cnt = 0;
+    //    while (cnt < MAX_TRY) {
+    //      try {
+    //        return mFs.create(new Path(path), true, 4096, replication, blockSizeByte);
+    //      } catch (IOException e) {
+    //        cnt ++;
+    //        LOG.error(cnt + " : " + e.getMessage(), e);
+    //        te = e;
+    //        continue;
+    //      }
+    //    }
+    //    throw te;
   }
 
   @Override
@@ -250,7 +266,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         if (mFs.exists(new Path(path))) {
           return true;
         }
-        return mFs.mkdirs(new Path(path));
+        return mFs.mkdirs(new Path(path), PERMISSION);
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
