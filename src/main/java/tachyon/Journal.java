@@ -24,7 +24,7 @@ import java.io.IOException;
 public class Journal {
   private EditLog mEditLog = new EditLog(null, true, 0);
 
-  private int mCurrentLogNum = 0;
+  private int mCurrentLogFileNum = 0;
   private String mImagePath;
   private String mStandbyImagePath = "";
   private String mEditLogPath;
@@ -48,12 +48,12 @@ public class Journal {
    * @throws IOException
    */
   public long loadEditLog(MasterInfo info) throws IOException {
-    return EditLog.load(info, mEditLogPath, mCurrentLogNum);
+    return EditLog.load(info, mEditLogPath, mCurrentLogFileNum);
   }
 
-  public void LoadSingleLog(MasterInfo info, String path) throws IOException {
+  public void loadSingleLogFile(MasterInfo info, String path) throws IOException {
     EditLog.loadSingleLog(info, path);
-    mCurrentLogNum ++;
+    mCurrentLogFileNum ++;
   }
 
   public void createImage(MasterInfo info) throws IOException {
