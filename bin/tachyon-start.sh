@@ -98,20 +98,20 @@ start_master() {
   fi
 
   echo "Starting master @ $MASTER_ADDRESS"
-  ($JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="MASTER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS tachyon.Master) &
+  (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="MASTER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS tachyon.Master > /dev/null 2>&1) &
 }
 
 start_worker() {
   do_mount $1
   echo "Starting worker @ `hostname`"
-  ($JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="WORKER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS tachyon.Worker `hostname` > /dev/null 2>&1 ) &
+  (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="WORKER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS tachyon.Worker `hostname` > /dev/null 2>&1 ) &
 }
 
 restart_worker() {
   RUN=`ps -ef | grep "tachyon.Worker" | grep "java" | wc | cut -d" " -f7`
   if [[ $RUN -eq 0 ]] ; then
     echo "Restarting worker @ `hostname`"
-    ($JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true -Dtachyon.logger.type="WORKER_LOGGER" $TACHYON_JAVA_OPTS tachyon.Worker `hostname`) &
+    (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true -Dtachyon.logger.type="WORKER_LOGGER" $TACHYON_JAVA_OPTS tachyon.Worker `hostname` > /dev/null 2>&1) &
   fi
 }
 
