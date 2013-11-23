@@ -254,9 +254,8 @@ public class WorkerStorage {
   }
 
   /**
-   * Swap out those blocks missing INode information onto underFS
-   * which can be retrieved by user later.
-   * Its cleanup only happens while formating the whole TFS.
+   * Swap out those blocks missing INode information onto underFS which can be retrieved by user
+   * later. Its cleanup only happens while formating the whole TFS.
    */
   private void swapoutOrphanBlocks(long blockId, File file) 
       throws IOException{    
