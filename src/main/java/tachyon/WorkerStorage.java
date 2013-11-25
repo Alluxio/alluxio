@@ -117,6 +117,8 @@ public class WorkerStorage {
 
     try {
       initializeWorkerStorage();
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
     } catch (FileDoesNotExistException e) {
       CommonUtils.runtimeException(e);
     } catch (SuspectedFileSizeException e) {
@@ -254,25 +256,27 @@ public class WorkerStorage {
   }
 
   /**
-   * Swap out those blocks missing INode information onto underFS which can be retrieved by user
-   * later. Its cleanup only happens while formating the whole TFS.
+   * Swap out those blocks missing INode information onto underFS which can be
+   * retrieved by user later. Its cleanup only happens while formating the TFS.
    */
-  private void swapoutOrphanBlocks(long blockId, File file) 
-      throws IOException{    
+  private void swapoutOrphanBlocks(long blockId, File file) throws IOException {
     RandomAccessFile localFile = new RandomAccessFile(file, "r");
     ByteBuffer buf = localFile.getChannel().map(MapMode.READ_ONLY, 0, file.length());
-    buf.order(ByteOrder.nativeOrder());
-        
+
     String ufsOrphanBlock = mUnderfsOrphansFolder + Constants.PATH_SEPARATOR + blockId;
     OutputStream os = mUnderFs.create(ufsOrphanBlock);
-    for (int k = 0; k < buf.limit(); k ++) {
-      os.write(buf.get());
+    int BULKSIZE = 1024 * 64;
+    byte[] bulk = new byte[BULKSIZE];
+    for (int k = 0; k < (buf.limit() + BULKSIZE - 1) / BULKSIZE; k++) {
+      int len = BULKSIZE < buf.remaining() ? BULKSIZE : buf.remaining();
+      buf.get(bulk, buf.position(), len);
+      os.write(bulk, 0, len);
     }
     os.close();
-    
+
     localFile.close();
   }
-  
+
   public String getDataFolder() throws TException {
     return mLocalDataFolder.toString();
   }
@@ -288,7 +292,7 @@ public class WorkerStorage {
     LOG.info("Return UserHdfsTempFolder for " + userId + " : " + ret);
     return ret;
   }
-  
+
   public Command heartbeat() throws BlockInfoException, TException {
     ArrayList<Long> sendRemovedPartitionList = new ArrayList<Long>();
     while (mRemovedBlockList.size() > 0) {
@@ -298,8 +302,8 @@ public class WorkerStorage {
         sendRemovedPartitionList);
   }
 
-  private void initializeWorkerStorage() 
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
+  private void initializeWorkerStorage() throws IOException, FileDoesNotExistException,
+      SuspectedFileSizeException, BlockInfoException, TException {
     LOG.info("Initializing the worker storage.");
     if (!mLocalDataFolder.exists()) {
       LOG.info("Local folder " + mLocalDataFolder + " does not exist. Creating a new one.");
@@ -324,14 +328,10 @@ public class WorkerStorage {
     mLocalUserFolder.mkdir();
 
     mUnderfsOrphansFolder = mUnderfsWorkerFolder + "/orphans";
-    try {
-      if(!mUnderFs.exists(mUnderfsOrphansFolder)) {
-        mUnderFs.mkdirs(mUnderfsOrphansFolder, true);
-      }
-    } catch (IOException ioe) {
-      CommonUtils.runtimeException("Failed to create " + mUnderfsOrphansFolder);
+    if (!mUnderFs.exists(mUnderfsOrphansFolder)) {
+      mUnderFs.mkdirs(mUnderfsOrphansFolder, true);
     }
-    
+
     int cnt = 0;
     for (File tFile : mLocalDataFolder.listFiles()) {
       if (tFile.isFile()) {
@@ -345,12 +345,7 @@ public class WorkerStorage {
         } catch (FileDoesNotExistException e) {
           LOG.error("BlockId: " + blockId + " becomes orphan for: \"" + e.message + "\"");
           LOG.info("Swapout File " + cnt + ": blockId: " + blockId + " to " + mUnderfsOrphansFolder);
-          try {
-            swapoutOrphanBlocks(blockId, tFile);
-          } catch (IOException ioe) {
-            //stop to free that block file if any IOException here.
-            CommonUtils.runtimeException("Failed to swapout orphan block: " + blockId);
-          }
+          swapoutOrphanBlocks(blockId, tFile);
           freeBlock(blockId);
           continue;
         }
