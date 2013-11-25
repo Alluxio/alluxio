@@ -33,6 +33,8 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
+
 /**
  * HDFS UnderFilesystem implementation.
  */
@@ -55,7 +57,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       mUfsPrefix = fsDefaultName;
       Configuration tConf = new Configuration();
       tConf.set("fs.defaultFS", fsDefaultName);
-      tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
+      tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
       if (System.getProperty("fs.s3n.awsAccessKeyId") != null) {
         tConf.set("fs.s3n.awsAccessKeyId", System.getProperty("fs.s3n.awsAccessKeyId"));
       }
