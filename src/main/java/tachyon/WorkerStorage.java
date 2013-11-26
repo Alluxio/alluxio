@@ -46,6 +46,8 @@ import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.thrift.ClientFileInfo;
+
 
 /**
  * The structure to store a worker's information in worker node.
@@ -139,12 +141,30 @@ public class WorkerStorage {
     }
   }
 
+  private synchronized ClientFileInfo fetchClientFileInfo(int fid) {
+    ClientFileInfo ret = null;
+    try {
+      ret = mMasterClient.user_getClientFileInfoById(fid);
+    } catch (IOException e) {
+      LOG.info(e.getMessage() + fid);
+      return null;
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      return null;
+    }
+    return ret;
+  }
+
   public void addCheckpoint(long userId, int fileId)
       throws FileDoesNotExistException, SuspectedFileSizeException, 
       FailedToCheckpointException, BlockInfoException, TException {
     // TODO This part need to be changed.
     String srcPath = getUserUnderfsTempFolder(userId) + "/" + fileId;
     String dstPath = COMMON_CONF.UNDERFS_DATA_FOLDER + "/" + fileId;
+    ClientFileInfo info = fetchClientFileInfo(fileId);
+    if (info.transparent) {
+      dstPath = COMMON_CONF.UNDERFS_ADDRESS + info.path;
+    }
     try {
       if (!mUnderFs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);

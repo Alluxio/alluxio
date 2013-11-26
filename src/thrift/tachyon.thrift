@@ -33,9 +33,10 @@ struct ClientFileInfo {
   8: bool complete
   9: bool folder
   10: bool inMemory
-  11: bool needPin
-  12: bool needCache
-  13: list<i64> blockIds
+  11: bool transparent
+  12: bool needPin
+  13: bool needCache
+  14: list<i64> blockIds
 }
 
 struct ClientRawTableInfo {
@@ -136,7 +137,7 @@ service MasterService {
   set<i32> worker_getPinIdList()
 
   // Services to Users
-  i32 user_createFile(1: string path, 2: i64 blockSizeByte)
+  i32 user_createFile(1: string path, 2: i64 blockSizeByte, 3: bool transparent)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: BlockInfoException eB, 4: TachyonException eT)
   i32 user_createFileOnCheckpoint(1: string path, 2: string checkpointPath)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: SuspectedFileSizeException eS, 4: BlockInfoException eB, 5: TachyonException eT)
@@ -186,9 +187,9 @@ service MasterService {
     throws (1: TachyonException e)
   void user_outOfMemoryForPinFile(1: i32 fileId)
   void user_rename(1: string srcPath, 2: string dstPath)
-    throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)
+    throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI, 4: TachyonException eTa)
   void user_renameTo(1: i32 fileId, 2: string dstPath)
-    throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)
+    throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI, 4: TachyonException eTa)
   void user_unpinFile(1: i32 fileId)
     throws (1: FileDoesNotExistException e)   // Remove file from memory
   bool user_mkdir(1: string path)

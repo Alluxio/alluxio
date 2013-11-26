@@ -35,6 +35,7 @@ public class InodeFile extends Inode {
   private boolean mIsComplete = false;
   private boolean mPin = false;
   private boolean mCache = false;
+  private boolean mIsTransparent = false;
   private String mCheckpointPath = "";
   private List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(3);
 
@@ -77,6 +78,18 @@ public class InodeFile extends Inode {
   public synchronized void setComplete(boolean complete) {
     mIsComplete = complete;
   }
+
+  public synchronized boolean isTransparent() {
+    return mIsTransparent;
+  }
+
+  public synchronized void setTransparent() {
+    mIsTransparent = true;
+  }
+
+  public synchronized void setTransparent(boolean transparent) {
+    mIsTransparent = transparent;
+  } 
 
   @Override
   public String toString() {
@@ -251,6 +264,7 @@ public class InodeFile extends Inode {
     ret.needPin = mPin;
     ret.needCache = mCache;
     ret.blockIds = getBlockIds();
+    ret.transparent = mIsTransparent;
 
     return ret;
   }

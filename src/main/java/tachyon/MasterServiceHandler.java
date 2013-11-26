@@ -86,10 +86,10 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_createFile(String path, long blockSizeByte)
+    public int user_createFile(String path, long blockSizeByte, boolean transparent)
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException,
       TException {
-    return mMasterInfo.createFile(path, blockSizeByte);
+    return mMasterInfo.createFile(path, blockSizeByte, transparent);
   }
 
   @Override
@@ -265,13 +265,15 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public void user_rename(String srcPath, String dstPath)
-      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException{
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, 
+      TachyonException, TException {
     mMasterInfo.rename(srcPath, dstPath);
   }
 
   @Override
   public void user_renameTo(int fileId, String dstPath)
-      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException{
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, 
+      TachyonException, TException {
     mMasterInfo.rename(fileId, dstPath);
   }
 

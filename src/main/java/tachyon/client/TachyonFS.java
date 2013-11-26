@@ -347,6 +347,15 @@ public class TachyonFS {
   }
 
   public synchronized int createFile(String path, long blockSizeByte) throws IOException {
+    boolean transparent = UserConf.get().TRANSPARENT_UNDERLAYER_FILE;
+    return createFile(path, blockSizeByte, transparent);
+  }
+
+  public synchronized int createFile(String path, boolean transparent) throws IOException {
+    return createFile(path, UserConf.get().DEFAULT_BLOCK_SIZE_BYTE, transparent);
+  }
+
+  public synchronized int createFile(String path, long blockSizeByte, boolean transparent) throws IOException {
     if (blockSizeByte > (long) Constants.GB * 2) {
       throw new IOException("Block size must be less than 2GB: " + blockSizeByte);
     }
@@ -358,7 +367,7 @@ public class TachyonFS {
     path = CommonUtils.cleanPath(path);
     int fid = -1;
     try {
-      fid = mMasterClient.user_createFile(path, blockSizeByte);
+      fid = mMasterClient.user_createFile(path, blockSizeByte, transparent);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

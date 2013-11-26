@@ -33,9 +33,10 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   private static final org.apache.thrift.protocol.TField COMPLETE_FIELD_DESC = new org.apache.thrift.protocol.TField("complete", org.apache.thrift.protocol.TType.BOOL, (short)8);
   private static final org.apache.thrift.protocol.TField FOLDER_FIELD_DESC = new org.apache.thrift.protocol.TField("folder", org.apache.thrift.protocol.TType.BOOL, (short)9);
   private static final org.apache.thrift.protocol.TField IN_MEMORY_FIELD_DESC = new org.apache.thrift.protocol.TField("inMemory", org.apache.thrift.protocol.TType.BOOL, (short)10);
-  private static final org.apache.thrift.protocol.TField NEED_PIN_FIELD_DESC = new org.apache.thrift.protocol.TField("needPin", org.apache.thrift.protocol.TType.BOOL, (short)11);
-  private static final org.apache.thrift.protocol.TField NEED_CACHE_FIELD_DESC = new org.apache.thrift.protocol.TField("needCache", org.apache.thrift.protocol.TType.BOOL, (short)12);
-  private static final org.apache.thrift.protocol.TField BLOCK_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("blockIds", org.apache.thrift.protocol.TType.LIST, (short)13);
+  private static final org.apache.thrift.protocol.TField TRANSPARENT_FIELD_DESC = new org.apache.thrift.protocol.TField("transparent", org.apache.thrift.protocol.TType.BOOL, (short)11);
+  private static final org.apache.thrift.protocol.TField NEED_PIN_FIELD_DESC = new org.apache.thrift.protocol.TField("needPin", org.apache.thrift.protocol.TType.BOOL, (short)12);
+  private static final org.apache.thrift.protocol.TField NEED_CACHE_FIELD_DESC = new org.apache.thrift.protocol.TField("needCache", org.apache.thrift.protocol.TType.BOOL, (short)13);
+  private static final org.apache.thrift.protocol.TField BLOCK_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("blockIds", org.apache.thrift.protocol.TType.LIST, (short)14);
 
   public int id; // required
   public String name; // required
@@ -47,6 +48,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   public boolean complete; // required
   public boolean folder; // required
   public boolean inMemory; // required
+  public boolean transparent; // required
   public boolean needPin; // required
   public boolean needCache; // required
   public List<Long> blockIds; // required
@@ -63,9 +65,10 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     COMPLETE((short)8, "complete"),
     FOLDER((short)9, "folder"),
     IN_MEMORY((short)10, "inMemory"),
-    NEED_PIN((short)11, "needPin"),
-    NEED_CACHE((short)12, "needCache"),
-    BLOCK_IDS((short)13, "blockIds");
+    TRANSPARENT((short)11, "transparent"),
+    NEED_PIN((short)12, "needPin"),
+    NEED_CACHE((short)13, "needCache"),
+    BLOCK_IDS((short)14, "blockIds");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -100,11 +103,13 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
           return FOLDER;
         case 10: // IN_MEMORY
           return IN_MEMORY;
-        case 11: // NEED_PIN
+        case 11: // TRANSPARENT
+          return TRANSPARENT;
+        case 12: // NEED_PIN
           return NEED_PIN;
-        case 12: // NEED_CACHE
+        case 13: // NEED_CACHE
           return NEED_CACHE;
-        case 13: // BLOCK_IDS
+        case 14: // BLOCK_IDS
           return BLOCK_IDS;
         default:
           return null;
@@ -153,9 +158,10 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   private static final int __COMPLETE_ISSET_ID = 4;
   private static final int __FOLDER_ISSET_ID = 5;
   private static final int __INMEMORY_ISSET_ID = 6;
-  private static final int __NEEDPIN_ISSET_ID = 7;
-  private static final int __NEEDCACHE_ISSET_ID = 8;
-  private BitSet __isset_bit_vector = new BitSet(9);
+  private static final int __TRANSPARENT_ISSET_ID = 7;
+  private static final int __NEEDPIN_ISSET_ID = 8;
+  private static final int __NEEDCACHE_ISSET_ID = 9;
+  private BitSet __isset_bit_vector = new BitSet(10);
 
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -179,6 +185,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     tmpMap.put(_Fields.FOLDER, new org.apache.thrift.meta_data.FieldMetaData("folder", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.IN_MEMORY, new org.apache.thrift.meta_data.FieldMetaData("inMemory", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.TRANSPARENT, new org.apache.thrift.meta_data.FieldMetaData("transparent", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.NEED_PIN, new org.apache.thrift.meta_data.FieldMetaData("needPin", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
@@ -205,6 +213,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     boolean complete,
     boolean folder,
     boolean inMemory,
+    boolean transparent,
     boolean needPin,
     boolean needCache,
     List<Long> blockIds)
@@ -227,6 +236,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     setFolderIsSet(true);
     this.inMemory = inMemory;
     setInMemoryIsSet(true);
+    this.transparent = transparent;
+    setTransparentIsSet(true);
     this.needPin = needPin;
     setNeedPinIsSet(true);
     this.needCache = needCache;
@@ -256,6 +267,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     this.complete = other.complete;
     this.folder = other.folder;
     this.inMemory = other.inMemory;
+    this.transparent = other.transparent;
     this.needPin = other.needPin;
     this.needCache = other.needCache;
     if (other.isSetBlockIds()) {
@@ -290,6 +302,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     this.folder = false;
     setInMemoryIsSet(false);
     this.inMemory = false;
+    setTransparentIsSet(false);
+    this.transparent = false;
     setNeedPinIsSet(false);
     this.needPin = false;
     setNeedCacheIsSet(false);
@@ -530,6 +544,29 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     __isset_bit_vector.set(__INMEMORY_ISSET_ID, value);
   }
 
+  public boolean isTransparent() {
+    return this.transparent;
+  }
+
+  public ClientFileInfo setTransparent(boolean transparent) {
+    this.transparent = transparent;
+    setTransparentIsSet(true);
+    return this;
+  }
+
+  public void unsetTransparent() {
+    __isset_bit_vector.clear(__TRANSPARENT_ISSET_ID);
+  }
+
+  /** Returns true if field transparent is set (has been assigned a value) and false otherwise */
+  public boolean isSetTransparent() {
+    return __isset_bit_vector.get(__TRANSPARENT_ISSET_ID);
+  }
+
+  public void setTransparentIsSet(boolean value) {
+    __isset_bit_vector.set(__TRANSPARENT_ISSET_ID, value);
+  }
+
   public boolean isNeedPin() {
     return this.needPin;
   }
@@ -697,6 +734,14 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       }
       break;
 
+    case TRANSPARENT:
+      if (value == null) {
+        unsetTransparent();
+      } else {
+        setTransparent((Boolean)value);
+      }
+      break;
+
     case NEED_PIN:
       if (value == null) {
         unsetNeedPin();
@@ -756,6 +801,9 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     case IN_MEMORY:
       return Boolean.valueOf(isInMemory());
 
+    case TRANSPARENT:
+      return Boolean.valueOf(isTransparent());
+
     case NEED_PIN:
       return Boolean.valueOf(isNeedPin());
 
@@ -796,6 +844,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       return isSetFolder();
     case IN_MEMORY:
       return isSetInMemory();
+    case TRANSPARENT:
+      return isSetTransparent();
     case NEED_PIN:
       return isSetNeedPin();
     case NEED_CACHE:
@@ -906,6 +956,15 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (!(this_present_inMemory && that_present_inMemory))
         return false;
       if (this.inMemory != that.inMemory)
+        return false;
+    }
+
+    boolean this_present_transparent = true;
+    boolean that_present_transparent = true;
+    if (this_present_transparent || that_present_transparent) {
+      if (!(this_present_transparent && that_present_transparent))
+        return false;
+      if (this.transparent != that.transparent)
         return false;
     }
 
@@ -1052,6 +1111,16 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetTransparent()).compareTo(typedOther.isSetTransparent());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetTransparent()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.transparent, typedOther.transparent);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = Boolean.valueOf(isSetNeedPin()).compareTo(typedOther.isSetNeedPin());
     if (lastComparison != 0) {
       return lastComparison;
@@ -1176,7 +1245,15 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
           }
           break;
-        case 11: // NEED_PIN
+        case 11: // TRANSPARENT
+          if (field.type == org.apache.thrift.protocol.TType.BOOL) {
+            this.transparent = iprot.readBool();
+            setTransparentIsSet(true);
+          } else { 
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+          }
+          break;
+        case 12: // NEED_PIN
           if (field.type == org.apache.thrift.protocol.TType.BOOL) {
             this.needPin = iprot.readBool();
             setNeedPinIsSet(true);
@@ -1184,7 +1261,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
           }
           break;
-        case 12: // NEED_CACHE
+        case 13: // NEED_CACHE
           if (field.type == org.apache.thrift.protocol.TType.BOOL) {
             this.needCache = iprot.readBool();
             setNeedCacheIsSet(true);
@@ -1192,7 +1269,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
           }
           break;
-        case 13: // BLOCK_IDS
+        case 14: // BLOCK_IDS
           if (field.type == org.apache.thrift.protocol.TType.LIST) {
             {
               org.apache.thrift.protocol.TList _list4 = iprot.readListBegin();
@@ -1259,6 +1336,9 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     oprot.writeFieldEnd();
     oprot.writeFieldBegin(IN_MEMORY_FIELD_DESC);
     oprot.writeBool(this.inMemory);
+    oprot.writeFieldEnd();
+    oprot.writeFieldBegin(TRANSPARENT_FIELD_DESC);
+    oprot.writeBool(this.transparent);
     oprot.writeFieldEnd();
     oprot.writeFieldBegin(NEED_PIN_FIELD_DESC);
     oprot.writeBool(this.needPin);
@@ -1337,6 +1417,10 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     if (!first) sb.append(", ");
     sb.append("inMemory:");
     sb.append(this.inMemory);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("transparent:");
+    sb.append(this.transparent);
     first = false;
     if (!first) sb.append(", ");
     sb.append("needPin:");

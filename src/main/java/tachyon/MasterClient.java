@@ -261,12 +261,12 @@ public class MasterClient {
     }
   }
 
-  public synchronized int user_createFile(String path, long blockSizeByte) 
+  public synchronized int user_createFile(String path, long blockSizeByte, boolean transparent) 
       throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
-        return mClient.user_createFile(path, blockSizeByte);
+	return mClient.user_createFile(path, blockSizeByte, transparent);
       } catch (FileAlreadyExistException | InvalidPathException | BlockInfoException e) {
         throw new IOException(e);
       } catch (TachyonException e) {
@@ -618,7 +618,8 @@ public class MasterClient {
       try {
         mClient.user_rename(srcPath, dstPath);
         return;
-      } catch (FileAlreadyExistException | FileDoesNotExistException | InvalidPathException e) {
+      } catch (FileAlreadyExistException | FileDoesNotExistException | InvalidPathException | 
+          TachyonException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
@@ -633,7 +634,8 @@ public class MasterClient {
       try {
         mClient.user_renameTo(fId, path);
         return;
-      } catch (FileAlreadyExistException | FileDoesNotExistException | InvalidPathException e) {
+      } catch (FileAlreadyExistException | FileDoesNotExistException | InvalidPathException |
+          TachyonException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
