@@ -69,7 +69,7 @@ public class JournalTest {
     info.stop();
   }
 
-  private void FileTestUtil(ClientFileInfo fileInfo) 
+  private void FileTestUtil(ClientFileInfo fileInfo)
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
@@ -95,7 +95,7 @@ public class JournalTest {
     FileTestUtil(fInfo);
   }
 
-  private void FolderTest(ClientFileInfo fileInfo) 
+  private void FolderTest(ClientFileInfo fileInfo)
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
@@ -122,7 +122,7 @@ public class JournalTest {
   }
 
 
-  private void TableTest(ClientFileInfo fileInfo) 
+  private void TableTest(ClientFileInfo fileInfo)
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
@@ -148,7 +148,7 @@ public class JournalTest {
     TableTest(fInfo);
   }
 
-  private void ManyFileTestUtil() 
+  private void ManyFileTestUtil()
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
@@ -176,7 +176,36 @@ public class JournalTest {
     ManyFileTestUtil();
   }
 
-  private void FileFolderUtil() 
+  private void MultiEditLogTestUtil()
+      throws IOException, InvalidPathException, FileDoesNotExistException {
+    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    journal.setMaxLogSize(Constants.KB);
+    Assert.assertEquals(125, info.ls("/", true).size());
+    Assert.assertTrue(info.getFileId("/") != -1);
+    for (int k = 0; k < 124; k ++) {
+      Assert.assertTrue(info.getFileId("/a" + k) != -1);
+    }
+    info.stop();
+  }
+
+  /**
+   * Test reading multiple edit logs.
+   * @throws Exception
+   */
+  @Test
+  public void MultiEditLogTest() throws Exception {
+    for (int i = 0; i < 124; i ++) {
+      mTfs.createFile("/a" + i, (i + 10) / 10 * 64);
+    }
+    mLocalTachyonCluster.stop();
+    MultiEditLogTestUtil();
+    String editLogPath = mLocalTachyonCluster.getEditLogPath();
+    UnderFileSystem.get(editLogPath).delete(editLogPath, true);
+    MultiEditLogTestUtil();
+  }
+
+  private void FileFolderUtil()
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
@@ -209,7 +238,7 @@ public class JournalTest {
     FileFolderUtil();
   }
 
-  private void RenameTestUtil() 
+  private void RenameTestUtil()
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
@@ -244,7 +273,7 @@ public class JournalTest {
     RenameTestUtil();
   }
 
-  private void DeleteTestUtil() 
+  private void DeleteTestUtil()
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
@@ -283,7 +312,7 @@ public class JournalTest {
     DeleteTestUtil();
   }
 
-  private void AddBlockTestUtil(ClientFileInfo fileInfo) 
+  private void AddBlockTestUtil(ClientFileInfo fileInfo)
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
@@ -316,7 +345,7 @@ public class JournalTest {
     AddBlockTestUtil(fInfo);
   }
 
-  private void AddCheckpointTestUtil(ClientFileInfo fileInfo, ClientFileInfo ckFileInfo) 
+  private void AddCheckpointTestUtil(ClientFileInfo fileInfo, ClientFileInfo ckFileInfo)
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);

@@ -37,6 +37,14 @@ public class Journal {
     mEditLogPath = folder + editLogFileName;
   }
 
+  public long getImageModTime() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(mImagePath);
+    if (!ufs.exists(mImagePath)) {
+      return -1;
+    }
+    return ufs.getModificationTime(mImagePath);
+  }
+
   public void loadImage(MasterInfo info) throws IOException {
     Image.load(info, mImagePath);
   }
@@ -83,5 +91,13 @@ public class Journal {
     if (mEditLog != null) {
       mEditLog.close();
     }
+  }
+
+  /**
+   * Changes the max edit log size for testing purposes
+   * @param size
+   */
+  public void setMaxLogSize(int size) {
+    mEditLog.setMaxLogSize(size);
   }
 }
