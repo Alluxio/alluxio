@@ -54,17 +54,19 @@ public class EditLog {
   // When a master is replaying an edit log, make the current edit log as an INACTIVE one.
   private final boolean INACTIVE;
   private final String PATH;
-  private UnderFileSystem UFS;
-  private DataOutputStream DOS;
-  private OutputStream OS;
 
   private static boolean mBackUpCurrentLog = false;
   private static long mCurrentTId = 0;
+
+  private UnderFileSystem UFS;
+  private DataOutputStream DOS;
+  private OutputStream OS;
 
   // Starting from 1.
   private long mFlushedTransactionId = 0;
   private long mTransactionId = 0;
   private int mCurrentLogFileNum = 0;
+  private int mMaxLogSize = Constants.MB;
 
   /**
    * Load edit log.
@@ -395,7 +397,7 @@ public class EditLog {
       if (OS instanceof FSDataOutputStream) {
         ((FSDataOutputStream) OS).sync();
       }
-      if (DOS.size() > Constants.MB) {
+      if (DOS.size() > mMaxLogSize) {
         rotateEditLog(PATH);
       }
     } catch (IOException e) {
@@ -419,5 +421,13 @@ public class EditLog {
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
+  }
+
+  /**
+   * Changes the max log size for testing purposes.
+   * @param size
+   */
+  public void setMaxLogSize(int size) {
+    mMaxLogSize = size;
   }
 }

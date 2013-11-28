@@ -134,6 +134,12 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
+  public long getModificationTime(String path) throws IOException {
+    File file = new File(path);
+    return file.lastModified();
+  }
+
+  @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     File file = new File(path);
     switch (type) {
