@@ -72,22 +72,14 @@ public class BlockOutStream extends OutStream {
     if (!TFS.hasLocalWorker()) {
       mCanWrite = false;
       String msg = "The machine does not have any local worker.";
-      if (WRITE_TYPE.isMustCache()) {
-        throw new IOException(msg);
-      }
-      LOG.warn("The machine does not have any local worker.");
-      return;
+      throw new IOException(msg);
     }
 
     File localFolder = TFS.createAndGetUserTempFolder();
     if (localFolder == null) {
       mCanWrite = false;
       String msg = "Failed to create temp user folder for tachyon client.";
-      if (WRITE_TYPE.isMustCache()) {
-        throw new IOException(msg);
-      }
-      LOG.warn(msg);
-      return;
+      throw new IOException(msg);
     }
 
     mLocalFilePath = localFolder.getPath() + "/" + BLOCK_ID;
@@ -198,13 +190,7 @@ public class BlockOutStream extends OutStream {
       if (mCancel) {
         TFS.releaseSpace(mWrittenBytes - mBuffer.position());
       } else {
-        try {
-          TFS.cacheBlock(BLOCK_ID);
-        } catch (IOException e) {
-          if (WRITE_TYPE == WriteType.MUST_CACHE) {
-            throw e;
-          }
-        }
+        TFS.cacheBlock(BLOCK_ID);
       }
     }
     mClosed = true;
