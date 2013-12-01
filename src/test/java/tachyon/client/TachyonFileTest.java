@@ -24,7 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.CommonUtils;
+import tachyon.util.CommonUtils;
 import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 import tachyon.thrift.FileAlreadyExistException;
@@ -108,7 +108,7 @@ public class TachyonFileTest {
    * @throws IOException
    */
   @Test
-  public void isInMemoryTest2() 
+  public void isInMemoryTest2()
       throws InvalidPathException, FileAlreadyExistException, IOException {
     for (int k = 0; k < MAX_FILES; k ++) {
       int fileId = TestUtils.createByteFile(
@@ -147,7 +147,7 @@ public class TachyonFileTest {
    * @throws IOException
    */
   @Test
-  public void isInMemoryTest3() 
+  public void isInMemoryTest3()
       throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = TestUtils.createByteFile(
         mTfs, "/pin/file", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
@@ -172,7 +172,7 @@ public class TachyonFileTest {
       Assert.assertTrue(file.isInMemory());
     }
   }
-  
+
   @Test
   public void writeEmptyFileTest() throws IOException {
     Assert.assertEquals(2, mTfs.createFile("/emptyFile"));

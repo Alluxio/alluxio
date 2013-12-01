@@ -26,7 +26,7 @@ import java.nio.channels.FileChannel.MapMode;
 
 import org.apache.log4j.Logger;
 
-import tachyon.CommonUtils;
+import tachyon.util.CommonUtils;
 import tachyon.Constants;
 
 /**

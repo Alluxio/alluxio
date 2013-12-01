@@ -22,7 +22,7 @@ import java.nio.ByteOrder;
 
 import org.apache.log4j.Logger;
 
-import tachyon.CommonUtils;
+import tachyon.util.CommonUtils;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
@@ -84,7 +84,7 @@ public class BasicOperations {
       throws SuspectedFileSizeException, InvalidPathException, IOException,
       FileAlreadyExistException {
     if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION + 
+      System.out.println("java -cp target/tachyon-" + Version.VERSION +
           "-jar-with-dependencies.jar " +
           "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
       System.exit(-1);

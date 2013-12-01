@@ -34,6 +34,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
+import tachyon.util.CommonUtils;
 
 /**
  * Master operation journal.
@@ -100,7 +101,7 @@ public class EditLog {
           break;
         }
         case OP_CREATE_FILE: {
-          info._createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(), is.readInt(), 
+          info._createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(), is.readInt(),
               Utils.readByteBuffer(is), is.readLong(), is.readLong());
           break;
         }

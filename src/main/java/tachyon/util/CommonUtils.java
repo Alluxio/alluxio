@@ -14,7 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package tachyon;
+package tachyon.util;
+
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.log4j.Logger;
+import tachyon.Constants;
+import tachyon.thrift.InvalidPathException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -32,12 +37,15 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.log4j.Logger;
-
-import tachyon.thrift.InvalidPathException;
-
-import static java.nio.file.attribute.PosixFilePermission.*;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_WRITE;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_READ;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 
 /**
  * Common utilities shared by all components in Tachyon.

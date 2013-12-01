@@ -103,7 +103,7 @@ if [ "$COMMAND" == "format" ]; then
 elif [ "$COMMAND" == "tfs" ]; then
   CLASS=tachyon.command.TFsShell
 elif [ "$COMMAND" == "loadufs" ]; then
-  CLASS=tachyon.UnderfsUtil
+  CLASS=tachyon.util.UnderfsUtil
 elif [ "$COMMAND" == "runTest" ]; then
   runTest "$@"
   exit 0
