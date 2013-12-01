@@ -53,31 +53,74 @@ public class EditLog {
 
   // When a master is replaying an edit log, make the current edit log as an INACTIVE one.
   private final boolean INACTIVE;
-  private final UnderFileSystem UFS;
-  private final DataOutputStream DOS;
-  private final OutputStream OS;
+  private final String PATH;
+
+  private static boolean mBackUpCurrentLog = false;
+  private static long mCurrentTId = 0;
+
+  private UnderFileSystem UFS;
+  private DataOutputStream DOS;
+  private OutputStream OS;
 
   // Starting from 1.
   private long mFlushedTransactionId = 0;
   private long mTransactionId = 0;
+  private int mCurrentLogFileNum = 0;
+  private int mMaxLogSize = Constants.MB;
 
   /**
    * Load edit log.
-   * @param info The Master Info.
+   *
+   * @param info
+   *          The Master Info.
+   *        path
+   *          The path of the edit logs.
+   *        currentLogNum
+   *          The smallest completed log number that this master has not loaded
    * @return The last transaction id.
    * @throws IOException
    */
-  public static long load(MasterInfo info, String path) throws IOException {
+  public static long load(MasterInfo info, String path, int currentLogFileNum) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
     if (!ufs.exists(path)) {
       LOG.info("Edit Log " + path + " does not exist.");
       return 0;
     }
-    LOG.info("Loading Edit Log " + path);
+    LOG.info("currentLogNum passed in was " + currentLogFileNum);
+    int completedLogs = currentLogFileNum;
+    int numFiles = 1;
+    String completedPath = path.substring(0, path.lastIndexOf("/")) + "/completed";
+    if (!ufs.exists(completedPath)) {
+      LOG.info("No completed edit logs to be parsed");
+    } else {
+      while (ufs.exists(completedPath + "/" + (completedLogs ++) + ".editLog")) {
+        numFiles ++;
+      }
+    }
+    if (numFiles == 1) {
+      mBackUpCurrentLog = true;
+    }
+    String editLogs[] = new String[numFiles];
+    for (int i = 0; i < numFiles; i ++) {
+      if (i != numFiles - 1) {
+        editLogs[i] = completedPath + "/" + (i + currentLogFileNum) + ".editLog";
+      } else {
+        editLogs[i] = path;
+      }
+    }
+
+    for (String currentPath : editLogs) {
+      LOG.info("Loading Edit Log " + currentPath);
+      loadSingleLog(info, currentPath);
+    }
+    ufs.close();
+    return mCurrentTId;
+  }
+
+  public static void loadSingleLog(MasterInfo info, String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
 
     DataInputStream is = new DataInputStream(ufs.open(path));
-    long transactionId = 0;
-
     while (true) {
       byte op;
       long tId;
@@ -87,7 +130,7 @@ public class EditLog {
         break;
       }
 
-      transactionId = tId;
+      mCurrentTId = tId;
       op = is.readByte();
       try {
         switch (op) {
@@ -100,7 +143,7 @@ public class EditLog {
           break;
         }
         case OP_CREATE_FILE: {
-          info._createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(), is.readInt(), 
+          info._createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(), is.readInt(),
               Utils.readByteBuffer(is), is.readLong(), is.readLong());
           break;
         }
@@ -124,7 +167,7 @@ public class EditLog {
           info.completeFile(is.readInt());
           break;
         }
-        default :
+        default:
           throw new IOException("Invalid op type " + op);
         }
       } catch (SuspectedFileSizeException | BlockInfoException | FileDoesNotExistException |
@@ -136,7 +179,10 @@ public class EditLog {
 
     is.close();
     ufs.close();
-    return transactionId;
+  }
+
+  public static boolean getIsBackUpCurrentLog() {
+    return mBackUpCurrentLog;
   }
 
   public EditLog(String path, boolean inactive, long transactionId) throws IOException {
@@ -144,16 +190,62 @@ public class EditLog {
 
     if (!INACTIVE) {
       LOG.info("Creating edit log file " + path);
+      PATH = path;
       UFS = UnderFileSystem.get(path);
+      if (mBackUpCurrentLog) {
+        String folder = path.substring(0, path.lastIndexOf("/")) + "/completed";
+        LOG.info("Backing up current log since image is not updated.");
+        UFS.mkdirs(folder, true);
+        UFS.rename(path, folder + "/" + (mCurrentLogFileNum ++) + ".editLog");
+        LOG.info("Renaming " + path + " to " + folder + "/" + (mCurrentLogFileNum ++) +
+            ".editLog");
+        mBackUpCurrentLog = false;
+      }
       OS = UFS.create(path);
       DOS = new DataOutputStream(OS);
       LOG.info("Created file " + path);
       mFlushedTransactionId = transactionId;
       mTransactionId = transactionId;
     } else {
+      PATH = null;
       UFS = null;
       OS = null;
       DOS = null;
+    }
+  }
+
+  public static void deleteCompletedLogs(String path) {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+    String folder = path.substring(0, path.lastIndexOf("/")) + "/completed";
+    try {
+      if (ufs.exists(folder)) {
+        LOG.info("Deleting folder " + folder);
+        ufs.delete(folder, true);
+      }
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+  }
+
+  public void rotateEditLog(String path) {
+    if (INACTIVE) {
+      return;
+    }
+    close();
+    LOG.info("Edit log max size reached, rotating edit log");
+    String pathPrefix = path.substring(0, path.lastIndexOf("/")) + "/completed";
+    try {
+      if (!UFS.exists(pathPrefix)) {
+        UFS.mkdirs(pathPrefix, true);
+      }
+      String newPath = pathPrefix + "/" + (mCurrentLogFileNum ++) + ".editLog";
+      UFS.rename(path, newPath);
+      LOG.info("Renamed " + path + " to " + newPath);
+      OS = UFS.create(path);
+      DOS = new DataOutputStream(OS);
+      LOG.info("Created new log file " + path);
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
     }
   }
 
@@ -285,6 +377,7 @@ public class EditLog {
 
   /**
    * Get the current TransactionId and FlushedTransactionId
+   *
    * @return (TransactionId, FlushedTransactionId)
    */
   public synchronized Pair<Long, Long> getTransactionIds() {
@@ -303,6 +396,9 @@ public class EditLog {
       DOS.flush();
       if (OS instanceof FSDataOutputStream) {
         ((FSDataOutputStream) OS).sync();
+      }
+      if (DOS.size() > mMaxLogSize) {
+        rotateEditLog(PATH);
       }
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
@@ -325,5 +421,13 @@ public class EditLog {
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
+  }
+
+  /**
+   * Changes the max log size for testing purposes.
+   * @param size
+   */
+  public void setMaxLogSize(int size) {
+    mMaxLogSize = size;
   }
 }
