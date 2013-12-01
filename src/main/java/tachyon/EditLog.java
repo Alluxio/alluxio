@@ -70,17 +70,14 @@ public class EditLog {
 
   /**
    * Load edit log.
-   *
-   * @param info
-   *          The Master Info.
-   *        path
-   *          The path of the edit logs.
-   *        currentLogNum
-   *          The smallest completed log number that this master has not loaded
+   * @param info The Master Info.
+   * @param path The path of the edit logs.
+   * @param currentLogFileNum The smallest completed log number that this master has not loaded
    * @return The last transaction id.
    * @throws IOException
    */
-  public static long load(MasterInfo info, String path, int currentLogFileNum) throws IOException {
+  public static long load(MasterInfo info, String path, int currentLogFileNum)
+      throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
     if (!ufs.exists(path)) {
       LOG.info("Edit Log " + path + " does not exist.");
@@ -201,9 +198,9 @@ public class EditLog {
           toRename = folder + "/" + mBackUpLogStartNum + ".editLog";
         }
         if (UFS.exists(path)) {
-          UFS.rename(path, folder + "/" + (mCurrentLogFileNum ++) + ".editLog");
-          LOG.info(
-              "Rename " + path + " to " + folder + "/" + (mCurrentLogFileNum - 1) + ".editLog");
+          UFS.rename(path, folder + "/" + mCurrentLogFileNum + ".editLog");
+          LOG.info("Rename " + path + " to " + folder + "/" + mCurrentLogFileNum + ".editLog");
+          mCurrentLogFileNum ++;
         }
         mBackUpLogStartNum = -1;
       }

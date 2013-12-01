@@ -8,7 +8,6 @@ import org.apache.log4j.Logger;
  * Class that periodically looks for completed edit logs to update metadata of failover nodes.
  */
 public class EditLogProcessor implements Runnable {
-
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private Journal mJournal;
@@ -59,8 +58,8 @@ public class EditLogProcessor implements Runnable {
           }
           LOG.info("Edit log with " + path + " was not found.");
           if (mLastImageFileNum != mCurrentLogFileNum) {
-            LOG.info("Last image was updated with log number: " + mLastImageFileNum + " writing" +
-                " new image up to log number " + mCurrentLogFileNum);
+            LOG.info("Last image was updated with log number: " + mLastImageFileNum +
+                " writing new image up to log number " + mCurrentLogFileNum);
             mJournal.createImage(mMasterInfo, mPath + mMasterInfo.getMasterAddress().getHostName() +
                 mMasterInfo.getMasterAddress().getPort() + "/standby.image");
             LOG.info("Finished creating image");

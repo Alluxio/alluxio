@@ -22,7 +22,6 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -303,7 +302,7 @@ public class WorkerStorage {
   }
 
   private void initializeWorkerStorage() throws IOException, FileDoesNotExistException,
-      SuspectedFileSizeException, BlockInfoException, TException {
+  SuspectedFileSizeException, BlockInfoException, TException {
     LOG.info("Initializing the worker storage.");
     if (!mLocalDataFolder.exists()) {
       LOG.info("Local folder " + mLocalDataFolder + " does not exist. Creating a new one.");
