@@ -64,6 +64,7 @@ public class JournalTest {
     mLocalTachyonCluster.stop();
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    info.init();
     Assert.assertEquals(1, info.ls("/", true).size());
     Assert.assertTrue(info.getFileId("/") != -1);
     info.stop();
@@ -73,6 +74,7 @@ public class JournalTest {
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    info.init();
     Assert.assertEquals(2, info.ls("/", true).size());
     Assert.assertTrue(info.getFileId("/") != -1);
     Assert.assertTrue(info.getFileId("/xyz") != -1);
@@ -99,6 +101,7 @@ public class JournalTest {
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    info.init();
     Assert.assertEquals(2, info.ls("/", true).size());
     Assert.assertTrue(info.getFileId("/") != -1);
     Assert.assertTrue(info.getFileId("/xyz") != -1);
@@ -126,6 +129,7 @@ public class JournalTest {
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    info.init();
     Assert.assertEquals(12, info.ls("/", true).size());
     Assert.assertTrue(info.getFileId("/") != -1);
     Assert.assertTrue(info.getFileId("/xyz") != -1);
@@ -152,6 +156,7 @@ public class JournalTest {
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    info.init();
     Assert.assertEquals(11, info.ls("/", true).size());
     Assert.assertTrue(info.getFileId("/") != -1);
     for (int k = 0; k < 10; k ++) {
@@ -180,6 +185,7 @@ public class JournalTest {
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    info.init();
     journal.setMaxLogSize(Constants.KB);
     Assert.assertEquals(125, info.ls("/", true).size());
     Assert.assertTrue(info.getFileId("/") != -1);
@@ -209,6 +215,7 @@ public class JournalTest {
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    info.init();
     Assert.assertEquals(111, info.ls("/", true).size());
     Assert.assertTrue(info.getFileId("/") != -1);
     for (int i = 0; i < 10; i ++) {
@@ -242,6 +249,7 @@ public class JournalTest {
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    info.init();
     Assert.assertEquals(111, info.ls("/", true).size());
     Assert.assertTrue(info.getFileId("/") != -1);
     for (int i = 0; i < 10; i ++) {
@@ -277,6 +285,7 @@ public class JournalTest {
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    info.init();
     Assert.assertEquals(31, info.ls("/", true).size());
     Assert.assertTrue(info.getFileId("/") != -1);
     for (int i = 0; i < 5; i ++) {
@@ -316,6 +325,7 @@ public class JournalTest {
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    info.init();
     Assert.assertEquals(2, info.ls("/", true).size());
     Assert.assertTrue(info.getFileId("/") != -1);
     Assert.assertTrue(info.getFileId("/xyz") != -1);
@@ -349,6 +359,7 @@ public class JournalTest {
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    info.init();
     Assert.assertEquals(3, info.ls("/", true).size());
     Assert.assertTrue(info.getFileId("/") != -1);
     Assert.assertTrue(info.getFileId("/xyz") != -1);
