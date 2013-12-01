@@ -65,8 +65,9 @@ public class Journal {
   }
 
   public void createImage(MasterInfo info) throws IOException {
-    if (!EditLog.getIsBackUpCurrentLog() || mStandbyImagePath == "") {
+    if (mStandbyImagePath == "") {
       Image.create(info, mImagePath);
+      EditLog.markUpToDate();
     } else {
       Image.rename(mStandbyImagePath, mImagePath);
     }
@@ -78,7 +79,6 @@ public class Journal {
   }
 
   public void createEditLog(long transactionId) throws IOException {
-    EditLog.deleteCompletedLogs(mEditLogPath);
     mEditLog = new EditLog(mEditLogPath, false, transactionId);
   }
 
