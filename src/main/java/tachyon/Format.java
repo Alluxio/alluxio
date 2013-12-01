@@ -18,8 +18,6 @@ package tachyon;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
-
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 

@@ -238,7 +238,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public long getModificationTime(String path) throws IOException {
+  public long getModificationTimeMs(String path) throws IOException {
     Path tPath = new Path(path);
     if (!mFs.exists(tPath)) {
       throw new FileNotFoundException(path);

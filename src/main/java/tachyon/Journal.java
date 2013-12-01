@@ -42,7 +42,7 @@ public class Journal {
     if (!ufs.exists(mImagePath)) {
       return -1;
     }
-    return ufs.getModificationTime(mImagePath);
+    return ufs.getModificationTimeMs(mImagePath);
   }
 
   public void loadImage(MasterInfo info) throws IOException {
