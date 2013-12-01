@@ -59,12 +59,17 @@ public class Image {
    * Write a new image to path. This method assumes having a lock on the master info.
    * @param info the master info to generate the image
    * @param path the new image path
-   * @throws IOException 
+   * @throws IOException
    */
   public static void create(MasterInfo info, String path) throws IOException {
     String tPath = path + ".tmp";
+    String parentFolder = path.substring(0, path.lastIndexOf("/"));
     LOG.info("Creating the image file: " + tPath);
     UnderFileSystem ufs = UnderFileSystem.get(path);
+    if (!ufs.exists(parentFolder)) {
+      LOG.info("Creating parent folder " + parentFolder);
+      ufs.mkdirs(parentFolder, true);
+    }
     OutputStream os = ufs.create(tPath);
     DataOutputStream imageOs = new DataOutputStream(os);
 
@@ -80,5 +85,11 @@ public class Image {
     LOG.info("Renamed " + tPath + " to " + path);
     // safe to close, nothing created here with scope outside function
     ufs.close();
+  }
+
+  public static void rename(String src, String dst) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(src);
+    ufs.rename(src, dst);
+    LOG.info("Renamed " + src + " to " + dst);
   }
 }
