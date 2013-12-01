@@ -83,6 +83,8 @@ public abstract class UnderFileSystem {
 
   public abstract long getBlockSizeByte(String path) throws IOException;
 
+  public abstract long getModificationTimeMs(String path) throws IOException;
+
   public abstract long getSpace(String path, SpaceType type) throws IOException;
 
   public abstract boolean isFile(String path) throws IOException;

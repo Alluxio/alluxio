@@ -44,6 +44,7 @@ public class Master {
   private TServer mMasterServiceServer;
   private MasterServiceHandler mMasterServiceHandler;
   private Journal mJournal;
+  private EditLogProcessor mEditLogProcessor;
   private int mWebPort;
   private int mWorkerThreads;
 
@@ -63,13 +64,17 @@ public class Master {
 
     try {
       mMasterAddress = address;
-
-      mJournal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
+      String journalFolder = MasterConf.get().JOURNAL_FOLDER;
+      mJournal = new Journal(journalFolder, "image.data", "log.data");
+      mMasterInfo = new MasterInfo(mMasterAddress, mJournal);
 
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
         mLeaderSelectorClient = new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS,
             conf.ZOOKEEPER_ELECTION_PATH, conf.ZOOKEEPER_LEADER_PATH, address.getHostName() + ":" + address.getPort());
+        mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
+        Thread logProcessor = new Thread(mEditLogProcessor);
+        logProcessor.start();
       }
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
@@ -78,7 +83,10 @@ public class Master {
   }
 
   private void setup() throws IOException, TTransportException {
-    mMasterInfo = new MasterInfo(mMasterAddress, mJournal);
+    if (mZookeeperMode) {
+      mEditLogProcessor.stop();
+    }
+    mMasterInfo.init();
 
     mWebServer = new UIWebServer("Tachyon Master Server",
         new InetSocketAddress(mMasterAddress.getHostName(), mWebPort), mMasterInfo);

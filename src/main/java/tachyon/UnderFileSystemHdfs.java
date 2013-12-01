@@ -239,6 +239,16 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
+  public long getModificationTimeMs(String path) throws IOException {
+    Path tPath = new Path(path);
+    if (!mFs.exists(tPath)) {
+      throw new FileNotFoundException(path);
+    }
+    FileStatus fs = mFs.getFileStatus(tPath);
+    return fs.getModificationTime();
+  }
+
+  @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     // Ignoring the path given, will give information for entire cluster
     // as Tachyon can load/store data out of entire HDFS cluster
