@@ -26,7 +26,7 @@ import java.nio.channels.FileChannel.MapMode;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import tachyon.CommonUtils;
+import tachyon.util.CommonUtils;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
@@ -70,7 +70,7 @@ public class Performance {
   public static void logPerIteration(long startTimeMs, int times, String msg, int workerId) {
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
     double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
-    LOG.info(times + msg + workerId + " : " + result + " Mb/sec. Took " + 
+    LOG.info(times + msg + workerId + " : " + result + " Mb/sec. Took " +
         takenTimeMs + " ms. ");
   }
 
@@ -221,7 +221,7 @@ public class Performance {
       mTC = TachyonFS.get(MASTER_ADDRESS);
     }
 
-    public void readPartition() 
+    public void readPartition()
         throws IOException, SuspectedFileSizeException, InvalidPathException, TException {
       TachyonByteBuffer buf;
       if (DEBUG_MODE) {
@@ -352,21 +352,21 @@ public class Performance {
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
     double result = FILES_BYTES * 1000L / takenTimeMs / 1024 / 1024;
-    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write ": "Read ") + 
+    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write ": "Read ") +
         " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
-  public static void main(String[] args) 
+  public static void main(String[] args)
       throws IOException, InvalidPathException, FileAlreadyExistException {
     if (args.length != 9) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION + 
-          "-jar-with-dependencies.jar tachyon.examples.Performance " + 
+      System.out.println("java -cp target/tachyon-" + Version.VERSION +
+          "-jar-with-dependencies.jar tachyon.examples.Performance " +
           "<MasterIp> <FileName> <WriteBlockSizeInBytes> <BlocksPerFile> " +
           "<DebugMode:true/false> <Threads> <FilesPerThread> <TestCaseNumber> <BaseFileNumber>\n" +
           "1: Files Write Test\n" +
-          "2: Files Read Test\n" + 
+          "2: Files Read Test\n" +
           "3: RamFile Write Test \n" +
-          "4: RamFile Read Test \n" + 
+          "4: RamFile Read Test \n" +
           "5: ByteBuffer Write Test \n" +
           "6: ByteBuffer Read Test \n");
       System.exit(-1);
@@ -388,8 +388,8 @@ public class Performance {
     RESULT_PREFIX = String.format("Threads %d FilesPerThread %d TotalFiles %d " +
         "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d " +
         "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ",
-        THREADS, FILES / THREADS, FILES, BLOCK_SIZE_BYTES / 1024, 
-        BLOCKS_PER_FILE, CommonUtils.getMB(FILE_BYTES), 
+        THREADS, FILES / THREADS, FILES, BLOCK_SIZE_BYTES / 1024,
+        BLOCKS_PER_FILE, CommonUtils.getMB(FILE_BYTES),
         UserConf.get().FILE_BUFFER_BYTES / 1024, BASE_FILE_NUMBER);
 
     if (testCase == 1) {

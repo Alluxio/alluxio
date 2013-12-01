@@ -34,6 +34,7 @@ import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
+import tachyon.util.CommonUtils;
 
 /**
  * HDFS UnderFilesystem implementation.

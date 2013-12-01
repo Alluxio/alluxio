@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import tachyon.CommonUtils;
+import tachyon.util.CommonUtils;
 import tachyon.Constants;
 import tachyon.MasterInfo;
 import tachyon.client.InStream;

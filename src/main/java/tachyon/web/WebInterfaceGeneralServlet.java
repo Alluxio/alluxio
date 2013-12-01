@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import tachyon.CommonUtils;
+import tachyon.util.CommonUtils;
 import tachyon.Constants;
 import tachyon.MasterInfo;
 import tachyon.Version;
@@ -82,7 +82,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     public String getUptimeClockTime() {
       return UPTIME_CLOCK_TIME;
-    } 
+    }
   }
 
   public WebInterfaceGeneralServlet(MasterInfo masterInfo) {
@@ -93,9 +93,9 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
    * Redirects the request to a jsp after populating attributes via populateValues.
    * @param request The HttpServletRequest object
    * @param response The HttpServletResponse object
-   */  
+   */
   @Override
-  protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+  protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     populateValues(request);
     getServletContext().getRequestDispatcher("/general.jsp").forward(request, response);
@@ -109,7 +109,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Populates key, value pairs for UI display
    * @param request The HttpServletRequest object
-   * @throws IOException 
+   * @throws IOException
    */
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);
@@ -128,7 +128,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("capacity", CommonUtils.getSizeFromBytes(mMasterInfo.getCapacityBytes()));
 
     request.setAttribute("usedCapacity", CommonUtils.getSizeFromBytes(mMasterInfo.getUsedBytes()));
-      
+
     request.setAttribute("freeCapacity", CommonUtils.getSizeFromBytes(
         (mMasterInfo.getCapacityBytes() - mMasterInfo.getUsedBytes())));
 
@@ -151,7 +151,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("diskFreeCapacity", CommonUtils.getSizeFromBytes(sizeBytes));
     } else {
       request.setAttribute("diskFreeCapacity", "UNKNOWN");
-    }      
+    }
 
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
     for (int i = 0; i < workerInfos.size(); i ++) {

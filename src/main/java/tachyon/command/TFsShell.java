@@ -32,7 +32,7 @@ import org.apache.thrift.TException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 
-import tachyon.CommonUtils;
+import tachyon.util.CommonUtils;
 import tachyon.client.FileOutStream;
 import tachyon.client.InStream;
 import tachyon.client.OutStream;

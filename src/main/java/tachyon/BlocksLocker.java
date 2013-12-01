@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.thrift.TException;
+import tachyon.util.CommonUtils;
 
 /**
  * Handle local block locking. This class is NOT thread safe.

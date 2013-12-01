@@ -28,6 +28,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
+import tachyon.util.CommonUtils;
 
 /**
  * <code>Users</code> represents and manages all users contacting to a worker.
@@ -116,7 +117,7 @@ public class Users {
     } else {
       returnedBytes = tUser.getOwnBytes();
       String folder = getUserTempFolder(userId);
-      sb.append(" The user returns " + returnedBytes + " bytes. Remove the user's folder " + 
+      sb.append(" The user returns " + returnedBytes + " bytes. Remove the user's folder " +
           folder + " ;");
       try {
         FileUtils.deleteDirectory(new File(folder));

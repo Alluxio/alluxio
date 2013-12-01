@@ -38,7 +38,7 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.MasterClient;
-import tachyon.CommonUtils;
+import tachyon.util.CommonUtils;
 import tachyon.WorkerClient;
 import tachyon.client.table.RawTable;
 import tachyon.conf.UserConf;

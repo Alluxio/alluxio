@@ -26,11 +26,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.client.TachyonFS;
+import tachyon.util.CommonUtils;
 
 /**
  * Local Tachyon cluster with multiple master for unit tests.
  */
-public class MasterFaultToleranceTest {  
+public class MasterFaultToleranceTest {
   private final int BLOCK_SIZE = 30;
 
   private LocalTachyonClusterMultiMaster mLocalTachyonClusterMultiMaster = null;

@@ -34,10 +34,10 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
 import org.apache.log4j.Logger;
 
-import tachyon.CommonUtils;
+import tachyon.util.CommonUtils;
 import tachyon.Constants;
 import tachyon.PrefixList;
-import tachyon.UnderfsUtil;
+import tachyon.util.UnderfsUtil;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
@@ -81,7 +81,7 @@ public class TFS extends FileSystem {
   public FSDataOutputStream create(Path cPath, FsPermission permission, boolean overwrite,
       int bufferSize, short replication, long blockSize, Progressable progress)
           throws IOException {
-    LOG.info("create(" + cPath + ", " + permission + ", " + overwrite + 
+    LOG.info("create(" + cPath + ", " + permission + ", " + overwrite +
         ", " + bufferSize + ", " + replication + ", " + blockSize + ", " + progress + ")");
 
     String path = Utils.getPathWithoutScheme(cPath);
@@ -107,8 +107,8 @@ public class TFS extends FileSystem {
   @Override
   /**
    * Return the status of a single file.
-   * 
-   * If the file does not exist in Tachyon, query it from HDFS. 
+   *
+   * If the file does not exist in Tachyon, query it from HDFS.
    */
   public FileStatus getFileStatus(Path path) throws IOException {
     String tPath = Utils.getPathWithoutScheme(path);
@@ -142,7 +142,7 @@ public class TFS extends FileSystem {
   }
 
   @Override
-  public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len) 
+  public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)
       throws IOException {
     if (file == null) {
       return null;
@@ -215,7 +215,7 @@ public class TFS extends FileSystem {
       ClientFileInfo info = files.get(k);
       // TODO replicate 3 with the number of disk replications.
       ret[k] = new FileStatus(info.getLength(), info.isFolder(), 3, info.getBlockSizeByte(),
-          info.getCreationTimeMs(), info.getCreationTimeMs(), 
+          info.getCreationTimeMs(), info.getCreationTimeMs(),
           null, null, null, new Path(mTachyonHeader + info.getPath()));
     }
     return ret;

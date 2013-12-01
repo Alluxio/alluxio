@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.thrift.MasterService;
+import tachyon.util.CommonUtils;
 import tachyon.web.UIWebServer;
 
 /**
