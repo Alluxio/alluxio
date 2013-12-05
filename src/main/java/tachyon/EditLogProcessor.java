@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
+import tachyon.util.CommonUtils;
+
 /**
  * Class that periodically looks for completed edit logs to update metadata of failover nodes.
  */
