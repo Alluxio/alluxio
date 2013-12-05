@@ -26,18 +26,18 @@ import java.nio.channels.FileChannel.MapMode;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import tachyon.util.CommonUtils;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonByteBuffer;
-import tachyon.client.WriteType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.WriteType;
 import tachyon.conf.UserConf;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.util.CommonUtils;
 
 public class Performance {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);

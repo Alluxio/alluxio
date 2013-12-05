@@ -16,21 +16,22 @@
  */
 package tachyon;
 
-import org.apache.curator.test.TestingServer;
-import org.apache.log4j.Logger;
-import tachyon.client.TachyonFS;
-import tachyon.conf.CommonConf;
-import tachyon.conf.MasterConf;
-import tachyon.conf.UserConf;
-import tachyon.conf.WorkerConf;
-import tachyon.util.CommonUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.curator.test.TestingServer;
+import org.apache.log4j.Logger;
+
+import tachyon.client.TachyonFS;
+import tachyon.conf.CommonConf;
+import tachyon.conf.MasterConf;
+import tachyon.conf.UserConf;
+import tachyon.conf.WorkerConf;
+import tachyon.util.CommonUtils;
 
 /**
  * A local Tachyon cluster with Multiple masters
