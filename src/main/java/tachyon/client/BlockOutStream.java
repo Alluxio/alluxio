@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package tachyon.client;
 
 import java.io.File;
@@ -10,6 +26,7 @@ import java.nio.channels.FileChannel.MapMode;
 
 import org.apache.log4j.Logger;
 
+import tachyon.CommonUtils;
 import tachyon.Constants;
 
 /**
@@ -76,12 +93,16 @@ public class BlockOutStream extends OutStream {
     mLocalFilePath = localFolder.getPath() + "/" + BLOCK_ID;
     mLocalFile = new RandomAccessFile(mLocalFilePath, "rw");
     mLocalFileChannel = mLocalFile.getChannel();
+    //change the permission of the temporary file in order that the worker can move it.
+    CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
+    //use the sticky bit, only the client and the worker can write to the block
+    CommonUtils.setLocalFileStickyBit(mLocalFilePath);
     LOG.info(mLocalFilePath + " was created!");
 
     mBuffer = ByteBuffer.allocate(USER_CONF.FILE_BUFFER_BYTES + 4);
   }
 
-  private synchronized void appendCurrentBuffer(byte[] buf, int offset, 
+  private synchronized void appendCurrentBuffer(byte[] buf, int offset,
       int length) throws IOException {
     if (!TFS.requestSpace(length)) {
       mCanWrite = false;
