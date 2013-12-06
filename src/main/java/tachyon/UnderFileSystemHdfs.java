@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package tachyon;
 
 import java.io.FileNotFoundException;
@@ -13,6 +29,7 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
@@ -25,6 +42,9 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   private FileSystem mFs = null;
   private String mUfsPrefix = null;
+  //TODO add sticky bit and narrow down the permission in hadoop 2
+  private static final FsPermission PERMISSION =
+      new FsPermission((short) 0777).applyUMask(FsPermission.createImmutable((short)0000));
 
   public static UnderFileSystemHdfs getClient(String path) {
     return new UnderFileSystemHdfs(path);
@@ -35,7 +55,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       mUfsPrefix = fsDefaultName;
       Configuration tConf = new Configuration();
       tConf.set("fs.defaultFS", fsDefaultName);
-      tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
+      tConf.set("fs.hdfs.impl", System.getProperty("tachyon.underfs.hdfs.impl",
+          "org.apache.hadoop.hdfs.DistributedFileSystem"));
       if (System.getProperty("fs.s3n.awsAccessKeyId") != null) {
         tConf.set("fs.s3n.awsAccessKeyId", System.getProperty("fs.s3n.awsAccessKeyId"));
       }
@@ -52,6 +73,18 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
+  public void changeToFullPermission(String path) {
+    try {
+      FileStatus fileStatus = mFs.getFileStatus(new Path(path));
+      LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: " +
+          fileStatus.getPermission() + " to 777");
+      mFs.setPermission(fileStatus.getPath(), PERMISSION);
+    } catch (IOException e) {
+      LOG.error(e);
+    }
+  }
+
+  @Override
   public void close() throws IOException {
     mFs.close();
   }
@@ -63,7 +96,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     while (cnt < MAX_TRY) {
       try {
         LOG.debug("Creating HDFS file at " + path);
-        return mFs.create(new Path(path));
+        return FileSystem.create(mFs,new Path(path), PERMISSION);
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
@@ -88,20 +121,20 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     // TODO Fix this
     //return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
     return create(path);
-//    LOG.info(path + " " + replication + " " + blockSizeByte);
-//    IOException te = null;
-//    int cnt = 0;
-//    while (cnt < MAX_TRY) {
-//      try {
-//        return mFs.create(new Path(path), true, 4096, replication, blockSizeByte);
-//      } catch (IOException e) {
-//        cnt ++;
-//        LOG.error(cnt + " : " + e.getMessage(), e);
-//        te = e;
-//        continue;
-//      }
-//    }
-//    throw te;
+    //    LOG.info(path + " " + replication + " " + blockSizeByte);
+    //    IOException te = null;
+    //    int cnt = 0;
+    //    while (cnt < MAX_TRY) {
+    //      try {
+    //        return mFs.create(new Path(path), true, 4096, replication, blockSizeByte);
+    //      } catch (IOException e) {
+    //        cnt ++;
+    //        LOG.error(cnt + " : " + e.getMessage(), e);
+    //        te = e;
+    //        continue;
+    //      }
+    //    }
+    //    throw te;
   }
 
   @Override
@@ -204,6 +237,16 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
+  public long getModificationTimeMs(String path) throws IOException {
+    Path tPath = new Path(path);
+    if (!mFs.exists(tPath)) {
+      throw new FileNotFoundException(path);
+    }
+    FileStatus fs = mFs.getFileStatus(tPath);
+    return fs.getModificationTime();
+  }
+
+  @Override
   public long getSpace(String path, SpaceType type) throws IOException {
     // Ignoring the path given, will give information for entire cluster
     // as Tachyon can load/store data out of entire HDFS cluster
@@ -234,7 +277,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         if (mFs.exists(new Path(path))) {
           return true;
         }
-        return mFs.mkdirs(new Path(path));
+        return mFs.mkdirs(new Path(path), PERMISSION);
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);

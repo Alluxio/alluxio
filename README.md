@@ -33,5 +33,5 @@ User Mailing List: https://groups.google.com/forum/?fromgroups#!forum/tachyon-us
 
 ### SBT
 ```
-libraryDependencies += "org.tachyonproject" %% "tachyon" % "0.3.0"
+libraryDependencies += "org.tachyonproject" % "tachyon" % "0.3.0"
 ```
