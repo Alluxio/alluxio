@@ -34,16 +34,16 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
 import org.apache.log4j.Logger;
 
-import tachyon.util.CommonUtils;
 import tachyon.Constants;
 import tachyon.PrefixList;
-import tachyon.util.UnderfsUtil;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.util.CommonUtils;
+import tachyon.util.UnderfsUtil;
 
 /**
  * An Hadoop FileSystem interface implementation. Any program working with Hadoop HDFS can work

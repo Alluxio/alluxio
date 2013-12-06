@@ -16,8 +16,6 @@
  */
 package tachyon;
 
-import tachyon.util.CommonUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,6 +26,8 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+
+import tachyon.util.CommonUtils;
 
 /**
  * Single node UnderFilesystem implementation.

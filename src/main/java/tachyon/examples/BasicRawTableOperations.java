@@ -23,7 +23,6 @@ import java.nio.ByteOrder;
 import org.apache.thrift.TException;
 import org.apache.log4j.Logger;
 
-import tachyon.util.CommonUtils;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
@@ -38,6 +37,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfMemoryForPinFileException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
+import tachyon.util.CommonUtils;
 
 public class BasicRawTableOperations {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);

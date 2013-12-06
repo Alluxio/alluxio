@@ -24,11 +24,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import tachyon.util.CommonUtils;
 import tachyon.Constants;
 import tachyon.MasterInfo;
 import tachyon.Version;
 import tachyon.thrift.ClientWorkerInfo;
+import tachyon.util.CommonUtils;
 
 /**
  * Servlet that provides data for viewing the general status of the filesystem.

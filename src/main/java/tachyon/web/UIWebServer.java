@@ -28,10 +28,10 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.apache.log4j.Logger;
 
-import tachyon.util.CommonUtils;
 import tachyon.Constants;
 import tachyon.MasterInfo;
 import tachyon.conf.CommonConf;
+import tachyon.util.CommonUtils;
 
 /**
  * Class that bootstraps and starts the web server for the web interface.

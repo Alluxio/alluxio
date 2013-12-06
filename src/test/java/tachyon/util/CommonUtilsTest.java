@@ -18,6 +18,7 @@ package tachyon.util;
 
 import org.junit.Assert;
 import org.junit.Test;
+
 import tachyon.Constants;
 
 public class CommonUtilsTest {

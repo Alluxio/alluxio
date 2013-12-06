@@ -16,8 +16,8 @@
  */
 package tachyon.conf;
 
-import tachyon.util.CommonUtils;
 import tachyon.Constants;
+import tachyon.util.CommonUtils;
 
 public class WorkerConf extends Utils {
   private static WorkerConf WORKER_CONF = null;

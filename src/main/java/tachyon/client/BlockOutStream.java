@@ -26,8 +26,8 @@ import java.nio.channels.FileChannel.MapMode;
 
 import org.apache.log4j.Logger;
 
-import tachyon.util.CommonUtils;
 import tachyon.Constants;
+import tachyon.util.CommonUtils;
 
 /**
  * <code>BlockOutStream</code> implementation of TachyonFile. This class is not client facing.
