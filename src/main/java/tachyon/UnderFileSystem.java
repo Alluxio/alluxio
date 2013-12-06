@@ -16,12 +16,12 @@
  */
 package tachyon;
 
-import tachyon.util.CommonUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+
+import tachyon.util.CommonUtils;
 
 /**
  * Tachyon stores data into an under layer file system. Any file system implementing

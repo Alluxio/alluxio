@@ -29,10 +29,6 @@ import java.util.Collections;
 
 import org.apache.thrift.TException;
 
-import tachyon.thrift.ClientBlockInfo;
-import tachyon.thrift.ClientFileInfo;
-
-import tachyon.util.CommonUtils;
 import tachyon.client.FileOutStream;
 import tachyon.client.InStream;
 import tachyon.client.OutStream;
@@ -40,6 +36,9 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientFileInfo;
+import tachyon.util.CommonUtils;
 
 /**
  * Class for handling command line inputs.

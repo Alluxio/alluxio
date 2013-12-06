@@ -19,9 +19,9 @@ package tachyon.client.table;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import tachyon.util.CommonUtils;
 import tachyon.client.TachyonFS;
 import tachyon.thrift.ClientRawTableInfo;
+import tachyon.util.CommonUtils;
 
 /**
  * Tachyon provides native support for tables with multiple columns. Each table contains one or

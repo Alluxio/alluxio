@@ -24,11 +24,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.util.CommonUtils;
 import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
+import tachyon.util.CommonUtils;
 
 /**
  * Unit tests for tachyon.client.TachyonFile.
