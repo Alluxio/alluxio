@@ -24,6 +24,7 @@ import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.data.Stat;
+import tachyon.util.CommonUtils;
 
 /**
  * Utility to get leader from zookeeper.

@@ -38,7 +38,6 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.MasterClient;
-import tachyon.CommonUtils;
 import tachyon.WorkerClient;
 import tachyon.client.table.RawTable;
 import tachyon.conf.UserConf;
@@ -50,6 +49,7 @@ import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoWorkerException;
+import tachyon.util.CommonUtils;
 
 /**
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients

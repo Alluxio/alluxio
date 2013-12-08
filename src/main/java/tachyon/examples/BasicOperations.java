@@ -22,7 +22,6 @@ import java.nio.ByteOrder;
 
 import org.apache.log4j.Logger;
 
-import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
@@ -33,6 +32,7 @@ import tachyon.client.WriteType;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.util.CommonUtils;
 
 public class BasicOperations {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
@@ -84,7 +84,7 @@ public class BasicOperations {
       throws SuspectedFileSizeException, InvalidPathException, IOException,
       FileAlreadyExistException {
     if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION + 
+      System.out.println("java -cp target/tachyon-" + Version.VERSION +
           "-jar-with-dependencies.jar " +
           "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
       System.exit(-1);

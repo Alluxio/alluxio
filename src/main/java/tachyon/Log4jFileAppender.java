@@ -28,13 +28,14 @@ import org.apache.log4j.FileAppender;
 import org.apache.log4j.spi.ErrorCode;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.tools.ant.util.LazyFileOutputStream;
+import tachyon.util.CommonUtils;
 
 /**
  * Custom log4j appender which preserves old logs on system restart, rolls over logs based on
  * both size and day. Also implements batch deletion of logs when the maximum backup index is
  * reached.
  */
-public class Log4jFileAppender extends FileAppender { 
+public class Log4jFileAppender extends FileAppender {
   private int mMaxBackupIndex = 1;
   private int mMaxFileSizeBytes = Constants.MB;
   private int mCurrentFileBackupIndex = -1;
@@ -89,7 +90,7 @@ public class Log4jFileAppender extends FileAppender {
    * @param bufferSize
    */
   @Override
-  public synchronized void setFile(String fileName, boolean append, boolean bufferedIO, 
+  public synchronized void setFile(String fileName, boolean append, boolean bufferedIO,
       int bufferSize) throws IOException  {
     // It does not make sense to have immediate flush and bufferedIO.
     if (bufferedIO) {
@@ -116,18 +117,18 @@ public class Log4jFileAppender extends FileAppender {
   /**
    * Called whenever a new message is logged. Checks both the date and size to determine if
    * rollover is necessary.
-   * @param event 
+   * @param event
    */
   @Override
   public synchronized void subAppend(LoggingEvent event) {
     File currentLog = new File(mCurrentFileName);
-    if (currentLog.length() > mMaxFileSizeBytes || 
+    if (currentLog.length() > mMaxFileSizeBytes ||
         !CommonUtils.convertMsToSimpleDate(System.currentTimeMillis()).equals(mLastDate)) {
       activateOptions();
     }
     if (currentLog.exists()) {
       super.subAppend(event);
-    } else { 
+    } else {
       String parentName = currentLog.getParent();
       if (parentName != null) {
         File parent = new File(parentName);
@@ -139,7 +140,7 @@ public class Log4jFileAppender extends FileAppender {
           }
         }
       }
-    }   
+    }
   }
 
   /**
@@ -156,7 +157,7 @@ public class Log4jFileAppender extends FileAppender {
       } catch (UnknownHostException uhe) {
         address = "@UnknownHost";
       }
-      newFileName = fileName + address + "_" 
+      newFileName = fileName + address + "_"
           + CommonUtils.convertMsToSimpleDate(System.currentTimeMillis());
       File file = new File(newFileName);
       if (file.exists()) {
@@ -204,7 +205,7 @@ public class Log4jFileAppender extends FileAppender {
       }
     }
 
-    File oldFile = new File(fileName); 
+    File oldFile = new File(fileName);
     if (mCurrentFileBackupIndex >= mMaxBackupIndex) {
       int deleteToIndex = (int) Math.ceil(mMaxBackupIndex*mDeletionPercentage/100.0);
       for (int i = 1; i < deleteToIndex; i ++) {

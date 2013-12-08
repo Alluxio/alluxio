@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package tachyon;
+package tachyon.util;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -35,6 +35,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
+import tachyon.Constants;
 import tachyon.thrift.InvalidPathException;
 
 import static java.nio.file.attribute.PosixFilePermission.*;

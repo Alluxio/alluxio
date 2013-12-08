@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 
 import tachyon.client.TachyonByteBuffer;
 import tachyon.conf.WorkerConf;
+import tachyon.util.CommonUtils;
 
 /**
  * The message type used to send data request and response for remote data.
@@ -34,7 +35,7 @@ public class DataServerMessage {
   public static final short DATA_SERVER_REQUEST_MESSAGE = 1;
   public static final short DATA_SERVER_RESPONSE_MESSAGE = 2;
 
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE); 
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final boolean IS_TO_SEND_DATA;
   private final short mMsgType;
@@ -108,7 +109,7 @@ public class DataServerMessage {
         }
 
         String filePath = WorkerConf.get().DATA_FOLDER + "/" + blockId;
-        ret.LOG.info("Try to response remote requst by reading from " + filePath); 
+        ret.LOG.info("Try to response remote requst by reading from " + filePath);
         RandomAccessFile file = new RandomAccessFile(filePath, "r");
 
         long fileLength = file.length();
@@ -117,7 +118,7 @@ public class DataServerMessage {
           error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
         }
         if (error == null && len != -1 && offset + len > fileLength) {
-          error = String.format("Offset(%d) plus length(%d) is larger than file length(%d)", 
+          error = String.format("Offset(%d) plus length(%d) is larger than file length(%d)",
               offset, len, fileLength);
         }
         if (error != null) {
@@ -141,7 +142,7 @@ public class DataServerMessage {
         ret.generateHeader();
         ret.LOG.info("Response remote requst by reading from " + filePath + " preparation done.");
       } catch (Exception e) {
-        // TODO This is a trick for now. The data may have been removed before remote retrieving. 
+        // TODO This is a trick for now. The data may have been removed before remote retrieving.
         ret.mBlockId = - ret.mBlockId;
         ret.mLength = 0;
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
@@ -201,7 +202,7 @@ public class DataServerMessage {
             mData = ByteBuffer.allocate((int) mLength);
           }
         }
-        LOG.info(String.format("data" + mData + ", blockId(%d), offset(%d), dataLength(%d)", 
+        LOG.info(String.format("data" + mData + ", blockId(%d), offset(%d), dataLength(%d)",
             mBlockId, mOffset, mLength));
         if (mMsgType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
           mIsMessageReady = true;

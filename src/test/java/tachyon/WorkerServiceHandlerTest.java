@@ -31,6 +31,7 @@ import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.ClientFileInfo;
+import tachyon.util.CommonUtils;
 
 /**
  * Unit tests for tachyon.WorkerServiceHandler
@@ -95,7 +96,7 @@ public class WorkerServiceHandlerTest {
   }
 
   @Test
-  public void evictionTest() 
+  public void evictionTest()
       throws InvalidPathException, FileAlreadyExistException, IOException,
       FileDoesNotExistException, TException {
     int fileId1 = TestUtils.createByteFile(

@@ -19,7 +19,7 @@ package tachyon.io;
 import java.lang.reflect.Field;
 
 import sun.misc.Unsafe;
-import tachyon.CommonUtils;
+import tachyon.util.CommonUtils;
 
 /**
  * Utilities for unsafe operations.
