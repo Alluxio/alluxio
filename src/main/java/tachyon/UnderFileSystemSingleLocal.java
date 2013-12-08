@@ -27,6 +27,8 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import tachyon.util.CommonUtils;
+
 /**
  * Single node UnderFilesystem implementation.
  *

@@ -25,6 +25,7 @@ import java.util.Set;
 
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.util.CommonUtils;
 
 /**
  * The structure to store a worker's information in master node.

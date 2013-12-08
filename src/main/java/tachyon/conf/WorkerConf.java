@@ -16,8 +16,8 @@
  */
 package tachyon.conf;
 
-import tachyon.CommonUtils;
 import tachyon.Constants;
+import tachyon.util.CommonUtils;
 
 public class WorkerConf extends Utils {
   private static WorkerConf WORKER_CONF = null;
@@ -42,13 +42,13 @@ public class WorkerConf extends Utils {
     MASTER_PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
 
     PORT = getIntProperty("tachyon.worker.port", Constants.DEFAULT_WORKER_PORT);
-    DATA_PORT = 
+    DATA_PORT =
         getIntProperty("tachyon.worker.data.port", Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
     DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramdisk");
     MEMORY_SIZE = CommonUtils.parseMemorySize(
         getProperty("tachyon.worker.memory.size", (128 * Constants.MB) + ""));
     HEARTBEAT_TIMEOUT_MS = getIntProperty("tachyon.worker.heartbeat.timeout.ms", 10 * 1000);
-    TO_MASTER_HEARTBEAT_INTERVAL_MS = 
+    TO_MASTER_HEARTBEAT_INTERVAL_MS =
         getIntProperty("tachyon.worker.to.master.heartbeat.interval.ms", 1000);
     SELECTOR_THREADS = getIntProperty("tachyon.worker.selector.threads", 3);
     QUEUE_SIZE_PER_SELECTOR = getIntProperty("tachyon.worker.queue.size.per.selector", 3000);

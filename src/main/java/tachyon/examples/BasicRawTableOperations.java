@@ -20,10 +20,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.apache.thrift.TException; 
+import org.apache.thrift.TException;
 import org.apache.log4j.Logger;
 
-import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
@@ -38,6 +37,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.OutOfMemoryForPinFileException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
+import tachyon.util.CommonUtils;
 
 public class BasicRawTableOperations {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
@@ -60,8 +60,8 @@ public class BasicRawTableOperations {
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createRawTable with id " + mId);
   }
 
-  public static void writeParition() 
-      throws IOException, TableDoesNotExistException, InvalidPathException, 
+  public static void writeParition()
+      throws IOException, TableDoesNotExistException, InvalidPathException,
       FileAlreadyExistException, TException {
     RawTable rawTable = sTachyonClient.getRawTable(sTablePath);
 
@@ -69,7 +69,7 @@ public class BasicRawTableOperations {
     for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       if (!rawColumn.createPartition(0)) {
-        CommonUtils.runtimeException("Failed to create partition in table " + sTablePath + 
+        CommonUtils.runtimeException("Failed to create partition in table " + sTablePath +
             " under column " + column);
       }
 
@@ -116,10 +116,10 @@ public class BasicRawTableOperations {
   }
 
   public static void main(String[] args)
-      throws IOException, TableDoesNotExistException, OutOfMemoryForPinFileException, 
+      throws IOException, TableDoesNotExistException, OutOfMemoryForPinFileException,
       InvalidPathException, FileAlreadyExistException, TableColumnException, TException {
     if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION + 
+      System.out.println("java -cp target/tachyon-" + Version.VERSION +
           "-jar-with-dependencies.jar " +
           "tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>");
       System.exit(-1);

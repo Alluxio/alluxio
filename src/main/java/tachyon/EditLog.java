@@ -34,6 +34,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
+import tachyon.util.CommonUtils;
 
 /**
  * Master operation journal.

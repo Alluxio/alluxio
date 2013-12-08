@@ -18,7 +18,7 @@ package tachyon.conf;
 
 import org.apache.log4j.Logger;
 
-import tachyon.CommonUtils;
+import tachyon.util.CommonUtils;
 
 /**
  * Utils for tachyon.conf package.

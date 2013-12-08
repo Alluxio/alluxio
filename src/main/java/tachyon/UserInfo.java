@@ -17,9 +17,10 @@
 package tachyon;
 
 import tachyon.conf.WorkerConf;
+import tachyon.util.CommonUtils;
 
 /**
- * Represent one user in the worker daemon. 
+ * Represent one user in the worker daemon.
  */
 public class UserInfo {
   private final long USER_ID;
@@ -53,7 +54,7 @@ public class UserInfo {
   }
 
   public synchronized boolean timeout() {
-    return (System.currentTimeMillis() - mLastHeartbeatMs > WorkerConf.get().USER_TIMEOUT_MS); 
+    return (System.currentTimeMillis() - mLastHeartbeatMs > WorkerConf.get().USER_TIMEOUT_MS);
   }
 
   @Override

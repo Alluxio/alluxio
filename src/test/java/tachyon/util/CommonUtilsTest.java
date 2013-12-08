@@ -14,10 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package tachyon;
+package tachyon.util;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import tachyon.Constants;
 
 public class CommonUtilsTest {
   @Test

@@ -45,6 +45,7 @@ import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.util.CommonUtils;
 
 /**
  * The structure to store a worker's information in worker node.
@@ -67,9 +68,9 @@ public class WorkerStorage {
   private Map<Long, Set<Long>> mUsersPerLockedBlock = new HashMap<Long, Set<Long>>();
   private Map<Long, Set<Long>> mLockedBlocksPerUser = new HashMap<Long, Set<Long>>();
 
-  private BlockingQueue<Long> mRemovedBlockList = 
+  private BlockingQueue<Long> mRemovedBlockList =
       new ArrayBlockingQueue<Long>(Constants.WORKER_FILES_QUEUE_SIZE);
-  private BlockingQueue<Long> mAddedBlockList = 
+  private BlockingQueue<Long> mAddedBlockList =
       new ArrayBlockingQueue<Long>(Constants.WORKER_FILES_QUEUE_SIZE);
 
   private File mLocalDataFolder;
@@ -80,7 +81,7 @@ public class WorkerStorage {
 
   private Users mUsers;
 
-  public WorkerStorage(InetSocketAddress masterAddress, InetSocketAddress workerAddress, 
+  public WorkerStorage(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       String dataFolder, long memoryCapacityBytes) {
     COMMON_CONF = CommonConf.get();
 
@@ -126,7 +127,7 @@ public class WorkerStorage {
       CommonUtils.runtimeException(e);
     } catch (TException e) {
       CommonUtils.runtimeException(e);
-    } 
+    }
 
     LOG.info("Current Worker Info: ID " + mWorkerId + ", ADDRESS: " + mWorkerAddress +
         ", MemoryCapacityBytes: " + mWorkerSpaceCounter.getCapacityBytes());
@@ -139,7 +140,7 @@ public class WorkerStorage {
   }
 
   public void addCheckpoint(long userId, int fileId)
-      throws FileDoesNotExistException, SuspectedFileSizeException, 
+      throws FileDoesNotExistException, SuspectedFileSizeException,
       FailedToCheckpointException, BlockInfoException, TException {
     // TODO This part need to be changed.
     String srcPath = getUserUnderfsTempFolder(userId) + "/" + fileId;
@@ -178,7 +179,7 @@ public class WorkerStorage {
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     File srcFile = new File(getUserTempFolder(userId) + "/" + blockId);
     File dstFile = new File(mLocalDataFolder + "/" + blockId);
-    long fileSizeBytes = srcFile.length(); 
+    long fileSizeBytes = srcFile.length();
     if (!srcFile.exists()) {
       throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
     }
@@ -188,7 +189,7 @@ public class WorkerStorage {
     }
     addBlockId(blockId, fileSizeBytes);
     mUsers.addOwnBytes(userId, - fileSizeBytes);
-    mMasterClient.worker_cacheBlock(mWorkerId, 
+    mMasterClient.worker_cacheBlock(mWorkerId,
         mWorkerSpaceCounter.getUsedBytes(), blockId, fileSizeBytes);
     LOG.info(userId + " " + dstFile);
   }
@@ -391,7 +392,7 @@ public class WorkerStorage {
           long blockId = -1;
           long latestTimeMs = Long.MAX_VALUE;
           for (Entry<Long, Long> entry : mLatestBlockAccessTimeMs.entrySet()) {
-            if (entry.getValue() < latestTimeMs 
+            if (entry.getValue() < latestTimeMs
                 && !pinList.contains(BlockInfo.computeInodeId(entry.getKey()))) {
               if(!mUsersPerLockedBlock.containsKey(entry.getKey())) {
                 blockId = entry.getKey();

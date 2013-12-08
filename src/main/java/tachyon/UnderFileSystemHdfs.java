@@ -33,6 +33,8 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
+import tachyon.util.CommonUtils;
+
 /**
  * HDFS UnderFilesystem implementation.
  */

@@ -28,6 +28,7 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
+import tachyon.util.CommonUtils;
 
 /**
  * Local Tachyon cluster for unit tests.
@@ -80,7 +81,7 @@ public class LocalTachyonCluster {
   }
 
   WorkerServiceHandler getWorkerServiceHandler() {
-    return mWorker.getWorkerServiceHandler();    
+    return mWorker.getWorkerServiceHandler();
   }
 
   MasterInfo getMasterInfo() {
@@ -150,7 +151,7 @@ public class LocalTachyonCluster {
     CommonUtils.sleepMs(null, 10);
 
     mWorker = Worker.createWorker(
-        new InetSocketAddress(mLocalhostName, mMasterPort), 
+        new InetSocketAddress(mLocalhostName, mMasterPort),
         new InetSocketAddress(mLocalhostName, mWorkerPort),
         mWorkerPort + 1, 1, 1, 1, mWorkerDataFolder, mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {

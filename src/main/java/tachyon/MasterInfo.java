@@ -64,6 +64,7 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
+import tachyon.util.CommonUtils;
 
 /**
  * A global view of filesystem in master.

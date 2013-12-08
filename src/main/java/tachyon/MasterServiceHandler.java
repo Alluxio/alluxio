@@ -43,10 +43,11 @@ import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
+import tachyon.util.CommonUtils;
 
 /**
  * The Master server program.
- * 
+ *
  * It maintains the state of each worker. It never keeps the state of any user.
  */
 public class MasterServiceHandler implements MasterService.Iface {
@@ -59,7 +60,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath) 
+  public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     try {
       return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
@@ -94,7 +95,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public int user_createFileOnCheckpoint(String path, String checkpointPath)
-      throws FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException, 
+      throws FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException,
       BlockInfoException, TachyonException, TException {
     UnderFileSystem underfs = UnderFileSystem.get(checkpointPath);
     try {
@@ -129,13 +130,13 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean user_deleteByPath(String path, boolean recursive) 
+  public boolean user_deleteByPath(String path, boolean recursive)
       throws TachyonException, TException {
     return mMasterInfo.delete(path, recursive);
   }
 
   @Override
-  public NetAddress user_getWorker(boolean random, String host) 
+  public NetAddress user_getWorker(boolean random, String host)
       throws NoWorkerException, TException {
     NetAddress ret = mMasterInfo.getWorker(random, host);
     if (ret == null) {
@@ -145,7 +146,7 @@ public class MasterServiceHandler implements MasterService.Iface {
         throw new NoWorkerException("No local worker on " + host);
       }
     }
-    return ret; 
+    return ret;
   }
 
   @Override
@@ -253,7 +254,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean user_mkdir(String path) 
+  public boolean user_mkdir(String path)
       throws FileAlreadyExistException, InvalidPathException, TachyonException, TException {
     return mMasterInfo.mkdir(path);
   }
@@ -283,7 +284,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public void user_updateRawTableMetadata(int tableId, ByteBuffer metadata)
       throws TableDoesNotExistException, TachyonException, TException {
-    mMasterInfo.updateRawTableMetadata(tableId, 
+    mMasterInfo.updateRawTableMetadata(tableId,
         CommonUtils.generateNewByteBufferFromThriftRPCResults(metadata));
   }
 

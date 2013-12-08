@@ -19,9 +19,9 @@ package tachyon.client.table;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import tachyon.CommonUtils;
 import tachyon.client.TachyonFS;
 import tachyon.thrift.ClientRawTableInfo;
+import tachyon.util.CommonUtils;
 
 /**
  * Tachyon provides native support for tables with multiple columns. Each table contains one or
@@ -58,7 +58,7 @@ public class RawTable {
 
   public RawColumn getRawColumn(int columnIndex) {
     if (columnIndex < 0 || columnIndex >= CLIENT_RAW_TABLE_INFO.getColumns()) {
-      CommonUtils.runtimeException(CLIENT_RAW_TABLE_INFO.getPath() + " does not have column " + 
+      CommonUtils.runtimeException(CLIENT_RAW_TABLE_INFO.getPath() + " does not have column " +
           columnIndex + ". It has " + CLIENT_RAW_TABLE_INFO.getColumns() + " columns.");
     }
 

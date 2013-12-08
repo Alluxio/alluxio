@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package tachyon;
+package tachyon.util;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -24,6 +24,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
+import tachyon.Constants;
+import tachyon.PrefixList;
+import tachyon.UnderFileSystem;
+import tachyon.Version;
 import tachyon.client.TachyonFS;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -87,7 +91,7 @@ public class UnderfsUtil {
       FileDoesNotExistException, FileAlreadyExistException, TException {
     if (!(args.length == 3 || args.length == 4)) {
       String prefix = "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
-          "tachyon.UnderfsUtil ";
+          "tachyon.util.UnderfsUtil ";
       System.out.println("Usage: " + prefix + "<TachyonAddress> <UnderfsAddress> <Path> " +
           "[<ExcludePathPrefix, separated by ;>]");
       System.out.println("Example: " + prefix +

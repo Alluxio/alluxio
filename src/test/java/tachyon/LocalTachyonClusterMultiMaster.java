@@ -31,9 +31,10 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
+import tachyon.util.CommonUtils;
 
 /**
- * A local Tachyon cluster with Multiple masters 
+ * A local Tachyon cluster with Multiple masters
  */
 public class LocalTachyonClusterMultiMaster {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
@@ -102,7 +103,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   WorkerServiceHandler getWorkerServiceHandler() {
-    return mWorker.getWorkerServiceHandler();    
+    return mWorker.getWorkerServiceHandler();
   }
 
   MasterInfo getMasterInfo(int masterIndex) {
@@ -160,7 +161,7 @@ public class LocalTachyonClusterMultiMaster {
         e.printStackTrace();
       }
     }
-  } 
+  }
 
   public void start() throws IOException {
     mTachyonHome = File.createTempFile("Tachyon", "").getAbsoluteFile() + "UnitTest";
@@ -211,7 +212,7 @@ public class LocalTachyonClusterMultiMaster {
     CommonUtils.sleepMs(null, 10);
 
     mWorker = Worker.createWorker(
-        CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()), 
+        CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
         new InetSocketAddress(mLocalhostName, mWorkerPort),
         mWorkerPort + 1, 1, 1, 1, mWorkerDataFolder, mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {

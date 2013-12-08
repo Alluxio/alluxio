@@ -27,13 +27,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
 import tachyon.thrift.ClientWorkerInfo;
+import tachyon.util.CommonUtils;
 
 /**
  * Unit tests on TachyonClient.
