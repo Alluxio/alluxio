@@ -1,5 +1,6 @@
 package tachyon;
 
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -79,7 +80,7 @@ public class Dependency {
   public synchronized String getCommand() {
     // TODO In future, we should support different types of command;
     // For now, assume there is only one command model.
-    StringBuilder sb = new StringBuilder(COMMAND_PREFIX);
+    StringBuilder sb = new StringBuilder(parseCommandPrefix());
     sb.append(" ").append(DependencyVariables.MASTER_HOSTNAME);
     sb.append(":").append(DependencyVariables.MASTER_PORT);
     sb.append(" ").append(ID);
@@ -91,6 +92,30 @@ public class Dependency {
     }
     mLostFileIds.clear();
     return sb.toString();
+  }
+
+  public String parseCommandPrefix() {
+    String rtn = COMMAND_PREFIX;
+    try {
+      for (Field f: RecomputeVariables.class.getFields()) {
+        String propertyName = f.getName();
+        if (f.getGenericType() == String.class) {
+          if (rtn.contains("=" + propertyName)) {
+            rtn = rtn.replaceAll(propertyName, (String) f.get(null));
+          }
+        } else if (f.getGenericType() == int.class) {
+          if (rtn.contains("=" + propertyName)) {
+            rtn = rtn.replaceAll(propertyName, Integer.toString(f.getInt(null)));
+          }
+        } else {
+          // Assuming only int and String types for now.
+          continue;
+        }
+      }
+    } catch (IllegalAccessException e) {
+      CommonUtils.runtimeException(e);
+    }
+    return rtn;
   }
 
   public ClientDependencyInfo generateClientDependencyInfo() {
