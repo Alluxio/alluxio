@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+
+function printUsage {
+  echo "Usage: tachyon COMMAND "
+  echo "where COMMAND is one of:"
+  echo -e "  format        \t Format Tachyon"
+  echo -e "  tfs           \t Command line input for generic filesystem user client."
+  echo -e "  loadufs       \t Load existing files in underlayer filesystem into Tachyon."
+  echo -e "  runTest       \t Run a end-to-end test on a Tachyon cluster."
+  echo -e "  runTests      \t Run all end-to-end tests on a Tachyon cluster."
+  echo -e "  killAll <WORD>\t Kill processes containing the WORD"
+  echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes"
+  echo -e "  thriftGen     \t Generate all thrift code."
+  echo -e "  clearCache    \t Clear OS buffer cache of the machine"
+  echo "Commands print help when invoked without parameters."
+}
+
+if [ "$#" == 0 ]; then
+  printUsage
+  exit 1
+fi
+
+COMMAND=$1
+shift
+
+bin=`cd "$( dirname "$0" )"; pwd`
+
+DEFAULT_LIBEXEC_DIR="$bin"/../libexec
+TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+. $TACHYON_LIBEXEC_DIR/tachyon-config.sh
+
+function runTest {
+  Usage="Usage: tachyon runTest <Basic|BasicRawTable> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH>"
+
+  if [ "$#" -ne 2 ]; then
+    echo $Usage
+    exit 1
+  fi
+
+  MASTER_ADDRESS=$TACHYON_MASTER_ADDRESS
+  if [ -z $TACHYON_MASTER_ADDRESS ] ; then
+    MASTER_ADDRESS=localhost
+  fi
+
+  if [[ "$1" == "Basic" ]]; then
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicOperations $MASTER_ADDRESS:19998 /Basic_File_$2 $2
+    exit 0
+  elif [[ "$1" == "BasicRawTable" ]]; then
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicRawTableOperations $MASTER_ADDRESS:19998 /Basic_Raw_Table_$2 $2
+    exit 0
+  fi
+
+  echo $Usage
+}
+
+function killAll {
+  if [ "$#" -ne 1 ]
+  then
+    echo "Usage: tachyon killAll <WORD>"
+    exit
+  fi
+
+  keyword=$1
+  count=0
+  for pid in `ps -A -o pid,command | grep -i "[j]ava" | grep $keyword | awk '{print $1}'`; do
+    kill -9 $pid 2> /dev/null
+    count=`expr $count + 1`
+  done
+  echo "Killed $count processes"
+}
+
+function copyDir {
+  if [[ "$#" -ne 1 ]] ; then
+    echo "Usage: tachyon copyDir <path>"
+    exit 1
+  fi
+
+  bin=`cd "$( dirname "$0" )"; pwd`
+  SLAVES=`cat $TACHYON_CONF_DIR/slaves`
+
+  DIR=`readlink -f "$1"`
+  DIR=`echo "$DIR"|sed 's@/$@@'`
+  DEST=`dirname "$DIR"`
+
+  SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=5"
+
+  echo "RSYNC'ing $DIR to slaves..."
+  for slave in $SLAVES; do
+      echo $slave
+      rsync -e "ssh $SSH_OPTS" -az "$DIR" "$slave:$DEST" & sleep 0.05
+  done
+  wait
+}
+
+if [ "$COMMAND" == "format" ]; then
+  if [ -z $TACHYON_MASTER_ADDRESS ] ; then
+    TACHYON_MASTER_ADDRESS=localhost
+  fi
+  echo "Formatting Tachyon @ $TACHYON_MASTER_ADDRESS"
+  CLASS=tachyon.Format
+elif [ "$COMMAND" == "tfs" ]; then
+  CLASS=tachyon.command.TFsShell
+elif [ "$COMMAND" == "loadufs" ]; then
+  CLASS=tachyon.UnderfsUtil
+elif [ "$COMMAND" == "runTest" ]; then
+  runTest "$@"
+  exit 0
+elif [ "$COMMAND" == "runTests" ]; then
+  declare -a opArr=(MUST_CACHE TRY_CACHE CACHE_THROUGH THROUGH)
+
+  for op in ${opArr[@]}
+  do
+    echo $bin/tachyon runTest Basic $op
+    $bin/tachyon runTest Basic $op
+    echo $bin/tachyon runTest BasicRawTable $op
+    $bin/tachyon runTest BasicRawTable $op
+  done
+
+  exit 0
+elif [ "$COMMAND" == "killAll" ]; then
+  killAll "$@"
+  exit 0
+elif [ "$COMMAND" == "copyDir" ]; then
+  copyDir "$@"
+  exit 0
+elif [ "$COMMAND" == "thriftGen" ]; then
+  rm -rf $bin/../src/main/java/tachyon/thrift
+  thrift --gen java -out $bin/../src/main/java/. $bin/../src/thrift/tachyon.thrift
+  exit 0
+elif [ "$COMMAND" == "clearCache" ]; then
+  sync; echo 3 > /proc/sys/vm/drop_caches ;
+  exit 0
+else
+  printUsage
+  exit 1
+fi
+
+$JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $@
