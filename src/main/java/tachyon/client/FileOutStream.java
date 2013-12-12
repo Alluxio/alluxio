@@ -97,8 +97,8 @@ public class FileOutStream extends OutStream {
         }
         // TODO Cache the exception here.
         mCurrentBlockOutStream.write(b);
-        mCurrentBlockLeftByte--;
-        mWrittenBytes++;
+        mCurrentBlockLeftByte --;
+        mWrittenBytes ++;
       } catch (IOException ioe) {
         if (WRITE_TYPE.isMustCache()) {
           LOG.error(ioe.getMessage());
