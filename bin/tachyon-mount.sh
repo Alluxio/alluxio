@@ -40,12 +40,45 @@ function init_env() {
   MEM_SIZE=$(echo "$TACHYON_WORKER_MEMORY_SIZE" | tr -s '[:upper:]' '[:lower:]')
 }
 
+#enable the regexp case match
+shopt -s extglob
+function mem_size_to_bytes() {
+  SIZE=${MEM_SIZE//[^0-9]/}
+  case ${MEM_SIZE} in
+    *g?(b) )
+      # Size was specified in gigabytes.
+      BYTE_SIZE=$(($SIZE * 1000000000))
+      ;;
+    *m?(b))
+      # Size was specified in megabytes.
+      BYTE_SIZE=$(($SIZE * 1000000))
+      ;;
+    *k?(b))
+      # Size was specified in kilobytes.
+      BYTE_SIZE=$(($SIZE * 1000))
+      ;;
+    +([0-9])?(b))
+      # Size was specified in bytes.
+      BYTE_SIZE=$SIZE
+      ;;
+    *)
+      echo "Please specify TACHYON_WORKER_MEMORY_SIZE in a correct form."
+      exit 1
+  esac
+}
+
 function mount_ramfs_linux() {
   init_env $1
 
   if [ -z $TACHYON_RAM_FOLDER ] ; then
     TACHYON_RAM_FOLDER=/mnt/ramdisk
     echo "TACHYON_RAM_FOLDER was not set. Using the default one: $TACHYON_RAM_FOLDER"
+  fi
+
+  mem_size_to_bytes
+  FREE_MEM=`free -b | grep "^Mem" | awk '{print $4}'`
+  if [ $FREE_MEM -lt $BYTE_SIZE ] ; then
+    echo "WARNING: Free memory is less than requested ramdisk size"
   fi
 
   F=$TACHYON_RAM_FOLDER
@@ -59,8 +92,6 @@ function mount_ramfs_linux() {
   mount -t ramfs -o size=$MEM_SIZE ramfs $F ; chmod a+w $F ;
 }
 
-#enable the regexp case match
-shopt -s extglob
 function mount_ramfs_mac() {
   init_env $0
 
@@ -116,8 +147,9 @@ function mount_local() {
     # Assuming Linux
     if [[ "$1" == "SudoMount" ]]; then
       DECL_INIT=`declare -f init_env`
+      DECL_MEM_SIZE_TO_BYTES=`declare -f mem_size_to_bytes`
       DECL_MOUNT_LINUX=`declare -f mount_ramfs_linux`
-      sudo bash -c "$DECL_INIT; $DECL_MOUNT_LINUX; mount_ramfs_linux $0"
+      sudo bash -O extglob -c "$DECL_INIT; $DECL_MEM_SIZE_TO_BYTES; $DECL_MOUNT_LINUX; mount_ramfs_linux $0"
     else
       mount_ramfs_linux $0
     fi
