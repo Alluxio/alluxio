@@ -76,9 +76,10 @@ function mount_ramfs_linux() {
   fi
 
   mem_size_to_bytes
-  FREE_MEM=`free -b | grep "^Mem" | awk '{print $4}'`
+  FREE_MEM=`free -b | grep "^Mem" | awk '{print $2}'`
   if [ $FREE_MEM -lt $BYTE_SIZE ] ; then
-    echo "WARNING: Free memory is less than requested ramdisk size"
+    echo "ERROR: Memory is less than requested ramdisk size. Please reduce TACHYON_WORKER_MEMORY_SIZE"
+    exit 1
   fi
 
   F=$TACHYON_RAM_FOLDER
