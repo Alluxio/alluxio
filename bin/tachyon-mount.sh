@@ -47,15 +47,15 @@ function mem_size_to_bytes() {
   case ${MEM_SIZE} in
     *g?(b) )
       # Size was specified in gigabytes.
-      BYTE_SIZE=$(($SIZE * 1000000000))
+      BYTE_SIZE=$(($SIZE * 1024 * 1024 * 1024))
       ;;
     *m?(b))
       # Size was specified in megabytes.
-      BYTE_SIZE=$(($SIZE * 1000000))
+      BYTE_SIZE=$(($SIZE * 1024 * 1024))
       ;;
     *k?(b))
       # Size was specified in kilobytes.
-      BYTE_SIZE=$(($SIZE * 1000))
+      BYTE_SIZE=$(($SIZE * 1024))
       ;;
     +([0-9])?(b))
       # Size was specified in bytes.
@@ -111,29 +111,8 @@ function mount_ramfs_mac() {
   F=${TACHYON_RAM_FOLDER/#\/Volumes\//}
 
   # Convert the memory size to number of sectors. Each sector is 512 Byte.
-  #SIZE is the decimal part of MEM_SIZE
-  SIZE=${MEM_SIZE//[^0-9]/}
-  case ${MEM_SIZE} in
-    *g?(b))
-      # Size was specified in gigabytes.
-      NUM_SECTORS=$(($SIZE * 1024 * 2048))
-      ;;
-    *m?(b))
-      # Size was specified in megabytes.
-      NUM_SECTORS=$(($SIZE * 2048))
-      ;;
-    *k?(b))
-      # Size was specified in kilobytes.
-      NUM_SECTORS=$(($SIZE * 2))
-      ;;
-    +([0-9])?(b))
-      # Size was specified in bytes.
-      NUM_SECTORS=$((SIZE / 512))
-      ;;
-    *)
-      echo "Please specify TACHYON_WORKER_MEMORY_SIZE in a correct form."
-      exit 1
-  esac
+  mem_size_to_bytes
+  NUM_SECTORS=$((BYTE_SIZE / 512))
 
   echo "Formatting RamFS: $F $NUM_SECTORS sectors ($MEM_SIZE)."
   diskutil unmount force /Volumes/$F
