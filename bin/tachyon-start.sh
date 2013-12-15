@@ -70,12 +70,15 @@ check_mount_mode() {
 
 # pass mode as $1
 do_mount() {
+  MOUNT_FAILED=0
   case "${1}" in
     Mount)
       $bin/tachyon-mount.sh $1
+      MOUNT_FAILED=$?
       ;;
     SudoMount)
       $bin/tachyon-mount.sh $1
+      MOUNT_FAILED=$?
       ;;
     NoMount)
       ;;
@@ -103,6 +106,10 @@ start_master() {
 
 start_worker() {
   do_mount $1
+  if  [ $MOUNT_FAILED -ne 0 ] ; then
+    echo "Mount failed, not starting worker"
+    exit 1
+  fi
   echo "Starting worker @ `hostname`"
   (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="WORKER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS tachyon.Worker `hostname` > /dev/null 2>&1 ) &
 }
@@ -177,6 +184,11 @@ case "${WHAT}" in
     stop $bin
     sleep 1
     $bin/tachyon-mount.sh SudoMount
+    stat=$?
+    if [ $stat -ne 0 ] ; then
+      echo "Mount failed, not starting"
+      exit 1
+    fi
     start_master
     sleep 2
     start_worker NoMount
