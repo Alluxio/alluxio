@@ -40,12 +40,46 @@ function init_env() {
   MEM_SIZE=$(echo "$TACHYON_WORKER_MEMORY_SIZE" | tr -s '[:upper:]' '[:lower:]')
 }
 
+#enable the regexp case match
+shopt -s extglob
+function mem_size_to_bytes() {
+  SIZE=${MEM_SIZE//[^0-9]/}
+  case ${MEM_SIZE} in
+    *g?(b) )
+      # Size was specified in gigabytes.
+      BYTE_SIZE=$(($SIZE * 1024 * 1024 * 1024))
+      ;;
+    *m?(b))
+      # Size was specified in megabytes.
+      BYTE_SIZE=$(($SIZE * 1024 * 1024))
+      ;;
+    *k?(b))
+      # Size was specified in kilobytes.
+      BYTE_SIZE=$(($SIZE * 1024))
+      ;;
+    +([0-9])?(b))
+      # Size was specified in bytes.
+      BYTE_SIZE=$SIZE
+      ;;
+    *)
+      echo "Please specify TACHYON_WORKER_MEMORY_SIZE in a correct form."
+      exit 1
+  esac
+}
+
 function mount_ramfs_linux() {
   init_env $1
 
   if [ -z $TACHYON_RAM_FOLDER ] ; then
     TACHYON_RAM_FOLDER=/mnt/ramdisk
     echo "TACHYON_RAM_FOLDER was not set. Using the default one: $TACHYON_RAM_FOLDER"
+  fi
+
+  mem_size_to_bytes
+  FREE_MEM=`free -b | grep "^Mem" | awk '{print $2}'`
+  if [ $FREE_MEM -lt $BYTE_SIZE ] ; then
+    echo "ERROR: Memory is less than requested ramdisk size. Please reduce TACHYON_WORKER_MEMORY_SIZE"
+    exit 1
   fi
 
   F=$TACHYON_RAM_FOLDER
@@ -59,8 +93,6 @@ function mount_ramfs_linux() {
   mount -t ramfs -o size=$MEM_SIZE ramfs $F ; chmod a+w $F ;
 }
 
-#enable the regexp case match
-shopt -s extglob
 function mount_ramfs_mac() {
   init_env $0
 
@@ -79,29 +111,8 @@ function mount_ramfs_mac() {
   F=${TACHYON_RAM_FOLDER/#\/Volumes\//}
 
   # Convert the memory size to number of sectors. Each sector is 512 Byte.
-  #SIZE is the decimal part of MEM_SIZE
-  SIZE=${MEM_SIZE//[^0-9]/}
-  case ${MEM_SIZE} in
-    *g?(b))
-      # Size was specified in gigabytes.
-      NUM_SECTORS=$(($SIZE * 1024 * 2048))
-      ;;
-    *m?(b))
-      # Size was specified in megabytes.
-      NUM_SECTORS=$(($SIZE * 2048))
-      ;;
-    *k?(b))
-      # Size was specified in kilobytes.
-      NUM_SECTORS=$(($SIZE * 2))
-      ;;
-    +([0-9])?(b))
-      # Size was specified in bytes.
-      NUM_SECTORS=$((SIZE / 512))
-      ;;
-    *)
-      echo "Please specify TACHYON_WORKER_MEMORY_SIZE in a correct form."
-      exit 1
-  esac
+  mem_size_to_bytes
+  NUM_SECTORS=$((BYTE_SIZE / 512))
 
   echo "Formatting RamFS: $F $NUM_SECTORS sectors ($MEM_SIZE)."
   diskutil unmount force /Volumes/$F
@@ -116,8 +127,9 @@ function mount_local() {
     # Assuming Linux
     if [[ "$1" == "SudoMount" ]]; then
       DECL_INIT=`declare -f init_env`
+      DECL_MEM_SIZE_TO_BYTES=`declare -f mem_size_to_bytes`
       DECL_MOUNT_LINUX=`declare -f mount_ramfs_linux`
-      sudo bash -c "$DECL_INIT; $DECL_MOUNT_LINUX; mount_ramfs_linux $0"
+      sudo bash -O extglob -c "$DECL_INIT; $DECL_MEM_SIZE_TO_BYTES; $DECL_MOUNT_LINUX; mount_ramfs_linux $0"
     else
       mount_ramfs_linux $0
     fi
