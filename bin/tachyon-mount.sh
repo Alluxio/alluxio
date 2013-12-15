@@ -22,8 +22,8 @@
 # Starts a worker on each node specified in conf/slaves
 
 Usage="Usage: tachyon-mount.sh [Mount|SudoMount] [MACHINE]
-\nIf ommited, MARCHINE is default to be 'local'. MARCHINE is one of:\n
-  local\t\t\tMount local marchine\n
+\nIf omitted, MACHINE is default to be 'local'. MACHINE is one of:\n
+  local\t\t\tMount local machine\n
   workers\t\tMount all the workers on slaves"
 
 function init_env() {
@@ -33,8 +33,9 @@ function init_env() {
   TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
   . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
-  if [ -z TACHYON_WORKER_MEMORY_SIZE ] ; then
-    TACHYON_WORKER_MEMORY_SIZE=128MB
+  if [ -z $TACHYON_WORKER_MEMORY_SIZE ] ; then
+    echo "TACHYON_WORKER_MEMORY_SIZE was not set. Using the default one: 128MB"
+    TACHYON_WORKER_MEMORY_SIZE="128MB"
   fi
 
   MEM_SIZE=$(echo "$TACHYON_WORKER_MEMORY_SIZE" | tr -s '[:upper:]' '[:lower:]')
@@ -43,19 +44,32 @@ function init_env() {
 #enable the regexp case match
 shopt -s extglob
 function mem_size_to_bytes() {
-  SIZE=${MEM_SIZE//[^0-9]/}
+  float_scale=2
+  function float_eval() {
+    local stat=0
+    local result=0.0
+    if [[ $# -gt 0 ]]; then
+      result=$(echo "scale=$float_scale; $*" | bc -q 2>/dev/null)
+      stat=$?
+      if [[ $stat -eq 0  &&  -z "$result" ]]; then stat=1; fi
+    fi
+    echo $( printf "%.0f" $result )
+    return $( printf "%.0f" $stat )
+  }
+
+  SIZE=${MEM_SIZE//[^0-9.]/}
   case ${MEM_SIZE} in
     *g?(b) )
       # Size was specified in gigabytes.
-      BYTE_SIZE=$(($SIZE * 1024 * 1024 * 1024))
+      BYTE_SIZE=$(float_eval "$SIZE * 1024 * 1024 * 1024")
       ;;
     *m?(b))
       # Size was specified in megabytes.
-      BYTE_SIZE=$(($SIZE * 1024 * 1024))
+      BYTE_SIZE=$(float_eval "$SIZE * 1024 * 1024")
       ;;
     *k?(b))
       # Size was specified in kilobytes.
-      BYTE_SIZE=$(($SIZE * 1024))
+      BYTE_SIZE=$(float_eval "$SIZE * 1024")
       ;;
     +([0-9])?(b))
       # Size was specified in bytes.
@@ -78,7 +92,7 @@ function mount_ramfs_linux() {
   mem_size_to_bytes
   FREE_MEM=`free -b | grep "^Mem" | awk '{print $2}'`
   if [ $FREE_MEM -lt $BYTE_SIZE ] ; then
-    echo "ERROR: Memory is less than requested ramdisk size. Please reduce TACHYON_WORKER_MEMORY_SIZE"
+    echo "ERROR: Memory($FREE_MEM) is less than requested ramdisk size($BYTE_SIZE). Please reduce TACHYON_WORKER_MEMORY_SIZE"
     exit 1
   fi
 
