@@ -16,9 +16,8 @@
  */
 package tachyon;
 
-import tachyon.conf.MasterConf;
+import java.util.Hashtable;
 
 public class RecomputeVariables {
-  public static String HOSTNAME = MasterConf.get().HOSTNAME;
-  public static int PORT = MasterConf.get().PORT;
+  public static Hashtable<String, String> _recomputeVars = new Hashtable<String, String>();
 }

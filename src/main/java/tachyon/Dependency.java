@@ -1,6 +1,5 @@
 package tachyon;
 
-import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -96,24 +95,8 @@ public class Dependency {
 
   public String parseCommandPrefix() {
     String rtn = COMMAND_PREFIX;
-    try {
-      for (Field f: RecomputeVariables.class.getFields()) {
-        String propertyName = f.getName();
-        if (f.getGenericType() == String.class) {
-          if (rtn.contains("=" + propertyName)) {
-            rtn = rtn.replaceAll(propertyName, (String) f.get(null));
-          }
-        } else if (f.getGenericType() == int.class) {
-          if (rtn.contains("=" + propertyName)) {
-            rtn = rtn.replaceAll(propertyName, Integer.toString(f.getInt(null)));
-          }
-        } else {
-          // Assuming only int and String types for now.
-          continue;
-        }
-      }
-    } catch (IllegalAccessException e) {
-      CommonUtils.runtimeException(e);
+    for (String s : RecomputeVariables._recomputeVars.keySet()) {
+      rtn = rtn.replace("$" + s, RecomputeVariables._recomputeVars.get(s));
     }
     return rtn;
   }
