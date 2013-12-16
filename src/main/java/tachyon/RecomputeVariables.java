@@ -19,5 +19,5 @@ package tachyon;
 import java.util.Hashtable;
 
 public class RecomputeVariables {
-  public static Hashtable<String, String> _recomputeVars = new Hashtable<String, String>();
+  public static Hashtable<String, String> sRecomputeVars = new Hashtable<String, String>();
 }

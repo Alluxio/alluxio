@@ -95,8 +95,8 @@ public class Dependency {
 
   public String parseCommandPrefix() {
     String rtn = COMMAND_PREFIX;
-    for (String s : RecomputeVariables._recomputeVars.keySet()) {
-      rtn = rtn.replace("$" + s, RecomputeVariables._recomputeVars.get(s));
+    for (String s : RecomputeVariables.sRecomputeVars.keySet()) {
+      rtn = rtn.replace("$" + s, RecomputeVariables.sRecomputeVars.get(s));
     }
     return rtn;
   }
