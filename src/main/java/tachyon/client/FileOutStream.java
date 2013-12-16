@@ -49,6 +49,7 @@ public class FileOutStream extends OutStream {
 
     BLOCK_CAPACITY = file.getBlockSizeByte();
 
+    // TODO Support and test append.
     mCurrentBlockOutStream = null;
     mCanCache = true;
     mCurrentBlockId = -1;
