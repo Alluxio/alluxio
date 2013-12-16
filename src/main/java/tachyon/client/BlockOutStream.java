@@ -180,7 +180,7 @@ public class BlockOutStream extends OutStream {
 
   @Override
   public void flush() throws IOException {
-    throw new IOException("Not supported yet.");
+    // Since this only writes to memory memory, this flush is not outside visible.
   }
 
   @Override

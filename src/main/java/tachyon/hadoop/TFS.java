@@ -71,10 +71,20 @@ public class TFS extends FileSystem {
   }
 
   @Override
-  public FSDataOutputStream append(Path path, int bufferSize, Progressable progress)
+  public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)
       throws IOException {
-    LOG.info("append(" + path + ", " + bufferSize + ", " + progress + ")");
-    throw new IOException("Not supported");
+    LOG.info("append(" + cPath + ", " + bufferSize + ", " + progress + ")");
+
+    String path = Utils.getPathWithoutScheme(cPath);
+    fromHdfsToTachyon(path);
+    int fileId = mTFS.getFileId(path);
+    TachyonFile file = mTFS.getFile(fileId);
+
+    if (file.length() > 0) {
+      LOG.warn("This maybe an error.");
+    }
+
+    return new FSDataOutputStream(file.getOutStream(WriteType.CACHE_THROUGH), null);
   }
 
   @Override
