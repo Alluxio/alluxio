@@ -106,12 +106,12 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    RecomputeVariables._recomputeVars.clear();
+    RecomputeVariables.sRecomputeVars.clear();
     for (String key : (Set<String>) request.getParameterMap().keySet()) {
       if (key.startsWith("varName")) {
         String value = request.getParameter("varVal" + key.substring(7));
         if (value != null) {
-          RecomputeVariables._recomputeVars.put(request.getParameter(key), value);
+          RecomputeVariables.sRecomputeVars.put(request.getParameter(key), value);
         }
       }
     }
@@ -166,7 +166,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("diskFreeCapacity", "UNKNOWN");
     }
 
-    request.setAttribute("recomputeVariables", RecomputeVariables._recomputeVars);
+    request.setAttribute("recomputeVariables", RecomputeVariables.sRecomputeVars);
 
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
     for (int i = 0; i < workerInfos.size(); i ++) {
