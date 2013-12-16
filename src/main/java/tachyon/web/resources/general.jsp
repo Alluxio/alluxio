@@ -291,10 +291,11 @@
   </footer>
 </div>
 <script>
+var id = ($("#recomputationVars").children().length).toString();
 $(document).ready(function () {
   $("#addVariable").click(function () {
-    var id = ($("#recomputationVars").children().length).toString();
     $("#recomputationVars").append('<div id="varDiv' + id + '"><div class="input-prepend" style="padding-right: 4px"><span class="add-on">Name</span><input class="span8" name="varName' + id + '" type="text" value="Variable Name"></div><div class="input-prepend"><span class="add-on">Value</span><input class="span8" type="text" name="varVal' + id + '" value="Value"><input style="margin-left:10px" class="btn btn-danger" type="button" value="Delete" onclick="deleteVar(varDiv' + id + ')"/></div></br></div>');
+    id ++;
   });
 });
 
