@@ -31,24 +31,27 @@ import tachyon.conf.MasterConf;
 
 public class DependencyTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
+  private String mMasterValue = "localhost";
+  private String mPortValue = "8080";
 
   @Before
   public final void before() throws IOException {
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
+    RecomputeVariables._recomputeVars.put("master", mMasterValue);
+    RecomputeVariables._recomputeVars.put("port", mPortValue);
   }
 
   @After
   public final void after() throws Exception {
+    RecomputeVariables._recomputeVars.clear();
     mLocalTachyonCluster.stop();
   }
 
   @Test
   public void ParseCommandPrefixTest() {
-    String cmd = "java test.jar -Dtachyon.master.hostname=HOSTNAME -Dtachyon.master.port=PORT " +
-        "-Dtachyon.master.web.port=50000";
-    String parsedCmd = "java test.jar -Dtachyon.master.hostname=" + MasterConf.get().HOSTNAME +
-        " -Dtachyon.master.port=" + MasterConf.get().PORT + " -Dtachyon.master.web.port=50000";
+    String cmd = "java test.jar $master:$port";
+    String parsedCmd = "java test.jar localhost:8080";
     List<Integer> parents = new ArrayList<Integer>();
     List<Integer> children = new ArrayList<Integer>();
     List<ByteBuffer> data = new ArrayList<ByteBuffer>();
