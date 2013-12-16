@@ -17,6 +17,7 @@
 package tachyon.web;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import tachyon.CommonUtils;
 import tachyon.Constants;
 import tachyon.MasterInfo;
+import tachyon.RecomputeVariables;
 import tachyon.Version;
 import tachyon.thrift.ClientWorkerInfo;
 
@@ -82,7 +84,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     public String getUptimeClockTime() {
       return UPTIME_CLOCK_TIME;
-    } 
+    }
   }
 
   public WebInterfaceGeneralServlet(MasterInfo masterInfo) {
@@ -93,23 +95,34 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
    * Redirects the request to a jsp after populating attributes via populateValues.
    * @param request The HttpServletRequest object
    * @param response The HttpServletResponse object
-   */  
+   */
   @Override
-  protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+  protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     populateValues(request);
     getServletContext().getRequestDispatcher("/general.jsp").forward(request, response);
   }
 
   @Override
-  protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-    return;
+  protected void doPost(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+    RecomputeVariables.sRecomputeVars.clear();
+    for (String key : (Set<String>) request.getParameterMap().keySet()) {
+      if (key.startsWith("varName")) {
+        String value = request.getParameter("varVal" + key.substring(7));
+        if (value != null) {
+          RecomputeVariables.sRecomputeVars.put(request.getParameter(key), value);
+        }
+      }
+    }
+    populateValues(request);
+    getServletContext().getRequestDispatcher("/general.jsp").forward(request, response);
   }
 
   /**
    * Populates key, value pairs for UI display
    * @param request The HttpServletRequest object
-   * @throws IOException 
+   * @throws IOException
    */
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);
@@ -128,7 +141,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("capacity", CommonUtils.getSizeFromBytes(mMasterInfo.getCapacityBytes()));
 
     request.setAttribute("usedCapacity", CommonUtils.getSizeFromBytes(mMasterInfo.getUsedBytes()));
-      
+
     request.setAttribute("freeCapacity", CommonUtils.getSizeFromBytes(
         (mMasterInfo.getCapacityBytes() - mMasterInfo.getUsedBytes())));
 
@@ -151,7 +164,9 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("diskFreeCapacity", CommonUtils.getSizeFromBytes(sizeBytes));
     } else {
       request.setAttribute("diskFreeCapacity", "UNKNOWN");
-    }      
+    }
+
+    request.setAttribute("recomputeVariables", RecomputeVariables.sRecomputeVars);
 
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
     for (int i = 0; i < workerInfos.size(); i ++) {
