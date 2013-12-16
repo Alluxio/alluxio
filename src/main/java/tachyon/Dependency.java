@@ -79,7 +79,7 @@ public class Dependency {
   public synchronized String getCommand() {
     // TODO In future, we should support different types of command;
     // For now, assume there is only one command model.
-    StringBuilder sb = new StringBuilder(COMMAND_PREFIX);
+    StringBuilder sb = new StringBuilder(parseCommandPrefix());
     sb.append(" ").append(DependencyVariables.MASTER_HOSTNAME);
     sb.append(":").append(DependencyVariables.MASTER_PORT);
     sb.append(" ").append(ID);
@@ -91,6 +91,14 @@ public class Dependency {
     }
     mLostFileIds.clear();
     return sb.toString();
+  }
+
+  public String parseCommandPrefix() {
+    String rtn = COMMAND_PREFIX;
+    for (String s : RecomputeVariables.sRecomputeVars.keySet()) {
+      rtn = rtn.replace("$" + s, RecomputeVariables.sRecomputeVars.get(s));
+    }
+    return rtn;
   }
 
   public ClientDependencyInfo generateClientDependencyInfo() {
