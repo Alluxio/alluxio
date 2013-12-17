@@ -22,13 +22,16 @@ if [[ `uname -a` == Darwin* ]]; then
 else
   # Assuming Linux
   export TACHYON_RAM_FOLDER=/mnt/ramdisk
-  export JAVA_HOME=/usr/lib/jvm/java-7-oracle
+  if [ -z "$JAVA_HOME" ]; then
+    export JAVA_HOME=/usr/lib/jvm/java-7-oracle
+  fi
 fi
 
 export JAVA="$JAVA_HOME/bin/java"
 export TACHYON_MASTER_ADDRESS=localhost
 export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:8020
 export TACHYON_WORKER_MEMORY_SIZE=1GB
+export TACHYON_UNDERFS_HDFS_IMPL=org.apache.hadoop.hdfs.DistributedFileSystem
 
 CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
