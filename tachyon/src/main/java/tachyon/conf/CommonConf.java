@@ -34,7 +34,7 @@ public class CommonConf extends Utils {
 
   private CommonConf() {
     TACHYON_HOME = getProperty("tachyon.home");
-    UNDERFS_ADDRESS = getProperty("tachyon.underfs.address", TACHYON_HOME);
+    UNDERFS_ADDRESS = getProperty("tachyon.underfs.address", TACHYON_HOME + "/underfs");
     UNDERFS_DATA_FOLDER = UNDERFS_ADDRESS + getProperty("tachyon.data.folder", "/tachyon/data");
     UNDERFS_WORKERS_FOLDER = 
         UNDERFS_ADDRESS + getProperty("tachyon.workers.folder", "/tachyon/workers");
