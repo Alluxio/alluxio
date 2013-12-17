@@ -21,7 +21,7 @@
   <artifactId>tachyon-parent</artifactId>
   <version>0.4.0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <name>Tachyon Project Parent POM</name>
+  <name>Tachyon Project Parent</name>
   <url>http://tachyonproject.org/</url>
   <licenses>
     <license>

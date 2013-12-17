@@ -27,7 +27,7 @@
   <artifactId>tachyon-server</artifactId>
   <version>0.4.0-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <name>Tachyon Project POM</name>
+  <name>Tachyon Project Server</name>
   <url>http://tachyonproject.org/</url>
 
   <dependencies>
