@@ -41,7 +41,7 @@ public class FileOutStream extends OutStream {
   private long mCurrentBlockId;
   private long mCurrentBlockLeftByte;
   private List<BlockOutStream> mPreviousBlockOutStreams;
-  private long mWrittenBytes;
+  private long mCachedBytes;
 
   private OutputStream mCheckpointOutputStream = null;
   private String mUnderFsFile = null;
@@ -58,7 +58,7 @@ public class FileOutStream extends OutStream {
     mCurrentBlockId = -1;
     mCurrentBlockLeftByte = 0;
     mPreviousBlockOutStreams = new ArrayList<BlockOutStream>();
-    mWrittenBytes = 0;
+    mCachedBytes = 0;
 
     if (WRITE_TYPE.isThrough()) {
       mUnderFsFile = TFS.createAndGetUserUnderfsTempFolder() + "/" + FILE.FID;
@@ -80,11 +80,11 @@ public class FileOutStream extends OutStream {
     }
 
     if (WRITE_TYPE.isCache()) {
-      mCurrentBlockId = TFS.getBlockIdBasedOnOffset(FILE.FID, mWrittenBytes);
+      mCurrentBlockId = TFS.getBlockIdBasedOnOffset(FILE.FID, mCachedBytes);
       mCurrentBlockLeftByte = BLOCK_CAPACITY;
 
       mCurrentBlockOutStream =
-          new BlockOutStream(FILE, WRITE_TYPE, (int) (mWrittenBytes / BLOCK_CAPACITY));
+          new BlockOutStream(FILE, WRITE_TYPE, (int) (mCachedBytes / BLOCK_CAPACITY));
     }
   }
 
@@ -98,7 +98,7 @@ public class FileOutStream extends OutStream {
         // TODO Cache the exception here.
         mCurrentBlockOutStream.write(b);
         mCurrentBlockLeftByte --;
-        mWrittenBytes ++;
+        mCachedBytes ++;
       } catch (IOException ioe) {
         if (WRITE_TYPE.isMustCache()) {
           LOG.error(ioe.getMessage());
@@ -141,14 +141,14 @@ public class FileOutStream extends OutStream {
           if (mCurrentBlockLeftByte > tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
             mCurrentBlockLeftByte -= tLen;
-            mWrittenBytes += tLen;
+            mCachedBytes += tLen;
             tOff += tLen;
             tLen = 0;
           } else {
             mCurrentBlockOutStream.write(b, tOff, (int) mCurrentBlockLeftByte);
             tOff += mCurrentBlockLeftByte;
             tLen -= mCurrentBlockLeftByte;
-            mWrittenBytes += mCurrentBlockLeftByte;
+            mCachedBytes += mCurrentBlockLeftByte;
             mCurrentBlockLeftByte = 0;
           }
         }
