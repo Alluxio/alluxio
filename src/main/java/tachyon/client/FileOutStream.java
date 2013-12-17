@@ -191,6 +191,20 @@ public class FileOutStream extends OutStream {
         mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
       }
 
+      Boolean canComplete = false;
+      if (WRITE_TYPE.isThrough()) {
+        if (mCancel) {
+          mCheckpointOutputStream.close();
+          UnderFileSystem underFsClient = UnderFileSystem.get(mUnderFsFile);
+          underFsClient.delete(mUnderFsFile, false);
+        } else {
+          mCheckpointOutputStream.flush();
+          mCheckpointOutputStream.close();
+          TFS.addCheckpoint(FILE.FID);
+          canComplete = true;
+        }
+      }
+      
       if (WRITE_TYPE.isCache()) {
         try {
           if(mCancel){
@@ -201,7 +215,7 @@ public class FileOutStream extends OutStream {
             for (BlockOutStream bos : mPreviousBlockOutStreams) {
               bos.close();
             }
-            TFS.completeFile(FILE.FID);
+            canComplete = true;
           }
         } catch (IOException ioe) {
           if (WRITE_TYPE.isMustCache()) {
@@ -211,19 +225,10 @@ public class FileOutStream extends OutStream {
             LOG.warn("Fail to cache for: " + ioe.getMessage());
           }
         }
-      }
-
-      if (WRITE_TYPE.isThrough()) {
-        if (mCancel) {
-          mCheckpointOutputStream.close();
-          UnderFileSystem underFsClient = UnderFileSystem.get(mUnderFsFile);
-          underFsClient.delete(mUnderFsFile, false);
-        } else {
-          mCheckpointOutputStream.flush();
-          mCheckpointOutputStream.close();
-          TFS.addCheckpoint(FILE.FID);
-          TFS.completeFile(FILE.FID);
-        }
+      }   
+      
+      if (canComplete) {
+        TFS.completeFile(FILE.FID);
       }
     }
 
