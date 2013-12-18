@@ -47,10 +47,10 @@ public class UnsafeDirectByteBufferWriter extends ByteBufferWriter {
 
       Field addressField = Buffer.class.getDeclaredField("address");
       addressField.setAccessible(true);
-      mBaseOffset = (long) addressField.get(buf);
+      mBaseOffset = ((Long)addressField.get(buf)).longValue();
       mOffset = mBaseOffset;
-    } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | 
-        IllegalAccessException e) {
+      
+    } catch (Exception e) {
       throw new IOException(e);
     }
   }

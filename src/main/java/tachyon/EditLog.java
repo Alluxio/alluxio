@@ -166,9 +166,7 @@ public class EditLog {
         default:
           throw new IOException("Invalid op type " + op);
         }
-      } catch (SuspectedFileSizeException | BlockInfoException | FileDoesNotExistException |
-          FileAlreadyExistException | InvalidPathException | TachyonException |
-          TableDoesNotExistException e) {
+      } catch (Exception e) {
         throw new IOException(e);
       }
     }

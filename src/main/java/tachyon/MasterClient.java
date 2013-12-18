@@ -236,7 +236,9 @@ public class MasterClient {
       connect();
       try {
         return mClient.liststatus(path);
-      } catch (InvalidPathException | FileDoesNotExistException e) {
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
@@ -268,7 +270,11 @@ public class MasterClient {
       connect();
       try {
         return mClient.user_createFile(path, blockSizeByte);
-      } catch (FileAlreadyExistException | InvalidPathException | BlockInfoException e) {
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (BlockInfoException e) {
         throw new IOException(e);
       } catch (TachyonException e) {
         throw new IOException(e);
@@ -286,8 +292,15 @@ public class MasterClient {
       connect();
       try {
         return mClient.user_createFileOnCheckpoint(path, checkpointPath);
-      } catch (FileAlreadyExistException | InvalidPathException | SuspectedFileSizeException |
-          BlockInfoException | TachyonException e) {
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (SuspectedFileSizeException e) {
+        throw new IOException(e);
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
@@ -321,8 +334,13 @@ public class MasterClient {
       connect();
       try {
         return mClient.user_createRawTable(path, columns, metadata);
-      } catch (FileAlreadyExistException | InvalidPathException | TableColumnException |
-          TachyonException e) {
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TableColumnException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
@@ -400,7 +418,9 @@ public class MasterClient {
       connect();
       try {
         return mClient.user_getClientFileInfoByPath(path);
-      } catch (FileDoesNotExistException | InvalidPathException e) {
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
@@ -494,7 +514,9 @@ public class MasterClient {
         ClientRawTableInfo ret = mClient.user_getClientRawTableInfoByPath(path);
         ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
         return ret;
-      } catch (TableDoesNotExistException | InvalidPathException e) {
+      } catch (TableDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
@@ -528,9 +550,11 @@ public class MasterClient {
       connect();
       try {
         return mClient.user_getNumberOfFiles(folderPath);
-      } catch (FileDoesNotExistException | InvalidPathException e) {
+      } catch (FileDoesNotExistException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch(InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {      
         LOG.error(e.getMessage());
         mIsConnected = false;
       }
@@ -557,7 +581,9 @@ public class MasterClient {
       connect();
       try {
         return mClient.user_listFiles(path, recursive);
-      } catch (FileDoesNotExistException | InvalidPathException e) {
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      }  catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
@@ -573,7 +599,9 @@ public class MasterClient {
       connect();
       try {
         return mClient.user_ls(path, recursive);
-      } catch (FileDoesNotExistException | InvalidPathException e) {
+      } catch (FileDoesNotExistException  e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
@@ -589,7 +617,11 @@ public class MasterClient {
       connect();
       try {
         return mClient.user_mkdir(path);
-      } catch (FileAlreadyExistException | InvalidPathException | TachyonException e) {
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
@@ -619,7 +651,11 @@ public class MasterClient {
       try {
         mClient.user_rename(srcPath, dstPath);
         return;
-      } catch (FileAlreadyExistException | FileDoesNotExistException | InvalidPathException e) {
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
@@ -634,7 +670,11 @@ public class MasterClient {
       try {
         mClient.user_renameTo(fId, path);
         return;
-      } catch (FileAlreadyExistException | FileDoesNotExistException | InvalidPathException e) {
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
@@ -665,9 +705,11 @@ public class MasterClient {
       try {
         mClient.user_updateRawTableMetadata(id, metadata);
         return;
-      } catch (TableDoesNotExistException | TachyonException e) {
+      } catch (TableDoesNotExistException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      }  catch (TTransportException e) {
         LOG.error(e.getMessage());
         mIsConnected = false;
       }

@@ -45,8 +45,7 @@ public class UnsafeHeapByteBufferWriter extends ByteBufferWriter {
 
     try {
       mUnsafe = UnsafeUtils.getUnsafe();
-    } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | 
-        IllegalAccessException e) {
+    } catch (Exception e) {
       throw new IOException(e);
     }
 

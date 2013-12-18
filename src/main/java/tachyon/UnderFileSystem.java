@@ -58,7 +58,7 @@ public abstract class UnderFileSystem {
     return null;
   }
 
-  public abstract void changeToFullPermission(String path);
+  public abstract void changeToFullPermission(String path) throws IOException;
 
   public abstract void close() throws IOException;
 
