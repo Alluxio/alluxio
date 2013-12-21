@@ -21,6 +21,10 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import tachyon.Constants;
 import tachyon.UnderFileSystem;
 
 /**
@@ -29,14 +33,15 @@ import tachyon.UnderFileSystem;
  * the client code.
  */
 public class FileOutStream extends OutStream {
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  
   private final long BLOCK_CAPACITY;
 
   private BlockOutStream mCurrentBlockOutStream;
-  private boolean mCanCache;
   private long mCurrentBlockId;
   private long mCurrentBlockLeftByte;
   private List<BlockOutStream> mPreviousBlockOutStreams;
-  private long mWrittenBytes;
+  private long mCachedBytes;
 
   private OutputStream mCheckpointOutputStream = null;
   private String mUnderFsFile = null;
@@ -51,11 +56,10 @@ public class FileOutStream extends OutStream {
 
     // TODO Support and test append.
     mCurrentBlockOutStream = null;
-    mCanCache = true;
     mCurrentBlockId = -1;
     mCurrentBlockLeftByte = 0;
     mPreviousBlockOutStreams = new ArrayList<BlockOutStream>();
-    mWrittenBytes = 0;
+    mCachedBytes = 0;
 
     if (WRITE_TYPE.isThrough()) {
       mUnderFsFile = TFS.createAndGetUserUnderfsTempFolder() + "/" + FILE.FID;
@@ -77,30 +81,40 @@ public class FileOutStream extends OutStream {
     }
 
     if (WRITE_TYPE.isCache()) {
-      mCurrentBlockId = TFS.getBlockIdBasedOnOffset(FILE.FID, mWrittenBytes);
+      mCurrentBlockId = TFS.getBlockIdBasedOnOffset(FILE.FID, mCachedBytes);
       mCurrentBlockLeftByte = BLOCK_CAPACITY;
 
       mCurrentBlockOutStream =
-          new BlockOutStream(FILE, WRITE_TYPE, (int) (mWrittenBytes / BLOCK_CAPACITY));
+          new BlockOutStream(FILE, WRITE_TYPE, (int) (mCachedBytes / BLOCK_CAPACITY));
     }
   }
 
   @Override
   public void write(int b) throws IOException {
-    if (WRITE_TYPE.isCache() && mCanCache) {
-      if (mCurrentBlockId == -1 || mCurrentBlockLeftByte == 0) {
-        getNextBlock();
+    if (WRITE_TYPE.isCache()) {
+      try {
+        if (mCurrentBlockId == -1 || mCurrentBlockLeftByte == 0) {
+          getNextBlock();
+        }
+        // TODO Cache the exception here.
+        mCurrentBlockOutStream.write(b);
+        mCurrentBlockLeftByte --;
+        mCachedBytes ++;
+      } catch (IOException ioe) {
+        if (WRITE_TYPE.isMustCache()) {
+          LOG.error(ioe.getMessage());
+          throw new IOException("Fail to cache: " + WRITE_TYPE);
+        } else {
+          LOG.warn("Fail to cache for: " + ioe.getMessage());
+        }
       }
-      // TODO Cache the exception here.
-      mCurrentBlockOutStream.write(b);
-      mCurrentBlockLeftByte --;
     }
 
     if (WRITE_TYPE.isThrough()) {
       mCheckpointOutputStream.write(b);
     }
 
-    mWrittenBytes ++;
+    
   }
 
   @Override
@@ -118,7 +132,7 @@ public class FileOutStream extends OutStream {
     }
 
     if (WRITE_TYPE.isCache()) {
-      if (mCanCache) {
+      try {
         int tLen = len;
         int tOff = off;
         while (tLen > 0) {
@@ -128,19 +142,24 @@ public class FileOutStream extends OutStream {
           if (mCurrentBlockLeftByte > tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
             mCurrentBlockLeftByte -= tLen;
-            mWrittenBytes += tLen;
+            mCachedBytes += tLen;
             tOff += tLen;
             tLen = 0;
           } else {
             mCurrentBlockOutStream.write(b, tOff, (int) mCurrentBlockLeftByte);
             tOff += mCurrentBlockLeftByte;
             tLen -= mCurrentBlockLeftByte;
-            mWrittenBytes += mCurrentBlockLeftByte;
+            mCachedBytes += mCurrentBlockLeftByte;
             mCurrentBlockLeftByte = 0;
           }
         }
-      } else if (WRITE_TYPE.isMustCache()) {
-        throw new IOException("Can not cache: " + WRITE_TYPE);
+      } catch (IOException ioe) {
+        if (WRITE_TYPE.isMustCache()) {
+          LOG.error(ioe.getMessage());
+          throw new IOException("Fail to cache: " + WRITE_TYPE);
+        } else {
+          LOG.warn("Fail to cache for: " + ioe.getMessage());
+        }
       }
     }
 
@@ -173,41 +192,47 @@ public class FileOutStream extends OutStream {
         mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
       }
 
-      if (mCancel) {
-        if (WRITE_TYPE.isCache()) {
-          for (BlockOutStream bos : mPreviousBlockOutStreams) {
-            bos.cancel();
-          }
-        }
-
-        if (WRITE_TYPE.isThrough()) {
+      Boolean canComplete = false;
+      if (WRITE_TYPE.isThrough()) {
+        if (mCancel) {
           mCheckpointOutputStream.close();
           UnderFileSystem underFsClient = UnderFileSystem.get(mUnderFsFile);
           underFsClient.delete(mUnderFsFile, false);
-        }
-      } else {
-        if (WRITE_TYPE.isCache()) {
-          try {
-            for (int k = 0; k < mPreviousBlockOutStreams.size(); k ++) {
-              mPreviousBlockOutStreams.get(k).close();
-            }
-
-            TFS.completeFile(FILE.FID);
-          } catch (IOException e) {
-            if (WRITE_TYPE == WriteType.MUST_CACHE) {
-              throw e;
-            }
-          }
-        }
-
-        if (WRITE_TYPE.isThrough()) {
+        } else {
           mCheckpointOutputStream.flush();
           mCheckpointOutputStream.close();
           TFS.addCheckpoint(FILE.FID);
-          TFS.completeFile(FILE.FID);
+          canComplete = true;
         }
       }
+      
+      if (WRITE_TYPE.isCache()) {
+        try {
+          if(mCancel){
+            for (BlockOutStream bos : mPreviousBlockOutStreams) {
+              bos.cancel();
+            }
+          }else {
+            for (BlockOutStream bos : mPreviousBlockOutStreams) {
+              bos.close();
+            }
+            canComplete = true;
+          }
+        } catch (IOException ioe) {
+          if (WRITE_TYPE.isMustCache()) {
+            LOG.error(ioe.getMessage());
+            throw new IOException("Fail to cache: " + WRITE_TYPE);
+          } else {
+            LOG.warn("Fail to cache for: " + ioe.getMessage());
+          }
+        }
+      }   
+      
+      if (canComplete) {
+        TFS.completeFile(FILE.FID);
+      }
     }
+
     mClosed = true;
   }
 
