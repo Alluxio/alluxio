@@ -475,7 +475,21 @@ public class MasterInfo {
     }
   }
 
-
+  /**
+   * Create a file.
+   * // TODO Make this API better.
+   * @param recursive
+   * @param path
+   * @param directory
+   * @param columns
+   * @param metadata
+   * @param blockSizeByte
+   * @return
+   * @throws FileAlreadyExistException
+   * @throws InvalidPathException
+   * @throws BlockInfoException
+   * @throws TachyonException
+   */
   public int createFile(boolean recursive, String path, boolean directory, int columns,
       ByteBuffer metadata, long blockSizeByte)
           throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
@@ -768,8 +782,8 @@ public class MasterInfo {
   }
 
   /**
-   * Delete a file.
-   * @param fileId The file to be deleted.
+   * Delete a file based on the file's ID.
+   * @param fileId the file to be deleted.
    * @param recursive whether delete the file recursively or not.
    * @return succeed or not
    * @throws TachyonException
@@ -783,6 +797,13 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Delete a file based on the file's path.
+   * @param path The file to be deleted.
+   * @param recursive whether delete the file recursively or not.
+   * @return succeed or not
+   * @throws TachyonException
+   */
   public boolean delete(String path, boolean recursive) throws TachyonException {
     LOG.info("delete(" + path + ")");
     synchronized (mRoot) {
@@ -813,6 +834,10 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Get the capacity of the whole system.
+   * @return the system's capacity in bytes.
+   */
   public long getCapacityBytes() {
     long ret = 0;
     synchronized (mWorkers) {

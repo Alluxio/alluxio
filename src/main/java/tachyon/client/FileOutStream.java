@@ -34,7 +34,7 @@ import tachyon.UnderFileSystem;
  */
 public class FileOutStream extends OutStream {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  
+
   private final long BLOCK_CAPACITY;
 
   private BlockOutStream mCurrentBlockOutStream;
@@ -113,8 +113,6 @@ public class FileOutStream extends OutStream {
     if (WRITE_TYPE.isThrough()) {
       mCheckpointOutputStream.write(b);
     }
-
-    
   }
 
   @Override
@@ -205,7 +203,7 @@ public class FileOutStream extends OutStream {
           canComplete = true;
         }
       }
-      
+
       if (WRITE_TYPE.isCache()) {
         try {
           if(mCancel){
@@ -227,7 +225,7 @@ public class FileOutStream extends OutStream {
           }
         }
       }   
-      
+
       if (canComplete) {
         TFS.completeFile(FILE.FID);
       }
