@@ -481,12 +481,14 @@ public class MasterInfo {
           throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
           TachyonException {
     long creationTimeMs = System.currentTimeMillis();
-    int ret =
-        _createFile(recursive, path, directory, columns, metadata, blockSizeByte, creationTimeMs);
-    mJournal.getEditLog().createFile(
-        recursive, path, directory, columns, metadata, blockSizeByte, creationTimeMs);
-    mJournal.getEditLog().flush();
-    return ret;
+    synchronized (mRoot) {
+      int ret =
+          _createFile(recursive, path, directory, columns, metadata, blockSizeByte, creationTimeMs);
+      mJournal.getEditLog().createFile(
+          recursive, path, directory, columns, metadata, blockSizeByte, creationTimeMs);
+      mJournal.getEditLog().flush();
+      return ret;
+    }
   }
 
   public void createImage(DataOutputStream os) throws IOException {
@@ -773,10 +775,12 @@ public class MasterInfo {
    * @throws TachyonException
    */
   public boolean delete(int fileId, boolean recursive) throws TachyonException {
-    boolean ret = _delete(fileId, recursive);
-    mJournal.getEditLog().delete(fileId, recursive);
-    mJournal.getEditLog().flush();
-    return ret;
+    synchronized (mRoot) {
+      boolean ret = _delete(fileId, recursive);
+      mJournal.getEditLog().delete(fileId, recursive);
+      mJournal.getEditLog().flush();
+      return ret;
+    }
   }
 
   public boolean delete(String path, boolean recursive) throws TachyonException {
