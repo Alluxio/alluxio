@@ -122,14 +122,6 @@ restart_worker() {
   fi
 }
 
-run_on_slaves() {
-  HOSTLIST=$TACHYON_CONF_DIR/slaves
-  for slave in `cat "$HOSTLIST"|sed  "s/#.*$//;/^$/d"`; do
-    ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no $slave $"${@// /\\ }" 2>&1 | sed "s/^/$slave: /" &
-    sleep 0.02
-  done
-}
-
 run_safe() {
   while [ 1 ]
   do
@@ -178,7 +170,7 @@ case "${WHAT}" in
     stop $bin
     start_master
     sleep 2
-    run_on_slaves $bin/tachyon-start.sh worker $2
+    $bin/tachyon-slaves.sh $bin/tachyon-start.sh worker $2
     ;;
   local)
     stop $bin
@@ -205,13 +197,13 @@ case "${WHAT}" in
     ;;
   workers)
     check_mount_mode $2
-    run_on_slaves $bin/tachyon-start.sh worker $2
+    $bin/tachyon-slaves.sh $bin/tachyon-start.sh worker $2
     ;;
   restart_worker)
     restart_worker
     ;;
   restart_workers)
-    run_on_slaves $bin/tachyon-start.sh restart_worker
+    $bin/tachyon-slaves.sh $bin/tachyon-start.sh restart_worker
     ;;
   *)
     echo "Error: Invalid WHAT: $WHAT"
