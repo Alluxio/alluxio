@@ -29,9 +29,6 @@ import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.util.CommonUtils;
 
 public class BasicOperations {
@@ -40,6 +37,8 @@ public class BasicOperations {
   private static TachyonFS sTachyonClient;
   private static String sFilePath = null;
   private static WriteType sWriteType = null;
+  private static int sNumbers = 20;
+  private static boolean sPass = true;
 
   public static void createFile() throws IOException {
     long startTimeMs = CommonUtils.getCurrentMs();
@@ -47,17 +46,15 @@ public class BasicOperations {
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createFile with fileId " + fileId);
   }
 
-  public static void writeFile()
-      throws SuspectedFileSizeException, InvalidPathException, IOException {
-    ByteBuffer buf = ByteBuffer.allocate(80);
+  public static void writeFile() throws IOException {
+    ByteBuffer buf = ByteBuffer.allocate(sNumbers * 4);
     buf.order(ByteOrder.nativeOrder());
-    for (int k = 0; k < 20; k ++) {
+    for (int k = 0; k < sNumbers; k ++) {
       buf.putInt(k);
     }
 
     buf.flip();
-    LOG.info("Writing data...");
-    CommonUtils.printByteBuffer(LOG, buf);
+    LOG.debug("Writing data...");
     buf.flip();
 
     TachyonFile file = sTachyonClient.getFile(sFilePath);
@@ -66,9 +63,8 @@ public class BasicOperations {
     os.close();
   }
 
-  public static void readFile()
-      throws SuspectedFileSizeException, InvalidPathException, IOException {
-    LOG.info("Reading data...");
+  public static void readFile() throws IOException {
+    LOG.debug("Reading data...");
     TachyonFile file = sTachyonClient.getFile(sFilePath);
     TachyonByteBuffer buf = file.readByteBuffer();
     if (buf == null) {
@@ -76,13 +72,13 @@ public class BasicOperations {
       buf = file.readByteBuffer();
     }
     buf.DATA.order(ByteOrder.nativeOrder());
-    CommonUtils.printByteBuffer(LOG, buf.DATA);
+    for (int k = 0; k < sNumbers; k ++) {
+      sPass = sPass && (buf.DATA.getInt() == k);
+    }
     buf.close();
   }
 
-  public static void main(String[] args)
-      throws SuspectedFileSizeException, InvalidPathException, IOException,
-      FileAlreadyExistException {
+  public static void main(String[] args) throws IOException {
     if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION +
           "-jar-with-dependencies.jar " +
@@ -95,6 +91,7 @@ public class BasicOperations {
     createFile();
     writeFile();
     readFile();
+    Utils.printPassInfo(sPass);
     System.exit(0);
   }
 }

@@ -25,11 +25,21 @@ public class Constants {
   public static final int GB = MB * 1024;
   public static final long TB = GB * 1024L;
 
+  public static final String ANSI_RESET = "\u001B[0m";
+  public static final String ANSI_BLACK = "\u001B[30m";
+  public static final String ANSI_RED = "\u001B[31m";
+  public static final String ANSI_GREEN = "\u001B[32m";
+  public static final String ANSI_YELLOW = "\u001B[33m";
+  public static final String ANSI_BLUE = "\u001B[34m";
+  public static final String ANSI_PURPLE = "\u001B[35m";
+  public static final String ANSI_CYAN = "\u001B[36m";
+  public static final String ANSI_WHITE = "\u001B[37m";
+
   public static final long SECOND_MS = 1000;
   public static final long MINUTE_MS = SECOND_MS * 60;
   public static final long HOUR_MS = MINUTE_MS * 60;
   public static final long DAY_MS = HOUR_MS * 24;
-  
+
   public static final String FT_HEADER = "tachyon_ft://";
 
   public static final int DEFAULT_MASTER_PORT = 19998;
@@ -46,6 +56,6 @@ public class Constants {
 
   public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
   public static final boolean DEBUG = Boolean.valueOf(System.getProperty("tachyon.debug", "false"));
-  
+
   public static final int JOURNAL_VERSION = 1; // The version keeps increasing.
 }
