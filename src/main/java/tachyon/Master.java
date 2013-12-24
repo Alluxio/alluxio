@@ -126,7 +126,10 @@ public class Master {
             running = true;
             try {
               setup();
-            } catch (TTransportException | IOException e) {
+            } catch (TTransportException e) {
+              LOG.error(e.getMessage(), e);
+              System.exit(-1);
+            } catch (IOException e) {
               LOG.error(e.getMessage(), e);
               System.exit(-1);
             }
@@ -148,7 +151,7 @@ public class Master {
     } else {
       try {
         setup();
-      } catch (TTransportException | IOException e) {
+      } catch (Exception e) {
         LOG.error(e.getMessage(), e);
         System.exit(-1);
       }

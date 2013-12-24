@@ -278,7 +278,7 @@ public class TachyonFS {
     }
   }
 
-  public synchronized File createAndGetUserTempFolder() {
+  public synchronized File createAndGetUserTempFolder() throws IOException {
     connect();
 
     if (mUserTempFolder == null) {
@@ -483,9 +483,7 @@ public class TachyonFS {
 
     try {
       return mMasterClient.user_getClientBlockInfo(info.blockIds.get(blockIndex));
-    } catch (FileDoesNotExistException | BlockInfoException e) {
-      throw new IOException(e);
-    } catch (TException e) {
+    } catch (Exception e) {
       throw new IOException(e);
     }
   }

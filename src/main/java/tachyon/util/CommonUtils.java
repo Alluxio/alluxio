@@ -16,20 +16,20 @@
  */
 package tachyon.util;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -37,8 +37,6 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.thrift.InvalidPathException;
-
-import static java.nio.file.attribute.PosixFilePermission.*;
 
 /**
  * Common utilities shared by all components in Tachyon.
@@ -209,17 +207,15 @@ public final class CommonUtils {
     memorySize = memorySize.substring(0, tIndex + 1);
     double ret = Double.parseDouble(memorySize);
     end = end.toLowerCase();
-    switch (end) {
-    case "":
-    case "b":
+    if (end.equals("") || end.equals("b")) {
       return (long) (ret + alpha);
-    case "kb":
+    } else if (end.equals("kb")) {
       return (long) (ret * Constants.KB + alpha);
-    case "mb":
+    } else if (end.equals("mb")) {
       return (long) (ret * Constants.MB + alpha);
-    case "gb":
+    } else if (end.equals("gb")) {
       return (long) (ret * Constants.GB + alpha);
-    case "tb":
+    } else if (end.equals("tb")) {
       return (long) (ret * Constants.TB + alpha);
     }
     runtimeException("Fail to parse " + ori + " as memory size");
@@ -297,23 +293,45 @@ public final class CommonUtils {
   /**
    * @param file that will be changed to full permission
    */
-  public static void changeLocalFileToFullPermission(String file) {
+  public static void changeLocalFileToFullPermission(String filePath) throws IOException {
     //set the full permission to everyone.
+    List<String> commands = new ArrayList<String>();
+    commands.add("/bin/chmod");
+    commands.add("777");
+    File file = new File(filePath);
+    commands.add(file.getAbsolutePath());
+    
     try {
-      Set<PosixFilePermission> permissions = EnumSet.of(
-          OWNER_READ, OWNER_WRITE, OWNER_EXECUTE,
-          GROUP_READ, GROUP_WRITE, GROUP_EXECUTE,
-          OTHERS_READ, OTHERS_WRITE, OTHERS_EXECUTE);
-      String fileURI = file;
-      if (file.startsWith("/")) {
-        fileURI = "file://" + file;
+    
+      ProcessBuilder builder = new ProcessBuilder(commands);
+      Process process = builder.start();
+      
+      redirectStreamAsync(process.getInputStream(), System.out);
+      redirectStreamAsync(process.getErrorStream(), System.err);
+  
+      process.waitFor();
+      
+      if(process.exitValue() != 0) {
+        throw new IOException("Can not change the permission of the following file to '777':" + file.getAbsolutePath());
       }
-      Path path = Paths.get(URI.create(fileURI));
-      Files.setPosixFilePermissions(path, permissions);
-    } catch (IOException e) {
-      LOG.warn("Can not change the permission of the following file to '777':" + file);
+    
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      throw new IOException(e);
     }
   }
+  
+  static void redirectStreamAsync(final InputStream input, final PrintStream output) {
+    new Thread(new Runnable() {        
+        @Override
+        public void run() {
+            Scanner scanner = new Scanner(input);
+            while (scanner.hasNextLine()) {
+                output.println(scanner.nextLine());
+            }
+        }
+    }).start();
+}
 
   /**
    * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and

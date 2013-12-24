@@ -72,8 +72,13 @@ public class WorkerClient {
       throws IOException, TException {
     try {
       CLIENT.addCheckpoint(userId, fileId);
-    } catch (FileDoesNotExistException | SuspectedFileSizeException | FailedToCheckpointException |
-        BlockInfoException e) {
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
+    } catch (FailedToCheckpointException e) {
+      throw new IOException(e);
+    } catch (BlockInfoException e) {
       throw new IOException(e);
     }
   }
@@ -82,7 +87,9 @@ public class WorkerClient {
       throws IOException, TException {
     try {
       CLIENT.cacheBlock(userId, blockId);
-    } catch (FileDoesNotExistException | BlockInfoException e) {
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (BlockInfoException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
     }

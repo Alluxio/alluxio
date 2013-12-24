@@ -41,7 +41,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public void changeToFullPermission(String path) {
+  public void changeToFullPermission(String path) throws IOException {
     CommonUtils.changeLocalFileToFullPermission(path);
     CommonUtils.setLocalFileStickyBit(path);
   }
