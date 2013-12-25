@@ -67,7 +67,7 @@ public class Journal {
   public void createImage(MasterInfo info) throws IOException {
     if (mStandbyImagePath == "") {
       Image.create(info, mImagePath);
-      EditLog.markUpToDate();
+      EditLog.markUpToDate(mEditLogPath);
     } else {
       Image.rename(mStandbyImagePath, mImagePath);
     }

@@ -1489,4 +1489,12 @@ public class MasterInfo {
   public void stop() {
     mHeartbeatThread.shutdown();
   }
+
+  /**
+   * Get Journal instance for MasterInfo for Unit test only
+   * @return Journal instance
+   */
+  public Journal getJournal() {
+    return mJournal;
+  }
 }
