@@ -41,7 +41,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public void changeToFullPermission(String path) {
+  public void toFullPermission(String path) {
     CommonUtils.changeLocalFileToFullPermission(path);
     CommonUtils.setLocalFileStickyBit(path);
   }
@@ -53,7 +53,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public OutputStream create(String path) throws IOException {
     FileOutputStream stream = new FileOutputStream(path);
-    changeToFullPermission(path);
+    toFullPermission(path);
     return stream;
   }
 
@@ -165,7 +165,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     File file = new File(path);
     boolean created = createParent ? file.mkdirs() : file.mkdir();
-    changeToFullPermission(path);
+    toFullPermission(path);
     return created;
   }
 

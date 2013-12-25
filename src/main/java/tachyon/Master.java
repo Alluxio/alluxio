@@ -53,7 +53,6 @@ public class Master {
 
   public Master(InetSocketAddress address, int webPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads) {
-    //      String imageFileName, String editLogFileName) {
     if (CommonConf.get().USE_ZOOKEEPER) {
       mZookeeperMode = true;
     }
@@ -65,13 +64,18 @@ public class Master {
     try {
       mMasterAddress = address;
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
+      if (!isFormatted(MasterConf.get().JOURNAL_FOLDER, MasterConf.get().FORMAT_FILE_PREFIX)) {
+        LOG.error("Tachyon was not formatted!");
+        System.exit(-1);
+      }
       mJournal = new Journal(journalFolder, "image.data", "log.data");
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal);
 
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
         mLeaderSelectorClient = new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS,
-            conf.ZOOKEEPER_ELECTION_PATH, conf.ZOOKEEPER_LEADER_PATH, address.getHostName() + ":" + address.getPort());
+            conf.ZOOKEEPER_ELECTION_PATH, conf.ZOOKEEPER_LEADER_PATH,
+            address.getHostName() + ":" + address.getPort());
         mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
         Thread logProcessor = new Thread(mEditLogProcessor);
         logProcessor.start();
@@ -80,6 +84,20 @@ public class Master {
       LOG.error(e.getMessage(), e);
       System.exit(-1);
     }
+  }
+
+  private boolean isFormatted(String folder, String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(folder);
+    String[] files = ufs.list(folder);
+    if (files == null) {
+      return false;
+    }
+    for (String file: files) {
+      if (file.startsWith(path)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void setup() throws IOException, TTransportException {
