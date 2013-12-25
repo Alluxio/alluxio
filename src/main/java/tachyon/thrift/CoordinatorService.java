@@ -1164,13 +1164,13 @@ public class CoordinatorService {
           case 3: // TRANSACTIONS
             if (field.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list12 = iprot.readListBegin();
-                this.transactions = new ArrayList<ByteBuffer>(_list12.size);
-                for (int _i13 = 0; _i13 < _list12.size; ++_i13)
+                org.apache.thrift.protocol.TList _list24 = iprot.readListBegin();
+                this.transactions = new ArrayList<ByteBuffer>(_list24.size);
+                for (int _i25 = 0; _i25 < _list24.size; ++_i25)
                 {
-                  ByteBuffer _elem14; // required
-                  _elem14 = iprot.readBinary();
-                  this.transactions.add(_elem14);
+                  ByteBuffer _elem26; // required
+                  _elem26 = iprot.readBinary();
+                  this.transactions.add(_elem26);
                 }
                 iprot.readListEnd();
               }
@@ -1203,9 +1203,9 @@ public class CoordinatorService {
         oprot.writeFieldBegin(TRANSACTIONS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, this.transactions.size()));
-          for (ByteBuffer _iter15 : this.transactions)
+          for (ByteBuffer _iter27 : this.transactions)
           {
-            oprot.writeBinary(_iter15);
+            oprot.writeBinary(_iter27);
           }
           oprot.writeListEnd();
         }

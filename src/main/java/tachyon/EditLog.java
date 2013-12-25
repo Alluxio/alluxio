@@ -22,6 +22,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -49,6 +50,7 @@ public class EditLog {
   static final byte OP_UNPIN_FILE = 5;
   static final byte OP_UPDATE_RAW_TABLE_METADATA = 6;
   static final byte OP_COMPLETE_FILE = 7;
+  static final byte OP_CREATE_DEPENDENCY = 8;
 
   private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
@@ -163,7 +165,14 @@ public class EditLog {
           info.completeFile(is.readInt());
           break;
         }
-        default:
+        case OP_CREATE_DEPENDENCY: {
+          info._createDependency(Utils.readIntegerList(is), Utils.readIntegerList(is), 
+              Utils.readString(is), Utils.readByteBufferList(is), Utils.readString(is),
+              Utils.readString(is), Utils.readString(is),
+              DependencyType.getDependencyType(is.readInt()), is.readInt(), is.readLong());
+          break;
+        }
+        default :
           throw new IOException("Invalid op type " + op);
         }
       } catch (SuspectedFileSizeException | BlockInfoException | FileDoesNotExistException |
@@ -305,6 +314,31 @@ public class EditLog {
       DOS.writeInt(columns);
       Utils.writeByteBuffer(metadata, DOS);
       DOS.writeLong(blockSizeByte);
+      DOS.writeLong(creationTimeMs);
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+  }
+
+  public synchronized void createDependency(List<Integer> parents, List<Integer> children,
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework, 
+      String frameworkVersion, DependencyType dependencyType, int depId, long creationTimeMs) {
+    if (INACTIVE) {
+      return;
+    }
+
+    try {
+      DOS.writeLong(++ mTransactionId);
+      DOS.writeByte(OP_CREATE_DEPENDENCY);
+      Utils.writeIntegerList(parents, DOS);
+      Utils.writeIntegerList(children, DOS);
+      Utils.writeString(commandPrefix, DOS);
+      Utils.writeByteBufferList(data, DOS);
+      Utils.writeString(comment, DOS);
+      Utils.writeString(framework, DOS);
+      Utils.writeString(frameworkVersion, DOS);
+      DOS.writeInt(dependencyType.getValue());
+      DOS.writeInt(depId);
       DOS.writeLong(creationTimeMs);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);

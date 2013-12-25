@@ -37,6 +37,9 @@ public class WorkerConf extends Utils {
   public final int USER_TIMEOUT_MS;
   public final String USER_TEMP_RELATIVE_FOLDER = "users";
 
+  public final int WORKER_CHECKPOINT_THREADS;
+  public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
+
   private WorkerConf() {
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     MASTER_PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
@@ -54,6 +57,10 @@ public class WorkerConf extends Utils {
     QUEUE_SIZE_PER_SELECTOR = getIntProperty("tachyon.worker.queue.size.per.selector", 3000);
     SERVER_THREADS = getIntProperty("tachyon.worker.server.threads", 128);
     USER_TIMEOUT_MS = getIntProperty("tachyon.worker.user.timeout.ms", 10 * 1000);
+    
+    WORKER_CHECKPOINT_THREADS = getIntProperty("tachyon.worker.checkpoint.threads", 1);
+    WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
+        getIntProperty("tachyon.worker.per.thread.checkpoint.cap.mb.sec", 1000);
   }
 
   public static synchronized WorkerConf get() {

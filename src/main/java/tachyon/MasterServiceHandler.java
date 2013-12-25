@@ -29,10 +29,12 @@ import org.apache.log4j.Logger;
 import tachyon.conf.CommonConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
+import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -290,7 +292,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException{
     mMasterInfo.cacheBlock(workerId, workerUsedBytes, blockId, length);
   }
 
@@ -310,5 +312,45 @@ public class MasterServiceHandler implements MasterService.Iface {
   public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes,
       List<Long> currentBlockIds) throws BlockInfoException, TException {
     return mMasterInfo.registerWorker(workerNetAddress, totalBytes, usedBytes, currentBlockIds);
+  }
+
+  @Override
+  public List<Integer> worker_getPriorityDependencyList() throws TException {
+    return mMasterInfo.getPriorityDependencyList();
+  }
+
+  @Override
+  public int user_createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+      String frameworkVersion, int dependencyType, long childrenBlockSizeByte)
+          throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
+          BlockInfoException, TachyonException, TException {
+    try {
+      for (int k = 0; k < children.size(); k ++) {
+        mMasterInfo.createFile(children.get(k), childrenBlockSizeByte);
+      }
+      return mMasterInfo.createDependency(parents, children, commandPrefix, 
+          data, comment, framework, frameworkVersion,
+          DependencyType.getDependencyType(dependencyType));
+    } catch (IOException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    }
+  }
+
+  @Override
+  public ClientDependencyInfo user_getClientDependencyInfo(int dependencyId)
+      throws DependencyDoesNotExistException, TException {
+    return mMasterInfo.getClientDependencyInfo(dependencyId);
+  }
+
+  @Override
+  public void user_reportLostFile(int fileId) throws FileDoesNotExistException, TException {
+    mMasterInfo.reportLostFile(fileId);
+  }
+
+  @Override
+  public void user_requestFilesInDependency(int depId)
+      throws DependencyDoesNotExistException, TException {
+    mMasterInfo.requestFilesInDependency(depId);
   }
 }

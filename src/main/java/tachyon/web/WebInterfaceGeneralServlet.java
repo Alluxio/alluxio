@@ -18,6 +18,7 @@ package tachyon.web;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -26,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import tachyon.Constants;
 import tachyon.MasterInfo;
+import tachyon.RecomputeVariables;
 import tachyon.Version;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.util.CommonUtils;
@@ -102,8 +104,19 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   }
 
   @Override
-  protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-    return;
+  protected void doPost(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+    RecomputeVariables.sRecomputeVars.clear();
+    for (String key : (Set<String>) request.getParameterMap().keySet()) {
+      if (key.startsWith("varName")) {
+        String value = request.getParameter("varVal" + key.substring(7));
+        if (value != null) {
+          RecomputeVariables.sRecomputeVars.put(request.getParameter(key), value);
+        }
+      }
+    }
+    populateValues(request);
+    getServletContext().getRequestDispatcher("/general.jsp").forward(request, response);
   }
 
   /**
@@ -152,6 +165,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     } else {
       request.setAttribute("diskFreeCapacity", "UNKNOWN");
     }
+
+    request.setAttribute("recomputeVariables", RecomputeVariables.sRecomputeVars);
 
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
     for (int i = 0; i < workerInfos.size(); i ++) {

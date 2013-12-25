@@ -17,7 +17,9 @@
 package tachyon;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
@@ -40,6 +42,7 @@ import org.apache.thrift.TException;
 import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.Command;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
@@ -69,17 +72,204 @@ public class WorkerStorage {
   private Map<Long, Set<Long>> mLockedBlocksPerUser = new HashMap<Long, Set<Long>>();
 
   private BlockingQueue<Long> mRemovedBlockList =
-      new ArrayBlockingQueue<Long>(Constants.WORKER_FILES_QUEUE_SIZE);
+      new ArrayBlockingQueue<Long>(Constants.WORKER_BLOCKS_QUEUE_SIZE);
   private BlockingQueue<Long> mAddedBlockList =
-      new ArrayBlockingQueue<Long>(Constants.WORKER_FILES_QUEUE_SIZE);
+      new ArrayBlockingQueue<Long>(Constants.WORKER_BLOCKS_QUEUE_SIZE);
 
   private File mLocalDataFolder;
   private File mLocalUserFolder;
   private String mUnderfsWorkerFolder;
+  private String mUnderfsWorkerDataFolder;
   private String mUnderfsOrphansFolder;
   private UnderFileSystem mUnderFs;
 
   private Users mUsers;
+
+  //Dependency related lock
+  private Object mDependencyLock = new Object();
+  private Set<Integer> mUncheckpointFiles = new HashSet<Integer>();
+  // From dependencyId to files in that set.
+  private Map<Integer, Set<Integer>> mDepIdToFiles = new HashMap<Integer, Set<Integer>>();
+  private List<Integer> mPriorityDependencies = new ArrayList<Integer>();
+
+  private ArrayList<Thread> mCheckpointThreads =
+      new ArrayList<Thread>(WorkerConf.get().WORKER_CHECKPOINT_THREADS);
+
+  public class CheckpointThread implements Runnable {
+    private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+    private final int ID;
+    private UnderFileSystem mCheckpointUnderFs = null;
+
+    public CheckpointThread(int id) {
+      ID = id;
+    }
+
+    @Override
+    public void run() {
+      while (true) {
+        try {
+          int fileId = -1;
+          synchronized (mDependencyLock) {
+            fileId = getFileIdBasedOnPriorityDependency();
+
+            if (fileId == -1) {
+              if (mPriorityDependencies.size() == 0) {
+                mPriorityDependencies = getSortedPriorityDependencyList();
+                if (!mPriorityDependencies.isEmpty()) {
+                  LOG.info("Get new mPriorityDependencies " +
+                      CommonUtils.listToString(mPriorityDependencies));
+                }
+              } else {
+                List<Integer> tList = getSortedPriorityDependencyList();
+                boolean equal = true;
+                if (mPriorityDependencies.size() != tList.size()) {
+                  equal = false;
+                }
+                if (equal) {
+                  for (int k = 0; k < tList.size(); k ++) {
+                    if (tList.get(k) != mPriorityDependencies.get(k)) {
+                      equal = false;
+                      break;
+                    }
+                  }
+                }
+
+                if (!equal) {
+                  mPriorityDependencies = tList;
+                }
+              }
+
+              fileId = getFileIdBasedOnPriorityDependency();
+            }
+
+            if (fileId == -1) {
+              fileId = getRandomUncheckpointedFile();
+            }
+          }
+
+          if (fileId == -1) {
+            LOG.debug("Thread " + ID + " has nothing to checkpoint. Sleep for 1 sec.");
+            CommonUtils.sleepMs(LOG, 1000);
+            continue;
+          }
+
+          // TODO checkpoint process. In future, move from midPath to dstPath should be done by
+          // master
+          String midPath = mUnderfsWorkerDataFolder + "/" + fileId;
+          String dstPath = CommonConf.get().UNDERFS_DATA_FOLDER + "/" + fileId;
+          LOG.info("Thread " + ID + " is checkpointing file " + fileId + " from " +
+              mLocalDataFolder.toString() + " to " + midPath + " to " + dstPath);
+
+          if (mCheckpointUnderFs == null) {
+            mCheckpointUnderFs = UnderFileSystem.get(midPath);
+          }
+
+          long startCopyTimeMs = System.currentTimeMillis();
+          ClientFileInfo fileInfo = mMasterClient.user_getClientFileInfoById(fileId);
+          if (!fileInfo.isComplete()) {
+            LOG.error("File " + fileInfo + " is not complete!");
+            continue;
+          }
+          for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
+            lockBlock(fileInfo.blockIds.get(k), Users.sCHECKPOINT_USER_ID);
+          }
+          OutputStream os = mCheckpointUnderFs.create(midPath, (int) fileInfo.getBlockSizeByte());
+          long fileSizeByte = 0;
+          for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
+            File tempFile = new File(mLocalDataFolder.toString() + "/" + fileInfo.blockIds.get(k));
+            fileSizeByte += tempFile.length();
+            InputStream is = new FileInputStream(tempFile);
+            byte[] buf = new byte[16 * Constants.KB];
+            int got = is.read(buf);
+            while (got != -1) {
+              os.write(buf, 0, got);
+              got = is.read(buf);
+            }
+            is.close();
+          }
+          os.close();
+          if (!mCheckpointUnderFs.rename(midPath, dstPath)) {
+            LOG.error("Failed to rename from " + midPath + " to " + dstPath);
+          }
+          mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
+          for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
+            unlockBlock(fileInfo.blockIds.get(k), Users.sCHECKPOINT_USER_ID);
+          }
+
+          long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB /
+              WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
+          long currentTimeMs = System.currentTimeMillis();
+          if (startCopyTimeMs + shouldTakeMs > currentTimeMs) {
+            long shouldSleepMs = startCopyTimeMs + shouldTakeMs - currentTimeMs;
+            LOG.info("Checkpointed last file " + fileId + " took " +
+                (currentTimeMs - startCopyTimeMs) + " ms. Need to sleep " + shouldSleepMs + " ms.");
+            CommonUtils.sleepMs(LOG, shouldSleepMs);
+          }
+        } catch (FileDoesNotExistException | TException e) {
+          LOG.warn(e);
+        } catch (SuspectedFileSizeException | BlockInfoException | IOException e) {
+          LOG.error(e);
+        }
+      }
+    }
+
+    private List<Integer> getSortedPriorityDependencyList() throws TException {
+      List<Integer> ret = mMasterClient.worker_getPriorityDependencyList();
+      for (int i = 0; i < ret.size(); i ++) {
+        for (int j = i + 1; j < ret.size(); j ++) {
+          if (ret.get(i) < ret.get(j)) {
+            int k = ret.get(i);
+            ret.set(i, ret.get(j));
+            ret.set(j, k);
+          }
+        }
+      }
+      return ret;
+    }
+
+    // This method assumes the mDependencyLock has been acquired.
+    private int getRandomUncheckpointedFile() throws TException {
+      if (mUncheckpointFiles.isEmpty()) {
+        return -1;
+      }
+      for (int depId: mDepIdToFiles.keySet()) {
+        int fileId = getFileIdFromOneDependency(depId);
+        if (fileId != -1) {
+          return fileId;
+        }
+      }
+      return -1;
+    }
+
+    // This method assumes the mDependencyLock has been acquired.
+    private int getFileIdBasedOnPriorityDependency() throws TException {
+      if (mPriorityDependencies.isEmpty()) {
+        return -1;
+      }
+      for (int depId : mPriorityDependencies) {
+        int fileId = getFileIdFromOneDependency(depId);
+        if (fileId != -1) {
+          return fileId;
+        }
+      }
+      return -1;
+    }
+
+    // This method assumes the mDependencyLock has been acquired.
+    private int getFileIdFromOneDependency(int depId) throws TException {
+      Set<Integer> fileIds = mDepIdToFiles.get(depId);
+      if (fileIds != null && !fileIds.isEmpty()) {
+        int fileId = fileIds.iterator().next();
+        fileIds.remove(fileId);
+        mUncheckpointFiles.remove(fileId);
+        if (fileIds.isEmpty()) {
+          mDepIdToFiles.remove(depId);
+        }
+        return fileId;
+      }
+      return -1;
+    }
+  }
 
   public WorkerStorage(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       String dataFolder, long memoryCapacityBytes) {
@@ -112,8 +302,15 @@ public class WorkerStorage {
     mLocalUserFolder =
         new File(mLocalDataFolder.toString(), WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
     mUnderfsWorkerFolder = COMMON_CONF.UNDERFS_WORKERS_FOLDER + "/" + mWorkerId;
+    mUnderfsWorkerDataFolder = mUnderfsWorkerFolder + "/data";
     mUnderFs = UnderFileSystem.get(COMMON_CONF.UNDERFS_ADDRESS);
     mUsers = new Users(mLocalUserFolder.toString(), mUnderfsWorkerFolder);
+
+    for (int k = 0; k < WorkerConf.get().WORKER_CHECKPOINT_THREADS; k ++) {
+      Thread thread = new Thread(new CheckpointThread(k));
+      mCheckpointThreads.add(thread);
+      thread.start();
+    }
 
     try {
       initializeWorkerStorage();
@@ -189,8 +386,8 @@ public class WorkerStorage {
     }
     addBlockId(blockId, fileSizeBytes);
     mUsers.addOwnBytes(userId, - fileSizeBytes);
-    mMasterClient.worker_cacheBlock(mWorkerId,
-        mWorkerSpaceCounter.getUsedBytes(), blockId, fileSizeBytes);
+    mMasterClient.worker_cacheBlock(
+        mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId, fileSizeBytes);
     LOG.info(userId + " " + dstFile);
   }
 
@@ -374,7 +571,7 @@ public class WorkerStorage {
   /**
    * Use local LRU to evict data, and get <code> requestBytes </code> available space.
    * @param requestBytes The data requested.
-   * @return <code> true </code> if the space is granteed, <code> false </code> if not.
+   * @return <code> true </code> if the space is granted, <code> false </code> if not.
    */
   private boolean memoryEvictionLRU(long requestBytes) {
     Set<Integer> pinList = new HashSet<Integer>();
@@ -386,6 +583,26 @@ public class WorkerStorage {
       pinList = new HashSet<Integer>();
     }
 
+    //    synchronized (mLatestFileAccessTimeMs) {}
+    //    synchronized (mLatestFileAccessTimeMs) {
+    //      synchronized (mUsersPerLockedFile) {
+    //        synchronized (mDependencyLock) {
+    //          for (Entry<Integer, Long> entry : mLatestFileAccessTimeMs.entrySet()) {
+    //            if (entry.getValue() < latestTimeMs && !pinList.contains(entry.getKey())) {
+    //              if(!mUsersPerLockedFile.containsKey(entry.getKey())
+    //                  && !mUncheckpointFiles.contains(entry.getKey())) {
+    //                fileId = entry.getKey();
+    //                latestTimeMs = entry.getValue();
+    //              }
+    //            }
+    //          }
+    //          if (fileId != -1) {
+    //            freeFile(fileId);
+    //            return true;
+    //          }
+    //        }
+    //      }
+    //    }
     synchronized (mLatestBlockAccessTimeMs) {
       synchronized (mUsersPerLockedBlock) {
         while (mWorkerSpaceCounter.getAvailableBytes() < requestBytes) {
@@ -494,5 +711,22 @@ public class WorkerStorage {
 
   public void userHeartbeat(long userId) throws TException {
     mUsers.userHeartbeat(userId);
+  }
+
+  public boolean asyncCheckpoint(int fileId) throws IOException, TException {
+    ClientFileInfo fileInfo = mMasterClient.user_getClientFileInfoById(fileId);
+
+    if (fileInfo.getDependencyId() != -1) {
+      synchronized (mDependencyLock) {
+        mUncheckpointFiles.add(fileId);
+        if (!mDepIdToFiles.containsKey(fileInfo.getDependencyId() )) {
+          mDepIdToFiles.put(fileInfo.getDependencyId(), new HashSet<Integer>());
+        }
+        mDepIdToFiles.get(fileInfo.getDependencyId()).add(fileId);
+      }
+      return true;
+    }
+
+    return false;
   }
 }

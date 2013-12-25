@@ -25,6 +25,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,19 +37,21 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
-import tachyon.UnderFileSystem;
 import tachyon.MasterClient;
+import tachyon.UnderFileSystem;
 import tachyon.WorkerClient;
 import tachyon.client.table.RawTable;
 import tachyon.conf.UserConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoWorkerException;
+import tachyon.thrift.TachyonException;
 import tachyon.util.CommonUtils;
 
 /**
@@ -1088,5 +1091,121 @@ public class TachyonFS {
       mConnected = false;
       throw new IOException(e);
     }
+  }
+
+  public synchronized int createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+      String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException{
+    connect();
+    try {
+      return mMasterClient.user_createDependency(parents, children, commandPrefix, data, comment, 
+          framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized void reportLostFile(int fileId) throws IOException {
+    connect();
+    try {
+      mMasterClient.user_reportLostFile(fileId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized void requestFilesInDependency(int depId) throws IOException {
+    connect();
+    try {
+      mMasterClient.user_requestFilesInDependency(depId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized boolean asyncCheckpoint(int fid) throws IOException {
+    connect();
+    try {
+      return mWorkerClient.asyncCheckpoint(fid);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
+    connect();
+    try {
+      return mMasterClient.getClientDependencyInfo(did);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  public synchronized List<NetAddress> getFileNetAddresses(int fileId)
+      throws IOException {
+    connect();
+    if (!mConnected) {
+      return null;
+    }
+
+    List<NetAddress> ret = new ArrayList<NetAddress>();
+    try {
+      List<ClientBlockInfo> blocks = mMasterClient.user_getFileBlocks(fileId);
+      Set<NetAddress> locationSet = new HashSet<NetAddress>();
+      for (ClientBlockInfo info: blocks) {
+        locationSet.addAll(info.getLocations());
+      }
+      ret.addAll(locationSet);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+    return ret;
+  }
+
+  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fileIds) 
+      throws IOException {
+    List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
+    for (int k = 0; k < fileIds.size(); k ++) {
+      ret.add(getFileNetAddresses(fileIds.get(k)));
+    }
+
+    return ret;
+  }
+
+  public synchronized List<String> getFileHosts(int fileId)
+      throws IOException {
+    connect();
+    if (!mConnected) {
+      return null;
+    }
+
+    List<NetAddress> adresses = getFileNetAddresses(fileId);
+    List<String> ret = new ArrayList<String>(adresses.size());
+    for (NetAddress address: adresses) {
+      ret.add(address.mHost);
+      if (address.mHost.endsWith(".ec2.internal")) {
+        ret.add(address.mHost.substring(0, address.mHost.length() - 13));
+      }
+    }
+
+    return ret;
+  }
+
+  public synchronized List<List<String>> getFilesHosts(List<Integer> fileIds) 
+      throws IOException {
+    List<List<String>> ret = new ArrayList<List<String>>();
+    for (int k = 0; k < fileIds.size(); k ++) {
+      ret.add(getFileHosts(fileIds.get(k)));
+    }
+
+    return ret;
   }
 }

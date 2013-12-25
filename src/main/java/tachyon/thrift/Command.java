@@ -363,13 +363,13 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
         case 2: // M_DATA
           if (field.type == org.apache.thrift.protocol.TType.LIST) {
             {
-              org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();
-              this.mData = new ArrayList<Long>(_list8.size);
-              for (int _i9 = 0; _i9 < _list8.size; ++_i9)
+              org.apache.thrift.protocol.TList _list20 = iprot.readListBegin();
+              this.mData = new ArrayList<Long>(_list20.size);
+              for (int _i21 = 0; _i21 < _list20.size; ++_i21)
               {
-                long _elem10; // required
-                _elem10 = iprot.readI64();
-                this.mData.add(_elem10);
+                long _elem22; // required
+                _elem22 = iprot.readI64();
+                this.mData.add(_elem22);
               }
               iprot.readListEnd();
             }
@@ -401,9 +401,9 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
       oprot.writeFieldBegin(M_DATA_FIELD_DESC);
       {
         oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, this.mData.size()));
-        for (long _iter11 : this.mData)
+        for (long _iter23 : this.mData)
         {
-          oprot.writeI64(_iter11);
+          oprot.writeI64(_iter23);
         }
         oprot.writeListEnd();
       }
