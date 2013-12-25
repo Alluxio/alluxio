@@ -75,7 +75,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public void changeToFullPermission(String path) {
+  public void toFullPermission(String path) {
     try {
       FileStatus fileStatus = mFs.getFileStatus(new Path(path));
       LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: " +

@@ -17,6 +17,7 @@
 package tachyon.util;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -36,8 +37,8 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
+import tachyon.UnderFileSystem;
 import tachyon.thrift.InvalidPathException;
-
 import static java.nio.file.attribute.PosixFilePermission.*;
 
 /**
@@ -300,10 +301,8 @@ public final class CommonUtils {
   public static void changeLocalFileToFullPermission(String file) {
     //set the full permission to everyone.
     try {
-      Set<PosixFilePermission> permissions = EnumSet.of(
-          OWNER_READ, OWNER_WRITE, OWNER_EXECUTE,
-          GROUP_READ, GROUP_WRITE, GROUP_EXECUTE,
-          OTHERS_READ, OTHERS_WRITE, OTHERS_EXECUTE);
+      Set<PosixFilePermission> permissions = EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE,
+          GROUP_READ, GROUP_WRITE, GROUP_EXECUTE, OTHERS_READ, OTHERS_WRITE, OTHERS_WRITE);
       String fileURI = file;
       if (file.startsWith("/")) {
         fileURI = "file://" + file;
@@ -311,7 +310,7 @@ public final class CommonUtils {
       Path path = Paths.get(URI.create(fileURI));
       Files.setPosixFilePermissions(path, permissions);
     } catch (IOException e) {
-      LOG.warn("Can not change the permission of the following file to '777':" + file);
+      LOG.warn("Can not change the permission of the following file to '666':" + file);
     }
   }
 
@@ -330,5 +329,16 @@ public final class CommonUtils {
     } catch (IOException e) {
       LOG.info("Can not set the sticky bit of the file : " + file);
     }
+  }
+
+  /**
+   * Create an empty file
+   * @param path the file to be created
+   * @throws IOException 
+   */
+  public static void touch(String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+    OutputStream os = ufs.create(path);
+    os.close();
   }
 }

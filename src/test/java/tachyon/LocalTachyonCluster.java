@@ -117,6 +117,7 @@ public class LocalTachyonCluster {
     mkdir(masterJournalFolder);
     mkdir(masterDataFolder);
     mkdir(masterLogFolder);
+    CommonUtils.touch(masterJournalFolder + "/_format_" + System.currentTimeMillis());
 
     mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
 
