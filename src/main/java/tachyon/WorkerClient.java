@@ -29,9 +29,11 @@ import org.apache.log4j.Logger;
 
 import tachyon.conf.UserConf;
 import tachyon.thrift.BlockInfoException;
+import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.SuspectedFileSizeException;
+import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
 
 /**
@@ -149,5 +151,9 @@ public class WorkerClient {
 
   public synchronized void userHeartbeat(long userId) throws TException {
     CLIENT.userHeartbeat(userId);
+  }
+
+  public synchronized boolean asyncCheckpoint(int fid) throws TachyonException, TException {
+    return CLIENT.asyncCheckpoint(fid);
   }
 }

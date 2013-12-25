@@ -227,7 +227,14 @@ public class FileOutStream extends OutStream {
       }   
 
       if (canComplete) {
-        TFS.completeFile(FILE.FID);
+        if (WRITE_TYPE.isThrough()) {
+          mCheckpointOutputStream.flush();
+          mCheckpointOutputStream.close();
+          TFS.addCheckpoint(FILE.FID);
+          TFS.completeFile(FILE.FID);
+        } else {
+          TFS.asyncCheckpoint(FILE.FID);
+        }
       }
     }
 

@@ -38,9 +38,12 @@ public class InodeFile extends Inode {
   private String mCheckpointPath = "";
   private List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(3);
 
+  private int mDependencyId;
+
   public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs) {
     super(name, id, parentId, InodeType.File, creationTimeMs);
     BLOCK_SIZE_BYTE = blockSizeByte;
+    mDependencyId = -1;
   }
 
   public synchronized long getLength() {
@@ -83,7 +86,8 @@ public class InodeFile extends Inode {
     StringBuilder sb = new StringBuilder("InodeFile(");
     sb.append(super.toString()).append(", LENGTH: ").append(mLength);
     sb.append(", CheckpointPath: ").append(mCheckpointPath);
-    sb.append(", mBlocks: ").append(mBlocks).append(")");
+    sb.append(", mBlocks: ").append(mBlocks);
+    sb.append(", DependencyId:").append(mDependencyId).append(")");
     return sb.toString();
   }
 
@@ -214,6 +218,14 @@ public class InodeFile extends Inode {
     return !mCheckpointPath.equals("");
   }
 
+  public synchronized void setDependencyId(int dependencyId) {
+    mDependencyId = dependencyId;
+  }
+
+  public synchronized int getDependencyId() {
+    return mDependencyId;
+  }
+
   public synchronized List<Long> getBlockIds() {
     List<Long> ret = new ArrayList<Long>(mBlocks.size());
     for (int k = 0; k < mBlocks.size(); k ++) {
@@ -251,6 +263,7 @@ public class InodeFile extends Inode {
     ret.needPin = mPin;
     ret.needCache = mCache;
     ret.blockIds = getBlockIds();
+    ret.dependencyId = mDependencyId;
 
     return ret;
   }

@@ -19,6 +19,7 @@ package tachyon;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -34,10 +35,12 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
+import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.Command;
+import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -742,5 +745,84 @@ public class MasterClient {
       }
     }
     return -1;
+  }
+
+  public synchronized List<Integer> worker_getPriorityDependencyList() throws TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.worker_getPriorityDependencyList();
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
+    return new ArrayList<Integer>();
+  }
+
+  public synchronized int user_createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+      String frameworkVersion, int dependencyType, long childrenBlockSizeByte)
+          throws IOException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_createDependency(parents, children, commandPrefix, data, comment,
+            framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      } catch (InvalidPathException | FileDoesNotExistException | FileAlreadyExistException |
+          BlockInfoException | TachyonException e) {
+        throw new IOException(e);
+      }
+    }
+    return -1;
+  }
+
+  public synchronized void user_reportLostFile(int fileId) throws IOException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        mClient.user_reportLostFile(fileId);
+        return;
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      }
+    }
+  }
+
+  public synchronized void user_requestFilesInDependency(int depId)
+      throws IOException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        mClient.user_requestFilesInDependency(depId);
+        return;
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      } catch (DependencyDoesNotExistException e) {
+        throw new IOException(e);
+      }
+    }
+  }
+
+  public ClientDependencyInfo getClientDependencyInfo(int did) throws IOException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_getClientDependencyInfo(did);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      } catch (DependencyDoesNotExistException e) {
+        throw new IOException(e);
+      }
+    }
+    return null;
   }
 }

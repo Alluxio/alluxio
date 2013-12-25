@@ -45,7 +45,7 @@
                   <th><%= request.getAttribute("uptime") %></th>
                 </tr>
                 <tr>
-                  <th>Version:</th> 
+                  <th>Version:</th>
                   <!-- <th>${version}</th> -->
                   <th><%= request.getAttribute("version") %></th>
                 </tr>
@@ -102,7 +102,7 @@
           </div>
         </div>
       </div>
-    </div>  
+    </div>
   </div>
   <div class ="row-fluid">
     <div class="accordion span6" id="accordion3">
@@ -123,7 +123,7 @@
                   </c:forEach>
                   -->
                   <% for (String file : ((List<String>) request.getAttribute("pinlist"))) { %>
-                    <tr>  
+                    <tr>
                       <th><%= file %></th>
                     </tr>
                   <% } %>
@@ -133,7 +133,7 @@
           </div>
         </div>
       </div>
-    </div>  
+    </div>
     <div class="accordion span6" id="accordion4">
       <div class="accordion-group">
         <div class="accordion-heading">
@@ -162,17 +162,55 @@
           </div>
         </div>
       </div>
-    </div>  
+    </div>
   </div>
   <div class="row-fluid">
     <div class="accordion span14" id="accordion5">
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion5" href="#data5">
-            <h4>Detailed Nodes Summary</h4>
+            <h4>Recomputation Variables</h4>
           </a>
         </div>
         <div id="data5" class="accordion-body collapse in">
+          <div class="accordion-inner">
+            <form class="form" method="post" action="/home">
+              <div id="recomputationVars">
+              <% int i = 0; %>
+              <% for (String key : ((Hashtable<String, String>) request.getAttribute("recomputeVariables")).keySet()) { %>
+                <div id="varDiv<%= i %>">
+                  <div class="input-prepend">
+                    <span class="add-on">Name</span>
+                    <input class="span8" name="varName<%= i %>" type="text" value="<%= key %>">
+                  </div>
+                  <div class="input-prepend">
+                    <span class="add-on">Value</span>
+                    <input class="span8" type="text" name="varVal<%= i %>" value="<%= ((Hashtable<String, String>) request.getAttribute("recomputeVariables")).get(key) %>">
+                    <input style="margin-left:10px" class="btn btn-danger" type="button" value="Delete" onclick="deleteVar(varDiv<%= i++ %>)"/>
+                  </div>
+                </br>
+                </div>
+              <% } %>
+              </div>
+              <div class="form-actions">
+                <input class="btn btn-primary" type="submit" value="Submit" id="submit"/>
+                <input class="btn" type="button" value="Add Variable" id="addVariable"/>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row-fluid">
+    <div class="accordion span14" id="accordion6">
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion6" href="#data6">
+            <h4>Detailed Nodes Summary</h4>
+          </a>
+        </div>
+        <div id="data6" class="accordion-body collapse in">
           <div class="accordion-inner">
             <table class="table table-hover table-condensed">
               <thead>
@@ -252,5 +290,18 @@
     </p>
   </footer>
 </div>
+<script>
+var id = ($("#recomputationVars").children().length).toString();
+$(document).ready(function () {
+  $("#addVariable").click(function () {
+    $("#recomputationVars").append('<div id="varDiv' + id + '"><div class="input-prepend" style="padding-right: 4px"><span class="add-on">Name</span><input class="span8" name="varName' + id + '" type="text" value="Variable Name"></div><div class="input-prepend"><span class="add-on">Value</span><input class="span8" type="text" name="varVal' + id + '" value="Value"><input style="margin-left:10px" class="btn btn-danger" type="button" value="Delete" onclick="deleteVar(varDiv' + id + ')"/></div></br></div>');
+    id ++;
+  });
+});
+
+function deleteVar(value) {
+	value.remove();
+}
+</script>
 </body>
 </html>

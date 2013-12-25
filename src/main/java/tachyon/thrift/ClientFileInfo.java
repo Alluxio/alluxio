@@ -36,6 +36,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   private static final org.apache.thrift.protocol.TField NEED_PIN_FIELD_DESC = new org.apache.thrift.protocol.TField("needPin", org.apache.thrift.protocol.TType.BOOL, (short)11);
   private static final org.apache.thrift.protocol.TField NEED_CACHE_FIELD_DESC = new org.apache.thrift.protocol.TField("needCache", org.apache.thrift.protocol.TType.BOOL, (short)12);
   private static final org.apache.thrift.protocol.TField BLOCK_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("blockIds", org.apache.thrift.protocol.TType.LIST, (short)13);
+  private static final org.apache.thrift.protocol.TField DEPENDENCY_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("dependencyId", org.apache.thrift.protocol.TType.I32, (short)14);
 
   public int id; // required
   public String name; // required
@@ -50,6 +51,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   public boolean needPin; // required
   public boolean needCache; // required
   public List<Long> blockIds; // required
+  public int dependencyId; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -65,7 +67,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     IN_MEMORY((short)10, "inMemory"),
     NEED_PIN((short)11, "needPin"),
     NEED_CACHE((short)12, "needCache"),
-    BLOCK_IDS((short)13, "blockIds");
+    BLOCK_IDS((short)13, "blockIds"),
+    DEPENDENCY_ID((short)14, "dependencyId");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -106,6 +109,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
           return NEED_CACHE;
         case 13: // BLOCK_IDS
           return BLOCK_IDS;
+        case 14: // DEPENDENCY_ID
+          return DEPENDENCY_ID;
         default:
           return null;
       }
@@ -155,7 +160,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   private static final int __INMEMORY_ISSET_ID = 6;
   private static final int __NEEDPIN_ISSET_ID = 7;
   private static final int __NEEDCACHE_ISSET_ID = 8;
-  private BitSet __isset_bit_vector = new BitSet(9);
+  private static final int __DEPENDENCYID_ISSET_ID = 9;
+  private BitSet __isset_bit_vector = new BitSet(10);
 
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -187,6 +193,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     tmpMap.put(_Fields.BLOCK_IDS, new org.apache.thrift.meta_data.FieldMetaData("blockIds", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
+    tmpMap.put(_Fields.DEPENDENCY_ID, new org.apache.thrift.meta_data.FieldMetaData("dependencyId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ClientFileInfo.class, metaDataMap);
   }
@@ -207,7 +215,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     boolean inMemory,
     boolean needPin,
     boolean needCache,
-    List<Long> blockIds)
+    List<Long> blockIds,
+    int dependencyId)
   {
     this();
     this.id = id;
@@ -232,6 +241,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     this.needCache = needCache;
     setNeedCacheIsSet(true);
     this.blockIds = blockIds;
+    this.dependencyId = dependencyId;
+    setDependencyIdIsSet(true);
   }
 
   /**
@@ -265,6 +276,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       }
       this.blockIds = __this__blockIds;
     }
+    this.dependencyId = other.dependencyId;
   }
 
   public ClientFileInfo deepCopy() {
@@ -295,6 +307,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     setNeedCacheIsSet(false);
     this.needCache = false;
     this.blockIds = null;
+    setDependencyIdIsSet(false);
+    this.dependencyId = 0;
   }
 
   public int getId() {
@@ -615,6 +629,29 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     }
   }
 
+  public int getDependencyId() {
+    return this.dependencyId;
+  }
+
+  public ClientFileInfo setDependencyId(int dependencyId) {
+    this.dependencyId = dependencyId;
+    setDependencyIdIsSet(true);
+    return this;
+  }
+
+  public void unsetDependencyId() {
+    __isset_bit_vector.clear(__DEPENDENCYID_ISSET_ID);
+  }
+
+  /** Returns true if field dependencyId is set (has been assigned a value) and false otherwise */
+  public boolean isSetDependencyId() {
+    return __isset_bit_vector.get(__DEPENDENCYID_ISSET_ID);
+  }
+
+  public void setDependencyIdIsSet(boolean value) {
+    __isset_bit_vector.set(__DEPENDENCYID_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case ID:
@@ -721,6 +758,14 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       }
       break;
 
+    case DEPENDENCY_ID:
+      if (value == null) {
+        unsetDependencyId();
+      } else {
+        setDependencyId((Integer)value);
+      }
+      break;
+
     }
   }
 
@@ -765,6 +810,9 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     case BLOCK_IDS:
       return getBlockIds();
 
+    case DEPENDENCY_ID:
+      return Integer.valueOf(getDependencyId());
+
     }
     throw new IllegalStateException();
   }
@@ -802,6 +850,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       return isSetNeedCache();
     case BLOCK_IDS:
       return isSetBlockIds();
+    case DEPENDENCY_ID:
+      return isSetDependencyId();
     }
     throw new IllegalStateException();
   }
@@ -933,6 +983,15 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (!(this_present_blockIds && that_present_blockIds))
         return false;
       if (!this.blockIds.equals(that.blockIds))
+        return false;
+    }
+
+    boolean this_present_dependencyId = true;
+    boolean that_present_dependencyId = true;
+    if (this_present_dependencyId || that_present_dependencyId) {
+      if (!(this_present_dependencyId && that_present_dependencyId))
+        return false;
+      if (this.dependencyId != that.dependencyId)
         return false;
     }
 
@@ -1082,6 +1141,16 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetDependencyId()).compareTo(typedOther.isSetDependencyId());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetDependencyId()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.dependencyId, typedOther.dependencyId);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -1209,6 +1278,14 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
           }
           break;
+        case 14: // DEPENDENCY_ID
+          if (field.type == org.apache.thrift.protocol.TType.I32) {
+            this.dependencyId = iprot.readI32();
+            setDependencyIdIsSet(true);
+          } else { 
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+          }
+          break;
         default:
           org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
       }
@@ -1278,6 +1355,9 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       }
       oprot.writeFieldEnd();
     }
+    oprot.writeFieldBegin(DEPENDENCY_ID_FIELD_DESC);
+    oprot.writeI32(this.dependencyId);
+    oprot.writeFieldEnd();
     oprot.writeFieldStop();
     oprot.writeStructEnd();
   }
@@ -1353,6 +1433,10 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     } else {
       sb.append(this.blockIds);
     }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("dependencyId:");
+    sb.append(this.dependencyId);
     first = false;
     sb.append(")");
     return sb.toString();

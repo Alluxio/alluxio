@@ -17,12 +17,17 @@
 package tachyon.examples;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.channels.FileChannel.MapMode;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
@@ -49,11 +54,11 @@ public class Performance {
   private static String MASTER_ADDRESS = null;
   private static String FILE_NAME = null;
   private static int BLOCK_SIZE_BYTES = -1;
-  private static int BLOCKS_PER_FILE = -1;
+  private static long BLOCKS_PER_FILE = -1;
   private static int THREADS = -1;
   private static int FILES = -1;
   private static boolean DEBUG_MODE = false;
-  private static int FILE_BYTES = -1;
+  private static long FILE_BYTES = -1;
   private static long FILES_BYTES = -1;
   private static String RESULT_PREFIX = null;
   private static long[] Results = new long[RESULT_ARRAY_SIZE];
@@ -114,7 +119,7 @@ public class Performance {
         ByteBuffer dst = null;
         RandomAccessFile file = null;
         if (mMemoryOnly) {
-          dst = ByteBuffer.allocateDirect(FILE_BYTES);
+          dst = ByteBuffer.allocateDirect((int) FILE_BYTES);
         }
         for (int times = mLeft; times < mRight; times ++) {
           long startTimeMs = System.currentTimeMillis();
@@ -139,7 +144,7 @@ public class Performance {
         ByteBuffer dst = null;
         RandomAccessFile file = null;
         if (mMemoryOnly) {
-          dst = ByteBuffer.allocateDirect(FILE_BYTES);
+          dst = ByteBuffer.allocateDirect((int) FILE_BYTES);
         }
         for (int times = mLeft; times < mRight; times ++) {
           long startTimeMs = System.currentTimeMillis();
@@ -181,8 +186,7 @@ public class Performance {
       mTC = TachyonFS.get(MASTER_ADDRESS);
     }
 
-    public void writeParition()
-        throws IOException, SuspectedFileSizeException, InvalidPathException, TException {
+    public void writeParition() throws IOException {
       if (DEBUG_MODE) {
         mBuf.flip();
         CommonUtils.printByteBuffer(LOG, mBuf);
@@ -221,8 +225,7 @@ public class Performance {
       mTC = TachyonFS.get(MASTER_ADDRESS);
     }
 
-    public void readPartition()
-        throws IOException, SuspectedFileSizeException, InvalidPathException, TException {
+    public void readPartition() throws IOException {
       TachyonByteBuffer buf;
       if (DEBUG_MODE) {
         LOG.info("Verifying the reading data...");
@@ -275,6 +278,77 @@ public class Performance {
         CommonUtils.runtimeException(e);
       }
       LOG.info("ReadWorker " + mWorkerId + " just finished.");
+    }
+  }
+
+  public static class HdfsWorker extends Worker {
+    private boolean mWrite;
+    private String mMsg;
+
+    public HdfsWorker(int id, int left, int right, ByteBuffer buf, boolean write, 
+        String msg) {
+      super(id, left, right, buf);
+      mWrite = write;
+      mMsg = msg;
+    }
+
+    public void io() throws IOException {
+      if (DEBUG_MODE) {
+        mBuf.flip();
+        CommonUtils.printByteBuffer(LOG, mBuf);
+      }
+      mBuf.flip();
+      long sum = 0;
+      String str = "th " + mMsg + " @ Worker ";
+
+      Configuration tConf = new Configuration();
+      tConf.set("fs.default.name", FILE_NAME);
+      tConf.set("fs.defaultFS", FILE_NAME);
+      tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
+//      tConf.set("fs.default.name", "hdfs://localhost:54310");
+//      tConf.addResource("/home/haoyuan/Tachyon/hadoop-1.0.4/conf/core-site.xml");
+      FileSystem fs = FileSystem.get(tConf);
+      if (mWrite) {
+        for (int times = mLeft; times < mRight; times ++) {
+          long startTimeMs = System.currentTimeMillis();
+          String filePath = FILE_NAME + (mWorkerId + BASE_FILE_NUMBER);
+          OutputStream os = fs.create(new Path(filePath));
+          for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
+            mBuf.array()[0] = (byte) (k + mWorkerId);
+            os.write(mBuf.array());
+          }
+          os.close();
+          logPerIteration(startTimeMs, times, str, mWorkerId);
+        }
+      } else {
+        for (int times = mLeft; times < mRight; times ++) {
+          long startTimeMs = System.currentTimeMillis();
+          String filePath = FILE_NAME + (mWorkerId + BASE_FILE_NUMBER);
+          InputStream is = fs.open(new Path(filePath));
+          long len = BLOCKS_PER_FILE * BLOCK_SIZE_BYTES;
+
+          while (len > 0) {
+            int r = is.read(mBuf.array());
+            len -= r;
+            if (r == -1) {
+              CommonUtils.runtimeException("R == -1");
+            }
+          }
+          is.close();
+          logPerIteration(startTimeMs, times, str, mWorkerId);
+        }
+      }
+      Results[mWorkerId] = sum;
+    }
+
+    @Override
+    public void run() {
+      try {
+        io();
+      } catch (IOException e) {
+        CommonUtils.runtimeException(e);
+      }
+      LOG.info(mMsg + mWorkerId + " just finished.");
     }
   }
 
@@ -356,8 +430,43 @@ public class Performance {
         " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
-  public static void main(String[] args)
-      throws IOException, InvalidPathException, FileAlreadyExistException {
+  private static void HdfsTest(boolean write) {
+    ByteBuffer[] bufs = new ByteBuffer[THREADS];
+
+    for (int thread = 0; thread < THREADS; thread ++) {
+      ByteBuffer sRawData = ByteBuffer.allocate(BLOCK_SIZE_BYTES);
+      sRawData.order(ByteOrder.nativeOrder());
+      for (int k = 0; k < BLOCK_SIZE_BYTES / 4; k ++) {
+        sRawData.putInt(k);
+      }
+      bufs[thread] = sRawData;
+    }
+
+    Worker[] WWs = new Worker[THREADS];
+    int t = FILES / THREADS;
+    String msg = (write ? "Write " : "Read ");
+    for (int thread = 0; thread < THREADS; thread ++) {
+      WWs[thread] = new HdfsWorker(thread, t * thread, t * (thread + 1), bufs[thread], write, msg);
+    }
+
+    long startTimeMs = System.currentTimeMillis();
+    for (int thread = 0; thread < THREADS; thread ++) {
+      WWs[thread].start();
+    }
+    for (int thread = 0; thread < THREADS; thread ++) {
+      try {
+        WWs[thread].join();
+      } catch (InterruptedException e) {
+        CommonUtils.runtimeException(e);
+      }
+    }
+    long takenTimeMs = System.currentTimeMillis() - startTimeMs;
+    double result = FILES_BYTES * 1000L / takenTimeMs / 1024 / 1024;
+    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write ": "Read ") + 
+        " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
+  }
+
+  public static void main(String[] args) throws IOException {
     if (args.length != 9) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION +
           "-jar-with-dependencies.jar tachyon.examples.Performance " +
@@ -375,7 +484,7 @@ public class Performance {
     MASTER_ADDRESS = args[0];
     FILE_NAME = args[1];
     BLOCK_SIZE_BYTES = Integer.parseInt(args[2]);
-    BLOCKS_PER_FILE = Integer.parseInt(args[3]);
+    BLOCKS_PER_FILE = Long.parseLong(args[3]);
     DEBUG_MODE = ("true".equals(args[4]));
     THREADS = Integer.parseInt(args[5]);
     FILES = Integer.parseInt(args[6]) * THREADS;
@@ -391,6 +500,10 @@ public class Performance {
         THREADS, FILES / THREADS, FILES, BLOCK_SIZE_BYTES / 1024,
         BLOCKS_PER_FILE, CommonUtils.getMB(FILE_BYTES),
         UserConf.get().FILE_BUFFER_BYTES / 1024, BASE_FILE_NUMBER);
+
+    for (int k = 0; k < 10000000; k ++) {
+      // Warmup
+    }
 
     if (testCase == 1) {
       RESULT_PREFIX = "TachyonFilesWriteTest " + RESULT_PREFIX;
@@ -419,6 +532,14 @@ public class Performance {
       RESULT_PREFIX = "ByteBuffer Read Test " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
       memoryCopyTest(false, true);
+    } else if (testCase == 7) {
+      RESULT_PREFIX = "HdfsFilesWriteTest " + RESULT_PREFIX;
+      LOG.info(RESULT_PREFIX);
+      HdfsTest(true);
+    } else if (testCase == 8) {
+      RESULT_PREFIX = "HdfsFilesReadTest " + RESULT_PREFIX;
+      LOG.info(RESULT_PREFIX);
+      HdfsTest(false);
     } else {
       CommonUtils.runtimeException("No Test Case " + testCase);
     }

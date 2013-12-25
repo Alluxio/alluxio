@@ -43,6 +43,7 @@ public class FileOutStreamTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
+    System.setProperty("tachyon.user.default.block.size.byte", "128");
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
@@ -52,6 +53,7 @@ public class FileOutStreamTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   private void writeTest1Util(String filePath, WriteType op, int len)
@@ -144,7 +146,8 @@ public class FileOutStreamTest {
     TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
     Assert.assertTrue(os instanceof FileOutStream);
-    os.write(TestUtils.getIncreasingByteArray(len), 0, len / 2);
+    os.write(TestUtils.getIncreasingByteArray(0, len / 2), 0, len / 2);
+    os.write(TestUtils.getIncreasingByteArray(len / 2, len / 2), 0, len / 2);
     os.close();
 
     for (ReadType rOp : ReadType.values()) {
@@ -152,7 +155,7 @@ public class FileOutStreamTest {
       InStream is = file.getInStream(rOp);
       byte[] res = new byte[(int) file.length()];
       Assert.assertEquals((int) file.length(), is.read(res));
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len / 2, res));
+      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len / 2 * 2, res));
     }
 
     if (op.isThrough()) {
@@ -163,7 +166,7 @@ public class FileOutStreamTest {
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) file.length()];
       Assert.assertEquals((int) file.length(), is.read(res));
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len / 2, res));
+      Assert.assertTrue(TestUtils.equalIncreasingByteArray(len / 2 * 2, res));
     }
   }
 
