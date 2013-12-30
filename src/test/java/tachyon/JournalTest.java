@@ -181,12 +181,31 @@ public class JournalTest {
     ManyFileTestUtil();
   }
 
+  /**
+   * Test completed Editlog deletion
+   * @throws Exception
+   */
+  @Test
+  public void CompltedEditLogDeletionTest() throws Exception {
+    Journal journal = mLocalTachyonCluster.getMasterInfo().getJournal();
+    journal.setMaxLogSize(Constants.KB);
+    for (int i = 0; i < 124; i ++) {
+      mTfs.createFile("/a" + i, (i + 10) / 10 * 64);
+    }
+    mLocalTachyonCluster.stop();
+    String editLogPath = mLocalTachyonCluster.getEditLogPath();
+    String completedPath = editLogPath.substring(0, editLogPath.lastIndexOf("/")) + "/completed";
+    Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length > 1);
+    MultiEditLogTestUtil();
+    Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length == 0);
+    MultiEditLogTestUtil();
+  }
+
   private void MultiEditLogTestUtil()
       throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    journal.setMaxLogSize(Constants.KB);
     Assert.assertEquals(125, info.ls("/", true).size());
     Assert.assertTrue(info.getFileId("/") != -1);
     for (int k = 0; k < 124; k ++) {
@@ -201,6 +220,8 @@ public class JournalTest {
    */
   @Test
   public void MultiEditLogTest() throws Exception {
+    Journal journal = mLocalTachyonCluster.getMasterInfo().getJournal();
+    journal.setMaxLogSize(Constants.KB);
     for (int i = 0; i < 124; i ++) {
       mTfs.createFile("/a" + i, (i + 10) / 10 * 64);
     }
