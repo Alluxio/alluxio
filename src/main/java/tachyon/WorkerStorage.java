@@ -269,7 +269,7 @@ public class WorkerStorage {
     byte[] bulk = new byte[BULKSIZE];
     for (int k = 0; k < (buf.limit() + BULKSIZE - 1) / BULKSIZE; k++) {
       int len = BULKSIZE < buf.remaining() ? BULKSIZE : buf.remaining();
-      buf.get(bulk, buf.position(), len);
+      buf.get(bulk, 0, len);
       os.write(bulk, 0, len);
     }
     os.close();
@@ -494,5 +494,9 @@ public class WorkerStorage {
 
   public void userHeartbeat(long userId) throws TException {
     mUsers.userHeartbeat(userId);
+  }
+
+  public String getUnderfsOrphansFolder() {
+    return mUnderfsOrphansFolder;
   }
 }
