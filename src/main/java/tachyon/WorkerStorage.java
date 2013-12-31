@@ -495,4 +495,8 @@ public class WorkerStorage {
   public void userHeartbeat(long userId) throws TException {
     mUsers.userHeartbeat(userId);
   }
+
+  public String getUnderfsOrphansFolder() {
+    return mUnderfsOrphansFolder;
+  }
 }
