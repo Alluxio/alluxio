@@ -82,7 +82,7 @@ public class WorkerStorageTest {
 
   /**
    * To test swapout the small file which is less than 64K
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -92,7 +92,7 @@ public class WorkerStorageTest {
 
   /**
    * To test swapout the small file which is bigger than 64K
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -105,7 +105,7 @@ public class WorkerStorageTest {
 
   /**
    * To test initial WorkerStorage with unknown block files
-   * 
+   *
    * @throws Exception
    */
   @Test
