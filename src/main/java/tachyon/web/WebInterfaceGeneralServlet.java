@@ -92,7 +92,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   }
 
   /**
-   * Redirects the request to a jsp after populating attributes via populateValues.
+   * Redirects the request to a JSP after populating attributes via populateValues.
    * @param request The HttpServletRequest object
    * @param response The HttpServletResponse object
    */
