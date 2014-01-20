@@ -87,13 +87,6 @@
   </pluginRepositories>
 
   <dependencies>
-<!--
-    <dependency>
-      <groupId>com.esotericsoftware.kryo</groupId>
-      <artifactId>kryo</artifactId>
-      <version>2.21</version>
-    </dependency>
- -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
@@ -224,7 +217,7 @@
     </resources>
     <plugins>
 <!--
-       <plugin>
+      <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
         <version>1.2.1</version>
@@ -241,7 +234,7 @@
           </execution>
         </executions>
       </plugin>
- -->
+-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
