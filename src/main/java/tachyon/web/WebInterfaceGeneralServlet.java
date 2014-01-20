@@ -26,8 +26,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import tachyon.Constants;
+import tachyon.DependencyVariables;
 import tachyon.MasterInfo;
-import tachyon.RecomputeVariables;
 import tachyon.Version;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.util.CommonUtils;
@@ -106,12 +106,12 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    RecomputeVariables.sRecomputeVars.clear();
+    DependencyVariables.sVariables.clear();
     for (String key : (Set<String>) request.getParameterMap().keySet()) {
       if (key.startsWith("varName")) {
         String value = request.getParameter("varVal" + key.substring(7));
         if (value != null) {
-          RecomputeVariables.sRecomputeVars.put(request.getParameter(key), value);
+          DependencyVariables.sVariables.put(request.getParameter(key), value);
         }
       }
     }
@@ -166,7 +166,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("diskFreeCapacity", "UNKNOWN");
     }
 
-    request.setAttribute("recomputeVariables", RecomputeVariables.sRecomputeVars);
+    request.setAttribute("recomputeVariables", DependencyVariables.sVariables);
 
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
     for (int i = 0; i < workerInfos.size(); i ++) {

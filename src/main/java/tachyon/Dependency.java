@@ -94,10 +94,10 @@ public class Dependency {
     return sb.toString();
   }
 
-  public String parseCommandPrefix() {
+  String parseCommandPrefix() {
     String rtn = COMMAND_PREFIX;
-    for (String s : RecomputeVariables.sRecomputeVars.keySet()) {
-      rtn = rtn.replace("$" + s, RecomputeVariables.sRecomputeVars.get(s));
+    for (String s : DependencyVariables.sVariables.keySet()) {
+      rtn = rtn.replace("$" + s, DependencyVariables.sVariables.get(s));
     }
     return rtn;
   }

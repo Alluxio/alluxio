@@ -46,7 +46,7 @@ public class WorkerStorageTest {
   @Before
   public final void before() throws IOException {
     System
-        .setProperty("tachyon.user.quota.unit.bytes", WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
+    .setProperty("tachyon.user.quota.unit.bytes", WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms",
         WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
@@ -116,7 +116,6 @@ public class WorkerStorageTest {
     // try a non-numerical file name
     File unknownFile = new File(mWorkerDataFolder + "/" + "xyz");
     unknownFile.createNewFile();
-    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerAddress, mWorkerDataFolder,
-        WORKER_CAPACITY_BYTES);
+    new WorkerStorage(mMasterAddress, mWorkerAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
   }
 }
