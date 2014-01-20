@@ -115,20 +115,6 @@ exception DependencyDoesNotExistException {
   1: string message
 }
 
-service CoordinatorService {
-  /**
-   * Get the max transaction id of one master.
-   * @return max transaction of the master
-   */
-  i64 getMaxTransactionId()
-
-  /**
-   * Send transactions.
-   * @return max transaction id.
-   */
-  i64 sendNewTransactions(1: i64 leftTransactionId, 2: i64 rightTransactionId, 3: list<binary> transactions)
-}
-
 service MasterService {
   bool addCheckpoint(1: i64 workerId, 2: i32 fileId, 3: i64 length, 4: string checkpointPath)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
@@ -137,7 +123,8 @@ service MasterService {
 
   // Services to Workers
   /**
-   * Worker register. Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
+   * Worker register.
+   * @return value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
    */
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i64> currentBlocks)
     throws (1: BlockInfoException e)
