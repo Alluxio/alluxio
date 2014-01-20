@@ -17,10 +17,6 @@ import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.util.CommonUtils;
 
 public class BasicCheckpoint {
@@ -29,6 +25,8 @@ public class BasicCheckpoint {
   private static TachyonFS sTachyonClient;
   private static String sFileFolder = null;
   private static int sFiles;
+  private static int sNumbers = 20;
+  private static boolean sPass = true;
 
   public static void createDependency() throws IOException {
     long startTimeMs = CommonUtils.getCurrentMs();
@@ -49,17 +47,15 @@ public class BasicCheckpoint {
     for (int i = 0; i < sFiles; i ++) {
       String filePath = sFileFolder + "/part-" + i;
       TachyonFile file = sTachyonClient.getFile(filePath);
-      OutputStream os = file.getOutStream(WriteType.MUST_CACHE);
+      OutputStream os = file.getOutStream(WriteType.ASYNC_THROUGH);
 
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < 20; k ++) {
+      for (int k = 0; k < sNumbers; k ++) {
         buf.putInt(k);
       }
       buf.flip();
-      LOG.info("Writing data to " + filePath);
-      CommonUtils.printByteBuffer(LOG, buf);
-      buf.flip();
+      LOG.debug("Writing data to " + filePath);
       os.write(buf.array());
       os.close();
     }
@@ -68,7 +64,7 @@ public class BasicCheckpoint {
   public static void readFile() throws IOException {
     for (int i = 0; i < sFiles; i ++) {
       String filePath = sFileFolder + "/part-" + i;
-      LOG.info("Reading data from " + filePath);
+      LOG.debug("Reading data from " + filePath);
       TachyonFile file = sTachyonClient.getFile(filePath);
       TachyonByteBuffer buf = file.readByteBuffer();
       if (buf == null) {
@@ -76,14 +72,14 @@ public class BasicCheckpoint {
         buf = file.readByteBuffer();
       }
       buf.DATA.order(ByteOrder.nativeOrder());
-      CommonUtils.printByteBuffer(LOG, buf.DATA);
+      for (int k = 0; k < sNumbers; k ++) {
+        sPass = sPass && (buf.DATA.getInt() == k);
+      }
       buf.close();
     }
   }
 
-  public static void main(String[] args)
-      throws SuspectedFileSizeException, InvalidPathException, IOException, 
-      FileDoesNotExistException, FileAlreadyExistException, TException {
+  public static void main(String[] args) throws IOException, TException {
     if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION + 
           "-jar-with-dependencies.jar " +
@@ -96,6 +92,7 @@ public class BasicCheckpoint {
     createDependency();
     writeFile();
     readFile();
+    Utils.printPassInfo(sPass);
     System.exit(0);
   }
 }
