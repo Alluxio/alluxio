@@ -21,9 +21,9 @@ import tachyon.Constants;
 public class Utils {
   public static void printPassInfo(boolean pass) {
     if (pass) {
-      System.out.println(Constants.ANSI_GREEN + "Pass the test!" + Constants.ANSI_RESET);
+      System.out.println(Constants.ANSI_GREEN + "Passed the test!" + Constants.ANSI_RESET);
     } else {
-      System.out.println(Constants.ANSI_RED + "Fail the test!" + Constants.ANSI_RESET);
+      System.out.println(Constants.ANSI_RED + "Failed the test!" + Constants.ANSI_RESET);
     }
   }
 }

@@ -241,7 +241,21 @@ public class EditLog {
     }
   }
 
-  public static void markUpToDate() {
+  public static void markUpToDate(String path) {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+    String folder = path.substring(0, path.lastIndexOf("/")) + "/completed";
+    try {
+      //delete all loaded editlogs since mBackupLogStartNum.
+      String toDelete = folder + "/" + mBackUpLogStartNum +  ".editLog";
+      while (ufs.exists(toDelete)) {
+        LOG.info("Deleting editlog " + toDelete);
+        ufs.delete(toDelete, true);
+        mBackUpLogStartNum ++;
+        toDelete = folder + "/" + mBackUpLogStartNum +  ".editLog";
+      }
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
     mBackUpLogStartNum = -1;
   }
 

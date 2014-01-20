@@ -182,6 +182,26 @@ public class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.memory.size");
   }
 
+  public void stopWorker() throws Exception {
+    for (TachyonFS fs : mClients) {
+      fs.close();
+    }
+    mClients.clear();
+    mWorker.stop();
+  }
+
+  public InetSocketAddress getMasterAddress() {
+    return new InetSocketAddress(mLocalhostName, mMasterPort);
+  }
+
+  public InetSocketAddress getWorkerAddress() {
+    return new InetSocketAddress(mLocalhostName, mWorkerPort);
+  }
+
+  public String getWorkerDataFolder() {
+    return mWorkerDataFolder;
+  }
+
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100);
     cluster.start();
