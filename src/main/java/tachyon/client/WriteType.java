@@ -29,7 +29,9 @@ public enum WriteType {
   // Write the file synchronously to the under fs, and also try to cache it,
   CACHE_THROUGH(3),
   // Write the file synchronously to the under fs, no cache.
-  THROUGH(4);
+  THROUGH(4),
+  // Write the file asynchronously to the under fs (either must cache or must through).
+  ASYNC_THROUGH(5);
 
   private final int mValue;
 
