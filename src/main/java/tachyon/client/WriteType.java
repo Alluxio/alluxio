@@ -50,11 +50,16 @@ public enum WriteType {
   public boolean isCache() {
     return (mValue == MUST_CACHE.mValue) 
         || (mValue == CACHE_THROUGH.mValue)
-        || (mValue == TRY_CACHE.mValue);
+        || (mValue == TRY_CACHE.mValue)
+        || (mValue == ASYNC_THROUGH.mValue);
+  }
+
+  public boolean isAsync() {
+    return mValue == ASYNC_THROUGH.mValue;
   }
 
   public boolean isMustCache() {
-    return mValue == MUST_CACHE.mValue;
+    return (mValue == MUST_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
   }
 
   public static WriteType getOpType(String op) throws IOException {
@@ -66,6 +71,8 @@ public enum WriteType {
       return CACHE_THROUGH;
     } else if (op.equals("THROUGH")) {
       return THROUGH;
+    } else if (op.equals("ASYNC_THROUGH")) {
+      return ASYNC_THROUGH;
     }
 
     throw new IOException("Unknown WriteType : " + op);
