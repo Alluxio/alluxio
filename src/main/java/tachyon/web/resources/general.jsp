@@ -164,6 +164,7 @@
       </div>
     </div>
   </div>
+<!--  Hide variables for now
   <div class="row-fluid">
     <div class="accordion span14" id="accordion5">
       <div class="accordion-group">
@@ -202,6 +203,7 @@
       </div>
     </div>
   </div>
+-->
   <div class="row-fluid">
     <div class="accordion span14" id="accordion6">
       <div class="accordion-group">
