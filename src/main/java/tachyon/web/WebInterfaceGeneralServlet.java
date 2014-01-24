@@ -101,11 +101,6 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     getServletContext().getRequestDispatcher("/general.jsp").forward(request, response);
   }
 
-  @Override
-  protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-    return;
-  }
-
   /**
    * Populates key, value pairs for UI display
    * @param request The HttpServletRequest object
