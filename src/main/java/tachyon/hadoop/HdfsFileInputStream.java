@@ -68,7 +68,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       mTachyonFileInputStream = tachyonFile.getInStream(ReadType.CACHE);
     } catch (IOException e) {
       LOG.error(e.getMessage());
-      return;
     }
   }
 

@@ -46,7 +46,7 @@ if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
   export JAVA="$JAVA_HOME/bin/java"
 fi
 
-# Environment settings should override * and are adminstrator controlled.
+# Environment settings should override * and are administrator controlled.
 if [ -e $TACHYON_CONF_DIR/tachyon-env.sh ] ; then
   . $TACHYON_CONF_DIR/tachyon-env.sh
 fi
