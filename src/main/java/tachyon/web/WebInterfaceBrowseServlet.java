@@ -212,11 +212,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
   }
 
-  @Override
-  protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-    return;
-  }
-
   /**
    * This function displays the first 5KB of a file if it is in ASCII format.
    * @param path The path of the file to display
