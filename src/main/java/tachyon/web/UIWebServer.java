@@ -46,7 +46,7 @@ public class UIWebServer {
   /**
    * Constructor that pairs urls with servlets and sets the webapp folder.
    * @param serverName Name of the server
-   * @param InetSocketAddress Address of the server
+   * @param address Address of the server
    * @param masterInfo MasterInfo for the tachyon filesystem this UIWebServer supports
    * @return A new UIWebServer
    */

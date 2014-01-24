@@ -53,10 +53,4 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
     request.setAttribute("inMemoryFiles", inMemoryFiles);
     getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
   }
-
-  @Override
-  public void doPost(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
-    return;
-  }
 }
