@@ -16,6 +16,7 @@
  */
 package tachyon.hadoop;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -53,7 +54,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   private byte mBuffer[] = new byte[UserConf.get().FILE_BUFFER_BYTES * 4];
 
   public HdfsFileInputStream(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
-      int bufferSize) {
+      int bufferSize) throws IOException {
     LOG.debug("PartitionInputStreamHdfs(" + tfs + ", " + fileId + ", " + hdfsPath + ", " + 
         conf + ", " + bufferSize + ")");
     mCurrentPosition = 0;
@@ -64,6 +65,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mHadoopBufferSize = bufferSize;
 
     TachyonFile tachyonFile = mTFS.getFile(mFileId);
+    if (tachyonFile == null) {
+      new FileNotFoundException("File " + hdfsPath + " with FID " + fileId + " is not found.");
+    }
     try {
       mTachyonFileInputStream = tachyonFile.getInStream(ReadType.CACHE);
     } catch (IOException e) {
