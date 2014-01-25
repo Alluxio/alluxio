@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+function printUsage {
+  echo "Usage: succint COMMAND "
+  echo "where COMMAND is one of:"
+  echo -e "  runTest        \t Test Tachyon read/write"
+  echo "Commands print help when invoked without parameters."
+}
+
+if [ "$#" == 0 ]; then
+  printUsage
+  exit 1
+fi
+
+COMMAND=$1
+shift
+
+bin=`cd "$( dirname "$0" )"; pwd`
+
+DEFAULT_LIBEXEC_DIR="$bin"/../libexec
+TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+. $TACHYON_LIBEXEC_DIR/tachyon-config.sh
+
+function runTest {
+  Usage="Usage: tachyon runTest <WriteData|ReadData> <FilePath> <DataSize>"
+
+  if [ "$#" -ne 3 ]; then
+    echo $Usage
+    exit 1
+  fi
+
+  MASTER_ADDRESS=$TACHYON_MASTER_ADDRESS
+  if [ -z $TACHYON_MASTER_ADDRESS ] ; then
+    MASTER_ADDRESS=localhost
+  fi
+
+  if [[ "$1" == "WriteData" ]]; then
+    $bin/tachyon tfs rm $2
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR succinct.test.WriteData $MASTER_ADDRESS:19998 $2 MUST_CACHE $3
+    exit 0
+  elif [[ "$1" == "ReadData" ]]; then
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR succinct.test.ReadData $MASTER_ADDRESS:19998 $2 $3
+    exit 0
+  fi
+
+  echo $Usage
+}
+
+if [ "$COMMAND" == "runTest" ]; then
+  runTest "$@"
+else
+  printUsage
+fi
