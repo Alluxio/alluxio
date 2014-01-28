@@ -1,0 +1,16 @@
+2014-01-25 18:09:28,746 INFO   (TachyonFS.java:connect) - Trying to connect master @ localhost/127.0.0.1:19998
+2014-01-25 18:09:28,783 INFO   (MasterClient.java:getUserId) - User registered at the master localhost/127.0.0.1:19998 got UserId 95
+2014-01-25 18:09:28,784 INFO   (TachyonFS.java:connect) - Trying to get local worker host : localhost
+2014-01-25 18:09:28,791 INFO   (TachyonFS.java:connect) - Connecting local worker @ Anurag-Mac/127.0.0.1:29998
+File size = 104857600 blockSize = 8192
+Number of blocks in file = 12800
+File Block size is = 104857600 bytes
+Populating randoms array for random reads...
+Testing Streaming Reads...
+read = -864400
+Took 1690 ms to read 20971520000 bytes
+Throughput = 11834.31952662722 MB/s
+Testing Buffer Reads...
+read = -864400
+Took 1671 ms to read 20971520000 bytes
+Throughput = 11968.880909634949 MB/s

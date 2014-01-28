@@ -22,9 +22,9 @@ TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
 function runTest {
-  Usage="Usage: tachyon runTest <WriteData|ReadData> <FilePath> <DataSize>"
+  Usage="Usage: tachyon runTest <WriteData|ReadData> <FilePath> <DataSize> <BlockSize>"
 
-  if [ "$#" -ne 3 ]; then
+  if [ "$#" -ne 4 ]; then
     echo $Usage
     exit 1
   fi
@@ -36,10 +36,10 @@ function runTest {
 
   if [[ "$1" == "WriteData" ]]; then
     $bin/tachyon tfs rm $2
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR succinct.test.WriteData $MASTER_ADDRESS:19998 $2 MUST_CACHE $3
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR succinct.test.WriteData $MASTER_ADDRESS:19998 $2 MUST_CACHE $3 $4
     exit 0
   elif [[ "$1" == "ReadData" ]]; then
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR succinct.test.ReadData $MASTER_ADDRESS:19998 $2 $3
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR succinct.test.ReadData $MASTER_ADDRESS:19998 $2 $3 $4
     exit 0
   fi
 
