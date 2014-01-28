@@ -69,6 +69,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
     if (mCurrentBuffer == null) {
       setupStreamFromUnderFs(mBlockInfo.offset);
+      
       if (mCheckpointInputStream == null) {
         throw new IOException("Can not find the block " + FILE + " " + BLOCK_INDEX);
       }
