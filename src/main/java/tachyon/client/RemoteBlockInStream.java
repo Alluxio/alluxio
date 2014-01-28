@@ -352,7 +352,13 @@ public class RemoteBlockInStream extends BlockInStream {
     }
     mRecache = false;
     if (mCurrentBuffer != null) {
-      mCurrentBuffer.position((int) pos);
+      long length = BUFFER_SIZE;
+      mReadByte = pos;
+      if(!(pos < mBufferStartPosition + length && pos >= mBufferStartPosition)) {
+        mBufferStartPosition = ((int)pos / length) * length;
+        mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
+      }
+      mCurrentBuffer.position((int) (pos % length));
     } else {
       if (mCheckpointInputStream != null) {
         mCheckpointInputStream.close();
