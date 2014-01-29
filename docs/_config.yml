@@ -1,0 +1,6 @@
+pygments: true
+markdown: kramdown
+
+# These allow the documentation to be updated with new releases of Tachyon.
+TACHYON_VERSION: 0.4.0-SNAPSHOT
+TACHYON_VERSION_SHORT: 0.3.0

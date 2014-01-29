@@ -3,8 +3,7 @@ layout: global
 title: Thrift
 ---
 
-[](#wiki-setup-on-mac-os-x)Setup on Mac OS X
---------------------------------------------
+# Mac OSX
 
 1.  Grab the latest Thrift distribution (we only support 0.7.0) from
     [http://archive.apache.org/dist/thrift/0.7.0/](http://archive.apache.org/dist/thrift/0.7.0/)
@@ -32,8 +31,7 @@ Now build Thrift 0.7.0:
     make
     make install
 
-[](#wiki-setup-on-linux)Setup on Linux
---------------------------------------
+# Linux
 
 [Reference](http://thrift.apache.org/docs/install/)
 

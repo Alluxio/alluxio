@@ -1,10 +1,9 @@
 ---
 layout: global
-title: Fault-Tolerant-Tachyon-Cluster
+title: Fault Tolerant Tachyon Cluster
 ---
 
-[](#wiki-prerequisites)Prerequisites
-------------------------------------
+# Prerequisites
 
 There are two prerequisites to set up a fault tolerant Tachyon cluster,
 [ZooKeeper](Fault-Tolerant-Tachyon-Cluster#zookeeper), and a shared
@@ -15,54 +14,59 @@ layers. Also, please see
 for a more succinct description of all the configuration options Tachyon
 has.
 
-### [](#wiki-hdfs)HDFS
+## HDFS
 
 For information about setting up HDFS, see [Getting Started With
 Hadoop](http://wiki.apache.org/hadoop/GettingStartedWithHadoop).
 
-Note the name of machine running your NameNode, as you will need to tell
-Tachyon where this is. In your tachyon-env.sh (or environment) you'll
-need to include:
+Note the name of machine running your NameNode, as you will need to tell Tachyon where this is. In
+your tachyon-env.sh (or environment) you'll need to include:
 
     export TACHYON_UNDERFS_ADDRESS=hdfs://[namenodeserver]:[namenodeport]
 
-### [](#wiki-zookeeper)ZooKeeper
+## ZooKeeper
 
-Tachyon uses ZooKeeper to achieve master fault tolerance. It is also
-required in order to use shared storage (such as HDFS) for writing logs
-and images.
+Tachyon uses ZooKeeper to achieve master fault tolerance. It is also required in order to use shared
+storage (such as HDFS) for writing logs and images.
 
 ZooKeeper must be set up independently (see [ZooKeeper Getting
 Started](http://zookeeper.apache.org/doc/r3.1.2/zookeeperStarted.html))
 and then in conf/tachyon-env.sh, these java options should be used:
 
-  property name               example          represents
-  --------------------------- ---------------- -------------------------------------------------------
-  tachyon.usezookeeper        true             Whether or not Master processes should use ZooKeeper.
-  tachyon.zookeeper.address   localhost:2181   The hostname and port ZooKeeper is running on.
+<table class="table">
+<tr><th>Property Name</th><th>Example</th><th>Meaning</th></tr>
+<tr>
+  <td>tachyon.usezookeeper</td>
+  <td>true</td>
+  <td>
+     Whether or not Master processes should use ZooKeeper.
+  </td>
+</tr>
+<tr>
+  <td>tachyon.zookeeper.address</td>
+  <td>localhost:2181</td>
+  <td>
+    The hostname and port ZooKeeper is running on.
+  </td>
+</tr>
+</table>
 
-[](#wiki-configuring-tachyon)Configuring Tachyon
-------------------------------------------------
+## Configuring Tachyon
 
-Once you have HDFS and ZooKeeper running, you need to set up your
-tachyon-env.sh appropriately on each host. Some settings are relevant
-for Master Nodes, while others for Workers. Here we separate these
-concerns, however it is also fine to run a Master and Worker(s) on a
-single node.
+Once you have HDFS and ZooKeeper running, you need to set up your tachyon-env.sh appropriately on
+each host. Some settings are relevant for Master Nodes, while others for Workers. Here we separate
+these concerns, however it is also fine to run a Master and Worker(s) on a single node.
 
-### [](#wiki-externally-visible-address)Externally Visible Address
+## Externally Visible Address
 
-In the following sections we refer to an "externally visible address".
-This is simply the address of an interface on the machine being
-configured that can be seen by other nodes in the Tachyon cluster. On
-EC2, you should the "ip-x-x-x-x" address. In particular, don't use
-localhost or 127.0.0.1, as other nodes will then be unable to reach your
-node.
+In the following sections we refer to an "externally visible address". This is simply the address of
+an interface on the machine being configured that can be seen by other nodes in the Tachyon cluster.
+On EC2, you should the "ip-x-x-x-x" address. In particular, don't use localhost or 127.0.0.1, as
+other nodes will then be unable to reach your node.
 
-### [](#wiki-master-configuration)Master Configuration
+## Master Configuration
 
-For a master node the [ZooKeeper][ZooKeeper] and [HDFS][HDFS] variables
-must be set, as described above.
+For a master node the ZooKeeper and HDFS variables must be set, as described above.
 
 In addition, the following variable must also be set:
 
@@ -76,13 +80,12 @@ You can then start a master node on the machine and it will either
 become leader, or wait until the current master dies and then offer to
 be the new leader.
 
-### [](#wiki-worker-configuration)Worker Configuration
+## Worker Configuration
 
-For a worker, it is only necessary to set the TACHYON\_MASTER\_ADDRESS
-option, as:
+For a worker, it is only necessary to set the TACHYON\_MASTER\_ADDRESS option, as:
 
     export TACHYON_MASTER_ADDRESS=[address of one of the master nodes in the system]
 
-Any of the configured and running masters can be used, as they will
-inform the worker of the current leader.
+Any of the configured and running masters can be used, as they will inform the worker of the current
+leader.
 

@@ -1,11 +1,10 @@
 ---
 layout: global
-title: Syncing-the-Underlying-Filesystem
+title: Syncing the Underlayer Filesystem
 ---
 
-Often times, there is already data in the underlying store, but when
-Tachyon is started, it will not have knowledge about the preexisting
-files.
+Often times, there is already data in the underlying store, but when Tachyon is started, it will not
+have knowledge about the preexisting files.
 
 Use the tachyon shell command loadufs to sync the filesystems.
 
@@ -15,6 +14,4 @@ For example:
 
 `./bin/tachyon loadufs 127.0.0.1 hdfs://localhost:8020 / /tachyon`
 
-Would load the meta-data for all the files in the local hdfs, except for
-the Tachyon folder.
-
+Would load the meta-data for all the files in the local hdfs, except for the Tachyon folder.
