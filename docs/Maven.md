@@ -3,19 +3,13 @@ layout: global
 title: Maven
 ---
 
-[](#wiki-maven)Maven
-====================
+# Mac OSX
 
-[](#wiki-maven-on-mac-os-x)Maven on Mac OS X
---------------------------------------------
-
-Mac OS X comes with Apache Maven 3 built in, and can be located at
-`/usr/share/maven`
+Mac OS X comes with Apache Maven 3 built in, and can be located at `/usr/share/maven`
 
 1.  Maven Verification In terminal, issue the command `mvn -version`.
 
-[](#wiki-maven-on-linux)Maven on Linux
---------------------------------------
+# Linux
 
 1.  Download [Maven Binary](http://maven.apache.org/download.cgi)
 2.  Extract the distribution archive, i.e.

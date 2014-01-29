@@ -1,14 +1,12 @@
 ---
 layout: global
-title: Running-Spark-on-Tachyon
+title: Running Spark on Tachyon
 ---
 
-The additional prerequisite for this part is
-[Spark](http://spark-project.org/docs/latest/) (0.6 or later). We also
-assume that the user is running on Tachyon 0.3.0 or later and have set
-up Tachyon and Hadoop in accordance to these guides [Local
-Mode](Running-Tachyon-Locally.html) or [Cluster
-Mode](Running-Tachyon-on-a-Cluster.html).
+The additional prerequisite for this part is [Spark](http://spark-project.org/docs/latest/) (0.6 or
+later). We also assume that the user is running on Tachyon 0.3.0 or later and have set up Tachyon
+and Hadoop in accordance to these guides [Local Mode](Running-Tachyon-Locally.html) or
+[Cluster Mode](Running-Tachyon-on-a-Cluster.html).
 
 Edit Spark `spark/conf/spark-env.sh`, add:
 
@@ -30,6 +28,5 @@ Put a file X into HDFS. Run Spark Shell:
     $ s.count()
     $ s.saveAsTextFile("tachyon://localhost:19998/Y")
 
-Take a look at [http://localhost:19999](http://localhost:19999), there
-should be a dataset info there.
-
+Take a look at [http://localhost:19999](http://localhost:19999), there should be a dataset info
+there.

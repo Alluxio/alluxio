@@ -1,13 +1,9 @@
 ---
 layout: global
-title: Java-setup
+title: Java Setup
 ---
 
-[](#wiki-java-setup)Java Setup
-==============================
-
-[](#wiki-java-on-mac-os-x)[Java on Mac OS X](http://docs.oracle.com/javase/7/docs/webnotes/install/mac/mac-jdk.html)
---------------------------------------------------------------------------------------------------------------------
+# Mac OSX
 
 1.  Download the latest Java JDK from
     [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
@@ -25,8 +21,7 @@ title: Java-setup
 7.  The software is installed and a confirmation window appears. Click
     the ReadMe for more information about the installation.
 
-[](#wiki-java-on-linux)[Java on Linux](http://docs.oracle.com/javase/7/docs/webnotes/install/linux/linux-jdk.html)
-------------------------------------------------------------------------------------------------------------------
+# Linux
 
 1.  Download the latest Java JDK from
     [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
@@ -36,9 +31,5 @@ title: Java-setup
 
     `$ tar zxvf jdk-7u<version>-linux-x64.tar.gz`
 
-The Java Development Kit files are installed in a directory called
-jdk1.7.0\_ in the current directory.
-
-1.  Delete the .tar.gz file if you want to save disk space.
-
-
+4.  The Java Development Kit files are installed in a directory called jdk1.7.0\_ in the current
+directory. Delete the .tar.gz file if you want to save disk space.
