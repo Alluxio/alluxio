@@ -189,6 +189,22 @@ public class MasterClient {
     }
   }
 
+  public synchronized ClientFileInfo getClientFileInfoById(int id)
+      throws IOException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.getClientFileInfoById(id);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
+    return null;
+  }
+
   synchronized long getLastAccessedMs() {
     return mLastAccessedMs;
   }
@@ -404,22 +420,6 @@ public class MasterClient {
       try {
         return mClient.user_getClientFileInfoByPath(path);
       } catch (FileDoesNotExistException | InvalidPathException e) {
-        throw new IOException(e);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
-      }
-    }
-    return null;
-  }
-
-  public synchronized ClientFileInfo user_getClientFileInfoById(int id)
-      throws IOException, TException {
-    while (!mIsShutdown) {
-      connect();
-      try {
-        return mClient.user_getClientFileInfoById(id);
-      } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());

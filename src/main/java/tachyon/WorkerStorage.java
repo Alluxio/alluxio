@@ -165,7 +165,7 @@ public class WorkerStorage {
           }
 
           long startCopyTimeMs = System.currentTimeMillis();
-          ClientFileInfo fileInfo = mMasterClient.user_getClientFileInfoById(fileId);
+          ClientFileInfo fileInfo = mMasterClient.getClientFileInfoById(fileId);
           if (!fileInfo.isComplete()) {
             LOG.error("File " + fileInfo + " is not complete!");
             continue;
@@ -714,7 +714,7 @@ public class WorkerStorage {
   }
 
   public boolean asyncCheckpoint(int fileId) throws IOException, TException {
-    ClientFileInfo fileInfo = mMasterClient.user_getClientFileInfoById(fileId);
+    ClientFileInfo fileInfo = mMasterClient.getClientFileInfoById(fileId);
 
     if (fileInfo.getDependencyId() != -1) {
       synchronized (mDependencyLock) {
