@@ -23,8 +23,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
+import tachyon.master.LocalTachyonCluster;
 
 /**
  * Unit tests for <code>tachyon.client.BlockInStream</code>.

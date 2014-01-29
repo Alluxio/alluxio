@@ -23,8 +23,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
+import tachyon.master.LocalTachyonCluster;
 
 public class RemoteBlockInStreamTest {
   private final int MIN_LEN = 0;

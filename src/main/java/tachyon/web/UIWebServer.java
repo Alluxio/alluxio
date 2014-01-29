@@ -29,8 +29,8 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
-import tachyon.MasterInfo;
 import tachyon.conf.CommonConf;
+import tachyon.master.MasterInfo;
 import tachyon.util.CommonUtils;
 
 /**

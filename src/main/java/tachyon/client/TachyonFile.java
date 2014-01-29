@@ -28,11 +28,11 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
-import tachyon.DataServerMessage;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.worker.DataServerMessage;
 
 /**
  * Tachyon File.

@@ -30,11 +30,11 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
-import tachyon.MasterInfo;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;

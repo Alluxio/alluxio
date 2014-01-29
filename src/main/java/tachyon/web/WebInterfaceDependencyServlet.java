@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import tachyon.MasterInfo;
+import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.DependencyDoesNotExistException;
 import tachyon.thrift.FileDoesNotExistException;

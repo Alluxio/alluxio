@@ -28,8 +28,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.LocalTachyonCluster;
 import tachyon.client.TachyonFS;
+import tachyon.master.LocalTachyonCluster;
 
 /**
  * Unit tests for <code>tachyon.hadoop.HadoopCompatibleFS</code>.
