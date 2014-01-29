@@ -101,6 +101,11 @@ public class TFS extends FileSystem {
 
     if (!CommonConf.get().ASYNC_ENABLED) {
       String path = Utils.getPathWithoutScheme(cPath);
+      if (mTFS.exist(path)) {
+        if (!mTFS.delete(path, false)) {
+          throw new IOException("Failed to delete existing data " + cPath);
+        }
+      }
       int fileId = mTFS.createFile(path, blockSize);
       TachyonFile file = mTFS.getFile(fileId);
       return new FSDataOutputStream(file.getOutStream(WriteType.CACHE_THROUGH), null);
