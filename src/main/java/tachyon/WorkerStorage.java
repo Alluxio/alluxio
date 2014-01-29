@@ -205,10 +205,12 @@ public class WorkerStorage {
                 (currentTimeMs - startCopyTimeMs) + " ms. Need to sleep " + shouldSleepMs + " ms.");
             CommonUtils.sleepMs(LOG, shouldSleepMs);
           }
-        } catch (FileDoesNotExistException | TException e) {
+        } catch (FileDoesNotExistException e) {
           LOG.warn(e);
         } catch (SuspectedFileSizeException | BlockInfoException | IOException e) {
           LOG.error(e);
+        } catch (TException e) {
+          LOG.warn(e);
         }
       }
     }
