@@ -84,7 +84,7 @@ public class MasterService {
      */
     public NetAddress user_getWorker(boolean random, String host) throws NoWorkerException, org.apache.thrift.TException;
 
-    public ClientFileInfo user_getClientFileInfoById(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
+    public ClientFileInfo getClientFileInfoById(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
 
     public ClientFileInfo user_getClientFileInfoByPath(String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
@@ -185,7 +185,7 @@ public class MasterService {
 
     public void user_getWorker(boolean random, String host, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_getWorker_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void user_getClientFileInfoById(int fileId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_getClientFileInfoById_call> resultHandler) throws org.apache.thrift.TException;
+    public void getClientFileInfoById(int fileId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.getClientFileInfoById_call> resultHandler) throws org.apache.thrift.TException;
 
     public void user_getClientFileInfoByPath(String path, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_getClientFileInfoByPath_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -812,30 +812,30 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getWorker failed: unknown result");
     }
 
-    public ClientFileInfo user_getClientFileInfoById(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException
+    public ClientFileInfo getClientFileInfoById(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException
     {
-      send_user_getClientFileInfoById(fileId);
-      return recv_user_getClientFileInfoById();
+      send_getClientFileInfoById(fileId);
+      return recv_getClientFileInfoById();
     }
 
-    public void send_user_getClientFileInfoById(int fileId) throws org.apache.thrift.TException
+    public void send_getClientFileInfoById(int fileId) throws org.apache.thrift.TException
     {
-      user_getClientFileInfoById_args args = new user_getClientFileInfoById_args();
+      getClientFileInfoById_args args = new getClientFileInfoById_args();
       args.setFileId(fileId);
-      sendBase("user_getClientFileInfoById", args);
+      sendBase("getClientFileInfoById", args);
     }
 
-    public ClientFileInfo recv_user_getClientFileInfoById() throws FileDoesNotExistException, org.apache.thrift.TException
+    public ClientFileInfo recv_getClientFileInfoById() throws FileDoesNotExistException, org.apache.thrift.TException
     {
-      user_getClientFileInfoById_result result = new user_getClientFileInfoById_result();
-      receiveBase(result, "user_getClientFileInfoById");
+      getClientFileInfoById_result result = new getClientFileInfoById_result();
+      receiveBase(result, "getClientFileInfoById");
       if (result.isSetSuccess()) {
         return result.success;
       }
       if (result.e != null) {
         throw result.e;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getClientFileInfoById failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getClientFileInfoById failed: unknown result");
     }
 
     public ClientFileInfo user_getClientFileInfoByPath(String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
@@ -2111,23 +2111,23 @@ public class MasterService {
       }
     }
 
-    public void user_getClientFileInfoById(int fileId, org.apache.thrift.async.AsyncMethodCallback<user_getClientFileInfoById_call> resultHandler) throws org.apache.thrift.TException {
+    public void getClientFileInfoById(int fileId, org.apache.thrift.async.AsyncMethodCallback<getClientFileInfoById_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_getClientFileInfoById_call method_call = new user_getClientFileInfoById_call(fileId, resultHandler, this, ___protocolFactory, ___transport);
+      getClientFileInfoById_call method_call = new getClientFileInfoById_call(fileId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class user_getClientFileInfoById_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class getClientFileInfoById_call extends org.apache.thrift.async.TAsyncMethodCall {
       private int fileId;
-      public user_getClientFileInfoById_call(int fileId, org.apache.thrift.async.AsyncMethodCallback<user_getClientFileInfoById_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public getClientFileInfoById_call(int fileId, org.apache.thrift.async.AsyncMethodCallback<getClientFileInfoById_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.fileId = fileId;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_getClientFileInfoById", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_getClientFileInfoById_args args = new user_getClientFileInfoById_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getClientFileInfoById", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getClientFileInfoById_args args = new getClientFileInfoById_args();
         args.setFileId(fileId);
         args.write(prot);
         prot.writeMessageEnd();
@@ -2139,7 +2139,7 @@ public class MasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_getClientFileInfoById();
+        return (new Client(prot)).recv_getClientFileInfoById();
       }
     }
 
@@ -2840,7 +2840,7 @@ public class MasterService {
       processMap.put("user_getUserId", new user_getUserId());
       processMap.put("user_getBlockId", new user_getBlockId());
       processMap.put("user_getWorker", new user_getWorker());
-      processMap.put("user_getClientFileInfoById", new user_getClientFileInfoById());
+      processMap.put("getClientFileInfoById", new getClientFileInfoById());
       processMap.put("user_getClientFileInfoByPath", new user_getClientFileInfoByPath());
       processMap.put("user_getClientBlockInfo", new user_getClientBlockInfo());
       processMap.put("user_getFileBlocksById", new user_getFileBlocksById());
@@ -3289,19 +3289,19 @@ public class MasterService {
       }
     }
 
-    private static class user_getClientFileInfoById<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_getClientFileInfoById_args> {
-      public user_getClientFileInfoById() {
-        super("user_getClientFileInfoById");
+    private static class getClientFileInfoById<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getClientFileInfoById_args> {
+      public getClientFileInfoById() {
+        super("getClientFileInfoById");
       }
 
-      protected user_getClientFileInfoById_args getEmptyArgsInstance() {
-        return new user_getClientFileInfoById_args();
+      protected getClientFileInfoById_args getEmptyArgsInstance() {
+        return new getClientFileInfoById_args();
       }
 
-      protected user_getClientFileInfoById_result getResult(I iface, user_getClientFileInfoById_args args) throws org.apache.thrift.TException {
-        user_getClientFileInfoById_result result = new user_getClientFileInfoById_result();
+      protected getClientFileInfoById_result getResult(I iface, getClientFileInfoById_args args) throws org.apache.thrift.TException {
+        getClientFileInfoById_result result = new getClientFileInfoById_result();
         try {
-          result.success = iface.user_getClientFileInfoById(args.fileId);
+          result.success = iface.getClientFileInfoById(args.fileId);
         } catch (FileDoesNotExistException e) {
           result.e = e;
         }
@@ -20062,8 +20062,8 @@ public class MasterService {
 
   }
 
-  public static class user_getClientFileInfoById_args implements org.apache.thrift.TBase<user_getClientFileInfoById_args, user_getClientFileInfoById_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getClientFileInfoById_args");
+  public static class getClientFileInfoById_args implements org.apache.thrift.TBase<getClientFileInfoById_args, getClientFileInfoById_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getClientFileInfoById_args");
 
     private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I32, (short)1);
 
@@ -20137,13 +20137,13 @@ public class MasterService {
       tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getClientFileInfoById_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getClientFileInfoById_args.class, metaDataMap);
     }
 
-    public user_getClientFileInfoById_args() {
+    public getClientFileInfoById_args() {
     }
 
-    public user_getClientFileInfoById_args(
+    public getClientFileInfoById_args(
       int fileId)
     {
       this();
@@ -20154,14 +20154,14 @@ public class MasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_getClientFileInfoById_args(user_getClientFileInfoById_args other) {
+    public getClientFileInfoById_args(getClientFileInfoById_args other) {
       __isset_bit_vector.clear();
       __isset_bit_vector.or(other.__isset_bit_vector);
       this.fileId = other.fileId;
     }
 
-    public user_getClientFileInfoById_args deepCopy() {
-      return new user_getClientFileInfoById_args(this);
+    public getClientFileInfoById_args deepCopy() {
+      return new getClientFileInfoById_args(this);
     }
 
     @Override
@@ -20174,7 +20174,7 @@ public class MasterService {
       return this.fileId;
     }
 
-    public user_getClientFileInfoById_args setFileId(int fileId) {
+    public getClientFileInfoById_args setFileId(int fileId) {
       this.fileId = fileId;
       setFileIdIsSet(true);
       return this;
@@ -20232,12 +20232,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_getClientFileInfoById_args)
-        return this.equals((user_getClientFileInfoById_args)that);
+      if (that instanceof getClientFileInfoById_args)
+        return this.equals((getClientFileInfoById_args)that);
       return false;
     }
 
-    public boolean equals(user_getClientFileInfoById_args that) {
+    public boolean equals(getClientFileInfoById_args that) {
       if (that == null)
         return false;
 
@@ -20258,13 +20258,13 @@ public class MasterService {
       return 0;
     }
 
-    public int compareTo(user_getClientFileInfoById_args other) {
+    public int compareTo(getClientFileInfoById_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      user_getClientFileInfoById_args typedOther = (user_getClientFileInfoById_args)other;
+      getClientFileInfoById_args typedOther = (getClientFileInfoById_args)other;
 
       lastComparison = Boolean.valueOf(isSetFileId()).compareTo(typedOther.isSetFileId());
       if (lastComparison != 0) {
@@ -20325,7 +20325,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_getClientFileInfoById_args(");
+      StringBuilder sb = new StringBuilder("getClientFileInfoById_args(");
       boolean first = true;
 
       sb.append("fileId:");
@@ -20359,8 +20359,8 @@ public class MasterService {
 
   }
 
-  public static class user_getClientFileInfoById_result implements org.apache.thrift.TBase<user_getClientFileInfoById_result, user_getClientFileInfoById_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getClientFileInfoById_result");
+  public static class getClientFileInfoById_result implements org.apache.thrift.TBase<getClientFileInfoById_result, getClientFileInfoById_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getClientFileInfoById_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
@@ -20439,13 +20439,13 @@ public class MasterService {
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getClientFileInfoById_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getClientFileInfoById_result.class, metaDataMap);
     }
 
-    public user_getClientFileInfoById_result() {
+    public getClientFileInfoById_result() {
     }
 
-    public user_getClientFileInfoById_result(
+    public getClientFileInfoById_result(
       ClientFileInfo success,
       FileDoesNotExistException e)
     {
@@ -20457,7 +20457,7 @@ public class MasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_getClientFileInfoById_result(user_getClientFileInfoById_result other) {
+    public getClientFileInfoById_result(getClientFileInfoById_result other) {
       if (other.isSetSuccess()) {
         this.success = new ClientFileInfo(other.success);
       }
@@ -20466,8 +20466,8 @@ public class MasterService {
       }
     }
 
-    public user_getClientFileInfoById_result deepCopy() {
-      return new user_getClientFileInfoById_result(this);
+    public getClientFileInfoById_result deepCopy() {
+      return new getClientFileInfoById_result(this);
     }
 
     @Override
@@ -20480,7 +20480,7 @@ public class MasterService {
       return this.success;
     }
 
-    public user_getClientFileInfoById_result setSuccess(ClientFileInfo success) {
+    public getClientFileInfoById_result setSuccess(ClientFileInfo success) {
       this.success = success;
       return this;
     }
@@ -20504,7 +20504,7 @@ public class MasterService {
       return this.e;
     }
 
-    public user_getClientFileInfoById_result setE(FileDoesNotExistException e) {
+    public getClientFileInfoById_result setE(FileDoesNotExistException e) {
       this.e = e;
       return this;
     }
@@ -20576,12 +20576,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_getClientFileInfoById_result)
-        return this.equals((user_getClientFileInfoById_result)that);
+      if (that instanceof getClientFileInfoById_result)
+        return this.equals((getClientFileInfoById_result)that);
       return false;
     }
 
-    public boolean equals(user_getClientFileInfoById_result that) {
+    public boolean equals(getClientFileInfoById_result that) {
       if (that == null)
         return false;
 
@@ -20611,13 +20611,13 @@ public class MasterService {
       return 0;
     }
 
-    public int compareTo(user_getClientFileInfoById_result other) {
+    public int compareTo(getClientFileInfoById_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      user_getClientFileInfoById_result typedOther = (user_getClientFileInfoById_result)other;
+      getClientFileInfoById_result typedOther = (getClientFileInfoById_result)other;
 
       lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
       if (lastComparison != 0) {
@@ -20701,7 +20701,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_getClientFileInfoById_result(");
+      StringBuilder sb = new StringBuilder("getClientFileInfoById_result(");
       boolean first = true;
 
       sb.append("success:");

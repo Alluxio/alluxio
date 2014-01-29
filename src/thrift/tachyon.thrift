@@ -166,7 +166,7 @@ service MasterService {
    */
   NetAddress user_getWorker(1: bool random, 2: string host)
     throws (1: NoWorkerException e)
-  ClientFileInfo user_getClientFileInfoById(1: i32 fileId)
+  ClientFileInfo getClientFileInfoById(1: i32 fileId)
     throws (1: FileDoesNotExistException e)
   ClientFileInfo user_getClientFileInfoByPath(1: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)

@@ -28,7 +28,7 @@ import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
 
 /**
- * <code>WorkerServiceHandler</code> handles all the RPC call to the worker.
+ * <code>WorkerServiceHandler</code> handles all the RPC calls to the worker.
  */
 public class WorkerServiceHandler implements WorkerService.Iface {
   private WorkerStorage mWorkerStorage;

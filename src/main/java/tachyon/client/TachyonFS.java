@@ -532,7 +532,7 @@ public class TachyonFS {
     }
     ClientFileInfo ret = null;
     try {
-      ret = mMasterClient.user_getClientFileInfoById(fid);
+      ret = mMasterClient.getClientFileInfoById(fid);
     } catch (IOException e) {
       LOG.info(e.getMessage() + fid);
       return null;

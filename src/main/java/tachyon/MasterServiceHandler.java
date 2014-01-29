@@ -78,6 +78,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public ClientFileInfo getClientFileInfoById(int id)
+      throws FileDoesNotExistException, TException {
+    return mMasterInfo.getClientFileInfo(id);
+  }
+
+  @Override
   public List<ClientWorkerInfo> getWorkersInfo() throws TException {
     return mMasterInfo.getWorkersInfo();
   }
@@ -155,12 +161,6 @@ public class MasterServiceHandler implements MasterService.Iface {
   public long user_getBlockId(int fileId, int index)
       throws FileDoesNotExistException, TException {
     return BlockInfo.computeBlockId(fileId, index);
-  }
-
-  @Override
-  public ClientFileInfo user_getClientFileInfoById(int id)
-      throws FileDoesNotExistException, TException {
-    return mMasterInfo.getClientFileInfo(id);
   }
 
   @Override
