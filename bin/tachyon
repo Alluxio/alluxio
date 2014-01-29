@@ -30,7 +30,7 @@ TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
 function runTest {
-  Usage="Usage: tachyon runTest <Basic|BasicRawTable> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH>"
+  Usage="Usage: tachyon runTest <Basic|BasicRawTable> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|ASYNC_THROUGH>"
 
   if [ "$#" -ne 2 ]; then
     echo $Usage
@@ -44,11 +44,11 @@ function runTest {
 
   if [[ "$1" == "Basic" ]]; then
     $bin/tachyon tfs rm /Basic_File_$2
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicOperations $MASTER_ADDRESS:19998 /Basic_File_$2 $2
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicOperations $MASTER_ADDRESS:19998 /BasicFile_$2 $2
     exit 0
   elif [[ "$1" == "BasicRawTable" ]]; then
     $bin/tachyon tfs rm /Basic_Raw_Table_$2
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicRawTableOperations $MASTER_ADDRESS:19998 /Basic_Raw_Table_$2 $2
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicRawTableOperations $MASTER_ADDRESS:19998 /BasicRawTable_$2 $2
     exit 0
   elif [[ "$1" == "BasicCheckpoint" ]]; then
     $bin/tachyon tfs rm /BasicCheckpoint
@@ -112,7 +112,7 @@ elif [ "$COMMAND" == "runTest" ]; then
   runTest "$@"
   exit 0
 elif [ "$COMMAND" == "runTests" ]; then
-  declare -a opArr=(MUST_CACHE TRY_CACHE CACHE_THROUGH THROUGH)
+  declare -a opArr=(MUST_CACHE TRY_CACHE CACHE_THROUGH THROUGH ASYNC_THROUGH)
 
   for op in ${opArr[@]}
   do

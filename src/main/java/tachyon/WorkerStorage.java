@@ -719,7 +719,7 @@ public class WorkerStorage {
     if (fileInfo.getDependencyId() != -1) {
       synchronized (mDependencyLock) {
         mUncheckpointFiles.add(fileId);
-        if (!mDepIdToFiles.containsKey(fileInfo.getDependencyId() )) {
+        if (!mDepIdToFiles.containsKey(fileInfo.getDependencyId())) {
           mDepIdToFiles.put(fileInfo.getDependencyId(), new HashSet<Integer>());
         }
         mDepIdToFiles.get(fileInfo.getDependencyId()).add(fileId);
