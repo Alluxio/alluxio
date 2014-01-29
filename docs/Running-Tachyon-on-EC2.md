@@ -1,16 +1,14 @@
 ---
 layout: global
-title: Running-Tachyon-on-EC2
+title: Running Tachyon on EC2
 ---
 
 Tachyon can be launched on EC2 using the [Spark EC2
-scripts](https://github.com/mesos/spark/wiki/EC2-Scripts) that come with
-Spark. These scripts let you launch, pause and destroy clusters that
-come automatically configured with HDFS, Spark, Apache Mesos, Shark, and
-Tachyon.
+scripts](https://github.com/mesos/spark/wiki/EC2-Scripts) that come with Spark. These scripts let
+you launch, pause and destroy clusters that come automatically configured with HDFS, Spark, Apache
+Mesos, Shark, and Tachyon.
 
-[](#wiki-launching-a-cluster)Launching a Cluster
-================================================
+# Launching a Cluster
 
 To run a Tachyon cluster on EC2, first sign up for an Amazon EC2 account
 on the [Amazon Web Services site](http://aws.amazon.com/). Then,
@@ -19,10 +17,9 @@ download Spark to your local machine:
     $ wget https://github.com/downloads/mesos/spark/spark-0.6.0-sources.tar.gz
     $ tar xvfz spark-0.6.0-sources.tar.gz
 
-The `ec2` directory contains the scripts to set up a cluster. Detailed
-instructions are available in the [Spark EC2
-guide](https://github.com/mesos/spark/wiki/EC2-Scripts). In a nutshell,
-you will need to do:
+The `ec2` directory contains the scripts to set up a cluster. Detailed instructions are available in
+the [Spark EC2 guide](https://github.com/mesos/spark/wiki/EC2-Scripts). In a nutshell, you will need
+to do:
 
     $ spark-0.6.0/ec2/spark-ec2 -a ami-691d9100 -k <keypair-name> -i <key-file> -s <num-slaves> launch <cluster-name>
 
@@ -76,7 +73,6 @@ Put a file X into HDFS. Run Spark Shell:
     $ val s = sc.textFile("tachyon://tachyon_master_host:9999/X")
     $ s.count()
 
-Take a look at `MasterMachineHostName:9998`, there should be a dataset
-info there. The Tachyon will load `hdfs://HDFS_HOSTNAME:HDFS_PORT/X`
-into the system.
+Take a look at `MasterMachineHostName:9998`, there should be a dataset info there. The Tachyon will
+load `hdfs://HDFS_HOSTNAME:HDFS_PORT/X` into the system.
 
