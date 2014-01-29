@@ -407,7 +407,6 @@ public class MasterInfo {
     }
   }
 
-  // TODO Assume each file only has one block for now.
   private void addFile(int fileId, int dependencyId) {
     synchronized (mDependencies) {
       if (mLostFiles.contains(fileId)) {
@@ -462,8 +461,6 @@ public class MasterInfo {
       tFile.addLocation(blockIndex, workerId,
           new NetAddress(address.getHostName(), address.getPort()));
 
-      addFile(fileId, tFile.getDependencyId());
-
       if (tFile.hasCheckpointed()) {
         return -1;
       } else {
@@ -516,10 +513,6 @@ public class MasterInfo {
       int ret = _createDependency(parentsIdList, childrenIdList, commandPrefix, data, comment,
           framework, frameworkVersion, dependencyType, depId, creationTimeMs);
 
-      mJournal.getEditLog().createDependency(parentsIdList, childrenIdList, commandPrefix, data,
-          comment, framework, frameworkVersion, dependencyType, depId, creationTimeMs);
-      mJournal.getEditLog().flush();
-
       return ret;
     }
   }
@@ -563,8 +556,6 @@ public class MasterInfo {
 
     synchronized (mDependencies) {
       mDependencies.put(dep.ID, dep);
-      // TODO Logging.
-      //      mMasterLogWriter.appendAndFlush(dep);
       if (!dep.hasCheckpointed()) {
         mUncheckpointedDependencies.add(dep.ID);
       }
@@ -572,6 +563,10 @@ public class MasterInfo {
         mDependencies.get(parentDependencyId).addChildrenDependency(dep.ID);
       }
     }
+
+    mJournal.getEditLog().createDependency(parentsIdList, childrenIdList, commandPrefix, data,
+        comment, framework, frameworkVersion, dependencyType, dependencyId, creationTimeMs);
+    mJournal.getEditLog().flush();
 
     LOG.info("Dependency created: " + dep);
 
@@ -938,6 +933,8 @@ public class MasterInfo {
       if (!inode.isFile()) {
         throw new FileDoesNotExistException("File " + fileId + " is not a file.");
       }
+
+      addFile(fileId, ((InodeFile) inode).getDependencyId());
 
       ((InodeFile) inode).setComplete();
       mJournal.getEditLog().completeFile(fileId);

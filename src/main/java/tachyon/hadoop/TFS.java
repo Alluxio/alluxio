@@ -39,6 +39,7 @@ import tachyon.PrefixList;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.conf.CommonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -98,11 +99,18 @@ public class TFS extends FileSystem {
     LOG.info("create(" + cPath + ", " + permission + ", " + overwrite +
         ", " + bufferSize + ", " + replication + ", " + blockSize + ", " + progress + ")");
 
+    if (!CommonConf.get().ASYNC_ENABLED) {
+      String path = Utils.getPathWithoutScheme(cPath);
+      int fileId = mTFS.createFile(path, blockSize);
+      TachyonFile file = mTFS.getFile(fileId);
+      return new FSDataOutputStream(file.getOutStream(WriteType.CACHE_THROUGH), null);
+    }
+
     if (cPath.toString().contains(FIRST_COM_PATH) && !cPath.toString().contains("SUCCESS")) {
       String path = Utils.getPathWithoutScheme(cPath);
       mTFS.createFile(path, blockSize);
       path = path.substring(path.indexOf(FIRST_COM_PATH) + FIRST_COM_PATH.length());
-      path = path.substring(0, path.indexOf("/"));
+      path = path.substring(0, path.indexOf("/"));  
       int depId = Integer.parseInt(path);
       LOG.info("create(" + cPath + ") : " + path + " " + depId);
       path = Utils.getPathWithoutScheme(cPath);
@@ -113,11 +121,11 @@ public class TFS extends FileSystem {
       LOG.info("create(" + cPath + ") : " + path + " " + index + " " + info + " " + fileId);
 
       TachyonFile file = mTFS.getFile(fileId);
-//      if (file.getBlockSizeByte() != blockSize) {
-//        throw new IOException("File already exist with a different blocksize " +
-//            file.getBlockSizeByte() + " != " + blockSize);
-//      }
-      return new FSDataOutputStream(file.getOutStream(WriteType.MUST_CACHE), null);
+      //      if (file.getBlockSizeByte() != blockSize) {
+      //        throw new IOException("File already exist with a different blocksize " +
+      //            file.getBlockSizeByte() + " != " + blockSize);
+      //      }
+      return new FSDataOutputStream(file.getOutStream(WriteType.ASYNC_THROUGH), null);
     } if (cPath.toString().contains(RECOMPUTE_PATH) && !cPath.toString().contains("SUCCESS")) {
       String path = Utils.getPathWithoutScheme(cPath);
       mTFS.createFile(path, blockSize);
@@ -133,11 +141,11 @@ public class TFS extends FileSystem {
       LOG.info("create(" + cPath + ") : " + path + " " + index + " " + info + " " + fileId);
 
       TachyonFile file = mTFS.getFile(fileId);
-//      if (file.getBlockSizeByte() != blockSize) {
-//        throw new IOException("File already exist with a different blocksize " +
-//            file.getBlockSizeByte() + " != " + blockSize);
-//      }
-      return new FSDataOutputStream(file.getOutStream(WriteType.MUST_CACHE), null);
+      //      if (file.getBlockSizeByte() != blockSize) {
+      //        throw new IOException("File already exist with a different blocksize " +
+      //            file.getBlockSizeByte() + " != " + blockSize);
+      //      }
+      return new FSDataOutputStream(file.getOutStream(WriteType.ASYNC_THROUGH), null);
     } else {
       String path = Utils.getPathWithoutScheme(cPath);
       int fileId;
@@ -150,10 +158,10 @@ public class TFS extends FileSystem {
       }
 
       TachyonFile file = mTFS.getFile(fileId);
-//      if (file.getBlockSizeByte() != blockSize) {
-//        throw new IOException("File already exist with a different blocksize " +
-//            file.getBlockSizeByte() + " != " + blockSize);
-//      }
+      //      if (file.getBlockSizeByte() != blockSize) {
+      //        throw new IOException("File already exist with a different blocksize " +
+      //            file.getBlockSizeByte() + " != " + blockSize);
+      //      }
       return new FSDataOutputStream(file.getOutStream(type), null);
     }
   }
@@ -292,7 +300,7 @@ public class TFS extends FileSystem {
 
   @Override
   public boolean mkdirs(Path cPath, FsPermission permission) throws IOException  {
-    LOG.info("mkdirs(" + cPath + ", " + permission + ") ");
+    LOG.info("mkdirs(" + cPath + ", " + permission + ")");
     return mTFS.mkdir(Utils.getPathWithoutScheme(cPath));
   }
 

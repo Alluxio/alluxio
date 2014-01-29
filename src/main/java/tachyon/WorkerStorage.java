@@ -583,26 +583,6 @@ public class WorkerStorage {
       pinList = new HashSet<Integer>();
     }
 
-    //    synchronized (mLatestFileAccessTimeMs) {}
-    //    synchronized (mLatestFileAccessTimeMs) {
-    //      synchronized (mUsersPerLockedFile) {
-    //        synchronized (mDependencyLock) {
-    //          for (Entry<Integer, Long> entry : mLatestFileAccessTimeMs.entrySet()) {
-    //            if (entry.getValue() < latestTimeMs && !pinList.contains(entry.getKey())) {
-    //              if(!mUsersPerLockedFile.containsKey(entry.getKey())
-    //                  && !mUncheckpointFiles.contains(entry.getKey())) {
-    //                fileId = entry.getKey();
-    //                latestTimeMs = entry.getValue();
-    //              }
-    //            }
-    //          }
-    //          if (fileId != -1) {
-    //            freeFile(fileId);
-    //            return true;
-    //          }
-    //        }
-    //      }
-    //    }
     synchronized (mLatestBlockAccessTimeMs) {
       synchronized (mUsersPerLockedBlock) {
         while (mWorkerSpaceCounter.getAvailableBytes() < requestBytes) {
