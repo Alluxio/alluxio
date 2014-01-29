@@ -68,12 +68,10 @@ MapReduce running on Tachyon
 
 [Command-Line-Interface](Command-Line-Interface.html): Interact with Tachyon through command line.
 
-[Syncing the Underlying
-Filesystem](Syncing-the-Underlying-Filesystem.html):
-Make Tachyon understand an existing underlayer filesystem.
+[Syncing the Underlying Filesystem](Syncing-the-Underlying-Filesystem.html): Make Tachyon understand
+an existing underlayer filesystem.
 
-[Tachyon Presentation](http://ampcamp.berkeley.edu/wp-
-content/uploads/2013/07/Tachyon_2013-08-30_AMPCamp2013.pdf) at AMPCamp 2013 (August, 2013)
+[Tachyon Presentation](http://goo.gl/nhmcWA) at AMPCamp 2013 (August, 2013)
 
 # Developer Documentation
 
