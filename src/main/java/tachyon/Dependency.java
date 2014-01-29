@@ -20,7 +20,7 @@ public class Dependency {
 
   public final List<Integer> PARENT_FILES;
   public final List<Integer> CHILDREN_FILES;
-  private final Set<Integer> mUncheckpointedChildrenFiles;
+  private final Set<Integer> UNCHECKPOINTED_CHILDREN_FILES;
   public final String COMMAND_PREFIX;
   public final List<ByteBuffer> DATA;
 
@@ -44,8 +44,8 @@ public class Dependency {
     PARENT_FILES.addAll(parents);
     CHILDREN_FILES = new ArrayList<Integer>(children.size());
     CHILDREN_FILES.addAll(children);
-    mUncheckpointedChildrenFiles = new HashSet<Integer>();
-    mUncheckpointedChildrenFiles.addAll(CHILDREN_FILES);
+    UNCHECKPOINTED_CHILDREN_FILES = new HashSet<Integer>();
+    UNCHECKPOINTED_CHILDREN_FILES.addAll(CHILDREN_FILES);
     COMMAND_PREFIX = commandPrefix;
     DATA = CommonUtils.cloneByteBufferList(data);
 
@@ -67,22 +67,21 @@ public class Dependency {
     sb.append("ID:").append(ID).append(", CREATION_TIME_MS:").append(CREATION_TIME_MS);
     sb.append(", Parents:").append(PARENT_FILES).append(", Children:").append(CHILDREN_FILES);
     sb.append(", COMMAND_PREFIX:").append(COMMAND_PREFIX);
+    sb.append(", PARSED_COMMAND_PREFIX:").append(parseCommandPrefix());
     sb.append(", COMMENT:").append(COMMENT);
     sb.append(", FRAMEWORK:").append(FRAMEWORK);
     sb.append(", FRAMEWORK_VERSION:").append(FRAMEWORK_VERSION);
     sb.append(", PARENT_DEPENDENCIES:").append(PARENT_DEPENDENCIES);
     sb.append(", ChildrenDependencies:").append(mChildrenDependencies);
-    sb.append(", UncheckpointedChildrenFiles:").append(mUncheckpointedChildrenFiles);
+    sb.append(", UncheckpointedChildrenFiles:").append(UNCHECKPOINTED_CHILDREN_FILES);
     sb.append("]");
     return sb.toString();
   }
 
   public synchronized String getCommand() {
-    // TODO In future, we should support different types of command;
+    // TODO We should support different types of command in the future.
     // For now, assume there is only one command model.
     StringBuilder sb = new StringBuilder(parseCommandPrefix());
-    sb.append(" ").append(DependencyVariables.MASTER_HOSTNAME);
-    sb.append(":").append(DependencyVariables.MASTER_PORT);
     sb.append(" ").append(ID);
     for (int k = 0; k < CHILDREN_FILES.size(); k ++) {
       int id = CHILDREN_FILES.get(k);
@@ -133,24 +132,24 @@ public class Dependency {
   }
 
   public synchronized boolean hasCheckpointed() {
-    return mUncheckpointedChildrenFiles.size() == 0;
+    return UNCHECKPOINTED_CHILDREN_FILES.size() == 0;
   }
 
   public synchronized void childCheckpointed(int childFileId) {
-    mUncheckpointedChildrenFiles.remove(childFileId);
+    UNCHECKPOINTED_CHILDREN_FILES.remove(childFileId);
     LOG.debug("Child got checkpointed " + childFileId + " : " + toString());
   }
 
   synchronized List<Integer> getUncheckpointedChildrenFiles() {
-    List<Integer> ret = new ArrayList<Integer>(mUncheckpointedChildrenFiles.size());
-    ret.addAll(mUncheckpointedChildrenFiles);
+    List<Integer> ret = new ArrayList<Integer>(UNCHECKPOINTED_CHILDREN_FILES.size());
+    ret.addAll(UNCHECKPOINTED_CHILDREN_FILES);
     return ret;
   }
 
   synchronized void resetUncheckpointedChildrenFiles(
       Collection<Integer> uncheckpointedChildrenFiles) {
-    mUncheckpointedChildrenFiles.clear();
-    mUncheckpointedChildrenFiles.addAll(uncheckpointedChildrenFiles);
+    UNCHECKPOINTED_CHILDREN_FILES.clear();
+    UNCHECKPOINTED_CHILDREN_FILES.addAll(uncheckpointedChildrenFiles);
   }
 
   public synchronized void addLostFile(int fileId) {

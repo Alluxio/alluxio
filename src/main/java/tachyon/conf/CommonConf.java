@@ -32,6 +32,8 @@ public class CommonConf extends Utils {
   public final String ZOOKEEPER_ELECTION_PATH;
   public final String ZOOKEEPER_LEADER_PATH;
 
+  public final boolean ASYNC_ENABLED;
+
   private CommonConf() {
     TACHYON_HOME = getProperty("tachyon.home");
     UNDERFS_ADDRESS = getProperty("tachyon.underfs.address", TACHYON_HOME);
@@ -49,6 +51,8 @@ public class CommonConf extends Utils {
       ZOOKEEPER_ELECTION_PATH = null;
       ZOOKEEPER_LEADER_PATH = null;
     }
+
+    ASYNC_ENABLED = getBooleanProperty("tachyon.async.enabled", false);
   }
 
   public static synchronized CommonConf get() {
