@@ -11,12 +11,12 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
-import tachyon.DependencyType;
 import tachyon.Version;
 import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.master.DependencyType;
 import tachyon.util.CommonUtils;
 
 public class BasicCheckpoint {

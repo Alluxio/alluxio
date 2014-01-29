@@ -19,9 +19,9 @@ package tachyon.client.table;
 import java.io.IOException;
 
 import tachyon.Constants;
-import tachyon.MasterInfo;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.master.MasterInfo;
 
 /**
  * The column of a <code>RawTable</code>.

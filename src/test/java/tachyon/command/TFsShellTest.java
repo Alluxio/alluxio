@@ -32,13 +32,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
 
 /**

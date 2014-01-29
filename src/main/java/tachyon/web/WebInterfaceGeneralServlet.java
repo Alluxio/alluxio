@@ -26,9 +26,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import tachyon.Constants;
-import tachyon.DependencyVariables;
-import tachyon.MasterInfo;
 import tachyon.Version;
+import tachyon.master.DependencyVariables;
+import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.util.CommonUtils;
 

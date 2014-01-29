@@ -28,10 +28,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
+import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.util.CommonUtils;
 

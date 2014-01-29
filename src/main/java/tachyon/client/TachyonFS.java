@@ -37,11 +37,10 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
-import tachyon.MasterClient;
 import tachyon.UnderFileSystem;
-import tachyon.WorkerClient;
 import tachyon.client.table.RawTable;
 import tachyon.conf.UserConf;
+import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -53,6 +52,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoWorkerException;
 import tachyon.thrift.TachyonException;
 import tachyon.util.CommonUtils;
+import tachyon.worker.WorkerClient;
 
 /**
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients

@@ -26,7 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonByteBuffer;
@@ -35,6 +34,7 @@ import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
+import tachyon.master.LocalTachyonCluster;
 
 /**
  * Unit tests for tachyon.client.RawTable.
