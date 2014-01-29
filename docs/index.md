@@ -10,7 +10,7 @@ enables different jobs/queries and frameworks to access cached files at memory s
 avoids going to disk to load datasets that are frequently read.
 
 On April 10th, 2013, we put out a soft release of [Tachyon 0.2.0
-Alpha](https://github.com/amplab/tachyon/wiki/Tachyon-Release-0.2). The new version is more stable
+Alpha](https://github.com/amplab/tachyon/releases/tag/v0.2.0). The new version is more stable
 and also features performance improvements. It is, however, a soft release and we are working full
 time towards a full hard release that contains a stable version of the features that we expect will
 be core to Tachyon. Stay tuned.
