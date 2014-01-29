@@ -78,24 +78,19 @@
                   <th><%= request.getAttribute("capacity") %></th>
                 </tr>
                 <tr>
-                  <th>Memory Used:</th>
+                  <th>Memory Free / Used:</th>
                   <!-- <th>${usedCapacity}</th> -->
-                  <th><%= request.getAttribute("usedCapacity") %></th>
+                  <th><%= request.getAttribute("freeCapacity") %> / <%= request.getAttribute("usedCapacity") %></th>
                 </tr>
                 <tr>
-                  <th>Memory Free:</th>
-                  <!-- <th>${freeCapacity}</th> -->
-                  <th><%= request.getAttribute("freeCapacity") %></th>
-                </tr>
-                <tr>
-                  <th>Disk Capacity:</th>
+                  <th>UnderFS Capacity:</th>
                   <!-- <th>${capacity}</th> -->
                   <th><%= request.getAttribute("diskCapacity") %></th>
                 </tr>
                 <tr>
-                  <th>Disk Free:</th>
+                  <th>UnderFS Free / Used:</th>
                   <!-- <th>${freeCapacity}</th> -->
-                  <th><%= request.getAttribute("diskFreeCapacity") %></th>
+                  <th><%= request.getAttribute("diskFreeCapacity") %> / <%= request.getAttribute("diskUsedCapacity") %></th>
                 </tr>
               </tbody>
             </table>
@@ -227,7 +222,7 @@
                 <% } %>
                 <th>Last Heartbeat</th>
                 <th>State</th>
-                <th>Memory Capacity</th>
+                <th>Memory Usage</th>
               <tbody>
                 <!--
                 <c:forEach var="nodeInfo" items="${nodeInfos}">
