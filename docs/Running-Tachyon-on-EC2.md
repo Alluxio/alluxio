@@ -39,11 +39,9 @@ Then, config Tachyon in `tachyon` folder
     $ cd /root/tachyon/conf
     $ cp tachyon-env.sh.template tachyon-env.sh
 
-Edit `tachyon-env.sh` file. Setup
-`TACHYON_HDFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_PORT`.
+Edit `tachyon-env.sh` file. Setup `TACHYON_HDFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_PORT`.
 
-Edit `slaves` file, add slaves' hostnames into it. Sync the
-configuration to all nodes.
+Edit `slaves` file, add slaves' hostnames into it. Sync the configuration to all nodes.
 
     $ cd /root/tachyon/conf
     $ /root/mesos-ec2/copy-dir .
@@ -75,4 +73,3 @@ Put a file X into HDFS. Run Spark Shell:
 
 Take a look at `MasterMachineHostName:9998`, there should be a dataset info there. The Tachyon will
 load `hdfs://HDFS_HOSTNAME:HDFS_PORT/X` into the system.
-
