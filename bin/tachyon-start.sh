@@ -101,7 +101,7 @@ start_master() {
   fi
 
   echo "Starting master @ $MASTER_ADDRESS"
-  (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="MASTER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS tachyon.master.Master > /dev/null 2>&1) &
+  (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="MASTER_LOGGER" -Dlog4j.configuration=file:$TACHYON_RESOURCES_DIR/log4j.properties $TACHYON_JAVA_OPTS tachyon.master.Master > /dev/null 2>&1) &
 }
 
 start_worker() {
@@ -111,7 +111,7 @@ start_worker() {
     exit 1
   fi
   echo "Starting worker @ `hostname`"
-  (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="WORKER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS tachyon.worker.Worker `hostname` > /dev/null 2>&1 ) &
+  (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="WORKER_LOGGER" -Dlog4j.configuration=file:$TACHYON_RESOURCES_DIR/log4j.properties $TACHYON_JAVA_OPTS tachyon.worker.Worker `hostname` > /dev/null 2>&1 ) &
 }
 
 restart_worker() {
