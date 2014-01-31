@@ -9,8 +9,10 @@ lineage information and using memory aggressively. Tachyon caches working set fi
 enables different jobs/queries and frameworks to access cached files at memory speed. Thus, Tachyon
 avoids going to disk to load datasets that are frequently read.
 
-[Releases and Downloads](https://github.com/amplab/tachyon/releases) | [User Documentation](#user-
-documentation) | [Developer Documentation](#developer-documentation) |
+[Github Repository](https://github.com/amplab/tachyon/) |
+[Releases and Downloads](https://github.com/amplab/tachyon/releases) |
+[User Documentation](#user- documentation) |
+[Developer Documentation](#developer-documentation) |
 [Acknowledgement](#acknowledgement)
 
 # Current Features
@@ -83,8 +85,9 @@ out Tachyon in your cluster, please contact [Haoyuan](mailto:haoyuan@cs.berkeley
 
 # Acknowledgement
 
-Tachyon is an open source project started in the [UC Berkeley AMP
-Lab](http://amplab.cs.berkeley.edu). This research and development is supported in part by NSF CISE
+Tachyon is an open source project started in the
+[UC Berkeley AMP Lab](http://amplab.cs.berkeley.edu).
+This research and development is supported in part by NSF CISE
 Expeditions award CCF-1139158 and DARPA XData Award FA8750-12-2-0331, and gifts from Amazon Web
 Services, Google, SAP, Blue Goji, Cisco, Clearstory Data, Cloudera, Ericsson, Facebook, General
 Electric, Hortonworks, Huawei, Intel, Microsoft, NetApp, Oracle, Quanta, Samsung, Splunk, VMware and
