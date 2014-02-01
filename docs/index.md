@@ -71,8 +71,7 @@ an existing underlayer filesystem.
 
 # Developer Documentation
 
-[Startup Tasks for New Contributors](Startup-Tasks-for-New-Contributors.html): For people who are
-interested in contributing.
+[Startup Tasks for New Contributors](Startup-Tasks-for-New-Contributors.html)
 
 [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
 
@@ -98,4 +97,3 @@ Yahoo!.
 # Related Projects
 
 [Berkeley Data Analysis Stack (BDAS)](https://amplab.cs.berkeley.edu/bdas/) from AMPLab at Berkeley
-
