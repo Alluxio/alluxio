@@ -27,8 +27,8 @@ import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.thrift.TException;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.thrift.TException;
 
 import tachyon.client.FileOutStream;
 import tachyon.client.InStream;
@@ -372,9 +372,8 @@ public class TFsShell {
   }
 
   /**
-   * Copies a file or directory specified by argv from the local
-   * filesystem to the filesystem. Will fail if the path given already
-   * exists in the filesystem.
+   * Copies a file or directory specified by argv from the local filesystem to the filesystem. Will
+   * fail if the path given already exists in the filesystem.
    * @param argv[] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -401,7 +400,7 @@ public class TFsShell {
     return ret;
   }
 
-  public int copyPath(File src, TachyonFS tachyonClient, String dstPath) throws IOException {
+  private int copyPath(File src, TachyonFS tachyonClient, String dstPath) throws IOException {
     if (!src.isDirectory()) {
       int fileId = tachyonClient.createFile(dstPath);
       if (fileId == -1) {
