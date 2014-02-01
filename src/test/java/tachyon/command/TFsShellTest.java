@@ -223,22 +223,39 @@ public class TFsShellTest {
 
   @Test
   public void copyFromLocalTest() throws IOException {
-    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
+    File testDir = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir");
+    testDir.mkdir();
+    File testDirInner = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testDirInner");
+    testDirInner.mkdir();
+    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testFile");
+    File testFile2 = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testDirInner/testFile2");
     testFile.createNewFile();
+    testFile2.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
+    FileOutputStream fos2 = new FileOutputStream(testFile2);
     byte toWrite[] = TestUtils.getIncreasingByteArray(10);
+    byte toWrite2[] = TestUtils.getIncreasingByteArray(10, 20);
     fos.write(toWrite);
+    fos2.write(toWrite2);
     fos.close();
-    mFsShell.copyFromLocal(new String[]{"copyFromLocal", testFile.getAbsolutePath(), "/testFile"});
+    fos2.close();
+    mFsShell.copyFromLocal(new String[]{"copyFromLocal", testFile.getParent(), "/testDir"});
     Assert.assertEquals(getCommandOutput(new String[]{
-        "copyFromLocal", testFile.getAbsolutePath(), "/testFile"}), mOutput.toString());
-    TachyonFile tFile = mTfs.getFile("/testFile");
+        "copyFromLocal", testFile.getParent(), "/testDir"}), mOutput.toString());
+    TachyonFile tFile = mTfs.getFile("/testDir/testFile");
+    TachyonFile tFile2 = mTfs.getFile("/testDir/testDirInner/testFile2");
     Assert.assertNotNull(tFile);
+    Assert.assertNotNull(tFile2);
     Assert.assertEquals(10, tFile.length());
+    Assert.assertEquals(20, tFile2.length());
     InStream tfis = tFile.getInStream(ReadType.NO_CACHE);
     byte read[] = new byte[10];
     tfis.read(read);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, read));
+    tfis = tFile2.getInStream(ReadType.NO_CACHE);
+    read = new byte[20];
+    tfis.read(read);
+    Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, 20, read));
   }
 
   @Test
