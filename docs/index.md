@@ -11,7 +11,7 @@ avoids going to disk to load datasets that are frequently read.
 
 [Github Repository](https://github.com/amplab/tachyon/) |
 [Releases and Downloads](https://github.com/amplab/tachyon/releases) |
-[User Documentation](#user- documentation) |
+[User Documentation](#user-documentation) |
 [Developer Documentation](#developer-documentation) |
 [Acknowledgement](#acknowledgement)
 
@@ -78,9 +78,11 @@ interested in contributing.
 
 # Support or Contact
 
-You are welcome to join our [mailing list](https://groups.google.com/forum/?fromgroups#!forum
-/tachyon-users) to discuss questions and make suggestions. We use [JIRA](https://spark-
-project.atlassian.net/browse/TACHYON) to track development / issues. If you are interested in trying
+You are welcome to join our
+[mailing list](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
+to discuss questions and make suggestions. We use
+[JIRA](https://spark-project.atlassian.net/browse/TACHYON)
+to track development / issues. If you are interested in trying
 out Tachyon in your cluster, please contact [Haoyuan](mailto:haoyuan@cs.berkeley.edu).
 
 # Acknowledgement
