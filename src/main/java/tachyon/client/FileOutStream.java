@@ -136,8 +136,11 @@ public class FileOutStream extends OutStream {
         while (tLen > 0) {
           if (mCurrentBlockLeftByte == 0) {
             getNextBlock();
+          } else if (mCurrentBlockLeftByte < 0 || mCurrentBlockOutStream == null) {
+            throw new IOException("mCurrentBlockLeftByte " + mCurrentBlockLeftByte + " " +
+                mCurrentBlockOutStream);
           }
-          if (mCurrentBlockLeftByte > tLen) {
+          if (mCurrentBlockLeftByte >= tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);
             mCurrentBlockLeftByte -= tLen;
             mCachedBytes += tLen;
