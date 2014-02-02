@@ -75,6 +75,18 @@ public final class CommonUtils {
     return ret;
   }
 
+  public static String convertByteArrayToStringWithoutEscape(byte[] data) {
+    StringBuilder sb = new StringBuilder(data.length);
+    for (int i = 0; i < data.length; ++ i) {
+      if (data[i] < 128) {
+        sb.append((char) data[i]);
+      } else {
+        return null;
+      }
+    }
+    return sb.toString();
+  }
+
   public static String convertByteArrayToString(byte[] data) {
     StringBuilder sb = new StringBuilder(data.length);
     for (int i = 0; i < data.length; ++ i) {

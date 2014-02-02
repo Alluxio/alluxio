@@ -1071,6 +1071,25 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Get the list of blocks of an InodeFile determined by path.
+   * @param path The file.
+   * @return The list of the blocks of the file.
+   * @throws InvalidPathException, FileDoesNotExistException
+   */
+  public List<BlockInfo> getBlockList(String path)
+		  throws InvalidPathException, FileDoesNotExistException {
+	  Inode inode = getInode(path);
+      if (inode == null) {
+          throw new FileDoesNotExistException(path + " does not exist.");
+        }
+        if (!inode.isFile()) {
+          throw new FileDoesNotExistException(path + " is not a file.");
+        }
+      InodeFile inodeFile = (InodeFile) inode;
+      return inodeFile.getBlockList();
+  }
+
   public long getBlockIdBasedOnOffset(int fileId, long offset) throws FileDoesNotExistException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
