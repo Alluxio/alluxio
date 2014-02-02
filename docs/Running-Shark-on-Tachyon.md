@@ -3,17 +3,14 @@ layout: global
 title: Running Shark on Tachyon
 ---
 
-The additional prerequisite for this part is [Shark](https://github.com/amplab/shark/wiki) (0.7 or
-later). We also assume that the user is running on Tachyon 0.3.0 or later and have set up Tachyon
-and Hadoop in accordance to these guides [Local Mode](Running-Tachyon-Locally.html) or [Cluster Mode
-](Running-Tachyon-on-a-Cluster.html).
+The additional prerequisite for this part is [Shark](https://github.com/amplab/shark/wiki).
+We also assume that the user has set up Tachyon and Hadoop in accordance to these guides
+[Local Mode](Running-Tachyon-Locally.html) or [Cluster Mode](Running-Tachyon-on-a-Cluster.html).
 
 Shark 0.7 adds a new storage format to support efficiently reading data from
 [Tachyon](http://tachyonproject.org), which enables data sharing and isolation across instances of
-Shark. Our meetup
-[slide](http://files.meetup.com/3138542/2013-05-09%20Shark%20%40%20Spark%20Meetup.pdf) gives a good
-overview of the benefits of using Tachyon to cache Shark's tables. In summary, the followings are
-four major ones:
+Shark. Our meetup [slide](http://goo.gl/fVmxCG) gives a good overview of the benefits of using
+Tachyon to cache Shark's tables. In summary, the followings are four major ones:
 
 -   In-memory data sharing across multiple Shark instances (i.e. stronger isolation)
 -   Instant recovery of in-memory tables
@@ -22,11 +19,12 @@ four major ones:
 
 ### Setup
 
-In order to use Spark on Tachyon, you need to setup `Tachyon 0.3.0`
-first, either [Local
-Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-Locally),
-or [Cluster
-Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-on-a-Cluster),
+**Shark Compatibility:** Shark 0.7.x works with Tachyon 0.2.1,
+Shark 0.8.1 works with Tachyon 0.3.0, Shark 0.9.0 works with Tachyon 0.4.0.
+
+In order to use Spark on Tachyon, you need to setup `Tachyon 0.4.0` first, either
+[Local Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-Locally),
+or [Cluster Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-on-a-Cluster),
 with HDFS.
 
 Then, edit `shark-env.sh` and add

@@ -8,9 +8,10 @@ MapReduce programs with files stored on Tachyon with relative ease.
 
 # Prerequisites
 
-The prerequisite for this part is that you have [Java 7](https://github.com/amplab/tachyon/wiki
-/Java-setup/). We also assume that the user is running on Tachyon 0.3.0 or later and have set up
-Tachyon and Hadoop in accordance to these guides [Local Mode](Running-Tachyon-Locally.html) or
+The prerequisite for this part is that you have
+[Java 7](https://github.com/amplab/tachyon/wiki/Java-setup/).
+We also assume that the user has set up Tachyon and Hadoop in accordance to these guides
+[Local Mode](Running-Tachyon-Locally.html) or
 [Cluster Mode](Running-Tachyon-on-a-Cluster.html)
 
 Ensure that the `hadoop/conf/core-site.xml` file in your Hadoop installation's conf directory has
@@ -43,31 +44,26 @@ out, it is recommended to highly consider the third route, by installing the Tac
 node.
 
 -   For installing Tachyon on each node, one must place the
-    `tachyon-0.3.0-jar-with-dependencies.jar`, located in the
-    `tachyon/target` directory, in the `$HADOOP_HOME/lib` directory of
-    each node, and then restart all of the TaskTrackers. One downfall of
-    this approach is that the jars must be installed again for each
-    update to a new release.
+    `tachyon-0.4.0-jar-with-dependencies.jar`, located in the
+    `tachyon/target` directory, in the `$HADOOP_HOME/lib` directory of each node, and then restart
+    all of the TaskTrackers. One downfall of this approach is that the jars must be installed again
+    for each update to a new release.
 
--   One may also run a job by using the `-libjars` command line option
-    when using `hadoop jar...`, and specifying
-    `/path/to/tachyon/target/tachyon-0.3.0-jar-with-dependencies.jar` as
-    the argument. This will place the jar in the Hadoop
-    DistributedCache, and is desirable only if one is updating the
-    Tachyon jar a non-trivial amount of times.
+-   One may also run a job by using the `-libjars` command line option when using `hadoop jar...`,
+    and specifying `/path/to/tachyon/target/tachyon-0.4.0-jar-with-dependencies.jar` as
+    the argument. This will place the jar in the Hadoop DistributedCache, and is desirable only if
+    one is updating the Tachyon jar a non-trivial amount of times.
 
--   For those interested in the second option, please revisit the
-    Cloudera guide for more assistance. One must simply package the
-    Tachyon jar in the `lib` subdirectory of the job jar. This option is
-    however most undesirable as for every change in Tachyon, we must
-    recreate the job jar, and incurs a network cost for every job by
-    increasing the size of the job jar.
+-   For those interested in the second option, please revisit the Cloudera guide for more
+    assistance. One must simply package the Tachyon jar in the `lib` subdirectory of the job jar.
+    This option is however most undesirable as for every change in Tachyon, we must recreate the job
+    jar, and incurs a network cost for every job by increasing the size of the job jar.
 
 In order to make the Tachyon executables available to the JobClient, one can also install the
 Tachyon jar in the `$HADOOP_HOME/lib` directory, or modify `HADOOP_CLASSPATH` by changing `hadoop-
 env.sh` to:
 
-    $ export HADOOP_CLASSPATH=/path/to/tachyon/target/tachyon-0.3.0-jar-with-dependencies.jar
+    $ export HADOOP_CLASSPATH=/path/to/tachyon/target/tachyon-0.4.0-jar-with-dependencies.jar
 
 This will allow the code that creates the Job and submits it to reference Tachyon if necessary.
 
@@ -84,7 +80,7 @@ this makes the Tachyon executables available to both the TaskTrackers and the Jo
 verify that it is working by the following:
 
     $ cd $HADOOP_HOME
-    $ ./bin/hadoop jar hadoop-examples-1.0.4.jar wordcount -libjars /path/to/tachyon-dev/target/tachyon-0.3.0-jar-with-dependencies.jar tachyon://localhost:19998/X tachyon://localhost:19998/X-wc
+    $ ./bin/hadoop jar hadoop-examples-1.0.4.jar wordcount -libjars /path/to/tachyon-dev/target/tachyon-0.4.0-jar-with-dependencies.jar tachyon://localhost:19998/X tachyon://localhost:19998/X-wc
 
 Where X is some file on Tachyon and, the results of the wordcount job is in the X-wc directory.
 
@@ -92,7 +88,7 @@ For example, you have text files in HDFS directory `/user/hduser/gutenberg/`. Yo
 following:
 
     $ cd $HADOOP_HOME
-    $ ./bin/hadoop jar hadoop-examples-1.0.4.jar wordcount -libjars /path/to/tachyon-dev/target/tachyon-0.3.0-jar-with-dependencies.jar tachyon://localhost:19998/user/hduser/gutenberg /user/hduser/output
+    $ ./bin/hadoop jar hadoop-examples-1.0.4.jar wordcount -libjars /path/to/tachyon-dev/target/tachyon-0.4.0-jar-with-dependencies.jar tachyon://localhost:19998/user/hduser/gutenberg /user/hduser/output
 
 Thus, the above command tell the wordcount to load the files from HDFS directory
 `/user/hduser/gutenberg/` to Tachyon and then save the output result to HDFS `/user/hduser/output/`

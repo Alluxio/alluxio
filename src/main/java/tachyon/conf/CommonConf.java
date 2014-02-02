@@ -16,10 +16,16 @@
  */
 package tachyon.conf;
 
+import java.io.File;
+
+import org.apache.log4j.Logger;
+
 /**
  * Configurations shared by master and workers.
  */
 public class CommonConf extends Utils {
+  private static final Logger LOG = Logger.getLogger("");
+
   private static CommonConf COMMON_CONF = null;
 
   public final String TACHYON_HOME;
@@ -35,11 +41,18 @@ public class CommonConf extends Utils {
   public final boolean ASYNC_ENABLED;
 
   private CommonConf() {
-    TACHYON_HOME = getProperty("tachyon.home");
+    if (System.getProperty("tachyon.home") == null) {
+      LOG.warn("tachyon.home is not set. Using /mnt/tachyon_default_home as the default value.");
+      File file = new File("/mnt/tachyon_default_home");
+      if (!file.exists()) {
+        file.mkdirs();
+      }
+    }
+    TACHYON_HOME = getProperty("tachyon.home", "/mnt/tachyon_default_home");
     UNDERFS_ADDRESS = getProperty("tachyon.underfs.address", TACHYON_HOME + "/underfs");
-    UNDERFS_DATA_FOLDER = UNDERFS_ADDRESS + getProperty("tachyon.data.folder", "/tachyon/data");
-    UNDERFS_WORKERS_FOLDER = 
-        UNDERFS_ADDRESS + getProperty("tachyon.workers.folder", "/tachyon/workers");
+    UNDERFS_DATA_FOLDER = getProperty("tachyon.data.folder", UNDERFS_ADDRESS + "/tachyon/data");
+    UNDERFS_WORKERS_FOLDER =
+        getProperty("tachyon.workers.folder", UNDERFS_ADDRESS + "/tachyon/workers");
 
     USE_ZOOKEEPER = getBooleanProperty("tachyon.usezookeeper", false);
     if (USE_ZOOKEEPER) {
