@@ -231,7 +231,7 @@ public class InodeFile extends Inode {
 
   public synchronized List<Long> getBlockIds() {
     List<Long> ret = new ArrayList<Long>(mBlocks.size());
-    for (int k = 0; k < mBlocks.size(); k++) {
+    for (int k = 0; k < mBlocks.size(); k ++ ) {
       ret.add(mBlocks.get(k).BLOCK_ID);
     }
     return ret;

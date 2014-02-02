@@ -68,8 +68,8 @@ public class FileInStream extends InStream {
 
     checkAndAdvanceBlockInStream();
 
-    mCurrentPosition++;
-    mCurrentBlockLeft--;
+    mCurrentPosition ++ ;
+    mCurrentBlockLeft -- ;
     return mCurrentBlockInStream.read();
   }
 

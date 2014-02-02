@@ -264,7 +264,7 @@ public class MasterInfo {
                 int depId = checkQueue.poll();
                 Dependency dep = mDependencies.get(depId);
                 boolean canLaunch = true;
-                for (int k = 0; k < dep.PARENT_FILES.size(); k++) {
+                for (int k = 0; k < dep.PARENT_FILES.size(); k ++ ) {
                   int fildId = dep.PARENT_FILES.get(k);
                   if (mLostFiles.contains(fildId)) {
                     canLaunch = false;
@@ -285,7 +285,7 @@ public class MasterInfo {
               hasLostFiles = !mMustRecomputeDependencies.isEmpty();
               launched = (recomputeList.size() > 0);
 
-              for (int k = 0; k < recomputeList.size(); k++) {
+              for (int k = 0; k < recomputeList.size(); k ++ ) {
                 mMustRecomputeDependencies.remove(recomputeList.get(k));
                 Dependency dep = mDependencies.get(recomputeList.get(k));
                 mBeingRecomputedFiles.addAll(dep.getLostFiles());
@@ -538,7 +538,7 @@ public class MasterInfo {
     Dependency dep = null;
     synchronized (mRoot) {
       Set<Integer> parentDependencyIds = new HashSet<Integer>();
-      for (int k = 0; k < parentsIdList.size(); k++) {
+      for (int k = 0; k < parentsIdList.size(); k ++ ) {
         int parentId = parentsIdList.get(k);
         Inode inode = mInodes.get(parentId);
         if (inode.isFile()) {
@@ -556,7 +556,7 @@ public class MasterInfo {
           comment, framework, frameworkVersion, dependencyType, parentDependencyIds, creationTimeMs);
 
       List<Inode> childrenInodeList = new ArrayList<Inode>();
-      for (int k = 0; k < childrenIdList.size(); k++) {
+      for (int k = 0; k < childrenIdList.size(); k ++ ) {
         InodeFile inode = (InodeFile) mInodes.get(childrenIdList.get(k));
         inode.setDependencyId(dep.ID);
         childrenInodeList.add(inode);
@@ -825,7 +825,7 @@ public class MasterInfo {
         } else {
           int numberOfChildren = is.readInt();
           int[] children = new int[numberOfChildren];
-          for (int k = 0; k < numberOfChildren; k++) {
+          for (int k = 0; k < numberOfChildren; k ++ ) {
             children[k] = is.readInt();
           }
 
@@ -908,7 +908,7 @@ public class MasterInfo {
 
       List<Integer> children = folder.getChildrenIds();
       os.writeInt(children.size());
-      for (int k = 0; k < children.size(); k++) {
+      for (int k = 0; k < children.size(); k ++ ) {
         os.writeInt(children.get(k));
       }
 
@@ -971,7 +971,7 @@ public class MasterInfo {
       throw new FileAlreadyExistException(e.getMessage());
     }
 
-    for (int k = 0; k < columns; k++) {
+    for (int k = 0; k < columns; k ++ ) {
       mkdir(path + Constants.PATH_SEPARATOR + COL + k);
     }
 
@@ -1310,7 +1310,7 @@ public class MasterInfo {
   private List<Integer> getFilesIds(List<String> pathList) throws InvalidPathException,
       FileDoesNotExistException {
     List<Integer> ret = new ArrayList<Integer>(pathList.size());
-    for (int k = 0; k < pathList.size(); k++) {
+    for (int k = 0; k < pathList.size(); k ++ ) {
       ret.addAll(listFiles(pathList.get(k), true));
     }
     return ret;
@@ -1336,7 +1336,7 @@ public class MasterInfo {
     Inode cur = mRoot;
 
     synchronized (mRoot) {
-      for (int k = 1; k < pathNames.length && cur != null; k++) {
+      for (int k = 1; k < pathNames.length && cur != null; k ++ ) {
         String name = pathNames[k];
         if (cur.isFile()) {
           return null;
@@ -1521,7 +1521,7 @@ public class MasterInfo {
             LOG.debug("getRandomWorker: " + address);
             return new NetAddress(address.getHostName(), address.getPort());
           }
-          index--;
+          index -- ;
         }
         for (InetSocketAddress address : mWorkerAddressToId.keySet()) {
           LOG.debug("getRandomWorker: " + address);
