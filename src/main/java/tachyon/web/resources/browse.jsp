@@ -48,7 +48,6 @@
             <th>Block Size</th>
             <th>In-Memory</th>
             <th>Creation Time</th>
-            <th>Dependency Id</th>
           <!--
             <c:if test = "${debug}">
               <th>[D]Inode Number</th>
@@ -56,6 +55,7 @@
             </c:if>
           -->
             <% if ((Boolean) request.getAttribute("debug")) { %>
+              <th>[D]Dependency Id</th>
               <th>[D]Inode Number</th>
               <th>[D]Checkpoint Path</th>
               <th>[D]File Locations</th>
@@ -125,12 +125,12 @@
                     <% } %>
                   </th>
                   <th><%= fileInfo.getCreationTime() %></th>
-                  <th>
-                    <% if (fileInfo.getDependencyId() != -1) { %>
-                      <a href="./dependency?id=<%=fileInfo.getDependencyId()%>&filePath=<%=fileInfo.getAbsolutePath()%>"><%= fileInfo.getDependencyId() %></a>
-                    <% } %>
-                  </th>
                   <% if ((Boolean) request.getAttribute("debug")) { %>
+                    <th>
+                      <% if (fileInfo.getDependencyId() != -1) { %>
+                        <a href="./dependency?id=<%=fileInfo.getDependencyId()%>&filePath=<%=fileInfo.getAbsolutePath()%>"><%= fileInfo.getDependencyId() %></a>
+                      <% } %>
+                    </th>
                     <th><%= fileInfo.getId() %></th>
                     <th><%= fileInfo.getCheckpointPath() %></th>
                     <th><% for (String location : fileInfo.getFileLocations()) { %>

@@ -45,7 +45,7 @@ data in and out of the file system.
 # User Documentation
 
 [Running Tachyon Locally](Running-Tachyon-Locally.html): Get Tachyon up and running on a single node
-for a quick spin in ~ 5 mins.
+for a quick spin in ~ 5 minutes.
 
 [Running Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.html): Get Tachyon up and running on
 your own cluster.
@@ -93,6 +93,9 @@ Expeditions award CCF-1139158 and DARPA XData Award FA8750-12-2-0331, and gifts 
 Services, Google, SAP, Blue Goji, Cisco, Clearstory Data, Cloudera, Ericsson, Facebook, General
 Electric, Hortonworks, Huawei, Intel, Microsoft, NetApp, Oracle, Quanta, Samsung, Splunk, VMware and
 Yahoo!.
+
+We would also like to thank for project
+[contributors](https://github.com/amplab/tachyon/graphs/contributors).
 
 # Related Projects
 
