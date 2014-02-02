@@ -16,6 +16,7 @@
  */
 package tachyon.master;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -239,6 +240,10 @@ public class InodeFile extends Inode {
     return mBlocks.size();
   }
 
+  public List<BlockInfo> getBlockList() {
+	  return mBlocks;
+  }
+
   public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
     List<Pair<Long, Long>> ret = new ArrayList<Pair<Long, Long>>();
     for (BlockInfo info: mBlocks) {
@@ -246,7 +251,7 @@ public class InodeFile extends Inode {
     }
     return ret;
   }
-
+  
   @Override
   public ClientFileInfo generateClientFileInfo(String path) {
     ClientFileInfo ret = new ClientFileInfo();
@@ -265,6 +270,7 @@ public class InodeFile extends Inode {
     ret.needCache = mCache;
     ret.blockIds = getBlockIds();
     ret.dependencyId = mDependencyId;
+    ret.inMemoryPercentage = this.getInMemoryPercentage();
 
     return ret;
   }

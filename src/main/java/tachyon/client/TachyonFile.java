@@ -30,6 +30,7 @@ import org.apache.log4j.Logger;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
+import tachyon.master.Inode;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.worker.DataServerMessage;

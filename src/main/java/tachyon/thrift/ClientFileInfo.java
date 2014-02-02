@@ -68,6 +68,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   public boolean needCache; // required
   public List<Long> blockIds; // required
   public int dependencyId; // required
+  public int inMemoryPercentage;
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -423,6 +424,11 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   public long getLength() {
     return this.length;
   }
+  
+  public int getInMemoryPercentage() {
+	  return this.inMemoryPercentage;
+  }
+
 
   public ClientFileInfo setLength(long length) {
     this.length = length;
