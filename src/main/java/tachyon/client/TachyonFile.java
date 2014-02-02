@@ -30,7 +30,6 @@ import org.apache.log4j.Logger;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
-import tachyon.master.Inode;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.worker.DataServerMessage;
@@ -86,7 +85,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     List<NetAddress> locations = TFS.getClientBlockInfo(FID, 0).getLocations();
     List<String> ret = new ArrayList<String>(locations.size());
     if (locations != null) {
-      for (int k = 0; k < locations.size(); k ++ ) {
+      for (int k = 0; k < locations.size(); k ++) {
         ret.add(locations.get(k).mHost);
       }
     }
@@ -170,7 +169,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("readByteBufferFromRemote() " + blockLocations);
 
-      for (int k = 0; k < blockLocations.size(); k ++ ) {
+      for (int k = 0; k < blockLocations.size(); k ++) {
         String host = blockLocations.get(k).mHost;
         int port = blockLocations.get(k).mPort;
 
@@ -214,7 +213,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
 
     boolean succeed = true;
-    for (int k = 0; k < numberOfBlocks; k ++ ) {
+    for (int k = 0; k < numberOfBlocks; k ++) {
       succeed &= recache(k);
     }
 
