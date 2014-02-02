@@ -67,7 +67,7 @@ MapReduce running on Tachyon
 [Syncing the Underlying Filesystem](Syncing-the-Underlying-Filesystem.html): Make Tachyon understand
 an existing underlayer filesystem.
 
-[Tachyon Presentation](http://goo.gl/nhmcWA) at AMPCamp 2013 (August, 2013)
+[Tachyon Presentation](http://goo.gl/AHgz0E) at Strata and Hadoop World 2013 (October, 2013)
 
 # Developer Documentation
 
