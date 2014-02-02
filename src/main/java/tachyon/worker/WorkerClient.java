@@ -39,7 +39,7 @@ import tachyon.thrift.WorkerService;
 
 /**
  * The client talks to a worker server. It keeps sending keep alive message to the worker server.
- * 
+ *
  * Since WorkerService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class WorkerClient {
@@ -61,8 +61,8 @@ public class WorkerClient {
     CLIENT = new WorkerService.Client(mProtocol);
 
     mUserId = userId;
-    mHeartbeatThread = new HeartbeatThread("WorkerClientToWorkerHeartbeat", 
-        new WorkerClientHeartbeatExecutor(this, mUserId), 
+    mHeartbeatThread = new HeartbeatThread("WorkerClientToWorkerHeartbeat",
+        new WorkerClientHeartbeatExecutor(this, mUserId),
         UserConf.get().HEARTBEAT_INTERVAL_MS);
     mHeartbeatThread.setDaemon(true);
   }
@@ -71,12 +71,17 @@ public class WorkerClient {
     CLIENT.accessBlock(blockId);
   }
 
-  public synchronized void addCheckpoint(long userId, int fileId) 
+  public synchronized void addCheckpoint(long userId, int fileId)
       throws IOException, TException {
     try {
       CLIENT.addCheckpoint(userId, fileId);
-    } catch (FileDoesNotExistException | SuspectedFileSizeException | FailedToCheckpointException |
-        BlockInfoException e) {
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
+    } catch (FailedToCheckpointException e) {
+      throw new IOException(e);
+    } catch (BlockInfoException e) {
       throw new IOException(e);
     }
   }
@@ -85,9 +90,12 @@ public class WorkerClient {
       throws IOException, TException {
     try {
       CLIENT.cacheBlock(userId, blockId);
-    } catch (FileDoesNotExistException | BlockInfoException e) {
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (BlockInfoException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
     }
   }
 

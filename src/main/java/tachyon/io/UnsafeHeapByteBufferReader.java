@@ -45,8 +45,13 @@ public class UnsafeHeapByteBufferReader extends ByteBufferReader {
 
     try {
       mUnsafe = UnsafeUtils.getUnsafe();
-    } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | 
-        IllegalAccessException e) {
+    } catch (NoSuchFieldException e) {
+      throw new IOException(e);
+    } catch (SecurityException e) {
+      throw new IOException(e);
+    } catch (IllegalArgumentException e) {
+      throw new IOException(e);
+    } catch (IllegalAccessException e) {
       throw new IOException(e);
     }
 
