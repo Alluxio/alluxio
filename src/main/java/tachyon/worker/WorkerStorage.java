@@ -212,7 +212,11 @@ public class WorkerStorage {
           }
         } catch (FileDoesNotExistException e) {
           LOG.warn(e);
-        } catch (SuspectedFileSizeException | BlockInfoException | IOException e) {
+        } catch (SuspectedFileSizeException e) {
+          LOG.error(e);
+        } catch (BlockInfoException e) {
+          LOG.error(e);
+        } catch (IOException e) {
           LOG.error(e);
         } catch (TException e) {
           LOG.warn(e);

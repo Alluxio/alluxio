@@ -486,7 +486,9 @@ public class TachyonFS {
 
     try {
       return mMasterClient.user_getClientBlockInfo(info.blockIds.get(blockIndex));
-    } catch (FileDoesNotExistException | BlockInfoException e) {
+    } catch (FileDoesNotExistException e) {
+      throw new IOException(e);
+    } catch (BlockInfoException e) {
       throw new IOException(e);
     } catch (TException e) {
       throw new IOException(e);
@@ -1098,7 +1100,7 @@ public class TachyonFS {
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException{
     connect();
     try {
-      return mMasterClient.user_createDependency(parents, children, commandPrefix, data, comment, 
+      return mMasterClient.user_createDependency(parents, children, commandPrefix, data, comment,
           framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
     } catch (TException e) {
       mConnected = false;
@@ -1170,7 +1172,7 @@ public class TachyonFS {
     return ret;
   }
 
-  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fileIds) 
+  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fileIds)
       throws IOException {
     List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
     for (int k = 0; k < fileIds.size(); k ++) {
@@ -1199,7 +1201,7 @@ public class TachyonFS {
     return ret;
   }
 
-  public synchronized List<List<String>> getFilesHosts(List<Integer> fileIds) 
+  public synchronized List<List<String>> getFilesHosts(List<Integer> fileIds)
       throws IOException {
     List<List<String>> ret = new ArrayList<List<String>>();
     for (int k = 0; k < fileIds.size(); k ++) {

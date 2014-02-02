@@ -169,7 +169,7 @@ public class EditLog {
           break;
         }
         case OP_CREATE_DEPENDENCY: {
-          info._createDependency(Utils.readIntegerList(is), Utils.readIntegerList(is), 
+          info._createDependency(Utils.readIntegerList(is), Utils.readIntegerList(is),
               Utils.readString(is), Utils.readByteBufferList(is), Utils.readString(is),
               Utils.readString(is), Utils.readString(is),
               DependencyType.getDependencyType(is.readInt()), is.readInt(), is.readLong());
@@ -178,9 +178,19 @@ public class EditLog {
         default :
           throw new IOException("Invalid op type " + op);
         }
-      } catch (SuspectedFileSizeException | BlockInfoException | FileDoesNotExistException |
-          FileAlreadyExistException | InvalidPathException | TachyonException |
-          TableDoesNotExistException e) {
+      } catch (SuspectedFileSizeException e) {
+        throw new IOException(e);
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TableDoesNotExistException e) {
         throw new IOException(e);
       }
     }
@@ -338,7 +348,7 @@ public class EditLog {
   }
 
   public synchronized void createDependency(List<Integer> parents, List<Integer> children,
-      String commandPrefix, List<ByteBuffer> data, String comment, String framework, 
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, DependencyType dependencyType, int depId, long creationTimeMs) {
     if (INACTIVE) {
       return;
