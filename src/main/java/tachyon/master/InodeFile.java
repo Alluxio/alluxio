@@ -52,8 +52,8 @@ public class InodeFile extends Inode {
     return mLength;
   }
 
-  public synchronized void setLength(long length) 
-      throws SuspectedFileSizeException, BlockInfoException {
+  public synchronized void setLength(long length) throws SuspectedFileSizeException,
+      BlockInfoException {
     if (isComplete()) {
       throw new SuspectedFileSizeException("InodeFile length was set previously.");
     }
@@ -110,8 +110,8 @@ public class InodeFile extends Inode {
       throw new BlockInfoException("The file is complete: " + this);
     }
     if (mBlocks.size() > 0 && mBlocks.get(mBlocks.size() - 1).LENGTH != BLOCK_SIZE_BYTE) {
-      throw new BlockInfoException("BLOCK_SIZE_BYTE is " + BLOCK_SIZE_BYTE + ", but the " +
-          "previous block size is " + mBlocks.get(mBlocks.size() - 1).LENGTH);
+      throw new BlockInfoException("BLOCK_SIZE_BYTE is " + BLOCK_SIZE_BYTE + ", but the "
+          + "previous block size is " + mBlocks.get(mBlocks.size() - 1).LENGTH);
     }
     if (blockInfo.getInodeFile() != this) {
       throw new BlockInfoException("InodeFile unmatch: " + this + " != " + blockInfo);
@@ -120,8 +120,8 @@ public class InodeFile extends Inode {
       throw new BlockInfoException("BLOCK_INDEX unmatch: " + mBlocks.size() + " != " + blockInfo);
     }
     if (blockInfo.OFFSET != (long) mBlocks.size() * BLOCK_SIZE_BYTE) {
-      throw new BlockInfoException("OFFSET unmatch: " + (long) mBlocks.size() * BLOCK_SIZE_BYTE +
-          " != " + blockInfo);
+      throw new BlockInfoException("OFFSET unmatch: " + (long) mBlocks.size() * BLOCK_SIZE_BYTE
+          + " != " + blockInfo);
     }
     if (blockInfo.LENGTH > BLOCK_SIZE_BYTE) {
       throw new BlockInfoException("LENGTH too big: " + BLOCK_SIZE_BYTE + " " + blockInfo);
@@ -130,7 +130,7 @@ public class InodeFile extends Inode {
     mBlocks.add(blockInfo);
   }
 
-  public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress) 
+  public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress)
       throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
@@ -172,11 +172,12 @@ public class InodeFile extends Inode {
 
   /**
    * Get file's all blocks' ClientBlockInfo information.
+   * 
    * @return all blocks ClientBlockInfo
    */
   public synchronized List<ClientBlockInfo> getClientBlockInfos() {
     List<ClientBlockInfo> ret = new ArrayList<ClientBlockInfo>(mBlocks.size());
-    for (BlockInfo tInfo: mBlocks) {
+    for (BlockInfo tInfo : mBlocks) {
       ret.add(tInfo.generateClientBlockInfo());
     }
     return ret;
@@ -192,7 +193,7 @@ public class InodeFile extends Inode {
     }
 
     long inMemoryLength = 0;
-    for (BlockInfo info: mBlocks) {
+    for (BlockInfo info : mBlocks) {
       if (info.isInMemory()) {
         inMemoryLength += info.LENGTH;
       }
@@ -230,7 +231,7 @@ public class InodeFile extends Inode {
 
   public synchronized List<Long> getBlockIds() {
     List<Long> ret = new ArrayList<Long>(mBlocks.size());
-    for (int k = 0; k < mBlocks.size(); k ++) {
+    for (int k = 0; k < mBlocks.size(); k++) {
       ret.add(mBlocks.get(k).BLOCK_ID);
     }
     return ret;
@@ -241,17 +242,17 @@ public class InodeFile extends Inode {
   }
 
   public List<BlockInfo> getBlockList() {
-	  return mBlocks;
+    return mBlocks;
   }
 
   public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
     List<Pair<Long, Long>> ret = new ArrayList<Pair<Long, Long>>();
-    for (BlockInfo info: mBlocks) {
+    for (BlockInfo info : mBlocks) {
       ret.addAll(info.getBlockIdWorkerIdPairs());
     }
     return ret;
   }
-  
+
   @Override
   public ClientFileInfo generateClientFileInfo(String path) {
     ClientFileInfo ret = new ClientFileInfo();

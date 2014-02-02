@@ -68,8 +68,8 @@ public class FileInStream extends InStream {
 
     checkAndAdvanceBlockInStream();
 
-    mCurrentPosition ++;
-    mCurrentBlockLeft --;
+    mCurrentPosition++;
+    mCurrentBlockLeft--;
     return mCurrentBlockInStream.read();
   }
 
@@ -140,14 +140,14 @@ public class FileInStream extends InStream {
       long skip = mCurrentBlockInStream.skip(shouldSkip);
       mCurrentBlockLeft = BLOCK_CAPACITY - skip;
       if (skip != shouldSkip) {
-        throw new IOException("The underlayer BlockInStream only skip " + skip + 
-            " instead of " + shouldSkip);
+        throw new IOException("The underlayer BlockInStream only skip " + skip + " instead of "
+            + shouldSkip);
       }
     } else {
       long skip = mCurrentBlockInStream.skip(ret);
       if (skip != ret) {
-        throw new IOException("The underlayer BlockInStream only skip " + skip + 
-            " instead of " + ret);
+        throw new IOException("The underlayer BlockInStream only skip " + skip + " instead of "
+            + ret);
       }
     }
 
@@ -163,7 +163,7 @@ public class FileInStream extends InStream {
       throw new IOException("pos is negative: " + pos);
     }
 
-    if ((int) (pos / BLOCK_CAPACITY) != mCurrentBlockIndex){
+    if ((int) (pos / BLOCK_CAPACITY) != mCurrentBlockIndex) {
       mCurrentBlockIndex = (int) (pos / BLOCK_CAPACITY);
       if (mCurrentBlockInStream != null) {
         mCurrentBlockInStream.close();

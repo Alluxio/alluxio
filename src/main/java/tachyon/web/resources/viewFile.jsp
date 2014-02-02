@@ -35,7 +35,7 @@
     <hr>
     <div>
       <span>Display from position: </span>
-      <input type="text" id="offset" value="<%= request.getParameter("offset") %>"></input>
+      <input type="text" id="offset" value="<% if(request.getParameter("offset")==null) { %><%= 0 %><% } else { %><%= request.getParameter("offset") %><% } %>"></input>
       <a class="btn btn-default" onclick="displayContent();">GO!</a>
     </div>
     <hr>
