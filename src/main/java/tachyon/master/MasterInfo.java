@@ -348,8 +348,7 @@ public class MasterInfo {
    * Add a checkpoint to a file.
    * 
    * @param workerId
-   *          The worker which submitted the request. -1 if the request is not
-   *          from a worker.
+   *          The worker which submitted the request. -1 if the request is not from a worker.
    * @param fileId
    *          The file to add the checkpoint.
    * @param length
@@ -439,8 +438,7 @@ public class MasterInfo {
    * @param blockId
    * @param length
    * @return the dependency id of the file if it has not been checkpointed. -1
-   *         means the file either does not have dependency or has already been
-   *         checkpointed.
+   *         means the file either does not have dependency or has already been checkpointed.
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
@@ -1090,7 +1088,7 @@ public class MasterInfo {
    *          The file.
    * @return The list of the blocks of the file.
    * @throws InvalidPathException
-   *           , FileDoesNotExistException
+   * @throws FileDoesNotExistException
    */
   public List<BlockInfo> getBlockList(String path) throws InvalidPathException,
       FileDoesNotExistException {

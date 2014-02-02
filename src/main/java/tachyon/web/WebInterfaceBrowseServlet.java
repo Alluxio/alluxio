@@ -199,8 +199,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   /**
    * Populates attribute fields with data from the MasterInfo associated with
    * this servlet. Errors will be displayed in an error field. Debugging can be
-   * enabled to display additional data. Will eventually redirect the request to
-   * a jsp.
+   * enabled to display additional data. Will eventually redirect the request to a jsp.
    * 
    * @param request
    *          The HttpServletRequest object
@@ -223,6 +222,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       currentPath = "/";
     }
     request.setAttribute("currentPath", currentPath);
+    request.setAttribute("viewingOffset", 0);
     try {
       UiFileInfo currentFileInfo = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
       request.setAttribute("currentDirectory", currentFileInfo);
@@ -231,6 +231,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
         String tmpParam = request.getParameter("offset");
         int offset = (tmpParam == null ? 0 : Integer.valueOf(tmpParam));
         displayFile(currentFileInfo.getAbsolutePath(), request, offset);
+        request.setAttribute("viewingOffset", offset);
         getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
         return;
       }
@@ -328,8 +329,9 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
     List<BlockInfo> rawBlockList = mMasterInfo.getBlockList(path);
     List<UiBlockInfo> uiBlockInfo = new ArrayList<UiBlockInfo>();
-    for (BlockInfo blockInfo : rawBlockList)
+    for (BlockInfo blockInfo : rawBlockList) {
       uiBlockInfo.add(new UiBlockInfo(blockInfo));
+    }
     request.setAttribute("fileBlocks", uiBlockInfo);
     request.setAttribute("fileData", fileData);
     return;
