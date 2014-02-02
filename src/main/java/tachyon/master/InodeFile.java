@@ -270,7 +270,7 @@ public class InodeFile extends Inode {
     ret.needCache = mCache;
     ret.blockIds = getBlockIds();
     ret.dependencyId = mDependencyId;
-    ret.inMemoryPercentage = this.getInMemoryPercentage();
+    ret.inMemoryPercentage = getInMemoryPercentage();
 
     return ret;
   }

@@ -28,7 +28,7 @@
         <h1 class="text-error">
           <%= request.getAttribute("invalidPathError") %>
         </h1>
-        <h3>The first 5KB of <%= request.getAttribute("currentPath") %> in ASCII</h3>
+        <h4><%= request.getAttribute("currentPath") %>: First 5KB from <%= request.getAttribute("viewingOffset") %> in ASCII</h4>
         <textarea class="file-content"><%= request.getAttribute("fileData") %></textarea>
       </div>
     </div>
@@ -40,7 +40,7 @@
     </div>
     <hr>
     <div>
-      <h3>Blocks information</h3>
+      <h4>Blocks information</h4>
       <table class="table table-bordered table-striped">
         <tr>
           <th>ID</th>
