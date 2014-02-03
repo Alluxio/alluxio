@@ -43,7 +43,8 @@ public class BlockInfo {
   /**
    * @param inodeFile
    * @param blockIndex
-   * @param length Can not be no bigger than 2^31 - 1
+   * @param length
+   *          Can not be no bigger than 2^31 - 1
    */
   BlockInfo(InodeFile inodeFile, int blockIndex, long length) {
     INODE_FILE = inodeFile;
@@ -73,7 +74,7 @@ public class BlockInfo {
         return ret;
       }
       if (locs != null) {
-        for (String loc: locs) {
+        for (String loc : locs) {
           ret.add(new NetAddress(loc, -1));
         }
       }
@@ -94,7 +95,7 @@ public class BlockInfo {
 
   public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
     List<Pair<Long, Long>> ret = new ArrayList<Pair<Long, Long>>(mLocations.size());
-    for (long workerId: mLocations.keySet()) {
+    for (long workerId : mLocations.keySet()) {
       ret.add(new Pair<Long, Long>(BLOCK_ID, workerId));
     }
     return ret;
