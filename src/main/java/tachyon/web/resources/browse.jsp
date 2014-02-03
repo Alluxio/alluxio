@@ -117,13 +117,17 @@
                   <th><%= fileInfo.getSize() %></th>
                   <th><%= fileInfo.getBlockSizeBytes() %></th>
                   <th>
-                    <% if (fileInfo.getInMemory()) { %>
-                      <i class="icon-hdd"></i>
+                    <% if (fileInfo.getIsDirectory()) { %>
                     <% } %>
-                    <% if (!fileInfo.getInMemory()) { %>
-                      <i class="icon-hdd icon-white"></i>
+                    <% if (!fileInfo.getIsDirectory()) { %>
+                      <% if (fileInfo.getInMemory()) { %>
+                        <i class="icon-hdd"></i>
+                      <% } %>
+                      <% if (!fileInfo.getInMemory()) { %>
+                        <i class="icon-hdd icon-white"></i>
+                      <% } %>
+                      <%= fileInfo.getInMemoryPercentage() %>%
                     <% } %>
-                    <%= fileInfo.getInMemoryPercentage() %>%
                   </th>
                   <th><%= fileInfo.getCreationTime() %></th>
                   <% if ((Boolean) request.getAttribute("debug")) { %>
