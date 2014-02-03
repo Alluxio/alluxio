@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
+import static java.nio.file.attribute.PosixFilePermission.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -33,13 +34,11 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.thrift.InvalidPathException;
-import static java.nio.file.attribute.PosixFilePermission.*;
 
 /**
  * Common utilities shared by all components in Tachyon.
@@ -85,18 +84,6 @@ public final class CommonUtils {
       }
     }
     return sb.toString();
-  }
-
-  public static String convertByteArrayToString(byte[] data) {
-    StringBuilder sb = new StringBuilder(data.length);
-    for (int i = 0; i < data.length; i ++) {
-      if (data[i] < 128) {
-        sb.append((char) data[i]);
-      } else {
-        return null;
-      }
-    }
-    return StringEscapeUtils.escapeHtml3(sb.toString()).replace("\n", "<br/>");
   }
 
   public static String convertMsToClockTime(long Millis) {
