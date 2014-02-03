@@ -134,7 +134,7 @@ public class FileOutStream extends OutStream {
         int tLen = len;
         int tOff = off;
         while (tLen > 0) {
-          if (mCurrentBlockLeftByte == 0) {
+          if (mCurrentBlockLeftByte <= 0 || mCurrentBlockOutStream == null ) {
             getNextBlock();
           } else if (mCurrentBlockLeftByte < 0 || mCurrentBlockOutStream == null) {
             throw new IOException("mCurrentBlockLeftByte " + mCurrentBlockLeftByte + " " +
