@@ -16,20 +16,21 @@
 
 if [[ `uname -a` == Darwin* ]]; then
   # Assuming Mac OS X
+  export JAVA_HOME=$(/usr/libexec/java_home)
   export TACHYON_RAM_FOLDER=/Volumes/ramdisk
   export TACHYON_JAVA_OPTS="-Djava.security.krb5.realm= -Djava.security.krb5.kdc="
-  export JAVA_HOME=$(/usr/libexec/java_home)
 else
   # Assuming Linux
-  export TACHYON_RAM_FOLDER=/mnt/ramdisk
   if [ -z "$JAVA_HOME" ]; then
     export JAVA_HOME=/usr/lib/jvm/java-7-oracle
   fi
+  export TACHYON_RAM_FOLDER=/mnt/ramdisk
 fi
 
 export JAVA="$JAVA_HOME/bin/java"
 export TACHYON_MASTER_ADDRESS=localhost
-export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:8020
+export TACHYON_UNDERFS_ADDRESS=$TACHYON_HOME/underfs
+#export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:9000
 export TACHYON_WORKER_MEMORY_SIZE=1GB
 export TACHYON_UNDERFS_HDFS_IMPL=org.apache.hadoop.hdfs.DistributedFileSystem
 
