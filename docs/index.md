@@ -9,14 +9,10 @@ lineage information and using memory aggressively. Tachyon caches working set fi
 enables different jobs/queries and frameworks to access cached files at memory speed. Thus, Tachyon
 avoids going to disk to load datasets that are frequently read.
 
-On April 10th, 2013, we put out a soft release of [Tachyon 0.2.0
-Alpha](https://github.com/amplab/tachyon/releases/tag/v0.2.0). The new version is more stable
-and also features performance improvements. It is, however, a soft release and we are working full
-time towards a full hard release that contains a stable version of the features that we expect will
-be core to Tachyon. Stay tuned.
-
-[Releases and Downloads](https://github.com/amplab/tachyon/releases) | [User Documentation](#user-
-documentation) | [Developer Documentation](#developer-documentation) |
+[Github Repository](https://github.com/amplab/tachyon/) |
+[Releases and Downloads](https://github.com/amplab/tachyon/releases) |
+[User Documentation](#user-documentation) |
+[Developer Documentation](#developer-documentation) |
 [Acknowledgement](#acknowledgement)
 
 # Current Features
@@ -49,7 +45,7 @@ data in and out of the file system.
 # User Documentation
 
 [Running Tachyon Locally](Running-Tachyon-Locally.html): Get Tachyon up and running on a single node
-for a quick spin in ~ 5 mins.
+for a quick spin in ~ 5 minutes.
 
 [Running Tachyon on a Cluster](Running-Tachyon-on-a-Cluster.html): Get Tachyon up and running on
 your own cluster.
@@ -71,32 +67,36 @@ MapReduce running on Tachyon
 [Syncing the Underlying Filesystem](Syncing-the-Underlying-Filesystem.html): Make Tachyon understand
 an existing underlayer filesystem.
 
-[Tachyon Presentation](http://goo.gl/nhmcWA) at AMPCamp 2013 (August, 2013)
+[Tachyon Presentation](http://goo.gl/AHgz0E) at Strata and Hadoop World 2013 (October, 2013)
 
 # Developer Documentation
 
-[Startup Tasks for New Contributors](Startup-Tasks-for-New-Contributors.html): For people who are
-interested in contributing.
+[Startup Tasks for New Contributors](Startup-Tasks-for-New-Contributors.html)
 
 [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
 
 # Support or Contact
 
-You are welcome to join our [mailing list](https://groups.google.com/forum/?fromgroups#!forum
-/tachyon-users) to discuss questions and make suggestions. We use [JIRA](https://spark-
-project.atlassian.net/browse/TACHYON) to track development / issues. If you are interested in trying
+You are welcome to join our
+[mailing list](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
+to discuss questions and make suggestions. We use
+[JIRA](https://spark-project.atlassian.net/browse/TACHYON)
+to track development / issues. If you are interested in trying
 out Tachyon in your cluster, please contact [Haoyuan](mailto:haoyuan@cs.berkeley.edu).
 
 # Acknowledgement
 
-Tachyon is an open source project started in the [UC Berkeley AMP
-Lab](http://amplab.cs.berkeley.edu). This research and development is supported in part by NSF CISE
+Tachyon is an open source project started in the
+[UC Berkeley AMP Lab](http://amplab.cs.berkeley.edu).
+This research and development is supported in part by NSF CISE
 Expeditions award CCF-1139158 and DARPA XData Award FA8750-12-2-0331, and gifts from Amazon Web
 Services, Google, SAP, Blue Goji, Cisco, Clearstory Data, Cloudera, Ericsson, Facebook, General
 Electric, Hortonworks, Huawei, Intel, Microsoft, NetApp, Oracle, Quanta, Samsung, Splunk, VMware and
 Yahoo!.
 
+We would also like to thank for project
+[contributors](https://github.com/amplab/tachyon/graphs/contributors).
+
 # Related Projects
 
 [Berkeley Data Analysis Stack (BDAS)](https://amplab.cs.berkeley.edu/bdas/) from AMPLab at Berkeley
-

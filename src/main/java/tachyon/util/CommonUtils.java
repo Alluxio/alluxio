@@ -209,21 +209,20 @@ public final class CommonUtils {
     memorySize = memorySize.substring(0, tIndex + 1);
     double ret = Double.parseDouble(memorySize);
     end = end.toLowerCase();
-    switch (end) {
-    case "":
-    case "b":
+    if (end.isEmpty() || end.equals("b")) {
       return (long) (ret + alpha);
-    case "kb":
+    } else if (end.equals("kb")) {
       return (long) (ret * Constants.KB + alpha);
-    case "mb":
+    } else if (end.equals("mb")) {
       return (long) (ret * Constants.MB + alpha);
-    case "gb":
+    } else if (end.equals("gb")) {
       return (long) (ret * Constants.GB + alpha);
-    case "tb":
+    } else if (end.equals("tb")) {
       return (long) (ret * Constants.TB + alpha);
+    } else {
+      runtimeException("Fail to parse " + ori + " as memory size");
+      return -1;
     }
-    runtimeException("Fail to parse " + ori + " as memory size");
-    return -1;
   }
 
   public static void printByteBuffer(Logger LOG, ByteBuffer buf) {
@@ -278,7 +277,7 @@ public final class CommonUtils {
 
   /**
    * Parse InetSocketAddress from a String
-   * 
+   *
    * @param address
    * @return
    * @throws IOException
@@ -317,7 +316,7 @@ public final class CommonUtils {
   /**
    * If the sticky bit of the 'file' is set, the 'file' is only writable to its
    * owner and the owner of the folder containing the 'file'.
-   * 
+   *
    * @param file
    *          absolute file path
    */
@@ -334,9 +333,7 @@ public final class CommonUtils {
 
   /**
    * Create an empty file
-   * 
-   * @param path
-   *          the file to be created
+   *
    * @throws IOException
    */
   public static void touch(String path) throws IOException {

@@ -38,8 +38,13 @@ public class UnsafeUtils {
   static {
     try {
       sByteArrayBaseOffset = getUnsafe().arrayBaseOffset(byte[].class);
-    } catch (NoSuchFieldException | SecurityException | IllegalArgumentException
-        | IllegalAccessException e) {
+    } catch (NoSuchFieldException e) {
+      CommonUtils.runtimeException(e);
+    } catch (SecurityException e) {
+      CommonUtils.runtimeException(e);
+    } catch (IllegalArgumentException e) {
+      CommonUtils.runtimeException(e);
+    } catch (IllegalAccessException e) {
       CommonUtils.runtimeException(e);
     }
   }
