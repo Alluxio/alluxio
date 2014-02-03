@@ -9,7 +9,7 @@ MapReduce programs with files stored on Tachyon with relative ease.
 # Prerequisites
 
 The prerequisite for this part is that you have
-[Java 7](https://github.com/amplab/tachyon/wiki/Java-setup/).
+[Java](https://github.com/amplab/tachyon/wiki/Java-setup/).
 We also assume that the user has set up Tachyon and Hadoop in accordance to these guides
 [Local Mode](Running-Tachyon-Locally.html) or
 [Cluster Mode](Running-Tachyon-on-a-Cluster.html)

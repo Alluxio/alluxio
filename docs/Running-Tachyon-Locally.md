@@ -11,7 +11,7 @@ This guide describes:
 
 # Run Tachyon Standalone
 
-The prerequisite for this part is that you have [Java 7](java-setup.html).
+The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 6 or above).
 
 Download the binary distribution of Tachyon 0.4.0:
 
