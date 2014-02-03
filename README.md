@@ -20,18 +20,18 @@ User Mailing List: https://groups.google.com/forum/?fromgroups#!forum/tachyon-us
 <dependency>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon</artifactId>
-  <version>0.3.0</version>
+  <version>0.4.0</version>
 </dependency>
 ```
 
 ### Apache Ant
 ```xml
-<dependency org="org.tachyonproject" name="tachyon" rev="0.3.0">
+<dependency org="org.tachyonproject" name="tachyon" rev="0.4.0">
   <artifact name="tachyon" type="jar" />
 </dependency>
 ```
 
 ### SBT
 ```
-libraryDependencies += "org.tachyonproject" % "tachyon" % "0.3.0"
+libraryDependencies += "org.tachyonproject" % "tachyon" % "0.4.0"
 ```
