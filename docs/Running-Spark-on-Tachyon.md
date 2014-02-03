@@ -28,5 +28,5 @@ Put a file X into HDFS. Run Spark Shell:
     $ s.count()
     $ s.saveAsTextFile("tachyon://localhost:19998/Y")
 
-Take a look at [http://localhost:19999](http://localhost:19999), there should be a dataset info
+Take a look at [http://localhost:19999](http://localhost:19999), there should be a file info
 there.

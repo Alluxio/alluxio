@@ -17,7 +17,7 @@ The common configuration contains constants which specify paths and the log appe
 <tr>
   <td>tachyon.home</td>
   <td>"/mnt/tachyon_default_home"</td>
-  <td>Tachyon folder to store logs.r</td>
+  <td>Tachyon installation folder.r</td>
 </tr>
 <tr>
   <td>tachyon.underfs.address</td>
@@ -54,6 +54,21 @@ The common configuration contains constants which specify paths and the log appe
   <td>"/leader"</td>
   <td>Leader folder in ZooKeeper.</td>
 </tr>
+<tr>
+  <td>tachyon.underfs.hdfs.impl</td>
+  <td>"org.apache.hadoop.hdfs.DistributedFileSystem"</td>
+  <td>The implementation class of the HDFS, if using it as the under FS.</td>
+</tr>
+<tr>
+  <td>fs.s3n.awsAccessKeyId</td>
+  <td>null</td>
+  <td>S3 aws access key id if using S3 as the under FS.</td>
+</tr>
+<tr>
+  <td>fs.s3n.awsSecretAccessKey</td>
+  <td>null</td>
+  <td>S3 aws secret access key id if using S3 as the under FS.</td>
+</tr>
 </table>
 
 # Master Configuration
@@ -65,7 +80,7 @@ number.
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
   <td>tachyon.master.journal.folder</td>
-  <td>"tachyon.home"/journal/</td>
+  <td>$tachyon.home + "/journal/"</td>
   <td>The folder to store master journal log.</td>
 </tr>
 <tr>
@@ -145,14 +160,49 @@ The user configuration specifies values regarding file system access.
   <td>1 MB</td>
   <td>The size of the file buffer to use for file system reads/writes.</td>
 </tr>
+<tr>
+  <td>tachyon.user.default.block.size.byte</td>
+  <td>1 GB</td>
+  <td>Default block size for Tachyon files.</td>
+</tr>
+<tr>
+  <td>tachyon.user.remote.read.buffer.size.byte</td>
+  <td>1 MB</td>
+  <td>The size of the file buffer to read data from remote Tachyon worker.</td>
+</tr>
 </table>
 
 # Example tachyon-env.sh File
 
-    # Worker size set to 512 MB
-    # Set worker folder to /Volumes/ramdist/tachyonworker
+    #!/usr/bin/env bash
 
-    export TACHYON_JAVA_OPTS="
-      -Dtachyon.worker.memory.size=512MB
-      -Dtachyon.worker.data.folder=/Volumes/ramdisk/tachyonworker/
+    if [[ `uname -a` == Darwin* ]]; then
+      # Assuming Mac OS X
+      export TACHYON_RAM_FOLDER=/Volumes/ramdisk
+      export TACHYON_JAVA_OPTS="-Djava.security.krb5.realm=OX.AC.UK -Djava.security.krb5.kdc=kdc0.ox.ac.uk:kdc1.ox.ac.uk"
+    else
+      # Assuming Linux
+      export TACHYON_RAM_FOLDER=/mnt/ramdisk
+    fi
+
+    export JAVA_HOME=/home/haoyuan/tools/jdk1.7.0_25
+    export JAVA="$JAVA_HOME/bin/java"
+    export TACHYON_MASTER_ADDRESS=localhost
+    export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:9000
+    export TACHYON_WORKER_MEMORY_SIZE=1.1GB
+
+    CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+    export TACHYON_JAVA_OPTS+="
+      -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
+      -Dtachyon.debug=false
+      -Dtachyon.underfs.address=$TACHYON_UNDERFS_ADDRESS
+      -Dtachyon.data.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/data
+      -Dtachyon.workers.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/workers
+      -Dtachyon.worker.memory.size=$TACHYON_WORKER_MEMORY_SIZE
+      -Dtachyon.worker.data.folder=$TACHYON_RAM_FOLDER/tachyonworker/
+      -Dtachyon.master.worker.timeout.ms=60000
+      -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
+      -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
+      -Dtachyon.master.pinlist=/pinfiles;/pindata
     "
