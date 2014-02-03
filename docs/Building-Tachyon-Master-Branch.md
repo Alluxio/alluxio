@@ -5,9 +5,8 @@ title: Building Tachyon Master Branch
 
 This guide describes how to compile Tachyon from the beginning.
 
-The prerequisite for this guide is that you have [Java 7 (or
-above)](Java-Setup.html),
-[Maven](Maven.html), and [Thrift 0.7(Optional, Thrift 0.9 after 1/28/2013)](Thrift.html) installed.
+The prerequisite for this guide is that you have [Java 6 (or above)](Java-Setup.html),
+[Maven](Maven.html), and [Thrift 0.9 (Optional)](Thrift.html) installed.
 
 Checkout Tachyon master branch from Github, and package:
 
@@ -15,8 +14,8 @@ Checkout Tachyon master branch from Github, and package:
     $ cd tachyon
     $ mvn package
 
-If you want to build a particular version of Tachyon, for example 0.3.0, please do `git checkout
-v0.3.0` after `cd tachyon`.
+If you want to build a particular version of Tachyon, for example 0.4.0, please do `git checkout
+v0.4.0` after `cd tachyon`.
 
 The Maven build system fetches its dependencies, compiles, runs system's unit tests, and package the
 system. If this is the first time you are building the project, it can take a while to download all
