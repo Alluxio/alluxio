@@ -281,7 +281,7 @@ public class TachyonFS {
     }
   }
 
-  public synchronized File createAndGetUserTempFolder() {
+  public synchronized File createAndGetUserTempFolder() throws IOException {
     connect();
 
     if (mUserTempFolder == null) {
