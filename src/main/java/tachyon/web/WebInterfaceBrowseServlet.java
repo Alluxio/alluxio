@@ -21,6 +21,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -34,6 +35,7 @@ import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.master.BlockInfo;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -51,8 +53,8 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   private MasterInfo mMasterInfo;
 
   /**
-   * Class to make referencing file objects more intuitive. Mainly to avoid implicit association
-   * by array indexes.
+   * Class to make referencing file objects more intuitive. Mainly to avoid
+   * implicit association by array indexes.
    */
   public class UiFileInfo implements Comparable<UiFileInfo> {
     private final int ID;
@@ -64,6 +66,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     private final long SIZE;
     private final long CREATION_TIME_MS;
     private final boolean IN_MEMORY;
+    private final int IN_MEMORY_PERCENTAGE;
     private final boolean IS_DIRECTORY;
     private List<String> mFileLocations;
 
@@ -77,6 +80,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       SIZE = fileInfo.getLength();
       CREATION_TIME_MS = fileInfo.getCreationTimeMs();
       IN_MEMORY = fileInfo.isInMemory();
+      IN_MEMORY_PERCENTAGE = fileInfo.getInMemoryPercentage();
       IS_DIRECTORY = fileInfo.isFolder();
       mFileLocations = new ArrayList<String>();
     }
@@ -129,6 +133,10 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       return IN_MEMORY;
     }
 
+    public int getInMemoryPercentage() {
+      return IN_MEMORY_PERCENTAGE;
+    }
+
     public boolean getIsDirectory() {
       return IS_DIRECTORY;
     }
@@ -149,16 +157,54 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
   }
 
+  /**
+   * Class to make referencing file objects more intuitive. Mainly to avoid
+   * implicit association by array indexes.
+   */
+  public class UiBlockInfo implements Comparable<UiBlockInfo> {
+
+    private final long ID;
+    private final long BLOCK_LENGTH;
+    private final boolean IN_MEMORY;
+
+    public UiBlockInfo(BlockInfo blockInfo) {
+      ID = blockInfo.BLOCK_ID;
+      BLOCK_LENGTH = blockInfo.LENGTH;
+      IN_MEMORY = blockInfo.isInMemory();
+    }
+
+    public long getID() {
+      return ID;
+    }
+
+    public long getBlockLength() {
+      return BLOCK_LENGTH;
+    }
+
+    public boolean inMemory() {
+      return IN_MEMORY;
+    }
+
+    @Override
+    public int compareTo(UiBlockInfo p) {
+      return (ID < p.ID ? -1 : (ID == p.ID ? 0 : 1));
+    }
+
+  }
+
   public WebInterfaceBrowseServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
   }
 
   /**
-   * Populates attribute fields with data from the MasterInfo associated with this servlet. Errors
-   * will be displayed in an error field. Debugging can be enabled to display additional data.
-   * Will eventually redirect the request to a jsp.
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletResponse object
+   * Populates attribute fields with data from the MasterInfo associated with
+   * this servlet. Errors will be displayed in an error field. Debugging can be
+   * enabled to display additional data. Will eventually redirect the request to a jsp.
+   * 
+   * @param request
+   *          The HttpServletRequest object
+   * @param response
+   *          The HttpServletResponse object
    * @throws ServletException
    * @throws IOException
    * @throws UnknownHostException
@@ -172,16 +218,20 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     request.setAttribute("invalidPathError", "");
     List<ClientFileInfo> filesInfo = null;
     String currentPath = request.getParameter("path");
-
     if (currentPath.isEmpty()) {
       currentPath = "/";
     }
     request.setAttribute("currentPath", currentPath);
+    request.setAttribute("viewingOffset", 0);
     try {
       UiFileInfo currentFileInfo = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
       request.setAttribute("currentDirectory", currentFileInfo);
       if (!currentFileInfo.getIsDirectory()) {
-        displayFile(currentFileInfo.getAbsolutePath(), request);
+        // TODO if parameter is illegal
+        String tmpParam = request.getParameter("offset");
+        int offset = (tmpParam == null ? 0 : Integer.valueOf(tmpParam));
+        displayFile(currentFileInfo.getAbsolutePath(), request, offset);
+        request.setAttribute("viewingOffset", offset);
         getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
         return;
       }
@@ -220,14 +270,37 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
   /**
    * This function displays the first 5KB of a file if it is in ASCII format.
-   * @param path The path of the file to display
-   * @param request The HttpServletRequest object
+   * 
+   * @param path
+   *          The path of the file to display
+   * @param request
+   *          The HttpServletRequest object
    * @throws FileDoesNotExistException
    * @throws IOException
    * @throws InvalidPathException
    * @throws TException
    */
   private void displayFile(String path, HttpServletRequest request)
+      throws FileDoesNotExistException, InvalidPathException, IOException {
+    displayFile(path, request, 0);
+  }
+
+  /**
+   * This function displays 5KB of a file from a specific offset if it is in
+   * ASCII format.
+   * 
+   * @param path
+   *          The path of the file to display
+   * @param request
+   *          The HttpServletRequest object
+   * @param offset
+   *          Where the file starts to display.
+   * @throws FileDoesNotExistException
+   * @throws IOException
+   * @throws InvalidPathException
+   * @throws TException
+   */
+  private void displayFile(String path, HttpServletRequest request, int offset)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     TachyonFS tachyonClient = TachyonFS.get(mMasterInfo.getMasterAddress());
     TachyonFile tFile = tachyonClient.getFile(path);
@@ -239,8 +312,9 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
       int len = (int) Math.min(5 * Constants.KB, tFile.length());
       byte[] data = new byte[len];
+      is.skip(offset);
       is.read(data, 0, len);
-      fileData = CommonUtils.convertByteArrayToString(data);
+      fileData = CommonUtils.convertByteArrayToStringWithoutEscape(data);
       if (fileData == null) {
         fileData = "The requested file is not completely encoded in ascii";
       }
@@ -253,15 +327,24 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     } catch (TException e) {
       LOG.error(e.getMessage());
     }
+    List<BlockInfo> rawBlockList = mMasterInfo.getBlockList(path);
+    List<UiBlockInfo> uiBlockInfo = new ArrayList<UiBlockInfo>();
+    for (BlockInfo blockInfo : rawBlockList) {
+      uiBlockInfo.add(new UiBlockInfo(blockInfo));
+    }
+    request.setAttribute("fileBlocks", uiBlockInfo);
     request.setAttribute("fileData", fileData);
     return;
   }
 
   /**
-   * This function sets the fileinfos for folders that are in the path to the current directory.
-   *
-   * @param path The path of the current directory.
-   * @param request The HttpServletRequest object
+   * This function sets the fileinfos for folders that are in the path to the
+   * current directory.
+   * 
+   * @param path
+   *          The path of the current directory.
+   * @param request
+   *          The HttpServletRequest object
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
