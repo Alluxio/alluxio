@@ -93,5 +93,5 @@ public abstract class UnderFileSystem {
 
   public abstract boolean rename(String src, String dst) throws IOException;
 
-  public abstract void toFullPermission(String path);
+  public abstract void toFullPermission(String path) throws IOException;
 }
