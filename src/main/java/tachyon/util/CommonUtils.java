@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
+import static java.nio.file.attribute.PosixFilePermission.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -33,13 +34,11 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.thrift.InvalidPathException;
-import static java.nio.file.attribute.PosixFilePermission.*;
 
 /**
  * Common utilities shared by all components in Tachyon.
@@ -47,7 +46,7 @@ import static java.nio.file.attribute.PosixFilePermission.*;
 public final class CommonUtils {
   private static final Logger LOG = Logger.getLogger("");
 
-  private CommonUtils () {
+  private CommonUtils() {
   }
 
   public static String cleanPath(String path) throws IOException {
@@ -75,16 +74,16 @@ public final class CommonUtils {
     return ret;
   }
 
-  public static String convertByteArrayToString(byte[] data) {
+  public static String convertByteArrayToStringWithoutEscape(byte[] data) {
     StringBuilder sb = new StringBuilder(data.length);
-    for (int i = 0; i < data.length; ++ i) {
+    for (int i = 0; i < data.length; i ++) {
       if (data[i] < 128) {
         sb.append((char) data[i]);
       } else {
         return null;
       }
     }
-    return StringEscapeUtils.escapeHtml3(sb.toString()).replace("\n", "<br/>");
+    return sb.toString();
   }
 
   public static String convertMsToClockTime(long Millis) {
@@ -93,8 +92,8 @@ public final class CommonUtils {
     long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
     long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
 
-    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)",
-        days, hours, mins, secs);
+    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
+        mins, secs);
   }
 
   public static String convertMsToShortClockTime(long Millis) {
@@ -117,7 +116,8 @@ public final class CommonUtils {
   }
 
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
-    // TODO this is a trick to fix the issue in thrift. Change the code to use metadata directly
+    // TODO this is a trick to fix the issue in thrift. Change the code to use
+    // metadata directly
     // when thrift fixes the issue.
     ByteBuffer correctData = ByteBuffer.allocate(data.limit() - data.position());
     correctData.put(data);
@@ -181,7 +181,7 @@ public final class CommonUtils {
     return sb.toString();
   }
 
-  public static String parametersToString(Object ... objs) {
+  public static String parametersToString(Object... objs) {
     StringBuilder sb = new StringBuilder("(");
     for (int k = 0; k < objs.length; k ++) {
       if (k != 0) {
@@ -269,15 +269,15 @@ public final class CommonUtils {
   }
 
   public static void validatePath(String path) throws InvalidPathException {
-    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR) ||
-        (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR)) ||
-        path.contains(" ")) {
+    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR)
+        || (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR)) || path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
   }
 
   /**
    * Parse InetSocketAddress from a String
+   *
    * @param address
    * @return
    * @throws IOException
@@ -294,10 +294,11 @@ public final class CommonUtils {
   }
 
   /**
-   * @param file that will be changed to full permission
+   * @param file
+   *          that will be changed to full permission
    */
   public static void changeLocalFileToFullPermission(String file) {
-    //set the full permission to everyone.
+    // set the full permission to everyone.
     try {
       Set<PosixFilePermission> permissions = EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE,
           GROUP_READ, GROUP_WRITE, GROUP_EXECUTE, OTHERS_READ, OTHERS_WRITE, OTHERS_WRITE);
@@ -313,14 +314,15 @@ public final class CommonUtils {
   }
 
   /**
-   * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and
-   * the owner of the folder containing the 'file'.
+   * If the sticky bit of the 'file' is set, the 'file' is only writable to its
+   * owner and the owner of the folder containing the 'file'.
    *
-   * @param file absolute file path
+   * @param file
+   *          absolute file path
    */
   public static void setLocalFileStickyBit(String file) {
     try {
-      //sticky bit is not implemented in PosixFilePermission
+      // sticky bit is not implemented in PosixFilePermission
       if (file.startsWith("/")) {
         Runtime.getRuntime().exec("chmod o+t " + file);
       }
@@ -331,7 +333,7 @@ public final class CommonUtils {
 
   /**
    * Create an empty file
-   * @param path the file to be created
+   *
    * @throws IOException
    */
   public static void touch(String path) throws IOException {

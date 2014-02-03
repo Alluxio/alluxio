@@ -138,7 +138,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       return null;
     }
 
-    ClientBlockInfo blockInfo = TFS.getClientBlockInfo(FID, blockIndex);    
+    ClientBlockInfo blockInfo = TFS.getClientBlockInfo(FID, blockIndex);
 
     TachyonByteBuffer ret = readLocalByteBuffer(blockIndex);
     if (ret == null) {
@@ -151,7 +151,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Get the the whole block.
-   * @param blockIndex The block index of the current file to read.
+   * 
+   * @param blockIndex
+   *          The block index of the current file to read.
    * @return TachyonByteBuffer containing the block.
    * @throws IOException
    */
@@ -175,18 +177,18 @@ public class TachyonFile implements Comparable<TachyonFile> {
         if (port == -1) {
           continue;
         }
-        if (host.equals(InetAddress.getLocalHost().getHostName()) 
+        if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())) {
           String localFileName = TFS.getRootFolder() + "/" + FID;
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         } else {
-          LOG.info(host + ":" + (port + 1) +
-              " current host is " + InetAddress.getLocalHost().getHostName() + " " +
-              InetAddress.getLocalHost().getHostAddress());
+          LOG.info(host + ":" + (port + 1) + " current host is "
+              + InetAddress.getLocalHost().getHostName() + " "
+              + InetAddress.getLocalHost().getHostAddress());
 
           try {
-            buf = retrieveByteBufferFromRemoteMachine(
-                new InetSocketAddress(host, port + 1), blockInfo);
+            buf = retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port + 1),
+                blockInfo);
             if (buf != null) {
               break;
             }
@@ -268,7 +270,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return TFS.rename(FID, path);
   }
 
-  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, 
+  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
       ClientBlockInfo blockInfo) throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
     socketChannel.connect(address);
@@ -314,7 +316,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   @Override
   public boolean equals(Object obj) {
     if ((obj != null) && (obj instanceof TachyonFile)) {
-      return compareTo((TachyonFile)obj) == 0;
+      return compareTo((TachyonFile) obj) == 0;
     }
     return false;
   }
