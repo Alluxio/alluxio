@@ -33,10 +33,8 @@ export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:8020
 export TACHYON_WORKER_MEMORY_SIZE=1GB
 export TACHYON_UNDERFS_HDFS_IMPL=org.apache.hadoop.hdfs.DistributedFileSystem
 
-CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 export TACHYON_JAVA_OPTS+="
-  -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
+  -Dlog4j.configuration=file:$TACHYON_RESOURCES_DIR/log4j.properties
   -Dtachyon.debug=false
   -Dtachyon.underfs.address=$TACHYON_UNDERFS_ADDRESS
   -Dtachyon.underfs.hdfs.impl=$TACHYON_UNDERFS_HDFS_IMPL
