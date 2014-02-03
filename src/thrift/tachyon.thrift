@@ -37,6 +37,7 @@ struct ClientFileInfo {
   12: bool needCache
   13: list<i64> blockIds
   14: i32 dependencyId
+  15: i32 inMemoryPercentage
 }
 
 struct ClientDependencyInfo {
