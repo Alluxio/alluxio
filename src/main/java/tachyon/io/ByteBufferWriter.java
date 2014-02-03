@@ -33,13 +33,13 @@ public abstract class ByteBufferWriter {
    * @throws IOException 
    */
   public static ByteBufferWriter getByteBufferWriter(ByteBuffer buf) throws IOException {
-    if (buf.order() == ByteOrder.nativeOrder()) {
-      if (buf.isDirect()) {
-        return new UnsafeDirectByteBufferWriter(buf);
-      } else {
-        return new UnsafeHeapByteBufferWriter(buf);
-      }
-    }
+//    if (buf.order() == ByteOrder.nativeOrder()) {
+//      if (buf.isDirect()) {
+//        return new UnsafeDirectByteBufferWriter(buf);
+//      } else {
+//        return new UnsafeHeapByteBufferWriter(buf);
+//      }
+//    }
     return new JavaByteBufferWriter(buf);
   }
 
