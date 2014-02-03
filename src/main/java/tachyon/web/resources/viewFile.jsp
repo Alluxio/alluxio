@@ -47,12 +47,12 @@
     </div>
     <hr>
     <div>
-      <h4>Blocks information</h4>
+      <h5>Detailed blocks information (block capacity is <%= request.getAttribute("blockSizeByte") %> Bytes):</h5>
       <table class="table table-bordered table-striped">
         <tr>
           <th>ID</th>
-          <th>Length</th>
-          <th>Status</th>
+          <th>Size (Byte)</th>
+          <th>In Memory</th>
         </tr>
         <% for (WebInterfaceBrowseServlet.UiBlockInfo blockInfo : ((List<WebInterfaceBrowseServlet.UiBlockInfo>) request.getAttribute("fileBlocks"))) { %>
           <tr>
@@ -60,9 +60,9 @@
             <td><%= blockInfo.getBlockLength() %></td>
             <td>
               <% if(blockInfo.inMemory()) { %>
-                in Memory
+                Yes
               <% } else { %>
-                not in memory
+                No
               <% } %>
             </td>
           </tr>

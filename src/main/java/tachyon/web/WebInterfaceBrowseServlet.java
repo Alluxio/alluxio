@@ -226,6 +226,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     try {
       UiFileInfo currentFileInfo = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
       request.setAttribute("currentDirectory", currentFileInfo);
+      request.setAttribute("blockSizeByte", currentFileInfo.BLOCK_SIZE_BYTES);
       if (!currentFileInfo.getIsDirectory()) {
         // TODO if parameter is illegal
         String tmpParam = request.getParameter("offset");
