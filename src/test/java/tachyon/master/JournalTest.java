@@ -356,7 +356,10 @@ public class JournalTest {
     Assert.assertTrue(info.getFileId("/") != -1);
     Assert.assertTrue(info.getFileId("/xyz") != -1);
     fileInfo.setInMemory(false);
+    int temp = fileInfo.inMemoryPercentage;
+    fileInfo.setInMemoryPercentage(0);
     Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId("/xyz")));
+    fileInfo.setInMemoryPercentage(temp);
     info.stop();
   }
 

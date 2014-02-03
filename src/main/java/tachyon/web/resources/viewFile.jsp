@@ -70,6 +70,7 @@
       </table>
     </div>
   </div>
+  <hr>
   <footer>
     <p style="text-align: center;">
       Tachyon is a project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu">AMPLab</a>.
