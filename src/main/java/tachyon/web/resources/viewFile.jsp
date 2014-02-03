@@ -11,6 +11,13 @@
 <body>
 <script src="js/jquery-1.9.1.min.js" type="text/javascript"></script>
 <script src="js/bootstrap.min.js"></script>
+<script>
+  function displayContent()
+  {
+    var tmp = document.getElementById("offset").value;
+    window.location.href = "./browse?path=<%= request.getAttribute("currentPath") %>&offset=" + tmp;
+  }
+</script>
 <div class="container-fluid">
   <div class="navbar navbar-inverse">
     <div class="navbar-inner">
@@ -71,10 +78,3 @@
 </div>
 </body>
 </html>
-<script>
-  function displayContent()
-  {
-    var tmp = document.getElementById("offset").value;
-    window.location.href = "./browse?path=<%= request.getAttribute("currentPath") %>&offset=" + tmp;
-  }
-</script>
