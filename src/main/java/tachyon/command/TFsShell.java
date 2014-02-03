@@ -45,9 +45,6 @@ import tachyon.util.CommonUtils;
  * Class for handling command line inputs.
  */
 public class TFsShell {
-  public void printUsage(String cmd) {}
-  public void close() {}
-
   /**
    * Prints the file's contents to the console.
    * @param argv[] Array of arguments given by the user's input from the terminal
@@ -386,7 +383,6 @@ public class TFsShell {
 
     String srcPath = argv[1];
     String dstPath = argv[2];
-    String dstFile = Utils.getFilePath(dstPath);
     File src = new File(srcPath);
     if (!src.exists()) {
       System.out.println("Local path " + srcPath + " does not exist.");
@@ -407,7 +403,7 @@ public class TFsShell {
         return -1;
       }
       TachyonFile tFile = tachyonClient.getFile(fileId);
-      OutStream os = (FileOutStream) tFile.getOutStream(WriteType.THROUGH);
+      OutStream os = (FileOutStream) tFile.getOutStream(WriteType.CACHE_THROUGH);
       FileInputStream in = new FileInputStream(src);
       FileChannel channel = in.getChannel();
       ByteBuffer buf = ByteBuffer.allocate(1024);
