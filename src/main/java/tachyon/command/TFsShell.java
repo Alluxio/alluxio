@@ -27,6 +27,7 @@ import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.thrift.TException;
 
 import tachyon.client.FileOutStream;
@@ -371,8 +372,8 @@ public class TFsShell {
   }
 
   /**
-   * Copies a file specified by argv from the local filesystem to the filesystem. Will fail if
-   * the path given already exists in the filesystem.
+   * Copies a file or directory specified by argv from the local filesystem to the filesystem. Will
+   * fail if the path given already exists in the filesystem.
    * @param argv[] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
@@ -388,27 +389,46 @@ public class TFsShell {
     String dstFile = Utils.getFilePath(dstPath);
     File src = new File(srcPath);
     if (!src.exists()) {
-      System.out.println("Local file " + srcPath + " does not exist.");
+      System.out.println("Local path " + srcPath + " does not exist.");
       return -1;
     }
     TachyonFS tachyonClient = TachyonFS.get(Utils.getTachyonMasterAddress(dstPath));
-    int fileId = tachyonClient.createFile(dstFile);
-    if (fileId == -1) {
-      return -1;
+    int ret = copyPath(src, tachyonClient, dstPath);
+    if (ret == 0) {
+      System.out.println("Copied " + src.getPath() + " to " + dstPath);
     }
-    TachyonFile tFile = tachyonClient.getFile(fileId);
-    OutStream os = (FileOutStream) tFile.getOutStream(WriteType.THROUGH);
-    FileInputStream in = new FileInputStream(src);
-    FileChannel channel = in.getChannel();
-    ByteBuffer buf = ByteBuffer.allocate(1024);
-    while (channel.read(buf) != -1) {
-      buf.flip();
-      os.write(buf.array(), 0, buf.limit());
+    return ret;
+  }
+
+  private int copyPath(File src, TachyonFS tachyonClient, String dstPath) throws IOException {
+    if (!src.isDirectory()) {
+      int fileId = tachyonClient.createFile(dstPath);
+      if (fileId == -1) {
+        return -1;
+      }
+      TachyonFile tFile = tachyonClient.getFile(fileId);
+      OutStream os = (FileOutStream) tFile.getOutStream(WriteType.THROUGH);
+      FileInputStream in = new FileInputStream(src);
+      FileChannel channel = in.getChannel();
+      ByteBuffer buf = ByteBuffer.allocate(1024);
+      while (channel.read(buf) != -1) {
+        buf.flip();
+        os.write(buf.array(), 0, buf.limit());
+      }
+      os.close();
+      channel.close();
+      in.close();
+      return 0;
+    } else {
+      tachyonClient.mkdir(dstPath);
+      for (String file : src.list()) {
+        String newPath = FilenameUtils.concat(dstPath, file);
+        File srcFile = new File(src, file);
+        if (copyPath(srcFile, tachyonClient, newPath) == -1) {
+          return -1;
+        }
+      }
     }
-    os.close();
-    channel.close();
-    in.close();
-    System.out.println("Copied " + srcPath + " to " + dstPath);
     return 0;
   }
 

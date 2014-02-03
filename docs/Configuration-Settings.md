@@ -5,8 +5,8 @@ title: Configuration Settings
 
 Tachyon configuration parameters fall into four categories: Master/Worker/Common(Master and
 Worker)/User configurations. The environment configuration file responsible for setting system
-properties is under conf/tachyon-env.sh. A template is provided with the zip: conf/tachyon-
-env.sh.template.
+properties is under conf/tachyon-env.sh. A template is provided with the zip:
+conf/tachyon-env.sh.template.
 
 # Common Configuration
 
@@ -16,27 +16,43 @@ The common configuration contains constants which specify paths and the log appe
 <tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
 <tr>
   <td>tachyon.home</td>
-  <td>Tachyon installation folder</td>
-  <td>
-     The path to the Tachyon directory.
-  </td>
+  <td>"/mnt/tachyon_default_home"</td>
+  <td>Tachyon folder to store logs.r</td>
 </tr>
 <tr>
   <td>tachyon.underfs.address</td>
-  <td>"tachyon.home"</td>
-  <td>
-    The hostname and port ZooKeeper is running on.
-  </td>
+  <td>$tachyon.home + "/underfs"</td>
+  <td>Tachyon folder in the underlayer file system</td>
 </tr>
 <tr>
   <td>tachyon.data.folder</td>
-  <td>"tachyon.underfs.address"/tachyon/data</td>
-  <td>The path to the data folder in the underlayer file system.</td>
+  <td>$tachyon.underfs.address + "/tachyon/data"</td>
+  <td>Tachyon's data folder in the underlayer file system.</td>
 </tr>
 <tr>
   <td>tachyon.workers.folder</td>
-  <td>"tachyon.underfs.address"/tachyon/workers</td>
-  <td>The path to the workers folder in the underlayer file system.</td>
+  <td>$tachyon.underfs.address + "/tachyon/workers"</td>
+  <td>Tachyon's workers folders in the underlayer file system.</td>
+</tr>
+<tr>
+  <td>tachyon.usezookeeper</td>
+  <td>false</td>
+  <td>If setup master fault tolerant mode using ZooKeeper.</td>
+</tr>
+<tr>
+  <td>tachyon.zookeeper.address</td>
+  <td>null</td>
+  <td>ZooKeeper address for master fault tolerance.</td>
+</tr>
+<tr>
+  <td>tachyon.zookeeper.election.path</td>
+  <td>"/election"</td>
+  <td>Election folder in ZooKeeper.</td>
+</tr>
+<tr>
+  <td>tachyon.zookeeper.leader.path</td>
+  <td>"/leader"</td>
+  <td>Leader folder in ZooKeeper.</td>
 </tr>
 </table>
 

@@ -7,8 +7,7 @@ This guide describes how to compile Tachyon from the beginning.
 
 The prerequisite for this guide is that you have [Java 7 (or
 above)](Java-Setup.html),
-[Maven](Maven.html), and [Thrift 0.7
-(Optional)](Thrift.html) installed.
+[Maven](Maven.html), and [Thrift 0.7(Optional, Thrift 0.9 after 1/28/2013)](Thrift.html) installed.
 
 Checkout Tachyon master branch from Github, and package:
 

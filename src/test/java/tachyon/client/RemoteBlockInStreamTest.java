@@ -397,6 +397,7 @@ public class RemoteBlockInStreamTest {
         Assert.assertTrue(is instanceof RemoteBlockInStream);
       }
 
+      Assert.assertEquals(0, is.read());
       is.seek(k / 3);
       Assert.assertEquals(k / 3, is.read());
       is.seek(k / 2);

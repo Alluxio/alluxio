@@ -36,7 +36,7 @@ import tachyon.thrift.InvalidPathException;
 public class FileOutStreamTest {
   private final int MIN_LEN = 0;
   private final int MAX_LEN = 255;
-  private final int DELTA = 33;
+  private final int DELTA = 32;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
@@ -70,6 +70,7 @@ public class FileOutStreamTest {
     for (ReadType rOp : ReadType.values()) {
       file = mTfs.getFile(filePath);
       InStream is = file.getInStream(rOp);
+      Assert.assertEquals(len, file.length());
       byte[] res = new byte[(int) file.length()];
       Assert.assertEquals((int) file.length(), is.read(res));
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(len, res));
@@ -111,6 +112,7 @@ public class FileOutStreamTest {
     for (ReadType rOp : ReadType.values()) {
       file = mTfs.getFile(filePath);
       InStream is = file.getInStream(rOp);
+      Assert.assertEquals(len, file.length());
       byte[] res = new byte[(int) file.length()];
       Assert.assertEquals((int) file.length(), is.read(res));
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(len, res));
@@ -153,6 +155,7 @@ public class FileOutStreamTest {
     for (ReadType rOp : ReadType.values()) {
       file = mTfs.getFile(filePath);
       InStream is = file.getInStream(rOp);
+      Assert.assertEquals(len, file.length());
       byte[] res = new byte[(int) file.length()];
       Assert.assertEquals((int) file.length(), is.read(res));
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(len / 2 * 2, res));

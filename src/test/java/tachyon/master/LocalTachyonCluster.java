@@ -134,6 +134,7 @@ public class LocalTachyonCluster {
     System.setProperty("tachyon.worker.data.port", (mWorkerPort + 1) + "");
     System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
+    System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
 
     CommonConf.clear();
     MasterConf.clear();
@@ -184,6 +185,7 @@ public class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.data.port");
     System.clearProperty("tachyon.worker.data.folder");
     System.clearProperty("tachyon.worker.memory.size");
+    System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
   }
 
   public void stopWorker() throws Exception {
