@@ -33,13 +33,13 @@ public abstract class ByteBufferReader {
    * @throws IOException 
    */
   public static ByteBufferReader getByteBufferReader(ByteBuffer buf) throws IOException {
-    if (buf.order() == ByteOrder.nativeOrder()) {
-      if (buf.isDirect()) {
-        return new UnsafeDirectByteBufferReader(buf);
-      } else {
-        return new UnsafeHeapByteBufferReader(buf);
-      }
-    }
+//    if (buf.order() == ByteOrder.nativeOrder()) {
+//      if (buf.isDirect()) {
+//        return new UnsafeDirectByteBufferReader(buf);
+//      } else {
+//        return new UnsafeHeapByteBufferReader(buf);
+//      }
+//    }
     return new JavaByteBufferReader(buf);
   }
 
