@@ -6,8 +6,8 @@ title: Running Tachyon Locally
 This guide describes:
 
 -   Run Tachyon Standalone
--   Set HDFS under Tachyon
--   Set Amazon S3 under Tachyon
+-   Set Apache HDFS as Tachyon's underlayer filesystem
+-   Set Amazon S3 as Tachyon's underlayer filesystem
 
 # Run Tachyon Standalone
 
@@ -66,5 +66,6 @@ also need to setup `JAVA_HOME` in the same file.
 
 # Set Amazon S3 as Tachyon's under filesystem
 
-Edit `tachyon-env.sh` file. Setup `TACHYON_UNDERFS_ADDRESS=s3://s3address`. You may also need to
+Edit `tachyon-env.sh` file. Setup `TACHYON_UNDERFS_ADDRESS=s3://s3address` and necessary
+credentials such as `fs.s3n.awsAccessKeyId` and `fs.s3n.awsSecretAccessKey`. You may also need to
 setup `JAVA_HOME` in the same file.
