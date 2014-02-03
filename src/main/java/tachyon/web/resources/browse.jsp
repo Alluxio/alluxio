@@ -123,6 +123,7 @@
                     <% if (!fileInfo.getInMemory()) { %>
                       <i class="icon-hdd icon-white"></i>
                     <% } %>
+                    <%= fileInfo.getInMemoryPercentage() %>%
                   </th>
                   <th><%= fileInfo.getCreationTime() %></th>
                   <% if ((Boolean) request.getAttribute("debug")) { %>
