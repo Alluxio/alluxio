@@ -29,7 +29,7 @@ with HDFS.
 
 Then, edit `shark-env.sh` and add
 
-    export TACHYON_MASTER="TachyonMasterHost:TachyonMasterIp"
+    export TACHYON_MASTER="TachyonMasterHost:TachyonMasterPort"
     export TACHYON_WAREHOUSE_PATH=/sharktables
 
 ### Cache Shark table in Tachyon
