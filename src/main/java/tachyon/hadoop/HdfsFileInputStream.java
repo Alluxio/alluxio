@@ -66,7 +66,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
     TachyonFile tachyonFile = mTFS.getFile(mFileId);
     if (tachyonFile == null) {
-      new FileNotFoundException("File " + hdfsPath + " with FID " + fileId + " is not found.");
+      throw new FileNotFoundException("File " + hdfsPath + " with FID " + fileId + " is not found.");
     }
     try {
       mTachyonFileInputStream = tachyonFile.getInStream(ReadType.CACHE);
