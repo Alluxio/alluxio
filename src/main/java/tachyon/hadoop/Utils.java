@@ -30,23 +30,6 @@ public final class Utils {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private static final boolean DEBUG = Constants.DEBUG;
 
-  public static String getTachyonFileName(String path) {
-    if (path.isEmpty()) {
-      return "/";
-    }
-
-    while (path.contains(":")) {
-      int index = path.indexOf(":");
-      path = path.substring(index + 1);
-    }
-
-    while (!path.startsWith("/")) {
-      path = path.substring(1);
-    }
-
-    return path;
-  }
-
   public static Path getHDFSPath(String path) {
     path = getTachyonFileName(path);
 
@@ -78,6 +61,43 @@ public final class Utils {
     return ret;
   }
 
+  public static String getTachyonFileName(String path) {
+    if (path.isEmpty()) {
+      return "/";
+    }
+
+    while (path.contains(":")) {
+      int index = path.indexOf(":");
+      path = path.substring(index + 1);
+    }
+
+    while (!path.startsWith("/")) {
+      path = path.substring(1);
+    }
+
+    return path;
+  }
+
+  public static String toStringHadoopFileSplit(FileSplit fs) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("HadoopFileSplit: Path: ").append(fs.getPath());
+    sb.append(" , Start: ").append(fs.getStart());
+    sb.append(" , Length: ").append(fs.getLength());
+    sb.append(" , Hosts: ");
+    String[] locs;
+    try {
+      locs = fs.getLocations();
+    } catch (IOException e) {
+      LOG.error(e.getMessage());
+      locs = new String[] {};
+    }
+    for (String loc : locs) {
+      sb.append(loc).append("; ");
+    }
+
+    return sb.toString();
+  }
+
   public static String toStringHadoopFileStatus(FileStatus fs) {
     StringBuilder sb = new StringBuilder();
     sb.append("HadoopFileStatus: Path: ").append(fs.getPath());
@@ -93,32 +113,12 @@ public final class Utils {
     return sb.toString();
   }
 
-  public static String toStringHadoopFileSplit(FileSplit fs) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("HadoopFileSplit: Path: ").append(fs.getPath());
-    sb.append(" , Start: ").append(fs.getStart());
-    sb.append(" , Length: ").append(fs.getLength());
-    sb.append(" , Hosts: ");
-    String[] locs;
-    try {
-      locs = fs.getLocations();
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-      locs = new String[]{};
-    }
-    for (String loc: locs) {
-      sb.append(loc).append("; ");
-    }
-
-    return sb.toString();
-  }
-
   public static String toStringHadoopInputSplit(InputSplit is) {
     StringBuilder sb = new StringBuilder("HadoopInputSplit: ");
     try {
       sb.append(" Length: ").append(is.getLength());
       sb.append(" , Locations: ");
-      for (String loc: is.getLocations()) {
+      for (String loc : is.getLocations()) {
         sb.append(loc).append(" ; ");
       }
     } catch (IOException e) {

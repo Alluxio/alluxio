@@ -55,8 +55,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   public HdfsFileInputStream(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
       int bufferSize) throws IOException {
-    LOG.debug("PartitionInputStreamHdfs(" + tfs + ", " + fileId + ", " + hdfsPath + ", " + 
-        conf + ", " + bufferSize + ")");
+    LOG.debug("PartitionInputStreamHdfs(" + tfs + ", " + fileId + ", " + hdfsPath + ", " + conf
+        + ", " + bufferSize + ")");
     mCurrentPosition = 0;
     mTFS = tfs;
     mFileId = fileId;
@@ -75,36 +75,14 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     }
   }
 
-  /**
-   * Read upto the specified number of bytes, from a given position within a file, and return the
-   * number of bytes read. This does not change the current offset of a file, and is thread-safe.
-   */
   @Override
-  public int read(long position, byte[] buffer, int offset, int length) throws IOException {
-    throw new IOException("Not supported");
-    // TODO Auto-generated method stub
-    //    return 0;
-  }
-
-  /**
-   * Read number of bytes equalt to the length of the buffer, from a given position within a file.
-   * This does not change the current offset of a file, and is thread-safe.
-   */
-  @Override
-  public void readFully(long position, byte[] buffer) throws IOException {
-    // TODO Auto-generated method stub
-    throw new IOException("Not supported");
-  }
-
-  /**
-   * Read the specified number of bytes, from a given position within a file. This does not
-   * change the current offset of a file, and is thread-safe.
-   */
-  @Override
-  public void readFully(long position, byte[] buffer, int offset, int length)
-      throws IOException {
-    // TODO Auto-generated method stub
-    throw new IOException("Not supported");
+  public void close() throws IOException {
+    if (mTachyonFileInputStream != null) {
+      mTachyonFileInputStream.close();
+    }
+    if (mHdfsInputStream != null) {
+      mHdfsInputStream.close();
+    }
   }
 
   /**
@@ -113,38 +91,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   @Override
   public long getPos() throws IOException {
     return mCurrentPosition;
-  }
-
-  /**
-   * Seek to the given offset from the start of the file.
-   * The next read() will be from that location.  Can't seek past the end of the file.
-   */
-  @Override
-  public void seek(long pos) throws IOException {
-    if (pos == mCurrentPosition) {
-      return;
-    }
-    if (mTachyonFileInputStream != null) {
-      mTachyonFileInputStream.seek(pos);
-    } else if (mHdfsInputStream != null) {
-      mHdfsInputStream.seek(pos);
-    } else {
-      FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
-      mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-      mHdfsInputStream.seek(pos);
-    }
-
-    mCurrentPosition = pos;
-  }
-
-  /**
-   * Seeks a different copy of the data. Returns true if found a new source, false otherwise.
-   */
-  @Override
-  public boolean seekToNewSource(long targetPos) throws IOException {
-    throw new IOException("Not supported");
-    // TODO Auto-generated method stub
-    //    return false;
   }
 
   @Override
@@ -210,13 +156,25 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     return 1;
   }
 
+  /**
+   * Read upto the specified number of bytes, from a given position within a
+   * file, and return the number of bytes read. This does not change the current
+   * offset of a file, and is thread-safe.
+   */
+  @Override
+  public int read(long position, byte[] buffer, int offset, int length) throws IOException {
+    throw new IOException("Not supported");
+    // TODO Auto-generated method stub
+    // return 0;
+  }
+
   private int readFromHdfsBuffer() throws IOException {
     if (mBufferPosition < mBufferLimit) {
       return mBuffer[mBufferPosition ++];
     }
     LOG.error("Reading from HDFS directly");
     while ((mBufferLimit = mHdfsInputStream.read(mBuffer)) == 0) {
-      LOG.error("Read 0 bytes in readFromHdfsBuffer for " + mHdfsPath); 
+      LOG.error("Read 0 bytes in readFromHdfsBuffer for " + mHdfsPath);
     }
     if (mBufferLimit == -1) {
       return -1;
@@ -225,13 +183,57 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     return mBuffer[mBufferPosition ++];
   }
 
+  /**
+   * Read number of bytes equalt to the length of the buffer, from a given
+   * position within a file. This does not change the current offset of a file,
+   * and is thread-safe.
+   */
   @Override
-  public void close() throws IOException {
+  public void readFully(long position, byte[] buffer) throws IOException {
+    // TODO Auto-generated method stub
+    throw new IOException("Not supported");
+  }
+
+  /**
+   * Read the specified number of bytes, from a given position within a file.
+   * This does not change the current offset of a file, and is thread-safe.
+   */
+  @Override
+  public void readFully(long position, byte[] buffer, int offset, int length) throws IOException {
+    // TODO Auto-generated method stub
+    throw new IOException("Not supported");
+  }
+
+  /**
+   * Seek to the given offset from the start of the file. The next read() will
+   * be from that location. Can't seek past the end of the file.
+   */
+  @Override
+  public void seek(long pos) throws IOException {
+    if (pos == mCurrentPosition) {
+      return;
+    }
     if (mTachyonFileInputStream != null) {
-      mTachyonFileInputStream.close();
+      mTachyonFileInputStream.seek(pos);
+    } else if (mHdfsInputStream != null) {
+      mHdfsInputStream.seek(pos);
+    } else {
+      FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
+      mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
+      mHdfsInputStream.seek(pos);
     }
-    if (mHdfsInputStream != null) {
-      mHdfsInputStream.close();
-    }
+
+    mCurrentPosition = pos;
+  }
+
+  /**
+   * Seeks a different copy of the data. Returns true if found a new source,
+   * false otherwise.
+   */
+  @Override
+  public boolean seekToNewSource(long targetPos) throws IOException {
+    throw new IOException("Not supported");
+    // TODO Auto-generated method stub
+    // return false;
   }
 }
