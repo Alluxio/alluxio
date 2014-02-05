@@ -17,7 +17,7 @@ The common configuration contains constants which specify paths and the log appe
 <tr>
   <td>tachyon.home</td>
   <td>"/mnt/tachyon_default_home"</td>
-  <td>Tachyon installation folder.r</td>
+  <td>Tachyon installation folder.</td>
 </tr>
 <tr>
   <td>tachyon.underfs.address</td>
