@@ -218,7 +218,7 @@ public class RemoteBlockInStream extends BlockInStream {
         updateCurrentBuffer();
       }
       if (mCurrentBuffer != null) {
-        int ret = mCurrentBuffer.get();
+        int ret = mCurrentBuffer.get() & 0xFF;
         if (mRecache) {
           mBlockOutStream.write(ret);
         }
@@ -227,7 +227,7 @@ public class RemoteBlockInStream extends BlockInStream {
       setupStreamFromUnderFs(mBlockInfo.offset + mReadByte - 1);
     }
 
-    int ret = mCheckpointInputStream.read();
+    int ret = mCheckpointInputStream.read() & 0xFF;
     if (mRecache) {
       mBlockOutStream.write(ret);
     }
@@ -255,7 +255,7 @@ public class RemoteBlockInStream extends BlockInStream {
     }
 
     if (ret == 0) {
-      return -1;
+      return -1;  // Not sure if this should return 0 or -1
     }
 
     if (mCurrentBuffer != null) {

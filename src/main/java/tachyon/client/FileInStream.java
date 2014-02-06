@@ -96,6 +96,10 @@ public class FileInStream extends InStream {
 
       int tRead = mCurrentBlockInStream.read(b, tOff, tLen);
 
+      if(tRead == -1) {
+        // mCurrentBlockInStream has reached its block boundary
+        tRead = 0;  // If tRead = -1, it will mess up follow up computations
+      }
       mCurrentPosition += tRead;
       mCurrentBlockLeft -= tRead;
       tLen -= tRead;
