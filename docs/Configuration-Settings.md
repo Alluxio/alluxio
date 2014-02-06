@@ -3,10 +3,10 @@ layout: global
 title: Configuration Settings
 ---
 
-Tachyon configuration parameters fall into four categories: Master/Worker/Common(Master and
-Worker)/User configurations. The environment configuration file responsible for setting system
-properties is under conf/tachyon-env.sh. A template is provided with the zip:
-conf/tachyon-env.sh.template.
+Tachyon configuration parameters fall into four categories: Master, Worker, Common (Master and
+Worker), and User configurations. The environment configuration file responsible for setting system
+properties is under `conf/tachyon-env.sh`. These variables should be set as variables under the
+`TACHYON_JAVA_OPTS` definition. A template is provided with the zip: `conf/tachyon-env.sh.template`.
 
 # Common Configuration
 
@@ -171,38 +171,3 @@ The user configuration specifies values regarding file system access.
   <td>The size of the file buffer to read data from remote Tachyon worker.</td>
 </tr>
 </table>
-
-# Example tachyon-env.sh File
-
-    #!/usr/bin/env bash
-
-    if [[ `uname -a` == Darwin* ]]; then
-      # Assuming Mac OS X
-      export TACHYON_RAM_FOLDER=/Volumes/ramdisk
-      export TACHYON_JAVA_OPTS="-Djava.security.krb5.realm=OX.AC.UK -Djava.security.krb5.kdc=kdc0.ox.ac.uk:kdc1.ox.ac.uk"
-    else
-      # Assuming Linux
-      export TACHYON_RAM_FOLDER=/mnt/ramdisk
-    fi
-
-    export JAVA_HOME=/home/haoyuan/tools/jdk1.7.0_25
-    export JAVA="$JAVA_HOME/bin/java"
-    export TACHYON_MASTER_ADDRESS=localhost
-    export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:9000
-    export TACHYON_WORKER_MEMORY_SIZE=1.1GB
-
-    CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-    export TACHYON_JAVA_OPTS+="
-      -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
-      -Dtachyon.debug=false
-      -Dtachyon.underfs.address=$TACHYON_UNDERFS_ADDRESS
-      -Dtachyon.data.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/data
-      -Dtachyon.workers.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/workers
-      -Dtachyon.worker.memory.size=$TACHYON_WORKER_MEMORY_SIZE
-      -Dtachyon.worker.data.folder=$TACHYON_RAM_FOLDER/tachyonworker/
-      -Dtachyon.master.worker.timeout.ms=60000
-      -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
-      -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
-      -Dtachyon.master.pinlist=/pinfiles;/pindata
-    "
