@@ -1,9 +1,7 @@
 ---
 layout: global
-title: Thrift
+title: Web Interface
 ---
-
-# Web Interface
 
 Tachyon has a user-friendly web interface facilitating users to watch and manage Tachyon. 
 
