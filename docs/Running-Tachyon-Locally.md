@@ -60,7 +60,9 @@ To run a more comprehensive sanity check:
 The additional prerequisite for this part is [Hadoop HDFS](http://www.michael-noll.com/tutorials
 /running-hadoop-on-ubuntu-linux-multi-node-cluster/). By default, Tachyon is set to use HDFS version
 1.0.4. You can use another Hadoop version by changing the hadoop.version tag in pom.xml in Tachyon
-and recompiling it.
+and recompiling it. You can also set the hadoop version when compiling with maven:
+
+    $ mvn -Dhadoop.version=2.2.0 clean package
 
 Edit `tachyon-env.sh` file. Setup `TACHYON_UNDERFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_IP`. You may
 also need to setup `JAVA_HOME` in the same file.
