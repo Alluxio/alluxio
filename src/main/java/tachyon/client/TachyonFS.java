@@ -108,14 +108,6 @@ public class TachyonFS {
     mAvailableSpaceBytes = 0L;
   }
 
-//  public static synchronized TachyonFS get(InetSocketAddress tachyonAddress) {
-//    return get(tachyonAddress, false);
-//  }
-//
-//  public static synchronized TachyonFS get(InetSocketAddress tachyonAddress, boolean zookeeper) {
-//    return new TachyonFS(tachyonAddress, zookeeper);
-//  }
-
   public static synchronized TachyonFS get(String tachyonAddress) {
     boolean zookeeperMode = false;
     String tempAddress = tachyonAddress;
