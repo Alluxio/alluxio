@@ -98,12 +98,22 @@ function copyDir {
   wait
 }
 
+PARAMETER=""
+
 if [ "$COMMAND" == "format" ]; then
   if [ -z $TACHYON_MASTER_ADDRESS ] ; then
     TACHYON_MASTER_ADDRESS=localhost
   fi
-  echo "Formatting Tachyon @ $TACHYON_MASTER_ADDRESS"
+
+  $bin/tachyon-slaves.sh $bin/tachyon formatWorker
+
+  echo "Formatting Tachyon Master @ $TACHYON_MASTER_ADDRESS"
   CLASS=tachyon.Format
+  PARAMETER=master
+elif [ "$COMMAND" == "formatWorker" ]; then
+  echo "Formatting Tachyon Worker @ `hostname`"
+  CLASS=tachyon.Format
+  PARAMETER=worker
 elif [ "$COMMAND" == "tfs" ]; then
   CLASS=tachyon.command.TFsShell
 elif [ "$COMMAND" == "loadufs" ]; then
@@ -141,4 +151,4 @@ else
   exit 1
 fi
 
-$JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $@
+$JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $PARAMETER $@
