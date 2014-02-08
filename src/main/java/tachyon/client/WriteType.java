@@ -22,15 +22,25 @@ import java.io.IOException;
  * Different write types for a TachyonFile. 
  */
 public enum WriteType {
-  // Write the file and must cache it.
+  /**
+   *  Write the file and must cache it.
+   */
   MUST_CACHE(1),
-  // Write the file and try to cache it.
+  /**
+   * Write the file and try to cache it.
+   */
   TRY_CACHE(2),
-  // Write the file synchronously to the under fs, and also try to cache it,
+  /**
+   * Write the file synchronously to the under fs, and also try to cache it,
+   */
   CACHE_THROUGH(3),
-  // Write the file synchronously to the under fs, no cache.
+  /**
+   * Write the file synchronously to the under fs, no cache.
+   */
   THROUGH(4),
-  // Write the file asynchronously to the under fs (either must cache or must through).
+  /**
+   * Write the file asynchronously to the under fs (either must cache or must through).
+   */
   ASYNC_THROUGH(5);
 
   private final int mValue;

@@ -22,9 +22,13 @@ import java.io.IOException;
  * Different read types for a TachyonFile. 
  */
 public enum ReadType {
-  // Read the file and but do not cache it explicitly.
+  /**
+   * Read the file and but do not cache it explicitly.
+   */
   NO_CACHE(1),
-  // Read the file and cache it.
+  /**
+   * Read the file and cache it.
+   */
   CACHE(2);
 
   private final int mValue;
