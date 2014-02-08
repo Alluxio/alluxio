@@ -307,7 +307,7 @@ public class TFsShellTest {
     fis.close();
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(mSizeBytes, read));
   }
-  
+
   @Test
   public void fileinfoTest() throws IOException {
     int fileId = TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);
@@ -326,7 +326,7 @@ public class TFsShellTest {
     }
     Assert.assertEquals(getCommandOutput(commandParameters), mOutput.toString());
   }
-  
+
   @Test
   public void locationTest() throws IOException {
     int fileId = TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, 10);

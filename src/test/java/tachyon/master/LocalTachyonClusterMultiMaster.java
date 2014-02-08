@@ -85,8 +85,8 @@ public class LocalTachyonClusterMultiMaster {
     }
   }
 
-  public synchronized TachyonFS getClient() {
-    mClients.add(TachyonFS.get(Constants.FT_HEADER + mCuratorServer.getConnectString()));
+  public synchronized TachyonFS getClient() throws IOException {
+    mClients.add(TachyonFS.get(Constants.HEADER_FT + mCuratorServer.getConnectString()));
     return mClients.get(mClients.size() - 1);
   }
 

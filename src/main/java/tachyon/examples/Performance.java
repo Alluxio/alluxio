@@ -29,7 +29,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.Version;
@@ -39,9 +38,6 @@ import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.UserConf;
-import tachyon.thrift.FileAlreadyExistException;
-import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.util.CommonUtils;
 
 public class Performance {
@@ -181,7 +177,7 @@ public class Performance {
   public static class TachyonWriterWorker extends Worker {
     private TachyonFS mTC;
 
-    public TachyonWriterWorker(int id, int left, int right, ByteBuffer buf) {
+    public TachyonWriterWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
       mTC = TachyonFS.get(MASTER_ADDRESS);
     }
@@ -220,7 +216,7 @@ public class Performance {
   public static class TachyonReadWorker extends Worker {
     private TachyonFS mTC;
 
-    public TachyonReadWorker(int id, int left, int right, ByteBuffer buf) {
+    public TachyonReadWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
       mTC = TachyonFS.get(MASTER_ADDRESS);
     }
@@ -391,7 +387,7 @@ public class Performance {
         takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
-  private static void TachyonTest(boolean write) {
+  private static void TachyonTest(boolean write) throws IOException {
     ByteBuffer[] bufs = new ByteBuffer[THREADS];
 
     for (int thread = 0; thread < THREADS; thread ++) {

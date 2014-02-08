@@ -44,15 +44,15 @@ function runTest {
 
   if [[ "$1" == "Basic" ]]; then
     $bin/tachyon tfs rm /BasicFile_$2
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicOperations $MASTER_ADDRESS:19998 /BasicFile_$2 $2
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicOperations tachyon://$MASTER_ADDRESS:19998 /BasicFile_$2 $2
     exit 0
   elif [[ "$1" == "BasicRawTable" ]]; then
     $bin/tachyon tfs rm /BasicRawTable_$2
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicRawTableOperations $MASTER_ADDRESS:19998 /BasicRawTable_$2 $2
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicRawTableOperations tachyon://$MASTER_ADDRESS:19998 /BasicRawTable_$2 $2
     exit 0
   elif [[ "$1" == "BasicCheckpoint" ]]; then
     $bin/tachyon tfs rm /BasicCheckpoint
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicCheckpoint $MASTER_ADDRESS:19998 /BasicCheckpoint 10
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicCheckpoint tachyon://$MASTER_ADDRESS:19998 /BasicCheckpoint 10
     exit 0
   fi
 
