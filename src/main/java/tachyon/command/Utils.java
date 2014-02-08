@@ -25,7 +25,7 @@ import tachyon.Constants;
  * Class for convenience methods used by TFsShell.
  */
 public class Utils {
-  private static final String HEADER = "tachyon://";
+  public static final String HEADER = "tachyon://";
 
   /**
    * Validates the path, verifying that it contains the header and a hostname:port specified.
@@ -33,9 +33,10 @@ public class Utils {
    * @throws IOException 
    */
   public static String validateTachyonPath(String path) throws IOException {
-    if (path.startsWith(HEADER)) {
+    if (path.startsWith(HEADER) || path.startsWith(Constants.FT_HEADER)) {
       if (!path.contains(":")) {
-        throw new IOException("Invalid Path: " + path + "\n Use tachyon://host:port/ or /file");
+        throw new IOException("Invalid Path: " + path + "\n Use tachyon://host:port/ "
+          + "tachyon_ft://host:port/" + "or /file");
       } else {
         return path;
       }
@@ -54,7 +55,10 @@ public class Utils {
    */ 
   public static String getFilePath(String path) throws IOException {
     path = validateTachyonPath(path);
-    path = path.substring(HEADER.length());
+    if (path.startsWith(HEADER))
+      path = path.substring(HEADER.length());
+    if (path.startsWith(Constants.FT_HEADER))
+      path = path.substring(Constants.FT_HEADER.length());
     String ret = path.substring(path.indexOf("/"));
     return ret;
   }
@@ -67,10 +71,34 @@ public class Utils {
    */
   public static InetSocketAddress getTachyonMasterAddress(String path) throws IOException {
     path = validateTachyonPath(path);
-    path = path.substring(HEADER.length());
+    if (path.startsWith(HEADER))
+      path = path.substring(HEADER.length());
+    if (path.startsWith(Constants.FT_HEADER))
+      path = path.substring(Constants.FT_HEADER.length());
     String masterAddress = path.substring(0, path.indexOf("/"));
     String masterHost = masterAddress.split(":")[0];
     int masterPort = Integer.parseInt(masterAddress.split(":")[1]);
     return new InetSocketAddress(masterHost, masterPort);
+  }
+  
+  /**
+   * Obtains the tachyon master full address from a path by parsing the prefiex and hostname:port 
+   * portions of the path.
+   * @param path The path to obtain the InetSocketAddress from.
+   * @return The InetSocketAddress of the master node.
+   * @throws IOException 
+   */
+  public static String getTachyonMasterAddressAsString(String path) throws IOException {
+    path = validateTachyonPath(path);
+    String prefix = null;
+    if(path.startsWith(HEADER)) {
+      prefix = HEADER;
+    }
+    if(path.startsWith(Constants.FT_HEADER)) {
+      prefix = Constants.FT_HEADER;
+    }
+    path = path.substring(prefix.length());
+    String masterAddress = path.substring(0, path.indexOf("/"));
+    return new String(prefix + masterAddress);
   }
 }
