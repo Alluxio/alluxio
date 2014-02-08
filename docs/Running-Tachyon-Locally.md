@@ -3,9 +3,9 @@ layout: global
 title: Running Tachyon Locally
 ---
 
-This guide describes:
+This guide describes how to accomplish the following:
 
--   Run Tachyon Standalone
+-   Run Tachyon on a single machine
 -   Set Apache HDFS as Tachyon's underlayer filesystem
 -   Set Amazon S3 as Tachyon's underlayer filesystem
 
@@ -25,7 +25,7 @@ Before executing Tachyon run scripts, requisite environment variables must be sp
     $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
 
 To run standalone mode, make sure that `TACHYON_UNDERFS_ADDRESS` in `conf/tachyon-env.sh` is set to
-a tmp directory in the local filesystem (e.g., `export TACHYON_UNDERFS_ADDRESS=/tmp`).
+a tmp directory in the local filesystem (e.g., ``export TACHYON_UNDERFS_ADDRESS=/tmp``).
 
 Then, you can format Tachyon FileSystem and start it. *Note: since Tachyon needs to setup RAMfs,
 starting a local system requires users to input their root password for Linux based users.*
@@ -34,12 +34,12 @@ starting a local system requires users to input their root password for Linux ba
     $ ./bin/tachyon-start.sh local
 
 To verify that Tachyon is running, you can visit
-**[http://localhost:19999](http://localhost:19999)**,
-or see the log in the folder `tachyon/logs`. You can also run a sample program:
+**[http://localhost:19999](http://localhost:19999)**, or see the log in the folder `tachyon/logs`.
+You can also run a sample program:
 
     $ ./bin/tachyon runTest Basic CACHE_THROUGH
 
-For the first sample program, you should be able to see following results:
+For the first sample program, you should be able to see something similar to the following:
 
     /Basic_File_CACHE_THROUGH has been removed
     2014-02-02 09:32:02,760 INFO   (TachyonFS.java:connect) - Trying to connect master @ localhost/127.0.0.1:19998
@@ -58,14 +58,17 @@ To run a more comprehensive sanity check:
 # Set HDFS as Tachyon's under filesystem
 
 The additional prerequisite for this part is [Hadoop HDFS](http://www.michael-noll.com/tutorials
-/running-hadoop-on-ubuntu-linux-multi-node-cluster/) (version 1.0.4. You can use other Hadoop
-version by change pom.xml in Tachyon and recompile it.)
+/running-hadoop-on-ubuntu-linux-multi-node-cluster/). By default, Tachyon is set to use HDFS version
+1.0.4. You can use another Hadoop version by changing the hadoop.version tag in pom.xml in Tachyon
+and recompiling it. You can also set the hadoop version when compiling with maven:
+
+    $ mvn -Dhadoop.version=2.2.0 clean package
 
 Edit `tachyon-env.sh` file. Setup `TACHYON_UNDERFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_IP`. You may
 also need to setup `JAVA_HOME` in the same file.
 
 # Set Amazon S3 as Tachyon's under filesystem
 
-Edit `tachyon-env.sh` file. Setup `TACHYON_UNDERFS_ADDRESS=s3://s3address` and necessary
-credentials such as `fs.s3n.awsAccessKeyId` and `fs.s3n.awsSecretAccessKey`. You may also need to
-setup `JAVA_HOME` in the same file.
+Edit `tachyon-env.sh` file. Setup `TACHYON_UNDERFS_ADDRESS=s3://s3address` and the necessary
+credentials such as `fs.s3n.awsAccessKeyId` and `fs.s3n.awsSecretAccessKey` under
+`TACHYON_JAVA_OPTS`. You may also need to setup `JAVA_HOME` in the same file.
