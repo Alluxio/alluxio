@@ -72,8 +72,8 @@ public class UnderfsUtil {
         String[] files = fs.list(path);
         if (files != null) {
           for (String filePath : files) {
-            LOG.info("Get: " + filePath);
-            if (excludePathPrefix.outList(filePath)) {
+            LOG.info("Get: " + path + "/" + filePath);
+            if (excludePathPrefix.outList(path + "/" + filePath)) {
               pathQueue.add(underfsAddress + filePath);
             }
           }

@@ -40,7 +40,8 @@ public class Format {
       System.out.println("Failed to remove " + masterConf.JOURNAL_FOLDER);
     }
     ufs.mkdirs(masterConf.JOURNAL_FOLDER, true);
-    CommonUtils.touch(masterConf.FORMAT_FILE_PREFIX + System.currentTimeMillis());
+    CommonUtils.touch(masterConf.JOURNAL_FOLDER + "/" + masterConf.FORMAT_FILE_PREFIX 
+        + System.currentTimeMillis());
 
     CommonConf commonConf = CommonConf.get();
     String folder = commonConf.UNDERFS_DATA_FOLDER;
