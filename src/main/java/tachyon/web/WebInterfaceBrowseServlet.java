@@ -35,6 +35,7 @@ import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.command.Utils;
 import tachyon.master.BlockInfo;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -303,7 +304,10 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void displayFile(String path, HttpServletRequest request, int offset)
       throws FileDoesNotExistException, InvalidPathException, IOException {
-    TachyonFS tachyonClient = TachyonFS.get(mMasterInfo.getMasterAddress());
+	 
+	String masterAddress = Utils.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":" + 
+	  mMasterInfo.getMasterAddress().getPort(); 
+    TachyonFS tachyonClient = TachyonFS.get(masterAddress);
     TachyonFile tFile = tachyonClient.getFile(path);
     String fileData = null;
     if (tFile == null) {

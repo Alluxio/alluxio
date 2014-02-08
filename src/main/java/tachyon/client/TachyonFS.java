@@ -39,6 +39,7 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
+import tachyon.command.Utils;
 import tachyon.conf.UserConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
@@ -107,26 +108,21 @@ public class TachyonFS {
     mAvailableSpaceBytes = 0L;
   }
 
-  public static synchronized TachyonFS get(InetSocketAddress tachyonAddress) {
-    return get(tachyonAddress, false);
-  }
-
-  public static synchronized TachyonFS get(InetSocketAddress tachyonAddress, boolean zookeeper) {
-    return new TachyonFS(tachyonAddress, zookeeper);
-  }
-
   public static synchronized TachyonFS get(String tachyonAddress) {
     boolean zookeeperMode = false;
     String tempAddress = tachyonAddress;
     if (tachyonAddress.startsWith(Constants.FT_HEADER)) {
       zookeeperMode = true;
-      tempAddress = tachyonAddress.substring(12);
+      tempAddress = tachyonAddress.substring(Constants.FT_HEADER.length());
+    }
+    if (tachyonAddress.startsWith(Utils.HEADER)) {
+      tempAddress = tachyonAddress.substring(Utils.HEADER.length());
     }
     String[] address = tempAddress.split(":");
     if (address.length != 2) {
       CommonUtils.illegalArgumentException("Illegal Tachyon Master Address: " + tachyonAddress);
     }
-    return get(new InetSocketAddress(address[0], Integer.parseInt(address[1])), zookeeperMode);
+    return new TachyonFS(new InetSocketAddress(address[0], Integer.parseInt(address[1])), zookeeperMode);
   }
 
   public synchronized void accessLocalBlock(long blockId) {
