@@ -35,12 +35,12 @@ is coming.
 warehouses. Tachyon provides native support for multi-columned data. The user can choose to only put
 hot columns in memory.
 
-* **Web UI**: Users can browse the file system easily through web UI. Under debug mode,
-administrators can view detailed information of each file, including locations, checkpoint path,
-etc.
+* **[Web UI](Web-Interface.html)**: Users can browse the file system easily through web UI. Under
+debug mode, administrators can view detailed information of each file, including locations,
+checkpoint path, etc.
 
-* **Command line interaction**: Users can use ``./bin/tachyon tfs`` to interact with Tachyon, e.g.
-copy data in and out of the file system.
+* **[Command line interaction](Command-Line-Interface.html)**: Users can use ``./bin/tachyon tfs``
+to interact with Tachyon, e.g. copy data in and out of the file system.
 
 # User Documentation
 
