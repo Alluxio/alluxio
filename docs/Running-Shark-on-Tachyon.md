@@ -19,8 +19,10 @@ Tachyon to cache Shark's tables. In summary, the followings are four major ones:
 
 ### Setup
 
-**Shark Compatibility:** Shark 0.7.x works with Tachyon 0.2.1,
-Shark 0.8.1 works with Tachyon 0.3.0, Shark 0.9.0 works with Tachyon 0.4.0.
+**Shark Compatibility:** Shark 0.7.x works with Tachyon 0.2.1, Shark
+0.8.1 works with Tachyon 0.3.0, Versions 0.8.1 and 0.9.0 of Shark work
+with Tachyon 0.4.0. For Tachyon 0.4.0, Shark 0.9.0 is recommended, and
+will be released shortly.
 
 In order to use Spark on Tachyon, you need to setup `Tachyon 0.4.0` first, either
 [Local Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-Locally),
@@ -33,6 +35,8 @@ Then, edit `shark-env.sh` and add
     export TACHYON_WAREHOUSE_PATH=/sharktables
 
 ### Cache Shark table in Tachyon
+
+Running these queries requires some data to already be loaded into Shark.
 
 ##### Specify TBLPROPERTIES(“shark.cache” = “tachyon”), for example:
 

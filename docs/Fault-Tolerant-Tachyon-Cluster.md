@@ -8,7 +8,7 @@ title: Fault Tolerant Tachyon Cluster
 There are two prerequisites to set up a fault tolerant Tachyon cluster,
 [ZooKeeper](Fault-Tolerant-Tachyon-Cluster#zookeeper), and a shared reliable under filesystem.
 Currently [HDFS](Fault-Tolerant-Tachyon-Cluster#hdfs) and S3 can be used as under
-layers. Also, please see [Configuration-Settings](Configuration-Settings.html)
+layers. Also, please see [Configuration Settings](Configuration-Settings.html)
 for a more succinct description of all the configuration options Tachyon has.
 
 ## HDFS

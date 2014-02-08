@@ -12,7 +12,7 @@ All "path" variables in tfs commands should start with
 
     tachyon://<master node address>:<master node port>/<path>
 
-Or, if no header is provided, the default hostname and port (set in env file) will be used.
+Or, if no header is provided, the default hostname and port (set in the env file) will be used.
 
     /<path>
 

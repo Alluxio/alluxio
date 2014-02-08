@@ -13,7 +13,7 @@ A list of tasks that everyone should do before contributing to Tachyon.
 3.  Read
     [Configuration-Settings](Configuration-Settings.html)
     (Optional) and play
-    [Command-Line-Interface](Command-Line-Interface.html)
+    [Command-Line Interface](Command-Line-Interface.html)
     (Optional)
 
 4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/src/main/java/tachyon/examples/BasicOperations.java).
