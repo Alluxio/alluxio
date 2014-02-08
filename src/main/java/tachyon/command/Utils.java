@@ -17,88 +17,54 @@
 package tachyon.command;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 
 import tachyon.Constants;
+import tachyon.conf.CommonConf;
 
 /**
  * Class for convenience methods used by TFsShell.
  */
 public class Utils {
-  public static final String HEADER = "tachyon://";
-
   /**
-   * Validates the path, verifying that it contains the header and a hostname:port specified.
+   * Validates the path, verifying that it contains the <code>Constants.HEADER </code> or
+   * <code>Constants.HEADER_FT</code> and a hostname:port specified.
+   * 
    * @param path The path to be verified.
    * @throws IOException 
    */
-  public static String validateTachyonPath(String path) throws IOException {
-    if (path.startsWith(HEADER) || path.startsWith(Constants.FT_HEADER)) {
+  public static String validatePath(String path) throws IOException {
+    if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)) {
       if (!path.contains(":")) {
-        throw new IOException("Invalid Path: " + path + "\n Use tachyon://host:port/ "
-          + "tachyon_ft://host:port/" + "or /file");
+        throw new IOException("Invalid Path: " + path + ". Use " + Constants.HEADER + "host:port/ ,"
+            + Constants.HEADER_FT + "host:port/" + " , or /file");
       } else {
         return path;
       }
     } else {
       String HOSTNAME = System.getProperty("tachyon.master.hostname", "localhost");
       String PORT = System.getProperty("tachyon.master.port", "" + Constants.DEFAULT_MASTER_PORT);
-      return HEADER + HOSTNAME + ":" + PORT + path;
+      if (CommonConf.get().USE_ZOOKEEPER) {
+        return Constants.HEADER_FT + HOSTNAME + ":" + PORT + path;
+      }
+      return Constants.HEADER + HOSTNAME + ":" + PORT + path;
     }
   }
 
   /**
-   * Removes header and hostname:port information from a path, leaving only the local file path.
+   * Removes Constants.HEADER / Constants.HEADER_FT and hostname:port information from a path,
+   * leaving only the local file path.
    * @param path The path to obtain the local path from
    * @return The local path in string format
    * @throws IOException 
    */ 
   public static String getFilePath(String path) throws IOException {
-    path = validateTachyonPath(path);
-    if (path.startsWith(HEADER))
-      path = path.substring(HEADER.length());
-    if (path.startsWith(Constants.FT_HEADER))
-      path = path.substring(Constants.FT_HEADER.length());
+    path = validatePath(path);
+    if (path.startsWith(Constants.HEADER)) {
+      path = path.substring(Constants.HEADER.length());
+    } else if (path.startsWith(Constants.HEADER_FT)) {
+      path = path.substring(Constants.HEADER_FT.length());
+    }
     String ret = path.substring(path.indexOf("/"));
     return ret;
-  }
-
-  /**
-   * Obtains the InetSocketAddress from a path by parsing the hostname:port portion of the path.
-   * @param path The path to obtain the InetSocketAddress from.
-   * @return The InetSocketAddress of the master node.
-   * @throws IOException 
-   */
-  public static InetSocketAddress getTachyonMasterAddress(String path) throws IOException {
-    path = validateTachyonPath(path);
-    if (path.startsWith(HEADER))
-      path = path.substring(HEADER.length());
-    if (path.startsWith(Constants.FT_HEADER))
-      path = path.substring(Constants.FT_HEADER.length());
-    String masterAddress = path.substring(0, path.indexOf("/"));
-    String masterHost = masterAddress.split(":")[0];
-    int masterPort = Integer.parseInt(masterAddress.split(":")[1]);
-    return new InetSocketAddress(masterHost, masterPort);
-  }
-  
-  /**
-   * Obtains the tachyon master full address from a path by parsing the prefiex and hostname:port 
-   * portions of the path.
-   * @param path The path to obtain the InetSocketAddress from.
-   * @return The InetSocketAddress of the master node.
-   * @throws IOException 
-   */
-  public static String getTachyonMasterAddressAsString(String path) throws IOException {
-    path = validateTachyonPath(path);
-    String prefix = null;
-    if(path.startsWith(HEADER)) {
-      prefix = HEADER;
-    }
-    if(path.startsWith(Constants.FT_HEADER)) {
-      prefix = Constants.FT_HEADER;
-    }
-    path = path.substring(prefix.length());
-    String masterAddress = path.substring(0, path.indexOf("/"));
-    return new String(prefix + masterAddress);
   }
 }

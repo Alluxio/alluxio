@@ -67,8 +67,8 @@ public class LocalTachyonCluster {
     mWorkerCapacityBytes = workerCapacityBytes;
   }
 
-  public synchronized TachyonFS getClient() {
-    mClients.add(TachyonFS.get(mLocalhostName + ":" + mMasterPort));
+  public synchronized TachyonFS getClient() throws IOException {
+    mClients.add(TachyonFS.get(Constants.HEADER + mLocalhostName + ":" + mMasterPort));
     return mClients.get(mClients.size() - 1);
   }
 
