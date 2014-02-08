@@ -46,7 +46,7 @@ public class MasterConf extends Utils {
   private MasterConf() {
     JOURNAL_FOLDER = getProperty("tachyon.master.journal.folder",
         CommonConf.get().TACHYON_HOME + "/journal/");
-    FORMAT_FILE_PREFIX = JOURNAL_FOLDER + "_format_";
+    FORMAT_FILE_PREFIX = "_format_";
 
     HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
