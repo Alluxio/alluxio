@@ -75,9 +75,12 @@ public class LocalBlockInStreamTest {
         int value = is.read();
         int cnt = 0;
         while (value != -1) {
+          Assert.assertTrue(value >= 0);
+          Assert.assertTrue(value < 256);
           ret[cnt ++] = (byte) value;
           value = is.read();
         }
+        Assert.assertEquals(cnt, k);
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
         is.close();
         Assert.assertTrue(file.isInMemory());
@@ -92,9 +95,12 @@ public class LocalBlockInStreamTest {
         value = is.read();
         cnt = 0;
         while (value != -1) {
+          Assert.assertTrue(value >= 0);
+          Assert.assertTrue(value < 256);
           ret[cnt ++] = (byte) value;
           value = is.read();
         }
+        Assert.assertEquals(cnt, k);
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
         is.close();
         Assert.assertTrue(file.isInMemory());
