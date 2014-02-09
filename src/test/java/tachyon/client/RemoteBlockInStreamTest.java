@@ -70,9 +70,12 @@ public class RemoteBlockInStreamTest {
       int value = is.read();
       int cnt = 0;
       while (value != -1) {
+        Assert.assertTrue(value >= 0);
+        Assert.assertTrue(value < 256);
         ret[cnt ++] = (byte) value;
         value = is.read();
       }
+      Assert.assertEquals(cnt, k);
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
       is.close();
       if (k == 0) {
@@ -91,9 +94,12 @@ public class RemoteBlockInStreamTest {
       value = is.read();
       cnt = 0;
       while (value != -1) {
+        Assert.assertTrue(value >= 0);
+        Assert.assertTrue(value < 256);
         ret[cnt ++] = (byte) value;
         value = is.read();
       }
+      Assert.assertEquals(cnt, k);
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
       is.close();
       Assert.assertTrue(file.isInMemory());
@@ -108,9 +114,12 @@ public class RemoteBlockInStreamTest {
       value = is.read();
       cnt = 0;
       while (value != -1) {
+        Assert.assertTrue(value >= 0);
+        Assert.assertTrue(value < 256);
         ret[cnt ++] = (byte) value;
         value = is.read();
       }
+      Assert.assertEquals(cnt, k);
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
       is.close();
       Assert.assertTrue(file.isInMemory());
@@ -237,9 +246,10 @@ public class RemoteBlockInStreamTest {
       int value = is.read();
       int cnt = 0;
       while (value != -1) {
+        Assert.assertTrue(value >= 0);
+        Assert.assertTrue(value < 256);
         ret[cnt ++] = (byte) value;
         value = is.read();
-        Assert.assertTrue(value >= -1);
       }
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
