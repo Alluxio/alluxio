@@ -7,7 +7,7 @@ Project Homepage: http://www.tachyonproject.org
 
 Previous Releases: https://github.com/amplab/tachyon/tags
 
-Documentation: https://github.com/amplab/tachyon/wiki
+Master Branch Document: http://tachyon-project.org/master/
 
 JIRA: https://spark-project.atlassian.net/browse/TACHYON
 
