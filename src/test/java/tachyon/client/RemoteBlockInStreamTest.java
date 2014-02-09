@@ -239,7 +239,9 @@ public class RemoteBlockInStreamTest {
       while (value != -1) {
         ret[cnt ++] = (byte) value;
         value = is.read();
+        Assert.assertTrue(value > 0);
       }
+      Assert.assertTrue(cnt == k);
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
       is.close();
       Assert.assertTrue(file.isInMemory());
