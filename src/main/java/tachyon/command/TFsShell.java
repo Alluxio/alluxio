@@ -64,7 +64,8 @@ public class TFsShell {
     TachyonFile tFile = tachyonClient.getFile(file);
 
     if (tFile == null) {
-      throw new IOException(file);
+      System.out.println(file + " does not exist.");
+      return -1;
     }
     if (tFile.isFile()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
@@ -238,7 +239,8 @@ public class TFsShell {
     TachyonFile tFile = tachyonClient.getFile(file);
 
     if (tFile == null) {
-      throw new IOException(file);
+      System.out.println(file + " does not exist.");
+      return -1;
     }
     if (tFile.isFile()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
