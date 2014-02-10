@@ -379,7 +379,6 @@ public class TFsShellTest {
   @Test
   public void countTest() throws IOException {
     TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
-    // mFsShell.mkdir(new String[]{"mkdir", "/testDir"});
     TestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
     TestUtils.createByteFile(mTfs, "/testRoot/testFileB", WriteType.MUST_CACHE, 30);
     mFsShell.count(new String[] { "count", "/testRoot" });
@@ -395,7 +394,6 @@ public class TFsShellTest {
     int fileIdA = TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     TachyonFile[] files = new TachyonFile[3];
     files[0] = mTfs.getFile(fileIdA);
-    // mFsShell.mkdir(new String[]{"mkdir", "/testDir"});
     TestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
     files[1] = mTfs.getFile("/testRoot/testDir");
     int fileIdC = TestUtils.createByteFile(mTfs, "/testRoot/testFileC", WriteType.THROUGH, 30);
@@ -421,7 +419,6 @@ public class TFsShellTest {
     int fileIdA = TestUtils.createByteFile(mTfs, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     TachyonFile[] files = new TachyonFile[4];
     files[0] = mTfs.getFile(fileIdA);
-    // mFsShell.mkdir(new String[]{"mkdir", "/testDir"});
     TestUtils.createByteFile(mTfs, "/testRoot/testDir/testFileB", WriteType.MUST_CACHE, 20);
     files[1] = mTfs.getFile("/testRoot/testDir");
     files[2] = mTfs.getFile("/testRoot/testDir/testFileB");
