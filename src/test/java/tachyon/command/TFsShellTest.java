@@ -80,14 +80,14 @@ public class TFsShellTest {
       if (cmd.equals("location")) {
         StringBuilder ret = new StringBuilder();
         ret.append(command[1] + " with file id " + command[2] + " are on nodes: \n");
-        for (int i = 3; i < command.length; i++) {
+        for (int i = 3; i < command.length; i ++) {
           ret.append(command[i] + "\n");
         }
         return ret.toString();
       } else if (cmd.equals("fileinfo")) {
         StringBuilder ret = new StringBuilder();
         ret.append(command[1] + " with file id " + command[2] + " have following blocks: \n");
-        for (int i = 3; i < command.length; i++) {
+        for (int i = 3; i < command.length; i ++) {
           ret.append(command[i] + "\n");
         }
         return ret.toString();
@@ -327,7 +327,7 @@ public class TFsShellTest {
     Iterator<ClientBlockInfo> iter = blocks.iterator();
     int i = 3;
     while (iter.hasNext()) {
-      commandParameters[i++] = iter.next().toString();
+      commandParameters[i ++] = iter.next().toString();
     }
     Assert.assertEquals(getCommandOutput(commandParameters), mOutput.toString());
   }
@@ -346,7 +346,7 @@ public class TFsShellTest {
     Iterator<String> iter = locationsList.iterator();
     int i = 3;
     while (iter.hasNext()) {
-      commandParameters[i++] = iter.next();
+      commandParameters[i ++] = iter.next();
     }
     Assert.assertEquals(getCommandOutput(commandParameters), mOutput.toString());
   }
@@ -406,9 +406,10 @@ public class TFsShellTest {
     expected += String.format(format, CommonUtils.getSizeFromBytes(10),
         CommonUtils.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
         "/testRoot/testFileA");
-    expected += String.format(format, CommonUtils.getSizeFromBytes(0),
-        CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "In Memory",
-        "/testRoot/testDir");
+    expected += String
+        .format(format, CommonUtils.getSizeFromBytes(0),
+            CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "In Memory",
+            "/testRoot/testDir");
     expected += String.format(format, CommonUtils.getSizeFromBytes(30),
         CommonUtils.convertMsToDate(files[2].getCreationTimeMs()), "Not In Memory",
         "/testRoot/testFileC");
