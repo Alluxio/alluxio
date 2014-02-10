@@ -459,6 +459,12 @@ public class TFsShellTest {
   }
 
   @Test
+  public void tailNotExistTest() throws IOException {
+    int ret = mFsShell.tail(new String[] { "tail", "/testFile" });
+    Assert.assertEquals(-1, ret);
+  }
+
+  @Test
   public void touchTest() throws IOException {
     String[] argv = new String[] { "touch", "/testFile" };
     mFsShell.touch(argv);
