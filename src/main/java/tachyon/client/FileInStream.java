@@ -94,7 +94,11 @@ public class FileInStream extends InStream {
     while (tLen > 0 && mCurrentPosition < FILE_LENGTH) {
       checkAndAdvanceBlockInStream();
 
-      int tRead = mCurrentBlockInStream.read(b, tOff, tLen);
+      int tRead = mCurrentBlockInStream.read(b, tOff, tLen);  
+      if (tRead == -1) {
+        // mCurrentBlockInStream has reached its block boundary
+        continue;
+      }
 
       mCurrentPosition += tRead;
       mCurrentBlockLeft -= tRead;
