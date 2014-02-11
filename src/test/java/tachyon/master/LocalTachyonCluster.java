@@ -72,6 +72,10 @@ public class LocalTachyonCluster {
     return mClients.get(mClients.size() - 1);
   }
 
+  public String getMasterHostname() {
+    return mLocalhostName;
+  }
+
   public int getMasterPort() {
     return mMasterPort;
   }
