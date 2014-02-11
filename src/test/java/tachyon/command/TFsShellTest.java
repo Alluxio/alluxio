@@ -254,7 +254,7 @@ public class TFsShellTest {
   @Test
   public void copyFromLocalTestWithFullURI() throws IOException {
     File testFile = generateFileContent("/srcFileURI", TestUtils.getIncreasingByteArray(10));
-    String tachyonURI = "tachyon://" + InetAddress.getLocalHost().getCanonicalHostName() + ":"
+    String tachyonURI = "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
         + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
     // when
     mFsShell.copyFromLocal(new String[] { "copyFromLocal", testFile.getPath(), tachyonURI });
@@ -480,7 +480,7 @@ public class TFsShellTest {
 
   @Test
   public void touchTestWithFullURI() throws IOException {
-    String tachyonURI = "tachyon://" + InetAddress.getLocalHost().getCanonicalHostName() + ":"
+    String tachyonURI = "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
         + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
     // when
     String[] argv = new String[] { "touch", tachyonURI };
@@ -491,7 +491,7 @@ public class TFsShellTest {
     assertThat(getCommandOutput(argv), equalTo(mOutput.toString()));
     assertThat(tFile.isFile(), equalTo(true));
   }
-  
+
   private byte[] readContent(TachyonFile tFile, int length) throws IOException {
     InStream tfis = tFile.getInStream(ReadType.NO_CACHE);
     byte read[] = new byte[length];
@@ -499,8 +499,8 @@ public class TFsShellTest {
     return read;
   }
 
-  private File generateFileContent(String path, byte toWrite[]) throws IOException,
-      FileNotFoundException {
+  private File generateFileContent(String path, byte toWrite[])
+      throws IOException, FileNotFoundException {
     File testFile = new File(mLocalTachyonCluster.getTachyonHome() + path);
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
