@@ -272,10 +272,10 @@ public class TFsShell {
     String path = argv[1];
     String file = Utils.getFilePath(path);
     TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
-    TachyonFile tFile = tachyonClient.getFile(tachyonClient.createFile(path));
+    TachyonFile tFile = tachyonClient.getFile(tachyonClient.createFile(file));
     OutputStream out = tFile.getOutStream(WriteType.THROUGH);
     out.close();
-    System.out.println(file + " has been created");
+    System.out.println(path + " has been created");
     return 0;
   }
 
@@ -390,7 +390,8 @@ public class TFsShell {
       return -1;
     }
     TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(dstPath));
-    int ret = copyPath(src, tachyonClient, dstPath);
+    String file = Utils.getFilePath(dstPath);
+    int ret = copyPath(src, tachyonClient, file);
     if (ret == 0) {
       System.out.println("Copied " + src.getPath() + " to " + dstPath);
     }

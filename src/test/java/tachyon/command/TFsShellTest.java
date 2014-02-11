@@ -16,12 +16,16 @@
  */
 package tachyon.command;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.util.Iterator;
@@ -230,19 +234,8 @@ public class TFsShellTest {
     testDir.mkdir();
     File testDirInner = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testDirInner");
     testDirInner.mkdir();
-    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testFile");
-    File testFile2 = new File(mLocalTachyonCluster.getTachyonHome()
-        + "/testDir/testDirInner/testFile2");
-    testFile.createNewFile();
-    testFile2.createNewFile();
-    FileOutputStream fos = new FileOutputStream(testFile);
-    FileOutputStream fos2 = new FileOutputStream(testFile2);
-    byte toWrite[] = TestUtils.getIncreasingByteArray(10);
-    byte toWrite2[] = TestUtils.getIncreasingByteArray(10, 20);
-    fos.write(toWrite);
-    fos2.write(toWrite2);
-    fos.close();
-    fos2.close();
+    File testFile = generateFileContent("/testDir/testFile", TestUtils.getIncreasingByteArray(10));
+    generateFileContent("/testDir/testDirInner/testFile2", TestUtils.getIncreasingByteArray(10, 20));
     mFsShell.copyFromLocal(new String[] { "copyFromLocal", testFile.getParent(), "/testDir" });
     Assert.assertEquals(getCommandOutput(new String[] { "copyFromLocal", testFile.getParent(),
         "/testDir" }), mOutput.toString());
@@ -252,14 +245,27 @@ public class TFsShellTest {
     Assert.assertNotNull(tFile2);
     Assert.assertEquals(10, tFile.length());
     Assert.assertEquals(20, tFile2.length());
-    InStream tfis = tFile.getInStream(ReadType.NO_CACHE);
-    byte read[] = new byte[10];
-    tfis.read(read);
+    byte[] read = readContent(tFile, 10);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, read));
-    tfis = tFile2.getInStream(ReadType.NO_CACHE);
-    read = new byte[20];
-    tfis.read(read);
+    read = readContent(tFile2, 20);
     Assert.assertTrue(TestUtils.equalIncreasingByteArray(10, 20, read));
+  }
+
+  @Test
+  public void copyFromLocalTestWithFullURI() throws IOException {
+    File testFile = generateFileContent("/srcFileURI", TestUtils.getIncreasingByteArray(10));
+    String tachyonURI = "tachyon://" + InetAddress.getLocalHost().getCanonicalHostName() + ":"
+        + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
+    // when
+    mFsShell.copyFromLocal(new String[] { "copyFromLocal", testFile.getPath(), tachyonURI });
+    String cmdOut = getCommandOutput(new String[] { "copyFromLocal", testFile.getPath(),
+        tachyonURI });
+    // then   
+    assertThat(cmdOut, equalTo(mOutput.toString()));
+    TachyonFile tFile = mTfs.getFile("/destFileURI");
+    assertThat(tFile.length(), equalTo(10L));
+    byte[] read = readContent(tFile, 10);
+    assertThat(TestUtils.equalIncreasingByteArray(10, read), equalTo(true));
   }
 
   @Test
@@ -472,4 +478,34 @@ public class TFsShellTest {
     Assert.assertTrue(tFile.isFile());
   }
 
+  @Test
+  public void touchTestWithFullURI() throws IOException {
+    String tachyonURI = "tachyon://" + InetAddress.getLocalHost().getCanonicalHostName() + ":"
+        + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
+    // when
+    String[] argv = new String[] { "touch", tachyonURI };
+    mFsShell.touch(argv);
+    // then
+    TachyonFile tFile = mTfs.getFile("/destFileURI");
+    assertThat(tFile, notNullValue());
+    assertThat(getCommandOutput(argv), equalTo(mOutput.toString()));
+    assertThat(tFile.isFile(), equalTo(true));
+  }
+  
+  private byte[] readContent(TachyonFile tFile, int length) throws IOException {
+    InStream tfis = tFile.getInStream(ReadType.NO_CACHE);
+    byte read[] = new byte[length];
+    tfis.read(read);
+    return read;
+  }
+
+  private File generateFileContent(String path, byte toWrite[]) throws IOException,
+      FileNotFoundException {
+    File testFile = new File(mLocalTachyonCluster.getTachyonHome() + path);
+    testFile.createNewFile();
+    FileOutputStream fos = new FileOutputStream(testFile);
+    fos.write(toWrite);
+    fos.close();
+    return testFile;
+  }  
 }
