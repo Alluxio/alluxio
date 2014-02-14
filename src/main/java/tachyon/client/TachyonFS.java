@@ -896,8 +896,10 @@ public class TachyonFS {
   /**
    * Returns the local filename for the block if that file exists on the local ramdisk.
    * This is an alpha power-api feature for apps that want short-circuit-read files directly.
+   * There is no guarantee that the file still exists after this call returns, as
+   * Tachyon may evict blocks from memory at any time.
    * @param blockId The id of the block.
-   * @return filename on local RamDisk or null if file not preset on local machine
+   * @return filename on local RamDisk or null if file not present on local ramdisk.
    */
   public String getLocalFilename(long blockId) {
     String localFileName = null;
@@ -905,10 +907,10 @@ public class TachyonFS {
     if (rootFolder != null) {
       localFileName = rootFolder + Constants.PATH_SEPARATOR + blockId;
       File file = new File(localFileName);
-      if (!file.exists())
-        localFileName = null;
+      if (file.exists())
+        return localFileName;
     }
-    return localFileName;
+    return null;
   }
 
   /**
