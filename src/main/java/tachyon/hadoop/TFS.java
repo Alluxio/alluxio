@@ -65,10 +65,11 @@ public class TFS extends FileSystem {
   private String mTachyonHeader = null;
 
   /**
-  * Returns the object implementing the Tachyon-specific client API. Will return null if initialize hasn't been called.
-  */
+   * Returns an object implementing the Tachyon-specific client API.
+   * Returns null if initialize() hasn't been called.
+   */
   public TachyonFS getTachyonFS() {
-      return mTFS;
+    return mTFS;
   }
 
   @Override
