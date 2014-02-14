@@ -176,7 +176,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  
+
   <profiles>
     <profile>
       <id>integrationTest</id>
@@ -189,37 +189,37 @@
         <ufs>tachyon.integration.LocalMiniDFSCluster</ufs>
       </properties>
       <dependencies>
-	    <dependency>
-	      <groupId>org.apache.hadoop</groupId>
-	      <artifactId>hadoop-minicluster</artifactId>
-	      <version>${hadoop.version}</version>
-	      <exclusions>
-	        <exclusion>
-	          <groupId>asm</groupId>
-	          <artifactId>asm</artifactId>
-	        </exclusion>
-	        <exclusion>
-	          <groupId>org.jboss.netty</groupId>
-	          <artifactId>netty</artifactId>
-	        </exclusion>
-	        <exclusion>
-	          <groupId>org.codehaus.jackson</groupId>
-	          <artifactId>jackson-core-asl</artifactId>
-	        </exclusion>
-	        <exclusion>
-	          <groupId>org.codehaus.jackson</groupId>
-	          <artifactId>jackson-mapper-asl</artifactId>
-	        </exclusion>
-	        <exclusion>
-	          <groupId>org.codehaus.jackson</groupId>
-	          <artifactId>jackson-jaxrs</artifactId>
-	        </exclusion>
-	        <exclusion>
-	          <groupId>org.codehaus.jackson</groupId>
-	          <artifactId>jackson-xc</artifactId>
-	        </exclusion>
-	      </exclusions>
-	    </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-minicluster</artifactId>
+          <version>${hadoop.version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>asm</groupId>
+              <artifactId>asm</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-core-asl</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-mapper-asl</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-jaxrs</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-xc</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
       </dependencies>
     </profile>
     <profile>
@@ -234,66 +234,65 @@
         <ufs></ufs>
       </properties>
       <build>
-		<plugins>
-	      <plugin>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-compiler-plugin</artifactId>
-			<configuration>
-			  <excludes>
-			    <exclude>**/integration/*.java</exclude>
-			  </excludes>
-		    </configuration>
-		    <executions>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/integration/*.java</exclude>
+              </excludes>
+            </configuration>
+            <executions>
               <execution>
-			    <id>default-testCompile</id>
-			    <phase>test-compile</phase>
-			    <configuration>
-			      <testExcludes>
-			        <exclude>**/integration/*.java</exclude>
-			      </testExcludes>
-			    </configuration> 
-			    <goals>
-			      <goal>testCompile</goal>
-			    </goals>
-			  </execution>                  
-			</executions>
-		  </plugin>
-		</plugins>
-	  </build>
+                <id>default-testCompile</id>
+                <phase>test-compile</phase>
+                <configuration>
+                  <testExcludes>
+                    <exclude>**/integration/*.java</exclude>
+                  </testExcludes>
+                </configuration>
+                <goals>
+                  <goal>testCompile</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
       <dependencies>
-	    <dependency>
-	      <groupId>org.apache.hadoop</groupId>
-	      <artifactId>hadoop-client</artifactId>
-	      <version>${hadoop.version}</version>
-	      <exclusions>
-	        <exclusion>
-	          <groupId>asm</groupId>
-	          <artifactId>asm</artifactId>
-	        </exclusion>
-	        <exclusion>
-	          <groupId>org.jboss.netty</groupId>
-	          <artifactId>netty</artifactId>
-	        </exclusion>
-	        <exclusion>
-	          <groupId>org.codehaus.jackson</groupId>
-	          <artifactId>jackson-core-asl</artifactId>
-	        </exclusion>
-	        <exclusion>
-	          <groupId>org.codehaus.jackson</groupId>
-	          <artifactId>jackson-mapper-asl</artifactId>
-	        </exclusion>
-	        <exclusion>
-	          <groupId>org.codehaus.jackson</groupId>
-	          <artifactId>jackson-jaxrs</artifactId>
-	        </exclusion>
-	        <exclusion>
-	          <groupId>org.codehaus.jackson</groupId>
-	          <artifactId>jackson-xc</artifactId>
-	        </exclusion>
-	      </exclusions>
-	    </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <version>${hadoop.version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>asm</groupId>
+              <artifactId>asm</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-core-asl</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-mapper-asl</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-jaxrs</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-xc</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
       </dependencies>
-
     </profile>
   </profiles>
 
