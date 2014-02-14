@@ -52,6 +52,7 @@ public class LocalTachyonCluster {
   private Thread mWorkerThread = null;
 
   private String mLocalhostName = null;
+  private LocalUnderFilesystemCluster cluster = null;
 
   private List<TachyonFS> mClients = new ArrayList<TachyonFS>();
 
@@ -97,15 +98,15 @@ public class LocalTachyonCluster {
   }
 
   public String getEditLogPath() {
-    return mTachyonHome + "/journal/log.data";
+    return cluster.getUnderFilesystemAddress() + "/journal/log.data";
   }
 
   public String getImagePath() {
-    return mTachyonHome + "/journal/image.data";
+    return cluster.getUnderFilesystemAddress() + "/journal/image.data";
   }
 
   private void mkdir(String path) throws IOException {
-    if (!(new File(path)).mkdirs()) {
+    if (!CommonUtils.mkdirs(path)) {
       throw new IOException("Failed to make folder: " + path);
     }
   }
@@ -117,17 +118,19 @@ public class LocalTachyonCluster {
   public void start() throws IOException {
     mTachyonHome = File.createTempFile("Tachyon", "").getAbsoluteFile() + "UnitTest";
     mWorkerDataFolder = mTachyonHome + "/ramdisk";
-    String masterJournalFolder = mTachyonHome + "/journal";
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
-    String underfsFolder = mTachyonHome + "/underfs";
+
     mkdir(mTachyonHome);
-    mkdir(masterJournalFolder);
     mkdir(masterDataFolder);
     mkdir(masterLogFolder);
-    CommonUtils.touch(masterJournalFolder + "/_format_" + System.currentTimeMillis());
 
     mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
+
+    cluster = LocalUnderFilesystemCluster.getLocalUnderFilesystemCluster(mTachyonHome + "/dfs");
+    if(!cluster.isStarted()) cluster.start();
+    String underfsFolder = cluster.getUnderFilesystemAddress() + "/tachyon";
+    String masterJournalFolder = cluster.getUnderFilesystemAddress() + "/journal";
 
     System.setProperty("tachyon.home", mTachyonHome);
     System.setProperty("tachyon.underfs.address", underfsFolder);
@@ -140,11 +143,15 @@ public class LocalTachyonCluster {
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
     System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
+    System.setProperty("tachyon.master.journal.folder", masterJournalFolder + "/");
 
     CommonConf.clear();
     MasterConf.clear();
     WorkerConf.clear();
     UserConf.clear();
+
+    mkdir(masterJournalFolder);
+    CommonUtils.touch(masterJournalFolder + "/_format_" + System.currentTimeMillis());
 
     mkdir(CommonConf.get().UNDERFS_DATA_FOLDER);
     mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
@@ -181,6 +188,7 @@ public class LocalTachyonCluster {
 
     mWorker.stop();
     mMaster.stop();
+    cluster.shutdown();
 
     System.clearProperty("tachyon.home");
     System.clearProperty("tachyon.underfs.address");
