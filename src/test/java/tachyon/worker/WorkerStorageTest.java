@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.rules.ExpectedException;
 
 import tachyon.TestUtils;
+import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
@@ -72,11 +73,12 @@ public class WorkerStorageTest {
 
     WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerAddress, mWorkerDataFolder,
         WORKER_CAPACITY_BYTES);
-    File orphanblock = new File(ws.getUnderfsOrphansFolder() + "/" + bid);
+    String orpahnblock = ws.getUnderfsOrphansFolder() + "/" + bid;
+    UnderFileSystem ufs = UnderFileSystem.get(orpahnblock);
     Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", new File(
         mWorkerDataFolder + "/" + bid).exists());
-    Assert.assertTrue("UFS hasn't the orphan block file ", orphanblock.exists());
-    Assert.assertTrue("Orpahblock file size is changed", orphanblock.length() == filesize);
+    Assert.assertTrue("UFS hasn't the orphan block file ", ufs.exists(orpahnblock));
+    Assert.assertTrue("Orpahblock file size is changed", ufs.getFileSize(orpahnblock) == filesize);
   }
 
   /**
