@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.TestUtils;
+import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
@@ -38,15 +39,14 @@ public class TachyonFileTest {
   private TachyonFS mTfs = null;
   private final int WORKER_CAPACITY_BYTES = 1000;
   private final int USER_QUOTA_UNIT_BYTES = 100;
-  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 5;
+  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
+      WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
   private final String PIN_DATA = "/pin";
   private final int MAX_FILES = WORKER_CAPACITY_BYTES / USER_QUOTA_UNIT_BYTES;
 
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
-    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms",
-        WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
     System.setProperty("tachyon.master.pinlist", PIN_DATA);
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
@@ -57,7 +57,6 @@ public class TachyonFileTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
     System.clearProperty("tachyon.master.pinlist");
   }
 
