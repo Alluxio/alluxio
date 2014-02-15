@@ -19,6 +19,7 @@ package tachyon.worker;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.conf.WorkerConf;
 
 import java.io.IOException;
 
@@ -47,13 +48,13 @@ public class WorkerServiceHandlerTest {
   private WorkerServiceHandler mWorkerServiceHandler = null;
   private TachyonFS mTfs = null;
   private final long WORKER_CAPACITY_BYTES = 10000;
-  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 5;
+  private final int USER_QUOTA_UNIT_BYTES = 100;
+  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
+      WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
-    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms",
-        WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
+    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mWorkerServiceHandler = mLocalTachyonCluster.getWorker().getWorkerServiceHandler();
@@ -65,7 +66,6 @@ public class WorkerServiceHandlerTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
   }
 
   @Test

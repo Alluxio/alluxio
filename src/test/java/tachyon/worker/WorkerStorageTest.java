@@ -44,14 +44,11 @@ public class WorkerStorageTest {
   private String mWorkerDataFolder = null;
 
   private final long WORKER_CAPACITY_BYTES = 100000;
-  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 5;
+  private final int USER_QUOTA_UNIT_BYTES = 100;
 
   @Before
   public final void before() throws IOException {
-    System
-    .setProperty("tachyon.user.quota.unit.bytes", WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
-    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms",
-        WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
+    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
@@ -65,7 +62,6 @@ public class WorkerStorageTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
   }
 
   private void swapoutOrphanBlocksFileTestUtil(int filesize) throws Exception {

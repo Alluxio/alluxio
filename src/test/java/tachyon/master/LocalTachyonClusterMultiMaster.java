@@ -191,6 +191,7 @@ public class LocalTachyonClusterMultiMaster {
     System.setProperty("tachyon.worker.data.port", (mWorkerPort + 1) + "");
     System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
+    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
 
     CommonConf.clear();
     MasterConf.clear();
@@ -249,6 +250,7 @@ public class LocalTachyonClusterMultiMaster {
     System.clearProperty("tachyon.worker.data.port");
     System.clearProperty("tachyon.worker.data.folder");
     System.clearProperty("tachyon.worker.memory.size");
+    System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
   }
 
   public static void main(String[] args) throws Exception {
