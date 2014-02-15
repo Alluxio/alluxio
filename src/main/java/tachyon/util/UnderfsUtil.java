@@ -95,7 +95,7 @@ public class UnderfsUtil {
       System.out.println("Usage: " + prefix + "<TachyonAddress> <UnderfsAddress> <Path> " +
           "[<ExcludePathPrefix, separated by ;>]");
       System.out.println("Example: " + prefix +
-          "127.0.0.1:19998 hdfs://localhost:54310 / /tachyon");
+          "tachyon://127.0.0.1:19998 hdfs://localhost:9000 / /tachyon");
       System.exit(-1);
     }
 

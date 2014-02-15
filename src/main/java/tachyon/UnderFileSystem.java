@@ -71,6 +71,13 @@ public abstract class UnderFileSystem {
 
   public abstract boolean exists(String path) throws IOException;
 
+  /**
+   * List all the files in the folder.
+   *
+   * @param path the path to list.
+   * @return all the file names under the path.
+   * @throws IOException
+   */
   public abstract String[] list(String path) throws IOException;
 
   public abstract List<String> getFileLocations(String path) throws IOException;
