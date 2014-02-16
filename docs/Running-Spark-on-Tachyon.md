@@ -40,9 +40,10 @@ If you are running tachyon in fault tolerant mode along with zookeeper additiona
 
 Edit `spark/conf/spark-env.sh`, add:
 
-    export SPARK_OPTS="
+    export SPARK_JAVA_OPTS="
     -Dtachyon.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181
-    $SPARK_OPTS
+    -Dtachyon.usezookeeper=true
+    $SPARK_JAVA_OPTS
     "
     
 Put a file X into HDFS. Run Spark Shell, you can now point to any tachyon master:
