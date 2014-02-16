@@ -182,25 +182,21 @@ public class BlockInStreamTest {
    */
   @Test
   public void readLocalTest() throws IOException {
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      int fileId = TestUtils.createByteFile(mTfs,
-              "/root/testFile_" + k + "_" + WriteType.MUST_CACHE, WriteType.MUST_CACHE, k);
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
+      int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" +
+              WriteType.MUST_CACHE, WriteType.MUST_CACHE, k);
 
       TachyonFile file = mTfs.getFile(fileId);
       long bid = mTfs.getBlockIdBasedOnOffset(file.FID, 0);
-      System.err.println("Going for block id: " + bid);
       String localFname = mTfs.getLocalFilename(bid);
-      System.err.println("localFilename: " + localFname);
-      System.err.println("worker dir: " + mLocalTachyonCluster.getWorkerDataFolder());
+      Assert.assertNotNull("Block not found on local ramdisk", localFname);
       RandomAccessFile lfile = new RandomAccessFile(localFname, "r");
       byte[] buf = new byte[k];
       lfile.read(buf, 0, k);
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, buf));
-      try {
-        Thread.sleep(1000000);
-      } catch (Exception ex) {}
-      lfile.close();
 
+      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, buf));
+
+      lfile.close();
     }
   }
 
