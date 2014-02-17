@@ -137,6 +137,8 @@ public class BlockOutStream extends OutStream {
 
       if (mCancel) {
         TFS.releaseSpace(mWrittenBytes - mBuffer.position());
+        new File(mLocalFilePath).delete();
+        LOG.info("Canceled output of block " + BLOCK_ID + ", deleted local file " + mLocalFilePath);
       } else {
         TFS.cacheBlock(BLOCK_ID);
       }

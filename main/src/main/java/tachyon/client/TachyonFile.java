@@ -224,7 +224,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   TachyonByteBuffer readLocalByteBuffer(int blockIndex) throws IOException {
-    return TFS.readLocalByteBuffer(TFS.getClientBlockInfo(FID, blockIndex).blockId);
+    ClientBlockInfo info = TFS.getClientBlockInfo(FID, blockIndex);
+    return TFS.readLocalByteBuffer(info.blockId, 0, info.getLength());
   }
 
   TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) {
