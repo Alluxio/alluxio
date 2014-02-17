@@ -454,7 +454,7 @@ public class WorkerStorage {
    * @return Removed file size in bytes.
    */
   private long freeBlock(long blockId) {
-    Long freedFileBytes = null;
+    long freedFileBytes = 0;
     synchronized (mLatestBlockAccessTimeMs) {
       if (mBlockSizes.containsKey(blockId)) {
         mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
@@ -470,7 +470,7 @@ public class WorkerStorage {
       }
     }
 
-    return freedFileBytes == null ? 0 : freedFileBytes;
+    return freedFileBytes;
   }
 
   /**

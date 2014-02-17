@@ -134,7 +134,7 @@ public class FileOutStream extends OutStream {
   @Override
   public void flush() throws IOException {
     // TODO We only flush the checkpoint output stream. Flush for RAMFS block streams.
-    if (mCheckpointOutputStream != null) {
+    if (WRITE_TYPE.isThrough()) {
       mCheckpointOutputStream.flush();
     }
   }
