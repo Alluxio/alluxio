@@ -36,14 +36,16 @@ public class InodeFile extends Inode {
   private boolean mIsComplete = false;
   private boolean mPin = false;
   private boolean mCache = false;
+  private boolean mCacheOnRead;
   private String mCheckpointPath = "";
   private List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(3);
 
   private int mDependencyId;
 
-  public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs) {
+  public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs, boolean cacheOnRead) {
     super(name, id, parentId, InodeType.File, creationTimeMs);
     BLOCK_SIZE_BYTE = blockSizeByte;
+    mCacheOnRead = cacheOnRead;
     mDependencyId = -1;
   }
 
@@ -88,6 +90,7 @@ public class InodeFile extends Inode {
     sb.append(super.toString()).append(", LENGTH: ").append(mLength);
     sb.append(", CheckpointPath: ").append(mCheckpointPath);
     sb.append(", mBlocks: ").append(mBlocks);
+    sb.append(", CacheOnRead:").append(mCacheOnRead);
     sb.append(", DependencyId:").append(mDependencyId).append(")");
     return sb.toString();
   }
@@ -252,6 +255,14 @@ public class InodeFile extends Inode {
     return ret;
   }
 
+  public synchronized boolean cacheOnRead() {
+    return mCacheOnRead;
+  }
+
+  public synchronized void setCacheOnRead(boolean cacheOnRead) {
+    mCacheOnRead = cacheOnRead;
+  }
+
   @Override
   public ClientFileInfo generateClientFileInfo(String path) {
     ClientFileInfo ret = new ClientFileInfo();
@@ -271,6 +282,7 @@ public class InodeFile extends Inode {
     ret.blockIds = getBlockIds();
     ret.dependencyId = mDependencyId;
     ret.inMemoryPercentage = getInMemoryPercentage();
+    ret.cacheOnRead = mCacheOnRead;
 
     return ret;
   }

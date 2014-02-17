@@ -29,7 +29,11 @@ public enum ReadType {
   /**
    * Read the file and cache it.
    */
-  CACHE(2);
+  CACHE(2),
+  /**
+   * Cache based on whether the file is set to cache on read.
+   */
+  DEFAULT(3);
 
   private final int mValue;
 
@@ -41,8 +45,8 @@ public enum ReadType {
     return mValue;
   }
 
-  public boolean isCache() {
-    return mValue == CACHE.mValue;
+  public boolean isCache(boolean cacheByDefault) {
+    return this == CACHE || (this == DEFAULT && cacheByDefault);
   }
 
   public static ReadType getOpType(String op) throws IOException {
@@ -50,6 +54,8 @@ public enum ReadType {
       return NO_CACHE;
     } else if (op.equals("CACHE")) {
       return CACHE;
+    } else if (op.equals("DEFAULT")) {
+      return DEFAULT;
     }
 
     throw new IOException("Unknown ReadType : " + op);

@@ -26,9 +26,9 @@ public class LocalBlockInStream extends BlockInStream {
   private TachyonByteBuffer mTachyonBuffer = null;
   private ByteBuffer mBuffer = null;
 
-  LocalBlockInStream(TachyonFile file, ReadType readType, int blockIndex, TachyonByteBuffer buf)
+  LocalBlockInStream(TachyonFile file, boolean shouldCache, int blockIndex, TachyonByteBuffer buf)
       throws IOException {
-    super(file, readType, blockIndex);
+    super(file, shouldCache, blockIndex);
 
     mTachyonBuffer = buf;
     mBuffer = mTachyonBuffer.DATA;

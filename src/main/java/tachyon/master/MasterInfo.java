@@ -583,9 +583,9 @@ public class MasterInfo {
     return dep.ID;
   }
 
-  public int createFile(String path, long blockSizeByte) throws FileAlreadyExistException,
-      InvalidPathException, BlockInfoException, TachyonException {
-    return createFile(true, path, false, -1, null, blockSizeByte);
+  public int createFile(String path, long blockSizeByte, boolean cacheOnRead)
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
+    return createFile(true, path, false, -1, null, blockSizeByte, cacheOnRead);
   }
 
   // TODO Make this API better.
@@ -606,7 +606,7 @@ public class MasterInfo {
    * @throws TachyonException
    */
   int _createFile(boolean recursive, String path, boolean directory, int columns,
-      ByteBuffer metadata, long blockSizeByte, long creationTimeMs)
+      ByteBuffer metadata, long blockSizeByte, long creationTimeMs, boolean cacheOnRead)
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
     if (!directory && blockSizeByte < 1) {
       throw new BlockInfoException("Invalid block size " + blockSizeByte);
@@ -637,7 +637,7 @@ public class MasterInfo {
       if (inode == null) {
         int succeed = 0;
         if (recursive) {
-          succeed = createFile(true, folderPath, true, -1, null, blockSizeByte);
+          succeed = createFile(true, folderPath, true, -1, null, blockSizeByte, cacheOnRead);
         }
         if (!recursive || succeed <= 0) {
           LOG.info("InvalidPathException: File " + path + " creation failed. Folder " + folderPath
@@ -657,6 +657,7 @@ public class MasterInfo {
       Inode ret = null;
 
       if (directory) {
+        assert !cacheOnRead : "Directories cannot be cached on read";
         if (columns != -1) {
           ret = new InodeRawTable(name, mInodeCounter.incrementAndGet(), inode.getId(), columns,
               metadata, creationTimeMs);
@@ -666,7 +667,7 @@ public class MasterInfo {
         }
       } else {
         ret = new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId(), blockSizeByte,
-            creationTimeMs);
+            creationTimeMs, cacheOnRead);
         String curPath = getPath(ret);
         if (mPinList.inList(curPath)) {
           synchronized (mFileIdPinList) {
@@ -703,14 +704,15 @@ public class MasterInfo {
    * @throws TachyonException
    */
   public int createFile(boolean recursive, String path, boolean directory, int columns,
-      ByteBuffer metadata, long blockSizeByte) throws FileAlreadyExistException,
-      InvalidPathException, BlockInfoException, TachyonException {
+      ByteBuffer metadata, long blockSizeByte, boolean cacheOnRead)
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
     long creationTimeMs = System.currentTimeMillis();
+    LOG.warn("CREATE FILE W/CACHE_ON_READ=" + cacheOnRead);
     synchronized (mRoot) {
       int ret = _createFile(recursive, path, directory, columns, metadata, blockSizeByte,
-          creationTimeMs);
+          creationTimeMs, cacheOnRead);
       mJournal.getEditLog().createFile(recursive, path, directory, columns, metadata,
-          blockSizeByte, creationTimeMs);
+          blockSizeByte, creationTimeMs, cacheOnRead);
       mJournal.getEditLog().flush();
       return ret;
     }
@@ -805,9 +807,11 @@ public class MasterInfo {
           boolean isPin = is.readBoolean();
           boolean isCache = is.readBoolean();
           String checkpointPath = Utils.readString(is);
+          int dependencyId = is.readInt();
+          boolean cacheOnRead = is.readBoolean();
 
           InodeFile tInode = new InodeFile(fileName, fileId, parentId, blockSizeByte,
-              creationTimeMs);
+              creationTimeMs, cacheOnRead);
 
           try {
             tInode.setLength(length);
@@ -818,7 +822,7 @@ public class MasterInfo {
           tInode.setPin(isPin);
           tInode.setCache(isCache);
           tInode.setCheckpointPath(checkpointPath);
-          tInode.setDependencyId(is.readInt());
+          tInode.setDependencyId(dependencyId);
           inode = tInode;
         } else {
           int numberOfChildren = is.readInt();
@@ -891,6 +895,7 @@ public class MasterInfo {
       os.writeBoolean(file.isCache());
       Utils.writeString(file.getCheckpointPath(), os);
       os.writeInt(file.getDependencyId());
+      os.writeBoolean(file.cacheOnRead());
     } else {
       InodeFolder folder = (InodeFolder) inode;
       if (folder.isRawTable()) {
@@ -964,7 +969,7 @@ public class MasterInfo {
 
     int id;
     try {
-      id = createFile(true, path, true, columns, metadata, 0);
+      id = createFile(true, path, true, columns, metadata, 0, false);
     } catch (BlockInfoException e) {
       throw new FileAlreadyExistException(e.getMessage());
     }
@@ -1645,7 +1650,7 @@ public class MasterInfo {
   public boolean mkdir(String path) throws FileAlreadyExistException, InvalidPathException,
       TachyonException {
     try {
-      return createFile(true, path, true, -1, null, 0) > 0;
+      return createFile(true, path, true, -1, null, 0, false) > 0;
     } catch (BlockInfoException e) {
       throw new FileAlreadyExistException(e.getMessage());
     }

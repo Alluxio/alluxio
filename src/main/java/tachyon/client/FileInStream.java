@@ -32,8 +32,8 @@ public class FileInStream extends InStream {
 
   private boolean mClosed = false;
 
-  public FileInStream(TachyonFile file, ReadType opType) throws IOException {
-    super(file, opType);
+  public FileInStream(TachyonFile file, boolean shouldCache) throws IOException {
+    super(file, shouldCache);
 
     FILE_LENGTH = file.length();
     BLOCK_CAPACITY = file.getBlockSizeByte();
@@ -55,7 +55,7 @@ public class FileInStream extends InStream {
       }
 
       mCurrentBlockIndex = getCurrentBlockIndex();
-      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex);
+      mCurrentBlockInStream = BlockInStream.get(FILE, SHOULD_CACHE ? ReadType.CACHE : ReadType.NO_CACHE, mCurrentBlockIndex);
       mCurrentBlockLeft = BLOCK_CAPACITY;
     }
   }
@@ -139,7 +139,7 @@ public class FileInStream extends InStream {
       }
 
       mCurrentBlockIndex = tBlockIndex;
-      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex);
+      mCurrentBlockInStream = BlockInStream.get(FILE, SHOULD_CACHE ? ReadType.CACHE : ReadType.NO_CACHE, mCurrentBlockIndex);
       long shouldSkip = mCurrentPosition % BLOCK_CAPACITY;
       long skip = mCurrentBlockInStream.skip(shouldSkip);
       mCurrentBlockLeft = BLOCK_CAPACITY - skip;
@@ -172,7 +172,7 @@ public class FileInStream extends InStream {
       if (mCurrentBlockInStream != null) {
         mCurrentBlockInStream.close();
       }
-      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex);
+      mCurrentBlockInStream = BlockInStream.get(FILE, SHOULD_CACHE ? ReadType.CACHE : ReadType.NO_CACHE, mCurrentBlockIndex);
     }
     mCurrentBlockInStream.seek(pos % BLOCK_CAPACITY);
     mCurrentPosition = pos;

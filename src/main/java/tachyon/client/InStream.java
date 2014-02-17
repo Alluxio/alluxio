@@ -30,12 +30,12 @@ public abstract class InStream extends InputStream {
   protected final UserConf USER_CONF = UserConf.get();
   protected final TachyonFile FILE;
   protected final TachyonFS TFS;
-  protected final ReadType READ_TYPE;
+  protected final boolean SHOULD_CACHE;
 
-  InStream(TachyonFile file, ReadType readType) {
+  InStream(TachyonFile file, boolean shouldCache) {
     FILE = file;
     TFS = FILE.TFS;
-    READ_TYPE = readType;
+    SHOULD_CACHE = shouldCache;
   }
 
   @Override

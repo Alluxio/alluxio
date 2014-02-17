@@ -38,6 +38,7 @@ struct ClientFileInfo {
   13: list<i64> blockIds
   14: i32 dependencyId
   15: i32 inMemoryPercentage
+  16: bool cacheOnRead
 }
 
 struct ClientDependencyInfo {
@@ -146,7 +147,7 @@ service MasterService {
   void user_requestFilesInDependency(1: i32 depId)
     throws (1: DependencyDoesNotExistException e)
 
-  i32 user_createFile(1: string path, 2: i64 blockSizeByte)
+  i32 user_createFile(1: string path, 2: i64 blockSizeByte, 3: bool cacheOnRead)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: BlockInfoException eB, 4: TachyonException eT)
   i32 user_createFileOnCheckpoint(1: string path, 2: string checkpointPath)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: SuspectedFileSizeException eS, 4: BlockInfoException eB, 5: TachyonException eT)

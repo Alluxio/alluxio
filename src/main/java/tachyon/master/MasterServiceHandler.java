@@ -97,10 +97,10 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_createFile(String path, long blockSizeByte)
+  public int user_createFile(String path, long blockSizeByte, boolean cacheOnRead)
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException,
       TException {
-    return mMasterInfo.createFile(path, blockSizeByte);
+    return mMasterInfo.createFile(path, blockSizeByte, cacheOnRead);
   }
 
   @Override
@@ -111,7 +111,7 @@ public class MasterServiceHandler implements MasterService.Iface {
     try {
       long blockSizeByte = underfs.getBlockSizeByte(checkpointPath);
       long fileSizeByte = underfs.getFileSize(checkpointPath);
-      int fileId = mMasterInfo.createFile(path, blockSizeByte);
+      int fileId = mMasterInfo.createFile(path, blockSizeByte, false);
       if (fileId != -1 && mMasterInfo.addCheckpoint(-1, fileId, fileSizeByte, checkpointPath)) {
         return fileId;
       }
@@ -329,7 +329,7 @@ public class MasterServiceHandler implements MasterService.Iface {
           BlockInfoException, TachyonException, TException {
     try {
       for (int k = 0; k < children.size(); k ++) {
-        mMasterInfo.createFile(children.get(k), childrenBlockSizeByte);
+        mMasterInfo.createFile(children.get(k), childrenBlockSizeByte, false /* TODO */);
       }
       return mMasterInfo.createDependency(parents, children, commandPrefix, 
           data, comment, framework, frameworkVersion,

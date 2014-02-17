@@ -22,8 +22,8 @@ import java.io.IOException;
  * <code> EmptyBlockInStream </code> is a <code> InStream </code> can not read anything.
  */
 public class EmptyBlockInStream extends InStream {
-  EmptyBlockInStream(TachyonFile file, ReadType readType) {
-    super(file, readType);
+  EmptyBlockInStream(TachyonFile file, boolean shouldCache) {
+    super(file, shouldCache);
   }
 
   @Override
