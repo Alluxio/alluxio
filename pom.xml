@@ -241,6 +241,7 @@
             <configuration>
               <excludes>
                 <exclude>**/integration/*.java</exclude>
+                <exclude>**/*IntegrationTest.java</exclude>
               </excludes>
             </configuration>
             <executions>
@@ -250,6 +251,7 @@
                 <configuration>
                   <testExcludes>
                     <exclude>**/integration/*.java</exclude>
+                    <exclude>**/*IntegrationTest.java</exclude>
                   </testExcludes>
                 </configuration>
                 <goals>
