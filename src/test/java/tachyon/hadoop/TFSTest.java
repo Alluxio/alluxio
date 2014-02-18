@@ -1,5 +1,18 @@
-/**
- * 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package tachyon.hadoop;
 
@@ -24,24 +37,23 @@ import tachyon.client.TachyonFS;
 
 /**
  * Unit tests for TFS
- * 
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(TachyonFS.class)
 public class TFSTest {
 
-  private TFS tfs;
+  private TFS mTfs;
 
   @Before
   public void setup() throws Exception {
-    tfs = new TFS();
+    mTfs = new TFS();
   }
 
   @Test
   public void shouldInitializeWithTachyonSchemePassedByUser() throws Exception {
     mockTachyonFSGet();
     // when
-    tfs.initialize(new URI("tachyon://stanley:19998/tmp/path.txt"), new Configuration());
+    mTfs.initialize(new URI("tachyon://stanley:19998/tmp/path.txt"), new Configuration());
     // then
     PowerMockito.verifyStatic();
     TachyonFS.get("tachyon://stanley:19998");
@@ -51,7 +63,7 @@ public class TFSTest {
   public void shouldInitializeWithTachyonFTSchemePassedByUser() throws Exception {
     mockTachyonFSGet();
     // when
-    tfs.initialize(new URI("tachyon-ft://stanley:19998/tmp/path.txt"), new Configuration());
+    mTfs.initialize(new URI("tachyon-ft://stanley:19998/tmp/path.txt"), new Configuration());
     // then
     verifyStatic();
     TachyonFS.get("tachyon-ft://stanley:19998");
