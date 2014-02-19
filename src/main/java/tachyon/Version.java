@@ -25,8 +25,9 @@ import org.apache.log4j.Logger;
  * The version of the current build.
  */
 public class Version {
-  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   public static final String VERSION;
+
+  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   static {
     InputStream in = null;
@@ -40,7 +41,7 @@ public class Version {
     } finally {
       try {
         in.close();
-      } catch (Exception e){
+      } catch (Exception e) {
         LOG.error(e.getMessage(), e);
       }
     }
