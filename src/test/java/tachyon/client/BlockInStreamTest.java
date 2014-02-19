@@ -17,7 +17,6 @@
 package tachyon.client;
 
 import java.io.IOException;
-import java.io.RandomAccessFile;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -174,29 +173,6 @@ public class BlockInStreamTest {
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
         is.close();
       }
-    }
-  }
-
-  /**
-   * Test <code>String getLocalFilename(long blockId) </code>.
-   */
-  @Test
-  public void readLocalTest() throws IOException {
-    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" +
-              WriteType.MUST_CACHE, WriteType.MUST_CACHE, k);
-
-      TachyonFile file = mTfs.getFile(fileId);
-      long bid = mTfs.getBlockIdBasedOnOffset(file.FID, 0);
-      String localFname = mTfs.getLocalFilename(bid);
-      Assert.assertNotNull("Block not found on local ramdisk", localFname);
-      RandomAccessFile lfile = new RandomAccessFile(localFname, "r");
-      byte[] buf = new byte[k];
-      lfile.read(buf, 0, k);
-
-      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, buf));
-
-      lfile.close();
     }
   }
 

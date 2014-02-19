@@ -33,6 +33,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import tachyon.Constants;
 import tachyon.client.TachyonFS;
 
 /**
@@ -53,20 +54,21 @@ public class TFSTest {
   public void shouldInitializeWithTachyonSchemePassedByUser() throws Exception {
     mockTachyonFSGet();
     // when
-    mTfs.initialize(new URI("tachyon://stanley:19998/tmp/path.txt"), new Configuration());
+    mTfs.initialize(new URI(Constants.HEADER + "stanley:19998/tmp/path.txt"), new Configuration());
     // then
     PowerMockito.verifyStatic();
-    TachyonFS.get("tachyon://stanley:19998");
+    TachyonFS.get(Constants.HEADER + "stanley:19998");
   }
 
   @Test
   public void shouldInitializeWithTachyonFTSchemePassedByUser() throws Exception {
     mockTachyonFSGet();
     // when
-    mTfs.initialize(new URI("tachyon-ft://stanley:19998/tmp/path.txt"), new Configuration());
+    mTfs.initialize(new URI(Constants.HEADER_FT + "stanley:19998/tmp/path.txt"),
+        new Configuration());
     // then
     verifyStatic();
-    TachyonFS.get("tachyon-ft://stanley:19998");
+    TachyonFS.get(Constants.HEADER_FT + "stanley:19998");
   }
 
   private void mockTachyonFSGet() throws IOException {

@@ -885,7 +885,9 @@ public class TachyonFS {
 
   /**
    * Read the whole local block.
-   * @param blockId The id of the block to read.
+   * 
+   * @param blockId
+   *          The id of the block to read.
    * @return <code>TachyonByteBuffer</code> containing the whole block.
    * @throws IOException
    */
@@ -894,30 +896,38 @@ public class TachyonFS {
   }
 
   /**
-   * Returns the local filename for the block if that file exists on the local ramdisk.
-   * This is an alpha power-api feature for apps that want short-circuit-read files directly.
-   * There is no guarantee that the file still exists after this call returns, as
-   * Tachyon may evict blocks from memory at any time.
-   * @param blockId The id of the block.
-   * @return filename on local RamDisk or null if file not present on local ramdisk.
+   * Returns the local filename for the block if that file exists on the local
+   * file system. This is an alpha power-api feature for applications that want
+   * short-circuit-read files directly. There is no guarantee that the file
+   * still exists after this call returns, as Tachyon may evict blocks from
+   * memory at any time.
+   * 
+   * @param blockId
+   *          The id of the block.
+   * @return filename on local file system or null if file not present on local
+   *         file system.
    */
-  public String getLocalFilename(long blockId) {
-    String localFileName = null;
+  String getLocalFilename(long blockId) {
     String rootFolder = getRootFolder();
     if (rootFolder != null) {
-      localFileName = rootFolder + Constants.PATH_SEPARATOR + blockId;
+      String localFileName = rootFolder + Constants.PATH_SEPARATOR + blockId;
       File file = new File(localFileName);
-      if (file.exists())
+      if (file.exists()) {
         return localFileName;
+      }
     }
     return null;
   }
 
   /**
    * Read local block return a TachyonByteBuffer
-   * @param blockId The id of the block.
-   * @param offset The start position to read.
-   * @param len The length to read. -1 represents read the whole block.
+   * 
+   * @param blockId
+   *          The id of the block.
+   * @param offset
+   *          The start position to read.
+   * @param len
+   *          The length to read. -1 represents read the whole block.
    * @return <code>TachyonByteBuffer</code> containing the block.
    * @throws IOException
    */
