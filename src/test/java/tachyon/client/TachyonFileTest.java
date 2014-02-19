@@ -17,6 +17,7 @@
 package tachyon.client;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 
 import junit.framework.Assert;
 
@@ -35,14 +36,19 @@ import tachyon.util.CommonUtils;
  * Unit tests for tachyon.client.TachyonFile.
  */
 public class TachyonFileTest {
-  private LocalTachyonCluster mLocalTachyonCluster = null;
-  private TachyonFS mTfs = null;
   private final int WORKER_CAPACITY_BYTES = 1000;
   private final int USER_QUOTA_UNIT_BYTES = 100;
   private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
       WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
   private final String PIN_DATA = "/pin";
   private final int MAX_FILES = WORKER_CAPACITY_BYTES / USER_QUOTA_UNIT_BYTES;
+
+  private final int MIN_LEN = 0;
+  private final int MAX_LEN = 255;
+  private final int DELTA = 33;
+
+  private LocalTachyonCluster mLocalTachyonCluster = null;
+  private TachyonFS mTfs = null;
 
   @Before
   public final void before() throws IOException {
@@ -169,6 +175,30 @@ public class TachyonFileTest {
     for (int k = 1; k < MAX_FILES; k ++) {
       file = mTfs.getFile("/file" + k);
       Assert.assertTrue(file.isInMemory());
+    }
+  }
+
+  /**
+   * Test <code>String getLocalFilename(long blockId) </code>.
+   */
+  @Test
+  public void readLocalTest() throws IOException {
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
+      int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" +
+          WriteType.MUST_CACHE, WriteType.MUST_CACHE, k);
+
+      TachyonFile file = mTfs.getFile(fileId);
+      Assert.assertEquals(1, file.getNumberOfBlocks());
+      long bid = mTfs.getBlockIdBasedOnOffset(file.FID, 0);
+      String localFname = mTfs.getLocalFilename(bid);
+      Assert.assertNotNull("Block not found on local ramdisk", localFname);
+      RandomAccessFile lfile = new RandomAccessFile(localFname, "r");
+      byte[] buf = new byte[k];
+      lfile.read(buf, 0, k);
+
+      Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, buf));
+
+      lfile.close();
     }
   }
 
