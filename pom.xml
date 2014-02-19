@@ -25,7 +25,7 @@
   <url>http://tachyonproject.org/</url>
   <licenses>
     <license>
-      <name>BSD License</name>
+      <name>Apache License</name>
       <url>https://github.com/amplab/tachyon/blob/master/LICENSE</url>
       <distribution>repo</distribution>
     </license>
@@ -34,7 +34,7 @@
     <connection>scm:git:git@github.com:amplab/tachyon.git</connection>
     <developerConnection>scm:git:git@github.com:amplab/tachyon.git</developerConnection>
     <url>scm:git:git@github.com:amplab/tachyon.git</url>
-    <tag>v0.3.0</tag>
+    <tag>v0.4.0</tag>
   </scm>
   <developers>
     <developer>

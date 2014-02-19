@@ -290,12 +290,14 @@ public final class CommonUtils {
   }
 
   /**
+   * Change the local file to full permission.
+   * 
    * @param file
    *          that will be changed to full permission
-   * @throws IOException 
+   * @throws IOException
    */
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
-    // set the full permission to everyone. //set the full permission to everyone.
+    // set the full permission to everyone.
     List<String> commands = new ArrayList<String>();
     commands.add("/bin/chmod");
     commands.add("777");
@@ -303,7 +305,6 @@ public final class CommonUtils {
     commands.add(file.getAbsolutePath());
 
     try {
-
       ProcessBuilder builder = new ProcessBuilder(commands);
       Process process = builder.start();
 
@@ -312,12 +313,12 @@ public final class CommonUtils {
 
       process.waitFor();
 
-      if(process.exitValue() != 0) {
-        throw new IOException("Can not change the permission of the following file to '777':" + file.getAbsolutePath());
+      if (process.exitValue() != 0) {
+        throw new IOException("Can not change the permission of the following file to '777':"
+            + file.getAbsolutePath());
       }
-
     } catch (InterruptedException e) {
-      e.printStackTrace();
+      LOG.error(e.getMessage());
       throw new IOException(e);
     }
   }
@@ -335,11 +336,10 @@ public final class CommonUtils {
     }).start();
   }
 
-
   /**
-   * If the sticky bit of the 'file' is set, the 'file' is only writable to its
-   * owner and the owner of the folder containing the 'file'.
-   *
+   * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the owner
+   * of the folder containing the 'file'.
+   * 
    * @param file
    *          absolute file path
    */
