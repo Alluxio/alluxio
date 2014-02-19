@@ -20,8 +20,8 @@ import java.io.IOException;
 
 /**
  * <code>InputStream</code> interface implementation of TachyonFile. It can only be gotten by
- * calling the methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by
- * the client code.
+ * calling the methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by the
+ * client code.
  */
 public abstract class BlockInStream extends InStream {
   protected final int BLOCK_INDEX;

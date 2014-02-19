@@ -47,9 +47,9 @@ import tachyon.util.CommonUtils;
 import tachyon.util.UnderfsUtil;
 
 /**
- * An Hadoop FileSystem interface implementation. Any program working with
- * Hadoop HDFS can work with Tachyon transparently by using this class. However,
- * it is not as efficient as using the Tachyon API in tachyon.client package.
+ * An Hadoop FileSystem interface implementation. Any program working with Hadoop HDFS can work with
+ * Tachyon transparently by using this class. However, it is not as efficient as using the Tachyon
+ * API in tachyon.client package.
  */
 public class TFS extends FileSystem {
   public static final String FIRST_COM_PATH = "tachyon_dep/";
@@ -66,7 +66,8 @@ public class TFS extends FileSystem {
 
   /**
    * Returns an object implementing the Tachyon-specific client API.
-   * Returns null if initialize() hasn't been called.
+   * 
+   * @return null if initialize() hasn't been called.
    */
   public TachyonFS getTachyonFS() {
     return mTFS;
