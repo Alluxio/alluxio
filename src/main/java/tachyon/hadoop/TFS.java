@@ -64,6 +64,14 @@ public class TFS extends FileSystem {
   private TachyonFS mTFS = null;
   private String mTachyonHeader = null;
 
+  /**
+   * Returns an object implementing the Tachyon-specific client API.
+   * Returns null if initialize() hasn't been called.
+   */
+  public TachyonFS getTachyonFS() {
+    return mTFS;
+  }
+
   @Override
   public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)
       throws IOException {
