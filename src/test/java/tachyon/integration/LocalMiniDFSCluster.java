@@ -29,16 +29,16 @@ import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 
 import tachyon.conf.CommonConf;
-import tachyon.master.LocalUnderFilesystemCluster;
+import tachyon.master.UnderFilesystemCluster;
 import tachyon.util.CommonUtils;
 
 /**
  * A local MiniDFSCluster for test hadoop-ufs.
  */
-public class LocalMiniDFSCluster extends LocalUnderFilesystemCluster {
+public class LocalMiniDFSCluster extends UnderFilesystemCluster {
+  private final Configuration CONF = new Configuration();
   private int mNamenodePort;
   private int mNumDataNode;
-  private final Configuration conf = new Configuration();
 
   private String mHdfsAddress = null;
 
@@ -88,8 +88,8 @@ public class LocalMiniDFSCluster extends LocalUnderFilesystemCluster {
    */
   public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, int nameNodePort) {
     super(dfsBaseDirs);
-    this.mNamenodePort = nameNodePort;
-    this.mNumDataNode = numDataNode;
+    mNamenodePort = nameNodePort;
+    mNumDataNode = numDataNode;
   }
 
   /**
@@ -98,7 +98,7 @@ public class LocalMiniDFSCluster extends LocalUnderFilesystemCluster {
    * @return port of namenode
    */
   public int getNameNodePort() {
-    return this.mNamenodePort;
+    return mNamenodePort;
   }
 
   /**
@@ -107,8 +107,8 @@ public class LocalMiniDFSCluster extends LocalUnderFilesystemCluster {
    * @return namenode address
    */
   public String getUnderFilesystemAddress() {
-    if (null != this.mDfsClient) {
-      return this.mDfsClient.getUri().toString();
+    if (null != mDfsClient) {
+      return mDfsClient.getUri().toString();
     } else {
       return null;
     }
@@ -121,7 +121,7 @@ public class LocalMiniDFSCluster extends LocalUnderFilesystemCluster {
    */
   @Override
   public void start() throws IOException {
-    if (!this.mIsStarted) {
+    if (!mIsStarted) {
 
       delete(mBaseDir, true);
       mkdir(mBaseDir);
@@ -130,13 +130,13 @@ public class LocalMiniDFSCluster extends LocalUnderFilesystemCluster {
       // known issue caused by "umask 002"(should be 022) see [HDFS-2556]. So
       // the following codes only work for hadoop 2.x or "umask 022"
       System.setProperty("test.build.data", mBaseDir);
-      mDfsCluster = new MiniDFSCluster(this.mNamenodePort, conf, this.mNumDataNode, true, true,
+      mDfsCluster = new MiniDFSCluster(mNamenodePort, CONF, mNumDataNode, true, true,
           null, null);
 
       mDfsCluster.waitClusterUp();
 
-      if (0 == this.mNamenodePort) {
-        this.mNamenodePort = mDfsCluster.getNameNodePort();
+      if (0 == mNamenodePort) {
+        mNamenodePort = mDfsCluster.getNameNodePort();
       }
 
       mDfsClient = (DistributedFileSystem) mDfsCluster.getFileSystem();
@@ -165,11 +165,11 @@ public class LocalMiniDFSCluster extends LocalUnderFilesystemCluster {
   }
 
   public DistributedFileSystem getDFSClient() {
-    return this.mDfsClient;
+    return mDfsClient;
   }
 
   public Configuration getConf() {
-    return this.conf;
+    return CONF;
   }
 
   private void mkdir(String path) throws IOException {
@@ -179,13 +179,13 @@ public class LocalMiniDFSCluster extends LocalUnderFilesystemCluster {
   }
 
   private void delete(String path, boolean isRecursively) throws IOException {
-    File p = new File(path);
-    if (isRecursively && p.isDirectory()) {
-      for (File subdir : p.listFiles()) {
+    File file = new File(path);
+    if (isRecursively && file.isDirectory()) {
+      for (File subdir : file.listFiles()) {
         delete(subdir.getAbsolutePath(), isRecursively);
       }
     }
-    p.delete();
+    file.delete();
   }
 
   /**

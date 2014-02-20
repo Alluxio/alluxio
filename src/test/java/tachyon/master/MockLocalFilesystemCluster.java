@@ -19,31 +19,14 @@ package tachyon.master;
 import java.io.File;
 import java.io.IOException;
 
-import tachyon.util.CommonUtils;
+/**
+ * The mock cluster for local file system as underfs.
+ *
+ */
+public class MockLocalFilesystemCluster extends UnderFilesystemCluster {
 
-public class LocalUnderFilesystemCluster {
-  static private final String INTEGRATION_UFS_PROFILE_KEY = "ufs";
-
-  protected String mBaseDir;
-
-  public LocalUnderFilesystemCluster(String baseDir) {
-    this.mBaseDir = baseDir;
-  }
-
-  public static LocalUnderFilesystemCluster getLocalUnderFilesystemCluster(String baseDir) {
-    String ufsClz = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
-
-    if (ufsClz != null && !ufsClz.equals("")) {
-      try {
-        LocalUnderFilesystemCluster ufsCluster = (LocalUnderFilesystemCluster) Class
-            .forName(ufsClz).getConstructor(String.class).newInstance(baseDir);
-        return ufsCluster;
-      } catch (Exception e) {
-        System.out.println("Failed to initialize ufsCluster for integration test");
-        CommonUtils.runtimeException(e);
-      }
-    }
-    return new LocalUnderFilesystemCluster(baseDir);
+  public MockLocalFilesystemCluster(String baseDir) {
+    super(baseDir);
   }
 
   public void start() throws IOException {
@@ -57,6 +40,6 @@ public class LocalUnderFilesystemCluster {
   }
 
   public String getUnderFilesystemAddress() {
-    return new File(this.mBaseDir).getAbsolutePath();
+    return new File(mBaseDir).getAbsolutePath();
   }
 }
