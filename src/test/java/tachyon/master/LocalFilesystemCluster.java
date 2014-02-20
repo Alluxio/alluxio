@@ -23,9 +23,9 @@ import java.io.IOException;
  * The mock cluster for local file system as underfs.
  *
  */
-public class MockLocalFilesystemCluster extends UnderFilesystemCluster {
+public class LocalFilesystemCluster extends UnderFilesystemCluster {
 
-  public MockLocalFilesystemCluster(String baseDir) {
+  public LocalFilesystemCluster(String baseDir) {
     super(baseDir);
   }
 
