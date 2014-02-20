@@ -483,10 +483,12 @@ public class EditLog {
    */
   private synchronized void _close() {
     try {
-      if (DOS != null)
+      if (DOS != null) {
         DOS.close();
-      if (OS != null)
+      }
+      if (OS != null) {
         OS.close();
+      }
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }

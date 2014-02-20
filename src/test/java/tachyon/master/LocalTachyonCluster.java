@@ -52,7 +52,7 @@ public class LocalTachyonCluster {
   private Thread mWorkerThread = null;
 
   private String mLocalhostName = null;
-  private UnderFilesystemCluster cluster = null;
+  private UnderFilesystemCluster mUnderFSCluster = null;
 
   private List<TachyonFS> mClients = new ArrayList<TachyonFS>();
 
@@ -98,11 +98,11 @@ public class LocalTachyonCluster {
   }
 
   public String getEditLogPath() {
-    return cluster.getUnderFilesystemAddress() + "/journal/log.data";
+    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/log.data";
   }
 
   public String getImagePath() {
-    return cluster.getUnderFilesystemAddress() + "/journal/image.data";
+    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/image.data";
   }
 
   private void mkdir(String path) throws IOException {
@@ -134,14 +134,14 @@ public class LocalTachyonCluster {
     // Otherwise, it starts some distributed file system cluster e.g.,
     // miniDFSCluster (see also {@link tachyon.integration.LocalMiniDFScluster}
     // and setup the folder like "hdfs://xxx:xxx/tachyon".
-    cluster = UnderFilesystemCluster.getUnderFilesystemCluster(mTachyonHome + "/dfs");
-    if (!cluster.isStarted()) {
-      cluster.start();
+    mUnderFSCluster = UnderFilesystemCluster.getUnderFilesystemCluster(mTachyonHome + "/dfs");
+    if (!mUnderFSCluster.isStarted()) {
+      mUnderFSCluster.start();
     }
-    String underfsFolder = cluster.getUnderFilesystemAddress() + "/tachyon";
+    String underfsFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/tachyon";
     // To setup the journalFolder under either local file system or distributed ufs
     // like miniDFSCluster
-    String masterJournalFolder = cluster.getUnderFilesystemAddress() + "/journal";
+    String masterJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
 
     System.setProperty("tachyon.home", mTachyonHome);
     System.setProperty("tachyon.underfs.address", underfsFolder);
@@ -230,7 +230,7 @@ public class LocalTachyonCluster {
    * @throws Exception
    */
   public void stopUFS() throws Exception {
-    cluster.shutdown();
+    mUnderFSCluster.shutdown();
     System.clearProperty("tachyon.master.journal.folder");
     System.clearProperty("tachyon.underfs.address");
   }
