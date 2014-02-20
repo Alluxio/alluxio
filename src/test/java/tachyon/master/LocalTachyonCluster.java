@@ -192,17 +192,28 @@ public class LocalTachyonCluster {
     mWorkerThread.start();
   }
 
+  /**
+   * Stop both of the tachyon and underfs service threads.
+   * @throws Exception
+   */
   public void stop() throws Exception {
+    stopTFS();
+    stopUFS();
+  }
+
+  /**
+   * Stop the tachyon filesystem's service thread only
+   * @throws Exception
+   */
+  public void stopTFS() throws Exception {
     for (TachyonFS fs : mClients) {
       fs.close();
     }
 
     mWorker.stop();
     mMaster.stop();
-    cluster.shutdown();
 
     System.clearProperty("tachyon.home");
-    System.clearProperty("tachyon.underfs.address");
     System.clearProperty("tachyon.master.hostname");
     System.clearProperty("tachyon.master.port");
     System.clearProperty("tachyon.master.web.port");
@@ -212,7 +223,16 @@ public class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.memory.size");
     System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
     System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
+  }
+
+  /**
+   * Stop the underfs cluster
+   * @throws Exception
+   */
+  public void stopUFS() throws Exception {
+    cluster.shutdown();
     System.clearProperty("tachyon.master.journal.folder");
+    System.clearProperty("tachyon.underfs.address");
   }
 
   public void stopWorker() throws Exception {
