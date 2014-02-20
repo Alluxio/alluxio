@@ -44,7 +44,7 @@ public abstract class UnderFilesystemCluster {
         CommonUtils.runtimeException(e);
       }
     }
-    return new MockLocalFilesystemCluster(baseDir);
+    return new LocalFilesystemCluster(baseDir);
   }
 
   public static String getUFSClass() {
