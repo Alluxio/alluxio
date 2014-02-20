@@ -238,12 +238,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <excludes>
-                <exclude>**/integration/*.java</exclude>
-                <exclude>**/*IntegrationTest.java</exclude>
-              </excludes>
-            </configuration>
             <executions>
               <execution>
                 <id>default-testCompile</id>
