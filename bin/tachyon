@@ -10,8 +10,8 @@ function printUsage {
   echo -e "  runTests      \t Run all end-to-end tests on a Tachyon cluster."
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
-  echo -e "  thriftGen     \t Generate all thrift code."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
+  echo -e "  thriftGen     \t Generate all thrift code."
   echo -e "  version       \t Print Tachyon version and exit."
   echo "Commands print help when invoked without parameters."
 }
@@ -148,8 +148,7 @@ elif [ "$COMMAND" == "clearCache" ]; then
   sync; echo 3 > /proc/sys/vm/drop_caches ;
   exit 0
 elif [ "$COMMAND" == "version" ]; then
-  java -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.Version
-  exit 0
+  CLASS=tachyon.Version
 else
   printUsage
   exit 1
