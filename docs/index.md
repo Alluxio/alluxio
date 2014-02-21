@@ -76,6 +76,13 @@ an existing underlayer filesystem.
 
 [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
 
+# External resources
+
+
+[Tachyon Mini Courses at Strata 2014](http://ampcamp.berkeley.edu/big-data-mini-course/)
+
+[Hot Rod Hadoop With Tachyon on Fedora 21](http://timothysc.github.io/blog/2014/02/17/bdas-tachyon/)
+
 # Support or Contact
 
 You are welcome to join our
