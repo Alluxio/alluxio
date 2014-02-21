@@ -56,4 +56,4 @@ To run all unit tests:
 
 To run all the unit tests with under filesystem other than local filesystem:
 
-    $ mvn test [ -Dhadoop.version=x.x.x ] -Dintegration [ -Dufs=tachyon.integration.LocalMiniDFSCluster ]
+    $ mvn test [ -Dhadoop.version=x.x.x ] -Dintegration [ -Dufs=tachyon.LocalMiniDFSCluster ]
