@@ -14,33 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package tachyon.integration;
+package tachyon;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetAddress;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 
-import tachyon.conf.CommonConf;
-import tachyon.master.UnderFilesystemCluster;
 import tachyon.util.CommonUtils;
 
 /**
- * A local MiniDFSCluster for test hadoop-ufs.
+ * A local MiniDFSCluster for testing UnderFileSystemHdfs.
  */
-public class LocalMiniDFSCluster extends UnderFilesystemCluster {
+public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   private final Configuration CONF = new Configuration();
+
   private int mNamenodePort;
   private int mNumDataNode;
-
-  private String mHdfsAddress = null;
 
   private MiniDFSCluster mDfsCluster = null;
   private DistributedFileSystem mDfsClient = null;
@@ -49,11 +43,10 @@ public class LocalMiniDFSCluster extends UnderFilesystemCluster {
 
   /**
    * To initialize the local minidfscluster
-   *
+   * 
    * @param dfsBaseDirs
-   *          The base directory for both namenode and datanode. The
-   *          dfs.name.dir and dfs.data.dir will be setup as dfsBaseDir/name*
-   *          and dfsBaseDir/data* respectively
+   *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
+   *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
    * @param numDataNode
    *          The number of datanode
    */
@@ -62,29 +55,16 @@ public class LocalMiniDFSCluster extends UnderFilesystemCluster {
   }
 
   /**
-   * To intiaize the local minidfscluster with single namenode and datanode
-   *
-   * @param dfsBaseDirs
-   *          The base directory for both namenode and datanode. The
-   *          dfs.name.dir and dfs.data.dir will be setup as dfsBaseDir/name*
-   *          and dfsBaseDir/data* respectively
-   */
-  public LocalMiniDFSCluster(String dfsBaseDirs) {
-    this(dfsBaseDirs, 1, 0);
-  }
-
-  /**
    * To initialize the local minidfscluster
-   *
+   * 
    * @param dfsBaseDirs
-   *          The base directory for both namenode and datanode. The
-   *          dfs.name.dir and dfs.data.dir will be setup as dfsBaseDir/name*
-   *          and dfsBaseDir/data* respectively
+   *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
+   *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
    * @param numDataNode
    *          The number of datanode
    * @param nameNodePort
-   *          The port of namenode. If it is 0, the real namenode port can be
-   *          retrieved by {@link #getNameNodePort()} after the cluster started
+   *          The port of namenode. If it is 0, the real namenode port can be retrieved by
+   *          {@link #getNameNodePort()} after the cluster started
    */
   public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, int nameNodePort) {
     super(dfsBaseDirs);
@@ -109,14 +89,13 @@ public class LocalMiniDFSCluster extends UnderFilesystemCluster {
   public String getUnderFilesystemAddress() {
     if (null != mDfsClient) {
       return mDfsClient.getUri().toString();
-    } else {
-      return null;
     }
+    return null;
   }
 
   /**
    * To start the minidfscluster before using it
-   *
+   * 
    * @throws IOException
    */
   @Override
@@ -124,15 +103,15 @@ public class LocalMiniDFSCluster extends UnderFilesystemCluster {
     if (!mIsStarted) {
 
       delete(mBaseDir, true);
-      mkdir(mBaseDir);
+      if (!CommonUtils.mkdirs(mBaseDir)) {
+        throw new IOException("Failed to make folder: " + mBaseDir);
+      }
 
-      // TODO For hadoop 1.x, there exists NPE while startDataNode. It is a
-      // known issue caused by "umask 002"(should be 022) see [HDFS-2556]. So
-      // the following codes only work for hadoop 2.x or "umask 022"
+      // TODO For hadoop 1.x, there exists NPE while startDataNode. It is a known issue caused by
+      // "umask 002"(should be 022) see [HDFS-2556]. So the following codes only work for
+      // hadoop 2.x or "umask 022"
       System.setProperty("test.build.data", mBaseDir);
-      mDfsCluster = new MiniDFSCluster(mNamenodePort, CONF, mNumDataNode, true, true,
-          null, null);
-
+      mDfsCluster = new MiniDFSCluster(mNamenodePort, CONF, mNumDataNode, true, true, null, null);
       mDfsCluster.waitClusterUp();
 
       if (0 == mNamenodePort) {
@@ -141,7 +120,6 @@ public class LocalMiniDFSCluster extends UnderFilesystemCluster {
 
       mDfsClient = (DistributedFileSystem) mDfsCluster.getFileSystem();
       mIsStarted = true;
-
     }
   }
 
@@ -166,16 +144,6 @@ public class LocalMiniDFSCluster extends UnderFilesystemCluster {
 
   public DistributedFileSystem getDFSClient() {
     return mDfsClient;
-  }
-
-  public Configuration getConf() {
-    return CONF;
-  }
-
-  private void mkdir(String path) throws IOException {
-    if (!CommonUtils.mkdirs(path)) {
-      throw new IOException("Failed to make folder: " + path);
-    }
   }
 
   private void delete(String path, boolean isRecursively) throws IOException {
@@ -224,9 +192,9 @@ public class LocalMiniDFSCluster extends UnderFilesystemCluster {
 
       cluster.shutdown();
     } finally {
-      if (cluster != null && cluster.isStarted())
+      if (cluster != null && cluster.isStarted()) {
         cluster.shutdown();
+      }
     }
-
   }
 }

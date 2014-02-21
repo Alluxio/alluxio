@@ -48,11 +48,12 @@ You can also stop the system by using:
 
     $ ./bin/tachyon-stop.sh
 
-# Integration Test
-To run all the integration test-cases as below is optional for it is too time-consuming. 
+# Unit tests
 
-    $ run test -Dintegration
+To run all unit tests:
 
-But we do strongly recommend any contributor to run specific test case(s) to ensure its compatibility with non-local ufs(e.g., hdfs). For example: 
+    $ mvn test
 
-    $ run test -Dintegration -Dtest="*FileOutStreamTest#writeTest1" 
+To run all the unit tests with under filesystem other than local filesystem:
+
+    $ mvn test [ -Dhadoop.version=x.x.x ] -Dintegration [ -Dufs=tachyon.integration.LocalMiniDFSCluster ]

@@ -191,11 +191,6 @@
   </dependencies>
 
   <profiles>
-  <!-- Integration Test Profile -->
-  <!-- To Run all the integration test-cases by `run test -Dintegration` 
-    is optional for it is time-consuming. But we do strongly recommend any contributor 
-    to run one/some test case(s) by `run test -Dintegration -Dtest="*xxxTest*"`, 
-    to ensure its compatibility with the non-local ufs (e.g., hdfs). -->
     <profile>
       <id>integrationTest</id>
       <activation>
@@ -262,8 +257,7 @@
                 <phase>test-compile</phase>
                 <configuration>
                   <testExcludes>
-                    <exclude>**/integration/*.java</exclude>
-                    <exclude>**/*IntegrationTest.java</exclude>
+                    <exclude>**/LocalMiniDFSCluster.java</exclude>
                   </testExcludes>
                 </configuration>
                 <goals>

@@ -62,7 +62,7 @@ public class JournalTest {
   @After
   public final void after() throws Exception {
     System.clearProperty("tachyon.user.quota.unit.bytes");
-    mLocalTachyonCluster.stopUFS();
+    mLocalTachyonCluster.stop();
   }
 
   @Test
@@ -196,7 +196,7 @@ public class JournalTest {
     Journal journal = mLocalTachyonCluster.getMasterInfo().getJournal();
     journal.setMaxLogSize(Constants.KB);
     for (int i = 0; i < 124; i ++) {
-      int fid = mTfs.createFile("/a" + i, (i + 10) / 10 * 64);
+      mTfs.createFile("/a" + i, (i + 10) / 10 * 64);
     }
     mLocalTachyonCluster.stopTFS();
     String editLogPath = mLocalTachyonCluster.getEditLogPath();

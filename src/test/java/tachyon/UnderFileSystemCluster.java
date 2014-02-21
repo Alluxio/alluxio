@@ -14,29 +14,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package tachyon.master;
+package tachyon;
 
 import java.io.IOException;
 
 import tachyon.util.CommonUtils;
 
-public abstract class UnderFilesystemCluster {
-  static private final String INTEGRATION_UFS_PROFILE_KEY = "ufs";
-  static private String mUfsClz;
+public abstract class UnderFileSystemCluster {
+  private final static String INTEGRATION_UFS_PROFILE_KEY = "ufs";
+
+  private static String mUfsClz;
 
   protected String mBaseDir;
 
-  public UnderFilesystemCluster(String baseDir) {
+  public UnderFileSystemCluster(String baseDir) {
     mBaseDir = baseDir;
   }
 
-  public static UnderFilesystemCluster getUnderFilesystemCluster(String baseDir) {
+  public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir) {
     mUfsClz = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
 
     if (mUfsClz != null && !mUfsClz.equals("")) {
       try {
-        UnderFilesystemCluster ufsCluster = (UnderFilesystemCluster) Class.forName(mUfsClz)
-            .getConstructor(String.class).newInstance(baseDir);
+        UnderFileSystemCluster ufsCluster =
+            (UnderFileSystemCluster) Class.forName(mUfsClz).getConstructor(String.class)
+                .newInstance(baseDir);
         return ufsCluster;
       } catch (Exception e) {
         System.out.println("Failed to initialize the ufsCluster of " + mUfsClz
@@ -47,18 +49,13 @@ public abstract class UnderFilesystemCluster {
     return new LocalFilesystemCluster(baseDir);
   }
 
-  public static String getUFSClass() {
-    return mUfsClz;
-  }
-
   /**
-   * This method is only for unit-test {@link tachyon.client.FileOutStreamTest}
-   * temporally
-   *
+   * This method is only for unit-test {@link tachyon.client.FileOutStreamTest} temporally
+   * 
    * @return
    */
   public static boolean isUFSHDFS() {
-    return mUfsClz.equals("tachyon.integration.LocalMiniDFSCluster");
+    return mUfsClz.equals("tachyon.LocalMiniDFSCluster");
   }
 
   abstract public void start() throws IOException;

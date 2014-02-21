@@ -184,7 +184,7 @@ public class TachyonFS {
       mMasterClient.cleanConnect();
     }
 
-    if (mWorkerClient != null) {
+    if (mWorkerClient != null && mWorkerClient.isConnected()) {
       mWorkerClient.returnSpace(mUserId, mAvailableSpaceBytes);
       mWorkerClient.close();
     }

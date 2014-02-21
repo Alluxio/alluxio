@@ -18,8 +18,7 @@ A list of tasks that everyone should do before contributing to Tachyon.
 
 4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/src/main/java/tachyon/examples/BasicOperations.java).
 
-5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html). Then
-    run `mvn test` and make sure all tests pass. ([Integration Test](Building-Tachyon-Master-Branch.html#integration-test) is optional.)
+5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
 
 6.  Fork the repository, write/add unit tests/java doc for one or two
     files in the following list, and then submit a pull request.
