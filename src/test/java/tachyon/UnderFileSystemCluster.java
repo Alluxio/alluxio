@@ -55,7 +55,7 @@ public abstract class UnderFileSystemCluster {
    * @return
    */
   public static boolean isUFSHDFS() {
-    return mUfsClz.equals("tachyon.LocalMiniDFSCluster");
+    return (null != mUfsClz) && (mUfsClz.equals("tachyon.LocalMiniDFSCluster"));
   }
 
   abstract public void start() throws IOException;

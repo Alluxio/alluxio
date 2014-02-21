@@ -113,8 +113,7 @@ public final class CommonUtils {
 
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
     // TODO this is a trick to fix the issue in thrift. Change the code to use
-    // metadata directly
-    // when thrift fixes the issue.
+    // metadata directly when thrift fixes the issue.
     ByteBuffer correctData = ByteBuffer.allocate(data.limit() - data.position());
     correctData.put(data);
     correctData.flip();
@@ -273,7 +272,7 @@ public final class CommonUtils {
 
   /**
    * Parse InetSocketAddress from a String
-   *
+   * 
    * @param address
    * @return
    * @throws IOException
@@ -356,7 +355,7 @@ public final class CommonUtils {
 
   /**
    * Create an empty file
-   *
+   * 
    * @throws IOException
    */
   public static void touch(String path) throws IOException {
