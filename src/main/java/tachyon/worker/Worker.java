@@ -192,14 +192,30 @@ public class Worker implements Runnable {
     mHeartbeatThread.join();
   }
 
+  private static String getMasterLocation(String[] args) {
+    WorkerConf wConf = WorkerConf.get();
+    String masterLocation;
+    if (args.length < 2) {
+      masterLocation = wConf.MASTER_HOSTNAME + ":" + wConf.MASTER_PORT;
+    } else {
+      masterLocation = args[1];
+      if (masterLocation.indexOf(":") == -1)
+        masterLocation += ":" + wConf.MASTER_HOSTNAME;
+    }
+    return masterLocation;
+  }
+
   public static void main(String[] args) throws UnknownHostException {
-    if (args.length != 1) {
+    if (args.length < 1 || args.length > 2) {
       LOG.info("Usage: java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
-          "tachyon.Worker <WorkerHost>");
+          "tachyon.Worker <WorkerHost> [<MasterHost:Port>]");
       System.exit(-1);
     }
+    String masterLocation = getMasterLocation(args);
+
     WorkerConf wConf = WorkerConf.get();
-    Worker worker = Worker.createWorker(wConf.MASTER_HOSTNAME + ":" + wConf.MASTER_PORT,
+
+    Worker worker = Worker.createWorker(masterLocation,
         args[0] + ":" + wConf.PORT, wConf.DATA_PORT,
         wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
         wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
