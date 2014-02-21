@@ -47,3 +47,12 @@ You should be able to see results similar to the following:
 You can also stop the system by using:
 
     $ ./bin/tachyon-stop.sh
+
+# Integration Test
+To run all the integration test-cases as below is optional for it is too time-consuming. 
+
+    $ run test -Dintegration
+
+But we do strongly recommend any contributor to run specific test case(s) to ensure its compatibility with non-local ufs(e.g., hdfs). For example: 
+
+    $ run test -Dintegration -Dtest="*FileOutStreamTest#writeTest1" 

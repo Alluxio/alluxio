@@ -276,9 +276,10 @@ public class EditLog {
     if (INACTIVE) {
       return;
     }
-    close();
+    _close();
     LOG.info("Edit log max size reached, rotating edit log");
     String pathPrefix = path.substring(0, path.lastIndexOf("/")) + "/completed";
+    LOG.info("path: "+ path + " prefix: " + pathPrefix);
     try {
       if (!UFS.exists(pathPrefix)) {
         UFS.mkdirs(pathPrefix, true);
@@ -478,6 +479,22 @@ public class EditLog {
   }
 
   /**
+   * Only close those outputStreams.
+   */
+  private synchronized void _close() {
+    try {
+      if (DOS != null) {
+        DOS.close();
+      }
+      if (OS != null) {
+        OS.close();
+      }
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+  }
+
+  /**
    * Close the log.
    */
   public synchronized void close() {
@@ -485,8 +502,7 @@ public class EditLog {
       return;
     }
     try {
-      DOS.close();
-      OS.close();
+      _close();
       UFS.close();
     } catch (IOException e) {
       CommonUtils.runtimeException(e);

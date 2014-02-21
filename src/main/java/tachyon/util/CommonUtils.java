@@ -324,7 +324,7 @@ public final class CommonUtils {
   }
 
   static void redirectStreamAsync(final InputStream input, final PrintStream output) {
-    new Thread(new Runnable() {        
+    new Thread(new Runnable() {
       @Override
       public void run() {
         Scanner scanner = new Scanner(input);
@@ -363,5 +363,10 @@ public final class CommonUtils {
     UnderFileSystem ufs = UnderFileSystem.get(path);
     OutputStream os = ufs.create(path);
     os.close();
+  }
+
+  public static boolean mkdirs(String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+    return ufs.mkdirs(path, true);
   }
 }
