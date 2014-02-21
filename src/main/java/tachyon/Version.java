@@ -48,4 +48,8 @@ public class Version {
 
     VERSION = p.getProperty("tachyon.version", "UNDEFINED");
   }
+
+  public static void main(String[] args) {
+    System.out.println(VERSION);
+  }
 }
