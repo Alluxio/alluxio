@@ -29,6 +29,7 @@ import org.junit.Assert;
 
 import tachyon.PrefixList;
 import tachyon.UnderFileSystem;
+import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.UnderfsUtil;
@@ -36,9 +37,8 @@ import tachyon.util.CommonUtils;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.
- *
  */
-public class UnderfsUtilIntegrationTest {
+public class UnderfsUtilTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
   private String mUnderfsAddress = null;
@@ -66,6 +66,10 @@ public class UnderfsUtilIntegrationTest {
 
   @Test
   public void getInfoTest() throws IOException {
+    if (!UnderFileSystemCluster.isUFSHDFS()) {
+      return;
+    }
+
     String[] exclusions = { "/tachyon", "/exclusions" };
     String[] inclusions = { "/inclusions/sub-1", "/inclusions/sub-2" };
     for (String exclusion : exclusions) {
@@ -99,5 +103,4 @@ public class UnderfsUtilIntegrationTest {
       Assert.assertNotNull(paths);
     }
   }
-
 }
