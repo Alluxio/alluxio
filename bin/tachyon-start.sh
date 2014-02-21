@@ -197,7 +197,7 @@ case "${WHAT}" in
     ;;
   workers)
     check_mount_mode $2
-    $bin/tachyon-slaves.sh $bin/tachyon-start.sh worker $2
+    $bin/tachyon-slaves.sh $bin/tachyon-start.sh worker $2 $TACHYON_MASTER_ADDRESS
     ;;
   restart_worker)
     restart_worker
