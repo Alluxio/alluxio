@@ -64,5 +64,7 @@ A list of tasks that everyone should do before contributing to Tachyon.
     -   Maximum line length of 100 characters.
     -   `i ++` instead of `i++`
     -   `i + j` instead of `i+j`
+    -   You can also download the [code formatter](./resources/tachyon-code-formatter-eclipse.xml)
+     (version 12) for eclipse.
 
 -   Make sure that your code passes the unit tests.
