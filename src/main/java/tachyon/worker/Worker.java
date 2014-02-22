@@ -57,8 +57,8 @@ public class Worker implements Runnable {
   private volatile boolean mStop = false;
 
   private Worker(InetSocketAddress masterAddress, InetSocketAddress workerAddress, int dataPort,
-      int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
-      String dataFolder, long memoryCapacityBytes) {
+      int selectorThreads, int acceptQueueSizePerThreads, int workerThreads, String dataFolder,
+      long memoryCapacityBytes) {
     MasterAddress = masterAddress;
     WorkerAddress = workerAddress;
 
@@ -67,8 +67,8 @@ public class Worker implements Runnable {
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
-    mDataServer = new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
-        mWorkerStorage);
+    mDataServer = new DataServer(
+        new InetSocketAddress(workerAddress.getHostName(), dataPort), mWorkerStorage);
     mDataServerThread = new Thread(mDataServer);
 
     mHeartbeatThread = new Thread(this);
@@ -78,10 +78,10 @@ public class Worker implements Runnable {
           new WorkerService.Processor<WorkerServiceHandler>(mWorkerServiceHandler);
 
       // TODO This is for Thrift 0.8 or newer.
-      //      mServer = new TThreadedSelectorServer(new TThreadedSelectorServer
-      //          .Args(new TNonblockingServerSocket(workerAddress)).processor(processor)
-      //          .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
-      //          .workerThreads(workerThreads));
+      // mServer = new TThreadedSelectorServer(new TThreadedSelectorServer
+      // .Args(new TNonblockingServerSocket(workerAddress)).processor(processor)
+      // .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
+      // .workerThreads(workerThreads));
 
       // This is for Thrift 0.7.0, for Hive compatibility.
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(workerAddress);
@@ -124,24 +124,24 @@ public class Worker implements Runnable {
 
       if (cmd != null) {
         switch (cmd.mCommandType) {
-        case Unknown :
+        case Unknown:
           LOG.error("Unknown command: " + cmd);
           break;
-        case Nothing :
+        case Nothing:
           LOG.debug("Nothing command: " + cmd);
           break;
-        case Register :
+        case Register:
           LOG.info("Register command: " + cmd);
           mWorkerStorage.register();
           break;
-        case Free :
+        case Free:
           mWorkerStorage.freeBlocks(cmd.mData);
           LOG.info("Free command: " + cmd);
           break;
-        case Delete :
+        case Delete:
           LOG.info("Delete command: " + cmd);
           break;
-        default :
+        default:
           CommonUtils.runtimeException("Un-recognized command from master " + cmd.toString());
         }
       }
@@ -157,15 +157,15 @@ public class Worker implements Runnable {
         acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
   }
 
-  public static synchronized Worker createWorker(String masterAddress,
-      String workerAddress, int dataPort, int selectorThreads, int acceptQueueSizePerThreads,
-      int workerThreads, String localFolder, long spaceLimitBytes) {
+  public static synchronized Worker createWorker(String masterAddress, String workerAddress,
+      int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
+      String localFolder, long spaceLimitBytes) {
     String[] address = masterAddress.split(":");
     InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
     address = workerAddress.split(":");
     InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
-    return new Worker(master, worker, dataPort, selectorThreads,
-        acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
+    return new Worker(master, worker, dataPort, selectorThreads, acceptQueueSizePerThreads,
+        workerThreads, localFolder, spaceLimitBytes);
   }
 
   public void start() {
@@ -194,13 +194,18 @@ public class Worker implements Runnable {
 
   private static String getMasterLocation(String[] args) {
     WorkerConf wConf = WorkerConf.get();
+    String confFileMasterLoc = wConf.MASTER_HOSTNAME + ":" + wConf.MASTER_PORT;
     String masterLocation;
     if (args.length < 2) {
-      masterLocation = wConf.MASTER_HOSTNAME + ":" + wConf.MASTER_PORT;
+      masterLocation = confFileMasterLoc;
     } else {
       masterLocation = args[1];
       if (masterLocation.indexOf(":") == -1) {
         masterLocation += ":" + wConf.MASTER_PORT;
+      }
+      if (!masterLocation.equals(confFileMasterLoc)) {
+        LOG.warn("Master Address in configuration file(" + confFileMasterLoc + ") is different "
+            + "from the command line one(" + masterLocation + ").");
       }
     }
     return masterLocation;
@@ -208,8 +213,8 @@ public class Worker implements Runnable {
 
   public static void main(String[] args) throws UnknownHostException {
     if (args.length < 1 || args.length > 2) {
-      LOG.info("Usage: java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
-          "tachyon.Worker <WorkerHost> [<MasterHost:Port>]");
+      LOG.info("Usage: java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
+          + "tachyon.Worker <WorkerHost> [<MasterHost:Port>]");
       System.exit(-1);
     }
 
@@ -224,6 +229,7 @@ public class Worker implements Runnable {
 
   /**
    * Get the worker server handler class. This is for unit test only.
+   * 
    * @return the WorkerServiceHandler
    */
   WorkerServiceHandler getWorkerServiceHandler() {
