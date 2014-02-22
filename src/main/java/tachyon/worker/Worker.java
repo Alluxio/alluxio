@@ -200,7 +200,7 @@ public class Worker implements Runnable {
     } else {
       masterLocation = args[1];
       if (masterLocation.indexOf(":") == -1)
-        masterLocation += ":" + wConf.MASTER_HOSTNAME;
+        masterLocation += ":" + wConf.MASTER_PORT;
     }
     return masterLocation;
   }
