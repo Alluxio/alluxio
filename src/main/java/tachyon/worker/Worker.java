@@ -199,8 +199,9 @@ public class Worker implements Runnable {
       masterLocation = wConf.MASTER_HOSTNAME + ":" + wConf.MASTER_PORT;
     } else {
       masterLocation = args[1];
-      if (masterLocation.indexOf(":") == -1)
+      if (masterLocation.indexOf(":") == -1) {
         masterLocation += ":" + wConf.MASTER_PORT;
+      }
     }
     return masterLocation;
   }
@@ -211,11 +212,10 @@ public class Worker implements Runnable {
           "tachyon.Worker <WorkerHost> [<MasterHost:Port>]");
       System.exit(-1);
     }
-    String masterLocation = getMasterLocation(args);
 
     WorkerConf wConf = WorkerConf.get();
 
-    Worker worker = Worker.createWorker(masterLocation,
+    Worker worker = Worker.createWorker(getMasterLocation(args),
         args[0] + ":" + wConf.PORT, wConf.DATA_PORT,
         wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
         wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
