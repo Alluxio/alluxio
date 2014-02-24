@@ -53,7 +53,7 @@ public class LocalTachyonCluster {
   private Thread mWorkerThread = null;
 
   private String mLocalhostName = null;
-  private UnderFileSystemCluster mUnderFSCluster = null;
+  private static UnderFileSystemCluster mUnderFSCluster = null;
 
   private List<TachyonFS> mClients = new ArrayList<TachyonFS>();
 
@@ -133,9 +133,13 @@ public class LocalTachyonCluster {
     // "mTachyonHome/tachyon". Otherwise, it starts some distributed file system cluster e.g.,
     // miniDFSCluster (see also {@link tachyon.LocalMiniDFScluster} and setup the folder like
     // "hdfs://xxx:xxx/tachyon".
-    mUnderFSCluster = UnderFileSystemCluster.getUnderFilesystemCluster(mTachyonHome + "/dfs");
+    if(null == mUnderFSCluster) {
+      mUnderFSCluster = UnderFileSystemCluster.getUnderFilesystemCluster(mTachyonHome + "/dfs");
+    }
+
     if (!mUnderFSCluster.isStarted()) {
       mUnderFSCluster.start();
+      mUnderFSCluster.registerJVMOnExistHook();
     }
     String underfsFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
     // To setup the journalFolder under either local file system or distributed ufs like
@@ -202,7 +206,7 @@ public class LocalTachyonCluster {
 
   /**
    * Stop the tachyon filesystem's service thread only
-   * 
+   *
    * @throws Exception
    */
   public void stopTFS() throws Exception {
@@ -226,11 +230,11 @@ public class LocalTachyonCluster {
   }
 
   /**
-   * Stop the underfs cluster
+   * Cleanup the underfs cluster test folder only
    * @throws Exception
    */
   public void stopUFS() throws Exception {
-    mUnderFSCluster.shutdown();
+    mUnderFSCluster.cleanup();
     System.clearProperty("tachyon.master.journal.folder");
     System.clearProperty("tachyon.underfs.address");
   }

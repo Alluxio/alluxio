@@ -19,7 +19,6 @@ package tachyon;
 import java.io.File;
 import java.io.IOException;
 
-
 /**
  * The mock cluster for local file system as UnderFileSystemSingleLocal.
  */
