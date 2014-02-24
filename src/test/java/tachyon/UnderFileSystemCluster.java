@@ -51,7 +51,7 @@ public abstract class UnderFileSystemCluster {
 
   /**
    * This method is only for unit-test {@link tachyon.client.FileOutStreamTest} temporally
-   * 
+   *
    * @return
    */
   public static boolean isUFSHDFS() {
@@ -60,9 +60,62 @@ public abstract class UnderFileSystemCluster {
 
   abstract public void start() throws IOException;
 
+  /**
+   * To stop the underfs cluster system
+   *
+   * @throws IOException
+   */
   abstract public void shutdown() throws IOException;
 
   abstract public boolean isStarted();
 
   abstract public String getUnderFilesystemAddress();
+
+  /**
+   * To clean up the test environment over underfs cluster system, so that we
+   * can re-use the running system for the next test round instead of turning
+   * on/off it from time to time. This function is expected to be called either
+   * before or after each test case which avoids certain overhead from the
+   * bootstrap.
+   *
+   * @throws IOException
+   */
+  public void cleanup() throws IOException {
+    if (isStarted()) {
+      String path = getUnderFilesystemAddress() + "/";
+      UnderFileSystem ufs = UnderFileSystem.get(path);
+      for (String p : ufs.list(path)) {
+        ufs.delete(path + p, true);
+      }
+    }
+  }
+
+
+  class ShutdownHook extends Thread {
+    UnderFileSystemCluster mUFSCluster = null;
+
+    public ShutdownHook(UnderFileSystemCluster ufsCluster) {
+      mUFSCluster = ufsCluster;
+    }
+
+    @Override
+    public void run() {
+      if (mUFSCluster != null) {
+        try {
+          mUFSCluster.shutdown();
+        } catch (IOException e) {
+          System.out.println("Failed to shutdown underfs cluster: " + e);
+        }
+      }
+    }
+  }
+
+  /**
+   * Add a shutdown hook. The {@link #shutdown} phase will be automatically
+   * called while the process exists.
+   */
+  public void registerJVMOnExistHook() throws IOException {
+    // 2. to start the shutdown hook
+    Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
+  }
 }
