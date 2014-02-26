@@ -43,7 +43,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * To initialize the local minidfscluster
-   * 
+   *
    * @param dfsBaseDirs
    *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
    *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
@@ -53,10 +53,10 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode) {
     this(dfsBaseDirs, numDataNode, 0);
   }
-  
+
   /**
    * To intiaize the local minidfscluster with single namenode and datanode
-   * 
+   *
    * @param dfsBaseDirs
    *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
    *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
@@ -67,7 +67,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * To initialize the local minidfscluster
-   * 
+   *
    * @param dfsBaseDirs
    *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
    *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
@@ -106,7 +106,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * To start the minidfscluster before using it
-   * 
+   *
    * @throws IOException
    */
   @Override
