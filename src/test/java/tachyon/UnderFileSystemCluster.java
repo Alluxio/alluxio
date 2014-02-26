@@ -27,6 +27,8 @@ public abstract class UnderFileSystemCluster {
 
   protected String mBaseDir;
 
+  private static UnderFileSystemCluster mUnderFSCluster = null;
+
   public UnderFileSystemCluster(String baseDir) {
     mBaseDir = baseDir;
   }
@@ -47,6 +49,24 @@ public abstract class UnderFileSystemCluster {
       }
     }
     return new LocalFilesystemCluster(baseDir);
+  }
+
+  /**
+   * To start the underfs test bed and register the shutdown hook
+   *
+   * @throws IOException
+   */
+  public static UnderFileSystemCluster initializeUFSCluster(String baseDir) throws IOException {
+    if (null == mUnderFSCluster) {
+      mUnderFSCluster = getUnderFilesystemCluster(baseDir);
+    }
+
+    if (!mUnderFSCluster.isStarted()) {
+      mUnderFSCluster.start();
+      mUnderFSCluster.registerJVMOnExistHook();
+    }
+
+    return mUnderFSCluster;
   }
 
   /**
@@ -115,7 +135,6 @@ public abstract class UnderFileSystemCluster {
    * called while the process exists.
    */
   public void registerJVMOnExistHook() throws IOException {
-    // 2. to start the shutdown hook
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));
   }
 }

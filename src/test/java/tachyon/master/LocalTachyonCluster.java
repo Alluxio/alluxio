@@ -53,7 +53,7 @@ public class LocalTachyonCluster {
   private Thread mWorkerThread = null;
 
   private String mLocalhostName = null;
-  private static UnderFileSystemCluster mUnderFSCluster = null;
+  private UnderFileSystemCluster mUnderFSCluster = null;
 
   private List<TachyonFS> mClients = new ArrayList<TachyonFS>();
 
@@ -130,17 +130,10 @@ public class LocalTachyonCluster {
 
     // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
     // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of
-    // "mTachyonHome/tachyon". Otherwise, it starts some distributed file system cluster e.g.,
+    // "mTachyonHome/tachyon*". Otherwise, it starts some distributed file system cluster e.g.,
     // miniDFSCluster (see also {@link tachyon.LocalMiniDFScluster} and setup the folder like
-    // "hdfs://xxx:xxx/tachyon".
-    if(null == mUnderFSCluster) {
-      mUnderFSCluster = UnderFileSystemCluster.getUnderFilesystemCluster(mTachyonHome + "/dfs");
-    }
-
-    if (!mUnderFSCluster.isStarted()) {
-      mUnderFSCluster.start();
-      mUnderFSCluster.registerJVMOnExistHook();
-    }
+    // "hdfs://xxx:xxx/tachyon*".
+    mUnderFSCluster = UnderFileSystemCluster.initializeUFSCluster(mTachyonHome + "/dfs");
     String underfsFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
     // To setup the journalFolder under either local file system or distributed ufs like
     // miniDFSCluster
@@ -234,7 +227,9 @@ public class LocalTachyonCluster {
    * @throws Exception
    */
   public void stopUFS() throws Exception {
-    mUnderFSCluster.cleanup();
+    if (null != mUnderFSCluster) {
+      mUnderFSCluster.cleanup();
+    }
     System.clearProperty("tachyon.master.journal.folder");
     System.clearProperty("tachyon.underfs.address");
   }

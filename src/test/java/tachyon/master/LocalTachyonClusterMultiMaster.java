@@ -27,6 +27,7 @@ import org.apache.curator.test.TestingServer;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
+import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
@@ -60,6 +61,7 @@ public class LocalTachyonClusterMultiMaster {
   private Thread mWorkerThread = null;
 
   private String mLocalhostName = null;
+  private UnderFileSystemCluster mUnderFSCluster = null;
 
   private List<TachyonFS> mClients = new ArrayList<TachyonFS>();
 
@@ -111,11 +113,11 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   String getEditLogPath() {
-    return mTachyonHome + "/journal/log.data";
+    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/log.data";
   }
 
   String getImagePath() {
-    return mTachyonHome + "/journal/image.data";
+    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/image.data";
   }
 
   public boolean killLeader() {
@@ -134,7 +136,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   private void mkdir(String path) throws IOException {
-    if (!(new File(path)).mkdirs()) {
+    if (!CommonUtils.mkdirs(path)) {
       throw new IOException("Failed to make folder: " + path);
     }
   }
@@ -166,20 +168,21 @@ public class LocalTachyonClusterMultiMaster {
   public void start() throws IOException {
     mTachyonHome = File.createTempFile("Tachyon", "").getAbsoluteFile() + "UnitTest";
     mWorkerDataFolder = mTachyonHome + "/ramdisk";
-    String masterJournalFolder = mTachyonHome + "/journal";
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
-    String underfsFolder = mTachyonHome + "/underfs";
     mkdir(mTachyonHome);
-    mkdir(masterJournalFolder);
     mkdir(masterDataFolder);
     mkdir(masterLogFolder);
-    CommonUtils.touch(masterJournalFolder + "/_format_" + System.currentTimeMillis());
 
     mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
 
+    mUnderFSCluster = UnderFileSystemCluster.initializeUFSCluster(mTachyonHome + "/dfs");
+    String underfsFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
+    String masterJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
+
     System.setProperty("tachyon.home", mTachyonHome);
     System.setProperty("tachyon.underfs.address", underfsFolder);
+    System.setProperty("tachyon.master.journal.folder", masterJournalFolder + "/");
     System.setProperty("tachyon.usezookeeper", "true");
     System.setProperty("tachyon.zookeeper.address", mCuratorServer.getConnectString());
     System.setProperty("tachyon.zookeeper.election.path", "/election");
@@ -197,6 +200,9 @@ public class LocalTachyonClusterMultiMaster {
     MasterConf.clear();
     WorkerConf.clear();
     UserConf.clear();
+
+    mkdir(masterJournalFolder);
+    CommonUtils.touch(masterJournalFolder + "/_format_" + System.currentTimeMillis());
 
     mkdir(CommonConf.get().UNDERFS_DATA_FOLDER);
     mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
@@ -227,6 +233,19 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public void stop() throws Exception {
+    stopTFS();
+    stopUFS();
+  }
+
+  public void stopUFS() throws Exception {
+    if (null != mUnderFSCluster) {
+      mUnderFSCluster.cleanup();
+    }
+    System.clearProperty("tachyon.master.journal.folder");
+    System.clearProperty("tachyon.underfs.address");
+  }
+
+  public void stopTFS() throws Exception {
     for (TachyonFS fs : mClients) {
       fs.close();
     }
@@ -238,7 +257,6 @@ public class LocalTachyonClusterMultiMaster {
     mCuratorServer.stop();
 
     System.clearProperty("tachyon.home");
-    System.clearProperty("tachyon.underfs.address");
     System.clearProperty("tachyon.usezookeeper");
     System.clearProperty("tachyon.zookeeper.address");
     System.clearProperty("tachyon.zookeeper.election.path");
