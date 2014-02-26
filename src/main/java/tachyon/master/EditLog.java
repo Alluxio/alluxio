@@ -227,6 +227,11 @@ public class EditLog {
         }
         mBackUpLogStartNum = -1;
       }
+
+      // in case this file is created by different dfs-clients
+      if(UFS.exists(path)) {
+        UFS.delete(path, true);
+      }
       OS = UFS.create(path);
       DOS = new DataOutputStream(OS);
       LOG.info("Created file " + path);
