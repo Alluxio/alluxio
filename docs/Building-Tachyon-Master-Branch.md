@@ -14,8 +14,8 @@ Checkout Tachyon master branch from Github, and package:
     $ cd tachyon
     $ mvn package
 
-If you want to build a particular version of Tachyon, for example 0.4.0, please do `git checkout
-v0.4.0` after `cd tachyon`.
+If you want to build a particular version of Tachyon, for example {{site.TACHYON_RELEASED_VERSION}},
+please do `git checkout v{{site.TACHYON_RELEASED_VERSION}}` after `cd tachyon`.
 
 The Maven build system fetches its dependencies, compiles, runs system's unit tests, and package the
 system. If this is the first time you are building the project, it can take a while to download all
