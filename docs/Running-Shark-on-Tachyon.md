@@ -17,17 +17,33 @@ Tachyon to cache Shark's tables. In summary, the followings are four major ones:
 -   Reduce heap size =\> faster GC in shark
 -   If the table is larger than the memory size, only the hot columns will be cached in memory
 
+### Shark Compatibility
+
+<table class="table">
+<tr><th>Tachyon Version</th><th>Shark Version</th></tr>
+<tr>
+  <td>0.2.1</td>
+  <td>0.7.x</td>
+</tr>
+<tr>
+  <td>0.3.0</td>
+  <td>0.8.1</td>
+</tr>
+<tr>
+  <td>0.4.0</td>
+  <td>0.9.0</td>
+</tr>
+<tr>
+  <td>0.4.1</td>
+  <td>0.9.1 + (To be released)</td>
+</tr>
+</table>
+
 ### Setup
 
-**Shark Compatibility:** Shark 0.7.x works with Tachyon 0.2.1, Shark
-0.8.1 works with Tachyon 0.3.0, Versions 0.8.1 and 0.9.0 of Shark work
-with Tachyon 0.4.0. For Tachyon 0.4.0, Shark 0.9.0 is recommended, and
-will be released shortly.
-
-In order to use Spark on Tachyon, you need to setup `Tachyon 0.4.0` first, either
+In order to run Shark on Tachyon, you need to setup `Tachyon` first, either
 [Local Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-Locally),
-or [Cluster Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-on-a-Cluster),
-with HDFS.
+or [Cluster Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-on-a-Cluster), with HDFS.
 
 Then, edit `shark-env.sh` and add
 
