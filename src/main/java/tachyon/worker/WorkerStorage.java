@@ -25,9 +25,6 @@ import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
-import java.nio.file.Files;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -516,16 +513,13 @@ public class WorkerStorage {
   private void initializeWorkerStorage() throws IOException, FileDoesNotExistException,
   SuspectedFileSizeException, BlockInfoException, TException {
     LOG.info("Initializing the worker storage.");
-    
-    // Set Default directory permissions to 775
-    Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rwxrwxr-x");
-    
     if (!mLocalDataFolder.exists()) {
       LOG.info("Local folder " + mLocalDataFolder + " does not exist. Creating a new one.");
       mLocalDataFolder.mkdir();
       mLocalUserFolder.mkdir();
-      Files.setPosixFilePermissions(mLocalDataFolder.toPath(), perms);
-      Files.setPosixFilePermissions(mLocalUserFolder.toPath(), perms);
+      
+      CommonUtils.changeLocalFilePermission(mLocalDataFolder.getPath(), "775");
+      CommonUtils.changeLocalFilePermission(mLocalUserFolder.getPath(), "775");
       return;
     }
 
@@ -543,7 +537,7 @@ public class WorkerStorage {
       }
     }
     mLocalUserFolder.mkdir();
-    Files.setPosixFilePermissions(mLocalUserFolder.toPath(), perms);
+    CommonUtils.changeLocalFilePermission(mLocalUserFolder.getPath(), "775");
 
     mUnderfsOrphansFolder = mUnderfsWorkerFolder + "/orphans";
     if (!mUnderFs.exists(mUnderfsOrphansFolder)) {
