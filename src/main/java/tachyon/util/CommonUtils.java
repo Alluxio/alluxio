@@ -290,8 +290,7 @@ public final class CommonUtils {
   }
 
   /**
-   * @param file
-   *          that will be changed to full permission
+   * @param file that will change permission
    * @throws IOException 
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
@@ -323,7 +322,7 @@ public final class CommonUtils {
   }
 
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
-	  changeLocalFilePermission(filePath, "777");  	  
+      changeLocalFilePermission(filePath, "777");  	  
   }
   
   static void redirectStreamAsync(final InputStream input, final PrintStream output) {
