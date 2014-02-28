@@ -102,7 +102,7 @@ public class WorkerStorage {
       if (mUncheckpointFiles.isEmpty()) {
         return -1;
       }
-      for (int depId: mDepIdToFiles.keySet()) {
+      for (int depId : mDepIdToFiles.keySet()) {
         int fileId = getFileIdFromOneDependency(depId);
         if (fileId != -1) {
           return fileId;
@@ -137,8 +137,8 @@ public class WorkerStorage {
               if (mPriorityDependencies.size() == 0) {
                 mPriorityDependencies = getSortedPriorityDependencyList();
                 if (!mPriorityDependencies.isEmpty()) {
-                  LOG.info("Get new mPriorityDependencies " +
-                      CommonUtils.listToString(mPriorityDependencies));
+                  LOG.info("Get new mPriorityDependencies "
+                      + CommonUtils.listToString(mPriorityDependencies));
                 }
               } else {
                 List<Integer> tList = getSortedPriorityDependencyList();
@@ -178,8 +178,8 @@ public class WorkerStorage {
           // master
           String midPath = mUnderfsWorkerDataFolder + "/" + fileId;
           String dstPath = CommonConf.get().UNDERFS_DATA_FOLDER + "/" + fileId;
-          LOG.info("Thread " + ID + " is checkpointing file " + fileId + " from " +
-              mLocalDataFolder.toString() + " to " + midPath + " to " + dstPath);
+          LOG.info("Thread " + ID + " is checkpointing file " + fileId + " from "
+              + mLocalDataFolder.toString() + " to " + midPath + " to " + dstPath);
 
           if (mCheckpointUnderFs == null) {
             mCheckpointUnderFs = UnderFileSystem.get(midPath);
@@ -217,13 +217,14 @@ public class WorkerStorage {
             unlockBlock(fileInfo.blockIds.get(k), Users.sCHECKPOINT_USER_ID);
           }
 
-          long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB /
-              WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
+          long shouldTakeMs =
+              (long) (1000.0 * fileSizeByte / Constants.MB / WorkerConf.get().WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC);
           long currentTimeMs = System.currentTimeMillis();
           if (startCopyTimeMs + shouldTakeMs > currentTimeMs) {
             long shouldSleepMs = startCopyTimeMs + shouldTakeMs - currentTimeMs;
-            LOG.info("Checkpointed last file " + fileId + " took " +
-                (currentTimeMs - startCopyTimeMs) + " ms. Need to sleep " + shouldSleepMs + " ms.");
+            LOG.info("Checkpointed last file " + fileId + " took "
+                + (currentTimeMs - startCopyTimeMs) + " ms. Need to sleep " + shouldSleepMs
+                + " ms.");
             CommonUtils.sleepMs(LOG, shouldSleepMs);
           }
         } catch (FileDoesNotExistException e) {
@@ -257,11 +258,11 @@ public class WorkerStorage {
   private Map<Long, Set<Long>> mUsersPerLockedBlock = new HashMap<Long, Set<Long>>();
 
   private Map<Long, Set<Long>> mLockedBlocksPerUser = new HashMap<Long, Set<Long>>();
-  private BlockingQueue<Long> mRemovedBlockList =
-      new ArrayBlockingQueue<Long>(Constants.WORKER_BLOCKS_QUEUE_SIZE);
+  private BlockingQueue<Long> mRemovedBlockList = new ArrayBlockingQueue<Long>(
+      Constants.WORKER_BLOCKS_QUEUE_SIZE);
 
-  private BlockingQueue<Long> mAddedBlockList =
-      new ArrayBlockingQueue<Long>(Constants.WORKER_BLOCKS_QUEUE_SIZE);
+  private BlockingQueue<Long> mAddedBlockList = new ArrayBlockingQueue<Long>(
+      Constants.WORKER_BLOCKS_QUEUE_SIZE);
   private File mLocalDataFolder;
   private File mLocalUserFolder;
   private String mUnderfsWorkerFolder;
@@ -271,7 +272,7 @@ public class WorkerStorage {
   private UnderFileSystem mUnderFs;
 
   private Users mUsers;
-  //Dependency related lock
+  // Dependency related lock
   private Object mDependencyLock = new Object();
   private Set<Integer> mUncheckpointFiles = new HashSet<Integer>();
   // From dependencyId to files in that set.
@@ -279,8 +280,8 @@ public class WorkerStorage {
 
   private List<Integer> mPriorityDependencies = new ArrayList<Integer>();
 
-  private ArrayList<Thread> mCheckpointThreads =
-      new ArrayList<Thread>(WorkerConf.get().WORKER_CHECKPOINT_THREADS);
+  private ArrayList<Thread> mCheckpointThreads = new ArrayList<Thread>(
+      WorkerConf.get().WORKER_CHECKPOINT_THREADS);
 
   public WorkerStorage(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       String dataFolder, long memoryCapacityBytes) {
@@ -295,9 +296,10 @@ public class WorkerStorage {
     while (mWorkerId == 0) {
       try {
         mMasterClient.connect();
-        mWorkerId = mMasterClient.worker_register(
-            new NetAddress(mWorkerAddress.getHostName(), mWorkerAddress.getPort()),
-            mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Long>());
+        mWorkerId =
+            mMasterClient.worker_register(new NetAddress(mWorkerAddress.getHostName(),
+                mWorkerAddress.getPort()), mWorkerSpaceCounter.getCapacityBytes(), 0,
+                new ArrayList<Long>());
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         mWorkerId = 0;
@@ -337,8 +339,8 @@ public class WorkerStorage {
       CommonUtils.runtimeException(e);
     }
 
-    LOG.info("Current Worker Info: ID " + mWorkerId + ", ADDRESS: " + mWorkerAddress +
-        ", MemoryCapacityBytes: " + mWorkerSpaceCounter.getCapacityBytes());
+    LOG.info("Current Worker Info: ID " + mWorkerId + ", ADDRESS: " + mWorkerAddress
+        + ", MemoryCapacityBytes: " + mWorkerSpaceCounter.getCapacityBytes());
   }
 
   public void accessBlock(long blockId) {
@@ -355,9 +357,8 @@ public class WorkerStorage {
     }
   }
 
-  public void addCheckpoint(long userId, int fileId)
-      throws FileDoesNotExistException, SuspectedFileSizeException,
-      FailedToCheckpointException, BlockInfoException, TException {
+  public void addCheckpoint(long userId, int fileId) throws FileDoesNotExistException,
+      SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, TException {
     // TODO This part need to be changed.
     String srcPath = getUserUnderfsTempFolder(userId) + "/" + fileId;
     String dstPath = COMMON_CONF.UNDERFS_DATA_FOLDER + "/" + fileId;
@@ -377,10 +378,11 @@ public class WorkerStorage {
     mMasterClient.addCheckpoint(mWorkerId, fileId, fileSize, dstPath);
   }
 
-  private void addFoundBlock(long blockId, long length)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
+  private void addFoundBlock(long blockId, long length) throws FileDoesNotExistException,
+      SuspectedFileSizeException, BlockInfoException, TException {
     addBlockId(blockId, length);
-    mMasterClient.worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId, length);
+    mMasterClient
+        .worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId, length);
   }
 
   public boolean asyncCheckpoint(int fileId) throws IOException, TException {
@@ -400,8 +402,8 @@ public class WorkerStorage {
     return false;
   }
 
-  public void cacheBlock(long userId, long blockId)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
+  public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
+      SuspectedFileSizeException, BlockInfoException, TException {
     File srcFile = new File(getUserTempFolder(userId) + "/" + blockId);
     File dstFile = new File(mLocalDataFolder + "/" + blockId);
     long fileSizeBytes = srcFile.length();
@@ -409,13 +411,13 @@ public class WorkerStorage {
       throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
     }
     if (!srcFile.renameTo(dstFile)) {
-      throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath() +
-          " to " + dstFile.getPath());
+      throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath()
+          + " to " + dstFile.getPath());
     }
     addBlockId(blockId, fileSizeBytes);
-    mUsers.addOwnBytes(userId, - fileSizeBytes);
-    mMasterClient.worker_cacheBlock(
-        mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId, fileSizeBytes);
+    mUsers.addOwnBytes(userId, -fileSizeBytes);
+    mMasterClient.worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId,
+        fileSizeBytes);
     LOG.info(userId + " " + dstFile);
   }
 
@@ -447,7 +449,9 @@ public class WorkerStorage {
 
   /**
    * Remove a block from the memory.
-   * @param blockId The block to be removed.
+   * 
+   * @param blockId
+   *          The block to be removed.
    * @return Removed file size in bytes.
    */
   private synchronized long freeBlock(long blockId) {
@@ -472,10 +476,12 @@ public class WorkerStorage {
 
   /**
    * Remove blocks from the memory.
-   * @param blocks The list of blocks to be removed.
+   * 
+   * @param blocks
+   *          The list of blocks to be removed.
    */
   public void freeBlocks(List<Long> blocks) {
-    for (long blockId: blocks) {
+    for (long blockId : blocks) {
       freeBlock(blockId);
     }
   }
@@ -510,7 +516,7 @@ public class WorkerStorage {
   }
 
   private void initializeWorkerStorage() throws IOException, FileDoesNotExistException,
-  SuspectedFileSizeException, BlockInfoException, TException {
+      SuspectedFileSizeException, BlockInfoException, TException {
     LOG.info("Initializing the worker storage.");
     if (!mLocalDataFolder.exists()) {
       LOG.info("Local folder " + mLocalDataFolder + " does not exist. Creating a new one.");
@@ -555,7 +561,8 @@ public class WorkerStorage {
           addFoundBlock(blockId, tFile.length());
         } catch (FileDoesNotExistException e) {
           LOG.error("BlockId: " + blockId + " becomes orphan for: \"" + e.message + "\"");
-          LOG.info("Swapout File " + cnt + ": blockId: " + blockId + " to " + mUnderfsOrphansFolder);
+          LOG.info("Swapout File " + cnt + ": blockId: " + blockId + " to "
+              + mUnderfsOrphansFolder);
           swapoutOrphanBlocks(blockId, tFile);
           freeBlock(blockId);
           continue;
@@ -584,7 +591,9 @@ public class WorkerStorage {
 
   /**
    * Use local LRU to evict data, and get <code> requestBytes </code> available space.
-   * @param requestBytes The data requested.
+   * 
+   * @param requestBytes
+   *          The data requested.
    * @return <code> true </code> if the space is granted, <code> false </code> if not.
    */
   private boolean memoryEvictionLRU(long requestBytes) {
@@ -605,7 +614,7 @@ public class WorkerStorage {
           for (Entry<Long, Long> entry : mLatestBlockAccessTimeMs.entrySet()) {
             if (entry.getValue() < latestTimeMs
                 && !pinList.contains(BlockInfo.computeInodeId(entry.getKey()))) {
-              if(!mUsersPerLockedBlock.containsKey(entry.getKey())) {
+              if (!mUsersPerLockedBlock.containsKey(entry.getKey())) {
                 blockId = entry.getKey();
                 latestTimeMs = entry.getValue();
               }
@@ -628,9 +637,10 @@ public class WorkerStorage {
     while (id == 0) {
       try {
         mMasterClient.connect();
-        id = mMasterClient.worker_register(
-            new NetAddress(mWorkerAddress.getHostName(), mWorkerAddress.getPort()),
-            mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Long>(mMemoryData));
+        id =
+            mMasterClient.worker_register(new NetAddress(mWorkerAddress.getHostName(),
+                mWorkerAddress.getPort()), mWorkerSpaceCounter.getCapacityBytes(), 0,
+                new ArrayList<Long>(mMemoryData));
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
@@ -645,11 +655,11 @@ public class WorkerStorage {
   }
 
   public boolean requestSpace(long userId, long requestBytes) throws TException {
-    LOG.info("requestSpace(" + userId + ", " + requestBytes + "): Current available: " +
-        mWorkerSpaceCounter.getAvailableBytes() + " requested: " + requestBytes);
+    LOG.info("requestSpace(" + userId + ", " + requestBytes + "): Current available: "
+        + mWorkerSpaceCounter.getAvailableBytes() + " requested: " + requestBytes);
     if (mWorkerSpaceCounter.getCapacityBytes() < requestBytes) {
-      LOG.info("user_requestSpace(): requested memory size is larger than the total memory on" +
-          " the machine.");
+      LOG.info("user_requestSpace(): requested memory size is larger than the total memory on"
+          + " the machine.");
       return false;
     }
 
@@ -676,12 +686,12 @@ public class WorkerStorage {
       LOG.error("User " + userId + " does not own " + returnedBytes + " bytes.");
     } else {
       mWorkerSpaceCounter.returnUsedBytes(returnedBytes);
-      mUsers.addOwnBytes(userId, - returnedBytes);
+      mUsers.addOwnBytes(userId, -returnedBytes);
     }
 
-    LOG.info("returnSpace(" + userId + ", " + returnedBytes + ") : " +
-        preAvailableBytes + " returned: " + returnedBytes + ". New Available: " +
-        mWorkerSpaceCounter.getAvailableBytes());
+    LOG.info("returnSpace(" + userId + ", " + returnedBytes + ") : " + preAvailableBytes
+        + " returned: " + returnedBytes + ". New Available: "
+        + mWorkerSpaceCounter.getAvailableBytes());
   }
 
   public void stop() {
@@ -700,7 +710,7 @@ public class WorkerStorage {
     OutputStream os = mUnderFs.create(ufsOrphanBlock);
     int BULKSIZE = 1024 * 64;
     byte[] bulk = new byte[BULKSIZE];
-    for (int k = 0; k < (buf.limit() + BULKSIZE - 1) / BULKSIZE; k++) {
+    for (int k = 0; k < (buf.limit() + BULKSIZE - 1) / BULKSIZE; k ++) {
       int len = BULKSIZE < buf.remaining() ? BULKSIZE : buf.remaining();
       buf.get(bulk, 0, len);
       os.write(bulk, 0, len);

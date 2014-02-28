@@ -51,7 +51,7 @@ public class Performance {
   private static String FILE_NAME = null;
   private static int BLOCK_SIZE_BYTES = -1;
   private static long BLOCKS_PER_FILE = -1;
-  private static int THREADS = -1; 
+  private static int THREADS = -1;
   private static int FILES = -1;
   private static boolean DEBUG_MODE = false;
   private static long FILE_BYTES = -1;
@@ -71,8 +71,7 @@ public class Performance {
   public static void logPerIteration(long startTimeMs, int times, String msg, int workerId) {
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
     double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
-    LOG.info(times + msg + workerId + " : " + result + " Mb/sec. Took " +
-        takenTimeMs + " ms. ");
+    LOG.info(times + msg + workerId + " : " + result + " Mb/sec. Took " + takenTimeMs + " ms. ");
   }
 
   public static abstract class Worker extends Thread {
@@ -281,8 +280,7 @@ public class Performance {
     private boolean mWrite;
     private String mMsg;
 
-    public HdfsWorker(int id, int left, int right, ByteBuffer buf, boolean write, 
-        String msg) {
+    public HdfsWorker(int id, int left, int right, ByteBuffer buf, boolean write, String msg) {
       super(id, left, right, buf);
       mWrite = write;
       mMsg = msg;
@@ -301,8 +299,8 @@ public class Performance {
       tConf.set("fs.default.name", FILE_NAME);
       tConf.set("fs.defaultFS", FILE_NAME);
       tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
-//      tConf.set("fs.default.name", "hdfs://localhost:54310");
-//      tConf.addResource("/home/haoyuan/Tachyon/hadoop-1.0.4/conf/core-site.xml");
+      // tConf.set("fs.default.name", "hdfs://localhost:54310");
+      // tConf.addResource("/home/haoyuan/Tachyon/hadoop-1.0.4/conf/core-site.xml");
       FileSystem fs = FileSystem.get(tConf);
       if (mWrite) {
         for (int times = mLeft; times < mRight; times ++) {
@@ -365,8 +363,9 @@ public class Performance {
     GeneralWorker[] WWs = new GeneralWorker[THREADS];
     int t = FILES / THREADS;
     for (int thread = 0; thread < THREADS; thread ++) {
-      WWs[thread] = new GeneralWorker(
-          thread, t * thread, t * (thread + 1), bufs[thread], write, memoryOnly, msg);
+      WWs[thread] =
+          new GeneralWorker(thread, t * thread, t * (thread + 1), bufs[thread], write, memoryOnly,
+              msg);
     }
 
     long startTimeMs = System.currentTimeMillis();
@@ -383,8 +382,8 @@ public class Performance {
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
     double result = 1000L * FILES_BYTES / takenTimeMs / 1024 / 1024;
 
-    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + msg + " Test : " + " Took " +
-        takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
+    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + msg + " Test : " + " Took "
+        + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
   private static void TachyonTest(boolean write) throws IOException {
@@ -422,8 +421,8 @@ public class Performance {
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
     double result = FILES_BYTES * 1000L / takenTimeMs / 1024 / 1024;
-    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write ": "Read ") +
-        " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
+    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write " : "Read ")
+        + " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
   private static void HdfsTest(boolean write) {
@@ -458,22 +457,19 @@ public class Performance {
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
     double result = FILES_BYTES * 1000L / takenTimeMs / 1024 / 1024;
-    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write ": "Read ") + 
-        " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
+    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write " : "Read ")
+        + " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
   public static void main(String[] args) throws IOException {
     if (args.length != 9) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION +
-          "-jar-with-dependencies.jar tachyon.examples.Performance " +
-          "<MasterIp> <FileName> <WriteBlockSizeInBytes> <BlocksPerFile> " +
-          "<DebugMode:true/false> <Threads> <FilesPerThread> <TestCaseNumber> <BaseFileNumber>\n" +
-          "1: Files Write Test\n" +
-          "2: Files Read Test\n" +
-          "3: RamFile Write Test \n" +
-          "4: RamFile Read Test \n" +
-          "5: ByteBuffer Write Test \n" +
-          "6: ByteBuffer Read Test \n");
+      System.out.println("java -cp target/tachyon-" + Version.VERSION
+          + "-jar-with-dependencies.jar tachyon.examples.Performance "
+          + "<MasterIp> <FileName> <WriteBlockSizeInBytes> <BlocksPerFile> "
+          + "<DebugMode:true/false> <Threads> <FilesPerThread> <TestCaseNumber> "
+          + "<BaseFileNumber>\n" + "1: Files Write Test\n" + "2: Files Read Test\n"
+          + "3: RamFile Write Test \n" + "4: RamFile Read Test \n" + "5: ByteBuffer Write Test \n"
+          + "6: ByteBuffer Read Test \n");
       System.exit(-1);
     }
 
@@ -490,12 +486,12 @@ public class Performance {
     FILE_BYTES = BLOCKS_PER_FILE * BLOCK_SIZE_BYTES;
     FILES_BYTES = 1L * FILE_BYTES * FILES;
 
-    RESULT_PREFIX = String.format("Threads %d FilesPerThread %d TotalFiles %d " +
-        "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d " +
-        "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ",
-        THREADS, FILES / THREADS, FILES, BLOCK_SIZE_BYTES / 1024,
-        BLOCKS_PER_FILE, CommonUtils.getMB(FILE_BYTES),
-        UserConf.get().FILE_BUFFER_BYTES / 1024, BASE_FILE_NUMBER);
+    RESULT_PREFIX =
+        String.format("Threads %d FilesPerThread %d TotalFiles %d "
+            + "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d "
+            + "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ", THREADS, FILES / THREADS,
+            FILES, BLOCK_SIZE_BYTES / 1024, BLOCKS_PER_FILE, CommonUtils.getMB(FILE_BYTES),
+            UserConf.get().FILE_BUFFER_BYTES / 1024, BASE_FILE_NUMBER);
 
     for (int k = 0; k < 10000000; k ++) {
       // Warmup

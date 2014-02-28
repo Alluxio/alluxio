@@ -243,8 +243,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
               + InetAddress.getLocalHost().getHostAddress());
 
           try {
-            buf = retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port + 1),
-                blockInfo);
+            buf =
+                retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port + 1),
+                    blockInfo);
             if (buf != null) {
               break;
             }

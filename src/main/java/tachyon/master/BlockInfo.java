@@ -38,6 +38,7 @@ public class BlockInfo {
   public static int computeBlockIndex(long blockId) {
     return (int) (blockId & 0x3fffffff);
   }
+
   public static int computeInodeId(long blockId) {
     return (int) (blockId >> 30);
   }

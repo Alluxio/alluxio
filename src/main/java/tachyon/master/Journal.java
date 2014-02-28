@@ -78,7 +78,9 @@ public class Journal {
 
   /**
    * Load edit log.
-   * @param info The Master Info.
+   * 
+   * @param info
+   *          The Master Info.
    * @return The last transaction id.
    * @throws IOException
    */
@@ -97,6 +99,7 @@ public class Journal {
 
   /**
    * Changes the max edit log size for testing purposes
+   * 
    * @param size
    */
   public void setMaxLogSize(int size) {

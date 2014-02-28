@@ -80,8 +80,8 @@ public class Log4jFileAppender extends FileAppender {
       } catch (UnknownHostException uhe) {
         address = "@UnknownHost";
       }
-      newFileName = fileName + address + "_"
-          + CommonUtils.convertMsToSimpleDate(System.currentTimeMillis());
+      newFileName =
+          fileName + address + "_" + CommonUtils.convertMsToSimpleDate(System.currentTimeMillis());
       File file = new File(newFileName);
       if (file.exists()) {
         rotateLogs(newFileName);

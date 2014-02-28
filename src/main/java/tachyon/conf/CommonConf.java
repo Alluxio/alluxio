@@ -42,6 +42,7 @@ public class CommonConf extends Utils {
 
     return COMMON_CONF;
   }
+
   public final String TACHYON_HOME;
   public final String UNDERFS_ADDRESS;
   public final String UNDERFS_DATA_FOLDER;

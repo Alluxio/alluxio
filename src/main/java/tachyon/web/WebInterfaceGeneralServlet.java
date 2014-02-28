@@ -52,10 +52,12 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
       NAME = workerInfo.getAddress().getMHost();
       LAST_CONTACT_SEC = Integer.toString(workerInfo.getLastContactSec());
       STATE = workerInfo.getState();
-      USED_SPACE_PERCENT = (int) (100L * workerInfo.getUsedBytes() / workerInfo.getCapacityBytes());
+      USED_SPACE_PERCENT =
+          (int) (100L * workerInfo.getUsedBytes() / workerInfo.getCapacityBytes());
       FREE_SPACE_PERCENT = 100 - USED_SPACE_PERCENT;
-      UPTIME_CLOCK_TIME = CommonUtils.convertMsToShortClockTime(
-          System.currentTimeMillis() - workerInfo.getStarttimeMs());
+      UPTIME_CLOCK_TIME =
+          CommonUtils.convertMsToShortClockTime(System.currentTimeMillis()
+              - workerInfo.getStarttimeMs());
     }
 
     public int getFreeSpacePercent() {
@@ -93,8 +95,11 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
   /**
    * Redirects the request to a JSP after populating attributes via populateValues.
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletResponse object
+   * 
+   * @param request
+   *          The HttpServletRequest object
+   * @param response
+   *          The HttpServletResponse object
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -121,7 +126,9 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
   /**
    * Populates key, value pairs for UI display
-   * @param request The HttpServletRequest object
+   * 
+   * @param request
+   *          The HttpServletRequest object
    * @throws IOException
    */
   private void populateValues(HttpServletRequest request) throws IOException {
@@ -129,8 +136,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
 
-    request.setAttribute("uptime", CommonUtils.convertMsToClockTime(
-        System.currentTimeMillis() - mMasterInfo.getStarttimeMs()));
+    request.setAttribute("uptime", CommonUtils.convertMsToClockTime(System.currentTimeMillis()
+        - mMasterInfo.getStarttimeMs()));
 
     request.setAttribute("startTime", CommonUtils.convertMsToDate(mMasterInfo.getStarttimeMs()));
 
@@ -142,8 +149,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("usedCapacity", CommonUtils.getSizeFromBytes(mMasterInfo.getUsedBytes()));
 
-    request.setAttribute("freeCapacity", CommonUtils.getSizeFromBytes(
-        (mMasterInfo.getCapacityBytes() - mMasterInfo.getUsedBytes())));
+    request.setAttribute("freeCapacity", CommonUtils.getSizeFromBytes((mMasterInfo
+        .getCapacityBytes() - mMasterInfo.getUsedBytes())));
 
     long sizeBytes = mMasterInfo.getUnderFsCapacityBytes();
     if (sizeBytes >= 0) {
@@ -171,8 +178,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
     for (int i = 0; i < workerInfos.size(); i ++) {
       for (int j = i + 1; j < workerInfos.size(); j ++) {
-        if (workerInfos.get(i).getAddress().getMHost().compareTo(
-            workerInfos.get(j).getAddress().getMHost()) > 0) {
+        if (workerInfos.get(i).getAddress().getMHost()
+            .compareTo(workerInfos.get(j).getAddress().getMHost()) > 0) {
           ClientWorkerInfo temp = workerInfos.get(i);
           workerInfos.set(i, workerInfos.get(j));
           workerInfos.set(j, temp);

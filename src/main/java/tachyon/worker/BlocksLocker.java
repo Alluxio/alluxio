@@ -44,7 +44,9 @@ public class BlocksLocker {
 
   /**
    * Lock a block.
-   * @param blockId The id of the block.
+   * 
+   * @param blockId
+   *          The id of the block.
    * @return The lockId of this lock.
    */
   public synchronized int lock(long blockId) {
@@ -67,8 +69,11 @@ public class BlocksLocker {
 
   /**
    * Unlock a block with a lock id.
-   * @param blockId The id of the block.
-   * @param lockId The lock id of the lock.
+   * 
+   * @param blockId
+   *          The id of the block.
+   * @param lockId
+   *          The lock id of the lock.
    */
   public synchronized void unlock(long blockId, int lockId) {
     Set<Integer> lockers = mLockedBlockIds.get(blockId);

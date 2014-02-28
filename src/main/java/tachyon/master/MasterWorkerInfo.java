@@ -75,6 +75,7 @@ public class MasterWorkerInfo {
 
   /**
    * Get all blocks in the worker's memory.
+   * 
    * @return ids of the blocks.
    */
   public synchronized Set<Long> getBlocks() {
@@ -95,6 +96,7 @@ public class MasterWorkerInfo {
 
   /**
    * Get all blocks in the worker's memory need to be removed.
+   * 
    * @return ids of the blocks need to be removed.
    */
   public synchronized List<Long> getToRemovedBlocks() {
@@ -153,7 +155,7 @@ public class MasterWorkerInfo {
   }
 
   public synchronized void updateToRemovedBlocks(boolean add, Collection<Long> blockIds) {
-    for (long blockId: blockIds) {
+    for (long blockId : blockIds) {
       updateToRemovedBlock(add, blockId);
     }
   }

@@ -39,18 +39,19 @@ public class BasicCheckpoint {
     }
     List<ByteBuffer> data = new ArrayList<ByteBuffer>();
     data.add(ByteBuffer.allocate(10));
-    int depId = sTachyonClient.createDependency(new ArrayList<String>(),
-        children, "fake command", data, "BasicCheckpoint Dependency", "Tachyon Examples", "0.3",
-        DependencyType.Narrow.getValue(), 512 * Constants.MB);
+    int depId =
+        sTachyonClient.createDependency(new ArrayList<String>(), children, "fake command", data,
+            "BasicCheckpoint Dependency", "Tachyon Examples", "0.3",
+            DependencyType.Narrow.getValue(), 512 * Constants.MB);
 
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createDependency with depId " + depId);
   }
 
   public static void main(String[] args) throws IOException, TException {
     if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION +
-          "-jar-with-dependencies.jar " +
-          "tachyon.examples.BasicCheckpoint <TachyonMasterAddress> <FileFolder> <Files>");
+      System.out.println("java -cp target/tachyon-" + Version.VERSION
+          + "-jar-with-dependencies.jar "
+          + "tachyon.examples.BasicCheckpoint <TachyonMasterAddress> <FileFolder> <Files>");
       System.exit(-1);
     }
     sTachyonClient = TachyonFS.get(args[0]);

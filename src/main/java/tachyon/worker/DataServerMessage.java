@@ -89,8 +89,9 @@ public class DataServerMessage {
           error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
         }
         if (error == null && len != -1 && offset + len > fileLength) {
-          error = String.format("Offset(%d) plus length(%d) is larger than file length(%d)",
-              offset, len, fileLength);
+          error =
+              String.format("Offset(%d) plus length(%d) is larger than file length(%d)", offset,
+                  len, fileLength);
         }
         if (error != null) {
           file.close();
@@ -114,7 +115,7 @@ public class DataServerMessage {
         ret.LOG.info("Response remote requst by reading from " + filePath + " preparation done.");
       } catch (Exception e) {
         // TODO This is a trick for now. The data may have been removed before remote retrieving.
-        ret.mBlockId = - ret.mBlockId;
+        ret.mBlockId = -ret.mBlockId;
         ret.mLength = 0;
         ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
         ret.mData = ByteBuffer.allocate(0);

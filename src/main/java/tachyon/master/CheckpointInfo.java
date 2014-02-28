@@ -53,7 +53,7 @@ public class CheckpointInfo implements Serializable, Comparable<CheckpointInfo> 
     if (!(o instanceof CheckpointInfo)) {
       return false;
     }
-    return compareTo((CheckpointInfo)o) == 0;
+    return compareTo((CheckpointInfo) o) == 0;
   }
 
   public synchronized int getDependencyCounter() {

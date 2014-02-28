@@ -50,10 +50,10 @@ public class DataServer implements Runnable {
   // The selector we will be monitoring.
   private Selector mSelector;
 
-  private Map<SocketChannel, DataServerMessage> mSendingData =
-      Collections.synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
-  private Map<SocketChannel, DataServerMessage> mReceivingData =
-      Collections.synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
+  private Map<SocketChannel, DataServerMessage> mSendingData = Collections
+      .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
+  private Map<SocketChannel, DataServerMessage> mReceivingData = Collections
+      .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
   // The blocks locker manager.
   private final BlocksLocker mBlocksLocker;
@@ -63,8 +63,11 @@ public class DataServer implements Runnable {
 
   /**
    * Create a data server with direct access to worker storage.
-   * @param address The address of the data server.
-   * @param workerStorage The handler of the directly accessed worker storage.
+   * 
+   * @param address
+   *          The address of the data server.
+   * @param workerStorage
+   *          The handler of the directly accessed worker storage.
    */
   public DataServer(InetSocketAddress address, WorkerStorage workerStorage) {
     LOG.info("Starting DataServer @ " + address);
@@ -143,7 +146,8 @@ public class DataServer implements Runnable {
     }
 
     if (numRead == -1) {
-      // Remote entity shut the socket down cleanly. Do the same from our end and cancel the channel.
+      // Remote entity shut the socket down cleanly. Do the same from our end and cancel the
+      // channel.
       key.channel().close();
       key.cancel();
       mReceivingData.remove(socketChannel);
@@ -160,8 +164,9 @@ public class DataServer implements Runnable {
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getBlockId());
       int lockId = mBlocksLocker.lock(tMessage.getBlockId());
-      DataServerMessage tResponseMessage = DataServerMessage.createBlockResponseMessage(
-          true, tMessage.getBlockId(), tMessage.getOffset(), tMessage.getLength());
+      DataServerMessage tResponseMessage =
+          DataServerMessage.createBlockResponseMessage(true, tMessage.getBlockId(),
+              tMessage.getOffset(), tMessage.getLength());
       tResponseMessage.setLockId(lockId);
       mSendingData.put(socketChannel, tResponseMessage);
     }

@@ -58,7 +58,7 @@ import tachyon.util.CommonUtils;
 
 /**
  * The master server client side.
- *
+ * 
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class MasterClient {
@@ -89,7 +89,8 @@ public class MasterClient {
   }
 
   /**
-   * @param workerId if -1, means the checkpoint is added directly by the client from underlayer fs.
+   * @param workerId
+   *          if -1, means the checkpoint is added directly by the client from underlayer fs.
    * @param fileId
    * @param length
    * @param checkpointPath
@@ -100,9 +101,8 @@ public class MasterClient {
    * @throws TException
    */
   public synchronized boolean addCheckpoint(long workerId, int fileId, long length,
-      String checkpointPath)
-          throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
-          TException {
+      String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException,
+      BlockInfoException, TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -134,6 +134,7 @@ public class MasterClient {
 
   /**
    * Try to connect to the master
+   * 
    * @return true if connection succeed, false otherwise.
    */
   public synchronized boolean connect() {
@@ -149,21 +150,23 @@ public class MasterClient {
     int tries = 0;
     while (tries ++ < MAX_CONNECT_TRY) {
       mMasterAddress = getMasterAddress();
-      mProtocol = new TBinaryProtocol(new TFramedTransport(
-          new TSocket(mMasterAddress.getHostName(), mMasterAddress.getPort())));
+      mProtocol =
+          new TBinaryProtocol(new TFramedTransport(new TSocket(mMasterAddress.getHostName(),
+              mMasterAddress.getPort())));
       mClient = new MasterService.Client(mProtocol);
       mLastAccessedMs = System.currentTimeMillis();
       if (!mIsConnected && !mIsShutdown) {
         try {
           mProtocol.getTransport().open();
 
-          mHeartbeatThread = new HeartbeatThread("Master_Client Heartbeat",
-              new MasterClientHeartbeatExecutor(this, UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
-              UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2);
+          mHeartbeatThread =
+              new HeartbeatThread("Master_Client Heartbeat", new MasterClientHeartbeatExecutor(
+                  this, UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
+                  UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2);
           mHeartbeatThread.start();
         } catch (TTransportException e) {
-          LOG.error("Failed to connect (" +tries + ") to master " + mMasterAddress +
-              " : " + e.getMessage());
+          LOG.error("Failed to connect (" + tries + ") to master " + mMasterAddress + " : "
+              + e.getMessage());
           CommonUtils.sleepMs(LOG, 1000);
           continue;
         }
@@ -190,8 +193,7 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized ClientFileInfo getClientFileInfoById(int id)
-      throws IOException, TException {
+  public synchronized ClientFileInfo getClientFileInfoById(int id) throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -215,8 +217,9 @@ public class MasterClient {
       return mMasterAddress;
     }
 
-    LeaderInquireClient leaderInquireClient = LeaderInquireClient.getClient(
-        CommonConf.get().ZOOKEEPER_ADDRESS, CommonConf.get().ZOOKEEPER_LEADER_PATH);
+    LeaderInquireClient leaderInquireClient =
+        LeaderInquireClient.getClient(CommonConf.get().ZOOKEEPER_ADDRESS,
+            CommonConf.get().ZOOKEEPER_LEADER_PATH);
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return CommonUtils.parseInetSocketAddress(temp);
@@ -259,8 +262,7 @@ public class MasterClient {
     return mIsConnected;
   }
 
-  public synchronized List<ClientFileInfo> listStatus(String path)
-      throws IOException, TException {
+  public synchronized List<ClientFileInfo> listStatus(String path) throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -285,8 +287,7 @@ public class MasterClient {
     cleanConnect();
   }
 
-  public synchronized void user_completeFile(int fId)
-      throws IOException, TException {
+  public synchronized void user_completeFile(int fId) throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -303,8 +304,8 @@ public class MasterClient {
 
   public synchronized int user_createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, int dependencyType, long childrenBlockSizeByte)
-          throws IOException, TException {
+      String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException,
+      TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -328,8 +329,8 @@ public class MasterClient {
     return -1;
   }
 
-  public synchronized int user_createFile(String path, long blockSizeByte)
-      throws IOException, TException {
+  public synchronized int user_createFile(String path, long blockSizeByte) throws IOException,
+      TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -350,8 +351,8 @@ public class MasterClient {
     return -1;
   }
 
-  public int user_createFileOnCheckpoint(String path, String checkpointPath)
-      throws IOException, TException {
+  public int user_createFileOnCheckpoint(String path, String checkpointPath) throws IOException,
+      TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -414,8 +415,8 @@ public class MasterClient {
     return -1;
   }
 
-  public synchronized boolean user_delete(int fileId, boolean recursive)
-      throws IOException, TException {
+  public synchronized boolean user_delete(int fileId, boolean recursive) throws IOException,
+      TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -430,8 +431,8 @@ public class MasterClient {
     return false;
   }
 
-  public synchronized boolean user_delete(String path, boolean recursive)
-      throws IOException, TException {
+  public synchronized boolean user_delete(String path, boolean recursive) throws IOException,
+      TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -446,8 +447,7 @@ public class MasterClient {
     return false;
   }
 
-  public synchronized long user_getBlockId(int fId, int index)
-      throws IOException, TException {
+  public synchronized long user_getBlockId(int fId, int index) throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -462,8 +462,8 @@ public class MasterClient {
     return -1;
   }
 
-  public ClientBlockInfo user_getClientBlockInfo(long blockId)
-      throws FileDoesNotExistException, BlockInfoException, TException {
+  public ClientBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException,
+      BlockInfoException, TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -476,8 +476,8 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized ClientFileInfo user_getClientFileInfoByPath(String path)
-      throws IOException, TException {
+  public synchronized ClientFileInfo user_getClientFileInfoByPath(String path) throws IOException,
+      TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -532,8 +532,8 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized List<ClientBlockInfo> user_getFileBlocks(int id)
-      throws IOException, TException {
+  public synchronized List<ClientBlockInfo> user_getFileBlocks(int id) throws IOException,
+      TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -563,8 +563,7 @@ public class MasterClient {
     return -1;
   }
 
-  public synchronized int user_getNumberOfFiles(String folderPath)
-      throws IOException, TException {
+  public synchronized int user_getNumberOfFiles(String folderPath) throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -641,8 +640,8 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized List<String> user_ls(String path, boolean recursive)
-      throws IOException, TException {
+  public synchronized List<String> user_ls(String path, boolean recursive) throws IOException,
+      TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -659,8 +658,7 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized boolean user_mkdir(String path)
-      throws IOException, TException {
+  public synchronized boolean user_mkdir(String path) throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -692,8 +690,8 @@ public class MasterClient {
     }
   }
 
-  public synchronized void user_rename(String srcPath, String dstPath)
-      throws IOException, TException{
+  public synchronized void user_rename(String srcPath, String dstPath) throws IOException,
+      TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -746,8 +744,7 @@ public class MasterClient {
     }
   }
 
-  public synchronized void user_requestFilesInDependency(int depId)
-      throws IOException, TException {
+  public synchronized void user_requestFilesInDependency(int depId) throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -796,8 +793,8 @@ public class MasterClient {
   }
 
   public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId,
-      long length) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
-      TException {
+      long length) throws FileDoesNotExistException, SuspectedFileSizeException,
+      BlockInfoException, TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -852,10 +849,15 @@ public class MasterClient {
 
   /**
    * Register the worker to the master.
-   * @param workerNetAddress Worker's NetAddress
-   * @param totalBytes Worker's capacity
-   * @param usedBytes Worker's used storage
-   * @param currentBlockList Blocks in worker's space.
+   * 
+   * @param workerNetAddress
+   *          Worker's NetAddress
+   * @param totalBytes
+   *          Worker's capacity
+   * @param usedBytes
+   *          Worker's used storage
+   * @param currentBlockList
+   *          Blocks in worker's space.
    * @return the worker id assigned by the master.
    * @throws BlockInfoException
    * @throws TException
@@ -867,8 +869,8 @@ public class MasterClient {
       try {
         long ret =
             mClient.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList);
-        LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress +
-            " , got WorkerId " + ret);
+        LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress
+            + " , got WorkerId " + ret);
         return ret;
       } catch (TTransportException e) {
         LOG.error(e.getMessage());

@@ -43,7 +43,7 @@ public class InodeFolder extends Inode {
     mChildren.add(childId);
   }
 
-  public synchronized void addChildren(int [] childrenIds) {
+  public synchronized void addChildren(int[] childrenIds) {
     for (int k = 0; k < childrenIds.length; k ++) {
       addChild(childrenIds[k]);
     }

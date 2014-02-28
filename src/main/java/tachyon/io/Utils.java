@@ -34,7 +34,7 @@ public class Utils {
     }
 
     byte[] arr = new byte[len];
-    for (int k = 0; k < len ; k ++) {
+    for (int k = 0; k < len; k ++) {
       arr[k] = is.readByte();
     }
 
@@ -119,8 +119,7 @@ public class Utils {
     }
   }
 
-  public static void writeIntegerList(List<Integer> list, DataOutputStream os)
-      throws IOException {
+  public static void writeIntegerList(List<Integer> list, DataOutputStream os) throws IOException {
     if (list == null) {
       os.writeInt(-1);
       return;

@@ -230,8 +230,9 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void displayFile(String path, HttpServletRequest request, int offset)
       throws FileDoesNotExistException, InvalidPathException, IOException {
-    String masterAddress = Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":" +
-        mMasterInfo.getMasterAddress().getPort();
+    String masterAddress =
+        Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
+            + mMasterInfo.getMasterAddress().getPort();
     TachyonFS tachyonClient = TachyonFS.get(masterAddress);
     TachyonFile tFile = tachyonClient.getFile(path);
     String fileData = null;
@@ -325,7 +326,8 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       UiFileInfo toAdd = new UiFileInfo(fileInfo);
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
-          toAdd.setFileLocations(mMasterInfo.getFileLocations(toAdd.getId()).get(0).getLocations());
+          toAdd
+              .setFileLocations(mMasterInfo.getFileLocations(toAdd.getId()).get(0).getLocations());
         }
       } catch (FileDoesNotExistException fdne) {
         request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());

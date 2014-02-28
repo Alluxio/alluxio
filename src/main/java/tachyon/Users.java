@@ -122,8 +122,8 @@ public class Users {
     } else {
       returnedBytes = tUser.getOwnBytes();
       String folder = getUserTempFolder(userId);
-      sb.append(" The user returns " + returnedBytes + " bytes. Remove the user's folder " + folder
-          + " ;");
+      sb.append(" The user returns " + returnedBytes + " bytes. Remove the user's folder "
+          + folder + " ;");
       try {
         FileUtils.deleteDirectory(new File(folder));
       } catch (IOException e) {

@@ -43,13 +43,14 @@ public class Master {
 
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
-          "tachyon.Master");
+      LOG.info("java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
+          + "tachyon.Master");
       System.exit(-1);
     }
     MasterConf mConf = MasterConf.get();
-    Master master = new Master(new InetSocketAddress(mConf.HOSTNAME, mConf.PORT), mConf.WEB_PORT,
-        mConf.SELECTOR_THREADS, mConf.QUEUE_SIZE_PER_SELECTOR, mConf.SERVER_THREADS);
+    Master master =
+        new Master(new InetSocketAddress(mConf.HOSTNAME, mConf.PORT), mConf.WEB_PORT,
+            mConf.SELECTOR_THREADS, mConf.QUEUE_SIZE_PER_SELECTOR, mConf.SERVER_THREADS);
     master.start();
   }
 
@@ -90,9 +91,9 @@ public class Master {
 
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
-        mLeaderSelectorClient = new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS,
-            conf.ZOOKEEPER_ELECTION_PATH, conf.ZOOKEEPER_LEADER_PATH,
-            address.getHostName() + ":" + address.getPort());
+        mLeaderSelectorClient =
+            new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS, conf.ZOOKEEPER_ELECTION_PATH,
+                conf.ZOOKEEPER_LEADER_PATH, address.getHostName() + ":" + address.getPort());
         mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
         Thread logProcessor = new Thread(mEditLogProcessor);
         logProcessor.start();
@@ -105,6 +106,7 @@ public class Master {
 
   /**
    * Get MasterInfo instance for Unit Test
+   * 
    * @return MasterInfo of the Master
    */
   MasterInfo getMasterInfo() {
@@ -117,7 +119,7 @@ public class Master {
     if (files == null) {
       return false;
     }
-    for (String file: files) {
+    for (String file : files) {
       if (file.startsWith(path)) {
         return true;
       }
@@ -127,6 +129,7 @@ public class Master {
 
   /**
    * Get wehether the system is the leader under zookeeper mode, for unit test only.
+   * 
    * @return true if the system is the leader under zookeeper mode, false otherwise.
    */
   boolean isStarted() {
@@ -135,6 +138,7 @@ public class Master {
 
   /**
    * Get whether the system is for zookeeper mode, for unit test only.
+   * 
    * @return true if the master is under zookeeper mode, false otherwise.
    */
   boolean isZookeeperMode() {
@@ -147,22 +151,24 @@ public class Master {
     }
     mMasterInfo.init();
 
-    mWebServer = new UIWebServer("Tachyon Master Server",
-        new InetSocketAddress(mMasterAddress.getHostName(), mWebPort), mMasterInfo);
+    mWebServer =
+        new UIWebServer("Tachyon Master Server", new InetSocketAddress(
+            mMasterAddress.getHostName(), mWebPort), mMasterInfo);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
     // TODO This is for Thrift 0.8 or newer.
-    //      mServer = new TThreadedSelectorServer(new TThreadedSelectorServer
-    //          .Args(new TNonblockingServerSocket(address)).processor(processor)
-    //          .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
-    //          .workerThreads(workerThreads));
+    // mServer = new TThreadedSelectorServer(new TThreadedSelectorServer
+    // .Args(new TNonblockingServerSocket(address)).processor(processor)
+    // .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
+    // .workerThreads(workerThreads));
 
     // This is for Thrift 0.7.0, for Hive compatibility.
-    mMasterServiceServer = new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(
-        mMasterAddress)).processor(masterServiceProcessor).workerThreads(mWorkerThreads));
+    mMasterServiceServer =
+        new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(mMasterAddress))
+            .processor(masterServiceProcessor).workerThreads(mWorkerThreads));
 
     mIsStarted = true;
   }

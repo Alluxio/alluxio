@@ -32,8 +32,8 @@ import tachyon.util.CommonUtils;
 public class LeaderInquireClient {
   private static final int MAX_TRY = 10;
 
-  public static synchronized LeaderInquireClient
-  getClient(String zookeeperAddress, String leaderPath) {
+  public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
+      String leaderPath) {
     String key = zookeeperAddress + leaderPath;
     if (!createdClients.containsKey(key)) {
       createdClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
@@ -54,8 +54,8 @@ public class LeaderInquireClient {
     ZOOKEEPER_ADDRESS = zookeeperAddress;
     LEADER_PATH = leaderPath;
 
-    CLIENT = CuratorFrameworkFactory.newClient(
-        ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(1000, 3));
+    CLIENT =
+        CuratorFrameworkFactory.newClient(ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(1000, 3));
     CLIENT.start();
   }
 
@@ -73,7 +73,7 @@ public class LeaderInquireClient {
 
             long maxTime = 0;
             String leader = "";
-            for (String master: masters) {
+            for (String master : masters) {
               Stat stat = CLIENT.checkExists().forPath(LEADER_PATH + "/" + master);
               if (stat != null && stat.getCtime() > maxTime) {
                 maxTime = stat.getCtime();
@@ -83,7 +83,7 @@ public class LeaderInquireClient {
             return leader;
           }
         } else {
-          LOG.info(LEADER_PATH + " does not exist (" + (++ tried) + ")");
+          LOG.info(LEADER_PATH + " does not exist (" + ( ++tried) + ")");
         }
         CommonUtils.sleepMs(LOG, 1000);
       }
