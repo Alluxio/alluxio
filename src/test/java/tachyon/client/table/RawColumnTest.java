@@ -53,8 +53,8 @@ public class RawColumnTest {
 
   @Test
   public void basicTest() throws InvalidPathException, FileAlreadyExistException,
-  TableColumnException, TableDoesNotExistException, FileDoesNotExistException, IOException,
-  TException {
+      TableColumnException, TableDoesNotExistException, FileDoesNotExistException, IOException,
+      TException {
     int fileId = mTfs.createRawTable("/table", Constants.MAX_COLUMNS / 10);
     RawTable table = mTfs.getRawTable(fileId);
 

@@ -58,8 +58,9 @@ public class DependencyTest {
     List<Integer> children = new ArrayList<Integer>();
     List<ByteBuffer> data = new ArrayList<ByteBuffer>();
     Collection<Integer> parentDependencies = new ArrayList<Integer>();
-    Dependency dep = new Dependency(0, parents, children, cmd, data, "Dependency Test",
-        "Tachyon Tests", "0.4", DependencyType.Narrow, parentDependencies, 0L);
+    Dependency dep =
+        new Dependency(0, parents, children, cmd, data, "Dependency Test", "Tachyon Tests", "0.4",
+            DependencyType.Narrow, parentDependencies, 0L);
     Assert.assertEquals(parsedCmd, dep.parseCommandPrefix());
   }
 }

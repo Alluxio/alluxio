@@ -148,7 +148,7 @@ public class LocalTachyonClusterMultiMaster {
     return mMastersPorts;
   }
 
-  public String getTachyonHome(){
+  public String getTachyonHome() {
     return mTachyonHome;
   }
 
@@ -235,10 +235,10 @@ public class LocalTachyonClusterMultiMaster {
 
     CommonUtils.sleepMs(null, 10);
 
-    mWorker = Worker.createWorker(
-        CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
-        new InetSocketAddress(mLocalhostName, mWorkerPort),
-        mWorkerPort + 1, 1, 1, 1, mWorkerDataFolder, mWorkerCapacityBytes);
+    mWorker =
+        Worker.createWorker(CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
+            new InetSocketAddress(mLocalhostName, mWorkerPort), mWorkerPort + 1, 1, 1, 1,
+            mWorkerDataFolder, mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {

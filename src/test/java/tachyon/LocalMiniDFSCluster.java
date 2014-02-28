@@ -39,7 +39,8 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     try {
       cluster = new LocalMiniDFSCluster("/tmp/dfs", 1, 54321);
       cluster.start();
-      System.out.println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
+      System.out
+          .println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
       Thread.sleep(10);
       DistributedFileSystem dfs = cluster.getDFSClient();
       dfs.mkdirs(new Path("/1"));
@@ -53,7 +54,8 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
       cluster = new LocalMiniDFSCluster("/tmp/dfs", 3);
       cluster.start();
-      System.out.println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
+      System.out
+          .println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
 
       dfs = cluster.getDFSClient();
       dfs.mkdirs(new Path("/1"));

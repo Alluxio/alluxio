@@ -74,8 +74,8 @@ public class WorkerStorageTest {
     mLocalTachyonCluster.stopWorker();
     mTfs.delete(fid, true);
 
-    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerAddress, mWorkerDataFolder,
-        WORKER_CAPACITY_BYTES);
+    WorkerStorage ws =
+        new WorkerStorage(mMasterAddress, mWorkerAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
     String orpahnblock = ws.getUnderfsOrphansFolder() + "/" + bid;
     UnderFileSystem ufs = UnderFileSystem.get(orpahnblock);
     Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", new File(
@@ -86,7 +86,7 @@ public class WorkerStorageTest {
 
   /**
    * To test swapout the small file which is bigger than 64K
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -96,7 +96,7 @@ public class WorkerStorageTest {
 
   /**
    * To test swapout the small file which is less than 64K
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -106,7 +106,7 @@ public class WorkerStorageTest {
 
   /**
    * To test initial WorkerStorage with unknown block files
-   *
+   * 
    * @throws Exception
    */
   @Test

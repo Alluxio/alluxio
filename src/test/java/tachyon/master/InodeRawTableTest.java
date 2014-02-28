@@ -30,7 +30,7 @@ import tachyon.thrift.TachyonException;
  * Unit tests for tachyon.InodeRawTable
  */
 public class InodeRawTableTest {
-  //Tests for Inode methods
+  // Tests for Inode methods
   @Test
   public void comparableTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());

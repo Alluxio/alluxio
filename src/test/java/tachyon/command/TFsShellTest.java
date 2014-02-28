@@ -113,9 +113,10 @@ public class TFsShellTest {
     fos.write(toWrite);
     fos.close();
     mFsShell
-    .copyFromLocal(new String[] { "copyFromLocal", testFile.getAbsolutePath(), "/testFile" });
-    Assert.assertEquals(getCommandOutput(new String[] { "copyFromLocal",
-        testFile.getAbsolutePath(), "/testFile" }), mOutput.toString());
+        .copyFromLocal(new String[] { "copyFromLocal", testFile.getAbsolutePath(), "/testFile" });
+    Assert
+        .assertEquals(getCommandOutput(new String[] { "copyFromLocal", testFile.getAbsolutePath(),
+            "/testFile" }), mOutput.toString());
     TachyonFile tFile = mTfs.getFile("/testFile");
     Assert.assertNotNull(tFile);
     Assert.assertEquals(mSizeBytes, tFile.length());
@@ -132,10 +133,11 @@ public class TFsShellTest {
     File testDirInner = new File(mLocalTachyonCluster.getTachyonHome() + "/testDir/testDirInner");
     testDirInner.mkdir();
     File testFile = generateFileContent("/testDir/testFile", TestUtils.getIncreasingByteArray(10));
-    generateFileContent("/testDir/testDirInner/testFile2", TestUtils.getIncreasingByteArray(10, 20));
+    generateFileContent("/testDir/testDirInner/testFile2",
+        TestUtils.getIncreasingByteArray(10, 20));
     mFsShell.copyFromLocal(new String[] { "copyFromLocal", testFile.getParent(), "/testDir" });
     Assert.assertEquals(getCommandOutput(new String[] { "copyFromLocal", testFile.getParent(),
-    "/testDir" }), mOutput.toString());
+        "/testDir" }), mOutput.toString());
     TachyonFile tFile = mTfs.getFile("/testDir/testFile");
     TachyonFile tFile2 = mTfs.getFile("/testDir/testDirInner/testFile2");
     Assert.assertNotNull(tFile);
@@ -151,12 +153,13 @@ public class TFsShellTest {
   @Test
   public void copyFromLocalTestWithFullURI() throws IOException {
     File testFile = generateFileContent("/srcFileURI", TestUtils.getIncreasingByteArray(10));
-    String tachyonURI = "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
-        + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
+    String tachyonURI =
+        "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
+            + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
     // when
     mFsShell.copyFromLocal(new String[] { "copyFromLocal", testFile.getPath(), tachyonURI });
-    String cmdOut = getCommandOutput(new String[] { "copyFromLocal", testFile.getPath(),
-        tachyonURI });
+    String cmdOut =
+        getCommandOutput(new String[] { "copyFromLocal", testFile.getPath(), tachyonURI });
     // then
     assertThat(cmdOut, equalTo(mOutput.toString()));
     TachyonFile tFile = mTfs.getFile("/destFileURI");
@@ -227,8 +230,8 @@ public class TFsShellTest {
     Assert.assertEquals(getCommandOutput(commandParameters), mOutput.toString());
   }
 
-  private File generateFileContent(String path, byte toWrite[])
-      throws IOException, FileNotFoundException {
+  private File generateFileContent(String path, byte toWrite[]) throws IOException,
+      FileNotFoundException {
     File testFile = new File(mLocalTachyonCluster.getTachyonHome() + path);
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
@@ -310,16 +313,18 @@ public class TFsShellTest {
     mFsShell.ls(new String[] { "count", "/testRoot" });
     String expected = "";
     String format = "%-10s%-25s%-15s%-5s\n";
-    expected += String.format(format, CommonUtils.getSizeFromBytes(10),
-        CommonUtils.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
-        "/testRoot/testFileA");
-    expected += String
-        .format(format, CommonUtils.getSizeFromBytes(0),
+    expected +=
+        String.format(format, CommonUtils.getSizeFromBytes(10),
+            CommonUtils.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
+            "/testRoot/testFileA");
+    expected +=
+        String.format(format, CommonUtils.getSizeFromBytes(0),
             CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "In Memory",
             "/testRoot/testDir");
-    expected += String.format(format, CommonUtils.getSizeFromBytes(30),
-        CommonUtils.convertMsToDate(files[3].getCreationTimeMs()), "Not In Memory",
-        "/testRoot/testFileC");
+    expected +=
+        String.format(format, CommonUtils.getSizeFromBytes(30),
+            CommonUtils.convertMsToDate(files[3].getCreationTimeMs()), "Not In Memory",
+            "/testRoot/testFileC");
     Assert.assertEquals(expected, mOutput.toString());
   }
 
@@ -335,16 +340,18 @@ public class TFsShellTest {
     mFsShell.ls(new String[] { "count", "/testRoot" });
     String expected = "";
     String format = "%-10s%-25s%-15s%-5s\n";
-    expected += String.format(format, CommonUtils.getSizeFromBytes(10),
-        CommonUtils.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
-        "/testRoot/testFileA");
-    expected += String
-        .format(format, CommonUtils.getSizeFromBytes(0),
+    expected +=
+        String.format(format, CommonUtils.getSizeFromBytes(10),
+            CommonUtils.convertMsToDate(files[0].getCreationTimeMs()), "In Memory",
+            "/testRoot/testFileA");
+    expected +=
+        String.format(format, CommonUtils.getSizeFromBytes(0),
             CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "In Memory",
             "/testRoot/testDir");
-    expected += String.format(format, CommonUtils.getSizeFromBytes(30),
-        CommonUtils.convertMsToDate(files[2].getCreationTimeMs()), "Not In Memory",
-        "/testRoot/testFileC");
+    expected +=
+        String.format(format, CommonUtils.getSizeFromBytes(30),
+            CommonUtils.convertMsToDate(files[2].getCreationTimeMs()), "Not In Memory",
+            "/testRoot/testFileC");
     Assert.assertEquals(expected, mOutput.toString());
   }
 
@@ -354,7 +361,7 @@ public class TFsShellTest {
     TachyonFile tFile = mTfs.getFile("/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File");
     Assert.assertNotNull(tFile);
     Assert.assertEquals(getCommandOutput(new String[] { "mkdir",
-    "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File" }), mOutput.toString());
+        "/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File" }), mOutput.toString());
     Assert.assertTrue(tFile.isDirectory());
   }
 
@@ -445,12 +452,13 @@ public class TFsShellTest {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[] { "mkdir", "/testFolder1/testFolder2/testFile2" });
     toCompare
-    .append(getCommandOutput(new String[] { "mkdir", "/testFolder1/testFolder2/testFile2" }));
+        .append(getCommandOutput(new String[] { "mkdir", "/testFolder1/testFolder2/testFile2" }));
     Assert.assertNotNull(mTfs.getFile("/testFolder1"));
     Assert.assertNotNull(mTfs.getFile("/testFolder1/testFolder2"));
     Assert.assertNotNull(mTfs.getFile("/testFolder1/testFolder2/testFile2"));
     mFsShell.rm(new String[] { "rm", "/testFolder1/testFolder2/testFile2" });
-    toCompare.append(getCommandOutput(new String[] { "rm", "/testFolder1/testFolder2/testFile2" }));
+    toCompare
+        .append(getCommandOutput(new String[] { "rm", "/testFolder1/testFolder2/testFile2" }));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
     Assert.assertNotNull(mTfs.getFile("/testFolder1"));
     Assert.assertNotNull(mTfs.getFile("/testFolder1/testFolder2"));
@@ -497,8 +505,9 @@ public class TFsShellTest {
 
   @Test
   public void touchTestWithFullURI() throws IOException {
-    String tachyonURI = "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
-        + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
+    String tachyonURI =
+        "tachyon://" + mLocalTachyonCluster.getMasterHostname() + ":"
+            + mLocalTachyonCluster.getMasterPort() + "/destFileURI";
     // when
     String[] argv = new String[] { "touch", tachyonURI };
     mFsShell.touch(argv);

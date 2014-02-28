@@ -114,7 +114,7 @@ public class TachyonFileTest {
    */
   @Test
   public void isInMemoryTest2() throws InvalidPathException, FileAlreadyExistException,
-  IOException {
+      IOException {
     for (int k = 0; k < MAX_FILES; k ++) {
       int fileId =
           TestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
@@ -154,7 +154,7 @@ public class TachyonFileTest {
    */
   @Test
   public void isInMemoryTest3() throws InvalidPathException, FileAlreadyExistException,
-  IOException {
+      IOException {
     int fileId =
         TestUtils.createByteFile(mTfs, "/pin/file", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
     TachyonFile file = mTfs.getFile(fileId);

@@ -70,7 +70,7 @@ public class FileOutStreamTest {
   }
 
   private void writeTest1Util(String filePath, WriteType op, int len) throws InvalidPathException,
-  FileAlreadyExistException, IOException {
+      FileAlreadyExistException, IOException {
     int fileId = mTfs.createFile(filePath);
     TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
@@ -119,7 +119,7 @@ public class FileOutStreamTest {
   }
 
   private void writeTest2Util(String filePath, WriteType op, int len) throws InvalidPathException,
-  FileAlreadyExistException, IOException {
+      FileAlreadyExistException, IOException {
     int fileId = mTfs.createFile(filePath);
     TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
@@ -166,7 +166,7 @@ public class FileOutStreamTest {
   }
 
   private void writeTest3Util(String filePath, WriteType op, int len) throws InvalidPathException,
-  FileAlreadyExistException, IOException {
+      FileAlreadyExistException, IOException {
     int fileId = mTfs.createFile(filePath);
     TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
