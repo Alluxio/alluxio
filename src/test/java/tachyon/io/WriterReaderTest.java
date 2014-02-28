@@ -29,171 +29,6 @@ public class WriterReaderTest {
   private ByteOrder[] mOrders =
     {ByteOrder.nativeOrder(), ByteOrder.LITTLE_ENDIAN, ByteOrder.BIG_ENDIAN};
 
-  @Test
-  public void javaWriterJavaReaderTest() throws IOException {
-    ByteBuffer buf = ByteBuffer.allocate(mDataLength);
-
-    for (ByteOrder order : mOrders) {
-      buf.clear();
-      buf.order(order);
-      ByteBufferWriter writer = new JavaByteBufferWriter(buf);
-      generateByteBuffer(writer, order);
-      ByteBufferReader reader = new JavaByteBufferReader(writer.getByteBuffer());
-      byteBufferReaderMatcher(reader, order);
-    }
-
-    buf = ByteBuffer.allocateDirect(mDataLength);
-
-    for (ByteOrder order : mOrders) {
-      buf.clear();
-      buf.order(order);
-      ByteBufferWriter writer = new JavaByteBufferWriter(buf);
-      generateByteBuffer(writer, order);
-      ByteBufferReader reader = new JavaByteBufferReader(writer.getByteBuffer());
-      byteBufferReaderMatcher(reader, order);
-    }
-  }
-
-//  @Test
-//  public void javaWriterUnsafeDirectReaderTest() throws IOException {
-//    ByteBuffer buf = ByteBuffer.allocateDirect(mDataLength);
-//
-//    for (ByteOrder order : mOrders) {
-//      if (order != ByteOrder.nativeOrder()) {
-//        continue;
-//      }
-//      buf.clear();
-//      buf.order(order);
-//      ByteBufferWriter writer = new JavaByteBufferWriter(buf);
-//      generateByteBuffer(writer, order);
-//      ByteBufferReader reader = new UnsafeDirectByteBufferReader(writer.getByteBuffer());
-//      byteBufferReaderMatcher(reader, order);
-//    }
-//  }
-//
-//  @Test
-//  public void javaWriterUnsafeHeapReaderTest() throws IOException {
-//    ByteBuffer buf = ByteBuffer.allocate(mDataLength);
-//
-//    for (ByteOrder order : mOrders) {
-//      if (order != ByteOrder.nativeOrder()) {
-//        continue;
-//      }
-//      buf.clear();
-//      buf.order(order);
-//      ByteBufferWriter writer = new JavaByteBufferWriter(buf);
-//      generateByteBuffer(writer, order);
-//      ByteBufferReader reader = new UnsafeHeapByteBufferReader(writer.getByteBuffer());
-//      byteBufferReaderMatcher(reader, order);
-//    }
-//  }
-//
-//  @Test
-//  public void UnsafeDirectWriterJavaReaderTest() throws IOException {
-//    ByteBuffer buf = ByteBuffer.allocateDirect(mDataLength);
-//
-//    for (ByteOrder order : mOrders) {
-//      if (order != ByteOrder.nativeOrder()) {
-//        continue;
-//      }
-//      buf.clear();
-//      buf.order(order);
-//      ByteBufferWriter writer = new UnsafeDirectByteBufferWriter(buf);
-//      generateByteBuffer(writer, order);
-//      ByteBufferReader reader = new JavaByteBufferReader(writer.getByteBuffer());
-//      byteBufferReaderMatcher(reader, order);
-//    }
-//  }
-//
-//  @Test
-//  public void UnsafeDirectWriterUnsafeDirectReaderTest() throws IOException {
-//    ByteBuffer buf = ByteBuffer.allocateDirect(mDataLength);
-//
-//    for (ByteOrder order : mOrders) {
-//      if (order != ByteOrder.nativeOrder()) {
-//        continue;
-//      }
-//      buf.clear();
-//      buf.order(order);
-//      ByteBufferWriter writer = new UnsafeDirectByteBufferWriter(buf);
-//      generateByteBuffer(writer, order);
-//      ByteBufferReader reader = new UnsafeDirectByteBufferReader(writer.getByteBuffer());
-//      byteBufferReaderMatcher(reader, order);
-//    }
-//  }
-//
-//  @Test
-//  public void UnsafeHeapWriterJavaReaderTest() throws IOException {
-//    ByteBuffer buf = ByteBuffer.allocate(mDataLength);
-//
-//    for (ByteOrder order : mOrders) {
-//      if (order != ByteOrder.nativeOrder()) {
-//        continue;
-//      }
-//      buf.clear();
-//      buf.order(order);
-//      ByteBufferWriter writer = new UnsafeHeapByteBufferWriter(buf);
-//      generateByteBuffer(writer, order);
-//      ByteBufferReader reader = new JavaByteBufferReader(writer.getByteBuffer());
-//      byteBufferReaderMatcher(reader, order);
-//    }
-//  }
-//
-//  @Test
-//  public void UnsafeHeapWriterUnsafeHeapReaderTest() throws IOException {
-//    ByteBuffer buf = ByteBuffer.allocate(mDataLength);
-//
-//    for (ByteOrder order : mOrders) {
-//      if (order != ByteOrder.nativeOrder()) {
-//        continue;
-//      }
-//      buf.clear();
-//      buf.order(order);
-//      ByteBufferWriter writer = new UnsafeHeapByteBufferWriter(buf);
-//      generateByteBuffer(writer, order);
-//      ByteBufferReader reader = new UnsafeHeapByteBufferReader(writer.getByteBuffer());
-//      byteBufferReaderMatcher(reader, order);
-//    }
-//  }
-
-  private void generateByteBuffer(ByteBufferWriter writer, ByteOrder order) {
-    writer.put((byte) -128);
-    writer.put((byte) 55);
-    writer.put((byte) 127);
-    byte[] byteArr = new byte[5];
-    byteArr[0] = -11;
-    byteArr[1] = 33;
-    byteArr[2] = -55;
-    byteArr[3] = 99;
-    byteArr[4] = -103;
-    writer.put(byteArr);
-    writer.put(byteArr, 1, 2);
-    writer.putChar('\u0000');
-    writer.putChar('\uffff');
-    writer.putChar('A');
-    writer.putChar('a');
-    writer.putDouble(1.552);
-    writer.putDouble(-1.552);
-    writer.putDouble(5555000.5);
-    writer.putDouble(-5555000.5);
-    writer.putFloat((float) 1.552);
-    writer.putFloat((float) -1.552);
-    writer.putFloat((float) 5555.5);
-    writer.putFloat((float) -5555.5);
-    writer.putInt(9999);
-    writer.putInt(-9999);
-    writer.putInt(2147483647);
-    writer.putInt(-2147483648);
-    writer.putLong(99999);
-    writer.putLong(-99999);
-    writer.putLong(9223372036854775807L);
-    writer.putLong(-9223372036854775808L);
-    writer.putShort((short) 99);
-    writer.putShort((short) -99);
-    writer.putShort((short) 32767);
-    writer.putShort((short) -32768);
-  }
-
   private void byteBufferReaderMatcher(ByteBufferReader reader, ByteOrder order) {
     reader.order(order);
     Assert.assertEquals((byte) -128, reader.get());
@@ -235,4 +70,169 @@ public class WriterReaderTest {
     Assert.assertEquals((short) 32767, reader.getShort());
     Assert.assertEquals((short) -32768, reader.getShort());
   }
+
+  private void generateByteBuffer(ByteBufferWriter writer, ByteOrder order) {
+    writer.put((byte) -128);
+    writer.put((byte) 55);
+    writer.put((byte) 127);
+    byte[] byteArr = new byte[5];
+    byteArr[0] = -11;
+    byteArr[1] = 33;
+    byteArr[2] = -55;
+    byteArr[3] = 99;
+    byteArr[4] = -103;
+    writer.put(byteArr);
+    writer.put(byteArr, 1, 2);
+    writer.putChar('\u0000');
+    writer.putChar('\uffff');
+    writer.putChar('A');
+    writer.putChar('a');
+    writer.putDouble(1.552);
+    writer.putDouble(-1.552);
+    writer.putDouble(5555000.5);
+    writer.putDouble(-5555000.5);
+    writer.putFloat((float) 1.552);
+    writer.putFloat((float) -1.552);
+    writer.putFloat((float) 5555.5);
+    writer.putFloat((float) -5555.5);
+    writer.putInt(9999);
+    writer.putInt(-9999);
+    writer.putInt(2147483647);
+    writer.putInt(-2147483648);
+    writer.putLong(99999);
+    writer.putLong(-99999);
+    writer.putLong(9223372036854775807L);
+    writer.putLong(-9223372036854775808L);
+    writer.putShort((short) 99);
+    writer.putShort((short) -99);
+    writer.putShort((short) 32767);
+    writer.putShort((short) -32768);
+  }
+
+  @Test
+  public void javaWriterJavaReaderTest() throws IOException {
+    ByteBuffer buf = ByteBuffer.allocate(mDataLength);
+
+    for (ByteOrder order : mOrders) {
+      buf.clear();
+      buf.order(order);
+      ByteBufferWriter writer = new JavaByteBufferWriter(buf);
+      generateByteBuffer(writer, order);
+      ByteBufferReader reader = new JavaByteBufferReader(writer.getByteBuffer());
+      byteBufferReaderMatcher(reader, order);
+    }
+
+    buf = ByteBuffer.allocateDirect(mDataLength);
+
+    for (ByteOrder order : mOrders) {
+      buf.clear();
+      buf.order(order);
+      ByteBufferWriter writer = new JavaByteBufferWriter(buf);
+      generateByteBuffer(writer, order);
+      ByteBufferReader reader = new JavaByteBufferReader(writer.getByteBuffer());
+      byteBufferReaderMatcher(reader, order);
+    }
+  }
+
+  //  @Test
+  //  public void javaWriterUnsafeDirectReaderTest() throws IOException {
+  //    ByteBuffer buf = ByteBuffer.allocateDirect(mDataLength);
+  //
+  //    for (ByteOrder order : mOrders) {
+  //      if (order != ByteOrder.nativeOrder()) {
+  //        continue;
+  //      }
+  //      buf.clear();
+  //      buf.order(order);
+  //      ByteBufferWriter writer = new JavaByteBufferWriter(buf);
+  //      generateByteBuffer(writer, order);
+  //      ByteBufferReader reader = new UnsafeDirectByteBufferReader(writer.getByteBuffer());
+  //      byteBufferReaderMatcher(reader, order);
+  //    }
+  //  }
+  //
+  //  @Test
+  //  public void javaWriterUnsafeHeapReaderTest() throws IOException {
+  //    ByteBuffer buf = ByteBuffer.allocate(mDataLength);
+  //
+  //    for (ByteOrder order : mOrders) {
+  //      if (order != ByteOrder.nativeOrder()) {
+  //        continue;
+  //      }
+  //      buf.clear();
+  //      buf.order(order);
+  //      ByteBufferWriter writer = new JavaByteBufferWriter(buf);
+  //      generateByteBuffer(writer, order);
+  //      ByteBufferReader reader = new UnsafeHeapByteBufferReader(writer.getByteBuffer());
+  //      byteBufferReaderMatcher(reader, order);
+  //    }
+  //  }
+  //
+  //  @Test
+  //  public void UnsafeDirectWriterJavaReaderTest() throws IOException {
+  //    ByteBuffer buf = ByteBuffer.allocateDirect(mDataLength);
+  //
+  //    for (ByteOrder order : mOrders) {
+  //      if (order != ByteOrder.nativeOrder()) {
+  //        continue;
+  //      }
+  //      buf.clear();
+  //      buf.order(order);
+  //      ByteBufferWriter writer = new UnsafeDirectByteBufferWriter(buf);
+  //      generateByteBuffer(writer, order);
+  //      ByteBufferReader reader = new JavaByteBufferReader(writer.getByteBuffer());
+  //      byteBufferReaderMatcher(reader, order);
+  //    }
+  //  }
+  //
+  //  @Test
+  //  public void UnsafeDirectWriterUnsafeDirectReaderTest() throws IOException {
+  //    ByteBuffer buf = ByteBuffer.allocateDirect(mDataLength);
+  //
+  //    for (ByteOrder order : mOrders) {
+  //      if (order != ByteOrder.nativeOrder()) {
+  //        continue;
+  //      }
+  //      buf.clear();
+  //      buf.order(order);
+  //      ByteBufferWriter writer = new UnsafeDirectByteBufferWriter(buf);
+  //      generateByteBuffer(writer, order);
+  //      ByteBufferReader reader = new UnsafeDirectByteBufferReader(writer.getByteBuffer());
+  //      byteBufferReaderMatcher(reader, order);
+  //    }
+  //  }
+  //
+  //  @Test
+  //  public void UnsafeHeapWriterJavaReaderTest() throws IOException {
+  //    ByteBuffer buf = ByteBuffer.allocate(mDataLength);
+  //
+  //    for (ByteOrder order : mOrders) {
+  //      if (order != ByteOrder.nativeOrder()) {
+  //        continue;
+  //      }
+  //      buf.clear();
+  //      buf.order(order);
+  //      ByteBufferWriter writer = new UnsafeHeapByteBufferWriter(buf);
+  //      generateByteBuffer(writer, order);
+  //      ByteBufferReader reader = new JavaByteBufferReader(writer.getByteBuffer());
+  //      byteBufferReaderMatcher(reader, order);
+  //    }
+  //  }
+  //
+  //  @Test
+  //  public void UnsafeHeapWriterUnsafeHeapReaderTest() throws IOException {
+  //    ByteBuffer buf = ByteBuffer.allocate(mDataLength);
+  //
+  //    for (ByteOrder order : mOrders) {
+  //      if (order != ByteOrder.nativeOrder()) {
+  //        continue;
+  //      }
+  //      buf.clear();
+  //      buf.order(order);
+  //      ByteBufferWriter writer = new UnsafeHeapByteBufferWriter(buf);
+  //      generateByteBuffer(writer, order);
+  //      ByteBufferReader reader = new UnsafeHeapByteBufferReader(writer.getByteBuffer());
+  //      byteBufferReaderMatcher(reader, order);
+  //    }
+  //  }
 }

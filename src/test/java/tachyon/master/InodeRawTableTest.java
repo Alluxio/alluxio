@@ -30,38 +30,6 @@ import tachyon.thrift.TachyonException;
  * Unit tests for tachyon.InodeRawTable
  */
 public class InodeRawTableTest {
-  @Test
-  public void getColumnsTest() throws TachyonException {
-    InodeRawTable inodeRawTable =
-        new InodeRawTable("testTable1", 1, 0, 10, null, System.currentTimeMillis());
-    Assert.assertEquals(10, inodeRawTable.getColumns());
-  }
-
-  @Test
-  public void getNullMetadataTest() throws TachyonException {
-    InodeRawTable inodeRawTable =
-        new InodeRawTable("testTable1", 1, 0, 10, null, System.currentTimeMillis());
-    Assert.assertTrue(inodeRawTable.getMetadata().equals(ByteBuffer.allocate(0)));
-  }
-
-  @Test
-  public void getMetadataTest() throws TachyonException {
-    ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(3);
-    InodeRawTable inodeRawTable = 
-        new InodeRawTable("testTable1", 1, 0, 10, metadata, System.currentTimeMillis());
-    Assert.assertEquals(metadata, inodeRawTable.getMetadata());
-  }
-
-  @Test
-  public void updateMetadataTest() throws TachyonException {
-    InodeRawTable inodeRawTable =
-        new InodeRawTable("testTable1", 1, 0, 10, null, System.currentTimeMillis());
-    Assert.assertEquals(ByteBuffer.allocate(0), inodeRawTable.getMetadata());
-    ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(7);
-    inodeRawTable.updateMetadata(metadata);
-    Assert.assertEquals(metadata, inodeRawTable.getMetadata());
-  }
-
   //Tests for Inode methods
   @Test
   public void comparableTest() throws TachyonException {
@@ -83,15 +51,16 @@ public class InodeRawTableTest {
   }
 
   @Test
-  public void isDirectoryTest() throws TachyonException {
-    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
-    Assert.assertTrue(inode1.isDirectory());
+  public void getColumnsTest() throws TachyonException {
+    InodeRawTable inodeRawTable =
+        new InodeRawTable("testTable1", 1, 0, 10, null, System.currentTimeMillis());
+    Assert.assertEquals(10, inodeRawTable.getColumns());
   }
 
   @Test
-  public void isFileTest() throws TachyonException {
+  public void getIdTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
-    Assert.assertFalse(inode1.isFile());
+    Assert.assertEquals(1, inode1.getId());
   }
 
   @Test
@@ -101,9 +70,30 @@ public class InodeRawTableTest {
   }
 
   @Test
-  public void getIdTest() throws TachyonException {
+  public void getMetadataTest() throws TachyonException {
+    ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(3);
+    InodeRawTable inodeRawTable =
+        new InodeRawTable("testTable1", 1, 0, 10, metadata, System.currentTimeMillis());
+    Assert.assertEquals(metadata, inodeRawTable.getMetadata());
+  }
+
+  @Test
+  public void getNullMetadataTest() throws TachyonException {
+    InodeRawTable inodeRawTable =
+        new InodeRawTable("testTable1", 1, 0, 10, null, System.currentTimeMillis());
+    Assert.assertTrue(inodeRawTable.getMetadata().equals(ByteBuffer.allocate(0)));
+  }
+
+  @Test
+  public void isDirectoryTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
-    Assert.assertEquals(1, inode1.getId());
+    Assert.assertTrue(inode1.isDirectory());
+  }
+
+  @Test
+  public void isFileTest() throws TachyonException {
+    InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
+    Assert.assertFalse(inode1.isFile());
   }
 
   @Test
@@ -127,5 +117,15 @@ public class InodeRawTableTest {
     Assert.assertEquals(0, inode1.getParentId());
     inode1.setParentId(2);
     Assert.assertEquals(2, inode1.getParentId());
-  } 
+  }
+
+  @Test
+  public void updateMetadataTest() throws TachyonException {
+    InodeRawTable inodeRawTable =
+        new InodeRawTable("testTable1", 1, 0, 10, null, System.currentTimeMillis());
+    Assert.assertEquals(ByteBuffer.allocate(0), inodeRawTable.getMetadata());
+    ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(7);
+    inodeRawTable.updateMetadata(metadata);
+    Assert.assertEquals(metadata, inodeRawTable.getMetadata());
+  }
 }

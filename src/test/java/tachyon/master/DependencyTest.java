@@ -36,18 +36,18 @@ public class DependencyTest {
   private String mMasterValue = "localhost";
   private String mPortValue = "8080";
 
+  @After
+  public final void after() throws Exception {
+    DependencyVariables.sVariables.clear();
+    mLocalTachyonCluster.stop();
+  }
+
   @Before
   public final void before() throws IOException {
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
     DependencyVariables.sVariables.put("master", mMasterValue);
     DependencyVariables.sVariables.put("port", mPortValue);
-  }
-
-  @After
-  public final void after() throws Exception {
-    DependencyVariables.sVariables.clear();
-    mLocalTachyonCluster.stop();
   }
 
   @Test

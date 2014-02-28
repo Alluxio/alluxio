@@ -47,6 +47,15 @@ public class WorkerStorageTest {
   private final long WORKER_CAPACITY_BYTES = 100000;
   private final int USER_QUOTA_UNIT_BYTES = 100;
 
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
+
+  @After
+  public final void after() throws Exception {
+    mLocalTachyonCluster.stop();
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+  }
+
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
@@ -57,12 +66,6 @@ public class WorkerStorageTest {
     mMasterAddress = mLocalTachyonCluster.getMasterAddress();
     mWorkerAddress = mLocalTachyonCluster.getWorkerAddress();
     mWorkerDataFolder = mLocalTachyonCluster.getWorkerDataFolder();
-  }
-
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   private void swapoutOrphanBlocksFileTestUtil(int filesize) throws Exception {
@@ -82,16 +85,6 @@ public class WorkerStorageTest {
   }
 
   /**
-   * To test swapout the small file which is less than 64K
-   *
-   * @throws Exception
-   */
-  @Test
-  public void swapoutOrphanBlocksSmallFileTest() throws Exception {
-    swapoutOrphanBlocksFileTestUtil(10);
-  }
-
-  /**
    * To test swapout the small file which is bigger than 64K
    *
    * @throws Exception
@@ -101,8 +94,15 @@ public class WorkerStorageTest {
     swapoutOrphanBlocksFileTestUtil(70000);
   }
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
+  /**
+   * To test swapout the small file which is less than 64K
+   *
+   * @throws Exception
+   */
+  @Test
+  public void swapoutOrphanBlocksSmallFileTest() throws Exception {
+    swapoutOrphanBlocksFileTestUtil(10);
+  }
 
   /**
    * To test initial WorkerStorage with unknown block files

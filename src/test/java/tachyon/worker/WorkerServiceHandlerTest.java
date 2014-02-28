@@ -52,6 +52,12 @@ public class WorkerServiceHandlerTest {
   private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
       WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
 
+  @After
+  public final void after() throws Exception {
+    mLocalTachyonCluster.stop();
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+  }
+
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
@@ -60,44 +66,6 @@ public class WorkerServiceHandlerTest {
     mWorkerServiceHandler = mLocalTachyonCluster.getWorker().getWorkerServiceHandler();
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
     mTfs = mLocalTachyonCluster.getClient();
-  }
-
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-  }
-
-  @Test
-  public void overCapacityRequestSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES * 10L));
-  }
-
-  @Test
-  public void totalOverCapacityRequestSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2));
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2));
-  }
-
-  @Test
-  public void returnSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
-    mWorkerServiceHandler.returnSpace(1, WORKER_CAPACITY_BYTES);
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
-    mWorkerServiceHandler.returnSpace(2, WORKER_CAPACITY_BYTES);
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 10));
-  }
-
-  @Test
-  public void overReturnSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 10));
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 10));
-    mWorkerServiceHandler.returnSpace(1, WORKER_CAPACITY_BYTES);
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
   }
 
   @Test
@@ -126,5 +94,37 @@ public class WorkerServiceHandlerTest {
     Assert.assertFalse(fileInfo1.isInMemory());
     Assert.assertTrue(fileInfo2.isInMemory());
     Assert.assertTrue(fileInfo3.isInMemory());
+  }
+
+  @Test
+  public void overCapacityRequestSpaceTest() throws TException {
+    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L));
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES * 10L));
+  }
+
+  @Test
+  public void overReturnSpaceTest() throws TException {
+    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 10));
+    Assert.assertTrue(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 10));
+    mWorkerServiceHandler.returnSpace(1, WORKER_CAPACITY_BYTES);
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
+  }
+
+  @Test
+  public void returnSpaceTest() throws TException {
+    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
+    mWorkerServiceHandler.returnSpace(1, WORKER_CAPACITY_BYTES);
+    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
+    mWorkerServiceHandler.returnSpace(2, WORKER_CAPACITY_BYTES);
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 10));
+  }
+
+  @Test
+  public void totalOverCapacityRequestSpaceTest() throws TException {
+    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2));
+    Assert.assertTrue(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2));
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2));
+    Assert.assertFalse(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2));
   }
 }

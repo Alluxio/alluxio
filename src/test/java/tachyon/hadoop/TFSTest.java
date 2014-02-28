@@ -45,19 +45,15 @@ public class TFSTest {
 
   private TFS mTfs;
 
+  private void mockTachyonFSGet() throws IOException {
+    mockStatic(TachyonFS.class);
+    TachyonFS tachyonFS = mock(TachyonFS.class);
+    when(TachyonFS.get(anyString())).thenReturn(tachyonFS);
+  }
+
   @Before
   public void setup() throws Exception {
     mTfs = new TFS();
-  }
-
-  @Test
-  public void shouldInitializeWithTachyonSchemePassedByUser() throws Exception {
-    mockTachyonFSGet();
-    // when
-    mTfs.initialize(new URI(Constants.HEADER + "stanley:19998/tmp/path.txt"), new Configuration());
-    // then
-    PowerMockito.verifyStatic();
-    TachyonFS.get(Constants.HEADER + "stanley:19998");
   }
 
   @Test
@@ -71,9 +67,13 @@ public class TFSTest {
     TachyonFS.get(Constants.HEADER_FT + "stanley:19998");
   }
 
-  private void mockTachyonFSGet() throws IOException {
-    mockStatic(TachyonFS.class);
-    TachyonFS tachyonFS = mock(TachyonFS.class);
-    when(TachyonFS.get(anyString())).thenReturn(tachyonFS);
+  @Test
+  public void shouldInitializeWithTachyonSchemePassedByUser() throws Exception {
+    mockTachyonFSGet();
+    // when
+    mTfs.initialize(new URI(Constants.HEADER + "stanley:19998/tmp/path.txt"), new Configuration());
+    // then
+    PowerMockito.verifyStatic();
+    TachyonFS.get(Constants.HEADER + "stanley:19998");
   }
 }

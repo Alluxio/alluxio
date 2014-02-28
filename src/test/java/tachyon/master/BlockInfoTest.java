@@ -30,51 +30,6 @@ import tachyon.thrift.NetAddress;
  */
 public class BlockInfoTest {
   @Test
-  public void constructorTest() {
-    BlockInfo tInfo = new BlockInfo(new InodeFile(
-        "t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis()), 300, 800);
-    Assert.assertEquals(tInfo.BLOCK_INDEX, 300);
-    Assert.assertEquals(tInfo.BLOCK_ID, BlockInfo.computeBlockId(100, 300));
-    Assert.assertEquals(tInfo.OFFSET, (long) Constants.DEFAULT_BLOCK_SIZE_BYTE * 300);
-    Assert.assertEquals(tInfo.LENGTH, 800);
-  }
-
-  @Test
-  public void localtionTest() {
-    BlockInfo tInfo = new BlockInfo(new InodeFile(
-        "t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis()), 300, 800);
-    tInfo.addLocation(15, new NetAddress("abc", 1));
-    Assert.assertEquals(1, tInfo.getLocations().size());
-    tInfo.addLocation(22, new NetAddress("def", 2));
-    Assert.assertEquals(2, tInfo.getLocations().size());
-    tInfo.addLocation(29, new NetAddress("gh", 3));
-    Assert.assertEquals(3, tInfo.getLocations().size());
-    tInfo.addLocation(15, new NetAddress("abc", 1));
-    Assert.assertEquals(3, tInfo.getLocations().size());
-    tInfo.addLocation(22, new NetAddress("def", 2));
-    Assert.assertEquals(3, tInfo.getLocations().size());
-    tInfo.addLocation(29, new NetAddress("gh", 3));
-    Assert.assertEquals(3, tInfo.getLocations().size());
-    tInfo.removeLocation(15);
-    Assert.assertEquals(2, tInfo.getLocations().size());
-    tInfo.removeLocation(10);
-    Assert.assertEquals(2, tInfo.getLocations().size());
-  }
-
-  @Test
-  public void generateClientBlockInfoTest() {
-    BlockInfo tInfo = new BlockInfo(new InodeFile(
-        "t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis()), 300, 800);
-    tInfo.addLocation(15, new NetAddress("abc", 1));
-    tInfo.addLocation(22, new NetAddress("def", 2));
-    tInfo.addLocation(29, new NetAddress("gh", 3));
-    ClientBlockInfo clientBlockInfo = tInfo.generateClientBlockInfo();
-    Assert.assertEquals((long) Constants.DEFAULT_BLOCK_SIZE_BYTE * 300, clientBlockInfo.offset);
-    Assert.assertEquals(800, clientBlockInfo.length);
-    Assert.assertEquals(3, clientBlockInfo.locations.size());
-  }
-
-  @Test
   public void computeBlockIdTest() {
     Assert.assertEquals(1073741824, BlockInfo.computeBlockId(1, 0));
     Assert.assertEquals(1073741825, BlockInfo.computeBlockId(1, 1));
@@ -108,5 +63,50 @@ public class BlockInfoTest {
     Assert.assertEquals(3, BlockInfo.computeInodeId(3221225473L));
     Assert.assertEquals(3, BlockInfo.computeInodeId(4294967294L));
     Assert.assertEquals(3, BlockInfo.computeInodeId(4294967295L));
+  }
+
+  @Test
+  public void constructorTest() {
+    BlockInfo tInfo = new BlockInfo(new InodeFile(
+        "t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis()), 300, 800);
+    Assert.assertEquals(tInfo.BLOCK_INDEX, 300);
+    Assert.assertEquals(tInfo.BLOCK_ID, BlockInfo.computeBlockId(100, 300));
+    Assert.assertEquals(tInfo.OFFSET, (long) Constants.DEFAULT_BLOCK_SIZE_BYTE * 300);
+    Assert.assertEquals(tInfo.LENGTH, 800);
+  }
+
+  @Test
+  public void generateClientBlockInfoTest() {
+    BlockInfo tInfo = new BlockInfo(new InodeFile(
+        "t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis()), 300, 800);
+    tInfo.addLocation(15, new NetAddress("abc", 1));
+    tInfo.addLocation(22, new NetAddress("def", 2));
+    tInfo.addLocation(29, new NetAddress("gh", 3));
+    ClientBlockInfo clientBlockInfo = tInfo.generateClientBlockInfo();
+    Assert.assertEquals((long) Constants.DEFAULT_BLOCK_SIZE_BYTE * 300, clientBlockInfo.offset);
+    Assert.assertEquals(800, clientBlockInfo.length);
+    Assert.assertEquals(3, clientBlockInfo.locations.size());
+  }
+
+  @Test
+  public void localtionTest() {
+    BlockInfo tInfo = new BlockInfo(new InodeFile(
+        "t", 100, 0, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis()), 300, 800);
+    tInfo.addLocation(15, new NetAddress("abc", 1));
+    Assert.assertEquals(1, tInfo.getLocations().size());
+    tInfo.addLocation(22, new NetAddress("def", 2));
+    Assert.assertEquals(2, tInfo.getLocations().size());
+    tInfo.addLocation(29, new NetAddress("gh", 3));
+    Assert.assertEquals(3, tInfo.getLocations().size());
+    tInfo.addLocation(15, new NetAddress("abc", 1));
+    Assert.assertEquals(3, tInfo.getLocations().size());
+    tInfo.addLocation(22, new NetAddress("def", 2));
+    Assert.assertEquals(3, tInfo.getLocations().size());
+    tInfo.addLocation(29, new NetAddress("gh", 3));
+    Assert.assertEquals(3, tInfo.getLocations().size());
+    tInfo.removeLocation(15);
+    Assert.assertEquals(2, tInfo.getLocations().size());
+    tInfo.removeLocation(10);
+    Assert.assertEquals(2, tInfo.getLocations().size());
   }
 }

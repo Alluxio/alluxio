@@ -37,15 +37,6 @@ public class MasterFaultToleranceTest {
   private LocalTachyonClusterMultiMaster mLocalTachyonClusterMultiMaster = null;
   private TachyonFS mTfs = null;
 
-  @Before
-  public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    System.setProperty("tachyon.user.default.block.size.byte", String.valueOf(BLOCK_SIZE));
-    mLocalTachyonClusterMultiMaster = new LocalTachyonClusterMultiMaster(10000, 5);
-    mLocalTachyonClusterMultiMaster.start();
-    mTfs = mLocalTachyonClusterMultiMaster.getClient();
-  }
-
   @After
   public final void after() throws Exception {
     mLocalTachyonClusterMultiMaster.stop();
@@ -53,20 +44,13 @@ public class MasterFaultToleranceTest {
     System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
-  @Test
-  public void getClientsTest() throws IOException {
-    int clients = 10;
-    mTfs.createFile("/0", 1024);
-    for (int k = 1; k < clients; k ++) {
-      TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
-      tfs.createFile("/" + k, 1024);
-    }
-    List<String> files = mTfs.ls("/", true);
-    Assert.assertEquals(clients + 1, files.size());
-    Assert.assertEquals("/", files.get(0));
-    for (int k = 0; k < clients; k ++) {
-      Assert.assertEquals("/" + k, files.get(k + 1));
-    }
+  @Before
+  public final void before() throws IOException {
+    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
+    System.setProperty("tachyon.user.default.block.size.byte", String.valueOf(BLOCK_SIZE));
+    mLocalTachyonClusterMultiMaster = new LocalTachyonClusterMultiMaster(10000, 5);
+    mLocalTachyonClusterMultiMaster.start();
+    mTfs = mLocalTachyonClusterMultiMaster.getClient();
   }
 
   @Test
@@ -94,6 +78,22 @@ public class MasterFaultToleranceTest {
       for (int k = 0; k < clients; k ++) {
         Assert.assertEquals("/" + k, files.get(k + 1));
       }
+    }
+  }
+
+  @Test
+  public void getClientsTest() throws IOException {
+    int clients = 10;
+    mTfs.createFile("/0", 1024);
+    for (int k = 1; k < clients; k ++) {
+      TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
+      tfs.createFile("/" + k, 1024);
+    }
+    List<String> files = mTfs.ls("/", true);
+    Assert.assertEquals(clients + 1, files.size());
+    Assert.assertEquals("/", files.get(0));
+    for (int k = 0; k < clients; k ++) {
+      Assert.assertEquals("/" + k, files.get(k + 1));
     }
   }
 }

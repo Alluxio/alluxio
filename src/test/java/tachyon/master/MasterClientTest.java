@@ -38,6 +38,12 @@ public class MasterClientTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
 
+  @After
+  public final void after() throws Exception {
+    mLocalTachyonCluster.stop();
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+  }
+
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
@@ -46,15 +52,9 @@ public class MasterClientTest {
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
   }
 
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-  }
-
   @Test
   public void openCloseTest() throws FileAlreadyExistException, InvalidPathException, TException,
-      IOException {
+  IOException {
     MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
