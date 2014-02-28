@@ -517,6 +517,9 @@ public class WorkerStorage {
       LOG.info("Local folder " + mLocalDataFolder + " does not exist. Creating a new one.");
       mLocalDataFolder.mkdir();
       mLocalUserFolder.mkdir();
+      
+      CommonUtils.changeLocalFilePermission(mLocalDataFolder.getPath(), "775");
+      CommonUtils.changeLocalFilePermission(mLocalUserFolder.getPath(), "775");
       return;
     }
 
@@ -534,6 +537,7 @@ public class WorkerStorage {
       }
     }
     mLocalUserFolder.mkdir();
+    CommonUtils.changeLocalFilePermission(mLocalUserFolder.getPath(), "775");
 
     mUnderfsOrphansFolder = mUnderfsWorkerFolder + "/orphans";
     if (!mUnderFs.exists(mUnderfsOrphansFolder)) {
