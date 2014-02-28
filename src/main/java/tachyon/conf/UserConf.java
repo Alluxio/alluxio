@@ -21,12 +21,28 @@ import tachyon.Constants;
 public class UserConf extends Utils {
   private static UserConf USER_CONF = null;
 
+  /**
+   * This is for unit test only. DO NOT use it for other purpose.
+   */
+  public static synchronized void clear() {
+    USER_CONF = null;
+  }
+
+  public static synchronized UserConf get() {
+    if (USER_CONF == null) {
+      USER_CONF = new UserConf();
+    }
+
+    return USER_CONF;
+  }
   public final int FAILED_SPACE_REQUEST_LIMITS;
   public final long QUOTA_UNIT_BYTES;
   public final int FILE_BUFFER_BYTES;
   public final long HEARTBEAT_INTERVAL_MS;
   public final long MASTER_CLIENT_TIMEOUT_MS;
+
   public final long DEFAULT_BLOCK_SIZE_BYTE;
+
   public final int REMOTE_READ_BUFFER_SIZE_BYTE;
 
   private UserConf() {
@@ -39,20 +55,5 @@ public class UserConf extends Utils {
         getLongProperty("tachyon.user.default.block.size.byte", Constants.GB);
     REMOTE_READ_BUFFER_SIZE_BYTE =
         getIntProperty("tachyon.user.remote.read.buffer.size.byte", Constants.MB);
-  }
-
-  public static synchronized UserConf get() {
-    if (USER_CONF == null) {
-      USER_CONF = new UserConf();
-    }
-
-    return USER_CONF;
-  }
-
-  /**
-   * This is for unit test only. DO NOT use it for other purpose.
-   */
-  public static synchronized void clear() {
-    USER_CONF = null;
   }
 }

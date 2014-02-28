@@ -30,7 +30,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
-import tachyon.client.FileOutStream;
 import tachyon.client.InStream;
 import tachyon.client.OutStream;
 import tachyon.client.ReadType;
@@ -45,6 +44,15 @@ import tachyon.util.CommonUtils;
  * Class for handling command line inputs.
  */
 public class TFsShell {
+  /**
+   * Main method, starts a new TFsShell
+   * @param argv[] Array of arguments given by the user's input from the terminal
+   */
+  public static void main(String argv[]) throws TException{
+    TFsShell shell = new TFsShell();
+    System.exit(shell.run(argv));
+  }
+
   /**
    * Prints the file's contents to the console.
    * @param argv[] Array of arguments given by the user's input from the terminal
@@ -77,6 +85,104 @@ public class TFsShell {
       System.out.println(file + " is not a file.");
       return -1;
     }
+  }
+
+  /**
+   * Copies a file or directory specified by argv from the local filesystem to the filesystem. Will
+   * fail if the path given already exists in the filesystem.
+   * @param argv[] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int copyFromLocal(String argv[]) throws IOException {
+    if (argv.length != 3) {
+      System.out.println("Usage: tfs copyFromLocal <src> <remoteDst>");
+      return -1;
+    }
+
+    String srcPath = argv[1];
+    String dstPath = argv[2];
+    File src = new File(srcPath);
+    if (!src.exists()) {
+      System.out.println("Local path " + srcPath + " does not exist.");
+      return -1;
+    }
+    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(dstPath));
+    String file = Utils.getFilePath(dstPath);
+    int ret = copyPath(src, tachyonClient, file);
+    if (ret == 0) {
+      System.out.println("Copied " + src.getPath() + " to " + dstPath);
+    }
+    return ret;
+  }
+
+  private int copyPath(File src, TachyonFS tachyonClient, String dstPath) throws IOException {
+    if (!src.isDirectory()) {
+      int fileId = tachyonClient.createFile(dstPath);
+      if (fileId == -1) {
+        return -1;
+      }
+      TachyonFile tFile = tachyonClient.getFile(fileId);
+      OutStream os = tFile.getOutStream(WriteType.CACHE_THROUGH);
+      FileInputStream in = new FileInputStream(src);
+      FileChannel channel = in.getChannel();
+      ByteBuffer buf = ByteBuffer.allocate(1024);
+      while (channel.read(buf) != -1) {
+        buf.flip();
+        os.write(buf.array(), 0, buf.limit());
+      }
+      os.close();
+      channel.close();
+      in.close();
+      return 0;
+    } else {
+      tachyonClient.mkdir(dstPath);
+      for (String file : src.list()) {
+        String newPath = FilenameUtils.concat(dstPath, file);
+        File srcFile = new File(src, file);
+        if (copyPath(srcFile, tachyonClient, newPath) == -1) {
+          return -1;
+        }
+      }
+    }
+    return 0;
+  }
+
+  /**
+   * Copies a file specified by argv from the filesystem to the local filesystem.
+   * @param argv[] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int copyToLocal(String argv[]) throws IOException {
+    if (argv.length != 3) {
+      System.out.println("Usage: tfs copyToLocal <src> <localdst>");
+      return -1;
+    }
+
+    String srcPath = argv[1];
+    String dstPath = argv[2];
+    String folder = Utils.getFilePath(srcPath);
+    File dst = new File(dstPath);
+    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(srcPath));
+    TachyonFile tFile = tachyonClient.getFile(folder);
+
+    // tachyonClient.getFile() catches FileDoesNotExist exceptions and returns null
+    if (tFile == null) {
+      throw new IOException(folder);
+    }
+
+    InStream is = tFile.getInStream(ReadType.NO_CACHE);
+    FileOutputStream out = new FileOutputStream(dst);
+    byte[] buf = new byte[512];
+    int t = is.read(buf);
+    while (t != -1) {
+      out.write(buf, 0, t);
+      t = is.read(buf);
+    }
+    out.close();
+    System.out.println("Copied " + srcPath + " to " + dstPath);
+    return 0;
   }
 
   /**
@@ -118,6 +224,52 @@ public class TFsShell {
       rtn[2] += toAdd[2];
     }
     return rtn;
+  }
+
+  /**
+   * Displays the file's all blocks info
+   * @param argv[] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int fileinfo(String argv[]) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs fileinfo <path>");
+      return -1;
+    }
+    String path = argv[1];
+    String file = Utils.getFilePath(path);
+    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    int fileId = tachyonClient.getFileId(file);
+    List<ClientBlockInfo> blocks = tachyonClient.getFileBlocks(fileId);
+    System.out.println(file + " with file id " + fileId + " have following blocks: ");
+    for (ClientBlockInfo block: blocks) {
+      System.out.println(block);
+    }
+    return 0;
+  }
+
+  /**
+   * Displays a list of hosts that have the file specified in argv stored.
+   * @param argv[] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int location(String argv[]) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs location <path>");
+      return -1;
+    }
+    String path = argv[1];
+    String file = Utils.getFilePath(path);
+    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    int fileId = tachyonClient.getFileId(file);
+    List<String> hosts = tachyonClient.getFile(fileId).getLocationHosts();
+    System.out.println(file + " with file id " + fileId + " are on nodes: ");
+    for (String host: hosts) {
+      System.out.println(host);
+    }
+    return 0;
   }
 
   /**
@@ -198,85 +350,25 @@ public class TFsShell {
   }
 
   /**
-   * Removes the file or directory specified by argv. Will remove all files and directories in
-   * the directory if a directory is specified.
-   * @param argv[] Array of arguments given by the user's input from the terminal
-   * @return 0 if command is successful, -1 if an error occurred.
-   * @throws IOException
+   * Method which prints the method to use all the commands.
    */
-  public int rm(String argv[]) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs rm <path>");
-      return -1;
-    }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
-    if (tachyonClient.delete(file, true)) {
-      System.out.println(file + " has been removed");
-      return 0;
-    } else {
-      return -1;
-    }
-  }
-
-  /**
-   * Prints the file's last 1KB of contents to the console.
-   * @param argv[] Array of arguments given by the user's input from the terminal
-   * @return 0 if command is successful, -1 if an error occurred.f
-   * @throws IOException
-   */
-  public int tail(String argv[]) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs tail <path>");
-    }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
-    TachyonFile tFile = tachyonClient.getFile(file);
-
-    if (tFile == null) {
-      System.out.println(file + " does not exist.");
-      return -1;
-    }
-    if (tFile.isFile()) {
-      InStream is = tFile.getInStream(ReadType.NO_CACHE);
-      byte[] buf = new byte[1024];
-      long bytesToRead = 0L;
-      if (tFile.length() > 1024) {
-        bytesToRead = 1024;
-      } else {
-        bytesToRead = tFile.length();
-      }
-      is.skip(tFile.length() - bytesToRead);
-      int read = is.read(buf);
-      System.out.write(buf, 0, read);
-      return 0;
-    } else {
-      System.out.println(file + " is not a file.");
-      return -1;
-    }
-  }
-
-  /**
-   * Creates a 0 byte file specified by argv.
-   * @param argv[] Array of arguments given by the user's input from the terminal
-   * @return 0 if command if sucessful, -1 if an error occurred.
-   * @throws IOException
-   */
-  public int touch(String argv[]) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs touch <path>");
-      return -1;
-    }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
-    TachyonFile tFile = tachyonClient.getFile(tachyonClient.createFile(file));
-    OutputStream out = tFile.getOutStream(WriteType.THROUGH);
-    out.close();
-    System.out.println(path + " has been created");
-    return 0;
+  public void printUsage() {
+    System.out.println("Usage: java TFsShell");
+    System.out.println("       [cat <path>]");
+    System.out.println("       [count <path>]");
+    System.out.println("       [ls <path>]");
+    System.out.println("       [lsr <path>]");
+    System.out.println("       [mkdir <path>]");
+    System.out.println("       [rm <path>]");
+    System.out.println("       [tail <path>]");
+    System.out.println("       [touch <path>]");
+    System.out.println("       [mv <src> <dst>]");
+    System.out.println("       [copyFromLocal <src> <remoteDst>]");
+    System.out.println("       [copyToLocal <src> <localDst>]");
+    System.out.println("       [fileinfo <path>]");
+    System.out.println("       [location <path>]");
+    System.out.println("       [report <path>]");
+    System.out.println("       [request <tachyonaddress> <dependencyId>]");
   }
 
   /**
@@ -309,150 +401,6 @@ public class TFsShell {
     }
   }
 
-  /**
-   * Copies a file specified by argv from the filesystem to the local filesystem.
-   * @param argv[] Array of arguments given by the user's input from the terminal
-   * @return 0 if command is successful, -1 if an error occurred.
-   * @throws IOException
-   */
-  public int copyToLocal(String argv[]) throws IOException {
-    if (argv.length != 3) {
-      System.out.println("Usage: tfs copyToLocal <src> <localdst>");
-      return -1;
-    }
-
-    String srcPath = argv[1];
-    String dstPath = argv[2];
-    String folder = Utils.getFilePath(srcPath);
-    File dst = new File(dstPath);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(srcPath));
-    TachyonFile tFile = tachyonClient.getFile(folder);
-
-    // tachyonClient.getFile() catches FileDoesNotExist exceptions and returns null
-    if (tFile == null) {
-      throw new IOException(folder);
-    }
-
-    InStream is = tFile.getInStream(ReadType.NO_CACHE);
-    FileOutputStream out = new FileOutputStream(dst);
-    byte[] buf = new byte[512];
-    int t = is.read(buf);
-    while (t != -1) {
-      out.write(buf, 0, t);
-      t = is.read(buf);
-    }
-    out.close();
-    System.out.println("Copied " + srcPath + " to " + dstPath);
-    return 0;
-  }
-
-  /**
-   * Displays the file's all blocks info
-   * @param argv[] Array of arguments given by the user's input from the terminal
-   * @return 0 if command is successful, -1 if an error occurred.
-   * @throws IOException
-   */
-  public int fileinfo(String argv[]) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs fileinfo <path>");
-      return -1;
-    }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
-    int fileId = tachyonClient.getFileId(file);
-    List<ClientBlockInfo> blocks = tachyonClient.getFileBlocks(fileId);
-    System.out.println(file + " with file id " + fileId + " have following blocks: ");
-    for (ClientBlockInfo block: blocks) {
-      System.out.println(block);
-    }
-    return 0;
-  }
-
-  /**
-   * Copies a file or directory specified by argv from the local filesystem to the filesystem. Will
-   * fail if the path given already exists in the filesystem.
-   * @param argv[] Array of arguments given by the user's input from the terminal
-   * @return 0 if command is successful, -1 if an error occurred.
-   * @throws IOException
-   */
-  public int copyFromLocal(String argv[]) throws IOException {
-    if (argv.length != 3) {
-      System.out.println("Usage: tfs copyFromLocal <src> <remoteDst>");
-      return -1;
-    }
-
-    String srcPath = argv[1];
-    String dstPath = argv[2];
-    File src = new File(srcPath);
-    if (!src.exists()) {
-      System.out.println("Local path " + srcPath + " does not exist.");
-      return -1;
-    }
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(dstPath));
-    String file = Utils.getFilePath(dstPath);
-    int ret = copyPath(src, tachyonClient, file);
-    if (ret == 0) {
-      System.out.println("Copied " + src.getPath() + " to " + dstPath);
-    }
-    return ret;
-  }
-
-  private int copyPath(File src, TachyonFS tachyonClient, String dstPath) throws IOException {
-    if (!src.isDirectory()) {
-      int fileId = tachyonClient.createFile(dstPath);
-      if (fileId == -1) {
-        return -1;
-      }
-      TachyonFile tFile = tachyonClient.getFile(fileId);
-      OutStream os = (FileOutStream) tFile.getOutStream(WriteType.CACHE_THROUGH);
-      FileInputStream in = new FileInputStream(src);
-      FileChannel channel = in.getChannel();
-      ByteBuffer buf = ByteBuffer.allocate(1024);
-      while (channel.read(buf) != -1) {
-        buf.flip();
-        os.write(buf.array(), 0, buf.limit());
-      }
-      os.close();
-      channel.close();
-      in.close();
-      return 0;
-    } else {
-      tachyonClient.mkdir(dstPath);
-      for (String file : src.list()) {
-        String newPath = FilenameUtils.concat(dstPath, file);
-        File srcFile = new File(src, file);
-        if (copyPath(srcFile, tachyonClient, newPath) == -1) {
-          return -1;
-        }
-      }
-    }
-    return 0;
-  }
-
-  /**
-   * Displays a list of hosts that have the file specified in argv stored.
-   * @param argv[] Array of arguments given by the user's input from the terminal
-   * @return 0 if command is successful, -1 if an error occurred.
-   * @throws IOException
-   */
-  public int location(String argv[]) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs location <path>");
-      return -1;
-    }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
-    int fileId = tachyonClient.getFileId(file);
-    List<String> hosts = tachyonClient.getFile(fileId).getLocationHosts();
-    System.out.println(file + " with file id " + fileId + " are on nodes: ");
-    for (String host: hosts) {
-      System.out.println(host);
-    }
-    return 0;
-  }
-
   public int report(String argv[]) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs report <path>");
@@ -481,41 +429,35 @@ public class TFsShell {
   }
 
   /**
-   * Method which prints the method to use all the commands.
-   */
-  public void printUsage() {
-    System.out.println("Usage: java TFsShell");
-    System.out.println("       [cat <path>]");
-    System.out.println("       [count <path>]");
-    System.out.println("       [ls <path>]");
-    System.out.println("       [lsr <path>]");
-    System.out.println("       [mkdir <path>]");
-    System.out.println("       [rm <path>]");
-    System.out.println("       [tail <path>]");
-    System.out.println("       [touch <path>]");
-    System.out.println("       [mv <src> <dst>]");
-    System.out.println("       [copyFromLocal <src> <remoteDst>]");
-    System.out.println("       [copyToLocal <src> <localDst>]");
-    System.out.println("       [fileinfo <path>]");
-    System.out.println("       [location <path>]");
-    System.out.println("       [report <path>]");
-    System.out.println("       [request <tachyonaddress> <dependencyId>]");
-  }
-
-  /**
-   * Main method, starts a new TFsShell
+   * Removes the file or directory specified by argv. Will remove all files and directories in
+   * the directory if a directory is specified.
    * @param argv[] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
    */
-  public static void main(String argv[]) throws TException{
-    TFsShell shell = new TFsShell();
-    System.exit(shell.run(argv));
+  public int rm(String argv[]) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs rm <path>");
+      return -1;
+    }
+    String path = argv[1];
+    String file = Utils.getFilePath(path);
+    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    if (tachyonClient.delete(file, true)) {
+      System.out.println(file + " has been removed");
+      return 0;
+    } else {
+      return -1;
+    }
   }
 
   /**
    * Method which determines how to handle the user's request, will display usage help to the
    * user if command format is incorrect.
-   * @param argv[] Array of arguments given by the user's input from the terminal
-   * @return 0 if command is successful, -1 if an error occured
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred
    * @throws TException
    */
   public int run(String argv[]) throws TException {
@@ -556,7 +498,7 @@ public class TFsShell {
       } else if (cmd.equals("report")) {
         exitCode = report(argv);
       } else if (cmd.equals("request")) {
-        exitCode = request(argv); 
+        exitCode = request(argv);
       } else {
         printUsage();
         return -1;
@@ -567,5 +509,68 @@ public class TFsShell {
     }
 
     return exitCode;
+  }
+
+  /**
+   * Prints the file's last 1KB of contents to the console.
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.f
+   * @throws IOException
+   */
+  public int tail(String argv[]) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs tail <path>");
+    }
+    String path = argv[1];
+    String file = Utils.getFilePath(path);
+    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFile tFile = tachyonClient.getFile(file);
+
+    if (tFile == null) {
+      System.out.println(file + " does not exist.");
+      return -1;
+    }
+    if (tFile.isFile()) {
+      InStream is = tFile.getInStream(ReadType.NO_CACHE);
+      byte[] buf = new byte[1024];
+      long bytesToRead = 0L;
+      if (tFile.length() > 1024) {
+        bytesToRead = 1024;
+      } else {
+        bytesToRead = tFile.length();
+      }
+      is.skip(tFile.length() - bytesToRead);
+      int read = is.read(buf);
+      System.out.write(buf, 0, read);
+      return 0;
+    } else {
+      System.out.println(file + " is not a file.");
+      return -1;
+    }
+  }
+
+  /**
+   * Creates a 0 byte file specified by argv.
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command if successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int touch(String argv[]) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs touch <path>");
+      return -1;
+    }
+    String path = argv[1];
+    String file = Utils.getFilePath(path);
+    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFile tFile = tachyonClient.getFile(tachyonClient.createFile(file));
+    OutputStream out = tFile.getOutStream(WriteType.THROUGH);
+    out.close();
+    System.out.println(path + " has been created");
+    return 0;
   }
 }

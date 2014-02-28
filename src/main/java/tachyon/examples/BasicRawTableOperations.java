@@ -55,29 +55,21 @@ public class BasicRawTableOperations {
     mId = sTachyonClient.createRawTable(sTablePath, 3, data);
   }
 
-  public static void write() throws IOException {
-    RawTable rawTable = sTachyonClient.getRawTable(sTablePath);
-
-    LOG.debug("Writing data...");
-    for (int column = 0; column < COLS; column ++) {
-      RawColumn rawColumn = rawTable.getRawColumn(column);
-      if (!rawColumn.createPartition(0)) {
-        CommonUtils.runtimeException("Failed to create partition in table " + sTablePath +
-            " under column " + column);
-      }
-
-      ByteBuffer buf = ByteBuffer.allocate(80);
-      buf.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < sDataLength; k ++) {
-        buf.putInt(k);
-      }
-      buf.flip();
-
-      TachyonFile tFile = rawColumn.getPartition(0);
-      OutStream os = tFile.getOutStream(sWriteType);
-      os.write(buf.array());
-      os.close();
+  public static void main(String[] args) throws IOException {
+    if (args.length != 3) {
+      System.out.println("java -cp target/tachyon-" + Version.VERSION +
+          "-jar-with-dependencies.jar " +
+          "tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>");
+      System.exit(-1);
     }
+    sTachyonClient = TachyonFS.get(args[0]);
+    sTablePath = args[1];
+    sWriteType = WriteType.getOpType(args[2]);
+    createRawTable();
+    write();
+    read();
+    Utils.printPassInfo(sPass);
+    System.exit(0);
   }
 
   public static void read() throws IOException {
@@ -107,20 +99,28 @@ public class BasicRawTableOperations {
     }
   }
 
-  public static void main(String[] args) throws IOException {
-    if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION +
-          "-jar-with-dependencies.jar " +
-          "tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>");
-      System.exit(-1);
+  public static void write() throws IOException {
+    RawTable rawTable = sTachyonClient.getRawTable(sTablePath);
+
+    LOG.debug("Writing data...");
+    for (int column = 0; column < COLS; column ++) {
+      RawColumn rawColumn = rawTable.getRawColumn(column);
+      if (!rawColumn.createPartition(0)) {
+        CommonUtils.runtimeException("Failed to create partition in table " + sTablePath +
+            " under column " + column);
+      }
+
+      ByteBuffer buf = ByteBuffer.allocate(80);
+      buf.order(ByteOrder.nativeOrder());
+      for (int k = 0; k < sDataLength; k ++) {
+        buf.putInt(k);
+      }
+      buf.flip();
+
+      TachyonFile tFile = rawColumn.getPartition(0);
+      OutStream os = tFile.getOutStream(sWriteType);
+      os.write(buf.array());
+      os.close();
     }
-    sTachyonClient = TachyonFS.get(args[0]);
-    sTablePath = args[1];
-    sWriteType = WriteType.getOpType(args[2]);
-    createRawTable();
-    write();
-    read();
-    Utils.printPassInfo(sPass);
-    System.exit(0);
   }
 }

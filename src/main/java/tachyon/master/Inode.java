@@ -52,6 +52,28 @@ public abstract class Inode implements Comparable<Inode> {
     return mId == ((Inode)o).mId;
   }
 
+  public abstract ClientFileInfo generateClientFileInfo(String path);
+
+  public long getCreationTimeMs() {
+    return CREATION_TIME_MS;
+  }
+
+  public synchronized int getId() {
+    return mId;
+  }
+
+  public InodeType getInodeType() {
+    return TYPE;
+  }
+
+  public synchronized String getName() {
+    return mName;
+  }
+
+  public synchronized int getParentId() {
+    return mParentId;
+  }
+
   @Override
   public synchronized int hashCode() {
     return mId;
@@ -65,34 +87,12 @@ public abstract class Inode implements Comparable<Inode> {
     return TYPE == InodeType.File;
   }
 
-  public long getCreationTimeMs() {
-    return CREATION_TIME_MS;
-  }
-
-  public InodeType getInodeType() {
-    return TYPE;
-  }
-
-  public synchronized int getId() {
-    return mId;
-  }
-
-  public abstract ClientFileInfo generateClientFileInfo(String path);
-
   public synchronized void reverseId() {
     mId = - mId;
   }
 
-  public synchronized String getName() {
-    return mName;
-  }
-
   public synchronized void setName(String name) {
     mName = name;
-  }
-
-  public synchronized int getParentId() {
-    return mParentId;
   }
 
   public synchronized void setParentId(int parentId) {

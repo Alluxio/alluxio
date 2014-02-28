@@ -25,7 +25,7 @@ public class TachyonByteBuffer {
   // ByteBuffer contains data.
   public final ByteBuffer DATA;
 
-  private final long BLOCK_ID;  
+  private final long BLOCK_ID;
 
   private final int BLOCK_LOCK_ID;
 

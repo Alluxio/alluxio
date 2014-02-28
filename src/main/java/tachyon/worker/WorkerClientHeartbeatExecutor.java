@@ -24,7 +24,7 @@ import tachyon.HeartbeatExecutor;
 
 /**
  * User client sends periodical heartbeats to the worker it is talking to. It is fails to do so,
- * the worker may withdraw the space granted to the particular user.  
+ * the worker may withdraw the space granted to the particular user.
  */
 class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);

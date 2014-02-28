@@ -44,16 +44,16 @@ public class RawTable {
     return CLIENT_RAW_TABLE_INFO.getId();
   }
 
+  public ByteBuffer getMetadata() {
+    return CommonUtils.cloneByteBuffer(CLIENT_RAW_TABLE_INFO.metadata);
+  }
+
   public String getName() {
     return CLIENT_RAW_TABLE_INFO.getName();
   }
 
   public String getPath() {
     return CLIENT_RAW_TABLE_INFO.getPath();
-  }
-
-  public ByteBuffer getMetadata() {
-    return CommonUtils.cloneByteBuffer(CLIENT_RAW_TABLE_INFO.metadata);
   }
 
   public RawColumn getRawColumn(int columnIndex) {

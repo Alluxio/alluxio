@@ -42,10 +42,6 @@ public class BlocksLocker {
     mWorkerStorage = workerStorage;
   }
 
-  public synchronized boolean locked(long blockId) {
-    return mLockedBlockIds.containsKey(blockId);
-  }
-
   /**
    * Lock a block.
    * @param blockId The id of the block.
@@ -63,6 +59,10 @@ public class BlocksLocker {
     }
     mLockedBlockIds.get(blockId).add(locker);
     return locker;
+  }
+
+  public synchronized boolean locked(long blockId) {
+    return mLockedBlockIds.containsKey(blockId);
   }
 
   /**

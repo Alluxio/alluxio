@@ -61,20 +61,6 @@ public class Users {
   }
 
   /**
-   * Get how much space quote does a user own.
-   * 
-   * @param userId
-   *          The queried user.
-   * @return Bytes the user owns.
-   */
-  public long ownBytes(long userId) {
-    synchronized (USERS) {
-      UserInfo tUser = USERS.get(userId);
-      return tUser == null ? 0 : tUser.getOwnBytes();
-    }
-  }
-
-  /**
    * Check the status of the users pool.
    * 
    * @return the list of timeout users.
@@ -98,6 +84,20 @@ public class Users {
 
   public String getUserUnderfsTempFolder(long userId) {
     return USER_UNDERFS_FOLDER + "/" + userId;
+  }
+
+  /**
+   * Get how much space quote does a user own.
+   * 
+   * @param userId
+   *          The queried user.
+   * @return Bytes the user owns.
+   */
+  public long ownBytes(long userId) {
+    synchronized (USERS) {
+      UserInfo tUser = USERS.get(userId);
+      return tUser == null ? 0 : tUser.getOwnBytes();
+    }
   }
 
   /**

@@ -48,6 +48,10 @@ public class PrefixList {
     }
   }
 
+  public List<String> getList() {
+    return ImmutableList.copyOf(LIST);
+  }
+
   public boolean inList(String path) {
     if (Strings.isNullOrEmpty(path)) {
       return false;
@@ -64,9 +68,5 @@ public class PrefixList {
 
   public boolean outList(String path) {
     return !inList(path);
-  }
-
-  public List<String> getList() {
-    return ImmutableList.copyOf(LIST);
   }
 }

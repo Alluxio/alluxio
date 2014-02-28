@@ -38,14 +38,14 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
   public WebInterfaceMemoryServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
   }
-  
+
   /**
    * Populates attributes before redirecting to a jsp.
    * @param request The HttpServletRequest object
    * @param response The HttpServletReponse object
    */
   @Override
-  public void doGet(HttpServletRequest request, HttpServletResponse response) 
+  public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
     List<String> inMemoryFiles = mMasterInfo.getInMemoryFiles();

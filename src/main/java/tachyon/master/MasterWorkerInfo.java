@@ -53,12 +53,32 @@ public class MasterWorkerInfo {
     mLastUpdatedTimeMs = System.currentTimeMillis();
   }
 
+  public synchronized ClientWorkerInfo generateClientWorkerInfo() {
+    ClientWorkerInfo ret = new ClientWorkerInfo();
+    ret.id = mId;
+    ret.address = new NetAddress(ADDRESS.getHostName(), ADDRESS.getPort());
+    ret.lastContactSec = (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / 1000);
+    ret.state = "In Service";
+    ret.capacityBytes = CAPACITY_BYTES;
+    ret.usedBytes = mUsedBytes;
+    ret.starttimeMs = START_TIME_MS;
+    return ret;
+  }
+
   public InetSocketAddress getAddress() {
     return ADDRESS;
   }
 
   public synchronized long getAvailableBytes() {
     return CAPACITY_BYTES - mUsedBytes;
+  }
+
+  /**
+   * Get all blocks in the worker's memory.
+   * @return ids of the blocks.
+   */
+  public synchronized Set<Long> getBlocks() {
+    return new HashSet<Long>(mBlocks);
   }
 
   public long getCapacityBytes() {
@@ -71,14 +91,6 @@ public class MasterWorkerInfo {
 
   public synchronized long getLastUpdatedTimeMs() {
     return mLastUpdatedTimeMs;
-  }
-
-  /**
-   * Get all blocks in the worker's memory.
-   * @return ids of the blocks.
-   */
-  public synchronized Set<Long> getBlocks() {
-    return new HashSet<Long>(mBlocks);
   }
 
   /**
@@ -126,6 +138,10 @@ public class MasterWorkerInfo {
     }
   }
 
+  public synchronized void updateLastUpdatedTimeMs() {
+    mLastUpdatedTimeMs = System.currentTimeMillis();
+  }
+
   public synchronized void updateToRemovedBlock(boolean add, long blockId) {
     if (add) {
       if (mBlocks.contains(blockId)) {
@@ -142,23 +158,7 @@ public class MasterWorkerInfo {
     }
   }
 
-  public synchronized void updateLastUpdatedTimeMs() {
-    mLastUpdatedTimeMs = System.currentTimeMillis();
-  }
-
   public synchronized void updateUsedBytes(long usedBytes) {
     mUsedBytes = usedBytes;
-  }
-
-  public synchronized ClientWorkerInfo generateClientWorkerInfo() {
-    ClientWorkerInfo ret = new ClientWorkerInfo();
-    ret.id = mId;
-    ret.address = new NetAddress(ADDRESS.getHostName(), ADDRESS.getPort());
-    ret.lastContactSec = (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / 1000);
-    ret.state = "In Service";
-    ret.capacityBytes = CAPACITY_BYTES;
-    ret.usedBytes = mUsedBytes;
-    ret.starttimeMs = START_TIME_MS;
-    return ret;
   }
 }

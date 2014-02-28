@@ -44,7 +44,7 @@ public class WorkerServiceHandler implements WorkerService.Iface {
 
   @Override
   public void addCheckpoint(long userId, int fileId)
-      throws FileDoesNotExistException, SuspectedFileSizeException, 
+      throws FileDoesNotExistException, SuspectedFileSizeException,
       FailedToCheckpointException, BlockInfoException, TException {
     mWorkerStorage.addCheckpoint(userId, fileId);
   }
@@ -85,13 +85,13 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void returnSpace(long userId, long returnedBytes) throws TException {
-    mWorkerStorage.returnSpace(userId, returnedBytes);
+  public boolean requestSpace(long userId, long requestBytes) throws TException {
+    return mWorkerStorage.requestSpace(userId, requestBytes);
   }
 
   @Override
-  public boolean requestSpace(long userId, long requestBytes) throws TException {
-    return mWorkerStorage.requestSpace(userId, requestBytes);
+  public void returnSpace(long userId, long returnedBytes) throws TException {
+    mWorkerStorage.returnSpace(userId, returnedBytes);
   }
 
   @Override

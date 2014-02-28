@@ -41,17 +41,70 @@ import tachyon.util.CommonUtils;
 public class Worker implements Runnable {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
+  public static synchronized Worker createWorker(InetSocketAddress masterAddress,
+      InetSocketAddress workerAddress, int dataPort, int selectorThreads,
+      int acceptQueueSizePerThreads, int workerThreads, String localFolder, long spaceLimitBytes) {
+    return new Worker(masterAddress, workerAddress, dataPort, selectorThreads,
+        acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
+  }
+  public static synchronized Worker createWorker(String masterAddress, String workerAddress,
+      int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
+      String localFolder, long spaceLimitBytes) {
+    String[] address = masterAddress.split(":");
+    InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
+    address = workerAddress.split(":");
+    InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
+    return new Worker(master, worker, dataPort, selectorThreads, acceptQueueSizePerThreads,
+        workerThreads, localFolder, spaceLimitBytes);
+  }
+
+  private static String getMasterLocation(String[] args) {
+    WorkerConf wConf = WorkerConf.get();
+    String confFileMasterLoc = wConf.MASTER_HOSTNAME + ":" + wConf.MASTER_PORT;
+    String masterLocation;
+    if (args.length < 2) {
+      masterLocation = confFileMasterLoc;
+    } else {
+      masterLocation = args[1];
+      if (masterLocation.indexOf(":") == -1) {
+        masterLocation += ":" + wConf.MASTER_PORT;
+      }
+      if (!masterLocation.equals(confFileMasterLoc)) {
+        LOG.warn("Master Address in configuration file(" + confFileMasterLoc + ") is different "
+            + "from the command line one(" + masterLocation + ").");
+      }
+    }
+    return masterLocation;
+  }
+  public static void main(String[] args) throws UnknownHostException {
+    if (args.length < 1 || args.length > 2) {
+      LOG.info("Usage: java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
+          + "tachyon.Worker <WorkerHost> [<MasterHost:Port>]");
+      System.exit(-1);
+    }
+
+    WorkerConf wConf = WorkerConf.get();
+
+    Worker worker = Worker.createWorker(getMasterLocation(args),
+        args[0] + ":" + wConf.PORT, wConf.DATA_PORT,
+        wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
+        wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
+    worker.start();
+  }
+
   private final InetSocketAddress MasterAddress;
   private final InetSocketAddress WorkerAddress;
-
   private TServer mServer;
-  private TNonblockingServerSocket mServerTNonblockingServerSocket;
 
+  private TNonblockingServerSocket mServerTNonblockingServerSocket;
   private WorkerStorage mWorkerStorage;
+
   private WorkerServiceHandler mWorkerServiceHandler;
+
   private DataServer mDataServer;
 
   private Thread mDataServerThread;
+
   private Thread mHeartbeatThread;
 
   private volatile boolean mStop = false;
@@ -91,6 +144,15 @@ public class Worker implements Runnable {
       LOG.error(e.getMessage(), e);
       CommonUtils.runtimeException(e);
     }
+  }
+
+  /**
+   * Get the worker server handler class. This is for unit test only.
+   * 
+   * @return the WorkerServiceHandler
+   */
+  WorkerServiceHandler getWorkerServiceHandler() {
+    return mWorkerServiceHandler;
   }
 
   @Override
@@ -150,24 +212,6 @@ public class Worker implements Runnable {
     }
   }
 
-  public static synchronized Worker createWorker(InetSocketAddress masterAddress,
-      InetSocketAddress workerAddress, int dataPort, int selectorThreads,
-      int acceptQueueSizePerThreads, int workerThreads, String localFolder, long spaceLimitBytes) {
-    return new Worker(masterAddress, workerAddress, dataPort, selectorThreads,
-        acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
-  }
-
-  public static synchronized Worker createWorker(String masterAddress, String workerAddress,
-      int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
-      String localFolder, long spaceLimitBytes) {
-    String[] address = masterAddress.split(":");
-    InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
-    address = workerAddress.split(":");
-    InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
-    return new Worker(master, worker, dataPort, selectorThreads, acceptQueueSizePerThreads,
-        workerThreads, localFolder, spaceLimitBytes);
-  }
-
   public void start() {
     mDataServerThread.start();
     mHeartbeatThread.start();
@@ -190,49 +234,5 @@ public class Worker implements Runnable {
       CommonUtils.sleepMs(null, 100);
     }
     mHeartbeatThread.join();
-  }
-
-  private static String getMasterLocation(String[] args) {
-    WorkerConf wConf = WorkerConf.get();
-    String confFileMasterLoc = wConf.MASTER_HOSTNAME + ":" + wConf.MASTER_PORT;
-    String masterLocation;
-    if (args.length < 2) {
-      masterLocation = confFileMasterLoc;
-    } else {
-      masterLocation = args[1];
-      if (masterLocation.indexOf(":") == -1) {
-        masterLocation += ":" + wConf.MASTER_PORT;
-      }
-      if (!masterLocation.equals(confFileMasterLoc)) {
-        LOG.warn("Master Address in configuration file(" + confFileMasterLoc + ") is different "
-            + "from the command line one(" + masterLocation + ").");
-      }
-    }
-    return masterLocation;
-  }
-
-  public static void main(String[] args) throws UnknownHostException {
-    if (args.length < 1 || args.length > 2) {
-      LOG.info("Usage: java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-          + "tachyon.Worker <WorkerHost> [<MasterHost:Port>]");
-      System.exit(-1);
-    }
-
-    WorkerConf wConf = WorkerConf.get();
-
-    Worker worker = Worker.createWorker(getMasterLocation(args),
-        args[0] + ":" + wConf.PORT, wConf.DATA_PORT,
-        wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
-        wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
-    worker.start();
-  }
-
-  /**
-   * Get the worker server handler class. This is for unit test only.
-   * 
-   * @return the WorkerServiceHandler
-   */
-  WorkerServiceHandler getWorkerServiceHandler() {
-    return mWorkerServiceHandler;
   }
 }

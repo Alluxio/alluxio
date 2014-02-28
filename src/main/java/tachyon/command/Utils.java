@@ -26,17 +26,38 @@ import tachyon.conf.CommonConf;
  */
 public class Utils {
   /**
+   * Removes Constants.HEADER / Constants.HEADER_FT and hostname:port information from a path,
+   * leaving only the local file path.
+   * 
+   * @param path
+   *          The path to obtain the local path from
+   * @return The local path in string format
+   * @throws IOException
+   */
+  public static String getFilePath(String path) throws IOException {
+    path = validatePath(path);
+    if (path.startsWith(Constants.HEADER)) {
+      path = path.substring(Constants.HEADER.length());
+    } else if (path.startsWith(Constants.HEADER_FT)) {
+      path = path.substring(Constants.HEADER_FT.length());
+    }
+    String ret = path.substring(path.indexOf("/"));
+    return ret;
+  }
+
+  /**
    * Validates the path, verifying that it contains the <code>Constants.HEADER </code> or
    * <code>Constants.HEADER_FT</code> and a hostname:port specified.
    * 
-   * @param path The path to be verified.
-   * @throws IOException 
+   * @param path
+   *          The path to be verified.
+   * @throws IOException
    */
   public static String validatePath(String path) throws IOException {
     if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)) {
       if (!path.contains(":")) {
-        throw new IOException("Invalid Path: " + path + ". Use " + Constants.HEADER + "host:port/ ,"
-            + Constants.HEADER_FT + "host:port/" + " , or /file");
+        throw new IOException("Invalid Path: " + path + ". Use " + Constants.HEADER
+            + "host:port/ ," + Constants.HEADER_FT + "host:port/" + " , or /file");
       } else {
         return path;
       }
@@ -48,23 +69,5 @@ public class Utils {
       }
       return Constants.HEADER + HOSTNAME + ":" + PORT + path;
     }
-  }
-
-  /**
-   * Removes Constants.HEADER / Constants.HEADER_FT and hostname:port information from a path,
-   * leaving only the local file path.
-   * @param path The path to obtain the local path from
-   * @return The local path in string format
-   * @throws IOException 
-   */ 
-  public static String getFilePath(String path) throws IOException {
-    path = validatePath(path);
-    if (path.startsWith(Constants.HEADER)) {
-      path = path.substring(Constants.HEADER.length());
-    } else if (path.startsWith(Constants.HEADER_FT)) {
-      path = path.substring(Constants.HEADER_FT.length());
-    }
-    String ret = path.substring(path.indexOf("/"));
-    return ret;
   }
 }

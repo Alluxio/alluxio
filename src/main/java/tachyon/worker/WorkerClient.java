@@ -86,6 +86,10 @@ public class WorkerClient {
     }
   }
 
+  public synchronized boolean asyncCheckpoint(int fid) throws TachyonException, TException {
+    return CLIENT.asyncCheckpoint(fid);
+  }
+
   public synchronized void cacheBlock(long userId, long blockId)
       throws IOException, TException {
     try {
@@ -107,20 +111,20 @@ public class WorkerClient {
     }
   }
 
-  public synchronized String getUserTempFolder(long userId) throws TException {
-    return CLIENT.getUserTempFolder(userId);
-  }
-
-  public synchronized String getUserUnderfsTempFolder(long userId) throws TException {
-    return CLIENT.getUserUnderfsTempFolder(userId);
-  }
-
   public synchronized String getDataFolder() throws TException {
     if (mRootFolder == null) {
       mRootFolder = CLIENT.getDataFolder();
     }
 
     return mRootFolder;
+  }
+
+  public synchronized String getUserTempFolder(long userId) throws TException {
+    return CLIENT.getUserTempFolder(userId);
+  }
+
+  public synchronized String getUserUnderfsTempFolder(long userId) throws TException {
+    return CLIENT.getUserUnderfsTempFolder(userId);
   }
 
   public synchronized boolean isConnected() {
@@ -160,9 +164,5 @@ public class WorkerClient {
 
   public synchronized void userHeartbeat(long userId) throws TException {
     CLIENT.userHeartbeat(userId);
-  }
-
-  public synchronized boolean asyncCheckpoint(int fid) throws TachyonException, TException {
-    return CLIENT.asyncCheckpoint(fid);
   }
 }

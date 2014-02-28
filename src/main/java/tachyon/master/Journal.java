@@ -39,31 +39,15 @@ public class Journal {
     mEditLogPath = folder + editLogFileName;
   }
 
-  public long getImageModTime() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(mImagePath);
-    if (!ufs.exists(mImagePath)) {
-      return -1;
+  /* Close down the edit log */
+  public void close() {
+    if (mEditLog != null) {
+      mEditLog.close();
     }
-    return ufs.getModificationTimeMs(mImagePath);
   }
 
-  public void loadImage(MasterInfo info) throws IOException {
-    Image.load(info, mImagePath);
-  }
-
-  /**
-   * Load edit log.
-   * @param info The Master Info.
-   * @return The last transaction id.
-   * @throws IOException
-   */
-  public long loadEditLog(MasterInfo info) throws IOException {
-    return EditLog.load(info, mEditLogPath, mCurrentLogFileNum);
-  }
-
-  public void loadSingleLogFile(MasterInfo info, String path) throws IOException {
-    EditLog.loadSingleLog(info, path);
-    mCurrentLogFileNum ++;
+  public void createEditLog(long transactionId) throws IOException {
+    mEditLog = new EditLog(mEditLogPath, false, transactionId);
   }
 
   public void createImage(MasterInfo info) throws IOException {
@@ -80,19 +64,35 @@ public class Journal {
     mStandbyImagePath = imagePath;
   }
 
-  public void createEditLog(long transactionId) throws IOException {
-    mEditLog = new EditLog(mEditLogPath, false, transactionId);
-  }
-
   public EditLog getEditLog() {
     return mEditLog;
   }
 
-  /* Close down the edit log */
-  public void close() {
-    if (mEditLog != null) {
-      mEditLog.close();
+  public long getImageModTime() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(mImagePath);
+    if (!ufs.exists(mImagePath)) {
+      return -1;
     }
+    return ufs.getModificationTimeMs(mImagePath);
+  }
+
+  /**
+   * Load edit log.
+   * @param info The Master Info.
+   * @return The last transaction id.
+   * @throws IOException
+   */
+  public long loadEditLog(MasterInfo info) throws IOException {
+    return EditLog.load(info, mEditLogPath, mCurrentLogFileNum);
+  }
+
+  public void loadImage(MasterInfo info) throws IOException {
+    Image.load(info, mImagePath);
+  }
+
+  public void loadSingleLogFile(MasterInfo info, String path) throws IOException {
+    EditLog.loadSingleLog(info, path);
+    mCurrentLogFileNum ++;
   }
 
   /**

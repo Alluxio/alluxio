@@ -19,6 +19,9 @@ import tachyon.client.WriteType;
 import tachyon.master.DependencyType;
 import tachyon.util.CommonUtils;
 
+/**
+ * An example to show to how use Tachyon's API
+ */
 public class BasicCheckpoint {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
@@ -43,22 +46,21 @@ public class BasicCheckpoint {
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createDependency with depId " + depId);
   }
 
-  public static void writeFile() throws IOException {
-    for (int i = 0; i < sFiles; i ++) {
-      String filePath = sFileFolder + "/part-" + i;
-      TachyonFile file = sTachyonClient.getFile(filePath);
-      OutputStream os = file.getOutStream(WriteType.ASYNC_THROUGH);
-
-      ByteBuffer buf = ByteBuffer.allocate(80);
-      buf.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < sNumbers; k ++) {
-        buf.putInt(k);
-      }
-      buf.flip();
-      LOG.debug("Writing data to " + filePath);
-      os.write(buf.array());
-      os.close();
+  public static void main(String[] args) throws IOException, TException {
+    if (args.length != 3) {
+      System.out.println("java -cp target/tachyon-" + Version.VERSION +
+          "-jar-with-dependencies.jar " +
+          "tachyon.examples.BasicCheckpoint <TachyonMasterAddress> <FileFolder> <Files>");
+      System.exit(-1);
     }
+    sTachyonClient = TachyonFS.get(args[0]);
+    sFileFolder = args[1];
+    sFiles = Integer.parseInt(args[2]);
+    createDependency();
+    writeFile();
+    readFile();
+    Utils.printPassInfo(sPass);
+    System.exit(0);
   }
 
   public static void readFile() throws IOException {
@@ -79,20 +81,21 @@ public class BasicCheckpoint {
     }
   }
 
-  public static void main(String[] args) throws IOException, TException {
-    if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION + 
-          "-jar-with-dependencies.jar " +
-          "tachyon.examples.BasicCheckpoint <TachyonMasterAddress> <FileFolder> <Files>");
-      System.exit(-1);
+  public static void writeFile() throws IOException {
+    for (int i = 0; i < sFiles; i ++) {
+      String filePath = sFileFolder + "/part-" + i;
+      TachyonFile file = sTachyonClient.getFile(filePath);
+      OutputStream os = file.getOutStream(WriteType.ASYNC_THROUGH);
+
+      ByteBuffer buf = ByteBuffer.allocate(80);
+      buf.order(ByteOrder.nativeOrder());
+      for (int k = 0; k < sNumbers; k ++) {
+        buf.putInt(k);
+      }
+      buf.flip();
+      LOG.debug("Writing data to " + filePath);
+      os.write(buf.array());
+      os.close();
     }
-    sTachyonClient = TachyonFS.get(args[0]);
-    sFileFolder = args[1];
-    sFiles = Integer.parseInt(args[2]);
-    createDependency();
-    writeFile();
-    readFile();
-    Utils.printPassInfo(sPass);
-    System.exit(0);
   }
 }

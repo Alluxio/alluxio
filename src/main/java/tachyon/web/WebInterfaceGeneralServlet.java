@@ -36,10 +36,6 @@ import tachyon.util.CommonUtils;
  * Servlet that provides data for viewing the general status of the filesystem.
  */
 public class WebInterfaceGeneralServlet extends HttpServlet {
-  private static final long serialVersionUID = 2335205655766736309L;
-
-  private MasterInfo mMasterInfo;
-
   /**
    * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association
    * by array indexes.
@@ -62,30 +58,34 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
           System.currentTimeMillis() - workerInfo.getStarttimeMs());
     }
 
-    public String getName() {
-      return NAME;
+    public int getFreeSpacePercent() {
+      return FREE_SPACE_PERCENT;
     }
 
     public String getLastHeartbeat() {
       return LAST_CONTACT_SEC;
     }
 
+    public String getName() {
+      return NAME;
+    }
+
     public String getState() {
       return STATE;
-    }
-
-    public int getFreeSpacePercent() {
-      return FREE_SPACE_PERCENT;
-    }
-
-    public int getUsedSpacePercent() {
-      return USED_SPACE_PERCENT;
     }
 
     public String getUptimeClockTime() {
       return UPTIME_CLOCK_TIME;
     }
+
+    public int getUsedSpacePercent() {
+      return USED_SPACE_PERCENT;
+    }
   }
+
+  private static final long serialVersionUID = 2335205655766736309L;
+
+  private MasterInfo mMasterInfo;
 
   public WebInterfaceGeneralServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;

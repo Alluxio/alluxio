@@ -34,30 +34,6 @@ public class CheckpointInfo implements Serializable, Comparable<CheckpointInfo> 
     mDependencyCounter = dependencyCounter;
   }
 
-  public synchronized void updateInodeCounter(int inodeCounter) {
-    mInodeCounter = Math.max(mInodeCounter, inodeCounter);
-  }
-
-  public synchronized void updateEditTransactionCounter(long id) {
-    mEditTransactionId = Math.max(mEditTransactionId, id);
-  }
-
-  public synchronized void updateDependencyCounter(int dependencyCounter) {
-    mDependencyCounter = Math.max(mDependencyCounter, dependencyCounter);
-  }
-
-  public synchronized int getInodeCounter() {
-    return mInodeCounter;
-  }
-
-  public synchronized long getEditTransactionCounter() {
-    return mEditTransactionId;
-  }
-
-  public synchronized int getDependencyCounter() {
-    return mDependencyCounter;
-  }
-
   @Override
   public synchronized int compareTo(CheckpointInfo o) {
     if (mInodeCounter != o.mInodeCounter) {
@@ -80,8 +56,32 @@ public class CheckpointInfo implements Serializable, Comparable<CheckpointInfo> 
     return compareTo((CheckpointInfo)o) == 0;
   }
 
+  public synchronized int getDependencyCounter() {
+    return mDependencyCounter;
+  }
+
+  public synchronized long getEditTransactionCounter() {
+    return mEditTransactionId;
+  }
+
+  public synchronized int getInodeCounter() {
+    return mInodeCounter;
+  }
+
   @Override
   public synchronized int hashCode() {
     return (int) (mInodeCounter + mEditTransactionId + mDependencyCounter);
+  }
+
+  public synchronized void updateDependencyCounter(int dependencyCounter) {
+    mDependencyCounter = Math.max(mDependencyCounter, dependencyCounter);
+  }
+
+  public synchronized void updateEditTransactionCounter(long id) {
+    mEditTransactionId = Math.max(mEditTransactionId, id);
+  }
+
+  public synchronized void updateInodeCounter(int inodeCounter) {
+    mInodeCounter = Math.max(mInodeCounter, inodeCounter);
   }
 }

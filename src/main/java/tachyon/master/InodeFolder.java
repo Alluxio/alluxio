@@ -25,18 +25,18 @@ import java.util.Set;
 import tachyon.thrift.ClientFileInfo;
 
 /**
- * Tachyon file system's folder representation in master. 
+ * Tachyon file system's folder representation in master.
  */
 public class InodeFolder extends Inode {
   private Set<Integer> mChildren;
 
-  public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
-    this(name, id, parentId, InodeType.Folder, creationTimeMs);
-  }
-
   public InodeFolder(String name, int id, int parentId, InodeType type, long creationTimeMs) {
     super(name, id, parentId, type, creationTimeMs);
     mChildren = new HashSet<Integer>();
+  }
+
+  public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
+    this(name, id, parentId, InodeType.Folder, creationTimeMs);
   }
 
   public synchronized void addChild(int childId) {
@@ -47,6 +47,28 @@ public class InodeFolder extends Inode {
     for (int k = 0; k < childrenIds.length; k ++) {
       addChild(childrenIds[k]);
     }
+  }
+
+  @Override
+  public ClientFileInfo generateClientFileInfo(String path) {
+    ClientFileInfo ret = new ClientFileInfo();
+
+    ret.id = getId();
+    ret.name = getName();
+    ret.path = path;
+    ret.checkpointPath = "";
+    ret.length = 0;
+    ret.blockSizeByte = 0;
+    ret.creationTimeMs = getCreationTimeMs();
+    ret.complete = true;
+    ret.folder = true;
+    ret.inMemory = true;
+    ret.needPin = false;
+    ret.needCache = false;
+    ret.blockIds = null;
+    ret.dependencyId = -1;
+
+    return ret;
   }
 
   public synchronized Inode getChild(String name, Map<Integer, Inode> allInodes) {
@@ -70,6 +92,10 @@ public class InodeFolder extends Inode {
     return mChildren.size();
   }
 
+  public boolean isRawTable() {
+    return TYPE == InodeType.RawTable;
+  }
+
   public synchronized void removeChild(int id) {
     mChildren.remove(id);
   }
@@ -86,36 +112,10 @@ public class InodeFolder extends Inode {
     return false;
   }
 
-  public boolean isRawTable() {
-    return TYPE == InodeType.RawTable;
-  }
-
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("InodeFolder(");
     sb.append(super.toString()).append(",").append(mChildren).append(")");
     return sb.toString();
-  }
-
-  @Override
-  public ClientFileInfo generateClientFileInfo(String path) {
-    ClientFileInfo ret = new ClientFileInfo();
-
-    ret.id = getId();
-    ret.name = getName();
-    ret.path = path;
-    ret.checkpointPath = "";
-    ret.length = 0;
-    ret.blockSizeByte = 0;
-    ret.creationTimeMs = getCreationTimeMs();
-    ret.complete = true;
-    ret.folder = true;
-    ret.inMemory = true;
-    ret.needPin = false;
-    ret.needCache = false;
-    ret.blockIds = null;
-    ret.dependencyId = -1;
-
-    return ret;
   }
 }

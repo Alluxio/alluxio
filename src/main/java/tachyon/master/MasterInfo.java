@@ -78,51 +78,6 @@ import tachyon.util.CommonUtils;
  * A global view of filesystem in master.
  */
 public class MasterInfo {
-  public static final String COL = "COL_";
-
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-
-  private final InetSocketAddress MASTER_ADDRESS;
-  private final long START_TIME_NS_PREFIX;
-  private final long START_TIME_MS;
-
-  private final MasterConf MASTER_CONF;
-
-  private CheckpointInfo mCheckpointInfo = new CheckpointInfo(0, 0, 0);
-  private AtomicInteger mInodeCounter = new AtomicInteger(0);
-  private AtomicInteger mDependencyCounter = new AtomicInteger(0);
-  private AtomicInteger mRerunCounter = new AtomicInteger(0);
-  private AtomicInteger mUserCounter = new AtomicInteger(0);
-  private AtomicInteger mWorkerCounter = new AtomicInteger(0);
-
-  // Root Inode's id must be 1.
-  private InodeFolder mRoot;
-
-  private Map<Integer, Inode> mInodes = new HashMap<Integer, Inode>();
-  private Map<Integer, Dependency> mDependencies = new HashMap<Integer, Dependency>();
-
-  // TODO add initialization part for master failover or restart.
-  private Set<Integer> mUncheckpointedDependencies = new HashSet<Integer>();
-  private Set<Integer> mPriorityDependencies = new HashSet<Integer>();
-  private Set<Integer> mLostFiles = new HashSet<Integer>();
-  private Set<Integer> mBeingRecomputedFiles = new HashSet<Integer>();
-  private Set<Integer> mMustRecomputeDependencies = new HashSet<Integer>();
-
-  private Map<Long, MasterWorkerInfo> mWorkers = new HashMap<Long, MasterWorkerInfo>();
-  private Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
-  private BlockingQueue<MasterWorkerInfo> mLostWorkers =
-      new ArrayBlockingQueue<MasterWorkerInfo>(32);
-
-  // TODO Check the logic related to this two lists.
-  private PrefixList mWhiteList;
-  private PrefixList mPinList;
-  private Set<Integer> mFileIdPinList;
-
-  private Journal mJournal;
-
-  private HeartbeatThread mHeartbeatThread;
-  private Thread mRecomputeThread;
-
   /**
    * Master info periodical status check.
    */
@@ -135,7 +90,7 @@ public class MasterInfo {
 
       synchronized (mWorkers) {
         for (Entry<Long, MasterWorkerInfo> worker : mWorkers.entrySet()) {
-          if (CommonUtils.getCurrentMs() - worker.getValue().getLastUpdatedTimeMs() 
+          if (CommonUtils.getCurrentMs() - worker.getValue().getLastUpdatedTimeMs()
               > MASTER_CONF.WORKER_TIMEOUT_MS) {
             LOG.error("The worker " + worker.getValue() + " got timed out!");
             mLostWorkers.add(worker.getValue());
@@ -206,46 +161,6 @@ public class MasterInfo {
     }
   }
 
-  public class RecomputeCmd implements Runnable {
-    private final String CMD;
-    private final String FILE_PATH;
-
-    public RecomputeCmd(String cmd, String filePath) {
-      CMD = cmd;
-      FILE_PATH = filePath;
-    }
-
-    @Override
-    public void run() {
-      try {
-        LOG.info("Exec " + CMD + " output to " + FILE_PATH);
-        Process p = java.lang.Runtime.getRuntime().exec(CMD);
-        String line;
-        BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-        File file = new File(FILE_PATH);
-        FileWriter fw = new FileWriter(file.getAbsoluteFile());
-        BufferedWriter bw = new BufferedWriter(fw);
-        while ((line = bri.readLine()) != null) {
-          bw.write(line + "\n");
-        }
-        bri.close();
-        while ((line = bre.readLine()) != null) {
-          bw.write(line + "\n");
-        }
-        bre.close();
-        bw.flush();
-        bw.close();
-        p.waitFor();
-        LOG.info("Exec " + CMD + " output to " + FILE_PATH + " done.");
-      } catch (IOException e) {
-        LOG.error(e.getMessage());
-      } catch (InterruptedException e) {
-        LOG.error(e.getMessage());
-      }
-    }
-  }
-
   public class RecomputationScheduler implements Runnable {
     @Override
     public void run() {
@@ -311,6 +226,108 @@ public class MasterInfo {
     }
   }
 
+  public class RecomputeCmd implements Runnable {
+    private final String CMD;
+    private final String FILE_PATH;
+
+    public RecomputeCmd(String cmd, String filePath) {
+      CMD = cmd;
+      FILE_PATH = filePath;
+    }
+
+    @Override
+    public void run() {
+      try {
+        LOG.info("Exec " + CMD + " output to " + FILE_PATH);
+        Process p = java.lang.Runtime.getRuntime().exec(CMD);
+        String line;
+        BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+        File file = new File(FILE_PATH);
+        FileWriter fw = new FileWriter(file.getAbsoluteFile());
+        BufferedWriter bw = new BufferedWriter(fw);
+        while ((line = bri.readLine()) != null) {
+          bw.write(line + "\n");
+        }
+        bri.close();
+        while ((line = bre.readLine()) != null) {
+          bw.write(line + "\n");
+        }
+        bre.close();
+        bw.flush();
+        bw.close();
+        p.waitFor();
+        LOG.info("Exec " + CMD + " output to " + FILE_PATH + " done.");
+      } catch (IOException e) {
+        LOG.error(e.getMessage());
+      } catch (InterruptedException e) {
+        LOG.error(e.getMessage());
+      }
+    }
+  }
+
+  public static final String COL = "COL_";
+
+  private static String getName(String path) throws InvalidPathException {
+    String[] pathNames = getPathNames(path);
+    return pathNames[pathNames.length - 1];
+  }
+
+  private static String[] getPathNames(String path) throws InvalidPathException {
+    CommonUtils.validatePath(path);
+    if (path.length() == 1 && path.equals(Constants.PATH_SEPARATOR)) {
+      String[] ret = new String[1];
+      ret[0] = "";
+      return ret;
+    }
+    return path.split(Constants.PATH_SEPARATOR);
+  }
+
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private final InetSocketAddress MASTER_ADDRESS;
+  private final long START_TIME_NS_PREFIX;
+  private final long START_TIME_MS;
+  private final MasterConf MASTER_CONF;
+  private CheckpointInfo mCheckpointInfo = new CheckpointInfo(0, 0, 0);
+
+  private AtomicInteger mInodeCounter = new AtomicInteger(0);
+
+  private AtomicInteger mDependencyCounter = new AtomicInteger(0);
+  private AtomicInteger mRerunCounter = new AtomicInteger(0);
+
+  private AtomicInteger mUserCounter = new AtomicInteger(0);
+  private AtomicInteger mWorkerCounter = new AtomicInteger(0);
+  // Root Inode's id must be 1.
+  private InodeFolder mRoot;
+  private Map<Integer, Inode> mInodes = new HashMap<Integer, Inode>();
+  private Map<Integer, Dependency> mDependencies = new HashMap<Integer, Dependency>();
+
+  // TODO add initialization part for master failover or restart.
+  private Set<Integer> mUncheckpointedDependencies = new HashSet<Integer>();
+  private Set<Integer> mPriorityDependencies = new HashSet<Integer>();
+  private Set<Integer> mLostFiles = new HashSet<Integer>();
+
+  private Set<Integer> mBeingRecomputedFiles = new HashSet<Integer>();
+  private Set<Integer> mMustRecomputeDependencies = new HashSet<Integer>();
+  private Map<Long, MasterWorkerInfo> mWorkers = new HashMap<Long, MasterWorkerInfo>();
+
+  private Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
+
+  private BlockingQueue<MasterWorkerInfo> mLostWorkers =
+      new ArrayBlockingQueue<MasterWorkerInfo>(32);
+  // TODO Check the logic related to this two lists.
+  private PrefixList mWhiteList;
+
+  private PrefixList mPinList;
+
+  private Set<Integer> mFileIdPinList;
+
+  private Journal mJournal;
+
+  private HeartbeatThread mHeartbeatThread;
+
+  private Thread mRecomputeThread;
+
   public MasterInfo(InetSocketAddress address, Journal journal) throws IOException {
     MASTER_CONF = MasterConf.get();
 
@@ -330,18 +347,223 @@ public class MasterInfo {
     mJournal.loadImage(this);
   }
 
-  public void init() throws IOException {
-    mCheckpointInfo.updateEditTransactionCounter(mJournal.loadEditLog(this));
+  int _createDependency(List<Integer> parentsIdList, List<Integer> childrenIdList,
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+      String frameworkVersion, DependencyType dependencyType, int dependencyId, long creationTimeMs)
+          throws InvalidPathException, FileDoesNotExistException {
+    Dependency dep = null;
+    synchronized (mRoot) {
+      Set<Integer> parentDependencyIds = new HashSet<Integer>();
+      for (int k = 0; k < parentsIdList.size(); k ++) {
+        int parentId = parentsIdList.get(k);
+        Inode inode = mInodes.get(parentId);
+        if (inode.isFile()) {
+          LOG.info("PARENT DEPENDENCY ID IS " + ((InodeFile) inode).getDependencyId() + " "
+              + (inode));
+          if (((InodeFile) inode).getDependencyId() != -1) {
+            parentDependencyIds.add(((InodeFile) inode).getDependencyId());
+          }
+        } else {
+          throw new InvalidPathException("Parent " + parentId + " is not a file.");
+        }
+      }
 
-    mJournal.createImage(this);
-    mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
+      dep = new Dependency(dependencyId, parentsIdList, childrenIdList, commandPrefix, data,
+          comment, framework, frameworkVersion, dependencyType, parentDependencyIds, creationTimeMs);
 
-    mHeartbeatThread = new HeartbeatThread("Master Heartbeat", new MasterInfoHeartbeatExecutor(),
-        MASTER_CONF.HEARTBEAT_INTERVAL_MS);
-    mHeartbeatThread.start();
+      List<Inode> childrenInodeList = new ArrayList<Inode>();
+      for (int k = 0; k < childrenIdList.size(); k ++) {
+        InodeFile inode = (InodeFile) mInodes.get(childrenIdList.get(k));
+        inode.setDependencyId(dep.ID);
+        childrenInodeList.add(inode);
+        if (inode.hasCheckpointed()) {
+          dep.childCheckpointed(inode.getId());
+        }
+      }
+    }
 
-    mRecomputeThread = new Thread(new RecomputationScheduler());
-    mRecomputeThread.start();
+    synchronized (mDependencies) {
+      mDependencies.put(dep.ID, dep);
+      if (!dep.hasCheckpointed()) {
+        mUncheckpointedDependencies.add(dep.ID);
+      }
+      for (int parentDependencyId : dep.PARENT_DEPENDENCIES) {
+        mDependencies.get(parentDependencyId).addChildrenDependency(dep.ID);
+      }
+    }
+
+    mJournal.getEditLog().createDependency(parentsIdList, childrenIdList, commandPrefix, data,
+        comment, framework, frameworkVersion, dependencyType, dependencyId, creationTimeMs);
+    mJournal.getEditLog().flush();
+
+    LOG.info("Dependency created: " + dep);
+
+    return dep.ID;
+  }
+
+  // TODO Make this API better.
+  /**
+   * Internal API.
+   * 
+   * @param recursive
+   * @param path
+   * @param directory
+   * @param columns
+   * @param metadata
+   * @param blockSizeByte
+   * @param creationTimeMs
+   * @return
+   * @throws FileAlreadyExistException
+   * @throws InvalidPathException
+   * @throws BlockInfoException
+   * @throws TachyonException
+   */
+  int _createFile(boolean recursive, String path, boolean directory, int columns,
+      ByteBuffer metadata, long blockSizeByte, long creationTimeMs)
+          throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
+    if (!directory && blockSizeByte < 1) {
+      throw new BlockInfoException("Invalid block size " + blockSizeByte);
+    }
+
+    LOG.debug("createFile" + CommonUtils.parametersToString(path));
+
+    String[] pathNames = getPathNames(path);
+
+    synchronized (mRoot) {
+      Inode inode = getInode(pathNames);
+      if (inode != null) {
+        if (inode.isDirectory() && (directory && columns == -1)) {
+          return inode.getId();
+        }
+        LOG.info("FileAlreadyExistException: File " + path + " already exist.");
+        throw new FileAlreadyExistException("File " + path + " already exist.");
+      }
+
+      String name = pathNames[pathNames.length - 1];
+      String folderPath = null;
+      if (path.length() - name.length() == 1) {
+        folderPath = path.substring(0, path.length() - name.length());
+      } else {
+        folderPath = path.substring(0, path.length() - name.length() - 1);
+      }
+      inode = getInode(folderPath);
+      if (inode == null) {
+        int succeed = 0;
+        if (recursive) {
+          succeed = createFile(true, folderPath, true, -1, null, blockSizeByte);
+        }
+        if (!recursive || succeed <= 0) {
+          LOG.info("InvalidPathException: File " + path + " creation failed. Folder " + folderPath
+              + " does not exist.");
+          throw new InvalidPathException("InvalidPathException: File " + path + " creation "
+              + "failed. Folder " + folderPath + " does not exist.");
+        } else {
+          inode = mInodes.get(succeed);
+        }
+      } else if (inode.isFile()) {
+        LOG.info("InvalidPathException: File " + path + " creation failed. " + folderPath
+            + " is a file.");
+        throw new InvalidPathException("File " + path + " creation failed. " + folderPath
+            + " is a file");
+      }
+
+      Inode ret = null;
+
+      if (directory) {
+        if (columns != -1) {
+          ret = new InodeRawTable(name, mInodeCounter.incrementAndGet(), inode.getId(), columns,
+              metadata, creationTimeMs);
+        } else {
+          ret = new InodeFolder(name, mInodeCounter.incrementAndGet(), inode.getId(),
+              creationTimeMs);
+        }
+      } else {
+        ret = new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId(), blockSizeByte,
+            creationTimeMs);
+        String curPath = getPath(ret);
+        if (mPinList.inList(curPath)) {
+          synchronized (mFileIdPinList) {
+            mFileIdPinList.add(ret.getId());
+            ((InodeFile) ret).setPin(true);
+          }
+        }
+        if (mWhiteList.inList(curPath)) {
+          ((InodeFile) ret).setCache(true);
+        }
+      }
+
+      mInodes.put(ret.getId(), ret);
+      ((InodeFolder) inode).addChild(ret.getId());
+
+      LOG.debug("createFile: File Created: " + ret + " parent: " + inode);
+      return ret.getId();
+    }
+  }
+
+  private boolean _delete(int fileId, boolean recursive) throws TachyonException {
+    LOG.info("delete(" + fileId + ")");
+    boolean succeed = true;
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+
+      if (inode == null) {
+        return true;
+      }
+
+      if (inode.isDirectory()) {
+        List<Integer> childrenIds = ((InodeFolder) inode).getChildrenIds();
+
+        if (!recursive && childrenIds.size() != 0) {
+          return false;
+        }
+        for (int childId : childrenIds) {
+          succeed = succeed && delete(childId, recursive);
+        }
+      }
+
+      InodeFolder parent = (InodeFolder) mInodes.get(inode.getParentId());
+      parent.removeChild(inode.getId());
+      mInodes.remove(inode.getId());
+      if (inode.isFile()) {
+        String checkpointPath = ((InodeFile) inode).getCheckpointPath();
+        if (!checkpointPath.equals("")) {
+          UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
+
+          try {
+            if (!ufs.delete(checkpointPath, true)) {
+              return false;
+            }
+          } catch (IOException e) {
+            throw new TachyonException(e.getMessage());
+          }
+        }
+
+        List<Pair<Long, Long>> blockIdWorkerIdList = ((InodeFile) inode).getBlockIdWorkerIdPairs();
+        synchronized (mWorkers) {
+          for (Pair<Long, Long> blockIdWorkerId : blockIdWorkerIdList) {
+            MasterWorkerInfo workerInfo = mWorkers.get(blockIdWorkerId.getSecond());
+            if (workerInfo != null) {
+              workerInfo.updateToRemovedBlock(true, blockIdWorkerId.getFirst());
+            }
+          }
+        }
+
+        if (((InodeFile) inode).isPin()) {
+          synchronized (mFileIdPinList) {
+            mFileIdPinList.remove(inode.getId());
+          }
+        }
+      }
+      inode.reverseId();
+
+      return succeed;
+    }
+  }
+
+  private void addBlock(InodeFile tFile, BlockInfo blockInfo) throws BlockInfoException {
+    tFile.addBlock(blockInfo);
+    mJournal.getEditLog().addBlock(tFile.getId(), blockInfo.BLOCK_INDEX, blockInfo.LENGTH);
+    mJournal.getEditLog().flush();
   }
 
   /**
@@ -481,35 +703,23 @@ public class MasterInfo {
     }
   }
 
-  /**
-   * Called by edit log only.
-   * 
-   * @param fileId
-   * @param blockIndex
-   * @param blockLength
-   * @throws FileDoesNotExistException
-   * @throws BlockInfoException
-   */
-  void opAddBlock(int fileId, int blockIndex, long blockLength) throws FileDoesNotExistException,
-      BlockInfoException {
+  public void completeFile(int fileId) throws FileDoesNotExistException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
 
       if (inode == null) {
-        throw new FileDoesNotExistException("File " + fileId + " does not exist.");
+        throw new FileDoesNotExistException("File " + fileId + " does not exit.");
       }
-      if (inode.isDirectory()) {
-        throw new FileDoesNotExistException("File " + fileId + " is a folder.");
+      if (!inode.isFile()) {
+        throw new FileDoesNotExistException("File " + fileId + " is not a file.");
       }
 
-      addBlock((InodeFile) inode, new BlockInfo((InodeFile) inode, blockIndex, blockLength));
+      addFile(fileId, ((InodeFile) inode).getDependencyId());
+
+      ((InodeFile) inode).setComplete();
+      mJournal.getEditLog().completeFile(fileId);
+      mJournal.getEditLog().flush();
     }
-  }
-
-  private void addBlock(InodeFile tFile, BlockInfo blockInfo) throws BlockInfoException {
-    tFile.addBlock(blockInfo);
-    mJournal.getEditLog().addBlock(tFile.getId(), blockInfo.BLOCK_INDEX, blockInfo.LENGTH);
-    mJournal.getEditLog().flush();
   }
 
   public int createDependency(List<String> parents, List<String> children, String commandPrefix,
@@ -526,164 +736,6 @@ public class MasterInfo {
           framework, frameworkVersion, dependencyType, depId, creationTimeMs);
 
       return ret;
-    }
-  }
-
-  int _createDependency(List<Integer> parentsIdList, List<Integer> childrenIdList,
-      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, DependencyType dependencyType, int dependencyId, long creationTimeMs)
-      throws InvalidPathException, FileDoesNotExistException {
-    Dependency dep = null;
-    synchronized (mRoot) {
-      Set<Integer> parentDependencyIds = new HashSet<Integer>();
-      for (int k = 0; k < parentsIdList.size(); k ++) {
-        int parentId = parentsIdList.get(k);
-        Inode inode = mInodes.get(parentId);
-        if (inode.isFile()) {
-          LOG.info("PARENT DEPENDENCY ID IS " + ((InodeFile) inode).getDependencyId() + " "
-              + ((InodeFile) inode));
-          if (((InodeFile) inode).getDependencyId() != -1) {
-            parentDependencyIds.add(((InodeFile) inode).getDependencyId());
-          }
-        } else {
-          throw new InvalidPathException("Parent " + parentId + " is not a file.");
-        }
-      }
-
-      dep = new Dependency(dependencyId, parentsIdList, childrenIdList, commandPrefix, data,
-          comment, framework, frameworkVersion, dependencyType, parentDependencyIds, creationTimeMs);
-
-      List<Inode> childrenInodeList = new ArrayList<Inode>();
-      for (int k = 0; k < childrenIdList.size(); k ++) {
-        InodeFile inode = (InodeFile) mInodes.get(childrenIdList.get(k));
-        inode.setDependencyId(dep.ID);
-        childrenInodeList.add(inode);
-        if (inode.hasCheckpointed()) {
-          dep.childCheckpointed(inode.getId());
-        }
-      }
-    }
-
-    synchronized (mDependencies) {
-      mDependencies.put(dep.ID, dep);
-      if (!dep.hasCheckpointed()) {
-        mUncheckpointedDependencies.add(dep.ID);
-      }
-      for (int parentDependencyId : dep.PARENT_DEPENDENCIES) {
-        mDependencies.get(parentDependencyId).addChildrenDependency(dep.ID);
-      }
-    }
-
-    mJournal.getEditLog().createDependency(parentsIdList, childrenIdList, commandPrefix, data,
-        comment, framework, frameworkVersion, dependencyType, dependencyId, creationTimeMs);
-    mJournal.getEditLog().flush();
-
-    LOG.info("Dependency created: " + dep);
-
-    return dep.ID;
-  }
-
-  public int createFile(String path, long blockSizeByte) throws FileAlreadyExistException,
-      InvalidPathException, BlockInfoException, TachyonException {
-    return createFile(true, path, false, -1, null, blockSizeByte);
-  }
-
-  // TODO Make this API better.
-  /**
-   * Internal API.
-   * 
-   * @param recursive
-   * @param path
-   * @param directory
-   * @param columns
-   * @param metadata
-   * @param blockSizeByte
-   * @param creationTimeMs
-   * @return
-   * @throws FileAlreadyExistException
-   * @throws InvalidPathException
-   * @throws BlockInfoException
-   * @throws TachyonException
-   */
-  int _createFile(boolean recursive, String path, boolean directory, int columns,
-      ByteBuffer metadata, long blockSizeByte, long creationTimeMs)
-      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
-    if (!directory && blockSizeByte < 1) {
-      throw new BlockInfoException("Invalid block size " + blockSizeByte);
-    }
-
-    LOG.debug("createFile" + CommonUtils.parametersToString(path));
-
-    String[] pathNames = getPathNames(path);
-
-    synchronized (mRoot) {
-      Inode inode = getInode(pathNames);
-      if (inode != null) {
-        if (inode.isDirectory() && (directory && columns == -1)) {
-          return inode.getId();
-        }
-        LOG.info("FileAlreadyExistException: File " + path + " already exist.");
-        throw new FileAlreadyExistException("File " + path + " already exist.");
-      }
-
-      String name = pathNames[pathNames.length - 1];
-      String folderPath = null;
-      if (path.length() - name.length() == 1) {
-        folderPath = path.substring(0, path.length() - name.length());
-      } else {
-        folderPath = path.substring(0, path.length() - name.length() - 1);
-      }
-      inode = getInode(folderPath);
-      if (inode == null) {
-        int succeed = 0;
-        if (recursive) {
-          succeed = createFile(true, folderPath, true, -1, null, blockSizeByte);
-        }
-        if (!recursive || succeed <= 0) {
-          LOG.info("InvalidPathException: File " + path + " creation failed. Folder " + folderPath
-              + " does not exist.");
-          throw new InvalidPathException("InvalidPathException: File " + path + " creation "
-              + "failed. Folder " + folderPath + " does not exist.");
-        } else {
-          inode = mInodes.get(succeed);
-        }
-      } else if (inode.isFile()) {
-        LOG.info("InvalidPathException: File " + path + " creation failed. " + folderPath
-            + " is a file.");
-        throw new InvalidPathException("File " + path + " creation failed. " + folderPath
-            + " is a file");
-      }
-
-      Inode ret = null;
-
-      if (directory) {
-        if (columns != -1) {
-          ret = new InodeRawTable(name, mInodeCounter.incrementAndGet(), inode.getId(), columns,
-              metadata, creationTimeMs);
-        } else {
-          ret = new InodeFolder(name, mInodeCounter.incrementAndGet(), inode.getId(),
-              creationTimeMs);
-        }
-      } else {
-        ret = new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId(), blockSizeByte,
-            creationTimeMs);
-        String curPath = getPath(ret);
-        if (mPinList.inList(curPath)) {
-          synchronized (mFileIdPinList) {
-            mFileIdPinList.add(ret.getId());
-            ((InodeFile) ret).setPin(true);
-          }
-        }
-        if (mWhiteList.inList(curPath)) {
-          ((InodeFile) ret).setCache(true);
-        }
-      }
-
-      mInodes.put(ret.getId(), ret);
-      ((InodeFolder) inode).addChild(ret.getId());
-
-      LOG.debug("createFile: File Created: " + ret + " parent: " + inode);
-      return ret.getId();
     }
   }
 
@@ -714,6 +766,11 @@ public class MasterInfo {
       mJournal.getEditLog().flush();
       return ret;
     }
+  }
+
+  public int createFile(String path, long blockSizeByte) throws FileAlreadyExistException,
+  InvalidPathException, BlockInfoException, TachyonException {
+    return createFile(true, path, false, -1, null, blockSizeByte);
   }
 
   public void createImage(DataOutputStream os) throws IOException {
@@ -748,6 +805,681 @@ public class MasterInfo {
       os.writeLong(mCheckpointInfo.getEditTransactionCounter());
       os.writeInt(mCheckpointInfo.getDependencyCounter());
     }
+  }
+
+  private void createImageDependencyWriter(Dependency dep, DataOutputStream os) throws IOException {
+    os.writeByte(Image.T_DEPENDENCY);
+    os.writeInt(dep.ID);
+    Utils.writeIntegerList(dep.PARENT_FILES, os);
+    Utils.writeIntegerList(dep.CHILDREN_FILES, os);
+    Utils.writeString(dep.COMMAND_PREFIX, os);
+    Utils.writeByteBufferList(dep.DATA, os);
+    Utils.writeString(dep.COMMENT, os);
+    Utils.writeString(dep.FRAMEWORK, os);
+    Utils.writeString(dep.FRAMEWORK_VERSION, os);
+    os.writeInt(dep.TYPE.getValue());
+    Utils.writeIntegerList(dep.PARENT_DEPENDENCIES, os);
+    os.writeLong(dep.CREATION_TIME_MS);
+    Utils.writeIntegerList(dep.getUncheckpointedChildrenFiles(), os);
+  }
+
+  private void createImageInodeWriter(Inode inode, DataOutputStream os) throws IOException {
+    if (inode.isFile()) {
+      InodeFile file = (InodeFile) inode;
+      os.writeByte(Image.T_INODE_FILE);
+      os.writeLong(file.getCreationTimeMs());
+      os.writeInt(file.getId());
+      Utils.writeString(file.getName(), os);
+      os.writeInt(file.getParentId());
+
+      os.writeLong(file.getBlockSizeByte());
+      os.writeLong(file.getLength());
+      os.writeBoolean(file.isComplete());
+      os.writeBoolean(file.isPin());
+      os.writeBoolean(file.isCache());
+      Utils.writeString(file.getCheckpointPath(), os);
+      os.writeInt(file.getDependencyId());
+    } else {
+      InodeFolder folder = (InodeFolder) inode;
+      if (folder.isRawTable()) {
+        os.writeByte(Image.T_INODE_RAW_TABLE);
+      } else {
+        os.writeByte(Image.T_INODE_FOLDER);
+      }
+
+      os.writeLong(folder.getCreationTimeMs());
+      os.writeInt(folder.getId());
+      Utils.writeString(folder.getName(), os);
+      os.writeInt(folder.getParentId());
+
+      List<Integer> children = folder.getChildrenIds();
+      os.writeInt(children.size());
+      for (int k = 0; k < children.size(); k ++) {
+        os.writeInt(children.get(k));
+      }
+
+      if (folder.isRawTable()) {
+        InodeRawTable table = (InodeRawTable) folder;
+        os.writeInt(table.getColumns());
+        Utils.writeByteBuffer(table.getMetadata(), os);
+      }
+    }
+  }
+
+  public long createNewBlock(int fileId) throws FileDoesNotExistException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+
+      if (inode == null) {
+        throw new FileDoesNotExistException("File " + fileId + " does not exit.");
+      }
+      if (!inode.isFile()) {
+        throw new FileDoesNotExistException("File " + fileId + " is not a file.");
+      }
+
+      return ((InodeFile) inode).getNewBlockId();
+    }
+  }
+
+  public int createRawTable(String path, int columns, ByteBuffer metadata)
+      throws FileAlreadyExistException, InvalidPathException, TableColumnException,
+      TachyonException {
+    LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
+
+    if (columns <= 0 || columns >= Constants.MAX_COLUMNS) {
+      throw new TableColumnException("Column " + columns + " should between 0 to "
+          + Constants.MAX_COLUMNS);
+    }
+
+    int id;
+    try {
+      id = createFile(true, path, true, columns, metadata, 0);
+    } catch (BlockInfoException e) {
+      throw new FileAlreadyExistException(e.getMessage());
+    }
+
+    for (int k = 0; k < columns; k ++) {
+      mkdir(path + Constants.PATH_SEPARATOR + COL + k);
+    }
+
+    return id;
+  }
+
+  /**
+   * Delete a file based on the file's ID.
+   * 
+   * @param fileId
+   *          the file to be deleted.
+   * @param recursive
+   *          whether delete the file recursively or not.
+   * @return succeed or not
+   * @throws TachyonException
+   */
+  public boolean delete(int fileId, boolean recursive) throws TachyonException {
+    synchronized (mRoot) {
+      boolean ret = _delete(fileId, recursive);
+      mJournal.getEditLog().delete(fileId, recursive);
+      mJournal.getEditLog().flush();
+      return ret;
+    }
+  }
+
+  /**
+   * Delete a file based on the file's path.
+   * 
+   * @param path
+   *          The file to be deleted.
+   * @param recursive
+   *          whether delete the file recursively or not.
+   * @return succeed or not
+   * @throws TachyonException
+   */
+  public boolean delete(String path, boolean recursive) throws TachyonException {
+    LOG.info("delete(" + path + ")");
+    synchronized (mRoot) {
+      Inode inode = null;
+      try {
+        inode = getInode(path);
+      } catch (InvalidPathException e) {
+        return false;
+      }
+      if (inode == null) {
+        return true;
+      }
+      return delete(inode.getId(), recursive);
+    }
+  }
+
+  public long getBlockIdBasedOnOffset(int fileId, long offset) throws FileDoesNotExistException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+      if (inode == null) {
+        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
+      }
+      if (!inode.isFile()) {
+        throw new FileDoesNotExistException(fileId + " is not a file.");
+      }
+
+      return ((InodeFile) inode).getBlockIdBasedOnOffset(offset);
+    }
+  }
+
+  /**
+   * Get the list of blocks of an InodeFile determined by path.
+   * 
+   * @param path
+   *          The file.
+   * @return The list of the blocks of the file.
+   * @throws InvalidPathException
+   * @throws FileDoesNotExistException
+   */
+  public List<BlockInfo> getBlockList(String path) throws InvalidPathException,
+  FileDoesNotExistException {
+    Inode inode = getInode(path);
+    if (inode == null) {
+      throw new FileDoesNotExistException(path + " does not exist.");
+    }
+    if (!inode.isFile()) {
+      throw new FileDoesNotExistException(path + " is not a file.");
+    }
+    InodeFile inodeFile = (InodeFile) inode;
+    return inodeFile.getBlockList();
+  }
+
+  /**
+   * Get the capacity of the whole system.
+   * 
+   * @return the system's capacity in bytes.
+   */
+  public long getCapacityBytes() {
+    long ret = 0;
+    synchronized (mWorkers) {
+      for (MasterWorkerInfo worker : mWorkers.values()) {
+        ret += worker.getCapacityBytes();
+      }
+    }
+    return ret;
+  }
+
+  public ClientBlockInfo getClientBlockInfo(long blockId) throws FileDoesNotExistException,
+  IOException, BlockInfoException {
+    int fileId = BlockInfo.computeInodeId(blockId);
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+      if (inode == null || inode.isDirectory()) {
+        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
+      }
+      ClientBlockInfo ret = ((InodeFile) inode).getClientBlockInfo(BlockInfo
+          .computeBlockIndex(blockId));
+      LOG.debug("getClientBlockInfo: " + blockId + ret);
+      return ret;
+    }
+  }
+
+  public ClientDependencyInfo getClientDependencyInfo(int dependencyId)
+      throws DependencyDoesNotExistException {
+    Dependency dep = null;
+    synchronized (mDependencies) {
+      dep = mDependencies.get(dependencyId);
+      if (dep == null) {
+        throw new DependencyDoesNotExistException("No dependency with id " + dependencyId);
+      }
+    }
+    return dep.generateClientDependencyInfo();
+  }
+
+  public ClientFileInfo getClientFileInfo(int fid) throws FileDoesNotExistException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fid);
+      if (inode == null) {
+        throw new FileDoesNotExistException("FileId " + fid + " does not exist.");
+      }
+
+      ClientFileInfo ret = inode.generateClientFileInfo(getPath(inode));
+      LOG.debug("getClientFileInfo(" + fid + "): " + ret);
+      return ret;
+    }
+  }
+
+  public ClientFileInfo getClientFileInfo(String path) throws FileDoesNotExistException,
+  InvalidPathException {
+    LOG.info("getClientFileInfo(" + path + ")");
+    synchronized (mRoot) {
+      Inode inode = getInode(path);
+      if (inode == null) {
+        throw new FileDoesNotExistException(path);
+      }
+      return getClientFileInfo(inode.getId());
+    }
+  }
+
+  public ClientRawTableInfo getClientRawTableInfo(int id) throws TableDoesNotExistException {
+    LOG.info("getClientRawTableInfo(" + id + ")");
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(id);
+      if (inode == null || inode.isFile() || !((InodeFolder) inode).isRawTable()) {
+        throw new TableDoesNotExistException("Table " + id + " does not exist.");
+      }
+      ClientRawTableInfo ret = new ClientRawTableInfo();
+      ret.id = inode.getId();
+      ret.name = inode.getName();
+      ret.path = getPath(inode);
+      ret.columns = ((InodeRawTable) inode).getColumns();
+      ret.metadata = ((InodeRawTable) inode).getMetadata();
+      return ret;
+    }
+  }
+
+  public ClientRawTableInfo getClientRawTableInfo(String path) throws TableDoesNotExistException,
+  InvalidPathException {
+    LOG.info("getClientRawTableInfo(" + path + ")");
+    synchronized (mRoot) {
+      Inode inode = getInode(path);
+      if (inode == null) {
+        throw new TableDoesNotExistException(path);
+      }
+      return getClientRawTableInfo(inode.getId());
+    }
+  }
+
+  /**
+   * Get the file id of the file.
+   * 
+   * @param path
+   *          The path of the file
+   * @return The file id of the file. -1 if the file does not exist.
+   * @throws InvalidPathException
+   */
+  public int getFileId(String path) throws InvalidPathException {
+    LOG.debug("getFileId(" + path + ")");
+    Inode inode = getInode(path);
+    int ret = -1;
+    if (inode != null) {
+      ret = inode.getId();
+    }
+    LOG.debug("getFileId(" + path + "): " + ret);
+    return ret;
+  }
+
+  public List<ClientBlockInfo> getFileLocations(int fileId) throws FileDoesNotExistException,
+  IOException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+      if (inode == null || inode.isDirectory()) {
+        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
+      }
+      List<ClientBlockInfo> ret = ((InodeFile) inode).getClientBlockInfos();
+      LOG.debug("getFileLocations: " + fileId + ret);
+      return ret;
+    }
+  }
+
+  public List<ClientBlockInfo> getFileLocations(String path) throws FileDoesNotExistException,
+  InvalidPathException, IOException {
+    LOG.info("getFileLocations: " + path);
+    synchronized (mRoot) {
+      Inode inode = getInode(path);
+      if (inode == null) {
+        throw new FileDoesNotExistException(path);
+      }
+      return getFileLocations(inode.getId());
+    }
+  }
+
+  public String getFileNameById(int fileId) throws FileDoesNotExistException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+      if (inode == null) {
+        throw new FileDoesNotExistException("FileId " + fileId + " does not exist");
+      }
+      return getPath(inode);
+    }
+  }
+
+  private List<Integer> getFilesIds(List<String> pathList) throws InvalidPathException,
+  FileDoesNotExistException {
+    List<Integer> ret = new ArrayList<Integer>(pathList.size());
+    for (int k = 0; k < pathList.size(); k ++) {
+      ret.addAll(listFiles(pathList.get(k), true));
+    }
+    return ret;
+  }
+
+  /**
+   * If the <code>path</code> is a directory, return all the direct entries in
+   * it. If the <code>path</code> is a file, return its ClientFileInfo.
+   * 
+   * @param path
+   *          the target directory/file path
+   * @return A list of ClientFileInfo
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
+   */
+  public List<ClientFileInfo> getFilesInfo(String path) throws FileDoesNotExistException,
+  InvalidPathException {
+    List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
+
+    Inode inode = getInode(path);
+
+    if (inode == null) {
+      throw new FileDoesNotExistException(path);
+    }
+
+    if (inode.isDirectory()) {
+      List<Integer> childernIds = ((InodeFolder) inode).getChildrenIds();
+
+      if (!path.endsWith("/")) {
+        path += "/";
+      }
+      synchronized (mRoot) {
+        for (int k : childernIds) {
+          ret.add(getClientFileInfo(k));
+        }
+      }
+    } else {
+      ret.add(getClientFileInfo(inode.getId()));
+    }
+
+    return ret;
+  }
+
+  /**
+   * Get absolute paths of all in memory files.
+   * 
+   * @return absolute paths of all in memory files.
+   */
+  public List<String> getInMemoryFiles() {
+    List<String> ret = new ArrayList<String>();
+    LOG.info("getInMemoryFiles()");
+    Queue<Pair<InodeFolder, String>> nodesQueue = new LinkedList<Pair<InodeFolder, String>>();
+    synchronized (mRoot) {
+      nodesQueue.add(new Pair<InodeFolder, String>(mRoot, ""));
+      while (!nodesQueue.isEmpty()) {
+        Pair<InodeFolder, String> tPair = nodesQueue.poll();
+        InodeFolder tFolder = tPair.getFirst();
+        String curPath = tPair.getSecond();
+
+        List<Integer> childrenIds = tFolder.getChildrenIds();
+        for (int id : childrenIds) {
+          Inode tInode = mInodes.get(id);
+          String newPath = curPath + Constants.PATH_SEPARATOR + tInode.getName();
+          if (tInode.isDirectory()) {
+            nodesQueue.add(new Pair<InodeFolder, String>((InodeFolder) tInode, newPath));
+          } else if (((InodeFile) tInode).isFullyInMemory()) {
+            ret.add(newPath);
+          }
+        }
+      }
+    }
+    return ret;
+  }
+
+  private Inode getInode(String path) throws InvalidPathException {
+    return getInode(getPathNames(path));
+  }
+
+  private Inode getInode(String[] pathNames) throws InvalidPathException {
+    if (pathNames == null || pathNames.length == 0) {
+      return null;
+    }
+    if (pathNames.length == 1) {
+      if (pathNames[0].equals("")) {
+        return mRoot;
+      } else {
+        LOG.info("InvalidPathException: File name starts with " + pathNames[0]);
+        throw new InvalidPathException("File name starts with " + pathNames[0]);
+      }
+    }
+
+    Inode cur = mRoot;
+
+    synchronized (mRoot) {
+      for (int k = 1; k < pathNames.length && cur != null; k ++) {
+        String name = pathNames[k];
+        if (cur.isFile()) {
+          return null;
+        }
+        cur = ((InodeFolder) cur).getChild(name, mInodes);
+      }
+
+      return cur;
+    }
+  }
+
+  /**
+   * Get Journal instance for MasterInfo for Unit test only
+   * 
+   * @return Journal instance
+   */
+  public Journal getJournal() {
+    return mJournal;
+  }
+
+  public InetSocketAddress getMasterAddress() {
+    return MASTER_ADDRESS;
+  }
+
+  public long getNewUserId() {
+    return mUserCounter.incrementAndGet();
+  }
+
+  public int getNumberOfFiles(String path) throws InvalidPathException, FileDoesNotExistException {
+    Inode inode = getInode(path);
+    if (inode == null) {
+      throw new FileDoesNotExistException(path);
+    }
+    if (inode.isFile()) {
+      return 1;
+    }
+    return ((InodeFolder) inode).getNumberOfChildren();
+  }
+
+  private String getPath(Inode inode) {
+    synchronized (mRoot) {
+      if (inode.getId() == 1) {
+        return "/";
+      }
+      if (inode.getParentId() == 1) {
+        return Constants.PATH_SEPARATOR + inode.getName();
+      }
+      return getPath(mInodes.get(inode.getParentId())) + Constants.PATH_SEPARATOR + inode.getName();
+    }
+  }
+
+  public List<Integer> getPinIdList() {
+    synchronized (mFileIdPinList) {
+      List<Integer> ret = new ArrayList<Integer>();
+      for (int id : mFileIdPinList) {
+        ret.add(id);
+      }
+      return ret;
+    }
+  }
+
+  public List<String> getPinList() {
+    return mPinList.getList();
+  }
+
+  public List<Integer> getPriorityDependencyList() {
+    synchronized (mDependencies) {
+      int earliestDepId = -1;
+      if (mPriorityDependencies.isEmpty()) {
+        long earliest = Long.MAX_VALUE;
+        for (int depId : mUncheckpointedDependencies) {
+          Dependency dep = mDependencies.get(depId);
+          if (!dep.hasChildrenDependency()) {
+            mPriorityDependencies.add(dep.ID);
+          } else {
+          }
+          if (dep.CREATION_TIME_MS < earliest) {
+            earliest = dep.CREATION_TIME_MS;
+            earliestDepId = dep.ID;
+          }
+        }
+
+        if (!mPriorityDependencies.isEmpty()) {
+          LOG.info("New computed priority dependency list " + mPriorityDependencies);
+        }
+      }
+
+      if (mPriorityDependencies.isEmpty() && earliestDepId != -1) {
+        mPriorityDependencies.add(earliestDepId);
+        LOG.info("Priority dependency list by earliest creation time: " + mPriorityDependencies);
+      }
+
+      List<Integer> ret = new ArrayList<Integer>(mPriorityDependencies.size());
+      ret.addAll(mPriorityDependencies);
+      return ret;
+    }
+  }
+
+  public int getRawTableId(String path) throws InvalidPathException {
+    Inode inode = getInode(path);
+    if (inode == null || inode.isFile() || !((InodeFolder) inode).isRawTable()) {
+      return -1;
+    }
+    return inode.getId();
+  }
+
+  public long getStarttimeMs() {
+    return START_TIME_MS;
+  }
+
+  public long getUnderFsCapacityBytes() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
+    return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_TOTAL);
+  }
+
+  public long getUnderFsFreeBytes() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
+    return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_FREE);
+  }
+
+  public long getUnderFsUsedBytes() throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
+    return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_USED);
+  }
+
+  public long getUsedBytes() {
+    long ret = 0;
+    synchronized (mWorkers) {
+      for (MasterWorkerInfo worker : mWorkers.values()) {
+        ret += worker.getUsedBytes();
+      }
+    }
+    return ret;
+  }
+
+  public List<String> getWhiteList() {
+    return mWhiteList.getList();
+  }
+
+  public NetAddress getWorker(boolean random, String host) {
+    synchronized (mWorkers) {
+      if (mWorkerAddressToId.isEmpty()) {
+        return null;
+      }
+      if (random) {
+        int index = new Random(mWorkerAddressToId.size()).nextInt(mWorkerAddressToId.size());
+        for (InetSocketAddress address : mWorkerAddressToId.keySet()) {
+          if (index == 0) {
+            LOG.debug("getRandomWorker: " + address);
+            return new NetAddress(address.getHostName(), address.getPort());
+          }
+          index --;
+        }
+        for (InetSocketAddress address : mWorkerAddressToId.keySet()) {
+          LOG.debug("getRandomWorker: " + address);
+          return new NetAddress(address.getHostName(), address.getPort());
+        }
+      } else {
+        for (InetSocketAddress address : mWorkerAddressToId.keySet()) {
+          if (address.getHostName().equals(host)
+              || address.getAddress().getHostAddress().equals(host)
+              || address.getAddress().getCanonicalHostName().equals(host)) {
+            LOG.debug("getLocalWorker: " + address);
+            return new NetAddress(address.getHostName(), address.getPort());
+          }
+        }
+      }
+    }
+    LOG.info("getLocalWorker: no local worker on " + host);
+    return null;
+  }
+
+  public int getWorkerCount() {
+    synchronized (mWorkers) {
+      return mWorkers.size();
+    }
+  }
+
+  private MasterWorkerInfo getWorkerInfo(long workerId) {
+    MasterWorkerInfo ret = null;
+    synchronized (mWorkers) {
+      ret = mWorkers.get(workerId);
+
+      if (ret == null) {
+        LOG.error("No worker: " + workerId);
+      }
+    }
+    return ret;
+  }
+
+  public List<ClientWorkerInfo> getWorkersInfo() {
+    List<ClientWorkerInfo> ret = new ArrayList<ClientWorkerInfo>();
+
+    synchronized (mWorkers) {
+      for (MasterWorkerInfo worker : mWorkers.values()) {
+        ret.add(worker.generateClientWorkerInfo());
+      }
+    }
+
+    return ret;
+  }
+
+  public void init() throws IOException {
+    mCheckpointInfo.updateEditTransactionCounter(mJournal.loadEditLog(this));
+
+    mJournal.createImage(this);
+    mJournal.createEditLog(mCheckpointInfo.getEditTransactionCounter());
+
+    mHeartbeatThread = new HeartbeatThread("Master Heartbeat", new MasterInfoHeartbeatExecutor(),
+        MASTER_CONF.HEARTBEAT_INTERVAL_MS);
+    mHeartbeatThread.start();
+
+    mRecomputeThread = new Thread(new RecomputationScheduler());
+    mRecomputeThread.start();
+  }
+
+  public List<Integer> listFiles(String path, boolean recursive) throws InvalidPathException,
+  FileDoesNotExistException {
+    List<Integer> ret = new ArrayList<Integer>();
+    synchronized (mRoot) {
+      Inode inode = getInode(path);
+      if (inode == null) {
+        throw new FileDoesNotExistException(path);
+      }
+
+      if (inode.isFile()) {
+        ret.add(inode.getId());
+      } else if (recursive) {
+        Queue<Integer> queue = new LinkedList<Integer>();
+        queue.addAll(((InodeFolder) inode).getChildrenIds());
+
+        while (!queue.isEmpty()) {
+          int id = queue.poll();
+          inode = mInodes.get(id);
+
+          if (inode.isDirectory()) {
+            queue.addAll(((InodeFolder) inode).getChildrenIds());
+          } else {
+            ret.add(id);
+          }
+        }
+      }
+    }
+
+    return ret;
   }
 
   /**
@@ -859,754 +1591,8 @@ public class MasterInfo {
     }
   }
 
-  private void createImageDependencyWriter(Dependency dep, DataOutputStream os) throws IOException {
-    os.writeByte(Image.T_DEPENDENCY);
-    os.writeInt(dep.ID);
-    Utils.writeIntegerList(dep.PARENT_FILES, os);
-    Utils.writeIntegerList(dep.CHILDREN_FILES, os);
-    Utils.writeString(dep.COMMAND_PREFIX, os);
-    Utils.writeByteBufferList(dep.DATA, os);
-    Utils.writeString(dep.COMMENT, os);
-    Utils.writeString(dep.FRAMEWORK, os);
-    Utils.writeString(dep.FRAMEWORK_VERSION, os);
-    os.writeInt(dep.TYPE.getValue());
-    Utils.writeIntegerList(dep.PARENT_DEPENDENCIES, os);
-    os.writeLong(dep.CREATION_TIME_MS);
-    Utils.writeIntegerList(dep.getUncheckpointedChildrenFiles(), os);
-  }
-
-  private void createImageInodeWriter(Inode inode, DataOutputStream os) throws IOException {
-    if (inode.isFile()) {
-      InodeFile file = (InodeFile) inode;
-      os.writeByte(Image.T_INODE_FILE);
-      os.writeLong(file.getCreationTimeMs());
-      os.writeInt(file.getId());
-      Utils.writeString(file.getName(), os);
-      os.writeInt(file.getParentId());
-
-      os.writeLong(file.getBlockSizeByte());
-      os.writeLong(file.getLength());
-      os.writeBoolean(file.isComplete());
-      os.writeBoolean(file.isPin());
-      os.writeBoolean(file.isCache());
-      Utils.writeString(file.getCheckpointPath(), os);
-      os.writeInt(file.getDependencyId());
-    } else {
-      InodeFolder folder = (InodeFolder) inode;
-      if (folder.isRawTable()) {
-        os.writeByte(Image.T_INODE_RAW_TABLE);
-      } else {
-        os.writeByte(Image.T_INODE_FOLDER);
-      }
-
-      os.writeLong(folder.getCreationTimeMs());
-      os.writeInt(folder.getId());
-      Utils.writeString(folder.getName(), os);
-      os.writeInt(folder.getParentId());
-
-      List<Integer> children = folder.getChildrenIds();
-      os.writeInt(children.size());
-      for (int k = 0; k < children.size(); k ++) {
-        os.writeInt(children.get(k));
-      }
-
-      if (folder.isRawTable()) {
-        InodeRawTable table = (InodeRawTable) folder;
-        os.writeInt(table.getColumns());
-        Utils.writeByteBuffer(table.getMetadata(), os);
-      }
-    }
-  }
-
-  public long createNewBlock(int fileId) throws FileDoesNotExistException {
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-
-      if (inode == null) {
-        throw new FileDoesNotExistException("File " + fileId + " does not exit.");
-      }
-      if (!inode.isFile()) {
-        throw new FileDoesNotExistException("File " + fileId + " is not a file.");
-      }
-
-      return ((InodeFile) inode).getNewBlockId();
-    }
-  }
-
-  public void completeFile(int fileId) throws FileDoesNotExistException {
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-
-      if (inode == null) {
-        throw new FileDoesNotExistException("File " + fileId + " does not exit.");
-      }
-      if (!inode.isFile()) {
-        throw new FileDoesNotExistException("File " + fileId + " is not a file.");
-      }
-
-      addFile(fileId, ((InodeFile) inode).getDependencyId());
-
-      ((InodeFile) inode).setComplete();
-      mJournal.getEditLog().completeFile(fileId);
-      mJournal.getEditLog().flush();
-    }
-  }
-
-  public int createRawTable(String path, int columns, ByteBuffer metadata)
-      throws FileAlreadyExistException, InvalidPathException, TableColumnException,
-      TachyonException {
-    LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
-
-    if (columns <= 0 || columns >= Constants.MAX_COLUMNS) {
-      throw new TableColumnException("Column " + columns + " should between 0 to "
-          + Constants.MAX_COLUMNS);
-    }
-
-    int id;
-    try {
-      id = createFile(true, path, true, columns, metadata, 0);
-    } catch (BlockInfoException e) {
-      throw new FileAlreadyExistException(e.getMessage());
-    }
-
-    for (int k = 0; k < columns; k ++) {
-      mkdir(path + Constants.PATH_SEPARATOR + COL + k);
-    }
-
-    return id;
-  }
-
-  private boolean _delete(int fileId, boolean recursive) throws TachyonException {
-    LOG.info("delete(" + fileId + ")");
-    boolean succeed = true;
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-
-      if (inode == null) {
-        return true;
-      }
-
-      if (inode.isDirectory()) {
-        List<Integer> childrenIds = ((InodeFolder) inode).getChildrenIds();
-
-        if (!recursive && childrenIds.size() != 0) {
-          return false;
-        }
-        for (int childId : childrenIds) {
-          succeed = succeed && delete(childId, recursive);
-        }
-      }
-
-      InodeFolder parent = (InodeFolder) mInodes.get(inode.getParentId());
-      parent.removeChild(inode.getId());
-      mInodes.remove(inode.getId());
-      if (inode.isFile()) {
-        String checkpointPath = ((InodeFile) inode).getCheckpointPath();
-        if (!checkpointPath.equals("")) {
-          UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
-
-          try {
-            if (!ufs.delete(checkpointPath, true)) {
-              return false;
-            }
-          } catch (IOException e) {
-            throw new TachyonException(e.getMessage());
-          }
-        }
-
-        List<Pair<Long, Long>> blockIdWorkerIdList = ((InodeFile) inode).getBlockIdWorkerIdPairs();
-        synchronized (mWorkers) {
-          for (Pair<Long, Long> blockIdWorkerId : blockIdWorkerIdList) {
-            MasterWorkerInfo workerInfo = mWorkers.get(blockIdWorkerId.getSecond());
-            if (workerInfo != null) {
-              workerInfo.updateToRemovedBlock(true, blockIdWorkerId.getFirst());
-            }
-          }
-        }
-
-        if (((InodeFile) inode).isPin()) {
-          synchronized (mFileIdPinList) {
-            mFileIdPinList.remove(inode.getId());
-          }
-        }
-      }
-      inode.reverseId();
-
-      return succeed;
-    }
-  }
-
-  /**
-   * Delete a file based on the file's ID.
-   * 
-   * @param fileId
-   *          the file to be deleted.
-   * @param recursive
-   *          whether delete the file recursively or not.
-   * @return succeed or not
-   * @throws TachyonException
-   */
-  public boolean delete(int fileId, boolean recursive) throws TachyonException {
-    synchronized (mRoot) {
-      boolean ret = _delete(fileId, recursive);
-      mJournal.getEditLog().delete(fileId, recursive);
-      mJournal.getEditLog().flush();
-      return ret;
-    }
-  }
-
-  /**
-   * Delete a file based on the file's path.
-   * 
-   * @param path
-   *          The file to be deleted.
-   * @param recursive
-   *          whether delete the file recursively or not.
-   * @return succeed or not
-   * @throws TachyonException
-   */
-  public boolean delete(String path, boolean recursive) throws TachyonException {
-    LOG.info("delete(" + path + ")");
-    synchronized (mRoot) {
-      Inode inode = null;
-      try {
-        inode = getInode(path);
-      } catch (InvalidPathException e) {
-        return false;
-      }
-      if (inode == null) {
-        return true;
-      }
-      return delete(inode.getId(), recursive);
-    }
-  }
-
-  /**
-   * Get the list of blocks of an InodeFile determined by path.
-   * 
-   * @param path
-   *          The file.
-   * @return The list of the blocks of the file.
-   * @throws InvalidPathException
-   * @throws FileDoesNotExistException
-   */
-  public List<BlockInfo> getBlockList(String path) throws InvalidPathException,
-      FileDoesNotExistException {
-    Inode inode = getInode(path);
-    if (inode == null) {
-      throw new FileDoesNotExistException(path + " does not exist.");
-    }
-    if (!inode.isFile()) {
-      throw new FileDoesNotExistException(path + " is not a file.");
-    }
-    InodeFile inodeFile = (InodeFile) inode;
-    return inodeFile.getBlockList();
-  }
-
-  public long getBlockIdBasedOnOffset(int fileId, long offset) throws FileDoesNotExistException {
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-      if (inode == null) {
-        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
-      }
-      if (!inode.isFile()) {
-        throw new FileDoesNotExistException(fileId + " is not a file.");
-      }
-
-      return ((InodeFile) inode).getBlockIdBasedOnOffset(offset);
-    }
-  }
-
-  /**
-   * Get the capacity of the whole system.
-   * 
-   * @return the system's capacity in bytes.
-   */
-  public long getCapacityBytes() {
-    long ret = 0;
-    synchronized (mWorkers) {
-      for (MasterWorkerInfo worker : mWorkers.values()) {
-        ret += worker.getCapacityBytes();
-      }
-    }
-    return ret;
-  }
-
-  public ClientDependencyInfo getClientDependencyInfo(int dependencyId)
-      throws DependencyDoesNotExistException {
-    Dependency dep = null;
-    synchronized (mDependencies) {
-      dep = mDependencies.get(dependencyId);
-      if (dep == null) {
-        throw new DependencyDoesNotExistException("No dependency with id " + dependencyId);
-      }
-    }
-    return dep.generateClientDependencyInfo();
-  }
-
-  public ClientBlockInfo getClientBlockInfo(long blockId) throws FileDoesNotExistException,
-      IOException, BlockInfoException {
-    int fileId = BlockInfo.computeInodeId(blockId);
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-      if (inode == null || inode.isDirectory()) {
-        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
-      }
-      ClientBlockInfo ret = ((InodeFile) inode).getClientBlockInfo(BlockInfo
-          .computeBlockIndex(blockId));
-      LOG.debug("getClientBlockInfo: " + blockId + ret);
-      return ret;
-    }
-  }
-
-  public ClientFileInfo getClientFileInfo(int fid) throws FileDoesNotExistException {
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(fid);
-      if (inode == null) {
-        throw new FileDoesNotExistException("FileId " + fid + " does not exist.");
-      }
-
-      ClientFileInfo ret = inode.generateClientFileInfo(getPath(inode));
-      LOG.debug("getClientFileInfo(" + fid + "): " + ret);
-      return ret;
-    }
-  }
-
-  public ClientFileInfo getClientFileInfo(String path) throws FileDoesNotExistException,
-      InvalidPathException {
-    LOG.info("getClientFileInfo(" + path + ")");
-    synchronized (mRoot) {
-      Inode inode = getInode(path);
-      if (inode == null) {
-        throw new FileDoesNotExistException(path);
-      }
-      return getClientFileInfo(inode.getId());
-    }
-  }
-
-  public ClientRawTableInfo getClientRawTableInfo(int id) throws TableDoesNotExistException {
-    LOG.info("getClientRawTableInfo(" + id + ")");
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(id);
-      if (inode == null || inode.isFile() || !((InodeFolder) inode).isRawTable()) {
-        throw new TableDoesNotExistException("Table " + id + " does not exist.");
-      }
-      ClientRawTableInfo ret = new ClientRawTableInfo();
-      ret.id = inode.getId();
-      ret.name = inode.getName();
-      ret.path = getPath(inode);
-      ret.columns = ((InodeRawTable) inode).getColumns();
-      ret.metadata = ((InodeRawTable) inode).getMetadata();
-      return ret;
-    }
-  }
-
-  public ClientRawTableInfo getClientRawTableInfo(String path) throws TableDoesNotExistException,
-      InvalidPathException {
-    LOG.info("getClientRawTableInfo(" + path + ")");
-    synchronized (mRoot) {
-      Inode inode = getInode(path);
-      if (inode == null) {
-        throw new TableDoesNotExistException(path);
-      }
-      return getClientRawTableInfo(inode.getId());
-    }
-  }
-
-  /**
-   * If the <code>path</code> is a directory, return all the direct entries in
-   * it. If the <code>path</code> is a file, return its ClientFileInfo.
-   * 
-   * @param path
-   *          the target directory/file path
-   * @return A list of ClientFileInfo
-   * @throws FileDoesNotExistException
-   * @throws InvalidPathException
-   */
-  public List<ClientFileInfo> getFilesInfo(String path) throws FileDoesNotExistException,
-      InvalidPathException {
-    List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
-
-    Inode inode = getInode(path);
-
-    if (inode == null) {
-      throw new FileDoesNotExistException(path);
-    }
-
-    if (inode.isDirectory()) {
-      List<Integer> childernIds = ((InodeFolder) inode).getChildrenIds();
-
-      if (!path.endsWith("/")) {
-        path += "/";
-      }
-      synchronized (mRoot) {
-        for (int k : childernIds) {
-          ret.add(getClientFileInfo(k));
-        }
-      }
-    } else {
-      ret.add(getClientFileInfo(inode.getId()));
-    }
-
-    return ret;
-  }
-
-  public String getFileNameById(int fileId) throws FileDoesNotExistException {
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-      if (inode == null) {
-        throw new FileDoesNotExistException("FileId " + fileId + " does not exist");
-      }
-      return getPath(inode);
-    }
-  }
-
-  public List<ClientBlockInfo> getFileLocations(int fileId) throws FileDoesNotExistException,
-      IOException {
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-      if (inode == null || inode.isDirectory()) {
-        throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
-      }
-      List<ClientBlockInfo> ret = ((InodeFile) inode).getClientBlockInfos();
-      LOG.debug("getFileLocations: " + fileId + ret);
-      return ret;
-    }
-  }
-
-  public List<ClientBlockInfo> getFileLocations(String path) throws FileDoesNotExistException,
-      InvalidPathException, IOException {
-    LOG.info("getFileLocations: " + path);
-    synchronized (mRoot) {
-      Inode inode = getInode(path);
-      if (inode == null) {
-        throw new FileDoesNotExistException(path);
-      }
-      return getFileLocations(inode.getId());
-    }
-  }
-
-  /**
-   * Get the file id of the file.
-   * 
-   * @param path
-   *          The path of the file
-   * @return The file id of the file. -1 if the file does not exist.
-   * @throws InvalidPathException
-   */
-  public int getFileId(String path) throws InvalidPathException {
-    LOG.debug("getFileId(" + path + ")");
-    Inode inode = getInode(path);
-    int ret = -1;
-    if (inode != null) {
-      ret = inode.getId();
-    }
-    LOG.debug("getFileId(" + path + "): " + ret);
-    return ret;
-  }
-
-  private List<Integer> getFilesIds(List<String> pathList) throws InvalidPathException,
-      FileDoesNotExistException {
-    List<Integer> ret = new ArrayList<Integer>(pathList.size());
-    for (int k = 0; k < pathList.size(); k ++) {
-      ret.addAll(listFiles(pathList.get(k), true));
-    }
-    return ret;
-  }
-
-  private Inode getInode(String path) throws InvalidPathException {
-    return getInode(getPathNames(path));
-  }
-
-  private Inode getInode(String[] pathNames) throws InvalidPathException {
-    if (pathNames == null || pathNames.length == 0) {
-      return null;
-    }
-    if (pathNames.length == 1) {
-      if (pathNames[0].equals("")) {
-        return mRoot;
-      } else {
-        LOG.info("InvalidPathException: File name starts with " + pathNames[0]);
-        throw new InvalidPathException("File name starts with " + pathNames[0]);
-      }
-    }
-
-    Inode cur = mRoot;
-
-    synchronized (mRoot) {
-      for (int k = 1; k < pathNames.length && cur != null; k ++) {
-        String name = pathNames[k];
-        if (cur.isFile()) {
-          return null;
-        }
-        cur = ((InodeFolder) cur).getChild(name, mInodes);
-      }
-
-      return cur;
-    }
-  }
-
-  /**
-   * Get absolute paths of all in memory files.
-   * 
-   * @return absolute paths of all in memory files.
-   */
-  public List<String> getInMemoryFiles() {
-    List<String> ret = new ArrayList<String>();
-    LOG.info("getInMemoryFiles()");
-    Queue<Pair<InodeFolder, String>> nodesQueue = new LinkedList<Pair<InodeFolder, String>>();
-    synchronized (mRoot) {
-      nodesQueue.add(new Pair<InodeFolder, String>(mRoot, ""));
-      while (!nodesQueue.isEmpty()) {
-        Pair<InodeFolder, String> tPair = nodesQueue.poll();
-        InodeFolder tFolder = tPair.getFirst();
-        String curPath = tPair.getSecond();
-
-        List<Integer> childrenIds = tFolder.getChildrenIds();
-        for (int id : childrenIds) {
-          Inode tInode = mInodes.get(id);
-          String newPath = curPath + Constants.PATH_SEPARATOR + tInode.getName();
-          if (tInode.isDirectory()) {
-            nodesQueue.add(new Pair<InodeFolder, String>((InodeFolder) tInode, newPath));
-          } else if (((InodeFile) tInode).isFullyInMemory()) {
-            ret.add(newPath);
-          }
-        }
-      }
-    }
-    return ret;
-  }
-
-  public InetSocketAddress getMasterAddress() {
-    return MASTER_ADDRESS;
-  }
-
-  private static String getName(String path) throws InvalidPathException {
-    String[] pathNames = getPathNames(path);
-    return pathNames[pathNames.length - 1];
-  }
-
-  public long getNewUserId() {
-    return mUserCounter.incrementAndGet();
-  }
-
-  public int getNumberOfFiles(String path) throws InvalidPathException, FileDoesNotExistException {
-    Inode inode = getInode(path);
-    if (inode == null) {
-      throw new FileDoesNotExistException(path);
-    }
-    if (inode.isFile()) {
-      return 1;
-    }
-    return ((InodeFolder) inode).getNumberOfChildren();
-  }
-
-  private String getPath(Inode inode) {
-    synchronized (mRoot) {
-      if (inode.getId() == 1) {
-        return "/";
-      }
-      if (inode.getParentId() == 1) {
-        return Constants.PATH_SEPARATOR + inode.getName();
-      }
-      return getPath(mInodes.get(inode.getParentId())) + Constants.PATH_SEPARATOR + inode.getName();
-    }
-  }
-
-  private static String[] getPathNames(String path) throws InvalidPathException {
-    CommonUtils.validatePath(path);
-    if (path.length() == 1 && path.equals(Constants.PATH_SEPARATOR)) {
-      String[] ret = new String[1];
-      ret[0] = "";
-      return ret;
-    }
-    return path.split(Constants.PATH_SEPARATOR);
-  }
-
-  public List<String> getPinList() {
-    return mPinList.getList();
-  }
-
-  public List<Integer> getPinIdList() {
-    synchronized (mFileIdPinList) {
-      List<Integer> ret = new ArrayList<Integer>();
-      for (int id : mFileIdPinList) {
-        ret.add(id);
-      }
-      return ret;
-    }
-  }
-
-  public List<Integer> getPriorityDependencyList() {
-    synchronized (mDependencies) {
-      int earliestDepId = -1;
-      if (mPriorityDependencies.isEmpty()) {
-        long earliest = Long.MAX_VALUE;
-        for (int depId : mUncheckpointedDependencies) {
-          Dependency dep = mDependencies.get(depId);
-          if (!dep.hasChildrenDependency()) {
-            mPriorityDependencies.add(dep.ID);
-          } else {
-          }
-          if (dep.CREATION_TIME_MS < earliest) {
-            earliest = dep.CREATION_TIME_MS;
-            earliestDepId = dep.ID;
-          }
-        }
-
-        if (!mPriorityDependencies.isEmpty()) {
-          LOG.info("New computed priority dependency list " + mPriorityDependencies);
-        }
-      }
-
-      if (mPriorityDependencies.isEmpty() && earliestDepId != -1) {
-        mPriorityDependencies.add(earliestDepId);
-        LOG.info("Priority dependency list by earliest creation time: " + mPriorityDependencies);
-      }
-
-      List<Integer> ret = new ArrayList<Integer>(mPriorityDependencies.size());
-      ret.addAll(mPriorityDependencies);
-      return ret;
-    }
-  }
-
-  public int getRawTableId(String path) throws InvalidPathException {
-    Inode inode = getInode(path);
-    if (inode == null || inode.isFile() || !((InodeFolder) inode).isRawTable()) {
-      return -1;
-    }
-    return inode.getId();
-  }
-
-  public long getStarttimeMs() {
-    return START_TIME_MS;
-  }
-
-  public long getUnderFsCapacityBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
-    return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_TOTAL);
-  }
-
-  public long getUnderFsUsedBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
-    return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_USED);
-  }
-
-  public long getUnderFsFreeBytes() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
-    return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_FREE);
-  }
-
-  public long getUsedBytes() {
-    long ret = 0;
-    synchronized (mWorkers) {
-      for (MasterWorkerInfo worker : mWorkers.values()) {
-        ret += worker.getUsedBytes();
-      }
-    }
-    return ret;
-  }
-
-  public NetAddress getWorker(boolean random, String host) {
-    synchronized (mWorkers) {
-      if (mWorkerAddressToId.isEmpty()) {
-        return null;
-      }
-      if (random) {
-        int index = new Random(mWorkerAddressToId.size()).nextInt(mWorkerAddressToId.size());
-        for (InetSocketAddress address : mWorkerAddressToId.keySet()) {
-          if (index == 0) {
-            LOG.debug("getRandomWorker: " + address);
-            return new NetAddress(address.getHostName(), address.getPort());
-          }
-          index --;
-        }
-        for (InetSocketAddress address : mWorkerAddressToId.keySet()) {
-          LOG.debug("getRandomWorker: " + address);
-          return new NetAddress(address.getHostName(), address.getPort());
-        }
-      } else {
-        for (InetSocketAddress address : mWorkerAddressToId.keySet()) {
-          if (address.getHostName().equals(host)
-              || address.getAddress().getHostAddress().equals(host)
-              || address.getAddress().getCanonicalHostName().equals(host)) {
-            LOG.debug("getLocalWorker: " + address);
-            return new NetAddress(address.getHostName(), address.getPort());
-          }
-        }
-      }
-    }
-    LOG.info("getLocalWorker: no local worker on " + host);
-    return null;
-  }
-
-  public int getWorkerCount() {
-    synchronized (mWorkers) {
-      return mWorkers.size();
-    }
-  }
-
-  private MasterWorkerInfo getWorkerInfo(long workerId) {
-    MasterWorkerInfo ret = null;
-    synchronized (mWorkers) {
-      ret = mWorkers.get(workerId);
-
-      if (ret == null) {
-        LOG.error("No worker: " + workerId);
-      }
-    }
-    return ret;
-  }
-
-  public List<ClientWorkerInfo> getWorkersInfo() {
-    List<ClientWorkerInfo> ret = new ArrayList<ClientWorkerInfo>();
-
-    synchronized (mWorkers) {
-      for (MasterWorkerInfo worker : mWorkers.values()) {
-        ret.add(worker.generateClientWorkerInfo());
-      }
-    }
-
-    return ret;
-  }
-
-  public List<String> getWhiteList() {
-    return mWhiteList.getList();
-  }
-
-  public List<Integer> listFiles(String path, boolean recursive) throws InvalidPathException,
-      FileDoesNotExistException {
-    List<Integer> ret = new ArrayList<Integer>();
-    synchronized (mRoot) {
-      Inode inode = getInode(path);
-      if (inode == null) {
-        throw new FileDoesNotExistException(path);
-      }
-
-      if (inode.isFile()) {
-        ret.add(inode.getId());
-      } else if (recursive) {
-        Queue<Integer> queue = new LinkedList<Integer>();
-        queue.addAll(((InodeFolder) inode).getChildrenIds());
-
-        while (!queue.isEmpty()) {
-          int id = queue.poll();
-          inode = mInodes.get(id);
-
-          if (inode.isDirectory()) {
-            queue.addAll(((InodeFolder) inode).getChildrenIds());
-          } else {
-            ret.add(id);
-          }
-        }
-      }
-    }
-
-    return ret;
-  }
-
   public List<String> ls(String path, boolean recursive) throws InvalidPathException,
-      FileDoesNotExistException {
+  FileDoesNotExistException {
     List<String> ret = new ArrayList<String>();
 
     Inode inode = getInode(path);
@@ -1643,11 +1629,36 @@ public class MasterInfo {
   }
 
   public boolean mkdir(String path) throws FileAlreadyExistException, InvalidPathException,
-      TachyonException {
+  TachyonException {
     try {
       return createFile(true, path, true, -1, null, 0) > 0;
     } catch (BlockInfoException e) {
       throw new FileAlreadyExistException(e.getMessage());
+    }
+  }
+
+  /**
+   * Called by edit log only.
+   * 
+   * @param fileId
+   * @param blockIndex
+   * @param blockLength
+   * @throws FileDoesNotExistException
+   * @throws BlockInfoException
+   */
+  void opAddBlock(int fileId, int blockIndex, long blockLength) throws FileDoesNotExistException,
+  BlockInfoException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+
+      if (inode == null) {
+        throw new FileDoesNotExistException("File " + fileId + " does not exist.");
+      }
+      if (inode.isDirectory()) {
+        throw new FileDoesNotExistException("File " + fileId + " is a folder.");
+      }
+
+      addBlock((InodeFile) inode, new BlockInfo((InodeFile) inode, blockIndex, blockLength));
     }
   }
 
@@ -1697,7 +1708,7 @@ public class MasterInfo {
   }
 
   private void rename(Inode srcInode, String dstPath) throws FileAlreadyExistException,
-      InvalidPathException, FileDoesNotExistException {
+  InvalidPathException, FileDoesNotExistException {
     if (getInode(dstPath) != null) {
       throw new FileAlreadyExistException("Failed to rename: " + dstPath + " already exist");
     }
@@ -1726,7 +1737,7 @@ public class MasterInfo {
   }
 
   public void rename(int fileId, String dstPath) throws FileDoesNotExistException,
-      FileAlreadyExistException, InvalidPathException {
+  FileAlreadyExistException, InvalidPathException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
       if (inode == null) {
@@ -1738,7 +1749,7 @@ public class MasterInfo {
   }
 
   public void rename(String srcPath, String dstPath) throws FileAlreadyExistException,
-      FileDoesNotExistException, InvalidPathException {
+  FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
       Inode inode = getInode(srcPath);
       if (inode == null) {
@@ -1787,6 +1798,10 @@ public class MasterInfo {
         LOG.error("There is no dependency with id " + depId);
       }
     }
+  }
+
+  public void stop() {
+    mHeartbeatThread.shutdown();
   }
 
   public void unpinFile(int fileId) throws FileDoesNotExistException {
@@ -1866,18 +1881,5 @@ public class MasterInfo {
     }
 
     return new Command(CommandType.Nothing, new ArrayList<Long>());
-  }
-
-  public void stop() {
-    mHeartbeatThread.shutdown();
-  }
-
-  /**
-   * Get Journal instance for MasterInfo for Unit test only
-   * 
-   * @return Journal instance
-   */
-  public Journal getJournal() {
-    return mJournal;
   }
 }

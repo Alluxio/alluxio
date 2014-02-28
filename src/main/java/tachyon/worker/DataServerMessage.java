@@ -36,36 +36,6 @@ public class DataServerMessage {
   public static final short DATA_SERVER_REQUEST_MESSAGE = 1;
   public static final short DATA_SERVER_RESPONSE_MESSAGE = 2;
 
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-
-  private final boolean IS_TO_SEND_DATA;
-  private final short mMsgType;
-  private boolean mIsMessageReady;
-
-  private ByteBuffer mHeader;
-  private static final int HEADER_LENGTH = 26;
-  private long mBlockId;
-  private long mOffset;
-  private long mLength;
-  private int mLockId = -1;
-
-  private TachyonByteBuffer mTachyonData = null;
-  private ByteBuffer mData = null;
-
-  void setLockId(int lockId) {
-    mLockId = lockId;
-  }
-
-  int getLockId() {
-    return mLockId;
-  }
-
-  private DataServerMessage(boolean isToSendData, short msgType) {
-    IS_TO_SEND_DATA = isToSendData;
-    mMsgType = msgType;
-    mIsMessageReady = false;
-  }
-
   public static DataServerMessage createBlockRequestMessage() {
     DataServerMessage ret = new DataServerMessage(false, DATA_SERVER_REQUEST_MESSAGE);
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
@@ -160,6 +130,37 @@ public class DataServerMessage {
     return ret;
   }
 
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private final boolean IS_TO_SEND_DATA;
+  private final short mMsgType;
+  private boolean mIsMessageReady;
+  private ByteBuffer mHeader;
+
+  private static final int HEADER_LENGTH = 26;
+  private long mBlockId;
+
+  private long mOffset;
+
+  private long mLength;
+
+  private int mLockId = -1;
+
+  private TachyonByteBuffer mTachyonData = null;
+
+  private ByteBuffer mData = null;
+
+  private DataServerMessage(boolean isToSendData, short msgType) {
+    IS_TO_SEND_DATA = isToSendData;
+    mMsgType = msgType;
+    mIsMessageReady = false;
+  }
+
+  public void checkReady() {
+    if (!mIsMessageReady) {
+      CommonUtils.runtimeException("Message is not ready.");
+    }
+  }
+
   public void close() {
     if (mMsgType == DATA_SERVER_RESPONSE_MESSAGE) {
       try {
@@ -172,6 +173,12 @@ public class DataServerMessage {
     }
   }
 
+  public boolean finishSending() {
+    isSend(true);
+
+    return mHeader.remaining() == 0 && mData.remaining() == 0;
+  }
+
   private void generateHeader() {
     mHeader.clear();
     mHeader.putShort(mMsgType);
@@ -179,6 +186,48 @@ public class DataServerMessage {
     mHeader.putLong(mOffset);
     mHeader.putLong(mLength);
     mHeader.flip();
+  }
+
+  public long getBlockId() {
+    checkReady();
+    return mBlockId;
+  }
+
+  public long getLength() {
+    checkReady();
+    return mLength;
+  }
+
+  int getLockId() {
+    return mLockId;
+  }
+
+  public long getOffset() {
+    checkReady();
+    return mOffset;
+  }
+
+  public ByteBuffer getReadOnlyData() {
+    if (!mIsMessageReady) {
+      CommonUtils.runtimeException("Message is not ready.");
+    }
+    ByteBuffer ret = mData.asReadOnlyBuffer();
+    ret.flip();
+    return ret;
+  }
+
+  public boolean isMessageReady() {
+    return mIsMessageReady;
+  }
+
+  private void isSend(boolean isSend) {
+    if (IS_TO_SEND_DATA != isSend) {
+      if (IS_TO_SEND_DATA) {
+        CommonUtils.runtimeException("Try to recv on send message");
+      } else {
+        CommonUtils.runtimeException("Try to send on recv message");
+      }
+    }
   }
 
   public int recv(SocketChannel socketChannel) throws IOException {
@@ -229,53 +278,7 @@ public class DataServerMessage {
     }
   }
 
-  public boolean finishSending() {
-    isSend(true);
-
-    return mHeader.remaining() == 0 && mData.remaining() == 0;
-  }
-
-  private void isSend(boolean isSend) {
-    if (IS_TO_SEND_DATA != isSend) {
-      if (IS_TO_SEND_DATA) {
-        CommonUtils.runtimeException("Try to recv on send message");
-      } else {
-        CommonUtils.runtimeException("Try to send on recv message");
-      }
-    }
-  }
-
-  public boolean isMessageReady() {
-    return mIsMessageReady;
-  }
-
-  public void checkReady() {
-    if (!mIsMessageReady) {
-      CommonUtils.runtimeException("Message is not ready.");
-    }
-  }
-
-  public long getBlockId() {
-    checkReady();
-    return mBlockId;
-  }
-
-  public long getOffset() {
-    checkReady();
-    return mOffset;
-  }
-
-  public long getLength() {
-    checkReady();
-    return mLength;
-  }
-
-  public ByteBuffer getReadOnlyData() {
-    if (!mIsMessageReady) {
-      CommonUtils.runtimeException("Message is not ready.");
-    }
-    ByteBuffer ret = mData.asReadOnlyBuffer();
-    ret.flip();
-    return ret;
+  void setLockId(int lockId) {
+    mLockId = lockId;
   }
 }

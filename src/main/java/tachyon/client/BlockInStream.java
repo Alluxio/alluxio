@@ -24,7 +24,18 @@ import java.io.IOException;
  * client code.
  */
 public abstract class BlockInStream extends InStream {
+  public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex)
+      throws IOException {
+    TachyonByteBuffer buf = tachyonFile.readLocalByteBuffer(blockIndex);
+    if (buf != null) {
+      return new LocalBlockInStream(tachyonFile, readType, blockIndex, buf);
+    }
+
+    return new RemoteBlockInStream(tachyonFile, readType, blockIndex);
+  }
+
   protected final int BLOCK_INDEX;
+
   protected boolean mClosed = false;
 
   /**
@@ -36,15 +47,5 @@ public abstract class BlockInStream extends InStream {
   BlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
     super(file, readType);
     BLOCK_INDEX = blockIndex;
-  }
-
-  public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex)
-      throws IOException {
-    TachyonByteBuffer buf = tachyonFile.readLocalByteBuffer(blockIndex);
-    if (buf != null) {
-      return new LocalBlockInStream(tachyonFile, readType, blockIndex, buf);
-    }
-
-    return new RemoteBlockInStream(tachyonFile, readType, blockIndex);
   }
 }
