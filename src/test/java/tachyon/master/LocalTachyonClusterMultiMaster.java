@@ -176,7 +176,7 @@ public class LocalTachyonClusterMultiMaster {
 
     mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
 
-    mUnderFSCluster = UnderFileSystemCluster.initializeUFSCluster(mTachyonHome + "/dfs");
+    mUnderFSCluster = UnderFileSystemCluster.get(mTachyonHome + "/dfs");
     String underfsFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
     String masterJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
 
