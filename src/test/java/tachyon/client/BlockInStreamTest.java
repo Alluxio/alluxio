@@ -38,18 +38,18 @@ public class BlockInStreamTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
+  @After
+  public final void after() throws Exception {
+    mLocalTachyonCluster.stop();
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+  }
+
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
-  }
-
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   /**
@@ -62,8 +62,8 @@ public class BlockInStreamTest {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
-        InStream is = (k < MEAN ?
-            file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        InStream is =
+            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         if (k == 0) {
           Assert.assertTrue(is instanceof EmptyBlockInStream);
         } else {
@@ -114,8 +114,8 @@ public class BlockInStreamTest {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
-        InStream is = (k < MEAN ?
-            file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        InStream is =
+            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         if (k == 0) {
           Assert.assertTrue(is instanceof EmptyBlockInStream);
         } else {
@@ -150,8 +150,8 @@ public class BlockInStreamTest {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
-        InStream is = (k < MEAN ?
-            file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        InStream is =
+            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         if (k == 0) {
           Assert.assertTrue(is instanceof EmptyBlockInStream);
         } else {
@@ -186,8 +186,8 @@ public class BlockInStreamTest {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
-        InStream is = (k < MEAN ?
-            file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        InStream is =
+            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof BlockInStream);
         Assert.assertEquals(k / 2, is.skip(k / 2));
         Assert.assertEquals(k / 2, is.read());

@@ -28,6 +28,9 @@ import org.junit.Test;
 import tachyon.TestUtils;
 import tachyon.master.LocalTachyonCluster;
 
+/**
+ * Unit tests for <code>tachyon.client.LocalBlockInStream</code>.
+ */
 public class LocalBlockInStreamTest {
   private final int MIN_LEN = 0;
   private final int MAX_LEN = 255;
@@ -36,6 +39,12 @@ public class LocalBlockInStreamTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
   private Set<WriteType> mWriteCacheType;
+
+  @After
+  public final void after() throws Exception {
+    mLocalTachyonCluster.stop();
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+  }
 
   @Before
   public final void before() throws IOException {
@@ -47,12 +56,6 @@ public class LocalBlockInStreamTest {
     mWriteCacheType = new HashSet<WriteType>();
     mWriteCacheType.add(WriteType.MUST_CACHE);
     mWriteCacheType.add(WriteType.CACHE_THROUGH);
-  }
-
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
   /**
@@ -183,6 +186,67 @@ public class LocalBlockInStreamTest {
   }
 
   /**
+   * Test <code>void seek(long pos)</code>.
+   * 
+   * @throws IOException
+   */
+  @Test
+  public void seekExceptionTest() throws IOException {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+      for (WriteType op : mWriteCacheType) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+
+        TachyonFile file = mTfs.getFile(fileId);
+        InStream is = file.getInStream(ReadType.NO_CACHE);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
+
+        try {
+          is.seek(-1);
+        } catch (IOException e) {
+          // This is expected
+          continue;
+        }
+        is.close();
+        throw new IOException("Except seek IOException");
+      }
+    }
+  }
+
+  /**
+   * Test <code>void seek(long pos)</code>.
+   * 
+   * @throws IOException
+   */
+  @Test
+  public void seekTest() throws IOException {
+    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
+      for (WriteType op : mWriteCacheType) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+
+        TachyonFile file = mTfs.getFile(fileId);
+        InStream is = file.getInStream(ReadType.NO_CACHE);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
+
+        is.seek(k / 3);
+        Assert.assertEquals(k / 3, is.read());
+        is.seek(k / 2);
+        Assert.assertEquals(k / 2, is.read());
+        is.seek(k / 4);
+        Assert.assertEquals(k / 4, is.read());
+        is.close();
+      }
+    }
+  }
+
+  /**
    * Test <code>long skip(long len)</code>.
    */
   @Test
@@ -208,65 +272,6 @@ public class LocalBlockInStreamTest {
         Assert.assertEquals(2 * t + 1, is.read());
         is.close();
         Assert.assertTrue(file.isInMemory());
-      }
-    }
-  }
-
-  /**
-   * Test <code>void seek(long pos)</code>.
-   * @throws IOException 
-   */
-  @Test
-  public void seekExceptionTest() throws IOException {
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : mWriteCacheType) {
-        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
-
-        TachyonFile file = mTfs.getFile(fileId);
-        InStream is = file.getInStream(ReadType.NO_CACHE);
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof LocalBlockInStream);
-        }        
-
-        try {
-          is.seek(-1);
-        } catch (IOException e) {
-          // This is expected
-          continue;
-        }
-        is.close();
-        throw new IOException("Except seek IOException");
-      }
-    }
-  }
-
-  /**
-   * Test <code>void seek(long pos)</code>.
-   * @throws IOException 
-   */
-  @Test
-  public void seekTest() throws IOException {
-    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : mWriteCacheType) {
-        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
-
-        TachyonFile file = mTfs.getFile(fileId);
-        InStream is = file.getInStream(ReadType.NO_CACHE);
-        if (k == 0) {
-          Assert.assertTrue(is instanceof EmptyBlockInStream);
-        } else {
-          Assert.assertTrue(is instanceof LocalBlockInStream);
-        }
-
-        is.seek(k / 3);
-        Assert.assertEquals(k / 3, is.read());
-        is.seek(k / 2);
-        Assert.assertEquals(k / 2, is.read());
-        is.seek(k / 4);
-        Assert.assertEquals(k / 4, is.read());
-        is.close();
       }
     }
   }
