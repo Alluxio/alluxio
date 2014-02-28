@@ -43,10 +43,12 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   final TachyonFS TFS;
   final int FID;
+  final boolean CACHE_ON_READ;
 
-  TachyonFile(TachyonFS tfs, int fid) {
+  TachyonFile(TachyonFS tfs, int fid, boolean cacheOnRead) {
     TFS = tfs;
     FID = fid;
+    CACHE_ON_READ = cacheOnRead;
   }
 
   public InStream getInStream(ReadType readType) throws IOException {
@@ -58,15 +60,19 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("The file " + this + " is not complete.");
     }
 
+    LOG.info("#> CACHE_ON_READ = " + CACHE_ON_READ);
+
+    boolean shouldCache = readType.isCache(CACHE_ON_READ);
+
     List<Long> blocks = TFS.getFileBlockIdList(FID);
 
     if (blocks.size() == 0) {
-      return new EmptyBlockInStream(this, readType);
+      return new EmptyBlockInStream(this, shouldCache);
     } else if (blocks.size() == 1) {
       return BlockInStream.get(this, readType, 0);
     }
 
-    return new FileInStream(this, readType);
+    return new FileInStream(this, shouldCache);
   }
 
   public OutStream getOutStream(WriteType writeType) throws IOException {

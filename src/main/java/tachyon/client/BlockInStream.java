@@ -16,6 +16,9 @@
  */
 package tachyon.client;
 
+import org.apache.log4j.Logger;
+import tachyon.Constants;
+
 import java.io.IOException;
 
 /**
@@ -24,27 +27,30 @@ import java.io.IOException;
  * client code.
  */
 public abstract class BlockInStream extends InStream {
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+
   protected final int BLOCK_INDEX;
   protected boolean mClosed = false;
 
   /**
    * @param file
-   * @param readType
+   * @param shouldCache
    * @param blockIndex
    * @throws IOException
    */
-  BlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
-    super(file, readType);
+  BlockInStream(TachyonFile file, boolean shouldCache, int blockIndex) throws IOException {
+    super(file, shouldCache);
     BLOCK_INDEX = blockIndex;
   }
 
   public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex)
       throws IOException {
+    boolean shouldCache = readType.isCache(tachyonFile.CACHE_ON_READ);
     TachyonByteBuffer buf = tachyonFile.readLocalByteBuffer(blockIndex);
     if (buf != null) {
-      return new LocalBlockInStream(tachyonFile, readType, blockIndex, buf);
+      return new LocalBlockInStream(tachyonFile, shouldCache, blockIndex, buf);
     }
 
-    return new RemoteBlockInStream(tachyonFile, readType, blockIndex);
+    return new RemoteBlockInStream(tachyonFile, shouldCache, blockIndex);
   }
 }

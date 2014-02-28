@@ -352,6 +352,12 @@ public class TachyonFS {
   }
 
   public synchronized int createFile(String path, long blockSizeByte) throws IOException {
+    return createFile(path, blockSizeByte, false);
+  }
+
+  public synchronized int createFile(String path, long blockSizeByte, boolean cacheOnRead)
+      throws IOException {
+
     if (blockSizeByte > (long) Constants.GB * 2) {
       throw new IOException("Block size must be less than 2GB: " + blockSizeByte);
     }
@@ -361,9 +367,9 @@ public class TachyonFS {
       return -1;
     }
     path = CommonUtils.cleanPath(path);
-    int fid = -1;
+    int fid;
     try {
-      fid = mMasterClient.user_createFile(path, blockSizeByte);
+      fid = mMasterClient.user_createFile(path, blockSizeByte, cacheOnRead);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -617,7 +623,7 @@ public class TachyonFS {
       return null;
     }
     mClientFileInfos.put(clientFileInfo.getId(), clientFileInfo);
-    return new TachyonFile(this, clientFileInfo.getId());
+    return new TachyonFile(this, clientFileInfo.getId(), clientFileInfo.isCacheOnRead());
   }
 
   /**
@@ -633,7 +639,7 @@ public class TachyonFS {
       }
       mClientFileInfos.put(fid, clientFileInfo);
     }
-    return new TachyonFile(this, fid);
+    return new TachyonFile(this, fid, mClientFileInfos.get(fid).isCacheOnRead());
   }
 
   public synchronized int getFileId(String path) throws IOException {

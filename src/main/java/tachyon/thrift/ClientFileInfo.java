@@ -48,6 +48,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   private static final org.apache.thrift.protocol.TField BLOCK_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("blockIds", org.apache.thrift.protocol.TType.LIST, (short)13);
   private static final org.apache.thrift.protocol.TField DEPENDENCY_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("dependencyId", org.apache.thrift.protocol.TType.I32, (short)14);
   private static final org.apache.thrift.protocol.TField IN_MEMORY_PERCENTAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("inMemoryPercentage", org.apache.thrift.protocol.TType.I32, (short)15);
+  private static final org.apache.thrift.protocol.TField CACHE_ON_READ_FIELD_DESC = new org.apache.thrift.protocol.TField("cacheOnRead", org.apache.thrift.protocol.TType.BOOL, (short)16);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -70,6 +71,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   public List<Long> blockIds; // required
   public int dependencyId; // required
   public int inMemoryPercentage; // required
+  public boolean cacheOnRead; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -87,7 +89,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     NEED_CACHE((short)12, "needCache"),
     BLOCK_IDS((short)13, "blockIds"),
     DEPENDENCY_ID((short)14, "dependencyId"),
-    IN_MEMORY_PERCENTAGE((short)15, "inMemoryPercentage");
+    IN_MEMORY_PERCENTAGE((short)15, "inMemoryPercentage"),
+    CACHE_ON_READ((short)16, "cacheOnRead");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -132,6 +135,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
           return DEPENDENCY_ID;
         case 15: // IN_MEMORY_PERCENTAGE
           return IN_MEMORY_PERCENTAGE;
+        case 16: // CACHE_ON_READ
+          return CACHE_ON_READ;
         default:
           return null;
       }
@@ -183,6 +188,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   private static final int __NEEDCACHE_ISSET_ID = 8;
   private static final int __DEPENDENCYID_ISSET_ID = 9;
   private static final int __INMEMORYPERCENTAGE_ISSET_ID = 10;
+  private static final int __CACHEONREAD_ISSET_ID = 11;
   private short __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -218,6 +224,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.IN_MEMORY_PERCENTAGE, new org.apache.thrift.meta_data.FieldMetaData("inMemoryPercentage", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.CACHE_ON_READ, new org.apache.thrift.meta_data.FieldMetaData("cacheOnRead", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ClientFileInfo.class, metaDataMap);
   }
@@ -240,7 +248,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     boolean needCache,
     List<Long> blockIds,
     int dependencyId,
-    int inMemoryPercentage)
+    int inMemoryPercentage,
+    boolean cacheOnRead)
   {
     this();
     this.id = id;
@@ -269,6 +278,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     setDependencyIdIsSet(true);
     this.inMemoryPercentage = inMemoryPercentage;
     setInMemoryPercentageIsSet(true);
+    this.cacheOnRead = cacheOnRead;
+    setCacheOnReadIsSet(true);
   }
 
   /**
@@ -303,6 +314,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     }
     this.dependencyId = other.dependencyId;
     this.inMemoryPercentage = other.inMemoryPercentage;
+    this.cacheOnRead = other.cacheOnRead;
   }
 
   public ClientFileInfo deepCopy() {
@@ -337,6 +349,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     this.dependencyId = 0;
     setInMemoryPercentageIsSet(false);
     this.inMemoryPercentage = 0;
+    setCacheOnReadIsSet(false);
+    this.cacheOnRead = false;
   }
 
   public int getId() {
@@ -703,6 +717,29 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __INMEMORYPERCENTAGE_ISSET_ID, value);
   }
 
+  public boolean isCacheOnRead() {
+    return this.cacheOnRead;
+  }
+
+  public ClientFileInfo setCacheOnRead(boolean cacheOnRead) {
+    this.cacheOnRead = cacheOnRead;
+    setCacheOnReadIsSet(true);
+    return this;
+  }
+
+  public void unsetCacheOnRead() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __CACHEONREAD_ISSET_ID);
+  }
+
+  /** Returns true if field cacheOnRead is set (has been assigned a value) and false otherwise */
+  public boolean isSetCacheOnRead() {
+    return EncodingUtils.testBit(__isset_bitfield, __CACHEONREAD_ISSET_ID);
+  }
+
+  public void setCacheOnReadIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CACHEONREAD_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case ID:
@@ -825,6 +862,14 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       }
       break;
 
+    case CACHE_ON_READ:
+      if (value == null) {
+        unsetCacheOnRead();
+      } else {
+        setCacheOnRead((Boolean)value);
+      }
+      break;
+
     }
   }
 
@@ -875,6 +920,9 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     case IN_MEMORY_PERCENTAGE:
       return Integer.valueOf(getInMemoryPercentage());
 
+    case CACHE_ON_READ:
+      return Boolean.valueOf(isCacheOnRead());
+
     }
     throw new IllegalStateException();
   }
@@ -916,6 +964,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       return isSetDependencyId();
     case IN_MEMORY_PERCENTAGE:
       return isSetInMemoryPercentage();
+    case CACHE_ON_READ:
+      return isSetCacheOnRead();
     }
     throw new IllegalStateException();
   }
@@ -1065,6 +1115,15 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (!(this_present_inMemoryPercentage && that_present_inMemoryPercentage))
         return false;
       if (this.inMemoryPercentage != that.inMemoryPercentage)
+        return false;
+    }
+
+    boolean this_present_cacheOnRead = true;
+    boolean that_present_cacheOnRead = true;
+    if (this_present_cacheOnRead || that_present_cacheOnRead) {
+      if (!(this_present_cacheOnRead && that_present_cacheOnRead))
+        return false;
+      if (this.cacheOnRead != that.cacheOnRead)
         return false;
     }
 
@@ -1234,6 +1293,16 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetCacheOnRead()).compareTo(typedOther.isSetCacheOnRead());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCacheOnRead()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.cacheOnRead, typedOther.cacheOnRead);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -1328,6 +1397,10 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     if (!first) sb.append(", ");
     sb.append("inMemoryPercentage:");
     sb.append(this.inMemoryPercentage);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("cacheOnRead:");
+    sb.append(this.cacheOnRead);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -1504,6 +1577,14 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 16: // CACHE_ON_READ
+            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+              struct.cacheOnRead = iprot.readBool();
+              struct.setCacheOnReadIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -1579,6 +1660,9 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       oprot.writeFieldBegin(IN_MEMORY_PERCENTAGE_FIELD_DESC);
       oprot.writeI32(struct.inMemoryPercentage);
       oprot.writeFieldEnd();
+      oprot.writeFieldBegin(CACHE_ON_READ_FIELD_DESC);
+      oprot.writeBool(struct.cacheOnRead);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -1642,7 +1726,10 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (struct.isSetInMemoryPercentage()) {
         optionals.set(14);
       }
-      oprot.writeBitSet(optionals, 15);
+      if (struct.isSetCacheOnRead()) {
+        optionals.set(15);
+      }
+      oprot.writeBitSet(optionals, 16);
       if (struct.isSetId()) {
         oprot.writeI32(struct.id);
       }
@@ -1694,12 +1781,15 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (struct.isSetInMemoryPercentage()) {
         oprot.writeI32(struct.inMemoryPercentage);
       }
+      if (struct.isSetCacheOnRead()) {
+        oprot.writeBool(struct.cacheOnRead);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ClientFileInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(15);
+      BitSet incoming = iprot.readBitSet(16);
       if (incoming.get(0)) {
         struct.id = iprot.readI32();
         struct.setIdIsSet(true);
@@ -1768,6 +1858,10 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (incoming.get(14)) {
         struct.inMemoryPercentage = iprot.readI32();
         struct.setInMemoryPercentageIsSet(true);
+      }
+      if (incoming.get(15)) {
+        struct.cacheOnRead = iprot.readBool();
+        struct.setCacheOnReadIsSet(true);
       }
     }
   }

@@ -286,12 +286,12 @@ public class MasterClient {
     }
   }
 
-  public synchronized int user_createFile(String path, long blockSizeByte)
+  public synchronized int user_createFile(String path, long blockSizeByte, boolean cacheOnRead)
       throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
-        return mClient.user_createFile(path, blockSizeByte);
+        return mClient.user_createFile(path, blockSizeByte, cacheOnRead);
       } catch (FileAlreadyExistException e) {
         throw new IOException(e);
       } catch (InvalidPathException e) {

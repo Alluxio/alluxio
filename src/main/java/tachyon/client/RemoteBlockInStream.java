@@ -49,8 +49,8 @@ public class RemoteBlockInStream extends BlockInStream {
   private boolean mRecache = true;
   private BlockOutStream mBlockOutStream = null;
 
-  RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
-    super(file, readType, blockIndex);
+  RemoteBlockInStream(TachyonFile file, boolean shouldCache, int blockIndex) throws IOException {
+    super(file, shouldCache, blockIndex);
 
     mBlockInfo = TFS.getClientBlockInfo(FILE.FID, BLOCK_INDEX);
     mReadByte = 0;
@@ -60,8 +60,7 @@ public class RemoteBlockInStream extends BlockInStream {
       throw new IOException("File " + FILE.getPath() + " is not ready to read");
     }
 
-    mRecache = readType.isCache();
-    if (mRecache) {
+    if (shouldCache) {
       mBlockOutStream = new BlockOutStream(file, WriteType.TRY_CACHE, blockIndex);
     }
 

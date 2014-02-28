@@ -145,7 +145,7 @@ public class EditLog {
         }
         case OP_CREATE_FILE: {
           info._createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(), is.readInt(),
-              Utils.readByteBuffer(is), is.readLong(), is.readLong());
+              Utils.readByteBuffer(is), is.readLong(), is.readLong(), is.readBoolean());
           break;
         }
         case OP_DELETE: {
@@ -334,7 +334,8 @@ public class EditLog {
   }
 
   public synchronized void createFile(boolean recursive, String path, boolean directory,
-      int columns, ByteBuffer metadata, long blockSizeByte, long creationTimeMs) {
+      int columns, ByteBuffer metadata, long blockSizeByte, long creationTimeMs,
+      boolean cacheOnRead) {
     if (INACTIVE) {
       return;
     }
@@ -349,6 +350,7 @@ public class EditLog {
       Utils.writeByteBuffer(metadata, DOS);
       DOS.writeLong(blockSizeByte);
       DOS.writeLong(creationTimeMs);
+      DOS.writeBoolean(cacheOnRead);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }

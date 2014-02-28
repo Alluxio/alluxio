@@ -35,7 +35,6 @@ public class MasterService {
   public interface Iface {
 
     public boolean addCheckpoint(long workerId, int fileId, long length, String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, org.apache.thrift.TException;
-
     public List<ClientWorkerInfo> getWorkersInfo() throws org.apache.thrift.TException;
 
     public List<ClientFileInfo> liststatus(String path) throws InvalidPathException, FileDoesNotExistException, org.apache.thrift.TException;
@@ -67,7 +66,7 @@ public class MasterService {
 
     public void user_requestFilesInDependency(int depId) throws DependencyDoesNotExistException, org.apache.thrift.TException;
 
-    public int user_createFile(String path, long blockSizeByte) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException, org.apache.thrift.TException;
+    public int user_createFile(String path, long blockSizeByte, boolean cacheOnRead) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException, org.apache.thrift.TException;
 
     public int user_createFileOnCheckpoint(String path, String checkpointPath) throws FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException, BlockInfoException, TachyonException, org.apache.thrift.TException;
 
@@ -179,7 +178,7 @@ public class MasterService {
 
     public void user_requestFilesInDependency(int depId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_requestFilesInDependency_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void user_createFile(String path, long blockSizeByte, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_createFile_call> resultHandler) throws org.apache.thrift.TException;
+    public void user_createFile(String path, long blockSizeByte, boolean cacheOnRead, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_createFile_call> resultHandler) throws org.apache.thrift.TException;
 
     public void user_createFileOnCheckpoint(String path, String checkpointPath, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_createFileOnCheckpoint_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -596,17 +595,18 @@ public class MasterService {
       return;
     }
 
-    public int user_createFile(String path, long blockSizeByte) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException, org.apache.thrift.TException
+    public int user_createFile(String path, long blockSizeByte, boolean cacheOnRead) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException, org.apache.thrift.TException
     {
-      send_user_createFile(path, blockSizeByte);
+      send_user_createFile(path, blockSizeByte, cacheOnRead);
       return recv_user_createFile();
     }
 
-    public void send_user_createFile(String path, long blockSizeByte) throws org.apache.thrift.TException
+    public void send_user_createFile(String path, long blockSizeByte, boolean cacheOnRead) throws org.apache.thrift.TException
     {
       user_createFile_args args = new user_createFile_args();
       args.setPath(path);
       args.setBlockSizeByte(blockSizeByte);
+      args.setCacheOnRead(cacheOnRead);
       sendBase("user_createFile", args);
     }
 
@@ -1856,9 +1856,9 @@ public class MasterService {
       }
     }
 
-    public void user_createFile(String path, long blockSizeByte, org.apache.thrift.async.AsyncMethodCallback<user_createFile_call> resultHandler) throws org.apache.thrift.TException {
+    public void user_createFile(String path, long blockSizeByte, boolean cacheOnRead, org.apache.thrift.async.AsyncMethodCallback<user_createFile_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_createFile_call method_call = new user_createFile_call(path, blockSizeByte, resultHandler, this, ___protocolFactory, ___transport);
+      user_createFile_call method_call = new user_createFile_call(path, blockSizeByte, cacheOnRead, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -1866,10 +1866,12 @@ public class MasterService {
     public static class user_createFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String path;
       private long blockSizeByte;
-      public user_createFile_call(String path, long blockSizeByte, org.apache.thrift.async.AsyncMethodCallback<user_createFile_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private boolean cacheOnRead;
+      public user_createFile_call(String path, long blockSizeByte, boolean cacheOnRead, org.apache.thrift.async.AsyncMethodCallback<user_createFile_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
         this.blockSizeByte = blockSizeByte;
+        this.cacheOnRead = cacheOnRead;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -1877,6 +1879,7 @@ public class MasterService {
         user_createFile_args args = new user_createFile_args();
         args.setPath(path);
         args.setBlockSizeByte(blockSizeByte);
+        args.setCacheOnRead(cacheOnRead);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -3187,7 +3190,7 @@ public class MasterService {
       public user_createFile_result getResult(I iface, user_createFile_args args) throws org.apache.thrift.TException {
         user_createFile_result result = new user_createFile_result();
         try {
-          result.success = iface.user_createFile(args.path, args.blockSizeByte);
+          result.success = iface.user_createFile(args.path, args.blockSizeByte, args.cacheOnRead);
           result.setSuccessIsSet(true);
         } catch (FileAlreadyExistException eR) {
           result.eR = eR;
@@ -15955,6 +15958,7 @@ public class MasterService {
 
     private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
     private static final org.apache.thrift.protocol.TField BLOCK_SIZE_BYTE_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSizeByte", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField CACHE_ON_READ_FIELD_DESC = new org.apache.thrift.protocol.TField("cacheOnRead", org.apache.thrift.protocol.TType.BOOL, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -15964,11 +15968,13 @@ public class MasterService {
 
     public String path; // required
     public long blockSizeByte; // required
+    public boolean cacheOnRead; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       PATH((short)1, "path"),
-      BLOCK_SIZE_BYTE((short)2, "blockSizeByte");
+      BLOCK_SIZE_BYTE((short)2, "blockSizeByte"),
+      CACHE_ON_READ((short)3, "cacheOnRead");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -15987,6 +15993,8 @@ public class MasterService {
             return PATH;
           case 2: // BLOCK_SIZE_BYTE
             return BLOCK_SIZE_BYTE;
+          case 3: // CACHE_ON_READ
+            return CACHE_ON_READ;
           default:
             return null;
         }
@@ -16028,6 +16036,7 @@ public class MasterService {
 
     // isset id assignments
     private static final int __BLOCKSIZEBYTE_ISSET_ID = 0;
+    private static final int __CACHEONREAD_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
@@ -16036,6 +16045,8 @@ public class MasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.BLOCK_SIZE_BYTE, new org.apache.thrift.meta_data.FieldMetaData("blockSizeByte", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.CACHE_ON_READ, new org.apache.thrift.meta_data.FieldMetaData("cacheOnRead", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_createFile_args.class, metaDataMap);
     }
@@ -16045,12 +16056,15 @@ public class MasterService {
 
     public user_createFile_args(
       String path,
-      long blockSizeByte)
+      long blockSizeByte,
+      boolean cacheOnRead)
     {
       this();
       this.path = path;
       this.blockSizeByte = blockSizeByte;
       setBlockSizeByteIsSet(true);
+      this.cacheOnRead = cacheOnRead;
+      setCacheOnReadIsSet(true);
     }
 
     /**
@@ -16062,6 +16076,7 @@ public class MasterService {
         this.path = other.path;
       }
       this.blockSizeByte = other.blockSizeByte;
+      this.cacheOnRead = other.cacheOnRead;
     }
 
     public user_createFile_args deepCopy() {
@@ -16073,6 +16088,8 @@ public class MasterService {
       this.path = null;
       setBlockSizeByteIsSet(false);
       this.blockSizeByte = 0;
+      setCacheOnReadIsSet(false);
+      this.cacheOnRead = false;
     }
 
     public String getPath() {
@@ -16122,6 +16139,29 @@ public class MasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKSIZEBYTE_ISSET_ID, value);
     }
 
+    public boolean isCacheOnRead() {
+      return this.cacheOnRead;
+    }
+
+    public user_createFile_args setCacheOnRead(boolean cacheOnRead) {
+      this.cacheOnRead = cacheOnRead;
+      setCacheOnReadIsSet(true);
+      return this;
+    }
+
+    public void unsetCacheOnRead() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __CACHEONREAD_ISSET_ID);
+    }
+
+    /** Returns true if field cacheOnRead is set (has been assigned a value) and false otherwise */
+    public boolean isSetCacheOnRead() {
+      return EncodingUtils.testBit(__isset_bitfield, __CACHEONREAD_ISSET_ID);
+    }
+
+    public void setCacheOnReadIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CACHEONREAD_ISSET_ID, value);
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case PATH:
@@ -16140,6 +16180,14 @@ public class MasterService {
         }
         break;
 
+      case CACHE_ON_READ:
+        if (value == null) {
+          unsetCacheOnRead();
+        } else {
+          setCacheOnRead((Boolean)value);
+        }
+        break;
+
       }
     }
 
@@ -16150,6 +16198,9 @@ public class MasterService {
 
       case BLOCK_SIZE_BYTE:
         return Long.valueOf(getBlockSizeByte());
+
+      case CACHE_ON_READ:
+        return Boolean.valueOf(isCacheOnRead());
 
       }
       throw new IllegalStateException();
@@ -16166,6 +16217,8 @@ public class MasterService {
         return isSetPath();
       case BLOCK_SIZE_BYTE:
         return isSetBlockSizeByte();
+      case CACHE_ON_READ:
+        return isSetCacheOnRead();
       }
       throw new IllegalStateException();
     }
@@ -16198,6 +16251,15 @@ public class MasterService {
         if (!(this_present_blockSizeByte && that_present_blockSizeByte))
           return false;
         if (this.blockSizeByte != that.blockSizeByte)
+          return false;
+      }
+
+      boolean this_present_cacheOnRead = true;
+      boolean that_present_cacheOnRead = true;
+      if (this_present_cacheOnRead || that_present_cacheOnRead) {
+        if (!(this_present_cacheOnRead && that_present_cacheOnRead))
+          return false;
+        if (this.cacheOnRead != that.cacheOnRead)
           return false;
       }
 
@@ -16237,6 +16299,16 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetCacheOnRead()).compareTo(typedOther.isSetCacheOnRead());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetCacheOnRead()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.cacheOnRead, typedOther.cacheOnRead);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -16267,6 +16339,10 @@ public class MasterService {
       if (!first) sb.append(", ");
       sb.append("blockSizeByte:");
       sb.append(this.blockSizeByte);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("cacheOnRead:");
+      sb.append(this.cacheOnRead);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -16329,6 +16405,14 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 3: // CACHE_ON_READ
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.cacheOnRead = iprot.readBool();
+                struct.setCacheOnReadIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -16351,6 +16435,9 @@ public class MasterService {
         }
         oprot.writeFieldBegin(BLOCK_SIZE_BYTE_FIELD_DESC);
         oprot.writeI64(struct.blockSizeByte);
+        oprot.writeFieldEnd();
+        oprot.writeFieldBegin(CACHE_ON_READ_FIELD_DESC);
+        oprot.writeBool(struct.cacheOnRead);
         oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
@@ -16376,19 +16463,25 @@ public class MasterService {
         if (struct.isSetBlockSizeByte()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetCacheOnRead()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetPath()) {
           oprot.writeString(struct.path);
         }
         if (struct.isSetBlockSizeByte()) {
           oprot.writeI64(struct.blockSizeByte);
         }
+        if (struct.isSetCacheOnRead()) {
+          oprot.writeBool(struct.cacheOnRead);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, user_createFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.path = iprot.readString();
           struct.setPathIsSet(true);
@@ -16396,6 +16489,10 @@ public class MasterService {
         if (incoming.get(1)) {
           struct.blockSizeByte = iprot.readI64();
           struct.setBlockSizeByteIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.cacheOnRead = iprot.readBool();
+          struct.setCacheOnReadIsSet(true);
         }
       }
     }
