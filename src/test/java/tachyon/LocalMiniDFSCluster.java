@@ -31,142 +31,6 @@ import tachyon.util.CommonUtils;
  * A local MiniDFSCluster for testing UnderFileSystemHdfs.
  */
 public class LocalMiniDFSCluster extends UnderFileSystemCluster {
-  private final Configuration CONF = new Configuration();
-
-  private int mNamenodePort;
-  private int mNumDataNode;
-
-  private MiniDFSCluster mDfsCluster = null;
-  private DistributedFileSystem mDfsClient = null;
-
-  private boolean mIsStarted = false;
-
-  /**
-   * To initialize the local minidfscluster
-   *
-   * @param dfsBaseDirs
-   *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
-   *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
-   * @param numDataNode
-   *          The number of datanode
-   */
-  public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode) {
-    this(dfsBaseDirs, numDataNode, 0);
-  }
-
-  /**
-   * To intiaize the local minidfscluster with single namenode and datanode
-   *
-   * @param dfsBaseDirs
-   *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
-   *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
-   */
-  public LocalMiniDFSCluster(String dfsBaseDirs) {
-    this(dfsBaseDirs, 1, 0);
-  }
-
-  /**
-   * To initialize the local minidfscluster
-   *
-   * @param dfsBaseDirs
-   *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
-   *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
-   * @param numDataNode
-   *          The number of datanode
-   * @param nameNodePort
-   *          The port of namenode. If it is 0, the real namenode port can be retrieved by
-   *          {@link #getNameNodePort()} after the cluster started
-   */
-  public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, int nameNodePort) {
-    super(dfsBaseDirs);
-    mNamenodePort = nameNodePort;
-    mNumDataNode = numDataNode;
-  }
-
-  /**
-   * Get the specified or real namenode port
-   *
-   * @return port of namenode
-   */
-  public int getNameNodePort() {
-    return mNamenodePort;
-  }
-
-  /**
-   * Get the namenode address for this minidfscluster
-   *
-   * @return namenode address
-   */
-  public String getUnderFilesystemAddress() {
-    if (null != mDfsClient) {
-      return mDfsClient.getUri().toString();
-    }
-    return null;
-  }
-
-  /**
-   * To start the minidfscluster before using it
-   *
-   * @throws IOException
-   */
-  @Override
-  public void start() throws IOException {
-    if (!mIsStarted) {
-
-      delete(mBaseDir, true);
-      if (!CommonUtils.mkdirs(mBaseDir)) {
-        throw new IOException("Failed to make folder: " + mBaseDir);
-      }
-
-      // TODO For hadoop 1.x, there exists NPE while startDataNode. It is a known issue caused by
-      // "umask 002"(should be 022) see [HDFS-2556]. So the following codes only work for
-      // hadoop 2.x or "umask 022"
-      System.setProperty("test.build.data", mBaseDir);
-      mDfsCluster = new MiniDFSCluster(mNamenodePort, CONF, mNumDataNode, true, true, null, null);
-      mDfsCluster.waitClusterUp();
-
-      if (0 == mNamenodePort) {
-        mNamenodePort = mDfsCluster.getNameNodePort();
-      }
-
-      mDfsClient = (DistributedFileSystem) mDfsCluster.getFileSystem();
-      mIsStarted = true;
-    }
-  }
-
-  /**
-   * To shutdown the minidfscluster in teardown phase.
-   *
-   * @throws IOException
-   */
-  @Override
-  public void shutdown() throws IOException {
-    if (mIsStarted) {
-      mDfsClient.close();
-      mDfsCluster.shutdown();
-      mIsStarted = false;
-    }
-  }
-
-  @Override
-  public boolean isStarted() {
-    return mIsStarted;
-  }
-
-  public DistributedFileSystem getDFSClient() {
-    return mDfsClient;
-  }
-
-  private void delete(String path, boolean isRecursively) throws IOException {
-    File file = new File(path);
-    if (isRecursively && file.isDirectory()) {
-      for (File subdir : file.listFiles()) {
-        delete(subdir.getAbsolutePath(), isRecursively);
-      }
-    }
-    file.delete();
-  }
-
   /**
    * Test the local minidfscluster only
    */
@@ -206,6 +70,143 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
       if (cluster != null && cluster.isStarted()) {
         cluster.shutdown();
       }
+    }
+  }
+
+  private final Configuration CONF = new Configuration();
+  private int mNamenodePort;
+
+  private int mNumDataNode;
+  private MiniDFSCluster mDfsCluster = null;
+
+  private DistributedFileSystem mDfsClient = null;
+
+  private boolean mIsStarted = false;
+
+  /**
+   * To intiaize the local minidfscluster with single namenode and datanode
+   * 
+   * @param dfsBaseDirs
+   *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
+   *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
+   */
+  public LocalMiniDFSCluster(String dfsBaseDirs) {
+    this(dfsBaseDirs, 1, 0);
+  }
+
+  /**
+   * To initialize the local minidfscluster
+   * 
+   * @param dfsBaseDirs
+   *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
+   *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
+   * @param numDataNode
+   *          The number of datanode
+   */
+  public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode) {
+    this(dfsBaseDirs, numDataNode, 0);
+  }
+
+  /**
+   * To initialize the local minidfscluster
+   * 
+   * @param dfsBaseDirs
+   *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
+   *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
+   * @param numDataNode
+   *          The number of datanode
+   * @param nameNodePort
+   *          The port of namenode. If it is 0, the real namenode port can be retrieved by
+   *          {@link #getNameNodePort()} after the cluster started
+   */
+  public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, int nameNodePort) {
+    super(dfsBaseDirs);
+    mNamenodePort = nameNodePort;
+    mNumDataNode = numDataNode;
+  }
+
+  private void delete(String path, boolean isRecursively) throws IOException {
+    File file = new File(path);
+    if (isRecursively && file.isDirectory()) {
+      for (File subdir : file.listFiles()) {
+        delete(subdir.getAbsolutePath(), isRecursively);
+      }
+    }
+    file.delete();
+  }
+
+  public DistributedFileSystem getDFSClient() {
+    return mDfsClient;
+  }
+
+  /**
+   * Get the specified or real namenode port
+   * 
+   * @return port of namenode
+   */
+  public int getNameNodePort() {
+    return mNamenodePort;
+  }
+
+  /**
+   * Get the namenode address for this minidfscluster
+   * 
+   * @return namenode address
+   */
+  @Override
+  public String getUnderFilesystemAddress() {
+    if (null != mDfsClient) {
+      return mDfsClient.getUri().toString();
+    }
+    return null;
+  }
+
+  @Override
+  public boolean isStarted() {
+    return mIsStarted;
+  }
+
+  /**
+   * To shutdown the minidfscluster in teardown phase.
+   * 
+   * @throws IOException
+   */
+  @Override
+  public void shutdown() throws IOException {
+    if (mIsStarted) {
+      mDfsClient.close();
+      mDfsCluster.shutdown();
+      mIsStarted = false;
+    }
+  }
+
+  /**
+   * To start the minidfscluster before using it
+   * 
+   * @throws IOException
+   */
+  @Override
+  public void start() throws IOException {
+    if (!mIsStarted) {
+
+      delete(mBaseDir, true);
+      if (!CommonUtils.mkdirs(mBaseDir)) {
+        throw new IOException("Failed to make folder: " + mBaseDir);
+      }
+
+      // TODO For hadoop 1.x, there exists NPE while startDataNode. It is a known issue caused by
+      // "umask 002"(should be 022) see [HDFS-2556]. So the following codes only work for
+      // hadoop 2.x or "umask 022"
+      System.setProperty("test.build.data", mBaseDir);
+      mDfsCluster = new MiniDFSCluster(mNamenodePort, CONF, mNumDataNode, true, true, null, null);
+      mDfsCluster.waitClusterUp();
+
+      if (0 == mNamenodePort) {
+        mNamenodePort = mDfsCluster.getNameNodePort();
+      }
+
+      mDfsClient = (DistributedFileSystem) mDfsCluster.getFileSystem();
+      mIsStarted = true;
     }
   }
 }
