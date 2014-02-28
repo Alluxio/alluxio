@@ -124,6 +124,8 @@ if [ "$COMMAND" == "format" ]; then
       if [ -e $TACHYON_UNDERFS_ADDRESS ] || [[ $TACHYON_UNDERFS_ADDRESS == hdfs://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == s3://* ]]; then
         # already exists, hdfs, or s3, don't format
         exit 0
+      else
+        shift # remove -s param
       fi
     else
       echo "Usage $0 format [-s]"
