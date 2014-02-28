@@ -39,6 +39,13 @@ public class FileInStreamTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
+  @After
+  public final void after() throws Exception {
+    mLocalTachyonCluster.stop();
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("tachyon.user.default.block.size.byte");
+  }
+
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
@@ -46,13 +53,6 @@ public class FileInStreamTest {
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
-  }
-
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   /**
@@ -65,8 +65,8 @@ public class FileInStreamTest {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
-        InStream is = (k < MEAN ?
-            file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        InStream is =
+            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof FileInStream);
         byte[] ret = new byte[k];
         int value = is.read();
@@ -109,7 +109,7 @@ public class FileInStreamTest {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
-        InStream is = 
+        InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof FileInStream);
         byte[] ret = new byte[k];
@@ -117,7 +117,7 @@ public class FileInStreamTest {
         Assert.assertTrue(TestUtils.equalIncreasingByteArray(k, ret));
         is.close();
 
-        is =  (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof FileInStream);
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
@@ -137,7 +137,7 @@ public class FileInStreamTest {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
-        InStream is = 
+        InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof FileInStream);
         byte[] ret = new byte[k / 2];
@@ -156,34 +156,9 @@ public class FileInStreamTest {
   }
 
   /**
-   * Test <code>long skip(long len)</code>.
-   */
-  @Test
-  public void skipTest() throws IOException {
-    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
-      for (WriteType op : WriteType.values()) {
-        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
-
-        TachyonFile file = mTfs.getFile(fileId);
-        InStream is = (k < MEAN ?
-            file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        Assert.assertTrue(is instanceof FileInStream);
-        Assert.assertEquals(k / 2, is.skip(k / 2));
-        Assert.assertEquals(k / 2, is.read());
-        is.close();
-
-        is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
-        Assert.assertTrue(is instanceof FileInStream);
-        Assert.assertEquals(k / 3, is.skip(k / 3));
-        Assert.assertEquals(k / 3, is.read());
-        is.close();
-      }
-    }
-  }
-
-  /**
    * Test <code>void seek(long pos)</code>.
-   * @throws IOException 
+   * 
+   * @throws IOException
    */
   @Test
   public void seekExceptionTest() throws IOException {
@@ -192,8 +167,8 @@ public class FileInStreamTest {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
-        InStream is = (k < MEAN ?
-            file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        InStream is =
+            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
 
         try {
           is.seek(-1);
@@ -209,7 +184,8 @@ public class FileInStreamTest {
 
   /**
    * Test <code>void seek(long pos)</code>.
-   * @throws IOException 
+   * 
+   * @throws IOException
    */
   @Test
   public void seekTest() throws IOException {
@@ -218,8 +194,8 @@ public class FileInStreamTest {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
 
         TachyonFile file = mTfs.getFile(fileId);
-        InStream is = (k < MEAN ?
-            file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        InStream is =
+            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
 
         Assert.assertTrue(is instanceof FileInStream);
         is.seek(k / 3);
@@ -228,6 +204,32 @@ public class FileInStreamTest {
         Assert.assertEquals(k / 2, is.read());
         is.seek(k / 4);
         Assert.assertEquals(k / 4, is.read());
+        is.close();
+      }
+    }
+  }
+
+  /**
+   * Test <code>long skip(long len)</code>.
+   */
+  @Test
+  public void skipTest() throws IOException {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+      for (WriteType op : WriteType.values()) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+
+        TachyonFile file = mTfs.getFile(fileId);
+        InStream is =
+            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        Assert.assertTrue(is instanceof FileInStream);
+        Assert.assertEquals(k / 2, is.skip(k / 2));
+        Assert.assertEquals(k / 2, is.read());
+        is.close();
+
+        is = (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        Assert.assertTrue(is instanceof FileInStream);
+        Assert.assertEquals(k / 3, is.skip(k / 3));
+        Assert.assertEquals(k / 3, is.read());
         is.close();
       }
     }

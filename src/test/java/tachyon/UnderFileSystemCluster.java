@@ -41,7 +41,7 @@ public abstract class UnderFileSystemCluster {
     }
   }
 
-  private final static String INTEGRATION_UFS_PROFILE_KEY = "ufs";
+  private static final String INTEGRATION_UFS_PROFILE_KEY = "ufs";
 
   private static String mUfsClz;
 
@@ -101,11 +101,10 @@ public abstract class UnderFileSystemCluster {
   }
 
   /**
-   * To clean up the test environment over underfs cluster system, so that we
-   * can re-use the running system for the next test round instead of turning
-   * on/off it from time to time. This function is expected to be called either
-   * before or after each test case which avoids certain overhead from the
-   * bootstrap.
+   * To clean up the test environment over underfs cluster system, so that we can re-use the running
+   * system for the next test round instead of turning on/off it from time to time. This function is
+   * expected to be called either before or after each test case which avoids certain overhead from
+   * the bootstrap.
    * 
    * @throws IOException
    */
@@ -119,9 +118,14 @@ public abstract class UnderFileSystemCluster {
     }
   }
 
-  abstract public String getUnderFilesystemAddress();
+  public abstract String getUnderFilesystemAddress();
 
-  abstract public boolean isStarted();
+  /**
+   * Check if the cluster started.
+   * 
+   * @return
+   */
+  public abstract boolean isStarted();
 
   /**
    * Add a shutdown hook. The {@link #shutdown} phase will be automatically
@@ -138,7 +142,12 @@ public abstract class UnderFileSystemCluster {
    * 
    * @throws IOException
    */
-  abstract public void shutdown() throws IOException;
+  public abstract void shutdown() throws IOException;
 
-  abstract public void start() throws IOException;
+  /**
+   * To start the underfs cluster system
+   * 
+   * @throws IOException
+   */
+  public abstract void start() throws IOException;
 }
