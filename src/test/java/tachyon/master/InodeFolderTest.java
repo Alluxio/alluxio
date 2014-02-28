@@ -57,7 +57,7 @@ public class InodeFolderTest {
     Assert.assertFalse(inodeFolder.getChildrenIds().contains(2));
   }
 
-  //Tests for Inode methods
+  // Tests for Inode methods
   @Test
   public void comparableTest() {
     InodeFolder inode1 = new InodeFolder("test1", 1, 0, System.currentTimeMillis());

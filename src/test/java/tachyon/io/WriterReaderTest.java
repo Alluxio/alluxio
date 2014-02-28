@@ -26,8 +26,8 @@ import org.junit.Test;
 
 public class WriterReaderTest {
   private int mDataLength = 122;
-  private ByteOrder[] mOrders =
-    {ByteOrder.nativeOrder(), ByteOrder.LITTLE_ENDIAN, ByteOrder.BIG_ENDIAN};
+  private ByteOrder[] mOrders = { ByteOrder.nativeOrder(), ByteOrder.LITTLE_ENDIAN,
+      ByteOrder.BIG_ENDIAN };
 
   private void byteBufferReaderMatcher(ByteBufferReader reader, ByteOrder order) {
     reader.order(order);

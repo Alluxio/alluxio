@@ -72,7 +72,7 @@ public abstract class UnderFileSystemCluster {
         System.setProperty("fs.hdfs.impl.disable.cache", "true");
         UnderFileSystemCluster ufsCluster =
             (UnderFileSystemCluster) Class.forName(mUfsClz).getConstructor(String.class)
-            .newInstance(baseDir);
+                .newInstance(baseDir);
         return ufsCluster;
       } catch (Exception e) {
         System.out.println("Failed to initialize the ufsCluster of " + mUfsClz

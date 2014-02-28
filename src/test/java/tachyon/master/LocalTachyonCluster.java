@@ -113,7 +113,7 @@ public class LocalTachyonCluster {
     return mMasterPort;
   }
 
-  public String getTachyonHome(){
+  public String getTachyonHome() {
     return mTachyonHome;
   }
 
@@ -190,8 +190,8 @@ public class LocalTachyonCluster {
     mkdir(CommonConf.get().UNDERFS_DATA_FOLDER);
     mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
 
-    mMaster = new Master(
-        new InetSocketAddress(mLocalhostName, mMasterPort), mMasterPort + 1, 1, 1, 1);
+    mMaster =
+        new Master(new InetSocketAddress(mLocalhostName, mMasterPort), mMasterPort + 1, 1, 1, 1);
     Runnable runMaster = new Runnable() {
       @Override
       public void run() {
@@ -203,10 +203,10 @@ public class LocalTachyonCluster {
 
     CommonUtils.sleepMs(null, 10);
 
-    mWorker = Worker.createWorker(
-        new InetSocketAddress(mLocalhostName, mMasterPort),
-        new InetSocketAddress(mLocalhostName, mWorkerPort),
-        mWorkerPort + 1, 1, 1, 1, mWorkerDataFolder, mWorkerCapacityBytes);
+    mWorker =
+        Worker.createWorker(new InetSocketAddress(mLocalhostName, mMasterPort),
+            new InetSocketAddress(mLocalhostName, mWorkerPort), mWorkerPort + 1, 1, 1, 1,
+            mWorkerDataFolder, mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
@@ -219,6 +219,7 @@ public class LocalTachyonCluster {
 
   /**
    * Stop both of the tachyon and underfs service threads.
+   * 
    * @throws Exception
    */
   public void stop() throws Exception {
@@ -228,7 +229,7 @@ public class LocalTachyonCluster {
 
   /**
    * Stop the tachyon filesystem's service thread only
-   *
+   * 
    * @throws Exception
    */
   public void stopTFS() throws Exception {
@@ -253,6 +254,7 @@ public class LocalTachyonCluster {
 
   /**
    * Cleanup the underfs cluster test folder only
+   * 
    * @throws Exception
    */
   public void stopUFS() throws Exception {

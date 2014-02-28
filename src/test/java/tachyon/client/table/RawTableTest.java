@@ -151,14 +151,14 @@ public class RawTableTest {
 
     long sMs = System.currentTimeMillis();
     int fileId = mTfs.createRawTable("/table", col);
-    //    System.out.println("A " + (System.currentTimeMillis() - sMs));
+    // System.out.println("A " + (System.currentTimeMillis() - sMs));
 
     sMs = System.currentTimeMillis();
     RawTable table = mTfs.getRawTable(fileId);
     Assert.assertEquals(col, table.getColumns());
     table = mTfs.getRawTable("/table");
     Assert.assertEquals(col, table.getColumns());
-    //    System.out.println("B " + (System.currentTimeMillis() - sMs));
+    // System.out.println("B " + (System.currentTimeMillis() - sMs));
 
     sMs = System.currentTimeMillis();
     for (int k = 0; k < col; k ++) {
@@ -169,7 +169,7 @@ public class RawTableTest {
       outStream.write(TestUtils.getIncreasingByteArray(10));
       outStream.close();
     }
-    //    System.out.println("C " + (System.currentTimeMillis() - sMs));
+    // System.out.println("C " + (System.currentTimeMillis() - sMs));
 
     sMs = System.currentTimeMillis();
     for (int k = 0; k < col; k ++) {
@@ -179,7 +179,7 @@ public class RawTableTest {
       Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
       buf.close();
     }
-    //    System.out.println("D " + (System.currentTimeMillis() - sMs));
+    // System.out.println("D " + (System.currentTimeMillis() - sMs));
 
     sMs = System.currentTimeMillis();
     for (int k = 0; k < col; k ++) {
@@ -189,7 +189,7 @@ public class RawTableTest {
       Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
       buf.close();
     }
-    //    System.out.println("E " + (System.currentTimeMillis() - sMs));
+    // System.out.println("E " + (System.currentTimeMillis() - sMs));
   }
 
   @Test

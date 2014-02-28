@@ -34,7 +34,7 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Unit tests for tachyon.InodeFile
  */
 public class InodeFileTest {
-  //Tests for Inode methods
+  // Tests for Inode methods
   @Test
   public void comparableTest() {
     InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
