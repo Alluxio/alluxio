@@ -78,6 +78,25 @@ public class DataServer implements Runnable {
     }
   }
 
+  private void accept(SelectionKey key) throws IOException {
+    // For an accept to be pending the channel must be a server socket channel
+    ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
+
+    // Accept the connection and make it non-blocking
+    SocketChannel socketChannel = serverSocketChannel.accept();
+    socketChannel.configureBlocking(false);
+
+    // Register the new SocketChannel with our Selector, indicating we'd like to be notified
+    // when there is data waiting to be read.
+    socketChannel.register(mSelector, SelectionKey.OP_READ);
+  }
+
+  public void close() throws IOException {
+    mShutdown = true;
+    mServerChannel.close();
+    mSelector.close();
+  }
+
   private Selector initSelector() throws IOException {
     // Create a new selector
     Selector socketSelector = SelectorProvider.provider().openSelector();
@@ -95,17 +114,8 @@ public class DataServer implements Runnable {
     return socketSelector;
   }
 
-  private void accept(SelectionKey key) throws IOException {
-    // For an accept to be pending the channel must be a server socket channel
-    ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
-
-    // Accept the connection and make it non-blocking
-    SocketChannel socketChannel = serverSocketChannel.accept();
-    socketChannel.configureBlocking(false);
-
-    // Register the new SocketChannel with our Selector, indicating we'd like to be notified
-    // when there is data waiting to be read.
-    socketChannel.register(mSelector, SelectionKey.OP_READ);
+  public boolean isClosed() {
+    return mShutdowned;
   }
 
   private void read(SelectionKey key) throws IOException {
@@ -157,43 +167,6 @@ public class DataServer implements Runnable {
     }
   }
 
-  private void write(SelectionKey key) {
-    SocketChannel socketChannel = (SocketChannel) key.channel();
-
-    DataServerMessage sendMessage = mSendingData.get(socketChannel);
-
-    boolean closeChannel = false;
-    try {
-      sendMessage.send(socketChannel);
-    } catch (IOException e) {
-      closeChannel = true;
-      LOG.error(e.getMessage());
-    }
-
-    if (sendMessage.finishSending() || closeChannel) {
-      try {
-        key.channel().close();
-      } catch (IOException e) {
-        LOG.error(e.getMessage());
-      }
-      key.cancel();
-      mReceivingData.remove(socketChannel);
-      mSendingData.remove(socketChannel);
-      sendMessage.close();
-      mBlocksLocker.unlock(Math.abs(sendMessage.getBlockId()), sendMessage.getLockId());
-    }
-  }
-
-  public void close() throws IOException {
-    mShutdown = true;
-    mServerChannel.close();
-    mSelector.close();
-  }
-
-  public boolean isClosed() {
-    return mShutdowned;
-  }
-
   @Override
   public void run() {
     while (!mShutdown) {
@@ -207,7 +180,7 @@ public class DataServer implements Runnable {
         // Iterate over the set of keys for which events are available
         Iterator<SelectionKey> selectKeys = mSelector.selectedKeys().iterator();
         while (selectKeys.hasNext()) {
-          SelectionKey key = (SelectionKey) selectKeys.next();
+          SelectionKey key = selectKeys.next();
           selectKeys.remove();
 
           if (!key.isValid()) {
@@ -233,5 +206,32 @@ public class DataServer implements Runnable {
       }
     }
     mShutdowned = true;
+  }
+
+  private void write(SelectionKey key) {
+    SocketChannel socketChannel = (SocketChannel) key.channel();
+
+    DataServerMessage sendMessage = mSendingData.get(socketChannel);
+
+    boolean closeChannel = false;
+    try {
+      sendMessage.send(socketChannel);
+    } catch (IOException e) {
+      closeChannel = true;
+      LOG.error(e.getMessage());
+    }
+
+    if (sendMessage.finishSending() || closeChannel) {
+      try {
+        key.channel().close();
+      } catch (IOException e) {
+        LOG.error(e.getMessage());
+      }
+      key.cancel();
+      mReceivingData.remove(socketChannel);
+      mSendingData.remove(socketChannel);
+      sendMessage.close();
+      mBlocksLocker.unlock(Math.abs(sendMessage.getBlockId()), sendMessage.getLockId());
+    }
   }
 }

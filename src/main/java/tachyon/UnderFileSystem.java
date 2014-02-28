@@ -71,6 +71,20 @@ public abstract class UnderFileSystem {
 
   public abstract boolean exists(String path) throws IOException;
 
+  public abstract long getBlockSizeByte(String path) throws IOException;
+
+  public abstract List<String> getFileLocations(String path) throws IOException;
+
+  public abstract List<String> getFileLocations(String path, long offset) throws IOException;
+
+  public abstract long getFileSize(String path) throws IOException;
+
+  public abstract long getModificationTimeMs(String path) throws IOException;
+
+  public abstract long getSpace(String path, SpaceType type) throws IOException;
+
+  public abstract boolean isFile(String path) throws IOException;
+
   /**
    * List all the files in the folder.
    * 
@@ -80,20 +94,6 @@ public abstract class UnderFileSystem {
    * @throws IOException
    */
   public abstract String[] list(String path) throws IOException;
-
-  public abstract List<String> getFileLocations(String path) throws IOException;
-
-  public abstract List<String> getFileLocations(String path, long offset) throws IOException;
-
-  public abstract long getFileSize(String path) throws IOException;
-
-  public abstract long getBlockSizeByte(String path) throws IOException;
-
-  public abstract long getModificationTimeMs(String path) throws IOException;
-
-  public abstract long getSpace(String path, SpaceType type) throws IOException;
-
-  public abstract boolean isFile(String path) throws IOException;
 
   public abstract boolean mkdirs(String path, boolean createParent) throws IOException;
 

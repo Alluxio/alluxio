@@ -72,6 +72,73 @@ public class FileOutStream extends OutStream {
     }
   }
 
+  @Override
+  public void cancel() throws IOException {
+    mCancel = true;
+    close();
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (!mClosed) {
+      if (mCurrentBlockOutStream != null) {
+        mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
+      }
+
+      Boolean canComplete = false;
+      if (WRITE_TYPE.isThrough()) {
+        if (mCancel) {
+          mCheckpointOutputStream.close();
+          UnderFileSystem underFsClient = UnderFileSystem.get(mUnderFsFile);
+          underFsClient.delete(mUnderFsFile, false);
+        } else {
+          mCheckpointOutputStream.flush();
+          mCheckpointOutputStream.close();
+          TFS.addCheckpoint(FILE.FID);
+          canComplete = true;
+        }
+      }
+
+      if (WRITE_TYPE.isCache()) {
+        try {
+          if(mCancel){
+            for (BlockOutStream bos : mPreviousBlockOutStreams) {
+              bos.cancel();
+            }
+          }else {
+            for (BlockOutStream bos : mPreviousBlockOutStreams) {
+              bos.close();
+            }
+            canComplete = true;
+          }
+        } catch (IOException ioe) {
+          if (WRITE_TYPE.isMustCache()) {
+            LOG.error(ioe.getMessage());
+            throw new IOException("Fail to cache: " + WRITE_TYPE);
+          } else {
+            LOG.warn("Fail to cache for: " + ioe.getMessage());
+          }
+        }
+      }
+
+      if (canComplete) {
+        if (WRITE_TYPE.isAsync()) {
+          TFS.asyncCheckpoint(FILE.FID);
+        }
+        TFS.completeFile(FILE.FID);
+      }
+    }
+
+    mClosed = true;
+  }
+
+  @Override
+  public void flush() throws IOException {
+    // We only flush the checkpoint output stream.
+    // TODO flushing for RAMFS block streams.
+    mCheckpointOutputStream.flush();
+  }
+
   private void getNextBlock() throws IOException {
     if (mCurrentBlockId != -1) {
       if (mCurrentBlockLeftByte != 0) {
@@ -89,29 +156,9 @@ public class FileOutStream extends OutStream {
     }
   }
 
-  @Override
-  public void write(int b) throws IOException {
-    if (WRITE_TYPE.isCache()) {
-      try {
-        if (mCurrentBlockId == -1 || mCurrentBlockLeftByte == 0) {
-          getNextBlock();
-        }
-        // TODO Cache the exception here.
-        mCurrentBlockOutStream.write(b);
-        mCurrentBlockLeftByte --;
-        mCachedBytes ++;
-      } catch (IOException ioe) {
-        if (WRITE_TYPE.isMustCache()) {
-          LOG.error(ioe.getMessage());
-          throw new IOException("Fail to cache: " + WRITE_TYPE);
-        } else {
-          LOG.warn("Fail to cache for: " + ioe.getMessage());
-        }
-      }
-    }
-
-    if (WRITE_TYPE.isThrough()) {
-      mCheckpointOutputStream.write(b);
+  public void write(ArrayList<ByteBuffer> bufs) throws IOException {
+    for (int k = 0; k < bufs.size(); k ++) {
+      write(bufs.get(k));
     }
   }
 
@@ -173,76 +220,29 @@ public class FileOutStream extends OutStream {
     write(buf.array(), buf.position(), buf.limit() - buf.position());
   }
 
-  public void write(ArrayList<ByteBuffer> bufs) throws IOException {
-    for (int k = 0; k < bufs.size(); k ++) {
-      write(bufs.get(k));
-    }
-  }
-
   @Override
-  public void flush() throws IOException {
-    // We only flush the checkpoint output stream.
-    // TODO flushing for RAMFS block streams.
-    mCheckpointOutputStream.flush();
-  }
-
-  @Override
-  public void close() throws IOException {
-    if (!mClosed) {
-      if (mCurrentBlockOutStream != null) {
-        mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
-      }
-
-      Boolean canComplete = false;
-      if (WRITE_TYPE.isThrough()) {
-        if (mCancel) {
-          mCheckpointOutputStream.close();
-          UnderFileSystem underFsClient = UnderFileSystem.get(mUnderFsFile);
-          underFsClient.delete(mUnderFsFile, false);
+  public void write(int b) throws IOException {
+    if (WRITE_TYPE.isCache()) {
+      try {
+        if (mCurrentBlockId == -1 || mCurrentBlockLeftByte == 0) {
+          getNextBlock();
+        }
+        // TODO Cache the exception here.
+        mCurrentBlockOutStream.write(b);
+        mCurrentBlockLeftByte --;
+        mCachedBytes ++;
+      } catch (IOException ioe) {
+        if (WRITE_TYPE.isMustCache()) {
+          LOG.error(ioe.getMessage());
+          throw new IOException("Fail to cache: " + WRITE_TYPE);
         } else {
-          mCheckpointOutputStream.flush();
-          mCheckpointOutputStream.close();
-          TFS.addCheckpoint(FILE.FID);
-          canComplete = true;
+          LOG.warn("Fail to cache for: " + ioe.getMessage());
         }
-      }
-
-      if (WRITE_TYPE.isCache()) {
-        try {
-          if(mCancel){
-            for (BlockOutStream bos : mPreviousBlockOutStreams) {
-              bos.cancel();
-            }
-          }else {
-            for (BlockOutStream bos : mPreviousBlockOutStreams) {
-              bos.close();
-            }
-            canComplete = true;
-          }
-        } catch (IOException ioe) {
-          if (WRITE_TYPE.isMustCache()) {
-            LOG.error(ioe.getMessage());
-            throw new IOException("Fail to cache: " + WRITE_TYPE);
-          } else {
-            LOG.warn("Fail to cache for: " + ioe.getMessage());
-          }
-        }
-      }   
-
-      if (canComplete) {
-        if (WRITE_TYPE.isAsync()) {
-          TFS.asyncCheckpoint(FILE.FID);
-        }
-        TFS.completeFile(FILE.FID);
       }
     }
 
-    mClosed = true;
-  }
-
-  @Override
-  public void cancel() throws IOException {
-    mCancel = true;
-    close();
+    if (WRITE_TYPE.isThrough()) {
+      mCheckpointOutputStream.write(b);
+    }
   }
 }

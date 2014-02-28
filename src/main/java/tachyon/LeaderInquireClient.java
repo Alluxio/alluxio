@@ -30,12 +30,21 @@ import tachyon.util.CommonUtils;
  * Utility to get leader from zookeeper.
  */
 public class LeaderInquireClient {
-  private final static int MAX_TRY = 10;
+  private static final int MAX_TRY = 10;
+
+  public static synchronized LeaderInquireClient
+  getClient(String zookeeperAddress, String leaderPath) {
+    String key = zookeeperAddress + leaderPath;
+    if (!createdClients.containsKey(key)) {
+      createdClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
+    }
+    return createdClients.get(key);
+  }
 
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-
   private final String ZOOKEEPER_ADDRESS;
   private final String LEADER_PATH;
+
   private final CuratorFramework CLIENT;
 
   private static HashMap<String, LeaderInquireClient> createdClients =
@@ -48,15 +57,6 @@ public class LeaderInquireClient {
     CLIENT = CuratorFrameworkFactory.newClient(
         ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(1000, 3));
     CLIENT.start();
-  }
-
-  public static synchronized LeaderInquireClient
-      getClient(String zookeeperAddress, String leaderPath) {
-    String key = zookeeperAddress + leaderPath;
-    if (!createdClients.containsKey(key)) {
-      createdClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
-    }
-    return createdClients.get(key);
   }
 
   public synchronized String getMasterAddress() {

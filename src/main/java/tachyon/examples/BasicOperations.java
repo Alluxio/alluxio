@@ -46,21 +46,21 @@ public class BasicOperations {
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createFile with fileId " + fileId);
   }
 
-  public static void writeFile() throws IOException {
-    ByteBuffer buf = ByteBuffer.allocate(sNumbers * 4);
-    buf.order(ByteOrder.nativeOrder());
-    for (int k = 0; k < sNumbers; k ++) {
-      buf.putInt(k);
+  public static void main(String[] args) throws IOException {
+    if (args.length != 3) {
+      System.out.println("java -cp target/tachyon-" + Version.VERSION +
+          "-jar-with-dependencies.jar " +
+          "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
+      System.exit(-1);
     }
-
-    buf.flip();
-    LOG.debug("Writing data...");
-    buf.flip();
-
-    TachyonFile file = sTachyonClient.getFile(sFilePath);
-    OutStream os = file.getOutStream(sWriteType);
-    os.write(buf.array());
-    os.close();
+    sTachyonClient = TachyonFS.get(args[0]);
+    sFilePath = args[1];
+    sWriteType = WriteType.getOpType(args[2]);
+    createFile();
+    writeFile();
+    readFile();
+    Utils.printPassInfo(sPass);
+    System.exit(0);
   }
 
   public static void readFile() throws IOException {
@@ -78,20 +78,20 @@ public class BasicOperations {
     buf.close();
   }
 
-  public static void main(String[] args) throws IOException {
-    if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION +
-          "-jar-with-dependencies.jar " +
-          "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
-      System.exit(-1);
+  public static void writeFile() throws IOException {
+    ByteBuffer buf = ByteBuffer.allocate(sNumbers * 4);
+    buf.order(ByteOrder.nativeOrder());
+    for (int k = 0; k < sNumbers; k ++) {
+      buf.putInt(k);
     }
-    sTachyonClient = TachyonFS.get(args[0]);
-    sFilePath = args[1];
-    sWriteType = WriteType.getOpType(args[2]);
-    createFile();
-    writeFile();
-    readFile();
-    Utils.printPassInfo(sPass);
-    System.exit(0);
+
+    buf.flip();
+    LOG.debug("Writing data...");
+    buf.flip();
+
+    TachyonFile file = sTachyonClient.getFile(sFilePath);
+    OutStream os = file.getOutStream(sWriteType);
+    os.write(buf.array());
+    os.close();
   }
 }

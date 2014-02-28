@@ -42,6 +42,7 @@ public class HeartbeatThread extends Thread {
     FIXED_EXECUTION_INTERVAL_MS = fixedExecutionIntervalMs;
   }
 
+  @Override
   public void run() {
     while (!mIsShutdown) {
       long lastMs = System.currentTimeMillis();

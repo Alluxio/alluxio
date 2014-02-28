@@ -39,6 +39,9 @@ public abstract class InStream extends InputStream {
   }
 
   @Override
+  public abstract void close() throws IOException;
+
+  @Override
   public abstract int read() throws IOException;
 
   @Override
@@ -46,12 +49,6 @@ public abstract class InStream extends InputStream {
 
   @Override
   public abstract int read(byte b[], int off, int len) throws IOException;
-
-  @Override
-  public abstract void close() throws IOException;
-
-  @Override
-  public abstract long skip(long n) throws IOException;
 
   /**
    * Sets the stream pointer offset, measured from the beginning of this stream, at which the next
@@ -61,4 +58,7 @@ public abstract class InStream extends InputStream {
    * @throws IOException if pos is less than 0 or if an I/O error occurs.
    */
   public abstract void seek(long pos) throws IOException;
+
+  @Override
+  public abstract long skip(long n) throws IOException;
 }

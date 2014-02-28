@@ -35,6 +35,14 @@ public class LocalBlockInStream extends BlockInStream {
   }
 
   @Override
+  public void close() throws IOException {
+    if (!mClosed) {
+      mTachyonBuffer.close();
+    }
+    mClosed = true;
+  }
+
+  @Override
   public int read() throws IOException {
     if (mBuffer.remaining() == 0) {
       close();
@@ -68,11 +76,11 @@ public class LocalBlockInStream extends BlockInStream {
   }
 
   @Override
-  public void close() throws IOException {
-    if (!mClosed) {
-      mTachyonBuffer.close();
+  public void seek(long pos) throws IOException {
+    if (pos < 0) {
+      throw new IOException("pos is negative: " + pos);
     }
-    mClosed = true;
+    mBuffer.position((int) pos);
   }
 
   @Override
@@ -87,13 +95,5 @@ public class LocalBlockInStream extends BlockInStream {
     }
     mBuffer.position(mBuffer.position() + ret);
     return ret;
-  }
-
-  @Override
-  public void seek(long pos) throws IOException {
-    if (pos < 0) {
-      throw new IOException("pos is negative: " + pos);
-    }
-    mBuffer.position((int) pos);
   }
 }

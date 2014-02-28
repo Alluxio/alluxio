@@ -47,63 +47,6 @@ public class InodeFile extends Inode {
     mDependencyId = -1;
   }
 
-  public synchronized long getLength() {
-    return mLength;
-  }
-
-  public synchronized void setLength(long length) throws SuspectedFileSizeException,
-      BlockInfoException {
-    if (isComplete()) {
-      throw new SuspectedFileSizeException("InodeFile length was set previously.");
-    }
-    if (length < 0) {
-      throw new SuspectedFileSizeException("InodeFile new length " + length + " is illegal.");
-    }
-    mLength = 0;
-    while (length >= BLOCK_SIZE_BYTE) {
-      addBlock(new BlockInfo(this, mBlocks.size(), BLOCK_SIZE_BYTE));
-      length -= BLOCK_SIZE_BYTE;
-    }
-    if (length > 0) {
-      addBlock(new BlockInfo(this, mBlocks.size(), (int) length));
-    }
-    mIsComplete = true;
-  }
-
-  public synchronized boolean isComplete() {
-    return mIsComplete;
-  }
-
-  public synchronized void setComplete() {
-    mIsComplete = true;
-  }
-
-  public synchronized void setComplete(boolean complete) {
-    mIsComplete = complete;
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder("InodeFile(");
-    sb.append(super.toString()).append(", LENGTH: ").append(mLength);
-    sb.append(", CheckpointPath: ").append(mCheckpointPath);
-    sb.append(", mBlocks: ").append(mBlocks);
-    sb.append(", DependencyId:").append(mDependencyId).append(")");
-    return sb.toString();
-  }
-
-  public synchronized void setCheckpointPath(String checkpointPath) {
-    mCheckpointPath = checkpointPath;
-  }
-
-  public synchronized String getCheckpointPath() {
-    return mCheckpointPath;
-  }
-
-  public synchronized long getNewBlockId() {
-    return BlockInfo.computeBlockId(getId(), mBlocks.size());
-  }
-
   public synchronized void addBlock(BlockInfo blockInfo) throws BlockInfoException {
     if (mIsComplete) {
       throw new BlockInfoException("The file is complete: " + this);
@@ -118,8 +61,8 @@ public class InodeFile extends Inode {
     if (blockInfo.BLOCK_INDEX != mBlocks.size()) {
       throw new BlockInfoException("BLOCK_INDEX unmatch: " + mBlocks.size() + " != " + blockInfo);
     }
-    if (blockInfo.OFFSET != (long) mBlocks.size() * BLOCK_SIZE_BYTE) {
-      throw new BlockInfoException("OFFSET unmatch: " + (long) mBlocks.size() * BLOCK_SIZE_BYTE
+    if (blockInfo.OFFSET != mBlocks.size() * BLOCK_SIZE_BYTE) {
+      throw new BlockInfoException("OFFSET unmatch: " + mBlocks.size() * BLOCK_SIZE_BYTE
           + " != " + blockInfo);
     }
     if (blockInfo.LENGTH > BLOCK_SIZE_BYTE) {
@@ -135,121 +78,6 @@ public class InodeFile extends Inode {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
     mBlocks.get(blockIndex).addLocation(workerId, workerAddress);
-  }
-
-  public synchronized void removeLocation(int blockIndex, long workerId) throws BlockInfoException {
-    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
-      throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
-    }
-    mBlocks.get(blockIndex).removeLocation(workerId);
-  }
-
-  public long getBlockIdBasedOnOffset(long offset) {
-    int index = (int) (offset / BLOCK_SIZE_BYTE);
-    return BlockInfo.computeBlockId(getId(), index);
-  }
-
-  public long getBlockSizeByte() {
-    return BLOCK_SIZE_BYTE;
-  }
-
-  public synchronized List<NetAddress> getBlockLocations(int blockIndex) throws BlockInfoException {
-    if (blockIndex < 0 || blockIndex > mBlocks.size()) {
-      throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
-    }
-
-    return mBlocks.get(blockIndex).getLocations();
-  }
-
-  public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws BlockInfoException {
-    if (blockIndex < 0 || blockIndex > mBlocks.size()) {
-      throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
-    }
-
-    return mBlocks.get(blockIndex).generateClientBlockInfo();
-  }
-
-  /**
-   * Get file's all blocks' ClientBlockInfo information.
-   * 
-   * @return all blocks ClientBlockInfo
-   */
-  public synchronized List<ClientBlockInfo> getClientBlockInfos() {
-    List<ClientBlockInfo> ret = new ArrayList<ClientBlockInfo>(mBlocks.size());
-    for (BlockInfo tInfo : mBlocks) {
-      ret.add(tInfo.generateClientBlockInfo());
-    }
-    return ret;
-  }
-
-  public synchronized boolean isFullyInMemory() {
-    return getInMemoryPercentage() == 100;
-  }
-
-  private synchronized int getInMemoryPercentage() {
-    if (mLength == 0) {
-      return 100;
-    }
-
-    long inMemoryLength = 0;
-    for (BlockInfo info : mBlocks) {
-      if (info.isInMemory()) {
-        inMemoryLength += info.LENGTH;
-      }
-    }
-    return (int) (inMemoryLength * 100 / mLength);
-  }
-
-  public synchronized void setPin(boolean pin) {
-    mPin = pin;
-  }
-
-  public synchronized boolean isPin() {
-    return mPin;
-  }
-
-  public synchronized void setCache(boolean cache) {
-    mCache = cache;
-  }
-
-  public synchronized boolean isCache() {
-    return mCache;
-  }
-
-  public synchronized boolean hasCheckpointed() {
-    return !mCheckpointPath.equals("");
-  }
-
-  public synchronized void setDependencyId(int dependencyId) {
-    mDependencyId = dependencyId;
-  }
-
-  public synchronized int getDependencyId() {
-    return mDependencyId;
-  }
-
-  public synchronized List<Long> getBlockIds() {
-    List<Long> ret = new ArrayList<Long>(mBlocks.size());
-    for (int k = 0; k < mBlocks.size(); k ++) {
-      ret.add(mBlocks.get(k).BLOCK_ID);
-    }
-    return ret;
-  }
-
-  public synchronized int getNumberOfBlocks() {
-    return mBlocks.size();
-  }
-
-  public List<BlockInfo> getBlockList() {
-    return mBlocks;
-  }
-
-  public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
-    List<Pair<Long, Long>> ret = new ArrayList<Pair<Long, Long>>();
-    for (BlockInfo info : mBlocks) {
-      ret.addAll(info.getBlockIdWorkerIdPairs());
-    }
-    return ret;
   }
 
   @Override
@@ -273,5 +101,177 @@ public class InodeFile extends Inode {
     ret.inMemoryPercentage = getInMemoryPercentage();
 
     return ret;
+  }
+
+  public long getBlockIdBasedOnOffset(long offset) {
+    int index = (int) (offset / BLOCK_SIZE_BYTE);
+    return BlockInfo.computeBlockId(getId(), index);
+  }
+
+  public synchronized List<Long> getBlockIds() {
+    List<Long> ret = new ArrayList<Long>(mBlocks.size());
+    for (int k = 0; k < mBlocks.size(); k ++) {
+      ret.add(mBlocks.get(k).BLOCK_ID);
+    }
+    return ret;
+  }
+
+  public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
+    List<Pair<Long, Long>> ret = new ArrayList<Pair<Long, Long>>();
+    for (BlockInfo info : mBlocks) {
+      ret.addAll(info.getBlockIdWorkerIdPairs());
+    }
+    return ret;
+  }
+
+  public List<BlockInfo> getBlockList() {
+    return mBlocks;
+  }
+
+  public synchronized List<NetAddress> getBlockLocations(int blockIndex) throws BlockInfoException {
+    if (blockIndex < 0 || blockIndex > mBlocks.size()) {
+      throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
+    }
+
+    return mBlocks.get(blockIndex).getLocations();
+  }
+
+  public long getBlockSizeByte() {
+    return BLOCK_SIZE_BYTE;
+  }
+
+  public synchronized String getCheckpointPath() {
+    return mCheckpointPath;
+  }
+
+  public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws BlockInfoException {
+    if (blockIndex < 0 || blockIndex > mBlocks.size()) {
+      throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
+    }
+
+    return mBlocks.get(blockIndex).generateClientBlockInfo();
+  }
+
+  /**
+   * Get file's all blocks' ClientBlockInfo information.
+   * 
+   * @return all blocks ClientBlockInfo
+   */
+  public synchronized List<ClientBlockInfo> getClientBlockInfos() {
+    List<ClientBlockInfo> ret = new ArrayList<ClientBlockInfo>(mBlocks.size());
+    for (BlockInfo tInfo : mBlocks) {
+      ret.add(tInfo.generateClientBlockInfo());
+    }
+    return ret;
+  }
+
+  public synchronized int getDependencyId() {
+    return mDependencyId;
+  }
+
+  private synchronized int getInMemoryPercentage() {
+    if (mLength == 0) {
+      return 100;
+    }
+
+    long inMemoryLength = 0;
+    for (BlockInfo info : mBlocks) {
+      if (info.isInMemory()) {
+        inMemoryLength += info.LENGTH;
+      }
+    }
+    return (int) (inMemoryLength * 100 / mLength);
+  }
+
+  public synchronized long getLength() {
+    return mLength;
+  }
+
+  public synchronized long getNewBlockId() {
+    return BlockInfo.computeBlockId(getId(), mBlocks.size());
+  }
+
+  public synchronized int getNumberOfBlocks() {
+    return mBlocks.size();
+  }
+
+  public synchronized boolean hasCheckpointed() {
+    return !mCheckpointPath.equals("");
+  }
+
+  public synchronized boolean isCache() {
+    return mCache;
+  }
+
+  public synchronized boolean isComplete() {
+    return mIsComplete;
+  }
+
+  public synchronized boolean isFullyInMemory() {
+    return getInMemoryPercentage() == 100;
+  }
+
+  public synchronized boolean isPin() {
+    return mPin;
+  }
+
+  public synchronized void removeLocation(int blockIndex, long workerId) throws BlockInfoException {
+    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
+      throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
+    }
+    mBlocks.get(blockIndex).removeLocation(workerId);
+  }
+
+  public synchronized void setCache(boolean cache) {
+    mCache = cache;
+  }
+
+  public synchronized void setCheckpointPath(String checkpointPath) {
+    mCheckpointPath = checkpointPath;
+  }
+
+  public synchronized void setComplete() {
+    mIsComplete = true;
+  }
+
+  public synchronized void setComplete(boolean complete) {
+    mIsComplete = complete;
+  }
+
+  public synchronized void setDependencyId(int dependencyId) {
+    mDependencyId = dependencyId;
+  }
+
+  public synchronized void setLength(long length) throws SuspectedFileSizeException,
+  BlockInfoException {
+    if (isComplete()) {
+      throw new SuspectedFileSizeException("InodeFile length was set previously.");
+    }
+    if (length < 0) {
+      throw new SuspectedFileSizeException("InodeFile new length " + length + " is illegal.");
+    }
+    mLength = 0;
+    while (length >= BLOCK_SIZE_BYTE) {
+      addBlock(new BlockInfo(this, mBlocks.size(), BLOCK_SIZE_BYTE));
+      length -= BLOCK_SIZE_BYTE;
+    }
+    if (length > 0) {
+      addBlock(new BlockInfo(this, mBlocks.size(), (int) length));
+    }
+    mIsComplete = true;
+  }
+
+  public synchronized void setPin(boolean pin) {
+    mPin = pin;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("InodeFile(");
+    sb.append(super.toString()).append(", LENGTH: ").append(mLength);
+    sb.append(", CheckpointPath: ").append(mCheckpointPath);
+    sb.append(", mBlocks: ").append(mBlocks);
+    sb.append(", DependencyId:").append(mDependencyId).append(")");
+    return sb.toString();
   }
 }

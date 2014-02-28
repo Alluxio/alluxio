@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,7 +40,43 @@ import tachyon.thrift.InvalidPathException;
 public final class CommonUtils {
   private static final Logger LOG = Logger.getLogger("");
 
-  private CommonUtils() {
+  /**
+   * Change local file's permission.
+   * 
+   * @param filePath
+   *          that will change permission
+   * @param perms
+   *          the permission, e.g. "775"
+   * @throws IOException
+   */
+  public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
+    List<String> commands = new ArrayList<String>();
+    commands.add("/bin/chmod");
+    commands.add(perms);
+    File file = new File(filePath);
+    commands.add(file.getAbsolutePath());
+
+    try {
+      ProcessBuilder builder = new ProcessBuilder(commands);
+      Process process = builder.start();
+
+      redirectStreamAsync(process.getInputStream(), System.out);
+      redirectStreamAsync(process.getErrorStream(), System.err);
+
+      process.waitFor();
+
+      if (process.exitValue() != 0) {
+        throw new IOException("Can not change the file " + file.getAbsolutePath()
+            + " 's permission to be " + perms);
+      }
+    } catch (InterruptedException e) {
+      LOG.error(e.getMessage());
+      throw new IOException(e);
+    }
+  }
+
+  public static void changeLocalFileToFullPermission(String filePath) throws IOException {
+    changeLocalFilePermission(filePath, "777");
   }
 
   public static String cleanPath(String path) throws IOException {
@@ -92,6 +126,11 @@ public final class CommonUtils {
         mins, secs);
   }
 
+  public static String convertMsToDate(long Millis) {
+    DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
+    return formatter.format(new Date(Millis));
+  }
+
   public static String convertMsToShortClockTime(long Millis) {
     long days = Millis / Constants.DAY_MS;
     long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
@@ -99,11 +138,6 @@ public final class CommonUtils {
     long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
 
     return String.format("%d d, %d h, %d m, and %d s", days, hours, mins, secs);
-  }
-
-  public static String convertMsToDate(long Millis) {
-    DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
-    return formatter.format(new Date(Millis));
   }
 
   public static String convertMsToSimpleDate(long Millis) {
@@ -120,14 +154,6 @@ public final class CommonUtils {
     return correctData;
   }
 
-  public static long getCurrentMs() {
-    return System.currentTimeMillis();
-  }
-
-  public static long getCurrentNs() {
-    return System.nanoTime();
-  }
-
   public static long getBlockIdFromFileName(String name) {
     long fileId;
     try {
@@ -136,6 +162,14 @@ public final class CommonUtils {
       throw new IllegalArgumentException("Wrong file name: " + name);
     }
     return fileId;
+  }
+
+  public static long getCurrentMs() {
+    return System.currentTimeMillis();
+  }
+
+  public static long getCurrentNs() {
+    return System.nanoTime();
   }
 
   public static long getMB(long bytes) {
@@ -159,13 +193,13 @@ public final class CommonUtils {
     return String.format("%.2f GB", ret);
   }
 
-  public static void illegalArgumentException(String msg) {
-    throw new IllegalArgumentException(msg);
-  }
-
   public static void illegalArgumentException(Exception e) {
     LOG.error(e.getMessage(), e);
     throw new IllegalArgumentException(e);
+  }
+
+  public static void illegalArgumentException(String msg) {
+    throw new IllegalArgumentException(msg);
   }
 
   public static <T> String listToString(List<T> list) {
@@ -174,6 +208,11 @@ public final class CommonUtils {
       sb.append(list.get(k)).append(" ");
     }
     return sb.toString();
+  }
+
+  public static boolean mkdirs(String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+    return ufs.mkdirs(path, true);
   }
 
   public static String parametersToString(Object... objs) {
@@ -186,6 +225,24 @@ public final class CommonUtils {
     }
     sb.append(")");
     return sb.toString();
+  }
+
+  /**
+   * Parse InetSocketAddress from a String
+   * 
+   * @param address
+   * @return
+   * @throws IOException
+   */
+  public static InetSocketAddress parseInetSocketAddress(String address) throws IOException {
+    if (address == null) {
+      return null;
+    }
+    String[] strArr = address.split(":");
+    if (strArr.length != 2) {
+      throw new IOException("Invalid InetSocketAddress " + address);
+    }
+    return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
   }
 
   public static long parseMemorySize(String memorySize) {
@@ -237,96 +294,6 @@ public final class CommonUtils {
     logger.info(message + " took " + (getCurrentNs() - startTimeNs) + " ns.");
   }
 
-  public static void runtimeException(String msg) {
-    throw new RuntimeException(msg);
-  }
-
-  public static void runtimeException(Exception e) {
-    LOG.error(e.getMessage(), e);
-    throw new RuntimeException(e);
-  }
-
-  public static void sleepMs(Logger logger, long timeMs) {
-    try {
-      Thread.sleep(timeMs);
-    } catch (InterruptedException e) {
-      logger.warn(e.getMessage(), e);
-    }
-  }
-
-  public static String[] toStringArray(ArrayList<String> src) {
-    String[] ret = new String[src.size()];
-    return src.toArray(ret);
-  }
-
-  public static void tempoaryLog(String msg) {
-    LOG.info("Temporary Log ============================== " + msg);
-  }
-
-  public static void validatePath(String path) throws InvalidPathException {
-    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR)
-        || (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR)) || path.contains(" ")) {
-      throw new InvalidPathException("Path " + path + " is invalid.");
-    }
-  }
-
-  /**
-   * Parse InetSocketAddress from a String
-   * 
-   * @param address
-   * @return
-   * @throws IOException
-   */
-  public static InetSocketAddress parseInetSocketAddress(String address) throws IOException {
-    if (address == null) {
-      return null;
-    }
-    String[] strArr = address.split(":");
-    if (strArr.length != 2) {
-      throw new IOException("Invalid InetSocketAddress " + address);
-    }
-    return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
-  }
-
-  /**
-   * Change local file's permission.
-   * 
-   * @param filePath
-   *          that will change permission
-   * @param perms
-   *          the permission, e.g. "775"
-   * @throws IOException
-   */
-  public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
-    List<String> commands = new ArrayList<String>();
-    commands.add("/bin/chmod");
-    commands.add(perms);
-    File file = new File(filePath);
-    commands.add(file.getAbsolutePath());
-
-    try {
-      ProcessBuilder builder = new ProcessBuilder(commands);
-      Process process = builder.start();
-
-      redirectStreamAsync(process.getInputStream(), System.out);
-      redirectStreamAsync(process.getErrorStream(), System.err);
-
-      process.waitFor();
-
-      if (process.exitValue() != 0) {
-        throw new IOException("Can not change the file " + file.getAbsolutePath()
-            + " 's permission to be " + perms);
-      }
-    } catch (InterruptedException e) {
-      LOG.error(e.getMessage());
-      throw new IOException(e);
-    }
-  }
-
-  public static void changeLocalFileToFullPermission(String filePath) throws IOException {
-    changeLocalFilePermission(filePath, "777");
-  }
-
   static void redirectStreamAsync(final InputStream input, final PrintStream output) {
     new Thread(new Runnable() {
       @Override
@@ -338,6 +305,15 @@ public final class CommonUtils {
         scanner.close();
       }
     }).start();
+  }
+
+  public static void runtimeException(Exception e) {
+    LOG.error(e.getMessage(), e);
+    throw new RuntimeException(e);
+  }
+
+  public static void runtimeException(String msg) {
+    throw new RuntimeException(msg);
   }
 
   /**
@@ -358,6 +334,23 @@ public final class CommonUtils {
     }
   }
 
+  public static void sleepMs(Logger logger, long timeMs) {
+    try {
+      Thread.sleep(timeMs);
+    } catch (InterruptedException e) {
+      logger.warn(e.getMessage(), e);
+    }
+  }
+
+  public static void tempoaryLog(String msg) {
+    LOG.info("Temporary Log ============================== " + msg);
+  }
+
+  public static String[] toStringArray(ArrayList<String> src) {
+    String[] ret = new String[src.size()];
+    return src.toArray(ret);
+  }
+
   /**
    * Create an empty file
    * 
@@ -369,8 +362,13 @@ public final class CommonUtils {
     os.close();
   }
 
-  public static boolean mkdirs(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
-    return ufs.mkdirs(path, true);
+  public static void validatePath(String path) throws InvalidPathException {
+    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR)
+        || (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR)) || path.contains(" ")) {
+      throw new InvalidPathException("Path " + path + " is invalid.");
+    }
+  }
+
+  private CommonUtils() {
   }
 }

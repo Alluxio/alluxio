@@ -59,54 +59,6 @@ import tachyon.worker.WorkerClient;
  * depending on how many workers the client program is interacting with.
  */
 public class TachyonFS {
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-
-  private final long USER_QUOTA_UNIT_BYTES = UserConf.get().QUOTA_UNIT_BYTES;
-  private final int USER_FAILED_SPACE_REQUEST_LIMITS = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
-
-  // The RPC client talks to the system master.
-  private MasterClient mMasterClient = null;
-  // The Master address.
-  private InetSocketAddress mMasterAddress = null;
-  // Whether use ZooKeeper or not
-  private boolean mZookeeperMode;
-  // Cached ClientFileInfo
-  private Map<String, ClientFileInfo> mCachedClientFileInfos =
-      new HashMap<String, ClientFileInfo>();
-  private Map<Integer, ClientFileInfo> mClientFileInfos = new HashMap<Integer, ClientFileInfo>();
-  // Cached ClientBlockInfo
-  //  private Map<Long, ClientBlockInfo> mClientBlockInfos = new HashMap<Long, ClientBlockInfo>();
-  // The RPC client talks to the local worker if there is one.
-  private WorkerClient mWorkerClient = null;
-  // The local root data folder.
-  private String mLocalDataFolder = null;
-  // Whether the client is local or remote.
-  private boolean mIsWorkerLocal = false;
-  // The local data folder.
-  private String mUserTempFolder = null;
-  // The HDFS data folder
-  private String mUserUnderfsTempFolder = null;
-  private UnderFileSystem mUnderFileSystem = null;
-
-  // The user id of the client.
-  private long mUserId = 0;
-
-  // All Blocks has been locked.
-  private Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
-  // Each user facing block has a unique block lock id.
-  private AtomicInteger mBlockLockId = new AtomicInteger(0);
-
-  // Available memory space for this client.
-  private Long mAvailableSpaceBytes;
-
-  private boolean mConnected = false;
-
-  private TachyonFS(InetSocketAddress masterAddress, boolean zookeeperMode) {
-    mMasterAddress = masterAddress;
-    mZookeeperMode = zookeeperMode;
-    mAvailableSpaceBytes = 0L;
-  }
-
   public static synchronized TachyonFS get(String tachyonAddress) throws IOException{
     boolean zookeeperMode = false;
     String tempAddress = tachyonAddress;
@@ -129,6 +81,54 @@ public class TachyonFS {
     String masterHost = masterAddress.split(":")[0];
     int masterPort = Integer.parseInt(masterAddress.split(":")[1]);
     return new TachyonFS(new InetSocketAddress(masterHost, masterPort), zookeeperMode);
+  }
+
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private final long USER_QUOTA_UNIT_BYTES = UserConf.get().QUOTA_UNIT_BYTES;
+
+  private final int USER_FAILED_SPACE_REQUEST_LIMITS = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
+  // The RPC client talks to the system master.
+  private MasterClient mMasterClient = null;
+  // The Master address.
+  private InetSocketAddress mMasterAddress = null;
+  // Whether use ZooKeeper or not
+  private boolean mZookeeperMode;
+  // Cached ClientFileInfo
+  private Map<String, ClientFileInfo> mCachedClientFileInfos =
+      new HashMap<String, ClientFileInfo>();
+  private Map<Integer, ClientFileInfo> mClientFileInfos = new HashMap<Integer, ClientFileInfo>();
+  // Cached ClientBlockInfo
+  //  private Map<Long, ClientBlockInfo> mClientBlockInfos = new HashMap<Long, ClientBlockInfo>();
+  // The RPC client talks to the local worker if there is one.
+  private WorkerClient mWorkerClient = null;
+  // The local root data folder.
+  private String mLocalDataFolder = null;
+  // Whether the client is local or remote.
+  private boolean mIsWorkerLocal = false;
+  // The local data folder.
+  private String mUserTempFolder = null;
+  // The HDFS data folder
+  private String mUserUnderfsTempFolder = null;
+
+  private UnderFileSystem mUnderFileSystem = null;
+
+  // The user id of the client.
+  private long mUserId = 0;
+  // All Blocks has been locked.
+  private Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
+
+  // Each user facing block has a unique block lock id.
+  private AtomicInteger mBlockLockId = new AtomicInteger(0);
+
+  // Available memory space for this client.
+  private Long mAvailableSpaceBytes;
+
+  private boolean mConnected = false;
+
+  private TachyonFS(InetSocketAddress masterAddress, boolean zookeeperMode) {
+    mMasterAddress = masterAddress;
+    mZookeeperMode = zookeeperMode;
+    mAvailableSpaceBytes = 0L;
   }
 
   public synchronized void accessLocalBlock(long blockId) {
@@ -162,6 +162,18 @@ public class TachyonFS {
     }
   }
 
+  public synchronized boolean asyncCheckpoint(int fid) throws IOException {
+    connect();
+    try {
+      return mWorkerClient.asyncCheckpoint(fid);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
   public synchronized void cacheBlock(long blockId) throws IOException  {
     connect();
     if (!mConnected) {
@@ -187,6 +199,16 @@ public class TachyonFS {
     if (mWorkerClient != null && mWorkerClient.isConnected()) {
       mWorkerClient.returnSpace(mUserId, mAvailableSpaceBytes);
       mWorkerClient.close();
+    }
+  }
+
+  public synchronized void completeFile(int fId) throws IOException {
+    connect();
+    try {
+      mMasterClient.user_completeFile(fId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
     }
   }
 
@@ -273,16 +295,6 @@ public class TachyonFS {
     }
   }
 
-  public synchronized void completeFile(int fId) throws IOException {
-    connect();
-    try {
-      mMasterClient.user_completeFile(fId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
   public synchronized File createAndGetUserTempFolder() throws IOException {
     connect();
 
@@ -321,29 +333,16 @@ public class TachyonFS {
     return mUserUnderfsTempFolder;
   }
 
-  public synchronized int createRawTable(String path, int columns) throws IOException {
-    return createRawTable(path, columns, ByteBuffer.allocate(0));
-  }
-
-  public synchronized int createRawTable(String path, int columns, ByteBuffer metadata)
-      throws IOException {
+  public synchronized int createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+      String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException{
     connect();
-    if (!mConnected) {
-      return -1;
-    }
-    path = CommonUtils.cleanPath(path);
-
-    if (columns < 1 || columns > Constants.MAX_COLUMNS) {
-      throw new IOException("Column count " + columns + " is smaller than 1 or " +
-          "bigger than " + Constants.MAX_COLUMNS);
-    }
-
     try {
-      return mMasterClient.user_createRawTable(path, columns, metadata);
+      return mMasterClient.user_createDependency(parents, children, commandPrefix, data, comment,
+          framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
     } catch (TException e) {
-      LOG.error(e.getMessage());
       mConnected = false;
-      return -1;
+      throw new IOException(e);
     }
   }
 
@@ -387,6 +386,32 @@ public class TachyonFS {
     return fid;
   }
 
+  public synchronized int createRawTable(String path, int columns) throws IOException {
+    return createRawTable(path, columns, ByteBuffer.allocate(0));
+  }
+
+  public synchronized int createRawTable(String path, int columns, ByteBuffer metadata)
+      throws IOException {
+    connect();
+    if (!mConnected) {
+      return -1;
+    }
+    path = CommonUtils.cleanPath(path);
+
+    if (columns < 1 || columns > Constants.MAX_COLUMNS) {
+      throw new IOException("Column count " + columns + " is smaller than 1 or " +
+          "bigger than " + Constants.MAX_COLUMNS);
+    }
+
+    try {
+      return mMasterClient.user_createRawTable(path, columns, metadata);
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      mConnected = false;
+      return -1;
+    }
+  }
+
   public synchronized boolean delete(int fid, boolean recursive) throws IOException {
     connect();
     if (!mConnected) {
@@ -417,6 +442,26 @@ public class TachyonFS {
 
   public synchronized boolean exist(String path) throws IOException {
     return getFileId(path) != -1;
+  }
+
+  private synchronized ClientFileInfo fetchClientFileInfo(int fid) {
+    connect();
+    if (!mConnected) {
+      return null;
+    }
+    ClientFileInfo ret = null;
+    try {
+      ret = mMasterClient.getClientFileInfoById(fid);
+    } catch (IOException e) {
+      LOG.info(e.getMessage() + fid);
+      return null;
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      mConnected = false;
+      return null;
+    }
+
+    return ret;
   }
 
   public synchronized long getBlockId(int fId, int blockIndex) throws IOException {
@@ -454,6 +499,24 @@ public class TachyonFS {
     int index = (int) (offset / info.getBlockSizeByte());
 
     return getBlockId(fId, index);
+  }
+
+  public int getBlockLockId() {
+    return mBlockLockId.getAndIncrement();
+  }
+
+  public synchronized long getBlockSizeByte(int fId) {
+    return mClientFileInfos.get(fId).getBlockSizeByte();
+  }
+
+  synchronized String getCheckpointPath(int fid) {
+    ClientFileInfo info = mClientFileInfos.get(fid);
+    if (info == null || !info.getCheckpointPath().equals("")) {
+      info = fetchClientFileInfo(fid);
+      mClientFileInfos.put(fid, info);
+    }
+
+    return info.getCheckpointPath();
   }
 
   public synchronized ClientBlockInfo getClientBlockInfo(int fId, int blockIndex)
@@ -497,6 +560,16 @@ public class TachyonFS {
     }
   }
 
+  public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
+    connect();
+    try {
+      return mMasterClient.getClientDependencyInfo(did);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
   private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata)
       throws IOException {
     connect();
@@ -529,42 +602,45 @@ public class TachyonFS {
     return ret;
   }
 
-  private synchronized ClientFileInfo fetchClientFileInfo(int fid) {
-    connect();
-    if (!mConnected) {
-      return null;
-    }
-    ClientFileInfo ret = null;
-    try {
-      ret = mMasterClient.getClientFileInfoById(fid);
-    } catch (IOException e) {
-      LOG.info(e.getMessage() + fid);
-      return null;
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      mConnected = false;
-      return null;
-    }
-
-    return ret;
-  }
-
-  public synchronized long getBlockSizeByte(int fId) {
-    return mClientFileInfos.get(fId).getBlockSizeByte();
-  }
-
-  synchronized String getCheckpointPath(int fid) {
-    ClientFileInfo info = mClientFileInfos.get(fid);
-    if (info == null || !info.getCheckpointPath().equals("")) {
-      info = fetchClientFileInfo(fid);
-      mClientFileInfos.put(fid, info);
-    }
-
-    return info.getCheckpointPath();
-  }
-
   public synchronized long getCreationTimeMs(int fId) {
     return mClientFileInfos.get(fId).getCreationTimeMs();
+  }
+
+  /**
+   * Get <code>TachyonFile</code> based on the file id.
+   * @param fid file id.
+   * @return TachyonFile of the file id, or null if the first does not exist.
+   */
+  public synchronized TachyonFile getFile(int fid) {
+    if (!mClientFileInfos.containsKey(fid)) {
+      ClientFileInfo clientFileInfo = fetchClientFileInfo(fid);
+      if (clientFileInfo == null) {
+        return null;
+      }
+      mClientFileInfos.put(fid, clientFileInfo);
+    }
+    return new TachyonFile(this, fid);
+  }
+
+  /**
+   * Get <code>TachyonFile</code> based on the path.
+   * @param path file path.
+   * @return TachyonFile of the path, or null if the file does not exist.
+   * @throws IOException
+   */
+  public synchronized TachyonFile getFile(String path) throws IOException {
+    return getFile(path, false);
+  }
+
+  public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
+      throws IOException {
+    path = CommonUtils.cleanPath(path);
+    ClientFileInfo clientFileInfo = getClientFileInfo(path, useCachedMetadata);
+    if (clientFileInfo == null) {
+      return null;
+    }
+    mClientFileInfos.put(clientFileInfo.getId(), clientFileInfo);
+    return new TachyonFile(this, clientFileInfo.getId());
   }
 
   public synchronized List<Long> getFileBlockIdList(int fId) throws IOException {
@@ -599,41 +675,23 @@ public class TachyonFS {
     }
   }
 
-  /**
-   * Get <code>TachyonFile</code> based on the path.
-   * @param path file path.
-   * @return TachyonFile of the path, or null if the file does not exist.
-   * @throws IOException
-   */
-  public synchronized TachyonFile getFile(String path) throws IOException {
-    return getFile(path, false);
-  }
-
-  public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
+  public synchronized List<String> getFileHosts(int fileId)
       throws IOException {
-    path = CommonUtils.cleanPath(path);
-    ClientFileInfo clientFileInfo = getClientFileInfo(path, useCachedMetadata);
-    if (clientFileInfo == null) {
+    connect();
+    if (!mConnected) {
       return null;
     }
-    mClientFileInfos.put(clientFileInfo.getId(), clientFileInfo);
-    return new TachyonFile(this, clientFileInfo.getId());
-  }
 
-  /**
-   * Get <code>TachyonFile</code> based on the file id.
-   * @param fid file id.
-   * @return TachyonFile of the file id, or null if the first does not exist.
-   */
-  public synchronized TachyonFile getFile(int fid) {
-    if (!mClientFileInfos.containsKey(fid)) {
-      ClientFileInfo clientFileInfo = fetchClientFileInfo(fid);
-      if (clientFileInfo == null) {
-        return null;
+    List<NetAddress> adresses = getFileNetAddresses(fileId);
+    List<String> ret = new ArrayList<String>(adresses.size());
+    for (NetAddress address: adresses) {
+      ret.add(address.mHost);
+      if (address.mHost.endsWith(".ec2.internal")) {
+        ret.add(address.mHost.substring(0, address.mHost.length() - 13));
       }
-      mClientFileInfos.put(fid, clientFileInfo);
     }
-    return new TachyonFile(this, fid);
+
+    return ret;
   }
 
   public synchronized int getFileId(String path) throws IOException {
@@ -659,6 +717,70 @@ public class TachyonFS {
       mClientFileInfos.put(fid, info);
     }
     return mClientFileInfos.get(fid).getLength();
+  }
+
+  public synchronized List<NetAddress> getFileNetAddresses(int fileId)
+      throws IOException {
+    connect();
+    if (!mConnected) {
+      return null;
+    }
+
+    List<NetAddress> ret = new ArrayList<NetAddress>();
+    try {
+      List<ClientBlockInfo> blocks = mMasterClient.user_getFileBlocks(fileId);
+      Set<NetAddress> locationSet = new HashSet<NetAddress>();
+      for (ClientBlockInfo info: blocks) {
+        locationSet.addAll(info.getLocations());
+      }
+      ret.addAll(locationSet);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+    return ret;
+  }
+
+  public synchronized List<List<String>> getFilesHosts(List<Integer> fileIds)
+      throws IOException {
+    List<List<String>> ret = new ArrayList<List<String>>();
+    for (int k = 0; k < fileIds.size(); k ++) {
+      ret.add(getFileHosts(fileIds.get(k)));
+    }
+
+    return ret;
+  }
+
+  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fileIds)
+      throws IOException {
+    List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
+    for (int k = 0; k < fileIds.size(); k ++) {
+      ret.add(getFileNetAddresses(fileIds.get(k)));
+    }
+
+    return ret;
+  }
+
+  /**
+   * Returns the local filename for the block if that file exists on the local file system. This is
+   * an alpha power-api feature for applications that want short-circuit-read files directly. There
+   * is no guarantee that the file still exists after this call returns, as Tachyon may evict blocks
+   * from memory at any time.
+   * 
+   * @param blockId
+   *          The id of the block.
+   * @return filename on local file system or null if file not present on local file system.
+   */
+  String getLocalFilename(long blockId) {
+    String rootFolder = getRootFolder();
+    if (rootFolder != null) {
+      String localFileName = rootFolder + Constants.PATH_SEPARATOR + blockId;
+      File file = new File(localFileName);
+      if (file.exists()) {
+        return localFileName;
+      }
+    }
+    return null;
   }
 
   synchronized long getNextBlockId(int fId) throws IOException {
@@ -698,6 +820,18 @@ public class TachyonFS {
     return mClientFileInfos.get(fid).getPath();
   }
 
+  public synchronized RawTable getRawTable(int id) throws IOException {
+    connect();
+    ClientRawTableInfo clientRawTableInfo = null;
+    try {
+      clientRawTableInfo = mMasterClient.user_getClientRawTableInfoById(id);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+    return new RawTable(this, clientRawTableInfo);
+  }
+
   public synchronized RawTable getRawTable(String path)
       throws IOException {
     connect();
@@ -712,25 +846,9 @@ public class TachyonFS {
     return new RawTable(this, clientRawTableInfo);
   }
 
-  public synchronized RawTable getRawTable(int id) throws IOException {
-    connect();
-    ClientRawTableInfo clientRawTableInfo = null;
-    try {
-      clientRawTableInfo = mMasterClient.user_getClientRawTableInfoById(id);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-    return new RawTable(this, clientRawTableInfo);
-  }
-
   public synchronized String getRootFolder() {
     connect();
     return mLocalDataFolder;
-  }
-
-  public int getBlockLockId() {
-    return mBlockLockId.getAndIncrement();
   }
 
   public synchronized String getUnderfsAddress() throws IOException {
@@ -757,6 +875,13 @@ public class TachyonFS {
     return (mIsWorkerLocal && mWorkerClient != null);
   }
 
+  synchronized boolean isComplete(int fid) {
+    if (!mClientFileInfos.get(fid).isComplete()) {
+      mClientFileInfos.put(fid, fetchClientFileInfo(fid));
+    }
+    return mClientFileInfos.get(fid).isComplete();
+  }
+
   public synchronized boolean isConnected() {
     return mConnected;
   }
@@ -773,13 +898,6 @@ public class TachyonFS {
 
   synchronized boolean isNeedPin(int fid) {
     return mClientFileInfos.get(fid).isNeedPin();
-  }
-
-  synchronized boolean isComplete(int fid) {
-    if (!mClientFileInfos.get(fid).isComplete()) {
-      mClientFileInfos.put(fid, fetchClientFileInfo(fid));
-    }
-    return mClientFileInfos.get(fid).isComplete();
   }
 
   public synchronized List<Integer> listFiles(String path, boolean recursive) throws IOException {
@@ -804,16 +922,6 @@ public class TachyonFS {
     connect();
     try {
       return mMasterClient.listStatus(path);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
-  public synchronized List<String> ls(String path, boolean recursive) throws IOException {
-    connect();
-    try {
-      return mMasterClient.user_ls(path, recursive);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -851,6 +959,16 @@ public class TachyonFS {
     lockIds.add(blockLockId);
     mLockedBlockIds.put(blockId, lockIds);
     return true;
+  }
+
+  public synchronized List<String> ls(String path, boolean recursive) throws IOException {
+    connect();
+    try {
+      return mMasterClient.user_ls(path, recursive);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -893,28 +1011,6 @@ public class TachyonFS {
    */
   TachyonByteBuffer readLocalByteBuffer(long blockId) throws IOException {
     return readLocalByteBuffer(blockId, 0, -1);
-  }
-
-  /**
-   * Returns the local filename for the block if that file exists on the local file system. This is
-   * an alpha power-api feature for applications that want short-circuit-read files directly. There
-   * is no guarantee that the file still exists after this call returns, as Tachyon may evict blocks
-   * from memory at any time.
-   * 
-   * @param blockId
-   *          The id of the block.
-   * @return filename on local file system or null if file not present on local file system.
-   */
-  String getLocalFilename(long blockId) {
-    String rootFolder = getRootFolder();
-    if (rootFolder != null) {
-      String localFileName = rootFolder + Constants.PATH_SEPARATOR + blockId;
-      File file = new File(localFileName);
-      if (file.exists()) {
-        return localFileName;
-      }
-    }
-    return null;
   }
 
   /**
@@ -985,6 +1081,22 @@ public class TachyonFS {
     mAvailableSpaceBytes += releaseSpaceBytes;
   }
 
+  public synchronized boolean rename(int fId, String path) throws IOException {
+    connect();
+    if (!mConnected) {
+      return false;
+    }
+
+    try {
+      mMasterClient.user_renameTo(fId, path);
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      return false;
+    }
+
+    return true;
+  }
+
   public synchronized boolean rename(String srcPath, String dstPath)
       throws IOException {
     connect();
@@ -1006,20 +1118,24 @@ public class TachyonFS {
     return true;
   }
 
-  public synchronized boolean rename(int fId, String path) throws IOException {
+  public synchronized void reportLostFile(int fileId) throws IOException {
     connect();
-    if (!mConnected) {
-      return false;
-    }
-
     try {
-      mMasterClient.user_renameTo(fId, path);
+      mMasterClient.user_reportLostFile(fileId);
     } catch (TException e) {
-      LOG.error(e.getMessage());
-      return false;
+      mConnected = false;
+      throw new IOException(e);
     }
+  }
 
-    return true;
+  public synchronized void requestFilesInDependency(int depId) throws IOException {
+    connect();
+    try {
+      mMasterClient.user_requestFilesInDependency(depId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   public synchronized boolean requestSpace(long requestSpaceBytes) {
@@ -1061,22 +1177,6 @@ public class TachyonFS {
     return true;
   }
 
-  public synchronized boolean unpinFile(int fid) throws IOException {
-    connect();
-    if (!mConnected) {
-      return false;
-    }
-
-    try {
-      mMasterClient.user_unpinFile(fid);
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      return false;
-    }
-
-    return true;
-  }
-
   /**
    * Unlock a block in the current TachyonFS.
    * @param blockId The id of the block to unlock. <code>blockId</code> must be positive.
@@ -1113,6 +1213,22 @@ public class TachyonFS {
     return true;
   }
 
+  public synchronized boolean unpinFile(int fid) throws IOException {
+    connect();
+    if (!mConnected) {
+      return false;
+    }
+
+    try {
+      mMasterClient.user_unpinFile(fid);
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      return false;
+    }
+
+    return true;
+  }
+
   public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata)
       throws IOException {
     connect();
@@ -1122,121 +1238,5 @@ public class TachyonFS {
       mConnected = false;
       throw new IOException(e);
     }
-  }
-
-  public synchronized int createDependency(List<String> parents, List<String> children,
-      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException{
-    connect();
-    try {
-      return mMasterClient.user_createDependency(parents, children, commandPrefix, data, comment,
-          framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
-  public synchronized void reportLostFile(int fileId) throws IOException {
-    connect();
-    try {
-      mMasterClient.user_reportLostFile(fileId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
-  public synchronized void requestFilesInDependency(int depId) throws IOException {
-    connect();
-    try {
-      mMasterClient.user_requestFilesInDependency(depId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
-  public synchronized boolean asyncCheckpoint(int fid) throws IOException {
-    connect();
-    try {
-      return mWorkerClient.asyncCheckpoint(fid);
-    } catch (TachyonException e) {
-      throw new IOException(e);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
-  public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
-    connect();
-    try {
-      return mMasterClient.getClientDependencyInfo(did);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
-
-  public synchronized List<NetAddress> getFileNetAddresses(int fileId)
-      throws IOException {
-    connect();
-    if (!mConnected) {
-      return null;
-    }
-
-    List<NetAddress> ret = new ArrayList<NetAddress>();
-    try {
-      List<ClientBlockInfo> blocks = mMasterClient.user_getFileBlocks(fileId);
-      Set<NetAddress> locationSet = new HashSet<NetAddress>();
-      for (ClientBlockInfo info: blocks) {
-        locationSet.addAll(info.getLocations());
-      }
-      ret.addAll(locationSet);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-    return ret;
-  }
-
-  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fileIds)
-      throws IOException {
-    List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
-    for (int k = 0; k < fileIds.size(); k ++) {
-      ret.add(getFileNetAddresses(fileIds.get(k)));
-    }
-
-    return ret;
-  }
-
-  public synchronized List<String> getFileHosts(int fileId)
-      throws IOException {
-    connect();
-    if (!mConnected) {
-      return null;
-    }
-
-    List<NetAddress> adresses = getFileNetAddresses(fileId);
-    List<String> ret = new ArrayList<String>(adresses.size());
-    for (NetAddress address: adresses) {
-      ret.add(address.mHost);
-      if (address.mHost.endsWith(".ec2.internal")) {
-        ret.add(address.mHost.substring(0, address.mHost.length() - 13));
-      }
-    }
-
-    return ret;
-  }
-
-  public synchronized List<List<String>> getFilesHosts(List<Integer> fileIds)
-      throws IOException {
-    List<List<String>> ret = new ArrayList<List<String>>();
-    for (int k = 0; k < fileIds.size(); k ++) {
-      ret.add(getFileHosts(fileIds.get(k)));
-    }
-
-    return ret;
   }
 }

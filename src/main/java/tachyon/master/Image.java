@@ -39,26 +39,6 @@ public class Image {
 
   private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  public static void load(MasterInfo info, String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
-    if (!ufs.exists(path)) {
-      LOG.info("Image " + path + " does not exist.");
-      return;
-    }
-    LOG.info("Loading image " + path);
-    DataInputStream imageIs = new DataInputStream(ufs.open(path));
-
-    int tVersion = imageIs.readInt();
-    if (tVersion != Constants.JOURNAL_VERSION) {
-      throw new IOException("Image " + path + " has journal version " + tVersion + " ." +
-          "The system has verion " + Constants.JOURNAL_VERSION);
-    }
-
-    info.loadImage(imageIs);
-    imageIs.close();
-    ufs.close();
-  }
-
   /**
    * Write a new image to path. This method assumes having a lock on the master info.
    * @param info the master info to generate the image
@@ -88,6 +68,26 @@ public class Image {
     ufs.delete(tPath, false);
     LOG.info("Renamed " + tPath + " to " + path);
     // safe to close, nothing created here with scope outside function
+    ufs.close();
+  }
+
+  public static void load(MasterInfo info, String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+    if (!ufs.exists(path)) {
+      LOG.info("Image " + path + " does not exist.");
+      return;
+    }
+    LOG.info("Loading image " + path);
+    DataInputStream imageIs = new DataInputStream(ufs.open(path));
+
+    int tVersion = imageIs.readInt();
+    if (tVersion != Constants.JOURNAL_VERSION) {
+      throw new IOException("Image " + path + " has journal version " + tVersion + " ." +
+          "The system has verion " + Constants.JOURNAL_VERSION);
+    }
+
+    info.loadImage(imageIs);
+    imageIs.close();
     ufs.close();
   }
 

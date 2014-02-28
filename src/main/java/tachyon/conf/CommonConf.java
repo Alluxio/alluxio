@@ -28,16 +28,32 @@ public class CommonConf extends Utils {
 
   private static CommonConf COMMON_CONF = null;
 
+  /**
+   * This is for unit test only. DO NOT use it for other purpose.
+   */
+  public static synchronized void clear() {
+    COMMON_CONF = null;
+  }
+
+  public static synchronized CommonConf get() {
+    if (COMMON_CONF == null) {
+      COMMON_CONF = new CommonConf();
+    }
+
+    return COMMON_CONF;
+  }
   public final String TACHYON_HOME;
   public final String UNDERFS_ADDRESS;
   public final String UNDERFS_DATA_FOLDER;
   public final String UNDERFS_WORKERS_FOLDER;
+
   public final String UNDERFS_HDFS_IMPL;
   public final String WEB_RESOURCES;
-
   public final boolean USE_ZOOKEEPER;
   public final String ZOOKEEPER_ADDRESS;
+
   public final String ZOOKEEPER_ELECTION_PATH;
+
   public final String ZOOKEEPER_LEADER_PATH;
 
   public final boolean ASYNC_ENABLED;
@@ -51,7 +67,8 @@ public class CommonConf extends Utils {
       }
     }
     TACHYON_HOME = getProperty("tachyon.home", "/mnt/tachyon_default_home");
-    WEB_RESOURCES = getProperty("tachyon.web.resources", TACHYON_HOME + "/src/main/java/tachyon/web/resources");
+    WEB_RESOURCES =
+        getProperty("tachyon.web.resources", TACHYON_HOME + "/src/main/java/tachyon/web/resources");
     UNDERFS_ADDRESS = getProperty("tachyon.underfs.address", TACHYON_HOME + "/underfs");
     UNDERFS_DATA_FOLDER = getProperty("tachyon.data.folder", UNDERFS_ADDRESS + "/tachyon/data");
     UNDERFS_WORKERS_FOLDER =
@@ -71,20 +88,5 @@ public class CommonConf extends Utils {
     }
 
     ASYNC_ENABLED = getBooleanProperty("tachyon.async.enabled", false);
-  }
-
-  public static synchronized CommonConf get() {
-    if (COMMON_CONF == null) {
-      COMMON_CONF = new CommonConf();
-    }
-
-    return COMMON_CONF;
-  }
-
-  /**
-   * This is for unit test only. DO NOT use it for other purpose.
-   */
-  public static synchronized void clear() {
-    COMMON_CONF = null;
   }
 }

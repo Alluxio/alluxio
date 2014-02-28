@@ -43,22 +43,6 @@ public class Log4jFileAppender extends FileAppender {
   private String mOriginalFileName = "";
   private String mLastDate = "";
 
-  public void setMaxBackupIndex(int maxBackups) {
-    mMaxBackupIndex = maxBackups;
-  }
-
-  public void setMaxFileSize(int maxFileSizeMB) {
-    mMaxFileSizeBytes = maxFileSizeMB * Constants.MB;
-  }
-
-  public void setDeletionPercentage(int deletionPercentage) {
-    if (deletionPercentage > 0 && deletionPercentage <= 100) {
-      mDeletionPercentage = deletionPercentage;
-    } else {
-      throw new RuntimeException("Log4j configuration error, invalid deletionPercentage");
-    }
-  }
-
   /**
    * Called when a new log attempt is made, either due to server restart or rollover. The filename
    * is modified to identify the logging node in getNewFileName.
@@ -76,69 +60,6 @@ public class Log4jFileAppender extends FileAppender {
         setFile(fileName, fileAppend, bufferedIO, bufferSize);
       } catch (Exception e) {
         errorHandler.error("Error while activating log options", e, ErrorCode.FILE_OPEN_FAILURE);
-      }
-    }
-  }
-
-  /**
-   * Creates a LazyFileOutputStream so logs are only created when a message is logged.
-   * 
-   * @param fileName
-   * @param append
-   * @param bufferedIO
-   * @param bufferSize
-   */
-  @Override
-  public synchronized void setFile(String fileName, boolean append, boolean bufferedIO,
-      int bufferSize) throws IOException {
-    // It does not make sense to have immediate flush and bufferedIO.
-    if (bufferedIO) {
-      setImmediateFlush(false);
-    }
-
-    reset();
-
-    // Creation of the LazyFileOutputStream object (the responsible of the log writing operations)
-    LazyFileOutputStream ostream = new LazyFileOutputStream(fileName, append);
-
-    Writer fw = createWriter(ostream);
-    if (bufferedIO) {
-      fw = new BufferedWriter(fw, bufferSize);
-    }
-    setQWForFiles(fw);
-    this.fileName = fileName;
-    this.fileAppend = append;
-    this.bufferedIO = bufferedIO;
-    this.bufferSize = bufferSize;
-    writeHeader();
-  }
-
-  /**
-   * Called whenever a new message is logged. Checks both the date and size to determine if rollover
-   * is necessary.
-   * 
-   * @param event
-   */
-  @Override
-  public synchronized void subAppend(LoggingEvent event) {
-    File currentLog = new File(mCurrentFileName);
-    if (currentLog.length() > mMaxFileSizeBytes
-        || !CommonUtils.convertMsToSimpleDate(System.currentTimeMillis()).equals(mLastDate)) {
-      activateOptions();
-    }
-    if (currentLog.exists()) {
-      super.subAppend(event);
-    } else {
-      String parentName = currentLog.getParent();
-      if (parentName != null) {
-        File parent = new File(parentName);
-        if (parent.exists()) {
-          super.subAppend(event);
-        } else {
-          if (parent.mkdirs()) {
-            super.subAppend(event);
-          }
-        }
       }
     }
   }
@@ -222,5 +143,84 @@ public class Log4jFileAppender extends FileAppender {
     }
     oldFile.renameTo(new File(fileName + "_" + mCurrentFileBackupIndex));
     mCurrentFileBackupIndex ++;
+  }
+
+  public void setDeletionPercentage(int deletionPercentage) {
+    if (deletionPercentage > 0 && deletionPercentage <= 100) {
+      mDeletionPercentage = deletionPercentage;
+    } else {
+      throw new RuntimeException("Log4j configuration error, invalid deletionPercentage");
+    }
+  }
+
+  /**
+   * Creates a LazyFileOutputStream so logs are only created when a message is logged.
+   * 
+   * @param fileName
+   * @param append
+   * @param bufferedIO
+   * @param bufferSize
+   */
+  @Override
+  public synchronized void setFile(String fileName, boolean append, boolean bufferedIO,
+      int bufferSize) throws IOException {
+    // It does not make sense to have immediate flush and bufferedIO.
+    if (bufferedIO) {
+      setImmediateFlush(false);
+    }
+
+    reset();
+
+    // Creation of the LazyFileOutputStream object (the responsible of the log writing operations)
+    LazyFileOutputStream ostream = new LazyFileOutputStream(fileName, append);
+
+    Writer fw = createWriter(ostream);
+    if (bufferedIO) {
+      fw = new BufferedWriter(fw, bufferSize);
+    }
+    setQWForFiles(fw);
+    this.fileName = fileName;
+    this.fileAppend = append;
+    this.bufferedIO = bufferedIO;
+    this.bufferSize = bufferSize;
+    writeHeader();
+  }
+
+  public void setMaxBackupIndex(int maxBackups) {
+    mMaxBackupIndex = maxBackups;
+  }
+
+  public void setMaxFileSize(int maxFileSizeMB) {
+    mMaxFileSizeBytes = maxFileSizeMB * Constants.MB;
+  }
+
+  /**
+   * Called whenever a new message is logged. Checks both the date and size to determine if rollover
+   * is necessary.
+   * 
+   * @param event
+   */
+  @Override
+  public synchronized void subAppend(LoggingEvent event) {
+    File currentLog = new File(mCurrentFileName);
+    if (currentLog.length() > mMaxFileSizeBytes
+        || !CommonUtils.convertMsToSimpleDate(System.currentTimeMillis()).equals(mLastDate)) {
+      activateOptions();
+    }
+    if (currentLog.exists()) {
+      super.subAppend(event);
+    } else {
+      String parentName = currentLog.getParent();
+      if (parentName != null) {
+        File parent = new File(parentName);
+        if (parent.exists()) {
+          super.subAppend(event);
+        } else {
+          if (parent.mkdirs()) {
+            super.subAppend(event);
+          }
+        }
+      }
+    }
   }
 }

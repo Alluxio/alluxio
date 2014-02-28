@@ -78,6 +78,10 @@ public class UIWebServer {
     mServer.setHandler(handler);
   }
 
+  public void shutdownWebServer() throws Exception {
+    mServer.stop();
+  }
+
   public void startWebServer() {
     try {
       mServer.start();
@@ -85,9 +89,5 @@ public class UIWebServer {
     } catch (Exception e) {
       CommonUtils.runtimeException(e);
     }
-  }
-
-  public void shutdownWebServer() throws Exception {
-    mServer.stop();
   }
 }

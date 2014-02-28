@@ -24,24 +24,24 @@ import java.nio.ByteOrder;
  * Reader for bytebuffer.
  */
 public abstract class ByteBufferReader {
-  protected ByteBuffer mBuf;
-
   /**
    * Get most efficient ByteBufferReader for the ByteBuffer.
    * @param buf the ByteBuffer to read.
    * @return The most efficient ByteBufferReader for buf.
-   * @throws IOException 
+   * @throws IOException
    */
   public static ByteBufferReader getByteBufferReader(ByteBuffer buf) throws IOException {
-//    if (buf.order() == ByteOrder.nativeOrder()) {
-//      if (buf.isDirect()) {
-//        return new UnsafeDirectByteBufferReader(buf);
-//      } else {
-//        return new UnsafeHeapByteBufferReader(buf);
-//      }
-//    }
+    // if (buf.order() == ByteOrder.nativeOrder()) {
+    // if (buf.isDirect()) {
+    // return new UnsafeDirectByteBufferReader(buf);
+    // } else {
+    // return new UnsafeHeapByteBufferReader(buf);
+    // }
+    // }
     return new JavaByteBufferReader(buf);
   }
+
+  protected ByteBuffer mBuf;
 
   ByteBufferReader(ByteBuffer buf) throws IOException {
     if (buf == null) {
@@ -69,10 +69,6 @@ public abstract class ByteBufferReader {
 
   public abstract short getShort();
 
-  public abstract int position();
-
-  public abstract void position(int newPosition);
-
   public ByteOrder order() {
     return mBuf.order();
   }
@@ -80,4 +76,8 @@ public abstract class ByteBufferReader {
   public void order(ByteOrder bo) {
     mBuf.order(bo);
   }
+
+  public abstract int position();
+
+  public abstract void position(int newPosition);
 }

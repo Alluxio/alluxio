@@ -41,12 +41,6 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public void toFullPermission(String path) throws IOException {
-    CommonUtils.changeLocalFileToFullPermission(path);
-    CommonUtils.setLocalFileStickyBit(path);
-  }
-
-  @Override
   public void close() throws IOException {
   }
 
@@ -93,19 +87,12 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public String[] list(String path) throws IOException {
+  public long getBlockSizeByte(String path) throws IOException {
     File file = new File(path);
-    File[] files = file.listFiles();
-    if (files != null) {
-      String[] rtn = new String[files.length];
-      int i = 0;
-      for (File f : files) {
-        rtn[i ++] = f.getName();
-      }
-      return rtn;
-    } else {
-      return null;
+    if (!file.exists()) {
+      throw new FileNotFoundException(path);
     }
+    return Constants.GB * 2L;
   }
 
   @Override
@@ -124,15 +111,6 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   public long getFileSize(String path) throws IOException {
     File file = new File(path);
     return file.length();
-  }
-
-  @Override
-  public long getBlockSizeByte(String path) throws IOException {
-    File file = new File(path);
-    if (!file.exists()) {
-      throw new FileNotFoundException(path);
-    }
-    return Constants.GB * 2L;
   }
 
   @Override
@@ -162,6 +140,22 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
+  public String[] list(String path) throws IOException {
+    File file = new File(path);
+    File[] files = file.listFiles();
+    if (files != null) {
+      String[] rtn = new String[files.length];
+      int i = 0;
+      for (File f : files) {
+        rtn[i ++] = f.getName();
+      }
+      return rtn;
+    } else {
+      return null;
+    }
+  }
+
+  @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     File file = new File(path);
     boolean created = createParent ? file.mkdirs() : file.mkdir();
@@ -178,5 +172,11 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   public boolean rename(String src, String dst) throws IOException {
     File file = new File(src);
     return file.renameTo(new File(dst));
+  }
+
+  @Override
+  public void toFullPermission(String path) throws IOException {
+    CommonUtils.changeLocalFileToFullPermission(path);
+    CommonUtils.setLocalFileStickyBit(path);
   }
 }

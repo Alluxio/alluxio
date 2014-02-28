@@ -41,6 +41,18 @@ import tachyon.web.UIWebServer;
 public class Master {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
+  public static void main(String[] args) {
+    if (args.length != 0) {
+      LOG.info("java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
+          "tachyon.Master");
+      System.exit(-1);
+    }
+    MasterConf mConf = MasterConf.get();
+    Master master = new Master(new InetSocketAddress(mConf.HOSTNAME, mConf.PORT), mConf.WEB_PORT,
+        mConf.SELECTOR_THREADS, mConf.QUEUE_SIZE_PER_SELECTOR, mConf.SERVER_THREADS);
+    master.start();
+  }
+
   private boolean mIsStarted;
   private MasterInfo mMasterInfo;
   private InetSocketAddress mMasterAddress;
@@ -50,9 +62,10 @@ public class Master {
   private Journal mJournal;
   private EditLogProcessor mEditLogProcessor;
   private int mWebPort;
-  private int mWorkerThreads;
 
+  private int mWorkerThreads;
   private boolean mZookeeperMode = false;
+
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
   public Master(InetSocketAddress address, int webPort, int selectorThreads,
@@ -90,6 +103,14 @@ public class Master {
     }
   }
 
+  /**
+   * Get MasterInfo instance for Unit Test
+   * @return MasterInfo of the Master
+   */
+  MasterInfo getMasterInfo() {
+    return mMasterInfo;
+  }
+
   private boolean isFormatted(String folder, String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(folder);
     String[] files = ufs.list(folder);
@@ -102,6 +123,22 @@ public class Master {
       }
     }
     return false;
+  }
+
+  /**
+   * Get wehether the system is the leader under zookeeper mode, for unit test only.
+   * @return true if the system is the leader under zookeeper mode, false otherwise.
+   */
+  boolean isStarted() {
+    return mIsStarted;
+  }
+
+  /**
+   * Get whether the system is for zookeeper mode, for unit test only.
+   * @return true if the master is under zookeeper mode, false otherwise.
+   */
+  boolean isZookeeperMode() {
+    return mZookeeperMode;
   }
 
   private void setup() throws IOException, TTransportException {
@@ -200,41 +237,5 @@ public class Master {
 
       mIsStarted = false;
     }
-  }
-
-  public static void main(String[] args) {
-    if (args.length != 0) {
-      LOG.info("java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
-          "tachyon.Master");
-      System.exit(-1);
-    }
-    MasterConf mConf = MasterConf.get();
-    Master master = new Master(new InetSocketAddress(mConf.HOSTNAME, mConf.PORT), mConf.WEB_PORT,
-        mConf.SELECTOR_THREADS, mConf.QUEUE_SIZE_PER_SELECTOR, mConf.SERVER_THREADS);
-    master.start();
-  }
-
-  /**
-   * Get MasterInfo instance for Unit Test
-   * @return MasterInfo of the Master
-   */
-  MasterInfo getMasterInfo() {
-    return mMasterInfo;
-  }
-
-  /**
-   * Get whether the system is for zookeeper mode, for unit test only.
-   * @return true if the master is under zookeeper mode, false otherwise.
-   */
-  boolean isZookeeperMode() {
-    return mZookeeperMode;
-  }
-
-  /**
-   * Get wehether the system is the leader under zookeeper mode, for unit test only.
-   * @return true if the system is the leader under zookeeper mode, false otherwise.
-   */
-  boolean isStarted() {
-    return mIsStarted;
   }
 }

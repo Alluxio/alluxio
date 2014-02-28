@@ -62,21 +62,39 @@ public class Dependency {
     mLostFileIds = new HashSet<Integer>(0);
   }
 
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder("Dependency[");
-    sb.append("ID:").append(ID).append(", CREATION_TIME_MS:").append(CREATION_TIME_MS);
-    sb.append(", Parents:").append(PARENT_FILES).append(", Children:").append(CHILDREN_FILES);
-    sb.append(", COMMAND_PREFIX:").append(COMMAND_PREFIX);
-    sb.append(", PARSED_COMMAND_PREFIX:").append(parseCommandPrefix());
-    sb.append(", COMMENT:").append(COMMENT);
-    sb.append(", FRAMEWORK:").append(FRAMEWORK);
-    sb.append(", FRAMEWORK_VERSION:").append(FRAMEWORK_VERSION);
-    sb.append(", PARENT_DEPENDENCIES:").append(PARENT_DEPENDENCIES);
-    sb.append(", ChildrenDependencies:").append(mChildrenDependencies);
-    sb.append(", UncheckpointedChildrenFiles:").append(UNCHECKPOINTED_CHILDREN_FILES);
-    sb.append("]");
-    return sb.toString();
+  public synchronized void addChildrenDependency(int childDependencyId) {
+    for (int dependencyId : mChildrenDependencies) {
+      if (dependencyId == childDependencyId) {
+        return;
+      }
+    }
+    mChildrenDependencies.add(childDependencyId);
+  }
+
+  public synchronized void addLostFile(int fileId) {
+    mLostFileIds.add(fileId);
+  }
+
+  public synchronized void childCheckpointed(int childFileId) {
+    UNCHECKPOINTED_CHILDREN_FILES.remove(childFileId);
+    LOG.debug("Child got checkpointed " + childFileId + " : " + toString());
+  }
+
+  public ClientDependencyInfo generateClientDependencyInfo() {
+    ClientDependencyInfo ret = new ClientDependencyInfo();
+    ret.id = ID;
+    ret.parents = new ArrayList<Integer>(PARENT_FILES.size());
+    ret.parents.addAll(PARENT_FILES);
+    ret.children = new ArrayList<Integer>(CHILDREN_FILES.size());
+    ret.children.addAll(CHILDREN_FILES);
+    ret.data = CommonUtils.cloneByteBufferList(DATA);
+    return ret;
+  }
+
+  public synchronized List<Integer> getChildrenDependency() {
+    List<Integer> ret = new ArrayList<Integer>(mChildrenDependencies.size());
+    ret.addAll(mChildrenDependencies);
+    return ret;
   }
 
   public synchronized String getCommand() {
@@ -94,51 +112,10 @@ public class Dependency {
     return sb.toString();
   }
 
-  String parseCommandPrefix() {
-    String rtn = COMMAND_PREFIX;
-    for (String s : DependencyVariables.sVariables.keySet()) {
-      rtn = rtn.replace("$" + s, DependencyVariables.sVariables.get(s));
-    }
-    return rtn;
-  }
-
-  public ClientDependencyInfo generateClientDependencyInfo() {
-    ClientDependencyInfo ret = new ClientDependencyInfo();
-    ret.id = ID;
-    ret.parents = new ArrayList<Integer>(PARENT_FILES.size());
-    ret.parents.addAll(PARENT_FILES);
-    ret.children = new ArrayList<Integer>(CHILDREN_FILES.size());
-    ret.children.addAll(CHILDREN_FILES);
-    ret.data = CommonUtils.cloneByteBufferList(DATA);
+  public synchronized List<Integer> getLostFiles() {
+    List<Integer> ret = new ArrayList<Integer>();
+    ret.addAll(mLostFileIds);
     return ret;
-  }
-
-  public synchronized void addChildrenDependency(int childDependencyId) {
-    for (int dependencyId : mChildrenDependencies) {
-      if (dependencyId == childDependencyId) {
-        return;
-      }
-    }
-    mChildrenDependencies.add(childDependencyId);
-  }
-
-  public synchronized List<Integer> getChildrenDependency() {
-    List<Integer> ret = new ArrayList<Integer>(mChildrenDependencies.size());
-    ret.addAll(mChildrenDependencies);
-    return ret;
-  }
-
-  public synchronized boolean hasChildrenDependency() {
-    return !mChildrenDependencies.isEmpty();
-  }
-
-  public synchronized boolean hasCheckpointed() {
-    return UNCHECKPOINTED_CHILDREN_FILES.size() == 0;
-  }
-
-  public synchronized void childCheckpointed(int childFileId) {
-    UNCHECKPOINTED_CHILDREN_FILES.remove(childFileId);
-    LOG.debug("Child got checkpointed " + childFileId + " : " + toString());
   }
 
   synchronized List<Integer> getUncheckpointedChildrenFiles() {
@@ -147,23 +124,46 @@ public class Dependency {
     return ret;
   }
 
+  public synchronized boolean hasCheckpointed() {
+    return UNCHECKPOINTED_CHILDREN_FILES.size() == 0;
+  }
+
+  public synchronized boolean hasChildrenDependency() {
+    return !mChildrenDependencies.isEmpty();
+  }
+
+  public synchronized boolean hasLostFile() {
+    return !mLostFileIds.isEmpty();
+  }
+
+  String parseCommandPrefix() {
+    String rtn = COMMAND_PREFIX;
+    for (String s : DependencyVariables.sVariables.keySet()) {
+      rtn = rtn.replace("$" + s, DependencyVariables.sVariables.get(s));
+    }
+    return rtn;
+  }
+
   synchronized void resetUncheckpointedChildrenFiles(
       Collection<Integer> uncheckpointedChildrenFiles) {
     UNCHECKPOINTED_CHILDREN_FILES.clear();
     UNCHECKPOINTED_CHILDREN_FILES.addAll(uncheckpointedChildrenFiles);
   }
 
-  public synchronized void addLostFile(int fileId) {
-    mLostFileIds.add(fileId);
-  }
-
-  public synchronized List<Integer> getLostFiles() {
-    List<Integer> ret = new ArrayList<Integer>();
-    ret.addAll(mLostFileIds);
-    return ret;
-  }
-
-  public synchronized boolean hasLostFile() {
-    return !mLostFileIds.isEmpty();
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("Dependency[");
+    sb.append("ID:").append(ID).append(", CREATION_TIME_MS:").append(CREATION_TIME_MS);
+    sb.append(", Parents:").append(PARENT_FILES).append(", Children:").append(CHILDREN_FILES);
+    sb.append(", COMMAND_PREFIX:").append(COMMAND_PREFIX);
+    sb.append(", PARSED_COMMAND_PREFIX:").append(parseCommandPrefix());
+    sb.append(", COMMENT:").append(COMMENT);
+    sb.append(", FRAMEWORK:").append(FRAMEWORK);
+    sb.append(", FRAMEWORK_VERSION:").append(FRAMEWORK_VERSION);
+    sb.append(", PARENT_DEPENDENCIES:").append(PARENT_DEPENDENCIES);
+    sb.append(", ChildrenDependencies:").append(mChildrenDependencies);
+    sb.append(", UncheckpointedChildrenFiles:").append(UNCHECKPOINTED_CHILDREN_FILES);
+    sb.append("]");
+    return sb.toString();
   }
 }

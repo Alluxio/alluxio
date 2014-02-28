@@ -51,7 +51,7 @@ public class Performance {
   private static String FILE_NAME = null;
   private static int BLOCK_SIZE_BYTES = -1;
   private static long BLOCKS_PER_FILE = -1;
-  private static int THREADS = -1;
+  private static int THREADS = -1; 
   private static int FILES = -1;
   private static boolean DEBUG_MODE = false;
   private static long FILE_BYTES = -1;

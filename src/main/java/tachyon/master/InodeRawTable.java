@@ -40,20 +40,6 @@ public class InodeRawTable extends InodeFolder {
     return COLUMNS;
   }
 
-  // TODO add version number.
-  public synchronized void updateMetadata(ByteBuffer metadata) throws TachyonException {
-    if (metadata == null) {
-      mMetadata = ByteBuffer.allocate(0);
-    } else {
-      if (metadata.limit() - metadata.position() >= Constants.MAX_TABLE_METADATA_BYTE) {
-        throw new TachyonException("Too big table metadata: " + metadata.toString());
-      }
-      mMetadata = ByteBuffer.allocate(metadata.limit() - metadata.position());
-      mMetadata.put(metadata.array(), metadata.position(), metadata.limit() - metadata.position());
-      mMetadata.flip();
-    }
-  }
-
   public synchronized ByteBuffer getMetadata() {
     ByteBuffer ret = ByteBuffer.allocate(mMetadata.capacity());
     ret.put(mMetadata.array());
@@ -67,5 +53,19 @@ public class InodeRawTable extends InodeFolder {
     sb.append(super.toString()).append(",").append(COLUMNS).append(",");
     sb.append(mMetadata).append(")");
     return sb.toString();
+  }
+
+  // TODO add version number.
+  public synchronized void updateMetadata(ByteBuffer metadata) throws TachyonException {
+    if (metadata == null) {
+      mMetadata = ByteBuffer.allocate(0);
+    } else {
+      if (metadata.limit() - metadata.position() >= Constants.MAX_TABLE_METADATA_BYTE) {
+        throw new TachyonException("Too big table metadata: " + metadata.toString());
+      }
+      mMetadata = ByteBuffer.allocate(metadata.limit() - metadata.position());
+      mMetadata.put(metadata.array(), metadata.position(), metadata.limit() - metadata.position());
+      mMetadata.flip();
+    }
   }
 }

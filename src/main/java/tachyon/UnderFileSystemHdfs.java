@@ -82,18 +82,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public void toFullPermission(String path) {
-    try {
-      FileStatus fileStatus = mFs.getFileStatus(new Path(path));
-      LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: " +
-          fileStatus.getPermission() + " to 777");
-      mFs.setPermission(fileStatus.getPath(), PERMISSION);
-    } catch (IOException e) {
-      LOG.error(e);
-    }
-  }
-
-  @Override
   public void close() throws IOException {
     mFs.close();
   }
@@ -183,18 +171,13 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public String[] list(String path) throws IOException {
-    FileStatus[] files = mFs.listStatus(new Path(path));
-    if (files != null) {
-      String[] rtn = new String[files.length];
-      int i = 0;
-      for (FileStatus status : files) {
-        rtn[i ++] = status.getPath().toString().substring(mUfsPrefix.length());
-      }
-      return rtn;
-    } else {
-      return null;
+  public long getBlockSizeByte(String path) throws IOException {
+    Path tPath = new Path(path);
+    if (!mFs.exists(tPath)) {
+      throw new FileNotFoundException(path);
     }
+    FileStatus fs = mFs.getFileStatus(tPath);
+    return fs.getBlockSize();
   }
 
   @Override
@@ -236,16 +219,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public long getBlockSizeByte(String path) throws IOException {
-    Path tPath = new Path(path);
-    if (!mFs.exists(tPath)) {
-      throw new FileNotFoundException(path);
-    }
-    FileStatus fs = mFs.getFileStatus(tPath);
-    return fs.getBlockSize();
-  }
-
-  @Override
   public long getModificationTimeMs(String path) throws IOException {
     Path tPath = new Path(path);
     if (!mFs.exists(tPath)) {
@@ -275,6 +248,21 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   @Override
   public boolean isFile(String path) throws IOException {
     return mFs.isFile(new Path(path));
+  }
+
+  @Override
+  public String[] list(String path) throws IOException {
+    FileStatus[] files = mFs.listStatus(new Path(path));
+    if (files != null) {
+      String[] rtn = new String[files.length];
+      int i = 0;
+      for (FileStatus status : files) {
+        rtn[i ++] = status.getPath().toString().substring(mUfsPrefix.length());
+      }
+      return rtn;
+    } else {
+      return null;
+    }
   }
 
   @Override
@@ -341,5 +329,17 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     }
     CommonUtils.runtimeException(te);
     return false;
+  }
+
+  @Override
+  public void toFullPermission(String path) {
+    try {
+      FileStatus fileStatus = mFs.getFileStatus(new Path(path));
+      LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: " +
+          fileStatus.getPermission() + " to 777");
+      mFs.setPermission(fileStatus.getPath(), PERMISSION);
+    } catch (IOException e) {
+      LOG.error(e);
+    }
   }
 }

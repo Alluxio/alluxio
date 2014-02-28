@@ -24,24 +24,24 @@ import java.nio.ByteOrder;
  * Writer for bytebuffer.
  */
 public abstract class ByteBufferWriter {
-  protected ByteBuffer mBuf;
-
   /**
    * Get most efficient ByteBufferWriter for the ByteBuffer.
    * @param buf the ByteBuffer to write.
    * @return The most efficient ByteBufferWriter for buf.
-   * @throws IOException 
+   * @throws IOException
    */
   public static ByteBufferWriter getByteBufferWriter(ByteBuffer buf) throws IOException {
-//    if (buf.order() == ByteOrder.nativeOrder()) {
-//      if (buf.isDirect()) {
-//        return new UnsafeDirectByteBufferWriter(buf);
-//      } else {
-//        return new UnsafeHeapByteBufferWriter(buf);
-//      }
-//    }
+    // if (buf.order() == ByteOrder.nativeOrder()) {
+    // if (buf.isDirect()) {
+    // return new UnsafeDirectByteBufferWriter(buf);
+    // } else {
+    // return new UnsafeHeapByteBufferWriter(buf);
+    // }
+    // }
     return new JavaByteBufferWriter(buf);
   }
+
+  protected ByteBuffer mBuf;
 
   ByteBufferWriter(ByteBuffer buf) throws IOException {
     if (buf == null) {
@@ -49,6 +49,12 @@ public abstract class ByteBufferWriter {
     }
 
     mBuf = buf;
+  }
+
+  public abstract ByteBuffer getByteBuffer();
+
+  public ByteOrder order() {
+    return mBuf.order();
   }
 
   /**
@@ -62,7 +68,7 @@ public abstract class ByteBufferWriter {
    * This method transfers the entire content of the given source byte array into this buffer. An
    * invocation of this method of the form <tt>dst.put(a)</tt> behaves in exactly the same way as
    * the invocation
-   * <pre> 
+   * <pre>
    * dst.put(a, 0, a.length) </pre>
    * @param src
    */
@@ -83,10 +89,4 @@ public abstract class ByteBufferWriter {
   public abstract void putLong(long value);
 
   public abstract void putShort(short value);
-
-  public ByteOrder order() {
-    return mBuf.order();
-  }
-
-  public abstract ByteBuffer getByteBuffer();
 }

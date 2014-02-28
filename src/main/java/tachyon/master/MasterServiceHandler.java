@@ -74,12 +74,6 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<ClientFileInfo> liststatus(String path)
-      throws InvalidPathException, FileDoesNotExistException, TException {
-    return mMasterInfo.getFilesInfo(path);
-  }
-
-  @Override
   public ClientFileInfo getClientFileInfoById(int id)
       throws FileDoesNotExistException, TException {
     return mMasterInfo.getClientFileInfo(id);
@@ -91,9 +85,33 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public List<ClientFileInfo> liststatus(String path)
+      throws InvalidPathException, FileDoesNotExistException, TException {
+    return mMasterInfo.getFilesInfo(path);
+  }
+
+  @Override
   public void user_completeFile(int fileId) throws FileDoesNotExistException,
   TException {
     mMasterInfo.completeFile(fileId);
+  }
+
+  @Override
+  public int user_createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+      String frameworkVersion, int dependencyType, long childrenBlockSizeByte)
+          throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
+          BlockInfoException, TachyonException, TException {
+    try {
+      for (int k = 0; k < children.size(); k ++) {
+        mMasterInfo.createFile(children.get(k), childrenBlockSizeByte);
+      }
+      return mMasterInfo.createDependency(parents, children, commandPrefix,
+          data, comment, framework, frameworkVersion,
+          DependencyType.getDependencyType(dependencyType));
+    } catch (IOException e) {
+      throw new FileDoesNotExistException(e.getMessage());
+    }
   }
 
   @Override
@@ -146,29 +164,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public NetAddress user_getWorker(boolean random, String host)
-      throws NoWorkerException, TException {
-    NetAddress ret = mMasterInfo.getWorker(random, host);
-    if (ret == null) {
-      if (random) {
-        throw new NoWorkerException("No worker in the system");
-      } else {
-        throw new NoWorkerException("No local worker on " + host);
-      }
-    }
-    return ret;
-  }
-
-  @Override
   public long user_getBlockId(int fileId, int index)
       throws FileDoesNotExistException, TException {
     return BlockInfo.computeBlockId(fileId, index);
-  }
-
-  @Override
-  public ClientFileInfo user_getClientFileInfoByPath(String path)
-      throws FileDoesNotExistException, InvalidPathException, TException {
-    return mMasterInfo.getClientFileInfo(path);
   }
 
   @Override
@@ -181,6 +179,30 @@ public class MasterServiceHandler implements MasterService.Iface {
       throw new FileDoesNotExistException(e.getMessage());
     }
     return ret;
+  }
+
+  @Override
+  public ClientDependencyInfo user_getClientDependencyInfo(int dependencyId)
+      throws DependencyDoesNotExistException, TException {
+    return mMasterInfo.getClientDependencyInfo(dependencyId);
+  }
+
+  @Override
+  public ClientFileInfo user_getClientFileInfoByPath(String path)
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    return mMasterInfo.getClientFileInfo(path);
+  }
+
+  @Override
+  public ClientRawTableInfo user_getClientRawTableInfoById(int id)
+      throws TableDoesNotExistException, TException {
+    return mMasterInfo.getClientRawTableInfo(id);
+  }
+
+  @Override
+  public ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
+      throws TableDoesNotExistException, InvalidPathException, TException {
+    return mMasterInfo.getClientRawTableInfo(path);
   }
 
   @Override
@@ -213,20 +235,19 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public int user_getNumberOfFiles(String path)
+      throws FileDoesNotExistException, InvalidPathException, TException {
+    return mMasterInfo.getNumberOfFiles(path);
+  }
+
+  @Override
   public int user_getRawTableId(String path) throws InvalidPathException, TException {
     return mMasterInfo.getRawTableId(path);
   }
 
   @Override
-  public ClientRawTableInfo user_getClientRawTableInfoById(int id)
-      throws TableDoesNotExistException, TException {
-    return mMasterInfo.getClientRawTableInfo(id);
-  }
-
-  @Override
-  public ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
-      throws TableDoesNotExistException, InvalidPathException, TException {
-    return mMasterInfo.getClientRawTableInfo(path);
+  public String user_getUnderfsAddress() throws TException {
+    return CommonConf.get().UNDERFS_ADDRESS;
   }
 
   @Override
@@ -235,14 +256,17 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_getNumberOfFiles(String path)
-      throws FileDoesNotExistException, InvalidPathException, TException {
-    return mMasterInfo.getNumberOfFiles(path);
-  }
-
-  @Override
-  public String user_getUnderfsAddress() throws TException {
-    return CommonConf.get().UNDERFS_ADDRESS;
+  public NetAddress user_getWorker(boolean random, String host)
+      throws NoWorkerException, TException {
+    NetAddress ret = mMasterInfo.getWorker(random, host);
+    if (ret == null) {
+      if (random) {
+        throw new NoWorkerException("No worker in the system");
+      } else {
+        throw new NoWorkerException("No local worker on " + host);
+      }
+    }
+    return ret;
   }
 
   @Override
@@ -281,6 +305,17 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public void user_reportLostFile(int fileId) throws FileDoesNotExistException, TException {
+    mMasterInfo.reportLostFile(fileId);
+  }
+
+  @Override
+  public void user_requestFilesInDependency(int depId)
+      throws DependencyDoesNotExistException, TException {
+    mMasterInfo.requestFilesInDependency(depId);
+  }
+
+  @Override
   public void user_unpinFile(int fileId) throws FileDoesNotExistException, TException {
     mMasterInfo.unpinFile(fileId);
   }
@@ -305,6 +340,11 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
+  public List<Integer> worker_getPriorityDependencyList() throws TException {
+    return mMasterInfo.getPriorityDependencyList();
+  }
+
+  @Override
   public Command worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlockIds)
       throws BlockInfoException, TException {
     return mMasterInfo.workerHeartbeat(workerId, usedBytes, removedBlockIds);
@@ -314,45 +354,5 @@ public class MasterServiceHandler implements MasterService.Iface {
   public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes,
       List<Long> currentBlockIds) throws BlockInfoException, TException {
     return mMasterInfo.registerWorker(workerNetAddress, totalBytes, usedBytes, currentBlockIds);
-  }
-
-  @Override
-  public List<Integer> worker_getPriorityDependencyList() throws TException {
-    return mMasterInfo.getPriorityDependencyList();
-  }
-
-  @Override
-  public int user_createDependency(List<String> parents, List<String> children,
-      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, int dependencyType, long childrenBlockSizeByte)
-          throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
-          BlockInfoException, TachyonException, TException {
-    try {
-      for (int k = 0; k < children.size(); k ++) {
-        mMasterInfo.createFile(children.get(k), childrenBlockSizeByte);
-      }
-      return mMasterInfo.createDependency(parents, children, commandPrefix, 
-          data, comment, framework, frameworkVersion,
-          DependencyType.getDependencyType(dependencyType));
-    } catch (IOException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    }
-  }
-
-  @Override
-  public ClientDependencyInfo user_getClientDependencyInfo(int dependencyId)
-      throws DependencyDoesNotExistException, TException {
-    return mMasterInfo.getClientDependencyInfo(dependencyId);
-  }
-
-  @Override
-  public void user_reportLostFile(int fileId) throws FileDoesNotExistException, TException {
-    mMasterInfo.reportLostFile(fileId);
-  }
-
-  @Override
-  public void user_requestFilesInDependency(int depId)
-      throws DependencyDoesNotExistException, TException {
-    mMasterInfo.requestFilesInDependency(depId);
   }
 }

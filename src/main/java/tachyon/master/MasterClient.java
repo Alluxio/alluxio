@@ -88,23 +88,6 @@ public class MasterClient {
     mIsShutdown = false;
   }
 
-  private InetSocketAddress getMasterAddress() {
-    if (!mUseZookeeper) {
-      return mMasterAddress;
-    }
-
-    LeaderInquireClient leaderInquireClient = LeaderInquireClient.getClient(
-        CommonConf.get().ZOOKEEPER_ADDRESS, CommonConf.get().ZOOKEEPER_LEADER_PATH);
-    try {
-      String temp = leaderInquireClient.getMasterAddress();
-      return CommonUtils.parseInetSocketAddress(temp);
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
-      CommonUtils.runtimeException(e);
-    }
-    return null;
-  }
-
   /**
    * @param workerId if -1, means the checkpoint is added directly by the client from underlayer fs.
    * @param fileId
@@ -130,6 +113,23 @@ public class MasterClient {
       }
     }
     return false;
+  }
+
+  /**
+   * Clean the connect. E.g. if the client has not connect the master for a while, the connection
+   * should be shut down.
+   */
+  public synchronized void cleanConnect() {
+    if (mIsConnected) {
+      LOG.info("Disconnecting from the master " + mMasterAddress);
+      mIsConnected = false;
+    }
+    if (mProtocol != null) {
+      mProtocol.getTransport().close();
+    }
+    if (mHeartbeatThread != null) {
+      mHeartbeatThread.shutdown();
+    }
   }
 
   /**
@@ -175,21 +175,19 @@ public class MasterClient {
     return mIsConnected;
   }
 
-  /**
-   * Clean the connect. E.g. if the client has not connect the master for a while, the connection
-   * should be shut down.
-   */
-  public synchronized void cleanConnect() {
-    if (mIsConnected) {
-      LOG.info("Disconnecting from the master " + mMasterAddress);
-      mIsConnected = false;
+  public ClientDependencyInfo getClientDependencyInfo(int did) throws IOException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_getClientDependencyInfo(did);
+      } catch (DependencyDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
     }
-    if (mProtocol != null) {
-      mProtocol.getTransport().close();
-    }
-    if (mHeartbeatThread != null) {
-      mHeartbeatThread.shutdown();
-    }
+    return null;
   }
 
   public synchronized ClientFileInfo getClientFileInfoById(int id)
@@ -210,6 +208,23 @@ public class MasterClient {
 
   synchronized long getLastAccessedMs() {
     return mLastAccessedMs;
+  }
+
+  private InetSocketAddress getMasterAddress() {
+    if (!mUseZookeeper) {
+      return mMasterAddress;
+    }
+
+    LeaderInquireClient leaderInquireClient = LeaderInquireClient.getClient(
+        CommonConf.get().ZOOKEEPER_ADDRESS, CommonConf.get().ZOOKEEPER_LEADER_PATH);
+    try {
+      String temp = leaderInquireClient.getMasterAddress();
+      return CommonUtils.parseInetSocketAddress(temp);
+    } catch (IOException e) {
+      LOG.error(e.getMessage(), e);
+      CommonUtils.runtimeException(e);
+    }
+    return null;
   }
 
   public synchronized long getUserId() throws TException {
@@ -244,14 +259,6 @@ public class MasterClient {
     return mIsConnected;
   }
 
-  public void shutdown() {
-    mIsShutdown = true;
-    if (mProtocol != null) {
-      mProtocol.getTransport().close();
-    }
-    cleanConnect();
-  }
-
   public synchronized List<ClientFileInfo> listStatus(String path)
       throws IOException, TException {
     while (!mIsShutdown) {
@@ -270,6 +277,14 @@ public class MasterClient {
     return null;
   }
 
+  public void shutdown() {
+    mIsShutdown = true;
+    if (mProtocol != null) {
+      mProtocol.getTransport().close();
+    }
+    cleanConnect();
+  }
+
   public synchronized void user_completeFile(int fId)
       throws IOException, TException {
     while (!mIsShutdown) {
@@ -284,6 +299,33 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+  }
+
+  public synchronized int user_createDependency(List<String> parents, List<String> children,
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+      String frameworkVersion, int dependencyType, long childrenBlockSizeByte)
+          throws IOException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_createDependency(parents, children, commandPrefix, data, comment,
+            framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
+    return -1;
   }
 
   public synchronized int user_createFile(String path, long blockSizeByte)
@@ -372,12 +414,12 @@ public class MasterClient {
     return -1;
   }
 
-  public synchronized boolean user_delete(String path, boolean recursive)
+  public synchronized boolean user_delete(int fileId, boolean recursive)
       throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
-        return mClient.user_deleteByPath(path, recursive);
+        return mClient.user_deleteById(fileId, recursive);
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
@@ -388,12 +430,12 @@ public class MasterClient {
     return false;
   }
 
-  public synchronized boolean user_delete(int fileId, boolean recursive)
+  public synchronized boolean user_delete(String path, boolean recursive)
       throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
-        return mClient.user_deleteById(fileId, recursive);
+        return mClient.user_deleteByPath(path, recursive);
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
@@ -452,58 +494,16 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized int user_getFileId(String path) throws IOException, TException {
-    while (!mIsShutdown) {
-      connect();
-      try {
-        return mClient.user_getFileId(path);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
-      }
-    }
-    return -1;
-  }
-
-  public synchronized int user_getRawTableId(String path) throws IOException, TException {
-    while (!mIsShutdown) {
-      connect();
-      try {
-        return mClient.user_getRawTableId(path);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
-      }
-    }
-    return -1;
-  }
-
-  public synchronized List<ClientBlockInfo> user_getFileBlocks(int id)
+  public synchronized ClientRawTableInfo user_getClientRawTableInfoById(int id)
       throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
-        return mClient.user_getFileBlocksById(id);
-      } catch (FileDoesNotExistException e) {
+        ClientRawTableInfo ret = mClient.user_getClientRawTableInfoById(id);
+        ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
+        return ret;
+      } catch (TableDoesNotExistException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
-      }
-    }
-    return null;
-  }
-
-  public synchronized NetAddress user_getWorker(boolean random, String hostname)
-      throws NoWorkerException, TException {
-    while (!mIsShutdown) {
-      connect();
-      try {
-        return mClient.user_getWorker(random, hostname);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
         mIsConnected = false;
@@ -532,15 +532,13 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized ClientRawTableInfo user_getClientRawTableInfoById(int id)
+  public synchronized List<ClientBlockInfo> user_getFileBlocks(int id)
       throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
-        ClientRawTableInfo ret = mClient.user_getClientRawTableInfoById(id);
-        ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
-        return ret;
-      } catch (TableDoesNotExistException e) {
+        return mClient.user_getFileBlocksById(id);
+      } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
@@ -548,6 +546,21 @@ public class MasterClient {
       }
     }
     return null;
+  }
+
+  public synchronized int user_getFileId(String path) throws IOException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_getFileId(path);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
+    return -1;
   }
 
   public synchronized int user_getNumberOfFiles(String folderPath)
@@ -568,11 +581,40 @@ public class MasterClient {
     return -1;
   }
 
+  public synchronized int user_getRawTableId(String path) throws IOException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_getRawTableId(path);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
+    return -1;
+  }
+
   public synchronized String user_getUnderfsAddress() throws TException {
     while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getUnderfsAddress();
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
+    return null;
+  }
+
+  public synchronized NetAddress user_getWorker(boolean random, String hostname)
+      throws NoWorkerException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_getWorker(random, hostname);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
         mIsConnected = false;
@@ -689,6 +731,37 @@ public class MasterClient {
     }
   }
 
+  public synchronized void user_reportLostFile(int fileId) throws IOException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        mClient.user_reportLostFile(fileId);
+        return;
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
+  }
+
+  public synchronized void user_requestFilesInDependency(int depId)
+      throws IOException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        mClient.user_requestFilesInDependency(depId);
+        return;
+      } catch (DependencyDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
+  }
+
   public synchronized void user_unpinFile(int id) throws IOException, TException {
     while (!mIsShutdown) {
       connect();
@@ -737,12 +810,11 @@ public class MasterClient {
     }
   }
 
-  public synchronized Command worker_heartbeat(long workerId, long usedBytes,
-      List<Long> removedPartitionList) throws BlockInfoException, TException {
+  public synchronized Set<Integer> worker_getPinIdList() throws TException {
     while (!mIsShutdown) {
       connect();
       try {
-        return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
+        return mClient.worker_getPinIdList();
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
         mIsConnected = false;
@@ -751,11 +823,25 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized Set<Integer> worker_getPinIdList() throws TException {
+  public synchronized List<Integer> worker_getPriorityDependencyList() throws TException {
     while (!mIsShutdown) {
       connect();
       try {
-        return mClient.worker_getPinIdList();
+        return mClient.worker_getPriorityDependencyList();
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
+    return new ArrayList<Integer>();
+  }
+
+  public synchronized Command worker_heartbeat(long workerId, long usedBytes,
+      List<Long> removedPartitionList) throws BlockInfoException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
         mIsConnected = false;
@@ -790,91 +876,5 @@ public class MasterClient {
       }
     }
     return -1;
-  }
-
-  public synchronized List<Integer> worker_getPriorityDependencyList() throws TException {
-    while (!mIsShutdown) {
-      connect();
-      try {
-        return mClient.worker_getPriorityDependencyList();
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
-      }
-    }
-    return new ArrayList<Integer>();
-  }
-
-  public synchronized int user_createDependency(List<String> parents, List<String> children,
-      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, int dependencyType, long childrenBlockSizeByte)
-          throws IOException, TException {
-    while (!mIsShutdown) {
-      connect();
-      try {
-        return mClient.user_createDependency(parents, children, commandPrefix, data, comment,
-            framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (FileAlreadyExistException e) {
-        throw new IOException(e);
-      } catch (BlockInfoException e) {
-        throw new IOException(e);
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
-      }
-    }
-    return -1;
-  }
-
-  public synchronized void user_reportLostFile(int fileId) throws IOException, TException {
-    while (!mIsShutdown) {
-      connect();
-      try {
-        mClient.user_reportLostFile(fileId);
-        return;
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
-      }
-    }
-  }
-
-  public synchronized void user_requestFilesInDependency(int depId)
-      throws IOException, TException {
-    while (!mIsShutdown) {
-      connect();
-      try {
-        mClient.user_requestFilesInDependency(depId);
-        return;
-      } catch (DependencyDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
-      }
-    }
-  }
-
-  public ClientDependencyInfo getClientDependencyInfo(int did) throws IOException, TException {
-    while (!mIsShutdown) {
-      connect();
-      try {
-        return mClient.user_getClientDependencyInfo(did);
-      } catch (DependencyDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
-      }
-    }
-    return null;
   }
 }

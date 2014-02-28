@@ -19,7 +19,7 @@ package tachyon.client;
 import java.io.IOException;
 
 /**
- * Different write types for a TachyonFile. 
+ * Different write types for a TachyonFile.
  */
 public enum WriteType {
   /**
@@ -43,35 +43,6 @@ public enum WriteType {
    */
   ASYNC_THROUGH(5);
 
-  private final int mValue;
-
-  private WriteType(int value) {
-    mValue = value;
-  }
-
-  public int getValue() {
-    return mValue;
-  }
-
-  public boolean isThrough() {
-    return (mValue == CACHE_THROUGH.mValue) || (mValue == THROUGH.mValue);
-  }
-
-  public boolean isCache() {
-    return (mValue == MUST_CACHE.mValue) 
-        || (mValue == CACHE_THROUGH.mValue)
-        || (mValue == TRY_CACHE.mValue)
-        || (mValue == ASYNC_THROUGH.mValue);
-  }
-
-  public boolean isAsync() {
-    return mValue == ASYNC_THROUGH.mValue;
-  }
-
-  public boolean isMustCache() {
-    return (mValue == MUST_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
-  }
-
   public static WriteType getOpType(String op) throws IOException {
     if (op.equals("MUST_CACHE")) {
       return MUST_CACHE;
@@ -86,5 +57,34 @@ public enum WriteType {
     }
 
     throw new IOException("Unknown WriteType : " + op);
+  }
+
+  private final int mValue;
+
+  private WriteType(int value) {
+    mValue = value;
+  }
+
+  public int getValue() {
+    return mValue;
+  }
+
+  public boolean isAsync() {
+    return mValue == ASYNC_THROUGH.mValue;
+  }
+
+  public boolean isCache() {
+    return (mValue == MUST_CACHE.mValue)
+        || (mValue == CACHE_THROUGH.mValue)
+        || (mValue == TRY_CACHE.mValue)
+        || (mValue == ASYNC_THROUGH.mValue);
+  }
+
+  public boolean isMustCache() {
+    return (mValue == MUST_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
+  }
+
+  public boolean isThrough() {
+    return (mValue == CACHE_THROUGH.mValue) || (mValue == THROUGH.mValue);
   }
 }
