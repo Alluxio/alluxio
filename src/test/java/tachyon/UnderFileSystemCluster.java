@@ -38,6 +38,7 @@ public abstract class UnderFileSystemCluster {
 
     if (mUfsClz != null && !mUfsClz.equals("")) {
       try {
+        System.setProperty("fs.hdfs.impl.disable.cache", "true");
         UnderFileSystemCluster ufsCluster =
             (UnderFileSystemCluster) Class.forName(mUfsClz).getConstructor(String.class)
                 .newInstance(baseDir);
@@ -55,8 +56,9 @@ public abstract class UnderFileSystemCluster {
    * To start the underfs test bed and register the shutdown hook
    *
    * @throws IOException
+   * @throws InterruptedException 
    */
-  public static UnderFileSystemCluster initializeUFSCluster(String baseDir) throws IOException {
+  public static synchronized UnderFileSystemCluster get(String baseDir) throws IOException {
     if (null == mUnderFSCluster) {
       mUnderFSCluster = getUnderFilesystemCluster(baseDir);
     }
@@ -127,12 +129,14 @@ public abstract class UnderFileSystemCluster {
           System.out.println("Failed to shutdown underfs cluster: " + e);
         }
       }
+      System.clearProperty("fs.hdfs.impl.disable.cache");
     }
   }
 
   /**
    * Add a shutdown hook. The {@link #shutdown} phase will be automatically
    * called while the process exists.
+   * @throws InterruptedException 
    */
   public void registerJVMOnExistHook() throws IOException {
     Runtime.getRuntime().addShutdownHook(new ShutdownHook(this));

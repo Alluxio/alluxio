@@ -133,7 +133,7 @@ public class LocalTachyonCluster {
     // "mTachyonHome/tachyon*". Otherwise, it starts some distributed file system cluster e.g.,
     // miniDFSCluster (see also {@link tachyon.LocalMiniDFScluster} and setup the folder like
     // "hdfs://xxx:xxx/tachyon*".
-    mUnderFSCluster = UnderFileSystemCluster.initializeUFSCluster(mTachyonHome + "/dfs");
+    mUnderFSCluster = UnderFileSystemCluster.get(mTachyonHome + "/dfs");
     String underfsFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
     // To setup the journalFolder under either local file system or distributed ufs like
     // miniDFSCluster
