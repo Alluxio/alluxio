@@ -16,10 +16,33 @@
  */
 package tachyon;
 
+import java.io.File;
+import java.io.IOException;
+
 /**
- * The interface for a periodical heartbeat. <code>HeartbeatThread</code> calls the
- * <code>heartbeat()</code> method.
+ * The mock cluster for local file system as UnderFileSystemSingleLocal.
  */
-public interface HeartbeatExecutor {
-  public void heartbeat();
+public class LocalFilesystemCluster extends UnderFileSystemCluster {
+
+  public LocalFilesystemCluster(String baseDir) {
+    super(baseDir);
+  }
+
+  @Override
+  public void start() throws IOException {
+  }
+
+  @Override
+  public void shutdown() throws IOException {
+  }
+
+  @Override
+  public boolean isStarted() {
+    return true;
+  }
+
+  @Override
+  public String getUnderFilesystemAddress() {
+    return new File(mBaseDir).getAbsolutePath();
+  }
 }

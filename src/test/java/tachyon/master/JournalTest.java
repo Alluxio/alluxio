@@ -50,6 +50,7 @@ public class JournalTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
+    System.setProperty("fs.hdfs.impl.disable.cache", "true");
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
@@ -61,12 +62,14 @@ public class JournalTest {
    */
   @After
   public final void after() throws Exception {
+    mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   @Test
   public void EmptyImageTest() throws Exception {
-    mLocalTachyonCluster.stop();
+    mLocalTachyonCluster.stopTFS();
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
@@ -95,7 +98,7 @@ public class JournalTest {
   public void FileTest() throws Exception {
     mTfs.createFile("/xyz", 64);
     ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz");
-    mLocalTachyonCluster.stop();
+    mLocalTachyonCluster.stopTFS();
     FileTestUtil(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
     UnderFileSystem.get(editLogPath).delete(editLogPath, true);
@@ -122,7 +125,7 @@ public class JournalTest {
   public void FolderTest() throws Exception {
     mTfs.mkdir("/xyz");
     ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz");
-    mLocalTachyonCluster.stop();
+    mLocalTachyonCluster.stopTFS();
     FolderTest(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
     UnderFileSystem.get(editLogPath).delete(editLogPath, true);
@@ -150,7 +153,7 @@ public class JournalTest {
   public void TableTest() throws Exception {
     mTfs.createRawTable("/xyz", 10);
     ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz");
-    mLocalTachyonCluster.stop();
+    mLocalTachyonCluster.stopTFS();
     TableTest(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
     UnderFileSystem.get(editLogPath).delete(editLogPath, true);
@@ -179,7 +182,7 @@ public class JournalTest {
     for (int i = 0; i < 10; i ++) {
       mTfs.createFile("/a" + i, (i + 1) * 64);
     }
-    mLocalTachyonCluster.stop();
+    mLocalTachyonCluster.stopTFS();
     ManyFileTestUtil();
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
     UnderFileSystem.get(editLogPath).delete(editLogPath, true);
@@ -197,7 +200,7 @@ public class JournalTest {
     for (int i = 0; i < 124; i ++) {
       mTfs.createFile("/a" + i, (i + 10) / 10 * 64);
     }
-    mLocalTachyonCluster.stop();
+    mLocalTachyonCluster.stopTFS();
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
     String completedPath = editLogPath.substring(0, editLogPath.lastIndexOf("/")) + "/completed";
     Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length > 1);
@@ -230,7 +233,7 @@ public class JournalTest {
     for (int i = 0; i < 124; i ++) {
       mTfs.createFile("/a" + i, (i + 10) / 10 * 64);
     }
-    mLocalTachyonCluster.stop();
+    mLocalTachyonCluster.stopTFS();
     MultiEditLogTestUtil();
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
     UnderFileSystem.get(editLogPath).delete(editLogPath, true);
@@ -264,7 +267,7 @@ public class JournalTest {
         mTfs.createFile("/i" + i + "/j" + j, (i + j + 1) * 64);
       }
     }
-    mLocalTachyonCluster.stop();
+    mLocalTachyonCluster.stopTFS();
     FileFolderUtil();
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
     UnderFileSystem.get(editLogPath).delete(editLogPath, true);
@@ -300,7 +303,7 @@ public class JournalTest {
       }
       mTfs.rename("/i" + i, "/ii" + i);
     }
-    mLocalTachyonCluster.stop();
+    mLocalTachyonCluster.stopTFS();
     RenameTestUtil();
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
     UnderFileSystem.get(editLogPath).delete(editLogPath, true);
@@ -340,7 +343,7 @@ public class JournalTest {
         mTfs.delete("/i" + i, true);
       }
     }
-    mLocalTachyonCluster.stop();
+    mLocalTachyonCluster.stopTFS();
     DeleteTestUtil();
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
     UnderFileSystem.get(editLogPath).delete(editLogPath, true);
@@ -377,7 +380,7 @@ public class JournalTest {
     }
     os.close();
     ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz");
-    mLocalTachyonCluster.stop();
+    mLocalTachyonCluster.stopTFS();
     AddBlockTestUtil(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
     UnderFileSystem.get(editLogPath).delete(editLogPath, true);
@@ -409,7 +412,7 @@ public class JournalTest {
     String ckPath = fInfo.getCheckpointPath();
     mTfs.createFile("/xyz_ck", ckPath);
     ClientFileInfo ckFileInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz_ck");
-    mLocalTachyonCluster.stop();
+    mLocalTachyonCluster.stopTFS();
     AddCheckpointTestUtil(fInfo, ckFileInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
     UnderFileSystem.get(editLogPath).delete(editLogPath, true);

@@ -150,6 +150,23 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
+   * Returns the local filename for the block if that file exists on the local file system. This is
+   * an alpha power-api feature for applications that want short-circuit-read files directly. There
+   * is no guarantee that the file still exists after this call returns, as Tachyon may evict blocks
+   * from memory at any time.
+   * 
+   * @param blockId
+   *          The id of the block.
+   * @return filename on local file system or null if file not present on local file system.
+   * @throws IOException
+   */
+  public String getLocalFilename(int blockIndex) throws IOException {
+    ClientBlockInfo blockInfo = TFS.getClientBlockInfo(FID, blockIndex);
+
+    return TFS.getLocalFilename(blockInfo.getBlockId());
+  }
+
+  /**
    * Get the the whole block.
    * 
    * @param blockIndex

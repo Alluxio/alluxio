@@ -24,8 +24,8 @@ import java.util.List;
 import tachyon.util.CommonUtils;
 
 /**
- * Tachyon stores data into an under layer file system. Any file system implementing
- * this interface can be a valid under layer file system
+ * Tachyon stores data into an under layer file system. Any file system implementing this interface
+ * can be a valid under layer file system
  */
 public abstract class UnderFileSystem {
   public enum SpaceType {
@@ -73,8 +73,9 @@ public abstract class UnderFileSystem {
 
   /**
    * List all the files in the folder.
-   *
-   * @param path the path to list.
+   * 
+   * @param path
+   *          the path to list.
    * @return all the file names under the path.
    * @throws IOException
    */

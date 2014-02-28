@@ -59,6 +59,13 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       Configuration tConf = new Configuration();
       tConf.set("fs.defaultFS", fsDefaultName);
       tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
+
+      // To disable the instance cache for hdfs client, otherwise it causes the
+      // FileSystem closed exception. Being configurable for unit/integration
+      // test only, and not expose to the end-user currently.
+      tConf.set("fs.hdfs.impl.disable.cache",
+          System.getProperty("fs.hdfs.impl.disable.cache", "false"));
+
       if (System.getProperty("fs.s3n.awsAccessKeyId") != null) {
         tConf.set("fs.s3n.awsAccessKeyId", System.getProperty("fs.s3n.awsAccessKeyId"));
       }
