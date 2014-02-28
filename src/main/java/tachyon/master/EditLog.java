@@ -227,6 +227,12 @@ public class EditLog {
         }
         mBackUpLogStartNum = -1;
       }
+
+      // In case this file is created by different dfs-clients, which has been
+      // fixed in HDFS-3755 since 3.0.0, 2.0.2-alpha
+      if (UFS.exists(path)) {
+        UFS.delete(path, true);
+      }
       OS = UFS.create(path);
       DOS = new DataOutputStream(OS);
       LOG.info("Created file " + path);
