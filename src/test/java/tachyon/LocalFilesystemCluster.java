@@ -29,11 +29,8 @@ public class LocalFilesystemCluster extends UnderFileSystemCluster {
   }
 
   @Override
-  public void start() throws IOException {
-  }
-
-  @Override
-  public void shutdown() throws IOException {
+  public String getUnderFilesystemAddress() {
+    return new File(mBaseDir).getAbsolutePath();
   }
 
   @Override
@@ -42,7 +39,10 @@ public class LocalFilesystemCluster extends UnderFileSystemCluster {
   }
 
   @Override
-  public String getUnderFilesystemAddress() {
-    return new File(mBaseDir).getAbsolutePath();
+  public void shutdown() throws IOException {
+  }
+
+  @Override
+  public void start() throws IOException {
   }
 }

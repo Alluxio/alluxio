@@ -324,9 +324,9 @@ public final class CommonUtils {
   }
 
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
-      changeLocalFilePermission(filePath, "777");  	  
+    changeLocalFilePermission(filePath, "777");
   }
-  
+
   static void redirectStreamAsync(final InputStream input, final PrintStream output) {
     new Thread(new Runnable() {
       @Override
