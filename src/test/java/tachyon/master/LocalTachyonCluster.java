@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.Constants;
+import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
@@ -52,6 +53,7 @@ public class LocalTachyonCluster {
   private Thread mWorkerThread = null;
 
   private String mLocalhostName = null;
+  private UnderFileSystemCluster mUnderFSCluster = null;
 
   private List<TachyonFS> mClients = new ArrayList<TachyonFS>();
 
@@ -97,15 +99,15 @@ public class LocalTachyonCluster {
   }
 
   public String getEditLogPath() {
-    return mTachyonHome + "/journal/log.data";
+    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/log.data";
   }
 
   public String getImagePath() {
-    return mTachyonHome + "/journal/image.data";
+    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/image.data";
   }
 
   private void mkdir(String path) throws IOException {
-    if (!(new File(path)).mkdirs()) {
+    if (!CommonUtils.mkdirs(path)) {
       throw new IOException("Failed to make folder: " + path);
     }
   }
@@ -117,34 +119,46 @@ public class LocalTachyonCluster {
   public void start() throws IOException {
     mTachyonHome = File.createTempFile("Tachyon", "").getAbsoluteFile() + "UnitTest";
     mWorkerDataFolder = mTachyonHome + "/ramdisk";
-    String masterJournalFolder = mTachyonHome + "/journal";
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
-    String underfsFolder = mTachyonHome + "/underfs";
+
     mkdir(mTachyonHome);
-    mkdir(masterJournalFolder);
     mkdir(masterDataFolder);
     mkdir(masterLogFolder);
-    CommonUtils.touch(masterJournalFolder + "/_format_" + System.currentTimeMillis());
 
     mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
 
+    // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
+    // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of
+    // "mTachyonHome/tachyon*". Otherwise, it starts some distributed file system cluster e.g.,
+    // miniDFSCluster (see also {@link tachyon.LocalMiniDFScluster} and setup the folder like
+    // "hdfs://xxx:xxx/tachyon*".
+    mUnderFSCluster = UnderFileSystemCluster.initializeUFSCluster(mTachyonHome + "/dfs");
+    String underfsFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
+    // To setup the journalFolder under either local file system or distributed ufs like
+    // miniDFSCluster
+    String masterJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
+
     System.setProperty("tachyon.home", mTachyonHome);
-    System.setProperty("tachyon.underfs.address", underfsFolder);
     System.setProperty("tachyon.master.hostname", mLocalhostName);
+    System.setProperty("tachyon.master.journal.folder", masterJournalFolder + "/");
     System.setProperty("tachyon.master.port", mMasterPort + "");
     System.setProperty("tachyon.master.web.port", (mMasterPort + 1) + "");
     System.setProperty("tachyon.worker.port", mWorkerPort + "");
     System.setProperty("tachyon.worker.data.port", (mWorkerPort + 1) + "");
     System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
-    System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
+    System.setProperty("tachyon.underfs.address", underfsFolder);
+    System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
 
     CommonConf.clear();
     MasterConf.clear();
     WorkerConf.clear();
     UserConf.clear();
+
+    mkdir(masterJournalFolder);
+    CommonUtils.touch(masterJournalFolder + "/_format_" + System.currentTimeMillis());
 
     mkdir(CommonConf.get().UNDERFS_DATA_FOLDER);
     mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
@@ -174,7 +188,21 @@ public class LocalTachyonCluster {
     mWorkerThread.start();
   }
 
+  /**
+   * Stop both of the tachyon and underfs service threads.
+   * @throws Exception
+   */
   public void stop() throws Exception {
+    stopTFS();
+    stopUFS();
+  }
+
+  /**
+   * Stop the tachyon filesystem's service thread only
+   *
+   * @throws Exception
+   */
+  public void stopTFS() throws Exception {
     for (TachyonFS fs : mClients) {
       fs.close();
     }
@@ -183,7 +211,6 @@ public class LocalTachyonCluster {
     mMaster.stop();
 
     System.clearProperty("tachyon.home");
-    System.clearProperty("tachyon.underfs.address");
     System.clearProperty("tachyon.master.hostname");
     System.clearProperty("tachyon.master.port");
     System.clearProperty("tachyon.master.web.port");
@@ -193,6 +220,18 @@ public class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.memory.size");
     System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
     System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
+  }
+
+  /**
+   * Cleanup the underfs cluster test folder only
+   * @throws Exception
+   */
+  public void stopUFS() throws Exception {
+    if (null != mUnderFSCluster) {
+      mUnderFSCluster.cleanup();
+    }
+    System.clearProperty("tachyon.master.journal.folder");
+    System.clearProperty("tachyon.underfs.address");
   }
 
   public void stopWorker() throws Exception {

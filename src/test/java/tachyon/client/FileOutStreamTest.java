@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
+import tachyon.UnderFileSystemCluster;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
@@ -83,7 +84,12 @@ public class FileOutStreamTest {
 
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) file.length()];
-      Assert.assertEquals((int) file.length(), is.read(res));
+      if (UnderFileSystemCluster.isUFSHDFS() && 0 == res.length) {
+        // HDFS returns -1 for zero-sized byte array to indicate no more bytes available here.
+        Assert.assertEquals(-1, is.read(res));
+      } else {
+        Assert.assertEquals((int) file.length(), is.read(res));
+      }
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(len, res));
     }
   }
@@ -125,7 +131,12 @@ public class FileOutStreamTest {
 
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) file.length()];
-      Assert.assertEquals((int) file.length(), is.read(res));
+      if (UnderFileSystemCluster.isUFSHDFS() && 0 == res.length) {
+        // HDFS returns -1 for zero-sized byte array to indicate no more bytes available here.
+        Assert.assertEquals(-1, is.read(res));
+      } else {
+        Assert.assertEquals((int) file.length(), is.read(res));
+      }
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(len, res));
     }
   }
@@ -168,7 +179,12 @@ public class FileOutStreamTest {
 
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) file.length()];
-      Assert.assertEquals((int) file.length(), is.read(res));
+      if (UnderFileSystemCluster.isUFSHDFS() && 0 == res.length) {
+        // HDFS returns -1 for zero-sized byte array to indicate no more bytes available here.
+        Assert.assertEquals(-1, is.read(res));
+      } else {
+        Assert.assertEquals((int) file.length(), is.read(res));
+      }
       Assert.assertTrue(TestUtils.equalIncreasingByteArray(len / 2 * 2, res));
     }
   }

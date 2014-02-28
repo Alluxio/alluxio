@@ -27,8 +27,8 @@ import tachyon.util.CommonUtils;
  * Format Tachyon File System.
  */
 public class Format {
-  private static final String USAGE = "java -cp target/tachyon-" + Version.VERSION +
-      "-jar-with-dependencies.jar tachyon.Format <MASTER/WORKER>";
+  private static final String USAGE = "java -cp target/tachyon-" + Version.VERSION
+      + "-jar-with-dependencies.jar tachyon.Format <MASTER/WORKER>";
 
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {

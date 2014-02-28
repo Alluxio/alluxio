@@ -47,9 +47,9 @@ import tachyon.util.CommonUtils;
 import tachyon.util.UnderfsUtil;
 
 /**
- * An Hadoop FileSystem interface implementation. Any program working with
- * Hadoop HDFS can work with Tachyon transparently by using this class. However,
- * it is not as efficient as using the Tachyon API in tachyon.client package.
+ * An Hadoop FileSystem interface implementation. Any program working with Hadoop HDFS can work with
+ * Tachyon transparently by using this class. However, it is not as efficient as using the Tachyon
+ * API in tachyon.client package.
  */
 public class TFS extends FileSystem {
   public static final String FIRST_COM_PATH = "tachyon_dep/";
@@ -63,6 +63,15 @@ public class TFS extends FileSystem {
   private Path mWorkingDir = new Path("/");
   private TachyonFS mTFS = null;
   private String mTachyonHeader = null;
+
+  /**
+   * Returns an object implementing the Tachyon-specific client API.
+   * 
+   * @return null if initialize() hasn't been called.
+   */
+  public TachyonFS getTachyonFS() {
+    return mTFS;
+  }
 
   @Override
   public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)
@@ -266,7 +275,7 @@ public class TFS extends FileSystem {
   public void initialize(URI uri, Configuration conf) throws IOException {
     super.initialize(uri, conf);
     LOG.info("initialize(" + uri + ", " + conf + "). Connecting to Tachyon: " + uri.toString());
-    mTachyonHeader = "tachyon://" + uri.getHost() + ":" + uri.getPort();
+    mTachyonHeader = uri.getScheme() +  "://" + uri.getHost() + ":" + uri.getPort();
     mTFS = TachyonFS.get(mTachyonHeader);
     mUri = URI.create(mTachyonHeader);
     UNDERFS_ADDRESS = mTFS.getUnderfsAddress();

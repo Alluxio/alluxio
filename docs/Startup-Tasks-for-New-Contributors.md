@@ -18,35 +18,23 @@ A list of tasks that everyone should do before contributing to Tachyon.
 
 4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/src/main/java/tachyon/examples/BasicOperations.java).
 
-5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html). Then
-    run `mvn test` and make sure all tests pass.
+5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
 
-6.  Fork the repository, write/add unit tests/java doc for one or two
-    files in the following list, and then submit a pull request.
+6.  Fork the repository, write/add unit tests/java doc for one or two files in the following list,
+and then submit a pull request. You are also welcome to address issues in our
+[JIRA](https://spark-project.atlassian.net/browse/TACHYON)
 
 * * * * *
 
-    src/main/java/tachyon/Worker.java
-
-    src/main/java/tachyon/WorkerClient.java
-
-    src/main/java/tachyon/CommonUtils.java
-
-    src/main/java/tachyon/MasterInfo.java
-
-    src/main/java/tachyon/UserInfo.java
-
-    src/main/java/tachyon/DataServerMessage.java
-
-    src/main/java/tachyon/DataServer.java
-
-    src/main/java/tachyon/WorkerStorage.java
-
-    src/main/java/tachyon/InodeFolder.java
-
     src/main/java/tachyon/Users.java
 
-    src/main/java/tachyon/MasterWorkerInfo.java
+    src/main/java/tachyon/master/MasterWorkerInfo.java
+
+    src/main/java/tachyon/worker/Worker.java
+
+    src/main/java/tachyon/worker/WorkerClient.java
+
+    src/main/java/tachyon/worker/DataServerMessage.java
 
 #### After the pull request is reviewed and merged, you become a Tachyon contributor!
 

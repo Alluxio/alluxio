@@ -7,8 +7,8 @@ title: Running Tachyon on a Cluster
 
 First download `tachyon` tar file, and extract it.
 
-    $ wget http://tachyon-project.org/downloads/tachyon-0.4.0-bin.tar.gz
-    $ tar xvfz tachyon-0.4.0-bin.tar.gz
+    $ wget http://tachyon-project.org/downloads/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+    $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
 
 In the `tachyon/conf` directory, copy `tachyon-env.sh.template` to `tachyon-env.sh`. Make sure
 `JAVA_HOME` points to a valid Java 6/7 installation. Edit `tachyon/conf/master` and

@@ -13,11 +13,11 @@ This guide describes how to accomplish the following:
 
 The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 6 or above).
 
-Download the binary distribution of Tachyon 0.4.0:
+Download the binary distribution of Tachyon {{site.TACHYON_RELEASED_VERSION}}:
 
-    $ wget http://tachyon-project.org/downloads/tachyon-0.4.0-bin.tar.gz
-    $ tar xvfz tachyon-0.4.0-bin.tar.gz
-    $ cd tachyon-0.4.0
+    $ wget http://tachyon-project.org/downloads/tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+    $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
+    $ cd tachyon-{{site.TACHYON_RELEASED_VERSION}}
 
 Before executing Tachyon run scripts, requisite environment variables must be specified in `conf
 /tachyon-env.sh`, which should be created from the included template file:

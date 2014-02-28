@@ -113,8 +113,7 @@ public final class CommonUtils {
 
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
     // TODO this is a trick to fix the issue in thrift. Change the code to use
-    // metadata directly
-    // when thrift fixes the issue.
+    // metadata directly when thrift fixes the issue.
     ByteBuffer correctData = ByteBuffer.allocate(data.limit() - data.position());
     correctData.put(data);
     correctData.flip();
@@ -273,7 +272,7 @@ public final class CommonUtils {
 
   /**
    * Parse InetSocketAddress from a String
-   *
+   * 
    * @param address
    * @return
    * @throws IOException
@@ -294,7 +293,6 @@ public final class CommonUtils {
    * @throws IOException 
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
-    // set the full permission to everyone. //set the full permission to everyone.
     List<String> commands = new ArrayList<String>();
     commands.add("/bin/chmod");
     commands.add(perms);
@@ -302,7 +300,6 @@ public final class CommonUtils {
     commands.add(file.getAbsolutePath());
 
     try {
-
       ProcessBuilder builder = new ProcessBuilder(commands);
       Process process = builder.start();
 
@@ -314,9 +311,8 @@ public final class CommonUtils {
       if(process.exitValue() != 0) {
         throw new IOException("Can not change the permission of the following file:" + file.getAbsolutePath());
       }
-
     } catch (InterruptedException e) {
-      e.printStackTrace();
+      LOG.error(e.getMessage());
       throw new IOException(e);
     }
   }
@@ -326,7 +322,7 @@ public final class CommonUtils {
   }
   
   static void redirectStreamAsync(final InputStream input, final PrintStream output) {
-    new Thread(new Runnable() {        
+    new Thread(new Runnable() {
       @Override
       public void run() {
         Scanner scanner = new Scanner(input);
@@ -338,11 +334,10 @@ public final class CommonUtils {
     }).start();
   }
 
-
   /**
-   * If the sticky bit of the 'file' is set, the 'file' is only writable to its
-   * owner and the owner of the folder containing the 'file'.
-   *
+   * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the owner
+   * of the folder containing the 'file'.
+   * 
    * @param file
    *          absolute file path
    */
@@ -359,12 +354,17 @@ public final class CommonUtils {
 
   /**
    * Create an empty file
-   *
+   * 
    * @throws IOException
    */
   public static void touch(String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
     OutputStream os = ufs.create(path);
     os.close();
+  }
+
+  public static boolean mkdirs(String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+    return ufs.mkdirs(path, true);
   }
 }
