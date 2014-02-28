@@ -44,6 +44,13 @@ public class UnderfsUtilTest {
   private String mUnderfsAddress = null;
   private UnderFileSystem mUfs = null;
 
+  @After
+  public final void after() throws Exception {
+    mLocalTachyonCluster.stop();
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("tachyon.user.default.block.size.byte");
+  }
+
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
@@ -55,13 +62,6 @@ public class UnderfsUtilTest {
 
     mUnderfsAddress = System.getProperty("tachyon.underfs.address");
     mUfs = UnderFileSystem.get(mUnderfsAddress + "/");
-  }
-
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   @Test

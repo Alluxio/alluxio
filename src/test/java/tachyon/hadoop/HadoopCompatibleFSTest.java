@@ -24,10 +24,7 @@ import java.io.IOException;
 //import org.apache.hadoop.hdfs.MiniDFSCluster;
 //import org.apache.hadoop.hdfs.server.common.HdfsConstants.StartupOption;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
-
 import tachyon.client.TachyonFS;
 import tachyon.master.LocalTachyonCluster;
 
@@ -38,8 +35,14 @@ public class HadoopCompatibleFSTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
-//  private MiniDFSCluster mDfsCluster = null;
-//  private DistributedFileSystem mDfs = null;
+  //  private MiniDFSCluster mDfsCluster = null;
+  //  private DistributedFileSystem mDfs = null;
+
+  @After
+  public final void after() throws Exception {
+    mLocalTachyonCluster.stop();
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+  }
 
   @Before
   public final void before() throws IOException {
@@ -54,11 +57,5 @@ public class HadoopCompatibleFSTest {
     //    FileSystem fs = mDfsCluster.getFileSystem();
     //    Assert.assertTrue("Not a HDFS: "+fs.getUri(), fs instanceof DistributedFileSystem);
     //    mDfs = (DistributedFileSystem) fs;
-  }
-
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 }

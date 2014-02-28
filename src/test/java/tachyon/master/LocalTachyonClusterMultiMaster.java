@@ -42,15 +42,50 @@ import tachyon.worker.Worker;
  * A local Tachyon cluster with Multiple masters
  */
 public class LocalTachyonClusterMultiMaster {
+  public class MasterThread extends Thread {
+    private Master mMaster = null;
+
+    public MasterThread(Master master) {
+      mMaster = master;
+    }
+
+    @Override
+    public void run() {
+      mMaster.start();
+    }
+
+    public void shutdown() {
+      try {
+        mMaster.stop();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private TestingServer mCuratorServer = null;
+  public static void main(String[] args) throws Exception {
+    LocalTachyonCluster cluster = new LocalTachyonCluster(100);
+    cluster.start();
+    CommonUtils.sleepMs(null, 1000);
+    cluster.stop();
+    CommonUtils.sleepMs(null, 1000);
 
+    cluster = new LocalTachyonCluster(100);
+    cluster.start();
+    CommonUtils.sleepMs(null, 1000);
+    cluster.stop();
+    CommonUtils.sleepMs(null, 1000);
+  }
+
+  private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
+
   private List<Master> mMasters = null;
   private Worker mWorker = null;
-
   private List<Integer> mMastersPorts;
+
   private int mWorkerPort;
   private long mWorkerCapacityBytes;
 
@@ -61,14 +96,10 @@ public class LocalTachyonClusterMultiMaster {
   private Thread mWorkerThread = null;
 
   private String mLocalhostName = null;
+
   private UnderFileSystemCluster mUnderFSCluster = null;
 
   private List<TachyonFS> mClients = new ArrayList<TachyonFS>();
-
-  public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters) {
-    this(Constants.DEFAULT_MASTER_PORT - 1000, Constants.DEFAULT_WORKER_PORT - 1000,
-        workerCapacityBytes, masters);
-  }
 
   public LocalTachyonClusterMultiMaster(int masterPort, int workerPort, long workerCapacityBytes,
       int masters) {
@@ -87,6 +118,11 @@ public class LocalTachyonClusterMultiMaster {
     }
   }
 
+  public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters) {
+    this(Constants.DEFAULT_MASTER_PORT - 1000, Constants.DEFAULT_WORKER_PORT - 1000,
+        workerCapacityBytes, masters);
+  }
+
   public synchronized TachyonFS getClient() throws IOException {
     mClients.add(TachyonFS.get(Constants.HEADER_FT + mCuratorServer.getConnectString()));
     return mClients.get(mClients.size() - 1);
@@ -96,28 +132,32 @@ public class LocalTachyonClusterMultiMaster {
     return mClients;
   }
 
-  public List<Integer> getMastersPorts() {
-    return mMastersPorts;
-  }
-
-  public int getWorkerPort() {
-    return mWorkerPort;
-  }
-
-  public String getTachyonHome(){
-    return mTachyonHome;
-  }
-
-  MasterInfo getMasterInfo(int masterIndex) {
-    return mMasters.get(masterIndex).getMasterInfo();
-  }
-
   String getEditLogPath() {
     return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/log.data";
   }
 
   String getImagePath() {
     return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/image.data";
+  }
+
+  MasterInfo getMasterInfo(int masterIndex) {
+    return mMasters.get(masterIndex).getMasterInfo();
+  }
+
+  public List<Integer> getMastersPorts() {
+    return mMastersPorts;
+  }
+
+  public String getTachyonHome(){
+    return mTachyonHome;
+  }
+
+  public String getTempFolderInUnderFs() {
+    return CommonConf.get().UNDERFS_ADDRESS;
+  }
+
+  public int getWorkerPort() {
+    return mWorkerPort;
   }
 
   public boolean killLeader() {
@@ -138,30 +178,6 @@ public class LocalTachyonClusterMultiMaster {
   private void mkdir(String path) throws IOException {
     if (!CommonUtils.mkdirs(path)) {
       throw new IOException("Failed to make folder: " + path);
-    }
-  }
-
-  public String getTempFolderInUnderFs() {
-    return CommonConf.get().UNDERFS_ADDRESS;
-  }
-
-  public class MasterThread extends Thread {
-    private Master mMaster = null;
-
-    public MasterThread(Master master) {
-      mMaster = master;
-    }
-
-    public void run() {
-      mMaster.start();
-    }
-
-    public void shutdown() {
-      try {
-        mMaster.stop();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
     }
   }
 
@@ -224,6 +240,7 @@ public class LocalTachyonClusterMultiMaster {
         new InetSocketAddress(mLocalhostName, mWorkerPort),
         mWorkerPort + 1, 1, 1, 1, mWorkerDataFolder, mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {
+      @Override
       public void run() {
         mWorker.start();
       }
@@ -235,14 +252,6 @@ public class LocalTachyonClusterMultiMaster {
   public void stop() throws Exception {
     stopTFS();
     stopUFS();
-  }
-
-  public void stopUFS() throws Exception {
-    if (null != mUnderFSCluster) {
-      mUnderFSCluster.cleanup();
-    }
-    System.clearProperty("tachyon.master.journal.folder");
-    System.clearProperty("tachyon.underfs.address");
   }
 
   public void stopTFS() throws Exception {
@@ -271,17 +280,11 @@ public class LocalTachyonClusterMultiMaster {
     System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
   }
 
-  public static void main(String[] args) throws Exception {
-    LocalTachyonCluster cluster = new LocalTachyonCluster(100);
-    cluster.start();
-    CommonUtils.sleepMs(null, 1000);
-    cluster.stop();
-    CommonUtils.sleepMs(null, 1000);
-
-    cluster = new LocalTachyonCluster(100);
-    cluster.start();
-    CommonUtils.sleepMs(null, 1000);
-    cluster.stop();
-    CommonUtils.sleepMs(null, 1000);
+  public void stopUFS() throws Exception {
+    if (null != mUnderFSCluster) {
+      mUnderFSCluster.cleanup();
+    }
+    System.clearProperty("tachyon.master.journal.folder");
+    System.clearProperty("tachyon.underfs.address");
   }
 }
