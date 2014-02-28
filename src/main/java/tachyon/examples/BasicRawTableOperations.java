@@ -48,7 +48,7 @@ public class BasicRawTableOperations {
   public static void createRawTable() throws IOException {
     ByteBuffer data = ByteBuffer.allocate(sMetadataLength * 4);
     data.order(ByteOrder.nativeOrder());
-    for (int k = - sMetadataLength; k < 0; k ++) {
+    for (int k = -sMetadataLength; k < 0; k ++) {
       data.putInt(k);
     }
     data.flip();
@@ -57,9 +57,9 @@ public class BasicRawTableOperations {
 
   public static void main(String[] args) throws IOException {
     if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION +
-          "-jar-with-dependencies.jar " +
-          "tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>");
+      System.out.println("java -cp target/tachyon-" + Version.VERSION
+          + "-jar-with-dependencies.jar "
+          + "tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>");
       System.exit(-1);
     }
     sTachyonClient = TachyonFS.get(args[0]);
@@ -78,7 +78,7 @@ public class BasicRawTableOperations {
     ByteBuffer metadata = rawTable.getMetadata();
     LOG.debug("Metadata: ");
     metadata.order(ByteOrder.nativeOrder());
-    for (int k = - sMetadataLength; k < 0; k ++) {
+    for (int k = -sMetadataLength; k < 0; k ++) {
       sPass = sPass && (metadata.getInt() == k);
     }
 
@@ -106,8 +106,8 @@ public class BasicRawTableOperations {
     for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       if (!rawColumn.createPartition(0)) {
-        CommonUtils.runtimeException("Failed to create partition in table " + sTablePath +
-            " under column " + column);
+        CommonUtils.runtimeException("Failed to create partition in table " + sTablePath
+            + " under column " + column);
       }
 
       ByteBuffer buf = ByteBuffer.allocate(80);

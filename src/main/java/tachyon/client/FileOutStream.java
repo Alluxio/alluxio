@@ -101,11 +101,11 @@ public class FileOutStream extends OutStream {
 
       if (WRITE_TYPE.isCache()) {
         try {
-          if(mCancel){
+          if (mCancel) {
             for (BlockOutStream bos : mPreviousBlockOutStreams) {
               bos.cancel();
             }
-          }else {
+          } else {
             for (BlockOutStream bos : mPreviousBlockOutStreams) {
               bos.close();
             }
@@ -171,8 +171,8 @@ public class FileOutStream extends OutStream {
   public void write(byte[] b, int off, int len) throws IOException {
     if (b == null) {
       throw new NullPointerException();
-    } else if ((off < 0) || (off > b.length) || (len < 0) ||
-        ((off + len) > b.length) || ((off + len) < 0)) {
+    } else if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length)
+        || ((off + len) < 0)) {
       throw new IndexOutOfBoundsException();
     }
 
@@ -184,8 +184,8 @@ public class FileOutStream extends OutStream {
           if (mCurrentBlockLeftByte == 0) {
             getNextBlock();
           } else if (mCurrentBlockLeftByte < 0 || mCurrentBlockOutStream == null) {
-            throw new IOException("mCurrentBlockLeftByte " + mCurrentBlockLeftByte + " " +
-                mCurrentBlockOutStream);
+            throw new IOException("mCurrentBlockLeftByte " + mCurrentBlockLeftByte + " "
+                + mCurrentBlockOutStream);
           }
           if (mCurrentBlockLeftByte >= tLen) {
             mCurrentBlockOutStream.write(b, tOff, tLen);

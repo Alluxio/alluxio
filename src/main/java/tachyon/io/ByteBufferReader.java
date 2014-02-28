@@ -26,7 +26,9 @@ import java.nio.ByteOrder;
 public abstract class ByteBufferReader {
   /**
    * Get most efficient ByteBufferReader for the ByteBuffer.
-   * @param buf the ByteBuffer to read.
+   * 
+   * @param buf
+   *          the ByteBuffer to read.
    * @return The most efficient ByteBufferReader for buf.
    * @throws IOException
    */

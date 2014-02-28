@@ -47,6 +47,7 @@ public class Worker implements Runnable {
     return new Worker(masterAddress, workerAddress, dataPort, selectorThreads,
         acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
   }
+
   public static synchronized Worker createWorker(String masterAddress, String workerAddress,
       int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String localFolder, long spaceLimitBytes) {
@@ -76,6 +77,7 @@ public class Worker implements Runnable {
     }
     return masterLocation;
   }
+
   public static void main(String[] args) throws UnknownHostException {
     if (args.length < 1 || args.length > 2) {
       LOG.info("Usage: java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
@@ -85,10 +87,10 @@ public class Worker implements Runnable {
 
     WorkerConf wConf = WorkerConf.get();
 
-    Worker worker = Worker.createWorker(getMasterLocation(args),
-        args[0] + ":" + wConf.PORT, wConf.DATA_PORT,
-        wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
-        wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
+    Worker worker =
+        Worker.createWorker(getMasterLocation(args), args[0] + ":" + wConf.PORT, wConf.DATA_PORT,
+            wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR, wConf.SERVER_THREADS,
+            wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
     worker.start();
   }
 
@@ -120,8 +122,9 @@ public class Worker implements Runnable {
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
-    mDataServer = new DataServer(
-        new InetSocketAddress(workerAddress.getHostName(), dataPort), mWorkerStorage);
+    mDataServer =
+        new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
+            mWorkerStorage);
     mDataServerThread = new Thread(mDataServer);
 
     mHeartbeatThread = new Thread(this);
@@ -138,8 +141,9 @@ public class Worker implements Runnable {
 
       // This is for Thrift 0.7.0, for Hive compatibility.
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(workerAddress);
-      mServer = new THsHaServer(new THsHaServer.Args(mServerTNonblockingServerSocket).
-          processor(processor).workerThreads(workerThreads));
+      mServer =
+          new THsHaServer(new THsHaServer.Args(mServerTNonblockingServerSocket).processor(
+              processor).workerThreads(workerThreads));
     } catch (TTransportException e) {
       LOG.error(e.getMessage(), e);
       CommonUtils.runtimeException(e);

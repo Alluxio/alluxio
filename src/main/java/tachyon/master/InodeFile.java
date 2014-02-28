@@ -62,8 +62,8 @@ public class InodeFile extends Inode {
       throw new BlockInfoException("BLOCK_INDEX unmatch: " + mBlocks.size() + " != " + blockInfo);
     }
     if (blockInfo.OFFSET != mBlocks.size() * BLOCK_SIZE_BYTE) {
-      throw new BlockInfoException("OFFSET unmatch: " + mBlocks.size() * BLOCK_SIZE_BYTE
-          + " != " + blockInfo);
+      throw new BlockInfoException("OFFSET unmatch: " + mBlocks.size() * BLOCK_SIZE_BYTE + " != "
+          + blockInfo);
     }
     if (blockInfo.LENGTH > BLOCK_SIZE_BYTE) {
       throw new BlockInfoException("LENGTH too big: " + BLOCK_SIZE_BYTE + " " + blockInfo);
@@ -243,7 +243,7 @@ public class InodeFile extends Inode {
   }
 
   public synchronized void setLength(long length) throws SuspectedFileSizeException,
-  BlockInfoException {
+      BlockInfoException {
     if (isComplete()) {
       throw new SuspectedFileSizeException("InodeFile length was set previously.");
     }

@@ -26,7 +26,9 @@ import java.nio.ByteOrder;
 public abstract class ByteBufferWriter {
   /**
    * Get most efficient ByteBufferWriter for the ByteBuffer.
-   * @param buf the ByteBuffer to write.
+   * 
+   * @param buf
+   *          the ByteBuffer to write.
    * @return The most efficient ByteBufferWriter for buf.
    * @throws IOException
    */
@@ -60,7 +62,9 @@ public abstract class ByteBufferWriter {
   /**
    * Writes the given byte into this buffer at the current position, and then increments the
    * position.
-   * @param b The byte to be written
+   * 
+   * @param b
+   *          The byte to be written
    */
   public abstract void put(Byte b);
 
@@ -68,8 +72,11 @@ public abstract class ByteBufferWriter {
    * This method transfers the entire content of the given source byte array into this buffer. An
    * invocation of this method of the form <tt>dst.put(a)</tt> behaves in exactly the same way as
    * the invocation
+   * 
    * <pre>
-   * dst.put(a, 0, a.length) </pre>
+   * dst.put(a, 0, a.length)
+   * </pre>
+   * 
    * @param src
    */
   public final void put(byte[] src) {

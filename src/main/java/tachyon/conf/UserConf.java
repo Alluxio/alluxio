@@ -35,6 +35,7 @@ public class UserConf extends Utils {
 
     return USER_CONF;
   }
+
   public final int FAILED_SPACE_REQUEST_LIMITS;
   public final long QUOTA_UNIT_BYTES;
   public final int FILE_BUFFER_BYTES;

@@ -41,8 +41,11 @@ public class Image {
 
   /**
    * Write a new image to path. This method assumes having a lock on the master info.
-   * @param info the master info to generate the image
-   * @param path the new image path
+   * 
+   * @param info
+   *          the master info to generate the image
+   * @param path
+   *          the new image path
    * @throws IOException
    */
   public static void create(MasterInfo info, String path) throws IOException {
@@ -82,8 +85,8 @@ public class Image {
 
     int tVersion = imageIs.readInt();
     if (tVersion != Constants.JOURNAL_VERSION) {
-      throw new IOException("Image " + path + " has journal version " + tVersion + " ." +
-          "The system has verion " + Constants.JOURNAL_VERSION);
+      throw new IOException("Image " + path + " has journal version " + tVersion + " ."
+          + "The system has verion " + Constants.JOURNAL_VERSION);
     }
 
     info.loadImage(imageIs);

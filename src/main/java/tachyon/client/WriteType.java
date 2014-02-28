@@ -23,7 +23,7 @@ import java.io.IOException;
  */
 public enum WriteType {
   /**
-   *  Write the file and must cache it.
+   * Write the file and must cache it.
    */
   MUST_CACHE(1),
   /**
@@ -74,10 +74,8 @@ public enum WriteType {
   }
 
   public boolean isCache() {
-    return (mValue == MUST_CACHE.mValue)
-        || (mValue == CACHE_THROUGH.mValue)
-        || (mValue == TRY_CACHE.mValue)
-        || (mValue == ASYNC_THROUGH.mValue);
+    return (mValue == MUST_CACHE.mValue) || (mValue == CACHE_THROUGH.mValue)
+        || (mValue == TRY_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
   }
 
   public boolean isMustCache() {

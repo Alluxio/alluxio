@@ -58,8 +58,8 @@ public class RawTable {
 
   public RawColumn getRawColumn(int columnIndex) {
     if (columnIndex < 0 || columnIndex >= CLIENT_RAW_TABLE_INFO.getColumns()) {
-      CommonUtils.runtimeException(CLIENT_RAW_TABLE_INFO.getPath() + " does not have column " +
-          columnIndex + ". It has " + CLIENT_RAW_TABLE_INFO.getColumns() + " columns.");
+      CommonUtils.runtimeException(CLIENT_RAW_TABLE_INFO.getPath() + " does not have column "
+          + columnIndex + ". It has " + CLIENT_RAW_TABLE_INFO.getColumns() + " columns.");
     }
 
     return new RawColumn(TACHYON_CLIENT, this, columnIndex);

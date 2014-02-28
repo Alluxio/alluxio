@@ -46,16 +46,20 @@ import tachyon.util.CommonUtils;
 public class TFsShell {
   /**
    * Main method, starts a new TFsShell
-   * @param argv[] Array of arguments given by the user's input from the terminal
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
    */
-  public static void main(String argv[]) throws TException{
+  public static void main(String argv[]) throws TException {
     TFsShell shell = new TFsShell();
     System.exit(shell.run(argv));
   }
 
   /**
    * Prints the file's contents to the console.
-   * @param argv[] Array of arguments given by the user's input from the terminal
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -90,7 +94,9 @@ public class TFsShell {
   /**
    * Copies a file or directory specified by argv from the local filesystem to the filesystem. Will
    * fail if the path given already exists in the filesystem.
-   * @param argv[] Array of arguments given by the user's input from the terminal
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -150,7 +156,9 @@ public class TFsShell {
 
   /**
    * Copies a file specified by argv from the filesystem to the local filesystem.
-   * @param argv[] Array of arguments given by the user's input from the terminal
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -187,7 +195,9 @@ public class TFsShell {
 
   /**
    * Displays the number of folders and files matching the specified prefix in argv.
-   * @param argv[] Array of arguments given by the user's input from the terminal
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -210,10 +220,10 @@ public class TFsShell {
     TachyonFile tFile = tachyonClient.getFile(folder);
 
     if (tFile.isFile()) {
-      return new long[] {1L, 0L, tFile.length()};
+      return new long[] { 1L, 0L, tFile.length() };
     }
 
-    long[] rtn = new long[] {0L, 1L, 0L};
+    long[] rtn = new long[] { 0L, 1L, 0L };
 
     List<ClientFileInfo> files = tachyonClient.listStatus(folder);
     Collections.sort(files);
@@ -228,7 +238,9 @@ public class TFsShell {
 
   /**
    * Displays the file's all blocks info
-   * @param argv[] Array of arguments given by the user's input from the terminal
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -243,7 +255,7 @@ public class TFsShell {
     int fileId = tachyonClient.getFileId(file);
     List<ClientBlockInfo> blocks = tachyonClient.getFileBlocks(fileId);
     System.out.println(file + " with file id " + fileId + " have following blocks: ");
-    for (ClientBlockInfo block: blocks) {
+    for (ClientBlockInfo block : blocks) {
       System.out.println(block);
     }
     return 0;
@@ -251,7 +263,9 @@ public class TFsShell {
 
   /**
    * Displays a list of hosts that have the file specified in argv stored.
-   * @param argv[] Array of arguments given by the user's input from the terminal
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -266,7 +280,7 @@ public class TFsShell {
     int fileId = tachyonClient.getFileId(file);
     List<String> hosts = tachyonClient.getFile(fileId).getLocationHosts();
     System.out.println(file + " with file id " + fileId + " are on nodes: ");
-    for (String host: hosts) {
+    for (String host : hosts) {
       System.out.println(host);
     }
     return 0;
@@ -274,7 +288,9 @@ public class TFsShell {
 
   /**
    * Displays information for all directories and files directly under the path specified in argv.
-   * @param argv[] Array of arguments given by the user's input from the terminal
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -290,9 +306,9 @@ public class TFsShell {
     Collections.sort(files);
     String format = "%-10s%-25s%-15s%-5s\n";
     for (ClientFileInfo file : files) {
-      System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
-          CommonUtils.convertMsToDate(file.getCreationTimeMs()),
-          file.isInMemory() ? "In Memory" : "Not In Memory", file.getPath());
+      System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()), CommonUtils
+          .convertMsToDate(file.getCreationTimeMs()), file.isInMemory() ? "In Memory"
+          : "Not In Memory", file.getPath());
     }
     return 0;
   }
@@ -300,7 +316,9 @@ public class TFsShell {
   /**
    * Displays information for all directories and files under the path specified in argv
    * recursively.
-   * @param argv[] Array of arguments given by the user's input from the terminal
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -316,11 +334,11 @@ public class TFsShell {
     Collections.sort(files);
     String format = "%-10s%-25s%-15s%-5s\n";
     for (ClientFileInfo file : files) {
-      System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
-          CommonUtils.convertMsToDate(file.getCreationTimeMs()),
-          file.isInMemory() ? "In Memory" : "Not In Memory", file.getPath());
+      System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()), CommonUtils
+          .convertMsToDate(file.getCreationTimeMs()), file.isInMemory() ? "In Memory"
+          : "Not In Memory", file.getPath());
       if (file.isFolder()) {
-        lsr(new String[]{"lsr", file.getPath()});
+        lsr(new String[] { "lsr", file.getPath() });
       }
     }
     return 0;
@@ -329,7 +347,9 @@ public class TFsShell {
   /**
    * Creates a new directory specified by the path in argv, including any parent folders that
    * are required. This method fails if a directory or file with the same path already exists.
-   * @param argv[] Array of arguments given by the user's input from the terminal
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -374,7 +394,9 @@ public class TFsShell {
   /**
    * Renames a file or directory specified by argv. Will fail if the new path name already
    * exists.
-   * @param argv[] Array of arguments given by the user's input from the terminal
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws TException
    */
@@ -431,7 +453,9 @@ public class TFsShell {
   /**
    * Removes the file or directory specified by argv. Will remove all files and directories in
    * the directory if a directory is specified.
-   * @param argv[] Array of arguments given by the user's input from the terminal
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */

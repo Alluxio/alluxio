@@ -204,13 +204,14 @@ public class RemoteBlockInStream extends BlockInStream {
           String localFileName = TFS.getRootFolder() + "/" + blockInfo.blockId;
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         }
-        LOG.info(host + ":" + (port + 1) +
-            " current host is " + InetAddress.getLocalHost().getHostName() + " " +
-            InetAddress.getLocalHost().getHostAddress());
+        LOG.info(host + ":" + (port + 1) + " current host is "
+            + InetAddress.getLocalHost().getHostName() + " "
+            + InetAddress.getLocalHost().getHostAddress());
 
         try {
-          buf = retrieveByteBufferFromRemoteMachine(
-              new InetSocketAddress(host, port + 1), blockInfo.blockId, offset, len);
+          buf =
+              retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port + 1),
+                  blockInfo.blockId, offset, len);
           if (buf != null) {
             break;
           }
@@ -227,8 +228,8 @@ public class RemoteBlockInStream extends BlockInStream {
     return buf;
   }
 
-  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
-      long blockId, long offset, long length) throws IOException {
+  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, long blockId,
+      long offset, long length) throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
     socketChannel.connect(address);
 
@@ -241,8 +242,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
     LOG.info("Data " + blockId + " to remote machine " + address + " sent");
 
-    DataServerMessage recvMsg =
-        DataServerMessage.createBlockResponseMessage(false, blockId);
+    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
     while (!recvMsg.isMessageReady()) {
       int numRead = recvMsg.recv(socketChannel);
       if (numRead == -1) {
@@ -274,7 +274,7 @@ public class RemoteBlockInStream extends BlockInStream {
     mRecache = false;
     if (mCurrentBuffer != null) {
       mReadByte = pos;
-      if(mBufferStartPosition <= pos && pos < mBufferStartPosition + mCurrentBuffer.limit()) {
+      if (mBufferStartPosition <= pos && pos < mBufferStartPosition + mCurrentBuffer.limit()) {
         mCurrentBuffer.position((int) (pos - mBufferStartPosition));
       } else {
         mBufferStartPosition = pos;
@@ -300,13 +300,13 @@ public class RemoteBlockInStream extends BlockInStream {
           long skipped = mCheckpointInputStream.skip(offset);
           offset -= skipped;
           if (skipped == 0) {
-            throw new IOException("Failed to find the start position " + offset +
-                " for block " + mBlockInfo);
+            throw new IOException("Failed to find the start position " + offset + " for block "
+                + mBlockInfo);
           }
         }
       } catch (IOException e) {
-        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " + FILE.FID +
-            "\n" + e);
+        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " + FILE.FID
+            + "\n" + e);
         mCheckpointInputStream = null;
       }
     }

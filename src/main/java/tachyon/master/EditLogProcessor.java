@@ -40,7 +40,7 @@ public class EditLogProcessor implements Runnable {
     UnderFileSystem ufs = UnderFileSystem.get(mPath);
     while (mIsStandby) {
       try {
-        synchronized(mJournal) {
+        synchronized (mJournal) {
           long lastImageModTime = mJournal.getImageModTime();
           if (mLoadedImageModTime != lastImageModTime) {
             LOG.info("The last loaded image is out of date. Loading updated image.");
@@ -62,10 +62,10 @@ public class EditLogProcessor implements Runnable {
           }
           LOG.info("Edit log with " + path + " was not found.");
           if (mLastImageFileNum != mCurrentLogFileNum) {
-            LOG.info("Last image was updated with log number: " + mLastImageFileNum +
-                " writing new image up to log number " + mCurrentLogFileNum);
-            mJournal.createImage(mMasterInfo, mPath + mMasterInfo.getMasterAddress().getHostName() +
-                mMasterInfo.getMasterAddress().getPort() + "/standby.image");
+            LOG.info("Last image was updated with log number: " + mLastImageFileNum
+                + " writing new image up to log number " + mCurrentLogFileNum);
+            mJournal.createImage(mMasterInfo, mPath + mMasterInfo.getMasterAddress().getHostName()
+                + mMasterInfo.getMasterAddress().getPort() + "/standby.image");
             LOG.info("Finished creating image");
             mLastImageFileNum = mCurrentLogFileNum;
           }

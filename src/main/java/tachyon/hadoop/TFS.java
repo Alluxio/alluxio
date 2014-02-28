@@ -242,9 +242,10 @@ public class TFS extends FileSystem {
       throw new FileNotFoundException("File does not exist: " + path);
     }
 
-    FileStatus ret = new FileStatus(file.length(), file.isDirectory(), file.getDiskReplication(),
-        file.getBlockSizeByte(), file.getCreationTimeMs(), file.getCreationTimeMs(), null, null,
-        null, new Path(mTachyonHeader + tPath));
+    FileStatus ret =
+        new FileStatus(file.length(), file.isDirectory(), file.getDiskReplication(),
+            file.getBlockSizeByte(), file.getCreationTimeMs(), file.getCreationTimeMs(), null,
+            null, null, new Path(mTachyonHeader + tPath));
     return ret;
   }
 
@@ -275,7 +276,7 @@ public class TFS extends FileSystem {
   public void initialize(URI uri, Configuration conf) throws IOException {
     super.initialize(uri, conf);
     LOG.info("initialize(" + uri + ", " + conf + "). Connecting to Tachyon: " + uri.toString());
-    mTachyonHeader = uri.getScheme() +  "://" + uri.getHost() + ":" + uri.getPort();
+    mTachyonHeader = uri.getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
     mTFS = TachyonFS.get(mTachyonHeader);
     mUri = URI.create(mTachyonHeader);
     UNDERFS_ADDRESS = mTFS.getUnderfsAddress();
@@ -301,9 +302,10 @@ public class TFS extends FileSystem {
     for (int k = 0; k < files.size(); k ++) {
       ClientFileInfo info = files.get(k);
       // TODO replicate 3 with the number of disk replications.
-      ret[k] = new FileStatus(info.getLength(), info.isFolder(), 3, info.getBlockSizeByte(),
-          info.getCreationTimeMs(), info.getCreationTimeMs(), null, null, null, new Path(
-              mTachyonHeader + info.getPath()));
+      ret[k] =
+          new FileStatus(info.getLength(), info.isFolder(), 3, info.getBlockSizeByte(),
+              info.getCreationTimeMs(), info.getCreationTimeMs(), null, null, null, new Path(
+                  mTachyonHeader + info.getPath()));
     }
     return ret;
   }

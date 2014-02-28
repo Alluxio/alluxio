@@ -41,8 +41,11 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
 
   /**
    * Populates attributes before redirecting to a jsp.
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletReponse object
+   * 
+   * @param request
+   *          The HttpServletRequest object
+   * @param response
+   *          The HttpServletReponse object
    */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)

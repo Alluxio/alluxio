@@ -49,7 +49,7 @@ public abstract class Inode implements Comparable<Inode> {
     if (!(o instanceof Inode)) {
       return false;
     }
-    return mId == ((Inode)o).mId;
+    return mId == ((Inode) o).mId;
   }
 
   public abstract ClientFileInfo generateClientFileInfo(String path);
@@ -88,7 +88,7 @@ public abstract class Inode implements Comparable<Inode> {
   }
 
   public synchronized void reverseId() {
-    mId = - mId;
+    mId = -mId;
   }
 
   public synchronized void setName(String name) {

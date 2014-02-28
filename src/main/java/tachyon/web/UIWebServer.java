@@ -45,9 +45,13 @@ public class UIWebServer {
 
   /**
    * Constructor that pairs urls with servlets and sets the webapp folder.
-   * @param serverName Name of the server
-   * @param address Address of the server
-   * @param masterInfo MasterInfo for the tachyon filesystem this UIWebServer supports
+   * 
+   * @param serverName
+   *          Name of the server
+   * @param address
+   *          Address of the server
+   * @param masterInfo
+   *          MasterInfo for the tachyon filesystem this UIWebServer supports
    * @return A new UIWebServer
    */
   public UIWebServer(String serverName, InetSocketAddress address, MasterInfo masterInfo) {
@@ -58,17 +62,17 @@ public class UIWebServer {
     WebAppContext webappcontext = new WebAppContext();
 
     webappcontext.setContextPath("/");
-    File warPath = new File(CommonConf.get().WEB_RESOURCES );
+    File warPath = new File(CommonConf.get().WEB_RESOURCES);
     webappcontext.setWar(warPath.getAbsolutePath());
     HandlerList handlers = new HandlerList();
-    webappcontext.addServlet(
-        new ServletHolder(new WebInterfaceGeneralServlet(masterInfo)), "/home");
-    webappcontext.addServlet(
-        new ServletHolder(new WebInterfaceBrowseServlet(masterInfo)), "/browse");
-    webappcontext.addServlet(
-        new ServletHolder(new WebInterfaceMemoryServlet(masterInfo)), "/memory");
-    webappcontext.addServlet(
-        new ServletHolder(new WebInterfaceDependencyServlet(masterInfo)), "/dependency");
+    webappcontext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterInfo)),
+        "/home");
+    webappcontext.addServlet(new ServletHolder(new WebInterfaceBrowseServlet(masterInfo)),
+        "/browse");
+    webappcontext.addServlet(new ServletHolder(new WebInterfaceMemoryServlet(masterInfo)),
+        "/memory");
+    webappcontext.addServlet(new ServletHolder(new WebInterfaceDependencyServlet(masterInfo)),
+        "/dependency");
 
     handlers.setHandlers(new Handler[] { webappcontext, new DefaultHandler() });
     mServer.setHandler(handlers);

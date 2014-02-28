@@ -39,7 +39,7 @@ import tachyon.thrift.WorkerService;
 
 /**
  * The client talks to a worker server. It keeps sending keep alive message to the worker server.
- *
+ * 
  * Since WorkerService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class WorkerClient {
@@ -56,14 +56,15 @@ public class WorkerClient {
 
   public WorkerClient(InetSocketAddress address, long userId) {
     mWorkerAddress = address;
-    mProtocol = new TBinaryProtocol(new TFramedTransport(new TSocket(
-        mWorkerAddress.getHostName(), mWorkerAddress.getPort())));
+    mProtocol =
+        new TBinaryProtocol(new TFramedTransport(new TSocket(mWorkerAddress.getHostName(),
+            mWorkerAddress.getPort())));
     CLIENT = new WorkerService.Client(mProtocol);
 
     mUserId = userId;
-    mHeartbeatThread = new HeartbeatThread("WorkerClientToWorkerHeartbeat",
-        new WorkerClientHeartbeatExecutor(this, mUserId),
-        UserConf.get().HEARTBEAT_INTERVAL_MS);
+    mHeartbeatThread =
+        new HeartbeatThread("WorkerClientToWorkerHeartbeat", new WorkerClientHeartbeatExecutor(
+            this, mUserId), UserConf.get().HEARTBEAT_INTERVAL_MS);
     mHeartbeatThread.setDaemon(true);
   }
 
@@ -71,8 +72,7 @@ public class WorkerClient {
     CLIENT.accessBlock(blockId);
   }
 
-  public synchronized void addCheckpoint(long userId, int fileId)
-      throws IOException, TException {
+  public synchronized void addCheckpoint(long userId, int fileId) throws IOException, TException {
     try {
       CLIENT.addCheckpoint(userId, fileId);
     } catch (FileDoesNotExistException e) {
@@ -90,8 +90,7 @@ public class WorkerClient {
     return CLIENT.asyncCheckpoint(fid);
   }
 
-  public synchronized void cacheBlock(long userId, long blockId)
-      throws IOException, TException {
+  public synchronized void cacheBlock(long userId, long blockId) throws IOException, TException {
     try {
       CLIENT.cacheBlock(userId, blockId);
     } catch (FileDoesNotExistException e) {

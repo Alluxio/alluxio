@@ -85,22 +85,23 @@ public class BlockOutStream extends OutStream {
     mLocalFilePath = localFolder.getPath() + "/" + BLOCK_ID;
     mLocalFile = new RandomAccessFile(mLocalFilePath, "rw");
     mLocalFileChannel = mLocalFile.getChannel();
-    //change the permission of the temporary file in order that the worker can move it.
+    // change the permission of the temporary file in order that the worker can move it.
     CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
-    //use the sticky bit, only the client and the worker can write to the block
+    // use the sticky bit, only the client and the worker can write to the block
     CommonUtils.setLocalFileStickyBit(mLocalFilePath);
     LOG.info(mLocalFilePath + " was created!");
 
     mBuffer = ByteBuffer.allocate(USER_CONF.FILE_BUFFER_BYTES + 4);
   }
 
-  private synchronized void appendCurrentBuffer(byte[] buf, int offset,
-      int length) throws IOException {
+  private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
+      throws IOException {
     if (!TFS.requestSpace(length)) {
       mCanWrite = false;
 
-      String msg = "Local tachyon worker does not have enough " +
-          "space (" + length + ") or no worker for " + FILE.FID + " " + BLOCK_ID;
+      String msg =
+          "Local tachyon worker does not have enough " + "space (" + length
+              + ") or no worker for " + FILE.FID + " " + BLOCK_ID;
       if (PIN) {
         TFS.outOfMemoryForPinFile(FILE.FID);
         throw new IOException(msg);
@@ -171,10 +172,10 @@ public class BlockOutStream extends OutStream {
   public void write(byte[] b, int off, int len) throws IOException {
     if (b == null) {
       throw new NullPointerException();
-    } else if ((off < 0) || (off > b.length) || (len < 0) ||
-        ((off + len) > b.length) || ((off + len) < 0)) {
-      throw new IndexOutOfBoundsException(String.format(
-          "Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+    } else if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length)
+        || ((off + len) < 0)) {
+      throw new IndexOutOfBoundsException(String.format("Buffer length (%d), offset(%d), len(%d)",
+          b.length, off, len));
     }
 
     if (!mCanWrite) {
