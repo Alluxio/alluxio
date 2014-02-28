@@ -289,8 +289,13 @@ public final class CommonUtils {
   }
 
   /**
-   * @param file that will change permission
-   * @throws IOException 
+   * Change local file's permission.
+   * 
+   * @param filePath
+   *          that will change permission
+   * @param perms
+   *          the permission, e.g. "775"
+   * @throws IOException
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
     List<String> commands = new ArrayList<String>();
@@ -308,8 +313,9 @@ public final class CommonUtils {
 
       process.waitFor();
 
-      if(process.exitValue() != 0) {
-        throw new IOException("Can not change the permission of the following file:" + file.getAbsolutePath());
+      if (process.exitValue() != 0) {
+        throw new IOException("Can not change the file " + file.getAbsolutePath()
+            + " 's permission to be " + perms);
       }
     } catch (InterruptedException e) {
       LOG.error(e.getMessage());
