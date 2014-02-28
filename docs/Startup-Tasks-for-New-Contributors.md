@@ -48,6 +48,7 @@ and then submit a pull request. You are also welcome to address issues in our
     -  `i ++` instead of `i++`
     -  `i + j` instead of `i+j`
     -  Class and member modifiers, when present, appear in the order recommended by the Java Language Specification: `public protected private abstract static final transient volatile synchronized native strictfp`
+-   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml).
 
 ### Submitting Code
 
