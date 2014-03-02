@@ -3,15 +3,11 @@ Tachyon
 
 The master branch is in version 0.5.0-SNAPSHOT:
 
-Project Homepage: http://www.tachyonproject.org
-
-Previous Releases: https://github.com/amplab/tachyon/tags
-
-Master Branch Document: http://tachyon-project.org/master/
-
-JIRA: https://spark-project.atlassian.net/browse/TACHYON
-
-User Mailing List: https://groups.google.com/forum/?fromgroups#!forum/tachyon-users
+- [Project Homepage](http://www.tachyonproject.org)
+- [Previous Releases](https://github.com/amplab/tachyon/tags)
+- [Master Branch Document](http://tachyon-project.org/master/)
+- [Tachyon Issue Tracker](https://spark-project.atlassian.net/browse/TACHYON)
+- [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
 
 ## Dependency Information
 
