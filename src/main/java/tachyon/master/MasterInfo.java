@@ -267,11 +267,23 @@ public class MasterInfo {
 
   public static final String COL = "COL_";
 
+  /**
+   * Get the name of the file at a path.
+   * @param path
+   *          The path
+   * @return the name of the file
+   */
   private static String getName(String path) throws InvalidPathException {
     String[] pathNames = getPathNames(path);
     return pathNames[pathNames.length - 1];
   }
 
+  /**
+   * Get the path components of the given path.
+   * @param path
+   *          The path to split
+   * @return the path split into components
+   */
   private static String[] getPathNames(String path) throws InvalidPathException {
     CommonUtils.validatePath(path);
     if (path.length() == 1 && path.equals(Constants.PATH_SEPARATOR)) {
@@ -298,10 +310,13 @@ public class MasterInfo {
   private AtomicInteger mWorkerCounter = new AtomicInteger(0);
   // Root Inode's id must be 1.
   private InodeFolder mRoot;
+  // A map from file ID's to Inodes. All operations on it are
+  // currently synchronized on mRoot.
   private Map<Integer, Inode> mInodes = new HashMap<Integer, Inode>();
   private Map<Integer, Dependency> mDependencies = new HashMap<Integer, Dependency>();
 
   // TODO add initialization part for master failover or restart.
+  // All operations on these members are synchronized on mDependencies.
   private Set<Integer> mUncheckpointedDependencies = new HashSet<Integer>();
   private Set<Integer> mPriorityDependencies = new HashSet<Integer>();
   private Set<Integer> mLostFiles = new HashSet<Integer>();
@@ -634,7 +649,7 @@ public class MasterInfo {
           }
         }
       }
-      addFile(fileId, tFile.getDependencyId());
+      addFile(fileId);
       tFile.setComplete();
 
       if (needLog) {
@@ -645,7 +660,13 @@ public class MasterInfo {
     }
   }
 
-  private void addFile(int fileId, int dependencyId) {
+  /**
+   * Removes a checkpointed file from the set of lost or being-recomputed files if it's there
+   *
+   * @param fileId
+   *          The file to examine
+   */
+  private void addFile(int fileId) {
     synchronized (mDependencies) {
       if (mLostFiles.contains(fileId)) {
         mLostFiles.remove(fileId);
@@ -658,7 +679,7 @@ public class MasterInfo {
 
   /**
    * A worker cache a block in its memory.
-   * 
+   *
    * @param workerId
    * @param workerUsedBytes
    * @param blockId
@@ -707,6 +728,12 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Completes the checkpointing of a file.
+   *
+   * @param fileId
+   *          The id of the file
+   */
   public void completeFile(int fileId) throws FileDoesNotExistException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
@@ -744,6 +771,7 @@ public class MasterInfo {
     }
   }
 
+
   /**
    * Create a file. // TODO Make this API better.
    * 
@@ -753,6 +781,7 @@ public class MasterInfo {
    * @param columns
    * @param metadata
    * @param blockSizeByte
+   * @param creationTimeMs
    * @return
    * @throws FileAlreadyExistException
    * @throws InvalidPathException
@@ -778,6 +807,12 @@ public class MasterInfo {
     return createFile(true, path, false, -1, null, blockSizeByte);
   }
 
+  /**
+   * Create an image of the dependencies and filesystem tree.
+   *
+   * @param os
+   *          The output stream to write the image to
+   */
   public void createImage(DataOutputStream os) throws IOException {
     Queue<Inode> nodesQueue = new LinkedList<Inode>();
 
@@ -812,6 +847,14 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Writes a dependency.
+   *
+   * @param dep
+   *          The dependency to write
+   * @param os
+   *          The output stream to write the dependency to
+   */
   private void createImageDependencyWriter(Dependency dep, DataOutputStream os) throws IOException {
     os.writeByte(Image.T_DEPENDENCY);
     os.writeInt(dep.ID);
@@ -828,6 +871,14 @@ public class MasterInfo {
     Utils.writeIntegerList(dep.getUncheckpointedChildrenFiles(), os);
   }
 
+  /**
+   * Writes an inode.
+   *
+   * @param inode
+   *          The inode to write
+   * @param os
+   *          The output stream to write the inode to
+   */
   private void createImageInodeWriter(Inode inode, DataOutputStream os) throws IOException {
     if (inode.isFile()) {
       InodeFile file = (InodeFile) inode;
@@ -871,6 +922,12 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Creates a new block for the given file.
+   *
+   * @param fileId
+   *          The id of the file
+   */
   public long createNewBlock(int fileId) throws FileDoesNotExistException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
@@ -886,6 +943,17 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Creates a raw table.
+   *
+   * @param path
+   *          The path to place the table at
+   * @param columns
+   *          The number of columns in the table
+   * @param metadata
+   *          Additional metadata about the table
+   * @return the file id of the table
+   */
   public int createRawTable(String path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException,
       TachyonException {
@@ -912,7 +980,7 @@ public class MasterInfo {
 
   /**
    * Delete a file based on the file's ID.
-   * 
+   *
    * @param fileId
    *          the file to be deleted.
    * @param recursive
@@ -931,7 +999,7 @@ public class MasterInfo {
 
   /**
    * Delete a file based on the file's path.
-   * 
+   *
    * @param path
    *          The file to be deleted.
    * @param recursive
@@ -971,7 +1039,7 @@ public class MasterInfo {
 
   /**
    * Get the list of blocks of an InodeFile determined by path.
-   * 
+   *
    * @param path
    *          The file.
    * @return The list of the blocks of the file.
@@ -993,7 +1061,7 @@ public class MasterInfo {
 
   /**
    * Get the capacity of the whole system.
-   * 
+   *
    * @return the system's capacity in bytes.
    */
   public long getCapacityBytes() {
@@ -1006,6 +1074,13 @@ public class MasterInfo {
     return ret;
   }
 
+  /**
+   * Get the block info associated with the given id.
+   *
+   * @param blockId
+   *          The id of the block return
+   * @return the block info
+   */
   public ClientBlockInfo getClientBlockInfo(long blockId) throws FileDoesNotExistException,
       IOException, BlockInfoException {
     int fileId = BlockInfo.computeInodeId(blockId);
@@ -1021,6 +1096,13 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Get the dependency info associated with the given id.
+   *
+   * @param dependencyId
+   *          The id of the dependency
+   * @return the dependency info
+   */
   public ClientDependencyInfo getClientDependencyInfo(int dependencyId)
       throws DependencyDoesNotExistException {
     Dependency dep = null;
@@ -1033,6 +1115,13 @@ public class MasterInfo {
     return dep.generateClientDependencyInfo();
   }
 
+  /**
+   * Get the file info associated with the given id.
+   *
+   * @param fid
+   *          The id of the file
+   * @return the file info
+   */
   public ClientFileInfo getClientFileInfo(int fid) throws FileDoesNotExistException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fid);
@@ -1046,6 +1135,13 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Get the file info for the file at the given path
+   *
+   * @param path
+   *          The path of the file
+   * @return the file info
+   */
   public ClientFileInfo getClientFileInfo(String path) throws FileDoesNotExistException,
       InvalidPathException {
     LOG.info("getClientFileInfo(" + path + ")");
@@ -1058,6 +1154,13 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Get the raw table info associated with the given id.
+   *
+   * @param id
+   *          The id of the table
+   * @return the table info
+   */
   public ClientRawTableInfo getClientRawTableInfo(int id) throws TableDoesNotExistException {
     LOG.info("getClientRawTableInfo(" + id + ")");
     synchronized (mRoot) {
@@ -1075,6 +1178,13 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Get the raw table info for the table at the given path
+   *
+   * @param path
+   *          The path of the table
+   * @return the table info
+   */
   public ClientRawTableInfo getClientRawTableInfo(String path) throws TableDoesNotExistException,
       InvalidPathException {
     LOG.info("getClientRawTableInfo(" + path + ")");
@@ -1089,7 +1199,7 @@ public class MasterInfo {
 
   /**
    * Get the file id of the file.
-   * 
+   *
    * @param path
    *          The path of the file
    * @return The file id of the file. -1 if the file does not exist.
@@ -1106,6 +1216,14 @@ public class MasterInfo {
     return ret;
   }
 
+  /**
+   * Get the block infos of a file with the given id. Throws an exception if the id names a
+   * directory.
+   *
+   * @param fileId
+   *          The id of the file to look up
+   * @return the block infos of the file
+   */
   public List<ClientBlockInfo> getFileLocations(int fileId) throws FileDoesNotExistException,
       IOException {
     synchronized (mRoot) {
@@ -1119,6 +1237,14 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Get the block infos of a file with the given path. Throws an exception if the path names a
+   * directory.
+   *
+   * @param path
+   *          The path of the file to look up
+   * @return the block infos of the file
+   */
   public List<ClientBlockInfo> getFileLocations(String path) throws FileDoesNotExistException,
       InvalidPathException, IOException {
     LOG.info("getFileLocations: " + path);
@@ -1131,6 +1257,13 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Get the path of a file with the given id
+   *
+   * @param fileId
+   *          The id of the file to look up
+   * @return the path of the file
+   */
   public String getFileNameById(int fileId) throws FileDoesNotExistException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
@@ -1141,6 +1274,14 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Get the file id's of the given paths. It recursively scans directories for the file id's inside
+   * of them.
+   *
+   * @param pathList
+   *          The list of paths to look at
+   * @return the file id's of the files.
+   */
   private List<Integer> getFilesIds(List<String> pathList) throws InvalidPathException,
       FileDoesNotExistException {
     List<Integer> ret = new ArrayList<Integer>(pathList.size());
@@ -1219,10 +1360,24 @@ public class MasterInfo {
     return ret;
   }
 
+  /**
+   * Get the inode of the file at the given path.
+   *
+   * @param path
+   *          The path to search for
+   * @return the inode of the file at the given path, or null if the file does not exist
+   */
   private Inode getInode(String path) throws InvalidPathException {
     return getInode(getPathNames(path));
   }
 
+  /**
+   * Get the inode at the given path.
+   *
+   * @param pathNames
+   *          The path to search for, broken into components
+   * @return the inode of the file at the given path, or null if the file does not exist
+   */
   private Inode getInode(String[] pathNames) throws InvalidPathException {
     if (pathNames == null || pathNames.length == 0) {
       return null;
@@ -1260,14 +1415,29 @@ public class MasterInfo {
     return mJournal;
   }
 
+  /**
+   * Get the master address.
+   * @return the master address
+   */
   public InetSocketAddress getMasterAddress() {
     return MASTER_ADDRESS;
   }
 
+  /**
+   * Get a new user id
+   * @return a new user id
+   */
   public long getNewUserId() {
     return mUserCounter.incrementAndGet();
   }
 
+  /**
+   * Get the number of files at a given path.
+   * @param path
+   *          The path to look at
+   * @return The number of files at the path. Returns 1 if the path specifies a file. If it's a
+   * directory, returns the number of items in the directory.
+   */
   public int getNumberOfFiles(String path) throws InvalidPathException, FileDoesNotExistException {
     Inode inode = getInode(path);
     if (inode == null) {
@@ -1279,6 +1449,12 @@ public class MasterInfo {
     return ((InodeFolder) inode).getNumberOfChildren();
   }
 
+  /**
+   * Get the file path specified by a given inode.
+   * @param inode
+   *          The inode
+   * @return the path of the inode
+   */
   private String getPath(Inode inode) {
     synchronized (mRoot) {
       if (inode.getId() == 1) {
@@ -1292,6 +1468,10 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Get a list of the pin id's.
+   * @return a list of pin id's
+   */
   public List<Integer> getPinIdList() {
     synchronized (mFileIdPinList) {
       List<Integer> ret = new ArrayList<Integer>();
@@ -1302,10 +1482,19 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Get the pin list.
+   * @return the pin list
+   */
   public List<String> getPinList() {
     return mPinList.getList();
   }
 
+  /**
+   * Creates a list of high priority dependencies, which don't yet have checkpoints.
+   *
+   * @return the list of dependency ids
+   */
   public List<Integer> getPriorityDependencyList() {
     synchronized (mDependencies) {
       int earliestDepId = -1;
@@ -1339,6 +1528,13 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Get the id of the table at the given path.
+   *
+   * @param path
+   *          The path of the table
+   * @return the id of the table
+   */
   public int getRawTableId(String path) throws InvalidPathException {
     Inode inode = getInode(path);
     if (inode == null || inode.isFile() || !((InodeFolder) inode).isRawTable()) {
@@ -1347,25 +1543,48 @@ public class MasterInfo {
     return inode.getId();
   }
 
+  /**
+   * Get the start time in milliseconds.
+   * @return the start time in milliseconds
+   */
   public long getStarttimeMs() {
     return START_TIME_MS;
   }
 
+  /**
+   * Get the capacity of the under file system.
+   *
+   * @return the capacity in bytes
+   */
   public long getUnderFsCapacityBytes() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
     return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_TOTAL);
   }
 
+  /**
+   * Get the amount of free space in the under file system.
+   *
+   * @return the free space in bytes
+   */
   public long getUnderFsFreeBytes() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
     return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_FREE);
   }
 
+  /**
+   * Get the amount of space used in the under file system.
+   *
+   * @return the space used in bytes
+   */
   public long getUnderFsUsedBytes() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
     return ufs.getSpace(CommonConf.get().UNDERFS_DATA_FOLDER, SpaceType.SPACE_USED);
   }
 
+  /**
+   * Get the amount of space used by the workers.
+   * @return the amount of space used in bytes
+   */
   public long getUsedBytes() {
     long ret = 0;
     synchronized (mWorkers) {
@@ -1376,10 +1595,22 @@ public class MasterInfo {
     return ret;
   }
 
+  /**
+   * Get the white list.
+   * @return the white list
+   */
   public List<String> getWhiteList() {
     return mWhiteList.getList();
   }
 
+  /**
+   * Get the address of a worker.
+   * @param random
+   *          If true, select a random worker
+   * @param host
+   *          If <code>random</code> is false, select a worker on this host
+   * @return the address of the selected worker
+   */
   public NetAddress getWorker(boolean random, String host) {
     synchronized (mWorkers) {
       if (mWorkerAddressToId.isEmpty()) {
@@ -1413,12 +1644,22 @@ public class MasterInfo {
     return null;
   }
 
+  /**
+   * Get the number of workers.
+   * @return the number of workers
+   */
   public int getWorkerCount() {
     synchronized (mWorkers) {
       return mWorkers.size();
     }
   }
 
+  /**
+   * Get info about a worker.
+   * @param workerId
+   *          The id of the worker to look at
+   * @return the info about the worker
+   */
   private MasterWorkerInfo getWorkerInfo(long workerId) {
     MasterWorkerInfo ret = null;
     synchronized (mWorkers) {
@@ -1431,6 +1672,10 @@ public class MasterInfo {
     return ret;
   }
 
+  /**
+   * Get info about all the workers.
+   * @return a list of worker infos
+   */
   public List<ClientWorkerInfo> getWorkersInfo() {
     List<ClientWorkerInfo> ret = new ArrayList<ClientWorkerInfo>();
 
@@ -1458,6 +1703,14 @@ public class MasterInfo {
     mRecomputeThread.start();
   }
 
+  /**
+   * Get the id of the file at the given path. If recursive, it scans the subdirectories as well.
+   * @param path
+   *          The path to start looking at
+   * @param recursive
+   *          If true, recursively scan the subdirectories at the given path as well
+   * @return the list of the inode id's at the path
+   */
   public List<Integer> listFiles(String path, boolean recursive) throws InvalidPathException,
       FileDoesNotExistException {
     List<Integer> ret = new ArrayList<Integer>();
@@ -1598,6 +1851,14 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Get the names of the subdirectories at the given path.
+   * @param path
+   *          The path to look at
+   * @param recursive
+   *          If true, recursively add the paths of the subdirectories
+   * @return the list of paths
+   */
   public List<String> ls(String path, boolean recursive) throws InvalidPathException,
       FileDoesNotExistException {
     List<String> ret = new ArrayList<String>();
@@ -1611,7 +1872,7 @@ public class MasterInfo {
     if (inode.isFile()) {
       ret.add(path);
     } else {
-      List<Integer> childernIds = ((InodeFolder) inode).getChildrenIds();
+      List<Integer> childrenIds = ((InodeFolder) inode).getChildrenIds();
 
       if (!path.endsWith("/")) {
         path += "/";
@@ -1619,7 +1880,7 @@ public class MasterInfo {
       ret.add(path);
 
       synchronized (mRoot) {
-        for (int k : childernIds) {
+        for (int k : childrenIds) {
           inode = mInodes.get(k);
           if (inode != null) {
             if (recursive) {
@@ -1635,6 +1896,12 @@ public class MasterInfo {
     return ret;
   }
 
+  /**
+   * Create a directory at the given path.
+   * @param path
+   *          The path to create a directory at
+   * @return true if the creation was successful and false if it wasn't
+   */
   public boolean mkdir(String path) throws FileAlreadyExistException, InvalidPathException,
       TachyonException {
     try {
@@ -1669,6 +1936,19 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Register a worker at the given address, setting it up and associating it with a given list of
+   * blocks.
+   * @param workerNetAddress
+   *          The address of the worker to register
+   * @param totalBytes
+   *          The capacity of the worker in bytes
+   * @param usedBytes
+   *          The number of bytes already used in the worker
+   * @param currentBlockIds
+   *          The id's of the blocks held by the worker
+   * @return the new id of the registered worker
+   */
   public long registerWorker(NetAddress workerNetAddress, long totalBytes, long usedBytes,
       List<Long> currentBlockIds) throws BlockInfoException {
     long id = 0;
@@ -1714,6 +1994,13 @@ public class MasterInfo {
     return id;
   }
 
+  /**
+   * Rename an inode to the given path.
+   * @param srcInode
+   *          The inode to rename
+   * @param dstPath
+   *          The new path of the inode
+   */
   private void rename(Inode srcInode, String dstPath) throws FileAlreadyExistException,
       InvalidPathException, FileDoesNotExistException {
     if (getInode(dstPath) != null) {
@@ -1744,6 +2031,13 @@ public class MasterInfo {
     mJournal.getEditLog().flush();
   }
 
+  /**
+   * Rename a file to the given path.
+   * @param fileId
+   *          The id of the file to rename
+   * @param dstPath
+   *          The new path of the file
+   */
   public void rename(int fileId, String dstPath) throws FileDoesNotExistException,
       FileAlreadyExistException, InvalidPathException {
     synchronized (mRoot) {
@@ -1756,6 +2050,13 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Rename a file to the given path.
+   * @param srcPath
+   *          The path of the file to rename
+   * @param dstPath
+   *          The new path of the file
+   */
   public void rename(String srcPath, String dstPath) throws FileAlreadyExistException,
       FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
@@ -1768,6 +2069,11 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Logs a lost file and sets it to be recovered.
+   * @param fileId
+   *          The id of the file to be recovered
+   */
   public void reportLostFile(int fileId) {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
@@ -1794,6 +2100,11 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Request that the files for the given dependency be recomputed.
+   * @param depId
+   *          The dependency whose files are to be recomputed
+   */
   public void requestFilesInDependency(int depId) {
     synchronized (mDependencies) {
       if (mDependencies.containsKey(depId)) {
@@ -1808,10 +2119,18 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Stops the heartbeat thread.
+   */
   public void stop() {
     mHeartbeatThread.shutdown();
   }
 
+  /**
+   * Unpin the file with the given id.
+   * @param fileId
+   *          The id of the file to unpin
+   */
   public void unpinFile(int fileId) throws FileDoesNotExistException {
     // TODO Change meta data only. Data will be evicted from worker based on
     // data replacement
@@ -1834,6 +2153,13 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * Update the metadata of a table.
+   * @param tableId
+   *          The id of the table to update
+   * @param metadata
+   *          The new metadata to update the table with
+   */
   public void updateRawTableMetadata(int tableId, ByteBuffer metadata)
       throws TableDoesNotExistException, TachyonException {
     synchronized (mRoot) {
@@ -1850,6 +2176,17 @@ public class MasterInfo {
     }
   }
 
+  /**
+   * The heartbeat of the worker. It updates the information of the worker and removes the given
+   * block id's.
+   * @param workerId
+   *          The id of the worker to deal with
+   * @param usedBytes
+   *          The number of bytes used in the worker
+   * @param removedBlockIds
+   *          The id's of the blocks that have been removed
+   * @return a command specifying an action to take
+   */
   public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds)
       throws BlockInfoException {
     LOG.debug("WorkerId: " + workerId);
