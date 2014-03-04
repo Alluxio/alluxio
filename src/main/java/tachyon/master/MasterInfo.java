@@ -269,6 +269,7 @@ public class MasterInfo {
 
   /**
    * Get the name of the file at a path.
+   * 
    * @param path
    *          The path
    * @return the name of the file
@@ -280,6 +281,7 @@ public class MasterInfo {
 
   /**
    * Get the path components of the given path.
+   * 
    * @param path
    *          The path to split
    * @return the path split into components
@@ -310,8 +312,7 @@ public class MasterInfo {
   private AtomicInteger mWorkerCounter = new AtomicInteger(0);
   // Root Inode's id must be 1.
   private InodeFolder mRoot;
-  // A map from file ID's to Inodes. All operations on it are
-  // currently synchronized on mRoot.
+  // A map from file ID's to Inodes. All operations on it are currently synchronized on mRoot.
   private Map<Integer, Inode> mInodes = new HashMap<Integer, Inode>();
   private Map<Integer, Dependency> mDependencies = new HashMap<Integer, Dependency>();
 
@@ -649,7 +650,7 @@ public class MasterInfo {
           }
         }
       }
-      addFile(fileId);
+      addFile(fileId, tFile.getDependencyId());
       tFile.setComplete();
 
       if (needLog) {
@@ -662,11 +663,11 @@ public class MasterInfo {
 
   /**
    * Removes a checkpointed file from the set of lost or being-recomputed files if it's there
-   *
+   * 
    * @param fileId
    *          The file to examine
    */
-  private void addFile(int fileId) {
+  private void addFile(int fileId, int dependencyId) {
     synchronized (mDependencies) {
       if (mLostFiles.contains(fileId)) {
         mLostFiles.remove(fileId);
@@ -679,7 +680,7 @@ public class MasterInfo {
 
   /**
    * A worker cache a block in its memory.
-   *
+   * 
    * @param workerId
    * @param workerUsedBytes
    * @param blockId
@@ -730,7 +731,7 @@ public class MasterInfo {
 
   /**
    * Completes the checkpointing of a file.
-   *
+   * 
    * @param fileId
    *          The id of the file
    */
@@ -771,7 +772,6 @@ public class MasterInfo {
     }
   }
 
-
   /**
    * Create a file. // TODO Make this API better.
    * 
@@ -809,7 +809,7 @@ public class MasterInfo {
 
   /**
    * Create an image of the dependencies and filesystem tree.
-   *
+   * 
    * @param os
    *          The output stream to write the image to
    */
@@ -848,8 +848,8 @@ public class MasterInfo {
   }
 
   /**
-   * Writes a dependency.
-   *
+   * Writes a dependency to the image.
+   * 
    * @param dep
    *          The dependency to write
    * @param os
@@ -872,8 +872,8 @@ public class MasterInfo {
   }
 
   /**
-   * Writes an inode.
-   *
+   * Writes an inode to the image.
+   * 
    * @param inode
    *          The inode to write
    * @param os
@@ -924,7 +924,7 @@ public class MasterInfo {
 
   /**
    * Creates a new block for the given file.
-   *
+   * 
    * @param fileId
    *          The id of the file
    */
@@ -945,7 +945,7 @@ public class MasterInfo {
 
   /**
    * Creates a raw table.
-   *
+   * 
    * @param path
    *          The path to place the table at
    * @param columns
@@ -980,7 +980,7 @@ public class MasterInfo {
 
   /**
    * Delete a file based on the file's ID.
-   *
+   * 
    * @param fileId
    *          the file to be deleted.
    * @param recursive
@@ -999,7 +999,7 @@ public class MasterInfo {
 
   /**
    * Delete a file based on the file's path.
-   *
+   * 
    * @param path
    *          The file to be deleted.
    * @param recursive
@@ -1039,7 +1039,7 @@ public class MasterInfo {
 
   /**
    * Get the list of blocks of an InodeFile determined by path.
-   *
+   * 
    * @param path
    *          The file.
    * @return The list of the blocks of the file.
@@ -1061,7 +1061,7 @@ public class MasterInfo {
 
   /**
    * Get the capacity of the whole system.
-   *
+   * 
    * @return the system's capacity in bytes.
    */
   public long getCapacityBytes() {
@@ -1076,7 +1076,7 @@ public class MasterInfo {
 
   /**
    * Get the block info associated with the given id.
-   *
+   * 
    * @param blockId
    *          The id of the block return
    * @return the block info
@@ -1098,7 +1098,7 @@ public class MasterInfo {
 
   /**
    * Get the dependency info associated with the given id.
-   *
+   * 
    * @param dependencyId
    *          The id of the dependency
    * @return the dependency info
@@ -1117,7 +1117,7 @@ public class MasterInfo {
 
   /**
    * Get the file info associated with the given id.
-   *
+   * 
    * @param fid
    *          The id of the file
    * @return the file info
@@ -1137,7 +1137,7 @@ public class MasterInfo {
 
   /**
    * Get the file info for the file at the given path
-   *
+   * 
    * @param path
    *          The path of the file
    * @return the file info
@@ -1156,7 +1156,7 @@ public class MasterInfo {
 
   /**
    * Get the raw table info associated with the given id.
-   *
+   * 
    * @param id
    *          The id of the table
    * @return the table info
@@ -1180,7 +1180,7 @@ public class MasterInfo {
 
   /**
    * Get the raw table info for the table at the given path
-   *
+   * 
    * @param path
    *          The path of the table
    * @return the table info
@@ -1199,7 +1199,7 @@ public class MasterInfo {
 
   /**
    * Get the file id of the file.
-   *
+   * 
    * @param path
    *          The path of the file
    * @return The file id of the file. -1 if the file does not exist.
@@ -1219,7 +1219,7 @@ public class MasterInfo {
   /**
    * Get the block infos of a file with the given id. Throws an exception if the id names a
    * directory.
-   *
+   * 
    * @param fileId
    *          The id of the file to look up
    * @return the block infos of the file
@@ -1240,7 +1240,7 @@ public class MasterInfo {
   /**
    * Get the block infos of a file with the given path. Throws an exception if the path names a
    * directory.
-   *
+   * 
    * @param path
    *          The path of the file to look up
    * @return the block infos of the file
@@ -1259,7 +1259,7 @@ public class MasterInfo {
 
   /**
    * Get the path of a file with the given id
-   *
+   * 
    * @param fileId
    *          The id of the file to look up
    * @return the path of the file
@@ -1277,7 +1277,7 @@ public class MasterInfo {
   /**
    * Get the file id's of the given paths. It recursively scans directories for the file id's inside
    * of them.
-   *
+   * 
    * @param pathList
    *          The list of paths to look at
    * @return the file id's of the files.
@@ -1362,7 +1362,7 @@ public class MasterInfo {
 
   /**
    * Get the inode of the file at the given path.
-   *
+   * 
    * @param path
    *          The path to search for
    * @return the inode of the file at the given path, or null if the file does not exist
@@ -1373,7 +1373,7 @@ public class MasterInfo {
 
   /**
    * Get the inode at the given path.
-   *
+   * 
    * @param pathNames
    *          The path to search for, broken into components
    * @return the inode of the file at the given path, or null if the file does not exist
@@ -1417,6 +1417,7 @@ public class MasterInfo {
 
   /**
    * Get the master address.
+   * 
    * @return the master address
    */
   public InetSocketAddress getMasterAddress() {
@@ -1425,6 +1426,7 @@ public class MasterInfo {
 
   /**
    * Get a new user id
+   * 
    * @return a new user id
    */
   public long getNewUserId() {
@@ -1433,10 +1435,11 @@ public class MasterInfo {
 
   /**
    * Get the number of files at a given path.
+   * 
    * @param path
    *          The path to look at
    * @return The number of files at the path. Returns 1 if the path specifies a file. If it's a
-   * directory, returns the number of items in the directory.
+   *         directory, returns the number of items in the directory.
    */
   public int getNumberOfFiles(String path) throws InvalidPathException, FileDoesNotExistException {
     Inode inode = getInode(path);
@@ -1451,6 +1454,7 @@ public class MasterInfo {
 
   /**
    * Get the file path specified by a given inode.
+   * 
    * @param inode
    *          The inode
    * @return the path of the inode
@@ -1470,6 +1474,7 @@ public class MasterInfo {
 
   /**
    * Get a list of the pin id's.
+   * 
    * @return a list of pin id's
    */
   public List<Integer> getPinIdList() {
@@ -1484,6 +1489,7 @@ public class MasterInfo {
 
   /**
    * Get the pin list.
+   * 
    * @return the pin list
    */
   public List<String> getPinList() {
@@ -1492,7 +1498,7 @@ public class MasterInfo {
 
   /**
    * Creates a list of high priority dependencies, which don't yet have checkpoints.
-   *
+   * 
    * @return the list of dependency ids
    */
   public List<Integer> getPriorityDependencyList() {
@@ -1530,7 +1536,7 @@ public class MasterInfo {
 
   /**
    * Get the id of the table at the given path.
-   *
+   * 
    * @param path
    *          The path of the table
    * @return the id of the table
@@ -1544,8 +1550,9 @@ public class MasterInfo {
   }
 
   /**
-   * Get the start time in milliseconds.
-   * @return the start time in milliseconds
+   * Get the master start time in milliseconds.
+   * 
+   * @return the master start time in milliseconds
    */
   public long getStarttimeMs() {
     return START_TIME_MS;
@@ -1553,7 +1560,7 @@ public class MasterInfo {
 
   /**
    * Get the capacity of the under file system.
-   *
+   * 
    * @return the capacity in bytes
    */
   public long getUnderFsCapacityBytes() throws IOException {
@@ -1563,7 +1570,7 @@ public class MasterInfo {
 
   /**
    * Get the amount of free space in the under file system.
-   *
+   * 
    * @return the free space in bytes
    */
   public long getUnderFsFreeBytes() throws IOException {
@@ -1573,7 +1580,7 @@ public class MasterInfo {
 
   /**
    * Get the amount of space used in the under file system.
-   *
+   * 
    * @return the space used in bytes
    */
   public long getUnderFsUsedBytes() throws IOException {
@@ -1583,6 +1590,7 @@ public class MasterInfo {
 
   /**
    * Get the amount of space used by the workers.
+   * 
    * @return the amount of space used in bytes
    */
   public long getUsedBytes() {
@@ -1597,6 +1605,7 @@ public class MasterInfo {
 
   /**
    * Get the white list.
+   * 
    * @return the white list
    */
   public List<String> getWhiteList() {
@@ -1605,6 +1614,7 @@ public class MasterInfo {
 
   /**
    * Get the address of a worker.
+   * 
    * @param random
    *          If true, select a random worker
    * @param host
@@ -1646,6 +1656,7 @@ public class MasterInfo {
 
   /**
    * Get the number of workers.
+   * 
    * @return the number of workers
    */
   public int getWorkerCount() {
@@ -1656,6 +1667,7 @@ public class MasterInfo {
 
   /**
    * Get info about a worker.
+   * 
    * @param workerId
    *          The id of the worker to look at
    * @return the info about the worker
@@ -1674,6 +1686,7 @@ public class MasterInfo {
 
   /**
    * Get info about all the workers.
+   * 
    * @return a list of worker infos
    */
   public List<ClientWorkerInfo> getWorkersInfo() {
@@ -1705,6 +1718,7 @@ public class MasterInfo {
 
   /**
    * Get the id of the file at the given path. If recursive, it scans the subdirectories as well.
+   * 
    * @param path
    *          The path to start looking at
    * @param recursive
@@ -1743,8 +1757,7 @@ public class MasterInfo {
   }
 
   /**
-   * Load the image from <code>is</code>. Assume this blocks the whole
-   * MasterInfo.
+   * Load the image from <code>is</code>. Assume this blocks the whole MasterInfo.
    * 
    * @param is
    *          the inputstream to load the image.
@@ -1853,6 +1866,7 @@ public class MasterInfo {
 
   /**
    * Get the names of the subdirectories at the given path.
+   * 
    * @param path
    *          The path to look at
    * @param recursive
@@ -1898,6 +1912,7 @@ public class MasterInfo {
 
   /**
    * Create a directory at the given path.
+   * 
    * @param path
    *          The path to create a directory at
    * @return true if the creation was successful and false if it wasn't
@@ -1939,6 +1954,7 @@ public class MasterInfo {
   /**
    * Register a worker at the given address, setting it up and associating it with a given list of
    * blocks.
+   * 
    * @param workerNetAddress
    *          The address of the worker to register
    * @param totalBytes
@@ -1996,6 +2012,7 @@ public class MasterInfo {
 
   /**
    * Rename an inode to the given path.
+   * 
    * @param srcInode
    *          The inode to rename
    * @param dstPath
@@ -2033,6 +2050,7 @@ public class MasterInfo {
 
   /**
    * Rename a file to the given path.
+   * 
    * @param fileId
    *          The id of the file to rename
    * @param dstPath
@@ -2052,6 +2070,7 @@ public class MasterInfo {
 
   /**
    * Rename a file to the given path.
+   * 
    * @param srcPath
    *          The path of the file to rename
    * @param dstPath
@@ -2071,6 +2090,7 @@ public class MasterInfo {
 
   /**
    * Logs a lost file and sets it to be recovered.
+   * 
    * @param fileId
    *          The id of the file to be recovered
    */
@@ -2102,6 +2122,7 @@ public class MasterInfo {
 
   /**
    * Request that the files for the given dependency be recomputed.
+   * 
    * @param depId
    *          The dependency whose files are to be recomputed
    */
@@ -2128,12 +2149,12 @@ public class MasterInfo {
 
   /**
    * Unpin the file with the given id.
+   * 
    * @param fileId
    *          The id of the file to unpin
    */
   public void unpinFile(int fileId) throws FileDoesNotExistException {
-    // TODO Change meta data only. Data will be evicted from worker based on
-    // data replacement
+    // TODO Change meta data only. Data will be evicted from worker based on data replacement
     // policy. TODO May change it to be active from V0.2
     LOG.info("unpinFile(" + fileId + ")");
     synchronized (mRoot) {
@@ -2155,6 +2176,7 @@ public class MasterInfo {
 
   /**
    * Update the metadata of a table.
+   * 
    * @param tableId
    *          The id of the table to update
    * @param metadata
@@ -2179,6 +2201,7 @@ public class MasterInfo {
   /**
    * The heartbeat of the worker. It updates the information of the worker and removes the given
    * block id's.
+   * 
    * @param workerId
    *          The id of the worker to deal with
    * @param usedBytes
