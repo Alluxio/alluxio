@@ -37,7 +37,6 @@ public abstract class UnderFileSystemCluster {
           System.out.println("Failed to shutdown underfs cluster: " + e);
         }
       }
-      System.clearProperty("fs.hdfs.impl.disable.cache");
     }
   }
 
@@ -69,7 +68,6 @@ public abstract class UnderFileSystemCluster {
 
     if (mUfsClz != null && !mUfsClz.equals("")) {
       try {
-        System.setProperty("fs.hdfs.impl.disable.cache", "true");
         UnderFileSystemCluster ufsCluster =
             (UnderFileSystemCluster) Class.forName(mUfsClz).getConstructor(String.class)
                 .newInstance(baseDir);
