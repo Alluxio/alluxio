@@ -22,9 +22,10 @@
   <div class="navbar navbar-inverse">
     <div class="navbar-inner">
       <ul class="nav nav-pills">
-        <li><a href="./home">Master: <%= request.getAttribute("masterNodeAddress") %></a></li>
+        <li><a href="http://tachyon-project.org/">Tachyon</a></li>
+        <li><a href="./home">Overview</a></li>
         <li class="active"><a href="./browse?path=/">Browse File System</a></li>
-        <li><a href="./memory">View Files in Memory</a></li>
+        <li><a href="./memory">In Memory Files</a></li>
       </ul>
     </div>
   </div>
@@ -73,7 +74,7 @@
   <hr>
   <footer>
     <p style="text-align: center;">
-      Tachyon is a project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu">AMPLab</a>.
+      <a href="http://tachyon-project.org/">Tachyon</a> is a project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu">AMPLab</a>.
     </p>
   </footer>
 </div>
