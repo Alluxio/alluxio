@@ -180,7 +180,6 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
       mDfsCluster.shutdown();
       mIsStarted = false;
     }
-    System.clearProperty("fs.hdfs.impl.disable.cache");
   }
 
   /**
@@ -211,6 +210,5 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
       mDfsClient = (DistributedFileSystem) mDfsCluster.getFileSystem();
       mIsStarted = true;
     }
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
   }
 }

@@ -236,12 +236,15 @@ public class Master {
       mWebServer.shutdownWebServer();
       mMasterInfo.stop();
       mMasterServiceServer.stop();
-
-      if (mZookeeperMode) {
+      mIsStarted = false;
+    }   
+    if (mZookeeperMode) {
+      if (mLeaderSelectorClient != null) {
         mLeaderSelectorClient.close();
       }
-
-      mIsStarted = false;
+      if (mEditLogProcessor != null) {
+        mEditLogProcessor.stop();
+      }
     }
   }
 }
