@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -54,6 +52,7 @@ public class EditLog {
   static final byte OP_UPDATE_RAW_TABLE_METADATA = 6;
   static final byte OP_COMPLETE_FILE = 7;
   static final byte OP_CREATE_DEPENDENCY = 8;
+  static final byte OP_CREATE_RAW_TABLE = 9;
 
   private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
@@ -152,8 +151,8 @@ public class EditLog {
           break;
         }
         case OP_CREATE_FILE: {
-          info._createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(), is.readInt(),
-              Utils.readByteBuffer(is), is.readLong(), is.readLong());
+          info._createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(),
+              is.readLong(), is.readLong());
           break;
         }
         case OP_DELETE: {
@@ -181,6 +180,10 @@ public class EditLog {
               Utils.readString(is), Utils.readByteBufferList(is), Utils.readString(is),
               Utils.readString(is), Utils.readString(is),
               DependencyType.getDependencyType(is.readInt()), is.readInt(), is.readLong());
+          break;
+        }
+        case OP_CREATE_RAW_TABLE: {
+          info._createRawTable(is.readInt(), is.readInt(), Utils.readByteBuffer(is));
           break;
         }
         default:
@@ -388,7 +391,7 @@ public class EditLog {
   }
 
   public synchronized void createFile(boolean recursive, String path, boolean directory,
-      int columns, ByteBuffer metadata, long blockSizeByte, long creationTimeMs) {
+      long blockSizeByte, long creationTimeMs) {
     if (INACTIVE) {
       return;
     }
@@ -399,10 +402,24 @@ public class EditLog {
       DOS.writeBoolean(recursive);
       Utils.writeString(path, DOS);
       DOS.writeBoolean(directory);
-      DOS.writeInt(columns);
-      Utils.writeByteBuffer(metadata, DOS);
       DOS.writeLong(blockSizeByte);
       DOS.writeLong(creationTimeMs);
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
+  }
+
+  public synchronized void createRawTable(int inodeId, int columns, ByteBuffer metadata) {
+    if (INACTIVE) {
+      return;
+    }
+
+    try {
+      DOS.writeLong( ++mTransactionId);
+      DOS.writeByte(OP_CREATE_RAW_TABLE);
+      DOS.writeInt(inodeId);
+      DOS.writeInt(columns);
+      Utils.writeByteBuffer(metadata, DOS);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }

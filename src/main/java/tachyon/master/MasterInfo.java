@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -284,6 +282,7 @@ public class MasterInfo {
   // A map from file ID's to Inodes. All operations on it are currently synchronized on mRoot.
   private Map<Integer, Inode> mInodes = new HashMap<Integer, Inode>();
   private Map<Integer, Dependency> mDependencies = new HashMap<Integer, Dependency>();
+  private InodeRawTables mRawTables = new InodeRawTables();
 
   // TODO add initialization part for master failover or restart.
   // All operations on these members are synchronized on mDependencies.
@@ -331,10 +330,10 @@ public class MasterInfo {
   }
 
   int
-      _createDependency(List<Integer> parentsIdList, List<Integer> childrenIdList,
-          String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-          String frameworkVersion, DependencyType dependencyType, int dependencyId,
-          long creationTimeMs) throws InvalidPathException, FileDoesNotExistException {
+  _createDependency(List<Integer> parentsIdList, List<Integer> childrenIdList,
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+      String frameworkVersion, DependencyType dependencyType, int dependencyId,
+      long creationTimeMs) throws InvalidPathException, FileDoesNotExistException {
     Dependency dep = null;
     synchronized (mRoot) {
       Set<Integer> parentDependencyIds = new HashSet<Integer>();
@@ -394,8 +393,6 @@ public class MasterInfo {
    * @param recursive
    * @param path
    * @param directory
-   * @param columns
-   * @param metadata
    * @param blockSizeByte
    * @param creationTimeMs
    * @return
@@ -404,9 +401,9 @@ public class MasterInfo {
    * @throws BlockInfoException
    * @throws TachyonException
    */
-  int _createFile(boolean recursive, String path, boolean directory, int columns,
-      ByteBuffer metadata, long blockSizeByte, long creationTimeMs)
-      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
+  int _createFile(boolean recursive, String path, boolean directory, long blockSizeByte,
+      long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
+      BlockInfoException, TachyonException {
     if (!directory && blockSizeByte < 1) {
       throw new BlockInfoException("Invalid block size " + blockSizeByte);
     }
@@ -418,11 +415,8 @@ public class MasterInfo {
     synchronized (mRoot) {
       Inode inode = getInode(pathNames);
       if (inode != null) {
-        if (inode.isDirectory() && (directory && columns == -1)) {
-          return inode.getId();
-        }
         LOG.info("FileAlreadyExistException: File " + path + " already exist.");
-        throw new FileAlreadyExistException("File " + path + " already exist.");
+        throw new FileAlreadyExistException("Path " + path + " already exist.");
       }
 
       String name = pathNames[pathNames.length - 1];
@@ -436,7 +430,7 @@ public class MasterInfo {
       if (inode == null) {
         int succeed = 0;
         if (recursive) {
-          succeed = createFile(true, folderPath, true, -1, null, blockSizeByte);
+          succeed = createFile(true, folderPath, true, blockSizeByte);
         }
         if (!recursive || succeed <= 0) {
           LOG.info("InvalidPathException: File " + path + " creation failed. Folder " + folderPath
@@ -456,14 +450,8 @@ public class MasterInfo {
       Inode ret = null;
 
       if (directory) {
-        if (columns != -1) {
-          ret =
-              new InodeRawTable(name, mInodeCounter.incrementAndGet(), inode.getId(), columns,
-                  metadata, creationTimeMs);
-        } else {
-          ret =
-              new InodeFolder(name, mInodeCounter.incrementAndGet(), inode.getId(), creationTimeMs);
-        }
+        ret =
+            new InodeFolder(name, mInodeCounter.incrementAndGet(), inode.getId(), creationTimeMs);
       } else {
         ret =
             new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId(), blockSizeByte,
@@ -486,6 +474,13 @@ public class MasterInfo {
       LOG.debug("createFile: File Created: " + ret + " parent: " + inode);
       return ret.getId();
     }
+  }
+
+  void _createRawTable(int inodeId, int columns, ByteBuffer metadata) throws TachyonException {
+    if (!mRawTables.addRawTable(inodeId, columns, metadata)) {
+      throw new TachyonException("Failed to create raw table.");
+    }
+    mJournal.getEditLog().createRawTable(inodeId, columns, metadata);
   }
 
   private boolean _delete(int fileId, boolean recursive) throws TachyonException {
@@ -543,6 +538,10 @@ public class MasterInfo {
         }
       }
       inode.reverseId();
+
+      if (mRawTables.exist(fileId)) {
+        succeed = succeed && mRawTables.delete(fileId);
+      }
 
       return succeed;
     }
@@ -756,23 +755,20 @@ public class MasterInfo {
    * @throws BlockInfoException
    * @throws TachyonException
    */
-  public int createFile(boolean recursive, String path, boolean directory, int columns,
-      ByteBuffer metadata, long blockSizeByte) throws FileAlreadyExistException,
-      InvalidPathException, BlockInfoException, TachyonException {
+  public int createFile(boolean recursive, String path, boolean directory, long blockSizeByte)
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
     long creationTimeMs = System.currentTimeMillis();
     synchronized (mRoot) {
-      int ret =
-          _createFile(recursive, path, directory, columns, metadata, blockSizeByte, creationTimeMs);
-      mJournal.getEditLog().createFile(recursive, path, directory, columns, metadata,
-          blockSizeByte, creationTimeMs);
+      int ret = _createFile(recursive, path, directory, blockSizeByte, creationTimeMs);
+      mJournal.getEditLog().createFile(recursive, path, directory, blockSizeByte, creationTimeMs);
       mJournal.getEditLog().flush();
       return ret;
     }
   }
 
   public int createFile(String path, long blockSizeByte) throws FileAlreadyExistException,
-      InvalidPathException, BlockInfoException, TachyonException {
-    return createFile(true, path, false, -1, null, blockSizeByte);
+  InvalidPathException, BlockInfoException, TachyonException {
+    return createFile(true, path, false, blockSizeByte);
   }
 
   /**
@@ -807,6 +803,8 @@ public class MasterInfo {
           }
         }
       }
+
+      mRawTables.createImageWriter(os);
 
       os.writeByte(Image.T_CHECKPOINT);
       os.writeInt(mInodeCounter.get());
@@ -863,7 +861,7 @@ public class MasterInfo {
       os.writeBoolean(file.isCache());
       Utils.writeString(file.getCheckpointPath(), os);
       os.writeInt(file.getDependencyId());
-    } else {
+    } else if (inode.isDirectory()) {
       InodeFolder folder = (InodeFolder) inode;
       if (folder.isRawTable()) {
         os.writeByte(Image.T_INODE_RAW_TABLE);
@@ -881,12 +879,8 @@ public class MasterInfo {
       for (int k = 0; k < children.size(); k ++) {
         os.writeInt(children.get(k));
       }
-
-      if (folder.isRawTable()) {
-        InodeRawTable table = (InodeRawTable) folder;
-        os.writeInt(table.getColumns());
-        Utils.writeByteBuffer(table.getMetadata(), os);
-      }
+    } else {
+      throw new IOException("Unknown inode type.");
     }
   }
 
@@ -934,7 +928,12 @@ public class MasterInfo {
 
     int id;
     try {
-      id = createFile(true, path, true, columns, metadata, 0);
+      id = createFile(true, path, true, 0);
+      _createRawTable(id, columns, metadata);
+
+      if (!mRawTables.addRawTable(id, columns, metadata)) {
+        throw new TachyonException("Failed to create raw table.");
+      }
     } catch (BlockInfoException e) {
       throw new FileAlreadyExistException(e.getMessage());
     }
@@ -1015,7 +1014,7 @@ public class MasterInfo {
    * @throws FileDoesNotExistException
    */
   public List<BlockInfo> getBlockList(String path) throws InvalidPathException,
-      FileDoesNotExistException {
+  FileDoesNotExistException {
     Inode inode = getInode(path);
     if (inode == null) {
       throw new FileDoesNotExistException(path + " does not exist.");
@@ -1050,7 +1049,7 @@ public class MasterInfo {
    * @return the block info
    */
   public ClientBlockInfo getClientBlockInfo(long blockId) throws FileDoesNotExistException,
-      IOException, BlockInfoException {
+  IOException, BlockInfoException {
     int fileId = BlockInfo.computeInodeId(blockId);
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
@@ -1111,7 +1110,7 @@ public class MasterInfo {
    * @return the file info
    */
   public ClientFileInfo getClientFileInfo(String path) throws FileDoesNotExistException,
-      InvalidPathException {
+  InvalidPathException {
     LOG.info("getClientFileInfo(" + path + ")");
     synchronized (mRoot) {
       Inode inode = getInode(path);
@@ -1132,16 +1131,19 @@ public class MasterInfo {
   public ClientRawTableInfo getClientRawTableInfo(int id) throws TableDoesNotExistException {
     LOG.info("getClientRawTableInfo(" + id + ")");
     synchronized (mRoot) {
+      if (!mRawTables.exist(id)) {
+        throw new TableDoesNotExistException("Table " + id + " does not exist.");
+      }
       Inode inode = mInodes.get(id);
-      if (inode == null || inode.isFile() || !((InodeFolder) inode).isRawTable()) {
+      if (inode == null || !inode.isDirectory()) {
         throw new TableDoesNotExistException("Table " + id + " does not exist.");
       }
       ClientRawTableInfo ret = new ClientRawTableInfo();
       ret.id = inode.getId();
       ret.name = inode.getName();
       ret.path = getPath(inode);
-      ret.columns = ((InodeRawTable) inode).getColumns();
-      ret.metadata = ((InodeRawTable) inode).getMetadata();
+      ret.columns = mRawTables.getColumns(id);
+      ret.metadata = mRawTables.getMetadata(id);
       return ret;
     }
   }
@@ -1154,7 +1156,7 @@ public class MasterInfo {
    * @return the table info
    */
   public ClientRawTableInfo getClientRawTableInfo(String path) throws TableDoesNotExistException,
-      InvalidPathException {
+  InvalidPathException {
     LOG.info("getClientRawTableInfo(" + path + ")");
     synchronized (mRoot) {
       Inode inode = getInode(path);
@@ -1193,7 +1195,7 @@ public class MasterInfo {
    * @return the block infos of the file
    */
   public List<ClientBlockInfo> getFileLocations(int fileId) throws FileDoesNotExistException,
-      IOException {
+  IOException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
       if (inode == null || inode.isDirectory()) {
@@ -1214,7 +1216,7 @@ public class MasterInfo {
    * @return the block infos of the file
    */
   public List<ClientBlockInfo> getFileLocations(String path) throws FileDoesNotExistException,
-      InvalidPathException, IOException {
+  InvalidPathException, IOException {
     LOG.info("getFileLocations: " + path);
     synchronized (mRoot) {
       Inode inode = getInode(path);
@@ -1251,7 +1253,7 @@ public class MasterInfo {
    * @return the file id's of the files.
    */
   private List<Integer> getFilesIds(List<String> pathList) throws InvalidPathException,
-      FileDoesNotExistException {
+  FileDoesNotExistException {
     List<Integer> ret = new ArrayList<Integer>(pathList.size());
     for (int k = 0; k < pathList.size(); k ++) {
       ret.addAll(listFiles(pathList.get(k), true));
@@ -1270,7 +1272,7 @@ public class MasterInfo {
    * @throws InvalidPathException
    */
   public List<ClientFileInfo> getFilesInfo(String path) throws FileDoesNotExistException,
-      InvalidPathException {
+  InvalidPathException {
     List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
 
     Inode inode = getInode(path);
@@ -1694,7 +1696,7 @@ public class MasterInfo {
    * @return the list of the inode id's at the path
    */
   public List<Integer> listFiles(String path, boolean recursive) throws InvalidPathException,
-      FileDoesNotExistException {
+  FileDoesNotExistException {
     List<Integer> ret = new ArrayList<Integer>();
     synchronized (mRoot) {
       Inode inode = getInode(path);
@@ -1759,7 +1761,7 @@ public class MasterInfo {
         for (int parentDependencyId : dep.PARENT_DEPENDENCIES) {
           mDependencies.get(parentDependencyId).addChildrenDependency(dep.ID);
         }
-      } else {
+      } else if (Image.T_INODE_FILE == type || Image.T_INODE_FOLDER == type) {
         if (type > Image.T_INODE_RAW_TABLE) {
           throw new IOException("Corrupted image with unknown element type: " + type);
         }
@@ -1793,30 +1795,16 @@ public class MasterInfo {
           tInode.setCheckpointPath(checkpointPath);
           tInode.setDependencyId(is.readInt());
           inode = tInode;
-        } else {
+        } else if (type == Image.T_INODE_FOLDER) {
           int numberOfChildren = is.readInt();
           int[] children = new int[numberOfChildren];
           for (int k = 0; k < numberOfChildren; k ++) {
             children[k] = is.readInt();
           }
 
-          if (type == Image.T_INODE_FOLDER) {
-            InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs);
-            folder.addChildren(children);
-            inode = folder;
-          } else {
-            int columns = is.readInt();
-            ByteBuffer metadata = Utils.readByteBuffer(is);
-
-            try {
-              InodeRawTable table =
-                  new InodeRawTable(fileName, fileId, parentId, columns, metadata, creationTimeMs);
-              table.addChildren(children);
-              inode = table;
-            } catch (TachyonException e) {
-              throw new IOException(e);
-            }
-          }
+          InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs);
+          folder.addChildren(children);
+          inode = folder;
         }
 
         LOG.info("Putting " + inode);
@@ -1828,6 +1816,19 @@ public class MasterInfo {
           mRoot = (InodeFolder) inode;
         }
         mInodes.put(inode.getId(), inode);
+      } else if (Image.T_INODE_RAW_TABLE == type) {
+        int inodeId = is.readInt();
+        int columns = is.readInt();
+        ByteBuffer metadata = Utils.readByteBuffer(is);
+        try {
+          if (!mRawTables.addRawTable(inodeId, columns, metadata)) {
+            throw new IOException("Failed to create raw table");
+          }
+        } catch (TachyonException e) {
+          throw new IOException(e);
+        }
+      } else {
+        throw new IOException("Corrupted image with unknown element type: " + type);
       }
     }
   }
@@ -1842,7 +1843,7 @@ public class MasterInfo {
    * @return the list of paths
    */
   public List<String> ls(String path, boolean recursive) throws InvalidPathException,
-      FileDoesNotExistException {
+  FileDoesNotExistException {
     List<String> ret = new ArrayList<String>();
 
     Inode inode = getInode(path);
@@ -1886,9 +1887,9 @@ public class MasterInfo {
    * @return true if the creation was successful and false if it wasn't
    */
   public boolean mkdir(String path) throws FileAlreadyExistException, InvalidPathException,
-      TachyonException {
+  TachyonException {
     try {
-      return createFile(true, path, true, -1, null, 0) > 0;
+      return createFile(true, path, true, 0) > 0;
     } catch (BlockInfoException e) {
       throw new FileAlreadyExistException(e.getMessage());
     }
@@ -1904,7 +1905,7 @@ public class MasterInfo {
    * @throws BlockInfoException
    */
   void opAddBlock(int fileId, int blockIndex, long blockLength) throws FileDoesNotExistException,
-      BlockInfoException {
+  BlockInfoException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
 
@@ -1987,7 +1988,7 @@ public class MasterInfo {
    *          The new path of the inode
    */
   private void rename(Inode srcInode, String dstPath) throws FileAlreadyExistException,
-      InvalidPathException, FileDoesNotExistException {
+  InvalidPathException, FileDoesNotExistException {
     if (getInode(dstPath) != null) {
       throw new FileAlreadyExistException("Failed to rename: " + dstPath + " already exist");
     }
@@ -2025,7 +2026,7 @@ public class MasterInfo {
    *          The new path of the file
    */
   public void rename(int fileId, String dstPath) throws FileDoesNotExistException,
-      FileAlreadyExistException, InvalidPathException {
+  FileAlreadyExistException, InvalidPathException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
       if (inode == null) {
@@ -2045,7 +2046,7 @@ public class MasterInfo {
    *          The new path of the file
    */
   public void rename(String srcPath, String dstPath) throws FileAlreadyExistException,
-      FileDoesNotExistException, InvalidPathException {
+  FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
       Inode inode = getInode(srcPath);
       if (inode == null) {
@@ -2155,11 +2156,11 @@ public class MasterInfo {
     synchronized (mRoot) {
       Inode inode = mInodes.get(tableId);
 
-      if (inode == null || inode.getInodeType() != InodeType.RawTable) {
+      if (inode == null || inode.isFile() || !mRawTables.exist(tableId)) {
         throw new TableDoesNotExistException("Table " + tableId + " does not exist.");
       }
 
-      ((InodeRawTable) inode).updateMetadata(metadata);
+      mRawTables.updateMetadata(tableId, metadata);
 
       mJournal.getEditLog().updateRawTableMetadata(tableId, metadata);
       mJournal.getEditLog().flush();
