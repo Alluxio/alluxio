@@ -90,6 +90,7 @@
 
   <modules>
     <module>main</module>
+    <module>client</module>
   </modules>
 
   <build>
