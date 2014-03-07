@@ -4,8 +4,10 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
+ * the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -330,10 +332,10 @@ public class MasterInfo {
   }
 
   int
-  _createDependency(List<Integer> parentsIdList, List<Integer> childrenIdList,
-      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, DependencyType dependencyType, int dependencyId,
-      long creationTimeMs) throws InvalidPathException, FileDoesNotExistException {
+      _createDependency(List<Integer> parentsIdList, List<Integer> childrenIdList,
+          String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+          String frameworkVersion, DependencyType dependencyType, int dependencyId,
+          long creationTimeMs) throws InvalidPathException, FileDoesNotExistException {
     Dependency dep = null;
     synchronized (mRoot) {
       Set<Integer> parentDependencyIds = new HashSet<Integer>();
@@ -767,7 +769,7 @@ public class MasterInfo {
   }
 
   public int createFile(String path, long blockSizeByte) throws FileAlreadyExistException,
-  InvalidPathException, BlockInfoException, TachyonException {
+      InvalidPathException, BlockInfoException, TachyonException {
     return createFile(true, path, false, blockSizeByte);
   }
 
@@ -1010,7 +1012,7 @@ public class MasterInfo {
    * @throws FileDoesNotExistException
    */
   public List<BlockInfo> getBlockList(String path) throws InvalidPathException,
-  FileDoesNotExistException {
+      FileDoesNotExistException {
     Inode inode = getInode(path);
     if (inode == null) {
       throw new FileDoesNotExistException(path + " does not exist.");
@@ -1045,7 +1047,7 @@ public class MasterInfo {
    * @return the block info
    */
   public ClientBlockInfo getClientBlockInfo(long blockId) throws FileDoesNotExistException,
-  IOException, BlockInfoException {
+      IOException, BlockInfoException {
     int fileId = BlockInfo.computeInodeId(blockId);
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
@@ -1106,7 +1108,7 @@ public class MasterInfo {
    * @return the file info
    */
   public ClientFileInfo getClientFileInfo(String path) throws FileDoesNotExistException,
-  InvalidPathException {
+      InvalidPathException {
     LOG.info("getClientFileInfo(" + path + ")");
     synchronized (mRoot) {
       Inode inode = getInode(path);
@@ -1152,7 +1154,7 @@ public class MasterInfo {
    * @return the table info
    */
   public ClientRawTableInfo getClientRawTableInfo(String path) throws TableDoesNotExistException,
-  InvalidPathException {
+      InvalidPathException {
     LOG.info("getClientRawTableInfo(" + path + ")");
     synchronized (mRoot) {
       Inode inode = getInode(path);
@@ -1191,7 +1193,7 @@ public class MasterInfo {
    * @return the block infos of the file
    */
   public List<ClientBlockInfo> getFileLocations(int fileId) throws FileDoesNotExistException,
-  IOException {
+      IOException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
       if (inode == null || inode.isDirectory()) {
@@ -1212,7 +1214,7 @@ public class MasterInfo {
    * @return the block infos of the file
    */
   public List<ClientBlockInfo> getFileLocations(String path) throws FileDoesNotExistException,
-  InvalidPathException, IOException {
+      InvalidPathException, IOException {
     LOG.info("getFileLocations: " + path);
     synchronized (mRoot) {
       Inode inode = getInode(path);
@@ -1249,7 +1251,7 @@ public class MasterInfo {
    * @return the file id's of the files.
    */
   private List<Integer> getFilesIds(List<String> pathList) throws InvalidPathException,
-  FileDoesNotExistException {
+      FileDoesNotExistException {
     List<Integer> ret = new ArrayList<Integer>(pathList.size());
     for (int k = 0; k < pathList.size(); k ++) {
       ret.addAll(listFiles(pathList.get(k), true));
@@ -1268,7 +1270,7 @@ public class MasterInfo {
    * @throws InvalidPathException
    */
   public List<ClientFileInfo> getFilesInfo(String path) throws FileDoesNotExistException,
-  InvalidPathException {
+      InvalidPathException {
     List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
 
     Inode inode = getInode(path);
@@ -1692,7 +1694,7 @@ public class MasterInfo {
    * @return the list of the inode id's at the path
    */
   public List<Integer> listFiles(String path, boolean recursive) throws InvalidPathException,
-  FileDoesNotExistException {
+      FileDoesNotExistException {
     List<Integer> ret = new ArrayList<Integer>();
     synchronized (mRoot) {
       Inode inode = getInode(path);
@@ -1839,7 +1841,7 @@ public class MasterInfo {
    * @return the list of paths
    */
   public List<String> ls(String path, boolean recursive) throws InvalidPathException,
-  FileDoesNotExistException {
+      FileDoesNotExistException {
     List<String> ret = new ArrayList<String>();
 
     Inode inode = getInode(path);
@@ -1883,7 +1885,7 @@ public class MasterInfo {
    * @return true if the creation was successful and false if it wasn't
    */
   public boolean mkdir(String path) throws FileAlreadyExistException, InvalidPathException,
-  TachyonException {
+      TachyonException {
     try {
       return createFile(true, path, true, 0) > 0;
     } catch (BlockInfoException e) {
@@ -1901,7 +1903,7 @@ public class MasterInfo {
    * @throws BlockInfoException
    */
   void opAddBlock(int fileId, int blockIndex, long blockLength) throws FileDoesNotExistException,
-  BlockInfoException {
+      BlockInfoException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
 
@@ -1984,7 +1986,7 @@ public class MasterInfo {
    *          The new path of the inode
    */
   private void rename(Inode srcInode, String dstPath) throws FileAlreadyExistException,
-  InvalidPathException, FileDoesNotExistException {
+      InvalidPathException, FileDoesNotExistException {
     if (getInode(dstPath) != null) {
       throw new FileAlreadyExistException("Failed to rename: " + dstPath + " already exist");
     }
@@ -2022,7 +2024,7 @@ public class MasterInfo {
    *          The new path of the file
    */
   public void rename(int fileId, String dstPath) throws FileDoesNotExistException,
-  FileAlreadyExistException, InvalidPathException {
+      FileAlreadyExistException, InvalidPathException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
       if (inode == null) {
@@ -2042,7 +2044,7 @@ public class MasterInfo {
    *          The new path of the file
    */
   public void rename(String srcPath, String dstPath) throws FileAlreadyExistException,
-  FileDoesNotExistException, InvalidPathException {
+      FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
       Inode inode = getInode(srcPath);
       if (inode == null) {
