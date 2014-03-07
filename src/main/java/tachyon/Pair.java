@@ -63,4 +63,24 @@ public class Pair<First, Second> {
   public Second getSecond() {
     return mSecond;
   }
+
+  /**
+   * Set the first value.
+   * 
+   * @param first
+   *          the value to be set.
+   */
+  public void setFirst(First first) {
+    mFirst = first;
+  }
+
+  /**
+   * Set the second value.
+   * 
+   * @param second
+   *          the value to be set.
+   */
+  public void setSecond(Second second) {
+    mSecond = second;
+  }
 }

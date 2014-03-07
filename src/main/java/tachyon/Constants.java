@@ -43,8 +43,6 @@ public class Constants {
   public static final String HEADER = "tachyon://";
   public static final String HEADER_FT = "tachyon-ft://";
 
-  public static final String COL_PREFIX = "COL_";
-
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
   public static final int DEFAULT_WORKER_PORT = 29998;
@@ -53,6 +51,7 @@ public class Constants {
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
 
   public static final String PATH_SEPARATOR = "/";
+  public static final String COL_PREFIX = "COL_";
   public static final int MAX_COLUMNS = 1000;
   public static final int MAX_TABLE_METADATA_BYTE = MB * 5;
   public static final int WORKER_BLOCKS_QUEUE_SIZE = 10000;
