@@ -17,76 +17,17 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.tachyonproject</groupId>
+    <artifactId>tachyon-parent</artifactId>
+    <version>0.5.0-SNAPSHOT</version>
+  </parent>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon</artifactId>
   <version>0.5.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Tachyon: Reliable File Sharing at Memory Speed Across Cluster Frameworks</description>
   <name>Tachyon Project Main</name>
-  <url>http://tachyonproject.org/</url>
-  <licenses>
-    <license>
-      <name>Apache License</name>
-      <url>https://github.com/amplab/tachyon/blob/master/LICENSE</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-  <scm>
-    <connection>scm:git:git@github.com:amplab/tachyon.git</connection>
-    <developerConnection>scm:git:git@github.com:amplab/tachyon.git</developerConnection>
-    <url>scm:git:git@github.com:amplab/tachyon.git</url>
-    <tag>v0.4.1</tag>
-  </scm>
-  <developers>
-    <developer>
-      <id>haoyuan</id>
-      <name>Haoyuan Li</name>
-      <email>haoyuan.li@gmail.com</email>
-      <url>http://www.cs.berkeley.edu/~haoyuan</url>
-      <organization>U.C. Berkeley Computer Science</organization>
-      <organizationUrl>http://www.cs.berkeley.edu/</organizationUrl>
-    </developer>
-  </developers>
-  <issueManagement>
-    <system>github</system>
-    <url>https://spark-project.atlassian.net/browse/TACH</url>
-  </issueManagement>
-
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>7</version>
-  </parent>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <java.version>1.6</java.version>
-    <hadoop.version>1.0.4</hadoop.version>
-    <libthrift.version>0.9.0</libthrift.version>
-    <cxf.version>2.7.0</cxf.version>
-    <jetty.version>7.6.8.v20121106</jetty.version>
-    <slf4j.version>1.7.2</slf4j.version>
-    <powermock.version>1.5.4</powermock.version>
-    <log4j.version>1.2.17</log4j.version>
-    <apache.curator.version>2.1.0-incubating</apache.curator.version>
-  </properties>
-
-  <repositories>
-    <repository>
-      <id>cloudera-repo</id>
-      <name>Cloudera Repository</name>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-
-  <pluginRepositories>
-  </pluginRepositories>
 
   <dependencies>
     <dependency>
@@ -313,36 +254,6 @@
       </resource>
     </resources>
     <plugins>
-<!--
-      <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <version>1.2.1</version>
-        <executions>
-          <execution>
-            <id>Version Calculation</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>${basedir}/bin/thrift-gen.sh</executable>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
--->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.1</version>
-        <configuration>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
-          <encoding>UTF-8</encoding>
-          <maxmem>1024m</maxmem>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -380,11 +291,6 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.4.1</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.4</version>
         <configuration>
@@ -404,17 +310,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9</version>
-        <configuration>
-          <show>public</show>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
 </project>
