@@ -265,37 +265,6 @@ public class MasterInfo {
     }
   }
 
-  public static final String COL = "COL_";
-
-  /**
-   * Get the name of the file at a path.
-   * 
-   * @param path
-   *          The path
-   * @return the name of the file
-   */
-  private static String getName(String path) throws InvalidPathException {
-    String[] pathNames = getPathNames(path);
-    return pathNames[pathNames.length - 1];
-  }
-
-  /**
-   * Get the path components of the given path.
-   * 
-   * @param path
-   *          The path to split
-   * @return the path split into components
-   */
-  private static String[] getPathNames(String path) throws InvalidPathException {
-    CommonUtils.validatePath(path);
-    if (path.length() == 1 && path.equals(Constants.PATH_SEPARATOR)) {
-      String[] ret = new String[1];
-      ret[0] = "";
-      return ret;
-    }
-    return path.split(Constants.PATH_SEPARATOR);
-  }
-
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final InetSocketAddress MASTER_ADDRESS;
   private final long START_TIME_NS_PREFIX;
@@ -330,11 +299,10 @@ public class MasterInfo {
 
   private BlockingQueue<MasterWorkerInfo> mLostWorkers = new ArrayBlockingQueue<MasterWorkerInfo>(
       32);
+
   // TODO Check the logic related to this two lists.
   private PrefixList mWhiteList;
-
   private PrefixList mPinList;
-
   private Set<Integer> mFileIdPinList;
 
   private Journal mJournal;
@@ -445,7 +413,7 @@ public class MasterInfo {
 
     LOG.debug("createFile" + CommonUtils.parametersToString(path));
 
-    String[] pathNames = getPathNames(path);
+    String[] pathNames = CommonUtils.getPathComponents(path);
 
     synchronized (mRoot) {
       Inode inode = getInode(pathNames);
@@ -972,7 +940,7 @@ public class MasterInfo {
     }
 
     for (int k = 0; k < columns; k ++) {
-      mkdir(path + Constants.PATH_SEPARATOR + COL + k);
+      mkdir(path + Constants.PATH_SEPARATOR + Constants.COL_PREFIX + k);
     }
 
     return id;
@@ -1368,7 +1336,7 @@ public class MasterInfo {
    * @return the inode of the file at the given path, or null if the file does not exist
    */
   private Inode getInode(String path) throws InvalidPathException {
-    return getInode(getPathNames(path));
+    return getInode(CommonUtils.getPathComponents(path));
   }
 
   /**
@@ -2024,7 +1992,7 @@ public class MasterInfo {
       throw new FileAlreadyExistException("Failed to rename: " + dstPath + " already exist");
     }
 
-    String dstName = getName(dstPath);
+    String dstName = CommonUtils.getName(dstPath);
     String dstFolderPath = dstPath.substring(0, dstPath.length() - dstName.length() - 1);
 
     // If we are renaming into the root folder

@@ -31,7 +31,6 @@ import tachyon.client.TachyonFile;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.master.MasterInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -63,7 +62,7 @@ public class RawColumnTest {
       for (int pid = 0; pid < 5; pid ++) {
         Assert.assertTrue(column.createPartition(pid));
         TachyonFile file = column.getPartition(pid);
-        Assert.assertEquals("/table" + Constants.PATH_SEPARATOR + MasterInfo.COL + col
+        Assert.assertEquals("/table" + Constants.PATH_SEPARATOR + Constants.COL_PREFIX + col
             + Constants.PATH_SEPARATOR + pid, file.getPath());
       }
       Assert.assertEquals(5, column.partitions());

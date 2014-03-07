@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -128,13 +126,14 @@ public class MasterInfoTest {
       FileDoesNotExistException, TachyonException {
     // long sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mMasterInfo.mkdir("/testFile" + Constants.PATH_SEPARATOR + MasterInfo.COL + k + "/" + 0);
+      mMasterInfo.mkdir("/testFile" + Constants.PATH_SEPARATOR + Constants.COL_PREFIX + k + "/"
+          + 0);
     }
     // System.out.println(System.currentTimeMillis() - sMs);
     // sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mMasterInfo.getClientFileInfo("/testFile" + Constants.PATH_SEPARATOR + MasterInfo.COL + k
-          + "/" + 0);
+      mMasterInfo.getClientFileInfo("/testFile" + Constants.PATH_SEPARATOR + Constants.COL_PREFIX
+          + k + "/" + 0);
     }
     // System.out.println(System.currentTimeMillis() - sMs);
   }

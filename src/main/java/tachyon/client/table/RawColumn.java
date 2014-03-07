@@ -21,7 +21,6 @@ import java.io.IOException;
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.master.MasterInfo;
 
 /**
  * The column of a <code>RawTable</code>.
@@ -39,7 +38,7 @@ public class RawColumn {
 
   // TODO creating file here should be based on id.
   public boolean createPartition(int pId) throws IOException {
-    return TFS.createFile(RAW_TABLE.getPath() + Constants.PATH_SEPARATOR + MasterInfo.COL
+    return TFS.createFile(RAW_TABLE.getPath() + Constants.PATH_SEPARATOR + Constants.COL_PREFIX
         + COLUMN_INDEX + Constants.PATH_SEPARATOR + pId) > 0;
   }
 
@@ -50,13 +49,13 @@ public class RawColumn {
 
   // TODO creating file here should be based on id.
   public TachyonFile getPartition(int pId, boolean cachedMetadata) throws IOException {
-    return TFS.getFile(RAW_TABLE.getPath() + Constants.PATH_SEPARATOR + MasterInfo.COL
+    return TFS.getFile(RAW_TABLE.getPath() + Constants.PATH_SEPARATOR + Constants.COL_PREFIX
         + COLUMN_INDEX + Constants.PATH_SEPARATOR + pId, cachedMetadata);
   }
 
   // TODO creating file here should be based on id.
   public int partitions() throws IOException {
-    return TFS.getNumberOfFiles(RAW_TABLE.getPath() + Constants.PATH_SEPARATOR + MasterInfo.COL
-        + COLUMN_INDEX);
+    return TFS.getNumberOfFiles(RAW_TABLE.getPath() + Constants.PATH_SEPARATOR
+        + Constants.COL_PREFIX + COLUMN_INDEX);
   }
 }
