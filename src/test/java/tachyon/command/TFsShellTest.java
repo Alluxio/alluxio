@@ -365,7 +365,7 @@ public class TFsShellTest {
     Assert.assertTrue(tFile.isDirectory());
   }
 
-  @Test
+  @Test(expected = IOException.class)
   public void mkdirExistingTest() throws IOException {
     mFsShell.mkdir(new String[] { "mkdir", "/testFile1" });
     mFsShell.mkdir(new String[] { "mkdir", "/testFile1" });
