@@ -33,7 +33,7 @@ public class InodeRawTables {
   private Map<Integer, Pair<Integer, ByteBuffer>> mData =
       new HashMap<Integer, Pair<Integer, ByteBuffer>>();
 
-  public synchronized boolean addRawTable(int inodeId, int columns, ByteBuffer metadata) 
+  public synchronized boolean addRawTable(int inodeId, int columns, ByteBuffer metadata)
       throws TachyonException {
     if (mData.containsKey(inodeId)) {
       return false;
@@ -117,7 +117,7 @@ public class InodeRawTables {
   }
 
   public synchronized void createImageWriter(DataOutputStream os) throws IOException {
-    for (Entry<Integer, Pair<Integer, ByteBuffer>> entry: mData.entrySet()) {
+    for (Entry<Integer, Pair<Integer, ByteBuffer>> entry : mData.entrySet()) {
       os.writeByte(Image.T_INODE_RAW_TABLE);
       os.writeInt(entry.getKey());
       os.writeInt(entry.getValue().getFirst());

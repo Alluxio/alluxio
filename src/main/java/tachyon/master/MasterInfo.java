@@ -930,10 +930,6 @@ public class MasterInfo {
     try {
       id = createFile(true, path, true, 0);
       _createRawTable(id, columns, metadata);
-
-      if (!mRawTables.addRawTable(id, columns, metadata)) {
-        throw new TachyonException("Failed to create raw table.");
-      }
     } catch (BlockInfoException e) {
       throw new FileAlreadyExistException(e.getMessage());
     }
