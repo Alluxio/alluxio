@@ -43,6 +43,8 @@ public class Constants {
   public static final String HEADER = "tachyon://";
   public static final String HEADER_FT = "tachyon-ft://";
 
+  public static final String COL_PREFIX = "COL_";
+
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
   public static final int DEFAULT_WORKER_PORT = 29998;

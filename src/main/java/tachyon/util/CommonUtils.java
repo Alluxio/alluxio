@@ -176,6 +176,35 @@ public final class CommonUtils {
     return bytes / Constants.MB;
   }
 
+  /**
+   * Get the name of the file at a path.
+   * 
+   * @param path
+   *          The path
+   * @return the name of the file
+   */
+  public static String getName(String path) throws InvalidPathException {
+    String[] pathNames = getPathComponents(path);
+    return pathNames[pathNames.length - 1];
+  }
+
+  /**
+   * Get the path components of the given path.
+   * 
+   * @param path
+   *          The path to split
+   * @return the path split into components
+   */
+  public static String[] getPathComponents(String path) throws InvalidPathException {
+    validatePath(path);
+    if (path.length() == 1 && path.equals(Constants.PATH_SEPARATOR)) {
+      String[] ret = new String[1];
+      ret[0] = "";
+      return ret;
+    }
+    return path.split(Constants.PATH_SEPARATOR);
+  }
+
   public static String getSizeFromBytes(long bytes) {
     double ret = bytes;
     if (ret <= 1024 * 5) {
