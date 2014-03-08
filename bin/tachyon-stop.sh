@@ -26,7 +26,7 @@ fi
 
 bin=`cd "$( dirname "$0" )"; pwd`
 
-$bin/tachyon killAll tachyon.master.Master
-$bin/tachyon killAll tachyon.worker.Worker
+$bin/tachyon killAll tachyon.master.TachyonMaster
+$bin/tachyon killAll tachyon.worker.TachyonWorker
 
-$bin/tachyon-slaves.sh $bin/tachyon killAll tachyon.worker.Worker
+$bin/tachyon-slaves.sh $bin/tachyon killAll tachyon.worker.TachyonWorker
