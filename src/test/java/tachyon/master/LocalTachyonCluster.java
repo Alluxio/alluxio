@@ -30,10 +30,10 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
-import tachyon.master.Master;
+import tachyon.master.TachyonMaster;
 import tachyon.master.MasterInfo;
 import tachyon.util.CommonUtils;
-import tachyon.worker.Worker;
+import tachyon.worker.TachyonWorker;
 
 /**
  * Local Tachyon cluster for unit tests.
@@ -53,9 +53,9 @@ public class LocalTachyonCluster {
     CommonUtils.sleepMs(null, 1000);
   }
 
-  private Master mMaster = null;
+  private TachyonMaster mMaster = null;
 
-  private Worker mWorker = null;
+  private TachyonWorker mWorker = null;
   private int mMasterPort;
   private int mWorkerPort;
 
@@ -121,7 +121,7 @@ public class LocalTachyonCluster {
     return CommonConf.get().UNDERFS_ADDRESS;
   }
 
-  public Worker getWorker() {
+  public TachyonWorker getWorker() {
     return mWorker;
   }
 
@@ -191,7 +191,9 @@ public class LocalTachyonCluster {
     mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
 
     mMaster =
-        new Master(new InetSocketAddress(mLocalhostName, mMasterPort), mMasterPort + 1, 1, 1, 1);
+        new TachyonMaster(new InetSocketAddress(mLocalhostName, mMasterPort), mMasterPort + 1, 1,
+            1, 1);
+
     Runnable runMaster = new Runnable() {
       @Override
       public void run() {
@@ -204,7 +206,7 @@ public class LocalTachyonCluster {
     CommonUtils.sleepMs(null, 10);
 
     mWorker =
-        Worker.createWorker(new InetSocketAddress(mLocalhostName, mMasterPort),
+        TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, mMasterPort),
             new InetSocketAddress(mLocalhostName, mWorkerPort), mWorkerPort + 1, 1, 1, 1,
             mWorkerDataFolder, mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {

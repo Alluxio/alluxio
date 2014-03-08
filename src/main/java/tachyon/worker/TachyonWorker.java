@@ -38,24 +38,24 @@ import tachyon.util.CommonUtils;
 /**
  * Entry point for a worker daemon.
  */
-public class Worker implements Runnable {
+public class TachyonWorker implements Runnable {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  public static synchronized Worker createWorker(InetSocketAddress masterAddress,
+  public static synchronized TachyonWorker createWorker(InetSocketAddress masterAddress,
       InetSocketAddress workerAddress, int dataPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads, String localFolder, long spaceLimitBytes) {
-    return new Worker(masterAddress, workerAddress, dataPort, selectorThreads,
+    return new TachyonWorker(masterAddress, workerAddress, dataPort, selectorThreads,
         acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
   }
 
-  public static synchronized Worker createWorker(String masterAddress, String workerAddress,
+  public static synchronized TachyonWorker createWorker(String masterAddress, String workerAddress,
       int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String localFolder, long spaceLimitBytes) {
     String[] address = masterAddress.split(":");
     InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
     address = workerAddress.split(":");
     InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
-    return new Worker(master, worker, dataPort, selectorThreads, acceptQueueSizePerThreads,
+    return new TachyonWorker(master, worker, dataPort, selectorThreads, acceptQueueSizePerThreads,
         workerThreads, localFolder, spaceLimitBytes);
   }
 
@@ -87,10 +87,10 @@ public class Worker implements Runnable {
 
     WorkerConf wConf = WorkerConf.get();
 
-    Worker worker =
-        Worker.createWorker(getMasterLocation(args), args[0] + ":" + wConf.PORT, wConf.DATA_PORT,
-            wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR, wConf.SERVER_THREADS,
-            wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
+    TachyonWorker worker =
+        TachyonWorker.createWorker(getMasterLocation(args), args[0] + ":" + wConf.PORT,
+            wConf.DATA_PORT, wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
+            wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
     worker.start();
   }
 
@@ -111,9 +111,9 @@ public class Worker implements Runnable {
 
   private volatile boolean mStop = false;
 
-  private Worker(InetSocketAddress masterAddress, InetSocketAddress workerAddress, int dataPort,
-      int selectorThreads, int acceptQueueSizePerThreads, int workerThreads, String dataFolder,
-      long memoryCapacityBytes) {
+  private TachyonWorker(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
+      int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
+      String dataFolder, long memoryCapacityBytes) {
     MasterAddress = masterAddress;
     WorkerAddress = workerAddress;
 

@@ -38,7 +38,7 @@ import tachyon.web.UIWebServer;
 /**
  * Entry point for the Master program.
  */
-public class Master {
+public class TachyonMaster {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   public static void main(String[] args) {
@@ -48,8 +48,8 @@ public class Master {
       System.exit(-1);
     }
     MasterConf mConf = MasterConf.get();
-    Master master =
-        new Master(new InetSocketAddress(mConf.HOSTNAME, mConf.PORT), mConf.WEB_PORT,
+    TachyonMaster master =
+        new TachyonMaster(new InetSocketAddress(mConf.HOSTNAME, mConf.PORT), mConf.WEB_PORT,
             mConf.SELECTOR_THREADS, mConf.QUEUE_SIZE_PER_SELECTOR, mConf.SERVER_THREADS);
     master.start();
   }
@@ -69,7 +69,7 @@ public class Master {
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  public Master(InetSocketAddress address, int webPort, int selectorThreads,
+  public TachyonMaster(InetSocketAddress address, int webPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads) {
     if (CommonConf.get().USE_ZOOKEEPER) {
       mZookeeperMode = true;
