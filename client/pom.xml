@@ -34,7 +34,7 @@
       <groupId>org.tachyonproject</groupId>
       <artifactId>tachyon</artifactId>
       <version>${project.version}</version>
-      <scope>compile</scope>
+      <scope>runtime</scope>
       <exclusions>
         <exclusion>
           <groupId>org.eclipse.jetty</groupId>
