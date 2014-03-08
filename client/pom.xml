@@ -81,11 +81,6 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <archive>
-            <manifest>
-              <mainClass>tachyon.sample.ServerApp</mainClass>
-            </manifest>
-          </archive>
         </configuration>
         <executions>
           <execution>
