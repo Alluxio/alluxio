@@ -165,7 +165,7 @@ public class MasterInfoTest {
     Assert.assertEquals(3, mMasterInfo.getFileId("/testFolder/testFolder2"));
     Assert.assertEquals(fileId, mMasterInfo.getFileId("/testFolder/testFile"));
     Assert.assertEquals(fileId2, mMasterInfo.getFileId("/testFolder/testFolder2/testFile2"));
-    Assert.assertTrue(mMasterInfo.delete(2, true));
+    Assert.assertTrue(mMasterInfo.delete("/testFolder", true));
     Assert.assertEquals(-1, mMasterInfo.getFileId("/testFolder"));
     Assert.assertEquals(-1, mMasterInfo.getFileId("/testFolder/testFolder2"));
     Assert.assertEquals(-1, mMasterInfo.getFileId("/testFolder/testFile"));
@@ -185,7 +185,7 @@ public class MasterInfoTest {
     Assert.assertEquals(3, mMasterInfo.getFileId("/testFolder/testFolder2"));
     Assert.assertEquals(fileId, mMasterInfo.getFileId("/testFolder/testFile"));
     Assert.assertEquals(fileId2, mMasterInfo.getFileId("/testFolder/testFolder2/testFile2"));
-    Assert.assertFalse(mMasterInfo.delete(2, false));
+    Assert.assertFalse(mMasterInfo.delete("/testFolder", false));
     Assert.assertEquals(2, mMasterInfo.getFileId("/testFolder"));
     Assert.assertEquals(3, mMasterInfo.getFileId("/testFolder/testFolder2"));
     Assert.assertEquals(fileId, mMasterInfo.getFileId("/testFolder/testFile"));
@@ -199,7 +199,7 @@ public class MasterInfoTest {
     int fileId = mMasterInfo.createFile("/testFolder/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     Assert.assertEquals(2, mMasterInfo.getFileId("/testFolder"));
     Assert.assertEquals(fileId, mMasterInfo.getFileId("/testFolder/testFile"));
-    Assert.assertTrue(mMasterInfo.delete(2, true));
+    Assert.assertTrue(mMasterInfo.delete("/testFolder", true));
     Assert.assertEquals(-1, mMasterInfo.getFileId("/testFolder"));
     Assert.assertEquals(-1, mMasterInfo.getFileId("/testFolder/testFile"));
   }
@@ -211,7 +211,7 @@ public class MasterInfoTest {
     int fileId = mMasterInfo.createFile("/testFolder/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     Assert.assertEquals(2, mMasterInfo.getFileId("/testFolder"));
     Assert.assertEquals(fileId, mMasterInfo.getFileId("/testFolder/testFile"));
-    Assert.assertFalse(mMasterInfo.delete(2, false));
+    Assert.assertFalse(mMasterInfo.delete("/testFolder", false));
     Assert.assertEquals(2, mMasterInfo.getFileId("/testFolder"));
     Assert.assertEquals(fileId, mMasterInfo.getFileId("/testFolder/testFile"));
   }
@@ -230,7 +230,7 @@ public class MasterInfoTest {
       TachyonException, BlockInfoException {
     int fileId = mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     Assert.assertEquals(fileId, mMasterInfo.getFileId("/testFile"));
-    Assert.assertTrue(mMasterInfo.delete(fileId, true));
+    Assert.assertTrue(mMasterInfo.delete("/testFile", true));
     Assert.assertEquals(-1, mMasterInfo.getFileId("/testFile"));
   }
 

@@ -80,11 +80,15 @@ public abstract class Inode implements Comparable<Inode> {
   }
 
   public boolean isDirectory() {
-    return TYPE != InodeType.File;
+    return TYPE == InodeType.Folder;
   }
 
   public boolean isFile() {
     return TYPE == InodeType.File;
+  }
+
+  public boolean isRawTable() {
+      return TYPE == InodeType.RawTable;
   }
 
   public synchronized void reverseId() {

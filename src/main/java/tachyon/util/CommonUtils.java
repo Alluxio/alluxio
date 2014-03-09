@@ -183,9 +183,23 @@ public final class CommonUtils {
    *          The path
    * @return the name of the file
    */
-  public static String getName(String path) throws InvalidPathException {
-    String[] pathNames = getPathComponents(path);
-    return pathNames[pathNames.length - 1];
+  public static String getName(String path) {
+    return path.substring(path.lastIndexOf('/')+1);
+  }
+
+  /**
+   * Get the parent of the file at a path
+   *
+   * @param path
+   *        The path
+   * @return the parent of the file
+   */
+  public static String getParent(String path) {
+    String ret = path.substring(0, path.lastIndexOf('/'));
+    if (ret.equals("")) {
+      ret = "/";
+    }
+    return ret;
   }
 
   /**
@@ -397,6 +411,21 @@ public final class CommonUtils {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
   }
+
+    /**
+     * Return whether the first array starts with the second.
+     */
+    public static boolean startsWith(Object[] first, Object[] second) {
+        if (second.length > first.length) {
+            return false;
+        }
+        for (int i = 0; i < second.length; i++) {
+            if (!first[i].equals(second[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
 
   private CommonUtils() {
   }
