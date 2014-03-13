@@ -60,6 +60,7 @@
 
   <modules>
     <module>tachyon</module>
+    <module>tachyon-server</module>
   </modules>
 
   <properties>

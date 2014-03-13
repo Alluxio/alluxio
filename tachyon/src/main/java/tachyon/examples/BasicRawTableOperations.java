@@ -57,7 +57,7 @@ public class BasicRawTableOperations {
 
   public static void main(String[] args) throws IOException {
     if (args.length != 3) {
-      System.out.println("java -cp tachyon/target/tachyon-" + Version.VERSION
+      System.out.println("java -cp tachyon-server/target/tachyon-server-" + Version.VERSION
           + "-jar-with-dependencies.jar "
           + "tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>");
       System.exit(-1);

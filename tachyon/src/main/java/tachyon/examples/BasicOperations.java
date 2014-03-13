@@ -48,7 +48,7 @@ public class BasicOperations {
 
   public static void main(String[] args) throws IOException {
     if (args.length != 3) {
-      System.out.println("java -cp tachyon/target/tachyon-" + Version.VERSION
+      System.out.println("java -cp tachyon-server/target/tachyon-server-" + Version.VERSION
           + "-jar-with-dependencies.jar "
           + "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
       System.exit(-1);

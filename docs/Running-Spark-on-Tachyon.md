@@ -10,7 +10,7 @@ later and have set up Tachyon and Hadoop in accordance to these guides
 
 Edit Spark `spark/conf/spark-env.sh`, add:
 
-    export SPARK_CLASSPATH=/pathToTachyon/tachyon/target/tachyon-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar:$SPARK_CLASSPATH
+    export SPARK_CLASSPATH=/pathToTachyon/tachyon/tachyon-server/target/tachyon-server-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar:$SPARK_CLASSPATH
 
 Create a new file `spark/conf/core-site.xml` Add the following to it
 

@@ -48,7 +48,7 @@ Edit `slaves` file, add slaves' hostnames into it. Sync the configuration to all
 
 Edit Spark `/root/spark/conf/spark-env.sh`, add:
 
-    export SPARK_CLASSPATH+=/root/tachyon/target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar
+    export SPARK_CLASSPATH+=/root/tachyon/tachyon-server/target/tachyon-server-{{site.TACHYON_RELEASED_VERSION}}-SNAPSHOT-jar-with-dependencies.jar
     SPARK_JAVA_OPTS+=" -Dtachyon.hdfs.address=hdfs://HDFS_HOSTNAME:HDFS_PORT -Dspark.default.parallelism=1 "
     export SPARK_JAVA_OPTS
 
