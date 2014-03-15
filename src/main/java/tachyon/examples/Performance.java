@@ -301,21 +301,13 @@ public class Performance {
   public static class HdfsWorker extends Worker {
     private boolean mWrite;
     private String mMsg;
+    private FileSystem mHdfsFs;
 
-    public HdfsWorker(int id, int left, int right, ByteBuffer buf, boolean write, String msg) {
+    public HdfsWorker(int id, int left, int right, ByteBuffer buf, boolean write, String msg) 
+        throws IOException {
       super(id, left, right, buf);
       mWrite = write;
       mMsg = msg;
-    }
-
-    public void io() throws IOException {
-      if (DEBUG_MODE) {
-        mBuf.flip();
-        CommonUtils.printByteBuffer(LOG, mBuf);
-      }
-      mBuf.flip();
-      long sum = 0;
-      String str = "th " + mMsg + " @ Worker ";
 
       Configuration tConf = new Configuration();
       tConf.set("fs.default.name", FILE_NAME);
@@ -331,12 +323,23 @@ public class Performance {
       // System.loadLibrary("hdfs");
       // System.loadLibrary("hadoop");
 
-      FileSystem fs = FileSystem.get(tConf);
+      mHdfsFs = FileSystem.get(tConf);
+    }
+
+    public void io() throws IOException {
+      if (DEBUG_MODE) {
+        mBuf.flip();
+        CommonUtils.printByteBuffer(LOG, mBuf);
+      }
+      mBuf.flip();
+      long sum = 0;
+      String str = "th " + mMsg + " @ Worker ";
+      
       if (mWrite) {
         for (int times = mLeft; times < mRight; times ++) {
           long startTimeMs = System.currentTimeMillis();
           String filePath = FILE_NAME + (mWorkerId + BASE_FILE_NUMBER);
-          OutputStream os = fs.create(new Path(filePath));
+          OutputStream os = mHdfsFs.create(new Path(filePath));
           for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
             mBuf.array()[0] = (byte) (k + mWorkerId);
             os.write(mBuf.array());
@@ -348,7 +351,7 @@ public class Performance {
         for (int times = mLeft; times < mRight; times ++) {
           long startTimeMs = System.currentTimeMillis();
           String filePath = FILE_NAME + (mWorkerId + BASE_FILE_NUMBER);
-          InputStream is = fs.open(new Path(filePath));
+          InputStream is = mHdfsFs.open(new Path(filePath));
           long len = BLOCKS_PER_FILE * BLOCK_SIZE_BYTES;
 
           while (len > 0) {
@@ -455,7 +458,7 @@ public class Performance {
         + " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
-  private static void HdfsTest(boolean write) {
+  private static void HdfsTest(boolean write) throws IOException {
     ByteBuffer[] bufs = new ByteBuffer[THREADS];
 
     for (int thread = 0; thread < THREADS; thread ++) {
