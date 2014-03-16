@@ -82,7 +82,7 @@ public class BlockOutStream extends OutStream {
       throw new IOException(msg);
     }
 
-    mLocalFilePath = localFolder.getPath() + "/" + BLOCK_ID;
+    mLocalFilePath = localFolder.getPath() + Constants.PATH_SEPARATOR + BLOCK_ID;
     mLocalFile = new RandomAccessFile(mLocalFilePath, "rw");
     mLocalFileChannel = mLocalFile.getChannel();
     // change the permission of the temporary file in order that the worker can move it.

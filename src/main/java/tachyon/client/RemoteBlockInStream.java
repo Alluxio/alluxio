@@ -201,7 +201,8 @@ public class RemoteBlockInStream extends BlockInStream {
         }
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())) {
-          String localFileName = TFS.getRootFolder() + "/" + blockInfo.blockId;
+          String localFileName =
+              TFS.getRootFolder() + Constants.PATH_SEPARATOR + blockInfo.blockId;
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         }
         LOG.info(host + ":" + (port + 1) + " current host is "

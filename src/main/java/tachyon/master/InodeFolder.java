@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import tachyon.Constants;
 import tachyon.thrift.ClientFileInfo;
 
 /**
@@ -141,10 +142,10 @@ public class InodeFolder extends Inode {
     List<String> ret = new ArrayList<String>();
     for (Inode i : mChildren) {
       String subpath;
-      if (path.endsWith("/")) {
+      if (path.endsWith(Constants.PATH_SEPARATOR)) {
         subpath = path + i.getName();
       } else {
-        subpath = path + "/" + i.getName();
+        subpath = path + Constants.PATH_SEPARATOR + i.getName();
       }
       ret.add(subpath);
       if (i.isDirectory() && recursive) {

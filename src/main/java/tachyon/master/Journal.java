@@ -18,6 +18,7 @@ package tachyon.master;
 
 import java.io.IOException;
 
+import tachyon.Constants;
 import tachyon.UnderFileSystem;
 
 /**
@@ -32,8 +33,8 @@ public class Journal {
   private String mEditLogPath;
 
   public Journal(String folder, String imageFileName, String editLogFileName) throws IOException {
-    if (!folder.endsWith("/")) {
-      folder += "/";
+    if (!folder.endsWith(Constants.PATH_SEPARATOR)) {
+      folder += Constants.PATH_SEPARATOR;
     }
     mImagePath = folder + imageFileName;
     mEditLogPath = folder + editLogFileName;

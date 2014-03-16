@@ -76,7 +76,8 @@ public class MasterConf extends Utils {
     SERVER_THREADS = getIntProperty("tachyon.master.server.threads", 128);
     WORKER_TIMEOUT_MS = getIntProperty("tachyon.master.worker.timeout.ms", 10 * 1000);
 
-    WHITELIST.addAll(Arrays.asList(getProperty("tachyon.master.whitelist", "/").split(";")));
+    WHITELIST.addAll(Arrays.asList(getProperty("tachyon.master.whitelist",
+        Constants.PATH_SEPARATOR).split(";")));
     String tPinList = getProperty("tachyon.master.pinlist", null);
     if (tPinList != null && !tPinList.isEmpty()) {
       PINLIST.addAll(Arrays.asList(tPinList.split(";")));

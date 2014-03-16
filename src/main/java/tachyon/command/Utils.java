@@ -41,7 +41,7 @@ public class Utils {
     } else if (path.startsWith(Constants.HEADER_FT)) {
       path = path.substring(Constants.HEADER_FT.length());
     }
-    String ret = path.substring(path.indexOf("/"));
+    String ret = path.substring(path.indexOf(Constants.PATH_SEPARATOR));
     return ret;
   }
 

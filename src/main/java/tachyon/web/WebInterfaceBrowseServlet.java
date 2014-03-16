@@ -291,7 +291,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     List<ClientFileInfo> filesInfo = null;
     String currentPath = request.getParameter("path");
     if (currentPath.isEmpty()) {
-      currentPath = "/";
+      currentPath = Constants.PATH_SEPARATOR;
     }
     request.setAttribute("currentPath", currentPath);
     request.setAttribute("viewingOffset", 0);

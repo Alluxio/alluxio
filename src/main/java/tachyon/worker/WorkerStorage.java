@@ -176,8 +176,9 @@ public class WorkerStorage {
 
           // TODO checkpoint process. In future, move from midPath to dstPath should be done by
           // master
-          String midPath = mUnderfsWorkerDataFolder + "/" + fileId;
-          String dstPath = CommonConf.get().UNDERFS_DATA_FOLDER + "/" + fileId;
+          String midPath = mUnderfsWorkerDataFolder + Constants.PATH_SEPARATOR + fileId;
+          String dstPath =
+              CommonConf.get().UNDERFS_DATA_FOLDER + Constants.PATH_SEPARATOR + fileId;
           LOG.info("Thread " + ID + " is checkpointing file " + fileId + " from "
               + mLocalDataFolder.toString() + " to " + midPath + " to " + dstPath);
 
@@ -197,7 +198,9 @@ public class WorkerStorage {
           OutputStream os = mCheckpointUnderFs.create(midPath, (int) fileInfo.getBlockSizeByte());
           long fileSizeByte = 0;
           for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-            File tempFile = new File(mLocalDataFolder.toString() + "/" + fileInfo.blockIds.get(k));
+            File tempFile =
+                new File(mLocalDataFolder.toString() + Constants.PATH_SEPARATOR
+                    + fileInfo.blockIds.get(k));
             fileSizeByte += tempFile.length();
             InputStream is = new FileInputStream(tempFile);
             byte[] buf = new byte[16 * Constants.KB];
@@ -314,7 +317,8 @@ public class WorkerStorage {
     mLocalDataFolder = new File(dataFolder);
     mLocalUserFolder =
         new File(mLocalDataFolder.toString(), WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
-    mUnderfsWorkerFolder = COMMON_CONF.UNDERFS_WORKERS_FOLDER + "/" + mWorkerId;
+    mUnderfsWorkerFolder =
+        COMMON_CONF.UNDERFS_WORKERS_FOLDER + Constants.PATH_SEPARATOR + mWorkerId;
     mUnderfsWorkerDataFolder = mUnderfsWorkerFolder + "/data";
     mUnderFs = UnderFileSystem.get(COMMON_CONF.UNDERFS_ADDRESS);
     mUsers = new Users(mLocalUserFolder.toString(), mUnderfsWorkerFolder);
@@ -360,8 +364,8 @@ public class WorkerStorage {
   public void addCheckpoint(long userId, int fileId) throws FileDoesNotExistException,
       SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, TException {
     // TODO This part need to be changed.
-    String srcPath = getUserUnderfsTempFolder(userId) + "/" + fileId;
-    String dstPath = COMMON_CONF.UNDERFS_DATA_FOLDER + "/" + fileId;
+    String srcPath = getUserUnderfsTempFolder(userId) + Constants.PATH_SEPARATOR + fileId;
+    String dstPath = COMMON_CONF.UNDERFS_DATA_FOLDER + Constants.PATH_SEPARATOR + fileId;
     try {
       if (!mUnderFs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
@@ -404,8 +408,8 @@ public class WorkerStorage {
 
   public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
       SuspectedFileSizeException, BlockInfoException, TException {
-    File srcFile = new File(getUserTempFolder(userId) + "/" + blockId);
-    File dstFile = new File(mLocalDataFolder + "/" + blockId);
+    File srcFile = new File(getUserTempFolder(userId) + Constants.PATH_SEPARATOR + blockId);
+    File dstFile = new File(mLocalDataFolder + Constants.PATH_SEPARATOR + blockId);
     long fileSizeBytes = srcFile.length();
     if (!srcFile.exists()) {
       throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
@@ -458,7 +462,7 @@ public class WorkerStorage {
     Long freedFileBytes = null;
     if (mBlockSizes.containsKey(blockId)) {
       mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
-      File srcFile = new File(mLocalDataFolder + "/" + blockId);
+      File srcFile = new File(mLocalDataFolder + Constants.PATH_SEPARATOR + blockId);
       srcFile.delete();
       synchronized (mLatestBlockAccessTimeMs) {
         mLatestBlockAccessTimeMs.remove(blockId);

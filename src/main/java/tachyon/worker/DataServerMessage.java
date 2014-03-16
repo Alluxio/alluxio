@@ -79,7 +79,7 @@ public class DataServerMessage {
           throw new IOException("Length can not be negative except -1: " + len);
         }
 
-        String filePath = WorkerConf.get().DATA_FOLDER + "/" + blockId;
+        String filePath = WorkerConf.get().DATA_FOLDER + Constants.PATH_SEPARATOR + blockId;
         ret.LOG.info("Try to response remote requst by reading from " + filePath);
         RandomAccessFile file = new RandomAccessFile(filePath, "r");
 

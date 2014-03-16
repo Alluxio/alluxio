@@ -958,9 +958,9 @@ public class MasterInfo {
         return 0;
       }
       // Now we get the inode from the parent that we want to delete.
-      // If path == "/", we get mRoot.
+      // If path == Constants.PATH_SEPARATOR, we get mRoot.
       Inode delNode = null;
-      if (path == "/") {
+      if (path == Constants.PATH_SEPARATOR) {
         delNode = mRoot;
       } else {
         delNode = ((InodeFolder) inodeLocks.inode).getChild(pathName);
@@ -1330,7 +1330,7 @@ public class MasterInfo {
 
       if (inodeLocks.inode.isDirectory()) {
         for (Inode i : ((InodeFolder) inodeLocks.inode).getChildren(false)) {
-          ret.add(i.generateClientFileInfo(path + "/" + i.getName()));
+          ret.add(i.generateClientFileInfo(path + Constants.PATH_SEPARATOR + i.getName()));
         }
       } else {
         ret.add(inodeLocks.inode.generateClientFileInfo(path));
@@ -1567,7 +1567,7 @@ public class MasterInfo {
     // We can't let any destructive operations occur while traversing up the tree, so the whole tree
     // needs to be locked.
     if (inode.getId() == 1) {
-      return "/";
+      return Constants.PATH_SEPARATOR;
     }
     mRoot.rwl.writeLock();
     try {
@@ -2173,8 +2173,8 @@ public class MasterInfo {
       return;
     }
     // We make sure srcPath isn't a prefix of dstPath, since that is an invalid rename. If srcPath
-    // is "/", then this test should always fail, so if it passes, we know srcPath must have a
-    // parent.
+    // is Constants.PATH_SEPARATOR, then this test should always fail, so if it passes, we know
+    // srcPath must have a parent.
     if (CommonUtils.startsWith(dstPath.split(Constants.PATH_SEPARATOR),
         srcPath.split(Constants.PATH_SEPARATOR))) {
       throw new InvalidPathException("Failed to rename: " + srcPath + " is a prefix of " + dstPath);

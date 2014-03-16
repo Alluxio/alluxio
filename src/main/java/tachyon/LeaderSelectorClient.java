@@ -51,10 +51,10 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
       String name) {
     ZOOKEEPER_ADDRESS = zookeeperAddress;
     ELECTION_PATH = electionPath;
-    if (leaderPath.endsWith("/")) {
+    if (leaderPath.endsWith(Constants.PATH_SEPARATOR)) {
       LEADER_FOLDER = leaderPath;
     } else {
-      LEADER_FOLDER = leaderPath + "/";
+      LEADER_FOLDER = leaderPath + Constants.PATH_SEPARATOR;
     }
     NAME = name;
 
