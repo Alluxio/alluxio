@@ -60,6 +60,16 @@ The common configuration contains constants which specify paths and the log appe
   <td>The implementation class of the HDFS, if using it as the under FS.</td>
 </tr>
 <tr>
+  <td>tachyon.max.columns</td>
+  <td>1000</td>
+  <td>Maximum no of allowed columns when created through shark, must be set on the client and server side</td>
+</tr>
+<tr>
+  <td>tachyon.table.metadata.byte</td>
+  <td>5242880</td>
+  <td>Maximum amount of bytes allowed to be store as table metadata when creating through shark, must be set on the server side</td>
+</tr>
+<tr>
   <td>fs.s3n.awsAccessKeyId</td>
   <td>null</td>
   <td>S3 aws access key id if using S3 as the under FS.</td>

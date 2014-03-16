@@ -16,6 +16,9 @@
  */
 package tachyon.client;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -153,6 +156,9 @@ public class TachyonFSTest {
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest1() throws IOException {
+    String maxColumnsProp = System.getProperty("tachyon.max.columns");
+    
+    assertThat(Constants.MAX_COLUMNS, equalTo(Integer.parseInt(maxColumnsProp)));
     mTfs.createRawTable("/table", Constants.MAX_COLUMNS);
   }
 
@@ -422,4 +428,5 @@ public class TachyonFSTest {
       Assert.assertTrue(tFile.isInMemory());
     }
   }
+  
 }
