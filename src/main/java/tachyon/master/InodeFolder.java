@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,7 +39,8 @@ public class InodeFolder extends Inode {
     this(name, id, parentId, InodeType.Folder, creationTimeMs);
   }
 
-  /* ------------------------------------------------------------------------------
+  /*
+   * ------------------------------------------------------------------------------
    * These operations assume a lock has already been taken on the folder.
    * ------------------------------------------------------------------------------
    */
@@ -104,7 +103,14 @@ public class InodeFolder extends Inode {
     return ret;
   }
 
-  // It adds nodes in parent-first order
+  /**
+   * Returns a list of the folder's children.
+   * 
+   * @param recursive
+   *          If true, it will recurse into the folder's subdirectories. For a given node n, it adds
+   *          n to the list before adding n's children.
+   * @return A list of the children inodes.
+   */
   public List<Inode> getChildren(boolean recursive) {
     List<Inode> ret = new ArrayList<Inode>();
     if (!recursive) {
@@ -123,7 +129,14 @@ public class InodeFolder extends Inode {
     return ret;
   }
 
-  // It adds nodes in parent-first order
+  /**
+   * Returns a list of the folder's children's pathnames.
+   * 
+   * @param recursive
+   *          If true, it will recurse into the folder's subdirectories. For a given node n, it adds
+   *          n's path to the list before adding n's children.
+   * @return A list of the children paths.
+   */
   public List<String> getChildrenPaths(String path, boolean recursive) {
     List<String> ret = new ArrayList<String>();
     for (Inode i : mChildren) {

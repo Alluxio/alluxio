@@ -64,16 +64,19 @@ public class MasterInfoBenchmark {
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
   }
 
-  /* Creates a directory tree at the given root with the given
-   * depth. */
+  /*
+   * Creates a directory tree at the given root with the given
+   * depth.
+   */
   public class PerfTestCreateTree implements Runnable {
     private int depth;
     private int filesPerNode;
     private int concurrencyDepth;
     private String initPath;
     private MasterInfo masterInfo;
-    PerfTestCreateTree(int depth, int filesPerNode, int concurrencyDepth,
-                           String initPath, MasterInfo masterInfo) {
+
+    PerfTestCreateTree(int depth, int filesPerNode, int concurrencyDepth, String initPath,
+        MasterInfo masterInfo) {
       this.depth = depth;
       this.filesPerNode = filesPerNode;
       this.concurrencyDepth = concurrencyDepth;
@@ -93,19 +96,18 @@ public class MasterInfoBenchmark {
       if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
         Future<?>[] futures = new Future<?>[filesPerNode];
-        for (int i = 0; i < filesPerNode; i++) {
-          futures[i] = executor.submit(new PerfTestCreateTree(
-                                           depth-1, filesPerNode, concurrencyDepth-1,
-                                           path + Constants.PATH_SEPARATOR + i, masterInfo));
+        for (int i = 0; i < filesPerNode; i ++) {
+          futures[i] =
+              executor.submit(new PerfTestCreateTree(depth - 1, filesPerNode,
+                  concurrencyDepth - 1, path + Constants.PATH_SEPARATOR + i, masterInfo));
         }
         for (Future<?> f : futures) {
           f.get();
         }
         executor.shutdown();
       } else {
-        for (int i = 0; i < filesPerNode; i++) {
-          exec(depth-1, filesPerNode, concurrencyDepth,
-               path + Constants.PATH_SEPARATOR + i);
+        for (int i = 0; i < filesPerNode; i ++) {
+          exec(depth - 1, filesPerNode, concurrencyDepth, path + Constants.PATH_SEPARATOR + i);
         }
       }
     }
@@ -120,17 +122,20 @@ public class MasterInfoBenchmark {
     }
   }
 
-  /* Traverses the directory at path with the given depth, running
+  /*
+   * Traverses the directory at path with the given depth, running
    * getClientFileInfo and ls on all the directories and
-   * getClientFileInfo on all the files. */
+   * getClientFileInfo on all the files.
+   */
   public class PerfTestTraverseTree implements Runnable {
     private int depth;
     private int filesPerNode;
     private int concurrencyDepth;
     private String initPath;
     private MasterInfo masterInfo;
-    PerfTestTraverseTree(int depth, int filesPerNode, int concurrencyDepth,
-                             String initPath, MasterInfo masterInfo) {
+
+    PerfTestTraverseTree(int depth, int filesPerNode, int concurrencyDepth, String initPath,
+        MasterInfo masterInfo) {
       this.depth = depth;
       this.filesPerNode = filesPerNode;
       this.concurrencyDepth = concurrencyDepth;
@@ -151,19 +156,18 @@ public class MasterInfoBenchmark {
       if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
         Future<?>[] futures = new Future<?>[filesPerNode];
-        for (int i = 0; i < filesPerNode; i++) {
-          futures[i] = executor.submit(new PerfTestTraverseTree(
-                                           depth-1, filesPerNode, concurrencyDepth-1,
-                                           path + Constants.PATH_SEPARATOR + i, masterInfo));
+        for (int i = 0; i < filesPerNode; i ++) {
+          futures[i] =
+              executor.submit(new PerfTestTraverseTree(depth - 1, filesPerNode,
+                  concurrencyDepth - 1, path + Constants.PATH_SEPARATOR + i, masterInfo));
         }
         for (Future<?> f : futures) {
           f.get();
         }
         executor.shutdown();
       } else {
-        for (int i = 0; i < filesPerNode; i++) {
-          exec(depth-1, filesPerNode, concurrencyDepth,
-               path + Constants.PATH_SEPARATOR + i);
+        for (int i = 0; i < filesPerNode; i ++) {
+          exec(depth - 1, filesPerNode, concurrencyDepth, path + Constants.PATH_SEPARATOR + i);
         }
       }
     }
@@ -178,16 +182,19 @@ public class MasterInfoBenchmark {
     }
   }
 
-  /* Traverses the directory at path with the given depth, deleting
-   * all the files it encounters bottom up. */
+  /*
+   * Traverses the directory at path with the given depth, deleting
+   * all the files it encounters bottom up.
+   */
   public class PerfTestDeleteTree implements Runnable {
     private int depth;
     private int filesPerNode;
     private int concurrencyDepth;
     private String initPath;
     private MasterInfo masterInfo;
-    PerfTestDeleteTree(int depth, int filesPerNode, int concurrencyDepth,
-                             String initPath, MasterInfo masterInfo) {
+
+    PerfTestDeleteTree(int depth, int filesPerNode, int concurrencyDepth, String initPath,
+        MasterInfo masterInfo) {
       this.depth = depth;
       this.filesPerNode = filesPerNode;
       this.concurrencyDepth = concurrencyDepth;
@@ -203,19 +210,18 @@ public class MasterInfoBenchmark {
       if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
         Future<?>[] futures = new Future<?>[filesPerNode];
-        for (int i = 0; i < filesPerNode; i++) {
-          futures[i] = executor.submit(new PerfTestDeleteTree(
-                                           depth-1, filesPerNode, concurrencyDepth-1,
-                                           path + Constants.PATH_SEPARATOR + i, masterInfo));
+        for (int i = 0; i < filesPerNode; i ++) {
+          futures[i] =
+              executor.submit(new PerfTestDeleteTree(depth - 1, filesPerNode,
+                  concurrencyDepth - 1, path + Constants.PATH_SEPARATOR + i, masterInfo));
         }
         for (Future<?> f : futures) {
           f.get();
         }
         executor.shutdown();
       } else {
-        for (int i = 0; i < filesPerNode; i++) {
-          exec(depth-1, filesPerNode, concurrencyDepth,
-               path + Constants.PATH_SEPARATOR + i);
+        for (int i = 0; i < filesPerNode; i ++) {
+          exec(depth - 1, filesPerNode, concurrencyDepth, path + Constants.PATH_SEPARATOR + i);
         }
       }
       masterInfo._delete(path, true);
@@ -236,7 +242,7 @@ public class MasterInfoBenchmark {
     final int depth = 9;
     final int filesPerNode = 4;
     final int concurrencyDepth = 2;
-    final String[] roots = {"/root1", "/root2", "/root3"};
+    final String[] roots = { "/root1", "/root2", "/root3" };
     LOG.error("depth = " + depth);
     LOG.error("files per node = " + filesPerNode);
     LOG.error("concurrency depth = " + concurrencyDepth);
@@ -247,9 +253,10 @@ public class MasterInfoBenchmark {
     executor = Executors.newCachedThreadPool();
     Future<?> futures[] = new Future<?>[roots.length];
     sMs = System.currentTimeMillis();
-    for (int i = 0; i < roots.length; i++) {
-      futures[i] = executor.submit(
-          new PerfTestCreateTree(depth, filesPerNode, concurrencyDepth, roots[i], mMasterInfo));
+    for (int i = 0; i < roots.length; i ++) {
+      futures[i] =
+          executor.submit(new PerfTestCreateTree(depth, filesPerNode, concurrencyDepth, roots[i],
+              mMasterInfo));
     }
     for (Future<?> f : futures) {
       f.get();
@@ -259,22 +266,25 @@ public class MasterInfoBenchmark {
 
     executor = Executors.newCachedThreadPool();
     sMs = System.currentTimeMillis();
-    for (int i = 0; i < roots.length; i++) {
-      futures[i] = executor.submit(
-          new PerfTestTraverseTree(depth, filesPerNode, concurrencyDepth, roots[i], mMasterInfo));
+    for (int i = 0; i < roots.length; i ++) {
+      futures[i] =
+          executor.submit(new PerfTestTraverseTree(depth, filesPerNode, concurrencyDepth,
+              roots[i], mMasterInfo));
     }
     for (Future<?> f : futures) {
       f.get();
     }
     executor.shutdown();
-    while (!executor.isTerminated());
+    while (!executor.isTerminated())
+      ;
     LOG.error("traverseFileTree: " + (System.currentTimeMillis() - sMs) + " ms");
 
     executor = Executors.newCachedThreadPool();
     sMs = System.currentTimeMillis();
-    for (int i = 0; i < roots.length; i++) {
-      futures[i] = executor.submit(
-          new PerfTestDeleteTree(depth, filesPerNode, concurrencyDepth, roots[i], mMasterInfo));
+    for (int i = 0; i < roots.length; i ++) {
+      futures[i] =
+          executor.submit(new PerfTestDeleteTree(depth, filesPerNode, concurrencyDepth, roots[i],
+              mMasterInfo));
     }
     for (Future<?> f : futures) {
       f.get();

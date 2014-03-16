@@ -22,42 +22,45 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * A simple read-write lock. Right now writes can be starved, but that
  * shouldn't be a big deal for this kind of workload.
-*/
+ */
 public class ReadWriteLock {
-    private AtomicInteger readers = new AtomicInteger(0);
-    private AtomicBoolean writer = new AtomicBoolean(false);
+  private AtomicInteger readers = new AtomicInteger(0);
+  private AtomicBoolean writer = new AtomicBoolean(false);
 
-    public void readLock() {
-        while (writer.get()) {}
-        readers.getAndIncrement();
-        if (writer.get()) {
-            readers.getAndDecrement();
-            readLock();
-        }
+  public void readLock() {
+    while (writer.get()) {
     }
+    readers.getAndIncrement();
+    if (writer.get()) {
+      readers.getAndDecrement();
+      readLock();
+    }
+  }
 
-    public void readUnlock() {
-        readers.getAndDecrement();
-    }
+  public void readUnlock() {
+    readers.getAndDecrement();
+  }
 
-    public void writeLock() {
-        while (readers.get() > 0 || !writer.compareAndSet(false, true)) {}
-        if (readers.get() > 0) {
-            writer.set(false);
-            writeLock();
-        }
+  public void writeLock() {
+    while (readers.get() > 0 || !writer.compareAndSet(false, true)) {
     }
+    if (readers.get() > 0) {
+      writer.set(false);
+      writeLock();
+    }
+  }
 
-    public void writeUnlock() {
-        writer.set(false);
-    }
+  public void writeUnlock() {
+    writer.set(false);
+  }
 
-    public void upgrade() {
-        while (readers.get() > 1 || !writer.compareAndSet(false, true)) {}
-        if (readers.get() > 1) {
-            writer.set(false);
-            upgrade();
-        }
-        readUnlock();
+  public void upgrade() {
+    while (readers.get() > 1 || !writer.compareAndSet(false, true)) {
     }
+    if (readers.get() > 1) {
+      writer.set(false);
+      upgrade();
+    }
+    readUnlock();
+  }
 }

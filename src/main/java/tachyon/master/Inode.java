@@ -88,7 +88,7 @@ public abstract class Inode implements Comparable<Inode> {
   }
 
   public boolean isRawTable() {
-      return TYPE == InodeType.RawTable;
+    return TYPE == InodeType.RawTable;
   }
 
   public synchronized void reverseId() {

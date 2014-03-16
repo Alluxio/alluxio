@@ -42,7 +42,7 @@ public final class CommonUtils {
 
   /**
    * Change local file's permission.
-   * 
+   *
    * @param filePath
    *          that will change permission
    * @param perms
@@ -178,20 +178,20 @@ public final class CommonUtils {
 
   /**
    * Get the name of the file at a path.
-   * 
+   *
    * @param path
    *          The path
    * @return the name of the file
    */
   public static String getName(String path) {
-    return path.substring(path.lastIndexOf('/')+1);
+    return path.substring(path.lastIndexOf('/') + 1);
   }
 
   /**
    * Get the parent of the file at a path
    *
    * @param path
-   *        The path
+   *          The path
    * @return the parent of the file
    */
   public static String getParent(String path) {
@@ -204,7 +204,7 @@ public final class CommonUtils {
 
   /**
    * Get the path components of the given path.
-   * 
+   *
    * @param path
    *          The path to split
    * @return the path split into components
@@ -272,7 +272,7 @@ public final class CommonUtils {
 
   /**
    * Parse InetSocketAddress from a String
-   * 
+   *
    * @param address
    * @return
    * @throws IOException
@@ -362,7 +362,7 @@ public final class CommonUtils {
   /**
    * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the owner
    * of the folder containing the 'file'.
-   * 
+   *
    * @param file
    *          absolute file path
    */
@@ -396,7 +396,7 @@ public final class CommonUtils {
 
   /**
    * Create an empty file
-   * 
+   *
    * @throws IOException
    */
   public static void touch(String path) throws IOException {
@@ -412,20 +412,20 @@ public final class CommonUtils {
     }
   }
 
-    /**
-     * Return whether the first array starts with the second.
-     */
-    public static boolean startsWith(Object[] first, Object[] second) {
-        if (second.length > first.length) {
-            return false;
-        }
-        for (int i = 0; i < second.length; i++) {
-            if (!first[i].equals(second[i])) {
-                return false;
-            }
-        }
-        return true;
+  /**
+   * Return whether the first array starts with the second.
+   */
+  public static boolean startsWith(Object[] first, Object[] second) {
+    if (second.length > first.length) {
+      return false;
     }
+    for (int i = 0; i < second.length; i ++) {
+      if (!first[i].equals(second[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   private CommonUtils() {
   }
