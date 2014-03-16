@@ -136,10 +136,10 @@ public class InodeRawTableTest {
   public void updateMetadataFailsWhenOverLimit() throws Exception {
     InodeRawTable inodeRawTable =
         new InodeRawTable("testTable1", 1, 0, 10, null, System.currentTimeMillis());
-    ByteBuffer metadata = ByteBuffer.allocate(101);
+    ByteBuffer metadata = ByteBuffer.allocate(Constants.MAX_TABLE_METADATA_BYTE);
     //when
     String maxMetadataSizeProp = System.getProperty("tachyon.max.table.metadata.byte");
-    assertThat(Constants.MAX_TABLE_METADATA_BYTE, equalTo(Long.parseLong(maxMetadataSizeProp)));
+    assertThat(Constants.MAX_TABLE_METADATA_BYTE, equalTo(Integer.parseInt(maxMetadataSizeProp)));
     inodeRawTable.updateMetadata(metadata);
     
   }
