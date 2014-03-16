@@ -16,14 +16,16 @@
  */
 package tachyon.master;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import java.nio.ByteBuffer;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.TestUtils;
-import tachyon.master.InodeRawTable;
-import tachyon.master.InodeType;
 import tachyon.thrift.TachyonException;
 
 /**
@@ -31,6 +33,7 @@ import tachyon.thrift.TachyonException;
  */
 public class InodeRawTableTest {
   // Tests for Inode methods
+  
   @Test
   public void comparableTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
@@ -127,5 +130,17 @@ public class InodeRawTableTest {
     ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(7);
     inodeRawTable.updateMetadata(metadata);
     Assert.assertEquals(metadata, inodeRawTable.getMetadata());
+  }
+  
+  @Test(expected = TachyonException.class)
+  public void updateMetadataFailsWhenOverLimit() throws Exception {
+    InodeRawTable inodeRawTable =
+        new InodeRawTable("testTable1", 1, 0, 10, null, System.currentTimeMillis());
+    ByteBuffer metadata = ByteBuffer.allocate(101);
+    //when
+    String maxMetadataSizeProp = System.getProperty("tachyon.max.table.metadata.byte");
+    assertThat(Constants.MAX_TABLE_METADATA_BYTE, equalTo(Long.parseLong(maxMetadataSizeProp)));
+    inodeRawTable.updateMetadata(metadata);
+    
   }
 }
