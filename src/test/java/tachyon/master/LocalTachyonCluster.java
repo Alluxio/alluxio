@@ -168,7 +168,7 @@ public class LocalTachyonCluster {
 
     System.setProperty("tachyon.home", mTachyonHome);
     System.setProperty("tachyon.master.hostname", mLocalhostName);
-    System.setProperty("tachyon.master.journal.folder", masterJournalFolder + "/");
+    System.setProperty("tachyon.master.journal.folder", masterJournalFolder);
     System.setProperty("tachyon.master.port", mMasterPort + "");
     System.setProperty("tachyon.master.web.port", (mMasterPort + 1) + "");
     System.setProperty("tachyon.worker.port", mWorkerPort + "");
