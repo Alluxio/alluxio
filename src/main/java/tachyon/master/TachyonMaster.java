@@ -114,6 +114,9 @@ public class TachyonMaster {
   }
 
   private boolean isFormatted(String folder, String path) throws IOException {
+    if(!folder.endsWith("/")) {
+      folder += "/";
+    }
     UnderFileSystem ufs = UnderFileSystem.get(folder);
     String[] files = ufs.list(folder);
     if (files == null) {
