@@ -20,6 +20,8 @@ import java.io.File;
 
 import org.apache.log4j.Logger;
 
+import tachyon.Constants;
+
 /**
  * Configurations shared by master and workers.
  */
@@ -58,6 +60,10 @@ public class CommonConf extends Utils {
   public final String ZOOKEEPER_LEADER_PATH;
 
   public final boolean ASYNC_ENABLED;
+  
+  public final int MAX_COLUMNS;
+  
+  public final int MAX_TABLE_METADATA_BYTE;
 
   private CommonConf() {
     if (System.getProperty("tachyon.home") == null) {
@@ -89,5 +95,8 @@ public class CommonConf extends Utils {
     }
 
     ASYNC_ENABLED = getBooleanProperty("tachyon.async.enabled", false);
+    
+    MAX_COLUMNS = getIntProperty("tachyon.max.columns", 1000);
+    MAX_TABLE_METADATA_BYTE = getIntProperty("tachyon.max.table.metadata.byte", Constants.MB * 5);
   }
 }
