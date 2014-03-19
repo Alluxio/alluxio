@@ -24,8 +24,8 @@ import java.util.List;
 import tachyon.util.CommonUtils;
 
 /**
- * Tachyon stores data into an under layer file system. Any file system implementing
- * this interface can be a valid under layer file system
+ * Tachyon stores data into an under layer file system. Any file system implementing this interface
+ * can be a valid under layer file system
  */
 public abstract class UnderFileSystem {
   public enum SpaceType {
@@ -48,8 +48,8 @@ public abstract class UnderFileSystem {
   }
 
   public static UnderFileSystem get(String path) {
-    if (path.startsWith("hdfs://") || path.startsWith("file://") ||
-        path.startsWith("s3://") || path.startsWith("s3n://")) {
+    if (path.startsWith("hdfs://") || path.startsWith("file://") || path.startsWith("s3://")
+        || path.startsWith("s3n://")) {
       return UnderFileSystemHdfs.getClient(path);
     } else if (path.startsWith("/")) {
       return UnderFileSystemSingleLocal.getClient();
@@ -57,8 +57,6 @@ public abstract class UnderFileSystem {
     CommonUtils.illegalArgumentException("Unknown under file system scheme " + path);
     return null;
   }
-
-  public abstract void changeToFullPermission(String path);
 
   public abstract void close() throws IOException;
 
@@ -73,7 +71,7 @@ public abstract class UnderFileSystem {
 
   public abstract boolean exists(String path) throws IOException;
 
-  public abstract String[] list(String path) throws IOException;
+  public abstract long getBlockSizeByte(String path) throws IOException;
 
   public abstract List<String> getFileLocations(String path) throws IOException;
 
@@ -81,17 +79,27 @@ public abstract class UnderFileSystem {
 
   public abstract long getFileSize(String path) throws IOException;
 
-  public abstract long getBlockSizeByte(String path) throws IOException;
-
   public abstract long getModificationTimeMs(String path) throws IOException;
 
   public abstract long getSpace(String path, SpaceType type) throws IOException;
 
   public abstract boolean isFile(String path) throws IOException;
 
+  /**
+   * List all the files in the folder.
+   * 
+   * @param path
+   *          the path to list.
+   * @return all the file names under the path.
+   * @throws IOException
+   */
+  public abstract String[] list(String path) throws IOException;
+
   public abstract boolean mkdirs(String path, boolean createParent) throws IOException;
 
   public abstract InputStream open(String path) throws IOException;
 
   public abstract boolean rename(String src, String dst) throws IOException;
+
+  public abstract void toFullPermission(String path) throws IOException;
 }

@@ -61,19 +61,8 @@ public class Users {
   }
 
   /**
-   * Get how much space quote does a user own.
-   * @param userId The queried user.
-   * @return Bytes the user owns.
-   */
-  public long ownBytes(long userId) {
-    synchronized (USERS) {
-      UserInfo tUser = USERS.get(userId);
-      return tUser == null ? 0 : tUser.getOwnBytes();
-    }
-  }
-
-  /**
    * Check the status of the users pool.
+   * 
    * @return the list of timeout users.
    */
   public List<Long> checkStatus() {
@@ -98,8 +87,24 @@ public class Users {
   }
 
   /**
+   * Get how much space quote does a user own.
+   * 
+   * @param userId
+   *          The queried user.
+   * @return Bytes the user owns.
+   */
+  public long ownBytes(long userId) {
+    synchronized (USERS) {
+      UserInfo tUser = USERS.get(userId);
+      return tUser == null ? 0 : tUser.getOwnBytes();
+    }
+  }
+
+  /**
    * Remove <code> userId </code> from user pool.
-   * @param userId The user to be removed.
+   * 
+   * @param userId
+   *          The user to be removed.
    * @return The space quote the removed user occupied in bytes.
    */
   public synchronized long removeUser(long userId) {
@@ -117,8 +122,8 @@ public class Users {
     } else {
       returnedBytes = tUser.getOwnBytes();
       String folder = getUserTempFolder(userId);
-      sb.append(" The user returns " + returnedBytes + " bytes. Remove the user's folder " +
-          folder + " ;");
+      sb.append(" The user returns " + returnedBytes + " bytes. Remove the user's folder "
+          + folder + " ;");
       try {
         FileUtils.deleteDirectory(new File(folder));
       } catch (IOException e) {

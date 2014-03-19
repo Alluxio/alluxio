@@ -31,9 +31,8 @@ import org.apache.tools.ant.util.LazyFileOutputStream;
 import tachyon.util.CommonUtils;
 
 /**
- * Custom log4j appender which preserves old logs on system restart, rolls over logs based on
- * both size and day. Also implements batch deletion of logs when the maximum backup index is
- * reached.
+ * Custom log4j appender which preserves old logs on system restart, rolls over logs based on both
+ * size and day. Also implements batch deletion of logs when the maximum backup index is reached.
  */
 public class Log4jFileAppender extends FileAppender {
   private int mMaxBackupIndex = 1;
@@ -43,22 +42,6 @@ public class Log4jFileAppender extends FileAppender {
   private String mCurrentFileName = "";
   private String mOriginalFileName = "";
   private String mLastDate = "";
-
-  public void setMaxBackupIndex(int maxBackups) {
-    mMaxBackupIndex = maxBackups;
-  }
-
-  public void setMaxFileSize(int maxFileSizeMB) {
-    mMaxFileSizeBytes = maxFileSizeMB * Constants.MB;
-  }
-
-  public void setDeletionPercentage(int deletionPercentage) {
-    if (deletionPercentage > 0 && deletionPercentage <= 100) {
-      mDeletionPercentage = deletionPercentage;
-    } else {
-      throw new RuntimeException("Log4j configuration error, invalid deletionPercentage");
-    }
-  }
 
   /**
    * Called when a new log attempt is made, either due to server restart or rollover. The filename
@@ -76,14 +59,103 @@ public class Log4jFileAppender extends FileAppender {
         fileName = getNewLogFileName(fileName);
         setFile(fileName, fileAppend, bufferedIO, bufferSize);
       } catch (Exception e) {
-        errorHandler.error("Error while activating log options", e,
-            ErrorCode.FILE_OPEN_FAILURE);
+        errorHandler.error("Error while activating log options", e, ErrorCode.FILE_OPEN_FAILURE);
       }
     }
   }
 
   /**
+   * Gets a log file name which includes the logger's host address and the date.
+   * 
+   * @param fileName
+   *          The base filename
+   * @return A new filename string
+   */
+  private String getNewLogFileName(String fileName) {
+    if (!fileName.isEmpty()) {
+      String newFileName = "";
+      String address = "";
+      try {
+        address = "@" + InetAddress.getLocalHost().getHostAddress();
+      } catch (UnknownHostException uhe) {
+        address = "@UnknownHost";
+      }
+      newFileName =
+          fileName + address + "_" + CommonUtils.convertMsToSimpleDate(System.currentTimeMillis());
+      File file = new File(newFileName);
+      if (file.exists()) {
+        rotateLogs(newFileName);
+      }
+      mLastDate = CommonUtils.convertMsToSimpleDate(System.currentTimeMillis());
+      mCurrentFileName = newFileName;
+      return newFileName;
+    } else {
+      throw new RuntimeException("Log4j configuration error, null filepath");
+    }
+  }
+
+  /**
+   * Rotates logs. The previous current log is set to the next available index. If the index has
+   * reached the maximum backup index, a percent of backup logs will be deleted, started from the
+   * earliest first. Then all rolledover logs will be moved up.
+   * 
+   * @param fileName
+   *          The fileName of the new current log.
+   */
+  private void rotateLogs(String fileName) {
+    if (mCurrentFileBackupIndex == -1) {
+      int lo = 0;
+      int hi = mMaxBackupIndex;
+      while (lo <= hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (mid == 0) {
+          mCurrentFileBackupIndex = 1;
+          break;
+        }
+        if (new File(fileName + "_" + mid).exists()) {
+          if (new File(fileName + "_" + (mid + 1)).exists()) {
+            lo = mid;
+          } else {
+            mCurrentFileBackupIndex = mid + 1;
+            break;
+          }
+        } else {
+          if (new File(fileName + "_" + (mid - 1)).exists()) {
+            mCurrentFileBackupIndex = mid;
+            break;
+          } else {
+            hi = mid;
+          }
+        }
+      }
+    }
+
+    File oldFile = new File(fileName);
+    if (mCurrentFileBackupIndex >= mMaxBackupIndex) {
+      int deleteToIndex = (int) Math.ceil(mMaxBackupIndex * mDeletionPercentage / 100.0);
+      for (int i = 1; i < deleteToIndex; i ++) {
+        new File(fileName + "_" + i).delete();
+      }
+      for (int i = deleteToIndex + 1; i <= mMaxBackupIndex; i ++) {
+        new File(fileName + "_" + i).renameTo(new File(fileName + "_" + (i - deleteToIndex)));
+      }
+      mCurrentFileBackupIndex = mCurrentFileBackupIndex - deleteToIndex;
+    }
+    oldFile.renameTo(new File(fileName + "_" + mCurrentFileBackupIndex));
+    mCurrentFileBackupIndex ++;
+  }
+
+  public void setDeletionPercentage(int deletionPercentage) {
+    if (deletionPercentage > 0 && deletionPercentage <= 100) {
+      mDeletionPercentage = deletionPercentage;
+    } else {
+      throw new RuntimeException("Log4j configuration error, invalid deletionPercentage");
+    }
+  }
+
+  /**
    * Creates a LazyFileOutputStream so logs are only created when a message is logged.
+   * 
    * @param fileName
    * @param append
    * @param bufferedIO
@@ -91,7 +163,7 @@ public class Log4jFileAppender extends FileAppender {
    */
   @Override
   public synchronized void setFile(String fileName, boolean append, boolean bufferedIO,
-      int bufferSize) throws IOException  {
+      int bufferSize) throws IOException {
     // It does not make sense to have immediate flush and bufferedIO.
     if (bufferedIO) {
       setImmediateFlush(false);
@@ -99,7 +171,7 @@ public class Log4jFileAppender extends FileAppender {
 
     reset();
 
-    //Creation of the LazyFileOutputStream object (the responsible of the log writing operations)
+    // Creation of the LazyFileOutputStream object (the responsible of the log writing operations)
     LazyFileOutputStream ostream = new LazyFileOutputStream(fileName, append);
 
     Writer fw = createWriter(ostream);
@@ -114,16 +186,25 @@ public class Log4jFileAppender extends FileAppender {
     writeHeader();
   }
 
+  public void setMaxBackupIndex(int maxBackups) {
+    mMaxBackupIndex = maxBackups;
+  }
+
+  public void setMaxFileSize(int maxFileSizeMB) {
+    mMaxFileSizeBytes = maxFileSizeMB * Constants.MB;
+  }
+
   /**
-   * Called whenever a new message is logged. Checks both the date and size to determine if
-   * rollover is necessary.
+   * Called whenever a new message is logged. Checks both the date and size to determine if rollover
+   * is necessary.
+   * 
    * @param event
    */
   @Override
   public synchronized void subAppend(LoggingEvent event) {
     File currentLog = new File(mCurrentFileName);
-    if (currentLog.length() > mMaxFileSizeBytes ||
-        !CommonUtils.convertMsToSimpleDate(System.currentTimeMillis()).equals(mLastDate)) {
+    if (currentLog.length() > mMaxFileSizeBytes
+        || !CommonUtils.convertMsToSimpleDate(System.currentTimeMillis()).equals(mLastDate)) {
       activateOptions();
     }
     if (currentLog.exists()) {
@@ -141,83 +222,5 @@ public class Log4jFileAppender extends FileAppender {
         }
       }
     }
-  }
-
-  /**
-   * Gets a log file name which includes the logger's host address and the date.
-   * @param fileName The base filename
-   * @return A new filename string
-   */
-  private String getNewLogFileName(String fileName) {
-    if (!fileName.isEmpty()) {
-      String newFileName = "";
-      String address = "";
-      try {
-        address = "@" + InetAddress.getLocalHost().getHostAddress();
-      } catch (UnknownHostException uhe) {
-        address = "@UnknownHost";
-      }
-      newFileName = fileName + address + "_"
-          + CommonUtils.convertMsToSimpleDate(System.currentTimeMillis());
-      File file = new File(newFileName);
-      if (file.exists()) {
-        rotateLogs(newFileName);
-      }
-      mLastDate = CommonUtils.convertMsToSimpleDate(System.currentTimeMillis());
-      mCurrentFileName = newFileName;
-      return newFileName;
-    } else {
-      throw new RuntimeException("Log4j configuration error, null filepath");
-    }
-  }
-
-  /**
-   * Rotates logs. The previous current log is set to the next available index. If the index has
-   * reached the maximum backup index, a percent of backup logs will be deleted, started from the
-   * earliest first. Then all rolledover logs will be moved up.
-   * @param fileName The fileName of the new current log.
-   */
-  private void rotateLogs(String fileName) {
-    if (mCurrentFileBackupIndex == -1) {
-      int lo = 0;
-      int hi = mMaxBackupIndex;
-      while (lo <= hi) {
-        int mid = lo + (hi - lo) / 2;
-        if (mid == 0) {
-          mCurrentFileBackupIndex = 1;
-          break;
-        }
-        if (new File(fileName + "_" + mid).exists()) {
-          if (new File(fileName + "_" + (mid+1)).exists()) {
-            lo = mid;
-          } else {
-            mCurrentFileBackupIndex = mid + 1;
-            break;
-          }
-        } else {
-          if (new File(fileName + "_" + (mid-1)).exists()) {
-            mCurrentFileBackupIndex = mid;
-            break;
-          } else {
-            hi = mid;
-          }
-        }
-      }
-    }
-
-    File oldFile = new File(fileName);
-    if (mCurrentFileBackupIndex >= mMaxBackupIndex) {
-      int deleteToIndex = (int) Math.ceil(mMaxBackupIndex*mDeletionPercentage/100.0);
-      for (int i = 1; i < deleteToIndex; i ++) {
-        new File(fileName + "_" + i).delete();
-      }
-      for (int i = deleteToIndex + 1; i <= mMaxBackupIndex; i ++) {
-        new File(fileName + "_" + i).renameTo(
-            new File(fileName + "_" + (i - deleteToIndex)));
-      }
-      mCurrentFileBackupIndex = mCurrentFileBackupIndex - deleteToIndex;
-    }
-    oldFile.renameTo(new File(fileName + "_" + mCurrentFileBackupIndex));
-    mCurrentFileBackupIndex ++;
   }
 }

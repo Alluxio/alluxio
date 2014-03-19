@@ -5,7 +5,11 @@
 .settings/
 conf/tachyon-env.sh
 data/
+docs/_site
+docs/api
+docs/serve/
 journal/
 logs/
+script/
 tachyon.iml
 target/

@@ -32,15 +32,17 @@ public class HeartbeatThread extends Thread {
   /**
    * @param threadName
    * @param hbExecutor
-   * @param fixedExecutionIntervalMs Sleep time between different heartbeat.
+   * @param fixedExecutionIntervalMs
+   *          Sleep time between different heartbeat.
    */
-  public HeartbeatThread(String threadName, HeartbeatExecutor hbExecutor, 
+  public HeartbeatThread(String threadName, HeartbeatExecutor hbExecutor,
       long fixedExecutionIntervalMs) {
     THREAD_NAME = threadName;
     EXECUTOR = hbExecutor;
     FIXED_EXECUTION_INTERVAL_MS = fixedExecutionIntervalMs;
   }
 
+  @Override
   public void run() {
     while (!mIsShutdown) {
       long lastMs = System.currentTimeMillis();
@@ -48,8 +50,8 @@ public class HeartbeatThread extends Thread {
       try {
         long executionTimeMs = System.currentTimeMillis() - lastMs;
         if (executionTimeMs > FIXED_EXECUTION_INTERVAL_MS) {
-          LOG.error(THREAD_NAME + " last execution took " + executionTimeMs + " ms. Longer than " +
-              " the FIXED_EXECUTION_INTERVAL_MS "+ FIXED_EXECUTION_INTERVAL_MS);
+          LOG.error(THREAD_NAME + " last execution took " + executionTimeMs + " ms. Longer than "
+              + " the FIXED_EXECUTION_INTERVAL_MS " + FIXED_EXECUTION_INTERVAL_MS);
         } else {
           Thread.sleep(FIXED_EXECUTION_INTERVAL_MS - executionTimeMs);
         }

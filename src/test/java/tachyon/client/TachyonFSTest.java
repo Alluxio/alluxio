@@ -27,11 +27,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.Constants;
-import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
+import tachyon.conf.CommonConf;
+import tachyon.conf.WorkerConf;
+import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.util.CommonUtils;
 
@@ -41,26 +42,24 @@ import tachyon.util.CommonUtils;
 public class TachyonFSTest {
   private final int WORKER_CAPACITY_BYTES = 20000;
   private final int USER_QUOTA_UNIT_BYTES = 1000;
-  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS = 3;
-  private final int SLEEP_MS = WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 2;
+  private final int SLEEP_MS = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
-
-  @Before
-  public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
-    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms",
-        WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS + "");
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
-    mLocalTachyonCluster.start();
-    mTfs = mLocalTachyonCluster.getClient();
-  }
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
+    System.clearProperty("tachyon.max.columns");
+  }
+
+  @Before
+  public final void before() throws IOException {
+    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
+    System.setProperty("tachyon.max.columns", "257");
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
+    mLocalTachyonCluster.start();
+    mTfs = mLocalTachyonCluster.getClient();
   }
 
   @Test
@@ -83,19 +82,6 @@ public class TachyonFSTest {
     Assert.assertTrue(mTfs.exist("/root/testFile3"));
   }
 
-  @Test(expected = IOException.class)
-  public void createFileWithInvalidPathExceptionTest() throws IOException {
-    mTfs.createFile("root/testFile1");
-  }
-
-  @Test(expected = IOException.class)
-  public void createFileWithFileAlreadyExistExceptionTest() throws IOException {
-    int fileId = mTfs.createFile("/root/testFile1");
-    Assert.assertEquals(3, fileId);
-    fileId = mTfs.createFile("/root/testFile1");
-  }
-
-
   @Test
   public void createFileWithCheckpointFileTest() throws IOException {
     String tempFolder = mLocalTachyonCluster.getTempFolderInUnderFs();
@@ -105,6 +91,84 @@ public class TachyonFSTest {
     mTfs.createFile("/abc", tempFolder + "/temp");
     Assert.assertTrue(mTfs.exist("/abc"));
     Assert.assertEquals(tempFolder + "/temp", mTfs.getCheckpointPath(mTfs.getFileId("/abc")));
+  }
+
+  @Test(expected = IOException.class)
+  public void createFileWithFileAlreadyExistExceptionTest() throws IOException {
+    int fileId = mTfs.createFile("/root/testFile1");
+    Assert.assertEquals(3, fileId);
+    fileId = mTfs.createFile("/root/testFile1");
+  }
+
+  @Test(expected = IOException.class)
+  public void createFileWithInvalidPathExceptionTest() throws IOException {
+    mTfs.createFile("root/testFile1");
+  }
+
+  @Test
+  public void createRawTableTestEmptyMetadata() throws IOException {
+    int fileId = mTfs.createRawTable("/tables/table1", 20);
+    RawTable table = mTfs.getRawTable(fileId);
+    Assert.assertEquals(fileId, table.getId());
+    Assert.assertEquals("/tables/table1", table.getPath());
+    Assert.assertEquals(20, table.getColumns());
+    Assert.assertEquals(ByteBuffer.allocate(0), table.getMetadata());
+
+    table = mTfs.getRawTable("/tables/table1");
+    Assert.assertEquals(fileId, table.getId());
+    Assert.assertEquals("/tables/table1", table.getPath());
+    Assert.assertEquals(20, table.getColumns());
+    Assert.assertEquals(ByteBuffer.allocate(0), table.getMetadata());
+  }
+
+  @Test
+  public void createRawTableTestWithMetadata() throws IOException {
+    int fileId = mTfs.createRawTable("/tables/table1", 20, TestUtils.getIncreasingByteBuffer(9));
+    RawTable table = mTfs.getRawTable(fileId);
+    Assert.assertEquals(fileId, table.getId());
+    Assert.assertEquals("/tables/table1", table.getPath());
+    Assert.assertEquals(20, table.getColumns());
+    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(9), table.getMetadata());
+
+    table = mTfs.getRawTable("/tables/table1");
+    Assert.assertEquals(fileId, table.getId());
+    Assert.assertEquals("/tables/table1", table.getPath());
+    Assert.assertEquals(20, table.getColumns());
+    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(9), table.getMetadata());
+  }
+
+  @Test(expected = IOException.class)
+  public void createRawTableWithFileAlreadyExistExceptionTest() throws IOException {
+    mTfs.createRawTable("/table", 20);
+    mTfs.createRawTable("/table", 20);
+  }
+
+  @Test(expected = IOException.class)
+  public void createRawTableWithInvalidPathExceptionTest1() throws IOException {
+    mTfs.createRawTable("tables/table1", 20);
+  }
+
+  @Test(expected = IOException.class)
+  public void createRawTableWithInvalidPathExceptionTest2() throws IOException {
+    mTfs.createRawTable("/tab les/table1", 20);
+  }
+
+  @Test(expected = IOException.class)
+  public void createRawTableWithTableColumnExceptionTest1() throws IOException {
+    String maxColumnsProp = System.getProperty("tachyon.max.columns");
+    
+    Assert.assertEquals(Integer.parseInt(maxColumnsProp), CommonConf.get().MAX_COLUMNS);
+    mTfs.createRawTable("/table", CommonConf.get().MAX_COLUMNS);
+  }
+
+  @Test(expected = IOException.class)
+  public void createRawTableWithTableColumnExceptionTest2() throws IOException {
+    mTfs.createRawTable("/table", 0);
+  }
+
+  @Test(expected = IOException.class)
+  public void createRawTableWithTableColumnExceptionTest3() throws IOException {
+    mTfs.createRawTable("/table", -1);
   }
 
   @Test
@@ -141,66 +205,109 @@ public class TachyonFSTest {
   }
 
   @Test
-  public void createRawTableTestEmptyMetadata() throws IOException {
-    int fileId = mTfs.createRawTable("/tables/table1", 20);
-    RawTable table = mTfs.getRawTable(fileId);
-    Assert.assertEquals(fileId, table.getId());
-    Assert.assertEquals("/tables/table1", table.getPath());
-    Assert.assertEquals(20, table.getColumns());
-    Assert.assertEquals(ByteBuffer.allocate(0), table.getMetadata());
+  public void lockBlockTest1() throws IOException {
+    TachyonFile tFile = null;
+    int numOfFiles = 5;
+    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
+    List<Integer> fileIds = new ArrayList<Integer>();
+    for (int k = 0; k < numOfFiles; k ++) {
+      fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
+    }
+    for (int k = 0; k < numOfFiles; k ++) {
+      tFile = mTfs.getFile(fileIds.get(k));
+      Assert.assertTrue(tFile.isInMemory());
+    }
+    fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH,
+        fileSize));
 
-    table = mTfs.getRawTable("/tables/table1");
-    Assert.assertEquals(fileId, table.getId());
-    Assert.assertEquals("/tables/table1", table.getPath());
-    Assert.assertEquals(20, table.getColumns());
-    Assert.assertEquals(ByteBuffer.allocate(0), table.getMetadata());
+    CommonUtils.sleepMs(null, SLEEP_MS);
+    tFile = mTfs.getFile(fileIds.get(0));
+    Assert.assertFalse(tFile.isInMemory());
+    for (int k = 1; k <= numOfFiles; k ++) {
+      tFile = mTfs.getFile(fileIds.get(k));
+      Assert.assertTrue(tFile.isInMemory());
+    }
   }
 
   @Test
-  public void createRawTableTestWithMetadata() throws IOException {
-    int fileId = mTfs.createRawTable("/tables/table1", 20, TestUtils.getIncreasingByteBuffer(9));
-    RawTable table = mTfs.getRawTable(fileId);
-    Assert.assertEquals(fileId, table.getId());
-    Assert.assertEquals("/tables/table1", table.getPath());
-    Assert.assertEquals(20, table.getColumns());
-    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(9), table.getMetadata());
+  public void lockBlockTest2() throws IOException {
+    TachyonFile tFile = null;
+    int numOfFiles = 5;
+    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
+    List<Integer> fileIds = new ArrayList<Integer>();
+    for (int k = 0; k < numOfFiles; k ++) {
+      fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
+    }
+    for (int k = 0; k < numOfFiles; k ++) {
+      tFile = mTfs.getFile(fileIds.get(k));
+      Assert.assertTrue(tFile.isInMemory());
+      Assert.assertNotNull(tFile.readByteBuffer());
+    }
+    fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH,
+        fileSize));
 
-    table = mTfs.getRawTable("/tables/table1");
-    Assert.assertEquals(fileId, table.getId());
-    Assert.assertEquals("/tables/table1", table.getPath());
-    Assert.assertEquals(20, table.getColumns());
-    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(9), table.getMetadata());
+    for (int k = 0; k < numOfFiles; k ++) {
+      tFile = mTfs.getFile(fileIds.get(k));
+      Assert.assertTrue(tFile.isInMemory());
+    }
+    CommonUtils.sleepMs(null, SLEEP_MS);
+    tFile = mTfs.getFile(fileIds.get(numOfFiles));
+    Assert.assertFalse(tFile.isInMemory());
   }
 
-  @Test(expected = IOException.class)
-  public void createRawTableWithInvalidPathExceptionTest1() throws IOException {
-    mTfs.createRawTable("tables/table1", 20);
+  @Test
+  public void lockBlockTest3() throws IOException {
+    TachyonFile tFile = null;
+    int numOfFiles = 5;
+    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
+    List<Integer> fileIds = new ArrayList<Integer>();
+    for (int k = 0; k < numOfFiles; k ++) {
+      fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
+    }
+    for (int k = 0; k < numOfFiles; k ++) {
+      tFile = mTfs.getFile(fileIds.get(k));
+      Assert.assertTrue(tFile.isInMemory());
+      if (k < numOfFiles - 1) {
+        Assert.assertNotNull(tFile.readByteBuffer());
+      }
+    }
+    fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH,
+        fileSize));
+
+    for (int k = 0; k <= numOfFiles; k ++) {
+      tFile = mTfs.getFile(fileIds.get(k));
+      if (k != numOfFiles - 1) {
+        Assert.assertTrue(tFile.isInMemory());
+      } else {
+        CommonUtils.sleepMs(null, SLEEP_MS);
+        Assert.assertFalse(tFile.isInMemory());
+      }
+    }
   }
 
-  @Test(expected = IOException.class)
-  public void createRawTableWithInvalidPathExceptionTest2() throws IOException {
-    mTfs.createRawTable("/tab les/table1", 20);
-  }
-
-  @Test(expected = IOException.class)
-  public void createRawTableWithFileAlreadyExistExceptionTest() throws IOException {
-    mTfs.createRawTable("/table", 20);
-    mTfs.createRawTable("/table", 20);
-  }
-
-  @Test(expected = IOException.class)
-  public void createRawTableWithTableColumnExceptionTest1() throws IOException {
-    mTfs.createRawTable("/table", Constants.MAX_COLUMNS);
-  }
-
-  @Test(expected = IOException.class)
-  public void createRawTableWithTableColumnExceptionTest2() throws IOException {
-    mTfs.createRawTable("/table", 0);
-  }
-
-  @Test(expected = IOException.class)
-  public void createRawTableWithTableColumnExceptionTest3() throws IOException {
-    mTfs.createRawTable("/table", -1);
+  @Test
+  public void lockBlockTest4() throws IOException {
+    TachyonFile tFile = null;
+    int numOfFiles = 5;
+    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
+    List<Integer> fileIds = new ArrayList<Integer>();
+    for (int k = 0; k <= numOfFiles; k ++) {
+      fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
+    }
+    for (int k = 0; k <= numOfFiles; k ++) {
+      tFile = mTfs.getFile(fileIds.get(k));
+      CommonUtils.sleepMs(null, SLEEP_MS);
+      Assert.assertFalse(tFile.isInMemory());
+      if (k < numOfFiles) {
+        Assert.assertNull(tFile.readByteBuffer());
+        Assert.assertTrue(tFile.recache());
+        Assert.assertNotNull(tFile.readByteBuffer());
+      } else {
+        Assert.assertNull(tFile.readByteBuffer());
+        Assert.assertFalse(tFile.recache());
+        Assert.assertNull(tFile.readByteBuffer());
+      }
+    }
   }
 
   @Test
@@ -233,124 +340,13 @@ public class TachyonFSTest {
   }
 
   @Test
-  public void lockBlockTest1() throws IOException {
-    TachyonFile tFile = null;
-    int numOfFiles = 5;
-    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<Integer> fileIds = new ArrayList<Integer>();
-    for (int k = 0; k < numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(
-          mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
-    }
-    for (int k = 0; k < numOfFiles; k ++) {
-      tFile = mTfs.getFile(fileIds.get(k));
-      Assert.assertTrue(tFile.isInMemory());
-    }
-    fileIds.add(TestUtils.createByteFile(
-        mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH, fileSize));
-
-    CommonUtils.sleepMs(null, SLEEP_MS);
-    tFile = mTfs.getFile(fileIds.get(0));
-    Assert.assertFalse(tFile.isInMemory());
-    for (int k = 1; k <= numOfFiles; k ++) {
-      tFile = mTfs.getFile(fileIds.get(k));
-      Assert.assertTrue(tFile.isInMemory());
-    }
-  }
-
-  @Test
-  public void lockBlockTest2() throws IOException {
-    TachyonFile tFile = null;
-    int numOfFiles = 5;
-    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<Integer> fileIds = new ArrayList<Integer>();
-    for (int k = 0; k < numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(
-          mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
-    }
-    for (int k = 0; k < numOfFiles; k ++) {
-      tFile = mTfs.getFile(fileIds.get(k));
-      Assert.assertTrue(tFile.isInMemory());
-      Assert.assertNotNull(tFile.readByteBuffer());
-    }
-    fileIds.add(TestUtils.createByteFile(
-        mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH, fileSize));
-
-    for (int k = 0; k < numOfFiles; k ++) {
-      tFile = mTfs.getFile(fileIds.get(k));
-      Assert.assertTrue(tFile.isInMemory());
-    }
-    CommonUtils.sleepMs(null, SLEEP_MS);
-    tFile = mTfs.getFile(fileIds.get(numOfFiles));
-    Assert.assertFalse(tFile.isInMemory());
-  }
-
-  @Test
-  public void lockBlockTest3() throws IOException {
-    TachyonFile tFile = null;
-    int numOfFiles = 5;
-    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<Integer> fileIds = new ArrayList<Integer>();
-    for (int k = 0; k < numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(
-          mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
-    }
-    for (int k = 0; k < numOfFiles; k ++) {
-      tFile = mTfs.getFile(fileIds.get(k));
-      Assert.assertTrue(tFile.isInMemory());
-      if (k < numOfFiles - 1) {
-        Assert.assertNotNull(tFile.readByteBuffer());
-      }
-    }
-    fileIds.add(TestUtils.createByteFile(
-        mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH, fileSize));
-
-    for (int k = 0; k <= numOfFiles; k ++) {
-      tFile = mTfs.getFile(fileIds.get(k));
-      if (k != numOfFiles - 1) {
-        Assert.assertTrue(tFile.isInMemory());
-      } else {
-        CommonUtils.sleepMs(null, SLEEP_MS);
-        Assert.assertFalse(tFile.isInMemory());
-      }
-    }
-  }
-
-  @Test
-  public void lockBlockTest4() throws IOException {
-    TachyonFile tFile = null;
-    int numOfFiles = 5;
-    int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<Integer> fileIds = new ArrayList<Integer>();
-    for (int k = 0; k <= numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(
-          mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
-    }
-    for (int k = 0; k <= numOfFiles; k ++) {
-      tFile = mTfs.getFile(fileIds.get(k));
-      CommonUtils.sleepMs(null, SLEEP_MS);
-      Assert.assertFalse(tFile.isInMemory());
-      if (k < numOfFiles) {
-        Assert.assertNull(tFile.readByteBuffer());
-        Assert.assertTrue(tFile.recache());
-        Assert.assertNotNull(tFile.readByteBuffer());
-      } else {
-        Assert.assertNull(tFile.readByteBuffer());
-        Assert.assertFalse(tFile.recache());
-        Assert.assertNull(tFile.readByteBuffer());
-      }
-    }
-  }
-
-  @Test
   public void unlockBlockTest1() throws IOException {
     TachyonFile tFile = null;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
     for (int k = 0; k < numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(
-          mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
+      fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
@@ -359,8 +355,8 @@ public class TachyonFSTest {
       Assert.assertNotNull(tBuf);
       tBuf.close();
     }
-    fileIds.add(TestUtils.createByteFile(
-        mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH, fileSize));
+    fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH,
+        fileSize));
 
     CommonUtils.sleepMs(null, SLEEP_MS);
     tFile = mTfs.getFile(fileIds.get(0));
@@ -378,8 +374,7 @@ public class TachyonFSTest {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
     for (int k = 0; k < numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(
-          mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
+      fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
@@ -390,8 +385,8 @@ public class TachyonFSTest {
       Assert.assertNotNull(tBuf);
       tBuf.close();
     }
-    fileIds.add(TestUtils.createByteFile(
-        mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH, fileSize));
+    fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH,
+        fileSize));
 
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
@@ -409,8 +404,7 @@ public class TachyonFSTest {
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
     List<Integer> fileIds = new ArrayList<Integer>();
     for (int k = 0; k < numOfFiles; k ++) {
-      fileIds.add(TestUtils.createByteFile(
-          mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
+      fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + k, WriteType.CACHE_THROUGH, fileSize));
     }
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
@@ -422,8 +416,8 @@ public class TachyonFSTest {
       tBuf1.close();
       tBuf2.close();
     }
-    fileIds.add(TestUtils.createByteFile(
-        mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH, fileSize));
+    fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH,
+        fileSize));
 
     CommonUtils.sleepMs(null, SLEEP_MS);
     tFile = mTfs.getFile(fileIds.get(0));
@@ -433,4 +427,5 @@ public class TachyonFSTest {
       Assert.assertTrue(tFile.isInMemory());
     }
   }
+  
 }

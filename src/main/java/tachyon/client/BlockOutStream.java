@@ -85,22 +85,23 @@ public class BlockOutStream extends OutStream {
     mLocalFilePath = localFolder.getPath() + "/" + BLOCK_ID;
     mLocalFile = new RandomAccessFile(mLocalFilePath, "rw");
     mLocalFileChannel = mLocalFile.getChannel();
-    //change the permission of the temporary file in order that the worker can move it.
+    // change the permission of the temporary file in order that the worker can move it.
     CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
-    //use the sticky bit, only the client and the worker can write to the block
+    // use the sticky bit, only the client and the worker can write to the block
     CommonUtils.setLocalFileStickyBit(mLocalFilePath);
     LOG.info(mLocalFilePath + " was created!");
 
     mBuffer = ByteBuffer.allocate(USER_CONF.FILE_BUFFER_BYTES + 4);
   }
 
-  private synchronized void appendCurrentBuffer(byte[] buf, int offset,
-      int length) throws IOException {
+  private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
+      throws IOException {
     if (!TFS.requestSpace(length)) {
       mCanWrite = false;
 
-      String msg = "Local tachyon worker does not have enough " +
-          "space (" + length + ") or no worker for " + FILE.FID + " " + BLOCK_ID;
+      String msg =
+          "Local tachyon worker does not have enough " + "space (" + length
+              + ") or no worker for " + FILE.FID + " " + BLOCK_ID;
       if (PIN) {
         TFS.outOfMemoryForPinFile(FILE.FID);
         throw new IOException(msg);
@@ -115,21 +116,51 @@ public class BlockOutStream extends OutStream {
   }
 
   @Override
-  public void write(int b) throws IOException {
-    if (!mCanWrite) {
-      throw new IOException("Can not write cache.");
-    }
-    if (mWrittenBytes + 1 > BLOCK_CAPACITY_BYTE) {
-      throw new IOException("Out of capacity.");
-    }
+  public void cancel() throws IOException {
+    mCancel = true;
+    close();
+  }
 
-    if (mBuffer.position() >= USER_CONF.FILE_BUFFER_BYTES) {
-      appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-      mBuffer.clear();
-    }
+  public boolean canWrite() {
+    return !mClosed && mCanWrite;
+  }
 
-    mBuffer.put((byte) (b & 0xFF));
-    mWrittenBytes ++;
+  @Override
+  public void close() throws IOException {
+    if (!mClosed) {
+      if (!mCancel && mBuffer.position() > 0) {
+        appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
+      }
+
+      if (mLocalFileChannel != null) {
+        mLocalFileChannel.close();
+        mLocalFile.close();
+      }
+
+      if (mCancel) {
+        TFS.releaseSpace(mWrittenBytes - mBuffer.position());
+      } else {
+        TFS.cacheBlock(BLOCK_ID);
+      }
+    }
+    mClosed = true;
+  }
+
+  @Override
+  public void flush() throws IOException {
+    // Since this only writes to memory memory, this flush is not outside visible.
+  }
+
+  public long getBlockId() {
+    return BLOCK_ID;
+  }
+
+  public long getBlockOffset() {
+    return BLOCK_OFFSET;
+  }
+
+  public long getRemainingSpaceByte() {
+    return BLOCK_CAPACITY_BYTE - mWrittenBytes;
   }
 
   @Override
@@ -141,10 +172,10 @@ public class BlockOutStream extends OutStream {
   public void write(byte[] b, int off, int len) throws IOException {
     if (b == null) {
       throw new NullPointerException();
-    } else if ((off < 0) || (off > b.length) || (len < 0) ||
-        ((off + len) > b.length) || ((off + len) < 0)) {
-      throw new IndexOutOfBoundsException(String.format(
-          "Buffer length (%d), offset(%d), len(%d)", b.length, off, len));
+    } else if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length)
+        || ((off + len) < 0)) {
+      throw new IndexOutOfBoundsException(String.format("Buffer length (%d), offset(%d), len(%d)",
+          b.length, off, len));
     }
 
     if (!mCanWrite) {
@@ -171,50 +202,20 @@ public class BlockOutStream extends OutStream {
   }
 
   @Override
-  public void flush() throws IOException {
-    // Since this only writes to memory memory, this flush is not outside visible.
-  }
-
-  @Override
-  public void close() throws IOException {
-    if (!mClosed) {
-      if (!mCancel && mBuffer.position() > 0) {
-        appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
-      }
-
-      if (mLocalFileChannel != null) {
-        mLocalFileChannel.close();
-        mLocalFile.close();
-      }
-
-      if (mCancel) {
-        TFS.releaseSpace(mWrittenBytes - mBuffer.position());
-      } else {
-        TFS.cacheBlock(BLOCK_ID);
-      }
+  public void write(int b) throws IOException {
+    if (!mCanWrite) {
+      throw new IOException("Can not write cache.");
     }
-    mClosed = true;
-  }
+    if (mWrittenBytes + 1 > BLOCK_CAPACITY_BYTE) {
+      throw new IOException("Out of capacity.");
+    }
 
-  @Override
-  public void cancel() throws IOException {
-    mCancel = true;
-    close();
-  }
+    if (mBuffer.position() >= USER_CONF.FILE_BUFFER_BYTES) {
+      appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
+      mBuffer.clear();
+    }
 
-  public boolean canWrite() {
-    return !mClosed && mCanWrite;
-  }
-
-  public long getRemainingSpaceByte() {
-    return BLOCK_CAPACITY_BYTE - mWrittenBytes;
-  }
-
-  public long getBlockId() {
-    return BLOCK_ID;
-  }
-
-  public long getBlockOffset() {
-    return BLOCK_OFFSET;
+    mBuffer.put((byte) (b & 0xFF));
+    mWrittenBytes ++;
   }
 }

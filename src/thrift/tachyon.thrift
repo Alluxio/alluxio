@@ -36,6 +36,15 @@ struct ClientFileInfo {
   11: bool needPin
   12: bool needCache
   13: list<i64> blockIds
+  14: i32 dependencyId
+  15: i32 inMemoryPercentage
+}
+
+struct ClientDependencyInfo {
+  1: i32 id
+  2: list<i32> parents
+  3: list<i32> children
+  4: list<binary> data
 }
 
 struct ClientRawTableInfo {
@@ -103,18 +112,8 @@ exception TachyonException {
   1: string message
 }
 
-service CoordinatorService {
-  /**
-   * Get the max transaction id of one master.
-   * @return max transaction of the master
-   */
-  i64 getMaxTransactionId()
-
-  /**
-   * Send transactions.
-   * @return max transaction id.
-   */
-  i64 sendNewTransactions(1: i64 leftTransactionId, 2: i64 rightTransactionId, 3: list<binary> transactions)
+exception DependencyDoesNotExistException {
+  1: string message
 }
 
 service MasterService {
@@ -125,7 +124,8 @@ service MasterService {
 
   // Services to Workers
   /**
-   * Worker register. Returned value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
+   * Worker register.
+   * @return value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
    */
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes, 4: list<i64> currentBlocks)
     throws (1: BlockInfoException e)
@@ -134,8 +134,18 @@ service MasterService {
   void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 blockId, 4: i64 length)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
   set<i32> worker_getPinIdList()
+  list<i32> worker_getPriorityDependencyList()
 
   // Services to Users
+  i32 user_createDependency(1: list<string> parents, 2: list<string> children, 3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework, 7: string frameworkVersion, 8: i32 dependencyType, 9: i64 childrenBlockSizeByte)
+    throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF, 3: FileAlreadyExistException eA, 4: BlockInfoException eB, 5: TachyonException eT)
+  ClientDependencyInfo user_getClientDependencyInfo(1: i32 dependencyId)
+    throws (1: DependencyDoesNotExistException e)
+  void user_reportLostFile(1: i32 fileId)
+    throws (1: FileDoesNotExistException e)
+  void user_requestFilesInDependency(1: i32 depId)
+    throws (1: DependencyDoesNotExistException e)
+
   i32 user_createFile(1: string path, 2: i64 blockSizeByte)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: BlockInfoException eB, 4: TachyonException eT)
   i32 user_createFileOnCheckpoint(1: string path, 2: string checkpointPath)
@@ -157,7 +167,7 @@ service MasterService {
    */
   NetAddress user_getWorker(1: bool random, 2: string host)
     throws (1: NoWorkerException e)
-  ClientFileInfo user_getClientFileInfoById(1: i32 fileId)
+  ClientFileInfo getClientFileInfoById(1: i32 fileId)
     throws (1: FileDoesNotExistException e)
   ClientFileInfo user_getClientFileInfoByPath(1: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
@@ -213,6 +223,8 @@ service WorkerService {
   void accessBlock(1: i64 blockId)
   void addCheckpoint(1: i64 userId, 2: i32 fileId)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: FailedToCheckpointException eF, 4: BlockInfoException eB)
+  bool asyncCheckpoint(1: i32 fileId)
+    throws (1: TachyonException e)
   void cacheBlock(1: i64 userId, 2: i64 blockId)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
   string getDataFolder()

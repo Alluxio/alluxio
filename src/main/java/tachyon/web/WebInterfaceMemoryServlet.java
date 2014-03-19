@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import tachyon.MasterInfo;
+import tachyon.master.MasterInfo;
 
 import java.io.IOException;
 
@@ -38,25 +38,22 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
   public WebInterfaceMemoryServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
   }
-  
+
   /**
    * Populates attributes before redirecting to a jsp.
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletReponse object
+   * 
+   * @param request
+   *          The HttpServletRequest object
+   * @param response
+   *          The HttpServletReponse object
    */
   @Override
-  public void doGet(HttpServletRequest request, HttpServletResponse response) 
+  public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
     List<String> inMemoryFiles = mMasterInfo.getInMemoryFiles();
     Collections.sort(inMemoryFiles);
     request.setAttribute("inMemoryFiles", inMemoryFiles);
     getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
-  }
-
-  @Override
-  public void doPost(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
-    return;
   }
 }

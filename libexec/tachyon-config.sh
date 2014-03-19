@@ -42,11 +42,11 @@ if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
   export TACHYON_HOME=${TACHYON_PREFIX}
   export TACHYON_CONF_DIR="$TACHYON_HOME/conf"
   export TACHYON_LOGS_DIR="$TACHYON_HOME/logs"
-  export TACHYON_JAR=$TACHYON_HOME/target/tachyon-0.4.0-SNAPSHOT-jar-with-dependencies.jar
+  export TACHYON_JAR=$TACHYON_HOME/target/tachyon-0.5.0-SNAPSHOT-jar-with-dependencies.jar
   export JAVA="$JAVA_HOME/bin/java"
 fi
 
-# Environment settings should override * and are adminstrator controlled.
+# Environment settings should override * and are administrator controlled.
 if [ -e $TACHYON_CONF_DIR/tachyon-env.sh ] ; then
   . $TACHYON_CONF_DIR/tachyon-env.sh
 fi
