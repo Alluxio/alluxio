@@ -18,7 +18,7 @@ package tachyon.master;
 
 import java.nio.ByteBuffer;
 
-import tachyon.Constants;
+import tachyon.conf.CommonConf;
 import tachyon.thrift.TachyonException;
 
 /**
@@ -60,7 +60,7 @@ public class InodeRawTable extends InodeFolder {
     if (metadata == null) {
       mMetadata = ByteBuffer.allocate(0);
     } else {
-      if (metadata.limit() - metadata.position() >= Constants.MAX_TABLE_METADATA_BYTE) {
+      if (metadata.limit() - metadata.position() >= CommonConf.get().MAX_TABLE_METADATA_BYTE) {
         throw new TachyonException("Too big table metadata: " + metadata.toString());
       }
       mMetadata = ByteBuffer.allocate(metadata.limit() - metadata.position());

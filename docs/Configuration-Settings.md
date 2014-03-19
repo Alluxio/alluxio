@@ -62,12 +62,12 @@ The common configuration contains constants which specify paths and the log appe
 <tr>
   <td>tachyon.max.columns</td>
   <td>1000</td>
-  <td>Maximum no of allowed columns when created through shark, must be set on the client and server side</td>
+  <td>Maximum number of columns allowed in RawTable, must be set on the client and server side</td>
 </tr>
 <tr>
   <td>tachyon.table.metadata.byte</td>
   <td>5242880</td>
-  <td>Maximum amount of bytes allowed to be store as table metadata when creating through shark, must be set on the server side</td>
+  <td>Maximum amount of bytes allowed to be store as RawTable metadata, must be set on the server side</td>
 </tr>
 <tr>
   <td>fs.s3n.awsAccessKeyId</td>
