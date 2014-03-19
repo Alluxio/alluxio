@@ -25,8 +25,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.Constants;
-import tachyon.LocalTachyonCluster;
 import tachyon.TestUtils;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonByteBuffer;
@@ -35,6 +33,8 @@ import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
+import tachyon.conf.CommonConf;
+import tachyon.master.LocalTachyonCluster;
 
 /**
  * Unit tests for tachyon.client.RawTable.
@@ -42,6 +42,12 @@ import tachyon.client.table.RawTable;
 public class RawTableTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+
+  @After
+  public final void after() throws Exception {
+    mLocalTachyonCluster.stop();
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+  }
 
   @Before
   public final void before() throws IOException {
@@ -51,62 +57,9 @@ public class RawTableTest {
     mTfs = mLocalTachyonCluster.getClient();
   }
 
-  @After
-  public final void after() throws Exception {
-    mLocalTachyonCluster.stop();
-    System.clearProperty("tachyon.user.quota.unit.bytes");
-  }
-
-  @Test
-  public void rawtablePerfTest() throws IOException {
-    int col = 200;
-
-    long sMs = System.currentTimeMillis();
-    int fileId = mTfs.createRawTable("/table", col);
-    //    System.out.println("A " + (System.currentTimeMillis() - sMs));
-
-    sMs = System.currentTimeMillis();
-    RawTable table = mTfs.getRawTable(fileId);
-    Assert.assertEquals(col, table.getColumns());
-    table = mTfs.getRawTable("/table");
-    Assert.assertEquals(col, table.getColumns());
-    //    System.out.println("B " + (System.currentTimeMillis() - sMs));
-
-    sMs = System.currentTimeMillis();
-    for (int k = 0; k < col; k ++) {
-      RawColumn rawCol = table.getRawColumn(k);
-      rawCol.createPartition(0);
-      TachyonFile file = rawCol.getPartition(0);
-      OutStream outStream = file.getOutStream(WriteType.MUST_CACHE);
-      outStream.write(TestUtils.getIncreasingByteArray(10));
-      outStream.close();
-    }
-    //    System.out.println("C " + (System.currentTimeMillis() - sMs));
-
-    sMs = System.currentTimeMillis();
-    for (int k = 0; k < col; k ++) {
-      RawColumn rawCol = table.getRawColumn(k);
-      TachyonFile file = rawCol.getPartition(0, true);
-      TachyonByteBuffer buf = file.readByteBuffer();
-      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
-      buf.close();
-    }
-    //    System.out.println("D " + (System.currentTimeMillis() - sMs));
-
-    sMs = System.currentTimeMillis();
-    for (int k = 0; k < col; k ++) {
-      RawColumn rawCol = table.getRawColumn(k);
-      TachyonFile file = rawCol.getPartition(0, true);
-      TachyonByteBuffer buf = file.readByteBuffer();
-      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
-      buf.close();
-    }
-    //    System.out.println("E " + (System.currentTimeMillis() - sMs));
-  }
-
   @Test
   public void getColumnsTest() throws IOException {
-    for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
+    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
       int fileId = mTfs.createRawTable("/table" + k, k);
       RawTable table = mTfs.getRawTable(fileId);
       Assert.assertEquals(k, table.getColumns());
@@ -123,7 +76,7 @@ public class RawTableTest {
 
   @Test
   public void getIdTest() throws IOException {
-    for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
+    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
       int fileId = mTfs.createRawTable("/table" + k, 1);
       RawTable table = mTfs.getRawTable(fileId);
       Assert.assertEquals(fileId, table.getId());
@@ -139,42 +92,8 @@ public class RawTableTest {
   }
 
   @Test
-  public void getNameTest() throws IOException {
-    for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
-      int fileId = mTfs.createRawTable("/x/table" + k, 1);
-      RawTable table = mTfs.getRawTable(fileId);
-      Assert.assertEquals("table" + k, table.getName());
-      table = mTfs.getRawTable("/x/table" + k);
-      Assert.assertEquals("table" + k, table.getName());
-
-      fileId = mTfs.createRawTable("/y/tab" + k, 1, TestUtils.getIncreasingByteBuffer(k % 10));
-      table = mTfs.getRawTable(fileId);
-      Assert.assertEquals("tab" + k, table.getName());
-      table = mTfs.getRawTable("/y/tab" + k);
-      Assert.assertEquals("tab" + k, table.getName());
-    }
-  }
-
-  @Test
-  public void getPathTest() throws IOException {
-    for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
-      int fileId = mTfs.createRawTable("/x/table" + k, 1);
-      RawTable table = mTfs.getRawTable(fileId);
-      Assert.assertEquals("/x/table" + k, table.getPath());
-      table = mTfs.getRawTable("/x/table" + k);
-      Assert.assertEquals("/x/table" + k, table.getPath());
-
-      fileId = mTfs.createRawTable("/y/tab" + k, 1, TestUtils.getIncreasingByteBuffer(k % 10));
-      table = mTfs.getRawTable(fileId);
-      Assert.assertEquals("/y/tab" + k, table.getPath());
-      table = mTfs.getRawTable("/y/tab" + k);
-      Assert.assertEquals("/y/tab" + k, table.getPath());
-    }
-  }
-
-  @Test
   public void getMetadataTest() throws IOException {
-    for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
+    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
       int fileId = mTfs.createRawTable("/x/table" + k, 1);
       RawTable table = mTfs.getRawTable(fileId);
       Assert.assertEquals(ByteBuffer.allocate(0), table.getMetadata());
@@ -193,8 +112,89 @@ public class RawTableTest {
   }
 
   @Test
+  public void getNameTest() throws IOException {
+    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
+      int fileId = mTfs.createRawTable("/x/table" + k, 1);
+      RawTable table = mTfs.getRawTable(fileId);
+      Assert.assertEquals("table" + k, table.getName());
+      table = mTfs.getRawTable("/x/table" + k);
+      Assert.assertEquals("table" + k, table.getName());
+
+      fileId = mTfs.createRawTable("/y/tab" + k, 1, TestUtils.getIncreasingByteBuffer(k % 10));
+      table = mTfs.getRawTable(fileId);
+      Assert.assertEquals("tab" + k, table.getName());
+      table = mTfs.getRawTable("/y/tab" + k);
+      Assert.assertEquals("tab" + k, table.getName());
+    }
+  }
+
+  @Test
+  public void getPathTest() throws IOException {
+    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
+      int fileId = mTfs.createRawTable("/x/table" + k, 1);
+      RawTable table = mTfs.getRawTable(fileId);
+      Assert.assertEquals("/x/table" + k, table.getPath());
+      table = mTfs.getRawTable("/x/table" + k);
+      Assert.assertEquals("/x/table" + k, table.getPath());
+
+      fileId = mTfs.createRawTable("/y/tab" + k, 1, TestUtils.getIncreasingByteBuffer(k % 10));
+      table = mTfs.getRawTable(fileId);
+      Assert.assertEquals("/y/tab" + k, table.getPath());
+      table = mTfs.getRawTable("/y/tab" + k);
+      Assert.assertEquals("/y/tab" + k, table.getPath());
+    }
+  }
+
+  @Test
+  public void rawtablePerfTest() throws IOException {
+    int col = 200;
+
+    long sMs = System.currentTimeMillis();
+    int fileId = mTfs.createRawTable("/table", col);
+    // System.out.println("A " + (System.currentTimeMillis() - sMs));
+
+    sMs = System.currentTimeMillis();
+    RawTable table = mTfs.getRawTable(fileId);
+    Assert.assertEquals(col, table.getColumns());
+    table = mTfs.getRawTable("/table");
+    Assert.assertEquals(col, table.getColumns());
+    // System.out.println("B " + (System.currentTimeMillis() - sMs));
+
+    sMs = System.currentTimeMillis();
+    for (int k = 0; k < col; k ++) {
+      RawColumn rawCol = table.getRawColumn(k);
+      rawCol.createPartition(0);
+      TachyonFile file = rawCol.getPartition(0);
+      OutStream outStream = file.getOutStream(WriteType.MUST_CACHE);
+      outStream.write(TestUtils.getIncreasingByteArray(10));
+      outStream.close();
+    }
+    // System.out.println("C " + (System.currentTimeMillis() - sMs));
+
+    sMs = System.currentTimeMillis();
+    for (int k = 0; k < col; k ++) {
+      RawColumn rawCol = table.getRawColumn(k);
+      TachyonFile file = rawCol.getPartition(0, true);
+      TachyonByteBuffer buf = file.readByteBuffer();
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
+      buf.close();
+    }
+    // System.out.println("D " + (System.currentTimeMillis() - sMs));
+
+    sMs = System.currentTimeMillis();
+    for (int k = 0; k < col; k ++) {
+      RawColumn rawCol = table.getRawColumn(k);
+      TachyonFile file = rawCol.getPartition(0, true);
+      TachyonByteBuffer buf = file.readByteBuffer();
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
+      buf.close();
+    }
+    // System.out.println("E " + (System.currentTimeMillis() - sMs));
+  }
+
+  @Test
   public void updateMetadataTest() throws IOException {
-    for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
+    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
       int fileId = mTfs.createRawTable("/x/table" + k, 1);
       RawTable table = mTfs.getRawTable(fileId);
       table.updateMetadata(TestUtils.getIncreasingByteBuffer(k % 17));

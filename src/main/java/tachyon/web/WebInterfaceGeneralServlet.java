@@ -18,6 +18,7 @@ package tachyon.web;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -25,8 +26,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import tachyon.Constants;
-import tachyon.MasterInfo;
 import tachyon.Version;
+import tachyon.master.DependencyVariables;
+import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.util.CommonUtils;
 
@@ -34,10 +36,6 @@ import tachyon.util.CommonUtils;
  * Servlet that provides data for viewing the general status of the filesystem.
  */
 public class WebInterfaceGeneralServlet extends HttpServlet {
-  private static final long serialVersionUID = 2335205655766736309L;
-
-  private MasterInfo mMasterInfo;
-
   /**
    * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association
    * by array indexes.
@@ -54,45 +52,54 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
       NAME = workerInfo.getAddress().getMHost();
       LAST_CONTACT_SEC = Integer.toString(workerInfo.getLastContactSec());
       STATE = workerInfo.getState();
-      USED_SPACE_PERCENT = (int) (100L * workerInfo.getUsedBytes() / workerInfo.getCapacityBytes());
+      USED_SPACE_PERCENT =
+          (int) (100L * workerInfo.getUsedBytes() / workerInfo.getCapacityBytes());
       FREE_SPACE_PERCENT = 100 - USED_SPACE_PERCENT;
-      UPTIME_CLOCK_TIME = CommonUtils.convertMsToShortClockTime(
-          System.currentTimeMillis() - workerInfo.getStarttimeMs());
-    }
-
-    public String getName() {
-      return NAME;
-    }
-
-    public String getLastHeartbeat() {
-      return LAST_CONTACT_SEC;
-    }
-
-    public String getState() {
-      return STATE;
+      UPTIME_CLOCK_TIME =
+          CommonUtils.convertMsToShortClockTime(System.currentTimeMillis()
+              - workerInfo.getStarttimeMs());
     }
 
     public int getFreeSpacePercent() {
       return FREE_SPACE_PERCENT;
     }
 
-    public int getUsedSpacePercent() {
-      return USED_SPACE_PERCENT;
+    public String getLastHeartbeat() {
+      return LAST_CONTACT_SEC;
+    }
+
+    public String getName() {
+      return NAME;
+    }
+
+    public String getState() {
+      return STATE;
     }
 
     public String getUptimeClockTime() {
       return UPTIME_CLOCK_TIME;
     }
+
+    public int getUsedSpacePercent() {
+      return USED_SPACE_PERCENT;
+    }
   }
+
+  private static final long serialVersionUID = 2335205655766736309L;
+
+  private MasterInfo mMasterInfo;
 
   public WebInterfaceGeneralServlet(MasterInfo masterInfo) {
     mMasterInfo = masterInfo;
   }
 
   /**
-   * Redirects the request to a jsp after populating attributes via populateValues.
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletResponse object
+   * Redirects the request to a JSP after populating attributes via populateValues.
+   * 
+   * @param request
+   *          The HttpServletRequest object
+   * @param response
+   *          The HttpServletResponse object
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -102,13 +109,26 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   }
 
   @Override
-  protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-    return;
+  protected void doPost(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+    DependencyVariables.sVariables.clear();
+    for (String key : (Set<String>) request.getParameterMap().keySet()) {
+      if (key.startsWith("varName")) {
+        String value = request.getParameter("varVal" + key.substring(7));
+        if (value != null) {
+          DependencyVariables.sVariables.put(request.getParameter(key), value);
+        }
+      }
+    }
+    populateValues(request);
+    getServletContext().getRequestDispatcher("/general.jsp").forward(request, response);
   }
 
   /**
    * Populates key, value pairs for UI display
-   * @param request The HttpServletRequest object
+   * 
+   * @param request
+   *          The HttpServletRequest object
    * @throws IOException
    */
   private void populateValues(HttpServletRequest request) throws IOException {
@@ -116,8 +136,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
 
-    request.setAttribute("uptime", CommonUtils.convertMsToClockTime(
-        System.currentTimeMillis() - mMasterInfo.getStarttimeMs()));
+    request.setAttribute("uptime", CommonUtils.convertMsToClockTime(System.currentTimeMillis()
+        - mMasterInfo.getStarttimeMs()));
 
     request.setAttribute("startTime", CommonUtils.convertMsToDate(mMasterInfo.getStarttimeMs()));
 
@@ -129,8 +149,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("usedCapacity", CommonUtils.getSizeFromBytes(mMasterInfo.getUsedBytes()));
 
-    request.setAttribute("freeCapacity", CommonUtils.getSizeFromBytes(
-        (mMasterInfo.getCapacityBytes() - mMasterInfo.getUsedBytes())));
+    request.setAttribute("freeCapacity", CommonUtils.getSizeFromBytes((mMasterInfo
+        .getCapacityBytes() - mMasterInfo.getUsedBytes())));
 
     long sizeBytes = mMasterInfo.getUnderFsCapacityBytes();
     if (sizeBytes >= 0) {
@@ -153,11 +173,13 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("diskFreeCapacity", "UNKNOWN");
     }
 
+    request.setAttribute("recomputeVariables", DependencyVariables.sVariables);
+
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
     for (int i = 0; i < workerInfos.size(); i ++) {
       for (int j = i + 1; j < workerInfos.size(); j ++) {
-        if (workerInfos.get(i).getAddress().getMHost().compareTo(
-            workerInfos.get(j).getAddress().getMHost()) > 0) {
+        if (workerInfos.get(i).getAddress().getMHost()
+            .compareTo(workerInfos.get(j).getAddress().getMHost()) > 0) {
           ClientWorkerInfo temp = workerInfos.get(i);
           workerInfos.set(i, workerInfos.get(j));
           workerInfos.set(j, temp);

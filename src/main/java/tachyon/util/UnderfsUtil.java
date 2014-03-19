@@ -86,16 +86,16 @@ public class UnderfsUtil {
     }
   }
 
-  public static void main(String[] args)
-      throws SuspectedFileSizeException, InvalidPathException, IOException,
-      FileDoesNotExistException, FileAlreadyExistException, TException {
+  public static void main(String[] args) throws SuspectedFileSizeException, InvalidPathException,
+      IOException, FileDoesNotExistException, FileAlreadyExistException, TException {
     if (!(args.length == 3 || args.length == 4)) {
-      String prefix = "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar " +
-          "tachyon.util.UnderfsUtil ";
-      System.out.println("Usage: " + prefix + "<TachyonAddress> <UnderfsAddress> <Path> " +
-          "[<ExcludePathPrefix, separated by ;>]");
-      System.out.println("Example: " + prefix +
-          "127.0.0.1:19998 hdfs://localhost:54310 / /tachyon");
+      String prefix =
+          "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
+              + "tachyon.util.UnderfsUtil ";
+      System.out.println("Usage: " + prefix + "<TachyonAddress> <UnderfsAddress> <Path> "
+          + "[<ExcludePathPrefix, separated by ;>]");
+      System.out.println("Example: " + prefix
+          + "tachyon://127.0.0.1:19998 hdfs://localhost:9000 / /tachyon");
       System.exit(-1);
     }
 

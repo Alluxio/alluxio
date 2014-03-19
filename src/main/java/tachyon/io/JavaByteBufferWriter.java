@@ -29,6 +29,15 @@ public class JavaByteBufferWriter extends ByteBufferWriter {
   }
 
   @Override
+  public ByteBuffer getByteBuffer() {
+    ByteBuffer buf = mBuf.duplicate();
+    buf.position(0);
+    buf.limit(mBuf.position());
+    buf.order(mBuf.order());
+    return buf;
+  }
+
+  @Override
   public void put(Byte b) {
     mBuf.put(b);
   }
@@ -66,14 +75,5 @@ public class JavaByteBufferWriter extends ByteBufferWriter {
   @Override
   public void putShort(short value) {
     mBuf.putShort(value);
-  }
-
-  @Override
-  public ByteBuffer getByteBuffer() {
-    ByteBuffer buf = mBuf.duplicate();
-    buf.position(0);
-    buf.limit(mBuf.position());
-    buf.order(mBuf.order());
-    return buf;
   }
 }

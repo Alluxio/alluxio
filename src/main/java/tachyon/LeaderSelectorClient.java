@@ -61,8 +61,8 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
     // create a leader selector using the given path for management
     // all participants in a given leader selection must use the same path
     // ExampleClient here is also a LeaderSelectorListener but this isn't required
-    CuratorFramework client = CuratorFrameworkFactory.newClient(
-        ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(1000, 3));
+    CuratorFramework client =
+        CuratorFrameworkFactory.newClient(ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(1000, 3));
     client.start();
     LEADER_SELECTOR = new LeaderSelector(client, ELECTION_PATH, this);
     LEADER_SELECTOR.setId(name);
@@ -71,12 +71,13 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
     LEADER_SELECTOR.autoRequeue();
   }
 
-  public void start() throws IOException { 
-    LEADER_SELECTOR.start();
-  }
+  @Override
+  public void close() throws IOException {
+    if (mCurrentMasterThread != null) {
+      mCurrentMasterThread.interrupt();
+    }
 
-  public boolean isLeader() {
-    return mIsLeader.get();
+    LEADER_SELECTOR.close();
   }
 
   public String getName() {
@@ -85,7 +86,7 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
 
   public List<String> getParticipants() {
     try {
-      List<Participant> participants = 
+      List<Participant> participants =
           new ArrayList<Participant>(LEADER_SELECTOR.getParticipants());
       List<String> results = new ArrayList<String>();
       for (Participant part : participants) {
@@ -98,13 +99,38 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
     }
   }
 
-  @Override
-  public void close() throws IOException {
-    if (mCurrentMasterThread != null) {
-      mCurrentMasterThread.interrupt();
-    }
+  public boolean isLeader() {
+    return mIsLeader.get();
+  }
 
-    LEADER_SELECTOR.close();
+  /**
+   * Set the current master thread.
+   * 
+   * @param currentMasterThread
+   */
+  public void setCurrentMasterThread(Thread currentMasterThread) {
+    mCurrentMasterThread = currentMasterThread;
+  }
+
+  public void start() throws IOException {
+    LEADER_SELECTOR.start();
+  }
+
+  @Override
+  public void stateChanged(CuratorFramework client, ConnectionState newState) {
+    mIsLeader.set(false);
+
+    if ((newState == ConnectionState.LOST) || (newState == ConnectionState.SUSPENDED)) {
+      if (mCurrentMasterThread != null) {
+        mCurrentMasterThread.interrupt();
+      }
+    } else {
+      try {
+        LOG.info("The current leader is " + LEADER_SELECTOR.getLeader().getId());
+      } catch (Exception e) {
+        LOG.error(e.getMessage(), e);
+      }
+    }
   }
 
   @Override
@@ -129,30 +155,5 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
     LOG.info("The current leader is " + LEADER_SELECTOR.getLeader().getId());
     LOG.info("All partitations: " + LEADER_SELECTOR.getParticipants());
     client.delete().forPath(LEADER_FOLDER + NAME);
-  }
-
-  @Override
-  public void stateChanged(CuratorFramework client, ConnectionState newState) {
-    mIsLeader.set(false);
-
-    if ((newState == ConnectionState.LOST) || (newState == ConnectionState.SUSPENDED)) {
-      if (mCurrentMasterThread != null) {
-        mCurrentMasterThread.interrupt();
-      }
-    } else {
-      try {
-        LOG.info("The current leader is " + LEADER_SELECTOR.getLeader().getId());
-      } catch (Exception e) {
-        LOG.error(e.getMessage(), e);
-      }
-    }
-  }
-
-  /**
-   * Set the current master thread.
-   * @param currentMasterThread
-   */
-  public void setCurrentMasterThread(Thread currentMasterThread) {
-    mCurrentMasterThread = currentMasterThread;
   }
 }

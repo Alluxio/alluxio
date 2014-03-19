@@ -27,6 +27,10 @@ public class EmptyBlockInStream extends InStream {
   }
 
   @Override
+  public void close() throws IOException {
+  }
+
+  @Override
   public int read() throws IOException {
     return -1;
   }
@@ -42,18 +46,14 @@ public class EmptyBlockInStream extends InStream {
   }
 
   @Override
-  public void close() throws IOException {
+  public void seek(long pos) throws IOException {
+    if (pos < 0) {
+      throw new IOException("pos is negative: " + pos);
+    }
   }
 
   @Override
   public long skip(long n) throws IOException {
     return 0;
-  }
-
-  @Override
-  public void seek(long pos) throws IOException {
-    if (pos < 0) {
-      throw new IOException("pos is negative: " + pos);
-    }
   }
 }

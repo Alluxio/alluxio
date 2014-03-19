@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,29 +14,25 @@
  */
 package tachyon.util;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Scanner;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
+import tachyon.UnderFileSystem;
 import tachyon.thrift.InvalidPathException;
-
-import static java.nio.file.attribute.PosixFilePermission.*;
 
 /**
  * Common utilities shared by all components in Tachyon.
@@ -46,7 +40,43 @@ import static java.nio.file.attribute.PosixFilePermission.*;
 public final class CommonUtils {
   private static final Logger LOG = Logger.getLogger("");
 
-  private CommonUtils () {
+  /**
+   * Change local file's permission.
+   * 
+   * @param filePath
+   *          that will change permission
+   * @param perms
+   *          the permission, e.g. "775"
+   * @throws IOException
+   */
+  public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
+    List<String> commands = new ArrayList<String>();
+    commands.add("/bin/chmod");
+    commands.add(perms);
+    File file = new File(filePath);
+    commands.add(file.getAbsolutePath());
+
+    try {
+      ProcessBuilder builder = new ProcessBuilder(commands);
+      Process process = builder.start();
+
+      redirectStreamAsync(process.getInputStream(), System.out);
+      redirectStreamAsync(process.getErrorStream(), System.err);
+
+      process.waitFor();
+
+      if (process.exitValue() != 0) {
+        throw new IOException("Can not change the file " + file.getAbsolutePath()
+            + " 's permission to be " + perms);
+      }
+    } catch (InterruptedException e) {
+      LOG.error(e.getMessage());
+      throw new IOException(e);
+    }
+  }
+
+  public static void changeLocalFileToFullPermission(String filePath) throws IOException {
+    changeLocalFilePermission(filePath, "777");
   }
 
   public static String cleanPath(String path) throws IOException {
@@ -61,9 +91,8 @@ public final class CommonUtils {
 
   public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
     ByteBuffer ret = ByteBuffer.allocate(buf.limit() - buf.position());
-    ret.put(buf);
+    ret.put(buf.array(), buf.position(), buf.limit() - buf.position());
     ret.flip();
-    buf.flip();
     return ret;
   }
 
@@ -75,16 +104,16 @@ public final class CommonUtils {
     return ret;
   }
 
-  public static String convertByteArrayToString(byte[] data) {
+  public static String convertByteArrayToStringWithoutEscape(byte[] data) {
     StringBuilder sb = new StringBuilder(data.length);
-    for (int i = 0; i < data.length; ++ i) {
+    for (int i = 0; i < data.length; i ++) {
       if (data[i] < 128) {
         sb.append((char) data[i]);
       } else {
         return null;
       }
     }
-    return StringEscapeUtils.escapeHtml3(sb.toString()).replace("\n", "<br/>");
+    return sb.toString();
   }
 
   public static String convertMsToClockTime(long Millis) {
@@ -93,8 +122,13 @@ public final class CommonUtils {
     long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
     long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
 
-    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)",
-        days, hours, mins, secs);
+    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
+        mins, secs);
+  }
+
+  public static String convertMsToDate(long Millis) {
+    DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
+    return formatter.format(new Date(Millis));
   }
 
   public static String convertMsToShortClockTime(long Millis) {
@@ -106,31 +140,18 @@ public final class CommonUtils {
     return String.format("%d d, %d h, %d m, and %d s", days, hours, mins, secs);
   }
 
-  public static String convertMsToDate(long Millis) {
-    DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS");
-    return formatter.format(new Date(Millis));
-  }
-
   public static String convertMsToSimpleDate(long Millis) {
     DateFormat formatter = new SimpleDateFormat("MM-dd-yyyy");
     return formatter.format(new Date(Millis));
   }
 
   public static ByteBuffer generateNewByteBufferFromThriftRPCResults(ByteBuffer data) {
-    // TODO this is a trick to fix the issue in thrift. Change the code to use metadata directly
-    // when thrift fixes the issue.
+    // TODO this is a trick to fix the issue in thrift. Change the code to use
+    // metadata directly when thrift fixes the issue.
     ByteBuffer correctData = ByteBuffer.allocate(data.limit() - data.position());
     correctData.put(data);
     correctData.flip();
     return correctData;
-  }
-
-  public static long getCurrentMs() {
-    return System.currentTimeMillis();
-  }
-
-  public static long getCurrentNs() {
-    return System.nanoTime();
   }
 
   public static long getBlockIdFromFileName(String name) {
@@ -143,7 +164,15 @@ public final class CommonUtils {
     return fileId;
   }
 
-  public static int getMB(int bytes) {
+  public static long getCurrentMs() {
+    return System.currentTimeMillis();
+  }
+
+  public static long getCurrentNs() {
+    return System.nanoTime();
+  }
+
+  public static long getMB(long bytes) {
     return bytes / Constants.MB;
   }
 
@@ -164,13 +193,13 @@ public final class CommonUtils {
     return String.format("%.2f GB", ret);
   }
 
-  public static void illegalArgumentException(String msg) {
-    throw new IllegalArgumentException(msg);
-  }
-
   public static void illegalArgumentException(Exception e) {
     LOG.error(e.getMessage(), e);
     throw new IllegalArgumentException(e);
+  }
+
+  public static void illegalArgumentException(String msg) {
+    throw new IllegalArgumentException(msg);
   }
 
   public static <T> String listToString(List<T> list) {
@@ -181,7 +210,12 @@ public final class CommonUtils {
     return sb.toString();
   }
 
-  public static String parametersToString(Object ... objs) {
+  public static boolean mkdirs(String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+    return ufs.mkdirs(path, true);
+  }
+
+  public static String parametersToString(Object... objs) {
     StringBuilder sb = new StringBuilder("(");
     for (int k = 0; k < objs.length; k ++) {
       if (k != 0) {
@@ -191,6 +225,24 @@ public final class CommonUtils {
     }
     sb.append(")");
     return sb.toString();
+  }
+
+  /**
+   * Parse InetSocketAddress from a String
+   * 
+   * @param address
+   * @return
+   * @throws IOException
+   */
+  public static InetSocketAddress parseInetSocketAddress(String address) throws IOException {
+    if (address == null) {
+      return null;
+    }
+    String[] strArr = address.split(":");
+    if (strArr.length != 2) {
+      throw new IOException("Invalid InetSocketAddress " + address);
+    }
+    return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
   }
 
   public static long parseMemorySize(String memorySize) {
@@ -209,21 +261,20 @@ public final class CommonUtils {
     memorySize = memorySize.substring(0, tIndex + 1);
     double ret = Double.parseDouble(memorySize);
     end = end.toLowerCase();
-    switch (end) {
-    case "":
-    case "b":
+    if (end.isEmpty() || end.equals("b")) {
       return (long) (ret + alpha);
-    case "kb":
+    } else if (end.equals("kb")) {
       return (long) (ret * Constants.KB + alpha);
-    case "mb":
+    } else if (end.equals("mb")) {
       return (long) (ret * Constants.MB + alpha);
-    case "gb":
+    } else if (end.equals("gb")) {
       return (long) (ret * Constants.GB + alpha);
-    case "tb":
+    } else if (end.equals("tb")) {
       return (long) (ret * Constants.TB + alpha);
+    } else {
+      runtimeException("Fail to parse " + ori + " as memory size");
+      return -1;
     }
-    runtimeException("Fail to parse " + ori + " as memory size");
-    return -1;
   }
 
   public static void printByteBuffer(Logger LOG, ByteBuffer buf) {
@@ -243,13 +294,44 @@ public final class CommonUtils {
     logger.info(message + " took " + (getCurrentNs() - startTimeNs) + " ns.");
   }
 
-  public static void runtimeException(String msg) {
-    throw new RuntimeException(msg);
+  static void redirectStreamAsync(final InputStream input, final PrintStream output) {
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        Scanner scanner = new Scanner(input);
+        while (scanner.hasNextLine()) {
+          output.println(scanner.nextLine());
+        }
+        scanner.close();
+      }
+    }).start();
   }
 
   public static void runtimeException(Exception e) {
     LOG.error(e.getMessage(), e);
     throw new RuntimeException(e);
+  }
+
+  public static void runtimeException(String msg) {
+    throw new RuntimeException(msg);
+  }
+
+  /**
+   * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the owner
+   * of the folder containing the 'file'.
+   * 
+   * @param file
+   *          absolute file path
+   */
+  public static void setLocalFileStickyBit(String file) {
+    try {
+      // sticky bit is not implemented in PosixFilePermission
+      if (file.startsWith("/")) {
+        Runtime.getRuntime().exec("chmod o+t " + file);
+      }
+    } catch (IOException e) {
+      LOG.info("Can not set the sticky bit of the file : " + file);
+    }
   }
 
   public static void sleepMs(Logger logger, long timeMs) {
@@ -260,75 +342,33 @@ public final class CommonUtils {
     }
   }
 
+  public static void tempoaryLog(String msg) {
+    LOG.info("Temporary Log ============================== " + msg);
+  }
+
   public static String[] toStringArray(ArrayList<String> src) {
     String[] ret = new String[src.size()];
     return src.toArray(ret);
   }
 
-  public static void tempoaryLog(String msg) {
-    LOG.info("Temporary Log ============================== " + msg);
+  /**
+   * Create an empty file
+   * 
+   * @throws IOException
+   */
+  public static void touch(String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+    OutputStream os = ufs.create(path);
+    os.close();
   }
 
   public static void validatePath(String path) throws InvalidPathException {
-    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR) ||
-        (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR)) ||
-        path.contains(" ")) {
+    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR)
+        || (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR)) || path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
   }
 
-  /**
-   * Parse InetSocketAddress from a String
-   * @param address
-   * @return
-   * @throws IOException
-   */
-  public static InetSocketAddress parseInetSocketAddress(String address) throws IOException {
-    if (address == null) {
-      return null;
-    }
-    String[] strArr = address.split(":");
-    if (strArr.length != 2) {
-      throw new IOException("Invalid InetSocketAddress " + address);
-    }
-    return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
-  }
-
-  /**
-   * @param file that will be changed to full permission
-   */
-  public static void changeLocalFileToFullPermission(String file) {
-    //set the full permission to everyone.
-    try {
-      Set<PosixFilePermission> permissions = EnumSet.of(
-          OWNER_READ, OWNER_WRITE, OWNER_EXECUTE,
-          GROUP_READ, GROUP_WRITE, GROUP_EXECUTE,
-          OTHERS_READ, OTHERS_WRITE, OTHERS_EXECUTE);
-      String fileURI = file;
-      if (file.startsWith("/")) {
-        fileURI = "file://" + file;
-      }
-      Path path = Paths.get(URI.create(fileURI));
-      Files.setPosixFilePermissions(path, permissions);
-    } catch (IOException e) {
-      LOG.warn("Can not change the permission of the following file to '777':" + file);
-    }
-  }
-
-  /**
-   * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and
-   * the owner of the folder containing the 'file'.
-   *
-   * @param file absolute file path
-   */
-  public static void setLocalFileStickyBit(String file) {
-    try {
-      //sticky bit is not implemented in PosixFilePermission
-      if (file.startsWith("/")) {
-        Runtime.getRuntime().exec("chmod o+t " + file);
-      }
-    } catch (IOException e) {
-      LOG.info("Can not set the sticky bit of the file : " + file);
-    }
+  private CommonUtils() {
   }
 }

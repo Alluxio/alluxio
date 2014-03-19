@@ -3,15 +3,17 @@
 function printUsage {
   echo "Usage: tachyon COMMAND "
   echo "where COMMAND is one of:"
-  echo -e "  format        \t Format Tachyon"
+  echo -e "  format [-s]   \t Format Tachyon (if -s specified, only format if underfs doesn't exist)"
+  echo -e "  bootstrap-conf\t Generate a config file if one doesn't exist"
   echo -e "  tfs           \t Command line input for generic filesystem user client."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Tachyon."
   echo -e "  runTest       \t Run a end-to-end test on a Tachyon cluster."
   echo -e "  runTests      \t Run all end-to-end tests on a Tachyon cluster."
-  echo -e "  killAll <WORD>\t Kill processes containing the WORD"
-  echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes"
+  echo -e "  killAll <WORD>\t Kill processes containing the WORD."
+  echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
+  echo -e "  clearCache    \t Clear OS buffer cache of the machine."
   echo -e "  thriftGen     \t Generate all thrift code."
-  echo -e "  clearCache    \t Clear OS buffer cache of the machine"
+  echo -e "  version       \t Print Tachyon version and exit."
   echo "Commands print help when invoked without parameters."
 }
 
@@ -30,7 +32,7 @@ TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
 function runTest {
-  Usage="Usage: tachyon runTest <Basic|BasicRawTable> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH>"
+  Usage="Usage: tachyon runTest <Basic|BasicRawTable> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
 
   if [ "$#" -ne 2 ]; then
     echo $Usage
@@ -43,12 +45,16 @@ function runTest {
   fi
 
   if [[ "$1" == "Basic" ]]; then
-    $bin/tachyon tfs rm /Basic_File_$2
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicOperations $MASTER_ADDRESS:19998 /Basic_File_$2 $2
+    $bin/tachyon tfs rm /BasicFile_$2
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicOperations tachyon://$MASTER_ADDRESS:19998 /BasicFile_$2 $2
     exit 0
   elif [[ "$1" == "BasicRawTable" ]]; then
-    $bin/tachyon tfs rm /Basic_Raw_Table_$2
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicRawTableOperations $MASTER_ADDRESS:19998 /Basic_Raw_Table_$2 $2
+    $bin/tachyon tfs rm /BasicRawTable_$2
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicRawTableOperations tachyon://$MASTER_ADDRESS:19998 /BasicRawTable_$2 $2
+    exit 0
+  elif [[ "$1" == "BasicCheckpoint" ]]; then
+    $bin/tachyon tfs rm /BasicCheckpoint
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicCheckpoint tachyon://$MASTER_ADDRESS:19998 /BasicCheckpoint 10
     exit 0
   fi
 
@@ -94,12 +100,58 @@ function copyDir {
   wait
 }
 
+function bootstrapConf {
+  if [ $# -ne 1 ]; then
+    echo "Usage $0 bootstrap-conf TACHYON_MASTER_HOSTNAME"
+    exit 1
+  fi
+
+  if [ ! -e "$TACHYON_CONF_DIR/tachyon-env.sh" ]; then
+    # Create a default config that can be overridden later
+    cp "$TACHYON_CONF_DIR/tachyon-env.sh.template" "$TACHYON_CONF_DIR/tachyon-env.sh"
+    sed -i "s/TACHYON_MASTER_ADDRESS=localhost/TACHYON_MASTER_ADDRESS=$1/" "$TACHYON_CONF_DIR/tachyon-env.sh"
+    TOTAL_MEM=`awk '/MemTotal/{print $2}' /proc/meminfo`
+    TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
+    sed -i "s/TACHYON_WORKER_MEMORY_SIZE=1GB/TACHYON_WORKER_MEMORY_SIZE=${TOTAL_MEM}KB/" "$TACHYON_CONF_DIR/tachyon-env.sh"
+  fi
+}
+
+PARAMETER=""
+
 if [ "$COMMAND" == "format" ]; then
+  if [ $# -eq 1 ]; then
+    if [ "$1" == "-s" ]; then
+      if [ -e $TACHYON_UNDERFS_ADDRESS ] || [[ $TACHYON_UNDERFS_ADDRESS == hdfs://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == s3://* ]]; then
+        # already exists, hdfs, or s3, don't format
+        exit 0
+      else
+        shift # remove -s param
+      fi
+    else
+      echo "Usage $0 format [-s]"
+      exit 2
+    fi
+  elif [ $# -gt 1 ]; then
+    echo "Usage $0 format [-s]"
+    exit 2
+  fi
+
   if [ -z $TACHYON_MASTER_ADDRESS ] ; then
     TACHYON_MASTER_ADDRESS=localhost
   fi
-  echo "Formatting Tachyon @ $TACHYON_MASTER_ADDRESS"
+
+  $bin/tachyon-slaves.sh $bin/tachyon formatWorker
+
+  echo "Formatting Tachyon Master @ $TACHYON_MASTER_ADDRESS"
   CLASS=tachyon.Format
+  PARAMETER=master
+elif [ "$COMMAND" == "bootstrap-conf" ]; then
+  bootstrapConf "$@"
+  exit 0
+elif [ "$COMMAND" == "formatWorker" ]; then
+  echo "Formatting Tachyon Worker @ `hostname`"
+  CLASS=tachyon.Format
+  PARAMETER=worker
 elif [ "$COMMAND" == "tfs" ]; then
   CLASS=tachyon.command.TFsShell
 elif [ "$COMMAND" == "loadufs" ]; then
@@ -108,7 +160,7 @@ elif [ "$COMMAND" == "runTest" ]; then
   runTest "$@"
   exit 0
 elif [ "$COMMAND" == "runTests" ]; then
-  declare -a opArr=(MUST_CACHE TRY_CACHE CACHE_THROUGH THROUGH)
+  declare -a opArr=(MUST_CACHE TRY_CACHE CACHE_THROUGH THROUGH ASYNC_THROUGH)
 
   for op in ${opArr[@]}
   do
@@ -132,9 +184,11 @@ elif [ "$COMMAND" == "thriftGen" ]; then
 elif [ "$COMMAND" == "clearCache" ]; then
   sync; echo 3 > /proc/sys/vm/drop_caches ;
   exit 0
+elif [ "$COMMAND" == "version" ]; then
+  CLASS=tachyon.Version
 else
   printUsage
   exit 1
 fi
 
-$JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $@
+$JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $PARAMETER $@

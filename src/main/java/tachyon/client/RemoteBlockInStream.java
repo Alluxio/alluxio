@@ -27,11 +27,11 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
-import tachyon.DataServerMessage;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.worker.DataServerMessage;
 
 /**
  * BlockInStream for remote block.
@@ -71,131 +71,24 @@ public class RemoteBlockInStream extends BlockInStream {
       setupStreamFromUnderFs(mBlockInfo.offset);
 
       if (mCheckpointInputStream == null) {
+        TFS.reportLostFile(FILE.FID);
+
         throw new IOException("Can not find the block " + FILE + " " + BLOCK_INDEX);
       }
     }
   }
 
-  private void setupStreamFromUnderFs(long offset) {
-    String checkpointPath = TFS.getCheckpointPath(FILE.FID);
-    if (!checkpointPath.equals("")) {
-      LOG.info("May stream from underlayer fs: " + checkpointPath);
-      UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath);
-      try {
-        mCheckpointInputStream = underfsClient.open(checkpointPath);
-        while (offset > 0) {
-          long skipped = mCheckpointInputStream.skip(offset);
-          offset -= skipped;
-          if (skipped == 0) {
-            throw new IOException("Failed to find the start position " + offset +
-                " for block " + mBlockInfo);
-          }
-        }
-      } catch (IOException e) {
-        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " + FILE.FID + 
-            "\n" + e);
-        mCheckpointInputStream = null;
+  @Override
+  public void close() throws IOException {
+    if (!mClosed) {
+      if (mRecache) {
+        mBlockOutStream.cancel();
+      }
+      if (mCheckpointInputStream != null) {
+        mCheckpointInputStream.close();
       }
     }
-  }
-
-  private void updateCurrentBuffer() throws IOException {
-    long length = BUFFER_SIZE;
-    if (mBufferStartPosition + length > mBlockInfo.length) {
-      length = mBlockInfo.length - mBufferStartPosition;
-    }
-
-    LOG.info(String.format("Try to find remote worker and read block %d from %d, with len %d",
-        mBlockInfo.blockId, mBufferStartPosition, length));
-
-    mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
-
-    if (mCurrentBuffer == null) {
-      mBlockInfo = TFS.getClientBlockInfo(FILE.FID, BLOCK_INDEX);
-      mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
-    }
-  }
-
-  private ByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo, long offset, long len) {
-    ByteBuffer buf = null;
-
-    try {
-      List<NetAddress> blockLocations = blockInfo.getLocations();
-      LOG.info("Block locations:" + blockLocations);
-
-      for (int k = 0; k < blockLocations.size(); k ++) {
-        String host = blockLocations.get(k).mHost;
-        int port = blockLocations.get(k).mPort;
-
-        // The data is not in remote machine's memory if port == -1.
-        if (port == -1) {
-          continue;
-        }
-        if (host.equals(InetAddress.getLocalHost().getHostName()) 
-            || host.equals(InetAddress.getLocalHost().getHostAddress())) {
-          String localFileName = TFS.getRootFolder() + "/" + blockInfo.blockId;
-          LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
-        } 
-        LOG.info(host + ":" + (port + 1) +
-            " current host is " + InetAddress.getLocalHost().getHostName() + " " +
-            InetAddress.getLocalHost().getHostAddress());
-
-        try {
-          buf = retrieveByteBufferFromRemoteMachine(
-              new InetSocketAddress(host, port + 1), blockInfo.blockId, offset, len);
-          if (buf != null) {
-            break;
-          }
-        } catch (IOException e) {
-          LOG.error(e.getMessage());
-          buf = null;
-        }
-      }
-    } catch (IOException e) {
-      LOG.error("Failed to get read data from remote " + e.getMessage());
-      buf = null;
-    }
-
-    return buf;
-  }
-
-  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, 
-      long blockId, long offset, long length) throws IOException {
-    SocketChannel socketChannel = SocketChannel.open();
-    socketChannel.connect(address);
-
-    LOG.info("Connected to remote machine " + address + " sent");
-    DataServerMessage sendMsg =
-        DataServerMessage.createBlockRequestMessage(blockId, offset, length);
-    while (!sendMsg.finishSending()) {
-      sendMsg.send(socketChannel);
-    }
-
-    LOG.info("Data " + blockId + " to remote machine " + address + " sent");
-
-    DataServerMessage recvMsg =
-        DataServerMessage.createBlockResponseMessage(false, blockId);
-    while (!recvMsg.isMessageReady()) {
-      int numRead = recvMsg.recv(socketChannel);
-      if (numRead == -1) {
-        LOG.warn("Read nothing");
-      }
-    }
-    LOG.info("Data " + blockId + " from remote machine " + address + " received");
-
-    socketChannel.close();
-
-    if (!recvMsg.isMessageReady()) {
-      LOG.info("Data " + blockId + " from remote machine is not ready.");
-      return null;
-    }
-
-    if (recvMsg.getBlockId() < 0) {
-      LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
-      return null;
-    }
-
-    return recvMsg.getReadOnlyData();
+    mClosed = true;
   }
 
   private void doneRecache() throws IOException {
@@ -218,7 +111,7 @@ public class RemoteBlockInStream extends BlockInStream {
         updateCurrentBuffer();
       }
       if (mCurrentBuffer != null) {
-        int ret = mCurrentBuffer.get();
+        int ret = mCurrentBuffer.get() & 0xFF;
         if (mRecache) {
           mBlockOutStream.write(ret);
         }
@@ -227,7 +120,7 @@ public class RemoteBlockInStream extends BlockInStream {
       setupStreamFromUnderFs(mBlockInfo.offset + mReadByte - 1);
     }
 
-    int ret = mCheckpointInputStream.read();
+    int ret = mCheckpointInputStream.read() & 0xFF;
     if (mRecache) {
       mBlockOutStream.write(ret);
     }
@@ -291,17 +184,132 @@ public class RemoteBlockInStream extends BlockInStream {
     return (int) ret;
   }
 
-  @Override
-  public void close() throws IOException {
-    if (!mClosed) {
-      if (mRecache) {
-        mBlockOutStream.cancel();
+  private ByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo, long offset, long len) {
+    ByteBuffer buf = null;
+
+    try {
+      List<NetAddress> blockLocations = blockInfo.getLocations();
+      LOG.info("Block locations:" + blockLocations);
+
+      for (int k = 0; k < blockLocations.size(); k ++) {
+        String host = blockLocations.get(k).mHost;
+        int port = blockLocations.get(k).mPort;
+
+        // The data is not in remote machine's memory if port == -1.
+        if (port == -1) {
+          continue;
+        }
+        if (host.equals(InetAddress.getLocalHost().getHostName())
+            || host.equals(InetAddress.getLocalHost().getHostAddress())) {
+          String localFileName = TFS.getRootFolder() + "/" + blockInfo.blockId;
+          LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
+        }
+        LOG.info(host + ":" + (port + 1) + " current host is "
+            + InetAddress.getLocalHost().getHostName() + " "
+            + InetAddress.getLocalHost().getHostAddress());
+
+        try {
+          buf =
+              retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port + 1),
+                  blockInfo.blockId, offset, len);
+          if (buf != null) {
+            break;
+          }
+        } catch (IOException e) {
+          LOG.error(e.getMessage());
+          buf = null;
+        }
       }
+    } catch (IOException e) {
+      LOG.error("Failed to get read data from remote " + e.getMessage());
+      buf = null;
+    }
+
+    return buf;
+  }
+
+  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, long blockId,
+      long offset, long length) throws IOException {
+    SocketChannel socketChannel = SocketChannel.open();
+    socketChannel.connect(address);
+
+    LOG.info("Connected to remote machine " + address + " sent");
+    DataServerMessage sendMsg =
+        DataServerMessage.createBlockRequestMessage(blockId, offset, length);
+    while (!sendMsg.finishSending()) {
+      sendMsg.send(socketChannel);
+    }
+
+    LOG.info("Data " + blockId + " to remote machine " + address + " sent");
+
+    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
+    while (!recvMsg.isMessageReady()) {
+      int numRead = recvMsg.recv(socketChannel);
+      if (numRead == -1) {
+        LOG.warn("Read nothing");
+      }
+    }
+    LOG.info("Data " + blockId + " from remote machine " + address + " received");
+
+    socketChannel.close();
+
+    if (!recvMsg.isMessageReady()) {
+      LOG.info("Data " + blockId + " from remote machine is not ready.");
+      return null;
+    }
+
+    if (recvMsg.getBlockId() < 0) {
+      LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
+      return null;
+    }
+
+    return recvMsg.getReadOnlyData();
+  }
+
+  @Override
+  public void seek(long pos) throws IOException {
+    if (pos < 0) {
+      throw new IOException("pos is negative: " + pos);
+    }
+    mRecache = false;
+    if (mCurrentBuffer != null) {
+      mReadByte = pos;
+      if (mBufferStartPosition <= pos && pos < mBufferStartPosition + mCurrentBuffer.limit()) {
+        mCurrentBuffer.position((int) (pos - mBufferStartPosition));
+      } else {
+        mBufferStartPosition = pos;
+        updateCurrentBuffer();
+      }
+    } else {
       if (mCheckpointInputStream != null) {
         mCheckpointInputStream.close();
       }
+
+      setupStreamFromUnderFs(mBlockInfo.offset + pos);
     }
-    mClosed = true;
+  }
+
+  private void setupStreamFromUnderFs(long offset) {
+    String checkpointPath = TFS.getCheckpointPath(FILE.FID);
+    if (!checkpointPath.equals("")) {
+      LOG.info("May stream from underlayer fs: " + checkpointPath);
+      UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath);
+      try {
+        mCheckpointInputStream = underfsClient.open(checkpointPath);
+        while (offset > 0) {
+          long skipped = mCheckpointInputStream.skip(offset);
+          offset -= skipped;
+          if (skipped == 0) {
+            throw new IOException("Failed to find the start position " + offset + " for block "
+                + mBlockInfo);
+          }
+        }
+      } catch (IOException e) {
+        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " + FILE.FID
+            + "\n" + e);
+        mCheckpointInputStream = null;
+      }
+    }
   }
 
   @Override
@@ -345,20 +353,20 @@ public class RemoteBlockInStream extends BlockInStream {
     return ret;
   }
 
-  @Override
-  public void seek(long pos) throws IOException {
-    if (pos < 0) {
-      throw new IOException("pos is negative: " + pos);
+  private void updateCurrentBuffer() throws IOException {
+    long length = BUFFER_SIZE;
+    if (mBufferStartPosition + length > mBlockInfo.length) {
+      length = mBlockInfo.length - mBufferStartPosition;
     }
-    mRecache = false;
-    if (mCurrentBuffer != null) {
-      mCurrentBuffer.position((int) pos);
-    } else {
-      if (mCheckpointInputStream != null) {
-        mCheckpointInputStream.close();
-      }
 
-      setupStreamFromUnderFs(mBlockInfo.offset + pos);
+    LOG.info(String.format("Try to find remote worker and read block %d from %d, with len %d",
+        mBlockInfo.blockId, mBufferStartPosition, length));
+
+    mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
+
+    if (mCurrentBuffer == null) {
+      mBlockInfo = TFS.getClientBlockInfo(FILE.FID, BLOCK_INDEX);
+      mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
     }
   }
 }

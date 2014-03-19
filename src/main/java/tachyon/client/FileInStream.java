@@ -44,10 +44,6 @@ public class FileInStream extends InStream {
     mCurrentBlockLeft = 0;
   }
 
-  private int getCurrentBlockIndex() {
-    return (int) (mCurrentPosition / BLOCK_CAPACITY);
-  }
-
   private void checkAndAdvanceBlockInStream() throws IOException {
     if (mCurrentBlockLeft == 0) {
       if (mCurrentBlockInStream != null) {
@@ -58,6 +54,19 @@ public class FileInStream extends InStream {
       mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex);
       mCurrentBlockLeft = BLOCK_CAPACITY;
     }
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (!mClosed && mCurrentBlockInStream != null) {
+      mCurrentBlockInStream.close();
+    }
+
+    mClosed = true;
+  }
+
+  private int getCurrentBlockIndex() {
+    return (int) (mCurrentPosition / BLOCK_CAPACITY);
   }
 
   @Override
@@ -95,6 +104,10 @@ public class FileInStream extends InStream {
       checkAndAdvanceBlockInStream();
 
       int tRead = mCurrentBlockInStream.read(b, tOff, tLen);
+      if (tRead == -1) {
+        // mCurrentBlockInStream has reached its block boundary
+        continue;
+      }
 
       mCurrentPosition += tRead;
       mCurrentBlockLeft -= tRead;
@@ -106,12 +119,24 @@ public class FileInStream extends InStream {
   }
 
   @Override
-  public void close() throws IOException {
-    if (!mClosed && mCurrentBlockInStream != null) {
-      mCurrentBlockInStream.close();
+  public void seek(long pos) throws IOException {
+    if (mCurrentPosition == pos) {
+      return;
+    }
+    if (pos < 0) {
+      throw new IOException("pos is negative: " + pos);
     }
 
-    mClosed = true;
+    if ((int) (pos / BLOCK_CAPACITY) != mCurrentBlockIndex) {
+      mCurrentBlockIndex = (int) (pos / BLOCK_CAPACITY);
+      if (mCurrentBlockInStream != null) {
+        mCurrentBlockInStream.close();
+      }
+      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex);
+    }
+    mCurrentBlockInStream.seek(pos % BLOCK_CAPACITY);
+    mCurrentPosition = pos;
+    mCurrentBlockLeft = BLOCK_CAPACITY - (pos % BLOCK_CAPACITY);
   }
 
   @Override
@@ -140,38 +165,17 @@ public class FileInStream extends InStream {
       long skip = mCurrentBlockInStream.skip(shouldSkip);
       mCurrentBlockLeft = BLOCK_CAPACITY - skip;
       if (skip != shouldSkip) {
-        throw new IOException("The underlayer BlockInStream only skip " + skip + 
-            " instead of " + shouldSkip);
+        throw new IOException("The underlayer BlockInStream only skip " + skip + " instead of "
+            + shouldSkip);
       }
     } else {
       long skip = mCurrentBlockInStream.skip(ret);
       if (skip != ret) {
-        throw new IOException("The underlayer BlockInStream only skip " + skip + 
-            " instead of " + ret);
+        throw new IOException("The underlayer BlockInStream only skip " + skip + " instead of "
+            + ret);
       }
     }
 
     return ret;
-  }
-
-  @Override
-  public void seek(long pos) throws IOException {
-    if (mCurrentPosition == pos) {
-      return;
-    }
-    if (pos < 0) {
-      throw new IOException("pos is negative: " + pos);
-    }
-
-    if ((int) (pos / BLOCK_CAPACITY) != mCurrentBlockIndex){
-      mCurrentBlockIndex = (int) (pos / BLOCK_CAPACITY);
-      if (mCurrentBlockInStream != null) {
-        mCurrentBlockInStream.close();
-      }
-      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex);
-    }
-    mCurrentBlockInStream.seek(pos % BLOCK_CAPACITY);
-    mCurrentPosition = pos;
-    mCurrentBlockLeft = BLOCK_CAPACITY - (pos % BLOCK_CAPACITY);
   }
 }

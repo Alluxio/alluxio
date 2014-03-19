@@ -26,7 +26,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 
 /**
- * Prefix list is used by PinList and WhiteList to do file filtering. 
+ * Prefix list is used by PinList and WhiteList to do file filtering.
  */
 public class PrefixList {
   private final List<String> LIST;
@@ -40,7 +40,7 @@ public class PrefixList {
   }
 
   public PrefixList(String prefixes, String separator) {
-	  Validate.notNull(separator);
+    Validate.notNull(separator);
     if (prefixes == null) {
       LIST = new ArrayList<String>(0);
     } else {
@@ -48,11 +48,15 @@ public class PrefixList {
     }
   }
 
+  public List<String> getList() {
+    return ImmutableList.copyOf(LIST);
+  }
+
   public boolean inList(String path) {
-  	if (Strings.isNullOrEmpty(path)) {
-  		return false;
-  	}
-  	
+    if (Strings.isNullOrEmpty(path)) {
+      return false;
+    }
+
     for (int k = 0; k < LIST.size(); k ++) {
       if (path.startsWith(LIST.get(k))) {
         return true;
@@ -64,9 +68,5 @@ public class PrefixList {
 
   public boolean outList(String path) {
     return !inList(path);
-  }
-
-  public List<String> getList() {
-    return ImmutableList.copyOf(LIST);
   }
 }

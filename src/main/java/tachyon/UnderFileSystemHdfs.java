@@ -33,6 +33,7 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
+import tachyon.conf.CommonConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -44,9 +45,9 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   private FileSystem mFs = null;
   private String mUfsPrefix = null;
-  //TODO add sticky bit and narrow down the permission in hadoop 2
-  private static final FsPermission PERMISSION =
-      new FsPermission((short) 0777).applyUMask(FsPermission.createImmutable((short)0000));
+  // TODO add sticky bit and narrow down the permission in hadoop 2
+  private static final FsPermission PERMISSION = new FsPermission((short) 0777)
+      .applyUMask(FsPermission.createImmutable((short) 0000));
 
   public static UnderFileSystemHdfs getClient(String path) {
     return new UnderFileSystemHdfs(path);
@@ -57,8 +58,14 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       mUfsPrefix = fsDefaultName;
       Configuration tConf = new Configuration();
       tConf.set("fs.defaultFS", fsDefaultName);
-      tConf.set("fs.hdfs.impl", System.getProperty("tachyon.underfs.hdfs.impl",
-          "org.apache.hadoop.hdfs.DistributedFileSystem"));
+      tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
+
+      // To disable the instance cache for hdfs client, otherwise it causes the
+      // FileSystem closed exception. Being configurable for unit/integration
+      // test only, and not expose to the end-user currently.
+      tConf.set("fs.hdfs.impl.disable.cache",
+          System.getProperty("fs.hdfs.impl.disable.cache", "false"));
+
       if (System.getProperty("fs.s3n.awsAccessKeyId") != null) {
         tConf.set("fs.s3n.awsAccessKeyId", System.getProperty("fs.s3n.awsAccessKeyId"));
       }
@@ -75,18 +82,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public void changeToFullPermission(String path) {
-    try {
-      FileStatus fileStatus = mFs.getFileStatus(new Path(path));
-      LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: " +
-          fileStatus.getPermission() + " to 777");
-      mFs.setPermission(fileStatus.getPath(), PERMISSION);
-    } catch (IOException e) {
-      LOG.error(e);
-    }
-  }
-
-  @Override
   public void close() throws IOException {
     mFs.close();
   }
@@ -98,7 +93,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     while (cnt < MAX_TRY) {
       try {
         LOG.debug("Creating HDFS file at " + path);
-        return FileSystem.create(mFs,new Path(path), PERMISSION);
+        return FileSystem.create(mFs, new Path(path), PERMISSION);
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
@@ -111,9 +106,10 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   // BlockSize should be a multiple of 512
-  public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
+      public
+      FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
     // TODO Fix this
-    //return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
+    // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
     return create(path);
   }
 
@@ -121,22 +117,22 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   public FSDataOutputStream create(String path, short replication, int blockSizeByte)
       throws IOException {
     // TODO Fix this
-    //return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
+    // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
     return create(path);
-    //    LOG.info(path + " " + replication + " " + blockSizeByte);
-    //    IOException te = null;
-    //    int cnt = 0;
-    //    while (cnt < MAX_TRY) {
-    //      try {
-    //        return mFs.create(new Path(path), true, 4096, replication, blockSizeByte);
-    //      } catch (IOException e) {
-    //        cnt ++;
-    //        LOG.error(cnt + " : " + e.getMessage(), e);
-    //        te = e;
-    //        continue;
-    //      }
-    //    }
-    //    throw te;
+    // LOG.info(path + " " + replication + " " + blockSizeByte);
+    // IOException te = null;
+    // int cnt = 0;
+    // while (cnt < MAX_TRY) {
+    // try {
+    // return mFs.create(new Path(path), true, 4096, replication, blockSizeByte);
+    // } catch (IOException e) {
+    // cnt ++;
+    // LOG.error(cnt + " : " + e.getMessage(), e);
+    // te = e;
+    // continue;
+    // }
+    // }
+    // throw te;
   }
 
   @Override
@@ -176,18 +172,13 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public String[] list(String path) throws IOException {
-    FileStatus[] files = mFs.listStatus(new Path(path));
-    if (files != null) {
-      String[] rtn = new String[files.length];
-      int i = 0;
-      for (FileStatus status : files) {
-        rtn[i ++] = status.getPath().toString().substring(mUfsPrefix.length());
-      }
-      return rtn;
-    } else {
-      return null;
+  public long getBlockSizeByte(String path) throws IOException {
+    Path tPath = new Path(path);
+    if (!mFs.exists(tPath)) {
+      throw new FileNotFoundException(path);
     }
+    FileStatus fs = mFs.getFileStatus(tPath);
+    return fs.getBlockSize();
   }
 
   @Override
@@ -229,16 +220,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public long getBlockSizeByte(String path) throws IOException {
-    Path tPath = new Path(path);
-    if (!mFs.exists(tPath)) {
-      throw new FileNotFoundException(path);
-    }
-    FileStatus fs = mFs.getFileStatus(tPath);
-    return fs.getBlockSize();
-  }
-
-  @Override
   public long getModificationTimeMs(String path) throws IOException {
     Path tPath = new Path(path);
     if (!mFs.exists(tPath)) {
@@ -253,7 +234,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     // Ignoring the path given, will give information for entire cluster
     // as Tachyon can load/store data out of entire HDFS cluster
     if (mFs instanceof DistributedFileSystem) {
-      switch(type) {
+      switch (type) {
       case SPACE_TOTAL:
         return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
       case SPACE_USED:
@@ -268,6 +249,21 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   @Override
   public boolean isFile(String path) throws IOException {
     return mFs.isFile(new Path(path));
+  }
+
+  @Override
+  public String[] list(String path) throws IOException {
+    FileStatus[] files = mFs.listStatus(new Path(path));
+    if (files != null) {
+      String[] rtn = new String[files.length];
+      int i = 0;
+      for (FileStatus status : files) {
+        rtn[i ++] = status.getPath().toString().substring(mUfsPrefix.length());
+      }
+      return rtn;
+    } else {
+      return null;
+    }
   }
 
   @Override
@@ -334,5 +330,17 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     }
     CommonUtils.runtimeException(te);
     return false;
+  }
+
+  @Override
+  public void toFullPermission(String path) {
+    try {
+      FileStatus fileStatus = mFs.getFileStatus(new Path(path));
+      LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: "
+          + fileStatus.getPermission() + " to 777");
+      mFs.setPermission(fileStatus.getPath(), PERMISSION);
+    } catch (IOException e) {
+      LOG.error(e);
+    }
   }
 }
