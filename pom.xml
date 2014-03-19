@@ -348,7 +348,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.14</version>
         <configuration>
-          <argLine>-Dufs=${ufs} -Dtachyon.max.columns=257 -Dtachyon.max.table.metadata.byte=100</argLine>
+          <argLine>-Dufs=${ufs}</argLine>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>
             <log4j.configuration>file:src/test/resources/log4j.properties</log4j.configuration>
