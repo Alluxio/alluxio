@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import tachyon.Constants;
+import tachyon.conf.CommonConf;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientFileInfo;
@@ -276,6 +277,6 @@ public class MasterInfoTest {
   @Test(expected = TableColumnException.class)
   public void tooManyColumnsTest() throws InvalidPathException, FileAlreadyExistException,
       TableColumnException, TachyonException {
-    mMasterInfo.createRawTable("/testTable", Constants.MAX_COLUMNS + 1, (ByteBuffer) null);
+    mMasterInfo.createRawTable("/testTable", CommonConf.get().MAX_COLUMNS + 1, (ByteBuffer) null);
   }
 }

@@ -39,6 +39,7 @@ import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
+import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
@@ -398,9 +399,9 @@ public class TachyonFS {
     }
     path = CommonUtils.cleanPath(path);
 
-    if (columns < 1 || columns > Constants.MAX_COLUMNS) {
+    if (columns < 1 || columns > CommonConf.get().MAX_COLUMNS) {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
-          + Constants.MAX_COLUMNS);
+          + CommonConf.get().MAX_COLUMNS);
     }
 
     try {

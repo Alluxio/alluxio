@@ -16,14 +16,17 @@
  */
 package tachyon.master;
 
+
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.TestUtils;
-import tachyon.master.InodeRawTable;
-import tachyon.master.InodeType;
+import tachyon.conf.CommonConf;
 import tachyon.thrift.TachyonException;
 
 /**
@@ -31,6 +34,18 @@ import tachyon.thrift.TachyonException;
  */
 public class InodeRawTableTest {
   // Tests for Inode methods
+  
+  @After
+  public final void after() throws Exception {
+    System.clearProperty("tachyon.max.table.metadata.byte");
+  }
+
+  @Before
+  public final void before() throws IOException {
+    System.setProperty("tachyon.max.table.metadata.byte", "100");
+    CommonConf.clear();
+  }  
+  
   @Test
   public void comparableTest() throws TachyonException {
     InodeRawTable inode1 = new InodeRawTable("test1", 1, 0, 10, null, System.currentTimeMillis());
@@ -127,5 +142,18 @@ public class InodeRawTableTest {
     ByteBuffer metadata = TestUtils.getIncreasingIntBuffer(7);
     inodeRawTable.updateMetadata(metadata);
     Assert.assertEquals(metadata, inodeRawTable.getMetadata());
+  }
+  
+  @Test(expected = TachyonException.class)
+  public void updateMetadataFailsWhenOverLimit() throws Exception {
+    InodeRawTable inodeRawTable =
+        new InodeRawTable("testTable1", 1, 0, 10, null, System.currentTimeMillis());
+    ByteBuffer metadata = ByteBuffer.allocate(CommonConf.get().MAX_TABLE_METADATA_BYTE);
+    //when
+    String maxMetadataSizeProp = System.getProperty("tachyon.max.table.metadata.byte");
+    Assert.assertEquals(Integer.parseInt(maxMetadataSizeProp), 
+        CommonConf.get().MAX_TABLE_METADATA_BYTE);
+    inodeRawTable.updateMetadata(metadata);
+    
   }
 }

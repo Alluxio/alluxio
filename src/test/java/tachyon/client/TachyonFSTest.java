@@ -27,10 +27,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.Constants;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
+import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientWorkerInfo;
@@ -50,11 +50,13 @@ public class TachyonFSTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("tachyon.max.columns");
   }
 
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
+    System.setProperty("tachyon.max.columns", "257");
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
@@ -153,7 +155,10 @@ public class TachyonFSTest {
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest1() throws IOException {
-    mTfs.createRawTable("/table", Constants.MAX_COLUMNS);
+    String maxColumnsProp = System.getProperty("tachyon.max.columns");
+    
+    Assert.assertEquals(Integer.parseInt(maxColumnsProp), CommonConf.get().MAX_COLUMNS);
+    mTfs.createRawTable("/table", CommonConf.get().MAX_COLUMNS);
   }
 
   @Test(expected = IOException.class)
@@ -422,4 +427,5 @@ public class TachyonFSTest {
       Assert.assertTrue(tFile.isInMemory());
     }
   }
+  
 }

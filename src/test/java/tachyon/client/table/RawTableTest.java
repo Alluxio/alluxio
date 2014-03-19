@@ -25,7 +25,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.Constants;
 import tachyon.TestUtils;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonByteBuffer;
@@ -34,6 +33,7 @@ import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
+import tachyon.conf.CommonConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -59,7 +59,7 @@ public class RawTableTest {
 
   @Test
   public void getColumnsTest() throws IOException {
-    for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
+    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
       int fileId = mTfs.createRawTable("/table" + k, k);
       RawTable table = mTfs.getRawTable(fileId);
       Assert.assertEquals(k, table.getColumns());
@@ -76,7 +76,7 @@ public class RawTableTest {
 
   @Test
   public void getIdTest() throws IOException {
-    for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
+    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
       int fileId = mTfs.createRawTable("/table" + k, 1);
       RawTable table = mTfs.getRawTable(fileId);
       Assert.assertEquals(fileId, table.getId());
@@ -93,7 +93,7 @@ public class RawTableTest {
 
   @Test
   public void getMetadataTest() throws IOException {
-    for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
+    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
       int fileId = mTfs.createRawTable("/x/table" + k, 1);
       RawTable table = mTfs.getRawTable(fileId);
       Assert.assertEquals(ByteBuffer.allocate(0), table.getMetadata());
@@ -113,7 +113,7 @@ public class RawTableTest {
 
   @Test
   public void getNameTest() throws IOException {
-    for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
+    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
       int fileId = mTfs.createRawTable("/x/table" + k, 1);
       RawTable table = mTfs.getRawTable(fileId);
       Assert.assertEquals("table" + k, table.getName());
@@ -130,7 +130,7 @@ public class RawTableTest {
 
   @Test
   public void getPathTest() throws IOException {
-    for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
+    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
       int fileId = mTfs.createRawTable("/x/table" + k, 1);
       RawTable table = mTfs.getRawTable(fileId);
       Assert.assertEquals("/x/table" + k, table.getPath());
@@ -194,7 +194,7 @@ public class RawTableTest {
 
   @Test
   public void updateMetadataTest() throws IOException {
-    for (int k = 1; k < Constants.MAX_COLUMNS; k += Constants.MAX_COLUMNS / 5) {
+    for (int k = 1; k < CommonConf.get().MAX_COLUMNS; k += CommonConf.get().MAX_COLUMNS / 5) {
       int fileId = mTfs.createRawTable("/x/table" + k, 1);
       RawTable table = mTfs.getRawTable(fileId);
       table.updateMetadata(TestUtils.getIncreasingByteBuffer(k % 17));
