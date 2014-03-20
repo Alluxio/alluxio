@@ -33,19 +33,19 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
-import tachyon.master.Master;
+import tachyon.master.TachyonMaster;
 import tachyon.master.MasterInfo;
 import tachyon.util.CommonUtils;
-import tachyon.worker.Worker;
+import tachyon.worker.TachyonWorker;
 
 /**
  * A local Tachyon cluster with Multiple masters
  */
 public class LocalTachyonClusterMultiMaster {
   public class MasterThread extends Thread {
-    private Master mMaster = null;
+    private TachyonMaster mMaster = null;
 
-    public MasterThread(Master master) {
+    public MasterThread(TachyonMaster master) {
       mMaster = master;
     }
 
@@ -82,8 +82,8 @@ public class LocalTachyonClusterMultiMaster {
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
 
-  private List<Master> mMasters = null;
-  private Worker mWorker = null;
+  private List<TachyonMaster> mMasters = null;
+  private TachyonWorker mWorker = null;
   private List<Integer> mMastersPorts;
 
   private int mWorkerPort;
@@ -223,10 +223,10 @@ public class LocalTachyonClusterMultiMaster {
     mkdir(CommonConf.get().UNDERFS_DATA_FOLDER);
     mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
 
-    mMasters = new ArrayList<Master>();
+    mMasters = new ArrayList<TachyonMaster>();
     mMasterThreads = new ArrayList<MasterThread>();
     for (int k = 0; k < mNumOfMasters; k ++) {
-      mMasters.add(new Master(new InetSocketAddress(mLocalhostName, mMastersPorts.get(k)),
+      mMasters.add(new TachyonMaster(new InetSocketAddress(mLocalhostName, mMastersPorts.get(k)),
           mMastersPorts.get(k) + 1, 1, 1, 1));
       MasterThread thread = new MasterThread(mMasters.get(k));
       thread.start();
@@ -236,7 +236,8 @@ public class LocalTachyonClusterMultiMaster {
     CommonUtils.sleepMs(null, 10);
 
     mWorker =
-        Worker.createWorker(CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
+        TachyonWorker.createWorker(
+            CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
             new InetSocketAddress(mLocalhostName, mWorkerPort), mWorkerPort + 1, 1, 1, 1,
             mWorkerDataFolder, mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {

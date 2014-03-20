@@ -33,6 +33,7 @@ import org.apache.log4j.Logger;
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
@@ -59,6 +60,8 @@ public class Performance {
   private static String RESULT_PREFIX = null;
   private static long[] Results = new long[RESULT_ARRAY_SIZE];
   private static int BASE_FILE_NUMBER = 0;
+
+  private static boolean TACHYON_STREAMING_READ = false;
 
   public static void createFiles() throws IOException {
     long startTimeMs = CommonUtils.getCurrentMs();
@@ -245,22 +248,41 @@ public class Performance {
       }
 
       long sum = 0;
-      for (int pId = mLeft; pId < mRight; pId ++) {
-        long startTimeMs = System.currentTimeMillis();
-        TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
-        buf = file.readByteBuffer();
-        for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
-          buf.DATA.get(mBuf.array());
-        }
-        sum += mBuf.get(pId % 16);
+      if (TACHYON_STREAMING_READ) {
+        for (int pId = mLeft; pId < mRight; pId ++) {
+          long startTimeMs = System.currentTimeMillis();
+          TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
+          InputStream is = file.getInStream(ReadType.CACHE);
+          long len = BLOCKS_PER_FILE * BLOCK_SIZE_BYTES;
 
-        if (DEBUG_MODE) {
-          buf.DATA.flip();
-          CommonUtils.printByteBuffer(LOG, buf.DATA);
+          while (len > 0) {
+            int r = is.read(mBuf.array());
+            len -= r;
+            if (r == -1) {
+              CommonUtils.runtimeException("R == -1");
+            }
+          }
+          is.close();
+          logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
         }
-        buf.DATA.clear();
-        logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
-        buf.close();
+      } else {
+        for (int pId = mLeft; pId < mRight; pId ++) {
+          long startTimeMs = System.currentTimeMillis();
+          TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
+          buf = file.readByteBuffer();
+          for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
+            buf.DATA.get(mBuf.array());
+          }
+          sum += mBuf.get(pId % 16);
+
+          if (DEBUG_MODE) {
+            buf.DATA.flip();
+            CommonUtils.printByteBuffer(LOG, buf.DATA);
+          }
+          buf.DATA.clear();
+          logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
+          buf.close();
+        }
       }
       Results[mWorkerId] = sum;
     }
@@ -279,11 +301,29 @@ public class Performance {
   public static class HdfsWorker extends Worker {
     private boolean mWrite;
     private String mMsg;
+    private FileSystem mHdfsFs;
 
-    public HdfsWorker(int id, int left, int right, ByteBuffer buf, boolean write, String msg) {
+    public HdfsWorker(int id, int left, int right, ByteBuffer buf, boolean write, String msg) 
+        throws IOException {
       super(id, left, right, buf);
       mWrite = write;
       mMsg = msg;
+
+      Configuration tConf = new Configuration();
+      tConf.set("fs.default.name", FILE_NAME);
+      tConf.set("fs.defaultFS", FILE_NAME);
+      tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
+
+      tConf.set("dfs.client.read.shortcircuit", "true");
+      tConf.set("dfs.domain.socket.path", "/var/lib/hadoop-hdfs/dn_socket");
+      tConf.set("dfs.client.read.shortcircuit.skip.checksum", "true");
+
+      // tConf.addResource("/root/hadoop-2.3.0/etc/hadoop/core-site.xml");
+      // tConf.addResource("/root/hadoop-2.3.0/etc/hadoop/hdfs-site.xml");
+      // System.loadLibrary("hdfs");
+      // System.loadLibrary("hadoop");
+
+      mHdfsFs = FileSystem.get(tConf);
     }
 
     public void io() throws IOException {
@@ -294,19 +334,12 @@ public class Performance {
       mBuf.flip();
       long sum = 0;
       String str = "th " + mMsg + " @ Worker ";
-
-      Configuration tConf = new Configuration();
-      tConf.set("fs.default.name", FILE_NAME);
-      tConf.set("fs.defaultFS", FILE_NAME);
-      tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
-      // tConf.set("fs.default.name", "hdfs://localhost:54310");
-      // tConf.addResource("/home/haoyuan/Tachyon/hadoop-1.0.4/conf/core-site.xml");
-      FileSystem fs = FileSystem.get(tConf);
+      
       if (mWrite) {
         for (int times = mLeft; times < mRight; times ++) {
           long startTimeMs = System.currentTimeMillis();
           String filePath = FILE_NAME + (mWorkerId + BASE_FILE_NUMBER);
-          OutputStream os = fs.create(new Path(filePath));
+          OutputStream os = mHdfsFs.create(new Path(filePath));
           for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
             mBuf.array()[0] = (byte) (k + mWorkerId);
             os.write(mBuf.array());
@@ -318,7 +351,7 @@ public class Performance {
         for (int times = mLeft; times < mRight; times ++) {
           long startTimeMs = System.currentTimeMillis();
           String filePath = FILE_NAME + (mWorkerId + BASE_FILE_NUMBER);
-          InputStream is = fs.open(new Path(filePath));
+          InputStream is = mHdfsFs.open(new Path(filePath));
           long len = BLOCKS_PER_FILE * BLOCK_SIZE_BYTES;
 
           while (len > 0) {
@@ -425,7 +458,7 @@ public class Performance {
         + " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
-  private static void HdfsTest(boolean write) {
+  private static void HdfsTest(boolean write) throws IOException {
     ByteBuffer[] bufs = new ByteBuffer[THREADS];
 
     for (int thread = 0; thread < THREADS; thread ++) {
@@ -503,10 +536,11 @@ public class Performance {
       MTC = TachyonFS.get(MASTER_ADDRESS);
       createFiles();
       TachyonTest(true);
-    } else if (testCase == 2) {
+    } else if (testCase == 2 || testCase == 9) {
       RESULT_PREFIX = "TachyonFilesReadTest " + RESULT_PREFIX;
       LOG.info(RESULT_PREFIX);
       MTC = TachyonFS.get(MASTER_ADDRESS);
+      TACHYON_STREAMING_READ = (9 == testCase);
       TachyonTest(false);
     } else if (testCase == 3) {
       RESULT_PREFIX = "RamFile Write " + RESULT_PREFIX;
