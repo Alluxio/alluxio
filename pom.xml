@@ -18,11 +18,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.tachyonproject</groupId>
-  <artifactId>tachyon</artifactId>
+  <artifactId>tachyon-parent</artifactId>
   <version>0.5.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
-  <description>Tachyon: Reliable File Sharing at Memory Speed Across Cluster Frameworks</description>
-  <name>Tachyon Project Main</name>
+  <packaging>pom</packaging>
+  <description>Tachyon Project Parent</description>
+  <name>Tachyon Project Parent</name>
   <url>http://tachyonproject.org/</url>
   <licenses>
     <license>
@@ -58,19 +58,6 @@
     <version>7</version>
   </parent>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <java.version>1.6</java.version>
-    <hadoop.version>1.0.4</hadoop.version>
-    <libthrift.version>0.9.0</libthrift.version>
-    <cxf.version>2.7.0</cxf.version>
-    <jetty.version>7.6.8.v20121106</jetty.version>
-    <slf4j.version>1.7.2</slf4j.version>
-    <powermock.version>1.5.4</powermock.version>
-    <log4j.version>1.2.17</log4j.version>
-    <apache.curator.version>2.1.0-incubating</apache.curator.version>
-  </properties>
-
   <repositories>
     <repository>
       <id>cloudera-repo</id>
@@ -88,230 +75,25 @@
   <pluginRepositories>
   </pluginRepositories>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.apache.ant</groupId>
-      <artifactId>ant</artifactId>
-      <version>1.9.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-jsp</artifactId>
-      <version>${jetty.version}</version>
-      <type>jar</type>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-webapp</artifactId>
-      <version>${jetty.version}</version>
-      <type>jar</type>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-server</artifactId>
-      <version>${jetty.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.jetty</groupId>
-      <artifactId>jetty-servlet</artifactId>
-      <version>${jetty.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.10</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-module-junit4</artifactId>
-      <version>${powermock.version}</version>
-      <scope>test</scope>
-    </dependency>
-   <dependency>
-      <groupId>org.powermock</groupId>
-      <artifactId>powermock-api-mockito</artifactId>
-      <version>${powermock.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>${log4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.4</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.thrift</groupId>
-      <artifactId>libthrift</artifactId>
-      <version>${libthrift.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>3.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-recipes</artifactId>
-      <version>${apache.curator.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.jboss.netty</groupId>
-          <artifactId>netty</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.curator</groupId>
-      <artifactId>curator-test</artifactId>
-      <version>${apache.curator.version}</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <java.version>1.6</java.version>
+    <hadoop.version>1.0.4</hadoop.version>
+    <libthrift.version>0.9.0</libthrift.version>
+    <cxf.version>2.7.0</cxf.version>
+    <jetty.version>7.6.8.v20121106</jetty.version>
+    <slf4j.version>1.7.2</slf4j.version>
+    <powermock.version>1.5.4</powermock.version>
+    <log4j.version>1.2.17</log4j.version>
+    <apache.curator.version>2.1.0-incubating</apache.curator.version>
+  </properties>
 
-  <profiles>
-    <profile>
-      <id>integrationTest</id>
-      <activation>
-        <property>
-          <name>integration</name>
-        </property>
-      </activation>
-      <properties>
-        <ufs>tachyon.LocalMiniDFSCluster</ufs>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-minicluster</artifactId>
-          <version>${hadoop.version}</version>
-          <exclusions>
-            <exclusion>
-              <groupId>asm</groupId>
-              <artifactId>asm</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-core-asl</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-mapper-asl</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-jaxrs</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-xc</artifactId>
-            </exclusion>
-          </exclusions>
-        </dependency>
-      </dependencies>
-    </profile>
-    <profile>
-      <id>default</id>
-      <activation>
-        <property>
-          <name>!integration</name>
-        </property>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <properties>
-        <ufs />
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>default-testCompile</id>
-                <phase>test-compile</phase>
-                <configuration>
-                  <testExcludes>
-                    <exclude>**/LocalMiniDFSCluster.java</exclude>
-                  </testExcludes>
-                </configuration>
-                <goals>
-                  <goal>testCompile</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-client</artifactId>
-          <version>${hadoop.version}</version>
-          <exclusions>
-            <exclusion>
-              <groupId>asm</groupId>
-              <artifactId>asm</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-core-asl</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-mapper-asl</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-jaxrs</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-xc</artifactId>
-            </exclusion>
-          </exclusions>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
+  <modules>
+    <module>main</module>
+    <module>client</module>
+  </modules>
 
   <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>true</filtering>
-      </resource>
-    </resources>
     <plugins>
 <!--
       <plugin>
@@ -345,62 +127,8 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.14</version>
-        <configuration>
-          <argLine>-Dufs=${ufs}</argLine>
-          <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <systemPropertyVariables>
-            <log4j.configuration>file:src/test/resources/log4j.properties</log4j.configuration>
-          </systemPropertyVariables>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.3</version>
-        <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-          <archive>
-            <manifest>
-              <mainClass>tachyon.sample.ServerApp</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-        <executions>
-          <execution>
-            <id>make-assembly</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
         <version>2.4.1</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-            </manifest>
-          </archive>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>test-jar</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
