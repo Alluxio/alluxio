@@ -14,7 +14,7 @@
   <div class="navbar navbar-inverse">
     <div class="navbar-inner">
       <ul class="nav nav-pills">
-        <li><a href="http://tachyon-project.org/">Tachyon</a></li>
+        <li><a href="http://tachyon-project.org/" target="_blank">Tachyon</a></li>
         <li><a href="./home">Overview</a></li>
         <li><a href="./browse?path=/">Browse File System</a></li>
         <li class="active"><a href="./memory">In Memory Files</a></li>
