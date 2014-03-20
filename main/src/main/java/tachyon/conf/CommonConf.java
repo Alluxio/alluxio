@@ -60,9 +60,9 @@ public class CommonConf extends Utils {
   public final String ZOOKEEPER_LEADER_PATH;
 
   public final boolean ASYNC_ENABLED;
-  
+
   public final int MAX_COLUMNS;
-  
+
   public final int MAX_TABLE_METADATA_BYTE;
 
   private CommonConf() {
@@ -75,7 +75,7 @@ public class CommonConf extends Utils {
     }
     TACHYON_HOME = getProperty("tachyon.home", "/mnt/tachyon_default_home");
     WEB_RESOURCES =
-        getProperty("tachyon.web.resources", TACHYON_HOME + "/src/main/webapp");
+        getProperty("tachyon.web.resources", TACHYON_HOME + "/main/src/main/webapp");
     UNDERFS_ADDRESS = getProperty("tachyon.underfs.address", TACHYON_HOME + "/underfs");
     UNDERFS_DATA_FOLDER = getProperty("tachyon.data.folder", UNDERFS_ADDRESS + "/tachyon/data");
     UNDERFS_WORKERS_FOLDER =
@@ -95,7 +95,7 @@ public class CommonConf extends Utils {
     }
 
     ASYNC_ENABLED = getBooleanProperty("tachyon.async.enabled", false);
-    
+
     MAX_COLUMNS = getIntProperty("tachyon.max.columns", 1000);
     MAX_TABLE_METADATA_BYTE = getIntProperty("tachyon.max.table.metadata.byte", Constants.MB * 5);
   }
