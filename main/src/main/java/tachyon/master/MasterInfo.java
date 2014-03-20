@@ -959,9 +959,9 @@ public class MasterInfo {
       TachyonException {
     LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
 
-    if (columns <= 0 || columns >= Constants.MAX_COLUMNS) {
+    if (columns <= 0 || columns >= CommonConf.get().MAX_COLUMNS) {
       throw new TableColumnException("Column " + columns + " should between 0 to "
-          + Constants.MAX_COLUMNS);
+          + CommonConf.get().MAX_COLUMNS);
     }
 
     int id;
