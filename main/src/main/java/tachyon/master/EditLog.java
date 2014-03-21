@@ -310,7 +310,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong( ++mTransactionId);
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_ADD_BLOCK);
       DOS.writeInt(fileId);
       DOS.writeInt(blockIndex);
@@ -326,7 +326,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong( ++mTransactionId);
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_ADD_CHECKPOINT);
       DOS.writeInt(fileId);
       DOS.writeLong(length);
@@ -357,7 +357,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong( ++mTransactionId);
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_COMPLETE_FILE);
       DOS.writeInt(fileId);
     } catch (IOException e) {
@@ -373,7 +373,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong( ++mTransactionId);
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_CREATE_DEPENDENCY);
       Utils.writeIntegerList(parents, DOS);
       Utils.writeIntegerList(children, DOS);
@@ -397,7 +397,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong( ++mTransactionId);
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_CREATE_FILE);
       DOS.writeBoolean(recursive);
       Utils.writeString(path, DOS);
@@ -415,7 +415,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong( ++mTransactionId);
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_CREATE_RAW_TABLE);
       DOS.writeInt(inodeId);
       DOS.writeInt(columns);
@@ -431,7 +431,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong( ++mTransactionId);
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_DELETE);
       DOS.writeInt(fileId);
       DOS.writeBoolean(recursive);
@@ -478,7 +478,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong( ++mTransactionId);
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_RENAME);
       DOS.writeInt(fileId);
       Utils.writeString(dstPath, DOS);
@@ -525,7 +525,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong( ++mTransactionId);
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_UNPIN_FILE);
       DOS.writeInt(fileId);
     } catch (IOException e) {
@@ -539,7 +539,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong( ++mTransactionId);
+      DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_UPDATE_RAW_TABLE_METADATA);
       DOS.writeInt(tableId);
       Utils.writeByteBuffer(metadata, DOS);

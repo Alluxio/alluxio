@@ -19,7 +19,7 @@
 <setting id="org.eclipse.jdt.core.formatter.use_on_off_tags" value="false"/>
 <setting id="org.eclipse.jdt.core.formatter.insert_space_between_empty_parens_in_annotation_type_member_declaration" value="do not insert"/>
 <setting id="org.eclipse.jdt.core.formatter.insert_new_line_before_else_in_if_statement" value="do not insert"/>
-<setting id="org.eclipse.jdt.core.formatter.insert_space_after_prefix_operator" value="do not insert"/>
+<setting id="org.eclipse.jdt.core.formatter.insert_space_after_prefix_operator" value="insert"/>
 <setting id="org.eclipse.jdt.core.formatter.keep_else_statement_on_same_line" value="false"/>
 <setting id="org.eclipse.jdt.core.formatter.insert_space_after_ellipsis" value="insert"/>
 <setting id="org.eclipse.jdt.core.formatter.comment.insert_new_line_for_parameter" value="insert"/>
@@ -92,7 +92,7 @@
 <setting id="org.eclipse.jdt.core.formatter.tabulation.char" value="space"/>
 <setting id="org.eclipse.jdt.core.formatter.insert_space_after_comma_in_constructor_declaration_parameters" value="insert"/>
 <setting id="org.eclipse.jdt.core.formatter.insert_space_after_semicolon_in_try_resources" value="insert"/>
-<setting id="org.eclipse.jdt.core.formatter.insert_space_before_prefix_operator" value="insert"/>
+<setting id="org.eclipse.jdt.core.formatter.insert_space_before_prefix_operator" value="do not insert"/>
 <setting id="org.eclipse.jdt.core.formatter.indent_statements_compare_to_body" value="true"/>
 <setting id="org.eclipse.jdt.core.formatter.blank_lines_before_method" value="1"/>
 <setting id="org.eclipse.jdt.core.formatter.wrap_outer_expressions_when_nested" value="true"/>
