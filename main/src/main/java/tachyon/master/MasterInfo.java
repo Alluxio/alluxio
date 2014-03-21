@@ -226,9 +226,8 @@ public class MasterInfo {
   private final long START_TIME_NS_PREFIX;
   private final long START_TIME_MS;
   private final MasterConf MASTER_CONF;
-  private CheckpointInfo mCheckpointInfo = new CheckpointInfo(0, 0, 0);
+  private Counters mCheckpointInfo = new Counters(0, 0, 0);
 
-  private AtomicInteger mInodeCounter = new AtomicInteger(0);
   private AtomicInteger mDependencyCounter = new AtomicInteger(0);
   private AtomicInteger mRerunCounter = new AtomicInteger(0);
 
@@ -432,11 +431,11 @@ public class MasterInfo {
     }
   }
 
-  void _createRawTable(int inodeId, int columns, ByteBuffer metadata) throws TachyonException {
-    if (!mRawTables.addRawTable(inodeId, columns, metadata)) {
+  void _createRawTable(int tableId, int columns, ByteBuffer metadata) throws TachyonException {
+    if (!mRawTables.addRawTable(tableId, columns, metadata)) {
       throw new TachyonException("Failed to create raw table.");
     }
-    mJournal.getEditLog().createRawTable(inodeId, columns, metadata);
+    mJournal.getEditLog().createRawTable(tableId, columns, metadata);
   }
 
   private boolean _delete(int fileId, boolean recursive) throws TachyonException {

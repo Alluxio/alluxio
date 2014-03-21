@@ -21,21 +21,21 @@ import java.io.Serializable;
 /**
  * Class to store global counter in master's write head log and checkpoint file.
  */
-public class CheckpointInfo implements Serializable, Comparable<CheckpointInfo> {
+public class Counters implements Serializable, Comparable<Counters> {
   private static final long serialVersionUID = -8873733429025713755L;
 
   private int mInodeCounter;
   private long mEditTransactionId;
   private int mDependencyCounter;
 
-  public CheckpointInfo(int inodeCounter, long editTransactionId, int dependencyCounter) {
+  public Counters(int inodeCounter, long editTransactionId, int dependencyCounter) {
     mInodeCounter = inodeCounter;
     mEditTransactionId = editTransactionId;
     mDependencyCounter = dependencyCounter;
   }
 
   @Override
-  public synchronized int compareTo(CheckpointInfo o) {
+  public synchronized int compareTo(Counters o) {
     if (mInodeCounter != o.mInodeCounter) {
       return mInodeCounter - o.mInodeCounter;
     }
@@ -50,10 +50,10 @@ public class CheckpointInfo implements Serializable, Comparable<CheckpointInfo> 
 
   @Override
   public synchronized boolean equals(Object o) {
-    if (!(o instanceof CheckpointInfo)) {
+    if (!(o instanceof Counters)) {
       return false;
     }
-    return compareTo((CheckpointInfo) o) == 0;
+    return compareTo((Counters) o) == 0;
   }
 
   public synchronized int getDependencyCounter() {
