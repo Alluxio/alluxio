@@ -45,6 +45,7 @@ and then submit a pull request. You are also welcome to address issues in our
     with the following changes:
     -  Indent two spaces per level, not four.
     -  Maximum line length of 100 characters.
+    -  Imported packages should be order as alphabetical order.
     -  `i ++` instead of `i++`
     -  `i + j` instead of `i+j`
     -  Class and member modifiers, when present, appear in the order recommended by the Java Language Specification: `public protected private abstract static final transient volatile synchronized native strictfp`
