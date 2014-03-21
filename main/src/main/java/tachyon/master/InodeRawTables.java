@@ -32,18 +32,18 @@ import tachyon.thrift.TachyonException;
  * All Raw Table related info in MasterInfo.
  */
 public class InodeRawTables {
-  // Mapping from inode ID to <Columns, Metadata>
+  // Mapping from table id to <Columns, Metadata>
   private Map<Integer, Pair<Integer, ByteBuffer>> mData =
       new HashMap<Integer, Pair<Integer, ByteBuffer>>();
 
-  public synchronized boolean addRawTable(int inodeId, int columns, ByteBuffer metadata)
+  public synchronized boolean addRawTable(int tableId, int columns, ByteBuffer metadata)
       throws TachyonException {
-    if (mData.containsKey(inodeId)) {
+    if (mData.containsKey(tableId)) {
       return false;
     }
 
-    mData.put(inodeId, new Pair<Integer, ByteBuffer>(columns, null));
-    updateMetadata(inodeId, metadata);
+    mData.put(tableId, new Pair<Integer, ByteBuffer>(columns, null));
+    updateMetadata(tableId, metadata);
 
     return true;
   }
@@ -57,8 +57,8 @@ public class InodeRawTables {
     }
   }
 
-  public synchronized boolean delete(int fileId) {
-    mData.remove(fileId);
+  public synchronized boolean delete(int tableId) {
+    mData.remove(tableId);
     return true;
   }
 
@@ -80,14 +80,14 @@ public class InodeRawTables {
    *          the inode id of the raw table.
    * @return the number of the columns, -1 if the table does not exist.
    */
-  public synchronized int getColumns(int inodeId) {
-    Pair<Integer, ByteBuffer> data = mData.get(inodeId);
+  public synchronized int getColumns(int tableId) {
+    Pair<Integer, ByteBuffer> data = mData.get(tableId);
 
     return null == data ? -1 : data.getFirst();
   }
 
-  public synchronized ByteBuffer getMetadata(int inodeId) {
-    Pair<Integer, ByteBuffer> data = mData.get(inodeId);
+  public synchronized ByteBuffer getMetadata(int tableId) {
+    Pair<Integer, ByteBuffer> data = mData.get(tableId);
 
     if (null == data) {
       return null;
@@ -107,17 +107,17 @@ public class InodeRawTables {
    *          the raw table id.
    * @return <columns, metadata> if the table exist, null otherwise.
    */
-  public synchronized Pair<Integer, ByteBuffer> getTableInfo(int inodeId) {
-    return mData.get(inodeId);
+  public synchronized Pair<Integer, ByteBuffer> getTableInfo(int tableId) {
+    return mData.get(tableId);
   }
 
   // TODO add version number.
-  public synchronized void updateMetadata(int inodeId, ByteBuffer metadata)
+  public synchronized void updateMetadata(int tableId, ByteBuffer metadata)
       throws TachyonException {
-    Pair<Integer, ByteBuffer> data = mData.get(inodeId);
+    Pair<Integer, ByteBuffer> data = mData.get(tableId);
 
     if (null == data) {
-      throw new TachyonException("The raw table " + inodeId + " does not exist.");
+      throw new TachyonException("The raw table " + tableId + " does not exist.");
     }
 
     if (metadata == null) {

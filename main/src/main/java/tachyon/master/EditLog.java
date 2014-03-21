@@ -409,7 +409,7 @@ public class EditLog {
     }
   }
 
-  public synchronized void createRawTable(int inodeId, int columns, ByteBuffer metadata) {
+  public synchronized void createRawTable(int tableId, int columns, ByteBuffer metadata) {
     if (INACTIVE) {
       return;
     }
@@ -417,7 +417,7 @@ public class EditLog {
     try {
       DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_CREATE_RAW_TABLE);
-      DOS.writeInt(inodeId);
+      DOS.writeInt(tableId);
       DOS.writeInt(columns);
       Utils.writeByteBuffer(metadata, DOS);
     } catch (IOException e) {
