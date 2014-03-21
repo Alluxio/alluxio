@@ -38,6 +38,14 @@ and then submit a pull request. You are also welcome to address issues in our
 
 #### After the pull request is reviewed and merged, you become a Tachyon contributor!
 
+### IDE
+
+You can generate Eclipse configure file by run:
+
+    mvn eclipse:eclipse -Dintegration
+
+Then import the folder into Eclipse.
+
 ### Coding Style
 
 -   Follow the style of the existing codebase. Specifically, we use
