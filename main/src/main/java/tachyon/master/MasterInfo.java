@@ -16,16 +16,11 @@
  */
 package tachyon.master;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -109,8 +104,7 @@ public class MasterInfo {
         hadFailedWorker = true;
         MasterWorkerInfo worker = mLostWorkers.poll();
 
-        // TODO these two locks are not efficient. Since node failure is rare,
-        // this is fine for now
+        // TODO these two locks are not efficient. Since node failure is rare, this is fine for now.
         synchronized (mRoot) {
           synchronized (mDependencies) {
             try {
@@ -212,7 +206,7 @@ public class MasterInfo {
         for (String cmd : cmds) {
           String filePath =
               CommonConf.get().TACHYON_HOME + "/logs/rerun-" + mRerunCounter.incrementAndGet();
-          new Thread(new RecomputeCmd(cmd, filePath)).start();
+          new Thread(new RecomputeCommand(cmd, filePath)).start();
         }
 
         if (!launched) {
@@ -221,46 +215,6 @@ public class MasterInfo {
           }
           CommonUtils.sleepMs(LOG, 1000);
         }
-      }
-    }
-  }
-
-  public class RecomputeCmd implements Runnable {
-    private final String CMD;
-    private final String FILE_PATH;
-
-    public RecomputeCmd(String cmd, String filePath) {
-      CMD = cmd;
-      FILE_PATH = filePath;
-    }
-
-    @Override
-    public void run() {
-      try {
-        LOG.info("Exec " + CMD + " output to " + FILE_PATH);
-        Process p = java.lang.Runtime.getRuntime().exec(CMD);
-        String line;
-        BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-        File file = new File(FILE_PATH);
-        FileWriter fw = new FileWriter(file.getAbsoluteFile());
-        BufferedWriter bw = new BufferedWriter(fw);
-        while ((line = bri.readLine()) != null) {
-          bw.write(line + "\n");
-        }
-        bri.close();
-        while ((line = bre.readLine()) != null) {
-          bw.write(line + "\n");
-        }
-        bre.close();
-        bw.flush();
-        bw.close();
-        p.waitFor();
-        LOG.info("Exec " + CMD + " output to " + FILE_PATH + " done.");
-      } catch (IOException e) {
-        LOG.error(e.getMessage());
-      } catch (InterruptedException e) {
-        LOG.error(e.getMessage());
       }
     }
   }
@@ -275,7 +229,6 @@ public class MasterInfo {
   private CheckpointInfo mCheckpointInfo = new CheckpointInfo(0, 0, 0);
 
   private AtomicInteger mInodeCounter = new AtomicInteger(0);
-
   private AtomicInteger mDependencyCounter = new AtomicInteger(0);
   private AtomicInteger mRerunCounter = new AtomicInteger(0);
 
@@ -333,11 +286,10 @@ public class MasterInfo {
     mJournal.loadImage(this);
   }
 
-  int
-  _createDependency(List<Integer> parentsIdList, List<Integer> childrenIdList,
-      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, DependencyType dependencyType, int dependencyId,
-      long creationTimeMs) throws InvalidPathException, FileDoesNotExistException {
+  int _createDependency(List<Integer> parentsIdList, List<Integer> childrenIdList,
+          String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+          String frameworkVersion, DependencyType dependencyType, int dependencyId,
+          long creationTimeMs) throws InvalidPathException, FileDoesNotExistException {
     Dependency dep = null;
     synchronized (mRoot) {
       Set<Integer> parentDependencyIds = new HashSet<Integer>();
@@ -2046,7 +1998,7 @@ public class MasterInfo {
    *          The new path of the file
    */
   public void rename(String srcPath, String dstPath) throws FileAlreadyExistException,
-  FileDoesNotExistException, InvalidPathException {
+      FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
       Inode inode = getInode(srcPath);
       if (inode == null) {
