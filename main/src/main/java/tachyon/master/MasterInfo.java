@@ -228,6 +228,7 @@ public class MasterInfo {
   private final MasterConf MASTER_CONF;
   private Counters mCheckpointInfo = new Counters(0, 0, 0);
 
+  private AtomicInteger mInodeCounter = new AtomicInteger(0);
   private AtomicInteger mDependencyCounter = new AtomicInteger(0);
   private AtomicInteger mRerunCounter = new AtomicInteger(0);
 
