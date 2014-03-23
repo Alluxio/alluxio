@@ -1,7 +1,7 @@
 Tachyon
 =======
 
-The master branch is in version 0.4.2-SNAPSHOT:
+The master branch is in version 0.4.3-SNAPSHOT:
 
 Project Homepage: http://www.tachyonproject.org
 
@@ -20,18 +20,18 @@ User Mailing List: https://groups.google.com/forum/?fromgroups#!forum/tachyon-us
 <dependency>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon</artifactId>
-  <version>0.4.1</version>
+  <version>0.4.2</version>
 </dependency>
 ```
 
 ### Apache Ant
 ```xml
-<dependency org="org.tachyonproject" name="tachyon" rev="0.4.1">
+<dependency org="org.tachyonproject" name="tachyon" rev="0.4.2">
   <artifact name="tachyon" type="jar" />
 </dependency>
 ```
 
 ### SBT
 ```
-libraryDependencies += "org.tachyonproject" % "tachyon" % "0.4.1"
+libraryDependencies += "org.tachyonproject" % "tachyon" % "0.4.2"
 ```
