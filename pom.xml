@@ -19,7 +19,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon</artifactId>
-  <version>0.4.1-thrift-SNAPSHOT</version>
+  <version>0.4.1-thrift</version>
   <packaging>jar</packaging>
   <name>Tachyon Project POM</name>
   <url>http://tachyonproject.org/</url>
