@@ -21,8 +21,7 @@ package tachyon.master;
  */
 public enum InodeType {
   File(1),
-  Folder(2),
-  RawTable(3);
+  Folder(2);
 
   private final int mValue;
 

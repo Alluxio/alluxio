@@ -92,10 +92,6 @@ public class InodeFolder extends Inode {
     return mChildren.size();
   }
 
-  public boolean isRawTable() {
-    return TYPE == InodeType.RawTable;
-  }
-
   public synchronized void removeChild(int id) {
     mChildren.remove(id);
   }
