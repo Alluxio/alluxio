@@ -255,17 +255,17 @@ public class EditLog {
         LOG.info("Backing up logs from " + mBackUpLogStartNum + " since image is not updated.");
         UFS.mkdirs(folder, true);
         String toRename = folder + "/" + mBackUpLogStartNum + ".editLog";
-        int mCurrentLogFileNum = 0;
+        int currentLogFileNum = 0;
         while (UFS.exists(toRename)) {
-          LOG.info("Rename " + toRename + " to " + folder + "/" + mCurrentLogFileNum + ".editLog");
-          mCurrentLogFileNum ++;
+          LOG.info("Rename " + toRename + " to " + folder + "/" + currentLogFileNum + ".editLog");
+          currentLogFileNum ++;
           mBackUpLogStartNum ++;
           toRename = folder + "/" + mBackUpLogStartNum + ".editLog";
         }
         if (UFS.exists(path)) {
-          UFS.rename(path, folder + "/" + mCurrentLogFileNum + ".editLog");
-          LOG.info("Rename " + path + " to " + folder + "/" + mCurrentLogFileNum + ".editLog");
-          mCurrentLogFileNum ++;
+          UFS.rename(path, folder + "/" + currentLogFileNum + ".editLog");
+          LOG.info("Rename " + path + " to " + folder + "/" + currentLogFileNum + ".editLog");
+          currentLogFileNum ++;
         }
         mBackUpLogStartNum = -1;
       }

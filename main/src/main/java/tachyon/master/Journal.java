@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,10 +25,21 @@ public class Journal {
   private EditLog mEditLog = new EditLog(null, true, 0);
 
   private int mCurrentLogFileNum = 0;
-  private String mImagePath;
-  private String mStandbyImagePath = "";
-  private String mEditLogPath;
+  private String mImagePath = null;
+  private String mStandbyImagePath = null;
+  private String mEditLogPath = null;
 
+  /**
+   * Create a Journal manager.
+   * 
+   * @param folder
+   *          the folder contains image file and edit log files.
+   * @param imageFileName
+   *          image file name
+   * @param editLogFileName
+   *          edit file name
+   * @throws IOException
+   */
   public Journal(String folder, String imageFileName, String editLogFileName) throws IOException {
     if (!folder.endsWith("/")) {
       folder += "/";
@@ -39,19 +48,28 @@ public class Journal {
     mEditLogPath = folder + editLogFileName;
   }
 
-  /* Close down the edit log */
+  /**
+   * Close down the edit log
+   */
   public void close() {
     if (mEditLog != null) {
       mEditLog.close();
     }
   }
 
-  public void createEditLog(long transactionId) throws IOException {
-    mEditLog = new EditLog(mEditLogPath, false, transactionId);
+  /**
+   * Create an edit log.
+   * 
+   * @param startingTransactionId
+   *          the starting transaction id of the edit log.
+   * @throws IOException
+   */
+  public void createEditLog(long startingTransactionId) throws IOException {
+    mEditLog = new EditLog(mEditLogPath, false, startingTransactionId);
   }
 
   public void createImage(MasterInfo info) throws IOException {
-    if (mStandbyImagePath == "") {
+    if (mStandbyImagePath == null) {
       Image.create(info, mImagePath);
       EditLog.markUpToDate(mEditLogPath);
     } else {
@@ -68,7 +86,13 @@ public class Journal {
     return mEditLog;
   }
 
-  public long getImageModTime() throws IOException {
+  /**
+   * Get image file's last modification time.
+   * 
+   * @return the last modification time in millisecond.
+   * @throws IOException
+   */
+  public long getImageModTimeMs() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(mImagePath);
     if (!ufs.exists(mImagePath)) {
       return -1;
@@ -88,6 +112,13 @@ public class Journal {
     return EditLog.load(info, mEditLogPath, mCurrentLogFileNum);
   }
 
+  /**
+   * Load image file.
+   * 
+   * @param info
+   *          The Master Info.
+   * @throws IOException
+   */
   public void loadImage(MasterInfo info) throws IOException {
     Image.load(info, mImagePath);
   }
