@@ -31,7 +31,7 @@ import tachyon.thrift.TachyonException;
 /**
  * All Raw Table related info in MasterInfo.
  */
-public class InodeRawTables {
+public class RawTables {
   // Mapping from table id to <Columns, Metadata>
   private Map<Integer, Pair<Integer, ByteBuffer>> mData =
       new HashMap<Integer, Pair<Integer, ByteBuffer>>();
