@@ -27,7 +27,7 @@ public class EditLogProcessor implements Runnable {
     mPath = path;
     mMasterInfo = info;
     try {
-      mLoadedImageModTime = mJournal.getImageModTime();
+      mLoadedImageModTime = mJournal.getImageModTimeMs();
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
@@ -41,7 +41,7 @@ public class EditLogProcessor implements Runnable {
     while (mIsStandby) {
       try {
         synchronized (mJournal) {
-          long lastImageModTime = mJournal.getImageModTime();
+          long lastImageModTime = mJournal.getImageModTimeMs();
           if (mLoadedImageModTime != lastImageModTime) {
             LOG.info("The last loaded image is out of date. Loading updated image.");
             LOG.info("Loaded image modification time was: " + mLoadedImageModTime);
