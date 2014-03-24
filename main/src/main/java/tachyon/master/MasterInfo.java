@@ -47,7 +47,6 @@ import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystem.SpaceType;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
-import tachyon.io.Utils;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -70,7 +69,7 @@ import tachyon.util.CommonUtils;
 /**
  * A global view of filesystem in master.
  */
-public class MasterInfo {
+public class MasterInfo implements ImageWriter {
   /**
    * Master info periodical status check.
    */
@@ -284,16 +283,15 @@ public class MasterInfo {
     mJournal.loadImage(this);
   }
 
-  int
-      _createDependency(List<Integer> parentsIdList, List<Integer> childrenIdList,
-          String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-          String frameworkVersion, DependencyType dependencyType, int dependencyId,
-          long creationTimeMs) throws InvalidPathException, FileDoesNotExistException {
+  int _createDependency(List<Integer> parentsIds, List<Integer> childrenIds, String commandPrefix,
+      List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
+      DependencyType dependencyType, int dependencyId, long creationTimeMs)
+      throws InvalidPathException, FileDoesNotExistException {
     Dependency dep = null;
     synchronized (mRoot) {
       Set<Integer> parentDependencyIds = new HashSet<Integer>();
-      for (int k = 0; k < parentsIdList.size(); k ++) {
-        int parentId = parentsIdList.get(k);
+      for (int k = 0; k < parentsIds.size(); k ++) {
+        int parentId = parentsIds.get(k);
         Inode inode = mInodes.get(parentId);
         if (inode.isFile()) {
           LOG.info("PARENT DEPENDENCY ID IS " + ((InodeFile) inode).getDependencyId() + " "
@@ -307,15 +305,14 @@ public class MasterInfo {
       }
 
       dep =
-          new Dependency(dependencyId, parentsIdList, childrenIdList, commandPrefix, data,
-              comment, framework, frameworkVersion, dependencyType, parentDependencyIds,
-              creationTimeMs);
+          new Dependency(dependencyId, parentsIds, childrenIds, commandPrefix, data, comment,
+              framework, frameworkVersion, dependencyType, parentDependencyIds, creationTimeMs);
 
-      List<Inode> childrenInodeList = new ArrayList<Inode>();
-      for (int k = 0; k < childrenIdList.size(); k ++) {
-        InodeFile inode = (InodeFile) mInodes.get(childrenIdList.get(k));
+      List<Inode> childrenInodes = new ArrayList<Inode>();
+      for (int k = 0; k < childrenIds.size(); k ++) {
+        InodeFile inode = (InodeFile) mInodes.get(childrenIds.get(k));
         inode.setDependencyId(dep.ID);
-        childrenInodeList.add(inode);
+        childrenInodes.add(inode);
         if (inode.hasCheckpointed()) {
           dep.childCheckpointed(inode.getId());
         }
@@ -332,8 +329,8 @@ public class MasterInfo {
       }
     }
 
-    mJournal.getEditLog().createDependency(parentsIdList, childrenIdList, commandPrefix, data,
-        comment, framework, frameworkVersion, dependencyType, dependencyId, creationTimeMs);
+    mJournal.getEditLog().createDependency(parentsIds, childrenIds, commandPrefix, data, comment,
+        framework, frameworkVersion, dependencyType, dependencyId, creationTimeMs);
     mJournal.getEditLog().flush();
 
     LOG.info("Dependency created: " + dep);
@@ -432,10 +429,12 @@ public class MasterInfo {
   }
 
   void _createRawTable(int tableId, int columns, ByteBuffer metadata) throws TachyonException {
-    if (!mRawTables.addRawTable(tableId, columns, metadata)) {
-      throw new TachyonException("Failed to create raw table.");
+    synchronized (mRawTables) {
+      if (!mRawTables.addRawTable(tableId, columns, metadata)) {
+        throw new TachyonException("Failed to create raw table.");
+      }
+      mJournal.getEditLog().createRawTable(tableId, columns, metadata);
     }
-    mJournal.getEditLog().createRawTable(tableId, columns, metadata);
   }
 
   private boolean _delete(int fileId, boolean recursive) throws TachyonException {
@@ -727,115 +726,6 @@ public class MasterInfo {
   }
 
   /**
-   * Create an image of the dependencies and filesystem tree.
-   * 
-   * @param os
-   *          The output stream to write the image to
-   */
-  public void createImage(DataOutputStream os) throws IOException {
-    Queue<Inode> nodesQueue = new LinkedList<Inode>();
-
-    synchronized (mRoot) {
-      for (Dependency dep : mDependencies.values()) {
-        createImageDependencyWriter(dep, os);
-      }
-
-      createImageInodeWriter(mRoot, os);
-      nodesQueue.add(mRoot);
-      while (!nodesQueue.isEmpty()) {
-        InodeFolder tFolder = (InodeFolder) nodesQueue.poll();
-
-        List<Integer> childrenIds = tFolder.getChildrenIds();
-        for (int id : childrenIds) {
-          Inode tInode = mInodes.get(id);
-          createImageInodeWriter(tInode, os);
-          if (tInode.isDirectory()) {
-            nodesQueue.add(tInode);
-          } else if (((InodeFile) tInode).isPin()) {
-            synchronized (mFileIdPinList) {
-              mFileIdPinList.add(tInode.getId());
-            }
-          }
-        }
-      }
-
-      mRawTables.createImageWriter(os);
-
-      os.writeByte(Image.T_CHECKPOINT);
-      os.writeInt(mInodeCounter.get());
-      os.writeLong(mCheckpointInfo.getEditTransactionCounter());
-      os.writeInt(mCheckpointInfo.getDependencyCounter());
-    }
-  }
-
-  /**
-   * Writes a dependency to the image.
-   * 
-   * @param dep
-   *          The dependency to write
-   * @param os
-   *          The output stream to write the dependency to
-   */
-  private void createImageDependencyWriter(Dependency dep, DataOutputStream os) throws IOException {
-    os.writeByte(Image.T_DEPENDENCY);
-    os.writeInt(dep.ID);
-    Utils.writeIntegerList(dep.PARENT_FILES, os);
-    Utils.writeIntegerList(dep.CHILDREN_FILES, os);
-    Utils.writeString(dep.COMMAND_PREFIX, os);
-    Utils.writeByteBufferList(dep.DATA, os);
-    Utils.writeString(dep.COMMENT, os);
-    Utils.writeString(dep.FRAMEWORK, os);
-    Utils.writeString(dep.FRAMEWORK_VERSION, os);
-    os.writeInt(dep.TYPE.getValue());
-    Utils.writeIntegerList(dep.PARENT_DEPENDENCIES, os);
-    os.writeLong(dep.CREATION_TIME_MS);
-    Utils.writeIntegerList(dep.getUncheckpointedChildrenFiles(), os);
-  }
-
-  /**
-   * Writes an inode to the image.
-   * 
-   * @param inode
-   *          The inode to write
-   * @param os
-   *          The output stream to write the inode to
-   */
-  private void createImageInodeWriter(Inode inode, DataOutputStream os) throws IOException {
-    if (inode.isFile()) {
-      InodeFile file = (InodeFile) inode;
-      os.writeByte(Image.T_INODE_FILE);
-      os.writeLong(file.getCreationTimeMs());
-      os.writeInt(file.getId());
-      Utils.writeString(file.getName(), os);
-      os.writeInt(file.getParentId());
-
-      os.writeLong(file.getBlockSizeByte());
-      os.writeLong(file.getLength());
-      os.writeBoolean(file.isComplete());
-      os.writeBoolean(file.isPin());
-      os.writeBoolean(file.isCache());
-      Utils.writeString(file.getCheckpointPath(), os);
-      os.writeInt(file.getDependencyId());
-    } else if (inode.isDirectory()) {
-      InodeFolder folder = (InodeFolder) inode;
-      os.writeByte(Image.T_INODE_FOLDER);
-
-      os.writeLong(folder.getCreationTimeMs());
-      os.writeInt(folder.getId());
-      Utils.writeString(folder.getName(), os);
-      os.writeInt(folder.getParentId());
-
-      List<Integer> children = folder.getChildrenIds();
-      os.writeInt(children.size());
-      for (int k = 0; k < children.size(); k ++) {
-        os.writeInt(children.get(k));
-      }
-    } else {
-      throw new IOException("Unknown inode type.");
-    }
-  }
-
-  /**
    * Creates a new block for the given file.
    * 
    * @param fileId
@@ -912,7 +802,7 @@ public class MasterInfo {
   }
 
   /**
-   * Delete a file based on the file's path.
+   * Delete files based on the path.
    * 
    * @param path
    *          The file to be deleted.
@@ -1697,12 +1587,7 @@ public class MasterInfo {
         mCheckpointInfo.updateEditTransactionCounter(is.readLong());
         mCheckpointInfo.updateDependencyCounter(is.readInt());
       } else if (type == Image.T_DEPENDENCY) {
-        Dependency dep =
-            new Dependency(is.readInt(), Utils.readIntegerList(is), Utils.readIntegerList(is),
-                Utils.readString(is), Utils.readByteBufferList(is), Utils.readString(is),
-                Utils.readString(is), Utils.readString(is), DependencyType.getDependencyType(is
-                    .readInt()), Utils.readIntegerList(is), is.readLong());
-        dep.resetUncheckpointedChildrenFiles(Utils.readIntegerList(is));
+        Dependency dep = Dependency.loadImage(is);
 
         mDependencies.put(dep.ID, dep);
         if (!dep.hasCheckpointed()) {
@@ -1712,49 +1597,12 @@ public class MasterInfo {
           mDependencies.get(parentDependencyId).addChildrenDependency(dep.ID);
         }
       } else if (Image.T_INODE_FILE == type || Image.T_INODE_FOLDER == type) {
-        if (type > Image.T_INODE_RAW_TABLE) {
-          throw new IOException("Corrupted image with unknown element type: " + type);
-        }
-
-        long creationTimeMs = is.readLong();
-        int fileId = is.readInt();
-        String fileName = Utils.readString(is);
-        int parentId = is.readInt();
-
         Inode inode = null;
 
         if (type == Image.T_INODE_FILE) {
-          long blockSizeByte = is.readLong();
-          long length = is.readLong();
-          boolean isComplete = is.readBoolean();
-          boolean isPin = is.readBoolean();
-          boolean isCache = is.readBoolean();
-          String checkpointPath = Utils.readString(is);
-
-          InodeFile tInode =
-              new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
-
-          try {
-            tInode.setLength(length);
-          } catch (Exception e) {
-            throw new IOException(e);
-          }
-          tInode.setComplete(isComplete);
-          tInode.setPin(isPin);
-          tInode.setCache(isCache);
-          tInode.setCheckpointPath(checkpointPath);
-          tInode.setDependencyId(is.readInt());
-          inode = tInode;
-        } else if (type == Image.T_INODE_FOLDER) {
-          int numberOfChildren = is.readInt();
-          int[] children = new int[numberOfChildren];
-          for (int k = 0; k < numberOfChildren; k ++) {
-            children[k] = is.readInt();
-          }
-
-          InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs);
-          folder.addChildren(children);
-          inode = folder;
+          inode = InodeFile.loadImage(is);
+        } else {
+          inode = InodeFolder.loadImage(is);
         }
 
         LOG.info("Putting " + inode);
@@ -1766,17 +1614,8 @@ public class MasterInfo {
           mRoot = (InodeFolder) inode;
         }
         mInodes.put(inode.getId(), inode);
-      } else if (Image.T_INODE_RAW_TABLE == type) {
-        int inodeId = is.readInt();
-        int columns = is.readInt();
-        ByteBuffer metadata = Utils.readByteBuffer(is);
-        try {
-          if (!mRawTables.addRawTable(inodeId, columns, metadata)) {
-            throw new IOException("Failed to create raw table");
-          }
-        } catch (TachyonException e) {
-          throw new IOException(e);
-        }
+      } else if (Image.T_RAW_TABLE == type) {
+        mRawTables.loadImage(is);
       } else {
         throw new IOException("Corrupted image with unknown element type: " + type);
       }
@@ -1784,12 +1623,12 @@ public class MasterInfo {
   }
 
   /**
-   * Get the names of the subdirectories at the given path.
+   * Get the names of the sub-directories at the given path.
    * 
    * @param path
    *          The path to look at
    * @param recursive
-   *          If true, recursively add the paths of the subdirectories
+   *          If true, recursively add the paths of the sub-directories
    * @return the list of paths
    */
   public List<String> ls(String path, boolean recursive) throws InvalidPathException,
@@ -2106,7 +1945,7 @@ public class MasterInfo {
     synchronized (mRoot) {
       Inode inode = mInodes.get(tableId);
 
-      if (inode == null || inode.isFile() || !mRawTables.exist(tableId)) {
+      if (inode == null || !inode.isDirectory() || !mRawTables.exist(tableId)) {
         throw new TableDoesNotExistException("Table " + tableId + " does not exist.");
       }
 
@@ -2168,5 +2007,46 @@ public class MasterInfo {
     }
 
     return new Command(CommandType.Nothing, new ArrayList<Long>());
+  }
+
+  @Override
+  /**
+   * Create an image of the dependencies and filesystem tree.
+   * 
+   * @param os
+   *          The output stream to write the image to
+   */
+  public void writeImage(DataOutputStream os) throws IOException {
+    Queue<InodeFolder> folderQueue = new LinkedList<InodeFolder>();
+
+    synchronized (mRoot) {
+      for (Dependency dep : mDependencies.values()) {
+        dep.writeImage(os);
+      }
+
+      mRoot.writeImage(os);
+      folderQueue.add(mRoot);
+      while (!folderQueue.isEmpty()) {
+        List<Integer> childrenIds = folderQueue.poll().getChildrenIds();
+        for (int id : childrenIds) {
+          Inode tInode = mInodes.get(id);
+          tInode.writeImage(os);
+          if (tInode.isDirectory()) {
+            folderQueue.add((InodeFolder) tInode);
+          } else if (((InodeFile) tInode).isPin()) {
+            synchronized (mFileIdPinList) {
+              mFileIdPinList.add(tInode.getId());
+            }
+          }
+        }
+      }
+
+      mRawTables.writeImage(os);
+
+      os.writeByte(Image.T_CHECKPOINT);
+      os.writeInt(mInodeCounter.get());
+      os.writeLong(mCheckpointInfo.getEditTransactionCounter());
+      os.writeInt(mCheckpointInfo.getDependencyCounter());
+    }
   }
 }

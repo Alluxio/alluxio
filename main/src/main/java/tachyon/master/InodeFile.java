@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,10 +14,14 @@
  */
 package tachyon.master;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.Pair;
+import tachyon.io.Utils;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -30,19 +32,55 @@ import tachyon.thrift.SuspectedFileSizeException;
  * Tachyon file system's file representation in master.
  */
 public class InodeFile extends Inode {
-  private final long BLOCK_SIZE_BYTE;
+  /**
+   * Create a new InodeFile from an image stream.
+   * 
+   * @param is
+   *          the image stream
+   * @return
+   * @throws IOException
+   */
+  static InodeFile loadImage(DataInputStream is) throws IOException {
+    long creationTimeMs = is.readLong();
+    int fileId = is.readInt();
+    String fileName = Utils.readString(is);
+    int parentId = is.readInt();
 
+    long blockSizeByte = is.readLong();
+    long length = is.readLong();
+    boolean isComplete = is.readBoolean();
+    boolean isPin = is.readBoolean();
+    boolean isCache = is.readBoolean();
+    String checkpointPath = Utils.readString(is);
+
+    InodeFile inode = new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
+
+    try {
+      inode.setLength(length);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+    inode.setComplete(isComplete);
+    inode.setPin(isPin);
+    inode.setCache(isCache);
+    inode.setCheckpointPath(checkpointPath);
+    inode.setDependencyId(is.readInt());
+    return inode;
+  }
+
+  private final long BLOCK_SIZE_BYTE;
   private long mLength = 0;
   private boolean mIsComplete = false;
   private boolean mPin = false;
   private boolean mCache = false;
   private String mCheckpointPath = "";
+
   private List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(3);
 
   private int mDependencyId;
 
   public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs) {
-    super(name, id, parentId, InodeType.File, creationTimeMs);
+    super(name, id, parentId, false, creationTimeMs);
     BLOCK_SIZE_BYTE = blockSizeByte;
     mDependencyId = -1;
   }
@@ -273,5 +311,21 @@ public class InodeFile extends Inode {
     sb.append(", mBlocks: ").append(mBlocks);
     sb.append(", DependencyId:").append(mDependencyId).append(")");
     return sb.toString();
+  }
+
+  @Override
+  public synchronized void writeImage(DataOutputStream os) throws IOException {
+    os.writeByte(Image.T_INODE_FILE);
+    os.writeLong(getCreationTimeMs());
+    os.writeInt(getId());
+    Utils.writeString(getName(), os);
+    os.writeInt(getParentId());
+    os.writeLong(getBlockSizeByte());
+    os.writeLong(getLength());
+    os.writeBoolean(isComplete());
+    os.writeBoolean(isPin());
+    os.writeBoolean(isCache());
+    Utils.writeString(getCheckpointPath(), os);
+    os.writeInt(getDependencyId());
   }
 }

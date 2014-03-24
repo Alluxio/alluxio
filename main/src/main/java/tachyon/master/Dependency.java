@@ -1,5 +1,8 @@
 package tachyon.master;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,29 +13,49 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
+import tachyon.io.Utils;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.util.CommonUtils;
 
-public class Dependency {
+public class Dependency implements ImageWriter {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  public final int ID;
-  public final long CREATION_TIME_MS;
+  /**
+   * Create a new dependency from an image stream.
+   * 
+   * @param is
+   *          the image stream
+   * @return
+   * @throws IOException
+   */
+  static Dependency loadImage(DataInputStream is) throws IOException {
+    Dependency dep =
+        new Dependency(is.readInt(), Utils.readIntegerList(is), Utils.readIntegerList(is),
+            Utils.readString(is), Utils.readByteBufferList(is), Utils.readString(is),
+            Utils.readString(is), Utils.readString(is), DependencyType.getDependencyType(is
+                .readInt()), Utils.readIntegerList(is), is.readLong());
+    dep.resetUncheckpointedChildrenFiles(Utils.readIntegerList(is));
+    return dep;
+  }
 
+  public final int ID;
+
+  public final long CREATION_TIME_MS;
   public final List<Integer> PARENT_FILES;
   public final List<Integer> CHILDREN_FILES;
   private final Set<Integer> UNCHECKPOINTED_CHILDREN_FILES;
   public final String COMMAND_PREFIX;
-  public final List<ByteBuffer> DATA;
 
+  public final List<ByteBuffer> DATA;
   public final String COMMENT;
   public final String FRAMEWORK;
+
   public final String FRAMEWORK_VERSION;
 
   public final DependencyType TYPE;
-
   public final List<Integer> PARENT_DEPENDENCIES;
   private List<Integer> mChildrenDependencies;
+
   private Set<Integer> mLostFileIds;
 
   public Dependency(int id, List<Integer> parents, List<Integer> children, String commandPrefix,
@@ -165,5 +188,22 @@ public class Dependency {
     sb.append(", UncheckpointedChildrenFiles:").append(UNCHECKPOINTED_CHILDREN_FILES);
     sb.append("]");
     return sb.toString();
+  }
+
+  @Override
+  public synchronized void writeImage(DataOutputStream os) throws IOException {
+    os.writeByte(Image.T_DEPENDENCY);
+    os.writeInt(ID);
+    Utils.writeIntegerList(PARENT_FILES, os);
+    Utils.writeIntegerList(CHILDREN_FILES, os);
+    Utils.writeString(COMMAND_PREFIX, os);
+    Utils.writeByteBufferList(DATA, os);
+    Utils.writeString(COMMENT, os);
+    Utils.writeString(FRAMEWORK, os);
+    Utils.writeString(FRAMEWORK_VERSION, os);
+    os.writeInt(TYPE.getValue());
+    Utils.writeIntegerList(PARENT_DEPENDENCIES, os);
+    os.writeLong(CREATION_TIME_MS);
+    Utils.writeIntegerList(getUncheckpointedChildrenFiles(), os);
   }
 }

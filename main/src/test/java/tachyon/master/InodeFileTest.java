@@ -25,7 +25,6 @@ import org.junit.Test;
 
 import tachyon.master.BlockInfo;
 import tachyon.master.InodeFile;
-import tachyon.master.InodeType;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -56,12 +55,6 @@ public class InodeFileTest {
   public void getIdTest() {
     InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
     Assert.assertEquals(1, inode1.getId());
-  }
-
-  @Test
-  public void getInodeTypeTest() {
-    InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
-    Assert.assertEquals(InodeType.File, inode1.getInodeType());
   }
 
   @Test
