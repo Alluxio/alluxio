@@ -4,10 +4,8 @@
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +14,7 @@
  */
 package tachyon.master;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -31,7 +30,7 @@ import tachyon.thrift.TachyonException;
 /**
  * All Raw Table related info in MasterInfo.
  */
-public class RawTables {
+public class RawTables implements ImageWriter {
   // Mapping from table id to <Columns, Metadata>
   private Map<Integer, Pair<Integer, ByteBuffer>> mData =
       new HashMap<Integer, Pair<Integer, ByteBuffer>>();
@@ -46,15 +45,6 @@ public class RawTables {
     updateMetadata(tableId, metadata);
 
     return true;
-  }
-
-  public synchronized void createImageWriter(DataOutputStream os) throws IOException {
-    for (Entry<Integer, Pair<Integer, ByteBuffer>> entry : mData.entrySet()) {
-      os.writeByte(Image.T_INODE_RAW_TABLE);
-      os.writeInt(entry.getKey());
-      os.writeInt(entry.getValue().getFirst());
-      Utils.writeByteBuffer(entry.getValue().getSecond(), os);
-    }
   }
 
   public synchronized boolean delete(int tableId) {
@@ -111,6 +101,31 @@ public class RawTables {
     return mData.get(tableId);
   }
 
+  /**
+   * Load the image into the RawTables structure.
+   * 
+   * @param is
+   * @throws IOException
+   * @throws TachyonException
+   */
+  void loadImage(DataInputStream is) throws IOException {
+    int size = is.readInt();
+    for (int k = 0; k < size; k ++) {
+
+      int rawTableId = is.readInt();
+      int columns = is.readInt();
+      ByteBuffer metadata = Utils.readByteBuffer(is);
+
+      try {
+        if (!addRawTable(rawTableId, columns, metadata)) {
+          throw new IOException("Failed to create raw table");
+        }
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      }
+    }
+  }
+
   // TODO add version number.
   public synchronized void updateMetadata(int tableId, ByteBuffer metadata)
       throws TachyonException {
@@ -130,6 +145,17 @@ public class RawTables {
       tMetadata.put(metadata.array(), metadata.position(), metadata.limit() - metadata.position());
       tMetadata.flip();
       data.setSecond(tMetadata);
+    }
+  }
+
+  @Override
+  public synchronized void writeImage(DataOutputStream os) throws IOException {
+    os.writeByte(Image.T_RAW_TABLE);
+    os.writeInt(mData.size());
+    for (Entry<Integer, Pair<Integer, ByteBuffer>> entry : mData.entrySet()) {
+      os.writeInt(entry.getKey());
+      os.writeInt(entry.getValue().getFirst());
+      Utils.writeByteBuffer(entry.getValue().getSecond(), os);
     }
   }
 }

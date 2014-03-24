@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,22 +19,35 @@ import tachyon.thrift.ClientFileInfo;
 /**
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
-public abstract class Inode implements Comparable<Inode> {
+public abstract class Inode implements Comparable<Inode>, ImageWriter {
   private final long CREATION_TIME_MS;
-  protected final InodeType TYPE;
+  protected final boolean IS_FOLDER;
 
   private int mId;
   private String mName;
   private int mParentId;
 
-  protected Inode(String name, int id, int parentId, InodeType type, long creationTimeMs) {
-    TYPE = type;
+  /**
+   * Create an inode.
+   * 
+   * @param name
+   *          the name of the inode.
+   * @param id
+   *          the id of the inode, which is globaly unique.
+   * @param parentId
+   *          the parent of the inode. -1 if there is no parent.
+   * @param isFolder
+   *          if the inode presents a folder
+   * @param creationTimeMs
+   *          the creation time of the inode.
+   */
+  protected Inode(String name, int id, int parentId, boolean isFolder, long creationTimeMs) {
+    CREATION_TIME_MS = creationTimeMs;
+    IS_FOLDER = isFolder;
 
     mId = id;
     mName = name;
     mParentId = parentId;
-
-    CREATION_TIME_MS = creationTimeMs;
   }
 
   @Override
@@ -62,10 +73,6 @@ public abstract class Inode implements Comparable<Inode> {
     return mId;
   }
 
-  public InodeType getInodeType() {
-    return TYPE;
-  }
-
   public synchronized String getName() {
     return mName;
   }
@@ -80,11 +87,11 @@ public abstract class Inode implements Comparable<Inode> {
   }
 
   public boolean isDirectory() {
-    return TYPE != InodeType.File;
+    return IS_FOLDER;
   }
 
   public boolean isFile() {
-    return TYPE == InodeType.File;
+    return !IS_FOLDER;
   }
 
   public synchronized void reverseId() {

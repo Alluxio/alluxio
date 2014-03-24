@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,27 +14,51 @@
  */
 package tachyon.master;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import tachyon.io.Utils;
 import tachyon.thrift.ClientFileInfo;
 
 /**
  * Tachyon file system's folder representation in master.
  */
 public class InodeFolder extends Inode {
-  private Set<Integer> mChildren;
+  /**
+   * Create a new InodeFile from an image stream.
+   * 
+   * @param is
+   *          the image stream
+   * @return
+   * @throws IOException
+   */
+  static InodeFolder loadImage(DataInputStream is) throws IOException {
+    long creationTimeMs = is.readLong();
+    int fileId = is.readInt();
+    String fileName = Utils.readString(is);
+    int parentId = is.readInt();
 
-  public InodeFolder(String name, int id, int parentId, InodeType type, long creationTimeMs) {
-    super(name, id, parentId, type, creationTimeMs);
-    mChildren = new HashSet<Integer>();
+    int numberOfChildren = is.readInt();
+    int[] children = new int[numberOfChildren];
+    for (int k = 0; k < numberOfChildren; k ++) {
+      children[k] = is.readInt();
+    }
+
+    InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs);
+    folder.addChildren(children);
+    return folder;
   }
 
+  private Set<Integer> mChildren = new HashSet<Integer>();
+
   public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
-    this(name, id, parentId, InodeType.Folder, creationTimeMs);
+    super(name, id, parentId, true, creationTimeMs);
   }
 
   public synchronized void addChild(int childId) {
@@ -113,5 +135,21 @@ public class InodeFolder extends Inode {
     StringBuilder sb = new StringBuilder("InodeFolder(");
     sb.append(super.toString()).append(",").append(mChildren).append(")");
     return sb.toString();
+  }
+
+  @Override
+  public void writeImage(DataOutputStream os) throws IOException {
+    os.writeByte(Image.T_INODE_FOLDER);
+
+    os.writeLong(getCreationTimeMs());
+    os.writeInt(getId());
+    Utils.writeString(getName(), os);
+    os.writeInt(getParentId());
+
+    List<Integer> children = getChildrenIds();
+    os.writeInt(children.size());
+    for (int k = 0; k < children.size(); k ++) {
+      os.writeInt(children.get(k));
+    }
   }
 }

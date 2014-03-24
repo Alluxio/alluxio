@@ -25,7 +25,6 @@ import org.junit.Test;
 import tachyon.master.Inode;
 import tachyon.master.InodeFile;
 import tachyon.master.InodeFolder;
-import tachyon.master.InodeType;
 
 /**
  * Unit tests for tachyon.InodeFolder
@@ -76,12 +75,6 @@ public class InodeFolderTest {
   public void getIdTest() {
     InodeFolder inode1 = new InodeFolder("test1", 1, 0, System.currentTimeMillis());
     Assert.assertEquals(1, inode1.getId());
-  }
-
-  @Test
-  public void getInodeTypeTest() {
-    InodeFolder inode1 = new InodeFolder("test1", 1, 0, System.currentTimeMillis());
-    Assert.assertEquals(InodeType.Folder, inode1.getInodeType());
   }
 
   @Test
