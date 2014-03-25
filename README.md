@@ -16,18 +16,18 @@ The master branch is in version 0.5.0-SNAPSHOT:
 <dependency>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon</artifactId>
-  <version>0.4.1</version>
+  <version>0.4.1-thrift</version>
 </dependency>
 ```
 
 ### Apache Ant
 ```xml
-<dependency org="org.tachyonproject" name="tachyon" rev="0.4.1">
+<dependency org="org.tachyonproject" name="tachyon" rev="0.4.1-thrift">
   <artifact name="tachyon" type="jar" />
 </dependency>
 ```
 
 ### SBT
 ```
-libraryDependencies += "org.tachyonproject" % "tachyon" % "0.4.1"
+libraryDependencies += "org.tachyonproject" % "tachyon" % "0.4.1-thrift"
 ```
