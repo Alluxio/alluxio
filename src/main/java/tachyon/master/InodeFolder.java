@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import java.util.concurrent.locks.ReadWriteLock;
+
 import tachyon.Constants;
 import tachyon.thrift.ClientFileInfo;
 
@@ -28,16 +30,20 @@ import tachyon.thrift.ClientFileInfo;
  */
 public class InodeFolder extends Inode {
   private Set<Inode> mChildren;
-  public ReadWriteLock rwl;
+  private ReadWriteLock mReadWriteLock;
 
   public InodeFolder(String name, int id, int parentId, InodeType type, long creationTimeMs) {
     super(name, id, parentId, type, creationTimeMs);
     mChildren = new HashSet<Inode>();
-    rwl = new ReadWriteLock();
+    mReadWriteLock = new TachyonReadWriteLock();
   }
 
   public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
     this(name, id, parentId, InodeType.Folder, creationTimeMs);
+  }
+
+  public ReadWriteLock getLock() {
+    return mReadWriteLock;
   }
 
   /*
@@ -46,11 +52,11 @@ public class InodeFolder extends Inode {
    * ------------------------------------------------------------------------------
    */
 
-  public void addChild(Inode child) {
+  public synchronized void addChild(Inode child) {
     mChildren.add(child);
   }
 
-  public void addChildren(Inode[] children) {
+  public synchronized void addChildren(Inode[] children) {
     for (Inode i : children) {
       addChild(i);
     }
@@ -87,7 +93,7 @@ public class InodeFolder extends Inode {
     return ret;
   }
 
-  public Inode getChild(String name) {
+  public synchronized Inode getChild(String name) {
     for (Inode i : mChildren) {
       if (i.getName().equals(name)) {
         return i;
@@ -96,7 +102,16 @@ public class InodeFolder extends Inode {
     return null;
   }
 
-  public List<Integer> getChildrenIds() {
+  public synchronized Inode getChild(int fid) {
+    for (Inode i : mChildren) {
+      if (i.getId() == fid) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  public synchronized List<Integer> getChildrenIds() {
     List<Integer> ret = new ArrayList<Integer>(mChildren.size());
     for (Inode i : mChildren) {
       ret.add(i.getId());
@@ -107,66 +122,21 @@ public class InodeFolder extends Inode {
   /**
    * Returns a list of the folder's children.
    * 
-   * @param recursive
-   *          If true, it will recurse into the folder's subdirectories. For a given node n, it adds
-   *          n to the list before adding n's children.
    * @return A list of the children inodes.
    */
-  public List<Inode> getChildren(boolean recursive) {
-    List<Inode> ret = new ArrayList<Inode>();
-    if (!recursive) {
-      ret.addAll(mChildren);
-    } else {
-      for (Inode i : mChildren) {
-        ret.add(i);
-        if (i.isDirectory()) {
-          InodeFolder ifold = (InodeFolder) i;
-          ifold.rwl.readLock();
-          ret.addAll(ifold.getChildren(true));
-          ifold.rwl.readUnlock();
-        }
-      }
-    }
-    return ret;
+  public synchronized Set<Inode> getChildren() {
+    return mChildren;
   }
 
-  /**
-   * Returns a list of the folder's children's pathnames.
-   * 
-   * @param recursive
-   *          If true, it will recurse into the folder's subdirectories. For a given node n, it adds
-   *          n's path to the list before adding n's children.
-   * @return A list of the children paths.
-   */
-  public List<String> getChildrenPaths(String path, boolean recursive) {
-    List<String> ret = new ArrayList<String>();
-    for (Inode i : mChildren) {
-      String subpath;
-      if (path.endsWith(Constants.PATH_SEPARATOR)) {
-        subpath = path + i.getName();
-      } else {
-        subpath = path + Constants.PATH_SEPARATOR + i.getName();
-      }
-      ret.add(subpath);
-      if (i.isDirectory() && recursive) {
-        InodeFolder ifold = (InodeFolder) i;
-        ifold.rwl.readLock();
-        ret.addAll(ifold.getChildrenPaths(subpath, true));
-        ifold.rwl.readUnlock();
-      }
-    }
-    return ret;
-  }
-
-  public int getNumberOfChildren() {
+  public synchronized int getNumberOfChildren() {
     return mChildren.size();
   }
 
-  public boolean removeChild(Inode i) {
+  public synchronized boolean removeChild(Inode i) {
     return mChildren.remove(i);
   }
 
-  public boolean removeChild(String name) {
+  public synchronized boolean removeChild(String name) {
     for (Inode i : mChildren) {
       if (i.getName().equals(name)) {
         mChildren.remove(i);

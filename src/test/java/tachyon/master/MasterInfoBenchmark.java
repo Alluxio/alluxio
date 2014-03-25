@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,12 +33,13 @@ import tachyon.thrift.TableColumnException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.apache.log4j.Logger;
 
 /**
  * Benchmarks for tachyon.MasterInfo
@@ -49,11 +48,13 @@ public class MasterInfoBenchmark {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private final Level DEFAULT_LEVEL = Logger.getRootLogger().getLevel();
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
+    Logger.getRootLogger().setLevel(DEFAULT_LEVEL);
   }
 
   @Before
@@ -62,6 +63,7 @@ public class MasterInfoBenchmark {
     mLocalTachyonCluster = new LocalTachyonCluster(1000);
     mLocalTachyonCluster.start();
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();
+    Logger.getRootLogger().setLevel(Level.ERROR);
   }
 
   /*
@@ -224,7 +226,7 @@ public class MasterInfoBenchmark {
           exec(depth - 1, filesPerNode, concurrencyDepth, path + Constants.PATH_SEPARATOR + i);
         }
       }
-      masterInfo._delete(path, true);
+      masterInfo.deleteNoLog(path, true);
     }
 
     @Override
