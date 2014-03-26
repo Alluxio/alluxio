@@ -12,7 +12,7 @@ Checkout Tachyon master branch from Github, and package:
 
     $ git clone git://github.com/amplab/tachyon.git
     $ cd tachyon
-    $ mvn package
+    $ mvn install
 
 If you want to build a particular version of Tachyon, for example {{site.TACHYON_RELEASED_VERSION}},
 please do `git checkout v{{site.TACHYON_RELEASED_VERSION}}` after `cd tachyon`.
