@@ -357,7 +357,7 @@ public class MasterInfo implements ImageWriter {
    * @throws BlockInfoException
    * @throws TachyonException
    */
-  public int _createFile(boolean recursive, String path, boolean directory, long blockSizeByte,
+  int _createFile(boolean recursive, String path, boolean directory, long blockSizeByte,
       long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
       BlockInfoException, TachyonException {
     if (!directory && blockSizeByte < 1) {
