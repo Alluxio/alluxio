@@ -28,6 +28,20 @@ public class Format {
   private static final String USAGE = "java -cp target/tachyon-" + Version.VERSION
       + "-jar-with-dependencies.jar tachyon.Format <MASTER/WORKER>";
 
+  private static boolean formatFolder(String name, String folder) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(folder);
+    System.out.println("Formatting " + name + ": " + folder);
+    if (ufs.exists(folder) && !ufs.delete(folder, true)) {
+      System.out.println("Failed to remove " + name + ": " + folder);
+      return false;
+    }
+    if (!ufs.mkdirs(folder, true)) {
+      System.out.println("Failed to create " + name + ": " + folder);
+      return false;
+    }
+    return true;
+  }
+  
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {
       System.out.println(USAGE);
@@ -36,33 +50,18 @@ public class Format {
 
     if (args[0].toUpperCase().equals("MASTER")) {
       MasterConf masterConf = MasterConf.get();
-      String folder = masterConf.JOURNAL_FOLDER;
-      UnderFileSystem ufs = UnderFileSystem.get(folder);
-      System.out.println("Formatting JOURNAL_FOLDER: " + folder);
-      if (ufs.exists(folder) && !ufs.delete(folder, true)) {
-        System.out.println("Failed to remove JOURNAL_FOLDER: " + folder);
-      }
-      if (!ufs.mkdirs(folder, true)) {
-        System.out.println("Failed to create JOURNAL_FOLDER: " + folder);
+
+      if (!formatFolder("JOURNAL_FOLDER", masterConf.JOURNAL_FOLDER)) {
+        System.exit(-1);
       }
 
       CommonConf commonConf = CommonConf.get();
-      folder = commonConf.UNDERFS_DATA_FOLDER;
-      ufs = UnderFileSystem.get(folder);
-      System.out.println("Formatting UNDERFS_DATA_FOLDER: " + folder);
-      ufs.delete(folder, true);
-      if (!ufs.mkdirs(folder, true)) {
-        System.out.println("Failed to create UNDERFS_DATA_FOLDER: " + folder);
-      }
-      commonConf = CommonConf.get();
-      folder = commonConf.UNDERFS_WORKERS_FOLDER;
-      System.out.println("Formatting UNDERFS_WORKERS_FOLDER: " + folder);
-      ufs.delete(folder, true);
-      if (!ufs.mkdirs(folder, true)) {
-        System.out.println("Failed to create UNDERFS_WORKERS_FOLDER: " + folder);
+      if (!formatFolder("UNDERFS_DATA_FOLDER", commonConf.UNDERFS_DATA_FOLDER)
+          || !formatFolder("UNDERFS_WORKERS_FOLDER", commonConf.UNDERFS_WORKERS_FOLDER)) {
+        System.exit(-1);
       }
 
-      CommonUtils.touch(folder + "/" + masterConf.FORMAT_FILE_PREFIX + System.currentTimeMillis());
+      CommonUtils.touch(masterConf.JOURNAL_FOLDER + masterConf.FORMAT_FILE_PREFIX + System.currentTimeMillis());
     } else if (args[0].toUpperCase().equals("WORKER")) {
       WorkerConf workerConf = WorkerConf.get();
       String localFolder = workerConf.DATA_FOLDER;
@@ -71,7 +70,7 @@ public class Format {
       if (ufs.exists(localFolder)) {
         String[] files = ufs.list(localFolder);
         for (String file : files) {
-          ufs.delete(localFolder + "/" + file, true);
+          ufs.delete(localFolder + Constants.PATH_SEPARATOR + file, true);
         }
       }
     } else {
