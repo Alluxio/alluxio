@@ -82,7 +82,7 @@ public class TachyonMaster {
     try {
       mMasterAddress = address;
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
-      if (!isFormatted(MasterConf.get().JOURNAL_FOLDER, MasterConf.get().FORMAT_FILE_PREFIX)) {
+      if (!isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX)) {
         LOG.error("Tachyon was not formatted!");
         System.exit(-1);
       }
