@@ -58,6 +58,7 @@ public class TachyonMaster {
   private MasterInfo mMasterInfo;
   private InetSocketAddress mMasterAddress;
   private UIWebServer mWebServer;
+  private TNonblockingServerSocket mServerTNonblockingServerSocket;
   private TServer mMasterServiceServer;
   private MasterServiceHandler mMasterServiceHandler;
   private Journal mJournal;
@@ -166,10 +167,12 @@ public class TachyonMaster {
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
+    mServerTNonblockingServerSocket = new TNonblockingServerSocket(mMasterAddress);
     mMasterServiceServer =
-        new TThreadedSelectorServer(new TThreadedSelectorServer.Args(new TNonblockingServerSocket(
-            mMasterAddress)).processor(masterServiceProcessor).selectorThreads(mSelectorThreads)
-            .acceptQueueSizePerThread(mAcceptQueueSizePerThread).workerThreads(mWorkerThreads));
+        new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
+            mServerTNonblockingServerSocket).processor(masterServiceProcessor)
+            .selectorThreads(mSelectorThreads).acceptQueueSizePerThread(mAcceptQueueSizePerThread)
+            .workerThreads(mWorkerThreads));
 
     mIsStarted = true;
   }
@@ -237,8 +240,9 @@ public class TachyonMaster {
       mWebServer.shutdownWebServer();
       mMasterInfo.stop();
       mMasterServiceServer.stop();
+      mServerTNonblockingServerSocket.close();
       mIsStarted = false;
-    }   
+    }
     if (mZookeeperMode) {
       if (mLeaderSelectorClient != null) {
         mLeaderSelectorClient.close();
