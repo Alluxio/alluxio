@@ -19,8 +19,8 @@ package tachyon.master;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
@@ -64,6 +64,8 @@ public class TachyonMaster {
   private EditLogProcessor mEditLogProcessor;
   private int mWebPort;
 
+  private int mSelectorThreads;
+  private int mAcceptQueueSizePerThread;
   private int mWorkerThreads;
   private boolean mZookeeperMode = false;
 
@@ -77,6 +79,8 @@ public class TachyonMaster {
 
     mIsStarted = false;
     mWebPort = webPort;
+    mSelectorThreads = selectorThreads;
+    mAcceptQueueSizePerThread = acceptQueueSizePerThreads;
     mWorkerThreads = workerThreads;
 
     try {
@@ -162,16 +166,10 @@ public class TachyonMaster {
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
-    // TODO This is for Thrift 0.8 or newer.
-    // mServer = new TThreadedSelectorServer(new TThreadedSelectorServer
-    // .Args(new TNonblockingServerSocket(address)).processor(processor)
-    // .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
-    // .workerThreads(workerThreads));
-
-    // This is for Thrift 0.7.0, for Hive compatibility.
     mMasterServiceServer =
-        new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(mMasterAddress))
-            .processor(masterServiceProcessor).workerThreads(mWorkerThreads));
+        new TThreadedSelectorServer(new TThreadedSelectorServer.Args(new TNonblockingServerSocket(
+            mMasterAddress)).processor(masterServiceProcessor).selectorThreads(mSelectorThreads)
+            .acceptQueueSizePerThread(mAcceptQueueSizePerThread).workerThreads(mWorkerThreads));
 
     mIsStarted = true;
   }
