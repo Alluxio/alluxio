@@ -42,7 +42,7 @@ and then submit a pull request. You are also welcome to address issues in our
 
 You can generate Eclipse configure file by run:
 
-    mvn eclipse:eclipse -Dintegration
+    mvn install -Dintegration -DskipTests eclipse:eclipse
 
 Then import the folder into Eclipse.
 

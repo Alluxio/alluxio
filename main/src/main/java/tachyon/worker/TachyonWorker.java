@@ -21,8 +21,8 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
 import org.apache.thrift.TException;
-import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
@@ -133,17 +133,11 @@ public class TachyonWorker implements Runnable {
       WorkerService.Processor<WorkerServiceHandler> processor =
           new WorkerService.Processor<WorkerServiceHandler>(mWorkerServiceHandler);
 
-      // TODO This is for Thrift 0.8 or newer.
-      // mServer = new TThreadedSelectorServer(new TThreadedSelectorServer
-      // .Args(new TNonblockingServerSocket(workerAddress)).processor(processor)
-      // .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
-      // .workerThreads(workerThreads));
-
-      // This is for Thrift 0.7.0, for Hive compatibility.
-      mServerTNonblockingServerSocket = new TNonblockingServerSocket(workerAddress);
       mServer =
-          new THsHaServer(new THsHaServer.Args(mServerTNonblockingServerSocket).processor(
-              processor).workerThreads(workerThreads));
+          new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
+              new TNonblockingServerSocket(workerAddress)).processor(processor)
+              .selectorThreads(selectorThreads)
+              .acceptQueueSizePerThread(acceptQueueSizePerThreads).workerThreads(workerThreads));
     } catch (TTransportException e) {
       LOG.error(e.getMessage(), e);
       CommonUtils.runtimeException(e);
