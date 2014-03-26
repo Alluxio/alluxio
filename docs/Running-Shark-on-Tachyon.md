@@ -47,7 +47,7 @@ or [Cluster Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-on-a-Cl
 
 Then, edit `shark-env.sh` and add
 
-    export TACHYON_MASTER="TachyonMasterHost:TachyonMasterPort"
+    export TACHYON_MASTER="tachyon://TachyonMasterHost:TachyonMasterPort"
     export TACHYON_WAREHOUSE_PATH=/sharktables
 
 ### Cache Shark table in Tachyon
