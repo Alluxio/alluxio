@@ -35,10 +35,10 @@ public class WebInterfaceDependencyServlet extends HttpServlet {
     try {
       ClientDependencyInfo dependencyInfo = mMasterInfo.getClientDependencyInfo(dependencyId);
       for (int pId : dependencyInfo.parents) {
-        parentFileNames.add(mMasterInfo.getFileNameById(pId));
+        parentFileNames.add(mMasterInfo.getPath(pId));
       }
       for (int cId : dependencyInfo.children) {
-        childrenFileNames.add(mMasterInfo.getFileNameById(cId));
+        childrenFileNames.add(mMasterInfo.getPath(cId));
       }
     } catch (DependencyDoesNotExistException ddnee) {
       request.setAttribute("error", ddnee.getMessage());

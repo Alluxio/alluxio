@@ -22,7 +22,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
 
+import tachyon.Constants;
 import tachyon.io.Utils;
 import tachyon.thrift.ClientFileInfo;
 
@@ -38,7 +40,8 @@ public class InodeFolder extends Inode {
    * @return
    * @throws IOException
    */
-  static InodeFolder loadImage(DataInputStream is) throws IOException {
+  static InodeFolder loadImage(DataInputStream is, Map<Integer, Inode> allInodes)
+      throws IOException {
     long creationTimeMs = is.readLong();
     int fileId = is.readInt();
     String fileName = Utils.readString(is);
@@ -51,23 +54,43 @@ public class InodeFolder extends Inode {
     }
 
     InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs);
-    folder.addChildren(children);
+    folder.addChildren(children, allInodes);
     return folder;
   }
 
-  private Set<Integer> mChildren = new HashSet<Integer>();
+  private Set<Inode> mChildren = new HashSet<Inode>();
+  private ReadWriteLock mReadWriteLock = new TachyonReadWriteLock();
 
   public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
     super(name, id, parentId, true, creationTimeMs);
   }
 
-  public synchronized void addChild(int childId) {
-    mChildren.add(childId);
+  public ReadWriteLock getLock() {
+    return mReadWriteLock;
   }
 
-  public synchronized void addChildren(int[] childrenIds) {
-    for (int k = 0; k < childrenIds.length; k ++) {
-      addChild(childrenIds[k]);
+  /*
+   * ------------------------------------------------------------------------------
+   * These operations assume a lock has already been taken on the folder.
+   * ------------------------------------------------------------------------------
+   */
+
+  public synchronized void addChild(Inode child) {
+    mChildren.add(child);
+  }
+
+  public synchronized void addChildren(Inode[] children) {
+    for (Inode i : children) {
+      addChild(i);
+    }
+  }
+
+  public void addChildren(int[] childrenIds, Map<Integer, Inode> allInodes) {
+    for (int i : childrenIds) {
+      Inode inode = allInodes.get(i);
+      if (inode != null) {
+        addChild(inode);
+      }
     }
   }
 
@@ -93,12 +116,19 @@ public class InodeFolder extends Inode {
     return ret;
   }
 
-  public synchronized Inode getChild(String name, Map<Integer, Inode> allInodes) {
-    Inode tInode = null;
-    for (int childId : mChildren) {
-      tInode = allInodes.get(childId);
-      if (tInode != null && tInode.getName().equals(name)) {
-        return tInode;
+  public synchronized Inode getChild(String name) {
+    for (Inode i : mChildren) {
+      if (i.getName().equals(name)) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  public synchronized Inode getChild(int fid) {
+    for (Inode i : mChildren) {
+      if (i.getId() == fid) {
+        return i;
       }
     }
     return null;
@@ -106,24 +136,33 @@ public class InodeFolder extends Inode {
 
   public synchronized List<Integer> getChildrenIds() {
     List<Integer> ret = new ArrayList<Integer>(mChildren.size());
-    ret.addAll(mChildren);
+    for (Inode i : mChildren) {
+      ret.add(i.getId());
+    }
     return ret;
+  }
+
+  /**
+   * Returns a list of the folder's children.
+   * 
+   * @return A list of the children inodes.
+   */
+  public synchronized Set<Inode> getChildren() {
+    return mChildren;
   }
 
   public synchronized int getNumberOfChildren() {
     return mChildren.size();
   }
 
-  public synchronized void removeChild(int id) {
-    mChildren.remove(id);
+  public synchronized boolean removeChild(Inode i) {
+    return mChildren.remove(i);
   }
 
-  public synchronized boolean removeChild(String name, Map<Integer, Inode> allInodes) {
-    Inode tInode = null;
-    for (int childId : mChildren) {
-      tInode = allInodes.get(childId);
-      if (tInode != null && tInode.getName().equals(name)) {
-        mChildren.remove(childId);
+  public synchronized boolean removeChild(String name) {
+    for (Inode i : mChildren) {
+      if (i.getName().equals(name)) {
+        mChildren.remove(i);
         return true;
       }
     }

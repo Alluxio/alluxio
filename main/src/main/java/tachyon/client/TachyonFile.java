@@ -235,7 +235,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
         }
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())) {
-          String localFileName = TFS.getRootFolder() + "/" + FID;
+          String localFileName = TFS.getRootFolder() + Constants.PATH_SEPARATOR + FID;
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         } else {
           LOG.info(host + ":" + (port + 1) + " current host is "

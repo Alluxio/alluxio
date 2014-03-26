@@ -47,7 +47,8 @@ public class Format {
       if (!ufs.mkdirs(folder, true)) {
         System.out.println("Failed to create JOURNAL_FOLDER: " + folder);
       }
-      CommonUtils.touch(folder + "/" + masterConf.FORMAT_FILE_PREFIX + System.currentTimeMillis());
+      CommonUtils.touch(folder + Constants.PATH_SEPARATOR + masterConf.FORMAT_FILE_PREFIX
+          + System.currentTimeMillis());
 
       CommonConf commonConf = CommonConf.get();
       folder = commonConf.UNDERFS_DATA_FOLDER;
@@ -72,7 +73,7 @@ public class Format {
       if (ufs.exists(localFolder)) {
         String[] files = ufs.list(localFolder);
         for (String file : files) {
-          ufs.delete(localFolder + "/" + file, true);
+          ufs.delete(localFolder + Constants.PATH_SEPARATOR + file, true);
         }
       }
     } else {

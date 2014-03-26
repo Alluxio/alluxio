@@ -58,10 +58,11 @@ public class EditLog {
 
   public static void deleteCompletedLogs(String path, int upTo) {
     UnderFileSystem ufs = UnderFileSystem.get(path);
-    String folder = path.substring(0, path.lastIndexOf("/")) + "/completed";
+    String folder =
+        path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
     try {
       for (int i = 0; i < upTo; i ++) {
-        String toDelete = folder + "/" + i + ".editLog";
+        String toDelete = folder + Constants.PATH_SEPARATOR + i + ".editLog";
         LOG.info("Deleting editlog " + toDelete);
         ufs.delete(toDelete, true);
       }
@@ -100,18 +101,21 @@ public class EditLog {
     int completedLogs = currentLogFileNum;
     mBackUpLogStartNum = currentLogFileNum;
     int numFiles = 1;
-    String completedPath = path.substring(0, path.lastIndexOf("/")) + "/completed";
+    String completedPath =
+        path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
     if (!ufs.exists(completedPath)) {
       LOG.info("No completed edit logs to be parsed");
     } else {
-      while (ufs.exists(completedPath + "/" + (completedLogs ++) + ".editLog")) {
+      while (ufs
+          .exists(completedPath + Constants.PATH_SEPARATOR + (completedLogs ++) + ".editLog")) {
         numFiles ++;
       }
     }
     String editLogs[] = new String[numFiles];
     for (int i = 0; i < numFiles; i ++) {
       if (i != numFiles - 1) {
-        editLogs[i] = completedPath + "/" + (i + currentLogFileNum) + ".editLog";
+        editLogs[i] =
+            completedPath + Constants.PATH_SEPARATOR + (i + currentLogFileNum) + ".editLog";
       } else {
         editLogs[i] = path;
       }
@@ -212,15 +216,16 @@ public class EditLog {
 
   public static void markUpToDate(String path) {
     UnderFileSystem ufs = UnderFileSystem.get(path);
-    String folder = path.substring(0, path.lastIndexOf("/")) + "/completed";
+    String folder =
+        path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
     try {
       // delete all loaded editlogs since mBackupLogStartNum.
-      String toDelete = folder + "/" + mBackUpLogStartNum + ".editLog";
+      String toDelete = folder + Constants.PATH_SEPARATOR + mBackUpLogStartNum + ".editLog";
       while (ufs.exists(toDelete)) {
         LOG.info("Deleting editlog " + toDelete);
         ufs.delete(toDelete, true);
         mBackUpLogStartNum ++;
-        toDelete = folder + "/" + mBackUpLogStartNum + ".editLog";
+        toDelete = folder + Constants.PATH_SEPARATOR + mBackUpLogStartNum + ".editLog";
       }
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
@@ -249,22 +254,25 @@ public class EditLog {
       PATH = path;
       UFS = UnderFileSystem.get(path);
       if (mBackUpLogStartNum != -1) {
-        String folder = path.substring(0, path.lastIndexOf("/")) + "/completed";
+        String folder =
+            path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "/completed";
         LOG.info("Deleting completed editlogs that are part of the image.");
         deleteCompletedLogs(path, mBackUpLogStartNum);
         LOG.info("Backing up logs from " + mBackUpLogStartNum + " since image is not updated.");
         UFS.mkdirs(folder, true);
-        String toRename = folder + "/" + mBackUpLogStartNum + ".editLog";
+        String toRename = folder + Constants.PATH_SEPARATOR + mBackUpLogStartNum + ".editLog";
         int currentLogFileNum = 0;
         while (UFS.exists(toRename)) {
-          LOG.info("Rename " + toRename + " to " + folder + "/" + currentLogFileNum + ".editLog");
+          LOG.info("Rename " + toRename + " to " + folder + Constants.PATH_SEPARATOR
+              + currentLogFileNum + ".editLog");
           currentLogFileNum ++;
           mBackUpLogStartNum ++;
-          toRename = folder + "/" + mBackUpLogStartNum + ".editLog";
+          toRename = folder + Constants.PATH_SEPARATOR + mBackUpLogStartNum + ".editLog";
         }
         if (UFS.exists(path)) {
-          UFS.rename(path, folder + "/" + currentLogFileNum + ".editLog");
-          LOG.info("Rename " + path + " to " + folder + "/" + currentLogFileNum + ".editLog");
+          UFS.rename(path, folder + Constants.PATH_SEPARATOR + currentLogFileNum + ".editLog");
+          LOG.info("Rename " + path + " to " + folder + Constants.PATH_SEPARATOR
+              + currentLogFileNum + ".editLog");
           currentLogFileNum ++;
         }
         mBackUpLogStartNum = -1;
@@ -310,7 +318,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong( ++mTransactionId);
       DOS.writeByte(OP_ADD_BLOCK);
       DOS.writeInt(fileId);
       DOS.writeInt(blockIndex);
@@ -326,7 +334,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong( ++mTransactionId);
       DOS.writeByte(OP_ADD_CHECKPOINT);
       DOS.writeInt(fileId);
       DOS.writeLong(length);
@@ -357,7 +365,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong( ++mTransactionId);
       DOS.writeByte(OP_COMPLETE_FILE);
       DOS.writeInt(fileId);
     } catch (IOException e) {
@@ -373,7 +381,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong( ++mTransactionId);
       DOS.writeByte(OP_CREATE_DEPENDENCY);
       Utils.writeIntegerList(parents, DOS);
       Utils.writeIntegerList(children, DOS);
@@ -397,7 +405,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong( ++mTransactionId);
       DOS.writeByte(OP_CREATE_FILE);
       DOS.writeBoolean(recursive);
       Utils.writeString(path, DOS);
@@ -415,7 +423,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong( ++mTransactionId);
       DOS.writeByte(OP_CREATE_RAW_TABLE);
       DOS.writeInt(tableId);
       DOS.writeInt(columns);
@@ -431,7 +439,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong( ++mTransactionId);
       DOS.writeByte(OP_DELETE);
       DOS.writeInt(fileId);
       DOS.writeBoolean(recursive);
@@ -478,7 +486,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong( ++mTransactionId);
       DOS.writeByte(OP_RENAME);
       DOS.writeInt(fileId);
       Utils.writeString(dstPath, DOS);
@@ -493,13 +501,15 @@ public class EditLog {
     }
     _close();
     LOG.info("Edit log max size reached, rotating edit log");
-    String pathPrefix = path.substring(0, path.lastIndexOf("/")) + "/completed";
+    String pathPrefix =
+        path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
     LOG.info("path: " + path + " prefix: " + pathPrefix);
     try {
       if (!UFS.exists(pathPrefix)) {
         UFS.mkdirs(pathPrefix, true);
       }
-      String newPath = pathPrefix + "/" + (mCurrentLogFileNum ++) + ".editLog";
+      String newPath =
+          pathPrefix + Constants.PATH_SEPARATOR + (mCurrentLogFileNum ++) + ".editLog";
       UFS.rename(path, newPath);
       LOG.info("Renamed " + path + " to " + newPath);
       OS = UFS.create(path);
@@ -525,7 +535,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong( ++mTransactionId);
       DOS.writeByte(OP_UNPIN_FILE);
       DOS.writeInt(fileId);
     } catch (IOException e) {
@@ -539,7 +549,7 @@ public class EditLog {
     }
 
     try {
-      DOS.writeLong(++ mTransactionId);
+      DOS.writeLong( ++mTransactionId);
       DOS.writeByte(OP_UPDATE_RAW_TABLE_METADATA);
       DOS.writeInt(tableId);
       Utils.writeByteBuffer(metadata, DOS);

@@ -62,7 +62,7 @@ public class FileOutStream extends OutStream {
     mCachedBytes = 0;
 
     if (WRITE_TYPE.isThrough()) {
-      mUnderFsFile = TFS.createAndGetUserUnderfsTempFolder() + "/" + FILE.FID;
+      mUnderFsFile = TFS.createAndGetUserUnderfsTempFolder() + Constants.PATH_SEPARATOR + FILE.FID;
       UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile);
       if (BLOCK_CAPACITY > Integer.MAX_VALUE) {
         throw new IOException("BLOCK_CAPCAITY (" + BLOCK_CAPACITY + ") can not bigger than "

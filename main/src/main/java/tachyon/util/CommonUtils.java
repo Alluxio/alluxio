@@ -42,7 +42,7 @@ public final class CommonUtils {
 
   /**
    * Change local file's permission.
-   * 
+   *
    * @param filePath
    *          that will change permission
    * @param perms
@@ -83,7 +83,7 @@ public final class CommonUtils {
     if (path == null || path.isEmpty()) {
       throw new IOException("Path (" + path + ") is invalid.");
     }
-    while (path.endsWith("/") && path.length() > 1) {
+    while (path.endsWith(Constants.PATH_SEPARATOR) && path.length() > 1) {
       path = path.substring(0, path.length() - 1);
     }
     return path;
@@ -178,19 +178,33 @@ public final class CommonUtils {
 
   /**
    * Get the name of the file at a path.
-   * 
+   *
    * @param path
    *          The path
    * @return the name of the file
    */
-  public static String getName(String path) throws InvalidPathException {
-    String[] pathNames = getPathComponents(path);
-    return pathNames[pathNames.length - 1];
+  public static String getName(String path) {
+    return path.substring(path.lastIndexOf('/') + 1);
+  }
+
+  /**
+   * Get the parent of the file at a path
+   *
+   * @param path
+   *          The path
+   * @return the parent of the file
+   */
+  public static String getParent(String path) {
+    String ret = path.substring(0, path.lastIndexOf('/'));
+    if (ret.equals("")) {
+      ret = Constants.PATH_SEPARATOR;
+    }
+    return ret;
   }
 
   /**
    * Get the path components of the given path.
-   * 
+   *
    * @param path
    *          The path to split
    * @return the path split into components
@@ -258,7 +272,7 @@ public final class CommonUtils {
 
   /**
    * Parse InetSocketAddress from a String
-   * 
+   *
    * @param address
    * @return
    * @throws IOException
@@ -348,14 +362,14 @@ public final class CommonUtils {
   /**
    * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the owner
    * of the folder containing the 'file'.
-   * 
+   *
    * @param file
    *          absolute file path
    */
   public static void setLocalFileStickyBit(String file) {
     try {
       // sticky bit is not implemented in PosixFilePermission
-      if (file.startsWith("/")) {
+      if (file.startsWith(Constants.PATH_SEPARATOR)) {
         Runtime.getRuntime().exec("chmod o+t " + file);
       }
     } catch (IOException e) {
@@ -382,7 +396,7 @@ public final class CommonUtils {
 
   /**
    * Create an empty file
-   * 
+   *
    * @throws IOException
    */
   public static void touch(String path) throws IOException {
@@ -396,6 +410,21 @@ public final class CommonUtils {
         || (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR)) || path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
+  }
+
+  /**
+   * Return whether the first array starts with the second.
+   */
+  public static boolean startsWith(Object[] first, Object[] second) {
+    if (second.length > first.length) {
+      return false;
+    }
+    for (int i = 0; i < second.length; i ++) {
+      if (!first[i].equals(second[i])) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private CommonUtils() {

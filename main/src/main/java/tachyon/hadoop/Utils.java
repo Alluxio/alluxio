@@ -33,8 +33,8 @@ public final class Utils {
   public static Path getHDFSPath(String path) {
     path = getTachyonFileName(path);
 
-    String mid = "/";
-    if (path.startsWith("/")) {
+    String mid = Constants.PATH_SEPARATOR;
+    if (path.startsWith(Constants.PATH_SEPARATOR)) {
       mid = "";
     }
 
@@ -48,7 +48,7 @@ public final class Utils {
       if (ret.equals("")) {
         ret = path.getName();
       } else {
-        ret = path.getName() + "/" + ret;
+        ret = path.getName() + Constants.PATH_SEPARATOR + ret;
       }
       path = path.getParent();
     }
@@ -56,14 +56,14 @@ public final class Utils {
       LOG.info("Utils getPathWithoutScheme(" + ori + ") result: " + ret);
     }
     if (ret.isEmpty()) {
-      return "/";
+      return Constants.PATH_SEPARATOR;
     }
     return ret;
   }
 
   public static String getTachyonFileName(String path) {
     if (path.isEmpty()) {
-      return "/";
+      return Constants.PATH_SEPARATOR;
     }
 
     while (path.contains(":")) {
@@ -71,7 +71,7 @@ public final class Utils {
       path = path.substring(index + 1);
     }
 
-    while (!path.startsWith("/")) {
+    while (!path.startsWith(Constants.PATH_SEPARATOR)) {
       path = path.substring(1);
     }
 

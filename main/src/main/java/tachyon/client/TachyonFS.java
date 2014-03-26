@@ -73,8 +73,8 @@ public class TachyonFS {
           + "host:port/ ," + Constants.HEADER_FT + "host:port/" + " , or /file");
     }
     String masterAddress = tempAddress;
-    if (tempAddress.contains("/")) {
-      masterAddress = tempAddress.substring(0, tempAddress.indexOf("/"));
+    if (tempAddress.contains(Constants.PATH_SEPARATOR)) {
+      masterAddress = tempAddress.substring(0, tempAddress.indexOf(Constants.PATH_SEPARATOR));
     }
     if (masterAddress.split(":").length != 2) {
       CommonUtils.illegalArgumentException("Illegal Tachyon Master Address: " + tachyonAddress);
