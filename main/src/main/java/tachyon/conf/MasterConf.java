@@ -61,8 +61,11 @@ public class MasterConf extends Utils {
   public final ArrayList<String> PINLIST = new ArrayList<String>();
 
   private MasterConf() {
-    JOURNAL_FOLDER =
-        getProperty("tachyon.master.journal.folder", CommonConf.get().TACHYON_HOME + "/journal/");
+    String journalFolder = getProperty("tachyon.master.journal.folder", CommonConf.get().TACHYON_HOME + "/journal/");
+    if (!journalFolder.endsWith(Constants.PATH_SEPARATOR)) {
+      journalFolder += Constants.PATH_SEPARATOR;
+    }
+    JOURNAL_FOLDER = journalFolder;
     FORMAT_FILE_PREFIX = "_format_";
 
     HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
