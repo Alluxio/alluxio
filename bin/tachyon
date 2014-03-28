@@ -107,12 +107,22 @@ function bootstrapConf {
   fi
 
   if [ ! -e "$TACHYON_CONF_DIR/tachyon-env.sh" ]; then
+    if [[ `uname -a` == Darwin* ]]; then
+      # osx sed wants an argument to -i, use .bootstrap.bk
+      TACHYON_SED="sed -i .bootstrap.bk"
+      TOTAL_MEM=`sysctl hw.memsize | cut -d ' ' -f2`
+      TOTAL_MEM=$[TOTAL_MEM / 1024]
+      TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
+    else
+      TACHYON_SED="sed -i"
+      TOTAL_MEM=`awk '/MemTotal/{print $2}' /proc/meminfo`
+      TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
+    fi
+
     # Create a default config that can be overridden later
     cp "$TACHYON_CONF_DIR/tachyon-env.sh.template" "$TACHYON_CONF_DIR/tachyon-env.sh"
-    sed -i "s/TACHYON_MASTER_ADDRESS=localhost/TACHYON_MASTER_ADDRESS=$1/" "$TACHYON_CONF_DIR/tachyon-env.sh"
-    TOTAL_MEM=`awk '/MemTotal/{print $2}' /proc/meminfo`
-    TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
-    sed -i "s/TACHYON_WORKER_MEMORY_SIZE=1GB/TACHYON_WORKER_MEMORY_SIZE=${TOTAL_MEM}KB/" "$TACHYON_CONF_DIR/tachyon-env.sh"
+    $TACHYON_SED "s/TACHYON_MASTER_ADDRESS=localhost/TACHYON_MASTER_ADDRESS=$1/" "$TACHYON_CONF_DIR/tachyon-env.sh"
+    $TACHYON_SED "s/TACHYON_WORKER_MEMORY_SIZE=1GB/TACHYON_WORKER_MEMORY_SIZE=${TOTAL_MEM}KB/" "$TACHYON_CONF_DIR/tachyon-env.sh"
   fi
 }
 
