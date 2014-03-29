@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,6 +25,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.rules.ExpectedException;
 
+import tachyon.Constants;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
@@ -76,10 +75,10 @@ public class WorkerStorageTest {
 
     WorkerStorage ws =
         new WorkerStorage(mMasterAddress, mWorkerAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
-    String orpahnblock = ws.getUnderfsOrphansFolder() + "/" + bid;
+    String orpahnblock = ws.getUnderfsOrphansFolder() + Constants.PATH_SEPARATOR + bid;
     UnderFileSystem ufs = UnderFileSystem.get(orpahnblock);
     Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", new File(
-        mWorkerDataFolder + "/" + bid).exists());
+        mWorkerDataFolder + Constants.PATH_SEPARATOR + bid).exists());
     Assert.assertTrue("UFS hasn't the orphan block file ", ufs.exists(orpahnblock));
     Assert.assertTrue("Orpahblock file size is changed", ufs.getFileSize(orpahnblock) == filesize);
   }
@@ -115,7 +114,7 @@ public class WorkerStorageTest {
     thrown.expectMessage("Wrong file name: xyz");
     mLocalTachyonCluster.stopWorker();
     // try a non-numerical file name
-    File unknownFile = new File(mWorkerDataFolder + "/" + "xyz");
+    File unknownFile = new File(mWorkerDataFolder + Constants.PATH_SEPARATOR + "xyz");
     unknownFile.createNewFile();
     new WorkerStorage(mMasterAddress, mWorkerAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
   }

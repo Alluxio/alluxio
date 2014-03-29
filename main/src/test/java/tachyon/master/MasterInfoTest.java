@@ -127,13 +127,14 @@ public class MasterInfoTest {
       FileDoesNotExistException, TachyonException {
     // long sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mMasterInfo.mkdir("/testFile" + Constants.PATH_SEPARATOR + MasterInfo.COL + k + "/" + 0);
+      mMasterInfo.mkdir("/testFile" + Constants.PATH_SEPARATOR + MasterInfo.COL + k
+          + Constants.PATH_SEPARATOR + 0);
     }
     // System.out.println(System.currentTimeMillis() - sMs);
     // sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
       mMasterInfo.getClientFileInfo("/testFile" + Constants.PATH_SEPARATOR + MasterInfo.COL + k
-          + "/" + 0);
+          + Constants.PATH_SEPARATOR + 0);
     }
     // System.out.println(System.currentTimeMillis() - sMs);
   }
@@ -255,8 +256,8 @@ public class MasterInfoTest {
       Assert.assertEquals(11, mMasterInfo.ls("/i" + i, false).size());
       Assert.assertEquals(11, mMasterInfo.ls("/i" + i, true).size());
     }
-    Assert.assertEquals(11, mMasterInfo.ls("/", false).size());
-    Assert.assertEquals(111, mMasterInfo.ls("/", true).size());
+    Assert.assertEquals(11, mMasterInfo.ls(Constants.PATH_SEPARATOR, false).size());
+    Assert.assertEquals(111, mMasterInfo.ls(Constants.PATH_SEPARATOR, true).size());
   }
 
   @Test(expected = TableColumnException.class)

@@ -41,7 +41,7 @@ public class Format {
     }
     return true;
   }
-  
+
   public static void main(String[] args) throws IOException {
     if (args.length != 1) {
       System.out.println(USAGE);
@@ -61,7 +61,8 @@ public class Format {
         System.exit(-1);
       }
 
-      CommonUtils.touch(masterConf.JOURNAL_FOLDER + masterConf.FORMAT_FILE_PREFIX + System.currentTimeMillis());
+      CommonUtils.touch(masterConf.JOURNAL_FOLDER + masterConf.FORMAT_FILE_PREFIX
+          + System.currentTimeMillis());
     } else if (args[0].toUpperCase().equals("WORKER")) {
       WorkerConf workerConf = WorkerConf.get();
       String localFolder = workerConf.DATA_FOLDER;
