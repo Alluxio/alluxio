@@ -1121,8 +1121,8 @@ public class MasterInfo implements ImageWriter {
     if (inode.isDirectory()) {
       List<Integer> childernIds = ((InodeFolder) inode).getChildrenIds();
 
-      if (!path.endsWith("/")) {
-        path += "/";
+      if (!path.endsWith(Constants.PATH_SEPARATOR)) {
+        path += Constants.PATH_SEPARATOR;
       }
       synchronized (mRoot) {
         for (int k : childernIds) {
@@ -1269,7 +1269,7 @@ public class MasterInfo implements ImageWriter {
   private String getPath(Inode inode) {
     synchronized (mRoot) {
       if (inode.getId() == 1) {
-        return "/";
+        return Constants.PATH_SEPARATOR;
       }
       if (inode.getParentId() == 1) {
         return Constants.PATH_SEPARATOR + inode.getName();
@@ -1646,8 +1646,8 @@ public class MasterInfo implements ImageWriter {
     } else {
       List<Integer> childrenIds = ((InodeFolder) inode).getChildrenIds();
 
-      if (!path.endsWith("/")) {
-        path += "/";
+      if (!path.endsWith(Constants.PATH_SEPARATOR)) {
+        path += Constants.PATH_SEPARATOR;
       }
       ret.add(path);
 
@@ -1787,7 +1787,7 @@ public class MasterInfo implements ImageWriter {
 
     // If we are renaming into the root folder
     if (dstFolderPath.isEmpty()) {
-      dstFolderPath = "/";
+      dstFolderPath = Constants.PATH_SEPARATOR;
     }
 
     Inode dstFolderInode = getInode(dstFolderPath);
