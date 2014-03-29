@@ -83,7 +83,7 @@ public final class CommonUtils {
     if (path == null || path.isEmpty()) {
       throw new IOException("Path (" + path + ") is invalid.");
     }
-    while (path.endsWith("/") && path.length() > 1) {
+    while (path.endsWith(Constants.PATH_SEPARATOR) && path.length() > 1) {
       path = path.substring(0, path.length() - 1);
     }
     return path;
@@ -355,7 +355,7 @@ public final class CommonUtils {
   public static void setLocalFileStickyBit(String file) {
     try {
       // sticky bit is not implemented in PosixFilePermission
-      if (file.startsWith("/")) {
+      if (file.startsWith(Constants.PATH_SEPARATOR)) {
         Runtime.getRuntime().exec("chmod o+t " + file);
       }
     } catch (IOException e) {

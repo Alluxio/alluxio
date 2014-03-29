@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.util.CommonUtils;
 
@@ -61,24 +60,24 @@ public class MasterFaultToleranceTest {
     mTfs.createFile("/0", 1024);
     for (int k = 1; k < clients; k ++) {
       TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
-      tfs.createFile("/" + k, 1024);
+      tfs.createFile(Constants.PATH_SEPARATOR + k, 1024);
     }
-    List<String> files = mTfs.ls("/", true);
+    List<String> files = mTfs.ls(Constants.PATH_SEPARATOR, true);
     Assert.assertEquals(clients + 1, files.size());
-    Assert.assertEquals("/", files.get(0));
+    Assert.assertEquals(Constants.PATH_SEPARATOR, files.get(0));
     for (int k = 0; k < clients; k ++) {
-      Assert.assertEquals("/" + k, files.get(k + 1));
+      Assert.assertEquals(Constants.PATH_SEPARATOR + k, files.get(k + 1));
     }
 
     for (int kills = 1; kills <= 3; kills ++) {
       Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
       CommonUtils.sleepMs(null, 1500);
       mTfs = mLocalTachyonClusterMultiMaster.getClient();
-      files = mTfs.ls("/", true);
+      files = mTfs.ls(Constants.PATH_SEPARATOR, true);
       Assert.assertEquals(clients + 1, files.size());
-      Assert.assertEquals("/", files.get(0));
+      Assert.assertEquals(Constants.PATH_SEPARATOR, files.get(0));
       for (int k = 0; k < clients; k ++) {
-        Assert.assertEquals("/" + k, files.get(k + 1));
+        Assert.assertEquals(Constants.PATH_SEPARATOR + k, files.get(k + 1));
       }
     }
   }
@@ -89,13 +88,13 @@ public class MasterFaultToleranceTest {
     mTfs.createFile("/0", 1024);
     for (int k = 1; k < clients; k ++) {
       TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
-      tfs.createFile("/" + k, 1024);
+      tfs.createFile(Constants.PATH_SEPARATOR + k, 1024);
     }
-    List<String> files = mTfs.ls("/", true);
+    List<String> files = mTfs.ls(Constants.PATH_SEPARATOR, true);
     Assert.assertEquals(clients + 1, files.size());
-    Assert.assertEquals("/", files.get(0));
+    Assert.assertEquals(Constants.PATH_SEPARATOR, files.get(0));
     for (int k = 0; k < clients; k ++) {
-      Assert.assertEquals("/" + k, files.get(k + 1));
+      Assert.assertEquals(Constants.PATH_SEPARATOR + k, files.get(k + 1));
     }
   }
 }
