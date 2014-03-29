@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -61,7 +59,8 @@ public class MasterConf extends Utils {
   public final ArrayList<String> PINLIST = new ArrayList<String>();
 
   private MasterConf() {
-    String journalFolder = getProperty("tachyon.master.journal.folder", CommonConf.get().TACHYON_HOME + "/journal/");
+    String journalFolder =
+        getProperty("tachyon.master.journal.folder", CommonConf.get().TACHYON_HOME + "/journal/");
     if (!journalFolder.endsWith(Constants.PATH_SEPARATOR)) {
       journalFolder += Constants.PATH_SEPARATOR;
     }
@@ -79,7 +78,8 @@ public class MasterConf extends Utils {
     SERVER_THREADS = getIntProperty("tachyon.master.server.threads", 128);
     WORKER_TIMEOUT_MS = getIntProperty("tachyon.master.worker.timeout.ms", 10 * 1000);
 
-    WHITELIST.addAll(Arrays.asList(getProperty("tachyon.master.whitelist", "/").split(";")));
+    WHITELIST.addAll(Arrays.asList(getProperty("tachyon.master.whitelist",
+        Constants.PATH_SEPARATOR).split(";")));
     String tPinList = getProperty("tachyon.master.pinlist", null);
     if (tPinList != null && !tPinList.isEmpty()) {
       PINLIST.addAll(Arrays.asList(tPinList.split(";")));

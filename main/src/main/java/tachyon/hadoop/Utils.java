@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,8 +31,8 @@ public final class Utils {
   public static Path getHDFSPath(String path) {
     path = getTachyonFileName(path);
 
-    String mid = "/";
-    if (path.startsWith("/")) {
+    String mid = Constants.PATH_SEPARATOR;
+    if (path.startsWith(Constants.PATH_SEPARATOR)) {
       mid = "";
     }
 
@@ -48,7 +46,7 @@ public final class Utils {
       if (ret.equals("")) {
         ret = path.getName();
       } else {
-        ret = path.getName() + "/" + ret;
+        ret = path.getName() + Constants.PATH_SEPARATOR + ret;
       }
       path = path.getParent();
     }
@@ -56,14 +54,14 @@ public final class Utils {
       LOG.info("Utils getPathWithoutScheme(" + ori + ") result: " + ret);
     }
     if (ret.isEmpty()) {
-      return "/";
+      return Constants.PATH_SEPARATOR;
     }
     return ret;
   }
 
   public static String getTachyonFileName(String path) {
     if (path.isEmpty()) {
-      return "/";
+      return Constants.PATH_SEPARATOR;
     }
 
     while (path.contains(":")) {
@@ -71,7 +69,7 @@ public final class Utils {
       path = path.substring(index + 1);
     }
 
-    while (!path.startsWith("/")) {
+    while (!path.startsWith(Constants.PATH_SEPARATOR)) {
       path = path.substring(1);
     }
 

@@ -48,7 +48,7 @@ public class Image {
    */
   public static void create(MasterInfo info, String path) throws IOException {
     String tPath = path + ".tmp";
-    String parentFolder = path.substring(0, path.lastIndexOf("/"));
+    String parentFolder = path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR));
     LOG.info("Creating the image file: " + tPath);
     UnderFileSystem ufs = UnderFileSystem.get(path);
     if (!ufs.exists(parentFolder)) {
