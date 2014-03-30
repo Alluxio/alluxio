@@ -85,7 +85,7 @@ public class InodeFolder extends Inode {
     }
   }
 
-  public void addChildren(int[] childrenIds, Map<Integer, Inode> allInodes) {
+  public synchronized void addChildren(int[] childrenIds, Map<Integer, Inode> allInodes) {
     for (int i : childrenIds) {
       Inode inode = allInodes.get(i);
       if (inode != null) {

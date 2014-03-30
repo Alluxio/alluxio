@@ -371,7 +371,7 @@ public class MasterInfo implements ImageWriter {
 
     String[] folderPath = new String[pathNames.length - 1];
     System.arraycopy(pathNames, 0, folderPath, 0, folderPath.length);
-    InodeLocks inodeLocks = getInode(folderPath, true);
+    InodeLocks inodeLocks = getInodeWithLocks(folderPath, true);
     try {
       // pathInd is the index into pathNames where we start filling in the path from the inode.
       int pathInd = folderPath.length;
@@ -803,7 +803,7 @@ public class MasterInfo implements ImageWriter {
       InvalidPathException {
     LOG.info("delete(" + path + ")");
     String pathParent = CommonUtils.getParent(path);
-    InodeLocks inodeLocks = getInode(pathParent, true);
+    InodeLocks inodeLocks = getInodeWithLocks(pathParent, true);
     if (inodeLocks.getNonexistentInd() >= 0 || !inodeLocks.getInode().isDirectory()) {
       inodeLocks.destroy();
       return 0;
@@ -948,7 +948,7 @@ public class MasterInfo implements ImageWriter {
    */
   public List<BlockInfo> getBlockList(String path) throws InvalidPathException,
       FileDoesNotExistException {
-    InodeLocks inodeLocks = getInode(path, false);
+    InodeLocks inodeLocks = getInodeWithLocks(path, false);
     try {
       if (inodeLocks.getNonexistentInd() >= 0) {
         throw new FileDoesNotExistException(path + " does not exist.");
@@ -1054,7 +1054,7 @@ public class MasterInfo implements ImageWriter {
    */
   public ClientFileInfo getClientFileInfo(String path) throws FileDoesNotExistException,
       InvalidPathException {
-    InodeLocks inodeLocks = getInode(path, false);
+    InodeLocks inodeLocks = getInodeWithLocks(path, false);
     try {
       if (inodeLocks.getNonexistentInd() >= 0) {
         throw new FileDoesNotExistException("Failed to getClientFileInfo: " + path
@@ -1100,7 +1100,7 @@ public class MasterInfo implements ImageWriter {
    */
   public ClientRawTableInfo getClientRawTableInfo(String path) throws TableDoesNotExistException,
       InvalidPathException {
-    InodeLocks inodeLocks = getInode(path, false);
+    InodeLocks inodeLocks = getInodeWithLocks(path, false);
     try {
       if (inodeLocks.getNonexistentInd() >= 0) {
         throw new TableDoesNotExistException("Table " + path + " does not exist.");
@@ -1143,7 +1143,7 @@ public class MasterInfo implements ImageWriter {
    */
   public int getFileId(String path) throws InvalidPathException {
     LOG.info("getFileId(" + path + ")");
-    InodeLocks inodeLocks = getInode(path, false);
+    InodeLocks inodeLocks = getInodeWithLocks(path, false);
     try {
       int ret = -1;
       if (inodeLocks.getNonexistentInd() == -1) {
@@ -1189,7 +1189,7 @@ public class MasterInfo implements ImageWriter {
       InvalidPathException, IOException {
     LOG.info("getFileLocations: " + path);
     synchronized (mRoot) {
-      InodeLocks inodeLocks = getInode(path, false);
+      InodeLocks inodeLocks = getInodeWithLocks(path, false);
       try {
         if (inodeLocks.getNonexistentInd() >= 0) {
           throw new FileDoesNotExistException(path);
@@ -1232,7 +1232,7 @@ public class MasterInfo implements ImageWriter {
       InvalidPathException {
     List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
 
-    InodeLocks inodeLocks = getInode(path, false);
+    InodeLocks inodeLocks = getInodeWithLocks(path, false);
     try {
       if (inodeLocks.getNonexistentInd() >= 0) {
         throw new FileDoesNotExistException(path);
@@ -1447,8 +1447,8 @@ public class MasterInfo implements ImageWriter {
    *          The path to search for
    * @return the inode of the file at the given path as well as the locks taken to get there
    */
-  private InodeLocks getInode(String path, boolean isWrite) throws InvalidPathException {
-    return getInode(CommonUtils.getPathComponents(path), isWrite);
+  private InodeLocks getInodeWithLocks(String path, boolean isWrite) throws InvalidPathException {
+    return getInodeWithLocks(CommonUtils.getPathComponents(path), isWrite);
   }
 
   /**
@@ -1463,7 +1463,8 @@ public class MasterInfo implements ImageWriter {
    *         to get there. If it was not able to traverse down the entire path, it will
    *         set mNonexistentInd to the first path component it didn't find.
    */
-  private InodeLocks getInode(String[] pathNames, boolean isWrite) throws InvalidPathException {
+  private InodeLocks getInodeWithLocks(String[] pathNames, boolean isWrite)
+      throws InvalidPathException {
     if (pathNames == null || pathNames.length == 0) {
       return null;
     }
@@ -1567,7 +1568,7 @@ public class MasterInfo implements ImageWriter {
    *         directory, returns the number of items in the directory.
    */
   public int getNumberOfFiles(String path) throws InvalidPathException, FileDoesNotExistException {
-    InodeLocks inodeLocks = getInode(path, false);
+    InodeLocks inodeLocks = getInodeWithLocks(path, false);
     try {
       if (inodeLocks.getNonexistentInd() >= 0) {
         throw new FileDoesNotExistException(path);
@@ -1831,7 +1832,7 @@ public class MasterInfo implements ImageWriter {
    * @return the id of the table
    */
   public int getRawTableId(String path) throws InvalidPathException {
-    InodeLocks inodeLocks = getInode(path, false);
+    InodeLocks inodeLocks = getInodeWithLocks(path, false);
     try {
       if (inodeLocks.getNonexistentInd() == -1 && inodeLocks.getInode().isDirectory()) {
         int id = inodeLocks.getInode().getId();
@@ -2024,7 +2025,7 @@ public class MasterInfo implements ImageWriter {
   public List<Integer> listFiles(String path, boolean recursive) throws InvalidPathException,
       FileDoesNotExistException {
     List<Integer> ret = new ArrayList<Integer>();
-    InodeLocks inodeLocks = getInode(path, false);
+    InodeLocks inodeLocks = getInodeWithLocks(path, false);
     try {
       if (inodeLocks.getNonexistentInd() >= 0) {
         throw new FileDoesNotExistException(path);
@@ -2113,7 +2114,7 @@ public class MasterInfo implements ImageWriter {
       FileDoesNotExistException {
     List<String> ret = new ArrayList<String>();
 
-    InodeLocks inodeLocks = getInode(path, false);
+    InodeLocks inodeLocks = getInodeWithLocks(path, false);
     try {
       if (inodeLocks.getNonexistentInd() >= 0) {
         throw new FileDoesNotExistException(path);
@@ -2274,7 +2275,7 @@ public class MasterInfo implements ImageWriter {
   public void rename(String srcPath, String dstPath) throws FileAlreadyExistException,
       FileDoesNotExistException, InvalidPathException {
     String srcFolder = CommonUtils.getParent(srcPath);
-    InodeLocks srcInodeLocks = getInode(srcFolder, false);
+    InodeLocks srcInodeLocks = getInodeWithLocks(srcFolder, false);
     if (srcInodeLocks.getNonexistentInd() >= 0) {
       throw new InvalidPathException("Failed to rename: source subpath " + srcFolder
           + " does not exist.");
@@ -2319,7 +2320,7 @@ public class MasterInfo implements ImageWriter {
       String srcName = CommonUtils.getName(srcPath);
       String dstFolder = CommonUtils.getParent(dstPath);
       String dstName = CommonUtils.getName(dstPath);
-      InodeLocks dstInodeLocks = getInode(dstFolder, false);
+      InodeLocks dstInodeLocks = getInodeWithLocks(dstFolder, false);
       try {
         if (dstInodeLocks.getNonexistentInd() >= 0) {
           throw new InvalidPathException("Failed to rename: destination subpath " + dstFolder
