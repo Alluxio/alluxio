@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,8 +19,8 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
 import org.apache.thrift.TException;
-import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
@@ -48,9 +46,9 @@ public class TachyonWorker implements Runnable {
         acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
   }
 
-  public static synchronized TachyonWorker createWorker(String masterAddress, String workerAddress,
-      int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
-      String localFolder, long spaceLimitBytes) {
+  public static synchronized TachyonWorker createWorker(String masterAddress,
+      String workerAddress, int dataPort, int selectorThreads, int acceptQueueSizePerThreads,
+      int workerThreads, String localFolder, long spaceLimitBytes) {
     String[] address = masterAddress.split(":");
     InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
     address = workerAddress.split(":");
@@ -133,17 +131,12 @@ public class TachyonWorker implements Runnable {
       WorkerService.Processor<WorkerServiceHandler> processor =
           new WorkerService.Processor<WorkerServiceHandler>(mWorkerServiceHandler);
 
-      // TODO This is for Thrift 0.8 or newer.
-      // mServer = new TThreadedSelectorServer(new TThreadedSelectorServer
-      // .Args(new TNonblockingServerSocket(workerAddress)).processor(processor)
-      // .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
-      // .workerThreads(workerThreads));
-
-      // This is for Thrift 0.7.0, for Hive compatibility.
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(workerAddress);
       mServer =
-          new THsHaServer(new THsHaServer.Args(mServerTNonblockingServerSocket).processor(
-              processor).workerThreads(workerThreads));
+          new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
+              mServerTNonblockingServerSocket).processor(processor)
+              .selectorThreads(selectorThreads)
+              .acceptQueueSizePerThread(acceptQueueSizePerThreads).workerThreads(workerThreads));
     } catch (TTransportException e) {
       LOG.error(e.getMessage(), e);
       CommonUtils.runtimeException(e);

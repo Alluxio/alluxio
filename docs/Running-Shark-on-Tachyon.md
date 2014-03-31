@@ -35,7 +35,7 @@ Tachyon to cache Shark's tables. In summary, the followings are four major ones:
 </tr>
 <tr>
   <td>0.4.1</td>
-  <td>0.9.1 + (To be released)</td>
+  <td>0.9.1 +</td>
 </tr>
 </table>
 
@@ -47,7 +47,7 @@ or [Cluster Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-on-a-Cl
 
 Then, edit `shark-env.sh` and add
 
-    export TACHYON_MASTER="TachyonMasterHost:TachyonMasterPort"
+    export TACHYON_MASTER="tachyon://TachyonMasterHost:TachyonMasterPort"
     export TACHYON_WAREHOUSE_PATH=/sharktables
 
 ### Cache Shark table in Tachyon

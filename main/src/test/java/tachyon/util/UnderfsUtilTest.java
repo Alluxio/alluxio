@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,6 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.Assert;
 
+import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
@@ -61,7 +60,7 @@ public class UnderfsUtilTest {
     mTfs = mLocalTachyonCluster.getClient();
 
     mUnderfsAddress = System.getProperty("tachyon.underfs.address");
-    mUfs = UnderFileSystem.get(mUnderfsAddress + "/");
+    mUfs = UnderFileSystem.get(mUnderfsAddress + Constants.PATH_SEPARATOR);
   }
 
   @Test
@@ -85,7 +84,8 @@ public class UnderfsUtilTest {
       CommonUtils.touch(mUnderfsAddress + inclusion + "/1");
     }
 
-    UnderfsUtil.getInfo(mTfs, mUnderfsAddress, "/", new PrefixList(Arrays.asList(exclusions)));
+    UnderfsUtil.getInfo(mTfs, mUnderfsAddress, Constants.PATH_SEPARATOR,
+        new PrefixList(Arrays.asList(exclusions)));
 
     List<String> paths = null;
     for (String exclusion : exclusions) {

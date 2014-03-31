@@ -1,13 +1,11 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,8 +17,8 @@ package tachyon.master;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.log4j.Logger;
@@ -58,12 +56,15 @@ public class TachyonMaster {
   private MasterInfo mMasterInfo;
   private InetSocketAddress mMasterAddress;
   private UIWebServer mWebServer;
+  private TNonblockingServerSocket mServerTNonblockingServerSocket;
   private TServer mMasterServiceServer;
   private MasterServiceHandler mMasterServiceHandler;
   private Journal mJournal;
   private EditLogProcessor mEditLogProcessor;
   private int mWebPort;
 
+  private int mSelectorThreads;
+  private int mAcceptQueueSizePerThread;
   private int mWorkerThreads;
   private boolean mZookeeperMode = false;
 
@@ -77,12 +78,14 @@ public class TachyonMaster {
 
     mIsStarted = false;
     mWebPort = webPort;
+    mSelectorThreads = selectorThreads;
+    mAcceptQueueSizePerThread = acceptQueueSizePerThreads;
     mWorkerThreads = workerThreads;
 
     try {
       mMasterAddress = address;
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
-      if (!isFormatted(MasterConf.get().JOURNAL_FOLDER, MasterConf.get().FORMAT_FILE_PREFIX)) {
+      if (!isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX)) {
         LOG.error("Tachyon was not formatted!");
         System.exit(-1);
       }
@@ -162,16 +165,12 @@ public class TachyonMaster {
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
-    // TODO This is for Thrift 0.8 or newer.
-    // mServer = new TThreadedSelectorServer(new TThreadedSelectorServer
-    // .Args(new TNonblockingServerSocket(address)).processor(processor)
-    // .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
-    // .workerThreads(workerThreads));
-
-    // This is for Thrift 0.7.0, for Hive compatibility.
+    mServerTNonblockingServerSocket = new TNonblockingServerSocket(mMasterAddress);
     mMasterServiceServer =
-        new THsHaServer(new THsHaServer.Args(new TNonblockingServerSocket(mMasterAddress))
-            .processor(masterServiceProcessor).workerThreads(mWorkerThreads));
+        new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
+            mServerTNonblockingServerSocket).processor(masterServiceProcessor)
+            .selectorThreads(mSelectorThreads).acceptQueueSizePerThread(mAcceptQueueSizePerThread)
+            .workerThreads(mWorkerThreads));
 
     mIsStarted = true;
   }
@@ -239,8 +238,9 @@ public class TachyonMaster {
       mWebServer.shutdownWebServer();
       mMasterInfo.stop();
       mMasterServiceServer.stop();
+      mServerTNonblockingServerSocket.close();
       mIsStarted = false;
-    }   
+    }
     if (mZookeeperMode) {
       if (mLeaderSelectorClient != null) {
         mLeaderSelectorClient.close();
