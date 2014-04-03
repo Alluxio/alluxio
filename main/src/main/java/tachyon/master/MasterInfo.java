@@ -2239,12 +2239,14 @@ public class MasterInfo implements ImageWriter {
    */
   private void rename(Inode srcInode, String dstPath) throws FileAlreadyExistException,
       InvalidPathException, FileDoesNotExistException {
-    PathLocks srcPathLocks = getPathAndLocks(srcInode, false);
-    if (srcPathLocks == null) {
+    // It's possible that the path will get deleted after we find it, but for simplicity, we'll
+    // handle that later.
+    String srcPath = getPath(srcInode);
+    if (srcPath == null) {
       throw new FileDoesNotExistException("Failed to rename: " + srcInode.getId()
           + " does not exist");
     }
-    _rename(srcPathLocks.getPath(), srcPathLocks.getInodeLocks(), dstPath);
+    rename(srcPath, dstPath);
   }
 
   /**
@@ -2257,11 +2259,11 @@ public class MasterInfo implements ImageWriter {
    */
   public void rename(int fileId, String dstPath) throws FileDoesNotExistException,
       FileAlreadyExistException, InvalidPathException {
-    PathLocks srcPathLocks = getPathAndLocks(fileId, false);
-    if (srcPathLocks == null) {
+    String srcPath = getPath(fileId);
+    if (srcPath == null) {
       throw new FileDoesNotExistException("Failed to rename: " + fileId + " does not exist");
     }
-    _rename(srcPathLocks.getPath(), srcPathLocks.getInodeLocks(), dstPath);
+    rename(srcPath, dstPath);
   }
 
   /**
@@ -2274,133 +2276,75 @@ public class MasterInfo implements ImageWriter {
    */
   public void rename(String srcPath, String dstPath) throws FileAlreadyExistException,
       FileDoesNotExistException, InvalidPathException {
-    String srcFolder = CommonUtils.getParent(srcPath);
-    InodeLocks srcInodeLocks = getInodeWithLocks(srcFolder, false);
-    if (srcInodeLocks.getNonexistentInd() >= 0) {
-      throw new InvalidPathException("Failed to rename: source subpath " + srcFolder
-          + " does not exist.");
+    if (srcPath.equals(dstPath)) {
+      return;
     }
-    LOG.info("Running rename of " + srcPath + " to " + dstPath);
-    _rename(srcPath, srcInodeLocks, dstPath);
-  }
 
-  /**
-   * Rename a file to the given path.
-   * 
-   * @param srcPath
-   *          The path of the file to rename
-   * @param srcInodeLocks
-   *          The InodeLocks structure obtained by traversing to srcPath's parent folder.
-   *          There should read locks up till srcPath's parent. srcInodeLocks will be destroyed at
-   *          the end of this function.
-   * @param dstPath
-   *          The new path of the file
-   */
-  private void _rename(String srcPath, InodeLocks srcInodeLocks, String dstPath)
-      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException {
+    // Due to the complexity of handling locking safely between the source and destination paths and
+    // transitioning from read to write locks, we simply find the longest common subpath between
+    // srcPath and dstPath, and take a write lock on that directory.
+    String[] srcComponents = CommonUtils.getPathComponents(srcPath);
+    String[] dstComponents = CommonUtils.getPathComponents(dstPath);
+    int prefixInd = CommonUtils.commonPrefix(srcComponents, dstComponents);
+    if (prefixInd == srcComponents.length) {
+      throw new InvalidPathException("Failed to rename: " + srcPath + " is a prefix of " + dstPath);
+    }
+
+    String[] lockPath;
+    if (prefixInd == 0) {
+      // The paths differ completely, so we lock the root.
+      lockPath = CommonUtils.getPathComponents("/");
+    } else {
+      lockPath = new String[prefixInd];
+      System.arraycopy(srcComponents, 0, lockPath, 0, prefixInd);
+    }
+
+    InodeLocks prefixInodeLocks = getInodeWithLocks(lockPath, true);
     try {
-      if (srcPath.equals(dstPath)) {
-        return;
+      if (prefixInodeLocks.getNonexistentInd() >= 0) {
+        throw new InvalidPathException("Failed to rename: subpath " + srcPath + " does not exist.");
       }
-      // We make sure srcPath isn't a prefix of dstPath, since that is an invalid rename. If srcPath
-      // is Constants.PATH_SEPARATOR, then this test should always fail, so if it passes, we know
-      // srcPath must have a parent.
-      if (CommonUtils.startsWith(dstPath.split(Constants.PATH_SEPARATOR),
-          srcPath.split(Constants.PATH_SEPARATOR))) {
-        throw new InvalidPathException("Failed to rename: " + srcPath + " is a prefix of "
-            + dstPath);
-      }
-      /*
-       * Before we do any destructive operations, we have to make sure that srcPath and dstPath are
-       * valid locations. Since dstPath could share path components with srcPath, we traverse to
-       * srcPath's parent and dstPath's parent without any write locks and make sure everything is
-       * good. Then we upgrade the srcPath parent's lock to write, remove the intended inode, and
-       * place it into dstPath's parent.
-       */
-      String srcName = CommonUtils.getName(srcPath);
-      String dstFolder = CommonUtils.getParent(dstPath);
-      String dstName = CommonUtils.getName(dstPath);
-      InodeLocks dstInodeLocks = getInodeWithLocks(dstFolder, false);
-      try {
-        if (dstInodeLocks.getNonexistentInd() >= 0) {
-          throw new InvalidPathException("Failed to rename: destination subpath " + dstFolder
+
+      // Now that we have a write lock on the last path component in lockPath, we are free to
+      // traverse its subtree, remove the inode at srcPath, and place it at dstPath. We first
+      // traverse to srcPath's parent and dstPath's parent to make sure they are valid locations.
+
+      InodeFolder srcInodeParent = (InodeFolder) prefixInodeLocks.getInode();
+      for (int component = prefixInd; component < srcComponents.length - 1; component ++) {
+        InodeFolder child = (InodeFolder) srcInodeParent.getChild(srcComponents[component]);
+        if (child == null) {
+          throw new InvalidPathException("Failed to rename: subpath " + srcPath
               + " does not exist.");
         }
-        if (!dstInodeLocks.getInode().isDirectory()) {
-          throw new InvalidPathException("Failed to rename: destination subpath " + dstFolder
-              + " is not a directory.");
-        }
-        // We make sure that srcName exists and that dstName doesn't exist inside
-        // dstFolder
-        Inode srcInode = ((InodeFolder) srcInodeLocks.getInode()).getChild(srcName);
-        if (srcInode == null) {
-          throw new FileDoesNotExistException("Failed to rename: " + srcPath + " does not exist");
-        }
-        if (((InodeFolder) dstInodeLocks.getInode()).getChild(dstName) != null) {
-          throw new FileAlreadyExistException("Failed to rename: " + dstPath + " already exists");
-        }
-        // Currently we have a read lock on srcPath's parent and dstFolder. We first need to upgrade
-        // srcInodeLock's last lock to a write lock before we remove srcInode. It's possible that
-        // srcPath and dstPath have the same parent directory, but in that case, we can simply
-        // rename srcInode and we're done.
-        if (srcInodeLocks.getInode().equals(dstInodeLocks.getInode())) {
-          dstInodeLocks.destroy();
-          // It's possible during the upgrade to a write lock that someone creates a file with
-          // dstName, in which case we throw a FileAlreadyExistException.
-          upgradeLock(srcInodeLocks.getLocks()[srcInodeLocks.getLocks().length - 1]);
-          srcInodeLocks.setIsWrite(true);
-          if (((InodeFolder) srcInodeLocks.getInode()).getChild(dstName) != null) {
-            throw new FileAlreadyExistException("Failed to rename: " + dstPath + " already exists");
-          } else {
-            srcInode.setName(dstName);
-          }
-        } else {
-          // Since another write lock can be taken during this upgrade, it's possible that somebody
-          // removed srcInode, so we check that and throw an exception if that's the case.
-          upgradeLock(srcInodeLocks.getLocks()[srcInodeLocks.getLocks().length - 1]);
-          srcInodeLocks.setIsWrite(true);
-          if (((InodeFolder) srcInodeLocks.getInode()).getChild(srcName) == null) {
-            throw new FileDoesNotExistException("Failed to rename: " + srcPath + " does not exist");
-          }
-          ((InodeFolder) srcInodeLocks.getInode()).removeChild(srcInode);
-          srcInode.setParentId(dstInodeLocks.getInode().getId());
-          srcInode.setName(dstName);
-          // We now have to release the locks in srcInodeLocks and upgrade the last lock in
-          // dstInodeLocks to a write lock so that we can insert the inode there. However, since
-          // upgrades aren't atomic, somemone could create a file with the name dstPath during the
-          // upgrade. This is a pretty big problem, since we can't reliably put the inode back to
-          // srcPath since we released the locks. Also there is no clear way to acquire write locks
-          // on
-          // srcPath and dstPath at the same time, so we have to release the locks on srcPath before
-          // getting a write lock on dstPath. In this case, we'll rename the inode to some path that
-          // does exist, and throw a FileAlreadyExistsException. There is probably a better solution
-          // to this problem.
-          srcInodeLocks.destroy();
-          upgradeLock(dstInodeLocks.getLocks()[dstInodeLocks.getLocks().length - 1]);
-          dstInodeLocks.setIsWrite(true);
-          ((InodeFolder) dstInodeLocks.getInode()).addChild(srcInode);
-          if (((InodeFolder) dstInodeLocks.getInode()).getChild(dstName) != null) {
-            // Find a name that does exist
-            int num;
-            for (num = 0; ((InodeFolder) dstInodeLocks.getInode()).getChild(dstName + num) != null; num ++) {
-            }
-            String newDstPath = dstName + num;
-            // Rename srcInode, write to the edit log, and throw an exception
-            srcInode.setName(newDstPath);
-            mJournal.getEditLog().rename(srcInode.getId(), newDstPath);
-            throw new FileAlreadyExistException("Failed to rename: " + dstPath
-                + " was created in the middle of the operation, so the renamed file is now at "
-                + CommonUtils.getParent(dstPath) + newDstPath);
-          }
-        }
-
-        mJournal.getEditLog().rename(srcInode.getId(), dstPath);
-        mJournal.getEditLog().flush();
-      } finally {
-        dstInodeLocks.destroy();
       }
+
+      InodeFolder dstInodeParent = (InodeFolder) prefixInodeLocks.getInode();
+      for (int component = prefixInd; component < dstComponents.length - 1; component ++) {
+        InodeFolder child = (InodeFolder) dstInodeParent.getChild(dstComponents[component]);
+        if (child == null) {
+          throw new InvalidPathException("Failed to rename: parent of destination path " + dstPath
+              + " does not exist.");
+        }
+      }
+
+      Inode srcInode = srcInodeParent.getChild(srcComponents[srcComponents.length - 1]);
+      if (srcInode == null) {
+        throw new InvalidPathException("Failed to rename: subpath " + srcPath + " does not exist.");
+      }
+      if (dstInodeParent.getChild(dstComponents[dstComponents.length - 1]) != null) {
+        throw new InvalidPathException("Failed to rename: destination path " + srcPath
+            + " already exists.");
+      }
+
+      // Now we remove srcInode from it's parent and insert it into dstInodeParent
+      srcInodeParent.removeChild(srcInode);
+      srcInode.setParentId(dstInodeParent.getId());
+      srcInode.setName(dstComponents[dstComponents.length - 1]);
+      dstInodeParent.addChild(srcInode);
+      mJournal.getEditLog().rename(srcInode.getId(), dstPath);
+      mJournal.getEditLog().flush();
     } finally {
-      srcInodeLocks.destroy();
+      prefixInodeLocks.destroy();
     }
   }
 

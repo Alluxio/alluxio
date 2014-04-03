@@ -413,18 +413,20 @@ public final class CommonUtils {
   }
 
   /**
-   * Return whether the first array starts with the second.
+   * Finds the longest common prefix between two arrays.
+   * 
+   * @param first
+   *          The first array to look at
+   * @param second
+   *          The second array to look at
+   * @return The index of the first differing element between the two lists. This will be
+   *         min(len(first), len(second)) if one list is a prefix of the other.
    */
-  public static boolean startsWith(Object[] first, Object[] second) {
-    if (second.length > first.length) {
-      return false;
+  public static int commonPrefix(Object[] first, Object[] second) {
+    int i;
+    for (i = 0; i < first.length && i < second.length && first[i].equals(second[i]); i ++) {
     }
-    for (int i = 0; i < second.length; i ++) {
-      if (!first[i].equals(second[i])) {
-        return false;
-      }
-    }
-    return true;
+    return i;
   }
 
   private CommonUtils() {
