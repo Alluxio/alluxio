@@ -91,9 +91,9 @@ public class MasterInfoBenchmark {
       if (depth < 1) {
         return;
       } else if (depth == 1) {
-        masterInfo._createFile(false, path, false, Constants.DEFAULT_BLOCK_SIZE_BYTE, 0);
+        masterInfo._createFile(false, path, false, Constants.DEFAULT_BLOCK_SIZE_BYTE, 0, false);
       } else {
-        masterInfo._createFile(false, path, true, 0, 0);
+        masterInfo._createFile(false, path, true, 0, 0, false);
       }
       if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
@@ -226,7 +226,7 @@ public class MasterInfoBenchmark {
           exec(depth - 1, filesPerNode, concurrencyDepth, path + Constants.PATH_SEPARATOR + i);
         }
       }
-      masterInfo.deleteNoLog(path, true);
+      masterInfo._delete(path, true);
     }
 
     @Override

@@ -81,7 +81,7 @@ public class EditLog {
 
   /**
    * Load edit log.
-   * 
+   *
    * @param info
    *          The Master Info.
    * @param path
@@ -156,7 +156,7 @@ public class EditLog {
         }
         case OP_CREATE_FILE: {
           info._createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(),
-              is.readLong(), is.readLong());
+              is.readLong(), is.readLong(), false);
           break;
         }
         case OP_DELETE: {
@@ -473,7 +473,7 @@ public class EditLog {
 
   /**
    * Get the current TransactionId and FlushedTransactionId
-   * 
+   *
    * @return (TransactionId, FlushedTransactionId)
    */
   public synchronized Pair<Long, Long> getTransactionIds() {
@@ -522,7 +522,7 @@ public class EditLog {
 
   /**
    * Changes the max log size for testing purposes.
-   * 
+   *
    * @param size
    */
   public void setMaxLogSize(int size) {

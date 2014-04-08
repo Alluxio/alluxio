@@ -59,6 +59,7 @@ public class InodeFolder extends Inode {
   }
 
   private Set<Inode> mChildren = new HashSet<Inode>();
+  // This needs to be a reentrant lock. So for now, TachyonReadWriteLock won't work.
   private ReadWriteLock mReadWriteLock = new TachyonReadWriteLock();
 
   public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
@@ -155,10 +156,24 @@ public class InodeFolder extends Inode {
     return mChildren.size();
   }
 
+  /**
+   * Removes the given inode from the folder.
+   *
+   * @param i
+   *          The Inode to remove
+   * @return true if the inode was removed, false otherwise.
+   */
   public synchronized boolean removeChild(Inode i) {
     return mChildren.remove(i);
   }
 
+  /**
+   * Removes the given child from the folder.
+   *
+   * @param name
+   *          The name of the Inode to remove.
+   * @return true if the inode was removed, false otherwise.
+   */
   public synchronized boolean removeChild(String name) {
     for (Inode i : mChildren) {
       if (i.getName().equals(name)) {

@@ -42,7 +42,7 @@ public final class CommonUtils {
 
   /**
    * Change local file's permission.
-   *
+   * 
    * @param filePath
    *          that will change permission
    * @param perms
@@ -177,8 +177,19 @@ public final class CommonUtils {
   }
 
   /**
+   * Check if the given path is the root.
+   * 
+   * @param path
+   *          The path to check
+   * @return true if the path is the root
+   */
+  public static boolean isRoot(String path) {
+    return (path.length() == 1 && path.equals(Constants.PATH_SEPARATOR));
+  }
+
+  /**
    * Get the name of the file at a path.
-   *
+   * 
    * @param path
    *          The path
    * @return the name of the file
@@ -189,7 +200,7 @@ public final class CommonUtils {
 
   /**
    * Get the parent of the file at a path
-   *
+   * 
    * @param path
    *          The path
    * @return the parent of the file
@@ -204,14 +215,14 @@ public final class CommonUtils {
 
   /**
    * Get the path components of the given path.
-   *
+   * 
    * @param path
    *          The path to split
    * @return the path split into components
    */
   public static String[] getPathComponents(String path) throws InvalidPathException {
     validatePath(path);
-    if (path.length() == 1 && path.equals(Constants.PATH_SEPARATOR)) {
+    if (isRoot(path)) {
       String[] ret = new String[1];
       ret[0] = "";
       return ret;
@@ -272,7 +283,7 @@ public final class CommonUtils {
 
   /**
    * Parse InetSocketAddress from a String
-   *
+   * 
    * @param address
    * @return
    * @throws IOException
@@ -362,7 +373,7 @@ public final class CommonUtils {
   /**
    * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the owner
    * of the folder containing the 'file'.
-   *
+   * 
    * @param file
    *          absolute file path
    */
@@ -396,7 +407,7 @@ public final class CommonUtils {
 
   /**
    * Create an empty file
-   *
+   * 
    * @throws IOException
    */
   public static void touch(String path) throws IOException {

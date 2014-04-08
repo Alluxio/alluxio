@@ -37,6 +37,7 @@ public class TachyonReadWriteLock implements ReadWriteLock {
    * the Lock interface, so some of them are dummy methods.
    */
   private class ReadLock implements Lock {
+    @Override
     public void lock() {
       while (mWriter.get()) {
       }
@@ -47,26 +48,31 @@ public class TachyonReadWriteLock implements ReadWriteLock {
       }
     }
 
+    @Override
     public void unlock() {
       mReaders.getAndDecrement();
     }
 
     // The rest of the methods are dummy methods
 
+    @Override
     public Condition newCondition() {
-      return null;
+      throw new RuntimeException("Not implemented");
     }
 
+    @Override
     public boolean tryLock() {
-      return false;
+      throw new RuntimeException("Not implemented");
     }
 
+    @Override
     public boolean tryLock(long time, TimeUnit unit) {
-      return false;
+      throw new RuntimeException("Not implemented");
     }
 
+    @Override
     public void lockInterruptibly() {
-      return;
+      throw new RuntimeException("Not implemented");
     }
   }
 
@@ -90,20 +96,24 @@ public class TachyonReadWriteLock implements ReadWriteLock {
 
     // The rest of the methods are dummy methods
 
+    @Override
     public Condition newCondition() {
-      return null;
+      throw new RuntimeException("Not implemented");
     }
 
+    @Override
     public boolean tryLock() {
-      return false;
+      throw new RuntimeException("Not implemented");
     }
 
+    @Override
     public boolean tryLock(long time, TimeUnit unit) {
-      return false;
+      throw new RuntimeException("Not implemented");
     }
 
+    @Override
     public void lockInterruptibly() {
-      return;
+      throw new RuntimeException("Not implemented");
     }
   }
 
@@ -113,6 +123,7 @@ public class TachyonReadWriteLock implements ReadWriteLock {
   /**
    * Returns the read lock associated with the class.
    */
+  @Override
   public Lock readLock() {
     return mReadLock;
   }
@@ -120,6 +131,7 @@ public class TachyonReadWriteLock implements ReadWriteLock {
   /**
    * Returns the write lock associated with the class.
    */
+  @Override
   public Lock writeLock() {
     return mWriteLock;
   }
