@@ -40,21 +40,25 @@ public class InodeFolder extends Inode {
    * @return
    * @throws IOException
    */
-  static InodeFolder loadImage(DataInputStream is, Map<Integer, Inode> allInodes)
-      throws IOException {
+  static InodeFolder loadImage(DataInputStream is) throws IOException {
     long creationTimeMs = is.readLong();
     int fileId = is.readInt();
     String fileName = Utils.readString(is);
     int parentId = is.readInt();
 
     int numberOfChildren = is.readInt();
-    int[] children = new int[numberOfChildren];
+    Inode[] children = new Inode[numberOfChildren];
     for (int k = 0; k < numberOfChildren; k ++) {
-      children[k] = is.readInt();
+      byte type = is.readByte();
+      if (type == Image.T_INODE_FILE) {
+        children[k] = InodeFile.loadImage(is);
+      } else {
+        children[k] = InodeFolder.loadImage(is);
+      }
     }
 
     InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs);
-    folder.addChildren(children, allInodes);
+    folder.addChildren(children);
     return folder;
   }
 
@@ -158,7 +162,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Removes the given inode from the folder.
-   *
+   * 
    * @param i
    *          The Inode to remove
    * @return true if the inode was removed, false otherwise.
@@ -169,7 +173,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Removes the given child from the folder.
-   *
+   * 
    * @param name
    *          The name of the Inode to remove.
    * @return true if the inode was removed, false otherwise.
@@ -202,8 +206,8 @@ public class InodeFolder extends Inode {
 
     List<Integer> children = getChildrenIds();
     os.writeInt(children.size());
-    for (int k = 0; k < children.size(); k ++) {
-      os.writeInt(children.get(k));
+    for (Inode inode : getChildren()) {
+      inode.writeImage(os);
     }
   }
 }

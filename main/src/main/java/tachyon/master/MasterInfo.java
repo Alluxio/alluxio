@@ -2145,21 +2145,45 @@ public class MasterInfo implements ImageWriter {
         if (type == Image.T_INODE_FILE) {
           inode = InodeFile.loadImage(is);
         } else {
-          inode = InodeFolder.loadImage(is, mInodes);
+          inode = InodeFolder.loadImage(is);
         }
 
         if (inode.getId() > mInodeCounter.get()) {
           mInodeCounter.set(inode.getId());
         }
 
+        addToInodeMap(inode, mInodes);
+
         if (inode.getId() == 1) {
           mRoot = (InodeFolder) inode;
         }
-        mInodes.put(inode.getId(), inode);
       } else if (Image.T_RAW_TABLE == type) {
         mRawTables.loadImage(is);
       } else {
         throw new IOException("Corrupted image with unknown element type: " + type);
+      }
+    }
+  }
+
+  /**
+   * After loading an image, addToInodeMap will map the various ids to their inodes.
+   * 
+   * @param inode
+   *          The inode to add
+   * @param map
+   *          The map to add the inodes to
+   */
+  private void addToInodeMap(Inode inode, Map<Integer, Inode> map) {
+    map.put(inode.getId(), inode);
+    if (inode.isDirectory()) {
+      InodeFolder inodeFolder = (InodeFolder) inode;
+      inodeFolder.getLock().readLock().lock();
+      try {
+        for (Inode child : inodeFolder.getChildren()) {
+          addToInodeMap(child, map);
+        }
+      } finally {
+        inodeFolder.getLock().readLock().unlock();
       }
     }
   }
@@ -2371,7 +2395,8 @@ public class MasterInfo implements ImageWriter {
     InodeLocks prefixInodeLocks = getInodeWithLocks(lockPath, true);
     try {
       if (prefixInodeLocks.getNonexistentIndex() >= 0) {
-        throw new InvalidPathException("Failed to rename: subpath " + srcPath + " does not exist.");
+        throw new FileDoesNotExistException("Failed to rename: subpath " + srcPath
+            + " does not exist.");
       }
 
       // Now that we have a write lock on the last path component in lockPath, we are free to
@@ -2381,7 +2406,7 @@ public class MasterInfo implements ImageWriter {
       for (int component = prefixInd; component < srcComponents.length - 1; component ++) {
         InodeFolder child = (InodeFolder) srcInodeParent.getChild(srcComponents[component]);
         if (child == null) {
-          throw new InvalidPathException("Failed to rename: subpath " + srcPath
+          throw new FileDoesNotExistException("Failed to rename: subpath " + srcPath
               + " does not exist.");
         }
         srcInodeParent = child;
@@ -2391,18 +2416,19 @@ public class MasterInfo implements ImageWriter {
       for (int component = prefixInd; component < dstComponents.length - 1; component ++) {
         InodeFolder child = (InodeFolder) dstInodeParent.getChild(dstComponents[component]);
         if (child == null) {
-          throw new InvalidPathException("Failed to rename: parent of destination path " + dstPath
-              + " does not exist.");
+          throw new FileDoesNotExistException("Failed to rename: parent of destination path "
+              + dstPath + " does not exist.");
         }
         dstInodeParent = child;
       }
 
       Inode srcInode = srcInodeParent.getChild(srcComponents[srcComponents.length - 1]);
       if (srcInode == null) {
-        throw new InvalidPathException("Failed to rename: subpath " + srcPath + " does not exist.");
+        throw new FileDoesNotExistException("Failed to rename: subpath " + srcPath
+            + " does not exist.");
       }
       if (dstInodeParent.getChild(dstComponents[dstComponents.length - 1]) != null) {
-        throw new InvalidPathException("Failed to rename: destination path " + dstPath
+        throw new FileAlreadyExistException("Failed to rename: destination path " + dstPath
             + " already exists.");
       }
 
@@ -2607,7 +2633,13 @@ public class MasterInfo implements ImageWriter {
       }
     }
 
-    writeImageHelper(os, mRoot);
+    mRoot.getLock().readLock().lock();
+    try {
+      mRoot.writeImage(os);
+    } finally {
+      mRoot.getLock().readLock().unlock();
+    }
+    addToFileIdPinList(mRoot);
 
     mRawTables.writeImage(os);
 
@@ -2618,34 +2650,25 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Walks the tree in a depth-first search and adds the inodes rooted
-   * at tFolder, include tFolder itself.
+   * Walks the tree in a depth-first search and adds the pinned inode files to mFileIdPinList.
    * 
-   * @param os
-   *          The output stream to write the image to
-   * @param tFolder
-   *          The folder to write
+   * @param inodeFolder
+   *          The folder to traverse
    */
-  private void writeImageHelper(DataOutputStream os, InodeFolder tFolder) throws IOException {
-    // We have to add the nodes in bottom up order, so that when we load an image, we add a node's
-    // children to mInodes before the node has to search mInodes to get its children.
-    tFolder.getLock().readLock().lock();
+  private void addToFileIdPinList(InodeFolder inodeFolder) throws IOException {
+    inodeFolder.getLock().readLock().lock();
     try {
-      for (Inode tInode : tFolder.getChildren()) {
-        if (tInode.isDirectory()) {
-          writeImageHelper(os, (InodeFolder) tInode);
-        } else {
-          tInode.writeImage(os);
-        }
-        if (tInode.isFile() && ((InodeFile) tInode).isPin()) {
+      for (Inode inode : inodeFolder.getChildren()) {
+        if (inode.isDirectory()) {
+          addToFileIdPinList((InodeFolder) inode);
+        } else if (inode.isFile() && ((InodeFile) inode).isPin()) {
           synchronized (mFileIdPinList) {
-            mFileIdPinList.add(tInode.getId());
+            mFileIdPinList.add(inode.getId());
           }
         }
       }
-      tFolder.writeImage(os);
     } finally {
-      tFolder.getLock().readLock().unlock();
+      inodeFolder.getLock().readLock().unlock();
     }
   }
 }
