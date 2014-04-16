@@ -49,6 +49,13 @@
       <type>jar</type>
       <scope>compile</scope>
     </dependency>
+    <dependency> 
+      <groupId>org.apache.hadoop.fs.glusterfs</groupId>
+      <artifactId>glusterfs-hadoop</artifactId> 
+      <version>2.1.8</version>
+      <type>jar</type>
+      <scope>compile</scope>
+    </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>

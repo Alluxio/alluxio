@@ -49,6 +49,7 @@ public class CommonConf extends Utils {
   public final String UNDERFS_WORKERS_FOLDER;
 
   public final String UNDERFS_HDFS_IMPL;
+  public final String UNDERFS_GLUSTERFS_IMPL;
   public final String WEB_RESOURCES;
   public final boolean USE_ZOOKEEPER;
   public final String ZOOKEEPER_ADDRESS;
@@ -79,7 +80,8 @@ public class CommonConf extends Utils {
         getProperty("tachyon.workers.folder", UNDERFS_ADDRESS + "/tachyon/workers");
     UNDERFS_HDFS_IMPL =
         getProperty("tachyon.underfs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
-
+    UNDERFS_GLUSTERFS_IMPL =
+        getProperty("tachyon.underfs.glusterfs.impl", "org.apache.hadoop.fs.glusterfs.GlusterFileSystem");
     USE_ZOOKEEPER = getBooleanProperty("tachyon.usezookeeper", false);
     if (USE_ZOOKEEPER) {
       ZOOKEEPER_ADDRESS = getProperty("tachyon.zookeeper.address");
