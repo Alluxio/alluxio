@@ -81,7 +81,7 @@ public class EditLog {
 
   /**
    * Load edit log.
-   *
+   * 
    * @param info
    *          The Master Info.
    * @param path
@@ -155,8 +155,8 @@ public class EditLog {
           break;
         }
         case OP_CREATE_FILE: {
-          info._createFile(is.readBoolean(), Utils.readString(is), is.readBoolean(),
-              is.readLong(), is.readLong(), false);
+          info._createFile(false, Utils.readString(is), is.readBoolean(), is.readLong(),
+              is.readLong(), false, is.readInt());
           break;
         }
         case OP_DELETE: {
@@ -398,8 +398,8 @@ public class EditLog {
     }
   }
 
-  public synchronized void createFile(boolean recursive, String path, boolean directory,
-      long blockSizeByte, long creationTimeMs) {
+  public synchronized void createFile(String path, boolean directory, long blockSizeByte,
+      long creationTimeMs, int id) {
     if (INACTIVE) {
       return;
     }
@@ -407,11 +407,11 @@ public class EditLog {
     try {
       DOS.writeLong(++ mTransactionId);
       DOS.writeByte(OP_CREATE_FILE);
-      DOS.writeBoolean(recursive);
       Utils.writeString(path, DOS);
       DOS.writeBoolean(directory);
       DOS.writeLong(blockSizeByte);
       DOS.writeLong(creationTimeMs);
+      DOS.writeInt(id);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
@@ -473,7 +473,7 @@ public class EditLog {
 
   /**
    * Get the current TransactionId and FlushedTransactionId
-   *
+   * 
    * @return (TransactionId, FlushedTransactionId)
    */
   public synchronized Pair<Long, Long> getTransactionIds() {
@@ -522,7 +522,7 @@ public class EditLog {
 
   /**
    * Changes the max log size for testing purposes.
-   *
+   * 
    * @param size
    */
   public void setMaxLogSize(int size) {

@@ -356,19 +356,32 @@ public class MasterInfo implements ImageWriter {
    * Internal API.
    * 
    * @param recursive
+   *          If recursive is true and the filesystem tree is not filled in all the way to path yet,
+   *          it fills in the missing components.
    * @param path
+   *          The path to create
    * @param directory
+   *          If true, creates an InodeFolder instead of an Inode
    * @param blockSizeByte
+   *          If it's a file, the block size for the Inode
    * @param creationTimeMs
+   *          The time the file was created
    * @param writeEditLog
-   * @return
+   *          If true, we log file creations to the edit log. Note that we log the creation of all
+   *          intermediate directories as well, so that replaying the log can recover all Inode id's
+   *          properly.
+   * @param id
+   *          If not -1, use this id as the id to the inode we create at the given path.
+   *          Any intermediate directories created will use mInodeCounter, so using this parameter
+   *          assumes no intermediate directories will be created.
+   * @return the id of the inode created at the given path
    * @throws FileAlreadyExistException
    * @throws InvalidPathException
    * @throws BlockInfoException
    * @throws TachyonException
    */
   int _createFile(boolean recursive, String path, boolean directory, long blockSizeByte,
-      long creationTimeMs, boolean writeEditLog) throws FileAlreadyExistException,
+      long creationTimeMs, boolean writeEditLog, int id) throws FileAlreadyExistException,
       InvalidPathException, BlockInfoException, TachyonException {
     if (!directory && blockSizeByte < 1) {
       throw new BlockInfoException("Invalid block size " + blockSizeByte);
@@ -398,9 +411,9 @@ public class MasterInfo implements ImageWriter {
           LOG.info("InvalidPathException: " + msg);
           throw new InvalidPathException(msg);
         } else {
-          // The lock at errorInd-1 was the last lock taken, but it was only readLocked. Since we'll
-          // be modifying inodeLocks.getInode(), we need to upgrade the lock to a write lock. Since
-          // another write lock could have been taken and created the file we want during the
+          // The lock at errorInd-1 was the last lock taken, but it was only read locked. Since
+          // we'll be modifying inodeLocks.getInode(), we need to upgrade the lock to a write lock.
+          // Since another write lock could have been taken and created the file we want during the
           // upgrade, the file we are trying to create may already exist. In that case, we'll just
           // throw a FileAlreadyExistsException.
           upgradeLock(inodeLocks.getLocks()[inodeLocks.getNonexistentIndex() - 1]);
@@ -418,11 +431,14 @@ public class MasterInfo implements ImageWriter {
         throw new InvalidPathException("Parent of path " + path + " is not actually a directory");
       }
       InodeFolder currentInodeFolder = (InodeFolder) inodeLocks.getInode();
+      String currentPath = StringUtils.join(pathNames, Constants.PATH_SEPARATOR, 0, pathIndex);
       // Fill in the directories that were missing. We don't need to take any more locks, since the
-      // starting inodeLocks.getInode() should be write-locked.
+      // starting inodeLocks.getInode() should be write-locked. If writeEditLog is true, we log
+      // these intermediate folder creations as well.
       for (int k = pathIndex; k < parentPath.length; k ++) {
         // Due to the lock upgrade, its possible that another writer already created these missing
         // path components
+        currentPath += Constants.PATH_SEPARATOR + pathNames[k];
         Inode dir = currentInodeFolder.getChild(pathNames[k]);
         if (dir == null) {
           dir =
@@ -430,6 +446,9 @@ public class MasterInfo implements ImageWriter {
                   currentInodeFolder.getId(), creationTimeMs);
           currentInodeFolder.addChild(dir);
           mInodes.put(dir.getId(), dir);
+          if (writeEditLog) {
+            mJournal.getEditLog().createFile(currentPath, true, 0, creationTimeMs, dir.getId());
+          }
         } else if (!dir.isDirectory()) {
           throw new InvalidPathException("Could not create " + path + ". Component "
               + pathNames[k] + " is not a directory.");
@@ -445,14 +464,14 @@ public class MasterInfo implements ImageWriter {
         LOG.info("FileAlreadyExistException: " + msg);
         throw new FileAlreadyExistException(msg);
       }
+      if (id == -1) {
+        // If the passed-in id is -1, we use mInodeCounter
+        id = mInodeCounter.incrementAndGet();
+      }
       if (directory) {
-        ret =
-            new InodeFolder(name, mInodeCounter.incrementAndGet(), currentInodeFolder.getId(),
-                creationTimeMs);
+        ret = new InodeFolder(name, id, currentInodeFolder.getId(), creationTimeMs);
       } else {
-        ret =
-            new InodeFile(name, mInodeCounter.incrementAndGet(), currentInodeFolder.getId(),
-                blockSizeByte, creationTimeMs);
+        ret = new InodeFile(name, id, currentInodeFolder.getId(), blockSizeByte, creationTimeMs);
         String curPath = StringUtils.join(pathNames, Constants.PATH_SEPARATOR);
         if (mPinList.inList(curPath)) {
           synchronized (mFileIdPinList) {
@@ -468,10 +487,10 @@ public class MasterInfo implements ImageWriter {
       mInodes.put(ret.getId(), ret);
       currentInodeFolder.addChild(ret);
 
-      LOG.debug("createFile: File Created: " + ret + " parent: " + currentInodeFolder);
+      LOG.debug("createFile: File Created: " + ret.toString() + " parent: "
+          + currentInodeFolder.toString());
       if (writeEditLog) {
-        mJournal.getEditLog()
-            .createFile(recursive, path, directory, blockSizeByte, creationTimeMs);
+        mJournal.getEditLog().createFile(path, directory, blockSizeByte, creationTimeMs, id);
         mJournal.getEditLog().flush();
       }
       return ret.getId();
@@ -712,7 +731,7 @@ public class MasterInfo implements ImageWriter {
   public int createFile(boolean recursive, String path, boolean directory, long blockSizeByte)
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
     long creationTimeMs = System.currentTimeMillis();
-    int ret = _createFile(recursive, path, directory, blockSizeByte, creationTimeMs, true);
+    int ret = _createFile(recursive, path, directory, blockSizeByte, creationTimeMs, true, -1);
     return ret;
   }
 
@@ -842,8 +861,7 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Inner delete function. Returns the id of the deleted inode so it
-   * can be logged.
+   * Inner delete function. Returns the id of the deleted inode.
    * 
    * @param path
    *          The path of the file to be deleted
@@ -866,8 +884,8 @@ public class MasterInfo implements ImageWriter {
         // We couldn't traverse to the parent, but we still return true
         return 0;
       }
-      // Now we get the inode from the parent that we want to delete.
-      // If path == Constants.PATH_SEPARATOR, we get mRoot.
+      // Now we get the inode from the parent that we want to delete. If path ==
+      // Constants.PATH_SEPARATOR, we get mRoot.
       Inode delNode = null;
       if (path == Constants.PATH_SEPARATOR) {
         delNode = mRoot;
@@ -875,34 +893,34 @@ public class MasterInfo implements ImageWriter {
         delNode = ((InodeFolder) inodeLocks.getInode()).getChild(pathName);
       }
       if (delNode == null) {
-        // We couldn't find the inode we want to delete in the
-        // parent directory, but we still return true.
+        // We couldn't find the inode we want to delete in the parent directory, but we still return
+        // true.
         return 0;
       }
 
-      // Since the parent inode has a write lock on it, we can
-      // safely traverse and manipulate delNode.
+      // Since the parent inode has a write lock on it, we can safely traverse and manipulate
+      // delNode.
       Set<Inode> inodes = new HashSet<Inode>();
       if (delNode.isDirectory()) {
-        inodes.addAll(getInodeChildrenRecursive((InodeFolder) delNode));
+        inodes.addAll(getInodeChildrenRecursive((InodeFolder) delNode, false));
       }
       inodes.add(delNode);
 
       if (delNode.isDirectory() && !recursive && inodes.size() > 1) {
-        // delNode is nonempty, and we don't want to delete a
-        // nonempty directory unless recursive is true
+        // delNode is nonempty, and we don't want to delete a nonempty directory unless recursive is
+        // true
         return -1;
       }
 
-      // We go through each inode, removing it from it's parent set
-      // and from mInodes. If it's a file, we deal with the
-      // checkpoints and blocks as well.
+      // We go through each inode, removing it from it's parent set and from mInodes. If it's a
+      // file, we deal with the checkpoints and blocks as well.
       for (Inode i : inodes) {
         if (i.equals(mRoot)) {
           continue;
         }
         InodeFolder parent = (InodeFolder) mInodes.get(i.getParentId());
         parent.removeChild(i);
+        LOG.info("removed " + i.getName());
 
         if (i.isFile()) {
           String checkpointPath = ((InodeFile) i).getCheckpointPath();
@@ -1340,21 +1358,27 @@ public class MasterInfo implements ImageWriter {
    * 
    * @param inodeFolder
    *          The folder to start looking at
+   * @param takeLocks
+   *          If true, take locks on the InodeFolders when traversing
    * @return A list of the children inodes.
    */
-  private List<Inode> getInodeChildrenRecursive(InodeFolder inodeFolder) {
+  private List<Inode> getInodeChildrenRecursive(InodeFolder inodeFolder, boolean takeLocks) {
     List<Inode> ret = new ArrayList<Inode>();
-    inodeFolder.getLock().readLock().lock();
+    if (takeLocks) {
+      inodeFolder.getLock().readLock().lock();
+    }
     try {
       for (Inode i : inodeFolder.getChildren()) {
         ret.add(i);
         if (i.isDirectory()) {
-          ret.addAll(getInodeChildrenRecursive((InodeFolder) i));
+          ret.addAll(getInodeChildrenRecursive((InodeFolder) i, takeLocks));
         }
       }
       return ret;
     } finally {
-      inodeFolder.getLock().readLock().unlock();
+      if (takeLocks) {
+        inodeFolder.getLock().readLock().unlock();
+      }
     }
   }
 
@@ -1417,30 +1441,52 @@ public class MasterInfo implements ImageWriter {
       mNonexistentInd = -1;
     }
 
+    /**
+     * Returns the inode being kept track of.
+     */
     public Inode getInode() {
       return mInode;
     }
 
+    /**
+     * Set the inode being kept track of.
+     */
     public void setInode(Inode i) {
       mInode = i;
     }
 
+    /**
+     * Get the list of locks taken to get to the inode.
+     */
     public ReadWriteLock[] getLocks() {
       return mLocks;
     }
 
+    /**
+     * Returns whether the InodeLocks object takes a write lock on its last element.
+     */
     public boolean getIsWrite() {
       return mIsWrite;
     }
 
+    /**
+     * Sets whether the InodeLocks object takes a write lock on its last element.
+     */
     public void setIsWrite(boolean iw) {
       mIsWrite = iw;
     }
 
+    /**
+     * Get the index of the first nonexistent path component found when traversing down the path. -1
+     * if all the path components were found.
+     */
     public int getNonexistentIndex() {
       return mNonexistentInd;
     }
 
+    /**
+     * Set the index of the first nonexistent path component found.
+     */
     public void setNonexistentInd(int ni) {
       mNonexistentInd = ni;
     }
@@ -1495,24 +1541,14 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Get the inode of the file at the given path.
-   * 
-   * @param path
-   *          The path to search for
-   * @return the inode of the file at the given path as well as the locks taken to get there
-   */
-  private InodeLocks getInodeWithLocks(String path, boolean isWrite) throws InvalidPathException {
-    return getInodeWithLocks(CommonUtils.getPathComponents(path), isWrite);
-  }
-
-  /**
    * Get the inode at the given path.
    * 
    * @param pathNames
    *          The path to search for, broken into components
    * @param isWrite
    *          If true, the last component in the path is write-locked, provided
-   *          it is a directory.
+   *          it is a directory. If the function is not able to traverse down the entire path, no
+   *          write locks are taken.
    * @return the inode of the file at the given path as well as the locks taken to get there. If it
    *         was not able to traverse down the entire path, it will set mNonexistentInd to the first
    *         path component it didn't find. It never returns null.
@@ -1585,6 +1621,10 @@ public class MasterInfo implements ImageWriter {
     return ret;
   }
 
+  private InodeLocks getInodeWithLocks(String path, boolean isWrite) throws InvalidPathException {
+    return getInodeWithLocks(CommonUtils.getPathComponents(path), isWrite);
+  }
+
   /**
    * Get Journal instance for MasterInfo for Unit test only
    * 
@@ -1635,6 +1675,11 @@ public class MasterInfo implements ImageWriter {
     }
   }
 
+  /**
+   * A container for a path and the set of InodeLocks needed to get to that path. Used for finding a
+   * path for a given Inode while also acquiring the locks necessary to retain control of the inode
+   * afterwards.
+   */
   private class PathLocks {
     private String mPath;
     private InodeLocks mInodeLocks;
@@ -1644,18 +1689,30 @@ public class MasterInfo implements ImageWriter {
       mInodeLocks = inodeLocks;
     }
 
+    /**
+     * Returns the path of the inode
+     */
     public String getPath() {
       return mPath;
     }
 
+    /**
+     * Sets the path of the inode
+     */
     public void setPath(String path) {
       mPath = path;
     }
 
+    /**
+     * Returns the InodeLocks taken to secure the inode
+     */
     public InodeLocks getInodeLocks() {
       return mInodeLocks;
     }
 
+    /**
+     * Sets the InodeLocks taken to secure the inode
+     */
     public void setInodeLocks(InodeLocks inodeLocks) {
       mInodeLocks = inodeLocks;
     }
@@ -2097,7 +2154,7 @@ public class MasterInfo implements ImageWriter {
       if (inodeLocks.getInode().isFile()) {
         ret.add(inodeLocks.getInode().getId());
       } else if (recursive) {
-        for (Inode i : getInodeChildrenRecursive((InodeFolder) inodeLocks.getInode())) {
+        for (Inode i : getInodeChildrenRecursive((InodeFolder) inodeLocks.getInode(), true)) {
           if (!i.isDirectory()) {
             ret.add(i.getId());
           }

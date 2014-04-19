@@ -29,7 +29,8 @@ import tachyon.io.Utils;
 import tachyon.thrift.ClientFileInfo;
 
 /**
- * Tachyon file system's folder representation in master.
+ * Tachyon file system's folder representation in master. Since tree operations can occur
+ * concurrently, all methods on the InodeFolder's children assume it is properly locked beforehand.
  */
 public class InodeFolder extends Inode {
   /**
@@ -73,12 +74,6 @@ public class InodeFolder extends Inode {
   public ReadWriteLock getLock() {
     return mReadWriteLock;
   }
-
-  /*
-   * ------------------------------------------------------------------------------
-   * These operations assume a lock has already been taken on the folder.
-   * ------------------------------------------------------------------------------
-   */
 
   public synchronized void addChild(Inode child) {
     mChildren.add(child);
