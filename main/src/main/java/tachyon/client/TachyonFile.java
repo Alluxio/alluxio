@@ -120,8 +120,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   public List<String> getLocationHosts() throws IOException {
     List<NetAddress> locations = TFS.getClientBlockInfo(FID, 0).getLocations();
-    List<String> ret = new ArrayList<String>(locations.size());
+    List<String> ret = null;
     if (locations != null) {
+      ret = new ArrayList<String>(locations.size());
       for (int k = 0; k < locations.size(); k ++) {
         ret.add(locations.get(k).mHost);
       }
