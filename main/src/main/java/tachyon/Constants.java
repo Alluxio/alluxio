@@ -14,8 +14,6 @@
  */
 package tachyon;
 
-import java.math.BigDecimal;
-
 /**
  * System wide constants
  */
