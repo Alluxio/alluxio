@@ -1,5 +1,7 @@
 <%@ page import="java.util.*" %>
 <%@ page import="tachyon.web.*" %>
+<%@ page import="static org.apache.commons.lang.StringEscapeUtils.escapeHtml" %>
+<%@ page import="static java.net.URLEncoder.encode" %>
 
 <html>
 <head>
@@ -15,7 +17,7 @@
   function displayContent()
   {
     var tmp = document.getElementById("offset").value;
-    window.location.href = "./browse?path=<%= request.getAttribute("currentPath") %>&offset=" + tmp;
+    window.location.href = "./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>&offset=" + tmp;
   }
 </script>
 <div class="container-fluid">
@@ -36,7 +38,7 @@
         <h1 class="text-error">
           <%= request.getAttribute("invalidPathError") %>
         </h1>
-        <h4><%= request.getAttribute("currentPath") %>: First 5KB from <%= request.getAttribute("viewingOffset") %> in ASCII</h4>
+        <h4><%= escapeHtml(request.getAttribute("currentPath").toString()) %>: First 5KB from <%= request.getAttribute("viewingOffset") %> in ASCII</h4>
         <textarea class="file-content"><%= request.getAttribute("fileData") %></textarea>
       </div>
     </div>
