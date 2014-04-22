@@ -14,6 +14,8 @@
  */
 package tachyon;
 
+import java.math.BigDecimal;
+
 /**
  * System wide constants
  */
@@ -22,6 +24,8 @@ public class Constants {
   public static final int MB = KB * 1024;
   public static final int GB = MB * 1024;
   public static final long TB = GB * 1024L;
+  public static final long PB = TB * 1024L;
+  public static final BigDecimal PBDecimal = new BigDecimal(PB);
 
   public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_BLACK = "\u001B[30m";
