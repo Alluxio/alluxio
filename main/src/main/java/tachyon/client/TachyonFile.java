@@ -107,8 +107,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * is no guarantee that the file still exists after this call returns, as Tachyon may evict blocks
    * from memory at any time.
    * 
-   * @param blockId
-   *          The id of the block.
+   * @param blockIndex
+   *          The index of the block in the file.
    * @return filename on local file system or null if file not present on local file system.
    * @throws IOException
    */
