@@ -275,12 +275,6 @@ public final class CommonUtils {
     return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
   }
 
-  /**
-   * When parsing petabyte values, we can't multiply with doubles and longs, since that will lose
-   * presicion with such high numbers. Therefore we use a BigDecimal when parsing pb values.
-   */
-  public static final BigDecimal PBDecimal = new BigDecimal(Constants.PB);
-
   public static long parseMemorySize(String memorySize) {
     double alpha = 0.0001;
     String ori = memorySize;
@@ -308,6 +302,9 @@ public final class CommonUtils {
     } else if (end.equals("tb")) {
       return (long) (ret * Constants.TB + alpha);
     } else if (end.equals("pb")) {
+      // When parsing petabyte values, we can't multiply with doubles and longs, since that will
+      // lose presicion with such high numbers. Therefore we use a BigDecimal.
+      BigDecimal PBDecimal = new BigDecimal(Constants.PB);
       return PBDecimal.multiply(BigDecimal.valueOf(ret)).longValue();
     } else {
       runtimeException("Fail to parse " + ori + " as memory size");
