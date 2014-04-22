@@ -45,7 +45,7 @@ public abstract class UnderFileSystem {
 
   public static UnderFileSystem get(String path) {
     if (path.startsWith("hdfs://") || path.startsWith("file://") || path.startsWith("s3://")
-        || path.startsWith("s3n://") || path.startsWith("glusterfs://")) {
+        || path.startsWith("s3n://") || path.startsWith("glusterfs:///")) {
       return UnderFileSystemHdfs.getClient(path);
     } else if (path.startsWith(Constants.PATH_SEPARATOR)) {
       return UnderFileSystemSingleLocal.getClient();
