@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
@@ -300,6 +301,11 @@ public final class CommonUtils {
       return (long) (ret * Constants.GB + alpha);
     } else if (end.equals("tb")) {
       return (long) (ret * Constants.TB + alpha);
+    } else if (end.equals("pb")) {
+      // When parsing petabyte values, we can't multiply with doubles and longs, since that will
+      // lose presicion with such high numbers. Therefore we use a BigDecimal.
+      BigDecimal PBDecimal = new BigDecimal(Constants.PB);
+      return PBDecimal.multiply(BigDecimal.valueOf(ret)).longValue();
     } else {
       runtimeException("Fail to parse " + ori + " as memory size");
       return -1;
