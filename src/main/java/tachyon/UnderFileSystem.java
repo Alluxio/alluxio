@@ -48,10 +48,9 @@ public abstract class UnderFileSystem {
   }
 
   public static UnderFileSystem get(String path) {
-    if (path.startsWith("hdfs://") || path.startsWith("file://") ||
-        path.startsWith("s3://") || path.startsWith("s3n://")) {
+    if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")) {
       return UnderFileSystemHdfs.getClient(path);
-    } else if (path.startsWith("/")) {
+    } else if (path.startsWith("/") || path.startsWith("file://")) {
       return UnderFileSystemSingleLocal.getClient();
     }
     CommonUtils.illegalArgumentException("Unknown under file system scheme " + path);
