@@ -456,21 +456,21 @@ public class WorkerStorage {
    *          The block to be removed.
    * @return Removed file size in bytes.
    */
-  private synchronized long freeBlock(long blockId) {
+  private long freeBlock(long blockId) {
     Long freedFileBytes = null;
-    if (mBlockSizes.containsKey(blockId)) {
-      mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
-      File srcFile = new File(mLocalDataFolder + Constants.PATH_SEPARATOR + blockId);
-      srcFile.delete();
-      synchronized (mLatestBlockAccessTimeMs) {
+    synchronized (mLatestBlockAccessTimeMs) {
+      if (mBlockSizes.containsKey(blockId)) {
+        mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
+        File srcFile = new File(mLocalDataFolder + Constants.PATH_SEPARATOR + blockId);
+        srcFile.delete();
         mLatestBlockAccessTimeMs.remove(blockId);
         freedFileBytes = mBlockSizes.remove(blockId);
         mRemovedBlockList.add(blockId);
         mMemoryData.remove(blockId);
+        LOG.info("Removed Data " + blockId);
+      } else {
+        LOG.warn("File " + blockId + " does not exist in memory.");
       }
-      LOG.info("Removed Data " + blockId);
-    } else {
-      LOG.warn("File " + blockId + " does not exist in memory.");
     }
 
     return freedFileBytes == null ? 0 : freedFileBytes;
