@@ -144,7 +144,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
       String[] rtn = new String[files.length];
       int i = 0;
       for (File f : files) {
-        rtn[i ++] = f.getName();
+        rtn[i ++] = f.getPath();  //getName()
       }
       return rtn;
     } else {

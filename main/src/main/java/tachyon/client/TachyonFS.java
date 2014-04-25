@@ -130,6 +130,15 @@ public class TachyonFS {
     mAvailableSpaceBytes = 0L;
   }
 
+    /**
+     * in order to print meaningful debug message
+     * @return the string representation like tachyon://host:port or tachyon-ft://host:port
+     */
+  @Override
+  public String toString() {
+      return (mZookeeperMode ? Constants.HEADER_FT : Constants.HEADER) + mMasterAddress.toString();
+  }
+
   public synchronized void accessLocalBlock(long blockId) {
     connect();
     if (mWorkerClient != null && mIsWorkerLocal) {

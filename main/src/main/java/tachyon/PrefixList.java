@@ -37,6 +37,18 @@ public class PrefixList {
     }
   }
 
+    /**
+     * in order to print meaningful debug message
+     * @return the string representation like "/a;/b;/c"
+     */
+  @Override
+  public String toString() {
+      String s = "";
+      for(String prefix: LIST)
+          s += ";" + prefix;
+      return s.startsWith(";") ? s.substring(1) : s;
+  }
+
   public PrefixList(String prefixes, String separator) {
     Validate.notNull(separator);
     if (prefixes == null) {

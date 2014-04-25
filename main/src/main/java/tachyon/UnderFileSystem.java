@@ -46,11 +46,48 @@ public abstract class UnderFileSystem {
   public static UnderFileSystem get(String path) {
     if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")) {
       return UnderFileSystemHdfs.getClient(path);
-    } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
+    } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://") || path=="") {
       return UnderFileSystemSingleLocal.getClient();
     }
     CommonUtils.illegalArgumentException("Unknown under file system scheme " + path);
     return null;
+  }
+
+    /**
+     * parse() transforms an input string like hdfs://host:port/dir, hdfs://host:port, /dir
+     * into a pair of address and path.
+      * @param s
+     * @return null if s does not start with tachon://, tachyon-ft://, hdfs://, s3://, s3n://, file://, /.
+     * In the above examples, the returned pairs are ("hdfs://host:port", "/dir"),
+     * ("hdfs://host:port", "/"), and ("", "/dir"), respectively.
+     */
+  public static String[] parse(String s) {
+      if (s == null) {
+          return null;
+      }
+      else if (s.startsWith("tachyon://") || s.startsWith("tachyon-ft://")
+        || s.startsWith("hdfs://")
+        || s.startsWith("s3://") || s.startsWith("s3n://")) {
+          String prefix = s.substring(0, s.indexOf("://")+3);
+          String body = s.substring(prefix.length());
+          String[] pair = new String[2];
+          if (body.contains(Constants.PATH_SEPARATOR)) {
+              int i = body.indexOf(Constants.PATH_SEPARATOR);
+              pair[0] = prefix + body.substring(0, i);
+              pair[1] = body.substring(i);
+          } else {
+              pair[0] = s;
+              pair[1] = Constants.PATH_SEPARATOR;
+          }
+          return pair;
+      }
+      else if (s.startsWith("file://") || s.startsWith(Constants.PATH_SEPARATOR)) {
+          String prefix = "file://";
+          String suffix = s.startsWith(prefix) ? s.substring(prefix.length()) : s;
+          return new String[]{"", suffix};
+      }
+
+      return null;
   }
 
   public abstract void close() throws IOException;

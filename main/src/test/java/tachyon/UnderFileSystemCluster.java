@@ -109,7 +109,7 @@ public abstract class UnderFileSystemCluster {
       String path = getUnderFilesystemAddress() + Constants.PATH_SEPARATOR;
       UnderFileSystem ufs = UnderFileSystem.get(path);
       for (String p : ufs.list(path)) {
-        ufs.delete(path + p, true);
+        ufs.delete(p, true); // now p is in absolute path, no need to do path + p
       }
     }
   }
