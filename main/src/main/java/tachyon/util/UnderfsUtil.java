@@ -38,9 +38,32 @@ import tachyon.thrift.SuspectedFileSizeException;
 public class UnderfsUtil {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
+    /**
+     * keep this signature so as not to invalidate existing code referring getInfo/4
+      */
   public static void getInfo(TachyonFS tfs, String underfsAddress, String rootPath,
       PrefixList excludePathPrefix) throws IOException {
-    LOG.info(tfs + " " + underfsAddress + " " + rootPath + " " + excludePathPrefix);
+      getInfo(tfs, "/", underfsAddress, rootPath, excludePathPrefix);
+  }
+
+    /**
+     * This getInfo/5 signature introduces an extra parameter tfsRoot, like a mounting point in TFS.
+     * Files under rootPath will be all registered under tachyon::/host:port/tfsRoot/rootPath.
+     * @param tfs the TFS handler created out of address like "tachyon://host:port"
+     * @param tfsRoot the destination point in TFS to load the under FS path onto
+     * @param underfsAddress the address of the under FS server, like "hdfs://h:p", or "" for local FS.
+     * @param rootPath the source path in the under FS, like "/dir".
+     * @param excludePathPrefix paths to exclude from rootPath, which will not be registered in TFS.
+     * @throws IOException
+     */
+  public static void getInfo(TachyonFS tfs, String tfsRoot, String underfsAddress, String rootPath,
+              PrefixList excludePathPrefix) throws IOException {
+    LOG.info(tfs + tfsRoot + " " + underfsAddress + rootPath + " " + excludePathPrefix);
+
+    if (!tfs.exist(tfsRoot)) {
+        tfs.mkdir(tfsRoot);
+        LOG.info("directory "+tfsRoot+" does not exist in Tachyon: created");
+    }
 
     Configuration tConf = new Configuration();
     tConf.set("fs.default.name", underfsAddress + rootPath);
@@ -55,18 +78,19 @@ public class UnderfsUtil {
       String path = pathQueue.poll();
       if (fs.isFile(path)) {
         String filePath = path.substring(underfsAddress.length());
-        if (tfs.exist(filePath)) {
-          LOG.info("File " + filePath + " already exists in Tachyon.");
+        String tfsPath = (tfsRoot + filePath).replace("//", "/");
+        if (tfs.exist(tfsPath)) {
+          LOG.info("File " + tfsPath + " already exists in Tachyon.");
           continue;
         }
-        int fileId = tfs.createFile(filePath, path);
+        int fileId = tfs.createFile(tfsPath, path);
         if (fileId == -1) {
-          LOG.info("Failed to create tachyon file: " + filePath);
+          LOG.info("Failed to create tachyon file: " + tfsPath);
         } else {
-          LOG.info("Create tachyon file " + filePath + " with file id " + fileId + " and "
+          LOG.info("Create tachyon file " + tfsPath + " with file id " + fileId + " and "
               + "checkpoint location " + path);
         }
-      } else {
+      } else { // isDirectory(path)
         String[] files = fs.list(path);
         if (files != null) {
           for (String filePath : files) {
@@ -77,8 +101,9 @@ public class UnderfsUtil {
           }
         }
         String filePath = path.substring(underfsAddress.length());
-        if (!tfs.exist(filePath)) {
-          tfs.mkdir(filePath);
+        String tfsPath = (tfsRoot + filePath).replace("//", "/");
+        if (!tfs.exist(tfsPath)) {
+          tfs.mkdir(tfsPath);
         }
       }
     }
@@ -86,25 +111,41 @@ public class UnderfsUtil {
 
   public static void main(String[] args) throws SuspectedFileSizeException, InvalidPathException,
       IOException, FileDoesNotExistException, FileAlreadyExistException, TException {
-    if (!(args.length == 3 || args.length == 4)) {
-      String prefix =
+
+    if (!(args.length == 2 || args.length == 3)) {
+      String cmd =
           "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
               + "tachyon.util.UnderfsUtil ";
-      System.out.println("Usage: " + prefix + "<TachyonAddress> <UnderfsAddress> <Path> "
-          + "[<ExcludePathPrefix, separated by ;>]");
-      System.out.println("Example: " + prefix
-          + "tachyon://127.0.0.1:19998 hdfs://localhost:9000 / /tachyon");
+      //cmd = "bin/tachyon loadufs ";
+
+      System.out.println("Usage: " + cmd + "<TachyonPath> <UnderfsPath> "
+          + "[<Optional ExcludePathPrefix, separated by ;>]");
+      System.out.println("Example: " + cmd
+          + "tachyon://127.0.0.1:19998/a hdfs://localhost:9000/b /c");
+      System.out.println("Example: " + cmd
+          + "tachyon://127.0.0.1:19998/a file:///b /c");
+      System.out.println("Example: " + cmd
+          + "tachyon://127.0.0.1:19998/a /b /c");
+      System.out.println("In the TFS, files will take path /a/b, excluding underFS files /c from /b");
+
       System.exit(-1);
     }
 
     PrefixList tExcludePathPrefix = null;
-    if (args.length == 4) {
-      tExcludePathPrefix = new PrefixList(args[3], ";");
+    if (args.length == 3) {
+      tExcludePathPrefix = new PrefixList(args[2], ";");
     } else {
       tExcludePathPrefix = new PrefixList(null);
     }
 
-    getInfo(TachyonFS.get(args[0]), args[1], args[2], tExcludePathPrefix);
+    // parse the given TachyonPath into a prefixing TFS address and a rootPath
+    String[] tfsPair = UnderFileSystem.parse(args[0]);
+
+    // parse the given UnderfsPath into a prefixing UnderfsAddress and a rootPath
+    String[] fsPair = UnderFileSystem.parse(args[1]);
+
+    // so that the original API is reserved
+    getInfo(TachyonFS.get(tfsPair[0]), tfsPair[1], fsPair[0], fsPair[1], tExcludePathPrefix);
     System.exit(0);
   }
 }
