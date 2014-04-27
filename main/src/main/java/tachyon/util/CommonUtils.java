@@ -210,7 +210,7 @@ public final class CommonUtils {
    */
   public static String concat(Object basePathObj, Object pathComponent) {
     String basePath = basePathObj.toString();
-    if (isRoot(basePath)) {
+    if (basePath.charAt(basePath.length()-1) == '/') {
       return basePath + pathComponent;
     }
     return basePath + Constants.PATH_SEPARATOR + pathComponent;
