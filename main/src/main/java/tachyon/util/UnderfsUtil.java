@@ -64,7 +64,8 @@ public class UnderfsUtil {
    */
   public static void getInfo(TachyonFS tfs, String tfsRoot, String underfsAddress,
       String rootPath, PrefixList excludePathPrefix) throws IOException {
-    LOG.info(tfs + tfsRoot + " " + underfsAddress + rootPath + " " + excludePathPrefix);
+    String underfsRootPath = underfsAddress + rootPath;
+    LOG.info(tfs + tfsRoot + " " + underfsRootPath + " " + excludePathPrefix);
 
     if (!tfs.exist(tfsRoot)) {
       tfs.mkdir(tfsRoot);
@@ -72,19 +73,22 @@ public class UnderfsUtil {
     }
 
     Configuration tConf = new Configuration();
-    tConf.set("fs.default.name", underfsAddress + rootPath);
+    tConf.set("fs.default.name", underfsRootPath);
     // TODO Use underfs to make this generic.
     UnderFileSystem fs = UnderFileSystem.get(underfsAddress);
 
     Queue<String> pathQueue = new LinkedList<String>();
     if (excludePathPrefix.outList(rootPath)) {
-      pathQueue.add(underfsAddress + rootPath);
+      pathQueue.add(underfsRootPath);
     }
+
+    // only exclude prefix-matching files at the first level of given rootPath
+    boolean isFirstLevel = true;
+
     while (!pathQueue.isEmpty()) {
-      String path = pathQueue.poll();
+      String path = pathQueue.poll();  // the absolute path
       if (fs.isFile(path)) {
-        String filePath = path.substring(underfsAddress.length());
-        String tfsPath = (tfsRoot + filePath).replace("//", "/");
+        String tfsPath = createTFSPath(tfsRoot, underfsRootPath, path);
         if (tfs.exist(tfsPath)) {
           LOG.info("File " + tfsPath + " already exists in Tachyon.");
           continue;
@@ -97,17 +101,20 @@ public class UnderfsUtil {
               + "checkpoint location " + path);
         }
       } else { // isDirectory(path)
-        String[] files = fs.list(path);
+        String[] files = fs.list(path); // the relative paths
         if (files != null) {
           for (String filePath : files) {
             LOG.info("Get: " + filePath);
-            if (excludePathPrefix.outList(filePath)) {
-              pathQueue.add(underfsAddress + filePath);
+            String aPath = (path + "/" + filePath).replace("//", "/");
+            if (isFirstLevel && excludePathPrefix.outList(filePath)) {
+              pathQueue.add(aPath);
+            } else {
+              pathQueue.add(aPath);
             }
           }
+          isFirstLevel = false;
         }
-        String filePath = path.substring(underfsAddress.length());
-        String tfsPath = (tfsRoot + filePath).replace("//", "/");
+        String tfsPath = createTFSPath(tfsRoot, underfsRootPath, path);
         if (!tfs.exist(tfsPath)) {
           tfs.mkdir(tfsPath);
         }
@@ -115,23 +122,39 @@ public class UnderfsUtil {
     }
   }
 
+  /**
+   * createTFSPath creates a new path relative to tfsRoot given path and ufsRootPath.
+   */
+  private static String createTFSPath(String tfsRoot, String ufsRootPath, String path) {
+    String filePath = path.substring(ufsRootPath.length());
+    if (filePath.isEmpty()) {
+      // retrieve the basename in ufsRootPath
+      filePath = path.substring(ufsRootPath.lastIndexOf("/") + 1);
+    }
+    return (tfsRoot + "/" + filePath).replace("//", "/");
+  }
+
+  public static void printUsage() {
+    String cmd =
+        "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
+            + "tachyon.util.UnderfsUtil ";
+    // cmd = "bin/tachyon loadufs ";
+
+    System.out.println("Usage: " + cmd + "<TachyonPath> <UnderfsPath> "
+        + "[<Optional ExcludePathPrefix, separated by ;>]");
+    System.out
+        .println("Example: " + cmd + "tachyon://127.0.0.1:19998/a hdfs://localhost:9000/b c");
+    System.out.println("Example: " + cmd + "tachyon://127.0.0.1:19998/a file:///b c");
+    System.out.println("Example: " + cmd + "tachyon://127.0.0.1:19998/a /b c");
+    System.out.print("In the TFS, all files under local FS /b will be registered under /a, ");
+    System.out.println("except for those with prefix c");
+  }
+
   public static void main(String[] args) throws SuspectedFileSizeException, InvalidPathException,
       IOException, FileDoesNotExistException, FileAlreadyExistException, TException {
 
     if (!(args.length == 2 || args.length == 3)) {
-      String cmd =
-          "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-              + "tachyon.util.UnderfsUtil ";
-      // cmd = "bin/tachyon loadufs ";
-
-      System.out.println("Usage: " + cmd + "<TachyonPath> <UnderfsPath> "
-          + "[<Optional ExcludePathPrefix, separated by ;>]");
-      System.out.println("Example: " + cmd
-          + "tachyon://127.0.0.1:19998/a hdfs://localhost:9000/b /c");
-      System.out.println("Example: " + cmd + "tachyon://127.0.0.1:19998/a file:///b /c");
-      System.out.println("Example: " + cmd + "tachyon://127.0.0.1:19998/a /b /c");
-      System.out.println("The TFS files will take path /a/b, excluding underFS files /c from /b");
-
+      printUsage();
       System.exit(-1);
     }
 
@@ -146,10 +169,14 @@ public class UnderfsUtil {
     String[] tfsPair = UnderFileSystem.parse(args[0]);
 
     // parse the given UnderfsPath into a prefixing UnderfsAddress and a rootPath
-    String[] fsPair = UnderFileSystem.parse(args[1]);
+    String[] ufsPair = UnderFileSystem.parse(args[1]);
 
-    // so that the original API is reserved
-    getInfo(TachyonFS.get(tfsPair[0]), tfsPair[1], fsPair[0], fsPair[1], tExcludePathPrefix);
+    if (tfsPair == null || ufsPair == null) {
+      printUsage();
+      System.exit(-2);
+    }
+
+    getInfo(TachyonFS.get(tfsPair[0]), tfsPair[1], ufsPair[0], ufsPair[1], tExcludePathPrefix);
     System.exit(0);
   }
 }
