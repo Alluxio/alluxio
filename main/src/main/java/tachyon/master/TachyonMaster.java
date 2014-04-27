@@ -126,7 +126,7 @@ public class TachyonMaster {
       return false;
     }
     for (String file : files) {
-      if (file.contains(path)) {  //startsWith won't work now because file is in absolute path
+      if (file.startsWith(path)) {
         return true;
       }
     }
