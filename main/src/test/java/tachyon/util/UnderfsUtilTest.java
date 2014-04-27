@@ -31,8 +31,6 @@ import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.util.UnderfsUtil;
-import tachyon.util.CommonUtils;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.
