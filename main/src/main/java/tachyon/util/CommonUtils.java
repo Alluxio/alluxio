@@ -185,7 +185,7 @@ public final class CommonUtils {
    * @return true if the path is the root
    */
   public static boolean isRoot(String path) {
-    return (path.length() == 1 && path.equals(Constants.PATH_SEPARATOR));
+    return Constants.PATH_SEPARATOR.equals(path);
   }
 
   /**
@@ -195,8 +195,9 @@ public final class CommonUtils {
    *          The path
    * @return the name of the file
    */
-  public static String getName(String path) {
-    return path.substring(path.lastIndexOf('/') + 1);
+  public static String getName(String path) throws InvalidPathException {
+    String[] pathNames = getPathComponents(path);
+    return pathNames[pathNames.length - 1];
   }
 
   /**
@@ -210,7 +211,7 @@ public final class CommonUtils {
    */
   public static String concat(Object basePathObj, Object pathComponent) {
     String basePath = basePathObj.toString();
-    if (basePath.charAt(basePath.length()-1) == '/') {
+    if (basePath.charAt(basePath.length() - 1) == '/') {
       return basePath + pathComponent;
     }
     return basePath + Constants.PATH_SEPARATOR + pathComponent;
@@ -426,7 +427,7 @@ public final class CommonUtils {
 
   public static void validatePath(String path) throws InvalidPathException {
     if (path == null || !path.startsWith(Constants.PATH_SEPARATOR)
-        || (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR)) || path.contains(" ")) {
+        || path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
   }
