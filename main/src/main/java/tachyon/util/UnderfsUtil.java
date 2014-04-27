@@ -42,7 +42,7 @@ public class UnderfsUtil {
    * keep this signature so as not to invalidate existing code referring getInfo/4
    */
   public static void getInfo(TachyonFS tfs, String underfsAddress, String rootPath,
-                             PrefixList excludePathPrefix) throws IOException {
+      PrefixList excludePathPrefix) throws IOException {
     getInfo(tfs, "/", underfsAddress, rootPath, excludePathPrefix);
   }
 
@@ -58,7 +58,7 @@ public class UnderfsUtil {
    * @throws IOException
    */
   public static void getInfo(TachyonFS tfs, String tfsRoot, String underfsAddress, String rootPath,
-                             PrefixList excludePathPrefix) throws IOException {
+      PrefixList excludePathPrefix) throws IOException {
     LOG.info(tfs + tfsRoot + " " + underfsAddress + rootPath + " " + excludePathPrefix);
 
     if (!tfs.exist(tfsRoot)) {
@@ -89,7 +89,7 @@ public class UnderfsUtil {
           LOG.info("Failed to create tachyon file: " + tfsPath);
         } else {
           LOG.info("Create tachyon file " + tfsPath + " with file id " + fileId + " and "
-            + "checkpoint location " + path);
+              + "checkpoint location " + path);
         }
       } else { // isDirectory(path)
         String[] files = fs.list(path);
@@ -111,23 +111,23 @@ public class UnderfsUtil {
   }
 
   public static void main(String[] args) throws SuspectedFileSizeException, InvalidPathException,
-    IOException, FileDoesNotExistException, FileAlreadyExistException, TException {
+      IOException, FileDoesNotExistException, FileAlreadyExistException, TException {
 
     if (!(args.length == 2 || args.length == 3)) {
       String cmd =
-        "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-          + "tachyon.util.UnderfsUtil ";
+          "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
+              + "tachyon.util.UnderfsUtil ";
       //cmd = "bin/tachyon loadufs ";
 
       System.out.println("Usage: " + cmd + "<TachyonPath> <UnderfsPath> "
-        + "[<Optional ExcludePathPrefix, separated by ;>]");
+          + "[<Optional ExcludePathPrefix, separated by ;>]");
       System.out.println("Example: " + cmd
-        + "tachyon://127.0.0.1:19998/a hdfs://localhost:9000/b /c");
+          + "tachyon://127.0.0.1:19998/a hdfs://localhost:9000/b /c");
       System.out.println("Example: " + cmd
-        + "tachyon://127.0.0.1:19998/a file:///b /c");
+          + "tachyon://127.0.0.1:19998/a file:///b /c");
       System.out.println("Example: " + cmd
-        + "tachyon://127.0.0.1:19998/a /b /c");
-      System.out.println("In the TFS, files will take path /a/b, excluding underFS files /c from /b");
+          + "tachyon://127.0.0.1:19998/a /b /c");
+      System.out.println("The TFS files will take path /a/b, excluding underFS files /c from /b");
 
       System.exit(-1);
     }

@@ -68,7 +68,7 @@ public class TachyonFS {
       tempAddress = tachyonAddress.substring(Constants.HEADER_FT.length());
     } else {
       throw new IOException("Invalid Path: " + tachyonAddress + ". Use " + Constants.HEADER
-        + "host:port/ ," + Constants.HEADER_FT + "host:port/" + " , or /file");
+          + "host:port/ ," + Constants.HEADER_FT + "host:port/" + " , or /file");
     }
     String masterAddress = tempAddress;
     if (tempAddress.contains(Constants.PATH_SEPARATOR)) {
@@ -94,7 +94,7 @@ public class TachyonFS {
   private boolean mZookeeperMode;
   // Cached ClientFileInfo
   private Map<String, ClientFileInfo> mCachedClientFileInfos =
-    new HashMap<String, ClientFileInfo>();
+      new HashMap<String, ClientFileInfo>();
   private Map<Integer, ClientFileInfo> mClientFileInfos = new HashMap<Integer, ClientFileInfo>();
   // Cached ClientBlockInfo
   // private Map<Long, ClientBlockInfo> mClientBlockInfos = new HashMap<Long, ClientBlockInfo>();
@@ -286,7 +286,7 @@ public class TachyonFS {
     mWorkerClient = new WorkerClient(workerAddress, mUserId);
     if (!mWorkerClient.open()) {
       LOG.error("Failed to connect " + (mIsWorkerLocal ? "local" : "remote") + " worker @ "
-        + workerAddress);
+          + workerAddress);
       mWorkerClient = null;
       return;
     }
@@ -343,12 +343,12 @@ public class TachyonFS {
   }
 
   public synchronized int createDependency(List<String> parents, List<String> children,
-                                           String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-                                           String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
+      String commandPrefix, List<ByteBuffer> data, String comment, String framework,
+      String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
     connect();
     try {
       return mMasterClient.user_createDependency(parents, children, commandPrefix, data, comment,
-        framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
+          framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -400,7 +400,7 @@ public class TachyonFS {
   }
 
   public synchronized int createRawTable(String path, int columns, ByteBuffer metadata)
-    throws IOException {
+      throws IOException {
     connect();
     if (!mConnected) {
       return -1;
@@ -409,7 +409,7 @@ public class TachyonFS {
 
     if (columns < 1 || columns > CommonConf.get().MAX_COLUMNS) {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
-        + CommonConf.get().MAX_COLUMNS);
+          + CommonConf.get().MAX_COLUMNS);
     }
 
     try {
@@ -527,7 +527,7 @@ public class TachyonFS {
   }
 
   public synchronized ClientBlockInfo getClientBlockInfo(int fId, int blockIndex)
-    throws IOException {
+      throws IOException {
     boolean fetch = false;
     if (!mClientFileInfos.containsKey(fId)) {
       fetch = true;
@@ -578,7 +578,7 @@ public class TachyonFS {
   }
 
   private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata)
-    throws IOException {
+      throws IOException {
     connect();
     if (!mConnected) {
       return null;
@@ -642,7 +642,7 @@ public class TachyonFS {
   }
 
   public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
-    throws IOException {
+      throws IOException {
     path = CommonUtils.cleanPath(path);
     ClientFileInfo clientFileInfo = getClientFileInfo(path, useCachedMetadata);
     if (clientFileInfo == null) {
@@ -749,7 +749,7 @@ public class TachyonFS {
 
   public synchronized List<List<String>> getFilesHosts(List<Integer> fileIds) throws IOException {
     List<List<String>> ret = new ArrayList<List<String>>();
-    for (int k = 0; k < fileIds.size(); k++) {
+    for (int k = 0; k < fileIds.size(); k ++) {
       ret.add(getFileHosts(fileIds.get(k)));
     }
 
@@ -757,9 +757,9 @@ public class TachyonFS {
   }
 
   public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fileIds)
-    throws IOException {
+      throws IOException {
     List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
-    for (int k = 0; k < fileIds.size(); k++) {
+    for (int k = 0; k < fileIds.size(); k ++) {
       ret.add(getFileNetAddresses(fileIds.get(k)));
     }
 
@@ -1048,8 +1048,8 @@ public class TachyonFS {
         }
         if (error == null && len != -1 && offset + len > fileLength) {
           error =
-            String.format("Offset(%d) plus length(%d) is larger than file length(%d)", offset,
-              len, fileLength);
+              String.format("Offset(%d) plus length(%d) is larger than file length(%d)", offset,
+                  len, fileLength);
         }
         if (error != null) {
           localFile.close();
@@ -1150,12 +1150,12 @@ public class TachyonFS {
       }
       try {
         long toRequestSpaceBytes =
-          Math.max(requestSpaceBytes - mAvailableSpaceBytes, USER_QUOTA_UNIT_BYTES);
+            Math.max(requestSpaceBytes - mAvailableSpaceBytes, USER_QUOTA_UNIT_BYTES);
         if (mWorkerClient.requestSpace(mUserId, toRequestSpaceBytes)) {
           mAvailableSpaceBytes += toRequestSpaceBytes;
         } else {
           LOG.info("Failed to request " + toRequestSpaceBytes + " bytes local space. " + "Time "
-            + (failedTimes++));
+              + (failedTimes ++));
           if (failedTimes == USER_FAILED_SPACE_REQUEST_LIMITS) {
             return false;
           }
