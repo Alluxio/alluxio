@@ -68,7 +68,7 @@ public class PrefixList {
       return false;
     }
 
-    for (int k = 0; k < LIST.size(); k++) {
+    for (int k = 0; k < LIST.size(); k ++) {
       if (path.startsWith(LIST.get(k))) {
         return true;
       }

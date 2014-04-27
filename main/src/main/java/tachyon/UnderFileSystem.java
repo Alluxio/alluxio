@@ -45,10 +45,10 @@ public abstract class UnderFileSystem {
 
   public static UnderFileSystem get(String path) {
     if (path.startsWith("hdfs://")
-      || path.startsWith("s3://") || path.startsWith("s3n://")) {
+        || path.startsWith("s3://") || path.startsWith("s3n://")) {
       return UnderFileSystemHdfs.getClient(path);
     } else if (path.startsWith(Constants.PATH_SEPARATOR)
-      || path.startsWith("file://") || path.equals("")) {
+        || path.startsWith("file://") || path.equals("")) {
       return UnderFileSystemSingleLocal.getClient();
     }
     CommonUtils.illegalArgumentException("Unknown under file system scheme " + path);
@@ -70,8 +70,8 @@ public abstract class UnderFileSystem {
     if (s == null) {
       return null;
     } else if (s.startsWith("tachyon://") || s.startsWith("tachyon-ft://")
-      || s.startsWith("hdfs://")
-      || s.startsWith("s3://") || s.startsWith("s3n://")) {
+        || s.startsWith("hdfs://")
+        || s.startsWith("s3://") || s.startsWith("s3n://")) {
       String prefix = s.substring(0, s.indexOf("://") + 3);
       String body = s.substring(prefix.length());
       String[] pair = new String[2];
@@ -100,7 +100,7 @@ public abstract class UnderFileSystem {
   public abstract OutputStream create(String path, int blockSizeByte) throws IOException;
 
   public abstract OutputStream create(String path, short replication, int blockSizeByte)
-    throws IOException;
+      throws IOException;
 
   public abstract boolean delete(String path, boolean recursive) throws IOException;
 
