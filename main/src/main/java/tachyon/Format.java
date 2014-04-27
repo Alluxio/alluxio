@@ -71,7 +71,8 @@ public class Format {
       if (ufs.exists(localFolder)) {
         String[] files = ufs.list(localFolder);
         for (String file : files) {
-          ufs.delete(file, true); // now file is in absolute path, no need to add localFolder + Constants.PATH_SEPARATOR
+          // now file is in absolute path, no need to add localFolder + Constants.PATH_SEPARATOR
+          ufs.delete(file, true);
         }
       }
     } else {

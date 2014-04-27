@@ -37,16 +37,17 @@ public class PrefixList {
     }
   }
 
-    /**
-     * in order to print meaningful debug message
-     * @return the string representation like "/a;/b;/c"
-     */
+  /**
+   * in order to print meaningful debug message
+   *
+   * @return the string representation like "/a;/b;/c"
+   */
   @Override
   public String toString() {
-      String s = "";
-      for(String prefix: LIST)
-          s += ";" + prefix;
-      return s.startsWith(";") ? s.substring(1) : s;
+    String s = "";
+    for (String prefix : LIST)
+      s += ";" + prefix;
+    return s.startsWith(";") ? s.substring(1) : s;
   }
 
   public PrefixList(String prefixes, String separator) {
@@ -67,7 +68,7 @@ public class PrefixList {
       return false;
     }
 
-    for (int k = 0; k < LIST.size(); k ++) {
+    for (int k = 0; k < LIST.size(); k++) {
       if (path.startsWith(LIST.get(k))) {
         return true;
       }
