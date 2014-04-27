@@ -49,16 +49,21 @@ public class UnderfsUtil {
   /**
    * This getInfo/5 signature introduces an extra parameter tfsRoot, like a mounting point in TFS.
    * Files under rootPath will be all registered under tachyon::/host:port/tfsRoot/rootPath.
-   *
-   * @param tfs               the TFS handler created out of address like "tachyon://host:port"
-   * @param tfsRoot           the destination point in TFS to load the under FS path onto
-   * @param underfsAddress    the address of underFS server, like "hdfs://h:p", or "" for local FS.
-   * @param rootPath          the source path in underFS, like "/dir".
-   * @param excludePathPrefix paths to exclude from rootPath, which will not be registered in TFS.
+   * 
+   * @param tfs
+   *          the TFS handler created out of address like "tachyon://host:port"
+   * @param tfsRoot
+   *          the destination point in TFS to load the under FS path onto
+   * @param underfsAddress
+   *          the address of underFS server, like "hdfs://h:p", or "" for local FS.
+   * @param rootPath
+   *          the source path in underFS, like "/dir".
+   * @param excludePathPrefix
+   *          paths to exclude from rootPath, which will not be registered in TFS.
    * @throws IOException
    */
-  public static void getInfo(TachyonFS tfs, String tfsRoot, String underfsAddress, String rootPath,
-      PrefixList excludePathPrefix) throws IOException {
+  public static void getInfo(TachyonFS tfs, String tfsRoot, String underfsAddress,
+      String rootPath, PrefixList excludePathPrefix) throws IOException {
     LOG.info(tfs + tfsRoot + " " + underfsAddress + rootPath + " " + excludePathPrefix);
 
     if (!tfs.exist(tfsRoot)) {
@@ -117,16 +122,14 @@ public class UnderfsUtil {
       String cmd =
           "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
               + "tachyon.util.UnderfsUtil ";
-      //cmd = "bin/tachyon loadufs ";
+      // cmd = "bin/tachyon loadufs ";
 
       System.out.println("Usage: " + cmd + "<TachyonPath> <UnderfsPath> "
           + "[<Optional ExcludePathPrefix, separated by ;>]");
       System.out.println("Example: " + cmd
           + "tachyon://127.0.0.1:19998/a hdfs://localhost:9000/b /c");
-      System.out.println("Example: " + cmd
-          + "tachyon://127.0.0.1:19998/a file:///b /c");
-      System.out.println("Example: " + cmd
-          + "tachyon://127.0.0.1:19998/a /b /c");
+      System.out.println("Example: " + cmd + "tachyon://127.0.0.1:19998/a file:///b /c");
+      System.out.println("Example: " + cmd + "tachyon://127.0.0.1:19998/a /b /c");
       System.out.println("The TFS files will take path /a/b, excluding underFS files /c from /b");
 
       System.exit(-1);
