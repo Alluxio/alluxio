@@ -44,11 +44,10 @@ public abstract class UnderFileSystem {
   }
 
   public static UnderFileSystem get(String path) {
-    if (path.startsWith("hdfs://")
-        || path.startsWith("s3://") || path.startsWith("s3n://")) {
+    if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")) {
       return UnderFileSystemHdfs.getClient(path);
-    } else if (path.startsWith(Constants.PATH_SEPARATOR)
-        || path.startsWith("file://") || path.equals("")) {
+    } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")
+        || path.equals("")) {
       return UnderFileSystemSingleLocal.getClient();
     }
     CommonUtils.illegalArgumentException("Unknown under file system scheme " + path);
@@ -59,19 +58,19 @@ public abstract class UnderFileSystem {
    * parse() transforms an input string like hdfs://host:port/dir, hdfs://host:port, /dir
    * into a pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
    * ("hdfs://host:port", "/"), and ("", "/dir"), respectively.
-   *
+   * 
    * @param s
+   *          the input path string
    * @return null if s does not start with tachon://, tachyon-ft://, hdfs://, s3://, s3n://,
-   * file://, /. Or a pair of strings denoting the under FS address and the relative path
-   * relative to that address. For local FS (with prefixes file:// or /), the under FS address
-   * is "" and the path starts with "/".
+   *         file://, /. Or a pair of strings denoting the under FS address and the relative path
+   *         relative to that address. For local FS (with prefixes file:// or /), the under FS
+   *         address is "" and the path starts with "/".
    */
   public static String[] parse(String s) {
     if (s == null) {
       return null;
     } else if (s.startsWith("tachyon://") || s.startsWith("tachyon-ft://")
-        || s.startsWith("hdfs://")
-        || s.startsWith("s3://") || s.startsWith("s3n://")) {
+        || s.startsWith("hdfs://") || s.startsWith("s3://") || s.startsWith("s3n://")) {
       String prefix = s.substring(0, s.indexOf("://") + 3);
       String body = s.substring(prefix.length());
       String[] pair = new String[2];
@@ -87,7 +86,7 @@ public abstract class UnderFileSystem {
     } else if (s.startsWith("file://") || s.startsWith(Constants.PATH_SEPARATOR)) {
       String prefix = "file://";
       String suffix = s.startsWith(prefix) ? s.substring(prefix.length()) : s;
-      return new String[]{"", suffix};
+      return new String[] { "", suffix };
     }
 
     return null;
@@ -122,8 +121,9 @@ public abstract class UnderFileSystem {
 
   /**
    * List all the files in the folder.
-   *
-   * @param path the path to list.
+   * 
+   * @param path
+   *          the path to list.
    * @return all the file names under the path.
    * @throws IOException
    */

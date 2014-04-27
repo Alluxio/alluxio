@@ -39,7 +39,7 @@ public class PrefixList {
 
   /**
    * in order to print meaningful debug message
-   *
+   * 
    * @return the string representation like "/a;/b;/c"
    */
   @Override

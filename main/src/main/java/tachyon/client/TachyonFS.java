@@ -132,7 +132,7 @@ public class TachyonFS {
 
   /**
    * in order to print meaningful debug message
-   *
+   * 
    * @return the string representation like tachyon://host:port or tachyon-ft://host:port
    */
   @Override
@@ -615,8 +615,9 @@ public class TachyonFS {
 
   /**
    * Get <code>TachyonFile</code> based on the file id.
-   *
-   * @param fid file id.
+   * 
+   * @param fid
+   *          file id.
    * @return TachyonFile of the file id, or null if the first does not exist.
    */
   public synchronized TachyonFile getFile(int fid) {
@@ -632,8 +633,9 @@ public class TachyonFS {
 
   /**
    * Get <code>TachyonFile</code> based on the path.
-   *
-   * @param path file path.
+   * 
+   * @param path
+   *          file path.
    * @return TachyonFile of the path, or null if the file does not exist.
    * @throws IOException
    */
@@ -771,8 +773,9 @@ public class TachyonFS {
    * an alpha power-api feature for applications that want short-circuit-read files directly. There
    * is no guarantee that the file still exists after this call returns, as Tachyon may evict blocks
    * from memory at any time.
-   *
-   * @param blockId The id of the block.
+   * 
+   * @param blockId
+   *          The id of the block.
    * @return filename on local file system or null if file not present on local file system.
    */
   String getLocalFilename(long blockId) {
@@ -915,8 +918,9 @@ public class TachyonFS {
   /**
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
    * <code>path</code> is a file, return its ClientFileInfo.
-   *
-   * @param path the target directory/file path
+   * 
+   * @param path
+   *          the target directory/file path
    * @return A list of ClientFileInfo
    * @throws IOException
    */
@@ -932,9 +936,11 @@ public class TachyonFS {
 
   /**
    * Lock a block in the current TachyonFS.
-   *
-   * @param blockId     The id of the block to lock. <code>blockId</code> must be positive.
-   * @param blockLockId The block lock id of the block of lock. <code>blockLockId</code> must be non-negative.
+   * 
+   * @param blockId
+   *          The id of the block to lock. <code>blockId</code> must be positive.
+   * @param blockLockId
+   *          The block lock id of the block of lock. <code>blockLockId</code> must be non-negative.
    * @return true if successfully lock the block, false otherwise (or invalid parameter).
    */
   synchronized boolean lockBlock(long blockId, int blockLockId) {
@@ -975,8 +981,9 @@ public class TachyonFS {
 
   /**
    * Create a directory if it does not exist.
-   *
-   * @param path Directory path.
+   * 
+   * @param path
+   *          Directory path.
    * @return true if the folder is created succeefully. faluse otherwise.
    * @throws IOException
    */
@@ -1006,8 +1013,9 @@ public class TachyonFS {
 
   /**
    * Read the whole local block.
-   *
-   * @param blockId The id of the block to read.
+   * 
+   * @param blockId
+   *          The id of the block to read.
    * @return <code>TachyonByteBuffer</code> containing the whole block.
    * @throws IOException
    */
@@ -1017,10 +1025,13 @@ public class TachyonFS {
 
   /**
    * Read local block return a TachyonByteBuffer
-   *
-   * @param blockId The id of the block.
-   * @param offset  The start position to read.
-   * @param len     The length to read. -1 represents read the whole block.
+   * 
+   * @param blockId
+   *          The id of the block.
+   * @param offset
+   *          The start position to read.
+   * @param len
+   *          The length to read. -1 represents read the whole block.
    * @return <code>TachyonByteBuffer</code> containing the block.
    * @throws IOException
    */
@@ -1178,12 +1189,14 @@ public class TachyonFS {
 
   /**
    * Unlock a block in the current TachyonFS.
-   *
-   * @param blockId     The id of the block to unlock. <code>blockId</code> must be positive.
-   * @param blockLockId The block lock id of the block of unlock. <code>blockLockId</code> must be
-   *                    non-negative.
+   * 
+   * @param blockId
+   *          The id of the block to unlock. <code>blockId</code> must be positive.
+   * @param blockLockId
+   *          The block lock id of the block of unlock. <code>blockLockId</code> must be
+   *          non-negative.
    * @return true if successfully unlock the block with <code>blockLockId</code>,
-   * false otherwise (or invalid parameter).
+   *         false otherwise (or invalid parameter).
    */
   synchronized boolean unlockBlock(long blockId, int blockLockId) {
     if (blockId <= 0 || blockLockId < 0) {
