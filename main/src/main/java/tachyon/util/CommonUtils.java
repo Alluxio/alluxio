@@ -178,15 +178,42 @@ public final class CommonUtils {
   }
 
   /**
+   * Check if the given path is the root.
+   * 
+   * @param path
+   *          The path to check
+   * @return true if the path is the root
+   */
+  public static boolean isRoot(String path) {
+    return (path.length() == 1 && path.equals(Constants.PATH_SEPARATOR));
+  }
+
+  /**
    * Get the name of the file at a path.
    * 
    * @param path
    *          The path
    * @return the name of the file
    */
-  public static String getName(String path) throws InvalidPathException {
-    String[] pathNames = getPathComponents(path);
-    return pathNames[pathNames.length - 1];
+  public static String getName(String path) {
+    return path.substring(path.lastIndexOf('/') + 1);
+  }
+
+  /**
+   * Add the path component to the base path
+   * 
+   * @param basePath
+   *          The path to add on to
+   * @param pathComponent
+   *          The component to add
+   * @return the concatenated path
+   */
+  public static String concat(Object basePathObj, Object pathComponent) {
+    String basePath = basePathObj.toString();
+    if (isRoot(basePath)) {
+      return basePath + pathComponent;
+    }
+    return basePath + Constants.PATH_SEPARATOR + pathComponent;
   }
 
   /**
@@ -198,7 +225,7 @@ public final class CommonUtils {
    */
   public static String[] getPathComponents(String path) throws InvalidPathException {
     validatePath(path);
-    if (path.length() == 1 && path.equals(Constants.PATH_SEPARATOR)) {
+    if (isRoot(path)) {
       String[] ret = new String[1];
       ret[0] = "";
       return ret;

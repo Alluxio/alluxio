@@ -23,6 +23,7 @@ import org.apache.hadoop.mapred.InputSplit;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
+import tachyon.util.CommonUtils;
 
 public final class Utils {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
@@ -46,7 +47,7 @@ public final class Utils {
       if (ret.equals("")) {
         ret = path.getName();
       } else {
-        ret = path.getName() + Constants.PATH_SEPARATOR + ret;
+        ret = CommonUtils.concat(path.getName(), ret);
       }
       path = path.getParent();
     }

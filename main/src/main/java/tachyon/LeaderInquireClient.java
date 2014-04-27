@@ -72,8 +72,7 @@ public class LeaderInquireClient {
             long maxTime = 0;
             String leader = "";
             for (String master : masters) {
-              Stat stat =
-                  CLIENT.checkExists().forPath(LEADER_PATH + Constants.PATH_SEPARATOR + master);
+              Stat stat = CLIENT.checkExists().forPath(CommonUtils.concat(LEADER_PATH, master));
               if (stat != null && stat.getCtime() > maxTime) {
                 maxTime = stat.getCtime();
                 leader = master;
