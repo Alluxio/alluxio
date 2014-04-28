@@ -47,6 +47,7 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoWorkerException;
 import tachyon.thrift.TachyonException;
@@ -355,6 +356,21 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * cleans the given path, throwing an IOException rather than an InvalidPathException.
+   *
+   * @param path
+   *          The path to clean
+   * @return the cleaned path
+   */
+  private synchronized String cleanPathIOException(String path) throws IOException {
+    try {
+      return CommonUtils.cleanPath(path);
+    } catch (InvalidPathException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
   public synchronized int createFile(String path) throws IOException {
     return createFile(path, UserConf.get().DEFAULT_BLOCK_SIZE_BYTE);
   }
@@ -368,7 +384,7 @@ public class TachyonFS {
     if (!mConnected) {
       return -1;
     }
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     int fid = -1;
     try {
       fid = mMasterClient.user_createFile(path, blockSizeByte);
@@ -384,7 +400,7 @@ public class TachyonFS {
     if (!mConnected) {
       return -1;
     }
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     int fid = -1;
     try {
       fid = mMasterClient.user_createFileOnCheckpoint(path, checkpointPath);
@@ -405,8 +421,7 @@ public class TachyonFS {
     if (!mConnected) {
       return -1;
     }
-    path = CommonUtils.cleanPath(path);
-
+    path = cleanPathIOException(path);
     if (columns < 1 || columns > CommonConf.get().MAX_COLUMNS) {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
           + CommonConf.get().MAX_COLUMNS);
@@ -584,7 +599,7 @@ public class TachyonFS {
       return null;
     }
     ClientFileInfo ret;
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     if (useCachedMetadata && mCachedClientFileInfos.containsKey(path)) {
       return mCachedClientFileInfos.get(path);
     }
@@ -645,7 +660,7 @@ public class TachyonFS {
 
   public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
       throws IOException {
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     ClientFileInfo clientFileInfo = getClientFileInfo(path, useCachedMetadata);
     if (clientFileInfo == null) {
       return null;
@@ -709,7 +724,7 @@ public class TachyonFS {
       return -1;
     }
     int fid = -1;
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     try {
       fid = mMasterClient.user_getFileId(path);
     } catch (TException e) {
@@ -840,7 +855,7 @@ public class TachyonFS {
 
   public synchronized RawTable getRawTable(String path) throws IOException {
     connect();
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     ClientRawTableInfo clientRawTableInfo;
     try {
       clientRawTableInfo = mMasterClient.user_getClientRawTableInfoByPath(path);
@@ -992,7 +1007,7 @@ public class TachyonFS {
     if (!mConnected) {
       return false;
     }
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     try {
       return mMasterClient.user_mkdir(path);
     } catch (TException e) {
