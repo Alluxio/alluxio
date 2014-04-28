@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
@@ -80,14 +81,20 @@ public final class CommonUtils {
     changeLocalFilePermission(filePath, "777");
   }
 
+  /**
+   * Checks and normalizes the given path
+   *
+   * @param path
+   *          The path to clean up
+   * @return a normalized version of the path, with single separators between path components and dot components resolved
+   */
   public static String cleanPath(String path) throws IOException {
-    if (path == null || path.isEmpty()) {
-      throw new IOException("Path (" + path + ") is invalid.");
+    try {
+      validatePath(path);
+    } catch (InvalidPathException e) {
+      throw new IOException(e.getMessage());
     }
-    while (path.endsWith(Constants.PATH_SEPARATOR) && path.length() > 1) {
-      path = path.substring(0, path.length() - 1);
-    }
-    return path;
+    return FilenameUtils.normalize(path, true);
   }
 
   public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
@@ -178,6 +185,17 @@ public final class CommonUtils {
   }
 
   /**
+   * Check if the given path is the root.
+   * 
+   * @param path
+   *          The path to check
+   * @return true if the path is the root
+   */
+  public static boolean isRoot(String path) {
+    return Constants.PATH_SEPARATOR.equals(FilenameUtils.normalize(path, true));
+  }
+
+  /**
    * Get the name of the file at a path.
    * 
    * @param path
@@ -185,8 +203,22 @@ public final class CommonUtils {
    * @return the name of the file
    */
   public static String getName(String path) throws InvalidPathException {
-    String[] pathNames = getPathComponents(path);
-    return pathNames[pathNames.length - 1];
+    return FilenameUtils.getName(FilenameUtils.normalize(path, true));
+  }
+
+  /**
+   * Add the path component to the base path
+   * 
+   * @param args
+   *          The components to concatenate
+   * @return the concatenated path
+   */
+  public static String concat(Object... args) {
+    String retPath = "/";
+    for (Object component : args) {
+      retPath = FilenameUtils.concat(retPath, component.toString());
+    }
+    return FilenameUtils.separatorsToUnix(retPath);
   }
 
   /**
@@ -198,7 +230,8 @@ public final class CommonUtils {
    */
   public static String[] getPathComponents(String path) throws InvalidPathException {
     validatePath(path);
-    if (path.length() == 1 && path.equals(Constants.PATH_SEPARATOR)) {
+    path = FilenameUtils.normalize(path, true);
+    if (isRoot(path)) {
       String[] ret = new String[1];
       ret[0] = "";
       return ret;
@@ -398,8 +431,8 @@ public final class CommonUtils {
   }
 
   public static void validatePath(String path) throws InvalidPathException {
-    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR)
-        || (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR)) || path.contains(" ")) {
+    if (path == null || path.isEmpty() || !path.startsWith(Constants.PATH_SEPARATOR)
+        || path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
   }
