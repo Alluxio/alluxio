@@ -166,7 +166,7 @@ public class UnderfsUtil {
         if (files != null) {
           for (String filePath : files) {
             LOG.info("Get: " + filePath);
-            String aPath = (path + "/" + filePath).replace("//", "/");
+            String aPath = CommonUtils.concat(path, filePath);
             String checkPath = aPath.substring(ufsAddrPath.length());
             if (checkPath.startsWith(Constants.PATH_SEPARATOR)) {
               checkPath = checkPath.substring(Constants.PATH_SEPARATOR.length());
@@ -203,7 +203,7 @@ public class UnderfsUtil {
       // retrieve the basename in ufsRootPath
       filePath = path.substring(ufsRootPath.lastIndexOf("/") + 1);
     }
-    return (tfsRootPath + "/" + filePath).replace("//", "/");
+    return CommonUtils.concat(tfsRootPath, filePath);
   }
 
   public static void printUsage() {
