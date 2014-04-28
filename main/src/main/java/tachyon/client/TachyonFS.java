@@ -781,7 +781,7 @@ public class TachyonFS {
   String getLocalFilename(long blockId) {
     String rootFolder = getRootFolder();
     if (rootFolder != null) {
-      String localFileName = rootFolder + Constants.PATH_SEPARATOR + blockId;
+      String localFileName = CommonUtils.concat(rootFolder, blockId);
       File file = new File(localFileName);
       if (file.exists()) {
         return localFileName;

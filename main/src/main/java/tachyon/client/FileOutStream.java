@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
+import tachyon.util.CommonUtils;
 
 /**
  * <code>FileOutStream</code> implementation of TachyonFile. It can only be gotten by
@@ -60,7 +61,7 @@ public class FileOutStream extends OutStream {
     mCachedBytes = 0;
 
     if (WRITE_TYPE.isThrough()) {
-      mUnderFsFile = TFS.createAndGetUserUnderfsTempFolder() + Constants.PATH_SEPARATOR + FILE.FID;
+      mUnderFsFile = CommonUtils.concat(TFS.createAndGetUserUnderfsTempFolder(), FILE.FID);
       UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile);
       if (BLOCK_CAPACITY > Integer.MAX_VALUE) {
         throw new IOException("BLOCK_CAPCAITY (" + BLOCK_CAPACITY + ") can not bigger than "
