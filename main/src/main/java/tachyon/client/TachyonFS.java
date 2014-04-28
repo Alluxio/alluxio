@@ -131,7 +131,7 @@ public class TachyonFS {
   }
 
   /**
-   * in order to print meaningful debug message
+   * Print out the string representation of this Tachyon server address.
    * 
    * @return the string representation like tachyon://host:port or tachyon-ft://host:port
    */

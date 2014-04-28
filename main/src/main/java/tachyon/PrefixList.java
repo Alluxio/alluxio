@@ -38,16 +38,17 @@ public class PrefixList {
   }
 
   /**
-   * in order to print meaningful debug message
+   * Print out all prefixes separated by ";"
    * 
-   * @return the string representation like "/a;/b;/c"
+   * @return the string representation like "a;b/c"
    */
   @Override
   public String toString() {
-    String s = "";
-    for (String prefix : LIST)
-      s += ";" + prefix;
-    return s.startsWith(";") ? s.substring(1) : s;
+    StringBuilder s = new StringBuilder();
+    for (String prefix : LIST) {
+      s.append(prefix + ";");
+    }
+    return s.toString();
   }
 
   public PrefixList(String prefixes, String separator) {
