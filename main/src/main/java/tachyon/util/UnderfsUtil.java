@@ -40,7 +40,7 @@ public class UnderfsUtil {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * This getInfo/4 method loads files under underfsAddress/rootPath (excluding excludePathPrefix)
+   * Load files under path "underfsAddress/rootPath" (excluding excludePathPrefix)
    * to the given tfs under its root directory "/".
    *
    * @param tfs
@@ -53,13 +53,13 @@ public class UnderfsUtil {
    *          paths to exclude from rootPath, which will not be registered in TFS.
    * @throws IOException
    */
-  public static void getInfo(TachyonFS tfs, String underfsAddress, String rootPath,
+  public static void loadUnderFs(TachyonFS tfs, String underfsAddress, String rootPath,
       PrefixList excludePathPrefix) throws IOException {
     getInfo(tfs, "/", underfsAddress, rootPath, excludePathPrefix);
   }
 
   /**
-   * This getInfo/5 method loads files under underfsAddress/rootPath (excluding excludePathPrefix)
+   * Load files under path "underfsAddress/rootPath" (excluding excludePathPrefix)
    * to the given tfs under the given tfsRoot directory.
    * 
    * @param tfs
