@@ -122,7 +122,8 @@ public class MasterInfo implements ImageWriter {
                       dep.addLostFile(tFile.getId());
                       LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId()
                           + " . Trying to recompute it using dependency " + dep.ID);
-                      if (!getPath(tFile).startsWith(MASTER_CONF.TEMPORARY_FOLDER)) {
+                      String path = getPath(tFile);
+                      if (path != null && !path.startsWith(MASTER_CONF.TEMPORARY_FOLDER)) {
                         mMustRecomputeDependencies.add(depId);
                       }
                     }
@@ -238,8 +239,8 @@ public class MasterInfo implements ImageWriter {
   private Map<Integer, Dependency> mDependencies = new HashMap<Integer, Dependency>();
   private RawTables mRawTables = new RawTables();
 
-  // TODO add initialization part for master failover or restart.
-  // All operations on these members are synchronized on mDependencies.
+  // TODO add initialization part for master failover or restart. All operations on these members
+  // are synchronized on mDependencies.
   private Set<Integer> mUncheckpointedDependencies = new HashSet<Integer>();
   private Set<Integer> mPriorityDependencies = new HashSet<Integer>();
   private Set<Integer> mLostFiles = new HashSet<Integer>();
@@ -343,11 +344,21 @@ public class MasterInfo implements ImageWriter {
    * Internal API.
    * 
    * @param recursive
+   *          If recursive is true and the filesystem tree is not filled in all the way to path yet,
+   *          it fills in the missing components.
    * @param path
+   *          The path to create
    * @param directory
+   *          If true, creates an InodeFolder instead of an Inode
    * @param blockSizeByte
+   *          If it's a file, the block size for the Inode
    * @param creationTimeMs
-   * @return
+   *          The time the file was created
+   * @param id
+   *          If not -1, use this id as the id to the inode we create at the given path.
+   *          Any intermediate directories created will use mInodeCounter, so using this parameter
+   *          assumes no intermediate directories will be created.
+   * @return the id of the inode created at the given path
    * @throws FileAlreadyExistException
    * @throws InvalidPathException
    * @throws BlockInfoException
@@ -776,7 +787,7 @@ public class MasterInfo implements ImageWriter {
     }
 
     for (int k = 0; k < columns; k ++) {
-      mkdir(path + Constants.PATH_SEPARATOR + COL + k);
+      mkdir(CommonUtils.concat(path, COL + k));
     }
 
     return id;
@@ -1065,23 +1076,6 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Get the path of a file with the given id
-   * 
-   * @param fileId
-   *          The id of the file to look up
-   * @return the path of the file
-   */
-  public String getFileNameById(int fileId) throws FileDoesNotExistException {
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-      if (inode == null) {
-        throw new FileDoesNotExistException("FileId " + fileId + " does not exist");
-      }
-      return getPath(inode);
-    }
-  }
-
-  /**
    * Get the file id's of the given paths. It recursively scans directories for the file id's inside
    * of them.
    * 
@@ -1121,9 +1115,6 @@ public class MasterInfo implements ImageWriter {
     if (inode.isDirectory()) {
       List<Integer> childernIds = ((InodeFolder) inode).getChildrenIds();
 
-      if (!path.endsWith(Constants.PATH_SEPARATOR)) {
-        path += Constants.PATH_SEPARATOR;
-      }
       synchronized (mRoot) {
         for (int k : childernIds) {
           ret.add(getClientFileInfo(k));
@@ -1155,7 +1146,7 @@ public class MasterInfo implements ImageWriter {
         List<Integer> childrenIds = tFolder.getChildrenIds();
         for (int id : childrenIds) {
           Inode tInode = mInodes.get(id);
-          String newPath = curPath + Constants.PATH_SEPARATOR + tInode.getName();
+          String newPath = CommonUtils.concat(curPath, tInode.getName());
           if (tInode.isDirectory()) {
             nodesQueue.add(new Pair<InodeFolder, String>((InodeFolder) tInode, newPath));
           } else if (((InodeFile) tInode).isFullyInMemory()) {
@@ -1274,8 +1265,24 @@ public class MasterInfo implements ImageWriter {
       if (inode.getParentId() == 1) {
         return Constants.PATH_SEPARATOR + inode.getName();
       }
-      return getPath(mInodes.get(inode.getParentId())) + Constants.PATH_SEPARATOR
-          + inode.getName();
+      return CommonUtils.concat(getPath(mInodes.get(inode.getParentId())), inode.getName());
+    }
+  }
+
+  /**
+   * Get the path of a file with the given id
+   * 
+   * @param fileId
+   *          The id of the file to look up
+   * @return the path of the file
+   */
+  public String getPath(int fileId) throws FileDoesNotExistException {
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+      if (inode == null) {
+        throw new FileDoesNotExistException("FileId " + fileId + " does not exist");
+      }
+      return getPath(inode);
     }
   }
 
@@ -1646,9 +1653,6 @@ public class MasterInfo implements ImageWriter {
     } else {
       List<Integer> childrenIds = ((InodeFolder) inode).getChildrenIds();
 
-      if (!path.endsWith(Constants.PATH_SEPARATOR)) {
-        path += Constants.PATH_SEPARATOR;
-      }
       ret.add(path);
 
       synchronized (mRoot) {
@@ -1656,9 +1660,9 @@ public class MasterInfo implements ImageWriter {
           inode = mInodes.get(k);
           if (inode != null) {
             if (recursive) {
-              ret.addAll(ls(path + inode.getName(), true));
+              ret.addAll(ls(CommonUtils.concat(path, inode.getName()), true));
             } else {
-              ret.add(path + inode.getName());
+              ret.add(CommonUtils.concat(path, inode.getName()));
             }
           }
         }
