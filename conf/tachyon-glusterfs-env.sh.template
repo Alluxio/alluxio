@@ -22,7 +22,7 @@ if [[ `uname -a` == Darwin* ]]; then
 else
   # Assuming Linux
   if [ -z "$JAVA_HOME" ]; then
-    export JAVA_HOME=/usr/lib/jvm/java-7-oracle
+    export JAVA_HOME=/usr/lib/jvm/java-1.6.0-sun-1.6.0.45.x86_64/
   fi
   export TACHYON_RAM_FOLDER=/mnt/ramdisk
 fi
@@ -33,9 +33,7 @@ export TACHYON_UNDERFS_ADDRESS=glusterfs:///
 export TACHYON_UNDERFS_GLUSTER_VOLUMES=tachyon_vol
 export TACHYON_UNDERFS_GLUSTER_MOUNTS=/vol
 export TACHYON_UNDERFS_GLUSTER_MR_DIR=glusterfs:///mapred/system
-export TACHYON_UNDERFS_GLUSTERFS_IMPL=org.apache.hadoop.fs.glusterfs.GlusterFileSystem
 export TACHYON_WORKER_MEMORY_SIZE=1GB
-export TACHYON_UNDERFS_HDFS_IMPL=org.apache.hadoop.hdfs.DistributedFileSystem
 
 CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
@@ -43,7 +41,6 @@ export TACHYON_JAVA_OPTS+="
   -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
   -Dtachyon.debug=true
   -Dtachyon.underfs.address=$TACHYON_UNDERFS_ADDRESS
-  -Dtachyon.underfs.hdfs.impl=$TACHYON_UNDERFS_HDFS_IMPL
   -Dtachyon.data.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/data
   -Dtachyon.workers.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/workers
   -Dtachyon.worker.memory.size=$TACHYON_WORKER_MEMORY_SIZE
@@ -52,7 +49,6 @@ export TACHYON_JAVA_OPTS+="
   -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
   -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
   -Dtachyon.master.pinlist=/pinfiles;/pindata
-  -Dtachyon.underfs.glusterfs.impl=$TACHYON_UNDERFS_GLUSTERFS_IMPL
   -Dtachyon.underfs.glusterfs.volumes=$TACHYON_UNDERFS_GLUSTER_VOLUMES
   -Dtachyon.underfs.glusterfs.mounts=$TACHYON_UNDERFS_GLUSTER_MOUNTS
   -Dtachyon.underfs.glusterfs.mapred.system.dir=$TACHYON_UNDERFS_GLUSTER_MR_DIR
