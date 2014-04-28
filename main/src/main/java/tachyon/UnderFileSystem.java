@@ -46,8 +46,7 @@ public abstract class UnderFileSystem {
   public static UnderFileSystem get(String path) {
     if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")) {
       return UnderFileSystemHdfs.getClient(path);
-    } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")
-        || path.isEmpty()) {  //path is empty in UnderfsUtil.loadUnderFs/5 for local FS
+    } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return UnderFileSystemSingleLocal.getClient();
     }
     CommonUtils.illegalArgumentException("Unknown under file system scheme " + path);
@@ -55,16 +54,16 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * Transform an input string like hdfs://host:port/dir, hdfs://host:port, /dir
+   * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir
    * into a pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
-   * ("hdfs://host:port", "/"), and ("", "/dir"), respectively.
+   * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
    * 
    * @param s
    *          the input path string
    * @return null if s does not start with tachon://, tachyon-ft://, hdfs://, s3://, s3n://,
    *         file://, /. Or a pair of strings denoting the under FS address and the relative path
    *         relative to that address. For local FS (with prefixes file:// or /), the under FS
-   *         address is "" and the path starts with "/".
+   *         address is "/" and the path starts with "/".
    */
   public static Pair<String, String> parse(String s) {
     if (s == null) {
@@ -82,7 +81,7 @@ public abstract class UnderFileSystem {
     } else if (s.startsWith("file://") || s.startsWith(Constants.PATH_SEPARATOR)) {
       String prefix = "file://";
       String suffix = s.startsWith(prefix) ? s.substring(prefix.length()) : s;
-      new Pair<String, String>("", suffix);
+      return new Pair<String, String>(Constants.PATH_SEPARATOR, suffix);
     }
 
     return null;

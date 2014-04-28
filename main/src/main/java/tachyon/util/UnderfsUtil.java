@@ -46,7 +46,7 @@ public class UnderfsUtil {
    * @param tfs
    *          the TFS handler created out of address like "tachyon://host:port"
    * @param underfsAddress
-   *          the address of underFS server, like "hdfs://h:p", or "" for local FS.
+   *          the address of underFS server, like "hdfs://h:p", or "/" for local FS.
    * @param rootPath
    *          the source path in underFS, like "/dir".
    * @param excludePathPrefix
@@ -76,7 +76,7 @@ public class UnderfsUtil {
    */
   public static void getInfo(TachyonFS tfs, String tfsRoot, String underfsAddress,
       String rootPath, PrefixList excludePathPrefix) throws IOException {
-    String underfsRootPath = underfsAddress + rootPath;
+    String underfsRootPath = (underfsAddress + rootPath).replace("//", "/");
     LOG.info(tfs + tfsRoot + " " + underfsRootPath + " " + excludePathPrefix);
 
     if (!tfs.exist(tfsRoot)) {
@@ -118,8 +118,8 @@ public class UnderfsUtil {
           for (String filePath : files) {
             LOG.info("Get: " + filePath);
             String aPath = (path + "/" + filePath).replace("//", "/");
-            if (isFirstLevel && excludePathPrefix.outList(filePath)) {
-              pathQueue.add(aPath);
+            if (isFirstLevel && excludePathPrefix.inList(filePath)) {
+              LOG.info("excluded: "+filePath);
             } else {
               pathQueue.add(aPath);
             }
