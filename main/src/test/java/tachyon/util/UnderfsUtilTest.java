@@ -31,8 +31,6 @@ import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.util.UnderfsUtil;
-import tachyon.util.CommonUtils;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.
@@ -84,7 +82,7 @@ public class UnderfsUtilTest {
       CommonUtils.touch(mUnderfsAddress + inclusion + "/1");
     }
 
-    UnderfsUtil.getInfo(mTfs, mUnderfsAddress, Constants.PATH_SEPARATOR,
+    UnderfsUtil.loadUnderFs(mTfs, mUnderfsAddress, Constants.PATH_SEPARATOR,
         new PrefixList(Arrays.asList(exclusions)));
 
     List<String> paths = null;
