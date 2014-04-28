@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
+import tachyon.Pair;
 import tachyon.PrefixList;
 import tachyon.UnderFileSystem;
 import tachyon.Version;
@@ -39,7 +40,18 @@ public class UnderfsUtil {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * keep this signature so as not to invalidate existing code referring getInfo/4
+   * This getInfo/4 method loads files under underfsAddress/rootPath (excluding excludePathPrefix)
+   * to the given tfs under its root directory "/".
+   *
+   * @param tfs
+   *          the TFS handler created out of address like "tachyon://host:port"
+   * @param underfsAddress
+   *          the address of underFS server, like "hdfs://h:p", or "" for local FS.
+   * @param rootPath
+   *          the source path in underFS, like "/dir".
+   * @param excludePathPrefix
+   *          paths to exclude from rootPath, which will not be registered in TFS.
+   * @throws IOException
    */
   public static void getInfo(TachyonFS tfs, String underfsAddress, String rootPath,
       PrefixList excludePathPrefix) throws IOException {
@@ -47,8 +59,8 @@ public class UnderfsUtil {
   }
 
   /**
-   * This getInfo/5 signature introduces an extra parameter tfsRoot, like a mounting point in TFS.
-   * Files under rootPath will be all registered under tachyon::/host:port/tfsRoot/rootPath.
+   * This getInfo/5 method loads files under underfsAddress/rootPath (excluding excludePathPrefix)
+   * to the given tfs under the given tfsRoot directory.
    * 
    * @param tfs
    *          the TFS handler created out of address like "tachyon://host:port"
@@ -100,8 +112,8 @@ public class UnderfsUtil {
           LOG.info("Create tachyon file " + tfsPath + " with file id " + fileId + " and "
               + "checkpoint location " + path);
         }
-      } else { // isDirectory(path)
-        String[] files = fs.list(path); // the relative paths
+      } else { // path is a directory
+        String[] files = fs.list(path); // fs.list() returns paths relative to path
         if (files != null) {
           for (String filePath : files) {
             LOG.info("Get: " + filePath);
@@ -123,7 +135,15 @@ public class UnderfsUtil {
   }
 
   /**
-   * createTFSPath creates a new path relative to tfsRoot given path and ufsRootPath.
+   * Create a new path relative to a given TFS root.
+   *
+   * @param tfsRoot
+   *          the destination point in TFS to load the under FS path onto
+   * @param ufsRootPath
+   *          the source path in the under FS to be loaded
+   * @param path
+   *          the path relative to ufsRootPath of a file to be loaded
+   * @return the new path relative to tfsRoot.
    */
   private static String createTFSPath(String tfsRoot, String ufsRootPath, String path) {
     String filePath = path.substring(ufsRootPath.length());
@@ -166,17 +186,18 @@ public class UnderfsUtil {
     }
 
     // parse the given TachyonPath into a prefixing TFS address and a rootPath
-    String[] tfsPair = UnderFileSystem.parse(args[0]);
+    Pair<String, String> tfsPair = UnderFileSystem.parse(args[0]);
 
     // parse the given UnderfsPath into a prefixing UnderfsAddress and a rootPath
-    String[] ufsPair = UnderFileSystem.parse(args[1]);
+    Pair<String, String> ufsPair = UnderFileSystem.parse(args[1]);
 
     if (tfsPair == null || ufsPair == null) {
       printUsage();
       System.exit(-2);
     }
 
-    getInfo(TachyonFS.get(tfsPair[0]), tfsPair[1], ufsPair[0], ufsPair[1], tExcludePathPrefix);
+    getInfo(TachyonFS.get(tfsPair.getFirst()), tfsPair.getSecond(), ufsPair.getFirst(),
+        ufsPair.getSecond(), tExcludePathPrefix);
     System.exit(0);
   }
 }
