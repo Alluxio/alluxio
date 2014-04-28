@@ -83,18 +83,15 @@ public final class CommonUtils {
 
   /**
    * Checks and normalizes the given path
-   *
+   * 
    * @param path
    *          The path to clean up
-   * @return a normalized version of the path, with single separators between path components and dot components resolved
+   * @return a normalized version of the path, with single separators between path components and
+   *         dot components resolved
    */
-  public static String cleanPath(String path) throws IOException {
-    try {
-      validatePath(path);
-    } catch (InvalidPathException e) {
-      throw new IOException(e.getMessage());
-    }
-    return FilenameUtils.normalize(path, true);
+  public static String cleanPath(String path) throws InvalidPathException {
+    validatePath(path);
+    return FilenameUtils.separatorsToUnix(FilenameUtils.normalizeNoEndSeparator(path));
   }
 
   public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
@@ -191,8 +188,8 @@ public final class CommonUtils {
    *          The path to check
    * @return true if the path is the root
    */
-  public static boolean isRoot(String path) {
-    return Constants.PATH_SEPARATOR.equals(FilenameUtils.normalize(path, true));
+  public static boolean isRoot(String path) throws InvalidPathException {
+    return Constants.PATH_SEPARATOR.equals(cleanPath(path));
   }
 
   /**
@@ -203,7 +200,23 @@ public final class CommonUtils {
    * @return the name of the file
    */
   public static String getName(String path) throws InvalidPathException {
-    return FilenameUtils.getName(FilenameUtils.normalize(path, true));
+    return FilenameUtils.getName(cleanPath(path));
+  }
+
+  /**
+   * Get the parent directory of the file at the given path.
+   * 
+   * @param path
+   *          The path
+   * @return the parent directory of the path
+   */
+  public static String getParent(String path) throws InvalidPathException {
+    path = cleanPath(path);
+    if (isRoot(path)) {
+      return path;
+    }
+    String name = FilenameUtils.getName(path);
+    return path.substring(0, path.length() - name.length());
   }
 
   /**
@@ -229,8 +242,7 @@ public final class CommonUtils {
    * @return the path split into components
    */
   public static String[] getPathComponents(String path) throws InvalidPathException {
-    validatePath(path);
-    path = FilenameUtils.normalize(path, true);
+    path = cleanPath(path);
     if (isRoot(path)) {
       String[] ret = new String[1];
       ret[0] = "";
@@ -435,6 +447,23 @@ public final class CommonUtils {
         || path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
+  }
+
+  /**
+   * Finds the longest common prefix between two arrays.
+   * 
+   * @param first
+   *          The first array to look at
+   * @param second
+   *          The second array to look at
+   * @return The index of the first differing element between the two lists. This will be
+   *         min(len(first), len(second)) if one list is a prefix of the other.
+   */
+  public static int commonPrefix(Object[] first, Object[] second) {
+    int i;
+    for (i = 0; i < first.length && i < second.length && first[i].equals(second[i]); i ++) {
+    }
+    return i;
   }
 
   private CommonUtils() {
