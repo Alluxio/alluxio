@@ -81,6 +81,13 @@ public final class CommonUtils {
     changeLocalFilePermission(filePath, "777");
   }
 
+  /**
+   * Checks and normalizes the given path
+   *
+   * @param path
+   *          The path to clean up
+   * @return a normalized version of the path, with single separators between path components and dot components resolved
+   */
   public static String cleanPath(String path) throws IOException {
     try {
       validatePath(path);
@@ -202,10 +209,8 @@ public final class CommonUtils {
   /**
    * Add the path component to the base path
    * 
-   * @param basePath
-   *          The path to add on to
-   * @param pathComponent
-   *          The component to add
+   * @param args
+   *          The components to concatenate
    * @return the concatenated path
    */
   public static String concat(Object... args) {
