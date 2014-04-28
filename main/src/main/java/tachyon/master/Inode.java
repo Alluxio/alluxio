@@ -108,7 +108,7 @@ public abstract class Inode implements Comparable<Inode>, ImageWriter {
 
   @Override
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("INode(");
+    StringBuilder sb = new StringBuilder("Inode(");
     sb.append("ID:").append(mId).append(", NAME:").append(mName);
     sb.append(", PARENT_ID:").append(mParentId);
     sb.append(", CREATION_TIME_MS:").append(CREATION_TIME_MS).append(")");

@@ -46,6 +46,13 @@ You can generate Eclipse configure file by run:
 
 Then import the folder into Eclipse.
 
+### Testing
+
+If you want to run unit tests, you can use command: mvn test.
+
+If you want to run a single tests, you can use command: mvn -Dtest=TestCircle#mytest test ;
+e.g.  mvn -Dtest=TachyonFSTest#createFileTest test ;
+
 ### Coding Style
 
 -   Follow the style of the existing codebase. Specifically, we use
@@ -68,4 +75,4 @@ Then import the folder into Eclipse.
     [forking a repo](https://help.github.com/articles/fork-a-repo) and
     [sending a pull request](https://help.github.com/articles/using-pull-requests).
 
--   Make sure that your code passes the unit tests.
+-   Make sure that your code passes the unit tests: mvn test.
