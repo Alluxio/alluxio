@@ -45,9 +45,14 @@ public class InodeFolder extends Inode {
     int parentId = is.readInt();
 
     int numberOfChildren = is.readInt();
-    int[] children = new int[numberOfChildren];
+    Inode[] children = new Inode[numberOfChildren];
     for (int k = 0; k < numberOfChildren; k ++) {
-      children[k] = is.readInt();
+      byte type = is.readByte();
+      if (type == Image.T_INODE_FILE) {
+        children[k] = InodeFile.loadImage(is);
+      } else {
+        children[k] = InodeFolder.loadImage(is);
+      }
     }
 
     InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs);
@@ -55,19 +60,19 @@ public class InodeFolder extends Inode {
     return folder;
   }
 
-  private Set<Integer> mChildren = new HashSet<Integer>();
+  private Set<Inode> mChildren = new HashSet<Inode>();
 
   public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
     super(name, id, parentId, true, creationTimeMs);
   }
 
-  public synchronized void addChild(int childId) {
-    mChildren.add(childId);
+  public synchronized void addChild(Inode child) {
+    mChildren.add(child);
   }
 
-  public synchronized void addChildren(int[] childrenIds) {
-    for (int k = 0; k < childrenIds.length; k ++) {
-      addChild(childrenIds[k]);
+  public synchronized void addChildren(Inode[] children) {
+    for (Inode i : children) {
+      addChild(i);
     }
   }
 
@@ -93,12 +98,19 @@ public class InodeFolder extends Inode {
     return ret;
   }
 
-  public synchronized Inode getChild(String name, Map<Integer, Inode> allInodes) {
-    Inode tInode = null;
-    for (int childId : mChildren) {
-      tInode = allInodes.get(childId);
-      if (tInode != null && tInode.getName().equals(name)) {
-        return tInode;
+  public synchronized Inode getChild(String name) {
+    for (Inode i : mChildren) {
+      if (i.getName().equals(name)) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  public synchronized Inode getChild(int fid) {
+    for (Inode i : mChildren) {
+      if (i.getId() == fid) {
+        return i;
       }
     }
     return null;
@@ -106,24 +118,47 @@ public class InodeFolder extends Inode {
 
   public synchronized List<Integer> getChildrenIds() {
     List<Integer> ret = new ArrayList<Integer>(mChildren.size());
-    ret.addAll(mChildren);
+    for (Inode i : mChildren) {
+      ret.add(i.getId());
+    }
     return ret;
+  }
+
+  /**
+   * Returns a list of the folder's children.
+   * 
+   * @return A list of the children inodes.
+   */
+  public synchronized Set<Inode> getChildren() {
+    return mChildren;
   }
 
   public synchronized int getNumberOfChildren() {
     return mChildren.size();
   }
 
-  public synchronized void removeChild(int id) {
-    mChildren.remove(id);
+  /**
+   * Removes the given inode from the folder.
+   * 
+   * @param i
+   *          The Inode to remove
+   * @return true if the inode was removed, false otherwise.
+   */
+  public synchronized boolean removeChild(Inode i) {
+    return mChildren.remove(i);
   }
 
-  public synchronized boolean removeChild(String name, Map<Integer, Inode> allInodes) {
-    Inode tInode = null;
-    for (int childId : mChildren) {
-      tInode = allInodes.get(childId);
-      if (tInode != null && tInode.getName().equals(name)) {
-        mChildren.remove(childId);
+  /**
+   * Removes the given child from the folder.
+   * 
+   * @param name
+   *          The name of the Inode to remove.
+   * @return true if the inode was removed, false otherwise.
+   */
+  public synchronized boolean removeChild(String name) {
+    for (Inode i : mChildren) {
+      if (i.getName().equals(name)) {
+        mChildren.remove(i);
         return true;
       }
     }
@@ -148,8 +183,8 @@ public class InodeFolder extends Inode {
 
     List<Integer> children = getChildrenIds();
     os.writeInt(children.size());
-    for (int k = 0; k < children.size(); k ++) {
-      os.writeInt(children.get(k));
+    for (Inode inode : getChildren()) {
+      inode.writeImage(os);
     }
   }
 }
