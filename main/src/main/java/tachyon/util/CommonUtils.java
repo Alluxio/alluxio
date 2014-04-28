@@ -89,13 +89,9 @@ public final class CommonUtils {
    * @return a normalized version of the path, with single separators between path components and
    *         dot components resolved
    */
-  public static String cleanPath(String path) throws IOException {
-    try {
-      validatePath(path);
-    } catch (InvalidPathException e) {
-      throw new IOException(e.getMessage());
-    }
-    return FilenameUtils.normalize(path, true);
+  public static String cleanPath(String path) throws InvalidPathException {
+    validatePath(path);
+    return FilenameUtils.separatorsToUnix(FilenameUtils.normalizeNoEndSeparator(path));
   }
 
   public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
@@ -211,6 +207,17 @@ public final class CommonUtils {
   }
 
   /**
+   * Check if the given path is the root.
+   * 
+   * @param path
+   *          The path to check
+   * @return true if the path is the root
+   */
+  public static boolean isRoot(String path) throws InvalidPathException {
+    return Constants.PATH_SEPARATOR.equals(cleanPath(path));
+  }
+
+  /**
    * Get the name of the file at a path.
    * 
    * @param path
@@ -218,7 +225,7 @@ public final class CommonUtils {
    * @return the name of the file
    */
   public static String getName(String path) throws InvalidPathException {
-    return FilenameUtils.getName(FilenameUtils.normalize(path, true));
+    return FilenameUtils.getName(cleanPath(path));
   }
 
   /**
@@ -229,8 +236,7 @@ public final class CommonUtils {
    * @return the path split into components
    */
   public static String[] getPathComponents(String path) throws InvalidPathException {
-    validatePath(path);
-    path = FilenameUtils.normalize(path, true);
+    path = cleanPath(path);
     if (isRoot(path)) {
       String[] ret = new String[1];
       ret[0] = "";
@@ -263,17 +269,6 @@ public final class CommonUtils {
 
   public static void illegalArgumentException(String msg) {
     throw new IllegalArgumentException(msg);
-  }
-
-  /**
-   * Check if the given path is the root.
-   * 
-   * @param path
-   *          The path to check
-   * @return true if the path is the root
-   */
-  public static boolean isRoot(String path) {
-    return Constants.PATH_SEPARATOR.equals(FilenameUtils.normalize(path, true));
   }
 
   public static <T> String listToString(List<T> list) {
