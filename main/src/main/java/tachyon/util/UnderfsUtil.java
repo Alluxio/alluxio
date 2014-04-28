@@ -40,67 +40,116 @@ public class UnderfsUtil {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Load files under path "underfsAddress/rootPath" (excluding excludePathPrefix)
+   * Load files under path "ufsAddress/ufsRootPath" (excluding excludePathPrefix)
    * to the given tfs under its root directory "/".
    *
    * @param tfs
    *          the TFS handler created out of address like "tachyon://host:port"
-   * @param underfsAddress
+   * @param ufsAddress
    *          the address of underFS server, like "hdfs://h:p", or "/" for local FS.
-   * @param rootPath
+   * @param ufsRootPath
    *          the source path in underFS, like "/dir".
    * @param excludePathPrefix
-   *          paths to exclude from rootPath, which will not be registered in TFS.
+   *          paths to exclude from ufsRootPath, which will not be registered in TFS.
    * @throws IOException
    */
-  public static void loadUnderFs(TachyonFS tfs, String underfsAddress, String rootPath,
+  public static void loadUnderFs(TachyonFS tfs, String ufsAddress, String ufsRootPath,
       PrefixList excludePathPrefix) throws IOException {
-    getInfo(tfs, "/", underfsAddress, rootPath, excludePathPrefix);
+    loadUnderFs(tfs, "/", ufsAddress, ufsRootPath, excludePathPrefix);
+  }
+
+  public static void loadUnderFs(TachyonFS tfs, String ufsAddrRootPath,
+      PrefixList excludePathPrefix) throws IOException {
+    Pair<String, String> pair = UnderFileSystem.parse(ufsAddrRootPath);
+    String ufsAddress = pair.getFirst();
+    String ufsRootPath = pair.getSecond();
+    loadUnderFs(tfs, "/", ufsAddress, ufsRootPath, excludePathPrefix);
+  }
+
+  public static void loadUnderFs(String tfsAddrRootPath, String ufsAddrRootPath,
+      PrefixList excludePathPrefix) throws IOException {
+    Pair<String, String> tfsPair = UnderFileSystem.parse(tfsAddrRootPath);
+    String tfsAddress = tfsPair.getFirst();
+    String tfsRootPath = tfsPair.getSecond();
+    TachyonFS tfs = TachyonFS.get(tfsAddress);
+
+    Pair<String, String> pair = UnderFileSystem.parse(ufsAddrRootPath);
+    String ufsAddress = pair.getFirst();
+    String ufsRootPath = pair.getSecond();
+
+    loadUnderFs(tfs, tfsRootPath, ufsAddress, ufsRootPath, excludePathPrefix);
+  }
+
+  public static void loadUnderFs(String tfsAddrRootPath, String ufsAddrRootPath,
+      String excludePath) throws IOException {
+    Pair<String, String> tfsPair = UnderFileSystem.parse(tfsAddrRootPath);
+    String tfsAddress = tfsPair.getFirst();
+    String tfsRootPath = tfsPair.getSecond();
+    TachyonFS tfs = TachyonFS.get(tfsAddress);
+
+    Pair<String, String> pair = UnderFileSystem.parse(ufsAddrRootPath);
+    String ufsAddress = pair.getFirst();
+    String ufsRootPath = pair.getSecond();
+
+    PrefixList excludePathPrefix = new PrefixList(excludePath, ";");
+
+    loadUnderFs(tfs, tfsRootPath, ufsAddress, ufsRootPath, excludePathPrefix);
+  }
+
+  public static void loadUnderFs(String tfsAddrRootPath, String ufsAddrRootPath)
+      throws IOException {
+    Pair<String, String> tfsPair = UnderFileSystem.parse(tfsAddrRootPath);
+    String tfsAddress = tfsPair.getFirst();
+    String tfsRootPath = tfsPair.getSecond();
+    TachyonFS tfs = TachyonFS.get(tfsAddress);
+
+    Pair<String, String> pair = UnderFileSystem.parse(ufsAddrRootPath);
+    String ufsAddress = pair.getFirst();
+    String ufsRootPath = pair.getSecond();
+
+    PrefixList excludePathPrefix = new PrefixList(null);
+
+    loadUnderFs(tfs, tfsRootPath, ufsAddress, ufsRootPath, excludePathPrefix);
   }
 
   /**
-   * Load files under path "underfsAddress/rootPath" (excluding excludePathPrefix)
-   * to the given tfs under the given tfsRoot directory.
+   * Load files under path "ufsAddress/ufsRootPath" (excluding excludePathPrefix)
+   * to the given tfs under the given tfsRootPath directory.
    * 
    * @param tfs
    *          the TFS handler created out of address like "tachyon://host:port"
-   * @param tfsRoot
+   * @param tfsRootPath
    *          the destination point in TFS to load the under FS path onto
-   * @param underfsAddress
+   * @param ufsAddress
    *          the address of underFS server, like "hdfs://h:p", or "" for local FS.
-   * @param rootPath
+   * @param ufsRootPath
    *          the source path in underFS, like "/dir".
    * @param excludePathPrefix
-   *          paths to exclude from rootPath, which will not be registered in TFS.
+   *          paths to exclude from ufsRootPath, which will not be registered in TFS.
    * @throws IOException
    */
-  public static void getInfo(TachyonFS tfs, String tfsRoot, String underfsAddress,
-      String rootPath, PrefixList excludePathPrefix) throws IOException {
-    String underfsRootPath = (underfsAddress + rootPath).replace("//", "/");
-    LOG.info(tfs + tfsRoot + " " + underfsRootPath + " " + excludePathPrefix);
+  public static void loadUnderFs(TachyonFS tfs, String tfsRootPath, String ufsAddress,
+      String ufsRootPath, PrefixList excludePathPrefix) throws IOException {
+    String ufsAddrPath = (ufsAddress + ufsRootPath).replace("//", "/");
+    LOG.info(tfs + tfsRootPath + " " + ufsAddrPath + " " + excludePathPrefix);
 
-    if (!tfs.exist(tfsRoot)) {
-      tfs.mkdir(tfsRoot);
-      LOG.info("directory " + tfsRoot + " does not exist in Tachyon: created");
+    if (!tfs.exist(tfsRootPath)) {
+      tfs.mkdir(tfsRootPath);
+      LOG.info("directory " + tfsRootPath + " does not exist in Tachyon: created");
     }
 
-    Configuration tConf = new Configuration();
-    tConf.set("fs.default.name", underfsRootPath);
-    // TODO Use underfs to make this generic.
-    UnderFileSystem fs = UnderFileSystem.get(underfsAddress);
+    // create the under FS handler (for hdfs, local FS, or s3)
+    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress);
 
     Queue<String> pathQueue = new LinkedList<String>();
-    if (excludePathPrefix.outList(rootPath)) {
-      pathQueue.add(underfsRootPath);
+    if (excludePathPrefix.outList(ufsRootPath)) {
+      pathQueue.add(ufsAddrPath);
     }
-
-    // only exclude prefix-matching files at the first level of given rootPath
-    boolean isFirstLevel = true;
 
     while (!pathQueue.isEmpty()) {
       String path = pathQueue.poll();  // the absolute path
-      if (fs.isFile(path)) {
-        String tfsPath = createTFSPath(tfsRoot, underfsRootPath, path);
+      if (ufs.isFile(path)) {
+        String tfsPath = createTFSPath(tfsRootPath, ufsAddrPath, path);
         if (tfs.exist(tfsPath)) {
           LOG.info("File " + tfsPath + " already exists in Tachyon.");
           continue;
@@ -113,20 +162,23 @@ public class UnderfsUtil {
               + "checkpoint location " + path);
         }
       } else { // path is a directory
-        String[] files = fs.list(path); // fs.list() returns paths relative to path
+        String[] files = ufs.list(path); // ufs.list() returns paths relative to path
         if (files != null) {
           for (String filePath : files) {
             LOG.info("Get: " + filePath);
             String aPath = (path + "/" + filePath).replace("//", "/");
-            if (isFirstLevel && excludePathPrefix.inList(filePath)) {
-              LOG.info("excluded: "+filePath);
+            String checkPath = aPath.substring(ufsAddrPath.length());
+            if (checkPath.startsWith(Constants.PATH_SEPARATOR)) {
+              checkPath = checkPath.substring(Constants.PATH_SEPARATOR.length());
+            }
+            if (excludePathPrefix.inList(checkPath)) {
+              LOG.info("excluded: " + checkPath);
             } else {
               pathQueue.add(aPath);
             }
           }
-          isFirstLevel = false;
         }
-        String tfsPath = createTFSPath(tfsRoot, underfsRootPath, path);
+        String tfsPath = createTFSPath(tfsRootPath, ufsAddrPath, path);
         if (!tfs.exist(tfsPath)) {
           tfs.mkdir(tfsPath);
         }
@@ -137,28 +189,27 @@ public class UnderfsUtil {
   /**
    * Create a new path relative to a given TFS root.
    *
-   * @param tfsRoot
+   * @param tfsRootPath
    *          the destination point in TFS to load the under FS path onto
    * @param ufsRootPath
    *          the source path in the under FS to be loaded
    * @param path
    *          the path relative to ufsRootPath of a file to be loaded
-   * @return the new path relative to tfsRoot.
+   * @return the new path relative to tfsRootPath.
    */
-  private static String createTFSPath(String tfsRoot, String ufsRootPath, String path) {
+  private static String createTFSPath(String tfsRootPath, String ufsRootPath, String path) {
     String filePath = path.substring(ufsRootPath.length());
     if (filePath.isEmpty()) {
       // retrieve the basename in ufsRootPath
       filePath = path.substring(ufsRootPath.lastIndexOf("/") + 1);
     }
-    return (tfsRoot + "/" + filePath).replace("//", "/");
+    return (tfsRootPath + "/" + filePath).replace("//", "/");
   }
 
   public static void printUsage() {
     String cmd =
         "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
             + "tachyon.util.UnderfsUtil ";
-    // cmd = "bin/tachyon loadufs ";
 
     System.out.println("Usage: " + cmd + "<TachyonPath> <UnderfsPath> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");
@@ -170,34 +221,23 @@ public class UnderfsUtil {
     System.out.println("except for those with prefix c");
   }
 
-  public static void main(String[] args) throws SuspectedFileSizeException, InvalidPathException,
-      IOException, FileDoesNotExistException, FileAlreadyExistException, TException {
+  public static void main(String[] args) {
 
     if (!(args.length == 2 || args.length == 3)) {
       printUsage();
       System.exit(-1);
     }
 
-    PrefixList tExcludePathPrefix = null;
-    if (args.length == 3) {
-      tExcludePathPrefix = new PrefixList(args[2], ";");
-    } else {
-      tExcludePathPrefix = new PrefixList(null);
-    }
+    String exList = (args.length==3) ? args[2] : "";
 
-    // parse the given TachyonPath into a prefixing TFS address and a rootPath
-    Pair<String, String> tfsPair = UnderFileSystem.parse(args[0]);
-
-    // parse the given UnderfsPath into a prefixing UnderfsAddress and a rootPath
-    Pair<String, String> ufsPair = UnderFileSystem.parse(args[1]);
-
-    if (tfsPair == null || ufsPair == null) {
+    try {
+      loadUnderFs(args[0], args[1], exList);
+    } catch (Exception e) {
+      e.printStackTrace();
       printUsage();
       System.exit(-2);
     }
 
-    getInfo(TachyonFS.get(tfsPair.getFirst()), tfsPair.getSecond(), ufsPair.getFirst(),
-        ufsPair.getSecond(), tExcludePathPrefix);
     System.exit(0);
   }
 }
