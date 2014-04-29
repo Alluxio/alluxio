@@ -60,7 +60,7 @@ public abstract class UnderFileSystem {
    * 
    * @param path
    *          the input path string
-   * @return null if s does not start with tachyon://, tachyon-ft://, hdfs://, s3://, s3n://,
+   * @return null if path does not start with tachyon://, tachyon-ft://, hdfs://, s3://, s3n://,
    *         file://, /. Or a pair of strings denoting the under FS address and the relative path
    *         relative to that address. For local FS (with prefixes file:// or /), the under FS
    *         address is "/" and the path starts with "/".
