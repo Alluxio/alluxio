@@ -58,29 +58,29 @@ public abstract class UnderFileSystem {
    * into a pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
    * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
    * 
-   * @param s
+   * @param path
    *          the input path string
-   * @return null if s does not start with tachon://, tachyon-ft://, hdfs://, s3://, s3n://,
+   * @return null if s does not start with tachyon://, tachyon-ft://, hdfs://, s3://, s3n://,
    *         file://, /. Or a pair of strings denoting the under FS address and the relative path
    *         relative to that address. For local FS (with prefixes file:// or /), the under FS
    *         address is "/" and the path starts with "/".
    */
-  public static Pair<String, String> parse(String s) {
-    if (s == null) {
+  public static Pair<String, String> parse(String path) {
+    if (path == null) {
       return null;
-    } else if (s.startsWith("tachyon://") || s.startsWith("tachyon-ft://")
-        || s.startsWith("hdfs://") || s.startsWith("s3://") || s.startsWith("s3n://")) {
-      String prefix = s.substring(0, s.indexOf("://") + 3);
-      String body = s.substring(prefix.length());
+    } else if (path.startsWith("tachyon://") || path.startsWith("tachyon-ft://")
+        || path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")) {
+      String prefix = path.substring(0, path.indexOf("://") + 3);
+      String body = path.substring(prefix.length());
       if (body.contains(Constants.PATH_SEPARATOR)) {
-        int i = body.indexOf(Constants.PATH_SEPARATOR);
-        return new Pair<String, String>(prefix + body.substring(0, i), body.substring(i));
+        int ind = body.indexOf(Constants.PATH_SEPARATOR);
+        return new Pair<String, String>(prefix + body.substring(0, ind), body.substring(ind));
       } else {
-        return new Pair<String, String>(s, Constants.PATH_SEPARATOR);
+        return new Pair<String, String>(path, Constants.PATH_SEPARATOR);
       }
-    } else if (s.startsWith("file://") || s.startsWith(Constants.PATH_SEPARATOR)) {
+    } else if (path.startsWith("file://") || path.startsWith(Constants.PATH_SEPARATOR)) {
       String prefix = "file://";
-      String suffix = s.startsWith(prefix) ? s.substring(prefix.length()) : s;
+      String suffix = path.startsWith(prefix) ? path.substring(prefix.length()) : path;
       return new Pair<String, String>(Constants.PATH_SEPARATOR, suffix);
     }
 
@@ -115,11 +115,25 @@ public abstract class UnderFileSystem {
   public abstract boolean isFile(String path) throws IOException;
 
   /**
-   * List all the files in the folder.
+   * Returns an array of strings naming the files and directories in the directory denoted by this
+   * abstract pathname.
+   * 
+   * <p>
+   * If this abstract pathname does not denote a directory, then this method returns {@code null}.
+   * Otherwise an array of strings is returned, one for each file or directory in the directory.
+   * Names denoting the directory itself and the directory's parent directory are not included in
+   * the result. Each string is a file name rather than a complete path.
+   * 
+   * <p>
+   * There is no guarantee that the name strings in the resulting array will appear in any specific
+   * order; they are not, in particular, guaranteed to appear in alphabetical order.
    * 
    * @param path
    *          the path to list.
-   * @return all the file names under the path.
+   * @return An array of strings naming the files and directories in the directory denoted by this
+   *         abstract pathname. The array will be empty if the directory is empty. Returns
+   *         {@code null} if this abstract pathname does not denote a directory, or if an I/O error
+   *         occurs.
    * @throws IOException
    */
   public abstract String[] list(String path) throws IOException;

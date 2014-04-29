@@ -24,7 +24,7 @@ public final class UnderFileSystemTest {
 
   @Test
   public void parseTest() {
-    Pair result = UnderFileSystem.parse("/path");
+    Pair<String, String> result = UnderFileSystem.parse("/path");
     Assert.assertEquals(result.getFirst(), "/");
     Assert.assertEquals(result.getSecond(), "/path");
 
@@ -64,5 +64,4 @@ public final class UnderFileSystemTest {
     Assert.assertEquals(UnderFileSystem.parse(""), null);
     Assert.assertEquals(UnderFileSystem.parse("anythingElse"), null);
   }
-
 }

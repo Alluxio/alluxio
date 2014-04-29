@@ -82,9 +82,8 @@ public class UnderfsUtilTest {
       CommonUtils.touch(mUnderfsAddress + inclusion + "/1");
     }
 
-    UnderfsUtil.loadUnderFs(mTfs, Constants.PATH_SEPARATOR,
-        mUnderfsAddress + Constants.PATH_SEPARATOR,
-        new PrefixList(Arrays.asList(exclusions)));
+    UnderfsUtil.loadUnderFs(mTfs, Constants.PATH_SEPARATOR, mUnderfsAddress
+        + Constants.PATH_SEPARATOR, new PrefixList(Arrays.asList(exclusions)));
 
     List<String> paths = null;
     for (String exclusion : exclusions) {
