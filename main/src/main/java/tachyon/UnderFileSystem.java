@@ -53,6 +53,40 @@ public abstract class UnderFileSystem {
     return null;
   }
 
+  /**
+   * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir
+   * into a pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
+   * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
+   * 
+   * @param s
+   *          the input path string
+   * @return null if s does not start with tachon://, tachyon-ft://, hdfs://, s3://, s3n://,
+   *         file://, /. Or a pair of strings denoting the under FS address and the relative path
+   *         relative to that address. For local FS (with prefixes file:// or /), the under FS
+   *         address is "/" and the path starts with "/".
+   */
+  public static Pair<String, String> parse(String s) {
+    if (s == null) {
+      return null;
+    } else if (s.startsWith("tachyon://") || s.startsWith("tachyon-ft://")
+        || s.startsWith("hdfs://") || s.startsWith("s3://") || s.startsWith("s3n://")) {
+      String prefix = s.substring(0, s.indexOf("://") + 3);
+      String body = s.substring(prefix.length());
+      if (body.contains(Constants.PATH_SEPARATOR)) {
+        int i = body.indexOf(Constants.PATH_SEPARATOR);
+        return new Pair<String, String>(prefix + body.substring(0, i), body.substring(i));
+      } else {
+        return new Pair<String, String>(s, Constants.PATH_SEPARATOR);
+      }
+    } else if (s.startsWith("file://") || s.startsWith(Constants.PATH_SEPARATOR)) {
+      String prefix = "file://";
+      String suffix = s.startsWith(prefix) ? s.substring(prefix.length()) : s;
+      return new Pair<String, String>(Constants.PATH_SEPARATOR, suffix);
+    }
+
+    return null;
+  }
+
   public abstract void close() throws IOException;
 
   public abstract OutputStream create(String path) throws IOException;

@@ -61,6 +61,13 @@ public class TachyonFSTest {
   }
 
   @Test
+  public void toStringTest() throws Exception {
+    String tfsAddress = "tachyon://localhost:19998";
+    TachyonFS tfs = TachyonFS.get(tfsAddress);
+    Assert.assertEquals(tfs.toString(), "tachyon://localhost/127.0.0.1:19998");
+  }
+
+  @Test
   public void createFileTest() throws Exception {
     int fileId = mTfs.createFile("/root/testFile1");
     Assert.assertEquals(3, fileId);
