@@ -37,6 +37,20 @@ public class PrefixList {
     }
   }
 
+  /**
+   * Print out all prefixes separated by ";"
+   * 
+   * @return the string representation like "a;b/c"
+   */
+  @Override
+  public String toString() {
+    StringBuilder s = new StringBuilder();
+    for (String prefix : LIST) {
+      s.append(prefix + ";");
+    }
+    return s.toString();
+  }
+
   public PrefixList(String prefixes, String separator) {
     Validate.notNull(separator);
     if (prefixes == null) {

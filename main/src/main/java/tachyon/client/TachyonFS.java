@@ -130,6 +130,16 @@ public class TachyonFS {
     mAvailableSpaceBytes = 0L;
   }
 
+  /**
+   * Print out the string representation of this Tachyon server address.
+   * 
+   * @return the string representation like tachyon://host:port or tachyon-ft://host:port
+   */
+  @Override
+  public String toString() {
+    return (mZookeeperMode ? Constants.HEADER_FT : Constants.HEADER) + mMasterAddress.toString();
+  }
+
   public synchronized void accessLocalBlock(long blockId) {
     connect();
     if (mWorkerClient != null && mIsWorkerLocal) {
