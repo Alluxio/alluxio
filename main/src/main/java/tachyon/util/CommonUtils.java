@@ -83,10 +83,11 @@ public final class CommonUtils {
 
   /**
    * Checks and normalizes the given path
-   *
+   * 
    * @param path
    *          The path to clean up
-   * @return a normalized version of the path, with single separators between path components and dot components resolved
+   * @return a normalized version of the path, with single separators between path components and
+   *         dot components resolved
    */
   public static String cleanPath(String path) throws IOException {
     try {
@@ -110,6 +111,31 @@ public final class CommonUtils {
       ret.add(cloneByteBuffer(source.get(k)));
     }
     return ret;
+  }
+
+  /**
+   * Add the path component to the base path
+   * 
+   * @param args
+   *          The components to concatenate
+   * @return the concatenated path
+   */
+  public static String concat(Object... args) {
+    if (args.length == 0) {
+      return "";
+    }
+    String retPath = args[0].toString();
+    for (int k = 1; k < args.length; k ++) {
+      while (retPath.endsWith(Constants.PATH_SEPARATOR)) {
+        retPath = retPath.substring(0, retPath.length() - 1);
+      }
+      if (args[k].toString().startsWith(Constants.PATH_SEPARATOR)) {
+        retPath += args[k].toString();
+      } else {
+        retPath += Constants.PATH_SEPARATOR + args[k].toString();
+      }
+    }
+    return retPath;
   }
 
   public static String convertByteArrayToStringWithoutEscape(byte[] data) {
@@ -185,17 +211,6 @@ public final class CommonUtils {
   }
 
   /**
-   * Check if the given path is the root.
-   * 
-   * @param path
-   *          The path to check
-   * @return true if the path is the root
-   */
-  public static boolean isRoot(String path) {
-    return Constants.PATH_SEPARATOR.equals(FilenameUtils.normalize(path, true));
-  }
-
-  /**
    * Get the name of the file at a path.
    * 
    * @param path
@@ -204,21 +219,6 @@ public final class CommonUtils {
    */
   public static String getName(String path) throws InvalidPathException {
     return FilenameUtils.getName(FilenameUtils.normalize(path, true));
-  }
-
-  /**
-   * Add the path component to the base path
-   * 
-   * @param args
-   *          The components to concatenate
-   * @return the concatenated path
-   */
-  public static String concat(Object... args) {
-    String retPath = "/";
-    for (Object component : args) {
-      retPath = FilenameUtils.concat(retPath, component.toString());
-    }
-    return FilenameUtils.separatorsToUnix(retPath);
   }
 
   /**
@@ -263,6 +263,17 @@ public final class CommonUtils {
 
   public static void illegalArgumentException(String msg) {
     throw new IllegalArgumentException(msg);
+  }
+
+  /**
+   * Check if the given path is the root.
+   * 
+   * @param path
+   *          The path to check
+   * @return true if the path is the root
+   */
+  public static boolean isRoot(String path) {
+    return Constants.PATH_SEPARATOR.equals(FilenameUtils.normalize(path, true));
   }
 
   public static <T> String listToString(List<T> list) {
