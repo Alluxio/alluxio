@@ -64,23 +64,6 @@ public class UnderfsUtil {
   }
 
   /**
-   * Load files under path "ufsAddrRootPath" (excluding excludePathPrefix relative to the path)
-   * to the given tfs under its root directory "/".
-   *
-   * @param tfs
-   *          the TFS handler created out of address like "tachyon://host:port".
-   * @param ufsAddrRootPath
-   *          the address and root path of the under FS, like "hdfs://host:port/dir".
-   * @param excludePathPrefix
-   *          paths to exclude from ufsRootPath, which will not be registered in TFS.
-   * @throws IOException
-   */
-  public static void loadUnderFs(TachyonFS tfs, String ufsAddrRootPath,
-      PrefixList excludePathPrefix) throws IOException {
-    loadUnderFs(tfs, "/", ufsAddrRootPath, excludePathPrefix);
-  }
-
-  /**
    * Load files under path "ufsAddress/ufsRootPath" (excluding excludePathPrefix)
    * to the given tfs under the given tfsRootPath directory.
    * 
