@@ -62,7 +62,7 @@ public class UnderfsUtilTest {
   }
 
   @Test
-  public void getInfoTest() throws IOException {
+  public void loadUnderFsTest() throws IOException {
     if (!UnderFileSystemCluster.isUFSHDFS()) {
       return;
     }
@@ -82,7 +82,7 @@ public class UnderfsUtilTest {
       CommonUtils.touch(mUnderfsAddress + inclusion + "/1");
     }
 
-    UnderfsUtil.loadUnderFs(mTfs, mUnderfsAddress, Constants.PATH_SEPARATOR,
+    UnderfsUtil.loadUnderFs(mTfs, mUnderfsAddress + Constants.PATH_SEPARATOR,
         new PrefixList(Arrays.asList(exclusions)));
 
     List<String> paths = null;

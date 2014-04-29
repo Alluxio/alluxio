@@ -177,7 +177,8 @@ public class TFS extends FileSystem {
       Path hdfsPath = Utils.getHDFSPath(path);
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       if (fs.exists(hdfsPath)) {
-        UnderfsUtil.loadUnderFs(mTFS, UNDERFS_ADDRESS, path, new PrefixList(null));
+        String ufsAddrPath = (UNDERFS_ADDRESS + "/" + path).replace("//", "/");
+        UnderfsUtil.loadUnderFs(mTFS, ufsAddrPath, new PrefixList(null));
       }
     }
   }
