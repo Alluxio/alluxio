@@ -24,68 +24,45 @@ public final class UnderFileSystemTest {
 
   @Test
   public void parseTest() {
-    Pair<String, String> result = UnderFileSystem.parse(null);
-    Assert.assertEquals(result, null);
-  }
-
-  @Test
-  public void parseTest2() {
-    Pair<String, String> result = UnderFileSystem.parse("");
-    Assert.assertEquals(result, null);
-  }
-
-  @Test
-  public void parseTest3() {
-    Pair<String, String> result = UnderFileSystem.parse("anythingElse");
-    Assert.assertEquals(result, null);
-  }
-
-  @Test
-  public void parseTest4() {
-    Pair<String, String> result = UnderFileSystem.parse("/path");
+    Pair result = UnderFileSystem.parse("/path");
     Assert.assertEquals(result.getFirst(), "/");
     Assert.assertEquals(result.getSecond(), "/path");
-  }
 
-  @Test
-  public void parseTest5() {
-    Pair<String, String> result = UnderFileSystem.parse("file:///path");
+    result = UnderFileSystem.parse("file:///path");
     Assert.assertEquals(result.getFirst(), "/");
     Assert.assertEquals(result.getSecond(), "/path");
-  }
 
-  @Test
-  public void parseTest6() {
-    Pair<String, String> result = UnderFileSystem.parse("tachyon://localhost:19998");
+    result = UnderFileSystem.parse("tachyon://localhost:19998");
     Assert.assertEquals(result.getFirst(), "tachyon://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/");
-  }
 
-  @Test
-  public void parseTest7() {
-    Pair<String, String> result = UnderFileSystem.parse("tachyon://localhost:19998/");
+    result = UnderFileSystem.parse("tachyon://localhost:19998/");
     Assert.assertEquals(result.getFirst(), "tachyon://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/");
-  }
 
-  @Test
-  public void parseTest8() {
-    Pair<String, String> result = UnderFileSystem.parse("tachyon://localhost:19998/path");
+    result = UnderFileSystem.parse("tachyon://localhost:19998/path");
     Assert.assertEquals(result.getFirst(), "tachyon://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
-  }
 
-  @Test
-  public void parseTest9() {
-    Pair<String, String> result = UnderFileSystem.parse("tachyon-ft://localhost:19998/path");
+    result = UnderFileSystem.parse("tachyon-ft://localhost:19998/path");
     Assert.assertEquals(result.getFirst(), "tachyon-ft://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
-  }
 
-  @Test
-  public void parseTest10() {
-    Pair<String, String> result = UnderFileSystem.parse("hdfs://localhost:19998/path");
+    result = UnderFileSystem.parse("hdfs://localhost:19998/path");
     Assert.assertEquals(result.getFirst(), "hdfs://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
+
+    result = UnderFileSystem.parse("s3://localhost:19998/path");
+    Assert.assertEquals(result.getFirst(), "s3://localhost:19998");
+    Assert.assertEquals(result.getSecond(), "/path");
+
+    result = UnderFileSystem.parse("s3n://localhost:19998/path");
+    Assert.assertEquals(result.getFirst(), "s3n://localhost:19998");
+    Assert.assertEquals(result.getSecond(), "/path");
+
+    Assert.assertEquals(UnderFileSystem.parse(null), null);
+    Assert.assertEquals(UnderFileSystem.parse(""), null);
+    Assert.assertEquals(UnderFileSystem.parse("anythingElse"), null);
   }
+
 }
