@@ -33,6 +33,30 @@ public final class PrefixListTest {
   }
 
   @Test
+  public void toStringTest() {
+    PrefixList prefixList = new PrefixList("", ";");
+    Assert.assertEquals(prefixList.toString(), ";");
+  }
+
+  @Test
+  public void toStringTest2() {
+    PrefixList prefixList = new PrefixList(";", ";");
+    Assert.assertEquals(prefixList.toString(), "");
+  }
+
+  @Test
+  public void toStringTest3() {
+    PrefixList prefixList = new PrefixList("a/b;c", ";");
+    Assert.assertEquals(prefixList.toString(), "a/b;c;");
+  }
+
+  @Test
+  public void toStringTest4() {
+    PrefixList prefixList = new PrefixList("a/b;c;", ";");
+    Assert.assertEquals(prefixList.toString(), "a/b;c;");
+  }
+
+  @Test
   public void prefixListTest() {
     PrefixList prefixList = new PrefixList(ImmutableList.<String> of("test", "apple", "sun"));
     Assert.assertTrue(prefixList.inList("test"));
