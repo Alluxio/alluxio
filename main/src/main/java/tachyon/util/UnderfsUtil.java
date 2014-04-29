@@ -100,11 +100,13 @@ public class UnderfsUtil {
     String ufsRootPath = tfsPair.getSecond();
 
     if (!tfs.exist(tfsRootPath)) {
-      if (tfs.mkdir(tfsRootPath)) {
-        LOG.info("directory " + tfsRootPath + " does not exist in Tachyon: created");
-      } else {
-        throw new IOException("Failed to create folder in Tachyon: " + tfsRootPath);
-      }
+      tfs.mkdir(tfsRootPath);
+      // TODO Add the following.
+      // if (tfs.mkdir(tfsRootPath)) {
+      // LOG.info("directory " + tfsRootPath + " does not exist in Tachyon: created");
+      // } else {
+      // throw new IOException("Failed to create folder in Tachyon: " + tfsRootPath);
+      // }
     }
 
     // create the under FS handler (e.g. hdfs, local FS, s3 etc.)
@@ -149,11 +151,13 @@ public class UnderfsUtil {
         }
         String tfsPath = createTFSPath(tfsRootPath, ufsAddrRootPath, ufsPath);
         if (!tfs.exist(tfsPath)) {
-          if (tfs.mkdir(tfsPath)) {
-            LOG.info("Created tachyon folder " + tfsPath + " with checkpoint location " + ufsPath);
-          } else {
-            LOG.info("Failed to create tachyon folder: " + tfsPath);
-          }
+          tfs.mkdir(tfsPath);
+          // TODO Add the following.
+          // if (tfs.mkdir(tfsPath)) {
+          // LOG.info("Created tachyon folder " + tfsPath + " with checkpoint location " + ufsPath);
+          // } else {
+          // LOG.info("Failed to create tachyon folder: " + tfsPath);
+          // }
         }
       }
     }
