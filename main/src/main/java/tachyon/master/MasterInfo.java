@@ -36,6 +36,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
@@ -122,7 +123,8 @@ public class MasterInfo implements ImageWriter {
                       dep.addLostFile(tFile.getId());
                       LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId()
                           + " . Trying to recompute it using dependency " + dep.ID);
-                      if (!getPath(tFile).startsWith(MASTER_CONF.TEMPORARY_FOLDER)) {
+                      String path = getPath(tFile);
+                      if (path != null && !path.startsWith(MASTER_CONF.TEMPORARY_FOLDER)) {
                         mMustRecomputeDependencies.add(depId);
                       }
                     }
@@ -238,8 +240,8 @@ public class MasterInfo implements ImageWriter {
   private Map<Integer, Dependency> mDependencies = new HashMap<Integer, Dependency>();
   private RawTables mRawTables = new RawTables();
 
-  // TODO add initialization part for master failover or restart.
-  // All operations on these members are synchronized on mDependencies.
+  // TODO add initialization part for master failover or restart. All operations on these members
+  // are synchronized on mDependencies.
   private Set<Integer> mUncheckpointedDependencies = new HashSet<Integer>();
   private Set<Integer> mPriorityDependencies = new HashSet<Integer>();
   private Set<Integer> mLostFiles = new HashSet<Integer>();
@@ -343,11 +345,21 @@ public class MasterInfo implements ImageWriter {
    * Internal API.
    * 
    * @param recursive
+   *          If recursive is true and the filesystem tree is not filled in all the way to path yet,
+   *          it fills in the missing components.
    * @param path
+   *          The path to create
    * @param directory
+   *          If true, creates an InodeFolder instead of an Inode
    * @param blockSizeByte
+   *          If it's a file, the block size for the Inode
    * @param creationTimeMs
-   * @return
+   *          The time the file was created
+   * @param id
+   *          If not -1, use this id as the id to the inode we create at the given path.
+   *          Any intermediate directories created will use mInodeCounter, so using this parameter
+   *          assumes no intermediate directories will be created.
+   * @return the id of the inode created at the given path
    * @throws FileAlreadyExistException
    * @throws InvalidPathException
    * @throws BlockInfoException
@@ -421,7 +433,7 @@ public class MasterInfo implements ImageWriter {
       }
 
       mInodes.put(ret.getId(), ret);
-      ((InodeFolder) inode).addChild(ret.getId());
+      ((InodeFolder) inode).addChild(ret);
 
       LOG.debug("createFile: File Created: " + ret + " parent: " + inode);
       return ret.getId();
@@ -438,9 +450,9 @@ public class MasterInfo implements ImageWriter {
   }
 
   private boolean _delete(int fileId, boolean recursive) throws TachyonException {
-    LOG.info("delete(" + fileId + ")");
     boolean succeed = true;
     synchronized (mRoot) {
+      LOG.info("delete(" + fileId + ")");
       Inode inode = mInodes.get(fileId);
 
       if (inode == null) {
@@ -454,12 +466,12 @@ public class MasterInfo implements ImageWriter {
           return false;
         }
         for (int childId : childrenIds) {
-          succeed = succeed && delete(childId, recursive);
+          delete(childId, recursive);
         }
       }
 
       InodeFolder parent = (InodeFolder) mInodes.get(inode.getParentId());
-      parent.removeChild(inode.getId());
+      parent.removeChild(inode);
       mInodes.remove(inode.getId());
       if (inode.isFile()) {
         String checkpointPath = ((InodeFile) inode).getCheckpointPath();
@@ -776,7 +788,7 @@ public class MasterInfo implements ImageWriter {
     }
 
     for (int k = 0; k < columns; k ++) {
-      mkdir(path + Constants.PATH_SEPARATOR + COL + k);
+      mkdir(CommonUtils.concat(path, COL + k));
     }
 
     return id;
@@ -1119,14 +1131,11 @@ public class MasterInfo implements ImageWriter {
     }
 
     if (inode.isDirectory()) {
-      List<Integer> childernIds = ((InodeFolder) inode).getChildrenIds();
+      Set<Inode> children = ((InodeFolder) inode).getChildren();
 
-      if (!path.endsWith(Constants.PATH_SEPARATOR)) {
-        path += Constants.PATH_SEPARATOR;
-      }
       synchronized (mRoot) {
-        for (int k : childernIds) {
-          ret.add(getClientFileInfo(k));
+        for (Inode i : children) {
+          ret.add(getClientFileInfo(i.getId()));
         }
       }
     } else {
@@ -1152,10 +1161,9 @@ public class MasterInfo implements ImageWriter {
         InodeFolder tFolder = tPair.getFirst();
         String curPath = tPair.getSecond();
 
-        List<Integer> childrenIds = tFolder.getChildrenIds();
-        for (int id : childrenIds) {
-          Inode tInode = mInodes.get(id);
-          String newPath = curPath + Constants.PATH_SEPARATOR + tInode.getName();
+        Set<Inode> children = tFolder.getChildren();
+        for (Inode tInode : children) {
+          String newPath = CommonUtils.concat(curPath, tInode.getName());
           if (tInode.isDirectory()) {
             nodesQueue.add(new Pair<InodeFolder, String>((InodeFolder) tInode, newPath));
           } else if (((InodeFile) tInode).isFullyInMemory()) {
@@ -1206,7 +1214,7 @@ public class MasterInfo implements ImageWriter {
         if (cur.isFile()) {
           return null;
         }
-        cur = ((InodeFolder) cur).getChild(name, mInodes);
+        cur = ((InodeFolder) cur).getChild(name);
       }
 
       return cur;
@@ -1547,17 +1555,15 @@ public class MasterInfo implements ImageWriter {
       if (inode.isFile()) {
         ret.add(inode.getId());
       } else if (recursive) {
-        Queue<Integer> queue = new LinkedList<Integer>();
-        queue.addAll(((InodeFolder) inode).getChildrenIds());
+        Queue<Inode> queue = new LinkedList<Inode>();
+        queue.addAll(((InodeFolder) inode).getChildren());
 
         while (!queue.isEmpty()) {
-          int id = queue.poll();
-          inode = mInodes.get(id);
-
-          if (inode.isDirectory()) {
-            queue.addAll(((InodeFolder) inode).getChildrenIds());
+          Inode qinode = queue.poll();
+          if (qinode.isDirectory()) {
+            queue.addAll(((InodeFolder) inode).getChildren());
           } else {
-            ret.add(id);
+            ret.add(qinode.getId());
           }
         }
       }
@@ -1605,19 +1611,37 @@ public class MasterInfo implements ImageWriter {
           inode = InodeFolder.loadImage(is);
         }
 
-        LOG.info("Putting " + inode);
         if (inode.getId() > mInodeCounter.get()) {
           mInodeCounter.set(inode.getId());
         }
 
+        addToInodeMap(inode, mInodes);
+
         if (inode.getId() == 1) {
           mRoot = (InodeFolder) inode;
         }
-        mInodes.put(inode.getId(), inode);
       } else if (Image.T_RAW_TABLE == type) {
         mRawTables.loadImage(is);
       } else {
         throw new IOException("Corrupted image with unknown element type: " + type);
+      }
+    }
+  }
+
+  /**
+   * After loading an image, addToInodeMap will map the various ids to their inodes.
+   * 
+   * @param inode
+   *          The inode to add
+   * @param map
+   *          The map to add the inodes to
+   */
+  private void addToInodeMap(Inode inode, Map<Integer, Inode> map) {
+    map.put(inode.getId(), inode);
+    if (inode.isDirectory()) {
+      InodeFolder inodeFolder = (InodeFolder) inode;
+      for (Inode child : inodeFolder.getChildren()) {
+        addToInodeMap(child, map);
       }
     }
   }
@@ -1644,22 +1668,15 @@ public class MasterInfo implements ImageWriter {
     if (inode.isFile()) {
       ret.add(path);
     } else {
-      List<Integer> childrenIds = ((InodeFolder) inode).getChildrenIds();
-
-      if (!path.endsWith(Constants.PATH_SEPARATOR)) {
-        path += Constants.PATH_SEPARATOR;
-      }
+      Set<Inode> children = ((InodeFolder) inode).getChildren();
       ret.add(path);
 
       synchronized (mRoot) {
-        for (int k : childrenIds) {
-          inode = mInodes.get(k);
-          if (inode != null) {
-            if (recursive) {
-              ret.addAll(ls(path + inode.getName(), true));
-            } else {
-              ret.add(path + inode.getName());
-            }
+        for (Inode i : children) {
+          if (recursive) {
+            ret.addAll(ls(CommonUtils.concat(path, i.getName()), true));
+          } else {
+            ret.add(CommonUtils.concat(path, i.getName()));
           }
         }
       }
@@ -1798,9 +1815,9 @@ public class MasterInfo implements ImageWriter {
 
     srcInode.setName(dstName);
     InodeFolder parent = (InodeFolder) mInodes.get(srcInode.getParentId());
-    parent.removeChild(srcInode.getId());
+    parent.removeChild(srcInode);
     srcInode.setParentId(dstFolderInode.getId());
-    ((InodeFolder) dstFolderInode).addChild(srcInode.getId());
+    ((InodeFolder) dstFolderInode).addChild(srcInode);
 
     mJournal.getEditLog().rename(srcInode.getId(), dstPath);
     mJournal.getEditLog().flush();
@@ -2017,29 +2034,14 @@ public class MasterInfo implements ImageWriter {
    *          The output stream to write the image to
    */
   public void writeImage(DataOutputStream os) throws IOException {
-    Queue<InodeFolder> folderQueue = new LinkedList<InodeFolder>();
-
     synchronized (mRoot) {
-      for (Dependency dep : mDependencies.values()) {
-        dep.writeImage(os);
-      }
-
-      mRoot.writeImage(os);
-      folderQueue.add(mRoot);
-      while (!folderQueue.isEmpty()) {
-        List<Integer> childrenIds = folderQueue.poll().getChildrenIds();
-        for (int id : childrenIds) {
-          Inode tInode = mInodes.get(id);
-          tInode.writeImage(os);
-          if (tInode.isDirectory()) {
-            folderQueue.add((InodeFolder) tInode);
-          } else if (((InodeFile) tInode).isPin()) {
-            synchronized (mFileIdPinList) {
-              mFileIdPinList.add(tInode.getId());
-            }
-          }
+      synchronized (mDependencies) {
+        for (Dependency dep : mDependencies.values()) {
+          dep.writeImage(os);
         }
       }
+      mRoot.writeImage(os);
+      addToFileIdPinList(mRoot);
 
       mRawTables.writeImage(os);
 
@@ -2047,6 +2049,24 @@ public class MasterInfo implements ImageWriter {
       os.writeInt(mInodeCounter.get());
       os.writeLong(mCheckpointInfo.getEditTransactionCounter());
       os.writeInt(mCheckpointInfo.getDependencyCounter());
+    }
+  }
+
+  /**
+   * Walks the tree in a depth-first search and adds the pinned inode files to mFileIdPinList.
+   * 
+   * @param inodeFolder
+   *          The folder to traverse
+   */
+  private void addToFileIdPinList(InodeFolder inodeFolder) throws IOException {
+    for (Inode inode : inodeFolder.getChildren()) {
+      if (inode.isDirectory()) {
+        addToFileIdPinList((InodeFolder) inode);
+      } else if (inode.isFile() && ((InodeFile) inode).isPin()) {
+        synchronized (mFileIdPinList) {
+          mFileIdPinList.add(inode.getId());
+        }
+      }
     }
   }
 }
