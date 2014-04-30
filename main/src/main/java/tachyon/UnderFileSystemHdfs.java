@@ -48,7 +48,45 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       .applyUMask(FsPermission.createImmutable((short) 0000));
 
   public static UnderFileSystemHdfs getClient(String path) {
-    return new UnderFileSystemHdfs(path);
+    return new UnderFileSystemHdfs(path, null);
+  }
+  
+  public static UnderFileSystemHdfs getClient(String path, Object conf) {
+    return new UnderFileSystemHdfs(path, conf);
+  }
+  
+  private UnderFileSystemHdfs(String fsDefaultName, Object conf) {
+    try {
+      mUfsPrefix = fsDefaultName;
+      Configuration tConf = null;
+      if(conf != null) {
+        tConf = (Configuration)conf;
+      }
+      else {
+        tConf = new Configuration();
+      }
+      tConf.set("fs.defaultFS", fsDefaultName);
+      tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
+
+      // To disable the instance cache for hdfs client, otherwise it causes the
+      // FileSystem closed exception. Being configurable for unit/integration
+      // test only, and not expose to the end-user currently.
+      tConf.set("fs.hdfs.impl.disable.cache",
+          System.getProperty("fs.hdfs.impl.disable.cache", "false"));
+
+      if (System.getProperty("fs.s3n.awsAccessKeyId") != null) {
+        tConf.set("fs.s3n.awsAccessKeyId", System.getProperty("fs.s3n.awsAccessKeyId"));
+      }
+      if (System.getProperty("fs.s3n.awsSecretAccessKey") != null) {
+        tConf.set("fs.s3n.awsSecretAccessKey", System.getProperty("fs.s3n.awsSecretAccessKey"));
+      }
+      Path path = new Path(fsDefaultName);
+      mFs = path.getFileSystem(tConf);
+      // FileSystem.get(tConf);
+      // mFs = FileSystem.get(new URI(fsDefaultName), tConf);
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
   }
 
   private UnderFileSystemHdfs(String fsDefaultName) {
@@ -340,5 +378,15 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     } catch (IOException e) {
       LOG.error(e);
     }
+  }
+
+  @Override
+  public void setConf(Object conf) {
+    mFs.setConf((Configuration) conf);
+  }
+
+  @Override
+  public Object getConf() {
+    return mFs.getClass();
   }
 }

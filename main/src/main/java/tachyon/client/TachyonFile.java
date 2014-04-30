@@ -41,6 +41,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   final TachyonFS TFS;
   final int FID;
+  Object mUFSConf = null;
 
   TachyonFile(TachyonFS tfs, int fid) {
     TFS = tfs;
@@ -95,10 +96,10 @@ public class TachyonFile implements Comparable<TachyonFile> {
     if (blocks.size() == 0) {
       return new EmptyBlockInStream(this, readType);
     } else if (blocks.size() == 1) {
-      return BlockInStream.get(this, readType, 0);
+      return BlockInStream.get(this, readType, 0, mUFSConf);
     }
 
-    return new FileInStream(this, readType);
+    return new FileInStream(this, readType, mUFSConf);
   }
 
   /**
@@ -140,7 +141,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("WriteType can not be null.");
     }
 
-    return new FileOutStream(this, writeType);
+    return new FileOutStream(this, writeType, mUFSConf);
   }
 
   public String getPath() {
@@ -367,5 +368,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
   @Override
   public String toString() {
     return getPath();
+  }
+  
+  public void setUFSConf(Object conf) {
+    mUFSConf = conf;
+  }
+
+  public Object getUFSConf() {
+    return mUFSConf;
   }
 }
