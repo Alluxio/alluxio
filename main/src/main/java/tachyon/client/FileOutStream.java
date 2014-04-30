@@ -47,7 +47,7 @@ public class FileOutStream extends OutStream {
   private boolean mClosed = false;
   private boolean mCancel = false;
 
-  FileOutStream(TachyonFile file, WriteType opType) throws IOException {
+  FileOutStream(TachyonFile file, WriteType opType, Object ufsConf) throws IOException {
     super(file, opType);
 
     BLOCK_CAPACITY = file.getBlockSizeByte();
@@ -61,7 +61,7 @@ public class FileOutStream extends OutStream {
 
     if (WRITE_TYPE.isThrough()) {
       mUnderFsFile = TFS.createAndGetUserUnderfsTempFolder() + Constants.PATH_SEPARATOR + FILE.FID;
-      UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile);
+      UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile, ufsConf);
       if (BLOCK_CAPACITY > Integer.MAX_VALUE) {
         throw new IOException("BLOCK_CAPCAITY (" + BLOCK_CAPACITY + ") can not bigger than "
             + Integer.MAX_VALUE);

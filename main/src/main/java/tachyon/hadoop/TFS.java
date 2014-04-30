@@ -94,6 +94,7 @@ public class TFS extends FileSystem {
       }
       int fileId = mTFS.createFile(path, blockSize);
       TachyonFile file = mTFS.getFile(fileId);
+      file.setUFSConf(getConf());
       return new FSDataOutputStream(file.getOutStream(WriteType.CACHE_THROUGH), null);
     }
 
@@ -112,6 +113,7 @@ public class TFS extends FileSystem {
       LOG.info("create(" + cPath + ") : " + path + " " + index + " " + info + " " + fileId);
 
       TachyonFile file = mTFS.getFile(fileId);
+      file.setUFSConf(getConf());
       // if (file.getBlockSizeByte() != blockSize) {
       // throw new IOException("File already exist with a different blocksize "
       // file.getBlockSizeByte() + " != " + blockSize);
@@ -133,6 +135,7 @@ public class TFS extends FileSystem {
       LOG.info("create(" + cPath + ") : " + path + " " + index + " " + info + " " + fileId);
 
       TachyonFile file = mTFS.getFile(fileId);
+      file.setUFSConf(getConf());
       // if (file.getBlockSizeByte() != blockSize) {
       // throw new IOException("File already exist with a different blocksize "
       // file.getBlockSizeByte() + " != " + blockSize);
@@ -150,6 +153,7 @@ public class TFS extends FileSystem {
       }
 
       TachyonFile file = mTFS.getFile(fileId);
+      file.setUFSConf(getConf());
       // if (file.getBlockSizeByte() != blockSize) {
       // throw new IOException("File already exist with a different blocksize "
       // file.getBlockSizeByte() + " != " + blockSize);

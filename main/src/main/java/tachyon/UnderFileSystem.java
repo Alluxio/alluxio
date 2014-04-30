@@ -52,6 +52,20 @@ public abstract class UnderFileSystem {
     CommonUtils.illegalArgumentException("Unknown under file system scheme " + path);
     return null;
   }
+  
+  public static UnderFileSystem get(String path, Object conf) {
+    if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")) {
+      return UnderFileSystemHdfs.getClient(path, conf);
+    } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
+      return UnderFileSystemSingleLocal.getClient();
+    }
+    CommonUtils.illegalArgumentException("Unknown under file system scheme " + path);
+    return null;
+  }
+  
+  public abstract void setConf(Object conf);
+  
+  public abstract Object getConf();
 
   public abstract void close() throws IOException;
 
