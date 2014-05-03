@@ -207,17 +207,6 @@ public final class CommonUtils {
   }
 
   /**
-   * Check if the given path is the root.
-   * 
-   * @param path
-   *          The path to check
-   * @return true if the path is the root
-   */
-  public static boolean isRoot(String path) throws InvalidPathException {
-    return Constants.PATH_SEPARATOR.equals(cleanPath(path));
-  }
-
-  /**
    * Get the name of the file at a path.
    * 
    * @param path
@@ -269,6 +258,17 @@ public final class CommonUtils {
 
   public static void illegalArgumentException(String msg) {
     throw new IllegalArgumentException(msg);
+  }
+
+  /**
+   * Check if the given path is the root.
+   * 
+   * @param path
+   *          The path to check
+   * @return true if the path is the root
+   */
+  public static boolean isRoot(String path) throws InvalidPathException {
+    return Constants.PATH_SEPARATOR.equals(cleanPath(path));
   }
 
   public static <T> String listToString(List<T> list) {
