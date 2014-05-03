@@ -44,6 +44,7 @@ public class MasterConf extends Utils {
   public final String FORMAT_FILE_PREFIX;
   public final String HOSTNAME;
   public final int PORT;
+  public final String MASTER_ADDRESS;
 
   public final int WEB_PORT;
   public final String TEMPORARY_FOLDER;
@@ -69,6 +70,9 @@ public class MasterConf extends Utils {
 
     HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
+    MASTER_ADDRESS =
+        (CommonConf.get().USE_ZOOKEEPER ? Constants.HEADER_FT : Constants.HEADER) + HOSTNAME + ":"
+            + PORT;
     WEB_PORT = getIntProperty("tachyon.master.web.port", Constants.DEFAULT_MASTER_WEB_PORT);
     TEMPORARY_FOLDER = getProperty("tachyon.master.temporary.folder", "/tmp");
 

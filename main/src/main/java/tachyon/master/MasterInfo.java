@@ -378,6 +378,9 @@ public class MasterInfo implements ImageWriter {
     synchronized (mRoot) {
       Inode inode = getInode(pathNames);
       if (inode != null) {
+        if (inode.isDirectory() && directory) {
+          return inode.getId();
+        }
         LOG.info("FileAlreadyExistException: File " + path + " already exist.");
         throw new FileAlreadyExistException("Path " + path + " already exist.");
       }
@@ -1677,7 +1680,7 @@ public class MasterInfo implements ImageWriter {
    * 
    * @param path
    *          The path to create a directory at
-   * @return true if the creation was successful and false if it wasn't
+   * @return true if and only if the directory was created; false otherwise
    */
   public boolean mkdir(String path) throws FileAlreadyExistException, InvalidPathException,
       TachyonException {
