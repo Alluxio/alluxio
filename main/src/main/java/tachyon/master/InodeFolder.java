@@ -83,8 +83,8 @@ public class InodeFolder extends Inode {
    *          The inodes to add
    */
   public synchronized void addChildren(Inode[] children) {
-    for (Inode i : children) {
-      addChild(i);
+    for (Inode child : children) {
+      addChild(child);
     }
   }
 
@@ -93,6 +93,7 @@ public class InodeFolder extends Inode {
    *
    * @param path
    *          The path of the folder in the filesystem
+   * @return the generated ClientFileInfo
    */
   @Override
   public ClientFileInfo generateClientFileInfo(String path) {
@@ -124,9 +125,9 @@ public class InodeFolder extends Inode {
    * @return the inode with the given name
    */
   public synchronized Inode getChild(String name) {
-    for (Inode i : mChildren) {
-      if (i.getName().equals(name)) {
-        return i;
+    for (Inode child : mChildren) {
+      if (child.getName().equals(name)) {
+        return child;
       }
     }
     return null;
@@ -141,9 +142,9 @@ public class InodeFolder extends Inode {
    * @return the inode with the given id
    */
   public synchronized Inode getChild(int fid) {
-    for (Inode i : mChildren) {
-      if (i.getId() == fid) {
-        return i;
+    for (Inode child : mChildren) {
+      if (child.getId() == fid) {
+        return child;
       }
     }
     return null;
@@ -157,8 +158,8 @@ public class InodeFolder extends Inode {
    */
   public synchronized List<Integer> getChildrenIds() {
     List<Integer> ret = new ArrayList<Integer>(mChildren.size());
-    for (Inode i : mChildren) {
-      ret.add(i.getId());
+    for (Inode child : mChildren) {
+      ret.add(child.getId());
     }
     return ret;
   }
@@ -200,9 +201,9 @@ public class InodeFolder extends Inode {
    * @return true if the inode was removed, false otherwise.
    */
   public synchronized boolean removeChild(String name) {
-    for (Inode i : mChildren) {
-      if (i.getName().equals(name)) {
-        mChildren.remove(i);
+    for (Inode child : mChildren) {
+      if (child.getName().equals(name)) {
+        mChildren.remove(child);
         return true;
       }
     }
