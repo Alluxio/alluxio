@@ -1472,7 +1472,7 @@ public class MasterInfo implements ImageWriter {
    *          If true, select a random worker
    * @param host
    *          If <code>random</code> is false, select a worker on this host
-   * @return the address of the selected worker
+   * @return the address of the selected worker, or null if no address could be found
    */
   public NetAddress getWorker(boolean random, String host) {
     synchronized (mWorkers) {

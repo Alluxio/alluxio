@@ -123,7 +123,7 @@ public class InodeFolder extends Inode {
    *
    * @param name
    *          The name of the child
-   * @return the inode with the given name
+   * @return the inode with the given name, or null if there is no child with that name
    */
   public synchronized Inode getChild(String name) {
     for (Inode child : mChildren) {
@@ -140,7 +140,7 @@ public class InodeFolder extends Inode {
    *
    * @param fid
    *          The id of the child
-   * @return the inode with the given id
+   * @return the inode with the given id, or null if there is no child with that id
    */
   public synchronized Inode getChild(int fid) {
     for (Inode child : mChildren) {
@@ -165,7 +165,7 @@ public class InodeFolder extends Inode {
   }
 
   /**
-   * Returns a list of the folder's children.
+   * Returns the folder's children.
    * 
    * @return an unmodifiable set of the children inodes.
    */
@@ -185,12 +185,12 @@ public class InodeFolder extends Inode {
   /**
    * Removes the given inode from the folder.
    * 
-   * @param i
+   * @param child
    *          The Inode to remove
    * @return true if the inode was removed, false otherwise.
    */
-  public synchronized boolean removeChild(Inode i) {
-    return mChildren.remove(i);
+  public synchronized boolean removeChild(Inode child) {
+    return mChildren.remove(child);
   }
 
   /**
