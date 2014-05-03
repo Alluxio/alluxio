@@ -71,6 +71,8 @@ e.g.  mvn -Dtest=TachyonFSTest#createFileTest test ;
 -   Break your work into small, single-purpose patches if possible. It’s much harder to merge in
     a large change with a lot of disjoint features.
 
+-   Make sure that any methods you add maintain the alphabetical ordering of method names in each file.
+
 -   Submit the patch as a GitHub pull request. For a tutorial, see the GitHub guides on
     [forking a repo](https://help.github.com/articles/fork-a-repo) and
     [sending a pull request](https://help.github.com/articles/using-pull-requests).
