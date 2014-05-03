@@ -201,6 +201,21 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Cleans the given path, throwing an IOException rather than an InvalidPathException.
+   *
+   * @param path
+   *          The path to clean
+   * @return the cleaned path
+   */
+  private synchronized String cleanPathIOException(String path) throws IOException {
+    try {
+      return CommonUtils.cleanPath(path);
+    } catch (InvalidPathException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
   public synchronized void close() throws TException {
     if (mMasterClient != null) {
       mMasterClient.cleanConnect();
@@ -353,21 +368,6 @@ public class TachyonFS {
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
-    }
-  }
-
-  /**
-   * cleans the given path, throwing an IOException rather than an InvalidPathException.
-   *
-   * @param path
-   *          The path to clean
-   * @return the cleaned path
-   */
-  private synchronized String cleanPathIOException(String path) throws IOException {
-    try {
-      return CommonUtils.cleanPath(path);
-    } catch (InvalidPathException e) {
-      throw new IOException(e.getMessage());
     }
   }
 
