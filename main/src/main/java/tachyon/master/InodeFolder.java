@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Collections;
 
 import tachyon.io.Utils;
 import tachyon.thrift.ClientFileInfo;
@@ -150,7 +151,6 @@ public class InodeFolder extends Inode {
     return null;
   }
 
-
   /**
    * Returns the ids of the children.
    *
@@ -167,16 +167,16 @@ public class InodeFolder extends Inode {
   /**
    * Returns a list of the folder's children.
    * 
-   * @return A list of the children inodes.
+   * @return an unmodifiable set of the children inodes.
    */
   public synchronized Set<Inode> getChildren() {
-    return mChildren;
+    return Collections.unmodifiableSet(mChildren);
   }
 
   /**
    * Returns the number of children the folder has.
    * 
-   * @return A list of the children inodes.
+   * @return the number of children in the folder.
    */
   public synchronized int getNumberOfChildren() {
     return mChildren.size();
