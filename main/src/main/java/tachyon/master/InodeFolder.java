@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Collections;
 
@@ -69,7 +68,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Adds the given inode to the set of children.
-   *
+   * 
    * @param child
    *          The inode to add
    */
@@ -79,7 +78,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Adds the given inodes to the set of children.
-   *
+   * 
    * @param children
    *          The inodes to add
    */
@@ -91,7 +90,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Generates client file info for the folder.
-   *
+   * 
    * @param path
    *          The path of the folder in the filesystem
    * @return the generated ClientFileInfo
@@ -119,25 +118,8 @@ public class InodeFolder extends Inode {
   }
 
   /**
-   * Returns the child with the given name.
-   *
-   * @param name
-   *          The name of the child
-   * @return the inode with the given name, or null if there is no child with that name
-   */
-  public synchronized Inode getChild(String name) {
-    for (Inode child : mChildren) {
-      if (child.getName().equals(name)) {
-        return child;
-      }
-    }
-    return null;
-  }
-
-
-  /**
    * Returns the child with the given id.
-   *
+   * 
    * @param fid
    *          The id of the child
    * @return the inode with the given id, or null if there is no child with that id
@@ -152,16 +134,19 @@ public class InodeFolder extends Inode {
   }
 
   /**
-   * Returns the ids of the children.
-   *
-   * @return the ids of the children
+   * Returns the child with the given name.
+   * 
+   * @param name
+   *          The name of the child
+   * @return the inode with the given name, or null if there is no child with that name
    */
-  public synchronized List<Integer> getChildrenIds() {
-    List<Integer> ret = new ArrayList<Integer>(mChildren.size());
+  public synchronized Inode getChild(String name) {
     for (Inode child : mChildren) {
-      ret.add(child.getId());
+      if (child.getName().equals(name)) {
+        return child;
+      }
     }
-    return ret;
+    return null;
   }
 
   /**
@@ -171,6 +156,19 @@ public class InodeFolder extends Inode {
    */
   public synchronized Set<Inode> getChildren() {
     return Collections.unmodifiableSet(mChildren);
+  }
+
+  /**
+   * Returns the ids of the children.
+   * 
+   * @return the ids of the children
+   */
+  public synchronized List<Integer> getChildrenIds() {
+    List<Integer> ret = new ArrayList<Integer>(mChildren.size());
+    for (Inode child : mChildren) {
+      ret.add(child.getId());
+    }
+    return ret;
   }
 
   /**
@@ -219,7 +217,7 @@ public class InodeFolder extends Inode {
 
   /**
    * Write an image of the folder.
-   *
+   * 
    * @param os
    *          The output stream to write the folder to
    */
