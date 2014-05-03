@@ -465,7 +465,7 @@ public class MasterInfo implements ImageWriter {
           return false;
         }
         for (int childId : childrenIds) {
-          delete(childId, recursive);
+          succeed = succeed && delete(childId, recursive);
         }
       }
 
@@ -606,6 +606,43 @@ public class MasterInfo implements ImageWriter {
       }
       if (mBeingRecomputedFiles.contains(fileId)) {
         mBeingRecomputedFiles.remove(fileId);
+      }
+    }
+  }
+
+  /**
+   * Walks the tree in a depth-first search and adds the pinned inode files to mFileIdPinList. Used
+   * while writing an image.
+   * 
+   * @param inodeFolder
+   *          The folder to traverse
+   */
+  private void addToFileIdPinList(InodeFolder inodeFolder) throws IOException {
+    for (Inode inode : inodeFolder.getChildren()) {
+      if (inode.isDirectory()) {
+        addToFileIdPinList((InodeFolder) inode);
+      } else if (inode.isFile() && ((InodeFile) inode).isPin()) {
+        synchronized (mFileIdPinList) {
+          mFileIdPinList.add(inode.getId());
+        }
+      }
+    }
+  }
+
+  /**
+   * After loading an image, addToInodeMap will map the various ids to their inodes.
+   * 
+   * @param inode
+   *          The inode to add
+   * @param map
+   *          The map to add the inodes to
+   */
+  private void addToInodeMap(Inode inode, Map<Integer, Inode> map) {
+    map.put(inode.getId(), inode);
+    if (inode.isDirectory()) {
+      InodeFolder inodeFolder = (InodeFolder) inode;
+      for (Inode child : inodeFolder.getChildren()) {
+        addToInodeMap(child, map);
       }
     }
   }
@@ -1116,8 +1153,8 @@ public class MasterInfo implements ImageWriter {
       Set<Inode> children = ((InodeFolder) inode).getChildren();
 
       synchronized (mRoot) {
-        for (Inode i : children) {
-          ret.add(getClientFileInfo(i.getId()));
+        for (Inode child : children) {
+          ret.add(getClientFileInfo(child.getId()));
         }
       }
     } else {
@@ -1627,24 +1664,6 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * After loading an image, addToInodeMap will map the various ids to their inodes.
-   * 
-   * @param inode
-   *          The inode to add
-   * @param map
-   *          The map to add the inodes to
-   */
-  private void addToInodeMap(Inode inode, Map<Integer, Inode> map) {
-    map.put(inode.getId(), inode);
-    if (inode.isDirectory()) {
-      InodeFolder inodeFolder = (InodeFolder) inode;
-      for (Inode child : inodeFolder.getChildren()) {
-        addToInodeMap(child, map);
-      }
-    }
-  }
-
-  /**
    * Get the names of the sub-directories at the given path.
    * 
    * @param path
@@ -1670,11 +1689,11 @@ public class MasterInfo implements ImageWriter {
       ret.add(path);
 
       synchronized (mRoot) {
-        for (Inode i : children) {
+        for (Inode child : children) {
           if (recursive) {
-            ret.addAll(ls(CommonUtils.concat(path, i.getName()), true));
+            ret.addAll(ls(CommonUtils.concat(path, child.getName()), true));
           } else {
-            ret.add(CommonUtils.concat(path, i.getName()));
+            ret.add(CommonUtils.concat(path, child.getName()));
           }
         }
       }
@@ -2047,24 +2066,6 @@ public class MasterInfo implements ImageWriter {
       os.writeInt(mInodeCounter.get());
       os.writeLong(mCheckpointInfo.getEditTransactionCounter());
       os.writeInt(mCheckpointInfo.getDependencyCounter());
-    }
-  }
-
-  /**
-   * Walks the tree in a depth-first search and adds the pinned inode files to mFileIdPinList.
-   * 
-   * @param inodeFolder
-   *          The folder to traverse
-   */
-  private void addToFileIdPinList(InodeFolder inodeFolder) throws IOException {
-    for (Inode inode : inodeFolder.getChildren()) {
-      if (inode.isDirectory()) {
-        addToFileIdPinList((InodeFolder) inode);
-      } else if (inode.isFile() && ((InodeFile) inode).isPin()) {
-        synchronized (mFileIdPinList) {
-          mFileIdPinList.add(inode.getId());
-        }
-      }
     }
   }
 }
