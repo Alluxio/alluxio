@@ -13,6 +13,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
+import tachyon.conf.MasterConf;
 import tachyon.io.Utils;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.util.CommonUtils;
@@ -124,6 +125,7 @@ public class Dependency implements ImageWriter {
     // TODO We should support different types of command in the future.
     // For now, assume there is only one command model.
     StringBuilder sb = new StringBuilder(parseCommandPrefix());
+    sb.append(" ").append(MasterConf.get().MASTER_ADDRESS);
     sb.append(" ").append(ID);
     for (int k = 0; k < CHILDREN_FILES.size(); k ++) {
       int id = CHILDREN_FILES.get(k);
