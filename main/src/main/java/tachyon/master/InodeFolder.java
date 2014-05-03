@@ -66,16 +66,34 @@ public class InodeFolder extends Inode {
     super(name, id, parentId, true, creationTimeMs);
   }
 
+  /**
+   * Adds the given inode to the set of children.
+   *
+   * @param child
+   *          The inode to add
+   */
   public synchronized void addChild(Inode child) {
     mChildren.add(child);
   }
 
+  /**
+   * Adds the given inodes to the set of children.
+   *
+   * @param children
+   *          The inodes to add
+   */
   public synchronized void addChildren(Inode[] children) {
     for (Inode i : children) {
       addChild(i);
     }
   }
 
+  /**
+   * Generates client file info for the folder.
+   *
+   * @param path
+   *          The path of the folder in the filesystem
+   */
   @Override
   public ClientFileInfo generateClientFileInfo(String path) {
     ClientFileInfo ret = new ClientFileInfo();
@@ -98,6 +116,13 @@ public class InodeFolder extends Inode {
     return ret;
   }
 
+  /**
+   * Returns the child with the given name.
+   *
+   * @param name
+   *          The name of the child
+   * @return the inode with the given name
+   */
   public synchronized Inode getChild(String name) {
     for (Inode i : mChildren) {
       if (i.getName().equals(name)) {
@@ -107,6 +132,14 @@ public class InodeFolder extends Inode {
     return null;
   }
 
+
+  /**
+   * Returns the child with the given id.
+   *
+   * @param fid
+   *          The id of the child
+   * @return the inode with the given id
+   */
   public synchronized Inode getChild(int fid) {
     for (Inode i : mChildren) {
       if (i.getId() == fid) {
@@ -116,6 +149,12 @@ public class InodeFolder extends Inode {
     return null;
   }
 
+
+  /**
+   * Returns the ids of the children.
+   *
+   * @return the ids of the children
+   */
   public synchronized List<Integer> getChildrenIds() {
     List<Integer> ret = new ArrayList<Integer>(mChildren.size());
     for (Inode i : mChildren) {
@@ -133,6 +172,11 @@ public class InodeFolder extends Inode {
     return mChildren;
   }
 
+  /**
+   * Returns the number of children the folder has.
+   * 
+   * @return A list of the children inodes.
+   */
   public synchronized int getNumberOfChildren() {
     return mChildren.size();
   }
@@ -172,6 +216,12 @@ public class InodeFolder extends Inode {
     return sb.toString();
   }
 
+  /**
+   * Write an image of the folder.
+   *
+   * @param os
+   *          The output stream to write the folder to
+   */
   @Override
   public void writeImage(DataOutputStream os) throws IOException {
     os.writeByte(Image.T_INODE_FOLDER);
