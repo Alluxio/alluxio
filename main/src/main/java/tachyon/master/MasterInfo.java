@@ -611,25 +611,6 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Walks the tree in a depth-first search and adds the pinned inode files to mFileIdPinList. Used
-   * while writing an image.
-   * 
-   * @param inodeFolder
-   *          The folder to traverse
-   */
-  private void addToFileIdPinList(InodeFolder inodeFolder) throws IOException {
-    for (Inode inode : inodeFolder.getChildren()) {
-      if (inode.isDirectory()) {
-        addToFileIdPinList((InodeFolder) inode);
-      } else if (inode.isFile() && ((InodeFile) inode).isPin()) {
-        synchronized (mFileIdPinList) {
-          mFileIdPinList.add(inode.getId());
-        }
-      }
-    }
-  }
-
-  /**
    * After loading an image, addToInodeMap will map the various ids to their inodes.
    * 
    * @param inode
@@ -2058,8 +2039,6 @@ public class MasterInfo implements ImageWriter {
         }
       }
       mRoot.writeImage(os);
-      addToFileIdPinList(mRoot);
-
       mRawTables.writeImage(os);
 
       os.writeByte(Image.T_CHECKPOINT);
