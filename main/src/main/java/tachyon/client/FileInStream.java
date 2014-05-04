@@ -29,8 +29,14 @@ public class FileInStream extends InStream {
   private long mCurrentBlockLeft;
 
   private boolean mClosed = false;
+  
+  private Object mUFSConf = null;
 
   public FileInStream(TachyonFile file, ReadType opType) throws IOException {
+    this(file, opType, null);
+  }
+  
+  public FileInStream(TachyonFile file, ReadType opType, Object ufsConf) throws IOException {
     super(file, opType);
 
     FILE_LENGTH = file.length();
@@ -40,6 +46,8 @@ public class FileInStream extends InStream {
     mCurrentBlockIndex = -1;
     mCurrentBlockInStream = null;
     mCurrentBlockLeft = 0;
+    
+    mUFSConf = ufsConf;
   }
 
   private void checkAndAdvanceBlockInStream() throws IOException {
@@ -49,7 +57,7 @@ public class FileInStream extends InStream {
       }
 
       mCurrentBlockIndex = getCurrentBlockIndex();
-      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex);
+      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex, mUFSConf);
       mCurrentBlockLeft = BLOCK_CAPACITY;
     }
   }
@@ -130,7 +138,7 @@ public class FileInStream extends InStream {
       if (mCurrentBlockInStream != null) {
         mCurrentBlockInStream.close();
       }
-      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex);
+      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex, mUFSConf);
     }
     mCurrentBlockInStream.seek(pos % BLOCK_CAPACITY);
     mCurrentPosition = pos;
@@ -158,7 +166,7 @@ public class FileInStream extends InStream {
       }
 
       mCurrentBlockIndex = tBlockIndex;
-      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex);
+      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex, mUFSConf);
       long shouldSkip = mCurrentPosition % BLOCK_CAPACITY;
       long skip = mCurrentBlockInStream.skip(shouldSkip);
       mCurrentBlockLeft = BLOCK_CAPACITY - skip;
