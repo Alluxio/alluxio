@@ -614,7 +614,26 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * After loading an image, addToInodeMap will map the various ids to their inodes.
+   * Adds the given inode to mFileIdPinList, traversing folders recursively. Used while loading an
+   * image.
+   * 
+   * @param inode
+   *          The inode to add
+   */
+  private void addToFileIdPinList(Inode inode) throws IOException {
+    if (inode.isFile() && ((InodeFile) inode).isPin()) {
+      synchronized (mFileIdPinList) {
+        mFileIdPinList.add(inode.getId());
+      }
+    } else if (inode.isDirectory()) {
+      for (Inode child : ((InodeFolder) inode).getChildren()) {
+        addToFileIdPinList(child);
+      }
+    }
+  }
+
+  /**
+   * While loading an image, addToInodeMap will map the various ids to their inodes.
    * 
    * @param inode
    *          The inode to add
@@ -1635,6 +1654,7 @@ public class MasterInfo implements ImageWriter {
         }
 
         addToInodeMap(inode, mInodes);
+        addToFileIdPinList(inode);
 
         if (inode.getId() == 1) {
           mRoot = (InodeFolder) inode;
