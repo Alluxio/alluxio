@@ -54,7 +54,7 @@ If you want to run a single tests, you can use command: mvn -Dtest=TestCircle#my
 e.g.  mvn -Dtest=TachyonFSTest#createFileTest test ;
 
 If you want to quickly test the working of some APIs in an interactive manner, you may leverage
-the Scala shell, as discussed in [this blog](http://scala4fun.tumblr.com/InteractiveJavaCoding).
+the Scala shell, as discussed in [this blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
 
 ### Coding Style
 
