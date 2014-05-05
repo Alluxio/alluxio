@@ -53,6 +53,9 @@ If you want to run unit tests, you can use command: mvn test.
 If you want to run a single tests, you can use command: mvn -Dtest=TestCircle#mytest test ;
 e.g.  mvn -Dtest=TachyonFSTest#createFileTest test ;
 
+If you want to quickly test the working of some APIs in an interactive manner, you may leverage
+the Scala shell, as discussed in [this blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
+
 ### Coding Style
 
 -   Follow the style of the existing codebase. Specifically, we use
