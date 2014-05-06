@@ -176,4 +176,13 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
     CommonUtils.changeLocalFileToFullPermission(path);
     CommonUtils.setLocalFileStickyBit(path);
   }
+
+  @Override
+  public void setConf(Object conf) {
+  }
+
+  @Override
+  public Object getConf() {
+    return null;
+  }
 }

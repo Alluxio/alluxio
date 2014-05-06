@@ -24,12 +24,17 @@ import java.io.IOException;
 public abstract class BlockInStream extends InStream {
   public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex)
       throws IOException {
+    return get(tachyonFile, readType, blockIndex, null);
+  }
+
+  public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex,
+      Object ufsConf) throws IOException {
     TachyonByteBuffer buf = tachyonFile.readLocalByteBuffer(blockIndex);
     if (buf != null) {
       return new LocalBlockInStream(tachyonFile, readType, blockIndex, buf);
     }
 
-    return new RemoteBlockInStream(tachyonFile, readType, blockIndex);
+    return new RemoteBlockInStream(tachyonFile, readType, blockIndex, ufsConf);
   }
 
   protected final int BLOCK_INDEX;

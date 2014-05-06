@@ -48,13 +48,22 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       .applyUMask(FsPermission.createImmutable((short) 0000));
 
   public static UnderFileSystemHdfs getClient(String path) {
-    return new UnderFileSystemHdfs(path);
+    return new UnderFileSystemHdfs(path, null);
   }
 
-  private UnderFileSystemHdfs(String fsDefaultName) {
+  public static UnderFileSystemHdfs getClient(String path, Object conf) {
+    return new UnderFileSystemHdfs(path, conf);
+  }
+
+  private UnderFileSystemHdfs(String fsDefaultName, Object conf) {
     try {
       mUfsPrefix = fsDefaultName;
-      Configuration tConf = new Configuration();
+      Configuration tConf = null;
+      if (conf != null) {
+        tConf = (Configuration) conf;
+      } else {
+        tConf = new Configuration();
+      }
       tConf.set("fs.defaultFS", fsDefaultName);
       tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
 
@@ -341,5 +350,15 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     } catch (IOException e) {
       LOG.error(e);
     }
+  }
+
+  @Override
+  public void setConf(Object conf) {
+    mFs.setConf((Configuration) conf);
+  }
+
+  @Override
+  public Object getConf() {
+    return mFs.getConf();
   }
 }
