@@ -367,77 +367,92 @@ public class MasterInfo implements ImageWriter {
   int _createFile(boolean recursive, String path, boolean directory, long blockSizeByte,
       long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
       BlockInfoException, TachyonException {
+
     if (!directory && blockSizeByte < 1) {
       throw new BlockInfoException("Invalid block size " + blockSizeByte);
+    } else if (CommonUtils.isRoot(path)) {
+      throw new InvalidPathException("Cannot create the root path");
     }
 
     LOG.debug("createFile" + CommonUtils.parametersToString(path));
 
     String[] pathNames = CommonUtils.getPathComponents(path);
+    String name = pathNames[pathNames.length - 1];
+
+    String[] parentPath = new String[pathNames.length - 1];
+    System.arraycopy(pathNames, 0, parentPath, 0, parentPath.length);
 
     synchronized (mRoot) {
-      Inode inode = getInode(pathNames);
-      if (inode != null) {
-        if (inode.isDirectory() && directory) {
-          return inode.getId();
-        }
-        LOG.info("FileAlreadyExistException: File " + path + " already exist.");
-        throw new FileAlreadyExistException("Path " + path + " already exist.");
-      }
-
-      String name = pathNames[pathNames.length - 1];
-      String folderPath = null;
-      if (path.length() - name.length() == 1) {
-        folderPath = path.substring(0, path.length() - name.length());
-      } else {
-        folderPath = path.substring(0, path.length() - name.length() - 1);
-      }
-      inode = getInode(folderPath);
-      if (inode == null) {
-        int succeed = 0;
-        if (recursive) {
-          succeed = createFile(true, folderPath, true, blockSizeByte);
-        }
-        if (!recursive || succeed <= 0) {
-          LOG.info("InvalidPathException: File " + path + " creation failed. Folder " + folderPath
-              + " does not exist.");
-          throw new InvalidPathException("InvalidPathException: File " + path + " creation "
-              + "failed. Folder " + folderPath + " does not exist.");
+      Pair<Inode, Integer> inodeTraversal = traverseToInode(parentPath);
+      // pathIndex is the index into pathNames where we start filling in the path from the inode.
+      int pathIndex = parentPath.length;
+      if (!traversalSucceeded(inodeTraversal)) {
+        // Then the path component at errorInd k doesn't exist. If it's not recursive, we throw an
+        // exception here. Otherwise we add the remaining path components to the list of components
+        // to create.
+        if (!recursive) {
+          final String msg =
+              "File " + path + " creation failed. Component " + inodeTraversal.getSecond() + "("
+                  + parentPath[inodeTraversal.getSecond()] + ") does not exist";
+          LOG.info("InvalidPathException: " + msg);
+          throw new InvalidPathException(msg);
         } else {
-          inode = mInodes.get(succeed);
+          // We will start filling in the path from inodeTraversal.getSecond()
+          pathIndex = inodeTraversal.getSecond();
         }
-      } else if (inode.isFile()) {
-        LOG.info("InvalidPathException: File " + path + " creation failed. " + folderPath
-            + " is a file.");
-        throw new InvalidPathException("File " + path + " creation failed. " + folderPath
-            + " is a file");
       }
 
-      Inode ret = null;
+      if (!inodeTraversal.getFirst().isDirectory()) {
+        throw new InvalidPathException("Could not traverse to parent folder of path " + path
+            + ". Component " + pathNames[pathIndex - 1] + " is not a directory.");
+      }
+      InodeFolder currentInodeFolder = (InodeFolder) inodeTraversal.getFirst();
+      // Fill in the directories that were missing.
+      for (int k = pathIndex; k < parentPath.length; k ++) {
+        Inode dir =
+            new InodeFolder(pathNames[k], mInodeCounter.incrementAndGet(),
+                currentInodeFolder.getId(), creationTimeMs);
+        currentInodeFolder.addChild(dir);
+        mInodes.put(dir.getId(), dir);
+        currentInodeFolder = (InodeFolder) dir;
+      }
 
+      // Create the final path component. First we need to make sure that there isn't already a file
+      // here with that name. If there is an existing file that is a directory and we're creating a
+      // directory, we just return the existing directory's id.
+      Inode ret = currentInodeFolder.getChild(name);
+      if (ret != null) {
+        if (ret.isDirectory() && directory) {
+          return ret.getId();
+        }
+        final String msg = "File " + path + " already exist.";
+        LOG.info("FileAlreadyExistException: " + msg);
+        throw new FileAlreadyExistException(msg);
+      }
       if (directory) {
         ret =
-            new InodeFolder(name, mInodeCounter.incrementAndGet(), inode.getId(), creationTimeMs);
+            new InodeFolder(name, mInodeCounter.incrementAndGet(), currentInodeFolder.getId(),
+                creationTimeMs);
       } else {
         ret =
-            new InodeFile(name, mInodeCounter.incrementAndGet(), inode.getId(), blockSizeByte,
-                creationTimeMs);
-        String curPath = getPath(ret);
-        if (mPinList.inList(curPath)) {
+            new InodeFile(name, mInodeCounter.incrementAndGet(), currentInodeFolder.getId(),
+                blockSizeByte, creationTimeMs);
+        if (mPinList.inList(path)) {
           synchronized (mFileIdPinList) {
             mFileIdPinList.add(ret.getId());
             ((InodeFile) ret).setPin(true);
           }
         }
-        if (mWhiteList.inList(curPath)) {
+        if (mWhiteList.inList(path)) {
           ((InodeFile) ret).setCache(true);
         }
       }
 
       mInodes.put(ret.getId(), ret);
-      ((InodeFolder) inode).addChild(ret);
+      currentInodeFolder.addChild(ret);
 
-      LOG.debug("createFile: File Created: " + ret + " parent: " + inode);
+      LOG.debug("createFile: File Created: " + ret.toString() + " parent: "
+          + currentInodeFolder.toString());
       return ret.getId();
     }
   }
@@ -1198,49 +1213,103 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
+   * Traverse to the inode at the given path.
+   * 
+   * @param pathNames
+   *          The path to search for, broken into components
+   * @return the inode of the file at the given path. If it was not able to traverse down the entire
+   *         path, it will set the second field to the first path component it didn't find. It never
+   *         returns null.
+   */
+  private Pair<Inode, Integer> traverseToInode(String[] pathNames) throws InvalidPathException {
+    synchronized (mRoot) {
+      if (pathNames == null || pathNames.length == 0) {
+        throw new InvalidPathException("passed-in pathNames is null or empty");
+      }
+      if (pathNames.length == 1) {
+        if (pathNames[0].equals("")) {
+          return new Pair<Inode, Integer>(mRoot, -1);
+        } else {
+          final String msg = "File name starts with " + pathNames[0];
+          LOG.info("InvalidPathException: " + msg);
+          throw new InvalidPathException(msg);
+        }
+      }
+
+      Pair<Inode, Integer> ret = new Pair<Inode, Integer>(mRoot, -1);
+
+      for (int k = 1; k < pathNames.length; k ++) {
+        Inode next = ((InodeFolder) ret.getFirst()).getChild(pathNames[k]);
+        if (next == null) {
+          // The user might want to create the nonexistent directories, so we leave ret.getFirst()
+          // as the last Inode taken. We set nonexistentInd to k, to indicate that the kth path
+          // component was the first one that couldn't be found.
+          ret.setSecond(k);
+          break;
+        }
+        ret.setFirst(next);
+        if (!ret.getFirst().isDirectory()) {
+          // The inode can't have any children. If this is the last path component, we're good.
+          // Otherwise, we can't traverse further, so we clean up and throw an exception.
+          if (k == pathNames.length - 1) {
+            break;
+          } else {
+            final String msg =
+                "Traversal failed. Component " + k + "(" + ret.getFirst().getName()
+                    + ") is a file";
+            LOG.info("InvalidPathException: " + msg);
+            throw new InvalidPathException(msg);
+          }
+        }
+      }
+      return ret;
+    }
+  }
+
+  /**
+   * Traverse to the inode at the given path.
+   * 
+   * @param path
+   *          The path to search for
+   * @return see {@link #traverseToInode(String[] pathNames)}
+   */
+  private Pair<Inode, Integer> traverseToInode(String path) throws InvalidPathException {
+    return traverseToInode(CommonUtils.getPathComponents(path));
+  }
+
+  /**
+   * Returns whether the traversal was successful or not.
+   * 
+   * @return true if the traversal was successful, or false otherwise.
+   */
+  private boolean traversalSucceeded(Pair<Inode, Integer> inodeTraversal) {
+    return inodeTraversal.getSecond() == -1;
+  }
+
+  /**
+   * Get the inode of the file at the given path.
+   * 
+   * @param pathNames
+   *          The path components of the path to search for
+   * @return the inode of the file at the given path, or null if the file does not exist
+   */
+  private Inode getInode(String[] pathNames) throws InvalidPathException {
+    Pair<Inode, Integer> inodeTraversal = traverseToInode(pathNames);
+    if (!traversalSucceeded(inodeTraversal)) {
+      return null;
+    }
+    return inodeTraversal.getFirst();
+  }
+
+  /**
    * Get the inode of the file at the given path.
    * 
    * @param path
    *          The path to search for
-   * @return the inode of the file at the given path, or null if the file does not exist
+   * @return see {@link #getInode(String[] pathNames)}
    */
   private Inode getInode(String path) throws InvalidPathException {
     return getInode(CommonUtils.getPathComponents(path));
-  }
-
-  /**
-   * Get the inode at the given path.
-   * 
-   * @param pathNames
-   *          The path to search for, broken into components
-   * @return the inode of the file at the given path, or null if the file does not exist
-   */
-  private Inode getInode(String[] pathNames) throws InvalidPathException {
-    if (pathNames == null || pathNames.length == 0) {
-      return null;
-    }
-    if (pathNames.length == 1) {
-      if (pathNames[0].equals("")) {
-        return mRoot;
-      } else {
-        LOG.info("InvalidPathException: File name starts with " + pathNames[0]);
-        throw new InvalidPathException("File name starts with " + pathNames[0]);
-      }
-    }
-
-    Inode cur = mRoot;
-
-    synchronized (mRoot) {
-      for (int k = 1; k < pathNames.length && cur != null; k ++) {
-        String name = pathNames[k];
-        if (cur.isFile()) {
-          return null;
-        }
-        cur = ((InodeFolder) cur).getChild(name);
-      }
-
-      return cur;
-    }
   }
 
   /**
@@ -1394,8 +1463,11 @@ public class MasterInfo implements ImageWriter {
    *          The path of the table
    * @return the id of the table
    */
-  public int getRawTableId(String path) throws InvalidPathException {
+  public int getRawTableId(String path) throws InvalidPathException, TableDoesNotExistException {
     Inode inode = getInode(path);
+    if (inode == null) {
+      throw new TableDoesNotExistException(path);
+    }
     if (inode.isDirectory()) {
       int id = inode.getId();
       if (mRawTables.exist(id)) {
@@ -1599,7 +1671,7 @@ public class MasterInfo implements ImageWriter {
         while (!queue.isEmpty()) {
           Inode qinode = queue.poll();
           if (qinode.isDirectory()) {
-            queue.addAll(((InodeFolder) inode).getChildren());
+            queue.addAll(((InodeFolder) qinode).getChildren());
           } else {
             ret.add(qinode.getId());
           }
