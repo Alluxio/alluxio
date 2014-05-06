@@ -43,10 +43,26 @@ public abstract class UnderFileSystem {
     }
   }
 
+  /**
+   * Get the UnderFileSystem instance according to its schema.
+   * 
+   * @param path
+   *          file path storing over the ufs.
+   * @return null for any unknown scheme.
+   */
   public static UnderFileSystem get(String path) {
     return get(path, null);
   }
-  
+
+  /**
+   * Get the UnderFileSystem instance according to its scheme and configuration.
+   * 
+   * @param path
+   *          file path storing over the ufs
+   * @param conf
+   *          the configuration object for ufs only
+   * @return null for any unknown scheme.
+   */
   public static UnderFileSystem get(String path, Object conf) {
     if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")) {
       return UnderFileSystemHdfs.getClient(path, conf);
@@ -56,19 +72,20 @@ public abstract class UnderFileSystem {
     CommonUtils.illegalArgumentException("Unknown under file system scheme " + path);
     return null;
   }
-  
+
   /**
-   * To set the configuration object for UnderFileSystem. 
+   * To set the configuration object for UnderFileSystem.
    * The conf object is understood by the concrete underfs's implementation.
-   *  
-   * @param conf The configuration object accepted by ufs.
+   * 
+   * @param conf
+   *          The configuration object accepted by ufs.
    */
   public abstract void setConf(Object conf);
-  
+
   /**
    * To get the configuration object for UnderFileSystem.
    * 
-   * @return
+   * @return configuration object used for concrete ufs instance
    */
   public abstract Object getConf();
 

@@ -50,19 +50,18 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   public static UnderFileSystemHdfs getClient(String path) {
     return new UnderFileSystemHdfs(path, null);
   }
-  
+
   public static UnderFileSystemHdfs getClient(String path, Object conf) {
     return new UnderFileSystemHdfs(path, conf);
   }
-  
+
   private UnderFileSystemHdfs(String fsDefaultName, Object conf) {
     try {
       mUfsPrefix = fsDefaultName;
       Configuration tConf = null;
-      if(conf != null) {
-        tConf = (Configuration)conf;
-      }
-      else {
+      if (conf != null) {
+        tConf = (Configuration) conf;
+      } else {
         tConf = new Configuration();
       }
       tConf.set("fs.defaultFS", fsDefaultName);

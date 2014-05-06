@@ -26,15 +26,15 @@ public abstract class BlockInStream extends InStream {
       throws IOException {
     return get(tachyonFile, readType, blockIndex, null);
   }
-  
-  public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex, Object conf)
-      throws IOException {
+
+  public static BlockInStream get(TachyonFile tachyonFile, ReadType readType, int blockIndex,
+      Object ufsConf) throws IOException {
     TachyonByteBuffer buf = tachyonFile.readLocalByteBuffer(blockIndex);
     if (buf != null) {
       return new LocalBlockInStream(tachyonFile, readType, blockIndex, buf);
     }
 
-    return new RemoteBlockInStream(tachyonFile, readType, blockIndex, conf);
+    return new RemoteBlockInStream(tachyonFile, readType, blockIndex, ufsConf);
   }
 
   protected final int BLOCK_INDEX;

@@ -35,7 +35,7 @@ public class FileInStream extends InStream {
   public FileInStream(TachyonFile file, ReadType opType) throws IOException {
     this(file, opType, null);
   }
-  
+
   public FileInStream(TachyonFile file, ReadType opType, Object ufsConf) throws IOException {
     super(file, opType);
 
@@ -46,7 +46,7 @@ public class FileInStream extends InStream {
     mCurrentBlockIndex = -1;
     mCurrentBlockInStream = null;
     mCurrentBlockLeft = 0;
-    
+
     mUFSConf = ufsConf;
   }
 
