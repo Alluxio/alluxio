@@ -1218,7 +1218,7 @@ public class MasterInfo implements ImageWriter {
    * @param pathNames
    *          The path to search for, broken into components
    * @return the inode of the file at the given path. If it was not able to traverse down the entire
-   *         path, it will set mNonexistentInd to the first path component it didn't find. It never
+   *         path, it will set the second field to the first path component it didn't find. It never
    *         returns null.
    */
   private Pair<Inode, Integer> traverseToInode(String[] pathNames) throws InvalidPathException {
@@ -1266,6 +1266,13 @@ public class MasterInfo implements ImageWriter {
     }
   }
 
+  /**
+   * Traverse to the inode at the given path.
+   * 
+   * @param path
+   *          The path to search for
+   * @return see {@link #traverseToInode(String[] pathNames)}
+   */
   private Pair<Inode, Integer> traverseToInode(String path) throws InvalidPathException {
     return traverseToInode(CommonUtils.getPathComponents(path));
   }
@@ -1294,6 +1301,13 @@ public class MasterInfo implements ImageWriter {
     return inodeTraversal.getFirst();
   }
 
+  /**
+   * Get the inode of the file at the given path.
+   * 
+   * @param path
+   *          The path to search for
+   * @return see {@link #getInode(String[] pathNames)}
+   */
   private Inode getInode(String path) throws InvalidPathException {
     return getInode(CommonUtils.getPathComponents(path));
   }
