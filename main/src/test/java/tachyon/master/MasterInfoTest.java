@@ -122,6 +122,19 @@ public class MasterInfoTest {
     mMasterInfo.createFile("testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
   }
 
+  @Test(expected = InvalidPathException.class)
+  public void createFileInvalidPathTest2() throws InvalidPathException, FileAlreadyExistException,
+      BlockInfoException, TachyonException {
+    mMasterInfo.createFile("/", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+  }
+
+  @Test(expected = InvalidPathException.class)
+  public void createFileInvalidPathTest3() throws InvalidPathException, FileAlreadyExistException,
+      BlockInfoException, TachyonException {
+    mMasterInfo.createFile("/testFile1", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    mMasterInfo.createFile("/testFile1/testFile2", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+  }
+
   @Test
   public void createFilePerfTest() throws FileAlreadyExistException, InvalidPathException,
       FileDoesNotExistException, TachyonException {
