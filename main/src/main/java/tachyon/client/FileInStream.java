@@ -29,7 +29,7 @@ public class FileInStream extends InStream {
   private long mCurrentBlockLeft;
 
   private boolean mClosed = false;
-  
+
   private Object mUFSConf = null;
 
   public FileInStream(TachyonFile file, ReadType opType) throws IOException {

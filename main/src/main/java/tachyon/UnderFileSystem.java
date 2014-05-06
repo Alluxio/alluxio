@@ -74,22 +74,6 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * To set the configuration object for UnderFileSystem.
-   * The conf object is understood by the concrete underfs's implementation.
-   * 
-   * @param conf
-   *          The configuration object accepted by ufs.
-   */
-  public abstract void setConf(Object conf);
-
-  /**
-   * To get the configuration object for UnderFileSystem.
-   * 
-   * @return configuration object used for concrete ufs instance
-   */
-  public abstract Object getConf();
-
-  /**
    * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir
    * into a pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
    * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
@@ -138,6 +122,13 @@ public abstract class UnderFileSystem {
 
   public abstract long getBlockSizeByte(String path) throws IOException;
 
+  /**
+   * To get the configuration object for UnderFileSystem.
+   * 
+   * @return configuration object used for concrete ufs instance
+   */
+  public abstract Object getConf();
+
   public abstract List<String> getFileLocations(String path) throws IOException;
 
   public abstract List<String> getFileLocations(String path, long offset) throws IOException;
@@ -179,6 +170,15 @@ public abstract class UnderFileSystem {
   public abstract InputStream open(String path) throws IOException;
 
   public abstract boolean rename(String src, String dst) throws IOException;
+
+  /**
+   * To set the configuration object for UnderFileSystem.
+   * The conf object is understood by the concrete underfs's implementation.
+   * 
+   * @param conf
+   *          The configuration object accepted by ufs.
+   */
+  public abstract void setConf(Object conf);
 
   public abstract void toFullPermission(String path) throws IOException;
 }

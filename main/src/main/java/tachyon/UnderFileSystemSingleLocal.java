@@ -93,6 +93,11 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
+  public Object getConf() {
+    return null;
+  }
+
+  @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<String>();
     ret.add(InetAddress.getLocalHost().getCanonicalHostName());
@@ -172,17 +177,12 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public void toFullPermission(String path) throws IOException {
-    CommonUtils.changeLocalFileToFullPermission(path);
-    CommonUtils.setLocalFileStickyBit(path);
-  }
-
-  @Override
   public void setConf(Object conf) {
   }
 
   @Override
-  public Object getConf() {
-    return null;
+  public void toFullPermission(String path) throws IOException {
+    CommonUtils.changeLocalFileToFullPermission(path);
+    CommonUtils.setLocalFileStickyBit(path);
   }
 }
