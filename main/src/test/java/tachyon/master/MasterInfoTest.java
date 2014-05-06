@@ -17,6 +17,7 @@ package tachyon.master;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashSet;
 
 import tachyon.Constants;
 import tachyon.conf.CommonConf;
@@ -251,6 +252,21 @@ public class MasterInfoTest {
   @Test
   public void getCapacityBytesTest() {
     Assert.assertEquals(1000, mMasterInfo.getCapacityBytes());
+  }
+
+  @Test
+  public void listFilesTest() throws InvalidPathException, FileDoesNotExistException,
+      FileAlreadyExistException, BlockInfoException, TachyonException {
+    HashSet<Integer> ids = new HashSet<Integer>();
+    for (int i = 0; i < 10; i ++) {
+      String dir = "/i" + i;
+      mMasterInfo.mkdir(dir);
+      for (int j = 0; j < 10; j ++) {
+        ids.add(mMasterInfo.createFile(dir + "/j" + j, 64));
+      }
+    }
+    HashSet<Integer> listedIds = new HashSet<Integer>(mMasterInfo.listFiles("/", true));
+    Assert.assertEquals(ids, listedIds);
   }
 
   @Test
