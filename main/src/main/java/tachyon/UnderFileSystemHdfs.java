@@ -64,7 +64,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       } else {
         tConf = new Configuration();
       }
-      tConf.set("fs.defaultFS", fsDefaultName);
+      tConf.set("fs.defaultFS", mUfsPrefix);
       tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
 
       // To disable the instance cache for hdfs client, otherwise it causes the
@@ -79,7 +79,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       if (System.getProperty("fs.s3n.awsSecretAccessKey") != null) {
         tConf.set("fs.s3n.awsSecretAccessKey", System.getProperty("fs.s3n.awsSecretAccessKey"));
       }
-      Path path = new Path(fsDefaultName);
+      Path path = new Path(mUfsPrefix);
       mFs = path.getFileSystem(tConf);
       // FileSystem.get(tConf);
       // mFs = FileSystem.get(new URI(fsDefaultName), tConf);
@@ -186,6 +186,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     }
     FileStatus fs = mFs.getFileStatus(tPath);
     return fs.getBlockSize();
+  }
+
+  @Override
+  public Object getConf() {
+    return mFs.getConf();
   }
 
   @Override
@@ -341,6 +346,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
+  public void setConf(Object conf) {
+    mFs.setConf((Configuration) conf);
+  }
+
+  @Override
   public void toFullPermission(String path) {
     try {
       FileStatus fileStatus = mFs.getFileStatus(new Path(path));
@@ -350,15 +360,5 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     } catch (IOException e) {
       LOG.error(e);
     }
-  }
-
-  @Override
-  public void setConf(Object conf) {
-    mFs.setConf((Configuration) conf);
-  }
-
-  @Override
-  public Object getConf() {
-    return mFs.getConf();
   }
 }

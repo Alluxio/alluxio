@@ -149,6 +149,15 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return TFS.getPath(FID);
   }
 
+  /**
+   * To get the configuration object for UnderFileSystem.
+   * 
+   * @return configuration object used for concrete ufs instance
+   */
+  public Object getUFSConf() {
+    return mUFSConf;
+  }
+
   @Override
   public int hashCode() {
     return getPath().hashCode() ^ 1234321;
@@ -366,16 +375,19 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return recvMsg.getReadOnlyData();
   }
 
-  @Override
-  public String toString() {
-    return getPath();
-  }
-  
+  /**
+   * To set the configuration object for UnderFileSystem. The conf object is understood by the
+   * concrete underfs' implementation.
+   * 
+   * @param conf
+   *          The configuration object accepted by ufs.
+   */
   public void setUFSConf(Object conf) {
     mUFSConf = conf;
   }
 
-  public Object getUFSConf() {
-    return mUFSConf;
+  @Override
+  public String toString() {
+    return getPath();
   }
 }

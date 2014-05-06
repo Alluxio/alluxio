@@ -47,14 +47,15 @@ public class RemoteBlockInStream extends BlockInStream {
 
   private boolean mRecache = true;
   private BlockOutStream mBlockOutStream = null;
-  
+
   private Object mUFSConf = null;
 
   RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
     this(file, readType, blockIndex, null);
   }
-  
-  RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf) throws IOException {
+
+  RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf)
+      throws IOException {
     super(file, readType, blockIndex);
 
     mBlockInfo = TFS.getClientBlockInfo(FILE.FID, BLOCK_INDEX);
@@ -72,8 +73,8 @@ public class RemoteBlockInStream extends BlockInStream {
 
     updateCurrentBuffer();
 
+    mUFSConf = ufsConf;
     if (mCurrentBuffer == null) {
-      mUFSConf = ufsConf;
       setupStreamFromUnderFs(mBlockInfo.offset, mUFSConf);
 
       if (mCheckpointInputStream == null) {
