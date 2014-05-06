@@ -988,6 +988,9 @@ public class TachyonFS {
     connect();
     try {
       return mMasterClient.user_ls(path, recursive);
+    } catch (FileDoesNotExistException e) {
+      mConnected = false;
+      return null;
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
