@@ -984,6 +984,18 @@ public class TachyonFS {
     return true;
   }
 
+  /**
+   * Return a list of files/directories under the given path.
+   *
+   * @param path
+   *          the path in the TFS.
+   * @param recursive
+   *          whether or not to list files/directories under path recursively.
+   * @return a list of files/directories under path if recursive is false, or files/directories
+   * under its subdirectories (sub-subdirectories, and so forth) if recursive is true, or null
+   * if the content of path is empty, i.e., no files found under path.
+   * @throws IOException if some TException is thrown when trying to read content of path.
+   */
   public synchronized List<String> ls(String path, boolean recursive) throws IOException {
     connect();
     try {
@@ -1002,7 +1014,7 @@ public class TachyonFS {
    * 
    * @param path
    *          Directory path.
-   * @return true if the folder is created succeefully. faluse otherwise.
+   * @return true if the folder is created successfully. false otherwise.
    * @throws IOException
    */
   public synchronized boolean mkdir(String path) throws IOException {
