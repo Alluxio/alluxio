@@ -158,7 +158,7 @@ public class EditLog {
           break;
         }
         case OP_DELETE: {
-          info.delete(is.readInt(), is.readBoolean());
+          info.delete(is.readInt(), is.readBoolean(), false);
           break;
         }
         case OP_RENAME: {
