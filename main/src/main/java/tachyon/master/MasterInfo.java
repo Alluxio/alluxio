@@ -465,67 +465,94 @@ public class MasterInfo implements ImageWriter {
     }
   }
 
-  private boolean _delete(int fileId, boolean recursive) throws TachyonException {
-    LOG.info("delete(" + fileId + ")");
+  /**
+   * Inner delete function. Returns the id of the deleted inode.
+   * 
+   * @param inode
+   *          The inode to delete
+   * @param recursive
+   *          True if the file and it's subdirectories should be deleted
+   * @param writeEditLog
+   *          If true, write to the edit log after completing the operation
+   * @return -1 on an error for which delete should return false, 0 on an error for which delete
+   *         should return true, or the id of the deleted inode.
+   */
+  private int _delete(Inode inode, boolean recursive, boolean writeEditLog)
+      throws TachyonException {
     boolean succeed = true;
     synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-
-      if (inode == null) {
-        return true;
-      }
-
+      Set<Inode> delInodes = new HashSet<Inode>();
       if (inode.isDirectory()) {
-        List<Integer> childrenIds = ((InodeFolder) inode).getChildrenIds();
+        delInodes.addAll(getInodeChildrenRecursive((InodeFolder) inode));
+      }
+      delInodes.add(inode);
 
-        if (!recursive && childrenIds.size() != 0) {
-          return false;
-        }
-        for (int childId : childrenIds) {
-          succeed = succeed && delete(childId, recursive);
-        }
+      if (inode.isDirectory() && !recursive && delInodes.size() > 1) {
+        // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
+        // true
+        return -1;
       }
 
-      InodeFolder parent = (InodeFolder) mInodes.get(inode.getParentId());
-      parent.removeChild(inode);
-      mInodes.remove(inode.getId());
-      if (inode.isFile()) {
-        String checkpointPath = ((InodeFile) inode).getCheckpointPath();
-        if (!checkpointPath.equals("")) {
-          UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
-
-          try {
-            if (!ufs.delete(checkpointPath, true)) {
-              return false;
-            }
-          } catch (IOException e) {
-            throw new TachyonException(e.getMessage());
-          }
+      // We go through each inode, removing it from it's parent set and from mDelInodes. If it's a
+      // file, we deal with the checkpoints and blocks as well.
+      for (Inode delInode : delInodes) {
+        if (delInode.equals(mRoot)) {
+          continue;
         }
-
-        List<Pair<Long, Long>> blockIdWorkerIdList = ((InodeFile) inode).getBlockIdWorkerIdPairs();
-        synchronized (mWorkers) {
-          for (Pair<Long, Long> blockIdWorkerId : blockIdWorkerIdList) {
-            MasterWorkerInfo workerInfo = mWorkers.get(blockIdWorkerId.getSecond());
-            if (workerInfo != null) {
-              workerInfo.updateToRemovedBlock(true, blockIdWorkerId.getFirst());
+        InodeFolder parent = (InodeFolder) mInodes.get(delInode.getParentId());
+        parent.removeChild(delInode);
+        if (delInode.isFile()) {
+          String checkpointPath = ((InodeFile) delInode).getCheckpointPath();
+          if (!checkpointPath.equals("")) {
+            UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
+            try {
+              if (!ufs.delete(checkpointPath, true)) {
+                succeed = false;
+              }
+            } catch (IOException e) {
+              throw new TachyonException(e.getMessage());
             }
           }
-        }
 
-        if (((InodeFile) inode).isPin()) {
-          synchronized (mFileIdPinList) {
-            mFileIdPinList.remove(inode.getId());
+          List<Pair<Long, Long>> blockIdWorkerIdList =
+              ((InodeFile) delInode).getBlockIdWorkerIdPairs();
+          synchronized (mWorkers) {
+            for (Pair<Long, Long> blockIdWorkerId : blockIdWorkerIdList) {
+              MasterWorkerInfo workerInfo = mWorkers.get(blockIdWorkerId.getSecond());
+              if (workerInfo != null) {
+                workerInfo.updateToRemovedBlock(true, blockIdWorkerId.getFirst());
+              }
+            }
+          }
+
+          if (((InodeFile) delInode).isPin()) {
+            synchronized (mFileIdPinList) {
+              mFileIdPinList.remove(delInode.getId());
+            }
           }
         }
-      }
-      inode.reverseId();
 
-      if (mRawTables.exist(fileId)) {
-        succeed = succeed && mRawTables.delete(fileId);
+        if (mRawTables.exist(delInode.getId())) {
+          succeed = succeed && mRawTables.delete(delInode.getId());
+        }
       }
 
-      return succeed;
+      int retid = inode.getId();
+      if (!succeed) {
+        retid = -1;
+      }
+
+      for (Inode delInode : delInodes) {
+        mInodes.remove(delInode.getId());
+        delInode.reverseId();
+      }
+
+      if (writeEditLog && retid > 0) {
+        mJournal.getEditLog().delete(retid, recursive);
+        mJournal.getEditLog().flush();
+      }
+
+      return retid;
     }
   }
 
@@ -854,42 +881,62 @@ public class MasterInfo implements ImageWriter {
    *          the file to be deleted.
    * @param recursive
    *          whether delete the file recursively or not.
-   * @return succeed or not
+   * @return whether the deletion succeeded or not
    * @throws TachyonException
    */
-  public boolean delete(int fileId, boolean recursive) throws TachyonException {
+  public boolean delete(int fileId, boolean recursive, boolean writeEditLog)
+      throws TachyonException {
+    LOG.info("delete(" + fileId + ")");
     synchronized (mRoot) {
-      boolean ret = _delete(fileId, recursive);
-      mJournal.getEditLog().delete(fileId, recursive);
-      mJournal.getEditLog().flush();
-      return ret;
+      Inode delNode = mInodes.get(fileId);
+      if (delNode == null) {
+        return true;
+      }
+      return _delete(delNode, recursive, writeEditLog) != -1;
     }
   }
 
   /**
-   * Delete files based on the path.
+   * Same as {@link #delete(int fileId, boolean recursive, boolean writeEditLog)} except
+   * {@code writeEditLog} defaults to true.
+   */
+  public boolean delete(int fileId, boolean recursive) throws TachyonException {
+    delete(fileId, recursive, true);
+  }
+
+  /**
+   * Delete a file at a given path.
    * 
    * @param path
    *          The file to be deleted.
    * @param recursive
-   *          whether delete the file recursively or not.
-   * @return succeed or not
+   *          If the path points to a directory, whether to delete the entire directory or
+   *          do nothing.
+   * @return whether the deletion succeeded or not
    * @throws TachyonException
    */
-  public boolean delete(String path, boolean recursive) throws TachyonException {
+  public boolean delete(String path, boolean recursive, boolean writeEditLog)
+      throws TachyonException {
     LOG.info("delete(" + path + ")");
     synchronized (mRoot) {
-      Inode inode = null;
       try {
-        inode = getInode(path);
+        Pair<Inode, Integer> inodeTraversal = traverseToInode(path);
+        if (!traversalSucceeded(inodeTraversal)) {
+          return true;
+        }
+        return _delete(inodeTraversal.getFirst().getId(), recursive, writeEditLog) != -1;
       } catch (InvalidPathException e) {
         return false;
       }
-      if (inode == null) {
-        return true;
-      }
-      return delete(inode.getId(), recursive);
     }
+  }
+
+  /**
+   * Same as {@link #delete(String path, boolean recursive, boolean writeEditLog)} except
+   * {@code writeEditLog} defaults to true.
+   */
+  public boolean delete(String path, boolean recursive) throws TachyonException {
+    delete(path, recursive, true);
   }
 
   public long getBlockIdBasedOnOffset(int fileId, long offset) throws FileDoesNotExistException {
@@ -1218,77 +1265,24 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Traverse to the inode at the given path.
+   * Returns a list of the given folder's children, recursively scanning subdirectories. It adds the
+   * parent of a node before adding its children.
    * 
-   * @param pathNames
-   *          The path to search for, broken into components
-   * @return the inode of the file at the given path. If it was not able to traverse down the entire
-   *         path, it will set the second field to the first path component it didn't find. It never
-   *         returns null.
+   * @param inodeFolder
+   *          The folder to start looking at
+   * @return a list of the children inodes.
    */
-  private Pair<Inode, Integer> traverseToInode(String[] pathNames) throws InvalidPathException {
+  private List<Inode> getInodeChildrenRecursive(InodeFolder inodeFolder) {
     synchronized (mRoot) {
-      if (pathNames == null || pathNames.length == 0) {
-        throw new InvalidPathException("passed-in pathNames is null or empty");
-      }
-      if (pathNames.length == 1) {
-        if (pathNames[0].equals("")) {
-          return new Pair<Inode, Integer>(mRoot, -1);
-        } else {
-          final String msg = "File name starts with " + pathNames[0];
-          LOG.info("InvalidPathException: " + msg);
-          throw new InvalidPathException(msg);
-        }
-      }
-
-      Pair<Inode, Integer> ret = new Pair<Inode, Integer>(mRoot, -1);
-
-      for (int k = 1; k < pathNames.length; k ++) {
-        Inode next = ((InodeFolder) ret.getFirst()).getChild(pathNames[k]);
-        if (next == null) {
-          // The user might want to create the nonexistent directories, so we leave ret.getFirst()
-          // as the last Inode taken. We set nonexistentInd to k, to indicate that the kth path
-          // component was the first one that couldn't be found.
-          ret.setSecond(k);
-          break;
-        }
-        ret.setFirst(next);
-        if (!ret.getFirst().isDirectory()) {
-          // The inode can't have any children. If this is the last path component, we're good.
-          // Otherwise, we can't traverse further, so we clean up and throw an exception.
-          if (k == pathNames.length - 1) {
-            break;
-          } else {
-            final String msg =
-                "Traversal failed. Component " + k + "(" + ret.getFirst().getName()
-                    + ") is a file";
-            LOG.info("InvalidPathException: " + msg);
-            throw new InvalidPathException(msg);
-          }
+      List<Inode> ret = new ArrayList<Inode>();
+      for (Inode i : inodeFolder.getChildren()) {
+        ret.add(i);
+        if (i.isDirectory()) {
+          ret.addAll(getInodeChildrenRecursive((InodeFolder) i));
         }
       }
       return ret;
     }
-  }
-
-  /**
-   * Traverse to the inode at the given path.
-   * 
-   * @param path
-   *          The path to search for
-   * @return see {@link #traverseToInode(String[] pathNames)}
-   */
-  private Pair<Inode, Integer> traverseToInode(String path) throws InvalidPathException {
-    return traverseToInode(CommonUtils.getPathComponents(path));
-  }
-
-  /**
-   * Returns whether the traversal was successful or not.
-   * 
-   * @return true if the traversal was successful, or false otherwise.
-   */
-  private boolean traversalSucceeded(Pair<Inode, Integer> inodeTraversal) {
-    return inodeTraversal.getSecond() == -1;
   }
 
   /**
@@ -1307,11 +1301,7 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Get the inode of the file at the given path.
-   * 
-   * @param path
-   *          The path to search for
-   * @return see {@link #getInode(String[] pathNames)}
+   * Same as {@link #getInode(String[] pathNames)} except that it takes a path string.
    */
   private Inode getInode(String path) throws InvalidPathException {
     return getInode(CommonUtils.getPathComponents(path));
@@ -2029,6 +2019,77 @@ public class MasterInfo implements ImageWriter {
    */
   public void stop() {
     mHeartbeatThread.shutdown();
+  }
+
+  /**
+   * Traverse to the inode at the given path.
+   * 
+   * @param pathNames
+   *          The path to search for, broken into components
+   * @return the inode of the file at the given path. If it was not able to traverse down the entire
+   *         path, it will set the second field to the first path component it didn't find. It never
+   *         returns null.
+   */
+  private Pair<Inode, Integer> traverseToInode(String[] pathNames) throws InvalidPathException {
+    synchronized (mRoot) {
+      if (pathNames == null || pathNames.length == 0) {
+        throw new InvalidPathException("passed-in pathNames is null or empty");
+      }
+      if (pathNames.length == 1) {
+        if (pathNames[0].equals("")) {
+          return new Pair<Inode, Integer>(mRoot, -1);
+        } else {
+          final String msg = "File name starts with " + pathNames[0];
+          LOG.info("InvalidPathException: " + msg);
+          throw new InvalidPathException(msg);
+        }
+      }
+
+      Pair<Inode, Integer> ret = new Pair<Inode, Integer>(mRoot, -1);
+
+      for (int k = 1; k < pathNames.length; k ++) {
+        Inode next = ((InodeFolder) ret.getFirst()).getChild(pathNames[k]);
+        if (next == null) {
+          // The user might want to create the nonexistent directories, so we leave ret.getFirst()
+          // as the last Inode taken. We set nonexistentInd to k, to indicate that the kth path
+          // component was the first one that couldn't be found.
+          ret.setSecond(k);
+          break;
+        }
+        ret.setFirst(next);
+        if (!ret.getFirst().isDirectory()) {
+          // The inode can't have any children. If this is the last path component, we're good.
+          // Otherwise, we can't traverse further, so we clean up and throw an exception.
+          if (k == pathNames.length - 1) {
+            break;
+          } else {
+            final String msg =
+                "Traversal failed. Component " + k + "(" + ret.getFirst().getName()
+                    + ") is a file";
+            LOG.info("InvalidPathException: " + msg);
+            throw new InvalidPathException(msg);
+          }
+        }
+      }
+      return ret;
+    }
+  }
+
+  /**
+   * Same as {@link #traverseToInode(String[] pathNames)} except that it takes a path
+   * string.
+   */
+  private Pair<Inode, Integer> traverseToInode(String path) throws InvalidPathException {
+    return traverseToInode(CommonUtils.getPathComponents(path));
+  }
+
+  /**
+   * Returns whether the traversal was successful or not.
+   * 
+   * @return true if the traversal was successful, or false otherwise.
+   */
+  private boolean traversalSucceeded(Pair<Inode, Integer> inodeTraversal) {
+    return inodeTraversal.getSecond() == -1;
   }
 
   /**
