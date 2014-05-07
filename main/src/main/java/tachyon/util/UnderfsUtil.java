@@ -15,6 +15,7 @@
 package tachyon.util;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -99,6 +100,19 @@ public class UnderfsUtil {
     Pair<String, String> ufsPair = UnderFileSystem.parse(ufsAddrRootPath);
     String ufsAddress = ufsPair.getFirst();
     String ufsRootPath = ufsPair.getSecond();
+
+    try {
+      // resolve and replace hostname embedded in the given ufsAddress
+      String oldAddr = ufsAddress;
+      ufsAddress = CommonUtils.replaceHostName(ufsAddress);
+      if (!ufsAddress.equalsIgnoreCase(oldAddr)) {
+        LOG.info("UFS hostname resolved: " + ufsAddress);
+        System.out.println("UnderFS hostname resolved: " + ufsAddress);
+      }
+    } catch (UnknownHostException e) {
+      LOG.info("hostname cannot be resolved in given UFS path: " + ufsAddrRootPath);
+      throw new IOException(e);
+    }
 
     if (!tfs.exist(tfsRootPath)) {
       tfs.mkdir(tfsRootPath);
