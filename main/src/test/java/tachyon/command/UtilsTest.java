@@ -2,6 +2,7 @@ package tachyon.command;
 
 import junit.framework.Assert;
 import org.junit.Test;
+import tachyon.Constants;
 
 import java.io.IOException;
 
@@ -11,19 +12,19 @@ import java.io.IOException;
  * Note that the test case for validatePath() is already covered in getFilePath.
  * Hence only getFilePathTest is specified.
  */
-public class TFsShellUtilsTest {
+public class UtilsTest {
 
   @Test
   public void getFilePathTest() throws IOException {
     String[] paths = new String[] {
-        "tachyon://localhost:19998/dir",
-        "tachyon-ft://localhost:19998/dir",
+        Constants.HEADER + "localhost:19998/dir",
+        Constants.HEADER_FT + "localhost:19998/dir",
         "/dir",
         "dir"
     };
     String expected = "/dir";
-    for (String p: paths) {
-      String result = Utils.getFilePath(p);
+    for (String path: paths) {
+      String result = Utils.getFilePath(path);
       Assert.assertEquals(result, expected);
     }
   }
