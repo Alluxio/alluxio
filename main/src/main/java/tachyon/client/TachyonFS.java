@@ -203,7 +203,7 @@ public class TachyonFS {
 
   /**
    * Cleans the given path, throwing an IOException rather than an InvalidPathException.
-   *
+   * 
    * @param path
    *          The path to clean
    * @return the cleaned path
