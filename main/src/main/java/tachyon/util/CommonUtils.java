@@ -218,6 +218,24 @@ public final class CommonUtils {
   }
 
   /**
+   * Get the parent of the file at a path.
+   * 
+   * @param path
+   *          The path
+   * @return the parent path of the file; this is "/" if the given path is the root.
+   */
+  public static String getParent(String path) throws InvalidPathException {
+    String cleanedPath = cleanPath(path);
+    String name = getName(cleanedPath);
+    String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
+    if (parent.isEmpty()) {
+      // The parent is the root path
+      return Constants.PATH_SEPARATOR;
+    }
+    return parent;
+  }
+
+  /**
    * Get the path components of the given path.
    * 
    * @param path

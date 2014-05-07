@@ -302,6 +302,30 @@ public class MasterInfoTest {
     mMasterInfo.addCheckpoint(-1, mMasterInfo.getFileId("/testFile"), 0, "/testPath");
   }
 
+  @Test(expected = FileDoesNotExistException.class)
+  public void renameNonexistentTest() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, TachyonException, BlockInfoException {
+    mMasterInfo.createFile("/testFile1", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    mMasterInfo.rename("/testFile2", "/testFile3");
+  }
+
+  @Test(expected = FileAlreadyExistException.class)
+  public void renameExistingDstTest() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, TachyonException, BlockInfoException {
+    mMasterInfo.createFile("/testFile1", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    mMasterInfo.createFile("/testFile2", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    mMasterInfo.rename("/testFile1", "/testFile2");
+  }
+
+  @Test(expected = InvalidPathException.class)
+  public void renameToDeeper() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, TachyonException, BlockInfoException {
+    mMasterInfo.mkdir("/testDir1/testDir2");
+    mMasterInfo.createFile("/testDir1/testDir2/testDir3/testFile3",
+        Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    mMasterInfo.rename("/testDir1/testDir2", "/testDir1/testDir2/testDir3/testDir4");
+  }
+
   @Test(expected = TableColumnException.class)
   public void tooManyColumnsTest() throws InvalidPathException, FileAlreadyExistException,
       TableColumnException, TachyonException {
