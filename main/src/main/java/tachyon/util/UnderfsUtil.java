@@ -34,17 +34,18 @@ public class UnderfsUtil {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Create a new path relative to a given TFS root.
+   * Build a new path relative to a given TFS root by retrieving the given path relative to
+   * the ufsRootPath.
    * 
    * @param tfsRootPath
    *          the destination point in TFS to load the under FS path onto
    * @param ufsRootPath
    *          the source path in the under FS to be loaded
    * @param path
-   *          the path relative to ufsRootPath of a file to be loaded
+   *          the path in the under FS be loaded, path.startsWith(ufsRootPath) must be true
    * @return the new path relative to tfsRootPath.
    */
-  private static String createTFSPath(String tfsRootPath, String ufsRootPath, String path) {
+  private static String buildTFSPath(String tfsRootPath, String ufsRootPath, String path) {
     String filePath = path.substring(ufsRootPath.length());
     if (filePath.isEmpty()) {
       // retrieve the basename in ufsRootPath
@@ -95,9 +96,9 @@ public class UnderfsUtil {
       PrefixList excludePathPrefix) throws IOException {
     LOG.info(tfs + tfsRootPath + " " + ufsAddrRootPath + " " + excludePathPrefix);
 
-    Pair<String, String> tfsPair = UnderFileSystem.parse(ufsAddrRootPath);
-    String ufsAddress = tfsPair.getFirst();
-    String ufsRootPath = tfsPair.getSecond();
+    Pair<String, String> ufsPair = UnderFileSystem.parse(ufsAddrRootPath);
+    String ufsAddress = ufsPair.getFirst();
+    String ufsRootPath = ufsPair.getSecond();
 
     if (!tfs.exist(tfsRootPath)) {
       tfs.mkdir(tfsRootPath);
@@ -118,9 +119,10 @@ public class UnderfsUtil {
     }
 
     while (!ufsPathQueue.isEmpty()) {
-      String ufsPath = ufsPathQueue.poll();  // the absolute path
+      String ufsPath = ufsPathQueue.poll();  // this is the absolute path
+      LOG.info("loading: " + ufsPath);
       if (ufs.isFile(ufsPath)) {
-        String tfsPath = createTFSPath(tfsRootPath, ufsAddrRootPath, ufsPath);
+        String tfsPath = buildTFSPath(tfsRootPath, ufsAddrRootPath, ufsPath);
         if (tfs.exist(tfsPath)) {
           LOG.info("File " + tfsPath + " already exists in Tachyon.");
           continue;
@@ -149,12 +151,14 @@ public class UnderfsUtil {
             }
           }
         }
-        String tfsPath = createTFSPath(tfsRootPath, ufsAddrRootPath, ufsPath);
+        //ufsPath is a directory, so only concat the tfsRoot with the relative path
+        String tfsPath = CommonUtils.concat(tfsRootPath,
+            ufsPath.substring(ufsAddrRootPath.length()));
         if (!tfs.exist(tfsPath)) {
           tfs.mkdir(tfsPath);
           // TODO Add the following.
           // if (tfs.mkdir(tfsPath)) {
-          // LOG.info("Created tachyon folder " + tfsPath + " with checkpoint location " + ufsPath);
+          // LOG.info("Created TFS folder " + tfsPath + " with checkpoint location " + ufsPath);
           // } else {
           // LOG.info("Failed to create tachyon folder: " + tfsPath);
           // }

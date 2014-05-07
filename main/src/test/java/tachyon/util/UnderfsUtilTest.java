@@ -83,7 +83,7 @@ public class UnderfsUtilTest {
     }
 
     UnderfsUtil.loadUnderFs(mTfs, Constants.PATH_SEPARATOR, mUnderfsAddress
-        + Constants.PATH_SEPARATOR, new PrefixList(Arrays.asList(exclusions)));
+        + Constants.PATH_SEPARATOR, new PrefixList("tachyon;exclusions", ";"));
 
     List<String> paths = null;
     for (String exclusion : exclusions) {
