@@ -76,8 +76,9 @@ public class CommonUtilsTest {
         "anythingElse"
     };
 
-    for (String p: paths) {
-      Assert.assertEquals(CommonUtils.replaceHostName(p), p);
+    for (String path: paths) {
+      // the other method resolveHostName() is called here and hence unit test covered
+      Assert.assertEquals(CommonUtils.replaceHostName(path), path);
     }
   }
 }
