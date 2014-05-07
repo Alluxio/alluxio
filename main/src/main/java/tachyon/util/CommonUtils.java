@@ -389,7 +389,7 @@ public final class CommonUtils {
    * @param addr
    *          an address or path string, e.g., "hdfs://host:port/dir", "file:///dir", "/dir".
    * @return an address or path string with hostname resolved, or the original path intact if
-   * no hostname is embedded, or null if the given path is null or empty.
+   *          no hostname is embedded, or null if the given path is null or empty.
    * @throws UnknownHostException if the hostname cannot be resolved.
    */
   public static String replaceHostName(String addr) throws UnknownHostException {
