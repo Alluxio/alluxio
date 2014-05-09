@@ -473,25 +473,27 @@ public class MasterInfo implements ImageWriter {
    * @param recursive
    *          True if the file and it's subdirectories should be deleted
    * @return true if the deletion succeeded and false otherwise.
+   * @throws TachyonException
    */
   boolean _delete(int fileId, boolean recursive) throws TachyonException {
-    Inode inode = mInodes.get(fileId);
-    if (inode == null) {
-      return true;
-    }
     boolean succeed = true;
     synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+      if (inode == null) {
+        return true;
+      }
+
+      if (inode.isDirectory() && !recursive && ((InodeFolder) inode).getNumberOfChildren() > 0) {
+        // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
+        // true
+        return false;
+      }
+
       Set<Inode> delInodes = new HashSet<Inode>();
       if (inode.isDirectory()) {
         delInodes.addAll(getInodeChildrenRecursive((InodeFolder) inode));
       }
       delInodes.add(inode);
-
-      if (inode.isDirectory() && !recursive && delInodes.size() > 1) {
-        // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
-        // true
-        return false;
-      }
 
       // We go through each inode, removing it from it's parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
