@@ -66,6 +66,9 @@ public class CommonUtilsTest {
 
   @Test
   public void replaceHostNameTest() throws UnknownHostException {
+    Assert.assertEquals(CommonUtils.replaceHostName(""), null);
+    Assert.assertEquals(CommonUtils.replaceHostName(null), null);
+
     String[] paths = new String[] {
         "hdfs://localhost:9000/dir",
         "hdfs://localhost/dir",
@@ -77,8 +80,14 @@ public class CommonUtilsTest {
     };
 
     for (String path: paths) {
-      // the other method resolveHostName() is called here and hence unit test covered
       Assert.assertEquals(CommonUtils.replaceHostName(path), path);
     }
+  }
+
+  @Test
+  public void resolveHostNameTest() throws UnknownHostException {
+    Assert.assertEquals(CommonUtils.replaceHostName(""), null);
+    Assert.assertEquals(CommonUtils.replaceHostName(null), null);
+    Assert.assertEquals(CommonUtils.replaceHostName("localhost"), "localhost");
   }
 }
