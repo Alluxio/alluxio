@@ -14,13 +14,9 @@
  */
 package tachyon.master;
 
-import java.util.Map;
-import java.util.HashMap;
-
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.master.Inode;
 import tachyon.master.InodeFile;
 import tachyon.master.InodeFolder;
 
