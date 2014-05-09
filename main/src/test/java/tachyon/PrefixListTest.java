@@ -86,7 +86,10 @@ public final class PrefixListTest {
 
   @Test
   public void toStringTest() {
-    PrefixList prefixList = new PrefixList("", ";");
+    PrefixList prefixList = new PrefixList(null, ";");
+    Assert.assertEquals(prefixList.toString(), "");
+
+    prefixList = new PrefixList("", ";");
     Assert.assertEquals(prefixList.toString(), "");
 
     prefixList = new PrefixList(";", ";");
