@@ -86,8 +86,8 @@ public class CommonUtilsTest {
 
   @Test
   public void resolveHostNameTest() throws UnknownHostException {
-    Assert.assertEquals(CommonUtils.replaceHostName(""), null);
-    Assert.assertEquals(CommonUtils.replaceHostName(null), null);
-    Assert.assertEquals(CommonUtils.replaceHostName("localhost"), "localhost");
+    Assert.assertEquals(CommonUtils.resolveHostName(""), null);
+    Assert.assertEquals(CommonUtils.resolveHostName(null), null);
+    Assert.assertEquals(CommonUtils.resolveHostName("localhost"), "localhost");
   }
 }
