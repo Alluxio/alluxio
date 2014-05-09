@@ -1037,9 +1037,6 @@ public class MasterInfo implements ImageWriter {
    */
   public ClientRawTableInfo getClientRawTableInfo(int id) throws TableDoesNotExistException {
     synchronized (mRoot) {
-      if (!mRawTables.exist(id)) {
-        throw new TableDoesNotExistException("Table " + id + " does not exist.");
-      }
       Inode inode = mInodes.get(id);
       if (inode == null || !inode.isDirectory()) {
         throw new TableDoesNotExistException("Table " + id + " does not exist.");
@@ -1082,6 +1079,9 @@ public class MasterInfo implements ImageWriter {
   public ClientRawTableInfo _getClientRawTableInfo(String path, Inode inode)
       throws TableDoesNotExistException {
     LOG.info("getClientRawTableInfo(" + path + ")");
+    if (!mRawTables.exist(inode.getId())) {
+      throw new TableDoesNotExistException("Table " + inode.getId() + " does not exist.");
+    }
     ClientRawTableInfo ret = new ClientRawTableInfo();
     ret.id = inode.getId();
     ret.name = inode.getName();
