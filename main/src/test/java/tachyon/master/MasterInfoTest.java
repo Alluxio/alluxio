@@ -309,12 +309,12 @@ public class MasterInfoTest {
     mMasterInfo.rename("/testFile2", "/testFile3");
   }
 
-  @Test(expected = FileAlreadyExistException.class)
+  @Test
   public void renameExistingDstTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, TachyonException, BlockInfoException {
     mMasterInfo.createFile("/testFile1", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     mMasterInfo.createFile("/testFile2", Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    mMasterInfo.rename("/testFile1", "/testFile2");
+    Assert.assertFalse(mMasterInfo.rename("/testFile1", "/testFile2"));
   }
 
   @Test(expected = InvalidPathException.class)
