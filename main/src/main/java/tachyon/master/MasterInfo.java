@@ -1875,17 +1875,16 @@ public class MasterInfo implements ImageWriter {
    *          The id of the file to rename
    * @param dstPath
    *          The new path of the file
-   * @throws FileAlreadyExistException
+   * @return true if the rename succeeded, false otherwise
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public void rename(int fileId, String dstPath) throws FileAlreadyExistException,
-      FileDoesNotExistException, InvalidPathException {
+  public boolean rename(int fileId, String dstPath) throws FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
-      if (_rename(fileId, dstPath)) {
-        mJournal.getEditLog().rename(fileId, dstPath);
-        mJournal.getEditLog().flush();
-      }
+      boolean ret = _rename(fileId, dstPath);
+      mJournal.getEditLog().rename(fileId, dstPath);
+      mJournal.getEditLog().flush();
+      return ret;
     }
   }
 
@@ -1896,18 +1895,18 @@ public class MasterInfo implements ImageWriter {
    *          The path of the file to rename
    * @param dstPath
    *          The new path of the file
-   * @throws FileAlreadyExistException
+   * @return true if the rename succeeded, false otherwise
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public void rename(String srcPath, String dstPath) throws FileAlreadyExistException,
-      FileDoesNotExistException, InvalidPathException {
+  public boolean rename(String srcPath, String dstPath) throws FileDoesNotExistException,
+      InvalidPathException {
     synchronized (mRoot) {
       Inode inode = getInode(srcPath);
       if (inode == null) {
         throw new FileDoesNotExistException("Failed to rename: " + srcPath + " does not exist");
       }
-      rename(inode.getId(), dstPath);
+      return rename(inode.getId(), dstPath);
     }
   }
 
@@ -1919,19 +1918,16 @@ public class MasterInfo implements ImageWriter {
    * @param dstPath
    *          The new path of the file
    * @return true if the rename succeeded, false otherwise
-   * @throws FileAlreadyExistException
-   *           if the source path already exists
    * @throws FileDoesNotExistException
-   *           if the destination path doesn't exist
+   *           If the id doesn't point to an inode
    * @throws InvalidPathException
    *           if the source path is a prefix of the destination
    */
-  public boolean _rename(int fileId, String dstPath) throws FileAlreadyExistException,
-      FileDoesNotExistException, InvalidPathException {
+  public boolean _rename(int fileId, String dstPath) throws FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
       String srcPath = getPath(fileId);
       if (srcPath.equals(dstPath)) {
-        return false;
+        return true;
       }
       String[] srcComponents = CommonUtils.getPathComponents(srcPath);
       String[] dstComponents = CommonUtils.getPathComponents(dstPath);
@@ -1957,26 +1953,22 @@ public class MasterInfo implements ImageWriter {
       // We traverse down to the source and destinations' parent paths
       Inode srcParentInode = getInode(srcParent);
       if (srcParentInode == null || !srcParentInode.isDirectory()) {
-        throw new FileDoesNotExistException("Failed to rename: subpath " + srcParent
-            + " does not exist or is not a directory.");
+        return false;
       }
 
       Inode dstParentInode = getInode(dstParent);
       if (dstParentInode == null || !dstParentInode.isDirectory()) {
-        throw new FileDoesNotExistException("Failed to rename: subpath " + dstParent
-            + " does not exist or is not a directory.");
+        return false;
       }
 
       // We make sure that the source path exists and the destination path doesn't
       Inode srcInode =
           ((InodeFolder) srcParentInode).getChild(srcComponents[srcComponents.length - 1]);
       if (srcInode == null) {
-        throw new FileDoesNotExistException("Failed to rename: subpath " + srcPath
-            + " does not exist.");
+        return false;
       }
       if (((InodeFolder) dstParentInode).getChild(dstComponents[dstComponents.length - 1]) != null) {
-        throw new FileAlreadyExistException("Failed to rename: destination path " + dstPath
-            + " already exists.");
+        return false;
       }
 
       // Now we remove srcInode from it's parent and insert it into dstPath's parent
