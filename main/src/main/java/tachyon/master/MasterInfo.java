@@ -537,6 +537,7 @@ public class MasterInfo implements ImageWriter {
    * @param inode
    *          The inode at the path
    * @return the table info
+   * @throws TableDoesNotExistException
    */
   public ClientRawTableInfo _getClientRawTableInfo(String path, Inode inode)
       throws TableDoesNotExistException {
@@ -563,6 +564,8 @@ public class MasterInfo implements ImageWriter {
    * @param recursive
    *          If true, recursively add the paths of the sub-directories
    * @return the list of paths
+   * @throws InvalidPathException
+   * @throws FileDoesNotExistException
    */
   private List<String> _ls(Inode inode, String path, boolean recursive)
       throws InvalidPathException, FileDoesNotExistException {
@@ -687,6 +690,7 @@ public class MasterInfo implements ImageWriter {
    * 
    * @param inode
    *          The inode to add
+   * @throws IOException
    */
   private void addToFileIdPinList(Inode inode) throws IOException {
     if (inode.isFile() && ((InodeFile) inode).isPin()) {
@@ -774,6 +778,7 @@ public class MasterInfo implements ImageWriter {
    * 
    * @param fileId
    *          The id of the file
+   * @throws FileDoesNotExistException
    */
   public void completeFile(int fileId) throws FileDoesNotExistException {
     synchronized (mRoot) {
@@ -849,6 +854,8 @@ public class MasterInfo implements ImageWriter {
    * 
    * @param fileId
    *          The id of the file
+   * @return the block id.
+   * @throws FileDoesNotExistException
    */
   public long createNewBlock(int fileId) throws FileDoesNotExistException {
     synchronized (mRoot) {
@@ -875,6 +882,10 @@ public class MasterInfo implements ImageWriter {
    * @param metadata
    *          Additional metadata about the table
    * @return the file id of the table
+   * @throws FileAlreadyExistException
+   * @throws InvalidPathException
+   * @throws TableColumnException
+   * @throws TachyonException
    */
   public int createRawTable(String path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException,
@@ -1003,6 +1014,9 @@ public class MasterInfo implements ImageWriter {
    * @param blockId
    *          The id of the block return
    * @return the block info
+   * @throws FileDoesNotExistException
+   * @throws IOException
+   * @throws BlockInfoException
    */
   public ClientBlockInfo getClientBlockInfo(long blockId) throws FileDoesNotExistException,
       IOException, BlockInfoException {
@@ -1025,6 +1039,7 @@ public class MasterInfo implements ImageWriter {
    * @param dependencyId
    *          The id of the dependency
    * @return the dependency info
+   * @throws DependencyDoesNotExistException
    */
   public ClientDependencyInfo getClientDependencyInfo(int dependencyId)
       throws DependencyDoesNotExistException {
@@ -1044,6 +1059,8 @@ public class MasterInfo implements ImageWriter {
    * @param fid
    *          The id of the file
    * @return the file info
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
    */
   public ClientFileInfo getClientFileInfo(int fid) throws FileDoesNotExistException,
       InvalidPathException {
@@ -1063,6 +1080,8 @@ public class MasterInfo implements ImageWriter {
    * @param path
    *          The path of the file
    * @return the file info
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
    */
   public ClientFileInfo getClientFileInfo(String path) throws FileDoesNotExistException,
       InvalidPathException {
@@ -1082,6 +1101,7 @@ public class MasterInfo implements ImageWriter {
    * @param id
    *          The id of the table
    * @return the table info
+   * @throws TableDoesNotExistException
    */
   public ClientRawTableInfo getClientRawTableInfo(int id) throws TableDoesNotExistException {
     synchronized (mRoot) {
@@ -1099,6 +1119,8 @@ public class MasterInfo implements ImageWriter {
    * @param path
    *          The path of the table
    * @return the table info
+   * @throws TableDoesNotExistException
+   * @throws InvalidPathException
    */
   public ClientRawTableInfo getClientRawTableInfo(String path) throws TableDoesNotExistException,
       InvalidPathException {
@@ -1137,6 +1159,8 @@ public class MasterInfo implements ImageWriter {
    * @param fileId
    *          The id of the file to look up
    * @return the block infos of the file
+   * @throws FileDoesNotExistException
+   * @throws IOException
    */
   public List<ClientBlockInfo> getFileLocations(int fileId) throws FileDoesNotExistException,
       IOException {
@@ -1158,6 +1182,9 @@ public class MasterInfo implements ImageWriter {
    * @param path
    *          The path of the file to look up
    * @return the block infos of the file
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
+   * @throws IOException
    */
   public List<ClientBlockInfo> getFileLocations(String path) throws FileDoesNotExistException,
       InvalidPathException, IOException {
@@ -1178,6 +1205,8 @@ public class MasterInfo implements ImageWriter {
    * @param pathList
    *          The list of paths to look at
    * @return the file id's of the files.
+   * @throws InvalidPathException
+   * @throws FileDoesNotExistException
    */
   private List<Integer> getFilesIds(List<String> pathList) throws InvalidPathException,
       FileDoesNotExistException {
@@ -1253,6 +1282,7 @@ public class MasterInfo implements ImageWriter {
    * @param path
    *          The path to search for
    * @return see {@link #getInode(String[] pathNames)}
+   * @throws InvalidPathException
    */
   private Inode getInode(String path) throws InvalidPathException {
     return getInode(CommonUtils.getPathComponents(path));
@@ -1264,6 +1294,7 @@ public class MasterInfo implements ImageWriter {
    * @param pathNames
    *          The path components of the path to search for
    * @return the inode of the file at the given path, or null if the file does not exist
+   * @throws InvalidPathException
    */
   private Inode getInode(String[] pathNames) throws InvalidPathException {
     Pair<Inode, Integer> inodeTraversal = traverseToInode(pathNames);
@@ -1307,6 +1338,8 @@ public class MasterInfo implements ImageWriter {
    *          The path to look at
    * @return The number of files at the path. Returns 1 if the path specifies a file. If it's a
    *         directory, returns the number of items in the directory.
+   * @throws InvalidPathException
+   * @throws FileDoesNotExistException
    */
   public int getNumberOfFiles(String path) throws InvalidPathException, FileDoesNotExistException {
     Inode inode = getInode(path);
@@ -1425,6 +1458,8 @@ public class MasterInfo implements ImageWriter {
    * @param path
    *          The path of the table
    * @return the id of the table
+   * @throws InvalidPathException
+   * @throws TableDoesNotExistException
    */
   public int getRawTableId(String path) throws InvalidPathException, TableDoesNotExistException {
     Inode inode = getInode(path);
@@ -1453,6 +1488,7 @@ public class MasterInfo implements ImageWriter {
    * Get the capacity of the under file system.
    * 
    * @return the capacity in bytes
+   * @throws IOException
    */
   public long getUnderFsCapacityBytes() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
@@ -1463,6 +1499,7 @@ public class MasterInfo implements ImageWriter {
    * Get the amount of free space in the under file system.
    * 
    * @return the free space in bytes
+   * @throws IOException
    */
   public long getUnderFsFreeBytes() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
@@ -1473,6 +1510,7 @@ public class MasterInfo implements ImageWriter {
    * Get the amount of space used in the under file system.
    * 
    * @return the space used in bytes
+   * @throws IOException
    */
   public long getUnderFsUsedBytes() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(CommonConf.get().UNDERFS_DATA_FOLDER);
@@ -1615,6 +1653,8 @@ public class MasterInfo implements ImageWriter {
    * @param recursive
    *          If true, recursively scan the subdirectories at the given path as well
    * @return the list of the inode id's at the path
+   * @throws InvalidPathException
+   * @throws FileDoesNotExistException
    */
   public List<Integer> listFiles(String path, boolean recursive) throws InvalidPathException,
       FileDoesNotExistException {
@@ -1710,6 +1750,8 @@ public class MasterInfo implements ImageWriter {
    * @param recursive
    *          If true, recursively add the paths of the sub-directories
    * @return the list of paths
+   * @throws InvalidPathException
+   * @throws FileDoesNotExistException
    */
   public List<String> ls(String path, boolean recursive) throws InvalidPathException,
       FileDoesNotExistException {
@@ -1728,6 +1770,9 @@ public class MasterInfo implements ImageWriter {
    * @param path
    *          The path to create a directory at
    * @return true if and only if the directory was created; false otherwise
+   * @throws FileAlreadyExistException
+   * @throws InvalidPathException
+   * @throws TachyonException
    */
   public boolean mkdir(String path) throws FileAlreadyExistException, InvalidPathException,
       TachyonException {
@@ -1776,6 +1821,7 @@ public class MasterInfo implements ImageWriter {
    * @param currentBlockIds
    *          The id's of the blocks held by the worker
    * @return the new id of the registered worker
+   * @throws BlockInfoException
    */
   public long registerWorker(NetAddress workerNetAddress, long totalBytes, long usedBytes,
       List<Long> currentBlockIds) throws BlockInfoException {
@@ -1829,6 +1875,9 @@ public class MasterInfo implements ImageWriter {
    *          The inode to rename
    * @param dstPath
    *          The new path of the inode
+   * @throws FileAlreadyExistException
+   * @throws InvalidPathException
+   * @throws FileDoesNotExistException
    */
   private void rename(Inode srcInode, String dstPath) throws FileAlreadyExistException,
       InvalidPathException, FileDoesNotExistException {
@@ -1867,6 +1916,9 @@ public class MasterInfo implements ImageWriter {
    *          The id of the file to rename
    * @param dstPath
    *          The new path of the file
+   * @throws FileDoesNotExistException
+   * @throws FileAlreadyExistException
+   * @throws InvalidPathException
    */
   public void rename(int fileId, String dstPath) throws FileDoesNotExistException,
       FileAlreadyExistException, InvalidPathException {
@@ -1987,6 +2039,7 @@ public class MasterInfo implements ImageWriter {
    * @return the inode of the file at the given path. If it was not able to traverse down the entire
    *         path, it will set the second field to the first path component it didn't find. It never
    *         returns null.
+   * @throws InvalidPathException
    */
   private Pair<Inode, Integer> traverseToInode(String[] pathNames) throws InvalidPathException {
     synchronized (mRoot) {
@@ -2038,6 +2091,7 @@ public class MasterInfo implements ImageWriter {
    * 
    * @param fileId
    *          The id of the file to unpin
+   * @throws FileDoesNotExistException
    */
   public void unpinFile(int fileId) throws FileDoesNotExistException {
     // TODO Change meta data only. Data will be evicted from worker based on data replacement
@@ -2067,6 +2121,8 @@ public class MasterInfo implements ImageWriter {
    *          The id of the table to update
    * @param metadata
    *          The new metadata to update the table with
+   * @throws TableDoesNotExistException
+   * @throws TachyonException
    */
   public void updateRawTableMetadata(int tableId, ByteBuffer metadata)
       throws TableDoesNotExistException, TachyonException {
@@ -2095,6 +2151,7 @@ public class MasterInfo implements ImageWriter {
    * @param removedBlockIds
    *          The id's of the blocks that have been removed
    * @return a command specifying an action to take
+   * @throws BlockInfoException
    */
   public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds)
       throws BlockInfoException {
@@ -2137,13 +2194,13 @@ public class MasterInfo implements ImageWriter {
     return new Command(CommandType.Nothing, new ArrayList<Long>());
   }
 
-  @Override
   /**
    * Create an image of the dependencies and filesystem tree.
    * 
    * @param os
    *          The output stream to write the image to
    */
+  @Override
   public void writeImage(DataOutputStream os) throws IOException {
     synchronized (mRoot) {
       synchronized (mDependencies) {
