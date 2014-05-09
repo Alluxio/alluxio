@@ -1869,36 +1869,18 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Rename an inode to the given path.
-   * 
-   * @param srcInode
-   *          The inode to rename
-   * @param dstPath
-   *          The new path of the inode
-   * @throws FileAlreadyExistException
-   * @throws InvalidPathException
-   * @throws FileDoesNotExistException
-   */
-  private void rename(Inode srcInode, String dstPath) throws FileAlreadyExistException,
-      InvalidPathException, FileDoesNotExistException {
-    synchronized (mRoot) {
-      rename(getPath(srcInode), dstPath);
-    }
-  }
-
-  /**
    * Rename a file to the given path.
    * 
    * @param fileId
    *          The id of the file to rename
    * @param dstPath
    *          The new path of the file
-   * @throws FileDoesNotExistException
    * @throws FileAlreadyExistException
+   * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public void rename(int fileId, String dstPath) throws FileDoesNotExistException,
-      FileAlreadyExistException, InvalidPathException {
+  public void rename(int fileId, String dstPath) throws FileAlreadyExistException,
+      FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
       rename(getPath(fileId), dstPath);
     }
@@ -1911,9 +1893,30 @@ public class MasterInfo implements ImageWriter {
    *          The path of the file to rename
    * @param dstPath
    *          The new path of the file
+   * @throws FileAlreadyExistException
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
    */
   public void rename(String srcPath, String dstPath) throws FileAlreadyExistException,
       FileDoesNotExistException, InvalidPathException {
+    return _rename(srcPath, dstPath, true);
+  }
+
+  /**
+   * Rename a file to the given path, inner method.
+   * 
+   * @param srcPath
+   *          The path of the file to rename
+   * @param dstPath
+   *          The new path of the file
+   * @param writeEditLog
+   *          Whether to write to the edit log upon completing the rename
+   * @throws FileAlreadyExistException
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
+   */
+  public void _rename(String srcPath, String dstPath, boolean writeEditLog)
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException {
     if (srcPath.equals(dstPath)) {
       return;
     }
@@ -1924,7 +1927,7 @@ public class MasterInfo implements ImageWriter {
       // srcComponents isn't a prefix of dstComponents.
       if (srcComponents.length < dstComponents.length) {
         boolean isPrefix = true;
-        for (int prefixInd = 0; prefixInd < srcComponents.length; prefixInd++) {
+        for (int prefixInd = 0; prefixInd < srcComponents.length; prefixInd ++) {
           if (!srcComponents[prefixInd].equals(dstComponents[prefixInd])) {
             isPrefix = false;
             break;
@@ -1932,7 +1935,7 @@ public class MasterInfo implements ImageWriter {
         }
         if (isPrefix) {
           throw new InvalidPathException("Failed to rename: " + srcPath + " is a prefix of "
-            + dstPath);
+              + dstPath);
         }
       }
 
@@ -1969,8 +1972,10 @@ public class MasterInfo implements ImageWriter {
       srcInode.setParentId(dstParentInode.getId());
       srcInode.setName(dstComponents[dstComponents.length - 1]);
       ((InodeFolder) dstParentInode).addChild(srcInode);
-      mJournal.getEditLog().rename(srcInode.getId(), dstPath);
-      mJournal.getEditLog().flush();
+      if (writeEditLog) {
+        mJournal.getEditLog().rename(srcInode.getId(), dstPath);
+        mJournal.getEditLog().flush();
+      }
     }
   }
 
