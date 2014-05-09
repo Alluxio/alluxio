@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.sun.tools.javac.util.ListBuffer;
 import org.apache.commons.lang.Validate;
 
 import com.google.common.base.Strings;
@@ -39,10 +40,18 @@ public class PrefixList {
 
   public PrefixList(String prefixes, String separator) {
     Validate.notNull(separator);
-    if (prefixes == null) {
+    if (prefixes == null || prefixes.trim().isEmpty()) {
       LIST = new ArrayList<String>(0);
     } else {
-      LIST = Arrays.asList(prefixes.split(separator));
+      String[] candidates = prefixes.trim().split(separator);
+      ListBuffer<String> buf = new ListBuffer();
+      for (String prefix : candidates) {
+        String trimmed = prefix.trim();
+        if (!trimmed.isEmpty()) {
+          buf.append(trimmed);
+        }
+      }
+      LIST = buf.toList();
     }
   }
 
