@@ -162,7 +162,7 @@ public class EditLog {
           break;
         }
         case OP_RENAME: {
-          info._rename(is.readInt(), Utils.readString(is), false);
+          info._rename(is.readInt(), Utils.readString(is));
           break;
         }
         case OP_UNPIN_FILE: {

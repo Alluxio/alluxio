@@ -1882,7 +1882,10 @@ public class MasterInfo implements ImageWriter {
   public void rename(int fileId, String dstPath) throws FileAlreadyExistException,
       FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
-      rename(getPath(fileId), dstPath);
+      if (_rename(fileId, dstPath)) {
+        mJournal.getEditLog().rename(fileId, dstPath);
+        mJournal.getEditLog().flush();
+      }
     }
   }
 
@@ -1899,26 +1902,32 @@ public class MasterInfo implements ImageWriter {
    */
   public void rename(String srcPath, String dstPath) throws FileAlreadyExistException,
       FileDoesNotExistException, InvalidPathException {
-    return _rename(srcPath, dstPath, true);
+    synchronized (mRoot) {
+      Inode inode = getInode(srcPath);
+      if (inode == null) {
+        throw new FileDoesNotExistException("Failed to rename: " + srcPath + " does not exist");
+      }
+      rename(inode.getId(), dstPath);
+    }
   }
 
   /**
    * Rename a file to the given path, inner method.
    * 
-   * @param srcPath
-   *          The path of the file to rename
+   * @param fileId
+   *          The id of the file to rename
    * @param dstPath
    *          The new path of the file
-   * @param writeEditLog
-   *          Whether to write to the edit log upon completing the rename
+   * @return true if the rename succeeded, false otherwise
    * @throws FileAlreadyExistException
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public void _rename(String srcPath, String dstPath, boolean writeEditLog)
+  public boolean _rename(int fileId, String dstPath)
       throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException {
+    String srcPath = getPath(fileId);
     if (srcPath.equals(dstPath)) {
-      return;
+      return false;
     }
     synchronized (mRoot) {
       String[] srcComponents = CommonUtils.getPathComponents(srcPath);
@@ -1972,10 +1981,9 @@ public class MasterInfo implements ImageWriter {
       srcInode.setParentId(dstParentInode.getId());
       srcInode.setName(dstComponents[dstComponents.length - 1]);
       ((InodeFolder) dstParentInode).addChild(srcInode);
-      if (writeEditLog) {
-        mJournal.getEditLog().rename(srcInode.getId(), dstPath);
-        mJournal.getEditLog().flush();
-      }
+      mJournal.getEditLog().rename(srcInode.getId(), dstPath);
+      mJournal.getEditLog().flush();
+      return true;
     }
   }
 
