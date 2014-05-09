@@ -1919,17 +1919,20 @@ public class MasterInfo implements ImageWriter {
    * @param dstPath
    *          The new path of the file
    * @return true if the rename succeeded, false otherwise
-   * @throws FileAlreadyExistException if the source path already exists
-   * @throws FileDoesNotExistException if the destination path doesn't exist
-   * @throws InvalidPathException if the source path is a prefix of the destination
+   * @throws FileAlreadyExistException
+   *           if the source path already exists
+   * @throws FileDoesNotExistException
+   *           if the destination path doesn't exist
+   * @throws InvalidPathException
+   *           if the source path is a prefix of the destination
    */
-  public boolean _rename(int fileId, String dstPath)
-      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException {
-    String srcPath = getPath(fileId);
-    if (srcPath.equals(dstPath)) {
-      return false;
-    }
+  public boolean _rename(int fileId, String dstPath) throws FileAlreadyExistException,
+      FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
+      String srcPath = getPath(fileId);
+      if (srcPath.equals(dstPath)) {
+        return false;
+      }
       String[] srcComponents = CommonUtils.getPathComponents(srcPath);
       String[] dstComponents = CommonUtils.getPathComponents(dstPath);
       // We can't rename a path to one of its subpaths, so we check for that, by making sure
