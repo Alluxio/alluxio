@@ -502,8 +502,7 @@ public class MasterInfo implements ImageWriter {
         if (delInode.equals(mRoot)) {
           continue;
         }
-        InodeFolder parent = (InodeFolder) mInodes.get(delInode.getParentId());
-        parent.removeChild(delInode);
+
         if (delInode.isFile()) {
           String checkpointPath = ((InodeFile) delInode).getCheckpointPath();
           if (!checkpointPath.equals("")) {
@@ -534,6 +533,9 @@ public class MasterInfo implements ImageWriter {
             }
           }
         }
+
+        InodeFolder parent = (InodeFolder) mInodes.get(delInode.getParentId());
+        parent.removeChild(delInode);
 
         if (mRawTables.exist(delInode.getId())) {
           succeed = succeed && mRawTables.delete(delInode.getId());
