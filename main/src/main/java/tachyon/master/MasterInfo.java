@@ -122,8 +122,7 @@ public class MasterInfo implements ImageWriter {
                       dep.addLostFile(tFile.getId());
                       LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId()
                           + " . Trying to recompute it using dependency " + dep.ID);
-                      String path = getPath(tFile);
-                      if (path != null && !path.startsWith(MASTER_CONF.TEMPORARY_FOLDER)) {
+                      if (!getPath(tFile).startsWith(MASTER_CONF.TEMPORARY_FOLDER)) {
                         mMustRecomputeDependencies.add(depId);
                       }
                     }
@@ -1000,12 +999,7 @@ public class MasterInfo implements ImageWriter {
         throw new FileDoesNotExistException("Failed to get client file info: " + fid
             + " does not exist");
       }
-      String path = getPath(inode);
-      if (path == null) {
-        throw new FileDoesNotExistException(
-            "Failed to get client file info: could not traverse to file with id " + fid);
-      }
-      return inode.generateClientFileInfo(path);
+      return inode.generateClientFileInfo(getPath(inode));
     }
   }
 
@@ -1041,11 +1035,7 @@ public class MasterInfo implements ImageWriter {
       if (inode == null || !inode.isDirectory()) {
         throw new TableDoesNotExistException("Table " + id + " does not exist.");
       }
-      String path = getPath(inode);
-      if (path == null) {
-        throw new TableDoesNotExistException("Could not traverse to table with id " + id);
-      }
-      return _getClientRawTableInfo(path, inode);
+      return _getClientRawTableInfo(getPath(inode), inode);
     }
   }
 
