@@ -466,19 +466,20 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Inner delete function. Returns the id of the deleted inode.
+   * Inner delete function.
    * 
    * @param inode
    *          The inode to delete
    * @param recursive
    *          True if the file and it's subdirectories should be deleted
-   * @param writeEditLog
-   *          If true, write to the edit log after completing the operation
-   * @return -1 on an error for which delete should return false, 0 on an error for which delete
-   *         should return true, or the id of the deleted inode.
+   * @return true if the deletion succeeded and false otherwise.
    */
-  private int _delete(Inode inode, boolean recursive, boolean writeEditLog)
+  boolean _delete(int fileId, boolean recursive)
       throws TachyonException {
+    Inode inode = mInodes.get(fileId);
+    if (inode == null) {
+      return true;
+    }
     boolean succeed = true;
     synchronized (mRoot) {
       Set<Inode> delInodes = new HashSet<Inode>();
@@ -490,7 +491,7 @@ public class MasterInfo implements ImageWriter {
       if (inode.isDirectory() && !recursive && delInodes.size() > 1) {
         // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
         // true
-        return -1;
+        return false;
       }
 
       // We go through each inode, removing it from it's parent set and from mDelInodes. If it's a
@@ -537,22 +538,12 @@ public class MasterInfo implements ImageWriter {
         }
       }
 
-      int retid = inode.getId();
-      if (!succeed) {
-        retid = -1;
-      }
-
       for (Inode delInode : delInodes) {
         mInodes.remove(delInode.getId());
         delInode.reverseId();
       }
 
-      if (writeEditLog && retid > 0) {
-        mJournal.getEditLog().delete(retid, recursive);
-        mJournal.getEditLog().flush();
-      }
-
-      return retid;
+      return succeed;
     }
   }
 
@@ -881,62 +872,42 @@ public class MasterInfo implements ImageWriter {
    *          the file to be deleted.
    * @param recursive
    *          whether delete the file recursively or not.
-   * @return whether the deletion succeeded or not
+   * @return succeed or not
    * @throws TachyonException
    */
-  public boolean delete(int fileId, boolean recursive, boolean writeEditLog)
-      throws TachyonException {
-    LOG.info("delete(" + fileId + ")");
+  public boolean delete(int fileId, boolean recursive) throws TachyonException {
     synchronized (mRoot) {
-      Inode delNode = mInodes.get(fileId);
-      if (delNode == null) {
-        return true;
-      }
-      return _delete(delNode, recursive, writeEditLog) != -1;
+      boolean ret = _delete(fileId, recursive);
+      mJournal.getEditLog().delete(fileId, recursive);
+      mJournal.getEditLog().flush();
+      return ret;
     }
   }
 
   /**
-   * Same as {@link #delete(int fileId, boolean recursive, boolean writeEditLog)} except
-   * {@code writeEditLog} defaults to true.
-   */
-  public boolean delete(int fileId, boolean recursive) throws TachyonException {
-    delete(fileId, recursive, true);
-  }
-
-  /**
-   * Delete a file at a given path.
+   * Delete files based on the path.
    * 
    * @param path
    *          The file to be deleted.
    * @param recursive
-   *          If the path points to a directory, whether to delete the entire directory or
-   *          do nothing.
-   * @return whether the deletion succeeded or not
+   *          whether delete the file recursively or not.
+   * @return succeed or not
    * @throws TachyonException
    */
-  public boolean delete(String path, boolean recursive, boolean writeEditLog)
-      throws TachyonException {
+  public boolean delete(String path, boolean recursive) throws TachyonException {
     LOG.info("delete(" + path + ")");
     synchronized (mRoot) {
+      Inode inode = null;
       try {
-        Pair<Inode, Integer> inodeTraversal = traverseToInode(path);
-        if (!traversalSucceeded(inodeTraversal)) {
-          return true;
-        }
-        return _delete(inodeTraversal.getFirst().getId(), recursive, writeEditLog) != -1;
+        inode = getInode(path);
       } catch (InvalidPathException e) {
         return false;
       }
+      if (inode == null) {
+        return true;
+      }
+      return delete(inode.getId(), recursive);
     }
-  }
-
-  /**
-   * Same as {@link #delete(String path, boolean recursive, boolean writeEditLog)} except
-   * {@code writeEditLog} defaults to true.
-   */
-  public boolean delete(String path, boolean recursive) throws TachyonException {
-    delete(path, recursive, true);
   }
 
   public long getBlockIdBasedOnOffset(int fileId, long offset) throws FileDoesNotExistException {
