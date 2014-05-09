@@ -122,8 +122,7 @@ public class MasterInfo implements ImageWriter {
                       dep.addLostFile(tFile.getId());
                       LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId()
                           + " . Trying to recompute it using dependency " + dep.ID);
-                      String path = getPath(tFile);
-                      if (path != null && !path.startsWith(MASTER_CONF.TEMPORARY_FOLDER)) {
+                      if (!getPath(tFile).startsWith(MASTER_CONF.TEMPORARY_FOLDER)) {
                         mMustRecomputeDependencies.add(depId);
                       }
                     }
@@ -992,16 +991,15 @@ public class MasterInfo implements ImageWriter {
    *          The id of the file
    * @return the file info
    */
-  public ClientFileInfo getClientFileInfo(int fid) throws FileDoesNotExistException {
+  public ClientFileInfo getClientFileInfo(int fid) throws FileDoesNotExistException,
+      InvalidPathException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fid);
       if (inode == null) {
-        throw new FileDoesNotExistException("FileId " + fid + " does not exist.");
+        throw new FileDoesNotExistException("Failed to get client file info: " + fid
+            + " does not exist");
       }
-
-      ClientFileInfo ret = inode.generateClientFileInfo(getPath(inode));
-      LOG.debug("getClientFileInfo(" + fid + "): " + ret);
-      return ret;
+      return inode.generateClientFileInfo(getPath(inode));
     }
   }
 
@@ -1014,13 +1012,13 @@ public class MasterInfo implements ImageWriter {
    */
   public ClientFileInfo getClientFileInfo(String path) throws FileDoesNotExistException,
       InvalidPathException {
-    LOG.info("getClientFileInfo(" + path + ")");
     synchronized (mRoot) {
       Inode inode = getInode(path);
       if (inode == null) {
-        throw new FileDoesNotExistException(path);
+        throw new FileDoesNotExistException("Failed to getClientFileInfo: " + path
+            + " does not exist");
       }
-      return getClientFileInfo(inode.getId());
+      return inode.generateClientFileInfo(path);
     }
   }
 
@@ -1032,22 +1030,12 @@ public class MasterInfo implements ImageWriter {
    * @return the table info
    */
   public ClientRawTableInfo getClientRawTableInfo(int id) throws TableDoesNotExistException {
-    LOG.info("getClientRawTableInfo(" + id + ")");
     synchronized (mRoot) {
-      if (!mRawTables.exist(id)) {
-        throw new TableDoesNotExistException("Table " + id + " does not exist.");
-      }
       Inode inode = mInodes.get(id);
       if (inode == null || !inode.isDirectory()) {
         throw new TableDoesNotExistException("Table " + id + " does not exist.");
       }
-      ClientRawTableInfo ret = new ClientRawTableInfo();
-      ret.id = inode.getId();
-      ret.name = inode.getName();
-      ret.path = getPath(inode);
-      ret.columns = mRawTables.getColumns(id);
-      ret.metadata = mRawTables.getMetadata(id);
-      return ret;
+      return _getClientRawTableInfo(getPath(inode), inode);
     }
   }
 
@@ -1060,14 +1048,37 @@ public class MasterInfo implements ImageWriter {
    */
   public ClientRawTableInfo getClientRawTableInfo(String path) throws TableDoesNotExistException,
       InvalidPathException {
-    LOG.info("getClientRawTableInfo(" + path + ")");
     synchronized (mRoot) {
       Inode inode = getInode(path);
       if (inode == null) {
-        throw new TableDoesNotExistException(path);
+        throw new TableDoesNotExistException("Table " + path + " does not exist.");
       }
-      return getClientRawTableInfo(inode.getId());
+      return _getClientRawTableInfo(path, inode);
     }
+  }
+
+  /**
+   * Get the raw table info associated with the given id.
+   * 
+   * @param path
+   *          The path of the table
+   * @param inode
+   *          The inode at the path
+   * @return the table info
+   */
+  public ClientRawTableInfo _getClientRawTableInfo(String path, Inode inode)
+      throws TableDoesNotExistException {
+    LOG.info("getClientRawTableInfo(" + path + ")");
+    if (!mRawTables.exist(inode.getId())) {
+      throw new TableDoesNotExistException("Table " + inode.getId() + " does not exist.");
+    }
+    ClientRawTableInfo ret = new ClientRawTableInfo();
+    ret.id = inode.getId();
+    ret.name = inode.getName();
+    ret.path = path;
+    ret.columns = mRawTables.getColumns(ret.id);
+    ret.metadata = mRawTables.getMetadata(ret.id);
+    return ret;
   }
 
   /**
@@ -1162,23 +1173,17 @@ public class MasterInfo implements ImageWriter {
     List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
 
     Inode inode = getInode(path);
-
     if (inode == null) {
       throw new FileDoesNotExistException(path);
     }
 
     if (inode.isDirectory()) {
-      Set<Inode> children = ((InodeFolder) inode).getChildren();
-
-      synchronized (mRoot) {
-        for (Inode child : children) {
-          ret.add(getClientFileInfo(child.getId()));
-        }
+      for (Inode child : ((InodeFolder) inode).getChildren()) {
+        ret.add(child.generateClientFileInfo(CommonUtils.concat(path, child.getName())));
       }
     } else {
-      ret.add(getClientFileInfo(inode.getId()));
+      ret.add(inode.generateClientFileInfo(path));
     }
-
     return ret;
   }
 
@@ -1750,32 +1755,43 @@ public class MasterInfo implements ImageWriter {
    */
   public List<String> ls(String path, boolean recursive) throws InvalidPathException,
       FileDoesNotExistException {
-    List<String> ret = new ArrayList<String>();
-
-    Inode inode = getInode(path);
-
-    if (inode == null) {
-      throw new FileDoesNotExistException(path);
+    synchronized (mRoot) {
+      Inode inode = getInode(path);
+      if (inode == null) {
+        throw new FileDoesNotExistException(path);
+      }
+      return _ls(inode, path, recursive);
     }
+  }
 
-    if (inode.isFile()) {
+  /**
+   * Get the names of the sub-directories at the given path.
+   * 
+   * @param inode
+   *          The inode to list
+   * @param path
+   *          The path of the given inode
+   * @param recursive
+   *          If true, recursively add the paths of the sub-directories
+   * @return the list of paths
+   */
+  private List<String> _ls(Inode inode, String path, boolean recursive)
+      throws InvalidPathException, FileDoesNotExistException {
+    synchronized (mRoot) {
+      List<String> ret = new ArrayList<String>();
       ret.add(path);
-    } else {
-      Set<Inode> children = ((InodeFolder) inode).getChildren();
-      ret.add(path);
-
-      synchronized (mRoot) {
-        for (Inode child : children) {
+      if (inode.isDirectory()) {
+        for (Inode child : ((InodeFolder) inode).getChildren()) {
+          String childPath = CommonUtils.concat(path, child.getName());
           if (recursive) {
-            ret.addAll(ls(CommonUtils.concat(path, child.getName()), true));
+            ret.addAll(_ls(child, childPath, recursive));
           } else {
-            ret.add(CommonUtils.concat(path, child.getName()));
+            ret.add(childPath);
           }
         }
       }
+      return ret;
     }
-
-    return ret;
   }
 
   /**
