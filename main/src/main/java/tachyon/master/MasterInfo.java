@@ -1882,12 +1882,7 @@ public class MasterInfo implements ImageWriter {
   private void rename(Inode srcInode, String dstPath) throws FileAlreadyExistException,
       InvalidPathException, FileDoesNotExistException {
     synchronized (mRoot) {
-      String srcPath = getPath(srcInode);
-      if (srcPath == null) {
-        throw new FileDoesNotExistException("Failed to rename: " + srcInode.getId()
-            + " does not exist");
-      }
-      rename(srcPath, dstPath);
+      rename(getPath(srcInode), dstPath);
     }
   }
 
@@ -1905,11 +1900,7 @@ public class MasterInfo implements ImageWriter {
   public void rename(int fileId, String dstPath) throws FileDoesNotExistException,
       FileAlreadyExistException, InvalidPathException {
     synchronized (mRoot) {
-      String srcPath = getPath(fileId);
-      if (srcPath == null) {
-        throw new FileDoesNotExistException("Failed to rename: " + fileId + " does not exist");
-      }
-      rename(srcPath, dstPath);
+      rename(getPath(fileId), dstPath);
     }
   }
 
