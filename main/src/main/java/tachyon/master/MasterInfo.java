@@ -489,7 +489,7 @@ public class MasterInfo implements ImageWriter {
         return false;
       }
 
-      Set<Inode> delInodes = new HashSet<Inode>();
+      List<Inode> delInodes = new ArrayList<Inode>();
       if (inode.isDirectory()) {
         delInodes.addAll(getInodeChildrenRecursive((InodeFolder) inode));
       }
@@ -497,7 +497,8 @@ public class MasterInfo implements ImageWriter {
 
       // We go through each inode, removing it from it's parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
-      for (Inode delInode : delInodes) {
+      for (int i = delInodes.size() - 1; i >= 0; i --) {
+        Inode delInode = delInodes.get(i);
         if (delInode.equals(mRoot)) {
           continue;
         }
