@@ -476,7 +476,6 @@ public class MasterInfo implements ImageWriter {
    * @throws TachyonException
    */
   boolean _delete(int fileId, boolean recursive) throws TachyonException {
-    boolean succeed = true;
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
       if (inode == null) {
@@ -509,7 +508,7 @@ public class MasterInfo implements ImageWriter {
             UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
             try {
               if (!ufs.delete(checkpointPath, true)) {
-                succeed = false;
+                return false;
               }
             } catch (IOException e) {
               throw new TachyonException(e.getMessage());
@@ -537,8 +536,8 @@ public class MasterInfo implements ImageWriter {
         InodeFolder parent = (InodeFolder) mInodes.get(delInode.getParentId());
         parent.removeChild(delInode);
 
-        if (mRawTables.exist(delInode.getId())) {
-          succeed = succeed && mRawTables.delete(delInode.getId());
+        if (mRawTables.exist(delInode.getId()) && !mRawTables.delete(delInode.getId())) {
+          return false;
         }
       }
 
@@ -547,7 +546,7 @@ public class MasterInfo implements ImageWriter {
         delInode.reverseId();
       }
 
-      return succeed;
+      return true;
     }
   }
 
