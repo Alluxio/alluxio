@@ -86,11 +86,17 @@ public final class PrefixListTest {
 
   @Test
   public void toStringTest() {
-    PrefixList prefixList = new PrefixList("", ";");
-    Assert.assertEquals(prefixList.toString(), ";");
+    PrefixList prefixList = new PrefixList(null, ";");
+    Assert.assertEquals(prefixList.toString(), "");
+
+    prefixList = new PrefixList("", ";");
+    Assert.assertEquals(prefixList.toString(), "");
 
     prefixList = new PrefixList(";", ";");
     Assert.assertEquals(prefixList.toString(), "");
+
+    prefixList = new PrefixList(" a ; ; b ", ";");
+    Assert.assertEquals(prefixList.toString(), "a;b;");
 
     prefixList = new PrefixList("a/b;c", ";");
     Assert.assertEquals(prefixList.toString(), "a/b;c;");
