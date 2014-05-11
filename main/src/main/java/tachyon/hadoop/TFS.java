@@ -42,7 +42,7 @@ import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.util.UnderfsUtil;
+import tachyon.util.UnderfsUtils;
 
 /**
  * An Hadoop FileSystem interface implementation. Any program working with Hadoop HDFS can work with
@@ -182,7 +182,7 @@ public class TFS extends FileSystem {
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       if (fs.exists(hdfsPath)) {
         String ufsAddrPath = CommonUtils.concat(UNDERFS_ADDRESS, path);
-        UnderfsUtil.loadUnderFs(mTFS, Constants.PATH_SEPARATOR, ufsAddrPath, new PrefixList(null));
+        UnderfsUtils.loadUnderFs(mTFS, Constants.PATH_SEPARATOR, ufsAddrPath, new PrefixList(null));
       }
     }
   }

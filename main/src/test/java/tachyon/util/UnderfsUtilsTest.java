@@ -17,7 +17,6 @@ package tachyon.util;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -35,7 +34,7 @@ import tachyon.master.LocalTachyonCluster;
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.
  */
-public class UnderfsUtilTest {
+public class UnderfsUtilsTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
   private String mUnderfsAddress = null;
@@ -82,7 +81,7 @@ public class UnderfsUtilTest {
       CommonUtils.touch(mUnderfsAddress + inclusion + "/1");
     }
 
-    UnderfsUtil.loadUnderFs(mTfs, Constants.PATH_SEPARATOR, mUnderfsAddress
+    UnderfsUtils.loadUnderFs(mTfs, Constants.PATH_SEPARATOR, mUnderfsAddress
         + Constants.PATH_SEPARATOR, new PrefixList("tachyon;exclusions", ";"));
 
     List<String> paths = null;
