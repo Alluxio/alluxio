@@ -1869,66 +1869,22 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Rename an inode to the given path.
-   * 
-   * @param srcInode
-   *          The inode to rename
-   * @param dstPath
-   *          The new path of the inode
-   * @throws FileAlreadyExistException
-   * @throws InvalidPathException
-   * @throws FileDoesNotExistException
-   */
-  private void rename(Inode srcInode, String dstPath) throws FileAlreadyExistException,
-      InvalidPathException, FileDoesNotExistException {
-    if (getInode(dstPath) != null) {
-      throw new FileAlreadyExistException("Failed to rename: " + dstPath + " already exist");
-    }
-
-    String dstName = CommonUtils.getName(dstPath);
-    String dstFolderPath = dstPath.substring(0, dstPath.length() - dstName.length() - 1);
-
-    // If we are renaming into the root folder
-    if (dstFolderPath.isEmpty()) {
-      dstFolderPath = Constants.PATH_SEPARATOR;
-    }
-
-    Inode dstFolderInode = getInode(dstFolderPath);
-    if (dstFolderInode == null || dstFolderInode.isFile()) {
-      throw new FileDoesNotExistException("Failed to rename: " + dstFolderPath
-          + " does not exist.");
-    }
-
-    srcInode.setName(dstName);
-    InodeFolder parent = (InodeFolder) mInodes.get(srcInode.getParentId());
-    parent.removeChild(srcInode);
-    srcInode.setParentId(dstFolderInode.getId());
-    ((InodeFolder) dstFolderInode).addChild(srcInode);
-
-    mJournal.getEditLog().rename(srcInode.getId(), dstPath);
-    mJournal.getEditLog().flush();
-  }
-
-  /**
    * Rename a file to the given path.
    * 
    * @param fileId
    *          The id of the file to rename
    * @param dstPath
    *          The new path of the file
+   * @return true if the rename succeeded, false otherwise
    * @throws FileDoesNotExistException
-   * @throws FileAlreadyExistException
    * @throws InvalidPathException
    */
-  public void rename(int fileId, String dstPath) throws FileDoesNotExistException,
-      FileAlreadyExistException, InvalidPathException {
+  public boolean rename(int fileId, String dstPath) throws FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-      if (inode == null) {
-        throw new FileDoesNotExistException("Failed to rename: " + fileId + " does not exist");
-      }
-
-      rename(inode, dstPath);
+      boolean ret = _rename(fileId, dstPath);
+      mJournal.getEditLog().rename(fileId, dstPath);
+      mJournal.getEditLog().flush();
+      return ret;
     }
   }
 
@@ -1939,16 +1895,90 @@ public class MasterInfo implements ImageWriter {
    *          The path of the file to rename
    * @param dstPath
    *          The new path of the file
+   * @return true if the rename succeeded, false otherwise
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
    */
-  public void rename(String srcPath, String dstPath) throws FileAlreadyExistException,
-      FileDoesNotExistException, InvalidPathException {
+  public boolean rename(String srcPath, String dstPath) throws FileDoesNotExistException,
+      InvalidPathException {
     synchronized (mRoot) {
       Inode inode = getInode(srcPath);
       if (inode == null) {
         throw new FileDoesNotExistException("Failed to rename: " + srcPath + " does not exist");
       }
+      return rename(inode.getId(), dstPath);
+    }
+  }
 
-      rename(inode, dstPath);
+  /**
+   * Rename a file to the given path, inner method.
+   * 
+   * @param fileId
+   *          The id of the file to rename
+   * @param dstPath
+   *          The new path of the file
+   * @return true if the rename succeeded, false otherwise
+   * @throws FileDoesNotExistException
+   *           If the id doesn't point to an inode
+   * @throws InvalidPathException
+   *           if the source path is a prefix of the destination
+   */
+  public boolean _rename(int fileId, String dstPath) throws FileDoesNotExistException, InvalidPathException {
+    synchronized (mRoot) {
+      String srcPath = getPath(fileId);
+      if (srcPath.equals(dstPath)) {
+        return true;
+      }
+      String[] srcComponents = CommonUtils.getPathComponents(srcPath);
+      String[] dstComponents = CommonUtils.getPathComponents(dstPath);
+      // We can't rename a path to one of its subpaths, so we check for that, by making sure
+      // srcComponents isn't a prefix of dstComponents.
+      if (srcComponents.length < dstComponents.length) {
+        boolean isPrefix = true;
+        for (int prefixInd = 0; prefixInd < srcComponents.length; prefixInd ++) {
+          if (!srcComponents[prefixInd].equals(dstComponents[prefixInd])) {
+            isPrefix = false;
+            break;
+          }
+        }
+        if (isPrefix) {
+          throw new InvalidPathException("Failed to rename: " + srcPath + " is a prefix of "
+              + dstPath);
+        }
+      }
+
+      String srcParent = CommonUtils.getParent(srcPath);
+      String dstParent = CommonUtils.getParent(dstPath);
+
+      // We traverse down to the source and destinations' parent paths
+      Inode srcParentInode = getInode(srcParent);
+      if (srcParentInode == null || !srcParentInode.isDirectory()) {
+        return false;
+      }
+
+      Inode dstParentInode = getInode(dstParent);
+      if (dstParentInode == null || !dstParentInode.isDirectory()) {
+        return false;
+      }
+
+      // We make sure that the source path exists and the destination path doesn't
+      Inode srcInode =
+          ((InodeFolder) srcParentInode).getChild(srcComponents[srcComponents.length - 1]);
+      if (srcInode == null) {
+        return false;
+      }
+      if (((InodeFolder) dstParentInode).getChild(dstComponents[dstComponents.length - 1]) != null) {
+        return false;
+      }
+
+      // Now we remove srcInode from it's parent and insert it into dstPath's parent
+      ((InodeFolder) srcParentInode).removeChild(srcInode);
+      srcInode.setParentId(dstParentInode.getId());
+      srcInode.setName(dstComponents[dstComponents.length - 1]);
+      ((InodeFolder) dstParentInode).addChild(srcInode);
+      mJournal.getEditLog().rename(srcInode.getId(), dstPath);
+      mJournal.getEditLog().flush();
+      return true;
     }
   }
 
