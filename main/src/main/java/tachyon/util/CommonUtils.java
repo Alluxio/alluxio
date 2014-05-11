@@ -214,9 +214,29 @@ public final class CommonUtils {
    * @param path
    *          The path
    * @return the name of the file
+   * @throws InvalidPathException
    */
   public static String getName(String path) throws InvalidPathException {
     return FilenameUtils.getName(cleanPath(path));
+  }
+
+  /**
+   * Get the parent of the file at a path.
+   * 
+   * @param path
+   *          The path
+   * @return the parent path of the file; this is "/" if the given path is the root.
+   * @throws InvalidPathException
+   */
+  public static String getParent(String path) throws InvalidPathException {
+    String cleanedPath = cleanPath(path);
+    String name = getName(cleanedPath);
+    String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
+    if (parent.isEmpty()) {
+      // The parent is the root path
+      return Constants.PATH_SEPARATOR;
+    }
+    return parent;
   }
 
   /**
@@ -225,6 +245,7 @@ public final class CommonUtils {
    * @param path
    *          The path to split
    * @return the path split into components
+   * @throws InvalidPathException
    */
   public static String[] getPathComponents(String path) throws InvalidPathException {
     path = cleanPath(path);
@@ -268,6 +289,7 @@ public final class CommonUtils {
    * @param path
    *          The path to check
    * @return true if the path is the root
+   * @throws InvalidPathException
    */
   public static boolean isRoot(String path) throws InvalidPathException {
     return Constants.PATH_SEPARATOR.equals(cleanPath(path));
@@ -497,6 +519,14 @@ public final class CommonUtils {
     os.close();
   }
 
+  /**
+   * Check if the given path is properly formed
+   * 
+   * @param path
+   *          The path to check
+   * @throws InvalidPathException
+   *           If the path is not properly formed
+   */
   public static void validatePath(String path) throws InvalidPathException {
     if (path == null || path.isEmpty() || !path.startsWith(Constants.PATH_SEPARATOR)
         || path.contains(" ")) {
