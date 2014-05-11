@@ -131,16 +131,6 @@ public class TachyonFS {
     mAvailableSpaceBytes = 0L;
   }
 
-  /**
-   * Print out the string representation of this Tachyon server address.
-   * 
-   * @return the string representation like tachyon://host:port or tachyon-ft://host:port
-   */
-  @Override
-  public String toString() {
-    return (mZookeeperMode ? Constants.HEADER_FT : Constants.HEADER) + mMasterAddress.toString();
-  }
-
   public synchronized void accessLocalBlock(long blockId) {
     connect();
     if (mWorkerClient != null && mIsWorkerLocal) {
@@ -986,15 +976,17 @@ public class TachyonFS {
 
   /**
    * Return a list of files/directories under the given path.
-   *
+   * 
    * @param path
    *          the path in the TFS.
    * @param recursive
    *          whether or not to list files/directories under path recursively.
    * @return a list of files/directories under path if recursive is false, or files/directories
-   * under its subdirectories (sub-subdirectories, and so forth) if recursive is true, or null
-   * if the content of path is empty, i.e., no files found under path.
-   * @throws IOException if some TException is thrown when trying to read content of path.
+   *         under its subdirectories (sub-subdirectories, and so forth) if recursive is true, or
+   *         null
+   *         if the content of path is empty, i.e., no files found under path.
+   * @throws IOException
+   *           if some TException is thrown when trying to read content of path.
    */
   public synchronized List<String> ls(String path, boolean recursive) throws IOException {
     connect();
@@ -1138,6 +1130,14 @@ public class TachyonFS {
     return true;
   }
 
+  /**
+   * Rename the srcPath to the dstPath
+   * 
+   * @param srcPath
+   * @param dstPath
+   * @return true if succeed, false otherwise.
+   * @throws IOException
+   */
   public synchronized boolean rename(String srcPath, String dstPath) throws IOException {
     connect();
     if (!mConnected) {
@@ -1149,13 +1149,11 @@ public class TachyonFS {
         return true;
       }
 
-      mMasterClient.user_rename(srcPath, dstPath);
+      return mMasterClient.user_rename(srcPath, dstPath);
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;
     }
-
-    return true;
   }
 
   public synchronized void reportLostFile(int fileId) throws IOException {
@@ -1215,6 +1213,16 @@ public class TachyonFS {
     mAvailableSpaceBytes -= requestSpaceBytes;
 
     return true;
+  }
+
+  /**
+   * Print out the string representation of this Tachyon server address.
+   * 
+   * @return the string representation like tachyon://host:port or tachyon-ft://host:port
+   */
+  @Override
+  public String toString() {
+    return (mZookeeperMode ? Constants.HEADER_FT : Constants.HEADER) + mMasterAddress.toString();
   }
 
   /**

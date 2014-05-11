@@ -688,13 +688,12 @@ public class MasterClient {
     }
   }
 
-  public synchronized void user_rename(String srcPath, String dstPath) throws IOException,
+  public synchronized boolean user_rename(String srcPath, String dstPath) throws IOException,
       TException {
     while (!mIsShutdown) {
       connect();
       try {
-        mClient.user_rename(srcPath, dstPath);
-        return;
+        return mClient.user_rename(srcPath, dstPath);
       } catch (FileAlreadyExistException e) {
         throw new IOException(e);
       } catch (FileDoesNotExistException e) {
@@ -706,6 +705,7 @@ public class MasterClient {
         mIsConnected = false;
       }
     }
+    return false;
   }
 
   public void user_renameTo(int fId, String path) throws IOException, TException {
