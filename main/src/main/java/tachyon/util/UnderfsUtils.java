@@ -31,7 +31,7 @@ import tachyon.client.TachyonFS;
 /**
  * Utilities related to under filesystem
  */
-public class UnderfsUtil {
+public class UnderfsUtils {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -100,7 +100,7 @@ public class UnderfsUtil {
     try {
       // resolve and replace hostname embedded in the given ufsAddress
       String oldpath = ufsAddrRootPath;
-      ufsAddrRootPath = CommonUtils.replaceHostName(ufsAddrRootPath);
+      ufsAddrRootPath = NetworkUtils.replaceHostName(ufsAddrRootPath);
       if (!ufsAddrRootPath.equalsIgnoreCase(oldpath)) {
         System.out.println("UnderFS hostname resolved: " + ufsAddrRootPath);
       }
@@ -164,9 +164,9 @@ public class UnderfsUtil {
             }
           }
         }
-        //ufsPath is a directory, so only concat the tfsRoot with the relative path
-        String tfsPath = CommonUtils.concat(tfsRootPath,
-            ufsPath.substring(ufsAddrRootPath.length()));
+        // ufsPath is a directory, so only concat the tfsRoot with the relative path
+        String tfsPath =
+            CommonUtils.concat(tfsRootPath, ufsPath.substring(ufsAddrRootPath.length()));
         if (!tfs.exist(tfsPath)) {
           tfs.mkdir(tfsPath);
           // TODO Add the following.

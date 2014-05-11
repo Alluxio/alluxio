@@ -1887,7 +1887,7 @@ public class MasterInfo implements ImageWriter {
       return ret;
     }
   }
-
+ 
   /**
    * Rename a file to the given path.
    * 

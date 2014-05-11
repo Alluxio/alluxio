@@ -19,9 +19,6 @@ import org.junit.Test;
 
 import tachyon.Constants;
 
-import java.net.UnknownHostException;
-import java.util.UnknownFormatConversionException;
-
 public class CommonUtilsTest {
   @Test
   public void parseMemorySizeTest() {
@@ -62,32 +59,5 @@ public class CommonUtilsTest {
       Assert.assertEquals(k * Constants.PB / 10, CommonUtils.parseMemorySize(k / 10.0 + "PB"));
       Assert.assertEquals(k * Constants.PB / 10, CommonUtils.parseMemorySize(k / 10.0 + "pB"));
     }
-  }
-
-  @Test
-  public void replaceHostNameTest() throws UnknownHostException {
-    Assert.assertEquals(CommonUtils.replaceHostName(""), null);
-    Assert.assertEquals(CommonUtils.replaceHostName(null), null);
-
-    String[] paths = new String[] {
-        "hdfs://localhost:9000/dir",
-        "hdfs://localhost/dir",
-        "hdfs://localhost/",
-        "hdfs://localhost",
-        "file:///dir",
-        "/dir",
-        "anythingElse"
-    };
-
-    for (String path: paths) {
-      Assert.assertEquals(CommonUtils.replaceHostName(path), path);
-    }
-  }
-
-  @Test
-  public void resolveHostNameTest() throws UnknownHostException {
-    Assert.assertEquals(CommonUtils.resolveHostName(""), null);
-    Assert.assertEquals(CommonUtils.resolveHostName(null), null);
-    Assert.assertEquals(CommonUtils.resolveHostName("localhost"), "localhost");
   }
 }
