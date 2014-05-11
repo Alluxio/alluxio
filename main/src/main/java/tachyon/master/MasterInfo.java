@@ -487,20 +487,22 @@ public class MasterInfo implements ImageWriter {
         // true
         return false;
       }
+      
+      if (inode.getId() == mRoot.getId()) {
+        // The root cannot be deleted.
+        return false;
+      }
 
       List<Inode> delInodes = new ArrayList<Inode>();
+      delInodes.add(inode);
       if (inode.isDirectory()) {
         delInodes.addAll(getInodeChildrenRecursive((InodeFolder) inode));
       }
-      delInodes.add(inode);
 
       // We go through each inode, removing it from it's parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
       for (int i = delInodes.size() - 1; i >= 0; i --) {
         Inode delInode = delInodes.get(i);
-        if (delInode.equals(mRoot)) {
-          continue;
-        }
 
         if (delInode.isFile()) {
           String checkpointPath = ((InodeFile) delInode).getCheckpointPath();
@@ -539,9 +541,7 @@ public class MasterInfo implements ImageWriter {
         if (mRawTables.exist(delInode.getId()) && !mRawTables.delete(delInode.getId())) {
           return false;
         }
-      }
-
-      for (Inode delInode : delInodes) {
+        
         mInodes.remove(delInode.getId());
         delInode.reverseId();
       }
