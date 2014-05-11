@@ -2088,14 +2088,6 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Same as {@link #traverseToInode(String[] pathNames)} except that it takes a path
-   * string.
-   */
-  private Pair<Inode, Integer> traverseToInode(String path) throws InvalidPathException {
-    return traverseToInode(CommonUtils.getPathComponents(path));
-  }
-
-  /**
    * Traverse to the inode at the given path.
    * 
    * @param pathNames
