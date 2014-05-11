@@ -437,7 +437,7 @@ public class TFsShellTest {
     toCompare.append(getCommandOutput(new String[] { "mkdir", "/testFolder" }));
     mFsShell.mkdir(new String[] { "mkdir", "/testFolder1" });
     toCompare.append(getCommandOutput(new String[] { "mkdir", "/testFolder1" }));
-    Assert.assertEquals(0,
+    Assert.assertEquals(-1,
         mFsShell.rename(new String[] { "rename", "/testFolder1", "/testFolder" }));
   }
 
