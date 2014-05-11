@@ -15,6 +15,7 @@
 package tachyon.util;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -95,6 +96,18 @@ public class UnderfsUtil {
   public static void loadUnderFs(TachyonFS tfs, String tfsRootPath, String ufsAddrRootPath,
       PrefixList excludePathPrefix) throws IOException {
     LOG.info(tfs + tfsRootPath + " " + ufsAddrRootPath + " " + excludePathPrefix);
+
+    try {
+      // resolve and replace hostname embedded in the given ufsAddress
+      String oldpath = ufsAddrRootPath;
+      ufsAddrRootPath = CommonUtils.replaceHostName(ufsAddrRootPath);
+      if (!ufsAddrRootPath.equalsIgnoreCase(oldpath)) {
+        System.out.println("UnderFS hostname resolved: " + ufsAddrRootPath);
+      }
+    } catch (UnknownHostException e) {
+      LOG.info("hostname cannot be resolved in given UFS path: " + ufsAddrRootPath);
+      throw new IOException(e);
+    }
 
     Pair<String, String> ufsPair = UnderFileSystem.parse(ufsAddrRootPath);
     String ufsAddress = ufsPair.getFirst();
