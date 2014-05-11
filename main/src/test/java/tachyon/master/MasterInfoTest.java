@@ -18,9 +18,18 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
+import java.net.InetSocketAddress;
+
+import java.util.ArrayList;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import tachyon.Constants;
 import tachyon.conf.CommonConf;
+import tachyon.conf.MasterConf;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientFileInfo;
@@ -30,6 +39,7 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.TableColumnException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
+import tachyon.util.CommonUtils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -330,5 +340,229 @@ public class MasterInfoTest {
   public void tooManyColumnsTest() throws InvalidPathException, FileAlreadyExistException,
       TableColumnException, TachyonException {
     mMasterInfo.createRawTable("/testTable", CommonConf.get().MAX_COLUMNS + 1, (ByteBuffer) null);
+  }
+
+  private final int DEPTH = 6;
+  private final int FILES_PER_NODE = 4;
+  private final int CONCURRENCY_DEPTH = 3;
+  private final String ROOT_PATH = "/root";
+  private final String ROOT_PATH2 = "/root2";
+
+  class ConcurrentCreator implements Callable<Void> {
+    private int depth;
+    private int concurrencyDepth;
+    private String initPath;
+
+    ConcurrentCreator(int depth, int concurrencyDepth, String initPath) {
+      this.depth = depth;
+      this.concurrencyDepth = concurrencyDepth;
+      this.initPath = initPath;
+    }
+
+    public void exec(int depth, int concurrencyDepth, String path) throws Exception {
+      if (depth < 1) {
+        return;
+      } else if (depth == 1) {
+        int fileId = mMasterInfo.createFile(true, path, false, Constants.DEFAULT_BLOCK_SIZE_BYTE);
+        Assert.assertEquals(fileId, mMasterInfo.getFileId(path));
+      } else {
+        int fileId = mMasterInfo.createFile(true, path, true, 0);
+        Assert.assertEquals(fileId, mMasterInfo.getFileId(path));
+      }
+      if (concurrencyDepth > 0) {
+        ExecutorService executor = Executors.newCachedThreadPool();
+        ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+        for (int i = 0; i < FILES_PER_NODE; i ++) {
+          Callable<Void> call =
+              (Callable<Void>) (new ConcurrentCreator(depth - 1, concurrencyDepth - 1, path
+                  + Constants.PATH_SEPARATOR + i));
+          futures.add(executor.submit(call));
+        }
+        for (Future<Void> f : futures) {
+          f.get();
+        }
+        executor.shutdown();
+      } else {
+        for (int i = 0; i < FILES_PER_NODE; i ++) {
+          exec(depth - 1, concurrencyDepth, path + Constants.PATH_SEPARATOR + i);
+        }
+      }
+    }
+
+    @Override
+    public Void call() throws Exception {
+      exec(this.depth, this.concurrencyDepth, this.initPath);
+      return null;
+    }
+  }
+
+  class ConcurrentDeleter implements Callable<Void> {
+    private int depth;
+    private int concurrencyDepth;
+    private String initPath;
+
+    ConcurrentDeleter(int depth, int concurrencyDepth, String initPath) {
+      this.depth = depth;
+      this.concurrencyDepth = concurrencyDepth;
+      this.initPath = initPath;
+    }
+
+    private void doDelete(String path) throws Exception {
+      mMasterInfo.delete(path, true);
+      Assert.assertEquals(-1, mMasterInfo.getFileId(path));
+    }
+
+    public void exec(int depth, int concurrencyDepth, String path) throws Exception {
+      if (depth < 1) {
+        return;
+      } else if (depth == 1 || (path.hashCode() % 10 == 0)) {
+        // Sometimes we want to try deleting a path when we're not all the way down, which is what
+        // the second condition is for
+        doDelete(path);
+      } else {
+        if (concurrencyDepth > 0) {
+          ExecutorService executor = Executors.newCachedThreadPool();
+          ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+          for (int i = 0; i < FILES_PER_NODE; i ++) {
+            Callable<Void> call =
+                (Callable<Void>) (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1, path
+                    + Constants.PATH_SEPARATOR + i));
+            futures.add(executor.submit(call));
+          }
+          for (Future<Void> f : futures) {
+            f.get();
+          }
+          executor.shutdown();
+        } else {
+          for (int i = 0; i < FILES_PER_NODE; i ++) {
+            exec(depth - 1, concurrencyDepth, path + Constants.PATH_SEPARATOR + i);
+          }
+        }
+        doDelete(path);
+      }
+    }
+
+    @Override
+    public Void call() throws Exception {
+      exec(this.depth, this.concurrencyDepth, this.initPath);
+      return null;
+    }
+  }
+
+  class ConcurrentRenamer implements Callable<Void> {
+    private int depth;
+    private int concurrencyDepth;
+    private String rootPath;
+    private String rootPath2;
+    private String initPath;
+
+    ConcurrentRenamer(int depth, int concurrencyDepth, String rootPath, String rootPath2,
+        String initPath) {
+      this.depth = depth;
+      this.concurrencyDepth = concurrencyDepth;
+      this.rootPath = rootPath;
+      this.rootPath2 = rootPath2;
+      this.initPath = initPath;
+    }
+
+    public void exec(int depth, int concurrencyDepth, String path) throws Exception {
+      if (depth < 1) {
+        return;
+      } else if (depth == 1 || (depth < this.depth && path.hashCode() % 10 < 3)) {
+        // Sometimes we want to try renaming a path when we're not all the way down, which is what
+        // the second condition is for. We have to create the path in the destination up till what
+        // we're renaming. This might already exist, so createFile could throw a
+        // FileAlreadyExistException, which we silently handle.
+        String srcPath = this.rootPath + path;
+        String dstPath = this.rootPath2 + path;
+        int fileId = mMasterInfo.getFileId(srcPath);
+        try {
+          mMasterInfo.mkdir(CommonUtils.getParent(dstPath));
+        } catch (FileAlreadyExistException e) {
+          // This is an acceptable exception to get, since we don't know if the parent has been
+          // created yet by another thread.
+        } catch (InvalidPathException e) {
+          // This could happen if we are renaming something that's a child of the root.
+        }
+        mMasterInfo.rename(srcPath, dstPath);
+        Assert.assertEquals(fileId, mMasterInfo.getFileId(dstPath));
+      } else if (concurrencyDepth > 0) {
+        ExecutorService executor = Executors.newCachedThreadPool();
+        ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+        for (int i = 0; i < FILES_PER_NODE; i ++) {
+          Callable<Void> call =
+              (Callable<Void>) (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1,
+                  this.rootPath, this.rootPath2, path + Constants.PATH_SEPARATOR + i));
+          futures.add(executor.submit(call));
+        }
+        for (Future<Void> f : futures) {
+          f.get();
+        }
+        executor.shutdown();
+      } else {
+        for (int i = 0; i < FILES_PER_NODE; i ++) {
+          exec(depth - 1, concurrencyDepth, path + Constants.PATH_SEPARATOR + i);
+        }
+      }
+    }
+
+    @Override
+    public Void call() throws Exception {
+      exec(this.depth, this.concurrencyDepth, this.initPath);
+      return null;
+    }
+  }
+
+  @Test
+  public void concurrentCreateTest() throws Exception {
+    ConcurrentCreator concurrentCreator =
+        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+    concurrentCreator.call();
+  }
+
+  @Test
+  public void concurrentDeleteTest() throws Exception {
+    ConcurrentCreator concurrentCreator =
+        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+    concurrentCreator.call();
+
+    ConcurrentDeleter concurrentDeleter =
+        new ConcurrentDeleter(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+    concurrentDeleter.call();
+
+    Assert.assertEquals(1, mMasterInfo.ls("/", true).size());
+  }
+
+  @Test
+  public void concurrentRenameTest() throws Exception {
+    ConcurrentCreator concurrentCreator =
+        new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+    concurrentCreator.call();
+
+    int numFiles = mMasterInfo.ls(ROOT_PATH, true).size();
+
+    ConcurrentRenamer concurrentRenamer =
+        new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH, ROOT_PATH2, "");
+    concurrentRenamer.call();
+
+    Assert.assertEquals(numFiles, mMasterInfo.ls(ROOT_PATH2, true).size());
+  }
+
+  @Test
+  public void concurrentCreateJournalTest() throws Exception {
+    // Makes sure the file id's are the same between a master info and the journal it creates
+    for (int i = 0; i < 5; i ++) {
+      ConcurrentCreator concurrentCreator =
+          new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
+      concurrentCreator.call();
+      Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
+      MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+      info.init();
+      for (String path : mMasterInfo.ls("/", true)) {
+        Assert.assertEquals(mMasterInfo.getFileId(path), info.getFileId(path));
+      }
+      after();
+      before();
+    }
   }
 }
