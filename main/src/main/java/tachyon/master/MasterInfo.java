@@ -465,67 +465,88 @@ public class MasterInfo implements ImageWriter {
     }
   }
 
-  private boolean _delete(int fileId, boolean recursive) throws TachyonException {
-    LOG.info("delete(" + fileId + ")");
-    boolean succeed = true;
+  /**
+   * Inner delete function.
+   * 
+   * @param inode
+   *          The inode to delete
+   * @param recursive
+   *          True if the file and it's subdirectories should be deleted
+   * @return true if the deletion succeeded and false otherwise.
+   * @throws TachyonException
+   */
+  boolean _delete(int fileId, boolean recursive) throws TachyonException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
-
       if (inode == null) {
         return true;
       }
 
-      if (inode.isDirectory()) {
-        List<Integer> childrenIds = ((InodeFolder) inode).getChildrenIds();
+      if (inode.isDirectory() && !recursive && ((InodeFolder) inode).getNumberOfChildren() > 0) {
+        // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
+        // true
+        return false;
+      }
 
-        if (!recursive && childrenIds.size() != 0) {
+      List<Inode> delInodes = new ArrayList<Inode>();
+      if (inode.isDirectory()) {
+        delInodes.addAll(getInodeChildrenRecursive((InodeFolder) inode));
+      }
+      delInodes.add(inode);
+
+      // We go through each inode, removing it from it's parent set and from mDelInodes. If it's a
+      // file, we deal with the checkpoints and blocks as well.
+      for (int i = delInodes.size() - 1; i >= 0; i --) {
+        Inode delInode = delInodes.get(i);
+        if (delInode.equals(mRoot)) {
+          continue;
+        }
+
+        if (delInode.isFile()) {
+          String checkpointPath = ((InodeFile) delInode).getCheckpointPath();
+          if (!checkpointPath.equals("")) {
+            UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
+            try {
+              if (!ufs.delete(checkpointPath, true)) {
+                return false;
+              }
+            } catch (IOException e) {
+              throw new TachyonException(e.getMessage());
+            }
+          }
+
+          List<Pair<Long, Long>> blockIdWorkerIdList =
+              ((InodeFile) delInode).getBlockIdWorkerIdPairs();
+          synchronized (mWorkers) {
+            for (Pair<Long, Long> blockIdWorkerId : blockIdWorkerIdList) {
+              MasterWorkerInfo workerInfo = mWorkers.get(blockIdWorkerId.getSecond());
+              if (workerInfo != null) {
+                workerInfo.updateToRemovedBlock(true, blockIdWorkerId.getFirst());
+              }
+            }
+          }
+
+          if (((InodeFile) delInode).isPin()) {
+            synchronized (mFileIdPinList) {
+              mFileIdPinList.remove(delInode.getId());
+            }
+          }
+        }
+
+        InodeFolder parent = (InodeFolder) mInodes.get(delInode.getParentId());
+        parent.removeChild(delInode);
+
+        if (mRawTables.exist(delInode.getId()) && !mRawTables.delete(delInode.getId())) {
           return false;
         }
-        for (int childId : childrenIds) {
-          succeed = succeed && delete(childId, recursive);
-        }
       }
 
-      InodeFolder parent = (InodeFolder) mInodes.get(inode.getParentId());
-      parent.removeChild(inode);
-      mInodes.remove(inode.getId());
-      if (inode.isFile()) {
-        String checkpointPath = ((InodeFile) inode).getCheckpointPath();
-        if (!checkpointPath.equals("")) {
-          UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
-
-          try {
-            if (!ufs.delete(checkpointPath, true)) {
-              return false;
-            }
-          } catch (IOException e) {
-            throw new TachyonException(e.getMessage());
-          }
-        }
-
-        List<Pair<Long, Long>> blockIdWorkerIdList = ((InodeFile) inode).getBlockIdWorkerIdPairs();
-        synchronized (mWorkers) {
-          for (Pair<Long, Long> blockIdWorkerId : blockIdWorkerIdList) {
-            MasterWorkerInfo workerInfo = mWorkers.get(blockIdWorkerId.getSecond());
-            if (workerInfo != null) {
-              workerInfo.updateToRemovedBlock(true, blockIdWorkerId.getFirst());
-            }
-          }
-        }
-
-        if (((InodeFile) inode).isPin()) {
-          synchronized (mFileIdPinList) {
-            mFileIdPinList.remove(inode.getId());
-          }
-        }
-      }
-      inode.reverseId();
-
-      if (mRawTables.exist(fileId)) {
-        succeed = succeed && mRawTables.delete(fileId);
+      for (Inode delInode : delInodes) {
+        mInodes.remove(delInode.getId());
+        delInode.reverseId();
       }
 
-      return succeed;
+      return true;
     }
   }
 
@@ -1277,15 +1298,24 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Get the inode of the file at the given path.
+   * Returns a list of the given folder's children, recursively scanning subdirectories. It adds the
+   * parent of a node before adding its children.
    * 
-   * @param path
-   *          The path to search for
-   * @return see {@link #getInode(String[] pathNames)}
-   * @throws InvalidPathException
+   * @param inodeFolder
+   *          The folder to start looking at
+   * @return a list of the children inodes.
    */
-  private Inode getInode(String path) throws InvalidPathException {
-    return getInode(CommonUtils.getPathComponents(path));
+  private List<Inode> getInodeChildrenRecursive(InodeFolder inodeFolder) {
+    synchronized (mRoot) {
+      List<Inode> ret = new ArrayList<Inode>();
+      for (Inode i : inodeFolder.getChildren()) {
+        ret.add(i);
+        if (i.isDirectory()) {
+          ret.addAll(getInodeChildrenRecursive((InodeFolder) i));
+        }
+      }
+      return ret;
+    }
   }
 
   /**
@@ -1302,6 +1332,13 @@ public class MasterInfo implements ImageWriter {
       return null;
     }
     return inodeTraversal.getFirst();
+  }
+
+  /**
+   * Same as {@link #getInode(String[] pathNames)} except that it takes a path string.
+   */
+  private Inode getInode(String path) throws InvalidPathException {
+    return getInode(CommonUtils.getPathComponents(path));
   }
 
   /**
@@ -2040,26 +2077,6 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Returns whether the traversal was successful or not.
-   * 
-   * @return true if the traversal was successful, or false otherwise.
-   */
-  private boolean traversalSucceeded(Pair<Inode, Integer> inodeTraversal) {
-    return inodeTraversal.getSecond() == -1;
-  }
-
-  /**
-   * Traverse to the inode at the given path.
-   * 
-   * @param path
-   *          The path to search for
-   * @return see {@link #traverseToInode(String[] pathNames)}
-   */
-  private Pair<Inode, Integer> traverseToInode(String path) throws InvalidPathException {
-    return traverseToInode(CommonUtils.getPathComponents(path));
-  }
-
-  /**
    * Traverse to the inode at the given path.
    * 
    * @param pathNames
@@ -2112,6 +2129,23 @@ public class MasterInfo implements ImageWriter {
       }
       return ret;
     }
+  }
+
+  /**
+   * Same as {@link #traverseToInode(String[] pathNames)} except that it takes a path
+   * string.
+   */
+  private Pair<Inode, Integer> traverseToInode(String path) throws InvalidPathException {
+    return traverseToInode(CommonUtils.getPathComponents(path));
+  }
+
+  /**
+   * Returns whether the traversal was successful or not.
+   * 
+   * @return true if the traversal was successful, or false otherwise.
+   */
+  private boolean traversalSucceeded(Pair<Inode, Integer> inodeTraversal) {
+    return inodeTraversal.getSecond() == -1;
   }
 
   /**
