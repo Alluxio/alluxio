@@ -487,7 +487,7 @@ public class MasterInfo implements ImageWriter {
         // true
         return false;
       }
-      
+
       if (inode.getId() == mRoot.getId()) {
         // The root cannot be deleted.
         return false;
@@ -541,7 +541,7 @@ public class MasterInfo implements ImageWriter {
         if (mRawTables.exist(delInode.getId()) && !mRawTables.delete(delInode.getId())) {
           return false;
         }
-        
+
         mInodes.remove(delInode.getId());
         delInode.reverseId();
       }
@@ -604,6 +604,77 @@ public class MasterInfo implements ImageWriter {
         }
       }
       return ret;
+    }
+  }
+
+  /**
+   * Rename a file to the given path, inner method.
+   * 
+   * @param fileId
+   *          The id of the file to rename
+   * @param dstPath
+   *          The new path of the file
+   * @return true if the rename succeeded, false otherwise
+   * @throws FileDoesNotExistException
+   *           If the id doesn't point to an inode
+   * @throws InvalidPathException
+   *           if the source path is a prefix of the destination
+   */
+  public boolean _rename(int fileId, String dstPath) throws FileDoesNotExistException,
+      InvalidPathException {
+    synchronized (mRoot) {
+      String srcPath = getPath(fileId);
+      if (srcPath.equals(dstPath)) {
+        return true;
+      }
+      String[] srcComponents = CommonUtils.getPathComponents(srcPath);
+      String[] dstComponents = CommonUtils.getPathComponents(dstPath);
+      // We can't rename a path to one of its subpaths, so we check for that, by making sure
+      // srcComponents isn't a prefix of dstComponents.
+      if (srcComponents.length < dstComponents.length) {
+        boolean isPrefix = true;
+        for (int prefixInd = 0; prefixInd < srcComponents.length; prefixInd ++) {
+          if (!srcComponents[prefixInd].equals(dstComponents[prefixInd])) {
+            isPrefix = false;
+            break;
+          }
+        }
+        if (isPrefix) {
+          throw new InvalidPathException("Failed to rename: " + srcPath + " is a prefix of "
+              + dstPath);
+        }
+      }
+
+      String srcParent = CommonUtils.getParent(srcPath);
+      String dstParent = CommonUtils.getParent(dstPath);
+
+      // We traverse down to the source and destinations' parent paths
+      Inode srcParentInode = getInode(srcParent);
+      if (srcParentInode == null || !srcParentInode.isDirectory()) {
+        return false;
+      }
+
+      Inode dstParentInode = getInode(dstParent);
+      if (dstParentInode == null || !dstParentInode.isDirectory()) {
+        return false;
+      }
+
+      // We make sure that the source path exists and the destination path doesn't
+      Inode srcInode =
+          ((InodeFolder) srcParentInode).getChild(srcComponents[srcComponents.length - 1]);
+      if (srcInode == null) {
+        return false;
+      }
+      if (((InodeFolder) dstParentInode).getChild(dstComponents[dstComponents.length - 1]) != null) {
+        return false;
+      }
+
+      // Now we remove srcInode from it's parent and insert it into dstPath's parent
+      ((InodeFolder) srcParentInode).removeChild(srcInode);
+      srcInode.setParentId(dstParentInode.getId());
+      srcInode.setName(dstComponents[dstComponents.length - 1]);
+      ((InodeFolder) dstParentInode).addChild(srcInode);
+      return true;
     }
   }
 
@@ -1298,24 +1369,10 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Returns a list of the given folder's children, recursively scanning subdirectories. It adds the
-   * parent of a node before adding its children.
-   * 
-   * @param inodeFolder
-   *          The folder to start looking at
-   * @return a list of the children inodes.
+   * Same as {@link #getInode(String[] pathNames)} except that it takes a path string.
    */
-  private List<Inode> getInodeChildrenRecursive(InodeFolder inodeFolder) {
-    synchronized (mRoot) {
-      List<Inode> ret = new ArrayList<Inode>();
-      for (Inode i : inodeFolder.getChildren()) {
-        ret.add(i);
-        if (i.isDirectory()) {
-          ret.addAll(getInodeChildrenRecursive((InodeFolder) i));
-        }
-      }
-      return ret;
-    }
+  private Inode getInode(String path) throws InvalidPathException {
+    return getInode(CommonUtils.getPathComponents(path));
   }
 
   /**
@@ -1335,10 +1392,24 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Same as {@link #getInode(String[] pathNames)} except that it takes a path string.
+   * Returns a list of the given folder's children, recursively scanning subdirectories. It adds the
+   * parent of a node before adding its children.
+   * 
+   * @param inodeFolder
+   *          The folder to start looking at
+   * @return a list of the children inodes.
    */
-  private Inode getInode(String path) throws InvalidPathException {
-    return getInode(CommonUtils.getPathComponents(path));
+  private List<Inode> getInodeChildrenRecursive(InodeFolder inodeFolder) {
+    synchronized (mRoot) {
+      List<Inode> ret = new ArrayList<Inode>();
+      for (Inode i : inodeFolder.getChildren()) {
+        ret.add(i);
+        if (i.isDirectory()) {
+          ret.addAll(getInodeChildrenRecursive((InodeFolder) i));
+        }
+      }
+      return ret;
+    }
   }
 
   /**
@@ -1916,7 +1987,8 @@ public class MasterInfo implements ImageWriter {
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public boolean rename(int fileId, String dstPath) throws FileDoesNotExistException, InvalidPathException {
+  public boolean rename(int fileId, String dstPath) throws FileDoesNotExistException,
+      InvalidPathException {
     synchronized (mRoot) {
       boolean ret = _rename(fileId, dstPath);
       mJournal.getEditLog().rename(fileId, dstPath);
@@ -1924,7 +1996,7 @@ public class MasterInfo implements ImageWriter {
       return ret;
     }
   }
- 
+
   /**
    * Rename a file to the given path.
    * 
@@ -1944,76 +2016,6 @@ public class MasterInfo implements ImageWriter {
         throw new FileDoesNotExistException("Failed to rename: " + srcPath + " does not exist");
       }
       return rename(inode.getId(), dstPath);
-    }
-  }
-
-  /**
-   * Rename a file to the given path, inner method.
-   * 
-   * @param fileId
-   *          The id of the file to rename
-   * @param dstPath
-   *          The new path of the file
-   * @return true if the rename succeeded, false otherwise
-   * @throws FileDoesNotExistException
-   *           If the id doesn't point to an inode
-   * @throws InvalidPathException
-   *           if the source path is a prefix of the destination
-   */
-  public boolean _rename(int fileId, String dstPath) throws FileDoesNotExistException, InvalidPathException {
-    synchronized (mRoot) {
-      String srcPath = getPath(fileId);
-      if (srcPath.equals(dstPath)) {
-        return true;
-      }
-      String[] srcComponents = CommonUtils.getPathComponents(srcPath);
-      String[] dstComponents = CommonUtils.getPathComponents(dstPath);
-      // We can't rename a path to one of its subpaths, so we check for that, by making sure
-      // srcComponents isn't a prefix of dstComponents.
-      if (srcComponents.length < dstComponents.length) {
-        boolean isPrefix = true;
-        for (int prefixInd = 0; prefixInd < srcComponents.length; prefixInd ++) {
-          if (!srcComponents[prefixInd].equals(dstComponents[prefixInd])) {
-            isPrefix = false;
-            break;
-          }
-        }
-        if (isPrefix) {
-          throw new InvalidPathException("Failed to rename: " + srcPath + " is a prefix of "
-              + dstPath);
-        }
-      }
-
-      String srcParent = CommonUtils.getParent(srcPath);
-      String dstParent = CommonUtils.getParent(dstPath);
-
-      // We traverse down to the source and destinations' parent paths
-      Inode srcParentInode = getInode(srcParent);
-      if (srcParentInode == null || !srcParentInode.isDirectory()) {
-        return false;
-      }
-
-      Inode dstParentInode = getInode(dstParent);
-      if (dstParentInode == null || !dstParentInode.isDirectory()) {
-        return false;
-      }
-
-      // We make sure that the source path exists and the destination path doesn't
-      Inode srcInode =
-          ((InodeFolder) srcParentInode).getChild(srcComponents[srcComponents.length - 1]);
-      if (srcInode == null) {
-        return false;
-      }
-      if (((InodeFolder) dstParentInode).getChild(dstComponents[dstComponents.length - 1]) != null) {
-        return false;
-      }
-
-      // Now we remove srcInode from it's parent and insert it into dstPath's parent
-      ((InodeFolder) srcParentInode).removeChild(srcInode);
-      srcInode.setParentId(dstParentInode.getId());
-      srcInode.setName(dstComponents[dstComponents.length - 1]);
-      ((InodeFolder) dstParentInode).addChild(srcInode);
-      return true;
     }
   }
 
@@ -2077,6 +2079,23 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
+   * Returns whether the traversal was successful or not.
+   * 
+   * @return true if the traversal was successful, or false otherwise.
+   */
+  private boolean traversalSucceeded(Pair<Inode, Integer> inodeTraversal) {
+    return inodeTraversal.getSecond() == -1;
+  }
+
+  /**
+   * Same as {@link #traverseToInode(String[] pathNames)} except that it takes a path
+   * string.
+   */
+  private Pair<Inode, Integer> traverseToInode(String path) throws InvalidPathException {
+    return traverseToInode(CommonUtils.getPathComponents(path));
+  }
+
+  /**
    * Traverse to the inode at the given path.
    * 
    * @param pathNames
@@ -2129,23 +2148,6 @@ public class MasterInfo implements ImageWriter {
       }
       return ret;
     }
-  }
-
-  /**
-   * Same as {@link #traverseToInode(String[] pathNames)} except that it takes a path
-   * string.
-   */
-  private Pair<Inode, Integer> traverseToInode(String path) throws InvalidPathException {
-    return traverseToInode(CommonUtils.getPathComponents(path));
-  }
-
-  /**
-   * Returns whether the traversal was successful or not.
-   * 
-   * @return true if the traversal was successful, or false otherwise.
-   */
-  private boolean traversalSucceeded(Pair<Inode, Integer> inodeTraversal) {
-    return inodeTraversal.getSecond() == -1;
   }
 
   /**
