@@ -1976,8 +1976,6 @@ public class MasterInfo implements ImageWriter {
       srcInode.setParentId(dstParentInode.getId());
       srcInode.setName(dstComponents[dstComponents.length - 1]);
       ((InodeFolder) dstParentInode).addChild(srcInode);
-      mJournal.getEditLog().rename(srcInode.getId(), dstPath);
-      mJournal.getEditLog().flush();
       return true;
     }
   }
