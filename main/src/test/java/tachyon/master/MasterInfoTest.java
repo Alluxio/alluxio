@@ -250,6 +250,13 @@ public class MasterInfoTest {
   }
 
   @Test
+  public void deleteRootTest() throws InvalidPathException, FileAlreadyExistException,
+      TachyonException, BlockInfoException {
+    Assert.assertFalse(mMasterInfo.delete("/", true));
+    Assert.assertFalse(mMasterInfo.delete("/", false));
+  }
+
+  @Test
   public void getCapacityBytesTest() {
     Assert.assertEquals(1000, mMasterInfo.getCapacityBytes());
   }
