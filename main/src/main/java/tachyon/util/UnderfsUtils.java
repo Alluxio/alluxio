@@ -202,7 +202,7 @@ public class UnderfsUtils {
   public static void printUsage() {
     String cmd =
         "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-            + "tachyon.util.UnderfsUtil ";
+            + "tachyon.util.UnderfsUtils ";
 
     System.out.println("Usage: " + cmd + "<TachyonPath> <UnderfsPath> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");
