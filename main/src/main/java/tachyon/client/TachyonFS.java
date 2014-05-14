@@ -47,6 +47,7 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoWorkerException;
 import tachyon.thrift.TachyonException;
@@ -187,6 +188,21 @@ public class TachyonFS {
         mWorkerClient = null;
         throw new IOException(e);
       }
+    }
+  }
+
+  /**
+   * Cleans the given path, throwing an IOException rather than an InvalidPathException.
+   * 
+   * @param path
+   *          The path to clean
+   * @return the cleaned path
+   */
+  private synchronized String cleanPathIOException(String path) throws IOException {
+    try {
+      return CommonUtils.cleanPath(path);
+    } catch (InvalidPathException e) {
+      throw new IOException(e.getMessage());
     }
   }
 
@@ -358,7 +374,7 @@ public class TachyonFS {
     if (!mConnected) {
       return -1;
     }
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     int fid = -1;
     try {
       fid = mMasterClient.user_createFile(path, blockSizeByte);
@@ -374,7 +390,7 @@ public class TachyonFS {
     if (!mConnected) {
       return -1;
     }
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     int fid = -1;
     try {
       fid = mMasterClient.user_createFileOnCheckpoint(path, checkpointPath);
@@ -395,8 +411,7 @@ public class TachyonFS {
     if (!mConnected) {
       return -1;
     }
-    path = CommonUtils.cleanPath(path);
-
+    path = cleanPathIOException(path);
     if (columns < 1 || columns > CommonConf.get().MAX_COLUMNS) {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
           + CommonConf.get().MAX_COLUMNS);
@@ -574,7 +589,7 @@ public class TachyonFS {
       return null;
     }
     ClientFileInfo ret;
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     if (useCachedMetadata && mCachedClientFileInfos.containsKey(path)) {
       return mCachedClientFileInfos.get(path);
     }
@@ -635,7 +650,7 @@ public class TachyonFS {
 
   public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
       throws IOException {
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     ClientFileInfo clientFileInfo = getClientFileInfo(path, useCachedMetadata);
     if (clientFileInfo == null) {
       return null;
@@ -699,7 +714,7 @@ public class TachyonFS {
       return -1;
     }
     int fid = -1;
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     try {
       fid = mMasterClient.user_getFileId(path);
     } catch (TException e) {
@@ -771,7 +786,7 @@ public class TachyonFS {
   String getLocalFilename(long blockId) {
     String rootFolder = getRootFolder();
     if (rootFolder != null) {
-      String localFileName = rootFolder + Constants.PATH_SEPARATOR + blockId;
+      String localFileName = CommonUtils.concat(rootFolder, blockId);
       File file = new File(localFileName);
       if (file.exists()) {
         return localFileName;
@@ -830,7 +845,7 @@ public class TachyonFS {
 
   public synchronized RawTable getRawTable(String path) throws IOException {
     connect();
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     ClientRawTableInfo clientRawTableInfo;
     try {
       clientRawTableInfo = mMasterClient.user_getClientRawTableInfoByPath(path);
@@ -959,10 +974,27 @@ public class TachyonFS {
     return true;
   }
 
+  /**
+   * Return a list of files/directories under the given path.
+   * 
+   * @param path
+   *          the path in the TFS.
+   * @param recursive
+   *          whether or not to list files/directories under path recursively.
+   * @return a list of files/directories under path if recursive is false, or files/directories
+   *         under its subdirectories (sub-subdirectories, and so forth) if recursive is true, or
+   *         null
+   *         if the content of path is empty, i.e., no files found under path.
+   * @throws IOException
+   *           if some TException is thrown when trying to read content of path.
+   */
   public synchronized List<String> ls(String path, boolean recursive) throws IOException {
     connect();
     try {
       return mMasterClient.user_ls(path, recursive);
+    } catch (FileDoesNotExistException e) {
+      mConnected = false;
+      return null;
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -974,7 +1006,7 @@ public class TachyonFS {
    * 
    * @param path
    *          Directory path.
-   * @return true if the folder is created succeefully. faluse otherwise.
+   * @return true if the folder is created successfully. false otherwise.
    * @throws IOException
    */
   public synchronized boolean mkdir(String path) throws IOException {
@@ -982,7 +1014,7 @@ public class TachyonFS {
     if (!mConnected) {
       return false;
     }
-    path = CommonUtils.cleanPath(path);
+    path = cleanPathIOException(path);
     try {
       return mMasterClient.user_mkdir(path);
     } catch (TException e) {
@@ -1098,6 +1130,14 @@ public class TachyonFS {
     return true;
   }
 
+  /**
+   * Rename the srcPath to the dstPath
+   * 
+   * @param srcPath
+   * @param dstPath
+   * @return true if succeed, false otherwise.
+   * @throws IOException
+   */
   public synchronized boolean rename(String srcPath, String dstPath) throws IOException {
     connect();
     if (!mConnected) {
@@ -1109,13 +1149,11 @@ public class TachyonFS {
         return true;
       }
 
-      mMasterClient.user_rename(srcPath, dstPath);
+      return mMasterClient.user_rename(srcPath, dstPath);
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;
     }
-
-    return true;
   }
 
   public synchronized void reportLostFile(int fileId) throws IOException {
@@ -1175,6 +1213,16 @@ public class TachyonFS {
     mAvailableSpaceBytes -= requestSpaceBytes;
 
     return true;
+  }
+
+  /**
+   * Print out the string representation of this Tachyon server address.
+   * 
+   * @return the string representation like tachyon://host:port or tachyon-ft://host:port
+   */
+  @Override
+  public String toString() {
+    return (mZookeeperMode ? Constants.HEADER_FT : Constants.HEADER) + mMasterAddress.toString();
   }
 
   /**

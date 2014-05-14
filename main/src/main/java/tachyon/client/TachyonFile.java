@@ -31,6 +31,7 @@ import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.worker.DataServerMessage;
+import tachyon.util.CommonUtils;
 
 /**
  * Tachyon File.
@@ -41,6 +42,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   final TachyonFS TFS;
   final int FID;
+  Object mUFSConf = null;
 
   TachyonFile(TachyonFS tfs, int fid) {
     TFS = tfs;
@@ -95,10 +97,10 @@ public class TachyonFile implements Comparable<TachyonFile> {
     if (blocks.size() == 0) {
       return new EmptyBlockInStream(this, readType);
     } else if (blocks.size() == 1) {
-      return BlockInStream.get(this, readType, 0);
+      return BlockInStream.get(this, readType, 0, mUFSConf);
     }
 
-    return new FileInStream(this, readType);
+    return new FileInStream(this, readType, mUFSConf);
   }
 
   /**
@@ -107,8 +109,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * is no guarantee that the file still exists after this call returns, as Tachyon may evict blocks
    * from memory at any time.
    * 
-   * @param blockId
-   *          The id of the block.
+   * @param blockIndex
+   *          The index of the block in the file.
    * @return filename on local file system or null if file not present on local file system.
    * @throws IOException
    */
@@ -120,8 +122,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   public List<String> getLocationHosts() throws IOException {
     List<NetAddress> locations = TFS.getClientBlockInfo(FID, 0).getLocations();
-    List<String> ret = new ArrayList<String>(locations.size());
+    List<String> ret = null;
     if (locations != null) {
+      ret = new ArrayList<String>(locations.size());
       for (int k = 0; k < locations.size(); k ++) {
         ret.add(locations.get(k).mHost);
       }
@@ -139,11 +142,20 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("WriteType can not be null.");
     }
 
-    return new FileOutStream(this, writeType);
+    return new FileOutStream(this, writeType, mUFSConf);
   }
 
   public String getPath() {
     return TFS.getPath(FID);
+  }
+
+  /**
+   * To get the configuration object for UnderFileSystem.
+   * 
+   * @return configuration object used for concrete ufs instance
+   */
+  public Object getUFSConf() {
+    return mUFSConf;
   }
 
   @Override
@@ -233,7 +245,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
         }
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())) {
-          String localFileName = TFS.getRootFolder() + Constants.PATH_SEPARATOR + FID;
+          String localFileName = CommonUtils.concat(TFS.getRootFolder(), FID);
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         } else {
           LOG.info(host + ":" + (port + 1) + " current host is "
@@ -361,6 +373,17 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
 
     return recvMsg.getReadOnlyData();
+  }
+
+  /**
+   * To set the configuration object for UnderFileSystem. The conf object is understood by the
+   * concrete underfs' implementation.
+   * 
+   * @param conf
+   *          The configuration object accepted by ufs.
+   */
+  public void setUFSConf(Object conf) {
+    mUFSConf = conf;
   }
 
   @Override

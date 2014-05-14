@@ -165,7 +165,7 @@ elif [ "$COMMAND" == "formatWorker" ]; then
 elif [ "$COMMAND" == "tfs" ]; then
   CLASS=tachyon.command.TFsShell
 elif [ "$COMMAND" == "loadufs" ]; then
-  CLASS=tachyon.util.UnderfsUtil
+  CLASS=tachyon.util.UnderfsUtils
 elif [ "$COMMAND" == "runTest" ]; then
   runTest "$@"
   exit 0

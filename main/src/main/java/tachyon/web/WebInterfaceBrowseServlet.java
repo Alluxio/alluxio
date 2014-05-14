@@ -363,9 +363,8 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     String currentPath = Constants.PATH_SEPARATOR;
     pathInfos[0] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     for (int i = 1; i < splitPath.length - 1; i ++) {
-      currentPath = currentPath + splitPath[i];
+      currentPath = CommonUtils.concat(currentPath, splitPath[i]);
       pathInfos[i] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
-      currentPath = currentPath + Constants.PATH_SEPARATOR;
     }
     request.setAttribute("pathInfos", pathInfos);
     return;

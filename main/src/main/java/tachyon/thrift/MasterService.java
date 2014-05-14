@@ -129,7 +129,7 @@ public class MasterService {
 
     public void user_outOfMemoryForPinFile(int fileId) throws org.apache.thrift.TException;
 
-    public void user_rename(String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public boolean user_rename(String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
     public void user_renameTo(int fileId, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
@@ -1095,10 +1095,10 @@ public class MasterService {
       return;
     }
 
-    public void user_rename(String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public boolean user_rename(String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
       send_user_rename(srcPath, dstPath);
-      recv_user_rename();
+      return recv_user_rename();
     }
 
     public void send_user_rename(String srcPath, String dstPath) throws org.apache.thrift.TException
@@ -1109,10 +1109,13 @@ public class MasterService {
       sendBase("user_rename", args);
     }
 
-    public void recv_user_rename() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public boolean recv_user_rename() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
       user_rename_result result = new user_rename_result();
       receiveBase(result, "user_rename");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
       if (result.eA != null) {
         throw result.eA;
       }
@@ -1122,7 +1125,7 @@ public class MasterService {
       if (result.eI != null) {
         throw result.eI;
       }
-      return;
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_rename failed: unknown result");
     }
 
     public void user_renameTo(int fileId, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
@@ -2478,13 +2481,13 @@ public class MasterService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
+      public boolean getResult() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_user_rename();
+        return (new Client(prot)).recv_user_rename();
       }
     }
 
@@ -3643,7 +3646,8 @@ public class MasterService {
       public user_rename_result getResult(I iface, user_rename_args args) throws org.apache.thrift.TException {
         user_rename_result result = new user_rename_result();
         try {
-          iface.user_rename(args.srcPath, args.dstPath);
+          result.success = iface.user_rename(args.srcPath, args.dstPath);
+          result.setSuccessIsSet(true);
         } catch (FileAlreadyExistException eA) {
           result.eA = eA;
         } catch (FileDoesNotExistException eF) {
@@ -32685,6 +32689,7 @@ public class MasterService {
   public static class user_rename_result implements org.apache.thrift.TBase<user_rename_result, user_rename_result._Fields>, java.io.Serializable, Cloneable   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_rename_result");
 
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField E_A_FIELD_DESC = new org.apache.thrift.protocol.TField("eA", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)2);
     private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)3);
@@ -32695,12 +32700,14 @@ public class MasterService {
       schemes.put(TupleScheme.class, new user_rename_resultTupleSchemeFactory());
     }
 
+    public boolean success; // required
     public FileAlreadyExistException eA; // required
     public FileDoesNotExistException eF; // required
     public InvalidPathException eI; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
       E_A((short)1, "eA"),
       E_F((short)2, "eF"),
       E_I((short)3, "eI");
@@ -32718,6 +32725,8 @@ public class MasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
           case 1: // E_A
             return E_A;
           case 2: // E_F
@@ -32764,9 +32773,13 @@ public class MasterService {
     }
 
     // isset id assignments
+    private static final int __SUCCESS_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       tmpMap.put(_Fields.E_A, new org.apache.thrift.meta_data.FieldMetaData("eA", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -32781,11 +32794,14 @@ public class MasterService {
     }
 
     public user_rename_result(
+      boolean success,
       FileAlreadyExistException eA,
       FileDoesNotExistException eF,
       InvalidPathException eI)
     {
       this();
+      this.success = success;
+      setSuccessIsSet(true);
       this.eA = eA;
       this.eF = eF;
       this.eI = eI;
@@ -32795,6 +32811,8 @@ public class MasterService {
      * Performs a deep copy on <i>other</i>.
      */
     public user_rename_result(user_rename_result other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.success = other.success;
       if (other.isSetEA()) {
         this.eA = new FileAlreadyExistException(other.eA);
       }
@@ -32812,9 +32830,34 @@ public class MasterService {
 
     @Override
     public void clear() {
+      setSuccessIsSet(false);
+      this.success = false;
       this.eA = null;
       this.eF = null;
       this.eI = null;
+    }
+
+    public boolean isSuccess() {
+      return this.success;
+    }
+
+    public user_rename_result setSuccess(boolean success) {
+      this.success = success;
+      setSuccessIsSet(true);
+      return this;
+    }
+
+    public void unsetSuccess() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
     public FileAlreadyExistException getEA() {
@@ -32891,6 +32934,14 @@ public class MasterService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((Boolean)value);
+        }
+        break;
+
       case E_A:
         if (value == null) {
           unsetEA();
@@ -32920,6 +32971,9 @@ public class MasterService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SUCCESS:
+        return Boolean.valueOf(isSuccess());
+
       case E_A:
         return getEA();
 
@@ -32940,6 +32994,8 @@ public class MasterService {
       }
 
       switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
       case E_A:
         return isSetEA();
       case E_F:
@@ -32962,6 +33018,15 @@ public class MasterService {
     public boolean equals(user_rename_result that) {
       if (that == null)
         return false;
+
+      boolean this_present_success = true;
+      boolean that_present_success = true;
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (this.success != that.success)
+          return false;
+      }
 
       boolean this_present_eA = true && this.isSetEA();
       boolean that_present_eA = true && that.isSetEA();
@@ -33006,6 +33071,16 @@ public class MasterService {
       int lastComparison = 0;
       user_rename_result typedOther = (user_rename_result)other;
 
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetEA()).compareTo(typedOther.isSetEA());
       if (lastComparison != 0) {
         return lastComparison;
@@ -33056,6 +33131,10 @@ public class MasterService {
       StringBuilder sb = new StringBuilder("user_rename_result(");
       boolean first = true;
 
+      sb.append("success:");
+      sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("eA:");
       if (this.eA == null) {
         sb.append("null");
@@ -33098,6 +33177,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -33122,6 +33203,14 @@ public class MasterService {
             break;
           }
           switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.success = iprot.readBool();
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             case 1: // E_A
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.eA = new FileAlreadyExistException();
@@ -33164,6 +33253,11 @@ public class MasterService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.isSetSuccess()) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          oprot.writeBool(struct.success);
+          oprot.writeFieldEnd();
+        }
         if (struct.eA != null) {
           oprot.writeFieldBegin(E_A_FIELD_DESC);
           struct.eA.write(oprot);
@@ -33197,16 +33291,22 @@ public class MasterService {
       public void write(org.apache.thrift.protocol.TProtocol prot, user_rename_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetEA()) {
+        if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetEF()) {
+        if (struct.isSetEA()) {
           optionals.set(1);
         }
-        if (struct.isSetEI()) {
+        if (struct.isSetEF()) {
           optionals.set(2);
         }
-        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetEI()) {
+          optionals.set(3);
+        }
+        oprot.writeBitSet(optionals, 4);
+        if (struct.isSetSuccess()) {
+          oprot.writeBool(struct.success);
+        }
         if (struct.isSetEA()) {
           struct.eA.write(oprot);
         }
@@ -33221,18 +33321,22 @@ public class MasterService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, user_rename_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(4);
         if (incoming.get(0)) {
+          struct.success = iprot.readBool();
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.eA = new FileAlreadyExistException();
           struct.eA.read(iprot);
           struct.setEAIsSet(true);
         }
-        if (incoming.get(1)) {
+        if (incoming.get(2)) {
           struct.eF = new FileDoesNotExistException();
           struct.eF.read(iprot);
           struct.setEFIsSet(true);
         }
-        if (incoming.get(2)) {
+        if (incoming.get(3)) {
           struct.eI = new InvalidPathException();
           struct.eI.read(iprot);
           struct.setEIIsSet(true);

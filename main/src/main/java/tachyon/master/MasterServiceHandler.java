@@ -288,9 +288,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void user_rename(String srcPath, String dstPath) throws FileAlreadyExistException,
+  public boolean user_rename(String srcPath, String dstPath) throws FileAlreadyExistException,
       FileDoesNotExistException, InvalidPathException, TException {
-    mMasterInfo.rename(srcPath, dstPath);
+    return mMasterInfo.rename(srcPath, dstPath);
   }
 
   @Override

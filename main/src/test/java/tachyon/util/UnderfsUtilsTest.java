@@ -17,7 +17,6 @@ package tachyon.util;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -31,13 +30,11 @@ import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.util.UnderfsUtil;
-import tachyon.util.CommonUtils;
 
 /**
  * To test the utilities related to under filesystem, including loadufs and etc.
  */
-public class UnderfsUtilTest {
+public class UnderfsUtilsTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
   private String mUnderfsAddress = null;
@@ -64,7 +61,7 @@ public class UnderfsUtilTest {
   }
 
   @Test
-  public void getInfoTest() throws IOException {
+  public void loadUnderFsTest() throws IOException {
     if (!UnderFileSystemCluster.isUFSHDFS()) {
       return;
     }
@@ -84,8 +81,8 @@ public class UnderfsUtilTest {
       CommonUtils.touch(mUnderfsAddress + inclusion + "/1");
     }
 
-    UnderfsUtil.getInfo(mTfs, mUnderfsAddress, Constants.PATH_SEPARATOR,
-        new PrefixList(Arrays.asList(exclusions)));
+    UnderfsUtils.loadUnderFs(mTfs, Constants.PATH_SEPARATOR, mUnderfsAddress
+        + Constants.PATH_SEPARATOR, new PrefixList("tachyon;exclusions", ";"));
 
     List<String> paths = null;
     for (String exclusion : exclusions) {

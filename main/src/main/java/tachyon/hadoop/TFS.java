@@ -42,7 +42,7 @@ import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.util.UnderfsUtil;
+import tachyon.util.UnderfsUtils;
 
 /**
  * An Hadoop FileSystem interface implementation. Any program working with Hadoop HDFS can work with
@@ -94,6 +94,7 @@ public class TFS extends FileSystem {
       }
       int fileId = mTFS.createFile(path, blockSize);
       TachyonFile file = mTFS.getFile(fileId);
+      file.setUFSConf(getConf());
       return new FSDataOutputStream(file.getOutStream(WriteType.CACHE_THROUGH), null);
     }
 
@@ -112,6 +113,7 @@ public class TFS extends FileSystem {
       LOG.info("create(" + cPath + ") : " + path + " " + index + " " + info + " " + fileId);
 
       TachyonFile file = mTFS.getFile(fileId);
+      file.setUFSConf(getConf());
       // if (file.getBlockSizeByte() != blockSize) {
       // throw new IOException("File already exist with a different blocksize "
       // file.getBlockSizeByte() + " != " + blockSize);
@@ -133,6 +135,7 @@ public class TFS extends FileSystem {
       LOG.info("create(" + cPath + ") : " + path + " " + index + " " + info + " " + fileId);
 
       TachyonFile file = mTFS.getFile(fileId);
+      file.setUFSConf(getConf());
       // if (file.getBlockSizeByte() != blockSize) {
       // throw new IOException("File already exist with a different blocksize "
       // file.getBlockSizeByte() + " != " + blockSize);
@@ -150,6 +153,7 @@ public class TFS extends FileSystem {
       }
 
       TachyonFile file = mTFS.getFile(fileId);
+      file.setUFSConf(getConf());
       // if (file.getBlockSizeByte() != blockSize) {
       // throw new IOException("File already exist with a different blocksize "
       // file.getBlockSizeByte() + " != " + blockSize);
@@ -177,7 +181,8 @@ public class TFS extends FileSystem {
       Path hdfsPath = Utils.getHDFSPath(path);
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       if (fs.exists(hdfsPath)) {
-        UnderfsUtil.getInfo(mTFS, UNDERFS_ADDRESS, path, new PrefixList(null));
+        String ufsAddrPath = CommonUtils.concat(UNDERFS_ADDRESS, path);
+        UnderfsUtils.loadUnderFs(mTFS, Constants.PATH_SEPARATOR, ufsAddrPath, new PrefixList(null));
       }
     }
   }

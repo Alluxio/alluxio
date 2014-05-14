@@ -338,6 +338,13 @@ public class TachyonFSTest {
   }
 
   @Test
+  public void toStringTest() throws Exception {
+    String tfsAddress = "tachyon://localhost:19998";
+    TachyonFS tfs = TachyonFS.get(tfsAddress);
+    Assert.assertEquals(tfs.toString(), "tachyon://localhost/127.0.0.1:19998");
+  }
+
+  @Test
   public void unlockBlockTest1() throws IOException {
     TachyonFile tFile = null;
     int numOfFiles = 5;

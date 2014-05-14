@@ -77,11 +77,11 @@ public class Users {
   }
 
   public String getUserTempFolder(long userId) {
-    return USER_FOLDER + Constants.PATH_SEPARATOR + userId;
+    return CommonUtils.concat(USER_FOLDER, userId);
   }
 
   public String getUserUnderfsTempFolder(long userId) {
-    return USER_UNDERFS_FOLDER + Constants.PATH_SEPARATOR + userId;
+    return CommonUtils.concat(USER_UNDERFS_FOLDER, userId);
   }
 
   /**

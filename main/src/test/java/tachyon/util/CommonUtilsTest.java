@@ -52,5 +52,12 @@ public class CommonUtilsTest {
       Assert.assertEquals(k * Constants.TB / 10, CommonUtils.parseMemorySize(k / 10.0 + "TB"));
       Assert.assertEquals(k * Constants.TB / 10, CommonUtils.parseMemorySize(k / 10.0 + "tB"));
     }
+    // We stop the pb test before 8192, since 8192 petabytes is beyond the scope of a java long.
+    for (long k = 0; k < 8192; k ++) {
+      Assert.assertEquals(k * Constants.PB / 10, CommonUtils.parseMemorySize(k / 10.0 + "pb"));
+      Assert.assertEquals(k * Constants.PB / 10, CommonUtils.parseMemorySize(k / 10.0 + "Pb"));
+      Assert.assertEquals(k * Constants.PB / 10, CommonUtils.parseMemorySize(k / 10.0 + "PB"));
+      Assert.assertEquals(k * Constants.PB / 10, CommonUtils.parseMemorySize(k / 10.0 + "pB"));
+    }
   }
 }

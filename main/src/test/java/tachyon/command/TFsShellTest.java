@@ -363,10 +363,10 @@ public class TFsShellTest {
     Assert.assertTrue(tFile.isDirectory());
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void mkdirExistingTest() throws IOException {
-    mFsShell.mkdir(new String[] { "mkdir", "/testFile1" });
-    mFsShell.mkdir(new String[] { "mkdir", "/testFile1" });
+    Assert.assertEquals(0, mFsShell.mkdir(new String[] { "mkdir", "/testFile1" }));
+    Assert.assertEquals(0, mFsShell.mkdir(new String[] { "mkdir", "/testFile1" }));
   }
 
   @Test(expected = IOException.class)
@@ -430,14 +430,15 @@ public class TFsShellTest {
     Assert.assertNull(mTfs.getFile("/testFolder1"));
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void renameToExistingFileTest() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.mkdir(new String[] { "mkdir", "/testFolder" });
     toCompare.append(getCommandOutput(new String[] { "mkdir", "/testFolder" }));
     mFsShell.mkdir(new String[] { "mkdir", "/testFolder1" });
     toCompare.append(getCommandOutput(new String[] { "mkdir", "/testFolder1" }));
-    mFsShell.rename(new String[] { "rename", "/testFolder1", "/testFolder" });
+    Assert.assertEquals(-1,
+        mFsShell.rename(new String[] { "rename", "/testFolder1", "/testFolder" }));
   }
 
   @Test

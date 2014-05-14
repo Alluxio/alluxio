@@ -43,14 +43,67 @@ public abstract class UnderFileSystem {
     }
   }
 
+  /**
+   * Get the UnderFileSystem instance according to its schema.
+   * 
+   * @param path
+   *          file path storing over the ufs.
+   * @return null for any unknown scheme.
+   */
   public static UnderFileSystem get(String path) {
-    if (path.startsWith("hdfs://") || path.startsWith("file://") || path.startsWith("s3://")
-        || path.startsWith("s3n://") || path.startsWith("glusterfs:///")) {
-      return UnderFileSystemHdfs.getClient(path);
-    } else if (path.startsWith(Constants.PATH_SEPARATOR)) {
+    return get(path, null);
+  }
+
+  /**
+   * Get the UnderFileSystem instance according to its scheme and configuration.
+   * 
+   * @param path
+   *          file path storing over the ufs
+   * @param conf
+   *          the configuration object for ufs only
+   * @return null for any unknown scheme.
+   */
+  public static UnderFileSystem get(String path, Object conf) {
+    if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://") || path.startsWith("glusterfs:///")) {
+      return UnderFileSystemHdfs.getClient(path, conf);
+    } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return UnderFileSystemSingleLocal.getClient();
     }
     CommonUtils.illegalArgumentException("Unknown under file system scheme " + path);
+    return null;
+  }
+
+  /**
+   * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir
+   * into a pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
+   * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
+   * 
+   * @param path
+   *          the input path string
+   * @return null if path does not start with tachyon://, tachyon-ft://, hdfs://, s3://, s3n://,
+   *         file://, /. Or a pair of strings denoting the under FS address and the relative path
+   *         relative to that address. For local FS (with prefixes file:// or /), the under FS
+   *         address is "/" and the path starts with "/".
+   */
+  public static Pair<String, String> parse(String path) {
+    if (path == null) {
+      return null;
+    } else if (path.startsWith("tachyon://") || path.startsWith("tachyon-ft://")
+        || path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")) {
+      String prefix = path.substring(0, path.indexOf("://") + 3);
+      String body = path.substring(prefix.length());
+      if (body.contains(Constants.PATH_SEPARATOR)) {
+        int ind = body.indexOf(Constants.PATH_SEPARATOR);
+        return new Pair<String, String>(prefix + body.substring(0, ind), body.substring(ind));
+      } else {
+        return new Pair<String, String>(path, Constants.PATH_SEPARATOR);
+      }
+    } else if (path.startsWith("file://") || path.startsWith(Constants.PATH_SEPARATOR)) {
+      String prefix = "file://";
+      String suffix = path.startsWith(prefix) ? path.substring(prefix.length()) : path;
+      return new Pair<String, String>(Constants.PATH_SEPARATOR, suffix);
+    }
+
     return null;
   }
 
@@ -69,6 +122,13 @@ public abstract class UnderFileSystem {
 
   public abstract long getBlockSizeByte(String path) throws IOException;
 
+  /**
+   * To get the configuration object for UnderFileSystem.
+   * 
+   * @return configuration object used for concrete ufs instance
+   */
+  public abstract Object getConf();
+
   public abstract List<String> getFileLocations(String path) throws IOException;
 
   public abstract List<String> getFileLocations(String path, long offset) throws IOException;
@@ -82,11 +142,25 @@ public abstract class UnderFileSystem {
   public abstract boolean isFile(String path) throws IOException;
 
   /**
-   * List all the files in the folder.
+   * Returns an array of strings naming the files and directories in the directory denoted by this
+   * abstract pathname.
+   * 
+   * <p>
+   * If this abstract pathname does not denote a directory, then this method returns {@code null}.
+   * Otherwise an array of strings is returned, one for each file or directory in the directory.
+   * Names denoting the directory itself and the directory's parent directory are not included in
+   * the result. Each string is a file name rather than a complete path.
+   * 
+   * <p>
+   * There is no guarantee that the name strings in the resulting array will appear in any specific
+   * order; they are not, in particular, guaranteed to appear in alphabetical order.
    * 
    * @param path
    *          the path to list.
-   * @return all the file names under the path.
+   * @return An array of strings naming the files and directories in the directory denoted by this
+   *         abstract pathname. The array will be empty if the directory is empty. Returns
+   *         {@code null} if this abstract pathname does not denote a directory, or if an I/O error
+   *         occurs.
    * @throws IOException
    */
   public abstract String[] list(String path) throws IOException;
@@ -96,6 +170,15 @@ public abstract class UnderFileSystem {
   public abstract InputStream open(String path) throws IOException;
 
   public abstract boolean rename(String src, String dst) throws IOException;
+
+  /**
+   * To set the configuration object for UnderFileSystem.
+   * The conf object is understood by the concrete underfs's implementation.
+   * 
+   * @param conf
+   *          The configuration object accepted by ufs.
+   */
+  public abstract void setConf(Object conf);
 
   public abstract void toFullPermission(String path) throws IOException;
 }
