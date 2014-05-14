@@ -15,7 +15,6 @@
 package tachyon;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
@@ -39,10 +38,15 @@ public class PrefixList {
 
   public PrefixList(String prefixes, String separator) {
     Validate.notNull(separator);
-    if (prefixes == null) {
-      LIST = new ArrayList<String>(0);
-    } else {
-      LIST = Arrays.asList(prefixes.split(separator));
+    LIST = new ArrayList<String>(0);
+    if (prefixes != null && !prefixes.trim().isEmpty()) {
+      String[] candidates = prefixes.trim().split(separator);
+      for (String prefix : candidates) {
+        String trimmed = prefix.trim();
+        if (!trimmed.isEmpty()) {
+          LIST.add(trimmed);
+        }
+      }
     }
   }
 
@@ -66,5 +70,19 @@ public class PrefixList {
 
   public boolean outList(String path) {
     return !inList(path);
+  }
+
+  /**
+   * Print out all prefixes separated by ";".
+   * 
+   * @return the string representation like "a;b/c"
+   */
+  @Override
+  public String toString() {
+    StringBuilder s = new StringBuilder();
+    for (String prefix : LIST) {
+      s.append(prefix).append(";");
+    }
+    return s.toString();
   }
 }

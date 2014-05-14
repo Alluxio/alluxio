@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
@@ -28,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
@@ -79,14 +81,17 @@ public final class CommonUtils {
     changeLocalFilePermission(filePath, "777");
   }
 
-  public static String cleanPath(String path) throws IOException {
-    if (path == null || path.isEmpty()) {
-      throw new IOException("Path (" + path + ") is invalid.");
-    }
-    while (path.endsWith(Constants.PATH_SEPARATOR) && path.length() > 1) {
-      path = path.substring(0, path.length() - 1);
-    }
-    return path;
+  /**
+   * Checks and normalizes the given path
+   * 
+   * @param path
+   *          The path to clean up
+   * @return a normalized version of the path, with single separators between path components and
+   *         dot components resolved
+   */
+  public static String cleanPath(String path) throws InvalidPathException {
+    validatePath(path);
+    return FilenameUtils.separatorsToUnix(FilenameUtils.normalizeNoEndSeparator(path));
   }
 
   public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
@@ -102,6 +107,31 @@ public final class CommonUtils {
       ret.add(cloneByteBuffer(source.get(k)));
     }
     return ret;
+  }
+
+  /**
+   * Add the path component to the base path
+   * 
+   * @param args
+   *          The components to concatenate
+   * @return the concatenated path
+   */
+  public static String concat(Object... args) {
+    if (args.length == 0) {
+      return "";
+    }
+    String retPath = args[0].toString();
+    for (int k = 1; k < args.length; k ++) {
+      while (retPath.endsWith(Constants.PATH_SEPARATOR)) {
+        retPath = retPath.substring(0, retPath.length() - 1);
+      }
+      if (args[k].toString().startsWith(Constants.PATH_SEPARATOR)) {
+        retPath += args[k].toString();
+      } else {
+        retPath += Constants.PATH_SEPARATOR + args[k].toString();
+      }
+    }
+    return retPath;
   }
 
   public static String convertByteArrayToStringWithoutEscape(byte[] data) {
@@ -182,10 +212,29 @@ public final class CommonUtils {
    * @param path
    *          The path
    * @return the name of the file
+   * @throws InvalidPathException
    */
   public static String getName(String path) throws InvalidPathException {
-    String[] pathNames = getPathComponents(path);
-    return pathNames[pathNames.length - 1];
+    return FilenameUtils.getName(cleanPath(path));
+  }
+
+  /**
+   * Get the parent of the file at a path.
+   * 
+   * @param path
+   *          The path
+   * @return the parent path of the file; this is "/" if the given path is the root.
+   * @throws InvalidPathException
+   */
+  public static String getParent(String path) throws InvalidPathException {
+    String cleanedPath = cleanPath(path);
+    String name = getName(cleanedPath);
+    String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
+    if (parent.isEmpty()) {
+      // The parent is the root path
+      return Constants.PATH_SEPARATOR;
+    }
+    return parent;
   }
 
   /**
@@ -194,10 +243,11 @@ public final class CommonUtils {
    * @param path
    *          The path to split
    * @return the path split into components
+   * @throws InvalidPathException
    */
   public static String[] getPathComponents(String path) throws InvalidPathException {
-    validatePath(path);
-    if (path.length() == 1 && path.equals(Constants.PATH_SEPARATOR)) {
+    path = cleanPath(path);
+    if (isRoot(path)) {
       String[] ret = new String[1];
       ret[0] = "";
       return ret;
@@ -229,6 +279,18 @@ public final class CommonUtils {
 
   public static void illegalArgumentException(String msg) {
     throw new IllegalArgumentException(msg);
+  }
+
+  /**
+   * Check if the given path is the root.
+   * 
+   * @param path
+   *          The path to check
+   * @return true if the path is the root
+   * @throws InvalidPathException
+   */
+  public static boolean isRoot(String path) throws InvalidPathException {
+    return Constants.PATH_SEPARATOR.equals(cleanPath(path));
   }
 
   public static <T> String listToString(List<T> list) {
@@ -300,6 +362,11 @@ public final class CommonUtils {
       return (long) (ret * Constants.GB + alpha);
     } else if (end.equals("tb")) {
       return (long) (ret * Constants.TB + alpha);
+    } else if (end.equals("pb")) {
+      // When parsing petabyte values, we can't multiply with doubles and longs, since that will
+      // lose presicion with such high numbers. Therefore we use a BigDecimal.
+      BigDecimal PBDecimal = new BigDecimal(Constants.PB);
+      return PBDecimal.multiply(BigDecimal.valueOf(ret)).longValue();
     } else {
       runtimeException("Fail to parse " + ori + " as memory size");
       return -1;
@@ -391,9 +458,17 @@ public final class CommonUtils {
     os.close();
   }
 
+  /**
+   * Check if the given path is properly formed
+   * 
+   * @param path
+   *          The path to check
+   * @throws InvalidPathException
+   *           If the path is not properly formed
+   */
   public static void validatePath(String path) throws InvalidPathException {
-    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR)
-        || (path.length() > 1 && path.endsWith(Constants.PATH_SEPARATOR)) || path.contains(" ")) {
+    if (path == null || path.isEmpty() || !path.startsWith(Constants.PATH_SEPARATOR)
+        || path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
   }

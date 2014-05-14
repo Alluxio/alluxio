@@ -174,9 +174,8 @@ public class WorkerStorage {
 
           // TODO checkpoint process. In future, move from midPath to dstPath should be done by
           // master
-          String midPath = mUnderfsWorkerDataFolder + Constants.PATH_SEPARATOR + fileId;
-          String dstPath =
-              CommonConf.get().UNDERFS_DATA_FOLDER + Constants.PATH_SEPARATOR + fileId;
+          String midPath = CommonUtils.concat(mUnderfsWorkerDataFolder, fileId);
+          String dstPath = CommonUtils.concat(CommonConf.get().UNDERFS_DATA_FOLDER, fileId);
           LOG.info("Thread " + ID + " is checkpointing file " + fileId + " from "
               + mLocalDataFolder.toString() + " to " + midPath + " to " + dstPath);
 
@@ -197,8 +196,7 @@ public class WorkerStorage {
           long fileSizeByte = 0;
           for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
             File tempFile =
-                new File(mLocalDataFolder.toString() + Constants.PATH_SEPARATOR
-                    + fileInfo.blockIds.get(k));
+                new File(CommonUtils.concat(mLocalDataFolder.toString(), fileInfo.blockIds.get(k)));
             fileSizeByte += tempFile.length();
             InputStream is = new FileInputStream(tempFile);
             byte[] buf = new byte[16 * Constants.KB];
@@ -315,8 +313,7 @@ public class WorkerStorage {
     mLocalDataFolder = new File(dataFolder);
     mLocalUserFolder =
         new File(mLocalDataFolder.toString(), WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
-    mUnderfsWorkerFolder =
-        COMMON_CONF.UNDERFS_WORKERS_FOLDER + Constants.PATH_SEPARATOR + mWorkerId;
+    mUnderfsWorkerFolder = CommonUtils.concat(COMMON_CONF.UNDERFS_WORKERS_FOLDER, mWorkerId);
     mUnderfsWorkerDataFolder = mUnderfsWorkerFolder + "/data";
     mUnderFs = UnderFileSystem.get(COMMON_CONF.UNDERFS_ADDRESS);
     mUsers = new Users(mLocalUserFolder.toString(), mUnderfsWorkerFolder);
@@ -362,8 +359,8 @@ public class WorkerStorage {
   public void addCheckpoint(long userId, int fileId) throws FileDoesNotExistException,
       SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, TException {
     // TODO This part need to be changed.
-    String srcPath = getUserUnderfsTempFolder(userId) + Constants.PATH_SEPARATOR + fileId;
-    String dstPath = COMMON_CONF.UNDERFS_DATA_FOLDER + Constants.PATH_SEPARATOR + fileId;
+    String srcPath = CommonUtils.concat(getUserUnderfsTempFolder(userId), fileId);
+    String dstPath = CommonUtils.concat(COMMON_CONF.UNDERFS_DATA_FOLDER, fileId);
     try {
       if (!mUnderFs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
@@ -406,8 +403,8 @@ public class WorkerStorage {
 
   public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
       SuspectedFileSizeException, BlockInfoException, TException {
-    File srcFile = new File(getUserTempFolder(userId) + Constants.PATH_SEPARATOR + blockId);
-    File dstFile = new File(mLocalDataFolder + Constants.PATH_SEPARATOR + blockId);
+    File srcFile = new File(CommonUtils.concat(getUserTempFolder(userId), blockId));
+    File dstFile = new File(CommonUtils.concat(mLocalDataFolder, blockId));
     long fileSizeBytes = srcFile.length();
     if (!srcFile.exists()) {
       throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
@@ -456,21 +453,21 @@ public class WorkerStorage {
    *          The block to be removed.
    * @return Removed file size in bytes.
    */
-  private synchronized long freeBlock(long blockId) {
+  private long freeBlock(long blockId) {
     Long freedFileBytes = null;
-    if (mBlockSizes.containsKey(blockId)) {
-      mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
-      File srcFile = new File(mLocalDataFolder + Constants.PATH_SEPARATOR + blockId);
-      srcFile.delete();
-      synchronized (mLatestBlockAccessTimeMs) {
+    synchronized (mLatestBlockAccessTimeMs) {
+      if (mBlockSizes.containsKey(blockId)) {
+        mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
+        File srcFile = new File(CommonUtils.concat(mLocalDataFolder, blockId));
+        srcFile.delete();
         mLatestBlockAccessTimeMs.remove(blockId);
         freedFileBytes = mBlockSizes.remove(blockId);
         mRemovedBlockList.add(blockId);
         mMemoryData.remove(blockId);
+        LOG.info("Removed Data " + blockId);
+      } else {
+        LOG.warn("File " + blockId + " does not exist in memory.");
       }
-      LOG.info("Removed Data " + blockId);
-    } else {
-      LOG.warn("File " + blockId + " does not exist in memory.");
     }
 
     return freedFileBytes == null ? 0 : freedFileBytes;
@@ -708,7 +705,7 @@ public class WorkerStorage {
     RandomAccessFile localFile = new RandomAccessFile(file, "r");
     ByteBuffer buf = localFile.getChannel().map(MapMode.READ_ONLY, 0, file.length());
 
-    String ufsOrphanBlock = mUnderfsOrphansFolder + Constants.PATH_SEPARATOR + blockId;
+    String ufsOrphanBlock = CommonUtils.concat(mUnderfsOrphansFolder, blockId);
     OutputStream os = mUnderFs.create(ufsOrphanBlock);
     int BULKSIZE = 1024 * 64;
     byte[] bulk = new byte[BULKSIZE];

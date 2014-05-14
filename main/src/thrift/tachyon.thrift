@@ -195,7 +195,7 @@ service MasterService {
   bool user_deleteByPath(1: string path, 2: bool recursive) // Delete file
     throws (1: TachyonException e)
   void user_outOfMemoryForPinFile(1: i32 fileId)
-  void user_rename(1: string srcPath, 2: string dstPath)
+  bool user_rename(1: string srcPath, 2: string dstPath)
     throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)
   void user_renameTo(1: i32 fileId, 2: string dstPath)
     throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)

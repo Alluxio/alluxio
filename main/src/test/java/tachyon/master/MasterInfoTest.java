@@ -17,6 +17,7 @@ package tachyon.master;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashSet;
 
 import tachyon.Constants;
 import tachyon.conf.CommonConf;
@@ -120,6 +121,19 @@ public class MasterInfoTest {
   public void createFileInvalidPathTest() throws InvalidPathException, FileAlreadyExistException,
       BlockInfoException, TachyonException {
     mMasterInfo.createFile("testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+  }
+
+  @Test(expected = InvalidPathException.class)
+  public void createFileInvalidPathTest2() throws InvalidPathException, FileAlreadyExistException,
+      BlockInfoException, TachyonException {
+    mMasterInfo.createFile("/", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+  }
+
+  @Test(expected = InvalidPathException.class)
+  public void createFileInvalidPathTest3() throws InvalidPathException, FileAlreadyExistException,
+      BlockInfoException, TachyonException {
+    mMasterInfo.createFile("/testFile1", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    mMasterInfo.createFile("/testFile1/testFile2", Constants.DEFAULT_BLOCK_SIZE_BYTE);
   }
 
   @Test
@@ -236,8 +250,30 @@ public class MasterInfoTest {
   }
 
   @Test
+  public void deleteRootTest() throws InvalidPathException, FileAlreadyExistException,
+      TachyonException, BlockInfoException {
+    Assert.assertFalse(mMasterInfo.delete("/", true));
+    Assert.assertFalse(mMasterInfo.delete("/", false));
+  }
+
+  @Test
   public void getCapacityBytesTest() {
     Assert.assertEquals(1000, mMasterInfo.getCapacityBytes());
+  }
+
+  @Test
+  public void listFilesTest() throws InvalidPathException, FileDoesNotExistException,
+      FileAlreadyExistException, BlockInfoException, TachyonException {
+    HashSet<Integer> ids = new HashSet<Integer>();
+    for (int i = 0; i < 10; i ++) {
+      String dir = "/i" + i;
+      mMasterInfo.mkdir(dir);
+      for (int j = 0; j < 10; j ++) {
+        ids.add(mMasterInfo.createFile(dir + "/j" + j, 64));
+      }
+    }
+    HashSet<Integer> listedIds = new HashSet<Integer>(mMasterInfo.listFiles("/", true));
+    Assert.assertEquals(ids, listedIds);
   }
 
   @Test
@@ -271,6 +307,30 @@ public class MasterInfoTest {
       FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
     Assert.assertTrue(mMasterInfo.mkdir("/testFile"));
     mMasterInfo.addCheckpoint(-1, mMasterInfo.getFileId("/testFile"), 0, "/testPath");
+  }
+
+  @Test(expected = FileDoesNotExistException.class)
+  public void renameNonexistentTest() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, TachyonException, BlockInfoException {
+    mMasterInfo.createFile("/testFile1", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    mMasterInfo.rename("/testFile2", "/testFile3");
+  }
+
+  @Test
+  public void renameExistingDstTest() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, TachyonException, BlockInfoException {
+    mMasterInfo.createFile("/testFile1", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    mMasterInfo.createFile("/testFile2", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    Assert.assertFalse(mMasterInfo.rename("/testFile1", "/testFile2"));
+  }
+
+  @Test(expected = InvalidPathException.class)
+  public void renameToDeeper() throws InvalidPathException, FileAlreadyExistException,
+      FileDoesNotExistException, TachyonException, BlockInfoException {
+    mMasterInfo.mkdir("/testDir1/testDir2");
+    mMasterInfo.createFile("/testDir1/testDir2/testDir3/testFile3",
+        Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    mMasterInfo.rename("/testDir1/testDir2", "/testDir1/testDir2/testDir3/testDir4");
   }
 
   @Test(expected = TableColumnException.class)

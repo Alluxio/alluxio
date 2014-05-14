@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
+import tachyon.util.CommonUtils;
 
 /**
  * <code>FileOutStream</code> implementation of TachyonFile. It can only be gotten by
@@ -47,7 +48,7 @@ public class FileOutStream extends OutStream {
   private boolean mClosed = false;
   private boolean mCancel = false;
 
-  FileOutStream(TachyonFile file, WriteType opType) throws IOException {
+  FileOutStream(TachyonFile file, WriteType opType, Object ufsConf) throws IOException {
     super(file, opType);
 
     BLOCK_CAPACITY = file.getBlockSizeByte();
@@ -60,8 +61,8 @@ public class FileOutStream extends OutStream {
     mCachedBytes = 0;
 
     if (WRITE_TYPE.isThrough()) {
-      mUnderFsFile = TFS.createAndGetUserUnderfsTempFolder() + Constants.PATH_SEPARATOR + FILE.FID;
-      UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile);
+      mUnderFsFile = CommonUtils.concat(TFS.createAndGetUserUnderfsTempFolder(), FILE.FID);
+      UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile, ufsConf);
       if (BLOCK_CAPACITY > Integer.MAX_VALUE) {
         throw new IOException("BLOCK_CAPCAITY (" + BLOCK_CAPACITY + ") can not bigger than "
             + Integer.MAX_VALUE);
@@ -132,9 +133,10 @@ public class FileOutStream extends OutStream {
 
   @Override
   public void flush() throws IOException {
-    // We only flush the checkpoint output stream.
-    // TODO flushing for RAMFS block streams.
-    mCheckpointOutputStream.flush();
+    // TODO We only flush the checkpoint output stream. Flush for RAMFS block streams.
+    if (mCheckpointOutputStream != null) {
+      mCheckpointOutputStream.flush();
+    }
   }
 
   private void getNextBlock() throws IOException {

@@ -70,7 +70,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
     if (recursive && file.isDirectory()) {
       String[] files = file.list();
       for (String child : files) {
-        success = success && delete(path + Constants.PATH_SEPARATOR + child, true);
+        success = success && delete(CommonUtils.concat(path, child), true);
       }
     }
 
@@ -90,6 +90,11 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
       throw new FileNotFoundException(path);
     }
     return Constants.GB * 2L;
+  }
+
+  @Override
+  public Object getConf() {
+    return null;
   }
 
   @Override
@@ -169,6 +174,10 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   public boolean rename(String src, String dst) throws IOException {
     File file = new File(src);
     return file.renameTo(new File(dst));
+  }
+
+  @Override
+  public void setConf(Object conf) {
   }
 
   @Override

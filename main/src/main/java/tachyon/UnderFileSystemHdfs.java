@@ -50,12 +50,22 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       .applyUMask(FsPermission.createImmutable((short) 0000));
 
   public static UnderFileSystemHdfs getClient(String path) {
-    return new UnderFileSystemHdfs(path);
+    return new UnderFileSystemHdfs(path, null);
   }
 
-  private UnderFileSystemHdfs(String fsDefaultName) {
+  public static UnderFileSystemHdfs getClient(String path, Object conf) {
+    return new UnderFileSystemHdfs(path, conf);
+  }
+
+  private UnderFileSystemHdfs(String fsDefaultName, Object conf) {
     try {
       mUfsPrefix = fsDefaultName;
+      Configuration tConf = null;
+      if (conf != null) {
+        tConf = (Configuration) conf;
+      } else {
+        tConf = new Configuration();
+      }
       Configuration tConf = new Configuration();
       tConf.set("fs.defaultFS", fsDefaultName);
       String glusterfsPrefix = "glusterfs:///";
@@ -81,7 +91,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       if (System.getProperty("fs.s3n.awsSecretAccessKey") != null) {
           tConf.set("fs.s3n.awsSecretAccessKey", System.getProperty("fs.s3n.awsSecretAccessKey"));
       }
-      Path path = new Path(fsDefaultName);
+      Path path = new Path(mUfsPrefix);
       mFs = path.getFileSystem(tConf);
       // FileSystem.get(tConf);
       // mFs = FileSystem.get(new URI(fsDefaultName), tConf);
@@ -191,6 +201,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
+  public Object getConf() {
+    return mFs.getConf();
+  }
+
+  @Override
   public List<String> getFileLocations(String path) {
     return getFileLocations(path, 0);
   }
@@ -267,7 +282,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       String[] rtn = new String[files.length];
       int i = 0;
       for (FileStatus status : files) {
-        rtn[i ++] = status.getPath().toString().substring(mUfsPrefix.length());
+        // only return the relative path, to keep consistent with java.io.File.list()
+        rtn[i ++] = status.getPath().toString().substring(path.length()); // mUfsPrefix
       }
       return rtn;
     } else {
@@ -339,6 +355,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     }
     CommonUtils.runtimeException(te);
     return false;
+  }
+
+  @Override
+  public void setConf(Object conf) {
+    mFs.setConf((Configuration) conf);
   }
 
   @Override
