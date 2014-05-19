@@ -519,8 +519,8 @@ public class WorkerStorage {
     LOG.info("Initializing the worker storage.");
     if (!mLocalDataFolder.exists()) {
       LOG.info("Local folder " + mLocalDataFolder + " does not exist. Creating a new one.");
-      mLocalDataFolder.mkdir();
-      mLocalUserFolder.mkdir();
+      mLocalDataFolder.mkdirs();
+      mLocalUserFolder.mkdirs();
 
       CommonUtils.changeLocalFilePermission(mLocalDataFolder.getPath(), "775");
       CommonUtils.changeLocalFilePermission(mLocalUserFolder.getPath(), "775");
