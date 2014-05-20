@@ -90,9 +90,9 @@ public class TachyonWorker implements Runnable {
             wConf.DATA_PORT, wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
             wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
     try {
-        worker.start();
+      worker.start();
     } catch (Exception e) {
-       LOG.error("Uncaught exception terminating worker", e);
+      LOG.error("Uncaught exception terminating worker", e);
     }
   }
 
