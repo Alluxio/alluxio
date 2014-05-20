@@ -63,7 +63,6 @@ public class WorkerClient {
     mHeartbeatThread =
         new HeartbeatThread("WorkerClientToWorkerHeartbeat", new WorkerClientHeartbeatExecutor(
             this, mUserId), UserConf.get().HEARTBEAT_INTERVAL_MS);
-    mHeartbeatThread.setDaemon(true);
   }
 
   public synchronized void accessBlock(long blockId) throws TException {
