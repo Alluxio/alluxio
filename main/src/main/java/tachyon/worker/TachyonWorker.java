@@ -93,6 +93,7 @@ public class TachyonWorker implements Runnable {
       worker.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating worker", e);
+      throw e
     }
   }
 
