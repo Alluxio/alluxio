@@ -16,7 +16,7 @@ A list of tasks that everyone should do before contributing to Tachyon.
     [Command-Line Interface](Command-Line-Interface.html)
     (Optional)
 
-4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/src/main/java/tachyon/examples/BasicOperations.java).
+4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/main/src/main/java/tachyon/examples/BasicOperations.java).
 
 5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
 
