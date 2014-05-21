@@ -351,11 +351,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public void changePermission(String path, String posixPerm) throws IOException {
+  public void setPermission(String path, String posixPerm) throws IOException {
     try {
       FileStatus fileStatus = mFs.getFileStatus(new Path(path));
       LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: "
-              + fileStatus.getPermission() + " to " + posixPerm);
+          + fileStatus.getPermission() + " to " + posixPerm);
       FsPermission perm = new FsPermission(Short.parseShort(posixPerm));
       mFs.setPermission(fileStatus.getPath(), perm);
     } catch (IOException e) {
@@ -364,6 +364,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   public void toFullPermission(String path) throws IOException {
-    changePermission(path, "777");
+    setPermission(path, "777");
   }
 }
