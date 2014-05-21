@@ -181,12 +181,12 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public void changePermission(String path, String posixPerm) throws IOException {
+  public void setPermission(String path, String posixPerm) throws IOException {
     CommonUtils.changeLocalFilePermission(path, posixPerm);
   }
 
   public void toFullPermission(String path) throws IOException {
-    changePermission(path, "777");
+    setPermission(path, "777");
     CommonUtils.setLocalFileStickyBit(path);
   }
 }

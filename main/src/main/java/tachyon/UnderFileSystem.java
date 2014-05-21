@@ -188,5 +188,5 @@ public abstract class UnderFileSystem {
    *          standard posix permission like "777", "775", etc.
    * @throws IOException
    */
-  public abstract void changePermission(String path, String posixPerm) throws IOException;
+  public abstract void setPermission(String path, String posixPerm) throws IOException;
 }
