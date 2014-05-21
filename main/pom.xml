@@ -56,10 +56,10 @@
       <type>jar</type>
       <scope>compile</scope>
       <exclusions>
-      <exclusion>
-        <groupId>*</groupId>
-        <artifactId>*</artifactId>
-      </exclusion>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
