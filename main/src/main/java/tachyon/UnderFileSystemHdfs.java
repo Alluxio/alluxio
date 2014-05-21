@@ -362,8 +362,4 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       LOG.error(e);
     }
   }
-
-  public void toFullPermission(String path) throws IOException {
-    setPermission(path, "777");
-  }
 }
