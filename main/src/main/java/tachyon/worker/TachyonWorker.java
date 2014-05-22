@@ -89,7 +89,12 @@ public class TachyonWorker implements Runnable {
         TachyonWorker.createWorker(getMasterLocation(args), args[0] + ":" + wConf.PORT,
             wConf.DATA_PORT, wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
             wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
-    worker.start();
+    try {
+      worker.start();
+    } catch (Exception e) {
+      LOG.error("Uncaught exception terminating worker", e);
+      throw new RuntimeException(e);
+    }
   }
 
   private final InetSocketAddress MasterAddress;
