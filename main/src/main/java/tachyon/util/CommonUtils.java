@@ -77,6 +77,13 @@ public final class CommonUtils {
     }
   }
 
+  /**
+   * Change local file's permission to be 777.
+   * 
+   * @param filePath
+   *          that will change permission
+   * @throws IOException
+   */
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
     changeLocalFilePermission(filePath, "777");
   }
