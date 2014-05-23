@@ -180,5 +180,13 @@ public abstract class UnderFileSystem {
    */
   public abstract void setConf(Object conf);
 
-  public abstract void toFullPermission(String path) throws IOException;
+  /**
+   * Change posix file permission
+   * @param path
+   *          path of the file
+   * @param posixPerm
+   *          standard posix permission like "777", "775", etc.
+   * @throws IOException
+   */
+  public abstract void setPermission(String path, String posixPerm) throws IOException;
 }
