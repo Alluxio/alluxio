@@ -63,11 +63,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mHadoopBufferSize = bufferSize;
 
     TachyonFile tachyonFile = mTFS.getFile(mFileId);
-    tachyonFile.setUFSConf(mHadoopConf);
     if (tachyonFile == null) {
       throw new FileNotFoundException("File " + hdfsPath + " with FID " + fileId
           + " is not found.");
     }
+    tachyonFile.setUFSConf(mHadoopConf);
     try {
       mTachyonFileInputStream = tachyonFile.getInStream(ReadType.CACHE);
     } catch (IOException e) {
