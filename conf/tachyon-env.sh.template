@@ -50,4 +50,5 @@ export TACHYON_JAVA_OPTS+="
   -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
   -Dtachyon.master.pinlist=/pinfiles,/pindata
   -Dorg.apache.jasper.compiler.disablejsr199=true
+  -Djava.net.preferIPv4Stack=true
 "
