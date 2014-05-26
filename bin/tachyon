@@ -159,7 +159,7 @@ elif [ "$COMMAND" == "bootstrap-conf" ]; then
   bootstrapConf "$@"
   exit 0
 elif [ "$COMMAND" == "formatWorker" ]; then
-  echo "Formatting Tachyon Worker @ `hostname`"
+  echo "Formatting Tachyon Worker @ `hostname -f`"
   CLASS=tachyon.Format
   PARAMETER=worker
 elif [ "$COMMAND" == "tfs" ]; then
