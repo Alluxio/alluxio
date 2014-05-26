@@ -110,15 +110,15 @@ start_worker() {
     echo "Mount failed, not starting worker"
     exit 1
   fi
-  echo "Starting worker @ `hostname`"
-  (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="WORKER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS tachyon.worker.TachyonWorker `hostname` > /dev/null 2>&1 ) &
+  echo "Starting worker @ `hostname -f`"
+  (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="WORKER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_JAVA_OPTS tachyon.worker.TachyonWorker `hostname -f` > /dev/null 2>&1 ) &
 }
 
 restart_worker() {
   RUN=`ps -ef | grep "tachyon.worker.TachyonWorker" | grep "java" | wc | cut -d" " -f7`
   if [[ $RUN -eq 0 ]] ; then
-    echo "Restarting worker @ `hostname`"
-    (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true -Dtachyon.logger.type="WORKER_LOGGER" $TACHYON_JAVA_OPTS tachyon.worker.TachyonWorker `hostname` > /dev/null 2>&1) &
+    echo "Restarting worker @ `hostname -f`"
+    (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.is.system=true -Dtachyon.logger.type="WORKER_LOGGER" $TACHYON_JAVA_OPTS tachyon.worker.TachyonWorker `hostname -f` > /dev/null 2>&1) &
   fi
 }
 
