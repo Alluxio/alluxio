@@ -145,35 +145,33 @@ public class MasterClient {
 
     int tries = 0;
     Exception lastException = null;
-    while (tries ++ < MAX_CONNECT_TRY) {
+    while (tries ++ < MAX_CONNECT_TRY && !mIsShutdown) {
       mMasterAddress = getMasterAddress();
       mProtocol =
           new TBinaryProtocol(new TFramedTransport(new TSocket(mMasterAddress.getHostName(),
               mMasterAddress.getPort())));
       mClient = new MasterService.Client(mProtocol);
       mLastAccessedMs = System.currentTimeMillis();
-      if (!mIsConnected && !mIsShutdown) {
-        try {
-          mProtocol.getTransport().open();
+      try {
+        mProtocol.getTransport().open();
 
-          mHeartbeatThread =
-              new HeartbeatThread("Master_Client Heartbeat", new MasterClientHeartbeatExecutor(
-                  this, UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
-                  UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2);
-          mHeartbeatThread.start();
-        } catch (TTransportException e) {
-          lastException = e;
-          LOG.error("Failed to connect (" + tries + ") to master " + mMasterAddress + " : "
-              + e.getMessage());
-          if (mHeartbeatThread != null) {
-            mHeartbeatThread.shutdown();
-          }
-          CommonUtils.sleepMs(LOG, 1000);
-          continue;
+        mHeartbeatThread =
+            new HeartbeatThread("Master_Client Heartbeat", new MasterClientHeartbeatExecutor(
+                this, UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
+                UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2);
+        mHeartbeatThread.start();
+      } catch (TTransportException e) {
+        lastException = e;
+        LOG.error("Failed to connect (" + tries + ") to master " + mMasterAddress + " : "
+            + e.getMessage());
+        if (mHeartbeatThread != null) {
+          mHeartbeatThread.shutdown();
         }
-        mIsConnected = true;
-        return;
+        CommonUtils.sleepMs(LOG, 1000);
+        continue;
       }
+      mIsConnected = true;
+      return;
     }
 
     // Reaching here indicates that we did not successfully connect.
