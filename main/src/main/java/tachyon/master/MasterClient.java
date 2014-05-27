@@ -165,6 +165,9 @@ public class MasterClient {
           lastException = e;
           LOG.error("Failed to connect (" + tries + ") to master " + mMasterAddress + " : "
               + e.getMessage());
+          if (mHeartbeatThread != null) {
+            mHeartbeatThread.shutdown();
+          }
           CommonUtils.sleepMs(LOG, 1000);
           continue;
         }
