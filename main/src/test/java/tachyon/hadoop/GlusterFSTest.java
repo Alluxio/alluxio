@@ -16,7 +16,6 @@ package tachyon.hadoop;
 
 import java.io.IOException;
 
-import org.apache.hadoop.fs.glusterfs.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Assert;
@@ -29,26 +28,34 @@ import tachyon.UnderFileSystem;
  */
 public class GlusterFSTest {
   private UnderFileSystem mHcfs = null;
-
+  private String mMount = null; 
+  private static final String GLUSTERFS_MOUNT = "GlusterfsMount";
   @After
   public final void after() throws Exception {
-    System.clearProperty("fs.default.name");
-    System.clearProperty("tachyon.underfs.glusterfs.mapred.system.dir");
-    System.clearProperty("tachyon.underfs.glusterfs.mounts");
-    System.clearProperty("tachyon.underfs.glusterfs.volumes");    
+    if (mMount != null){
+      System.clearProperty("fs.default.name");
+      System.clearProperty("tachyon.underfs.glusterfs.mapred.system.dir");
+      System.clearProperty("tachyon.underfs.glusterfs.mounts");
+      System.clearProperty("tachyon.underfs.glusterfs.volumes");
+    }
   }
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("fs.default.name", "glusterfs:///");
-    System.setProperty("tachyon.underfs.glusterfs.mapred.system.dir", "glusterfs:///mapred/system");
-    System.setProperty("tachyon.underfs.glusterfs.mounts", "/vol");
-    System.setProperty("tachyon.underfs.glusterfs.volumes", "tachyon_vol");
+    mMount = System.getProperty(GLUSTERFS_MOUNT);
+    if (mMount != null){
+      System.setProperty("fs.default.name", "glusterfs:///");
+      System.setProperty("tachyon.underfs.glusterfs.mapred.system.dir", "glusterfs:///mapred/system");
+      System.setProperty("tachyon.underfs.glusterfs.mounts", mMount);
+      System.setProperty("tachyon.underfs.glusterfs.volumes", "tachyon_vol");
+    }
   }
   @Test
   public void createGlusterFS() throws Exception {
-    //mHcfs = UnderFileSystem.get("glusterfs:///");
-    //Assert.assertTrue(mHcfs.create("tachyon_test") != null);
-    //Assert.assertTrue(mHcfs.delete("tachyon_test", false));
+    if (mMount != null){
+      mHcfs = UnderFileSystem.get("glusterfs:///");
+      Assert.assertTrue(mHcfs.create("tachyon_test") != null);
+      //Assert.assertTrue(mHcfs.delete("tachyon_test", false));
+    }
   }
 }
