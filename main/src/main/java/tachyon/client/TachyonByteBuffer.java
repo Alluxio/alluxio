@@ -14,6 +14,7 @@
  */
 package tachyon.client;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -38,7 +39,7 @@ public class TachyonByteBuffer {
     TFS = tfs;
   }
 
-  public synchronized void close() {
+  public synchronized void close() throws IOException {
     if (mClosed) {
       return;
     }
