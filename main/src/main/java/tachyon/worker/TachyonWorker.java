@@ -178,7 +178,11 @@ public class TachyonWorker implements Runnable {
         LOG.error(e.getMessage(), e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
-        mWorkerStorage.resetMasterClient();
+        try {
+          mWorkerStorage.resetMasterClient();
+        } catch (TException e2) {
+          LOG.error("Received exception while attempting to reset client", e2);
+        }
         CommonUtils.sleepMs(LOG, 1000);
         cmd = null;
         if (System.currentTimeMillis() - lastHeartbeatMs >= WorkerConf.get().HEARTBEAT_TIMEOUT_MS) {

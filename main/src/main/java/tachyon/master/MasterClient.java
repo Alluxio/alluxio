@@ -131,21 +131,20 @@ public class MasterClient {
   }
 
   /**
-   * Try to connect to the master
-   * 
-   * @return true if connection succeed, false otherwise.
+   * Connects to the Tachyon Master; an exception is thrown if this fails.
    */
-  public synchronized boolean connect() {
+  public synchronized void connect() throws TException {
     mLastAccessedMs = System.currentTimeMillis();
     if (mIsConnected) {
-      return true;
+      return;
     }
     cleanConnect();
     if (mIsShutdown) {
-      return false;
+      throw new TException("Client is shutdown, will not try to connect");
     }
 
     int tries = 0;
+    Exception lastException = null;
     while (tries ++ < MAX_CONNECT_TRY) {
       mMasterAddress = getMasterAddress();
       mProtocol =
@@ -163,17 +162,21 @@ public class MasterClient {
                   UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2);
           mHeartbeatThread.start();
         } catch (TTransportException e) {
+          lastException = e;
           LOG.error("Failed to connect (" + tries + ") to master " + mMasterAddress + " : "
               + e.getMessage());
           CommonUtils.sleepMs(LOG, 1000);
           continue;
         }
         mIsConnected = true;
-        break;
+        return;
       }
     }
 
-    return mIsConnected;
+    // Reaching here indicates that we did not successfully connect.
+    throw new TException(
+        "Failed to connect to master " + mMasterAddress + " after " + (tries - 1) + " attempts",
+        lastException);
   }
 
   public ClientDependencyInfo getClientDependencyInfo(int did) throws IOException, TException {

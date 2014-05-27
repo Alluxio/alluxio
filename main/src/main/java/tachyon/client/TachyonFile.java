@@ -70,7 +70,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return TFS.getBlockSizeByte(FID);
   }
 
-  String getCheckpointPath() {
+  String getCheckpointPath() throws IOException {
     return TFS.getCheckpointPath(FID);
   }
 
@@ -163,7 +163,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return getPath().hashCode() ^ 1234321;
   }
 
-  public boolean isComplete() {
+  public boolean isComplete() throws IOException {
     return TFS.isComplete(FID);
   }
 
@@ -179,11 +179,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
     throw new RuntimeException("Unsupported");
   }
 
-  public boolean isInMemory() {
+  public boolean isInMemory() throws IOException {
     return TFS.isInMemory(FID);
   }
 
-  public long length() {
+  public long length() throws IOException {
     return TFS.getFileLength(FID);
   }
 
@@ -288,7 +288,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return succeed;
   }
 
-  boolean recache(int blockIndex) {
+  boolean recache(int blockIndex) throws IOException {
     boolean succeed = true;
     String path = TFS.getCheckpointPath(FID);
     UnderFileSystem underFsClient = UnderFileSystem.get(path);
