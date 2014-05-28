@@ -673,7 +673,7 @@ public class WorkerStorage {
     return true;
   }
 
-  public void resetMasterClient() {
+  public void resetMasterClient() throws TException {
     MasterClient tMasterClient = new MasterClient(mMasterAddress);
     tMasterClient.connect();
     mMasterClient = tMasterClient;

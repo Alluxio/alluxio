@@ -131,7 +131,7 @@ public class TachyonFS {
     mAvailableSpaceBytes = 0L;
   }
 
-  public synchronized void accessLocalBlock(long blockId) {
+  public synchronized void accessLocalBlock(long blockId) throws IOException {
     connect();
     if (mWorkerClient != null && mIsWorkerLocal) {
       try {
@@ -228,16 +228,18 @@ public class TachyonFS {
   }
 
   // Lazy connection TODO This should be removed since the Thrift server has been fixed.
-  public synchronized void connect() {
+  public synchronized void connect() throws IOException {
     if (mMasterClient != null) {
       return;
     }
     LOG.info("Trying to connect master @ " + mMasterAddress);
     mMasterClient = new MasterClient(mMasterAddress, mZookeeperMode);
-    mConnected = mMasterClient.connect();
 
-    if (!mConnected) {
-      return;
+    try {
+      mMasterClient.connect();
+      mConnected = true;
+    } catch (TException e) {
+      throw new IOException(e.getMessage(), e);
     }
 
     try {
@@ -457,7 +459,7 @@ public class TachyonFS {
     return getFileId(path) != -1;
   }
 
-  private synchronized ClientFileInfo fetchClientFileInfo(int fid) {
+  private synchronized ClientFileInfo fetchClientFileInfo(int fid) throws IOException {
     connect();
     if (!mConnected) {
       return null;
@@ -521,7 +523,7 @@ public class TachyonFS {
     return mClientFileInfos.get(fId).getBlockSizeByte();
   }
 
-  synchronized String getCheckpointPath(int fid) {
+  synchronized String getCheckpointPath(int fid) throws IOException {
     ClientFileInfo info = mClientFileInfos.get(fid);
     if (info == null || !info.getCheckpointPath().equals("")) {
       info = fetchClientFileInfo(fid);
@@ -625,7 +627,7 @@ public class TachyonFS {
    *          file id.
    * @return TachyonFile of the file id, or null if the first does not exist.
    */
-  public synchronized TachyonFile getFile(int fid) {
+  public synchronized TachyonFile getFile(int fid) throws IOException {
     if (!mClientFileInfos.containsKey(fid)) {
       ClientFileInfo clientFileInfo = fetchClientFileInfo(fid);
       if (clientFileInfo == null) {
@@ -725,7 +727,7 @@ public class TachyonFS {
     return fid;
   }
 
-  synchronized long getFileLength(int fid) {
+  synchronized long getFileLength(int fid) throws IOException {
     if (!mClientFileInfos.get(fid).isComplete()) {
       ClientFileInfo info = fetchClientFileInfo(fid);
       mClientFileInfos.put(fid, info);
@@ -783,7 +785,7 @@ public class TachyonFS {
    *          The id of the block.
    * @return filename on local file system or null if file not present on local file system.
    */
-  String getLocalFilename(long blockId) {
+  String getLocalFilename(long blockId) throws IOException {
     String rootFolder = getRootFolder();
     if (rootFolder != null) {
       String localFileName = CommonUtils.concat(rootFolder, blockId);
@@ -856,7 +858,7 @@ public class TachyonFS {
     return new RawTable(this, clientRawTableInfo);
   }
 
-  public synchronized String getRootFolder() {
+  public synchronized String getRootFolder() throws IOException {
     connect();
     return mLocalDataFolder;
   }
@@ -880,12 +882,12 @@ public class TachyonFS {
     }
   }
 
-  public synchronized boolean hasLocalWorker() {
+  public synchronized boolean hasLocalWorker() throws IOException {
     connect();
     return (mIsWorkerLocal && mWorkerClient != null);
   }
 
-  synchronized boolean isComplete(int fid) {
+  synchronized boolean isComplete(int fid) throws IOException {
     if (!mClientFileInfos.get(fid).isComplete()) {
       mClientFileInfos.put(fid, fetchClientFileInfo(fid));
     }
@@ -900,7 +902,7 @@ public class TachyonFS {
     return mClientFileInfos.get(fid).isFolder();
   }
 
-  synchronized boolean isInMemory(int fid) {
+  synchronized boolean isInMemory(int fid) throws IOException {
     ClientFileInfo info = fetchClientFileInfo(fid);
     mClientFileInfos.put(info.getId(), info);
     return info.isInMemory();
@@ -948,7 +950,7 @@ public class TachyonFS {
    *          The block lock id of the block of lock. <code>blockLockId</code> must be non-negative.
    * @return true if successfully lock the block, false otherwise (or invalid parameter).
    */
-  synchronized boolean lockBlock(long blockId, int blockLockId) {
+  synchronized boolean lockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
       return false;
     }
@@ -1022,7 +1024,7 @@ public class TachyonFS {
     }
   }
 
-  public synchronized void outOfMemoryForPinFile(int fid) {
+  public synchronized void outOfMemoryForPinFile(int fid) throws IOException {
     connect();
     if (mConnected) {
       try {
@@ -1176,7 +1178,7 @@ public class TachyonFS {
     }
   }
 
-  public synchronized boolean requestSpace(long requestSpaceBytes) {
+  public synchronized boolean requestSpace(long requestSpaceBytes) throws IOException {
     connect();
     if (mWorkerClient == null || !mIsWorkerLocal) {
       return false;
@@ -1236,7 +1238,7 @@ public class TachyonFS {
    * @return true if successfully unlock the block with <code>blockLockId</code>,
    *         false otherwise (or invalid parameter).
    */
-  synchronized boolean unlockBlock(long blockId, int blockLockId) {
+  synchronized boolean unlockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
       return false;
     }
