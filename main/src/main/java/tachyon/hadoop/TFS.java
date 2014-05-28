@@ -278,8 +278,9 @@ public class TFS extends FileSystem {
   @Override
   public void initialize(URI uri, Configuration conf) throws IOException {
     super.initialize(uri, conf);
-    setConf(conf);
     LOG.info("initialize(" + uri + ", " + conf + "). Connecting to Tachyon: " + uri.toString());
+    Utils.addS3Credentials(conf);
+    setConf(conf);
     mTachyonHeader = uri.getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
     mTFS = TachyonFS.get(mTachyonHeader);
     mUri = URI.create(mTachyonHeader);

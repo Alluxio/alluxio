@@ -32,6 +32,7 @@ import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
+import tachyon.hadoop.Utils;
 import tachyon.util.CommonUtils;
 
 /**
@@ -73,12 +74,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       tConf.set("fs.hdfs.impl.disable.cache",
           System.getProperty("fs.hdfs.impl.disable.cache", "false"));
 
-      if (System.getProperty("fs.s3n.awsAccessKeyId") != null) {
-        tConf.set("fs.s3n.awsAccessKeyId", System.getProperty("fs.s3n.awsAccessKeyId"));
-      }
-      if (System.getProperty("fs.s3n.awsSecretAccessKey") != null) {
-        tConf.set("fs.s3n.awsSecretAccessKey", System.getProperty("fs.s3n.awsSecretAccessKey"));
-      }
+      Utils.addS3Credentials(tConf);
+
       Path path = new Path(mUfsPrefix);
       mFs = path.getFileSystem(tConf);
       // FileSystem.get(tConf);
