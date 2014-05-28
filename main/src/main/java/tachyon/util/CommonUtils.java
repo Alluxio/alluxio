@@ -276,7 +276,14 @@ public final class CommonUtils {
       return String.format("%.2f MB", ret);
     }
     ret /= 1024;
-    return String.format("%.2f GB", ret);
+    if (ret <= 1024 * 5) {
+      return String.format("%.2f GB", ret);
+    }
+    ret /= 1024;
+    if (ret <= 1024 * 5) {
+      return String.format("%.2f TB", ret);
+    }
+    return String.format("%.2f PB", ret);
   }
 
   public static void illegalArgumentException(Exception e) {
