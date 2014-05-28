@@ -132,11 +132,11 @@ public final class Utils {
    * System properties, and they're not already set.
    */
   public static void addS3Credentials(Configuration conf) {
-    final String accessKeyConf = "fs.s3n.awsAccessKeyId";
+    String accessKeyConf = "fs.s3n.awsAccessKeyId";
     if (System.getProperty(accessKeyConf) != null && conf.get(accessKeyConf) == null) {
       conf.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
-    final String secretKeyConf = "fs.s3n.awsSecretAccessKey";
+    String secretKeyConf = "fs.s3n.awsSecretAccessKey";
     if (System.getProperty(secretKeyConf) != null && conf.get(secretKeyConf) == null) {
       conf.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
