@@ -69,7 +69,7 @@ public class MasterClient {
   private TProtocol mProtocol = null;
   private volatile boolean mIsConnected;
   private volatile boolean mIsShutdown;
-  private long mLastAccessedMs;
+  private volatile long mLastAccessedMs;
 
   private HeartbeatThread mHeartbeatThread = null;
 
@@ -156,8 +156,8 @@ public class MasterClient {
         mProtocol.getTransport().open();
 
         mHeartbeatThread =
-            new HeartbeatThread("Master_Client Heartbeat", new MasterClientHeartbeatExecutor(
-                this, UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
+            new HeartbeatThread("Master_Client Heartbeat", new MasterClientHeartbeatExecutor(this,
+                UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
                 UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2);
         mHeartbeatThread.start();
       } catch (TTransportException e) {
@@ -175,9 +175,8 @@ public class MasterClient {
     }
 
     // Reaching here indicates that we did not successfully connect.
-    throw new TException(
-        "Failed to connect to master " + mMasterAddress + " after " + (tries - 1) + " attempts",
-        lastException);
+    throw new TException("Failed to connect to master " + mMasterAddress + " after " + (tries - 1)
+        + " attempts", lastException);
   }
 
   public ClientDependencyInfo getClientDependencyInfo(int did) throws IOException, TException {
@@ -210,7 +209,7 @@ public class MasterClient {
     return null;
   }
 
-  synchronized long getLastAccessedMs() {
+  long getLastAccessedMs() {
     return mLastAccessedMs;
   }
 
