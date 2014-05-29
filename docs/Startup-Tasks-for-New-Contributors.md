@@ -36,24 +36,16 @@ and then submit a pull request. You are also welcome to address issues in our
 
     src/main/java/tachyon/worker/DataServerMessage.java
 
-#### After the pull request is reviewed and merged, you become a Tachyon contributor!
-
-### IDE
-
-You can generate Eclipse configure file by run:
-
-    mvn install -Dintegration -DskipTests eclipse:eclipse
-
-Then import the folder into Eclipse.
+After the pull request is reviewed and merged, you become a Tachyon contributor!
 
 ### Testing
 
--   Run unit tests: ``mvn test``
+-   Run all unit tests: ``mvn test`` (use localfs as under filesystem) and ``mvn -Dintegration test`` (use HDFS as under filesystem)
 
--   Run a single test: ``mvn -Dtest=TestCircle#mytest test`` ; e.g.  ``mvn -Dtest=TachyonFSTest#createFileTest test`` ;
+-   Run a single unit test: ``mvn -Dtest=TestCircle#mytest test`` ; e.g.  ``mvn -Dtest=TachyonFSTest#createFileTest test`` ;
 
 -   Quickly test the working of some APIs in an interactive manner, you may leverage
-the Scala shell, as discussed in [this blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
+the Scala shell, as discussed in this [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
 
 ### Coding Style
 
@@ -70,6 +62,14 @@ the Scala shell, as discussed in [this blog](http://scala4fun.tumblr.com/post/84
     synchronized native strictfp**, then as **alphabetical order**.
 -   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml).
 
+### IDE
+
+You can generate Eclipse configure file by run:
+
+    mvn install -Dintegration -DskipTests eclipse:eclipse
+
+Then import the folder into Eclipse.
+
 ### Submitting Code
 
 -   Break your work into small, single-purpose patches if possible. It’s much harder to merge in
@@ -81,7 +81,7 @@ the Scala shell, as discussed in [this blog](http://scala4fun.tumblr.com/post/84
     [forking a repo](https://help.github.com/articles/fork-a-repo) and
     [sending a pull request](https://help.github.com/articles/using-pull-requests).
 
--   Make sure that your code passes the unit tests: mvn test.
+-   Make sure that your code passes all unit tests: ``mvn test`` and ``mvn -Dintegration test``
 
 ### Readings
 
