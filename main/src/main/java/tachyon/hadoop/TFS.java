@@ -274,6 +274,7 @@ public class TFS extends FileSystem {
 
   /**
    * Initialize the class, have a lazy connection with Tachyon through mTFS.
+   * there are something error , when build
    */
   @Override
   public void initialize(URI uri, Configuration conf) throws IOException {
