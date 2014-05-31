@@ -16,7 +16,8 @@ including Yahoo, Intel, Redhat etc.
 [Releases and Downloads](https://github.com/amplab/tachyon/releases) |
 [User Documentation](#user-documentation) |
 [Developer Documentation](#developer-documentation) |
-[Acknowledgement](#acknowledgement)
+[Acknowledgement](#acknowledgement) |
+[Meetup Group](http://www.meetup.com/Tachyon/)
 
 # Current Features
 
