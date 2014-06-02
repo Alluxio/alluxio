@@ -367,6 +367,14 @@ public class TachyonFSTest {
   }
 
   @Test
+  public void mkdirTest() throws Exception {
+    for (int k = 0; k < 10; k ++) {
+      Assert.assertEquals(true, mTfs.mkdir("/root/folder" + k));
+      Assert.assertEquals(true, mTfs.mkdir("/root/folder" + k));
+    }
+  }
+
+  @Test
   public void renameFileTest1() throws IOException {
     int fileId = mTfs.createFile("/root/testFile1");
     for (int k = 1; k < 10; k ++) {
