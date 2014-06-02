@@ -288,6 +288,31 @@ public final class CommonUtils {
     return path.split(Constants.PATH_SEPARATOR);
   }
 
+  /**
+   * Get the path without schema. e.g.,
+   * <p>
+   * tachyon://localhost:19998/ -> /
+   * <p>
+   * tachyon://localhost:19998/abc/d.txt -> /abc/d.txt
+   * <p>
+   * tachyon-ft://localhost:19998/abc/d.txt -> /abc/d.txt
+   * 
+   * @param path
+   *          the original path
+   * @return the path without the schema
+   */
+  public static String getPathWithoutSchema(String path) {
+    if (!path.contains("://")) {
+      return path;
+    }
+
+    path = path.substring(path.indexOf("://") + 3);
+    if (!path.contains("/")) {
+      return "/";
+    }
+    return path.substring(path.indexOf("/"));
+  }
+
   public static String getSizeFromBytes(long bytes) {
     double ret = bytes;
     if (ret <= 1024 * 5) {
