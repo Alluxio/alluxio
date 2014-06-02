@@ -165,6 +165,19 @@ public abstract class UnderFileSystem {
    */
   public abstract String[] list(String path) throws IOException;
 
+  /**
+   * Creates the directory named by this abstract pathname. If the folder already exists, the method
+   * returns false.
+   * 
+   * @param path
+   *          the folder to create
+   * @param createParent
+   *          If true, the method creates any necessary but nonexistent parent directories.
+   *          Otherwise, the method does not create nonexistent parent directories.
+   * @return <code>true</code> if and only if the directory was created; <code>false</code>
+   *         otherwise
+   * @throws IOException
+   */
   public abstract boolean mkdirs(String path, boolean createParent) throws IOException;
 
   public abstract InputStream open(String path) throws IOException;
@@ -182,6 +195,7 @@ public abstract class UnderFileSystem {
 
   /**
    * Change posix file permission
+   * 
    * @param path
    *          path of the file
    * @param posixPerm

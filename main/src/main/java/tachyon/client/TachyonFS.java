@@ -372,10 +372,32 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Create a file with the default block size (1GB) in the system. It also creates necessary
+   * folders along the path. // TODO It should not create necessary path.
+   * 
+   * @param path
+   *          the path of the file
+   * @return The unique file id. It returns -1 if the creation failed.
+   * @throws IOException
+   *           If file already exists, or path is invalid.
+   */
   public synchronized int createFile(String path) throws IOException {
     return createFile(path, UserConf.get().DEFAULT_BLOCK_SIZE_BYTE);
   }
 
+  /**
+   * Create a file in the system. It also creates necessary folders along the path.
+   * // TODO It should not create necessary path.
+   * 
+   * @param path
+   *          the path of the file
+   * @param blockSizeByte
+   *          the block size of the file
+   * @return The unique file id. It returns -1 if the creation failed.
+   * @throws IOException
+   *           If file already exists, or path is invalid.
+   */
   public synchronized int createFile(String path, long blockSizeByte) throws IOException {
     if (blockSizeByte > (long) Constants.GB * 2) {
       throw new IOException("Block size must be less than 2GB: " + blockSizeByte);
@@ -396,7 +418,19 @@ public class TachyonFS {
     return fid;
   }
 
-  public synchronized int createFile(String path, String checkpointPath) throws IOException {
+  /**
+   * Create a file in the system with a pre-defined underfsPath. It also creates necessary
+   * folders along the path. // TODO It should not create necessary path.
+   * 
+   * @param path
+   *          the path of the file in Tachyon
+   * @param underfsPath
+   *          the path of the file in the underfs
+   * @return The unique file id. It returns -1 if the creation failed.
+   * @throws IOException
+   *           If file already exists, or path is invalid.
+   */
+  public synchronized int createFile(String path, String underfsPath) throws IOException {
     connect();
     if (!mConnected) {
       return -1;
@@ -404,7 +438,7 @@ public class TachyonFS {
     path = cleanPathIOException(path);
     int fid = -1;
     try {
-      fid = mMasterClient.user_createFileOnCheckpoint(path, checkpointPath);
+      fid = mMasterClient.user_createFileOnCheckpoint(path, underfsPath);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
@@ -1013,11 +1047,12 @@ public class TachyonFS {
   }
 
   /**
-   * Create a directory if it does not exist.
+   * Create a directory if it does not exist. The method also creates necessary non-existing
+   * parent folders.
    * 
    * @param path
    *          Directory path.
-   * @return true if the folder is created successfully. false otherwise.
+   * @return true if the folder is created successfully or already existing. false otherwise.
    * @throws IOException
    */
   public synchronized boolean mkdir(String path) throws IOException {
