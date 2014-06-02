@@ -43,6 +43,32 @@ public final class CommonUtils {
   private static final Logger LOG = Logger.getLogger("");
 
   /**
+   * Add leading zero to make the number has a fixed width. e.g., 81 with width 4 returns 0081;
+   * 12345 with width 4 returns 12345.
+   * 
+   * @param number
+   *          the number to add leading zero
+   * @param width
+   *          the fixed width
+   * @return a String with a fixed leading zero.
+   * @throws IOException
+   *           the number has to be non-negative; the width has to be positive.
+   */
+  public static String addLeadingZero(int number, int width) throws IOException {
+    if (number < 0) {
+      throw new IOException("The number has to be non-negative: " + number);
+    }
+    if (width <= 0) {
+      throw new IOException("The width has to be positive: " + width);
+    }
+    String result = number + "";
+    while (result.length() < width) {
+      result = "0" + result;
+    }
+    return result;
+  }
+
+  /**
    * Change local file's permission.
    * 
    * @param filePath
@@ -350,21 +376,28 @@ public final class CommonUtils {
     return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
   }
 
-  public static long parseMemorySize(String memorySize) {
+  /**
+   * Parse a String size to Bytes.
+   * 
+   * @param spaceSize
+   *          the size of a space, e.g. 10GB, 5TB, 1024
+   * @return the space size in bytes
+   */
+  public static long parseSpaceSize(String spaceSize) {
     double alpha = 0.0001;
-    String ori = memorySize;
+    String ori = spaceSize;
     String end = "";
-    int tIndex = memorySize.length() - 1;
+    int tIndex = spaceSize.length() - 1;
     while (tIndex >= 0) {
-      if (memorySize.charAt(tIndex) > '9' || memorySize.charAt(tIndex) < '0') {
-        end = memorySize.charAt(tIndex) + end;
+      if (spaceSize.charAt(tIndex) > '9' || spaceSize.charAt(tIndex) < '0') {
+        end = spaceSize.charAt(tIndex) + end;
       } else {
         break;
       }
       tIndex --;
     }
-    memorySize = memorySize.substring(0, tIndex + 1);
-    double ret = Double.parseDouble(memorySize);
+    spaceSize = spaceSize.substring(0, tIndex + 1);
+    double ret = Double.parseDouble(spaceSize);
     end = end.toLowerCase();
     if (end.isEmpty() || end.equals("b")) {
       return (long) (ret + alpha);
@@ -485,8 +518,5 @@ public final class CommonUtils {
         || path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
-  }
-
-  private CommonUtils() {
   }
 }
