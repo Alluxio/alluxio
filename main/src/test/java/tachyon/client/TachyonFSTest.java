@@ -202,6 +202,64 @@ public class TachyonFSTest {
     }
   }
 
+  @Test(expected = IOException.class)
+  public void getTestAbnormal1() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS.get("/" + host + ":" + port);
+  }
+
+  @Test(expected = IOException.class)
+  public void getTestAbnormal2() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS.get("/" + host + port);
+  }
+
+  @Test(expected = IOException.class)
+  public void getTestAbnormal3() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS.get("/" + host + ":" + (port - 1));
+  }
+
+  @Test(expected = IOException.class)
+  public void getTestAbnormal4() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS.get("/" + host + ":" + port + "/ab/c.txt");
+  }
+
+  private void getTestHelper(TachyonFS tfs) throws IOException {
+    int fileId = mTfs.createFile("/root/testFile1");
+    Assert.assertEquals(3, fileId);
+    Assert.assertNotNull(mTfs.getFile(fileId));
+  }
+
+  @Test
+  public void getTestNormal1() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS tfs = TachyonFS.get("tachyon://" + host + ":" + port);
+    getTestHelper(tfs);
+  }
+
+  @Test
+  public void getTestNormal2() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS tfs = TachyonFS.get("tachyon://" + host + ":" + port + "/");
+    getTestHelper(tfs);
+  }
+
+  @Test
+  public void getTestNormal3() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS tfs = TachyonFS.get("tachyon://" + host + ":" + port + "/ab/c.txt");
+    getTestHelper(tfs);
+  }
+
   @Test
   public void lockBlockTest1() throws IOException {
     TachyonFile tFile = null;
