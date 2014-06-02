@@ -59,24 +59,33 @@ import tachyon.worker.WorkerClient;
  * depending on how many workers the client program is interacting with.
  */
 public class TachyonFS {
-  public static synchronized TachyonFS get(String tachyonAddress) throws IOException {
+  /**
+   * Create a TachyonFS handler.
+   * 
+   * @param tachyonPath
+   *          a Tachyon path contains master address. e.g., tachyon://localhost:19998,
+   *          tachyon://localhost:19998/ab/c.txt
+   * @return the corresponding TachyonFS hanlder
+   * @throws IOException
+   */
+  public static synchronized TachyonFS get(String tachyonPath) throws IOException {
     boolean zookeeperMode = false;
-    String tempAddress = tachyonAddress;
-    if (tachyonAddress.startsWith(Constants.HEADER)) {
-      tempAddress = tachyonAddress.substring(Constants.HEADER.length());
-    } else if (tachyonAddress.startsWith(Constants.HEADER_FT)) {
+    String tempAddress = tachyonPath;
+    if (tachyonPath.startsWith(Constants.HEADER)) {
+      tempAddress = tachyonPath.substring(Constants.HEADER.length());
+    } else if (tachyonPath.startsWith(Constants.HEADER_FT)) {
       zookeeperMode = true;
-      tempAddress = tachyonAddress.substring(Constants.HEADER_FT.length());
+      tempAddress = tachyonPath.substring(Constants.HEADER_FT.length());
     } else {
-      throw new IOException("Invalid Path: " + tachyonAddress + ". Use " + Constants.HEADER
-          + "host:port/ ," + Constants.HEADER_FT + "host:port/" + " , or /file");
+      throw new IOException("Invalid Path: " + tachyonPath + ". Use " + Constants.HEADER
+          + "host:port/ ," + Constants.HEADER_FT + "host:port/");
     }
     String masterAddress = tempAddress;
     if (tempAddress.contains(Constants.PATH_SEPARATOR)) {
       masterAddress = tempAddress.substring(0, tempAddress.indexOf(Constants.PATH_SEPARATOR));
     }
     if (masterAddress.split(":").length != 2) {
-      CommonUtils.illegalArgumentException("Illegal Tachyon Master Address: " + tachyonAddress);
+      CommonUtils.illegalArgumentException("Illegal Tachyon Master Address: " + tachyonPath);
     }
     String masterHost = masterAddress.split(":")[0];
     int masterPort = Integer.parseInt(masterAddress.split(":")[1]);
