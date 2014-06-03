@@ -25,7 +25,6 @@ import java.net.UnknownHostException;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.spi.ErrorCode;
 import org.apache.log4j.spi.LoggingEvent;
-import org.apache.tools.ant.util.LazyFileOutputStream;
 import tachyon.util.CommonUtils;
 
 /**
