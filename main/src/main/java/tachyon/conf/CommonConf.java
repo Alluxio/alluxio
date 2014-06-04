@@ -84,12 +84,11 @@ public class CommonConf extends Utils {
     UNDERFS_HDFS_IMPL =
         getProperty("tachyon.underfs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
     UNDERFS_GLUSTERFS_IMPL =
-        getProperty("tachyon.underfs.glusterfs.impl", "org.apache.hadoop.fs.glusterfs.GlusterFileSystem");
-    UNDERFS_GLUSTERFS_VOLUMES = 
-        getProperty("tachyon.underfs.glusterfs.volumes", null);
-    UNDERFS_GLUSTERFS_MOUNTS = 
-        getProperty("tachyon.underfs.glusterfs.mounts", null);
-    UNDERFS_GLUSTERFS_MR_DIR = 
+        getProperty("tachyon.underfs.glusterfs.impl",
+            "org.apache.hadoop.fs.glusterfs.GlusterFileSystem");
+    UNDERFS_GLUSTERFS_VOLUMES = getProperty("tachyon.underfs.glusterfs.volumes", null);
+    UNDERFS_GLUSTERFS_MOUNTS = getProperty("tachyon.underfs.glusterfs.mounts", null);
+    UNDERFS_GLUSTERFS_MR_DIR =
         getProperty("tachyon.underfs.glusterfs.mapred.system.dir", "glusterfs:///mapred/system");
     USE_ZOOKEEPER = getBooleanProperty("tachyon.usezookeeper", false);
     if (USE_ZOOKEEPER) {
