@@ -46,15 +46,15 @@ function runTest {
 
   if [[ "$1" == "Basic" ]]; then
     $bin/tachyon tfs rm /BasicFile_$2
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicOperations tachyon://$MASTER_ADDRESS:19998 /BasicFile_$2 $2
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR $TACHYON_JAVA_OPTS tachyon.examples.BasicOperations tachyon://$MASTER_ADDRESS:19998 /BasicFile_$2 $2
     exit 0
   elif [[ "$1" == "BasicRawTable" ]]; then
     $bin/tachyon tfs rm /BasicRawTable_$2
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicRawTableOperations tachyon://$MASTER_ADDRESS:19998 /BasicRawTable_$2 $2
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR $TACHYON_JAVA_OPTS tachyon.examples.BasicRawTableOperations tachyon://$MASTER_ADDRESS:19998 /BasicRawTable_$2 $2
     exit 0
   elif [[ "$1" == "BasicCheckpoint" ]]; then
     $bin/tachyon tfs rm /BasicCheckpoint
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR tachyon.examples.BasicCheckpoint tachyon://$MASTER_ADDRESS:19998 /BasicCheckpoint 10
+    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR $TACHYON_JAVA_OPTS tachyon.examples.BasicCheckpoint tachyon://$MASTER_ADDRESS:19998 /BasicCheckpoint 10
     exit 0
   fi
 
@@ -131,7 +131,7 @@ PARAMETER=""
 if [ "$COMMAND" == "format" ]; then
   if [ $# -eq 1 ]; then
     if [ "$1" == "-s" ]; then
-      if [ -e $TACHYON_UNDERFS_ADDRESS ] || [[ $TACHYON_UNDERFS_ADDRESS == hdfs://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == s3://* ]]; then
+      if [ -e $TACHYON_UNDERFS_ADDRESS ] || [[ $TACHYON_UNDERFS_ADDRESS == hdfs://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == s3://* ]] || [[ $TACHYON_UNDERFS_ADDRESS == glusterfs://* ]]; then
         # already exists, hdfs, or s3, don't format
         exit 0
       else
