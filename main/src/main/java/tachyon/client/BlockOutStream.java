@@ -109,7 +109,7 @@ public class BlockOutStream extends OutStream {
     }
 
     MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, mInFileBytes, length);
-    out.put(buf, 0, length);
+    out.put(buf, offset, length);
     mInFileBytes += length;
   }
 
