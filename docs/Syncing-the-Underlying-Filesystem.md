@@ -3,15 +3,33 @@ layout: global
 title: Syncing the Underlayer Filesystem
 ---
 
-Often times, there is already data in the underlying store, but when Tachyon is started, it will not
-have knowledge about the preexisting files.
+Often times, there is already data in the underlying store, but when Tachyon is started, it will
+not have knowledge about the preexisting files.
 
 Use the tachyon shell command loadufs to sync the filesystems.
 
-    $ ./bin/tachyon loadufs [TACHYON_ADDRESS] [UNDERLYING_FILESYSTEM_ADDRESS] [ROOT_DIRECTORY] [-Optional EXCLUDE_PATHS]
+    $ ./bin/tachyon loadufs [TACHYON_PATH] [UNDERLYING_FILESYSTEM_PATH] [Optional EXCLUDE_PATHS]
 
 For example:
 
-    $ ./bin/tachyon loadufs tachyon://127.0.0.1:19998 hdfs://localhost:9000 / /tachyon
+    $ ./bin/tachyon loadufs tachyon://127.0.0.1:19998 hdfs://localhost:9000 tachyon
 
-Would load the meta-data for all the files in the local hdfs, except for the Tachyon folder.
+Would load the meta-data for all the files in the local hdfs, except for the tachyon folder.
+
+    $ ./bin/tachyon loadufs tachyon://127.0.0.1:19998/tomlogs file:///Users/tom/logs tachyon;spark
+
+Would load meta-data for all local files under the /Users/tom/logs directory (except for tachyon
+and spark) to address tachyon://127.0.0.1:19998/tomlogs. If /Users/tom/logs itself is a file, only
+that file is loaded as /tomlogs/logs in the TFS. The prefix "file://" can be safely omitted for
+a local file system.
+
+Note that the optional EXCLUDE_PATHS are prefixes relative to the given local file path. Moreover,
+only files matching the given prefixes relative to the path will be excluded. Hence, in the above
+last example, logs/tachyon and logs/spark will be excluded, but not logs/shark/tachyon nor
+logs/shark/spark. To exclude these two paths as well, the exclude list should be specified as
+"tachyon;spark;shark/tachyon;shark/spark". It is important to note that when ";" is present to
+concatenate multiple prefixes the quote marks must be used; otherwise it would be treated as
+multiple commands to be executed in tandem.
+
+In a sense, loadufs is similar to the unix mount command. It's not called mount so as not to cause
+confusions with the use of mount in the tachyon scripts.

@@ -111,12 +111,12 @@ number.
 <tr>
   <td>tachyon.master.whitelist</td>
   <td>/</td>
-  <td>The list of prefixes of the paths which are cacheable, separated by semi-colons. Tachyon will try to cache the cacheable file when it is read for the first time.</td>
+  <td>The comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Tachyon will try to cache the cacheable file when it is read for the first time.</td>
 </tr>
 <tr>
   <td>tachyon.master.pinlist</td>
   <td></td>
-  <td>The list of files that will remain in memory all the time. If the memory size is not sufficient, the exception will be raised for the last caching file's client.</td>
+  <td>The comma-separated list of files that will remain in memory all the time. If the memory size is not sufficient, the exception will be raised for the last caching file's client.</td>
 </tr>
 </table>
 

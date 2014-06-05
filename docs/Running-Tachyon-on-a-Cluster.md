@@ -11,8 +11,8 @@ First download `tachyon` tar file, and extract it.
     $ tar xvfz tachyon-{{site.TACHYON_RELEASED_VERSION}}-bin.tar.gz
 
 In the `tachyon/conf` directory, copy `tachyon-env.sh.template` to `tachyon-env.sh`. Make sure
-`JAVA_HOME` points to a valid Java 6/7 installation. Edit `tachyon/conf/master` and
-`tachyon/conf/slaves` files. And then sync all the information to worker nodes.
+`JAVA_HOME` points to a valid Java 6/7 installation. Edit `tachyon/conf/slaves` file. And then sync
+all the information to worker nodes.
 
 Now, you can start Tachyon:
 

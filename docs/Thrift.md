@@ -5,8 +5,8 @@ title: Thrift
 
 # Mac OSX
 
-1.  Grab the latest Thrift distribution (we only support 0.7.0) from
-    [http://archive.apache.org/dist/thrift/0.7.0/](http://archive.apache.org/dist/thrift/0.7.0/)
+1.  Grab the latest Thrift distribution (we support 0.9.0) from
+    [http://archive.apache.org/dist/thrift/0.9.0/](http://archive.apache.org/dist/thrift/0.9.0/)
 2.  Install Xcode from the Mac App Store
 3.  Launch Xcode, open the Preferences, select Downloads, and install
     the “Command Line Tools for Xcode” component.
@@ -25,7 +25,7 @@ Use Homebrew to install [Boost](http://www.boost.org/)
 
     brew install boost
 
-Now build Thrift 0.7.0:
+Now build Thrift 0.9.0:
 
     ./configure --prefix=/usr/local/ --with-boost=/usr/local --with-libevent=/usr/local
     make

@@ -8,6 +8,8 @@ The master branch is in version 0.5.0-SNAPSHOT:
 - [Master Branch Document](http://tachyon-project.org/master/)
 - [Tachyon Issue Tracker](https://spark-project.atlassian.net/browse/TACHYON)
 - [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
+- [Meetup Group](http://www.meetup.com/Tachyon)
+
 
 ## Dependency Information
 
