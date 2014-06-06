@@ -35,9 +35,26 @@ public class CommonConf extends Utils {
     COMMON_CONF = null;
   }
 
+  /***
+   * get configuration from command line options 
+   * @return
+   */
   public static synchronized CommonConf get() {
     if (COMMON_CONF == null) {
-      COMMON_CONF = new CommonConf();
+      COMMON_CONF = new CommonConf(null);
+    }
+
+    return COMMON_CONF;
+  }
+
+  /***
+   * get configuration from configuration file
+   * @param name configuration file
+   * @return
+   */
+  public static synchronized CommonConf get(String name) {
+    if (COMMON_CONF == null) {
+      COMMON_CONF = new CommonConf(name);
     }
 
     return COMMON_CONF;
@@ -67,7 +84,10 @@ public class CommonConf extends Utils {
 
   public final int MAX_TABLE_METADATA_BYTE;
 
-  private CommonConf() {
+  private CommonConf(String name) {
+    if (name != null)
+      addResource(name);
+    
     if (System.getProperty("tachyon.home") == null) {
       LOG.warn("tachyon.home is not set. Using /mnt/tachyon_default_home as the default value.");
       File file = new File("/mnt/tachyon_default_home");

@@ -34,7 +34,15 @@ public class MasterConf extends Utils {
 
   public static synchronized MasterConf get() {
     if (MASTER_CONF == null) {
-      MASTER_CONF = new MasterConf();
+      MASTER_CONF = new MasterConf(null);
+    }
+
+    return MASTER_CONF;
+  }
+
+  public static synchronized MasterConf get(String name) {
+    if (MASTER_CONF == null) {
+      MASTER_CONF = new MasterConf(name);
     }
 
     return MASTER_CONF;
@@ -59,7 +67,10 @@ public class MasterConf extends Utils {
 
   public final ArrayList<String> PINLIST = new ArrayList<String>();
 
-  private MasterConf() {
+  private MasterConf(String name) {
+    if (name != null)
+      addResource(name);
+
     String journalFolder =
         getProperty("tachyon.master.journal.folder", CommonConf.get().TACHYON_HOME + "/journal/");
     if (!journalFolder.endsWith(Constants.PATH_SEPARATOR)) {

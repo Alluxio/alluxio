@@ -14,64 +14,68 @@
  */
 package tachyon.conf;
 
-import org.apache.log4j.Logger;
+import org.apache.hadoop.conf.Configuration;
 
-import tachyon.util.CommonUtils;
-
-/**
- * Utils for tachyon.conf package.
- */
-class Utils {
-  UtilsBase mConf = null;
+class UtilsFile implements UtilsBase {
+  Configuration mConf = null;
   
-  public Utils(){
-    if (mConf == null){
-      mConf = new UtilsOpt();
+  public UtilsFile() {
+    if (mConf == null) {
+      mConf = new Configuration();
     }
+    // default conf
+    addResource("tachyon.xml");
   }
 
-  public Utils(String name){
-    if (mConf == null){
-      mConf = new UtilsFile(name);
+  public UtilsFile(String name) {
+    if (mConf == null) {
+      mConf = new Configuration();
     }
-  }
-
-  public void addResource(String name){
-    mConf = new UtilsFile(name);
+    mConf.addResource(name);
   }
   
-  private final Logger LOG = Logger.getLogger("");
-
+  public void addResource(String name) {
+    mConf.addResource(name);
+  }
+  
+  @Override
   public boolean getBooleanProperty(String property) {
-    return mConf.getBooleanProperty(property);
+    return mConf.getBoolean(property, false);
   }
 
+  @Override
   public boolean getBooleanProperty(String property, boolean defaultValue) {
-    return mConf.getBooleanProperty(property, defaultValue);
+    return mConf.getBoolean(property, defaultValue);
   }
 
+  @Override
   public int getIntProperty(String property) {
-    return mConf.getIntProperty(property);
+    return mConf.getInt(property, -1);
   }
 
+  @Override
   public int getIntProperty(String property, int defaultValue) {
-    return mConf.getIntProperty(property, defaultValue);
+    return mConf.getInt(property, defaultValue);
   }
 
+  @Override
   public long getLongProperty(String property) {
-    return mConf.getLongProperty(property);
+    return mConf.getLong(property, -1);
   }
 
+  @Override
   public long getLongProperty(String property, int defaultValue) {
-    return mConf.getLongProperty(property, defaultValue);
+    return mConf.getLong(property, defaultValue);
   }
 
+  @Override
   public String getProperty(String property) {
-    return mConf.getProperty(property);
+    return mConf.get(property);
   }
 
+  @Override
   public String getProperty(String property, String defaultValue) {
-    return mConf.getProperty(property, defaultValue);
+    return mConf.get(property, defaultValue);
   }
 
 }

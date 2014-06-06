@@ -21,57 +21,60 @@ import tachyon.util.CommonUtils;
 /**
  * Utils for tachyon.conf package.
  */
-class Utils {
-  UtilsBase mConf = null;
-  
-  public Utils(){
-    if (mConf == null){
-      mConf = new UtilsOpt();
-    }
-  }
-
-  public Utils(String name){
-    if (mConf == null){
-      mConf = new UtilsFile(name);
-    }
-  }
-
-  public void addResource(String name){
-    mConf = new UtilsFile(name);
-  }
-  
+class UtilsOpt implements UtilsBase {
   private final Logger LOG = Logger.getLogger("");
-
+  
+  @Override
   public boolean getBooleanProperty(String property) {
-    return mConf.getBooleanProperty(property);
+    return Boolean.valueOf(getProperty(property));
   }
-
+  
+  @Override
   public boolean getBooleanProperty(String property, boolean defaultValue) {
-    return mConf.getBooleanProperty(property, defaultValue);
+    return Boolean.valueOf(getProperty(property, defaultValue + ""));
   }
-
+  
+  @Override
   public int getIntProperty(String property) {
-    return mConf.getIntProperty(property);
+    return Integer.valueOf(getProperty(property));
   }
-
+  
+  @Override
   public int getIntProperty(String property, int defaultValue) {
-    return mConf.getIntProperty(property, defaultValue);
+    return Integer.valueOf(getProperty(property, defaultValue + ""));
   }
-
+  
+  @Override
   public long getLongProperty(String property) {
-    return mConf.getLongProperty(property);
+    return Long.valueOf(getProperty(property));
   }
-
+  
+  @Override
   public long getLongProperty(String property, int defaultValue) {
-    return mConf.getLongProperty(property, defaultValue);
+    return Long.valueOf(getProperty(property, defaultValue + ""));
   }
-
+  
+  @Override
   public String getProperty(String property) {
-    return mConf.getProperty(property);
+    String ret = System.getProperty(property);
+    if (ret == null) {
+      CommonUtils.illegalArgumentException(property + " is not configured.");
+    } else {
+      LOG.debug(property + " : " + ret);
+    }
+    return ret;
   }
-
+  
+  @Override
   public String getProperty(String property, String defaultValue) {
-    return mConf.getProperty(property, defaultValue);
+    String ret = System.getProperty(property);
+    String msg = "";
+    if (ret == null) {
+      ret = defaultValue;
+      msg = " uses the default value";
+    }
+    LOG.debug(property + msg + " : " + ret);
+    return ret;
   }
 
 }
