@@ -29,7 +29,15 @@ public class WorkerConf extends Utils {
 
   public static synchronized WorkerConf get() {
     if (WORKER_CONF == null) {
-      WORKER_CONF = new WorkerConf();
+      WORKER_CONF = new WorkerConf(null);
+    }
+
+    return WORKER_CONF;
+  }
+
+  public static synchronized WorkerConf get(String name) {
+    if (WORKER_CONF == null) {
+      WORKER_CONF = new WorkerConf(name);
     }
 
     return WORKER_CONF;
@@ -54,7 +62,10 @@ public class WorkerConf extends Utils {
 
   public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
 
-  private WorkerConf() {
+  private WorkerConf(String name) {
+    if (name != null)
+      addResource(name);
+
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     MASTER_PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
 
