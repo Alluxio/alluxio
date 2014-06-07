@@ -210,3 +210,4 @@ case "${WHAT}" in
     echo -e "$Usage"
     exit 1
 esac
+sleep 2
