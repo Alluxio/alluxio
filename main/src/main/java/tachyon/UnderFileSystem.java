@@ -45,7 +45,7 @@ public abstract class UnderFileSystem {
 
   /**
    * Get the UnderFileSystem instance according to its schema.
-   * 
+   *
    * @param path
    *          file path storing over the ufs.
    * @return null for any unknown scheme.
@@ -56,7 +56,7 @@ public abstract class UnderFileSystem {
 
   /**
    * Get the UnderFileSystem instance according to its scheme and configuration.
-   * 
+   *
    * @param path
    *          file path storing over the ufs
    * @param conf
@@ -64,7 +64,7 @@ public abstract class UnderFileSystem {
    * @return null for any unknown scheme.
    */
   public static UnderFileSystem get(String path, Object conf) {
-    if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://") || path.startsWith("glusterfs:///")) {
+    if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")) {
       return UnderFileSystemHdfs.getClient(path, conf);
     } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return UnderFileSystemSingleLocal.getClient();
@@ -77,7 +77,7 @@ public abstract class UnderFileSystem {
    * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir
    * into a pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
    * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
-   * 
+   *
    * @param path
    *          the input path string
    * @return null if path does not start with tachyon://, tachyon-ft://, hdfs://, s3://, s3n://,
@@ -124,7 +124,7 @@ public abstract class UnderFileSystem {
 
   /**
    * To get the configuration object for UnderFileSystem.
-   * 
+   *
    * @return configuration object used for concrete ufs instance
    */
   public abstract Object getConf();
@@ -144,17 +144,17 @@ public abstract class UnderFileSystem {
   /**
    * Returns an array of strings naming the files and directories in the directory denoted by this
    * abstract pathname.
-   * 
+   *
    * <p>
    * If this abstract pathname does not denote a directory, then this method returns {@code null}.
    * Otherwise an array of strings is returned, one for each file or directory in the directory.
    * Names denoting the directory itself and the directory's parent directory are not included in
    * the result. Each string is a file name rather than a complete path.
-   * 
+   *
    * <p>
    * There is no guarantee that the name strings in the resulting array will appear in any specific
    * order; they are not, in particular, guaranteed to appear in alphabetical order.
-   * 
+   *
    * @param path
    *          the path to list.
    * @return An array of strings naming the files and directories in the directory denoted by this
@@ -168,7 +168,7 @@ public abstract class UnderFileSystem {
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method
    * returns false.
-   * 
+   *
    * @param path
    *          the folder to create
    * @param createParent
@@ -187,7 +187,7 @@ public abstract class UnderFileSystem {
   /**
    * To set the configuration object for UnderFileSystem.
    * The conf object is understood by the concrete underfs's implementation.
-   * 
+   *
    * @param conf
    *          The configuration object accepted by ufs.
    */
@@ -195,7 +195,7 @@ public abstract class UnderFileSystem {
 
   /**
    * Change posix file permission
-   * 
+   *
    * @param path
    *          path of the file
    * @param posixPerm
