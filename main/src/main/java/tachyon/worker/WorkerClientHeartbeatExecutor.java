@@ -19,6 +19,7 @@ import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
+import tachyon.util.CommonUtils;
 
 /**
  * User client sends periodical heartbeats to the worker it is talking to. It is fails to do so,
@@ -39,7 +40,7 @@ class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
     try {
       WORKER_CLIENT.userHeartbeat(USER_ID);
     } catch (TException e) {
-      LOG.error(e.getMessage());
+      CommonUtils.runtimeException(e);
     }
   }
 }

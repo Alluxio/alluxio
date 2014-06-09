@@ -49,11 +49,13 @@ public class InodeFile extends Inode {
     long blockSizeByte = is.readLong();
     long length = is.readLong();
     boolean isComplete = is.readBoolean();
-    boolean isPin = is.readBoolean();
+    boolean isPinned = is.readBoolean();
     boolean isCache = is.readBoolean();
     String checkpointPath = Utils.readString(is);
+    int dependencyId = is.readInt();
 
-    InodeFile inode = new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
+    InodeFile inode =
+        new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
 
     try {
       inode.setLength(length);
@@ -61,17 +63,16 @@ public class InodeFile extends Inode {
       throw new IOException(e);
     }
     inode.setComplete(isComplete);
-    inode.setPin(isPin);
+    inode.setPinned(isPinned);
     inode.setCache(isCache);
     inode.setCheckpointPath(checkpointPath);
-    inode.setDependencyId(is.readInt());
+    inode.setDependencyId(dependencyId);
     return inode;
   }
 
   private final long BLOCK_SIZE_BYTE;
   private long mLength = 0;
   private boolean mIsComplete = false;
-  private boolean mPin = false;
   private boolean mCache = false;
   private String mCheckpointPath = "";
 
@@ -132,7 +133,7 @@ public class InodeFile extends Inode {
     ret.complete = isComplete();
     ret.folder = false;
     ret.inMemory = isFullyInMemory();
-    ret.needPin = mPin;
+    ret.needPin = isPinned();
     ret.needCache = mCache;
     ret.blockIds = getBlockIds();
     ret.dependencyId = mDependencyId;
@@ -249,10 +250,6 @@ public class InodeFile extends Inode {
     return getInMemoryPercentage() == 100;
   }
 
-  public synchronized boolean isPin() {
-    return mPin;
-  }
-
   public synchronized void removeLocation(int blockIndex, long workerId) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
@@ -299,10 +296,6 @@ public class InodeFile extends Inode {
     mIsComplete = true;
   }
 
-  public synchronized void setPin(boolean pin) {
-    mPin = pin;
-  }
-
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("InodeFile(");
@@ -323,7 +316,7 @@ public class InodeFile extends Inode {
     os.writeLong(getBlockSizeByte());
     os.writeLong(getLength());
     os.writeBoolean(isComplete());
-    os.writeBoolean(isPin());
+    os.writeBoolean(isPinned());
     os.writeBoolean(isCache());
     Utils.writeString(getCheckpointPath(), os);
     os.writeInt(getDependencyId());
