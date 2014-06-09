@@ -43,6 +43,7 @@ public class InodeFolder extends Inode {
     int fileId = is.readInt();
     String fileName = Utils.readString(is);
     int parentId = is.readInt();
+    boolean isPinned = is.readBoolean();
 
     int numberOfChildren = is.readInt();
     Inode[] children = new Inode[numberOfChildren];
@@ -56,6 +57,7 @@ public class InodeFolder extends Inode {
     }
 
     InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs);
+    folder.setPinned(isPinned);
     folder.addChildren(children);
     return folder;
   }
@@ -109,7 +111,7 @@ public class InodeFolder extends Inode {
     ret.complete = true;
     ret.folder = true;
     ret.inMemory = true;
-    ret.needPin = false;
+    ret.needPin = isPinned();
     ret.needCache = false;
     ret.blockIds = null;
     ret.dependencyId = -1;
@@ -229,6 +231,7 @@ public class InodeFolder extends Inode {
     os.writeInt(getId());
     Utils.writeString(getName(), os);
     os.writeInt(getParentId());
+    os.writeBoolean(isPinned());
 
     List<Integer> children = getChildrenIds();
     os.writeInt(children.size());

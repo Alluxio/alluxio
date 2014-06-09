@@ -36,6 +36,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
@@ -255,7 +257,7 @@ public class MasterInfo implements ImageWriter {
 
   // TODO Check the logic related to this two lists.
   private PrefixList mWhiteList;
-  private PrefixList mPinList;
+  // Synchronized set containing all InodeFile ids that are currently pinned.
   private Set<Integer> mFileIdPinList;
 
   private Journal mJournal;
@@ -277,7 +279,6 @@ public class MasterInfo implements ImageWriter {
     mJournal = journal;
 
     mWhiteList = new PrefixList(MASTER_CONF.WHITELIST);
-    mPinList = new PrefixList(MASTER_CONF.PINLIST);
     mFileIdPinList = Collections.synchronizedSet(new HashSet<Integer>());
 
     mJournal.loadImage(this);
@@ -353,10 +354,6 @@ public class MasterInfo implements ImageWriter {
    *          If it's a file, the block size for the Inode
    * @param creationTimeMs
    *          The time the file was created
-   * @param id
-   *          If not -1, use this id as the id to the inode we create at the given path.
-   *          Any intermediate directories created will use mInodeCounter, so using this parameter
-   *          assumes no intermediate directories will be created.
    * @return the id of the inode created at the given path
    * @throws FileAlreadyExistException
    * @throws InvalidPathException
@@ -411,6 +408,7 @@ public class MasterInfo implements ImageWriter {
         Inode dir =
             new InodeFolder(pathNames[k], mInodeCounter.incrementAndGet(),
                 currentInodeFolder.getId(), creationTimeMs);
+        dir.setPinned(currentInodeFolder.isPinned());
         currentInodeFolder.addChild(dir);
         mInodes.put(dir.getId(), dir);
         currentInodeFolder = (InodeFolder) dir;
@@ -432,15 +430,14 @@ public class MasterInfo implements ImageWriter {
         ret =
             new InodeFolder(name, mInodeCounter.incrementAndGet(), currentInodeFolder.getId(),
                 creationTimeMs);
+        ret.setPinned(currentInodeFolder.isPinned());
       } else {
         ret =
             new InodeFile(name, mInodeCounter.incrementAndGet(), currentInodeFolder.getId(),
                 blockSizeByte, creationTimeMs);
-        if (mPinList.inList(path)) {
-          synchronized (mFileIdPinList) {
-            mFileIdPinList.add(ret.getId());
-            ((InodeFile) ret).setPin(true);
-          }
+        ret.setPinned(currentInodeFolder.isPinned());
+        if (ret.isPinned()) {
+          mFileIdPinList.add(ret.getId());
         }
         if (mWhiteList.inList(path)) {
           ((InodeFile) ret).setCache(true);
@@ -468,7 +465,7 @@ public class MasterInfo implements ImageWriter {
   /**
    * Inner delete function.
    * 
-   * @param inode
+   * @param fileId
    *          The inode to delete
    * @param recursive
    *          True if the file and it's subdirectories should be deleted
@@ -528,11 +525,7 @@ public class MasterInfo implements ImageWriter {
             }
           }
 
-          if (((InodeFile) delInode).isPin()) {
-            synchronized (mFileIdPinList) {
-              mFileIdPinList.remove(delInode.getId());
-            }
-          }
+          mFileIdPinList.remove(delInode.getId());
         }
 
         InodeFolder parent = (InodeFolder) mInodes.get(delInode.getParentId());
@@ -777,21 +770,27 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Adds the given inode to mFileIdPinList, traversing folders recursively. Used while loading an
-   * image.
-   * 
-   * @param inode
-   *          The inode to add
-   * @throws IOException
+   * Recomputes mFileIdPinList at the given Inode, recursively recomputing for children.
+   * Optionally will set the "pinned" flag as we go.
+   *
+   * @param inode The inode to start traversal from
+   * @param setPinState An optional parameter indicating whether we should also set the "pinned"
+   *                    flag on each inode we traverse. If absent, the "isPinned" flag is unchanged.
    */
-  private void addToFileIdPinList(Inode inode) throws IOException {
-    if (inode.isFile() && ((InodeFile) inode).isPin()) {
-      synchronized (mFileIdPinList) {
+  private void recomputePinnedFiles(Inode inode, Optional<Boolean> setPinState) {
+    if (setPinState.isPresent()) {
+      inode.setPinned(setPinState.get());
+    }
+
+    if (inode.isFile()) {
+      if (inode.isPinned()) {
         mFileIdPinList.add(inode.getId());
+      } else {
+        mFileIdPinList.remove(inode.getId());
       }
     } else if (inode.isDirectory()) {
       for (Inode child : ((InodeFolder) inode).getChildren()) {
-        addToFileIdPinList(child);
+        recomputePinnedFiles(child, setPinState);
       }
     }
   }
@@ -912,14 +911,6 @@ public class MasterInfo implements ImageWriter {
   /**
    * Create a file. // TODO Make this API better.
    * 
-   * @param recursive
-   * @param path
-   * @param directory
-   * @param columns
-   * @param metadata
-   * @param blockSizeByte
-   * @param creationTimeMs
-   * @return
    * @throws FileAlreadyExistException
    * @throws InvalidPathException
    * @throws BlockInfoException
@@ -1505,21 +1496,19 @@ public class MasterInfo implements ImageWriter {
    */
   public List<Integer> getPinIdList() {
     synchronized (mFileIdPinList) {
-      List<Integer> ret = new ArrayList<Integer>();
-      for (int id : mFileIdPinList) {
-        ret.add(id);
-      }
-      return ret;
+      return Lists.newArrayList(mFileIdPinList);
     }
   }
 
   /**
    * Get the pin list.
-   * 
+   * @deprecated The pin list was removed in 0.5.0. This function will always return any empty list.
+   *
    * @return the pin list
    */
+  @Deprecated
   public List<String> getPinList() {
-    return mPinList.getList();
+    return Collections.emptyList();
   }
 
   /**
@@ -1832,12 +1821,14 @@ public class MasterInfo implements ImageWriter {
           inode = InodeFolder.loadImage(is);
         }
 
+        // TODO: This does not seem to account for the fact that folders recursively load
+        // themselves.
         if (inode.getId() > mInodeCounter.get()) {
           mInodeCounter.set(inode.getId());
         }
 
         addToInodeMap(inode, mInodes);
-        addToFileIdPinList(inode);
+        recomputePinnedFiles(inode, Optional.<Boolean>absent());
 
         if (inode.getId() == 1) {
           mRoot = (InodeFolder) inode;
@@ -2142,30 +2133,19 @@ public class MasterInfo implements ImageWriter {
     }
   }
 
-  /**
-   * Unpin the file with the given id.
-   * 
-   * @param fileId
-   *          The id of the file to unpin
-   * @throws FileDoesNotExistException
-   */
-  public void unpinFile(int fileId) throws FileDoesNotExistException {
-    // TODO Change meta data only. Data will be evicted from worker based on data replacement
-    // policy. TODO May change it to be active from V0.2
-    LOG.info("unpinFile(" + fileId + ")");
+  /** Sets the isPinned flag on the given inode and all of its children. */
+  public void setPinned(int fileId, boolean pinned) throws FileDoesNotExistException {
+    LOG.info("setPinned(" + fileId + ", " + pinned + ")");
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
 
       if (inode == null) {
-        throw new FileDoesNotExistException("Failed to unpin " + fileId);
+        throw new FileDoesNotExistException("Failed to find inode" + fileId);
       }
 
-      ((InodeFile) inode).setPin(false);
-      synchronized (mFileIdPinList) {
-        mFileIdPinList.remove(fileId);
-      }
+      recomputePinnedFiles(inode, Optional.of(pinned));
 
-      mJournal.getEditLog().unpinFile(fileId);
+      mJournal.getEditLog().setPinned(fileId, pinned);
       mJournal.getEditLog().flush();
     }
   }
