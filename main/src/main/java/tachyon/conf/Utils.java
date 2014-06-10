@@ -69,7 +69,7 @@ class Utils {
         LOG.debug("search " + mResource + " for property " + property);
         return mFile.getBooleanProperty(property, defaultValue);
       }
-      throw e;
+      return defaultValue;
     }
   }
 
@@ -95,7 +95,7 @@ class Utils {
         LOG.debug("search " + mResource + " for property " + property);
         return mFile.getIntProperty(property, defaultValue);
       }
-      throw e;
+      return defaultValue;
     }        
   }
 
@@ -121,7 +121,7 @@ class Utils {
         LOG.debug("search " + mResource + " for property " + property);
         return mFile.getLongProperty(property);
       }
-      throw e;
+      return defaultValue;
     }        
   }
 
@@ -147,7 +147,7 @@ class Utils {
         LOG.debug("search " + mResource + " for property " + property);
         return mFile.getProperty(property, defaultValue);
       }
-      throw e;
+      return defaultValue;
     }        
   }
 }
