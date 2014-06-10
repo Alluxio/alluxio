@@ -15,6 +15,7 @@
 package tachyon.conf;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 
 class UtilsFile implements UtilsBase {
   Configuration mConf = null;
@@ -31,11 +32,14 @@ class UtilsFile implements UtilsBase {
     if (mConf == null) {
       mConf = new Configuration();
     }
-    mConf.addResource(name);
+    mConf.addResource(new Path(name));
   }
   
   public void addResource(String name) {
-    mConf.addResource(name);
+    if (mConf == null){
+      mConf = new Configuration();
+    }
+    mConf.addResource(new Path(name));
   }
   
   @Override

@@ -29,14 +29,18 @@ class Utils {
   }
 
   public Utils(String name){
+    LOG.info("use configure file " + name);
     mResource = name;
     mFile = new UtilsFile(name);
     mSys = new UtilsOpt();
   }
 
   public void addResource(String name){
+    LOG.info("use configure file " + name);
     mResource = name;
-    mFile.addResource(name);
+    if (mFile == null){
+      mFile = new UtilsFile(name);
+    }
   }
   
   private final Logger LOG = Logger.getLogger("");
