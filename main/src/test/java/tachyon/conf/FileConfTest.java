@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,7 +41,12 @@ public class FileConfTest {
   private final String mStringPropertyOverwrite = "tachyon.conf.test.overwrite.string";
   private final String mStringValueFile = "File";
   private final String mStringValueSys = "Cmd";
-
+  
+  @After
+  public final void after() throws Exception {
+    System.clearProperty("fs.default.name");
+  }
+  
   @Before
   public final void before() throws IOException {
     File conf = new File(mFile);
