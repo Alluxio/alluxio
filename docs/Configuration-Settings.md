@@ -22,7 +22,7 @@ The common configuration contains constants which specify paths and the log appe
 <tr>
   <td>tachyon.underfs.address</td>
   <td>$tachyon.home + "/underfs"</td>
-  <td>Tachyon folder in the underlayer file system</td>
+  <td>Tachyon folder in the underlayer file system.</td>
 </tr>
 <tr>
   <td>tachyon.data.folder</td>
@@ -78,6 +78,16 @@ The common configuration contains constants which specify paths and the log appe
   <td>fs.s3n.awsSecretAccessKey</td>
   <td>null</td>
   <td>S3 aws secret access key id if using S3 as the under FS.</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.glusterfs.mounts</td>
+  <td>null</td>
+  <td>Glusterfs volume mount points, e.g. /vol</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.glusterfs.volumes</td>
+  <td>null</td>
+  <td>Glusterfs volume names, e.g. tachyon_vol</td>
 </tr>
 </table>
 
