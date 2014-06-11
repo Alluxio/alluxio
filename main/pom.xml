@@ -50,9 +50,9 @@
       <scope>compile</scope>
     </dependency>
     <dependency> 
-      <groupId>org.apache.hadoop.fs.glusterfs</groupId>
-      <artifactId>glusterfs-hadoop</artifactId> 
-      <version>2.3.2</version>
+      <groupId>org.gluster</groupId>
+      <artifactId>glusterfs-hadoop</artifactId>
+      <version>2.3.5</version>
       <type>jar</type>
       <scope>compile</scope>
       <exclusions>
