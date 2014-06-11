@@ -70,16 +70,6 @@
         <enabled>false</enabled>
       </snapshots>
     </repository>
-    <repository>
-        <id>glusterfs-hadoop-repo</id>
-        <url>http://rhbd.s3.amazonaws.com/maven/repositories/internal/</url>
-        <releases>
-          <enabled>true</enabled>
-        </releases>
-        <snapshots>
-          <enabled>false</enabled>
-        </snapshots>
-    </repository>
   </repositories>
 
   <pluginRepositories>
