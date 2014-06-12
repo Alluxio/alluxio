@@ -87,7 +87,7 @@ public class CommonConf extends Utils {
   private CommonConf(String name) {
     if (name != null)
       addResource(name);
-    
+
     if (System.getProperty("tachyon.home") == null) {
       LOG.warn("tachyon.home is not set. Using /mnt/tachyon_default_home as the default value.");
       File file = new File("/mnt/tachyon_default_home");

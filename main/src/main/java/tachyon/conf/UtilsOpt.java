@@ -19,41 +19,41 @@ import org.apache.log4j.Logger;
 import tachyon.util.CommonUtils;
 
 /**
- * Utils for tachyon.conf package.
+ * UtilsOpt to retrieve system propoerties.
  */
 class UtilsOpt implements UtilsBase {
   private final Logger LOG = Logger.getLogger("");
-  
+
   @Override
   public boolean getBooleanProperty(String property) {
     return Boolean.valueOf(getProperty(property));
   }
-  
+
   @Override
   public boolean getBooleanProperty(String property, boolean defaultValue) {
     return Boolean.valueOf(getProperty(property, defaultValue + ""));
   }
-  
+
   @Override
   public int getIntProperty(String property) {
     return Integer.valueOf(getProperty(property));
   }
-  
+
   @Override
   public int getIntProperty(String property, int defaultValue) {
     return Integer.valueOf(getProperty(property, defaultValue + ""));
   }
-  
+
   @Override
   public long getLongProperty(String property) {
     return Long.valueOf(getProperty(property));
   }
-  
+
   @Override
   public long getLongProperty(String property, int defaultValue) {
     return Long.valueOf(getProperty(property, defaultValue + ""));
   }
-  
+
   @Override
   public String getProperty(String property) {
     String ret = System.getProperty(property);
@@ -64,7 +64,7 @@ class UtilsOpt implements UtilsBase {
     }
     return ret;
   }
-  
+
   @Override
   public String getProperty(String property, String defaultValue) {
     String ret = System.getProperty(property);

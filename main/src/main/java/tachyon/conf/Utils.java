@@ -17,13 +17,13 @@ package tachyon.conf;
 import org.apache.log4j.Logger;
 
 /**
- * Utils for tachyon.conf package.
+ * Utils class to retrieve configuration from system properties and configuration files.
  */
-class Utils {
+public class Utils {
   UtilsOpt  mSys = null;
   UtilsFile mFile = null;
   String    mResource = null;
-  
+
   public Utils(){
     mSys = new UtilsOpt();
   }
@@ -42,7 +42,7 @@ class Utils {
       mFile = new UtilsFile(name);
     }
   }
-  
+
   private final Logger LOG = Logger.getLogger("");
 
   public boolean getBooleanProperty(String property) {

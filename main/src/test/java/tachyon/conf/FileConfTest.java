@@ -41,13 +41,13 @@ public class FileConfTest {
   private final String mStringPropertyOverwrite = "tachyon.conf.test.overwrite.string";
   private final String mStringValueFile = "File";
   private final String mStringValueSys = "Cmd";
-  
+
   @After
   public final void after() throws Exception {
     System.clearProperty(mStringPropertyOverwrite);
     CommonConf.clear();
   }
-  
+
   @Before
   public final void before() throws IOException {
     File conf = new File(mFile);
@@ -73,7 +73,7 @@ public class FileConfTest {
     System.setProperty(mStringPropertyOverwrite, mStringValueSys);
     CommonConf.clear();
   }
-  
+
   @Test
   public void GetCommonConfProperty() throws Exception {
     // test constructor

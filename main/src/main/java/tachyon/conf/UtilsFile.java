@@ -19,7 +19,7 @@ import org.apache.hadoop.fs.Path;
 
 class UtilsFile implements UtilsBase {
   Configuration mConf = null;
-  
+
   public UtilsFile() {
     if (mConf == null) {
       mConf = new Configuration();
@@ -34,14 +34,14 @@ class UtilsFile implements UtilsBase {
     }
     mConf.addResource(new Path(name));
   }
-  
+
   public void addResource(String name) {
     if (mConf == null){
       mConf = new Configuration();
     }
     mConf.addResource(new Path(name));
   }
-  
+
   @Override
   public boolean getBooleanProperty(String property) {
     return mConf.getBoolean(property, false);
