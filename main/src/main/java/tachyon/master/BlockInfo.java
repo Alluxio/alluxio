@@ -15,6 +15,7 @@
 package tachyon.master;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,7 @@ import tachyon.Pair;
 import tachyon.UnderFileSystem;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
+import tachyon.util.NetworkUtils;
 
 /**
  * Block info on the master side.
@@ -107,7 +109,13 @@ public class BlockInfo {
       }
       if (locs != null) {
         for (String loc : locs) {
-          ret.add(new NetAddress(loc, -1));
+          String resolvedHost;
+          try {
+            resolvedHost = NetworkUtils.resolveHostName(loc);
+          } catch (UnknownHostException e) {
+            resolvedHost = loc;
+          }
+          ret.add(new NetAddress(resolvedHost, -1));
         }
       }
     }
