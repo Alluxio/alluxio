@@ -1339,7 +1339,7 @@ public class TachyonFS {
   public synchronized void setPinned(int fid, boolean pinned) throws IOException {
     connect();
     if (!mConnected) {
-      throw new RuntimeException("Could not connect to Tachyon Master");
+      throw new IOException("Could not connect to Tachyon Master");
     }
 
     try {
