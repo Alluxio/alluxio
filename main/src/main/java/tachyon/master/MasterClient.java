@@ -119,7 +119,7 @@ public class MasterClient {
    */
   public synchronized void cleanConnect() {
     if (mIsConnected) {
-      LOG.info("Disconnecting from the master " + mMasterAddress);
+      LOG.debug("Disconnecting from the master " + mMasterAddress);
       mIsConnected = false;
     }
     if (mProtocol != null) {
