@@ -466,7 +466,7 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Inner delete function.
+   * Inner delete function. Return true if the file does not exist in the first place.
    * 
    * @param inode
    *          The inode to delete
@@ -509,7 +509,9 @@ public class MasterInfo implements ImageWriter {
           if (!checkpointPath.equals("")) {
             UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
             try {
-              if (!ufs.delete(checkpointPath, true)) {
+              if (!ufs.exists(checkpointPath)) {
+                LOG.warn("File does not exist the underfs: " + checkpointPath);
+              } else if (!ufs.delete(checkpointPath, true)) {
                 return false;
               }
             } catch (IOException e) {
@@ -854,8 +856,8 @@ public class MasterInfo implements ImageWriter {
       }
 
       InetSocketAddress address = tWorkerInfo.ADDRESS;
-      tFile.addLocation(blockIndex, workerId,
-          new NetAddress(address.getAddress().getCanonicalHostName(), address.getPort()));
+      tFile.addLocation(blockIndex, workerId, new NetAddress(address.getAddress()
+          .getCanonicalHostName(), address.getPort()));
 
       if (tFile.hasCheckpointed()) {
         return -1;
