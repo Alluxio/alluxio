@@ -191,8 +191,6 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     }
     request.setAttribute("nodeInfos", nodeInfos);
 
-    request.setAttribute("pinlist", mMasterInfo.getPinList());
-
     request.setAttribute("whitelist", mMasterInfo.getWhiteList());
   }
 }

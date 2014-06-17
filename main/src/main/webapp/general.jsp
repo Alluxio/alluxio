@@ -108,39 +108,10 @@
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion3" href="#data3">
-            <h4>Pin List</h4>
-          </a>
-        </div>
-        <div id="data3" class="accordion-body collapse in">
-          <div class="accordion-inner">
-            <table class="table">
-              <tbody>
-                <tr>
-                  <!--
-                  <c:forEach var="file" items="${pinlist}">
-                    <th>${file}</th>
-                  </c:forEach>
-                  -->
-                  <% for (String file : ((List<String>) request.getAttribute("pinlist"))) { %>
-                    <tr>
-                      <th><%= file %></th>
-                    </tr>
-                  <% } %>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="accordion span6" id="accordion4">
-      <div class="accordion-group">
-        <div class="accordion-heading">
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion4" href="#data4">
             <h4>White List</h4>
           </a>
         </div>
-        <div id="data4" class="accordion-body collapse in">
+        <div id="data3" class="accordion-body collapse in">
           <div class="accordion-inner">
             <table class="table">
               <tbody>

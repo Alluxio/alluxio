@@ -133,7 +133,7 @@ public class MasterService {
 
     public void user_renameTo(int fileId, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
-    public void user_unpinFile(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
+    public void user_setPinned(int fileId, boolean pinned) throws FileDoesNotExistException, org.apache.thrift.TException;
 
     public boolean user_mkdir(String path) throws FileAlreadyExistException, InvalidPathException, TachyonException, org.apache.thrift.TException;
 
@@ -219,7 +219,7 @@ public class MasterService {
 
     public void user_renameTo(int fileId, String dstPath, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_renameTo_call> resultHandler) throws org.apache.thrift.TException;
 
-    public void user_unpinFile(int fileId, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_unpinFile_call> resultHandler) throws org.apache.thrift.TException;
+    public void user_setPinned(int fileId, boolean pinned, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_setPinned_call> resultHandler) throws org.apache.thrift.TException;
 
     public void user_mkdir(String path, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.user_mkdir_call> resultHandler) throws org.apache.thrift.TException;
 
@@ -1158,23 +1158,24 @@ public class MasterService {
       return;
     }
 
-    public void user_unpinFile(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException
+    public void user_setPinned(int fileId, boolean pinned) throws FileDoesNotExistException, org.apache.thrift.TException
     {
-      send_user_unpinFile(fileId);
-      recv_user_unpinFile();
+      send_user_setPinned(fileId, pinned);
+      recv_user_setPinned();
     }
 
-    public void send_user_unpinFile(int fileId) throws org.apache.thrift.TException
+    public void send_user_setPinned(int fileId, boolean pinned) throws org.apache.thrift.TException
     {
-      user_unpinFile_args args = new user_unpinFile_args();
+      user_setPinned_args args = new user_setPinned_args();
       args.setFileId(fileId);
-      sendBase("user_unpinFile", args);
+      args.setPinned(pinned);
+      sendBase("user_setPinned", args);
     }
 
-    public void recv_user_unpinFile() throws FileDoesNotExistException, org.apache.thrift.TException
+    public void recv_user_setPinned() throws FileDoesNotExistException, org.apache.thrift.TException
     {
-      user_unpinFile_result result = new user_unpinFile_result();
-      receiveBase(result, "user_unpinFile");
+      user_setPinned_result result = new user_setPinned_result();
+      receiveBase(result, "user_setPinned");
       if (result.e != null) {
         throw result.e;
       }
@@ -2526,24 +2527,27 @@ public class MasterService {
       }
     }
 
-    public void user_unpinFile(int fileId, org.apache.thrift.async.AsyncMethodCallback<user_unpinFile_call> resultHandler) throws org.apache.thrift.TException {
+    public void user_setPinned(int fileId, boolean pinned, org.apache.thrift.async.AsyncMethodCallback<user_setPinned_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_unpinFile_call method_call = new user_unpinFile_call(fileId, resultHandler, this, ___protocolFactory, ___transport);
+      user_setPinned_call method_call = new user_setPinned_call(fileId, pinned, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class user_unpinFile_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class user_setPinned_call extends org.apache.thrift.async.TAsyncMethodCall {
       private int fileId;
-      public user_unpinFile_call(int fileId, org.apache.thrift.async.AsyncMethodCallback<user_unpinFile_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private boolean pinned;
+      public user_setPinned_call(int fileId, boolean pinned, org.apache.thrift.async.AsyncMethodCallback<user_setPinned_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.fileId = fileId;
+        this.pinned = pinned;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_unpinFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_unpinFile_args args = new user_unpinFile_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_setPinned", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        user_setPinned_args args = new user_setPinned_args();
         args.setFileId(fileId);
+        args.setPinned(pinned);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -2554,7 +2558,7 @@ public class MasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_user_unpinFile();
+        (new Client(prot)).recv_user_setPinned();
       }
     }
 
@@ -2865,7 +2869,7 @@ public class MasterService {
       processMap.put("user_outOfMemoryForPinFile", new user_outOfMemoryForPinFile());
       processMap.put("user_rename", new user_rename());
       processMap.put("user_renameTo", new user_renameTo());
-      processMap.put("user_unpinFile", new user_unpinFile());
+      processMap.put("user_setPinned", new user_setPinned());
       processMap.put("user_mkdir", new user_mkdir());
       processMap.put("user_createRawTable", new user_createRawTable());
       processMap.put("user_getRawTableId", new user_getRawTableId());
@@ -3687,23 +3691,23 @@ public class MasterService {
       }
     }
 
-    public static class user_unpinFile<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_unpinFile_args> {
-      public user_unpinFile() {
-        super("user_unpinFile");
+    public static class user_setPinned<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_setPinned_args> {
+      public user_setPinned() {
+        super("user_setPinned");
       }
 
-      public user_unpinFile_args getEmptyArgsInstance() {
-        return new user_unpinFile_args();
+      public user_setPinned_args getEmptyArgsInstance() {
+        return new user_setPinned_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public user_unpinFile_result getResult(I iface, user_unpinFile_args args) throws org.apache.thrift.TException {
-        user_unpinFile_result result = new user_unpinFile_result();
+      public user_setPinned_result getResult(I iface, user_setPinned_args args) throws org.apache.thrift.TException {
+        user_setPinned_result result = new user_setPinned_result();
         try {
-          iface.user_unpinFile(args.fileId);
+          iface.user_setPinned(args.fileId, args.pinned);
         } catch (FileDoesNotExistException e) {
           result.e = e;
         }
@@ -34358,22 +34362,25 @@ public class MasterService {
 
   }
 
-  public static class user_unpinFile_args implements org.apache.thrift.TBase<user_unpinFile_args, user_unpinFile_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_unpinFile_args");
+  public static class user_setPinned_args implements org.apache.thrift.TBase<user_setPinned_args, user_setPinned_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_setPinned_args");
 
     private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I32, (short)1);
+    private static final org.apache.thrift.protocol.TField PINNED_FIELD_DESC = new org.apache.thrift.protocol.TField("pinned", org.apache.thrift.protocol.TType.BOOL, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_unpinFile_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_unpinFile_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_setPinned_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_setPinned_argsTupleSchemeFactory());
     }
 
     public int fileId; // required
+    public boolean pinned; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      FILE_ID((short)1, "fileId");
+      FILE_ID((short)1, "fileId"),
+      PINNED((short)2, "pinned");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -34390,6 +34397,8 @@ public class MasterService {
         switch(fieldId) {
           case 1: // FILE_ID
             return FILE_ID;
+          case 2: // PINNED
+            return PINNED;
           default:
             return null;
         }
@@ -34431,50 +34440,59 @@ public class MasterService {
 
     // isset id assignments
     private static final int __FILEID_ISSET_ID = 0;
+    private static final int __PINNED_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.PINNED, new org.apache.thrift.meta_data.FieldMetaData("pinned", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_unpinFile_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_setPinned_args.class, metaDataMap);
     }
 
-    public user_unpinFile_args() {
+    public user_setPinned_args() {
     }
 
-    public user_unpinFile_args(
-      int fileId)
+    public user_setPinned_args(
+      int fileId,
+      boolean pinned)
     {
       this();
       this.fileId = fileId;
       setFileIdIsSet(true);
+      this.pinned = pinned;
+      setPinnedIsSet(true);
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_unpinFile_args(user_unpinFile_args other) {
+    public user_setPinned_args(user_setPinned_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.fileId = other.fileId;
+      this.pinned = other.pinned;
     }
 
-    public user_unpinFile_args deepCopy() {
-      return new user_unpinFile_args(this);
+    public user_setPinned_args deepCopy() {
+      return new user_setPinned_args(this);
     }
 
     @Override
     public void clear() {
       setFileIdIsSet(false);
       this.fileId = 0;
+      setPinnedIsSet(false);
+      this.pinned = false;
     }
 
     public int getFileId() {
       return this.fileId;
     }
 
-    public user_unpinFile_args setFileId(int fileId) {
+    public user_setPinned_args setFileId(int fileId) {
       this.fileId = fileId;
       setFileIdIsSet(true);
       return this;
@@ -34493,6 +34511,29 @@ public class MasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
     }
 
+    public boolean isPinned() {
+      return this.pinned;
+    }
+
+    public user_setPinned_args setPinned(boolean pinned) {
+      this.pinned = pinned;
+      setPinnedIsSet(true);
+      return this;
+    }
+
+    public void unsetPinned() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __PINNED_ISSET_ID);
+    }
+
+    /** Returns true if field pinned is set (has been assigned a value) and false otherwise */
+    public boolean isSetPinned() {
+      return EncodingUtils.testBit(__isset_bitfield, __PINNED_ISSET_ID);
+    }
+
+    public void setPinnedIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __PINNED_ISSET_ID, value);
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case FILE_ID:
@@ -34503,6 +34544,14 @@ public class MasterService {
         }
         break;
 
+      case PINNED:
+        if (value == null) {
+          unsetPinned();
+        } else {
+          setPinned((Boolean)value);
+        }
+        break;
+
       }
     }
 
@@ -34510,6 +34559,9 @@ public class MasterService {
       switch (field) {
       case FILE_ID:
         return Integer.valueOf(getFileId());
+
+      case PINNED:
+        return Boolean.valueOf(isPinned());
 
       }
       throw new IllegalStateException();
@@ -34524,6 +34576,8 @@ public class MasterService {
       switch (field) {
       case FILE_ID:
         return isSetFileId();
+      case PINNED:
+        return isSetPinned();
       }
       throw new IllegalStateException();
     }
@@ -34532,12 +34586,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_unpinFile_args)
-        return this.equals((user_unpinFile_args)that);
+      if (that instanceof user_setPinned_args)
+        return this.equals((user_setPinned_args)that);
       return false;
     }
 
-    public boolean equals(user_unpinFile_args that) {
+    public boolean equals(user_setPinned_args that) {
       if (that == null)
         return false;
 
@@ -34550,6 +34604,15 @@ public class MasterService {
           return false;
       }
 
+      boolean this_present_pinned = true;
+      boolean that_present_pinned = true;
+      if (this_present_pinned || that_present_pinned) {
+        if (!(this_present_pinned && that_present_pinned))
+          return false;
+        if (this.pinned != that.pinned)
+          return false;
+      }
+
       return true;
     }
 
@@ -34558,13 +34621,13 @@ public class MasterService {
       return 0;
     }
 
-    public int compareTo(user_unpinFile_args other) {
+    public int compareTo(user_setPinned_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      user_unpinFile_args typedOther = (user_unpinFile_args)other;
+      user_setPinned_args typedOther = (user_setPinned_args)other;
 
       lastComparison = Boolean.valueOf(isSetFileId()).compareTo(typedOther.isSetFileId());
       if (lastComparison != 0) {
@@ -34572,6 +34635,16 @@ public class MasterService {
       }
       if (isSetFileId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, typedOther.fileId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetPinned()).compareTo(typedOther.isSetPinned());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetPinned()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.pinned, typedOther.pinned);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -34593,11 +34666,15 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_unpinFile_args(");
+      StringBuilder sb = new StringBuilder("user_setPinned_args(");
       boolean first = true;
 
       sb.append("fileId:");
       sb.append(this.fileId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("pinned:");
+      sb.append(this.pinned);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -34626,15 +34703,15 @@ public class MasterService {
       }
     }
 
-    private static class user_unpinFile_argsStandardSchemeFactory implements SchemeFactory {
-      public user_unpinFile_argsStandardScheme getScheme() {
-        return new user_unpinFile_argsStandardScheme();
+    private static class user_setPinned_argsStandardSchemeFactory implements SchemeFactory {
+      public user_setPinned_argsStandardScheme getScheme() {
+        return new user_setPinned_argsStandardScheme();
       }
     }
 
-    private static class user_unpinFile_argsStandardScheme extends StandardScheme<user_unpinFile_args> {
+    private static class user_setPinned_argsStandardScheme extends StandardScheme<user_setPinned_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_unpinFile_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_setPinned_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -34652,6 +34729,14 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // PINNED
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.pinned = iprot.readBool();
+                struct.setPinnedIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -34663,12 +34748,15 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_unpinFile_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_setPinned_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
         oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
         oprot.writeI32(struct.fileId);
+        oprot.writeFieldEnd();
+        oprot.writeFieldBegin(PINNED_FIELD_DESC);
+        oprot.writeBool(struct.pinned);
         oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
@@ -34676,49 +34764,59 @@ public class MasterService {
 
     }
 
-    private static class user_unpinFile_argsTupleSchemeFactory implements SchemeFactory {
-      public user_unpinFile_argsTupleScheme getScheme() {
-        return new user_unpinFile_argsTupleScheme();
+    private static class user_setPinned_argsTupleSchemeFactory implements SchemeFactory {
+      public user_setPinned_argsTupleScheme getScheme() {
+        return new user_setPinned_argsTupleScheme();
       }
     }
 
-    private static class user_unpinFile_argsTupleScheme extends TupleScheme<user_unpinFile_args> {
+    private static class user_setPinned_argsTupleScheme extends TupleScheme<user_setPinned_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_unpinFile_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_setPinned_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetFileId()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetPinned()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetFileId()) {
           oprot.writeI32(struct.fileId);
+        }
+        if (struct.isSetPinned()) {
+          oprot.writeBool(struct.pinned);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_unpinFile_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_setPinned_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.fileId = iprot.readI32();
           struct.setFileIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.pinned = iprot.readBool();
+          struct.setPinnedIsSet(true);
         }
       }
     }
 
   }
 
-  public static class user_unpinFile_result implements org.apache.thrift.TBase<user_unpinFile_result, user_unpinFile_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_unpinFile_result");
+  public static class user_setPinned_result implements org.apache.thrift.TBase<user_setPinned_result, user_setPinned_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_setPinned_result");
 
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_unpinFile_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_unpinFile_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_setPinned_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_setPinned_resultTupleSchemeFactory());
     }
 
     public FileDoesNotExistException e; // required
@@ -34788,13 +34886,13 @@ public class MasterService {
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_unpinFile_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_setPinned_result.class, metaDataMap);
     }
 
-    public user_unpinFile_result() {
+    public user_setPinned_result() {
     }
 
-    public user_unpinFile_result(
+    public user_setPinned_result(
       FileDoesNotExistException e)
     {
       this();
@@ -34804,14 +34902,14 @@ public class MasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_unpinFile_result(user_unpinFile_result other) {
+    public user_setPinned_result(user_setPinned_result other) {
       if (other.isSetE()) {
         this.e = new FileDoesNotExistException(other.e);
       }
     }
 
-    public user_unpinFile_result deepCopy() {
-      return new user_unpinFile_result(this);
+    public user_setPinned_result deepCopy() {
+      return new user_setPinned_result(this);
     }
 
     @Override
@@ -34823,7 +34921,7 @@ public class MasterService {
       return this.e;
     }
 
-    public user_unpinFile_result setE(FileDoesNotExistException e) {
+    public user_setPinned_result setE(FileDoesNotExistException e) {
       this.e = e;
       return this;
     }
@@ -34882,12 +34980,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_unpinFile_result)
-        return this.equals((user_unpinFile_result)that);
+      if (that instanceof user_setPinned_result)
+        return this.equals((user_setPinned_result)that);
       return false;
     }
 
-    public boolean equals(user_unpinFile_result that) {
+    public boolean equals(user_setPinned_result that) {
       if (that == null)
         return false;
 
@@ -34908,13 +35006,13 @@ public class MasterService {
       return 0;
     }
 
-    public int compareTo(user_unpinFile_result other) {
+    public int compareTo(user_setPinned_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
-      user_unpinFile_result typedOther = (user_unpinFile_result)other;
+      user_setPinned_result typedOther = (user_setPinned_result)other;
 
       lastComparison = Boolean.valueOf(isSetE()).compareTo(typedOther.isSetE());
       if (lastComparison != 0) {
@@ -34943,7 +35041,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_unpinFile_result(");
+      StringBuilder sb = new StringBuilder("user_setPinned_result(");
       boolean first = true;
 
       sb.append("e:");
@@ -34978,15 +35076,15 @@ public class MasterService {
       }
     }
 
-    private static class user_unpinFile_resultStandardSchemeFactory implements SchemeFactory {
-      public user_unpinFile_resultStandardScheme getScheme() {
-        return new user_unpinFile_resultStandardScheme();
+    private static class user_setPinned_resultStandardSchemeFactory implements SchemeFactory {
+      public user_setPinned_resultStandardScheme getScheme() {
+        return new user_setPinned_resultStandardScheme();
       }
     }
 
-    private static class user_unpinFile_resultStandardScheme extends StandardScheme<user_unpinFile_result> {
+    private static class user_setPinned_resultStandardScheme extends StandardScheme<user_setPinned_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_unpinFile_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_setPinned_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -35016,7 +35114,7 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_unpinFile_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_setPinned_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -35031,16 +35129,16 @@ public class MasterService {
 
     }
 
-    private static class user_unpinFile_resultTupleSchemeFactory implements SchemeFactory {
-      public user_unpinFile_resultTupleScheme getScheme() {
-        return new user_unpinFile_resultTupleScheme();
+    private static class user_setPinned_resultTupleSchemeFactory implements SchemeFactory {
+      public user_setPinned_resultTupleScheme getScheme() {
+        return new user_setPinned_resultTupleScheme();
       }
     }
 
-    private static class user_unpinFile_resultTupleScheme extends TupleScheme<user_unpinFile_result> {
+    private static class user_setPinned_resultTupleScheme extends TupleScheme<user_setPinned_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_unpinFile_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_setPinned_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetE()) {
@@ -35053,7 +35151,7 @@ public class MasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_unpinFile_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_setPinned_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
