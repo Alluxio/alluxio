@@ -1501,17 +1501,6 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Get the pin list.
-   * @deprecated The pin list was removed in 0.5.0. This function will always return any empty list.
-   *
-   * @return the pin list
-   */
-  @Deprecated
-  public List<String> getPinList() {
-    return Collections.emptyList();
-  }
-
-  /**
    * Creates a list of high priority dependencies, which don't yet have checkpoints.
    * 
    * @return the list of dependency ids
