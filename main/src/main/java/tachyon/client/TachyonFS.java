@@ -687,13 +687,27 @@ public class TachyonFS {
 
   /**
    * Get <code>TachyonFile</code> based on the file id.
+   *
+   * NOTE: This *will* use cached file metadata, and so will not see changes to dynamic properties,
+   * such as the pinned flag. This is also different from the behavior of getFile(path), which
+   * by default will not use cached metadata.
    * 
    * @param fid
    *          file id.
-   * @return TachyonFile of the file id, or null if the first does not exist.
+   * @return TachyonFile of the file id, or null if the file does not exist.
    */
   public synchronized TachyonFile getFile(int fid) throws IOException {
-    if (!mClientFileInfos.containsKey(fid)) {
+    return getFile(fid, true);
+  }
+
+  /**
+   * Get <code>TachyonFile</code> based on the file id. If useCachedMetadata, this will not see
+   * changes to the file's pin setting, or other dynamic properties.
+   *
+   * @return TachyonFile of the file id, or null if the file does not exist.
+   */
+  public synchronized TachyonFile getFile(int fid, boolean useCachedMetadata) throws IOException {
+    if (!useCachedMetadata || !mClientFileInfos.containsKey(fid)) {
       ClientFileInfo clientFileInfo = fetchClientFileInfo(fid);
       if (clientFileInfo == null) {
         return null;
@@ -704,7 +718,7 @@ public class TachyonFS {
   }
 
   /**
-   * Get <code>TachyonFile</code> based on the path.
+   * Get <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
    * 
    * @param path
    *          file path.
@@ -715,6 +729,10 @@ public class TachyonFS {
     return getFile(path, false);
   }
 
+  /**
+   * Get <code>TachyonFile</code> based on the path. If useCachedMetadata, this will not see
+   * changes to the file's pin setting, or other dynamic properties.
+   */
   public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
       throws IOException {
     path = cleanPathIOException(path);
@@ -1332,20 +1350,49 @@ public class TachyonFS {
     return true;
   }
 
-  public synchronized boolean unpinFile(int fid) throws IOException {
+  /**
+   * Sets the "pinned" flag for the given file. Pinned files are never evicted
+   * by Tachyon until they are unpinned.
+   *
+   * Calling setPinned() on a folder will recursively set the "pinned" flag on
+   * all of that folder's children. This may be an expensive operation for
+   * folders with many files/subfolders.
+   */
+  public synchronized void setPinned(int fid, boolean pinned) throws IOException {
     connect();
     if (!mConnected) {
-      return false;
+      throw new IOException("Could not connect to Tachyon Master");
     }
 
     try {
-      mMasterClient.user_unpinFile(fid);
+      mMasterClient.user_setPinned(fid, pinned);
     } catch (TException e) {
       LOG.error(e.getMessage());
-      return false;
+      CommonUtils.runtimeException(e);
     }
+  }
 
-    return true;
+  /** Alias for setPinned(fid, true). */
+  public synchronized void pinFile(int fid) throws IOException {
+    setPinned(fid, true);
+  }
+
+  /** Alias for setPinned(fid, false). */
+  public synchronized void unpinFile(int fid) throws IOException {
+    setPinned(fid, false);
+  }
+
+  /** Returns true if the given file or folder has its "pinned" flag set. */
+  public synchronized boolean isPinned(int fid, boolean useCachedMetadata)
+      throws IOException {
+    ClientFileInfo info;
+    if (!useCachedMetadata || !mClientFileInfos.containsKey(fid)) {
+      info = fetchClientFileInfo(fid);
+      mClientFileInfos.put(fid, info);
+    }
+    info = mClientFileInfos.get(fid);
+
+    return info.isNeedPin();
   }
 
   public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata) throws IOException {

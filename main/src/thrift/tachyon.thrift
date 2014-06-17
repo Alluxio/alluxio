@@ -199,8 +199,8 @@ service MasterService {
     throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)
   void user_renameTo(1: i32 fileId, 2: string dstPath)
     throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF, 3: InvalidPathException eI)
-  void user_unpinFile(1: i32 fileId)
-    throws (1: FileDoesNotExistException e)   // Remove file from memory
+  void user_setPinned(1: i32 fileId, 2: bool pinned)
+    throws (1: FileDoesNotExistException e)
   bool user_mkdir(1: string path)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TachyonException eT)
 

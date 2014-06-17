@@ -311,8 +311,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void user_unpinFile(int fileId) throws FileDoesNotExistException, TException {
-    mMasterInfo.unpinFile(fileId);
+  public void user_setPinned(int fileId, boolean pinned)
+      throws FileDoesNotExistException, TException {
+    mMasterInfo.setPinned(fileId, pinned);
   }
 
   @Override
