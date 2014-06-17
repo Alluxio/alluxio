@@ -471,6 +471,17 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Delete the file denoted by the file id.
+   * 
+   * @param fid
+   *          file id
+   * @param recursive
+   *          if delete the path recursively.
+   * @return true if deletion succeed (including the case the file does not exist in the first
+   *         place), false otherwise.
+   * @throws IOException
+   */
   public synchronized boolean delete(int fid, boolean recursive) throws IOException {
     connect();
     if (!mConnected) {
@@ -485,6 +496,17 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Delete the file denoted by the path.
+   * 
+   * @param path
+   *          the file path
+   * @param recursive
+   *          if delete the path recursively.
+   * @return true if the deletion succeed (including the case that the path does not exist in the
+   *         first place), false otherwise.
+   * @throws IOException
+   */
   public synchronized boolean delete(String path, boolean recursive) throws IOException {
     connect();
     if (!mConnected) {
