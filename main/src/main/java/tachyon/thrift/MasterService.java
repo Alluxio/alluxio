@@ -139,10 +139,25 @@ public class MasterService {
 
     public int user_createRawTable(String path, int columns, ByteBuffer metadata) throws FileAlreadyExistException, InvalidPathException, TableColumnException, TachyonException, org.apache.thrift.TException;
 
+    /**
+     * Return 0 if does not contain the Table, return fileId if it exists.
+     * 
+     * @param path
+     */
     public int user_getRawTableId(String path) throws InvalidPathException, org.apache.thrift.TException;
 
+    /**
+     * Get Table info by Table Id.
+     * 
+     * @param tableId
+     */
     public ClientRawTableInfo user_getClientRawTableInfoById(int tableId) throws TableDoesNotExistException, org.apache.thrift.TException;
 
+    /**
+     * Get Table info by path
+     * 
+     * @param tablePath
+     */
     public ClientRawTableInfo user_getClientRawTableInfoByPath(String tablePath) throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
     public void user_updateRawTableMetadata(int tableId, ByteBuffer metadata) throws TableDoesNotExistException, TachyonException, org.apache.thrift.TException;
