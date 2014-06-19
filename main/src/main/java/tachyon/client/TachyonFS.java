@@ -61,7 +61,7 @@ import tachyon.worker.WorkerClient;
 public class TachyonFS {
   /**
    * Create a TachyonFS handler.
-   * 
+   *
    * @param tachyonPath
    *          a Tachyon path contains master address. e.g., tachyon://localhost:19998,
    *          tachyon://localhost:19998/ab/c.txt
@@ -202,7 +202,7 @@ public class TachyonFS {
 
   /**
    * Cleans the given path, throwing an IOException rather than an InvalidPathException.
-   * 
+   *
    * @param path
    *          The path to clean
    * @return the cleaned path
@@ -263,7 +263,13 @@ public class TachyonFS {
     NetAddress workerNetAddress = null;
     mIsWorkerLocal = false;
     try {
-      String localHostName = InetAddress.getLocalHost().getCanonicalHostName();
+      String localHostName;
+      try {
+        localHostName =
+            NetworkUtils.resolveHostName(InetAddress.getLocalHost().getCanonicalHostName());
+      } catch (UnknownHostException e) {
+        localHostName = InetAddress.getLocalHost().getCanonicalHostName();
+      }
       LOG.info("Trying to get local worker host : " + localHostName);
       workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
       mIsWorkerLocal = true;
@@ -375,7 +381,7 @@ public class TachyonFS {
   /**
    * Create a file with the default block size (1GB) in the system. It also creates necessary
    * folders along the path. // TODO It should not create necessary path.
-   * 
+   *
    * @param path
    *          the path of the file
    * @return The unique file id. It returns -1 if the creation failed.
@@ -389,7 +395,7 @@ public class TachyonFS {
   /**
    * Create a file in the system. It also creates necessary folders along the path.
    * // TODO It should not create necessary path.
-   * 
+   *
    * @param path
    *          the path of the file
    * @param blockSizeByte
@@ -421,7 +427,7 @@ public class TachyonFS {
   /**
    * Create a file in the system with a pre-defined underfsPath. It also creates necessary
    * folders along the path. // TODO It should not create necessary path.
-   * 
+   *
    * @param path
    *          the path of the file in Tachyon
    * @param underfsPath
@@ -473,7 +479,7 @@ public class TachyonFS {
 
   /**
    * Delete the file denoted by the file id.
-   * 
+   *
    * @param fid
    *          file id
    * @param recursive
@@ -498,7 +504,7 @@ public class TachyonFS {
 
   /**
    * Delete the file denoted by the path.
-   * 
+   *
    * @param path
    *          the file path
    * @param recursive
@@ -691,7 +697,7 @@ public class TachyonFS {
    * NOTE: This *will* use cached file metadata, and so will not see changes to dynamic properties,
    * such as the pinned flag. This is also different from the behavior of getFile(path), which
    * by default will not use cached metadata.
-   * 
+   *
    * @param fid
    *          file id.
    * @return TachyonFile of the file id, or null if the file does not exist.
@@ -719,7 +725,7 @@ public class TachyonFS {
 
   /**
    * Get <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
-   * 
+   *
    * @param path
    *          file path.
    * @return TachyonFile of the path, or null if the file does not exist.
@@ -863,7 +869,7 @@ public class TachyonFS {
    * an alpha power-api feature for applications that want short-circuit-read files directly. There
    * is no guarantee that the file still exists after this call returns, as Tachyon may evict blocks
    * from memory at any time.
-   * 
+   *
    * @param blockId
    *          The id of the block.
    * @return filename on local file system or null if file not present on local file system.
@@ -1008,7 +1014,7 @@ public class TachyonFS {
   /**
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
    * <code>path</code> is a file, return its ClientFileInfo.
-   * 
+   *
    * @param path
    *          the target directory/file path
    * @return A list of ClientFileInfo
@@ -1026,7 +1032,7 @@ public class TachyonFS {
 
   /**
    * Lock a block in the current TachyonFS.
-   * 
+   *
    * @param blockId
    *          The id of the block to lock. <code>blockId</code> must be positive.
    * @param blockLockId
@@ -1061,7 +1067,7 @@ public class TachyonFS {
 
   /**
    * Return a list of files/directories under the given path.
-   * 
+   *
    * @param path
    *          the path in the TFS.
    * @param recursive
@@ -1089,7 +1095,7 @@ public class TachyonFS {
   /**
    * Create a directory if it does not exist. The method also creates necessary non-existing
    * parent folders.
-   * 
+   *
    * @param path
    *          Directory path.
    * @return true if the folder is created successfully or already existing. false otherwise.
@@ -1121,7 +1127,7 @@ public class TachyonFS {
 
   /**
    * Read the whole local block.
-   * 
+   *
    * @param blockId
    *          The id of the block to read.
    * @return <code>TachyonByteBuffer</code> containing the whole block.
@@ -1133,7 +1139,7 @@ public class TachyonFS {
 
   /**
    * Read local block return a TachyonByteBuffer
-   * 
+   *
    * @param blockId
    *          The id of the block.
    * @param offset
@@ -1218,7 +1224,7 @@ public class TachyonFS {
 
   /**
    * Rename the srcPath to the dstPath
-   * 
+   *
    * @param srcPath
    * @param dstPath
    * @return true if succeed, false otherwise.
@@ -1303,7 +1309,7 @@ public class TachyonFS {
 
   /**
    * Print out the string representation of this Tachyon server address.
-   * 
+   *
    * @return the string representation like tachyon://host:port or tachyon-ft://host:port
    */
   @Override
@@ -1313,7 +1319,7 @@ public class TachyonFS {
 
   /**
    * Unlock a block in the current TachyonFS.
-   * 
+   *
    * @param blockId
    *          The id of the block to unlock. <code>blockId</code> must be positive.
    * @param blockLockId
