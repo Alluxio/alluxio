@@ -81,8 +81,13 @@ Or, if no header is provided, the default hostname and port (set in the env file
     <td>Print the information of the blocks of a specified file.</td>
   </tr>
   <tr>
-    <td>location</td>
-    <td>location "path"</td>
-    <td>List the nodes where the file specified by "path" can be found.</td>
+    <td>pin</td>
+    <td>pin "path"</td>
+    <td>Pins the given file, such that Tachyon will never evict it from memory. If called on a folder, we will recursively pin all contained files, and new files created within this folder.</td>
+  </tr>
+  <tr>
+    <td>unpin</td>
+    <td>unpin "path"</td>
+    <td>Unpins the given file, to allow Tachyon to start evicting it again. If called on a folder, we will recursively unpin all contained files, and new files created within this folder.</td>
   </tr>
 </table>

@@ -295,10 +295,11 @@ public class WorkerStorage {
     while (mWorkerId == 0) {
       try {
         mMasterClient.connect();
+        NetAddress canonicalAddress = new NetAddress(
+            mWorkerAddress.getAddress().getCanonicalHostName(), mWorkerAddress.getPort());
         mWorkerId =
-            mMasterClient.worker_register(new NetAddress(mWorkerAddress.getHostName(),
-                mWorkerAddress.getPort()), mWorkerSpaceCounter.getCapacityBytes(), 0,
-                new ArrayList<Long>());
+            mMasterClient.worker_register(canonicalAddress, mWorkerSpaceCounter.getCapacityBytes(),
+                0, new ArrayList<Long>());
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         mWorkerId = 0;
@@ -636,10 +637,11 @@ public class WorkerStorage {
     while (id == 0) {
       try {
         mMasterClient.connect();
+        NetAddress canonicalAddress = new NetAddress(
+            mWorkerAddress.getAddress().getCanonicalHostName(), mWorkerAddress.getPort());
         id =
-            mMasterClient.worker_register(new NetAddress(mWorkerAddress.getHostName(),
-                mWorkerAddress.getPort()), mWorkerSpaceCounter.getCapacityBytes(), 0,
-                new ArrayList<Long>(mMemoryData));
+            mMasterClient.worker_register(canonicalAddress, mWorkerSpaceCounter.getCapacityBytes(),
+                0, new ArrayList<Long>(mMemoryData));
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         id = 0;

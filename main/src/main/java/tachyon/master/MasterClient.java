@@ -119,7 +119,7 @@ public class MasterClient {
    */
   public synchronized void cleanConnect() {
     if (mIsConnected) {
-      LOG.info("Disconnecting from the master " + mMasterAddress);
+      LOG.debug("Disconnecting from the master " + mMasterAddress);
       mIsConnected = false;
     }
     if (mProtocol != null) {
@@ -760,11 +760,12 @@ public class MasterClient {
     }
   }
 
-  public synchronized void user_unpinFile(int id) throws IOException, TException {
+  public synchronized void user_setPinned(int id, boolean pinned)
+      throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
-        mClient.user_unpinFile(id);
+        mClient.user_setPinned(id, pinned);
         return;
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);

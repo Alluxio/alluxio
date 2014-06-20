@@ -177,6 +177,12 @@ public class TachyonFSTest {
     Assert.assertEquals(0, workers.get(0).getUsedBytes());
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
 
+    // Delete non-existing files.
+    Assert.assertTrue(mTfs.delete(2, false));
+    Assert.assertTrue(mTfs.delete(2, true));
+    Assert.assertTrue(mTfs.delete("/abc", false));
+    Assert.assertTrue(mTfs.delete("/abc", true));
+
     for (int k = 0; k < 5; k ++) {
       int fileId = TestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, writeBytes);
       TachyonFile file = mTfs.getFile(fileId);

@@ -18,12 +18,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.Version;
@@ -32,6 +32,7 @@ import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 
 /**
  * Entry point for a worker daemon.
@@ -85,8 +86,15 @@ public class TachyonWorker implements Runnable {
 
     WorkerConf wConf = WorkerConf.get();
 
+    String resolvedWorkerHost;
+    try {
+      resolvedWorkerHost = NetworkUtils.resolveHostName(args[0]);
+    } catch (UnknownHostException e) {
+      resolvedWorkerHost = args[0];
+    }
+
     TachyonWorker worker =
-        TachyonWorker.createWorker(getMasterLocation(args), args[0] + ":" + wConf.PORT,
+        TachyonWorker.createWorker(getMasterLocation(args), resolvedWorkerHost + ":" + wConf.PORT,
             wConf.DATA_PORT, wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
             wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
     try {

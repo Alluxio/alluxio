@@ -57,8 +57,6 @@ public class MasterConf extends Utils {
 
   public final ArrayList<String> WHITELIST = new ArrayList<String>();
 
-  public final ArrayList<String> PINLIST = new ArrayList<String>();
-
   private MasterConf() {
     String journalFolder =
         getProperty("tachyon.master.journal.folder", CommonConf.get().TACHYON_HOME + "/journal/");
@@ -86,7 +84,8 @@ public class MasterConf extends Utils {
         Constants.PATH_SEPARATOR).split(",")));
     String tPinList = getProperty("tachyon.master.pinlist", null);
     if (tPinList != null && !tPinList.isEmpty()) {
-      PINLIST.addAll(Arrays.asList(tPinList.split(",")));
+      System.err.println("WARNING: tachyon.master.pinlist is set but no longer supported!"
+          + " Please use the pin function in the TFS Shell instead.");
     }
   }
 }

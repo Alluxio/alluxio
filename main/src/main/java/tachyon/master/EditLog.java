@@ -48,7 +48,7 @@ public class EditLog {
   static final byte OP_CREATE_FILE = 2;
   static final byte OP_DELETE = 3;
   static final byte OP_RENAME = 4;
-  static final byte OP_UNPIN_FILE = 5;
+  static final byte OP_SET_PINNED = 5;
   static final byte OP_UPDATE_RAW_TABLE_METADATA = 6;
   static final byte OP_COMPLETE_FILE = 7;
   static final byte OP_CREATE_DEPENDENCY = 8;
@@ -165,8 +165,8 @@ public class EditLog {
           info._rename(is.readInt(), Utils.readString(is));
           break;
         }
-        case OP_UNPIN_FILE: {
-          info.unpinFile(is.readInt());
+        case OP_SET_PINNED: {
+          info.setPinned(is.readInt(), is.readBoolean());
           break;
         }
         case OP_UPDATE_RAW_TABLE_METADATA: {
@@ -526,15 +526,16 @@ public class EditLog {
     mMaxLogSize = size;
   }
 
-  public synchronized void unpinFile(int fileId) {
+  public synchronized void setPinned(int fileId, boolean pinned) {
     if (INACTIVE) {
       return;
     }
 
     try {
       DOS.writeLong(++ mTransactionId);
-      DOS.writeByte(OP_UNPIN_FILE);
+      DOS.writeByte(OP_SET_PINNED);
       DOS.writeInt(fileId);
+      DOS.writeBoolean(pinned);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
