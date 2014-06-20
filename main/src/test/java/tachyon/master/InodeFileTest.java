@@ -185,10 +185,10 @@ public class InodeFileTest {
   @Test
   public void setPinTest() {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
-    Assert.assertFalse(inodeFile.isPin());
-    inodeFile.setPin(true);
-    Assert.assertTrue(inodeFile.isPin());
-    inodeFile.setPin(false);
-    Assert.assertFalse(inodeFile.isPin());
+    Assert.assertFalse(inodeFile.isPinned());
+    inodeFile.setPinned(true);
+    Assert.assertTrue(inodeFile.isPinned());
+    inodeFile.setPinned(false);
+    Assert.assertFalse(inodeFile.isPinned());
   }
 }

@@ -61,7 +61,7 @@ import tachyon.worker.WorkerClient;
 public class TachyonFS {
   /**
    * Create a TachyonFS handler.
-   * 
+   *
    * @param tachyonPath
    *          a Tachyon path contains master address. e.g., tachyon://localhost:19998,
    *          tachyon://localhost:19998/ab/c.txt
@@ -202,7 +202,7 @@ public class TachyonFS {
 
   /**
    * Cleans the given path, throwing an IOException rather than an InvalidPathException.
-   * 
+   *
    * @param path
    *          The path to clean
    * @return the cleaned path
@@ -263,7 +263,13 @@ public class TachyonFS {
     NetAddress workerNetAddress = null;
     mIsWorkerLocal = false;
     try {
-      String localHostName = InetAddress.getLocalHost().getCanonicalHostName();
+      String localHostName;
+      try {
+        localHostName =
+            NetworkUtils.resolveHostName(InetAddress.getLocalHost().getCanonicalHostName());
+      } catch (UnknownHostException e) {
+        localHostName = InetAddress.getLocalHost().getCanonicalHostName();
+      }
       LOG.info("Trying to get local worker host : " + localHostName);
       workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
       mIsWorkerLocal = true;
@@ -375,7 +381,7 @@ public class TachyonFS {
   /**
    * Create a file with the default block size (1GB) in the system. It also creates necessary
    * folders along the path. // TODO It should not create necessary path.
-   * 
+   *
    * @param path
    *          the path of the file
    * @return The unique file id. It returns -1 if the creation failed.
@@ -389,7 +395,7 @@ public class TachyonFS {
   /**
    * Create a file in the system. It also creates necessary folders along the path.
    * // TODO It should not create necessary path.
-   * 
+   *
    * @param path
    *          the path of the file
    * @param blockSizeByte
@@ -421,7 +427,7 @@ public class TachyonFS {
   /**
    * Create a file in the system with a pre-defined underfsPath. It also creates necessary
    * folders along the path. // TODO It should not create necessary path.
-   * 
+   *
    * @param path
    *          the path of the file in Tachyon
    * @param underfsPath
@@ -471,6 +477,17 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Delete the file denoted by the file id.
+   *
+   * @param fid
+   *          file id
+   * @param recursive
+   *          if delete the path recursively.
+   * @return true if deletion succeed (including the case the file does not exist in the first
+   *         place), false otherwise.
+   * @throws IOException
+   */
   public synchronized boolean delete(int fid, boolean recursive) throws IOException {
     connect();
     if (!mConnected) {
@@ -485,6 +502,17 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Delete the file denoted by the path.
+   *
+   * @param path
+   *          the file path
+   * @param recursive
+   *          if delete the path recursively.
+   * @return true if the deletion succeed (including the case that the path does not exist in the
+   *         first place), false otherwise.
+   * @throws IOException
+   */
   public synchronized boolean delete(String path, boolean recursive) throws IOException {
     connect();
     if (!mConnected) {
@@ -665,13 +693,27 @@ public class TachyonFS {
 
   /**
    * Get <code>TachyonFile</code> based on the file id.
-   * 
+   *
+   * NOTE: This *will* use cached file metadata, and so will not see changes to dynamic properties,
+   * such as the pinned flag. This is also different from the behavior of getFile(path), which
+   * by default will not use cached metadata.
+   *
    * @param fid
    *          file id.
-   * @return TachyonFile of the file id, or null if the first does not exist.
+   * @return TachyonFile of the file id, or null if the file does not exist.
    */
   public synchronized TachyonFile getFile(int fid) throws IOException {
-    if (!mClientFileInfos.containsKey(fid)) {
+    return getFile(fid, true);
+  }
+
+  /**
+   * Get <code>TachyonFile</code> based on the file id. If useCachedMetadata, this will not see
+   * changes to the file's pin setting, or other dynamic properties.
+   *
+   * @return TachyonFile of the file id, or null if the file does not exist.
+   */
+  public synchronized TachyonFile getFile(int fid, boolean useCachedMetadata) throws IOException {
+    if (!useCachedMetadata || !mClientFileInfos.containsKey(fid)) {
       ClientFileInfo clientFileInfo = fetchClientFileInfo(fid);
       if (clientFileInfo == null) {
         return null;
@@ -682,8 +724,8 @@ public class TachyonFS {
   }
 
   /**
-   * Get <code>TachyonFile</code> based on the path.
-   * 
+   * Get <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
+   *
    * @param path
    *          file path.
    * @return TachyonFile of the path, or null if the file does not exist.
@@ -693,6 +735,10 @@ public class TachyonFS {
     return getFile(path, false);
   }
 
+  /**
+   * Get <code>TachyonFile</code> based on the path. If useCachedMetadata, this will not see
+   * changes to the file's pin setting, or other dynamic properties.
+   */
   public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
       throws IOException {
     path = cleanPathIOException(path);
@@ -823,7 +869,7 @@ public class TachyonFS {
    * an alpha power-api feature for applications that want short-circuit-read files directly. There
    * is no guarantee that the file still exists after this call returns, as Tachyon may evict blocks
    * from memory at any time.
-   * 
+   *
    * @param blockId
    *          The id of the block.
    * @return filename on local file system or null if file not present on local file system.
@@ -968,7 +1014,7 @@ public class TachyonFS {
   /**
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
    * <code>path</code> is a file, return its ClientFileInfo.
-   * 
+   *
    * @param path
    *          the target directory/file path
    * @return A list of ClientFileInfo
@@ -986,7 +1032,7 @@ public class TachyonFS {
 
   /**
    * Lock a block in the current TachyonFS.
-   * 
+   *
    * @param blockId
    *          The id of the block to lock. <code>blockId</code> must be positive.
    * @param blockLockId
@@ -1021,7 +1067,7 @@ public class TachyonFS {
 
   /**
    * Return a list of files/directories under the given path.
-   * 
+   *
    * @param path
    *          the path in the TFS.
    * @param recursive
@@ -1049,7 +1095,7 @@ public class TachyonFS {
   /**
    * Create a directory if it does not exist. The method also creates necessary non-existing
    * parent folders.
-   * 
+   *
    * @param path
    *          Directory path.
    * @return true if the folder is created successfully or already existing. false otherwise.
@@ -1081,7 +1127,7 @@ public class TachyonFS {
 
   /**
    * Read the whole local block.
-   * 
+   *
    * @param blockId
    *          The id of the block to read.
    * @return <code>TachyonByteBuffer</code> containing the whole block.
@@ -1093,7 +1139,7 @@ public class TachyonFS {
 
   /**
    * Read local block return a TachyonByteBuffer
-   * 
+   *
    * @param blockId
    *          The id of the block.
    * @param offset
@@ -1178,7 +1224,7 @@ public class TachyonFS {
 
   /**
    * Rename the srcPath to the dstPath
-   * 
+   *
    * @param srcPath
    * @param dstPath
    * @return true if succeed, false otherwise.
@@ -1263,7 +1309,7 @@ public class TachyonFS {
 
   /**
    * Print out the string representation of this Tachyon server address.
-   * 
+   *
    * @return the string representation like tachyon://host:port or tachyon-ft://host:port
    */
   @Override
@@ -1273,7 +1319,7 @@ public class TachyonFS {
 
   /**
    * Unlock a block in the current TachyonFS.
-   * 
+   *
    * @param blockId
    *          The id of the block to unlock. <code>blockId</code> must be positive.
    * @param blockLockId
@@ -1310,20 +1356,49 @@ public class TachyonFS {
     return true;
   }
 
-  public synchronized boolean unpinFile(int fid) throws IOException {
+  /**
+   * Sets the "pinned" flag for the given file. Pinned files are never evicted
+   * by Tachyon until they are unpinned.
+   *
+   * Calling setPinned() on a folder will recursively set the "pinned" flag on
+   * all of that folder's children. This may be an expensive operation for
+   * folders with many files/subfolders.
+   */
+  public synchronized void setPinned(int fid, boolean pinned) throws IOException {
     connect();
     if (!mConnected) {
-      return false;
+      throw new IOException("Could not connect to Tachyon Master");
     }
 
     try {
-      mMasterClient.user_unpinFile(fid);
+      mMasterClient.user_setPinned(fid, pinned);
     } catch (TException e) {
       LOG.error(e.getMessage());
-      return false;
+      CommonUtils.runtimeException(e);
     }
+  }
 
-    return true;
+  /** Alias for setPinned(fid, true). */
+  public synchronized void pinFile(int fid) throws IOException {
+    setPinned(fid, true);
+  }
+
+  /** Alias for setPinned(fid, false). */
+  public synchronized void unpinFile(int fid) throws IOException {
+    setPinned(fid, false);
+  }
+
+  /** Returns true if the given file or folder has its "pinned" flag set. */
+  public synchronized boolean isPinned(int fid, boolean useCachedMetadata)
+      throws IOException {
+    ClientFileInfo info;
+    if (!useCachedMetadata || !mClientFileInfos.containsKey(fid)) {
+      info = fetchClientFileInfo(fid);
+      mClientFileInfos.put(fid, info);
+    }
+    info = mClientFileInfos.get(fid);
+
+    return info.isNeedPin();
   }
 
   public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata) throws IOException {

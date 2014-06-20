@@ -38,7 +38,6 @@ public class TachyonFileTest {
   private final int USER_QUOTA_UNIT_BYTES = 100;
   private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
       WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
-  private final String PIN_DATA = "/pin";
   private final int MAX_FILES = WORKER_CAPACITY_BYTES / USER_QUOTA_UNIT_BYTES;
 
   private final int MIN_LEN = 0;
@@ -52,13 +51,11 @@ public class TachyonFileTest {
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
-    System.clearProperty("tachyon.master.pinlist");
   }
 
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
-    System.setProperty("tachyon.master.pinlist", PIN_DATA);
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
@@ -153,6 +150,9 @@ public class TachyonFileTest {
   @Test
   public void isInMemoryTest3() throws InvalidPathException, FileAlreadyExistException,
       IOException {
+    mTfs.mkdir("/pin");
+    mTfs.pinFile(mTfs.getFileId("/pin"));
+
     int fileId =
         TestUtils.createByteFile(mTfs, "/pin/file", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
     TachyonFile file = mTfs.getFile(fileId);
