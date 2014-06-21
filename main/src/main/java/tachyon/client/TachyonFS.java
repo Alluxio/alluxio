@@ -52,6 +52,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoWorkerException;
 import tachyon.thrift.TachyonException;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 import tachyon.worker.WorkerClient;
 
 /**
