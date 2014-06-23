@@ -65,16 +65,10 @@ public class MasterConf extends Utils {
 
   public final ArrayList<String> WHITELIST = new ArrayList<String>();
 
-<<<<<<< HEAD
-  public final ArrayList<String> PINLIST = new ArrayList<String>();
-
   private MasterConf(String name) {
     if (name != null)
       addResource(name);
 
-=======
-  private MasterConf() {
->>>>>>> bfe7f8809c73db02dee19124988af9e6d7b35979
     String journalFolder =
         getProperty("tachyon.master.journal.folder", CommonConf.get().TACHYON_HOME + "/journal/");
     if (!journalFolder.endsWith(Constants.PATH_SEPARATOR)) {
