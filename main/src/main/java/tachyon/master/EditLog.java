@@ -16,7 +16,6 @@ package tachyon.master;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -66,11 +65,13 @@ public class EditLog {
   private final String PATH;
 
   /** Writer used to serialize Operations into the edit log. */
-  private final ObjectWriter writer;
+  private final ObjectWriter WRITER;
 
-  private UnderFileSystem UFS;
-  private DataOutputStream DOS;
-  private OutputStream OS;
+  private UnderFileSystem mUfs;
+  // Raw output stream to the UnderFS
+  private OutputStream mOs;
+  // Wraps the raw output stream.
+  private DataOutputStream mDos;
 
   // Starting from 1.
   private long mFlushedTransactionId = 0;
@@ -87,25 +88,25 @@ public class EditLog {
     if (!INACTIVE) {
       LOG.info("Creating edit log file " + path);
       PATH = path;
-      UFS = UnderFileSystem.get(path);
+      mUfs = UnderFileSystem.get(path);
       if (mBackUpLogStartNum != -1) {
         String folder =
             path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "/completed";
         LOG.info("Deleting completed editlogs that are part of the image.");
         deleteCompletedLogs(path, mBackUpLogStartNum);
         LOG.info("Backing up logs from " + mBackUpLogStartNum + " since image is not updated.");
-        UFS.mkdirs(folder, true);
+        mUfs.mkdirs(folder, true);
         String toRename = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
         int currentLogFileNum = 0;
-        while (UFS.exists(toRename)) {
+        while (mUfs.exists(toRename)) {
           LOG.info("Rename " + toRename + " to "
               + CommonUtils.concat(folder, currentLogFileNum + ".editLog"));
           currentLogFileNum ++;
           mBackUpLogStartNum ++;
           toRename = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
         }
-        if (UFS.exists(path)) {
-          UFS.rename(path, CommonUtils.concat(folder, currentLogFileNum + ".editLog"));
+        if (mUfs.exists(path)) {
+          mUfs.rename(path, CommonUtils.concat(folder, currentLogFileNum + ".editLog"));
           LOG.info("Rename " + path + " to "
               + CommonUtils.concat(folder, currentLogFileNum + ".editLog"));
           currentLogFileNum ++;
@@ -115,21 +116,21 @@ public class EditLog {
 
       // In case this file is created by different dfs-clients, which has been
       // fixed in HDFS-3755 since 3.0.0, 2.0.2-alpha
-      if (UFS.exists(path)) {
-        UFS.delete(path, true);
+      if (mUfs.exists(path)) {
+        mUfs.delete(path, true);
       }
-      OS = UFS.create(path);
-      DOS = new DataOutputStream(OS);
+      mOs = mUfs.create(path);
+      mDos = new DataOutputStream(mOs);
       LOG.info("Created file " + path);
       mFlushedTransactionId = transactionId;
       mTransactionId = transactionId;
-      writer = createObjectMapper().writer();
+      WRITER = createObjectMapper().writer();
     } else {
       PATH = null;
-      UFS = null;
-      OS = null;
-      DOS = null;
-      writer = null;
+      mUfs = null;
+      mOs = null;
+      mDos = null;
+      WRITER = null;
     }
   }
 
@@ -346,8 +347,8 @@ public class EditLog {
 
   private void writeOperation(Operation operation) {
     try {
-      writer.writeValue(DOS, operation);
-      DOS.writeByte('\n');
+      WRITER.writeValue(mDos, operation);
+      mDos.writeByte('\n');
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
@@ -362,11 +363,11 @@ public class EditLog {
     }
 
     try {
-      DOS.flush();
-      if (OS instanceof FSDataOutputStream) {
-        ((FSDataOutputStream) OS).sync();
+      mDos.flush();
+      if (mOs instanceof FSDataOutputStream) {
+        ((FSDataOutputStream) mOs).sync();
       }
-      if (DOS.size() > mMaxLogSize) {
+      if (mDos.size() > mMaxLogSize) {
         rotateEditLog(PATH);
       }
     } catch (IOException e) {
@@ -386,7 +387,9 @@ public class EditLog {
   }
 
   public void rotateEditLog(String path) {
-    if (INACTIVE) { return; }
+    if (INACTIVE) {
+      return;
+    }
 
     _closeActiveStream();
     LOG.info("Edit log max size of " + mMaxLogSize + " bytes reached, rotating edit log");
@@ -394,14 +397,14 @@ public class EditLog {
         path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
     LOG.info("path: " + path + " prefix: " + pathPrefix);
     try {
-      if (!UFS.exists(pathPrefix)) {
-        UFS.mkdirs(pathPrefix, true);
+      if (!mUfs.exists(pathPrefix)) {
+        mUfs.mkdirs(pathPrefix, true);
       }
       String newPath = CommonUtils.concat(pathPrefix, (mCurrentLogFileNum ++) + ".editLog");
-      UFS.rename(path, newPath);
+      mUfs.rename(path, newPath);
       LOG.info("Renamed " + path + " to " + newPath);
-      OS = UFS.create(path);
-      DOS = new DataOutputStream(OS);
+      mOs = mUfs.create(path);
+      mDos = new DataOutputStream(mOs);
       LOG.info("Created new log file " + path);
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
@@ -413,11 +416,11 @@ public class EditLog {
    */
   private synchronized void _closeActiveStream() {
     try {
-      if (DOS != null) {
-        DOS.close();
+      if (mDos != null) {
+        mDos.close();
       }
-      if (OS != null) {
-        OS.close();
+      if (mOs != null) {
+        mOs.close();
       }
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
@@ -437,18 +440,22 @@ public class EditLog {
    * Close the log.
    */
   public synchronized void close() {
-    if (INACTIVE) { return; }
+    if (INACTIVE) {
+      return;
+    }
 
     try {
       _closeActiveStream();
-      UFS.close();
+      mUfs.close();
     } catch (IOException e) {
       CommonUtils.runtimeException(e);
     }
   }
 
   public synchronized void addBlock(int fileId, int blockIndex, long blockLength) {
-    if (INACTIVE) { return; }
+    if (INACTIVE) {
+      return;
+    }
 
     Operation operation = new Operation(OperationType.ADD_BLOCK, ++ mTransactionId)
         .withParameter("fileId", fileId)
@@ -458,7 +465,9 @@ public class EditLog {
   }
 
   public synchronized void addCheckpoint(int fileId, long length, String checkpointPath) {
-    if (INACTIVE) { return; }
+    if (INACTIVE) {
+      return;
+    }
 
     Operation operation = new Operation(OperationType.ADD_CHECKPOINT, ++ mTransactionId)
         .withParameter("fileId", fileId)
@@ -469,7 +478,9 @@ public class EditLog {
 
   public synchronized void createFile(boolean recursive, String path, boolean directory,
       long blockSizeByte, long creationTimeMs) {
-    if (INACTIVE) { return; }
+    if (INACTIVE) {
+      return;
+    }
 
     Operation operation = new Operation(OperationType.CREATE_FILE, ++ mTransactionId)
         .withParameter("recursive", recursive)
@@ -481,7 +492,9 @@ public class EditLog {
   }
 
   public synchronized void completeFile(int fileId) {
-    if (INACTIVE) { return; }
+    if (INACTIVE) {
+      return;
+    }
 
     Operation operation = new Operation(OperationType.COMPLETE_FILE, ++ mTransactionId)
         .withParameter("fileId", fileId);
@@ -489,7 +502,9 @@ public class EditLog {
   }
 
   public synchronized void setPinned(int fileId, boolean pinned) {
-    if (INACTIVE) { return; }
+    if (INACTIVE) {
+      return;
+    }
 
     Operation operation = new Operation(OperationType.SET_PINNED, ++ mTransactionId)
         .withParameter("fileId", fileId)
@@ -498,7 +513,9 @@ public class EditLog {
   }
 
   public synchronized void rename(int fileId, String dstPath) {
-    if (INACTIVE) { return; }
+    if (INACTIVE) {
+      return;
+    }
 
     Operation operation = new Operation(OperationType.RENAME, ++ mTransactionId)
         .withParameter("fileId", fileId)
@@ -507,7 +524,9 @@ public class EditLog {
   }
 
   public synchronized void delete(int fileId, boolean recursive) {
-    if (INACTIVE) { return; }
+    if (INACTIVE) {
+      return;
+    }
 
     Operation operation = new Operation(OperationType.DELETE, ++ mTransactionId)
         .withParameter("fileId", fileId)
@@ -516,7 +535,9 @@ public class EditLog {
   }
 
   public synchronized void createRawTable(int tableId, int columns, ByteBuffer metadata) {
-    if (INACTIVE) { return; }
+    if (INACTIVE) {
+      return;
+    }
 
     Operation operation = new Operation(OperationType.CREATE_RAW_TABLE, ++ mTransactionId)
         .withParameter("tableId", tableId)
@@ -526,7 +547,9 @@ public class EditLog {
   }
 
   public synchronized void updateRawTableMetadata(int tableId, ByteBuffer metadata) {
-    if (INACTIVE) { return; }
+    if (INACTIVE) {
+      return;
+    }
 
     Operation operation = new Operation(OperationType.UPDATE_RAW_TABLE_METADATA, ++ mTransactionId)
         .withParameter("tableId", tableId)
@@ -538,7 +561,9 @@ public class EditLog {
       List<Integer> parents, List<Integer> children, String commandPrefix, List<ByteBuffer> data,
       String comment, String framework, String frameworkVersion, DependencyType dependencyType,
       int depId, long creationTimeMs) {
-    if (INACTIVE) { return; }
+    if (INACTIVE) {
+      return;
+    }
 
     Operation operation = new Operation(OperationType.CREATE_DEPENDENCY, ++ mTransactionId)
         .withParameter("parents", parents)
@@ -573,6 +598,7 @@ public class EditLog {
    * An Operation has a type, a transaction id, and a set of parameters determined by the type.
    */
   private static class Operation {
+    // NB: These type names are used in the serialized JSON. They should be concise but readable.
     public OperationType type;
     public long transId;
     public Map<String, Object> parameters = Maps.newHashMap();

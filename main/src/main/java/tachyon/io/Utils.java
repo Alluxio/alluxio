@@ -98,7 +98,9 @@ public class Utils {
     return ret;
   }
 
-  /** Converts a byte buffer to a base64-encoded String. Avoids copying the array if possible. */
+  /**
+   * Converts a byte buffer to a base64-encoded String. Avoids copying the array if possible.
+   */
   public static String byteBufferToBase64(ByteBuffer buf) {
     if (buf == null) {
       return null;
@@ -113,7 +115,9 @@ public class Utils {
     }
   }
 
-  /** Converts a list of byte buffers to a list of base64-encoded Strings. */
+  /**
+   * Converts a list of byte buffers to a list of base64-encoded Strings.
+   */
   public static List<String> byteBufferListToBase64(List<ByteBuffer> bufs) {
     if (bufs == null) {
       return null;
