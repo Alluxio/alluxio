@@ -31,8 +31,6 @@ import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.MasterConf;
-import tachyon.master.Journal;
-import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
@@ -271,6 +269,41 @@ public class JournalTest {
     Assert.assertTrue(info.getFileId(Constants.PATH_SEPARATOR) != -1);
     Assert.assertTrue(info.getFileId("/xyz") != -1);
     Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId("/xyz")));
+    info.stop();
+  }
+
+  /**
+   * Test journalling of inodes being pinned.
+   */
+  @Test
+  public void PinTest() throws Exception {
+    mTfs.mkdir("/myFolder");
+    int folderId = mTfs.getFileId("/myFolder");
+    mTfs.setPinned(folderId, true);
+    int file0Id = mTfs.createFile("/myFolder/file0", 64);
+    mTfs.setPinned(file0Id, false);
+    int file1Id = mTfs.createFile("/myFolder/file1", 64);
+    ClientFileInfo folderInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(folderId);
+    ClientFileInfo file0Info = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(file0Id);
+    ClientFileInfo file1Info = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(file1Id);
+    mLocalTachyonCluster.stopTFS();
+    PinTestUtil(folderInfo, file0Info, file1Info);
+    String editLogPath = mLocalTachyonCluster.getEditLogPath();
+    UnderFileSystem.get(editLogPath).delete(editLogPath, true);
+    PinTestUtil(folderInfo, file0Info, file1Info);
+  }
+
+  private void PinTestUtil(ClientFileInfo folder, ClientFileInfo file0, ClientFileInfo file1)
+      throws IOException, InvalidPathException, FileDoesNotExistException {
+    Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
+    MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
+    info.init();
+    Assert.assertEquals(folder, info.getClientFileInfo(info.getFileId("/myFolder")));
+    Assert.assertTrue(info.getClientFileInfo(info.getFileId("/myFolder")).isNeedPin());
+    Assert.assertEquals(file0, info.getClientFileInfo(info.getFileId("/myFolder/file0")));
+    Assert.assertFalse(info.getClientFileInfo(info.getFileId("/myFolder/file0")).isNeedPin());
+    Assert.assertEquals(file1, info.getClientFileInfo(info.getFileId("/myFolder/file1")));
+    Assert.assertTrue(info.getClientFileInfo(info.getFileId("/myFolder/file1")).isNeedPin());
     info.stop();
   }
 

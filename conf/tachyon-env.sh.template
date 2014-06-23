@@ -48,6 +48,6 @@ export TACHYON_JAVA_OPTS+="
   -Dtachyon.master.worker.timeout.ms=60000
   -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
   -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
-  -Dtachyon.master.pinlist=/pinfiles,/pindata
   -Dorg.apache.jasper.compiler.disablejsr199=true
+  -Djava.net.preferIPv4Stack=true
 "

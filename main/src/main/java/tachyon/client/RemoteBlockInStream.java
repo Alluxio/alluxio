@@ -296,7 +296,7 @@ public class RemoteBlockInStream extends BlockInStream {
     }
   }
 
-  private void setupStreamFromUnderFs(long offset, Object conf) {
+  private void setupStreamFromUnderFs(long offset, Object conf) throws IOException {
     String checkpointPath = TFS.getCheckpointPath(FILE.FID);
     if (!checkpointPath.equals("")) {
       LOG.info("May stream from underlayer fs: " + checkpointPath);

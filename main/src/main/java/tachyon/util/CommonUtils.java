@@ -43,6 +43,32 @@ public final class CommonUtils {
   private static final Logger LOG = Logger.getLogger("");
 
   /**
+   * Add leading zero to make the number has a fixed width. e.g., 81 with width 4 returns 0081;
+   * 12345 with width 4 returns 12345.
+   * 
+   * @param number
+   *          the number to add leading zero
+   * @param width
+   *          the fixed width
+   * @return a String with a fixed leading zero.
+   * @throws IOException
+   *           the number has to be non-negative; the width has to be positive.
+   */
+  public static String addLeadingZero(int number, int width) throws IOException {
+    if (number < 0) {
+      throw new IOException("The number has to be non-negative: " + number);
+    }
+    if (width <= 0) {
+      throw new IOException("The width has to be positive: " + width);
+    }
+    String result = number + "";
+    while (result.length() < width) {
+      result = "0" + result;
+    }
+    return result;
+  }
+
+  /**
    * Change local file's permission.
    * 
    * @param filePath
@@ -77,6 +103,13 @@ public final class CommonUtils {
     }
   }
 
+  /**
+   * Change local file's permission to be 777.
+   * 
+   * @param filePath
+   *          that will change permission
+   * @throws IOException
+   */
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
     changeLocalFilePermission(filePath, "777");
   }
@@ -255,6 +288,31 @@ public final class CommonUtils {
     return path.split(Constants.PATH_SEPARATOR);
   }
 
+  /**
+   * Get the path without schema. e.g.,
+   * <p>
+   * tachyon://localhost:19998/ -> /
+   * <p>
+   * tachyon://localhost:19998/abc/d.txt -> /abc/d.txt
+   * <p>
+   * tachyon-ft://localhost:19998/abc/d.txt -> /abc/d.txt
+   * 
+   * @param path
+   *          the original path
+   * @return the path without the schema
+   */
+  public static String getPathWithoutSchema(String path) {
+    if (!path.contains("://")) {
+      return path;
+    }
+
+    path = path.substring(path.indexOf("://") + 3);
+    if (!path.contains("/")) {
+      return "/";
+    }
+    return path.substring(path.indexOf("/"));
+  }
+
   public static String getSizeFromBytes(long bytes) {
     double ret = bytes;
     if (ret <= 1024 * 5) {
@@ -269,7 +327,14 @@ public final class CommonUtils {
       return String.format("%.2f MB", ret);
     }
     ret /= 1024;
-    return String.format("%.2f GB", ret);
+    if (ret <= 1024 * 5) {
+      return String.format("%.2f GB", ret);
+    }
+    ret /= 1024;
+    if (ret <= 1024 * 5) {
+      return String.format("%.2f TB", ret);
+    }
+    return String.format("%.2f PB", ret);
   }
 
   public static void illegalArgumentException(Exception e) {
@@ -336,21 +401,28 @@ public final class CommonUtils {
     return new InetSocketAddress(strArr[0], Integer.parseInt(strArr[1]));
   }
 
-  public static long parseMemorySize(String memorySize) {
+  /**
+   * Parse a String size to Bytes.
+   * 
+   * @param spaceSize
+   *          the size of a space, e.g. 10GB, 5TB, 1024
+   * @return the space size in bytes
+   */
+  public static long parseSpaceSize(String spaceSize) {
     double alpha = 0.0001;
-    String ori = memorySize;
+    String ori = spaceSize;
     String end = "";
-    int tIndex = memorySize.length() - 1;
+    int tIndex = spaceSize.length() - 1;
     while (tIndex >= 0) {
-      if (memorySize.charAt(tIndex) > '9' || memorySize.charAt(tIndex) < '0') {
-        end = memorySize.charAt(tIndex) + end;
+      if (spaceSize.charAt(tIndex) > '9' || spaceSize.charAt(tIndex) < '0') {
+        end = spaceSize.charAt(tIndex) + end;
       } else {
         break;
       }
       tIndex --;
     }
-    memorySize = memorySize.substring(0, tIndex + 1);
-    double ret = Double.parseDouble(memorySize);
+    spaceSize = spaceSize.substring(0, tIndex + 1);
+    double ret = Double.parseDouble(spaceSize);
     end = end.toLowerCase();
     if (end.isEmpty() || end.equals("b")) {
       return (long) (ret + alpha);
@@ -471,8 +543,5 @@ public final class CommonUtils {
         || path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }
-  }
-
-  private CommonUtils() {
   }
 }

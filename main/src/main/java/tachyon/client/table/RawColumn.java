@@ -16,7 +16,6 @@ package tachyon.client.table;
 
 import java.io.IOException;
 
-import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.master.MasterInfo;

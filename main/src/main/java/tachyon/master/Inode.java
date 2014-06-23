@@ -28,6 +28,12 @@ public abstract class Inode implements Comparable<Inode>, ImageWriter {
   private int mParentId;
 
   /**
+   * A pinned file is never evicted from memory. Folders are not pinned in memory;
+   * however, new files and folders will inherit this flag from their parents.
+   */
+  private boolean mPinned = false;
+
+  /**
    * Create an inode.
    * 
    * @param name
@@ -81,6 +87,10 @@ public abstract class Inode implements Comparable<Inode>, ImageWriter {
     return mParentId;
   }
 
+  public synchronized boolean isPinned() {
+    return mPinned;
+  }
+
   @Override
   public synchronized int hashCode() {
     return mId;
@@ -106,12 +116,18 @@ public abstract class Inode implements Comparable<Inode>, ImageWriter {
     mParentId = parentId;
   }
 
+  public synchronized void setPinned(boolean pinned) {
+    mPinned = pinned;
+  }
+
   @Override
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("Inode(");
-    sb.append("ID:").append(mId).append(", NAME:").append(mName);
-    sb.append(", PARENT_ID:").append(mParentId);
-    sb.append(", CREATION_TIME_MS:").append(CREATION_TIME_MS).append(")");
-    return sb.toString();
+    return new StringBuilder("Inode(")
+        .append("ID:").append(mId)
+        .append(", NAME:").append(mName)
+        .append(", PARENT_ID:").append(mParentId)
+        .append(", CREATION_TIME_MS:").append(CREATION_TIME_MS)
+        .append(", PINNED:").append(mPinned)
+        .append(")").toString();
   }
 }

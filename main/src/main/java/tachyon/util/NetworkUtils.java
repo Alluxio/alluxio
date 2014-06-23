@@ -9,7 +9,6 @@ import tachyon.Constants;
  * Common network utilities shared by all components in Tachyon.
  */
 public class NetworkUtils {
-
   /**
    * Replace and resolve the hostname in a given address or path string.
    * 
@@ -21,8 +20,9 @@ public class NetworkUtils {
    *           if the hostname cannot be resolved.
    */
   public static String replaceHostName(String addr) throws UnknownHostException {
-    if (addr == null || addr.isEmpty())
+    if (addr == null || addr.isEmpty()) {
       return null;
+    }
 
     if (addr.contains("://")) {
       int idx = addr.indexOf("://");
@@ -65,8 +65,9 @@ public class NetworkUtils {
    *           if the given hostname cannot be resolved.
    */
   public static String resolveHostName(String hostname) throws UnknownHostException {
-    if (hostname == null || hostname.isEmpty())
+    if (hostname == null || hostname.isEmpty()) {
       return null;
+    }
 
     return InetAddress.getByName(hostname).getCanonicalHostName();
   }
