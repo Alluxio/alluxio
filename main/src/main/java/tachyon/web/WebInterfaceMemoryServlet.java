@@ -14,7 +14,6 @@
  */
 package tachyon.web;
 
-import tachyon.conf.UserConf;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileDoesNotExistException;
@@ -28,7 +27,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Servlet that provides data for displaying which files are currently in memory.
