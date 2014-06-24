@@ -28,6 +28,38 @@ import org.apache.commons.codec.binary.Base64;
  * Utilities to do ser/de String, and ByteBuffer
  */
 public class Utils {
+  /**
+   * Converts a list of byte buffers to a list of base64-encoded Strings.
+   */
+  public static List<String> byteBufferListToBase64(List<ByteBuffer> bufs) {
+    if (bufs == null) {
+      return null;
+    }
+
+    List<String> bytes = Lists.newArrayListWithCapacity(bufs.size());
+    for (ByteBuffer buf : bufs) {
+      bytes.add(byteBufferToBase64(buf));
+    }
+    return bytes;
+  }
+
+  /**
+   * Converts a byte buffer to a base64-encoded String. Avoids copying the array if possible.
+   */
+  public static String byteBufferToBase64(ByteBuffer buf) {
+    if (buf == null) {
+      return null;
+    }
+
+    if (buf.hasArray() && buf.position() == 0 && buf.limit() == buf.capacity()) {
+      return Base64.encodeBase64String(buf.array());
+    } else {
+      byte[] b = new byte[buf.remaining()];
+      buf.get(b);
+      return Base64.encodeBase64String(b);
+    }
+  }
+
   public static ByteBuffer readByteBuffer(DataInputStream is) throws IOException {
     int len = is.readInt();
     if (len == -1) {
@@ -96,38 +128,6 @@ public class Utils {
       ret.add(readString(is));
     }
     return ret;
-  }
-
-  /**
-   * Converts a byte buffer to a base64-encoded String. Avoids copying the array if possible.
-   */
-  public static String byteBufferToBase64(ByteBuffer buf) {
-    if (buf == null) {
-      return null;
-    }
-
-    if (buf.hasArray() && buf.position() == 0 && buf.limit() == buf.capacity()) {
-      return Base64.encodeBase64String(buf.array());
-    } else {
-      byte[] b = new byte[buf.remaining()];
-      buf.get(b);
-      return Base64.encodeBase64String(b);
-    }
-  }
-
-  /**
-   * Converts a list of byte buffers to a list of base64-encoded Strings.
-   */
-  public static List<String> byteBufferListToBase64(List<ByteBuffer> bufs) {
-    if (bufs == null) {
-      return null;
-    }
-
-    List<String> bytes = Lists.newArrayListWithCapacity(bufs.size());
-    for (ByteBuffer buf: bufs) {
-      bytes.add(byteBufferToBase64(buf));
-    }
-    return bytes;
   }
 
   public static void writeByteBuffer(ByteBuffer buf, DataOutputStream os) throws IOException {
