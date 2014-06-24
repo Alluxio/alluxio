@@ -266,7 +266,7 @@
       <properties>
         <GlusterfsMount>/vol</GlusterfsMount>
         <GlusterfsVolume>tachyon_vol</GlusterfsVolume>
-        <ufs>tachyon.LocalFilesystemCluster</ufs>
+        <ufs>tachyon.GlusterfsCluster</ufs>
       </properties>
       <dependencies>
         <dependency>
