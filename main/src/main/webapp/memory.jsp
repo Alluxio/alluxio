@@ -31,17 +31,15 @@
             <th>File Name</th>
             <th>Size</th>
             <th>Block Size</th>
-            <th>In-Memory</th>
             <th>Creation Time</th>
           </thead>
           <tbody>
             <% if (request.getAttribute("fileInfos") != null) { %>
-              <% for (WebInterfaceMemoryServlet.UiFileInfo fileInfo : ((List<WebInterfaceMemoryServlet.UiFileInfo>) request.getAttribute("fileInfos"))) { %>
+              <% for (UiFileInfo fileInfo : ((List<UiFileInfo>) request.getAttribute("fileInfos"))) { %>
                 <tr>
                   <th><%= fileInfo.getAbsolutePath() %></th>
                   <th><%= fileInfo.getSize() %></th>
                   <th><%= fileInfo.getBlockSizeBytes() %></th>
-                  <th><%= fileInfo.getInMemoryPercentage() %>%</th>
                   <th><%= fileInfo.getCreationTime() %></th>
                 </tr>
               <% } %>
