@@ -274,6 +274,11 @@
           <artifactId>hadoop-common</artifactId>
           <version>2.3.0</version>
         </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <version>2.3.0</version>
+        </dependency>
       </dependencies>
     </profile>
   </profiles>
