@@ -14,17 +14,19 @@
  */
 package tachyon.web;
 
-import java.util.List;
-import java.util.Collections;
+import tachyon.master.MasterInfo;
+import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.InvalidPathException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import tachyon.master.MasterInfo;
-
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Servlet that provides data for displaying which files are currently in memory.
@@ -49,9 +51,30 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
   public void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
+
     List<String> inMemoryFiles = mMasterInfo.getInMemoryFiles();
     Collections.sort(inMemoryFiles);
     request.setAttribute("inMemoryFiles", inMemoryFiles);
+
+    List<UiFileInfo> fileInfos =
+        new ArrayList<UiFileInfo>(inMemoryFiles.size());
+    for (String file : inMemoryFiles) {
+      ClientFileInfo fileInfo = null;
+      try {
+        fileInfo = mMasterInfo.getClientFileInfo(file);
+      } catch (InvalidPathException ipe) {
+        request.setAttribute("invalidPathError", "Error: Invalid Path " + ipe.getLocalizedMessage());
+        getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+        return;
+      } catch (FileDoesNotExistException fdne) {
+        // ignore
+      }
+      if (fileInfo.getInMemoryPercentage() == 100) {
+        fileInfos.add(new UiFileInfo(fileInfo));
+      }
+    }
+    request.setAttribute("fileInfos", fileInfos);
+
     getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
   }
 }

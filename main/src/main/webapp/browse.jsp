@@ -34,12 +34,12 @@
           <div class="navbar-inner">
             <ul class="nav nav-pills">
               <% if (request.getAttribute("pathInfos") != null) { %>
-                <% for (WebInterfaceBrowseServlet.UiFileInfo pathInfo : ((WebInterfaceBrowseServlet.UiFileInfo[]) request.getAttribute("pathInfos"))) { %>
+                <% for (UiFileInfo pathInfo : ((UiFileInfo[]) request.getAttribute("pathInfos"))) { %>
                   <li><a href="./browse?path=<%= encode(pathInfo.getAbsolutePath(), "UTF-8") %>"><%= escapeHtml(pathInfo.getName()) %> </a></li>
                 <% } %>
               <% } %>
               <% if (request.getAttribute("currentDirectory") != null) { %>
-                <li class="active"><a href="./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>"><%= escapeHtml(((WebInterfaceBrowseServlet.UiFileInfo) request.getAttribute("currentDirectory")).getName()) %></a></li>
+                <li class="active"><a href="./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>"><%= escapeHtml(((UiFileInfo) request.getAttribute("currentDirectory")).getName()) %></a></li>
               <% } %>
             </ul>
           </div>
@@ -106,7 +106,7 @@
             </c:forEach>
           -->
             <% if (request.getAttribute("fileInfos") != null) { %>
-              <% for (WebInterfaceBrowseServlet.UiFileInfo fileInfo : ((List<WebInterfaceBrowseServlet.UiFileInfo>) request.getAttribute("fileInfos"))) { %>
+              <% for (UiFileInfo fileInfo : ((List<UiFileInfo>) request.getAttribute("fileInfos"))) { %>
                 <tr>
                   <th>
                     <% if (fileInfo.getIsDirectory()) { %>
