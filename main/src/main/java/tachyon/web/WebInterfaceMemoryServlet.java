@@ -56,14 +56,14 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
     Collections.sort(inMemoryFiles);
     request.setAttribute("inMemoryFiles", inMemoryFiles);
 
-    List<UiFileInfo> fileInfos =
-        new ArrayList<UiFileInfo>(inMemoryFiles.size());
+    List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>(inMemoryFiles.size());
     for (String file : inMemoryFiles) {
       ClientFileInfo fileInfo = null;
       try {
         fileInfo = mMasterInfo.getClientFileInfo(file);
       } catch (InvalidPathException ipe) {
-        request.setAttribute("invalidPathError", "Error: Invalid Path " + ipe.getLocalizedMessage());
+        request.setAttribute("invalidPathError",
+            "Error: Invalid Path " + ipe.getLocalizedMessage());
         getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
         return;
       } catch (FileDoesNotExistException fdne) {

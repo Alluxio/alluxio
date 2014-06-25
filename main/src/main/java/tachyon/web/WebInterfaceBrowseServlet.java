@@ -76,8 +76,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
   }
 
-
-
   private static final long serialVersionUID = 6121623049981468871L;
 
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
