@@ -27,19 +27,23 @@
       <div class="span12 well">
         <table class="table table-hover">
           <caption>Files Currently In Memory</caption>
+          <thead>
+            <th>File Name</th>
+            <th>Size</th>
+            <th>Block Size</th>
+            <th>Creation Time</th>
+          </thead>
           <tbody>
-            <!--
-            <c:forEach var="file" items="${inMemoryFiles}">
-              <tr>
-                <th>${file}</th>
-              </tr>
-            </c:forEach>
-          -->
-          <% for (String file : ((List<String>) request.getAttribute("inMemoryFiles"))) { %>
-            <tr>
-              <th><%= file %></th>
-            </tr>
-          <% } %>
+            <% if (request.getAttribute("fileInfos") != null) { %>
+              <% for (UiFileInfo fileInfo : ((List<UiFileInfo>) request.getAttribute("fileInfos"))) { %>
+                <tr>
+                  <th><%= fileInfo.getAbsolutePath() %></th>
+                  <th><%= fileInfo.getSize() %></th>
+                  <th><%= fileInfo.getBlockSizeBytes() %></th>
+                  <th><%= fileInfo.getCreationTime() %></th>
+                </tr>
+              <% } %>
+            <% } %>
           </tbody>
         </table>
       </div>
