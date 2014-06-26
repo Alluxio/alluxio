@@ -29,13 +29,18 @@ public class GlusterfsCluster extends UnderFileSystemCluster {
 
   public GlusterfsCluster(String baseDir) {
     super(baseDir);
-    mMount = CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS;
+    mMount = CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS;    
     mVolume = CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES;
   }
 
   @Override
   public String getUnderFilesystemAddress() {
-    return new File(mMount).getAbsolutePath();
+    File file = new File(mMount);
+    // for env that doesn't have a glusterfs mount point, we fall to local fs
+    if (!file.exists()){
+      file.mkdir();
+    }
+    return file.getAbsolutePath();
   }
 
   @Override
