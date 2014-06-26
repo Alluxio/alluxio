@@ -180,7 +180,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     request.setAttribute("invalidPathError", "");
     List<ClientFileInfo> filesInfo = null;
     String currentPath = request.getParameter("path");
-    if (currentPath.isEmpty()) {
+    if (currentPath == null || currentPath.isEmpty()) {
       currentPath = Constants.PATH_SEPARATOR;
     }
     request.setAttribute("currentPath", currentPath);
