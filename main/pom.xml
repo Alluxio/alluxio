@@ -150,8 +150,6 @@
       </activation>
       <properties>
         <ufs>tachyon.LocalMiniDFSCluster</ufs>
-        <GlusterfsMount />
-        <GlusterfsVolume />
       </properties>
       <dependencies>
         <dependency>
@@ -197,8 +195,6 @@
       </activation>
       <properties>
         <ufs />
-        <GlusterfsMount />
-        <GlusterfsVolume />
       </properties>
       <build>
         <plugins>
