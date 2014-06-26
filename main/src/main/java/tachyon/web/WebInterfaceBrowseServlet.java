@@ -118,7 +118,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws InvalidPathException
    * @throws TException
    */
-  private void displayFile(String path, HttpServletRequest request, int offset)
+  private void displayFile(String path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     String masterAddress =
         Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
@@ -131,7 +131,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
     if (tFile.isComplete()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
-      int len = (int) Math.min(5 * Constants.KB, tFile.length());
+      int len = (int) Math.min(5 * Constants.KB, tFile.length()-offset);
       byte[] data = new byte[len];
       is.skip(offset);
       is.read(data, 0, len);
@@ -186,13 +186,25 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     request.setAttribute("currentPath", currentPath);
     request.setAttribute("viewingOffset", 0);
     try {
+      ClientFileInfo clientFileInfo = mMasterInfo.getClientFileInfo(currentPath);
       UiFileInfo currentFileInfo = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeByte", currentFileInfo.getBlockSizeBytes());
       if (!currentFileInfo.getIsDirectory()) {
-        // TODO if parameter is illegal
         String tmpParam = request.getParameter("offset");
-        int offset = (tmpParam == null ? 0 : Integer.valueOf(tmpParam));
+        long offset = 0;
+        try {
+          if (tmpParam != null) {
+            offset = Long.valueOf(tmpParam);
+          }
+        } catch (NumberFormatException nfe) {
+          offset = 0;
+        }
+        if (offset < 0) {
+          offset = 0;
+        } else if (offset > clientFileInfo.getLength()) {
+          offset = clientFileInfo.getLength();
+        }
         displayFile(currentFileInfo.getAbsolutePath(), request, offset);
         request.setAttribute("viewingOffset", offset);
         getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
