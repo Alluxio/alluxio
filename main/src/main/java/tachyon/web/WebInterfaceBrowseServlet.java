@@ -222,7 +222,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
     } catch (IOException ie) {
-      request.setAttribute("invalidPathError", "Error: File Not Existed " + ie.getMessage());
+      request.setAttribute("invalidPathError", "Error: File " + currentPath + " is not available " + ie.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
     }
