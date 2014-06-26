@@ -264,7 +264,7 @@
         </property>
       </activation>
       <properties>
-        <GlusterfsMount>/vol</GlusterfsMount>
+        <GlusterfsMount>/tmp/vol</GlusterfsMount>
         <GlusterfsVolume>tachyon_vol</GlusterfsVolume>
         <ufs>tachyon.GlusterfsCluster</ufs>
       </properties>
