@@ -84,13 +84,30 @@ public class CommonConf extends Utils {
 
   public final int MAX_TABLE_METADATA_BYTE;
 
+  public final String CONFIG_FILE;
+  
   private CommonConf(String name) {
-    if (name != null)
-      addResource(name);
+    File file = null;
+
+    if (name != null){
+      file = new File(name);
+      if (file.exists()){
+        addResource(name);  
+      }
+    }
+
+    CONFIG_FILE = System.getProperty("tachyon.config"); 
+    if (CONFIG_FILE != null) {
+      LOG.info("attempt config file " + CONFIG_FILE);
+      file = new File(CONFIG_FILE);
+      if (file.exists()) {
+        addResource(CONFIG_FILE);
+      }
+    }
 
     if (System.getProperty("tachyon.home") == null) {
       LOG.warn("tachyon.home is not set. Using /mnt/tachyon_default_home as the default value.");
-      File file = new File("/mnt/tachyon_default_home");
+      file = new File("/mnt/tachyon_default_home");
       if (!file.exists()) {
         file.mkdirs();
       }
