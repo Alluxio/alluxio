@@ -177,6 +177,12 @@ public class TachyonFSTest {
     Assert.assertEquals(0, workers.get(0).getUsedBytes());
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
 
+    // Delete non-existing files.
+    Assert.assertTrue(mTfs.delete(2, false));
+    Assert.assertTrue(mTfs.delete(2, true));
+    Assert.assertTrue(mTfs.delete("/abc", false));
+    Assert.assertTrue(mTfs.delete("/abc", true));
+
     for (int k = 0; k < 5; k ++) {
       int fileId = TestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, writeBytes);
       TachyonFile file = mTfs.getFile(fileId);
@@ -200,6 +206,64 @@ public class TachyonFSTest {
       Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
       Assert.assertEquals(writeBytes * (4 - k), workers.get(0).getUsedBytes());
     }
+  }
+
+  @Test(expected = IOException.class)
+  public void getTestAbnormal1() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS.get("/" + host + ":" + port);
+  }
+
+  @Test(expected = IOException.class)
+  public void getTestAbnormal2() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS.get("/" + host + port);
+  }
+
+  @Test(expected = IOException.class)
+  public void getTestAbnormal3() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS.get("/" + host + ":" + (port - 1));
+  }
+
+  @Test(expected = IOException.class)
+  public void getTestAbnormal4() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS.get("/" + host + ":" + port + "/ab/c.txt");
+  }
+
+  private void getTestHelper(TachyonFS tfs) throws IOException {
+    int fileId = mTfs.createFile("/root/testFile1");
+    Assert.assertEquals(3, fileId);
+    Assert.assertNotNull(mTfs.getFile(fileId));
+  }
+
+  @Test
+  public void getTestNormal1() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS tfs = TachyonFS.get("tachyon://" + host + ":" + port);
+    getTestHelper(tfs);
+  }
+
+  @Test
+  public void getTestNormal2() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS tfs = TachyonFS.get("tachyon://" + host + ":" + port + "/");
+    getTestHelper(tfs);
+  }
+
+  @Test
+  public void getTestNormal3() throws IOException {
+    String host = mLocalTachyonCluster.getMasterHostname();
+    int port = mLocalTachyonCluster.getMasterPort();
+    TachyonFS tfs = TachyonFS.get("tachyon://" + host + ":" + port + "/ab/c.txt");
+    getTestHelper(tfs);
   }
 
   @Test
@@ -305,6 +369,14 @@ public class TachyonFSTest {
         Assert.assertFalse(tFile.recache());
         Assert.assertNull(tFile.readByteBuffer());
       }
+    }
+  }
+
+  @Test
+  public void mkdirTest() throws Exception {
+    for (int k = 0; k < 10; k ++) {
+      Assert.assertEquals(true, mTfs.mkdir("/root/folder" + k));
+      Assert.assertEquals(true, mTfs.mkdir("/root/folder" + k));
     }
   }
 

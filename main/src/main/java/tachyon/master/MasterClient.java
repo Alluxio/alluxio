@@ -69,7 +69,7 @@ public class MasterClient {
   private TProtocol mProtocol = null;
   private volatile boolean mIsConnected;
   private volatile boolean mIsShutdown;
-  private long mLastAccessedMs;
+  private volatile long mLastAccessedMs;
 
   private HeartbeatThread mHeartbeatThread = null;
 
@@ -119,7 +119,7 @@ public class MasterClient {
    */
   public synchronized void cleanConnect() {
     if (mIsConnected) {
-      LOG.info("Disconnecting from the master " + mMasterAddress);
+      LOG.debug("Disconnecting from the master " + mMasterAddress);
       mIsConnected = false;
     }
     if (mProtocol != null) {
@@ -131,49 +131,52 @@ public class MasterClient {
   }
 
   /**
-   * Try to connect to the master
-   * 
-   * @return true if connection succeed, false otherwise.
+   * Connects to the Tachyon Master; an exception is thrown if this fails.
    */
-  public synchronized boolean connect() {
+  public synchronized void connect() throws TException {
     mLastAccessedMs = System.currentTimeMillis();
     if (mIsConnected) {
-      return true;
+      return;
     }
     cleanConnect();
     if (mIsShutdown) {
-      return false;
+      throw new TException("Client is shutdown, will not try to connect");
     }
 
     int tries = 0;
-    while (tries ++ < MAX_CONNECT_TRY) {
+    Exception lastException = null;
+    while (tries ++ < MAX_CONNECT_TRY && !mIsShutdown) {
       mMasterAddress = getMasterAddress();
       mProtocol =
           new TBinaryProtocol(new TFramedTransport(new TSocket(mMasterAddress.getHostName(),
               mMasterAddress.getPort())));
       mClient = new MasterService.Client(mProtocol);
       mLastAccessedMs = System.currentTimeMillis();
-      if (!mIsConnected && !mIsShutdown) {
-        try {
-          mProtocol.getTransport().open();
+      try {
+        mProtocol.getTransport().open();
 
-          mHeartbeatThread =
-              new HeartbeatThread("Master_Client Heartbeat", new MasterClientHeartbeatExecutor(
-                  this, UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
-                  UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2);
-          mHeartbeatThread.start();
-        } catch (TTransportException e) {
-          LOG.error("Failed to connect (" + tries + ") to master " + mMasterAddress + " : "
-              + e.getMessage());
-          CommonUtils.sleepMs(LOG, 1000);
-          continue;
+        mHeartbeatThread =
+            new HeartbeatThread("Master_Client Heartbeat", new MasterClientHeartbeatExecutor(this,
+                UserConf.get().MASTER_CLIENT_TIMEOUT_MS),
+                UserConf.get().MASTER_CLIENT_TIMEOUT_MS / 2);
+        mHeartbeatThread.start();
+      } catch (TTransportException e) {
+        lastException = e;
+        LOG.error("Failed to connect (" + tries + ") to master " + mMasterAddress + " : "
+            + e.getMessage());
+        if (mHeartbeatThread != null) {
+          mHeartbeatThread.shutdown();
         }
-        mIsConnected = true;
-        break;
+        CommonUtils.sleepMs(LOG, 1000);
+        continue;
       }
+      mIsConnected = true;
+      return;
     }
 
-    return mIsConnected;
+    // Reaching here indicates that we did not successfully connect.
+    throw new TException("Failed to connect to master " + mMasterAddress + " after " + (tries - 1)
+        + " attempts", lastException);
   }
 
   public ClientDependencyInfo getClientDependencyInfo(int did) throws IOException, TException {
@@ -206,7 +209,7 @@ public class MasterClient {
     return null;
   }
 
-  synchronized long getLastAccessedMs() {
+  long getLastAccessedMs() {
     return mLastAccessedMs;
   }
 
@@ -757,11 +760,12 @@ public class MasterClient {
     }
   }
 
-  public synchronized void user_unpinFile(int id) throws IOException, TException {
+  public synchronized void user_setPinned(int id, boolean pinned)
+      throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
-        mClient.user_unpinFile(id);
+        mClient.user_setPinned(id, pinned);
         return;
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);

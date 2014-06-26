@@ -31,9 +31,8 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
-import org.apache.hadoop.fs.glusterfs.*;
-
 import tachyon.conf.CommonConf;
+import tachyon.hadoop.Utils;
 import tachyon.util.CommonUtils;
 
 /**
@@ -67,29 +66,16 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         tConf = new Configuration();
       }
       tConf.set("fs.defaultFS", fsDefaultName);
-      String glusterfsPrefix = "glusterfs:///";
-      if (fsDefaultName.startsWith(glusterfsPrefix)) {
-        tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
-        tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
-        tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
-        tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES, 
-            CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
-      }else{
-        tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
+      tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
 
-        // To disable the instance cache for hdfs client, otherwise it causes the
-        // FileSystem closed exception. Being configurable for unit/integration
-        // test only, and not expose to the end-user currently.
-        tConf.set("fs.hdfs.impl.disable.cache",
-            System.getProperty("fs.hdfs.impl.disable.cache", "false"));
-      }
+      // To disable the instance cache for hdfs client, otherwise it causes the
+      // FileSystem closed exception. Being configurable for unit/integration
+      // test only, and not expose to the end-user currently.
+      tConf.set("fs.hdfs.impl.disable.cache",
+          System.getProperty("fs.hdfs.impl.disable.cache", "false"));
 
-      if (System.getProperty("fs.s3n.awsAccessKeyId") != null) {
-        tConf.set("fs.s3n.awsAccessKeyId", System.getProperty("fs.s3n.awsAccessKeyId"));
-      }
-      if (System.getProperty("fs.s3n.awsSecretAccessKey") != null) {
-        tConf.set("fs.s3n.awsSecretAccessKey", System.getProperty("fs.s3n.awsSecretAccessKey"));
-      }
+      Utils.addS3Credentials(tConf);
+
       Path path = new Path(mUfsPrefix);
       mFs = path.getFileSystem(tConf);
       // FileSystem.get(tConf);
@@ -362,12 +348,13 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public void toFullPermission(String path) {
+  public void setPermission(String path, String posixPerm) throws IOException {
     try {
       FileStatus fileStatus = mFs.getFileStatus(new Path(path));
       LOG.info("Changing file '" + fileStatus.getPath() + "' permissions from: "
-          + fileStatus.getPermission() + " to 777");
-      mFs.setPermission(fileStatus.getPath(), PERMISSION);
+          + fileStatus.getPermission() + " to " + posixPerm);
+      FsPermission perm = new FsPermission(Short.parseShort(posixPerm));
+      mFs.setPermission(fileStatus.getPath(), perm);
     } catch (IOException e) {
       LOG.error(e);
     }

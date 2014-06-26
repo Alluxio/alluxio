@@ -295,10 +295,11 @@ public class WorkerStorage {
     while (mWorkerId == 0) {
       try {
         mMasterClient.connect();
+        NetAddress canonicalAddress = new NetAddress(
+            mWorkerAddress.getAddress().getCanonicalHostName(), mWorkerAddress.getPort());
         mWorkerId =
-            mMasterClient.worker_register(new NetAddress(mWorkerAddress.getHostName(),
-                mWorkerAddress.getPort()), mWorkerSpaceCounter.getCapacityBytes(), 0,
-                new ArrayList<Long>());
+            mMasterClient.worker_register(canonicalAddress, mWorkerSpaceCounter.getCapacityBytes(),
+                0, new ArrayList<Long>());
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         mWorkerId = 0;
@@ -454,7 +455,7 @@ public class WorkerStorage {
    * @return Removed file size in bytes.
    */
   private long freeBlock(long blockId) {
-    Long freedFileBytes = null;
+    long freedFileBytes = 0;
     synchronized (mLatestBlockAccessTimeMs) {
       if (mBlockSizes.containsKey(blockId)) {
         mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
@@ -470,7 +471,7 @@ public class WorkerStorage {
       }
     }
 
-    return freedFileBytes == null ? 0 : freedFileBytes;
+    return freedFileBytes;
   }
 
   /**
@@ -519,8 +520,8 @@ public class WorkerStorage {
     LOG.info("Initializing the worker storage.");
     if (!mLocalDataFolder.exists()) {
       LOG.info("Local folder " + mLocalDataFolder + " does not exist. Creating a new one.");
-      mLocalDataFolder.mkdir();
-      mLocalUserFolder.mkdir();
+      mLocalDataFolder.mkdirs();
+      mLocalUserFolder.mkdirs();
 
       CommonUtils.changeLocalFilePermission(mLocalDataFolder.getPath(), "775");
       CommonUtils.changeLocalFilePermission(mLocalUserFolder.getPath(), "775");
@@ -636,10 +637,11 @@ public class WorkerStorage {
     while (id == 0) {
       try {
         mMasterClient.connect();
+        NetAddress canonicalAddress = new NetAddress(
+            mWorkerAddress.getAddress().getCanonicalHostName(), mWorkerAddress.getPort());
         id =
-            mMasterClient.worker_register(new NetAddress(mWorkerAddress.getHostName(),
-                mWorkerAddress.getPort()), mWorkerSpaceCounter.getCapacityBytes(), 0,
-                new ArrayList<Long>(mMemoryData));
+            mMasterClient.worker_register(canonicalAddress, mWorkerSpaceCounter.getCapacityBytes(),
+                0, new ArrayList<Long>(mMemoryData));
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
@@ -673,7 +675,7 @@ public class WorkerStorage {
     return true;
   }
 
-  public void resetMasterClient() {
+  public void resetMasterClient() throws TException {
     MasterClient tMasterClient = new MasterClient(mMasterAddress);
     tMasterClient.connect();
     mMasterClient = tMasterClient;

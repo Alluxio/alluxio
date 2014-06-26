@@ -16,7 +16,7 @@ A list of tasks that everyone should do before contributing to Tachyon.
     [Command-Line Interface](Command-Line-Interface.html)
     (Optional)
 
-4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/src/main/java/tachyon/examples/BasicOperations.java).
+4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/main/src/main/java/tachyon/examples/BasicOperations.java).
 
 5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
 
@@ -36,7 +36,31 @@ and then submit a pull request. You are also welcome to address issues in our
 
     src/main/java/tachyon/worker/DataServerMessage.java
 
-#### After the pull request is reviewed and merged, you become a Tachyon contributor!
+After the pull request is reviewed and merged, you become a Tachyon contributor!
+
+### Testing
+
+-   Run all unit tests: ``mvn test`` (use localfs as under filesystem) and ``mvn -Dintegration test`` (use HDFS as under filesystem)
+
+-   Run a single unit test: ``mvn -Dtest=TestCircle#mytest test`` ; e.g.  ``mvn -Dtest=TachyonFSTest#createFileTest test`` ;
+
+-   Quickly test the working of some APIs in an interactive manner, you may leverage
+the Scala shell, as discussed in this [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
+
+### Coding Style
+
+-   Follow the style of the existing codebase. Specifically, we use
+    [Sun's conventions](http://www.oracle.com/technetwork/java/codeconv-138413.html),
+    with the following changes:
+    -  Indent **2** spaces per level, not **4**.
+    -  Maximum line length of **100** characters.
+    -  Imported packages should be order as **alphabetical order**.
+    -  `i ++` instead of `i++`
+    -  `i + j` instead of `i+j`
+    -  Class and member modifiers, when present, appear in the order recommended by the Java
+    Language Specification: **public protected private abstract static final transient volatile
+    synchronized native strictfp**, then as **alphabetical order**.
+-   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml).
 
 ### IDE
 
@@ -45,29 +69,6 @@ You can generate Eclipse configure file by run:
     mvn install -Dintegration -DskipTests eclipse:eclipse
 
 Then import the folder into Eclipse.
-
-### Testing
-
-If you want to run unit tests, you can use command: mvn test.
-
-If you want to run a single tests, you can use command: mvn -Dtest=TestCircle#mytest test ;
-e.g.  mvn -Dtest=TachyonFSTest#createFileTest test ;
-
-If you want to quickly test the working of some APIs in an interactive manner, you may leverage
-the Scala shell, as discussed in [this blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
-
-### Coding Style
-
--   Follow the style of the existing codebase. Specifically, we use
-    [Sun's conventions](http://www.oracle.com/technetwork/java/codeconv-138413.html),
-    with the following changes:
-    -  Indent two spaces per level, not four.
-    -  Maximum line length of 100 characters.
-    -  Imported packages should be order as alphabetical order.
-    -  `i ++` instead of `i++`
-    -  `i + j` instead of `i+j`
-    -  Class and member modifiers, when present, appear in the order recommended by the Java Language Specification: `public protected private abstract static final transient volatile synchronized native strictfp`
--   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml).
 
 ### Submitting Code
 
@@ -80,4 +81,9 @@ the Scala shell, as discussed in [this blog](http://scala4fun.tumblr.com/post/84
     [forking a repo](https://help.github.com/articles/fork-a-repo) and
     [sending a pull request](https://help.github.com/articles/using-pull-requests).
 
--   Make sure that your code passes the unit tests: mvn test.
+-   Make sure that your code passes all unit tests: ``mvn test`` and ``mvn -Dintegration test``
+
+### Readings
+
+-   [Tachyon: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)
+Haoyuan Li, Ali Ghodsi, Matei Zaharia, Eric Baldeschwieler, Scott Shenker, Ion Stoica, *LADIS 2013*, November 2013.

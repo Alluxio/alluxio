@@ -54,7 +54,7 @@ public class MasterWorkerInfo {
   public synchronized ClientWorkerInfo generateClientWorkerInfo() {
     ClientWorkerInfo ret = new ClientWorkerInfo();
     ret.id = mId;
-    ret.address = new NetAddress(ADDRESS.getHostName(), ADDRESS.getPort());
+    ret.address = new NetAddress(ADDRESS.getAddress().getCanonicalHostName(), ADDRESS.getPort());
     ret.lastContactSec = (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / 1000);
     ret.state = "In Service";
     ret.capacityBytes = CAPACITY_BYTES;

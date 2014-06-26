@@ -109,7 +109,7 @@ public class BlockOutStream extends OutStream {
     }
 
     MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, mInFileBytes, length);
-    out.put(buf, 0, length);
+    out.put(buf, offset, length);
     mInFileBytes += length;
   }
 
@@ -137,6 +137,8 @@ public class BlockOutStream extends OutStream {
 
       if (mCancel) {
         TFS.releaseSpace(mWrittenBytes - mBuffer.position());
+        new File(mLocalFilePath).delete();
+        LOG.info("Canceled output of block " + BLOCK_ID + ", deleted local file " + mLocalFilePath);
       } else {
         TFS.cacheBlock(BLOCK_ID);
       }
