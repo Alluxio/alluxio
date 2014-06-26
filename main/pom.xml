@@ -125,6 +125,11 @@
       <version>${apache.curator.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.3.0</version>
+    </dependency>
   </dependencies>
 
   <profiles>
