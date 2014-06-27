@@ -118,7 +118,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws InvalidPathException
    * @throws TException
    */
-  private void displayFile(String path, HttpServletRequest request, int offset)
+  private void displayFile(String path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     String masterAddress =
         Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
@@ -131,7 +131,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
     if (tFile.isComplete()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
-      int len = (int) Math.min(5 * Constants.KB, tFile.length());
+      int len = (int) Math.min(5 * Constants.KB, tFile.length() - offset);
       byte[] data = new byte[len];
       is.skip(offset);
       is.read(data, 0, len);
@@ -180,19 +180,31 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     request.setAttribute("invalidPathError", "");
     List<ClientFileInfo> filesInfo = null;
     String currentPath = request.getParameter("path");
-    if (currentPath.isEmpty()) {
+    if (currentPath == null || currentPath.isEmpty()) {
       currentPath = Constants.PATH_SEPARATOR;
     }
     request.setAttribute("currentPath", currentPath);
     request.setAttribute("viewingOffset", 0);
     try {
-      UiFileInfo currentFileInfo = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
+      ClientFileInfo clientFileInfo = mMasterInfo.getClientFileInfo(currentPath);
+      UiFileInfo currentFileInfo = new UiFileInfo(clientFileInfo);
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeByte", currentFileInfo.getBlockSizeBytes());
       if (!currentFileInfo.getIsDirectory()) {
-        // TODO if parameter is illegal
         String tmpParam = request.getParameter("offset");
-        int offset = (tmpParam == null ? 0 : Integer.valueOf(tmpParam));
+        long offset = 0;
+        try {
+          if (tmpParam != null) {
+            offset = Long.valueOf(tmpParam);
+          }
+        } catch (NumberFormatException nfe) {
+          offset = 0;
+        }
+        if (offset < 0) {
+          offset = 0;
+        } else if (offset > clientFileInfo.getLength()) {
+          offset = clientFileInfo.getLength();
+        }
         displayFile(currentFileInfo.getAbsolutePath(), request, offset);
         request.setAttribute("viewingOffset", offset);
         getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
@@ -207,6 +219,11 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       return;
     } catch (InvalidPathException ipe) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + ipe.getLocalizedMessage());
+      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+      return;
+    } catch (IOException ie) {
+      request.setAttribute("invalidPathError", "Error: File " + currentPath + " is not available "
+          + ie.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
       return;
     }
