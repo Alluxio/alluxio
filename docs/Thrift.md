@@ -5,7 +5,7 @@ title: Thrift
 
 # Mac OSX
 
-1.  Grab the latest Thrift distribution (we support 0.9.0) from
+1.  Grab Thrift 0.9.0 distribution from
     [http://archive.apache.org/dist/thrift/0.9.0/](http://archive.apache.org/dist/thrift/0.9.0/)
 2.  Install Xcode from the Mac App Store
 3.  Launch Xcode, open the Preferences, select Downloads, and install
