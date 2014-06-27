@@ -42,6 +42,8 @@ After the pull request is reviewed and merged, you become a Tachyon contributor!
 
 -   Run all unit tests: ``mvn test`` (use localfs as under filesystem) and ``mvn -Dintegration test`` (use HDFS as under filesystem)
 
+-   In Glusterfs environment, also run Glusterfs unit tests: ``mvn -Dglusterfs -Dtachyon.underfs.glusterfs.mounts=/vol -Dtachyon.underfs.glusterfs.volumes=testvol test`` (use Glusterfs as under filesystem, where /vol is a valid Glusterfs mount point) and ``mvn -Dglusterfs test`` (use localfs as under filesystem)
+
 -   Run a single unit test: ``mvn -Dtest=TestCircle#mytest test`` ; e.g.  ``mvn -Dtest=TachyonFSTest#createFileTest test`` ;
 
 -   Quickly test the working of some APIs in an interactive manner, you may leverage
@@ -50,7 +52,7 @@ the Scala shell, as discussed in this [blog](http://scala4fun.tumblr.com/post/84
 ### Coding Style
 
 -   Follow the style of the existing codebase. Specifically, we use
-    [Sun's conventions](http://www.oracle.com/technetwork/java/codeconv-138413.html),
+    [Sun's conventions](http://www.oracle.com/technetwork/java/codeconvtoc-136057.html),
     with the following changes:
     -  Indent **2** spaces per level, not **4**.
     -  Maximum line length of **100** characters.
