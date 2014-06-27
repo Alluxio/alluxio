@@ -25,12 +25,11 @@ import tachyon.conf.CommonConf;
 import tachyon.hadoop.Utils;
 
 public class GlusterfsCluster extends UnderFileSystemCluster {
-  private String mMount = null, mVolume = null;
+  private final String mMount = "/tmp/vol", mVolume = "testvol";
+ 
 
   public GlusterfsCluster(String baseDir) {
     super(baseDir);
-    mMount = CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS;    
-    mVolume = CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES;
   }
 
   @Override
@@ -54,5 +53,8 @@ public class GlusterfsCluster extends UnderFileSystemCluster {
 
   @Override
   public void start() throws IOException {
+    System.setProperty("tachyon.underfs.glusterfs.mounts", mMount);
+    System.setProperty("tachyon.underfs.glusterfs.volumes", mVolume);   
+    System.setProperty("fs.default.name", "glusterfs:///");
   }
 }

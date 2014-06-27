@@ -260,8 +260,6 @@
         </property>
       </activation>
       <properties>
-        <GlusterfsMount>/tmp/vol</GlusterfsMount>
-        <GlusterfsVolume>tachyon_vol</GlusterfsVolume>
         <ufs>tachyon.GlusterfsCluster</ufs>
       </properties>
       <dependencies>
@@ -322,8 +320,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.14</version>
         <configuration>
-          <argLine>-Dufs=${ufs} 
-          -Dtachyon.underfs.glusterfs.mounts=${GlusterfsMount} -Dtachyon.underfs.glusterfs.volumes=${GlusterfsVolume}</argLine>
+          <argLine>-Dufs=${ufs}</argLine>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>
             <log4j.configuration>file:src/test/resources/log4j.properties</log4j.configuration>

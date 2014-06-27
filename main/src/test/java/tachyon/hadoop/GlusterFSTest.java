@@ -29,13 +29,12 @@ import tachyon.conf.CommonConf;
  */
 public class GlusterFSTest {
   private UnderFileSystem mHcfs = null;
-  private String mMount = null, mVolume = null, ufs = null;
+  private String mMount = null, mVolume = null;
 
   @After
   public final void after() throws Exception {
     if (mMount != null && !mMount.equals("") && 
-        mVolume != null && !mVolume.equals("") &&
-        ufs != null && ufs.equals("tachyon.GlusterfsCluster")) {
+        mVolume != null && !mVolume.equals("")) {
       System.clearProperty("fs.default.name");
       System.clearProperty("tachyon.underfs.glusterfs.mapred.system.dir");
       System.clearProperty("tachyon.underfs.glusterfs.mounts");
@@ -45,23 +44,18 @@ public class GlusterFSTest {
 
   @Before
   public final void before() throws IOException {
-    ufs = System.getProperty("ufs");
     mMount = CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS;
     mVolume = CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES;
     if (mMount != null && !mMount.equals("") && 
-        mVolume != null && !mVolume.equals("") &&
-        ufs != null && ufs.equals("tachyon.GlusterfsCluster")) {
-      System.setProperty("fs.default.name", "glusterfs:///");
+        mVolume != null && !mVolume.equals("")) {
     }
   }
 
   @Test
   public void createGlusterFS() throws Exception {
     if (mMount != null && !mMount.equals("") && 
-        mVolume != null && !mVolume.equals("") &&
-        ufs != null && ufs.equals("tachyon.GlusterfsCluster")) {
+        mVolume != null && !mVolume.equals("")) {
       mHcfs = UnderFileSystem.get("glusterfs:///");
-      System.out.println("env " + mMount + " " + mVolume);
       Assert.assertTrue(mHcfs.create("tachyon_test") != null);
     }
   }
