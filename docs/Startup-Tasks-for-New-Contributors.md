@@ -50,7 +50,7 @@ the Scala shell, as discussed in this [blog](http://scala4fun.tumblr.com/post/84
 ### Coding Style
 
 -   Follow the style of the existing codebase. Specifically, we use
-    [Sun's conventions](http://www.oracle.com/technetwork/java/codeconv-138413.html),
+    [Sun's conventions](http://www.oracle.com/technetwork/java/codeconvtoc-136057.html),
     with the following changes:
     -  Indent **2** spaces per level, not **4**.
     -  Maximum line length of **100** characters.
