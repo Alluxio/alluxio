@@ -187,7 +187,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     request.setAttribute("viewingOffset", 0);
     try {
       ClientFileInfo clientFileInfo = mMasterInfo.getClientFileInfo(currentPath);
-      UiFileInfo currentFileInfo = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
+      UiFileInfo currentFileInfo = new UiFileInfo(clientFileInfo);
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeByte", currentFileInfo.getBlockSizeBytes());
       if (!currentFileInfo.getIsDirectory()) {
