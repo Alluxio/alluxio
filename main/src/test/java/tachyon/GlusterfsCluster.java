@@ -25,21 +25,30 @@ import tachyon.conf.CommonConf;
 import tachyon.hadoop.Utils;
 
 public class GlusterfsCluster extends UnderFileSystemCluster {
-  private final String mMount = "/tmp/vol", mVolume = "testvol";
- 
+  private String mMount = null;
+  private String mVolume = null;
+  private boolean mUseGfs = false; 
 
   public GlusterfsCluster(String baseDir) {
     super(baseDir);
+    mMount = System.getProperty("tachyon.underfs.glusterfs.mounts");
+    mVolume = System.getProperty("tachyon.underfs.glusterfs.volumes");
+    if (mMount != null && !mMount.equals("") && 
+        mVolume != null && !mVolume.equals("")) {
+      if (new File(mMount).exists()){
+        mUseGfs = true;
+      }
+    }
+    
   }
 
   @Override
   public String getUnderFilesystemAddress() {
-    File file = new File(mMount);
-    // for env that doesn't have a glusterfs mount point, we fall to local fs
-    if (!file.exists()){
-      file.mkdir();
+    if (mUseGfs){
+      return new File(mMount+"/"+mBaseDir).getAbsolutePath();
     }
-    return file.getAbsolutePath();
+    // for env that doesn't have a glusterfs mount point, we fall to local fs
+    return new File(mBaseDir).getAbsolutePath();
   }
 
   @Override
@@ -53,8 +62,5 @@ public class GlusterfsCluster extends UnderFileSystemCluster {
 
   @Override
   public void start() throws IOException {
-    System.setProperty("tachyon.underfs.glusterfs.mounts", mMount);
-    System.setProperty("tachyon.underfs.glusterfs.volumes", mVolume);   
-    System.setProperty("fs.default.name", "glusterfs:///");
   }
 }
