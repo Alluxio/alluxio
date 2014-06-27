@@ -86,3 +86,17 @@ Debian Lenny Users need some packages from backports
     make
     make install
 
+# Generate Java files from Thrift
+
+Tachyon defines a .thrift in:
+
+    ./main/src/thrift/tachyon.thrift
+
+And generate java files from it in:
+
+    ./main/src/main/java/tachyon/thrift/
+
+To generate the java files on your own, type:
+
+    ./bin/tachyon thriftGen
+
