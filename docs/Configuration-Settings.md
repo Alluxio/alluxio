@@ -89,6 +89,11 @@ The common configuration contains constants which specify paths and the log appe
   <td>null</td>
   <td>Glusterfs volume names, e.g. tachyon_vol</td>
 </tr>
+<tr>
+  <td>tachyon.underfs.glusterfs.mapred.system.dir</td>
+  <td>glusterfs:///mapred/system</td>
+  <td>Optionally specify subdirectory under GLusterfs for intermediary MapReduce data.</td>
+</tr>
 </table>
 
 # Master Configuration
