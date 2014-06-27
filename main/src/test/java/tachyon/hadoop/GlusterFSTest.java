@@ -16,7 +16,6 @@ package tachyon.hadoop;
 
 import java.io.IOException;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,15 +35,11 @@ public class GlusterFSTest {
   public final void before() throws IOException {
     mMount = CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS;
     mVolume = CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES;
-    if (mMount != null && !mMount.equals("") && 
-        mVolume != null && !mVolume.equals("")) {
-    }
   }
 
   @Test
   public void createGlusterFS() throws Exception {
-    if (mMount != null && !mMount.equals("") && 
-        mVolume != null && !mVolume.equals("")) {
+    if (mMount != null && !mMount.equals("") && mVolume != null && !mVolume.equals("")) {
       mGfs = UnderFileSystem.get("glusterfs:///");
       Assert.assertTrue(mGfs.create("tachyon_test") != null);
     }

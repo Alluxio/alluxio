@@ -90,7 +90,8 @@ public abstract class UnderFileSystem {
     if (path == null) {
       return null;
     } else if (path.startsWith("tachyon://") || path.startsWith("tachyon-ft://")
-        || path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")) {
+        || path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")
+        || path.startsWith("glusterfs:///")) {
       String prefix = path.substring(0, path.indexOf("://") + 3);
       String body = path.substring(prefix.length());
       if (body.contains(Constants.PATH_SEPARATOR)) {
