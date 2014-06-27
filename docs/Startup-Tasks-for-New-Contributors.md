@@ -42,6 +42,8 @@ After the pull request is reviewed and merged, you become a Tachyon contributor!
 
 -   Run all unit tests: ``mvn test`` (use localfs as under filesystem) and ``mvn -Dintegration test`` (use HDFS as under filesystem)
 
+-   In Glusterfs environment, also run Glusterfs unit tests: ``mvn -Dglusterfs -Dtachyon.underfs.glusterfs.mounts=/vol -Dtachyon.underfs.glusterfs.volumes=testvol test`` (use Glusterfs as under filesystem, where /vol is a valid Glusterfs mount point) and ``mvn -Dglusterfs test`` (use localfs as under filesystem)
+
 -   Run a single unit test: ``mvn -Dtest=TestCircle#mytest test`` ; e.g.  ``mvn -Dtest=TachyonFSTest#createFileTest test`` ;
 
 -   Quickly test the working of some APIs in an interactive manner, you may leverage
