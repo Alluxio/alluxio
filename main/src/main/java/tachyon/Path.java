@@ -20,39 +20,61 @@ import org.apache.commons.io.FilenameUtils;
 /**
  * Abstraction of all types of path in Tachyon lexically and syntactically
  * <p/>
- * <p>Path in Tachyon</p>
+ * <p>
+ * Path in Tachyon
+ * </p>
  * <p/>
  * <ul type=disc>
  * <p/>
- * <li><p>UnderFileSystem path: scheme(hdfs, s3, etc.)://host:port/path,
- * file:///path</p></li>
+ * <li>
+ * <p>
+ * UnderFileSystem path: scheme(hdfs, s3, etc.)://host:port/path, file:///path
+ * </p>
+ * </li>
  * <p/>
- * <li><p>Tachyon master/client path: tachyon://host:port/path,
- * tachyon-ft://host:port/path</p></li>
+ * <li>
+ * <p>
+ * Tachyon master/client path: tachyon://host:port/path, tachyon-ft://host:port/path
+ * </p>
+ * </li>
  * <p/>
  * </ul>
  * <p/>
- * <p>Path in Tachyon has the following components</p>
+ * <p>
+ * Path in Tachyon has the following components
+ * </p>
  * <p/>
  * <ul type=disc>
  * <p/>
- * <li><p>scheme(MUST)</p></li>
+ * <li>
+ * <p>
+ * scheme(MUST)
+ * </p>
+ * </li>
  * <p/>
- * <li><p>authority(host:port)(OPTIONAL)<br>
- * if authority is omitted, the path representation
- * becomes scheme:///path, pay attention to the third slash</p></li>
+ * <li>
+ * <p>
+ * authority(host:port)(OPTIONAL)<br>
+ * if authority is omitted, the path representation becomes scheme:///path, pay attention to the
+ * third slash
+ * </p>
+ * </li>
  * <p/>
- * <li><p>path(MUST)<br>
- * Windows path should be kept as it is on a Windows Platform,
- * this Class will take care of both Unix and Window path representation,
- * e.g. scheme://host:port/a\b represents relative path a\b on Windows, or
- * scheme://host:port/C:\ represents root directory of Driver C on Windows.
- * For Unix path, scheme://host:port//a/b represents /a/b, scheme://host:port/a/b
- * represents a/b</p></li>
+ * <li>
+ * <p>
+ * path(MUST)<br>
+ * Windows path should be kept as it is on a Windows Platform, this Class will take care of both
+ * Unix and Window path representation, e.g. scheme://host:port/a\b represents relative path a\b on
+ * Windows, or scheme://host:port/C:\ represents root directory of Driver C on Windows. For Unix
+ * path, scheme://host:port//a/b represents /a/b, scheme://host:port/a/b represents a/b
+ * </p>
+ * </li>
  * <p/>
  * </ul>
  * <p/>
- * <p>The implementation uses org.apache.commons.io.FilenameUtils whenever it's convenient</p>
+ * <p>
+ * The implementation uses org.apache.commons.io.FilenameUtils whenever it's convenient
+ * </p>
  */
 public class Path implements Comparable {
   private String mScheme = null;
@@ -78,9 +100,11 @@ public class Path implements Comparable {
 
   /**
    * Constructs Path from String with thorough legality validation
-   *
-   * @param path Raw String path
-   * @throws IllegalArgumentException specific error information about the illegality of path
+   * 
+   * @param path
+   *          Raw String path
+   * @throws IllegalArgumentException
+   *           specific error information about the illegality of path
    */
   public Path(String path) throws IllegalArgumentException {
     if (path == null) {
@@ -95,9 +119,9 @@ public class Path implements Comparable {
     //
     // Windows:
     // C:\a\b -> file:///C:\a\b
-    // C:a\b  -> file:///C:a\b
-    // \a\b   -> file:///\a\b
-    // a\b    -> file:///a\b
+    // C:a\b -> file:///C:a\b
+    // \a\b -> file:///\a\b
+    // a\b -> file:///a\b
     boolean startsWithDrive = startsWithWindowsDrive(path);
     if (startsWithDrive || !path.contains(":")) {
       path = "file:///" + path;
@@ -125,8 +149,8 @@ public class Path implements Comparable {
       try {
         port = Integer.parseInt(path.substring(nextColon + 1, nextSlash));
       } catch (NumberFormatException nfe) {
-        throw new IllegalArgumentException("path parameter " + path +
-                " port element should be Integer");
+        throw new IllegalArgumentException("path parameter " + path
+            + " port element should be Integer");
       }
       authority = host + ":" + Integer.toString(port);
     }
@@ -134,11 +158,10 @@ public class Path implements Comparable {
     // scheme 'file://' refers to local underFileSystem, should not contain authority,
     // other schemes must contain authority
     if (scheme.equals("file") && authority != null) {
-      throw new IllegalArgumentException("path parameter " + path +
-              " is local, no authority needed");
+      throw new IllegalArgumentException("path parameter " + path
+          + " is local, no authority needed");
     } else if (!scheme.equals("file") && authority == null) {
-      throw new IllegalArgumentException("path parameter " + path +
-              " must contain authority");
+      throw new IllegalArgumentException("path parameter " + path + " must contain authority");
     }
 
     // remaining part of 'path' after authority is the common file system path
@@ -161,43 +184,54 @@ public class Path implements Comparable {
   /**
    * Compare this Path to another Path
    * <p/>
-   * <p> When comparing corresponding components of two Paths, if one
-   * component is undefined but the other is defined then the first is
-   * considered to be less than the second.  Unless otherwise noted, string
-   * components are ordered according to their natural, case-sensitive
-   * ordering as defined by the {@link java.lang.String#compareTo(Object)
-   * String.compareTo} method.  String components that are subject to
-   * encoding are compared by comparing their raw forms rather than their
-   * encoded forms.
+   * <p>
+   * When comparing corresponding components of two Paths, if one component is undefined but the
+   * other is defined then the first is considered to be less than the second. Unless otherwise
+   * noted, string components are ordered according to their natural, case-sensitive ordering as
+   * defined by the {@link java.lang.String#compareTo(Object)
+   * String.compareTo} method. String components that are subject to encoding are compared by
+   * comparing their raw forms rather than their encoded forms.
    * </p>
-   * <p> The ordering of Paths is defined as follows: </p>
+   * <p>
+   * The ordering of Paths is defined as follows:
+   * </p>
    * <p/>
    * <ul type=disc>
    * <p/>
-   * <li><p> Two Paths with different schemes are ordered according the
-   * ordering of their schemes, without regard to case. </p></li>
+   * <li>
+   * <p>
+   * Two Paths with different schemes are ordered according the ordering of their schemes, without
+   * regard to case.
+   * </p>
+   * </li>
    * <p/>
-   * <li><p> Two Paths with identical schemes are ordered
-   * according to the ordering of their authority components:
-   * first, Paths are ordered according to the
-   * ordering of their hosts, without regard to case; if the hosts are
-   * identical then the Paths are ordered according to the ordering of
-   * their ports. </p></li>
+   * <li>
+   * <p>
+   * Two Paths with identical schemes are ordered according to the ordering of their authority
+   * components: first, Paths are ordered according to the ordering of their hosts, without regard
+   * to case; if the hosts are identical then the Paths are ordered according to the ordering of
+   * their ports.
+   * </p>
+   * </li>
    * <p/>
-   * <li><p> Finally, two Paths with identical schemes and
-   * authority components are ordered according to the ordering of their
-   * paths
+   * <li>
+   * <p>
+   * Finally, two Paths with identical schemes and authority components are ordered according to the
+   * ordering of their paths
    * <p/>
    * </ul>
    * <p/>
-   * <p> This method satisfies the general contract of the {@link
-   * java.lang.Comparable#compareTo(Object) Comparable.compareTo}
-   * method. </p>
-   *
-   * @param other The path to which this Path is to be compared
+   * <p>
+   * This method satisfies the general contract of the
+   * {@link java.lang.Comparable#compareTo(Object) Comparable.compareTo} method.
+   * </p>
+   * 
+   * @param other
+   *          The path to which this Path is to be compared
    * @return A negative integer, zero, or a positive integer as this Path is less than,
-   * equal to, or greater than the given Path
-   * @throws ClassCastException If the given object is not a Path
+   *         equal to, or greater than the given Path
+   * @throws ClassCastException
+   *           If the given object is not a Path
    */
   @Override
   public int compareTo(Object other) {
@@ -208,7 +242,7 @@ public class Path implements Comparable {
     if (ret != 0) {
       return ret;
     }
-    //compare authority
+    // compare authority
     String auth1 = getAuthority();
     String auth2 = o.getAuthority();
     if (auth1 == null && auth2 != null) {
@@ -228,7 +262,7 @@ public class Path implements Comparable {
         return 1;
       }
     }
-    //compare path
+    // compare path
     ret = getPath().compareTo(o.getPath());
     return ret;
   }
@@ -236,6 +270,7 @@ public class Path implements Comparable {
   /**
    * Number of elements in path components of the Path
    * <p/>
+   * 
    * <pre>
    * /                                  -> 0
    * /a                                 -> 1
@@ -260,7 +295,7 @@ public class Path implements Comparable {
     int depth = 0;
     int slash = path.length() == 1 && path.charAt(0) == '/' ? -1 : 0;
     while (slash != -1) {
-      depth++;
+      depth ++;
       slash = path.indexOf(UNIX_PATH_SEPARATOR, slash + 1);
     }
     return depth;
@@ -287,8 +322,9 @@ public class Path implements Comparable {
   /**
    * Gets the extension of a filename.
    * <p/>
-   * This method returns the textual part of the filename after the last dot.
-   * There must be no directory separator after the dot.
+   * This method returns the textual part of the filename after the last dot. There must be no
+   * directory separator after the dot.
+   * 
    * <pre>
    * foo.txt                                --> "txt"
    * file://a/b/c.jpg                       --> "jpg"
@@ -297,9 +333,9 @@ public class Path implements Comparable {
    * </pre>
    * <p/>
    * The output will be the same irrespective of the machine that the code is running on.
-   *
-   * @return the extension of the file or an empty string if none exists or {@code null}
-   * if the filename is {@code null}.
+   * 
+   * @return the extension of the file or an empty string if none exists or {@code null} if the
+   *         filename is {@code null}.
    */
   public String getExtension() {
     return FilenameUtils.getExtension(getPath());
@@ -308,8 +344,9 @@ public class Path implements Comparable {
   /**
    * Gets the name minus the path from a full filename.
    * <p/>
-   * This method will handle a file in either Unix or Windows format.
-   * The text after the last forward or backslash is returned.
+   * This method will handle a file in either Unix or Windows format. The text after the last
+   * forward or backslash is returned.
+   * 
    * <pre>
    * a/b/c.txt                          --> c.txt
    * a.txt                              --> a.txt
@@ -321,7 +358,7 @@ public class Path implements Comparable {
    * </pre>
    * <p/>
    * The output will be the same irrespective of the machine that the code is running on.
-   *
+   * 
    * @return the name of the file without the path, or an empty string if none exists
    */
   public String getFileNameWithExtension() {
@@ -331,8 +368,9 @@ public class Path implements Comparable {
   /**
    * Gets the base name, minus the full path and extension, from a full filename.
    * <p/>
-   * This method will handle a file in either Unix or Windows format.
-   * The text after the last forward or backslash and before the last dot is returned.
+   * This method will handle a file in either Unix or Windows format. The text after the last
+   * forward or backslash and before the last dot is returned.
+   * 
    * <pre>
    * a/b/c.txt --> c
    * a.txt     --> a
@@ -344,7 +382,7 @@ public class Path implements Comparable {
    * </pre>
    * <p/>
    * The output will be the same irrespective of the machine that the code is running on.
-   *
+   * 
    * @return the name of the file without the path, or an empty string if none exists
    */
   public String getFileNameWithoutExtension() {
@@ -354,6 +392,7 @@ public class Path implements Comparable {
   /**
    * Get the host of authority
    * <p/>
+   * 
    * <pre>
    * hdfs://localhost:19999/a/b    -> localhost
    * tachyon://127.0.0.1:1998/a    -> 127.0.0.1
@@ -367,6 +406,7 @@ public class Path implements Comparable {
   /**
    * Construct new Path whose path component is this Path's path's parent path
    * <p/>
+   * 
    * <pre>
    * scheme://authority/a      -> scheme://authority/
    * scheme://authority/       -> null
@@ -389,6 +429,7 @@ public class Path implements Comparable {
   /**
    * Get the path component of Path
    * <p/>
+   * 
    * <pre>
    * scheme://host:port//a/b         -> /a/b
    * scheme://host:port/a/b          -> a/b
@@ -406,6 +447,7 @@ public class Path implements Comparable {
   /**
    * Get the port of authority
    * <p/>
+   * 
    * <pre>
    * hdfs://localhost:19999/a/b    -> 19999
    * tachyon://127.0.0.1:1998/a    -> 1998
@@ -421,8 +463,9 @@ public class Path implements Comparable {
    * other components not changed
    * <p/>
    * <p/>
-   * This method will handle a file in either Unix or Windows format.
-   * The prefix includes the first slash in the full filename where applicable.
+   * This method will handle a file in either Unix or Windows format. The prefix includes the first
+   * slash in the full filename where applicable.
+   * 
    * <pre>
    * Windows:
    * a\b\c.txt           --> ""          --> relative
@@ -430,7 +473,7 @@ public class Path implements Comparable {
    * C:a\b\c.txt         --> "C:"        --> drive relative
    * C:\a\b\c.txt        --> "C:\"       --> absolute
    * \\server\a\b\c.txt  --> "\\server\" --> UNC
-   *
+   * 
    * Unix:
    * a/b/c.txt           --> ""          --> relative
    * /a/b/c.txt          --> "/"         --> absolute
@@ -441,8 +484,8 @@ public class Path implements Comparable {
    * </pre>
    * <p/>
    * <p/>
-   * The output will be the same irrespective of the machine that the code is running on.
-   * ie. both Unix and Windows prefixes are matched regardless.
+   * The output will be the same irrespective of the machine that the code is running on. ie. both
+   * Unix and Windows prefixes are matched regardless.
    */
   public Path getRoot() {
     String path = getPath();
@@ -453,8 +496,7 @@ public class Path implements Comparable {
   /**
    * Get the scheme component of Path
    * <p/>
-   * scheme://authority/path -> scheme
-   * scheme://path           -> scheme
+   * scheme://authority/path -> scheme scheme://path -> scheme
    */
   public String getScheme() {
     return mScheme;
@@ -468,6 +510,7 @@ public class Path implements Comparable {
   /**
    * Whether path component of this Path is Absolute
    * <p/>
+   * 
    * <pre>
    * Windows:
    * C:\a -> absolute
@@ -476,7 +519,7 @@ public class Path implements Comparable {
    * Unix:
    * /a/b -> absolute
    * </pre>
-   *
+   * 
    * @return <code>true</code> if the path component is absolute else <code>false</code>
    */
   public boolean isAbsolute() {
@@ -487,9 +530,8 @@ public class Path implements Comparable {
       return false;
     }
     String path = root.getPath();
-    if (!WINDOWS && path.startsWith("/") ||
-            WINDOWS && startsWithWindowsDrive(path) &&
-                    path.substring(2, 3).equals(WINDOWS_PATH_SEPARATOR)) {
+    if (!WINDOWS && path.startsWith("/") || WINDOWS && startsWithWindowsDrive(path)
+        && path.substring(2, 3).equals(WINDOWS_PATH_SEPARATOR)) {
       return true;
     }
     return false;
@@ -497,7 +539,7 @@ public class Path implements Comparable {
 
   /**
    * Whether the path component is a root path
-   *
+   * 
    * @return <code>true</code> if the path component is root else <code>false</code>
    */
   public boolean isRoot() {
@@ -506,11 +548,14 @@ public class Path implements Comparable {
 
   /**
    * Join paths to new Path, scheme and authority should all be the same
-   *
-   * @param path   Base Path object to be appended to
-   * @param others other Paths to sequentially append to base path
+   * 
+   * @param path
+   *          Base Path object to be appended to
+   * @param others
+   *          other Paths to sequentially append to base path
    * @return joined Path
-   * @throws java.lang.IllegalArgumentException if parameters do not share the same scheme and authority
+   * @throws java.lang.IllegalArgumentException
+   *           if parameters do not share the same scheme and authority
    */
   public static Path join(Path path, Path... others) throws IllegalArgumentException {
     Path[] otherPaths = new Path[others.length];
@@ -522,8 +567,8 @@ public class Path implements Comparable {
       if (other.getScheme().equals(scheme) && other.getAuthority().equals(authority)) {
         joinedPath = FilenameUtils.concat(joinedPath, other.getPath());
       } else {
-        throw new IllegalArgumentException("parameter others must all have the " +
-                "same scheme and authority");
+        throw new IllegalArgumentException("parameter others must all have the "
+            + "same scheme and authority");
       }
     }
     return new Path(scheme, authority, joinedPath);
@@ -531,9 +576,11 @@ public class Path implements Comparable {
 
   /**
    * Join paths to new Path, scheme and authority be the same with first parameter path
-   *
-   * @param path   Base Path object to be appended to
-   * @param others other other common local file system paths
+   * 
+   * @param path
+   *          Base Path object to be appended to
+   * @param others
+   *          other other common local file system paths
    * @return joined Path
    */
   public static Path join(Path path, String... others) {
@@ -548,11 +595,14 @@ public class Path implements Comparable {
 
   /**
    * Join paths to new Path, scheme and authority be the same with others
-   *
-   * @param path   local file system path to be appended to
-   * @param others Paths with same scheme and authority
+   * 
+   * @param path
+   *          local file system path to be appended to
+   * @param others
+   *          Paths with same scheme and authority
    * @return joined Path
-   * @throws IllegalArgumentException if others do not have the same schemes and authorities
+   * @throws IllegalArgumentException
+   *           if others do not have the same schemes and authorities
    */
   public static Path join(String path, Path... others) throws IllegalArgumentException {
     Path[] otherPaths = new Path[others.length];
@@ -564,8 +614,8 @@ public class Path implements Comparable {
       if (p.getScheme().equals(scheme) && p.getAuthority().equals(authority)) {
         joinedPath = FilenameUtils.concat(joinedPath, p.getPath());
       } else {
-        throw new IllegalArgumentException("parameter others must all have the " +
-                "same scheme and authority");
+        throw new IllegalArgumentException("parameter others must all have the "
+            + "same scheme and authority");
       }
     }
     return new Path(scheme, authority, joinedPath);
@@ -573,9 +623,11 @@ public class Path implements Comparable {
 
   /**
    * Join local file system paths to construct a new Path with scheme "file://"
-   *
-   * @param path   Base local file system path to be appended to
-   * @param others other local file system paths
+   * 
+   * @param path
+   *          Base local file system path to be appended to
+   * @param others
+   *          other local file system paths
    * @return Path with joined path as path component and "file" as scheme
    */
   public static Path join(String path, String... others) {
@@ -590,18 +642,20 @@ public class Path implements Comparable {
 
   /**
    * Equivallent as relative(other.getPath())
-   *
-   * @param other the path to relativize against this path,
-   *              share same scheme and authority with the caller
+   * 
+   * @param other
+   *          the path to relativize against this path,
+   *          share same scheme and authority with the caller
    * @return relative Path
-   * @throws java.lang.IllegalArgumentException if other do not share the same scheme and authority with the caller
+   * @throws java.lang.IllegalArgumentException
+   *           if other do not share the same scheme and authority with the caller
    */
   public Path relativize(Path other) throws IllegalArgumentException {
     if (getScheme().equals(other.getScheme()) && getAuthority().equals(other.getAuthority())) {
       return relativize(other.getPath());
     } else {
-      throw new IllegalArgumentException("paramter other must share the same" +
-              " scheme and authority with the caller");
+      throw new IllegalArgumentException("paramter other must share the same"
+          + " scheme and authority with the caller");
     }
   }
 
@@ -609,23 +663,24 @@ public class Path implements Comparable {
    * Constructs a relative path between this path and a given path.
    * <p/>
    * <p>
-   * Relativization is the inverse of resolution.
-   * This method attempts to construct a relative path that when resolved against this path,
-   * yields a path that locates the same file as the given path. That is:
-   * p.resolve(p.relativize(q)) == q
+   * Relativization is the inverse of resolution. This method attempts to construct a relative path
+   * that when resolved against this path, yields a path that locates the same file as the given
+   * path. That is: p.resolve(p.relativize(q)) == q
    * <p/>
+   * 
    * <pre>
    * Example:
    * "/a/b".relativize("/a/b/c/d") = "c/d"
    * "/a/b".relativize("/a/c") = "../c"
    * </pre>
    * <p/>
-   * Attention: the two paths must all be absolute paths, if not, empty path is returned
-   * if the caller path is longer than the other, empty path is returned
-   * if the caller path is the same with the other, empty path is returned
+   * Attention: the two paths must all be absolute paths, if not, empty path is returned if the
+   * caller path is longer than the other, empty path is returned if the caller path is the same
+   * with the other, empty path is returned
    * </p>
-   *
-   * @param other the local file system path to relativize against this path
+   * 
+   * @param other
+   *          the local file system path to relativize against this path
    * @return relative Path
    */
   public Path relativize(String other) {
@@ -635,13 +690,13 @@ public class Path implements Comparable {
     Path otherPath = new Path("file", null, other);
     String relativePath = "";
 
-    if (!(path.equals(other) || !isAbsolute() || !otherPath.isAbsolute()
-            || path.length() > other.length())) {
+    if (!(path.equals(other) || !isAbsolute() || !otherPath.isAbsolute() || path.length() > other
+        .length())) {
       // find the longest match of the two paths
       int index = 1;
       while (index <= path.length()) {
         if (other.startsWith(path.substring(0, index))) {
-          ++index;
+          ++ index;
         } else {
           break;
         }
@@ -653,7 +708,7 @@ public class Path implements Comparable {
         relativePath = relativePath.substring(1);
       }
       String pathRemain = path.substring(start);
-      for (int i = 0; i < pathRemain.length(); i++) {
+      for (int i = 0; i < pathRemain.length(); i ++) {
         if (pathRemain.charAt(i) == '/') {
           relativePath = "../" + relativePath;
         }
@@ -665,18 +720,20 @@ public class Path implements Comparable {
 
   /**
    * Equivallent as resolve(other.getPath())
-   *
-   * @param other the path string to resolve against this path,
-   *              share same scheme and authority with the caller
+   * 
+   * @param other
+   *          the path string to resolve against this path,
+   *          share same scheme and authority with the caller
    * @return the resulting Path
-   * @throws IllegalArgumentException if the two Path don't share the same scheme and authority
+   * @throws IllegalArgumentException
+   *           if the two Path don't share the same scheme and authority
    */
   public Path resolve(Path other) throws IllegalArgumentException {
     if (getScheme().equals(other.getScheme()) && getAuthority().equals(other.getAuthority())) {
       return resolve(other.getPath());
     } else {
-      throw new IllegalArgumentException("paramter other must share the same" +
-              " scheme and authority with the caller");
+      throw new IllegalArgumentException("paramter other must share the same"
+          + " scheme and authority with the caller");
     }
   }
 
@@ -684,8 +741,9 @@ public class Path implements Comparable {
    * Resolve the given path against this path.
    * <p/>
    * Simply join them together
-   *
-   * @param other the path to resolve against this path
+   * 
+   * @param other
+   *          the path to resolve against this path
    * @return the resulting path
    */
   public Path resolve(String other) {
@@ -694,17 +752,19 @@ public class Path implements Comparable {
 
   /**
    * Equivalent as resoveSibling(other.getPath())
-   *
-   * @param other the path to resolve against this path's parent
+   * 
+   * @param other
+   *          the path to resolve against this path's parent
    * @return the resulting Path
-   * @throws IllegalArgumentException if the two paths do not share the same scheme and authority
+   * @throws IllegalArgumentException
+   *           if the two paths do not share the same scheme and authority
    */
   public Path resolveSibling(Path other) throws IllegalArgumentException {
     if (getScheme().equals(other.getScheme()) && getAuthority().equals(other.getAuthority())) {
       return resolveSibling(other.getPath());
     } else {
-      throw new IllegalArgumentException("paramter other must share the same" +
-              " scheme and authority with the caller");
+      throw new IllegalArgumentException("paramter other must share the same"
+          + " scheme and authority with the caller");
     }
   }
 
@@ -712,8 +772,9 @@ public class Path implements Comparable {
    * Resolves the given path against this path's parent path
    * <p/>
    * Simply join <code>other</code> to this path's parent path
-   *
-   * @param other the path to resolve against this path's parent
+   * 
+   * @param other
+   *          the path to resolve against this path's parent
    * @return the resulting path
    */
   public Path resolveSibling(String other) {
@@ -724,6 +785,7 @@ public class Path implements Comparable {
    * path component of Path object contains elements seperated by SEPERATOR('/' or '\')
    * This method gets path's [beginIndex, endIndex) elements and construct a new Path object
    * <p/>
+   * 
    * <pre>
    * "/a/b/c/".subpath(0,0)      = ""
    * "/a/b/c/".subpath(0,1)      = "a"
@@ -733,13 +795,15 @@ public class Path implements Comparable {
    * "/a/b/c/d.txt".subpath(0,4) = a/b/c/d.txt
    * "/a/b/c/d.txt".subpath(3,4) = d.txt
    * </pre>
-   *
-   * @param beginIndex beginIndex should be in range [ 0, depth() ), else throw exception
-   * @param endIndex   endIndex should be in range ( 0, depth() ], else throw exception
+   * 
+   * @param beginIndex
+   *          beginIndex should be in range [ 0, depth() ), else throw exception
+   * @param endIndex
+   *          endIndex should be in range ( 0, depth() ], else throw exception
    * @return new constructed Path
    */
   public Path subpath(int beginIndex, int endIndex) throws IllegalArgumentException {
-    //check index's range
+    // check index's range
     if (beginIndex < 0 || beginIndex >= depth()) {
       throw new IllegalArgumentException("beginIndex parameter " + beginIndex + " out of range");
     }
@@ -755,12 +819,12 @@ public class Path implements Comparable {
     int begin = -1, end = -1;
     while (depth <= beginIndex) {
       begin = path.indexOf("/", begin + 1);
-      ++depth;
+      ++ depth;
     }
     end = begin;
     while (depth <= endIndex) {
       end = path.indexOf("/", end + 1);
-      ++depth;
+      ++ depth;
     }
     if (end == -1) {
       end = path.length();
