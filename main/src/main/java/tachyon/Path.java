@@ -76,7 +76,7 @@ import org.apache.commons.io.FilenameUtils;
  * The implementation uses org.apache.commons.io.FilenameUtils whenever it's convenient
  * </p>
  */
-public class Path implements Comparable {
+public class Path implements Comparable<Path> {
   private String mScheme = null;
   private String mHost = null;
   private int mPort = -1;
@@ -230,32 +230,29 @@ public class Path implements Comparable {
    *          The path to which this Path is to be compared
    * @return A negative integer, zero, or a positive integer as this Path is less than,
    *         equal to, or greater than the given Path
-   * @throws ClassCastException
-   *           If the given object is not a Path
    */
   @Override
-  public int compareTo(Object other) {
-    Path o = (Path) other;
+  public int compareTo(Path other) {
     int ret = 0;
     // compare scheme
-    ret = getScheme().compareTo(o.getScheme());
+    ret = getScheme().compareTo(other.getScheme());
     if (ret != 0) {
       return ret;
     }
     // compare authority
     String auth1 = getAuthority();
-    String auth2 = o.getAuthority();
+    String auth2 = other.getAuthority();
     if (auth1 == null && auth2 != null) {
       return -1;
     } else if (auth1 != null && auth2 == null) {
       return 1;
     } else if (auth1 != null && auth2 != null) {
-      ret = getHost().compareTo(o.getHost());
+      ret = getHost().compareTo(other.getHost());
       if (ret != 0) {
         return ret;
       }
       int port1 = getPort();
-      int port2 = o.getPort();
+      int port2 = other.getPort();
       if (port1 < port2) {
         return -1;
       } else if (port1 > port2) {
@@ -263,7 +260,7 @@ public class Path implements Comparable {
       }
     }
     // compare path
-    ret = getPath().compareTo(o.getPath());
+    ret = getPath().compareTo(other.getPath());
     return ret;
   }
 
