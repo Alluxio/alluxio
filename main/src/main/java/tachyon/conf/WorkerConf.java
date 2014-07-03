@@ -65,16 +65,16 @@ public class WorkerConf extends Utils {
     MEMORY_SIZE =
         CommonUtils.parseSpaceSize(getProperty("tachyon.worker.memory.size", (128 * Constants.MB)
             + ""));
-    HEARTBEAT_TIMEOUT_MS = getIntProperty("tachyon.worker.heartbeat.timeout.ms", 10 * 1000);
+    HEARTBEAT_TIMEOUT_MS = getIntProperty("tachyon.worker.heartbeat.timeout.ms", 10 * Constants.SECOND_MS);
     TO_MASTER_HEARTBEAT_INTERVAL_MS =
-        getIntProperty("tachyon.worker.to.master.heartbeat.interval.ms", 1000);
+        getIntProperty("tachyon.worker.to.master.heartbeat.interval.ms", Constants.SECOND_MS);
     SELECTOR_THREADS = getIntProperty("tachyon.worker.selector.threads", 3);
     QUEUE_SIZE_PER_SELECTOR = getIntProperty("tachyon.worker.queue.size.per.selector", 3000);
     SERVER_THREADS = getIntProperty("tachyon.worker.server.threads", 128);
-    USER_TIMEOUT_MS = getIntProperty("tachyon.worker.user.timeout.ms", 10 * 1000);
+    USER_TIMEOUT_MS = getIntProperty("tachyon.worker.user.timeout.ms", 10 * Constants.SECOND_MS);
 
     WORKER_CHECKPOINT_THREADS = getIntProperty("tachyon.worker.checkpoint.threads", 1);
     WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
-        getIntProperty("tachyon.worker.per.thread.checkpoint.cap.mb.sec", 1000);
+        getIntProperty("tachyon.worker.per.thread.checkpoint.cap.mb.sec", Constants.SECOND_MS);
   }
 }

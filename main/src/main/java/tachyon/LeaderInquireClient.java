@@ -53,7 +53,7 @@ public class LeaderInquireClient {
     LEADER_PATH = leaderPath;
 
     CLIENT =
-        CuratorFrameworkFactory.newClient(ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(1000, 3));
+        CuratorFrameworkFactory.newClient(ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     CLIENT.start();
   }
 
@@ -83,7 +83,7 @@ public class LeaderInquireClient {
         } else {
           LOG.info(LEADER_PATH + " does not exist (" + (++ tried) + ")");
         }
-        CommonUtils.sleepMs(LOG, 1000);
+        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);

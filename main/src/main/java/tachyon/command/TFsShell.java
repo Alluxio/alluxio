@@ -130,7 +130,7 @@ public class TFsShell {
       OutStream os = tFile.getOutStream(WriteType.CACHE_THROUGH);
       FileInputStream in = new FileInputStream(src);
       FileChannel channel = in.getChannel();
-      ByteBuffer buf = ByteBuffer.allocate(1024);
+      ByteBuffer buf = ByteBuffer.allocate(Constants.KB);
       while (channel.read(buf) != -1) {
         buf.flip();
         os.write(buf.array(), 0, buf.limit());
@@ -621,10 +621,10 @@ public class TFsShell {
     }
     if (tFile.isFile()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
-      byte[] buf = new byte[1024];
+      byte[] buf = new byte[Constants.KB];
       long bytesToRead = 0L;
-      if (tFile.length() > 1024) {
-        bytesToRead = 1024;
+      if (tFile.length() > Constants.KB) {
+        bytesToRead = Constants.KB;
       } else {
         bytesToRead = tFile.length();
       }
