@@ -70,7 +70,7 @@ public class EditLogProcessor implements Runnable {
             mLastImageFileNum = mCurrentLogFileNum;
           }
         }
-        CommonUtils.sleepMs(LOG, 1000);
+        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       } catch (IOException e) {
         CommonUtils.runtimeException(e);
       }

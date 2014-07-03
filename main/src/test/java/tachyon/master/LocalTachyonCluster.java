@@ -28,8 +28,6 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
-import tachyon.master.TachyonMaster;
-import tachyon.master.MasterInfo;
 import tachyon.util.CommonUtils;
 import tachyon.worker.TachyonWorker;
 
@@ -40,15 +38,15 @@ public class LocalTachyonCluster {
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100);
     cluster.start();
-    CommonUtils.sleepMs(null, 1000);
+    CommonUtils.sleepMs(null, Constants.SECOND_MS);
     cluster.stop();
-    CommonUtils.sleepMs(null, 1000);
+    CommonUtils.sleepMs(null, Constants.SECOND_MS);
 
     cluster = new LocalTachyonCluster(100);
     cluster.start();
-    CommonUtils.sleepMs(null, 1000);
+    CommonUtils.sleepMs(null, Constants.SECOND_MS);
     cluster.stop();
-    CommonUtils.sleepMs(null, 1000);
+    CommonUtils.sleepMs(null, Constants.SECOND_MS);
   }
 
   private TachyonMaster mMaster = null;
