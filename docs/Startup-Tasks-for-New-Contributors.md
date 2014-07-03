@@ -49,6 +49,8 @@ After the pull request is reviewed and merged, you become a Tachyon contributor!
 -   Quickly test the working of some APIs in an interactive manner, you may leverage
 the Scala shell, as discussed in this [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
 
+-   Run tests with a different Hadoop version: ``mvn -Dhadoop.version=2.2.0 clean test``
+
 ### Coding Style
 
 -   Follow the style of the existing codebase. Specifically, we use
