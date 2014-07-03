@@ -19,62 +19,22 @@ import org.apache.commons.io.FilenameUtils;
 
 /**
  * Abstraction of all types of path in Tachyon lexically and syntactically
- * <p/>
- * <p>
- * Path in Tachyon
- * </p>
- * <p/>
- * <ul type=disc>
- * <p/>
- * <li>
- * <p>
- * UnderFileSystem path: scheme(hdfs, s3, etc.)://host:port/path, file:///path
- * </p>
- * </li>
- * <p/>
- * <li>
- * <p>
- * Tachyon master/client path: tachyon://host:port/path, tachyon-ft://host:port/path
- * </p>
- * </li>
- * <p/>
- * </ul>
- * <p/>
- * <p>
- * Path in Tachyon has the following components
- * </p>
- * <p/>
- * <ul type=disc>
- * <p/>
- * <li>
- * <p>
- * scheme(MUST)
- * </p>
- * </li>
- * <p/>
- * <li>
- * <p>
- * authority(host:port)(OPTIONAL)<br>
- * if authority is omitted, the path representation becomes scheme:///path, pay attention to the
- * third slash
- * </p>
- * </li>
- * <p/>
- * <li>
- * <p>
- * path(MUST)<br>
- * Windows path should be kept as it is on a Windows Platform, this Class will take care of both
- * Unix and Window path representation, e.g. scheme://host:port/a\b represents relative path a\b on
- * Windows, or scheme://host:port/C:\ represents root directory of Driver C on Windows. For Unix
- * path, scheme://host:port//a/b represents /a/b, scheme://host:port/a/b represents a/b
- * </p>
- * </li>
- * <p/>
- * </ul>
- * <p/>
- * <p>
- * The implementation uses org.apache.commons.io.FilenameUtils whenever it's convenient
- * </p>
+ * <p><p>
+ * Path in Tachyon:
+ * <ul>
+ * <li>Tachyon path: tachyon://host:port/path, tachyon-ft://host:port/path</li>
+ * <li>UnderFileSystem path: scheme(hdfs, s3, etc.)://host:port/path, file:///path</li>
+ * <p><p>
+ * Path in Tachyon has the following components:
+ * <ul>
+ * <li>scheme(MUST)</li>
+ * <li>host:port(OPTIONAL) - if address is omitted, the path representation becomes scheme:///path,
+ * pay attention to the third slash.</li>
+ * <li>path(MUST) - Windows path should be kept as it is on a Windows Platform, this Class will take
+ * care of both Unix and Window path representation, e.g. scheme://host:port/a\b represents relative
+ * path a\b on Windows, or scheme://host:port/C:\ represents root directory of Driver C on Windows.
+ * For Unix path, scheme://host:port//a/b represents /a/b, scheme://host:port/a/b represents
+ * a/b</li>
  */
 public class Path implements Comparable<Path> {
   /**
