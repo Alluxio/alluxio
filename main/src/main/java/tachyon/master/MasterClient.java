@@ -167,7 +167,7 @@ public class MasterClient {
         if (mHeartbeatThread != null) {
           mHeartbeatThread.shutdown();
         }
-        CommonUtils.sleepMs(LOG, 1000);
+        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         continue;
       }
       mIsConnected = true;
