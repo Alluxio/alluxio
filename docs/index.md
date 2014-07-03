@@ -72,7 +72,11 @@ line.
 [Syncing the Underlying Filesystem](Syncing-the-Underlying-Filesystem.html): Make Tachyon understand
 an existing underlayer filesystem.
 
-[Tachyon Presentation](http://goo.gl/AHgz0E) at Strata and Hadoop World 2013 (October, 2013)
+Tachyon Presentations:
+
+* Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
+
+* Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
 
 # Developer Documentation
 
