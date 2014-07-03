@@ -34,10 +34,10 @@ public class Constants {
   public static final String ANSI_CYAN = "\u001B[36m";
   public static final String ANSI_WHITE = "\u001B[37m";
 
-  public static final long SECOND_MS = 1000;
-  public static final long MINUTE_MS = SECOND_MS * 60;
-  public static final long HOUR_MS = MINUTE_MS * 60;
-  public static final long DAY_MS = HOUR_MS * 24;
+  public static final int SECOND_MS = 1000;
+  public static final int MINUTE_MS = SECOND_MS * 60;
+  public static final int HOUR_MS = MINUTE_MS * 60;
+  public static final int DAY_MS = HOUR_MS * 24;
 
   public static final String HEADER = "tachyon://";
   public static final String HEADER_FT = "tachyon-ft://";

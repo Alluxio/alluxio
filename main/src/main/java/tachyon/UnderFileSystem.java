@@ -89,7 +89,7 @@ public abstract class UnderFileSystem {
   public static Pair<String, String> parse(String path) {
     if (path == null) {
       return null;
-    } else if (path.startsWith("tachyon://") || path.startsWith("tachyon-ft://")
+    } else if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)
         || path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")
         || path.startsWith("glusterfs:///")) {
       String prefix = path.substring(0, path.indexOf("://") + 3);

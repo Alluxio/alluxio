@@ -60,7 +60,7 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
     // all participants in a given leader selection must use the same path
     // ExampleClient here is also a LeaderSelectorListener but this isn't required
     CuratorFramework client =
-        CuratorFrameworkFactory.newClient(ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(1000, 3));
+        CuratorFrameworkFactory.newClient(ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     client.start();
     LEADER_SELECTOR = new LeaderSelector(client, ELECTION_PATH, this);
     LEADER_SELECTOR.setId(name);
