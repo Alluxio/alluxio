@@ -44,100 +44,6 @@ public class Path implements Comparable<Path> {
   private static final String WINDOWS_PATH_SEPARATOR = "\\";
   private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
-  /**
-   * Join paths to new Path, scheme and authority should all be the same
-   * 
-   * @param path
-   *          Base Path object to be appended to
-   * @param others
-   *          other Paths to sequentially append to base path
-   * @return joined Path
-   * @throws java.lang.IllegalArgumentException
-   *           if parameters do not share the same scheme and authority
-   */
-  public static Path join(Path path, Path... others) throws IllegalArgumentException {
-    Path[] otherPaths = new Path[others.length];
-    System.arraycopy(others, 0, otherPaths, 0, others.length);
-    String scheme = path.getScheme();
-    String authority = path.getAuthority();
-    String joinedPath = path.getPath();
-    for (Path other : otherPaths) {
-      if (other.getScheme().equals(scheme) && other.getAuthority().equals(authority)) {
-        joinedPath = FilenameUtils.concat(joinedPath, other.getPath());
-      } else {
-        throw new IllegalArgumentException("parameter others must all have the "
-            + "same scheme and authority");
-      }
-    }
-    return new Path(scheme, authority, joinedPath);
-  }
-
-  /**
-   * Join paths to new Path, scheme and authority be the same with first parameter path
-   * 
-   * @param path
-   *          Base Path object to be appended to
-   * @param others
-   *          other other common local file system paths
-   * @return joined Path
-   */
-  public static Path join(Path path, String... others) {
-    String[] otherPaths = new String[others.length];
-    System.arraycopy(others, 0, otherPaths, 0, others.length);
-    String joinedPath = path.getPath();
-    for (String other : otherPaths) {
-      joinedPath = FilenameUtils.concat(joinedPath, other);
-    }
-    return new Path(path.getScheme(), path.getAuthority(), joinedPath);
-  }
-
-  /**
-   * Join paths to new Path, scheme and authority be the same with others
-   * 
-   * @param path
-   *          local file system path to be appended to
-   * @param others
-   *          Paths with same scheme and authority
-   * @return joined Path
-   * @throws IllegalArgumentException
-   *           if others do not have the same schemes and authorities
-   */
-  public static Path join(String path, Path... others) throws IllegalArgumentException {
-    Path[] otherPaths = new Path[others.length];
-    System.arraycopy(others, 0, otherPaths, 0, others.length);
-    String scheme = otherPaths[0].getScheme();
-    String authority = otherPaths[0].getAuthority();
-    String joinedPath = path;
-    for (Path p : otherPaths) {
-      if (p.getScheme().equals(scheme) && p.getAuthority().equals(authority)) {
-        joinedPath = FilenameUtils.concat(joinedPath, p.getPath());
-      } else {
-        throw new IllegalArgumentException("parameter others must all have the "
-            + "same scheme and authority");
-      }
-    }
-    return new Path(scheme, authority, joinedPath);
-  }
-
-  /**
-   * Join local file system paths to construct a new Path with scheme "file://"
-   * 
-   * @param path
-   *          Base local file system path to be appended to
-   * @param others
-   *          other local file system paths
-   * @return Path with joined path as path component and "file" as scheme
-   */
-  public static Path join(String path, String... others) {
-    String[] ss = new String[others.length];
-    System.arraycopy(others, 0, ss, 0, others.length);
-    String joinedPath = path;
-    for (String other : ss) {
-      joinedPath = FilenameUtils.concat(joinedPath, other);
-    }
-    return new Path("file", null, joinedPath);
-  }
-
   private String mScheme = null;
 
   private String mHost = null;
@@ -227,6 +133,31 @@ public class Path implements Comparable<Path> {
 
   public Path(String scheme, String authority, String path) {
     this(scheme + "://" + authority + "/" + path);
+  }
+
+  /**
+   * Assert paths have the same scheme and authority
+   * 
+   * @param paths
+   *          paths to be compared
+   * @throws java.lang.IllegalArgumentException
+   *           If there exist two paths who don't share the same scheme and authority or length
+   *           of parameter is 0
+   */
+  private void assertSameSchemeAndAuthority(Path... paths) throws IllegalArgumentException {
+    if (paths.length == 0) {
+      throw new IllegalArgumentException("parameter paths can not be empty");
+    }
+    if (paths.length < 2) {
+      return;
+    }
+    String scheme = paths[0].getScheme();
+    String authority = paths[0].getAuthority();
+    for (int i = 1; i < paths.length; i ++) {
+      if ((!paths[i].getScheme().equals(scheme)) || (!paths[i].getAuthority().equals(authority))) {
+        throw new IllegalArgumentException("parameters should be of the same scheme and authority");
+      }
+    }
   }
 
   /**
@@ -592,6 +523,50 @@ public class Path implements Comparable<Path> {
   }
 
   /**
+   * Join paths to new Path, scheme and authority should all be the same
+   * 
+   * @param others
+   *          other Paths to sequentially append to base path
+   * @return joined Path
+   * @throws java.lang.IllegalArgumentException
+   *           if parameters do not share the same scheme and authority
+   */
+  public Path join(Path... others) throws IllegalArgumentException {
+    assertSameSchemeAndAuthority(others);
+    return join(pathsToStringpaths(others));
+  }
+
+  /**
+   * Join paths to new Path, scheme and authority be the same with first parameter path
+   * 
+   * @param others
+   *          other other common local file system paths
+   * @return joined Path
+   */
+  public Path join(String... others) {
+    String joinedPath = getPath();
+    for (String other : others) {
+      joinedPath = FilenameUtils.concat(joinedPath, other);
+    }
+    return new Path(getScheme(), getAuthority(), joinedPath);
+  }
+
+  /**
+   * Composite path components of parameter paths to a String list
+   * 
+   * @param paths
+   *          Paths to be composed from
+   * @return composed string list
+   */
+  private String[] pathsToStringpaths(Path... paths) {
+    String[] ret = new String[paths.length];
+    for (int i = 0; i < ret.length; i ++) {
+      ret[i] = paths[i].getPath();
+    }
+    return ret;
+  }
+
+  /**
    * Equivallent as relative(other.getPath())
    * 
    * @param other
@@ -698,7 +673,7 @@ public class Path implements Comparable<Path> {
    * @return the resulting path
    */
   public Path resolve(String other) {
-    return join(this, other);
+    return join(other);
   }
 
   /**
@@ -729,7 +704,7 @@ public class Path implements Comparable<Path> {
    * @return the resulting path
    */
   public Path resolveSibling(String other) {
-    return join(getParent(), other);
+    return join(other);
   }
 
   /**
