@@ -36,7 +36,7 @@ public class GlusterfsCluster extends UnderFileSystemCluster {
   @Override
   public String getUnderFilesystemAddress() {
     if (mUseGfs) {
-      return new File(mMount + "/" + mBaseDir).getAbsolutePath();
+      return new File(mMount + Constants.PATH_SEPARATOR + mBaseDir).getAbsolutePath();
     }
     // for env that doesn't have a glusterfs mount point, we fall to local fs
     return new File(mBaseDir).getAbsolutePath();

@@ -212,7 +212,7 @@ public class MasterInfo implements ImageWriter {
           if (hasLostFiles) {
             LOG.info("HasLostFiles, but no job can be launched.");
           }
-          CommonUtils.sleepMs(LOG, 1000);
+          CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         }
       }
     }
