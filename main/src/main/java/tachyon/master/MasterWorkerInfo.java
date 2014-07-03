@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import tachyon.Constants;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
@@ -55,7 +56,7 @@ public class MasterWorkerInfo {
     ClientWorkerInfo ret = new ClientWorkerInfo();
     ret.id = mId;
     ret.address = new NetAddress(ADDRESS.getAddress().getCanonicalHostName(), ADDRESS.getPort());
-    ret.lastContactSec = (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / 1000);
+    ret.lastContactSec = (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS);
     ret.state = "In Service";
     ret.capacityBytes = CAPACITY_BYTES;
     ret.usedBytes = mUsedBytes;

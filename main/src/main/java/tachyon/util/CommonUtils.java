@@ -307,10 +307,10 @@ public final class CommonUtils {
     }
 
     path = path.substring(path.indexOf("://") + 3);
-    if (!path.contains("/")) {
-      return "/";
+    if (!path.contains(Constants.PATH_SEPARATOR)) {
+      return Constants.PATH_SEPARATOR;
     }
-    return path.substring(path.indexOf("/"));
+    return path.substring(path.indexOf(Constants.PATH_SEPARATOR));
   }
 
   public static String getSizeFromBytes(long bytes) {

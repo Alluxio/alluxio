@@ -168,7 +168,7 @@ public class WorkerStorage {
 
           if (fileId == -1) {
             LOG.debug("Thread " + ID + " has nothing to checkpoint. Sleep for 1 sec.");
-            CommonUtils.sleepMs(LOG, 1000);
+            CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
             continue;
           }
 
@@ -303,11 +303,11 @@ public class WorkerStorage {
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         mWorkerId = 0;
-        CommonUtils.sleepMs(LOG, 1000);
+        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mWorkerId = 0;
-        CommonUtils.sleepMs(LOG, 1000);
+        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
     }
 
@@ -645,11 +645,11 @@ public class WorkerStorage {
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
-        CommonUtils.sleepMs(LOG, 1000);
+        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
-        CommonUtils.sleepMs(LOG, 1000);
+        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
     }
     mWorkerId = id;
@@ -709,7 +709,7 @@ public class WorkerStorage {
 
     String ufsOrphanBlock = CommonUtils.concat(mUnderfsOrphansFolder, blockId);
     OutputStream os = mUnderFs.create(ufsOrphanBlock);
-    int BULKSIZE = 1024 * 64;
+    int BULKSIZE = Constants.KB * 64;
     byte[] bulk = new byte[BULKSIZE];
     for (int k = 0; k < (buf.limit() + BULKSIZE - 1) / BULKSIZE; k ++) {
       int len = BULKSIZE < buf.remaining() ? BULKSIZE : buf.remaining();
