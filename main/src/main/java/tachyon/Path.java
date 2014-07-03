@@ -19,12 +19,14 @@ import org.apache.commons.io.FilenameUtils;
 
 /**
  * Abstraction of all types of path in Tachyon lexically and syntactically
- * <p><p>
+ * <p>
+ * <p>
  * Path in Tachyon:
  * <ul>
  * <li>Tachyon path: tachyon://host:port/path, tachyon-ft://host:port/path</li>
  * <li>UnderFileSystem path: scheme(hdfs, s3, etc.)://host:port/path, file:///path</li>
- * <p><p>
+ * <p>
+ * <p>
  * Path in Tachyon has the following components:
  * <ul>
  * <li>scheme(MUST)</li>
@@ -33,28 +35,9 @@ import org.apache.commons.io.FilenameUtils;
  * <li>path(MUST) - Windows path should be kept as it is on a Windows Platform, this Class will take
  * care of both Unix and Window path representation, e.g. scheme://host:port/a\b represents relative
  * path a\b on Windows, or scheme://host:port/C:\ represents root directory of Driver C on Windows.
- * For Unix path, scheme://host:port//a/b represents /a/b, scheme://host:port/a/b represents
- * a/b</li>
+ * For Unix path, scheme://host:port//a/b represents /a/b, scheme://host:port/a/b represents a/b</li>
  */
 public class Path implements Comparable<Path> {
-  /**
-   * Join local file system paths to construct a new Path with scheme "file://"
-   * 
-   * @param path
-   *          Base local file system path to be appended to
-   * @param others
-   *          other local file system paths
-   * @return Path with joined path as path component and "file" as scheme
-   */
-  public static Path join(String path, String... others) {
-    String[] ss = new String[others.length];
-    System.arraycopy(others, 0, ss, 0, others.length);
-    String joinedPath = path;
-    for (String other : ss) {
-      joinedPath = FilenameUtils.concat(joinedPath, other);
-    }
-    return new Path("file", null, joinedPath);
-  }
   private String mScheme = null;
   private String mHost = null;
   private int mPort = -1;
@@ -138,6 +121,25 @@ public class Path implements Comparable<Path> {
       }
     }
     return new Path(scheme, authority, joinedPath);
+  }
+
+  /**
+   * Join local file system paths to construct a new Path with scheme "file://"
+   * 
+   * @param path
+   *          Base local file system path to be appended to
+   * @param others
+   *          other local file system paths
+   * @return Path with joined path as path component and "file" as scheme
+   */
+  public static Path join(String path, String... others) {
+    String[] ss = new String[others.length];
+    System.arraycopy(others, 0, ss, 0, others.length);
+    String joinedPath = path;
+    for (String other : ss) {
+      joinedPath = FilenameUtils.concat(joinedPath, other);
+    }
+    return new Path("file", null, joinedPath);
   }
 
   /**
