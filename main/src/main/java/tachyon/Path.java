@@ -25,6 +25,7 @@ import org.apache.commons.io.FilenameUtils;
  * <ul>
  * <li>Tachyon path: tachyon://host:port/path, tachyon-ft://host:port/path</li>
  * <li>UnderFileSystem path: scheme(hdfs, s3, etc.)://host:port/path, file:///path</li>
+ * </ul>
  * <p>
  * <p>
  * Path in Tachyon has the following components:
@@ -36,16 +37,11 @@ import org.apache.commons.io.FilenameUtils;
  * care of both Unix and Window path representation, e.g. scheme://host:port/a\b represents relative
  * path a\b on Windows, or scheme://host:port/C:\ represents root directory of Driver C on Windows.
  * For Unix path, scheme://host:port//a/b represents /a/b, scheme://host:port/a/b represents a/b</li>
+ * </ul>
  */
 public class Path implements Comparable<Path> {
-  private String mScheme = null;
-  private String mHost = null;
-  private int mPort = -1;
-
-  private String mPath = null;
   private static final String UNIX_PATH_SEPARATOR = "/";
   private static final String WINDOWS_PATH_SEPARATOR = "\\";
-
   private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
   /**
@@ -141,6 +137,14 @@ public class Path implements Comparable<Path> {
     }
     return new Path("file", null, joinedPath);
   }
+
+  private String mScheme = null;
+
+  private String mHost = null;
+
+  private int mPort = -1;
+
+  private String mPath = null;
 
   /**
    * Constructs Path from String with thorough legality validation
