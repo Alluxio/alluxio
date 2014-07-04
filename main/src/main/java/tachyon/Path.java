@@ -43,11 +43,8 @@ public class Path implements Comparable<Path> {
   private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
   private String mScheme = null;
-
   private String mHost = null;
-
   private int mPort = -1;
-
   private String mPath = null;
 
   /**
@@ -680,13 +677,19 @@ public class Path implements Comparable<Path> {
   /**
    * Check whether the path starts with Windows Drive Specifier "[a-zA-Z]:"
    * assume scheme's length should be > 1
+   * 
+   * @param path
+   *          the path to check
+   * @return true if it starts with Windows Drive Specifier "[a-zA-Z]:", false otherwise.
    */
   private boolean startsWithWindowsDrive(String path) {
+    if (path.length() < 2) {
+      return false;
+    }
     char driveName = path.charAt(0);
     boolean driveNameValid =
         (driveName >= 'a' && driveName <= 'z') || (driveName >= 'A' && driveName <= 'Z');
-    String driveSpecifier = path.substring(1, 2);
-    return driveSpecifier == ":" && driveNameValid;
+    return driveNameValid && path.charAt(1) == ':';
   }
 
   /**
