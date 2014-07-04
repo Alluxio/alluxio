@@ -111,7 +111,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
         te = e;
-        continue;
       }
     }
     throw te;
@@ -160,7 +159,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
         te = e;
-        continue;
       }
     }
     throw te;
@@ -177,7 +175,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
         te = e;
-        continue;
       }
     }
     CommonUtils.runtimeException(te);
@@ -231,7 +228,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       } catch (IOException e) {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
-        continue;
       }
     }
     return -1;
@@ -299,7 +295,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
         te = e;
-        continue;
       }
     }
     CommonUtils.runtimeException(te);
@@ -317,7 +312,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
         te = e;
-        continue;
       }
     }
     CommonUtils.runtimeException(te);
@@ -344,7 +338,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         cnt ++;
         LOG.error(cnt + " : " + e.getMessage(), e);
         te = e;
-        continue;
       }
     }
     CommonUtils.runtimeException(te);
