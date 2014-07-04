@@ -16,7 +16,7 @@ A list of tasks that everyone should do before contributing to Tachyon.
     [Command-Line Interface](Command-Line-Interface.html)
     (Optional)
 
-4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/main/src/main/java/tachyon/examples/BasicOperations.java).
+4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/core/src/main/java/tachyon/examples/BasicOperations.java).
 
 5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
 
@@ -26,15 +26,15 @@ and then submit a pull request. You are also welcome to address issues in our
 
 * * * * *
 
-    src/main/java/tachyon/Users.java
+    core/src/main/java/tachyon/Users.java
 
-    src/main/java/tachyon/master/MasterWorkerInfo.java
+    core/src/main/java/tachyon/master/MasterWorkerInfo.java
 
-    src/main/java/tachyon/worker/Worker.java
+    core/src/main/java/tachyon/worker/Worker.java
 
-    src/main/java/tachyon/worker/WorkerClient.java
+    core/src/main/java/tachyon/worker/WorkerClient.java
 
-    src/main/java/tachyon/worker/DataServerMessage.java
+    core/src/main/java/tachyon/worker/DataServerMessage.java
 
 After the pull request is reviewed and merged, you become a Tachyon contributor!
 

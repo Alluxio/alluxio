@@ -76,7 +76,7 @@ public class CommonConf extends Utils {
       }
     }
     TACHYON_HOME = getProperty("tachyon.home", "/mnt/tachyon_default_home");
-    WEB_RESOURCES = getProperty("tachyon.web.resources", TACHYON_HOME + "/main/src/main/webapp");
+    WEB_RESOURCES = getProperty("tachyon.web.resources", TACHYON_HOME + "/core/src/main/webapp");
     UNDERFS_ADDRESS = getProperty("tachyon.underfs.address", TACHYON_HOME + "/underfs");
     UNDERFS_DATA_FOLDER = getProperty("tachyon.data.folder", UNDERFS_ADDRESS + "/tachyon/data");
     UNDERFS_WORKERS_FOLDER =
