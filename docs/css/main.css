@@ -4,14 +4,14 @@
 
 .navbar .brand {
   height: 50px;
-  width: 110px;
+  width: 160px;
   margin-left: 1px;
   padding: 0;
 }
 
 .version {
-  line-height: 30px;
-  vertical-align: bottom;
+  line-height: 23px;
+  vertical-align: middle;
   font-size: 12px;
   padding: 0;
   margin: 0;
