@@ -78,6 +78,10 @@ Tachyon Presentations:
 
 * Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
 
+# API Documentation
+
+[Tachyon Java API (Javadoc)](api/java/index.html)
+
 # Developer Documentation
 
 [Startup Tasks for New Contributors](Startup-Tasks-for-New-Contributors.html)
