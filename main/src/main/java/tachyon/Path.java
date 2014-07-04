@@ -192,13 +192,13 @@ public class Path implements Comparable<Path> {
       return ret;
     }
     // compare address
-    String auth1 = getAddress();
-    String auth2 = other.getAddress();
-    if (auth1 == null && auth2 != null) {
+    String addr1 = getAddress();
+    String addr2 = other.getAddress();
+    if (addr1 == null && addr2 != null) {
       return -1;
-    } else if (auth1 != null && auth2 == null) {
+    } else if (addr1 != null && addr2 == null) {
       return 1;
-    } else if (auth1 != null && auth2 != null) {
+    } else if (addr1 != null && addr2 != null) {
       ret = getHost().compareTo(other.getHost());
       if (ret != 0) {
         return ret;
