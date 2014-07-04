@@ -27,7 +27,7 @@
   <version>0.5.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Tachyon: Reliable File Sharing at Memory Speed Across Cluster Frameworks</description>
-  <name>Tachyon Project Main</name>
+  <name>Tachyon Project Core</name>
 
   <dependencies>
     <dependency>
@@ -44,7 +44,7 @@
       <type>jar</type>
       <scope>compile</scope>
     </dependency>
-    <dependency> 
+    <dependency>
       <groupId>org.gluster</groupId>
       <artifactId>glusterfs-hadoop</artifactId>
       <version>2.3.5</version>
