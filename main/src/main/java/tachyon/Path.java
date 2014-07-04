@@ -43,11 +43,8 @@ public class Path implements Comparable<Path> {
   private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
   private String mScheme = null;
-
   private String mHost = null;
-
   private int mPort = -1;
-
   private String mPath = null;
 
   /**
@@ -170,19 +167,19 @@ public class Path implements Comparable<Path> {
    * <p>
    * The ordering of Paths is defined as follows:
    * <ul type=disc>
-   * <li>Two Paths with different schemes are ordered according the ordering of their schemes, without
-   * regard to case.</li>
+   * <li>Two Paths with different schemes are ordered according the ordering of their schemes,
+   * without regard to case.</li>
    * <li>Two Paths with identical schemes are ordered according to the ordering of their authority
    * components: first, Paths are ordered according to the ordering of their hosts, without regard
    * to case; if the hosts are identical then the Paths are ordered according to the ordering of
    * their ports.</li>
-   * <li>Finally, two Paths with identical schemes and authority components are ordered according to the
-   * ordering of their paths.</li>
+   * <li>Finally, two Paths with identical schemes and authority components are ordered according to
+   * the ordering of their paths.</li>
    * </ul>
    * <p>
    * This method satisfies the general contract of the
    * {@link java.lang.Comparable#compareTo(Object) Comparable.compareTo} method.
-   *
+   * 
    * @param other
    *          The path to which this Path is to be compared
    * @return A negative integer, zero, or a positive integer as this Path is less than,
@@ -223,6 +220,7 @@ public class Path implements Comparable<Path> {
 
   /**
    * Number of elements in path components of the Path
+   * 
    * <pre>
    * /                                  -> 0
    * /a                                 -> 1
@@ -276,6 +274,7 @@ public class Path implements Comparable<Path> {
    * <p>
    * This method returns the textual part of the filename after the last dot. There must be no
    * directory separator after the dot.
+   * 
    * <pre>
    * foo.txt                                --> "txt"
    * file://a/b/c.jpg                       --> "jpg"
@@ -297,6 +296,7 @@ public class Path implements Comparable<Path> {
    * <p>
    * This method will handle a file in either Unix or Windows format. The text after the last
    * forward or backslash is returned.
+   * 
    * <pre>
    * a/b/c.txt                          --> c.txt
    * a.txt                              --> a.txt
@@ -320,6 +320,7 @@ public class Path implements Comparable<Path> {
    * <p>
    * This method will handle a file in either Unix or Windows format. The text after the last
    * forward or backslash and before the last dot is returned.
+   * 
    * <pre>
    * a/b/c.txt                          --> c
    * a.txt                              --> a
@@ -341,6 +342,7 @@ public class Path implements Comparable<Path> {
   /**
    * Get the host of authority
    * <p>
+   * 
    * <pre>
    * hdfs://localhost:19999/a/b    -> localhost
    * tachyon://127.0.0.1:1998/a    -> 127.0.0.1
@@ -354,6 +356,7 @@ public class Path implements Comparable<Path> {
   /**
    * Construct new Path whose path component is this Path's path's parent path
    * <p>
+   * 
    * <pre>
    * scheme://authority/a      -> scheme://authority/
    * scheme://authority/       -> null
@@ -376,6 +379,7 @@ public class Path implements Comparable<Path> {
   /**
    * Get the path component of Path
    * <p>
+   * 
    * <pre>
    * scheme://host:port//a/b         -> /a/b
    * scheme://host:port/a/b          -> a/b
@@ -393,6 +397,7 @@ public class Path implements Comparable<Path> {
   /**
    * Get the port of authority
    * <p>
+   * 
    * <pre>
    * hdfs://localhost:19999/a/b    -> 19999
    * tachyon://127.0.0.1:1998/a    -> 1998
@@ -409,6 +414,7 @@ public class Path implements Comparable<Path> {
    * <p>
    * This method will handle a file in either Unix or Windows format. The prefix includes the first
    * slash in the full filename where applicable.
+   * 
    * <pre>
    * Windows:
    * a\b\c.txt           --> ""          --> relative
@@ -452,11 +458,12 @@ public class Path implements Comparable<Path> {
   /**
    * Whether path component of this Path is Absolute
    * <p>
+   * 
    * <pre>
    * Windows:
    * C:\a -> absolute
    * C:a  -> relative
-   *
+   * 
    * Unix:
    * /a/b -> absolute
    * </pre>
@@ -556,6 +563,7 @@ public class Path implements Comparable<Path> {
    * Relativization is the inverse of resolution. This method attempts to construct a relative path
    * that when resolved against this path, yields a path that locates the same file as the given
    * path. That is: p.resolve(p.relativize(q)) == q
+   * 
    * <pre>
    * Example:
    * "/a/b".relativize("/a/b/c/d") = "c/d"
@@ -565,7 +573,7 @@ public class Path implements Comparable<Path> {
    * Attention: the two paths must all be absolute paths, if not, empty path is returned if the
    * caller path is longer than the other, empty path is returned if the caller path is the same
    * with the other, empty path is returned
-   *
+   * 
    * @param other
    *          the local file system path to relativize against this path
    * @return relative Path
@@ -671,19 +679,26 @@ public class Path implements Comparable<Path> {
   /**
    * Check whether the path starts with Windows Drive Specifier "[a-zA-Z]:"
    * assume scheme's length should be > 1
+   * 
+   * @param path
+   *          the path to check
+   * @return true if it starts with Windows Drive Specifier "[a-zA-Z]:", false otherwise.
    */
   private boolean startsWithWindowsDrive(String path) {
+    if (path.length() < 2) {
+      return false;
+    }
     char driveName = path.charAt(0);
     boolean driveNameValid =
         (driveName >= 'a' && driveName <= 'z') || (driveName >= 'A' && driveName <= 'Z');
-    String driveSpecifier = path.substring(1, 2);
-    return driveSpecifier == ":" && driveNameValid;
+    return driveNameValid && path.charAt(1) == ':';
   }
 
   /**
    * path component of Path object contains elements seperated by SEPERATOR('/' or '\')
    * This method gets path's [beginIndex, endIndex) elements and construct a new Path object
    * <p>
+   * 
    * <pre>
    * "/a/b/c/".subpath(0,0)      = ""
    * "/a/b/c/".subpath(0,1)      = "a"
