@@ -84,8 +84,8 @@ public class Path implements Comparable<Path> {
       throw new IllegalArgumentException("path parameter " + path + " must have a scheme");
     }
 
-    // get authority(host:port)
-    String authority = null;
+    // get address(host:port)
+    String address = null;
     String host = null;
     int port = -1;
     int start = colon + 3;
@@ -99,19 +99,19 @@ public class Path implements Comparable<Path> {
         throw new IllegalArgumentException("path parameter " + path
             + " port element should be Integer");
       }
-      authority = host + ":" + Integer.toString(port);
+      address = host + ":" + Integer.toString(port);
     }
 
-    // scheme 'file://' refers to local underFileSystem, should not contain authority,
-    // other schemes must contain authority
-    if (scheme.equals("file") && authority != null) {
+    // scheme 'file://' refers to local underFileSystem, should not contain address,
+    // other schemes must contain address
+    if (scheme.equals("file") && address != null) {
       throw new IllegalArgumentException("path parameter " + path
-          + " is local, no authority needed");
-    } else if (!scheme.equals("file") && authority == null) {
-      throw new IllegalArgumentException("path parameter " + path + " must contain authority");
+          + " is local, no address needed");
+    } else if (!scheme.equals("file") && address == null) {
+      throw new IllegalArgumentException("path parameter " + path + " must contain address");
     }
 
-    // remaining part of 'path' after authority is the common file system path
+    // remaining part of 'path' after address is the common file system path
     // we don't check filePath's legality, it should be checked its corresponding file system
     String filePath = path.substring(nextSlash + 1);
 
@@ -124,20 +124,20 @@ public class Path implements Comparable<Path> {
 
   }
 
-  public Path(String scheme, String authority, String path) {
-    this(scheme + "://" + authority + "/" + path);
+  public Path(String scheme, String address, String path) {
+    this(scheme + "://" + address + "/" + path);
   }
 
   /**
-   * Assert paths have the same scheme and authority
+   * Assert paths have the same scheme and address
    * 
    * @param paths
    *          paths to be compared
    * @throws java.lang.IllegalArgumentException
-   *           If there exist two paths who don't share the same scheme and authority or length
+   *           If there exist two paths who don't share the same scheme and address or length
    *           of parameter is 0
    */
-  private void assertSameSchemeAndAuthority(Path... paths) throws IllegalArgumentException {
+  private void assertSameSchemeAndAddress(Path... paths) throws IllegalArgumentException {
     if (paths.length == 0) {
       throw new IllegalArgumentException("parameter paths can not be empty");
     }
@@ -145,10 +145,10 @@ public class Path implements Comparable<Path> {
       return;
     }
     String scheme = paths[0].getScheme();
-    String authority = paths[0].getAuthority();
+    String address = paths[0].getAddress();
     for (int i = 1; i < paths.length; i ++) {
-      if ((!paths[i].getScheme().equals(scheme)) || (!paths[i].getAuthority().equals(authority))) {
-        throw new IllegalArgumentException("parameters should be of the same scheme and authority");
+      if ((!paths[i].getScheme().equals(scheme)) || (!paths[i].getAddress().equals(address))) {
+        throw new IllegalArgumentException("parameters should be of the same scheme and address");
       }
     }
   }
@@ -167,11 +167,11 @@ public class Path implements Comparable<Path> {
    * <ul type=disc>
    * <li>Two Paths with different schemes are ordered according the ordering of their schemes,
    * without regard to case.</li>
-   * <li>Two Paths with identical schemes are ordered according to the ordering of their authority
+   * <li>Two Paths with identical schemes are ordered according to the ordering of their address
    * components: first, Paths are ordered according to the ordering of their hosts, without regard
    * to case; if the hosts are identical then the Paths are ordered according to the ordering of
    * their ports.</li>
-   * <li>Finally, two Paths with identical schemes and authority components are ordered according to
+   * <li>Finally, two Paths with identical schemes and address components are ordered according to
    * the ordering of their paths.</li>
    * </ul>
    * <p>
@@ -191,9 +191,9 @@ public class Path implements Comparable<Path> {
     if (ret != 0) {
       return ret;
     }
-    // compare authority
-    String auth1 = getAuthority();
-    String auth2 = other.getAuthority();
+    // compare address
+    String auth1 = getAddress();
+    String auth2 = other.getAddress();
     if (auth1 == null && auth2 != null) {
       return -1;
     } else if (auth1 != null && auth2 == null) {
@@ -259,11 +259,11 @@ public class Path implements Comparable<Path> {
   }
 
   /**
-   * Get authority component
+   * Get address component
    * <p>
-   * authority component consists of host:port
+   * address component consists of host:port
    */
-  public String getAuthority() {
+  public String getAddress() {
     return getHost() + ":" + Integer.toString(getPort());
   }
 
@@ -338,7 +338,7 @@ public class Path implements Comparable<Path> {
   }
 
   /**
-   * Get the host of authority
+   * Get the host of address
    * <p>
    * 
    * <pre>
@@ -356,10 +356,10 @@ public class Path implements Comparable<Path> {
    * <p>
    * 
    * <pre>
-   * scheme://authority/a      -> scheme://authority/
-   * scheme://authority/       -> null
-   * scheme://authority/C:\a\b -> scheme://authority/C:\a
-   * scheme://authority/C:\    -> null
+   * scheme://address/a      -> scheme://address/
+   * scheme://address/       -> null
+   * scheme://address/C:\a\b -> scheme://address/C:\a
+   * scheme://address/C:\    -> null
    * </pre>
    */
   public Path getParent() {
@@ -370,7 +370,7 @@ public class Path implements Comparable<Path> {
     if (parentPath.isEmpty()) {
       return null;
     } else {
-      return new Path(getScheme(), getAuthority(), parentPath);
+      return new Path(getScheme(), getAddress(), parentPath);
     }
   }
 
@@ -393,7 +393,7 @@ public class Path implements Comparable<Path> {
   }
 
   /**
-   * Get the port of authority
+   * Get the port of address
    * <p>
    * 
    * <pre>
@@ -436,13 +436,13 @@ public class Path implements Comparable<Path> {
   public Path getRoot() {
     String path = getPath();
     String rootPath = FilenameUtils.getPrefix(path);
-    return new Path(getScheme(), getAuthority(), rootPath);
+    return new Path(getScheme(), getAddress(), rootPath);
   }
 
   /**
    * Get the scheme component of Path
    * <p>
-   * scheme://authority/path -> scheme scheme://path -> scheme
+   * scheme://address/path -> scheme scheme://path -> scheme
    */
   public String getScheme() {
     return mScheme;
@@ -493,21 +493,21 @@ public class Path implements Comparable<Path> {
   }
 
   /**
-   * Join paths to new Path, scheme and authority should all be the same
+   * Join paths to new Path, scheme and address should all be the same
    * 
    * @param others
    *          other Paths to be sequentially appended to base path
    * @return joined Path
    * @throws java.lang.IllegalArgumentException
-   *           if parameters do not share the same scheme and authority
+   *           if parameters do not share the same scheme and address
    */
   public Path join(Path... others) throws IllegalArgumentException {
-    assertSameSchemeAndAuthority(others);
+    assertSameSchemeAndAddress(others);
     return join(pathsToStringpaths(others));
   }
 
   /**
-   * Join paths to new Path, scheme and authority be the same with this Path
+   * Join paths to new Path, scheme and address be the same with this Path
    * 
    * @param others
    *          other common local file system paths
@@ -518,7 +518,7 @@ public class Path implements Comparable<Path> {
     for (String other : others) {
       joinedPath = FilenameUtils.concat(joinedPath, other);
     }
-    return new Path(getScheme(), getAuthority(), joinedPath);
+    return new Path(getScheme(), getAddress(), joinedPath);
   }
 
   /**
@@ -541,17 +541,17 @@ public class Path implements Comparable<Path> {
    * 
    * @param other
    *          the path to relativize against this path,
-   *          share same scheme and authority with the caller
+   *          share same scheme and address with the caller
    * @return relative Path
    * @throws java.lang.IllegalArgumentException
-   *           if <code>>other</code> do not share the same scheme and authority with the caller
+   *           if <code>>other</code> do not share the same scheme and address with the caller
    */
   public Path relativize(Path other) throws IllegalArgumentException {
-    if (getScheme().equals(other.getScheme()) && getAuthority().equals(other.getAuthority())) {
+    if (getScheme().equals(other.getScheme()) && getAddress().equals(other.getAddress())) {
       return relativize(other.getPath());
     } else {
       throw new IllegalArgumentException("paramter other must share the same"
-          + " scheme and authority with the caller");
+          + " scheme and address with the caller");
     }
   }
 
@@ -608,7 +608,7 @@ public class Path implements Comparable<Path> {
       }
     }
 
-    return new Path(getScheme(), getAuthority(), relativePath);
+    return new Path(getScheme(), getAddress(), relativePath);
   }
 
   /**
@@ -616,17 +616,17 @@ public class Path implements Comparable<Path> {
    * 
    * @param other
    *          the path string to resolve against this path,
-   *          share same scheme and authority with the caller
+   *          share same scheme and address with the caller
    * @return the resulting Path
    * @throws IllegalArgumentException
-   *           if the two Path don't share the same scheme and authority
+   *           if the two Path don't share the same scheme and address
    */
   public Path resolve(Path other) throws IllegalArgumentException {
-    if (getScheme().equals(other.getScheme()) && getAuthority().equals(other.getAuthority())) {
+    if (getScheme().equals(other.getScheme()) && getAddress().equals(other.getAddress())) {
       return resolve(other.getPath());
     } else {
       throw new IllegalArgumentException("paramter other must share the same"
-          + " scheme and authority with the caller");
+          + " scheme and address with the caller");
     }
   }
 
@@ -650,14 +650,14 @@ public class Path implements Comparable<Path> {
    *          the path to resolve against this path's parent
    * @return the resulting Path
    * @throws IllegalArgumentException
-   *           if the two paths do not share the same scheme and authority
+   *           if the two paths do not share the same scheme and address
    */
   public Path resolveSibling(Path other) throws IllegalArgumentException {
-    if (getScheme().equals(other.getScheme()) && getAuthority().equals(other.getAuthority())) {
+    if (getScheme().equals(other.getScheme()) && getAddress().equals(other.getAddress())) {
       return resolveSibling(other.getPath());
     } else {
       throw new IllegalArgumentException("paramter other must share the same"
-          + " scheme and authority with the caller");
+          + " scheme and address with the caller");
     }
   }
 
@@ -742,11 +742,11 @@ public class Path implements Comparable<Path> {
     }
     String subPath = path.substring(begin + 1, end);
 
-    return new Path(getScheme(), getAuthority(), subPath);
+    return new Path(getScheme(), getAddress(), subPath);
   }
 
   @Override
   public String toString() {
-    return getScheme() + "://" + getAuthority() + "/" + getPath();
+    return getScheme() + "://" + getAddress() + "/" + getPath();
   }
 }
