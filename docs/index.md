@@ -70,6 +70,10 @@ an existing underlayer filesystem.
 
 [Tachyon Presentation](http://goo.gl/AHgz0E) at Strata and Hadoop World 2013 (October, 2013)
 
+# API Documentation
+
+[Tachyon Java API (Javadoc)](api/java/index.html)
+
 # Developer Documentation
 
 [Startup Tasks for New Contributors](Startup-Tasks-for-New-Contributors.html)
