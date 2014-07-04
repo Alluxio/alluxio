@@ -20,13 +20,11 @@ import org.apache.commons.io.FilenameUtils;
 /**
  * Abstraction of all types of path in Tachyon lexically and syntactically
  * <p>
- * <p>
  * Path in Tachyon:
  * <ul>
  * <li>Tachyon path: tachyon://host:port/path, tachyon-ft://host:port/path</li>
  * <li>UnderFileSystem path: scheme(hdfs, s3, etc.)://host:port/path, file:///path</li>
  * </ul>
- * <p>
  * <p>
  * Path in Tachyon has the following components:
  * <ul>
@@ -162,7 +160,6 @@ public class Path implements Comparable<Path> {
 
   /**
    * Compare this Path to another Path
-   * <p/>
    * <p>
    * When comparing corresponding components of two Paths, if one component is undefined but the
    * other is defined then the first is considered to be less than the second. Unless otherwise
@@ -170,41 +167,22 @@ public class Path implements Comparable<Path> {
    * defined by the {@link java.lang.String#compareTo(Object)
    * String.compareTo} method. String components that are subject to encoding are compared by
    * comparing their raw forms rather than their encoded forms.
-   * </p>
    * <p>
    * The ordering of Paths is defined as follows:
-   * </p>
-   * <p/>
    * <ul type=disc>
-   * <p/>
-   * <li>
-   * <p>
-   * Two Paths with different schemes are ordered according the ordering of their schemes, without
-   * regard to case.
-   * </p>
-   * </li>
-   * <p/>
-   * <li>
-   * <p>
-   * Two Paths with identical schemes are ordered according to the ordering of their authority
+   * <li>Two Paths with different schemes are ordered according the ordering of their schemes, without
+   * regard to case.</li>
+   * <li>Two Paths with identical schemes are ordered according to the ordering of their authority
    * components: first, Paths are ordered according to the ordering of their hosts, without regard
    * to case; if the hosts are identical then the Paths are ordered according to the ordering of
-   * their ports.
-   * </p>
-   * </li>
-   * <p/>
-   * <li>
-   * <p>
-   * Finally, two Paths with identical schemes and authority components are ordered according to the
-   * ordering of their paths
-   * <p/>
+   * their ports.</li>
+   * <li>Finally, two Paths with identical schemes and authority components are ordered according to the
+   * ordering of their paths.</li>
    * </ul>
-   * <p/>
    * <p>
    * This method satisfies the general contract of the
    * {@link java.lang.Comparable#compareTo(Object) Comparable.compareTo} method.
-   * </p>
-   * 
+   *
    * @param other
    *          The path to which this Path is to be compared
    * @return A negative integer, zero, or a positive integer as this Path is less than,
@@ -245,8 +223,6 @@ public class Path implements Comparable<Path> {
 
   /**
    * Number of elements in path components of the Path
-   * <p/>
-   * 
    * <pre>
    * /                                  -> 0
    * /a                                 -> 1
@@ -288,7 +264,7 @@ public class Path implements Comparable<Path> {
 
   /**
    * Get authority component
-   * <p/>
+   * <p>
    * authority component consists of host:port
    */
   public String getAuthority() {
@@ -297,17 +273,16 @@ public class Path implements Comparable<Path> {
 
   /**
    * Gets the extension of a filename.
-   * <p/>
+   * <p>
    * This method returns the textual part of the filename after the last dot. There must be no
    * directory separator after the dot.
-   * 
    * <pre>
    * foo.txt                                --> "txt"
    * file://a/b/c.jpg                       --> "jpg"
    * tachyon://localhost:19998/a/b.txt/c    --> ""
    * a/b/c                                  --> ""
    * </pre>
-   * <p/>
+   * <p>
    * The output will be the same irrespective of the machine that the code is running on.
    * 
    * @return the extension of the file or an empty string if none exists or {@code null} if the
@@ -319,10 +294,9 @@ public class Path implements Comparable<Path> {
 
   /**
    * Gets the name minus the path from a full filename.
-   * <p/>
+   * <p>
    * This method will handle a file in either Unix or Windows format. The text after the last
    * forward or backslash is returned.
-   * 
    * <pre>
    * a/b/c.txt                          --> c.txt
    * a.txt                              --> a.txt
@@ -332,7 +306,7 @@ public class Path implements Comparable<Path> {
    * file://a/b/c.txt                   --> c.txt
    * tachyon://localhost:1998/a.txt     --> a.txt
    * </pre>
-   * <p/>
+   * <p>
    * The output will be the same irrespective of the machine that the code is running on.
    * 
    * @return the name of the file without the path, or an empty string if none exists
@@ -343,20 +317,19 @@ public class Path implements Comparable<Path> {
 
   /**
    * Gets the base name, minus the full path and extension, from a full filename.
-   * <p/>
+   * <p>
    * This method will handle a file in either Unix or Windows format. The text after the last
    * forward or backslash and before the last dot is returned.
-   * 
    * <pre>
-   * a/b/c.txt --> c
-   * a.txt     --> a
-   * a/b/c     --> c
-   * a/b/c/    --> ""
+   * a/b/c.txt                          --> c
+   * a.txt                              --> a
+   * a/b/c                              --> c
+   * a/b/c/                             --> ""
    * tachyon://localhost:1998/a/b/c.txt --> c
-   * file://a.txt     --> a
-   * hdfs://localhost:1999/a/b/c/    --> ""
+   * file://a.txt                       --> a
+   * hdfs://localhost:1999/a/b/c/       --> ""
    * </pre>
-   * <p/>
+   * <p>
    * The output will be the same irrespective of the machine that the code is running on.
    * 
    * @return the name of the file without the path, or an empty string if none exists
@@ -367,8 +340,7 @@ public class Path implements Comparable<Path> {
 
   /**
    * Get the host of authority
-   * <p/>
-   * 
+   * <p>
    * <pre>
    * hdfs://localhost:19999/a/b    -> localhost
    * tachyon://127.0.0.1:1998/a    -> 127.0.0.1
@@ -381,8 +353,7 @@ public class Path implements Comparable<Path> {
 
   /**
    * Construct new Path whose path component is this Path's path's parent path
-   * <p/>
-   * 
+   * <p>
    * <pre>
    * scheme://authority/a      -> scheme://authority/
    * scheme://authority/       -> null
@@ -404,8 +375,7 @@ public class Path implements Comparable<Path> {
 
   /**
    * Get the path component of Path
-   * <p/>
-   * 
+   * <p>
    * <pre>
    * scheme://host:port//a/b         -> /a/b
    * scheme://host:port/a/b          -> a/b
@@ -422,8 +392,7 @@ public class Path implements Comparable<Path> {
 
   /**
    * Get the port of authority
-   * <p/>
-   * 
+   * <p>
    * <pre>
    * hdfs://localhost:19999/a/b    -> 19999
    * tachyon://127.0.0.1:1998/a    -> 1998
@@ -437,11 +406,9 @@ public class Path implements Comparable<Path> {
   /**
    * Construct new Path whose path component is this Path's path's root,
    * other components not changed
-   * <p/>
-   * <p/>
+   * <p>
    * This method will handle a file in either Unix or Windows format. The prefix includes the first
    * slash in the full filename where applicable.
-   * 
    * <pre>
    * Windows:
    * a\b\c.txt           --> ""          --> relative
@@ -458,8 +425,7 @@ public class Path implements Comparable<Path> {
    * ~user/a/b/c.txt     --> "~user/"    --> named user
    * ~user               --> "~user/"    --> named user (slash added)
    * </pre>
-   * <p/>
-   * <p/>
+   * <p>
    * The output will be the same irrespective of the machine that the code is running on. ie. both
    * Unix and Windows prefixes are matched regardless.
    */
@@ -471,7 +437,7 @@ public class Path implements Comparable<Path> {
 
   /**
    * Get the scheme component of Path
-   * <p/>
+   * <p>
    * scheme://authority/path -> scheme scheme://path -> scheme
    */
   public String getScheme() {
@@ -485,13 +451,12 @@ public class Path implements Comparable<Path> {
 
   /**
    * Whether path component of this Path is Absolute
-   * <p/>
-   * 
+   * <p>
    * <pre>
    * Windows:
    * C:\a -> absolute
    * C:a  -> relative
-   * <p/>
+   *
    * Unix:
    * /a/b -> absolute
    * </pre>
@@ -526,7 +491,7 @@ public class Path implements Comparable<Path> {
    * Join paths to new Path, scheme and authority should all be the same
    * 
    * @param others
-   *          other Paths to sequentially append to base path
+   *          other Paths to be sequentially appended to base path
    * @return joined Path
    * @throws java.lang.IllegalArgumentException
    *           if parameters do not share the same scheme and authority
@@ -537,10 +502,10 @@ public class Path implements Comparable<Path> {
   }
 
   /**
-   * Join paths to new Path, scheme and authority be the same with first parameter path
+   * Join paths to new Path, scheme and authority be the same with this Path
    * 
    * @param others
-   *          other other common local file system paths
+   *          other common local file system paths
    * @return joined Path
    */
   public Path join(String... others) {
@@ -552,11 +517,11 @@ public class Path implements Comparable<Path> {
   }
 
   /**
-   * Composite path components of parameter paths to a String list
+   * Get a list of path components from <code>paths</code>
    * 
    * @param paths
-   *          Paths to be composed from
-   * @return composed string list
+   *          Paths to get path components from
+   * @return String list of path components
    */
   private String[] pathsToStringpaths(Path... paths) {
     String[] ret = new String[paths.length];
@@ -574,7 +539,7 @@ public class Path implements Comparable<Path> {
    *          share same scheme and authority with the caller
    * @return relative Path
    * @throws java.lang.IllegalArgumentException
-   *           if other do not share the same scheme and authority with the caller
+   *           if <code>>other</code> do not share the same scheme and authority with the caller
    */
   public Path relativize(Path other) throws IllegalArgumentException {
     if (getScheme().equals(other.getScheme()) && getAuthority().equals(other.getAuthority())) {
@@ -587,24 +552,20 @@ public class Path implements Comparable<Path> {
 
   /**
    * Constructs a relative path between this path and a given path.
-   * <p/>
    * <p>
    * Relativization is the inverse of resolution. This method attempts to construct a relative path
    * that when resolved against this path, yields a path that locates the same file as the given
    * path. That is: p.resolve(p.relativize(q)) == q
-   * <p/>
-   * 
    * <pre>
    * Example:
    * "/a/b".relativize("/a/b/c/d") = "c/d"
    * "/a/b".relativize("/a/c") = "../c"
    * </pre>
-   * <p/>
+   * <p>
    * Attention: the two paths must all be absolute paths, if not, empty path is returned if the
    * caller path is longer than the other, empty path is returned if the caller path is the same
    * with the other, empty path is returned
-   * </p>
-   * 
+   *
    * @param other
    *          the local file system path to relativize against this path
    * @return relative Path
@@ -665,7 +626,7 @@ public class Path implements Comparable<Path> {
 
   /**
    * Resolve the given path against this path.
-   * <p/>
+   * <p>
    * Simply join them together
    * 
    * @param other
@@ -696,7 +657,7 @@ public class Path implements Comparable<Path> {
 
   /**
    * Resolves the given path against this path's parent path
-   * <p/>
+   * <p>
    * Simply join <code>other</code> to this path's parent path
    * 
    * @param other
@@ -722,8 +683,7 @@ public class Path implements Comparable<Path> {
   /**
    * path component of Path object contains elements seperated by SEPERATOR('/' or '\')
    * This method gets path's [beginIndex, endIndex) elements and construct a new Path object
-   * <p/>
-   * 
+   * <p>
    * <pre>
    * "/a/b/c/".subpath(0,0)      = ""
    * "/a/b/c/".subpath(0,1)      = "a"
