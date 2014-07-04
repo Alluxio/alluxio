@@ -1,11 +1,11 @@
 .classpath
-.dependency-reduced-pom.xml
 .project
 *.iml
 .idea/
 .metadata/
 .settings/
 conf/tachyon-env.sh
+core/dependency-reduced-pom.xml
 data/
 docs/_site
 docs/api
