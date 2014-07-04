@@ -1,5 +1,5 @@
 <%@ page import="java.util.*" %>
-<%@ page import="tachyon.web.*" %> 
+<%@ page import="tachyon.web.*" %>
 
 <html>
 <head>
@@ -21,7 +21,7 @@
       </ul>
     </div>
   </div>
-  
+
   <div class="container-fluid">
     <div class="row-fluid">
       <div class="span12 well">
@@ -51,7 +51,7 @@
   </div>
   <footer>
     <p style="text-align: center;">
-      <a href="http://tachyon-project.org/">Tachyon</a> is a project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu">AMPLab</a>.
+      <a href="http://tachyon-project.org/" target="_blank">Tachyon</a> is an <a href="https://github.com/amplab/tachyon" target="_blank">open source</a> project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu" target="_blank">AMPLab</a>.
     </p>
   </footer>
 </div>
