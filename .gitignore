@@ -1,4 +1,5 @@
 .classpath
+.dependency-reduced-pom.xml
 .project
 *.iml
 .idea/
@@ -13,5 +14,3 @@ journal/
 logs/
 script/
 target/
-main/dependency-reduced-pom.xml
-
