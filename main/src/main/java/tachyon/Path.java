@@ -18,7 +18,7 @@ package tachyon;
 import org.apache.commons.io.FilenameUtils;
 
 /**
- * Abstraction of all types of path in Tachyon lexically and syntactically
+ * Abstraction of all types of path in Tachyon lexically and syntactically.
  * <p>
  * Path in Tachyon:
  * <ul>
@@ -48,16 +48,16 @@ public class Path implements Comparable<Path> {
   private String mPath = null;
 
   /**
-   * Constructs Path from String with thorough legality validation
+   * Constructs Path from String with legality validation
    * 
    * @param path
-   *          Raw String path
+   *          Path in String representation
    * @throws IllegalArgumentException
    *           specific error information about the illegality of path
    */
   public Path(String path) throws IllegalArgumentException {
     if (path == null) {
-      throw new IllegalArgumentException("path parameter can not be null");
+      throw new IllegalArgumentException("Path can not be null");
     }
 
     // add scheme 'file' to bare local file system path
@@ -75,53 +75,42 @@ public class Path implements Comparable<Path> {
     }
 
     // get scheme, path should start with "scheme://"
-    String scheme = null;
     int colon = path.indexOf(":");
-    if (colon != -1 && path.substring(colon + 1, colon + 3) == "//") {
-      scheme = path.substring(0, colon);
+    if (colon != -1 && path.substring(colon + 1, colon + 3).equals("//")) {
+      mScheme = path.substring(0, colon);
     }
-    if (scheme == null) {
-      throw new IllegalArgumentException("path parameter " + path + " must have a scheme");
+    if (mScheme == null) {
+      throw new IllegalArgumentException("Path " + path + " must have a scheme");
     }
 
     // get address(host:port)
-    String address = null;
-    String host = null;
-    int port = -1;
     int start = colon + 3;
     int nextColon = path.indexOf(":", start);
     int nextSlash = path.indexOf("/", start);
     if (nextColon != -1 && nextSlash != -1 && nextColon < nextSlash) {
-      host = path.substring(start, nextColon);
+      mHost = path.substring(start, nextColon);
       try {
-        port = Integer.parseInt(path.substring(nextColon + 1, nextSlash));
-      } catch (NumberFormatException nfe) {
-        throw new IllegalArgumentException("path parameter " + path
-            + " port element should be Integer");
+        mPort = Integer.parseInt(path.substring(nextColon + 1, nextSlash));
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Path " + path + " port element is not integer."
+            + e.getMessage());
       }
-      address = host + ":" + Integer.toString(port);
     }
 
-    // scheme 'file://' refers to local underFileSystem, should not contain address,
-    // other schemes must contain address
-    if (scheme.equals("file") && address != null) {
-      throw new IllegalArgumentException("path parameter " + path
-          + " is local, no address needed");
-    } else if (!scheme.equals("file") && address == null) {
-      throw new IllegalArgumentException("path parameter " + path + " must contain address");
+    // Scheme 'file://' refers to local underFileSystem, should not contain address, other schemes
+    // must contain address
+    if (mScheme.equals("file") && mHost != null) {
+      throw new IllegalArgumentException("Path " + path + " is local, no address needed");
+    } else if (!mScheme.equals("file") && mHost == null) {
+      throw new IllegalArgumentException("Path " + path + " must contain address");
     }
 
-    // remaining part of 'path' after address is the common file system path
-    // we don't check filePath's legality, it should be checked its corresponding file system
+    // Remaining part of 'path' after address is the common file system path
+    // We don't check filePath's legality, it should be checked its corresponding file system
     String filePath = path.substring(nextSlash + 1);
-
-    mScheme = scheme;
-    mHost = host;
-    mPort = port;
 
     // normalize path, remove redundant '..', '.'
     mPath = FilenameUtils.normalize(filePath);
-
   }
 
   public Path(String scheme, String address, String path) {
