@@ -17,6 +17,7 @@
       <ul class="nav nav-pills">
         <li><a href="http://tachyon-project.org/" target="_blank">Tachyon</a></li>
         <li class="active"><a href="./home">Overview</a></li>
+        <li><a href="./configuration">System Configuration</a></li>
         <li><a href="./browse?path=/">Browse File System</a></li>
         <li><a href="./memory">In Memory Files</a></li>
       </ul>
@@ -95,37 +96,6 @@
                   <th>UnderFS Free / Used:</th>
                   <!-- <th>${freeCapacity}</th> -->
                   <th><%= request.getAttribute("diskFreeCapacity") %> / <%= request.getAttribute("diskUsedCapacity") %></th>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class ="row-fluid">
-    <div class="accordion span6" id="accordion3">
-      <div class="accordion-group">
-        <div class="accordion-heading">
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion3" href="#data3">
-            <h4>White List</h4>
-          </a>
-        </div>
-        <div id="data3" class="accordion-body collapse in">
-          <div class="accordion-inner">
-            <table class="table">
-              <tbody>
-                <tr>
-                  <!--
-                  <c:forEach var="file" items="${whitelist}">
-                    <th>${file}</th>
-                  </c:forEach>
-                  -->
-                  <% for (String file : ((List<String>) request.getAttribute("whitelist"))) { %>
-                    <tr>
-                      <th><%= file %></th>
-                    </tr>
-                  <% } %>
                 </tr>
               </tbody>
             </table>
