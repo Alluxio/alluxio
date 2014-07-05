@@ -15,6 +15,8 @@
 
 package tachyon;
 
+import java.io.IOException;
+
 import org.apache.commons.io.FilenameUtils;
 
 /**
@@ -52,12 +54,12 @@ public class Path implements Comparable<Path> {
    * 
    * @param path
    *          Path in String representation
-   * @throws IllegalArgumentException
+   * @throws IOException
    *           specific error information about the illegality of path
    */
-  public Path(String path) throws IllegalArgumentException {
+  public Path(String path) throws IOException {
     if (path == null) {
-      throw new IllegalArgumentException("Path can not be null");
+      throw new IOException("Path can not be null");
     }
 
     // add scheme 'file' to bare local file system path
@@ -80,7 +82,7 @@ public class Path implements Comparable<Path> {
       mScheme = path.substring(0, colon);
     }
     if (mScheme == null) {
-      throw new IllegalArgumentException("Path " + path + " must have a scheme");
+      throw new IOException("Path " + path + " must have a scheme");
     }
 
     // get address(host:port)
@@ -92,17 +94,16 @@ public class Path implements Comparable<Path> {
       try {
         mPort = Integer.parseInt(path.substring(nextColon + 1, nextSlash));
       } catch (NumberFormatException e) {
-        throw new IllegalArgumentException("Path " + path + " port element is not integer."
-            + e.getMessage());
+        throw new IOException("Path " + path + " port element is not integer." + e.getMessage());
       }
     }
 
     // Scheme 'file://' refers to local underFileSystem, should not contain address, other schemes
     // must contain address
     if (mScheme.equals("file") && mHost != null) {
-      throw new IllegalArgumentException("Path " + path + " is local, no address needed");
+      throw new IOException("Path " + path + " is local, no address needed");
     } else if (!mScheme.equals("file") && mHost == null) {
-      throw new IllegalArgumentException("Path " + path + " must contain address");
+      throw new IOException("Path " + path + " must contain address");
     }
 
     // Remaining part of 'path' after address is the common file system path
@@ -113,7 +114,18 @@ public class Path implements Comparable<Path> {
     mPath = FilenameUtils.normalize(filePath);
   }
 
-  public Path(String scheme, String address, String path) {
+  /**
+   * Constructs Paths with scheme, address, and path;
+   * 
+   * @param scheme
+   *          the scheme of the path, e.g. tachyon
+   * @param address
+   *          the address of the path, e.g. localhost:19998
+   * @param path
+   *          the path of the file, e.g. /a/b/c
+   * @throws IOException
+   */
+  public Path(String scheme, String address, String path) throws IOException {
     this(scheme + "://" + address + "/" + path);
   }
 
@@ -122,13 +134,13 @@ public class Path implements Comparable<Path> {
    * 
    * @param paths
    *          paths to be compared
-   * @throws java.lang.IllegalArgumentException
+   * @throws IOException
    *           If there exist two paths who don't share the same scheme and address or length
    *           of parameter is 0
    */
-  private void assertSameSchemeAndAddress(Path... paths) throws IllegalArgumentException {
+  private void assertSameSchemeAndAddress(Path... paths) throws IOException {
     if (paths.length == 0) {
-      throw new IllegalArgumentException("parameter paths can not be empty");
+      throw new IOException("Parameter paths can not be empty");
     }
     if (paths.length < 2) {
       return;
@@ -137,7 +149,7 @@ public class Path implements Comparable<Path> {
     String address = paths[0].getAddress();
     for (int i = 1; i < paths.length; i ++) {
       if ((!paths[i].getScheme().equals(scheme)) || (!paths[i].getAddress().equals(address))) {
-        throw new IllegalArgumentException("parameters should be of the same scheme and address");
+        throw new IOException("parameters should be of the same scheme and address");
       }
     }
   }
@@ -148,7 +160,7 @@ public class Path implements Comparable<Path> {
    * When comparing corresponding components of two Paths, if one component is undefined but the
    * other is defined then the first is considered to be less than the second. Unless otherwise
    * noted, string components are ordered according to their natural, case-sensitive ordering as
-   * defined by the {@link java.lang.String#compareTo(Object)
+   * defined by the {@link String#compareTo(Object)
    * String.compareTo} method. String components that are subject to encoding are compared by
    * comparing their raw forms rather than their encoded forms.
    * <p>
@@ -164,8 +176,8 @@ public class Path implements Comparable<Path> {
    * the ordering of their paths.</li>
    * </ul>
    * <p>
-   * This method satisfies the general contract of the
-   * {@link java.lang.Comparable#compareTo(Object) Comparable.compareTo} method.
+   * This method satisfies the general contract of the {@link Comparable#compareTo(Object)
+   * Comparable.compareTo} method.
    * 
    * @param other
    *          The path to which this Path is to be compared
@@ -350,8 +362,10 @@ public class Path implements Comparable<Path> {
    * scheme://address/C:\a\b -> scheme://address/C:\a
    * scheme://address/C:\    -> null
    * </pre>
+   * 
+   * @throws IOException
    */
-  public Path getParent() {
+  public Path getParent() throws IOException {
     String path = getPath();
     path = FilenameUtils.separatorsToUnix(path);
     String parentPath = path.substring(0, path.lastIndexOf("/"));
@@ -421,8 +435,10 @@ public class Path implements Comparable<Path> {
    * <p>
    * The output will be the same irrespective of the machine that the code is running on. ie. both
    * Unix and Windows prefixes are matched regardless.
+   * 
+   * @throws IOException
    */
-  public Path getRoot() {
+  public Path getRoot() throws IOException {
     String path = getPath();
     String rootPath = FilenameUtils.getPrefix(path);
     return new Path(getScheme(), getAddress(), rootPath);
@@ -461,7 +477,7 @@ public class Path implements Comparable<Path> {
     Path root = null;
     try {
       root = getRoot();
-    } catch (IllegalArgumentException iae) {
+    } catch (IOException iae) {
       return false;
     }
     String path = root.getPath();
@@ -476,8 +492,9 @@ public class Path implements Comparable<Path> {
    * Whether the path component is a root path
    * 
    * @return <code>true</code> if the path component is root else <code>false</code>
+   * @throws IOException
    */
-  public boolean isRoot() {
+  public boolean isRoot() throws IOException {
     return equals(getRoot());
   }
 
@@ -487,10 +504,10 @@ public class Path implements Comparable<Path> {
    * @param others
    *          other Paths to be sequentially appended to base path
    * @return joined Path
-   * @throws java.lang.IllegalArgumentException
+   * @throws IOException
    *           if parameters do not share the same scheme and address
    */
-  public Path join(Path... others) throws IllegalArgumentException {
+  public Path join(Path... others) throws IOException {
     assertSameSchemeAndAddress(others);
     return join(pathsToStringpaths(others));
   }
@@ -501,8 +518,9 @@ public class Path implements Comparable<Path> {
    * @param others
    *          other common local file system paths
    * @return joined Path
+   * @throws IOException
    */
-  public Path join(String... others) {
+  public Path join(String... others) throws IOException {
     String joinedPath = getPath();
     for (String other : others) {
       joinedPath = FilenameUtils.concat(joinedPath, other);
@@ -532,14 +550,14 @@ public class Path implements Comparable<Path> {
    *          the path to relativize against this path,
    *          share same scheme and address with the caller
    * @return relative Path
-   * @throws java.lang.IllegalArgumentException
+   * @throws IOException
    *           if <code>>other</code> do not share the same scheme and address with the caller
    */
-  public Path relativize(Path other) throws IllegalArgumentException {
+  public Path relativize(Path other) throws IOException {
     if (getScheme().equals(other.getScheme()) && getAddress().equals(other.getAddress())) {
       return relativize(other.getPath());
     } else {
-      throw new IllegalArgumentException("paramter other must share the same"
+      throw new IOException("paramter other must share the same"
           + " scheme and address with the caller");
     }
   }
@@ -564,8 +582,9 @@ public class Path implements Comparable<Path> {
    * @param other
    *          the local file system path to relativize against this path
    * @return relative Path
+   * @throws IOException
    */
-  public Path relativize(String other) {
+  public Path relativize(String other) throws IOException {
     String path = getPath();
     path = FilenameUtils.separatorsToUnix(path);
     other = FilenameUtils.separatorsToUnix(other);
@@ -607,14 +626,14 @@ public class Path implements Comparable<Path> {
    *          the path string to resolve against this path,
    *          share same scheme and address with the caller
    * @return the resulting Path
-   * @throws IllegalArgumentException
+   * @throws IOException
    *           if the two Path don't share the same scheme and address
    */
-  public Path resolve(Path other) throws IllegalArgumentException {
+  public Path resolve(Path other) throws IOException {
     if (getScheme().equals(other.getScheme()) && getAddress().equals(other.getAddress())) {
       return resolve(other.getPath());
     } else {
-      throw new IllegalArgumentException("paramter other must share the same"
+      throw new IOException("paramter other must share the same"
           + " scheme and address with the caller");
     }
   }
@@ -627,8 +646,9 @@ public class Path implements Comparable<Path> {
    * @param other
    *          the path to resolve against this path
    * @return the resulting path
+   * @throws IOException
    */
-  public Path resolve(String other) {
+  public Path resolve(String other) throws IOException {
     return join(other);
   }
 
@@ -638,14 +658,14 @@ public class Path implements Comparable<Path> {
    * @param other
    *          the path to resolve against this path's parent
    * @return the resulting Path
-   * @throws IllegalArgumentException
+   * @throws IOException
    *           if the two paths do not share the same scheme and address
    */
-  public Path resolveSibling(Path other) throws IllegalArgumentException {
+  public Path resolveSibling(Path other) throws IOException {
     if (getScheme().equals(other.getScheme()) && getAddress().equals(other.getAddress())) {
       return resolveSibling(other.getPath());
     } else {
-      throw new IllegalArgumentException("paramter other must share the same"
+      throw new IOException("paramter other must share the same"
           + " scheme and address with the caller");
     }
   }
@@ -658,8 +678,9 @@ public class Path implements Comparable<Path> {
    * @param other
    *          the path to resolve against this path's parent
    * @return the resulting path
+   * @throws IOException
    */
-  public Path resolveSibling(String other) {
+  public Path resolveSibling(String other) throws IOException {
     return join(other);
   }
 
@@ -702,13 +723,13 @@ public class Path implements Comparable<Path> {
    *          endIndex should be in range ( 0, depth() ], else throw exception
    * @return new constructed Path
    */
-  public Path subpath(int beginIndex, int endIndex) throws IllegalArgumentException {
+  public Path subpath(int beginIndex, int endIndex) throws IOException {
     // check index's range
     if (beginIndex < 0 || beginIndex >= depth()) {
-      throw new IllegalArgumentException("beginIndex parameter " + beginIndex + " out of range");
+      throw new IOException("beginIndex parameter " + beginIndex + " out of range");
     }
     if (endIndex <= 0 || endIndex > depth()) {
-      throw new IllegalArgumentException("endIndex parameter " + endIndex + " out of range");
+      throw new IOException("endIndex parameter " + endIndex + " out of range");
     }
     String path = getPath();
     path = FilenameUtils.separatorsToUnix(path);
