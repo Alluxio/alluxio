@@ -59,6 +59,22 @@
 		  <th><%= request.getAttribute("tachyon.underfs.hdfs.impl") %></th>
 		</tr>
 		<tr>
+		  <th>tachyon.underfs.glusterfs.impl</th>
+		  <th><%= request.getAttribute("tachyon.underfs.glusterfs.impl") %></th>
+		</tr>
+		<tr>
+		  <th>tachyon.underfs.glusterfs.volumes</th>
+		  <th><%= request.getAttribute("tachyon.underfs.glusterfs.volumes") %></th>
+		</tr>
+		<tr>
+		  <th>tachyon.underfs.glusterfs.mounts</th>
+		  <th><%= request.getAttribute("tachyon.underfs.glusterfs.mounts") %></th>
+		</tr>
+		<tr>
+		  <th>tachyon.underfs.glusterfs.mapred.system.dir</th>
+		  <th><%= request.getAttribute("tachyon.underfs.glusterfs.mapred.system.dir") %></th>
+		</tr>
+		<tr>
 		  <th>tachyon.web.resources</th>
 		  <th><%= request.getAttribute("tachyon.web.resources") %></th>
 		</tr>
