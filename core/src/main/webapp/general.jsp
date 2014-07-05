@@ -104,40 +104,6 @@
       </div>
     </div>
   </div>
-<<<<<<< HEAD:main/src/main/webapp/general.jsp
-=======
-  <div class ="row-fluid">
-    <div class="accordion span6" id="accordion3">
-      <div class="accordion-group">
-        <div class="accordion-heading">
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion3" href="#data3">
-            <h4>White List</h4>
-          </a>
-        </div>
-        <div id="data3" class="accordion-body collapse in">
-          <div class="accordion-inner">
-            <table class="table">
-              <tbody>
-                <tr>
-                  <!--
-                  <c:forEach var="file" items="${whitelist}">
-                    <th>${file}</th>
-                  </c:forEach>
-                  -->
-                  <% for (String file : ((List<String>) request.getAttribute("whitelist"))) { %>
-                    <tr>
-                      <th><%= file %></th>
-                    </tr>
-                  <% } %>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
->>>>>>> upstream/master:core/src/main/webapp/general.jsp
 <!--  Hide variables for now
   <div class="row-fluid">
     <div class="accordion span14" id="accordion5">

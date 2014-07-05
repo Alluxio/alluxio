@@ -215,31 +215,7 @@
   </div>
 -->
   <div class ="row-fluid">
-    <div class="accordion span6" id="accordion12">
-      <div class="accordion-group">
-        <div class="accordion-heading">
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion12" href="#data12">
-            <h4>Pin List</h4>
-          </a>
-        </div>
-        <div id="data12" class="accordion-body collapse in">
-          <div class="accordion-inner">
-            <table class="table">
-              <tbody>
-                <tr>
-                  <% for (String file : ((List<String>) request.getAttribute("pinlist"))) { %>
-                    <tr>
-                      <th><%= file %></th>
-                    </tr>
-                  <% } %>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  <div class="accordion span6" id="accordion7">
+    <div class="accordion span14" id="accordion7">
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion7" href="#data7">
