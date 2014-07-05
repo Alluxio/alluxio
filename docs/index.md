@@ -3,17 +3,21 @@ layout: global
 title: Tachyon Overview
 ---
 
-Tachyon is a fault tolerant distributed file system enabling reliable file sharing at memory-speed
+Tachyon is a memory-centric distributed file system enabling reliable file sharing at memory-speed
 across cluster frameworks, such as Spark and MapReduce. It achieves high performance by leveraging
 lineage information and using memory aggressively. Tachyon caches working set files in memory
 thereby avoiding going to disk to load datasets that are frequently read. This enables different
-jobs/queries and frameworks to access cached files at memory speed.
+jobs/queries and frameworks to access cached files at memory speed. The project is open source
+(Apache 2.0 License) and is deployed at multiple companies. It has more than
+[40 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 15 institutions,
+including Yahoo, Intel, Redhat etc.
 
 [Github Repository](https://github.com/amplab/tachyon/) |
 [Releases and Downloads](https://github.com/amplab/tachyon/releases) |
 [User Documentation](#user-documentation) |
 [Developer Documentation](#developer-documentation) |
-[Acknowledgement](#acknowledgement)
+[Acknowledgement](#acknowledgement) |
+[Meetup Group](http://www.meetup.com/Tachyon/)
 
 # Current Features
 
@@ -68,11 +72,13 @@ line.
 [Syncing the Underlying Filesystem](Syncing-the-Underlying-Filesystem.html): Make Tachyon understand
 an existing underlayer filesystem.
 
-[Tachyon Presentation](http://goo.gl/AHgz0E) at Strata and Hadoop World 2013 (October, 2013)
-
-# API Documentation
-
 [Tachyon Java API (Javadoc)](api/java/index.html)
+
+Tachyon Presentations:
+
+* Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
+
+* Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
 
 # Developer Documentation
 
@@ -81,7 +87,6 @@ an existing underlayer filesystem.
 [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html)
 
 # External resources
-
 
 [Tachyon Mini Courses at Strata 2014](http://ampcamp.berkeley.edu/big-data-mini-course/)
 

@@ -22,7 +22,7 @@ The common configuration contains constants which specify paths and the log appe
 <tr>
   <td>tachyon.underfs.address</td>
   <td>$tachyon.home + "/underfs"</td>
-  <td>Tachyon folder in the underlayer file system</td>
+  <td>Tachyon folder in the underlayer file system.</td>
 </tr>
 <tr>
   <td>tachyon.data.folder</td>
@@ -79,6 +79,21 @@ The common configuration contains constants which specify paths and the log appe
   <td>null</td>
   <td>S3 aws secret access key id if using S3 as the under FS.</td>
 </tr>
+<tr>
+  <td>tachyon.underfs.glusterfs.mounts</td>
+  <td>null</td>
+  <td>Glusterfs volume mount points, e.g. /vol</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.glusterfs.volumes</td>
+  <td>null</td>
+  <td>Glusterfs volume names, e.g. tachyon_vol</td>
+</tr>
+<tr>
+  <td>tachyon.underfs.glusterfs.mapred.system.dir</td>
+  <td>glusterfs:///mapred/system</td>
+  <td>Optionally specify subdirectory under GLusterfs for intermediary MapReduce data.</td>
+</tr>
 </table>
 
 # Master Configuration
@@ -112,11 +127,6 @@ number.
   <td>tachyon.master.whitelist</td>
   <td>/</td>
   <td>The comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Tachyon will try to cache the cacheable file when it is read for the first time.</td>
-</tr>
-<tr>
-  <td>tachyon.master.pinlist</td>
-  <td></td>
-  <td>The comma-separated list of files that will remain in memory all the time. If the memory size is not sufficient, the exception will be raised for the last caching file's client.</td>
 </tr>
 </table>
 
