@@ -16,7 +16,7 @@ A list of tasks that everyone should do before contributing to Tachyon.
     [Command-Line Interface](Command-Line-Interface.html)
     (Optional)
 
-4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/src/main/java/tachyon/examples/BasicOperations.java).
+4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/core/src/main/java/tachyon/examples/BasicOperations.java).
 
 5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
 
@@ -26,39 +26,35 @@ and then submit a pull request. You are also welcome to address issues in our
 
 * * * * *
 
-    src/main/java/tachyon/Users.java
+    core/src/main/java/tachyon/Users.java
 
-    src/main/java/tachyon/master/MasterWorkerInfo.java
+    core/src/main/java/tachyon/master/MasterWorkerInfo.java
 
-    src/main/java/tachyon/worker/Worker.java
+    core/src/main/java/tachyon/worker/Worker.java
 
-    src/main/java/tachyon/worker/WorkerClient.java
+    core/src/main/java/tachyon/worker/WorkerClient.java
 
-    src/main/java/tachyon/worker/DataServerMessage.java
+    core/src/main/java/tachyon/worker/DataServerMessage.java
 
-#### After the pull request is reviewed and merged, you become a Tachyon contributor!
-
-### IDE
-
-You can generate Eclipse configure file by run:
-
-    mvn install -Dintegration -DskipTests eclipse:eclipse
-
-Then import the folder into Eclipse.
+After the pull request is reviewed and merged, you become a Tachyon contributor!
 
 ### Testing
 
--   Run unit tests: ``mvn test``
+-   Run all unit tests: ``mvn test`` (use localfs as under filesystem) and ``mvn -Dintegration test`` (use HDFS as under filesystem)
 
--   Run a single test: ``mvn -Dtest=TestCircle#mytest test`` ; e.g.  ``mvn -Dtest=TachyonFSTest#createFileTest test`` ;
+-   In Glusterfs environment, also run Glusterfs unit tests: ``mvn -Dglusterfs -Dtachyon.underfs.glusterfs.mounts=/vol -Dtachyon.underfs.glusterfs.volumes=testvol test`` (use Glusterfs as under filesystem, where /vol is a valid Glusterfs mount point) and ``mvn -Dglusterfs test`` (use localfs as under filesystem)
+
+-   Run a single unit test: ``mvn -Dtest=TestCircle#mytest test`` ; e.g.  ``mvn -Dtest=TachyonFSTest#createFileTest test`` ;
 
 -   Quickly test the working of some APIs in an interactive manner, you may leverage
-the Scala shell, as discussed in [this blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
+the Scala shell, as discussed in this [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
+
+-   Run tests with a different Hadoop version: ``mvn -Dhadoop.version=2.2.0 clean test``
 
 ### Coding Style
 
 -   Follow the style of the existing codebase. Specifically, we use
-    [Sun's conventions](http://www.oracle.com/technetwork/java/codeconv-138413.html),
+    [Sun's conventions](http://www.oracle.com/technetwork/java/codeconvtoc-136057.html),
     with the following changes:
     -  Indent **2** spaces per level, not **4**.
     -  Maximum line length of **100** characters.
@@ -69,6 +65,15 @@ the Scala shell, as discussed in [this blog](http://scala4fun.tumblr.com/post/84
     Language Specification: **public protected private abstract static final transient volatile
     synchronized native strictfp**, then as **alphabetical order**.
 -   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml).
+    -  If you use Intellij, you can use our formatter with the help from [EclipseCodeFormatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
+
+### IDE
+
+You can generate Eclipse configure file by run:
+
+    mvn install -Dintegration -DskipTests eclipse:eclipse
+
+Then import the folder into Eclipse.
 
 ### Submitting Code
 
@@ -81,7 +86,7 @@ the Scala shell, as discussed in [this blog](http://scala4fun.tumblr.com/post/84
     [forking a repo](https://help.github.com/articles/fork-a-repo) and
     [sending a pull request](https://help.github.com/articles/using-pull-requests).
 
--   Make sure that your code passes the unit tests: mvn test.
+-   Make sure that your code passes all unit tests: ``mvn test`` and ``mvn -Dintegration test``
 
 ### Readings
 

@@ -89,7 +89,7 @@
   </properties>
 
   <modules>
-    <module>main</module>
+    <module>core</module>
     <module>client</module>
   </modules>
 
