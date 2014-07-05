@@ -154,29 +154,7 @@ public class Path implements Comparable<Path> {
   }
 
   /**
-   * Compare this Path to another Path
-   * <p>
-   * When comparing corresponding components of two Paths, if one component is undefined but the
-   * other is defined then the first is considered to be less than the second. Unless otherwise
-   * noted, string components are ordered according to their natural, case-sensitive ordering as
-   * defined by the {@link String#compareTo(Object)
-   * String.compareTo} method. String components that are subject to encoding are compared by
-   * comparing their raw forms rather than their encoded forms.
-   * <p>
-   * The ordering of Paths is defined as follows:
-   * <ul type=disc>
-   * <li>Two Paths with different schemes are ordered according the ordering of their schemes,
-   * without regard to case.</li>
-   * <li>Two Paths with identical schemes are ordered according to the ordering of their address
-   * components: first, Paths are ordered according to the ordering of their hosts, without regard
-   * to case; if the hosts are identical then the Paths are ordered according to the ordering of
-   * their ports.</li>
-   * <li>Finally, two Paths with identical schemes and address components are ordered according to
-   * the ordering of their paths.</li>
-   * </ul>
-   * <p>
-   * This method satisfies the general contract of the {@link Comparable#compareTo(Object)
-   * Comparable.compareTo} method.
+   * Compare this Path to another Path based on the String representation of the two Paths.
    * 
    * @param other
    *          The path to which this Path is to be compared
@@ -185,35 +163,7 @@ public class Path implements Comparable<Path> {
    */
   @Override
   public int compareTo(Path other) {
-    int ret = 0;
-    // compare scheme
-    ret = getScheme().compareTo(other.getScheme());
-    if (ret != 0) {
-      return ret;
-    }
-    // compare address
-    String addr1 = getAddress();
-    String addr2 = other.getAddress();
-    if (addr1 == null && addr2 != null) {
-      return -1;
-    } else if (addr1 != null && addr2 == null) {
-      return 1;
-    } else if (addr1 != null && addr2 != null) {
-      ret = getHost().compareTo(other.getHost());
-      if (ret != 0) {
-        return ret;
-      }
-      int port1 = getPort();
-      int port2 = other.getPort();
-      if (port1 < port2) {
-        return -1;
-      } else if (port1 > port2) {
-        return 1;
-      }
-    }
-    // compare path
-    ret = getPath().compareTo(other.getPath());
-    return ret;
+    return toString().compareTo(other.toString());
   }
 
   /**
