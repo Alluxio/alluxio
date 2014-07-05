@@ -73,12 +73,16 @@ public class TachyonURI implements Comparable<TachyonURI> {
     initialize(scheme, authority, path);
   }
 
-  /** Resolve a child path against a parent path. */
-  public TachyonURI(String parent, String child) {
-    this(new TachyonURI(parent), new TachyonURI(child));
-  }
-
-  /** Construct a Path from components. */
+  /**
+   * Construct a Tachyon URI from components.
+   * 
+   * @param scheme
+   *          the scheme of the path. e.g. tachyon, hdfs, s3, file, null, etc.
+   * @param authority
+   *          the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
+   * @param path
+   *          the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
+   */
   public TachyonURI(String scheme, String authority, String path) {
     if (path == null || path.length() == 0) {
       throw new IllegalArgumentException("Can not create a Path from a null or empty string");
@@ -86,17 +90,14 @@ public class TachyonURI implements Comparable<TachyonURI> {
     initialize(scheme, authority, path);
   }
 
-  /** Resolve a child path against a parent path. */
-  public TachyonURI(String parent, TachyonURI child) {
-    this(new TachyonURI(parent), child);
-  }
-
-  /** Resolve a child path against a parent path. */
-  public TachyonURI(TachyonURI parent, String child) {
-    this(parent, new TachyonURI(child));
-  }
-
-  /** Resolve a child path against a parent path. */
+  /**
+   * Resolve a child TachyonURI against a parent TachyonURI.
+   * 
+   * @param parent
+   *          the parent
+   * @param child
+   *          the child
+   */
   public TachyonURI(TachyonURI parent, TachyonURI child) {
     // Add a slash to parent's path so resolution is compatible with URI's
     URI parentUri = parent.mUri;
@@ -288,7 +289,7 @@ public class TachyonURI implements Comparable<TachyonURI> {
    */
   private void initialize(String scheme, String authority, String path) {
     try {
-      mUri = new URI(scheme, authority, normalizePath(path), null).normalize();
+      mUri = new URI(scheme, authority, normalizePath(path), null, null).normalize();
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }
