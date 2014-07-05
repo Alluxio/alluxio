@@ -17,6 +17,7 @@
       <ul class="nav nav-pills">
         <li><a href="http://tachyon-project.org/" target="_blank">Tachyon</a></li>
         <li class="active"><a href="./home">Overview</a></li>
+        <li><a href="./configuration">System Configuration</a></li>
         <li><a href="./browse?path=/">Browse File System</a></li>
         <li><a href="./memory">In Memory Files</a></li>
       </ul>
@@ -103,6 +104,8 @@
       </div>
     </div>
   </div>
+<<<<<<< HEAD:main/src/main/webapp/general.jsp
+=======
   <div class ="row-fluid">
     <div class="accordion span6" id="accordion3">
       <div class="accordion-group">
@@ -134,6 +137,7 @@
       </div>
     </div>
   </div>
+>>>>>>> upstream/master:core/src/main/webapp/general.jsp
 <!--  Hide variables for now
   <div class="row-fluid">
     <div class="accordion span14" id="accordion5">

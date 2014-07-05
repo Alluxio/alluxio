@@ -191,6 +191,12 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     }
     request.setAttribute("nodeInfos", nodeInfos);
 
+<<<<<<< HEAD:main/src/main/java/tachyon/web/WebInterfaceGeneralServlet.java
+    //request.setAttribute("pinlist", mMasterInfo.getPinList());
+
+    //request.setAttribute("whitelist", mMasterInfo.getWhiteList());
+=======
     request.setAttribute("whitelist", mMasterInfo.getWhiteList());
+>>>>>>> upstream/master:core/src/main/java/tachyon/web/WebInterfaceGeneralServlet.java
   }
 }
