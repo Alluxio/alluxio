@@ -37,7 +37,7 @@ import org.apache.commons.io.FilenameUtils;
  * For Unix path, scheme://host:port//a/b represents /a/b, scheme://host:port/a/b represents a/b</li>
  * </ul>
  */
-public class Path implements Comparable<Path> {
+public class Path2 implements Comparable<Path2> {
   private static final String UNIX_PATH_SEPARATOR = "/";
   private static final String WINDOWS_PATH_SEPARATOR = "\\";
   private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
@@ -55,7 +55,7 @@ public class Path implements Comparable<Path> {
    * @throws IllegalArgumentException
    *           specific error information about the illegality of path
    */
-  public Path(String path) {
+  public Path2(String path) {
     if (path == null) {
       throw new IllegalArgumentException("Path can not be null");
     }
@@ -124,7 +124,7 @@ public class Path implements Comparable<Path> {
    *          the path of the file, e.g. /a/b/c
    * @throws IllegalArgumentException
    */
-  public Path(String scheme, String address, String path) {
+  public Path2(String scheme, String address, String path) {
     this(scheme + "://" + address + "/" + path);
   }
 
@@ -137,7 +137,7 @@ public class Path implements Comparable<Path> {
    *           If there exist two paths who don't share the same scheme and address or length
    *           of parameter is 0
    */
-  private void assertSameSchemeAndAddress(Path... paths) {
+  private void assertSameSchemeAndAddress(Path2... paths) {
     if (paths.length == 0) {
       throw new IllegalArgumentException("Parameter paths can not be empty");
     }
@@ -162,7 +162,7 @@ public class Path implements Comparable<Path> {
    *         equal to, or greater than the given Path
    */
   @Override
-  public int compareTo(Path other) {
+  public int compareTo(Path2 other) {
     return toString().compareTo(other.toString());
   }
 
@@ -173,7 +173,6 @@ public class Path implements Comparable<Path> {
    * /                                  -> 0
    * /a                                 -> 1
    * /a/b/c.txt                         -> 3
-   * /a/b                               -> 2
    * /a/b/                              -> 3
    * a/b                                -> 2
    * a\b                                -> 2
@@ -201,10 +200,10 @@ public class Path implements Comparable<Path> {
 
   @Override
   public boolean equals(Object other) {
-    if (!(other instanceof Path)) {
+    if (!(other instanceof Path2)) {
       return false;
     }
-    Path p = (Path) other;
+    Path2 p = (Path2) other;
     return compareTo(p) == 0;
   }
 
@@ -312,7 +311,7 @@ public class Path implements Comparable<Path> {
    * scheme://address/C:\    -> null
    * </pre>
    */
-  public Path getParent() {
+  public Path2 getParent() {
     String path = getPath();
     path = FilenameUtils.separatorsToUnix(path);
     String parentPath = path.substring(0, path.lastIndexOf("/"));
@@ -320,7 +319,7 @@ public class Path implements Comparable<Path> {
     if (parentPath.isEmpty()) {
       return null;
     } else {
-      return new Path(getScheme(), getAddress(), parentPath);
+      return new Path2(getScheme(), getAddress(), parentPath);
     }
   }
 
@@ -383,10 +382,10 @@ public class Path implements Comparable<Path> {
    * The output will be the same irrespective of the machine that the code is running on. ie. both
    * Unix and Windows prefixes are matched regardless.
    */
-  public Path getRoot() {
+  public Path2 getRoot() {
     String path = getPath();
     String rootPath = FilenameUtils.getPrefix(path);
-    return new Path(getScheme(), getAddress(), rootPath);
+    return new Path2(getScheme(), getAddress(), rootPath);
   }
 
   /**
@@ -419,7 +418,7 @@ public class Path implements Comparable<Path> {
    * @return <code>true</code> if the path component is absolute else <code>false</code>
    */
   public boolean isAbsolute() {
-    Path root = null;
+    Path2 root = null;
     try {
       root = getRoot();
     } catch (IllegalArgumentException iae) {
@@ -451,7 +450,7 @@ public class Path implements Comparable<Path> {
    * @throws IllegalArgumentException
    *           if parameters do not share the same scheme and address
    */
-  public Path join(Path... others) {
+  public Path2 join(Path2... others) {
     assertSameSchemeAndAddress(others);
     return join(pathsToStringpaths(others));
   }
@@ -463,12 +462,12 @@ public class Path implements Comparable<Path> {
    *          other common local file system paths
    * @return joined Path
    */
-  public Path join(String... others) {
+  public Path2 join(String... others) {
     String joinedPath = getPath();
     for (String other : others) {
       joinedPath = FilenameUtils.concat(joinedPath, other);
     }
-    return new Path(getScheme(), getAddress(), joinedPath);
+    return new Path2(getScheme(), getAddress(), joinedPath);
   }
 
   /**
@@ -478,7 +477,7 @@ public class Path implements Comparable<Path> {
    *          Paths to get path components from
    * @return String list of path components
    */
-  private String[] pathsToStringpaths(Path... paths) {
+  private String[] pathsToStringpaths(Path2... paths) {
     String[] ret = new String[paths.length];
     for (int i = 0; i < ret.length; i ++) {
       ret[i] = paths[i].getPath();
@@ -496,7 +495,7 @@ public class Path implements Comparable<Path> {
    * @throws IllegalArgumentException
    *           if <code>>other</code> do not share the same scheme and address with the caller
    */
-  public Path relativize(Path other) {
+  public Path2 relativize(Path2 other) {
     if (getScheme().equals(other.getScheme()) && getAddress().equals(other.getAddress())) {
       return relativize(other.getPath());
     } else {
@@ -527,11 +526,11 @@ public class Path implements Comparable<Path> {
    * @return relative Path
    * @throws IllegalArgumentException
    */
-  public Path relativize(String other) {
+  public Path2 relativize(String other) {
     String path = getPath();
     path = FilenameUtils.separatorsToUnix(path);
     other = FilenameUtils.separatorsToUnix(other);
-    Path otherPath = new Path("file", null, other);
+    Path2 otherPath = new Path2("file", null, other);
     String relativePath = "";
 
     if (!(path.equals(other) || !isAbsolute() || !otherPath.isAbsolute() || path.length() > other
@@ -559,7 +558,7 @@ public class Path implements Comparable<Path> {
       }
     }
 
-    return new Path(getScheme(), getAddress(), relativePath);
+    return new Path2(getScheme(), getAddress(), relativePath);
   }
 
   /**
@@ -572,7 +571,7 @@ public class Path implements Comparable<Path> {
    * @throws IllegalArgumentException
    *           if the two Path don't share the same scheme and address
    */
-  public Path resolve(Path other) {
+  public Path2 resolve(Path2 other) {
     if (getScheme().equals(other.getScheme()) && getAddress().equals(other.getAddress())) {
       return resolve(other.getPath());
     } else {
@@ -591,7 +590,7 @@ public class Path implements Comparable<Path> {
    * @return the resulting path
    * @throws IllegalArgumentException
    */
-  public Path resolve(String other) {
+  public Path2 resolve(String other) {
     return join(other);
   }
 
@@ -604,7 +603,7 @@ public class Path implements Comparable<Path> {
    * @throws IllegalArgumentException
    *           if the two paths do not share the same scheme and address
    */
-  public Path resolveSibling(Path other) {
+  public Path2 resolveSibling(Path2 other) {
     if (getScheme().equals(other.getScheme()) && getAddress().equals(other.getAddress())) {
       return resolveSibling(other.getPath());
     } else {
@@ -623,7 +622,7 @@ public class Path implements Comparable<Path> {
    * @return the resulting path
    * @throws IllegalArgumentException
    */
-  public Path resolveSibling(String other) {
+  public Path2 resolveSibling(String other) {
     return join(other);
   }
 
@@ -666,7 +665,7 @@ public class Path implements Comparable<Path> {
    *          endIndex should be in range ( 0, depth() ], else throw exception
    * @return new constructed Path
    */
-  public Path subpath(int beginIndex, int endIndex) {
+  public Path2 subpath(int beginIndex, int endIndex) {
     // check index's range
     if (beginIndex < 0 || beginIndex >= depth()) {
       throw new IllegalArgumentException("beginIndex parameter " + beginIndex + " out of range");
@@ -695,7 +694,7 @@ public class Path implements Comparable<Path> {
     }
     String subPath = path.substring(begin + 1, end);
 
-    return new Path(getScheme(), getAddress(), subPath);
+    return new Path2(getScheme(), getAddress(), subPath);
   }
 
   @Override
