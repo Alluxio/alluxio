@@ -17,7 +17,7 @@
       <ul class="nav nav-pills">
         <li><a href="http://tachyon-project.org/" target="_blank">Tachyon</a></li>
         <li><a href="./home">Overview</a></li>
-	<li class="active"><a href="./configuration">System Configuration</a></li>
+        <li class="active"><a href="./configuration">System Configuration</a></li>
         <li><a href="./browse?path=/">Browse File System</a></li>
         <li><a href="./memory">In Memory Files</a></li>
       </ul>
@@ -182,54 +182,6 @@
       </div>
     </div>
   </div>
-<!-- WorkerConf and UserConf
-  <div class="row-fluid">
-    <div class="accordion span14" id="accordion10">
-      <div class="accordion-group">
-        <div class="accordion-heading">
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion10" href="#data10">
-            <h4>Worker Configuration</h4>
-          </a>
-        </div>
-        <div id="data10" class="accordion-body collapse in">
-          <div class="accordion-inner">
-            <table class = "table">
-	      <tbody>
-		<tr>
-		  <th>test</th>
-		  <th>testing</th>
-		</tr>
-	      </tbody>
-	    </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="row-fluid">
-    <div class="accordion span14" id="accordion11">
-      <div class="accordion-group">
-        <div class="accordion-heading">
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion11" href="#data11">
-            <h4>User Configuration</h4>
-          </a>
-        </div>
-        <div id="data11" class="accordion-body collapse in">
-          <div class="accordion-inner">
-            <table class = "table">
-	      <tbody>
-		<tr>
-		  <th>test</th>
-		  <th>testing</th>
-		</tr>
-	      </tbody>
-	    </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
--->
   <div class ="row-fluid">
     <div class="accordion span14" id="accordion7">
       <div class="accordion-group">
