@@ -190,7 +190,5 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
       nodeInfos[index ++] = new NodeInfo(workerInfo);
     }
     request.setAttribute("nodeInfos", nodeInfos);
-
-    //request.setAttribute("whitelist", mMasterInfo.getWhiteList());
   }
 }
