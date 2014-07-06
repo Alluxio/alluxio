@@ -141,11 +141,11 @@ public class TachyonURI implements Comparable<TachyonURI> {
    * /                                  -> 0
    * /a                                 -> 1
    * /a/b/c.txt                         -> 3
-   * /a/b/                              -> 3
+   * /a/b/                              -> 2
    * a/b                                -> 2
    * a\b                                -> 2
-   * C:\a                               -> 1
-   * C:                                 -> 0
+   * C:\\a                              -> 1
+   * C:\\                               -> 0
    * tachyon://localhost:1998/          -> 0
    * tachyon://localhost:1998/a         -> 1
    * tachyon://localhost:1998/a/b.txt   -> 2
