@@ -87,23 +87,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   }
 
   /**
-   * This function displays the first 5KB of a file if it is in ASCII format.
-   * 
-   * @param path
-   *          The path of the file to display
-   * @param request
-   *          The HttpServletRequest object
-   * @throws FileDoesNotExistException
-   * @throws IOException
-   * @throws InvalidPathException
-   * @throws TException
-   */
-  private void displayFile(String path, HttpServletRequest request)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
-    displayFile(path, request, 0);
-  }
-
-  /**
    * This function displays 5KB of a file from a specific offset if it is in
    * ASCII format.
    * 
@@ -234,7 +217,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
           toAdd
-              .setFileLocations(mMasterInfo.getFileLocations(toAdd.getId()).get(0).getLocations());
+          .setFileLocations(mMasterInfo.getFileLocations(toAdd.getId()).get(0).getLocations());
         }
       } catch (FileDoesNotExistException fdne) {
         request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
