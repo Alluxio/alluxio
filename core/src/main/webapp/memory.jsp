@@ -32,6 +32,7 @@
             <th>File Name</th>
             <th>Size</th>
             <th>Block Size</th>
+            <th>Need-Pin</th>
             <th>Creation Time</th>
           </thead>
           <tbody>
@@ -41,6 +42,7 @@
                   <th><%= fileInfo.getAbsolutePath() %></th>
                   <th><%= fileInfo.getSize() %></th>
                   <th><%= fileInfo.getBlockSizeBytes() %></th>
+                  <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
                 </tr>
               <% } %>
