@@ -59,9 +59,14 @@ public class TachyonFSTest {
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
   }
+  
+  @Test
+  public void getRootTest() throws IOException {
+    Assert.assertEquals(1, mTfs.getFileId("/"));
+  }
 
   @Test
-  public void createFileTest() throws Exception {
+  public void createFileTest() throws IOException  {
     int fileId = mTfs.createFile("/root/testFile1");
     Assert.assertEquals(3, fileId);
     fileId = mTfs.createFile("/root/testFile2");
@@ -71,7 +76,7 @@ public class TachyonFSTest {
   }
 
   @Test
-  public void createFileTest2() throws Exception {
+  public void createFileTest2() throws IOException {
     Assert.assertEquals(3, mTfs.createFile("/root/testFile1"));
     Assert.assertTrue(mTfs.exist("/root/testFile1"));
     Assert.assertEquals(4, mTfs.createFile("/root/testFile2"));
@@ -373,7 +378,7 @@ public class TachyonFSTest {
   }
 
   @Test
-  public void mkdirTest() throws Exception {
+  public void mkdirTest() throws IOException {
     for (int k = 0; k < 10; k ++) {
       Assert.assertEquals(true, mTfs.mkdir("/root/folder" + k));
       Assert.assertEquals(true, mTfs.mkdir("/root/folder" + k));
@@ -410,7 +415,7 @@ public class TachyonFSTest {
   }
 
   @Test
-  public void toStringTest() throws Exception {
+  public void toStringTest() throws IOException {
     String tfsAddress = "tachyon://localhost:19998";
     TachyonFS tfs = TachyonFS.get(tfsAddress);
     Assert.assertEquals(tfs.toString(), "tachyon://localhost/127.0.0.1:19998");

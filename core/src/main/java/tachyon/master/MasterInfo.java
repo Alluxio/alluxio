@@ -365,6 +365,10 @@ public class MasterInfo extends ImageWriter {
   int _createFile(boolean recursive, String path, boolean directory, long blockSizeByte,
       long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
       BlockInfoException, TachyonException {
+    if (path.equals(Constants.PATH_SEPARATOR)) {
+      LOG.info("FileAlreadyExistException: " + path);
+      throw new FileAlreadyExistException(path);
+    }
 
     if (!directory && blockSizeByte < 1) {
       throw new BlockInfoException("Invalid block size " + blockSizeByte);
@@ -424,9 +428,8 @@ public class MasterInfo extends ImageWriter {
         if (ret.isDirectory() && directory) {
           return ret.getId();
         }
-        final String msg = "File " + path + " already exist.";
-        LOG.info("FileAlreadyExistException: " + msg);
-        throw new FileAlreadyExistException(msg);
+        LOG.info("FileAlreadyExistException: " + path);
+        throw new FileAlreadyExistException(path);
       }
       if (directory) {
         ret =
@@ -623,6 +626,9 @@ public class MasterInfo extends ImageWriter {
       String srcPath = getPath(fileId);
       if (srcPath.equals(dstPath)) {
         return true;
+      }
+      if (srcPath.equals(Constants.PATH_SEPARATOR) || dstPath.equals(Constants.PATH_SEPARATOR)) {
+        return false;
       }
       String[] srcComponents = CommonUtils.getPathComponents(srcPath);
       String[] dstComponents = CommonUtils.getPathComponents(dstPath);

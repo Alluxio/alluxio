@@ -60,7 +60,8 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
     // all participants in a given leader selection must use the same path
     // ExampleClient here is also a LeaderSelectorListener but this isn't required
     CuratorFramework client =
-        CuratorFrameworkFactory.newClient(ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+        CuratorFrameworkFactory.newClient(ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(
+            Constants.SECOND_MS, 3));
     client.start();
     LEADER_SELECTOR = new LeaderSelector(client, ELECTION_PATH, this);
     LEADER_SELECTOR.setId(name);
@@ -75,7 +76,14 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
       mCurrentMasterThread.interrupt();
     }
 
-    LEADER_SELECTOR.close();
+    try {
+      LEADER_SELECTOR.close();
+    } catch (IllegalStateException e) {
+      // TODO This should not happen in unit tests.
+      if (!e.getMessage().equals("Already closed or has not been started")) {
+        throw e;
+      }
+    }
   }
 
   public String getName() {

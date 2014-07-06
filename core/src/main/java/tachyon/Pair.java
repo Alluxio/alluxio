@@ -81,4 +81,10 @@ public class Pair<First, Second> {
   public void setSecond(Second second) {
     mSecond = second;
   }
+
+  @Override
+  public String toString() {
+    return new StringBuilder().append("Pair(").append(mFirst).append(",").append(mSecond)
+        .append(")").toString();
+  }
 }
