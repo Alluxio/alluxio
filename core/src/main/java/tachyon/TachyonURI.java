@@ -104,7 +104,7 @@ public class TachyonURI implements Comparable<TachyonURI> {
     try {
       parentUri =
           new URI(parentUri.getScheme(), parentUri.getAuthority(),
-              parentUri.getPath() + SEPARATOR, null);
+              parentUri.getPath() + SEPARATOR, null, null);
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }
@@ -144,8 +144,8 @@ public class TachyonURI implements Comparable<TachyonURI> {
    * /a/b/                              -> 3
    * a/b                                -> 2
    * a\b                                -> 2
-   * C:\a                               -> 2
-   * C:                                 -> 1
+   * C:\a                               -> 1
+   * C:                                 -> 0
    * tachyon://localhost:1998/          -> 0
    * tachyon://localhost:1998/a         -> 1
    * tachyon://localhost:1998/a/b.txt   -> 2
@@ -273,7 +273,7 @@ public class TachyonURI implements Comparable<TachyonURI> {
         && (slashed ? path.charAt(0) == '/' : true)
         && path.charAt(start + 1) == ':'
         && ((path.charAt(start) >= 'A' && path.charAt(start) <= 'Z') || (path.charAt(start) >= 'a' && path
-        .charAt(start) <= 'z'));
+            .charAt(start) <= 'z'));
   }
 
   /**
