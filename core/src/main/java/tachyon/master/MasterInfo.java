@@ -36,6 +36,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.apache.log4j.Logger;
@@ -71,7 +72,7 @@ import tachyon.util.CommonUtils;
 /**
  * A global view of filesystem in master.
  */
-public class MasterInfo implements ImageWriter {
+public class MasterInfo extends ImageWriter {
   /**
    * Master info periodical status check.
    */
@@ -774,10 +775,12 @@ public class MasterInfo implements ImageWriter {
   /**
    * Recomputes mFileIdPinList at the given Inode, recursively recomputing for children.
    * Optionally will set the "pinned" flag as we go.
-   *
-   * @param inode The inode to start traversal from
-   * @param setPinState An optional parameter indicating whether we should also set the "pinned"
-   *                    flag on each inode we traverse. If absent, the "isPinned" flag is unchanged.
+   * 
+   * @param inode
+   *          The inode to start traversal from
+   * @param setPinState
+   *          An optional parameter indicating whether we should also set the "pinned"
+   *          flag on each inode we traverse. If absent, the "isPinned" flag is unchanged.
    */
   private void recomputePinnedFiles(Inode inode, Optional<Boolean> setPinState) {
     if (setPinState.isPresent()) {
@@ -1819,7 +1822,7 @@ public class MasterInfo implements ImageWriter {
         }
 
         addToInodeMap(inode, mInodes);
-        recomputePinnedFiles(inode, Optional.<Boolean>absent());
+        recomputePinnedFiles(inode, Optional.<Boolean> absent());
 
         if (inode.getId() == 1) {
           mRoot = (InodeFolder) inode;
@@ -2228,20 +2231,22 @@ public class MasterInfo implements ImageWriter {
    *          The output stream to write the image to
    */
   @Override
-  public void writeImage(DataOutputStream os) throws IOException {
+  public void writeImage(ObjectWriter objWriter, DataOutputStream dos) throws IOException {
     synchronized (mRoot) {
       synchronized (mDependencies) {
         for (Dependency dep : mDependencies.values()) {
-          dep.writeImage(os);
+          dep.writeImage(objWriter, dos);
         }
       }
-      mRoot.writeImage(os);
-      mRawTables.writeImage(os);
+      mRoot.writeImage(objWriter, dos);
+      mRawTables.writeImage(objWriter, dos);
 
-      os.writeByte(Image.T_CHECKPOINT);
-      os.writeInt(mInodeCounter.get());
-      os.writeLong(mCheckpointInfo.getEditTransactionCounter());
-      os.writeInt(mCheckpointInfo.getDependencyCounter());
+      Element ele =
+          new Element(ElementType.Checkpoint).withParameter("inodeCounter", mInodeCounter.get())
+          .withParameter("editTransactionCounter", mCheckpointInfo.getEditTransactionCounter())
+          .withParameter("dependencyCounter", mCheckpointInfo.getDependencyCounter());
+
+      writeElement(objWriter, dos, ele);
     }
   }
 }

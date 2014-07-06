@@ -19,41 +19,34 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
-import com.google.common.collect.Maps;
 
 /**
- * Each entry in the EditLog is represented as a single Operation, which is serialized as JSON.
- * An Operation has a type, a transaction id, and a set of parameters determined by the type.
+ * Each entry in the Image is represented as a single element, which is serialized as JSON.
+ * An element has a type and a set of parameters determined by the type.
  */
-class Operation extends JsonObject {
+class Element extends JsonObject {
   // NB: These type names are used in the serialized JSON. They should be concise but readable.
-  public OperationType type;
-  public long transId;
-  public Map<String, Object> parameters = Maps.newHashMap();
+  public ElementType type;
 
-  public Operation(OperationType type, long transId) {
+  public Element(ElementType type) {
     this.type = type;
-    this.transId = transId;
   }
 
-  /** Constructor used for deserializing Operations. */
+  /** Constructor used for deserializing Elements. */
   @JsonCreator
-  public Operation(@JsonProperty("type") OperationType type,
-      @JsonProperty("transId") long transId,
+  public Element(@JsonProperty("type") ElementType type,
       @JsonProperty("parameters") Map<String, Object> parameters) {
     this.type = type;
-    this.transId = transId;
     this.parameters = parameters;
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("type", type).add("transId", transId)
-        .add("parameters", parameters).toString();
+    return Objects.toStringHelper(this).add("type", type).add("parameters", parameters).toString();
   }
 
   @Override
-  public Operation withParameter(String name, Object value) {
-    return (Operation) super.withParameter(name, value);
+  public Element withParameter(String name, Object value) {
+    return (Element) super.withParameter(name, value);
   }
 }

@@ -21,6 +21,8 @@ import java.io.OutputStream;
 
 import org.apache.log4j.Logger;
 
+import com.fasterxml.jackson.databind.ObjectWriter;
+
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 
@@ -57,9 +59,10 @@ public class Image {
     }
     OutputStream os = ufs.create(tPath);
     DataOutputStream imageOs = new DataOutputStream(os);
+    ObjectWriter writer = JsonObject.createObjectMapper().writer();
 
     imageOs.writeInt(Constants.JOURNAL_VERSION);
-    info.writeImage(imageOs);
+    info.writeImage(writer, imageOs);
     imageOs.flush();
     imageOs.close();
 

@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectWriter;
+
 import tachyon.Pair;
 import tachyon.io.Utils;
 import tachyon.thrift.BlockInfoException;
@@ -54,8 +56,7 @@ public class InodeFile extends Inode {
     String checkpointPath = Utils.readString(is);
     int dependencyId = is.readInt();
 
-    InodeFile inode =
-        new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
+    InodeFile inode = new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
 
     try {
       inode.setLength(length);
@@ -307,18 +308,18 @@ public class InodeFile extends Inode {
   }
 
   @Override
-  public synchronized void writeImage(DataOutputStream os) throws IOException {
-    os.writeByte(Image.T_INODE_FILE);
-    os.writeLong(getCreationTimeMs());
-    os.writeInt(getId());
-    Utils.writeString(getName(), os);
-    os.writeInt(getParentId());
-    os.writeLong(getBlockSizeByte());
-    os.writeLong(getLength());
-    os.writeBoolean(isComplete());
-    os.writeBoolean(isPinned());
-    os.writeBoolean(isCache());
-    Utils.writeString(getCheckpointPath(), os);
-    os.writeInt(getDependencyId());
+  public synchronized void writeImage(ObjectWriter objWriter, DataOutputStream dos)
+      throws IOException {
+    Element ele =
+        new Element(ElementType.InodeFile).withParameter("createTimeMs", getCreationTimeMs())
+            .withParameter("id", getId()).withParameter("name", getName())
+            .withParameter("parentId", getParentId())
+            .withParameter("blockSizeBytes", getBlockSizeByte())
+            .withParameter("length", getLength()).withParameter("complete", isComplete())
+            .withParameter("pin", isPinned()).withParameter("cached", isCache())
+            .withParameter("ufsPath", getCheckpointPath())
+            .withParameter("depId", getDependencyId());
+
+    writeElement(objWriter, dos, ele);
   }
 }
