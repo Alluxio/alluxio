@@ -46,9 +46,8 @@ public class TachyonURITest {
   }
 
   @Test
-  public void constructFromParentAndChildTests() {
-    TachyonURI parent = new TachyonURI("hdfs://localhost:8080/a/b/c.txt");
-    TachyonURI result0 = new TachyonURI(parent, new TachyonURI("../d.txt"));
-    Assert.assertEquals("hdfs://localhost:8080/a/b/d.txt", result0.toString());
+  public void getDepthTests() {
+    Assert.assertEquals(2, new TachyonURI("C:\\a").getDepth());
+    Assert.assertEquals(1, new TachyonURI("C:\\").getDepth());
   }
 }
