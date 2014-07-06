@@ -363,6 +363,10 @@ public class MasterInfo implements ImageWriter {
   int _createFile(boolean recursive, String path, boolean directory, long blockSizeByte,
       long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
       BlockInfoException, TachyonException {
+    if (path.equals(Constants.PATH_SEPARATOR)) {
+      LOG.info("FileAlreadyExistException: " + path);
+      throw new FileAlreadyExistException(path);
+    }
 
     if (!directory && blockSizeByte < 1) {
       throw new BlockInfoException("Invalid block size " + blockSizeByte);
@@ -422,9 +426,8 @@ public class MasterInfo implements ImageWriter {
         if (ret.isDirectory() && directory) {
           return ret.getId();
         }
-        final String msg = "File " + path + " already exist.";
-        LOG.info("FileAlreadyExistException: " + msg);
-        throw new FileAlreadyExistException(msg);
+        LOG.info("FileAlreadyExistException: " + path);
+        throw new FileAlreadyExistException(path);
       }
       if (directory) {
         ret =
@@ -622,6 +625,9 @@ public class MasterInfo implements ImageWriter {
       if (srcPath.equals(dstPath)) {
         return true;
       }
+      if (srcPath.equals(Constants.PATH_SEPARATOR) || dstPath.equals(Constants.PATH_SEPARATOR)) {
+        return false;
+      }
       String[] srcComponents = CommonUtils.getPathComponents(srcPath);
       String[] dstComponents = CommonUtils.getPathComponents(dstPath);
       // We can't rename a path to one of its subpaths, so we check for that, by making sure
@@ -774,10 +780,12 @@ public class MasterInfo implements ImageWriter {
   /**
    * Recomputes mFileIdPinList at the given Inode, recursively recomputing for children.
    * Optionally will set the "pinned" flag as we go.
-   *
-   * @param inode The inode to start traversal from
-   * @param setPinState An optional parameter indicating whether we should also set the "pinned"
-   *                    flag on each inode we traverse. If absent, the "isPinned" flag is unchanged.
+   * 
+   * @param inode
+   *          The inode to start traversal from
+   * @param setPinState
+   *          An optional parameter indicating whether we should also set the "pinned"
+   *          flag on each inode we traverse. If absent, the "isPinned" flag is unchanged.
    */
   private void recomputePinnedFiles(Inode inode, Optional<Boolean> setPinState) {
     if (setPinState.isPresent()) {
@@ -1819,7 +1827,7 @@ public class MasterInfo implements ImageWriter {
         }
 
         addToInodeMap(inode, mInodes);
-        recomputePinnedFiles(inode, Optional.<Boolean>absent());
+        recomputePinnedFiles(inode, Optional.<Boolean> absent());
 
         if (inode.getId() == 1) {
           mRoot = (InodeFolder) inode;

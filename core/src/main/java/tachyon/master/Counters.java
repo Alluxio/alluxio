@@ -82,4 +82,10 @@ public class Counters implements Serializable, Comparable<Counters> {
   public synchronized void updateInodeCounter(int inodeCounter) {
     mInodeCounter = Math.max(mInodeCounter, inodeCounter);
   }
+
+  @Override
+  public String toString() {
+    return new StringBuilder().append("Counter(").append(mInodeCounter).append(",")
+        .append(mEditTransactionId).append(",").append(mDependencyCounter).append(")").toString();
+  }
 }
