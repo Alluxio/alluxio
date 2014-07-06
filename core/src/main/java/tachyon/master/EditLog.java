@@ -20,20 +20,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.Map;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.fs.FSDataOutputStream;
 
 import tachyon.Constants;
@@ -53,104 +45,6 @@ import tachyon.util.CommonUtils;
  * Master operation journal.
  */
 public class EditLog {
-  /**
-   * Each entry in the EditLog is represented as a single Operation, which is serialized as JSON.
-   * An Operation has a type, a transaction id, and a set of parameters determined by the type.
-   */
-  private static class Operation {
-    // NB: These type names are used in the serialized JSON. They should be concise but readable.
-    public OperationType type;
-    public long transId;
-    public Map<String, Object> parameters = Maps.newHashMap();
-
-    public Operation(OperationType type, long transId) {
-      this.type = type;
-      this.transId = transId;
-    }
-
-    /** Constructor used for deserializing Operations. */
-    @JsonCreator
-    public Operation(@JsonProperty("type") OperationType type,
-        @JsonProperty("transId") long transId,
-        @JsonProperty("parameters") Map<String, Object> parameters) {
-      this.type = type;
-      this.transId = transId;
-      this.parameters = parameters;
-    }
-
-    /**
-     * Generic parameter getter, useful for custom classes or enums.
-     * Use a more specific getter, like getLong(), when available.
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T get(String name) {
-      return (T) parameters.get(name);
-    }
-
-    public Boolean getBoolean(String name) {
-      return this.get(name);
-    }
-
-    /** Deserializes a base64-encoded String as a ByteBuffer. */
-    public ByteBuffer getByteBuffer(String name) {
-      String byteString = get(name);
-      if (byteString == null) {
-        return null;
-      }
-
-      return ByteBuffer.wrap(Base64.decodeBase64(byteString));
-    }
-
-    /** Deserializes a list of base64-encoded Strings as a list of ByteBuffers. */
-    public List<ByteBuffer> getByteBufferList(String name) {
-      List<String> byteStrings = get(name);
-      if (byteStrings == null) {
-        return null;
-      }
-
-      List<ByteBuffer> buffers = Lists.newArrayListWithCapacity(byteStrings.size());
-      for (String byteString : byteStrings) {
-        buffers.add(ByteBuffer.wrap(Base64.decodeBase64(byteString)));
-      }
-      return buffers;
-    }
-
-    public Integer getInt(String name) {
-      return this.<Number> get(name).intValue();
-    }
-
-    /**
-     * Deserializes the parameter as a long.
-     * Use of this function is necessary when dealing with longs, as they may
-     * have been deserialized as integers if they were sufficiently small.
-     */
-    public Long getLong(String name) {
-      return this.<Number> get(name).longValue();
-    }
-
-    public String getString(String name) {
-      return this.get(name);
-    }
-
-    @Override
-    public String toString() {
-      return Objects.toStringHelper(this).add("type", type).add("transId", transId)
-          .add("parameters", parameters).toString();
-    }
-
-    /** Adds the given named parameter to the Operation. Value must be JSON-serializable. */
-    public Operation withParameter(String name, Object value) {
-      parameters.put(name, value);
-      return this;
-    }
-  }
-
-  /** Type of EditLog entry. */
-  private static enum OperationType {
-    ADD_BLOCK, ADD_CHECKPOINT, CREATE_FILE, COMPLETE_FILE, SET_PINNED, RENAME, DELETE,
-    CREATE_RAW_TABLE, UPDATE_RAW_TABLE_METADATA, CREATE_DEPENDENCY,
-  }
-
   private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private static int mBackUpLogStartNum = -1;
@@ -163,21 +57,6 @@ public class EditLog {
     // See: JsonGenerator.QUOTE_FIELD_NAMES and JsonParser.ALLOW_UNQUOTED_FIELD_NAMES
     return new ObjectMapper().configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false).configure(
         SerializationFeature.CLOSE_CLOSEABLE, false);
-  }
-
-  public static void deleteCompletedLogs(String path, int upTo) {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
-    String folder =
-        path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
-    try {
-      for (int i = 0; i < upTo; i ++) {
-        String toDelete = CommonUtils.concat(folder, i + ".editLog");
-        LOG.info("Deleting editlog " + toDelete);
-        ufs.delete(toDelete, true);
-      }
-    } catch (IOException e) {
-      CommonUtils.runtimeException(e);
-    }
   }
 
   /**
@@ -232,6 +111,8 @@ public class EditLog {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
     DataInputStream is = new DataInputStream(ufs.open(path));
+    // TODO update the API.
+    @SuppressWarnings("deprecation")
     JsonParser parser = createObjectMapper().getJsonFactory().createJsonParser(is);
 
     while (true) {
@@ -441,7 +322,7 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.ADD_BLOCK, ++ mTransactionId).withParameter("fileId", fileId)
-            .withParameter("blockIndex", blockIndex).withParameter("blockLength", blockLength);
+        .withParameter("blockIndex", blockIndex).withParameter("blockLength", blockLength);
     writeOperation(operation);
   }
 
@@ -452,8 +333,8 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.ADD_CHECKPOINT, ++ mTransactionId)
-            .withParameter("fileId", fileId).withParameter("length", length)
-            .withParameter("path", checkpointPath);
+    .withParameter("fileId", fileId).withParameter("length", length)
+    .withParameter("path", checkpointPath);
     writeOperation(operation);
   }
 
@@ -493,13 +374,13 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.CREATE_DEPENDENCY, ++ mTransactionId)
-            .withParameter("parents", parents).withParameter("children", children)
-            .withParameter("commandPrefix", commandPrefix)
-            .withParameter("data", Utils.byteBufferListToBase64(data))
-            .withParameter("comment", comment).withParameter("framework", framework)
-            .withParameter("frameworkVersion", frameworkVersion)
-            .withParameter("dependencyType", dependencyType).withParameter("dependencyId", depId)
-            .withParameter("creationTimeMs", creationTimeMs);
+    .withParameter("parents", parents).withParameter("children", children)
+    .withParameter("commandPrefix", commandPrefix)
+    .withParameter("data", Utils.byteBufferListToBase64(data))
+    .withParameter("comment", comment).withParameter("framework", framework)
+    .withParameter("frameworkVersion", frameworkVersion)
+    .withParameter("dependencyType", dependencyType).withParameter("dependencyId", depId)
+    .withParameter("creationTimeMs", creationTimeMs);
     writeOperation(operation);
   }
 
@@ -511,9 +392,9 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.CREATE_FILE, ++ mTransactionId)
-            .withParameter("recursive", recursive).withParameter("path", path)
-            .withParameter("directory", directory).withParameter("blockSizeByte", blockSizeByte)
-            .withParameter("creationTimeMs", creationTimeMs);
+    .withParameter("recursive", recursive).withParameter("path", path)
+    .withParameter("directory", directory).withParameter("blockSizeByte", blockSizeByte)
+    .withParameter("creationTimeMs", creationTimeMs);
     writeOperation(operation);
   }
 
@@ -524,8 +405,8 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.CREATE_RAW_TABLE, ++ mTransactionId)
-            .withParameter("tableId", tableId).withParameter("columns", columns)
-            .withParameter("metadata", Utils.byteBufferToBase64(metadata));
+    .withParameter("tableId", tableId).withParameter("columns", columns)
+    .withParameter("metadata", Utils.byteBufferToBase64(metadata));
     writeOperation(operation);
   }
 
@@ -536,8 +417,23 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.DELETE, ++ mTransactionId).withParameter("fileId", fileId)
-            .withParameter("recursive", recursive);
+        .withParameter("recursive", recursive);
     writeOperation(operation);
+  }
+
+  public void deleteCompletedLogs(String path, int upTo) {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+    String folder =
+        path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
+    try {
+      for (int i = 0; i < upTo; i ++) {
+        String toDelete = CommonUtils.concat(folder, i + ".editLog");
+        LOG.info("Deleting editlog " + toDelete);
+        ufs.delete(toDelete, true);
+      }
+    } catch (IOException e) {
+      CommonUtils.runtimeException(e);
+    }
   }
 
   /**
@@ -579,7 +475,7 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.RENAME, ++ mTransactionId).withParameter("fileId", fileId)
-            .withParameter("dstPath", dstPath);
+        .withParameter("dstPath", dstPath);
     writeOperation(operation);
   }
 
@@ -624,7 +520,7 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.SET_PINNED, ++ mTransactionId).withParameter("fileId", fileId)
-            .withParameter("pinned", pinned);
+        .withParameter("pinned", pinned);
     writeOperation(operation);
   }
 
