@@ -30,6 +30,21 @@ public final class Utils {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private static final boolean DEBUG = Constants.DEBUG;
 
+  /**
+   * Add S3 keys to the given Hadoop Configuration object if the user has specified them using
+   * System properties, and they're not already set.
+   */
+  public static void addS3Credentials(Configuration conf) {
+    String accessKeyConf = "fs.s3n.awsAccessKeyId";
+    if (System.getProperty(accessKeyConf) != null && conf.get(accessKeyConf) == null) {
+      conf.set(accessKeyConf, System.getProperty(accessKeyConf));
+    }
+    String secretKeyConf = "fs.s3n.awsSecretAccessKey";
+    if (System.getProperty(secretKeyConf) != null && conf.get(secretKeyConf) == null) {
+      conf.set(secretKeyConf, System.getProperty(secretKeyConf));
+    }
+  }
+
   public static Path getHDFSPath(String path) {
     path = getTachyonFileName(path);
 
@@ -125,20 +140,5 @@ public final class Utils {
       LOG.error(e.getMessage());
     }
     return sb.toString();
-  }
-
-  /**
-   * Add S3 keys to the given Hadoop Configuration object if the user has specified them using
-   * System properties, and they're not already set.
-   */
-  public static void addS3Credentials(Configuration conf) {
-    String accessKeyConf = "fs.s3n.awsAccessKeyId";
-    if (System.getProperty(accessKeyConf) != null && conf.get(accessKeyConf) == null) {
-      conf.set(accessKeyConf, System.getProperty(accessKeyConf));
-    }
-    String secretKeyConf = "fs.s3n.awsSecretAccessKey";
-    if (System.getProperty(secretKeyConf) != null && conf.get(secretKeyConf) == null) {
-      conf.set(secretKeyConf, System.getProperty(secretKeyConf));
-    }
   }
 }
