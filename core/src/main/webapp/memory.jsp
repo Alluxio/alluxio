@@ -14,7 +14,7 @@
   <div class="navbar navbar-inverse">
     <div class="navbar-inner">
       <ul class="nav nav-pills" style="height:40px;font-size:14px;font-weight: bold;vertical-align: bottom;">
-        <li><a href="http://tachyon-project.org/" target="_blank"><img style="height:25px;margin-top:0%;" src="img/logo.png" alt="Tachyon Logo"/></a></li>
+        <li><a href="http://tachyon-project.org/" target="_blank"><img style="height:25px;margin-top:-5px;" src="img/logo.png" alt="Tachyon Logo"/></a></li>
         <li><a href="./home">Overview</a></li>
         <li><a href="./configuration">System Configuration</a></li>
         <li><a href="./browse?path=/">Browse File System</a></li>
@@ -32,6 +32,7 @@
             <th>File Name</th>
             <th>Size</th>
             <th>Block Size</th>
+            <th>Pin</th>
             <th>Creation Time</th>
           </thead>
           <tbody>
@@ -41,6 +42,7 @@
                   <th><%= fileInfo.getAbsolutePath() %></th>
                   <th><%= fileInfo.getSize() %></th>
                   <th><%= fileInfo.getBlockSizeBytes() %></th>
+                  <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
                 </tr>
               <% } %>

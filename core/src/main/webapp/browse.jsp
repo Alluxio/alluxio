@@ -16,7 +16,7 @@
   <div class="navbar navbar-inverse">
     <div class="navbar-inner">
       <ul class="nav nav-pills" style="height:40px;font-size:14px;font-weight: bold;vertical-align: bottom;">
-        <li><a href="http://tachyon-project.org/" target="_blank"><img style="height:25px;margin-top:0%;" src="img/logo.png" alt="Tachyon Logo"/></a></li>
+        <li><a href="http://tachyon-project.org/" target="_blank"><img style="height:25px;margin-top:-5px;" src="img/logo.png" alt="Tachyon Logo"/></a></li>
         <li><a href="./home">Overview</a></li>
         <li><a href="./configuration">System Configuration</a></li>
         <li class="active"><a href="./browse?path=/">Browse File System</a></li>
@@ -51,6 +51,7 @@
             <th>Size</th>
             <th>Block Size</th>
             <th>In-Memory</th>
+            <th>Pin</th>
             <th>Creation Time</th>
           <!--
             <c:if test = "${debug}">
@@ -59,9 +60,9 @@
             </c:if>
           -->
             <% if ((Boolean) request.getAttribute("debug")) { %>
-              <th>[D]Dependency Id</th>
-              <th>[D]Inode Number</th>
-              <th>[D]Checkpoint Path</th>
+              <th>[D]DepID</th>
+              <th>[D]INumber</th>
+              <th>[D]UnderfsPath</th>
               <th>[D]File Locations</th>
             <% } %>
           </thead>
@@ -133,6 +134,7 @@
                       <%= fileInfo.getInMemoryPercentage() %>%
                     <% } %>
                   </th>
+                  <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
                   <% if ((Boolean) request.getAttribute("debug")) { %>
                     <th>
