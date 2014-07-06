@@ -21,6 +21,7 @@ import java.io.OutputStream;
 
 import org.apache.log4j.Logger;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import tachyon.Constants;
@@ -30,13 +31,6 @@ import tachyon.UnderFileSystem;
  * Master data image.
  */
 public class Image {
-  static final byte T_INVALID = -1;
-  static final byte T_CHECKPOINT = 0;
-  static final byte T_INODE_FILE = 1;
-  static final byte T_INODE_FOLDER = 2;
-  static final byte T_RAW_TABLE = 3;
-  static final byte T_DEPENDENCY = 4;
-
   private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -75,6 +69,15 @@ public class Image {
     ufs.close();
   }
 
+  /**
+   * Load an image into the masterinfo.
+   * 
+   * @param info
+   *          the masterinfo to fill.
+   * @param path
+   *          the data to load
+   * @throws IOException
+   */
   public static void load(MasterInfo info, String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
     if (!ufs.exists(path)) {
@@ -83,6 +86,9 @@ public class Image {
     }
     LOG.info("Loading image " + path);
     DataInputStream imageIs = new DataInputStream(ufs.open(path));
+    // TODO update the API.
+    @SuppressWarnings("deprecation")
+    JsonParser parser = JsonObject.createObjectMapper().getJsonFactory().createJsonParser(imageIs);
 
     int tVersion = imageIs.readInt();
     if (tVersion != Constants.JOURNAL_VERSION) {
@@ -90,7 +96,7 @@ public class Image {
           + "The system has verion " + Constants.JOURNAL_VERSION);
     }
 
-    info.loadImage(imageIs);
+    info.loadImage(parser, imageIs);
     imageIs.close();
     ufs.close();
   }

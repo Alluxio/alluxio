@@ -106,11 +106,12 @@ public class RawTables extends ImageWriter {
   /**
    * Load the image into the RawTables structure.
    * 
-   * @param is
+   * @param ele
+   *          the json element to load
    * @throws IOException
    * @throws TachyonException
    */
-  void loadImage(DataInputStream is) throws IOException {
+  void loadImage(Element ele) throws IOException {
     int size = is.readInt();
     for (int k = 0; k < size; k ++) {
 
