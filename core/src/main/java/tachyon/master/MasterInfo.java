@@ -730,7 +730,7 @@ public class MasterInfo extends ImageWriter {
       }
 
       if (!tFile.hasCheckpointed()) {
-        tFile.setCheckpointPath(checkpointPath);
+        tFile.setUfsPath(checkpointPath);
         needLog = true;
 
         synchronized (mDependencies) {
@@ -1784,7 +1784,7 @@ public class MasterInfo extends ImageWriter {
    *          the inputstream to load the image.
    * @throws IOException
    */
-  public void loadImage(JsonParser parser, DataInputStream is) throws IOException {
+  public void loadImage(JsonParser parser) throws IOException {
     while (true) {
       Element ele;
       try {
@@ -1808,7 +1808,7 @@ public class MasterInfo extends ImageWriter {
       }
       case Dependency: {
         Dependency dep = Dependency.loadImage(ele);
-        
+
         mDependencies.put(dep.ID, dep);
         if (!dep.hasCheckpointed()) {
           mUncheckpointedDependencies.add(dep.ID);
@@ -1819,9 +1819,33 @@ public class MasterInfo extends ImageWriter {
         break;
       }
       case InodeFile: {
+        Inode inode = InodeFile.loadImage(ele);
+        // TODO: This does not seem to account for the fact that folders recursively load
+        // themselves. Fix this.
+        if (inode.getId() > mInodeCounter.get()) {
+          mInodeCounter.set(inode.getId());
+        }
+        addToInodeMap(inode, mInodes);
+        recomputePinnedFiles(inode, Optional.<Boolean> absent());
+
+        if (inode.getId() == 1) {
+          mRoot = (InodeFolder) inode;
+        }
         break;
       }
       case InodeFolder: {
+        Inode inode = InodeFolder.loadImage(parser, ele);
+        // TODO: This does not seem to account for the fact that folders recursively load
+        // themselves. Fix this.
+        if (inode.getId() > mInodeCounter.get()) {
+          mInodeCounter.set(inode.getId());
+        }
+        addToInodeMap(inode, mInodes);
+        recomputePinnedFiles(inode, Optional.<Boolean> absent());
+
+        if (inode.getId() == 1) {
+          mRoot = (InodeFolder) inode;
+        }
         break;
       }
       case RawTable: {
@@ -1830,34 +1854,6 @@ public class MasterInfo extends ImageWriter {
       }
       default:
         throw new IOException("Invalid ele type " + ele);
-      }
-
-
-      } else if (Image.T_INODE_FILE == type || Image.T_INODE_FOLDER == type) {
-        Inode inode = null;
-
-        if (type == Image.T_INODE_FILE) {
-          inode = InodeFile.loadImage(is);
-        } else {
-          inode = InodeFolder.loadImage(is);
-        }
-
-        // TODO: This does not seem to account for the fact that folders recursively load
-        // themselves.
-        if (inode.getId() > mInodeCounter.get()) {
-          mInodeCounter.set(inode.getId());
-        }
-
-        addToInodeMap(inode, mInodes);
-        recomputePinnedFiles(inode, Optional.<Boolean> absent());
-
-        if (inode.getId() == 1) {
-          mRoot = (InodeFolder) inode;
-        }
-      } else if (Image.T_RAW_TABLE == type) {
-        mRawTables.loadImage(is);
-      } else {
-        throw new IOException("Corrupted image with unknown element type: " + type);
       }
     }
   }
