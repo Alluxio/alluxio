@@ -34,6 +34,7 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
   private final boolean IN_MEMORY;
   private final int IN_MEMORY_PERCENTAGE;
   private final boolean IS_DIRECTORY;
+  private final boolean NEED_PIN;
   private List<String> mFileLocations;
 
   public UiFileInfo(ClientFileInfo fileInfo) {
@@ -48,6 +49,7 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
     IN_MEMORY = fileInfo.isInMemory();
     IN_MEMORY_PERCENTAGE = fileInfo.getInMemoryPercentage();
     IS_DIRECTORY = fileInfo.isFolder();
+    NEED_PIN = fileInfo.isNeedPin();
     mFileLocations = new ArrayList<String>();
   }
 
@@ -98,6 +100,10 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
 
   public boolean getIsDirectory() {
     return IS_DIRECTORY;
+  }
+  
+  public boolean getNeedPin() {
+    return NEED_PIN;
   }
 
   public String getName() {
