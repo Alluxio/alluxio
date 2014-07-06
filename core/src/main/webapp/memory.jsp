@@ -32,7 +32,7 @@
             <th>File Name</th>
             <th>Size</th>
             <th>Block Size</th>
-            <th>Need-Pin</th>
+            <th>Pin</th>
             <th>Creation Time</th>
           </thead>
           <tbody>

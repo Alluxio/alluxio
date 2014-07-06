@@ -51,7 +51,7 @@
             <th>Size</th>
             <th>Block Size</th>
             <th>In-Memory</th>
-            <th>Need-Pin</th>
+            <th>Pin</th>
             <th>Creation Time</th>
           <!--
             <c:if test = "${debug}">
@@ -60,9 +60,9 @@
             </c:if>
           -->
             <% if ((Boolean) request.getAttribute("debug")) { %>
-              <th>[D]Dependency Id</th>
-              <th>[D]Inode Number</th>
-              <th>[D]Checkpoint Path</th>
+              <th>[D]DepID</th>
+              <th>[D]INumber</th>
+              <th>[D]UnderfsPath</th>
               <th>[D]File Locations</th>
             <% } %>
           </thead>
