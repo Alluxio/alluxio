@@ -37,7 +37,7 @@ public class UnderfsUtils {
   /**
    * Build a new path relative to a given TFS root by retrieving the given path relative to
    * the ufsRootPath.
-   * 
+   *
    * @param tfsRootPath
    *          the destination point in TFS to load the under FS path onto
    * @param ufsRootPath
@@ -58,7 +58,7 @@ public class UnderfsUtils {
   /**
    * Load files under path "ufsAddrRootPath" (excluding excludePathPrefix relative to the path)
    * to the given tfs under a given destination path.
-   * 
+   *
    * @param tfsAddrRootPath
    *          the TFS address and path to load the src files, like "tachyon://host:port/dest".
    * @param ufsAddrRootPath
@@ -82,7 +82,7 @@ public class UnderfsUtils {
   /**
    * Load files under path "ufsAddress/ufsRootPath" (excluding excludePathPrefix)
    * to the given tfs under the given tfsRootPath directory.
-   * 
+   *
    * @param tfs
    *          the TFS handler created out of address like "tachyon://host:port"
    * @param tfsRootPath
@@ -193,7 +193,7 @@ public class UnderfsUtils {
     } catch (Exception e) {
       e.printStackTrace();
       printUsage();
-      System.exit(-2);
+      System.exit(-1);
     }
 
     System.exit(0);

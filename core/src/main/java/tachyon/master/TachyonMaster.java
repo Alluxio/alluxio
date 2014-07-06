@@ -17,11 +17,11 @@ package tachyon.master;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.apache.log4j.Logger;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
@@ -87,7 +87,7 @@ public class TachyonMaster {
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
       if (!isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX)) {
         LOG.error("Tachyon was not formatted!");
-        System.exit(-1);
+        CommonUtils.runtimeException("Tachyon was not formatted!");
       }
       mJournal = new Journal(journalFolder, "image.data", "log.data");
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal);
@@ -103,7 +103,7 @@ public class TachyonMaster {
       }
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
-      System.exit(-1);
+      CommonUtils.runtimeException(e);
     }
   }
 
@@ -181,7 +181,7 @@ public class TachyonMaster {
         mLeaderSelectorClient.start();
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        System.exit(-1);
+        CommonUtils.runtimeException(e);
       }
 
       Thread currentThread = Thread.currentThread();
@@ -195,10 +195,10 @@ public class TachyonMaster {
               setup();
             } catch (IOException e) {
               LOG.error(e.getMessage(), e);
-              System.exit(-1);
+              CommonUtils.runtimeException(e);
             } catch (TTransportException e) {
               LOG.error(e.getMessage(), e);
-              System.exit(-1);
+              CommonUtils.runtimeException(e);
             }
             mWebServer.startWebServer();
             LOG.info("The master (leader) server started @ " + mMasterAddress);
@@ -220,10 +220,10 @@ public class TachyonMaster {
         setup();
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        System.exit(-1);
+        CommonUtils.runtimeException(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage(), e);
-        System.exit(-1);
+        CommonUtils.runtimeException(e);
       }
 
       mWebServer.startWebServer();
