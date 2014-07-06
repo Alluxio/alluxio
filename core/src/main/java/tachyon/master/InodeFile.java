@@ -14,7 +14,6 @@
  */
 package tachyon.master;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,7 +22,6 @@ import java.util.List;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import tachyon.Pair;
-import tachyon.io.Utils;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -35,26 +33,26 @@ import tachyon.thrift.SuspectedFileSizeException;
  */
 public class InodeFile extends Inode {
   /**
-   * Create a new InodeFile from an image stream.
+   * Create a new InodeFile from an image JSON element
    * 
-   * @param is
-   *          the image stream
-   * @return
+   * @param ele
+   *          the image JSON element
+   * @return the created inode file.
    * @throws IOException
    */
-  static InodeFile loadImage(DataInputStream is) throws IOException {
-    long creationTimeMs = is.readLong();
-    int fileId = is.readInt();
-    String fileName = Utils.readString(is);
-    int parentId = is.readInt();
+  static InodeFile loadImage(Element ele) throws IOException {
+    long creationTimeMs = ele.getLong("creationTimeMs");
+    int fileId = ele.getInt("id");
+    String fileName = ele.getString("name");
+    int parentId = ele.getInt("parentId");
 
-    long blockSizeByte = is.readLong();
-    long length = is.readLong();
-    boolean isComplete = is.readBoolean();
-    boolean isPinned = is.readBoolean();
-    boolean isCache = is.readBoolean();
-    String checkpointPath = Utils.readString(is);
-    int dependencyId = is.readInt();
+    long blockSizeByte = ele.getLong("blockSizeByte");
+    long length = ele.getLong("length");
+    boolean isComplete = ele.getBoolean("complete");
+    boolean isPinned = ele.getBoolean("pin");
+    boolean isCache = ele.getBoolean("cache");
+    String ufsPath = ele.getString("ufsPath");
+    int dependencyId = ele.getInt("depId");
 
     InodeFile inode = new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
 
@@ -66,7 +64,7 @@ public class InodeFile extends Inode {
     inode.setComplete(isComplete);
     inode.setPinned(isPinned);
     inode.setCache(isCache);
-    inode.setCheckpointPath(checkpointPath);
+    inode.setUfsPath(ufsPath);
     inode.setDependencyId(dependencyId);
     return inode;
   }
@@ -75,7 +73,7 @@ public class InodeFile extends Inode {
   private long mLength = 0;
   private boolean mIsComplete = false;
   private boolean mCache = false;
-  private String mCheckpointPath = "";
+  private String mUfsPath = "";
 
   private List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(3);
 
@@ -127,7 +125,7 @@ public class InodeFile extends Inode {
     ret.id = getId();
     ret.name = getName();
     ret.path = path;
-    ret.checkpointPath = mCheckpointPath;
+    ret.checkpointPath = mUfsPath;
     ret.length = mLength;
     ret.blockSizeByte = BLOCK_SIZE_BYTE;
     ret.creationTimeMs = getCreationTimeMs();
@@ -180,8 +178,8 @@ public class InodeFile extends Inode {
     return BLOCK_SIZE_BYTE;
   }
 
-  public synchronized String getCheckpointPath() {
-    return mCheckpointPath;
+  public synchronized String getUfsPath() {
+    return mUfsPath;
   }
 
   public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws BlockInfoException {
@@ -236,7 +234,7 @@ public class InodeFile extends Inode {
   }
 
   public synchronized boolean hasCheckpointed() {
-    return !mCheckpointPath.equals("");
+    return !mUfsPath.equals("");
   }
 
   public synchronized boolean isCache() {
@@ -262,8 +260,8 @@ public class InodeFile extends Inode {
     mCache = cache;
   }
 
-  public synchronized void setCheckpointPath(String checkpointPath) {
-    mCheckpointPath = checkpointPath;
+  public synchronized void setUfsPath(String ufsPath) {
+    mUfsPath = ufsPath;
   }
 
   public synchronized void setComplete() {
@@ -301,7 +299,7 @@ public class InodeFile extends Inode {
   public String toString() {
     StringBuilder sb = new StringBuilder("InodeFile(");
     sb.append(super.toString()).append(", LENGTH: ").append(mLength);
-    sb.append(", CheckpointPath: ").append(mCheckpointPath);
+    sb.append(", UfsPath: ").append(mUfsPath);
     sb.append(", mBlocks: ").append(mBlocks);
     sb.append(", DependencyId:").append(mDependencyId).append(")");
     return sb.toString();
@@ -311,13 +309,13 @@ public class InodeFile extends Inode {
   public synchronized void writeImage(ObjectWriter objWriter, DataOutputStream dos)
       throws IOException {
     Element ele =
-        new Element(ElementType.InodeFile).withParameter("createTimeMs", getCreationTimeMs())
+        new Element(ElementType.InodeFile).withParameter("creationTimeMs", getCreationTimeMs())
             .withParameter("id", getId()).withParameter("name", getName())
             .withParameter("parentId", getParentId())
-            .withParameter("blockSizeBytes", getBlockSizeByte())
+            .withParameter("blockSizeByte", getBlockSizeByte())
             .withParameter("length", getLength()).withParameter("complete", isComplete())
             .withParameter("pin", isPinned()).withParameter("cached", isCache())
-            .withParameter("ufsPath", getCheckpointPath())
+            .withParameter("ufsPath", getUfsPath())
             .withParameter("depId", getDependencyId());
 
     writeElement(objWriter, dos, ele);

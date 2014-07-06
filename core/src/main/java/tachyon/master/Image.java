@@ -96,7 +96,7 @@ public class Image {
           + "The system has verion " + Constants.JOURNAL_VERSION);
     }
 
-    info.loadImage(parser, imageIs);
+    info.loadImage(parser);
     imageIs.close();
     ufs.close();
   }
