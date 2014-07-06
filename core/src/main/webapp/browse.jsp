@@ -51,6 +51,7 @@
             <th>Size</th>
             <th>Block Size</th>
             <th>In-Memory</th>
+            <th>Need-Pin</th>
             <th>Creation Time</th>
           <!--
             <c:if test = "${debug}">
@@ -133,6 +134,7 @@
                       <%= fileInfo.getInMemoryPercentage() %>%
                     <% } %>
                   </th>
+                  <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
                   <% if ((Boolean) request.getAttribute("debug")) { %>
                     <th>
