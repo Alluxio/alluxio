@@ -12,13 +12,15 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import com.fasterxml.jackson.databind.ObjectWriter;
+
 import tachyon.Constants;
 import tachyon.conf.MasterConf;
 import tachyon.io.Utils;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.util.CommonUtils;
 
-public class Dependency implements ImageWriter {
+public class Dependency extends ImageWriter {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   /**
@@ -193,19 +195,19 @@ public class Dependency implements ImageWriter {
   }
 
   @Override
-  public synchronized void writeImage(DataOutputStream os) throws IOException {
-    os.writeByte(Image.T_DEPENDENCY);
-    os.writeInt(ID);
-    Utils.writeIntegerList(PARENT_FILES, os);
-    Utils.writeIntegerList(CHILDREN_FILES, os);
-    Utils.writeString(COMMAND_PREFIX, os);
-    Utils.writeByteBufferList(DATA, os);
-    Utils.writeString(COMMENT, os);
-    Utils.writeString(FRAMEWORK, os);
-    Utils.writeString(FRAMEWORK_VERSION, os);
-    os.writeInt(TYPE.getValue());
-    Utils.writeIntegerList(PARENT_DEPENDENCIES, os);
-    os.writeLong(CREATION_TIME_MS);
-    Utils.writeIntegerList(getUncheckpointedChildrenFiles(), os);
+  public synchronized void writeImage(ObjectWriter objWriter, DataOutputStream dos)
+      throws IOException {
+    Element ele =
+        new Element(ElementType.Dependency).withParameter("depID", ID)
+            .withParameter("parentFiles", PARENT_FILES)
+            .withParameter("childrenFiles", CHILDREN_FILES)
+            .withParameter("commandPrefix", COMMAND_PREFIX).withParameter("data", DATA)
+            .withParameter("comment", COMMENT).withParameter("framework", FRAMEWORK)
+            .withParameter("frameworkVersion", FRAMEWORK_VERSION)
+            .withParameter("depType", TYPE.getValue())
+            .withParameter("parentDeps", PARENT_DEPENDENCIES)
+            .withParameter("creationTimeMs", CREATION_TIME_MS)
+            .withParameter("unCheckpointedChildrenFiles", getUncheckpointedChildrenFiles());
+    writeElement(objWriter, dos, ele);
   }
 }

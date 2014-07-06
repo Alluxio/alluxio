@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.Collections;
 
+import com.fasterxml.jackson.databind.ObjectWriter;
+
 import tachyon.io.Utils;
 import tachyon.thrift.ClientFileInfo;
 
@@ -224,19 +226,17 @@ public class InodeFolder extends Inode {
    *          The output stream to write the folder to
    */
   @Override
-  public void writeImage(DataOutputStream os) throws IOException {
-    os.writeByte(Image.T_INODE_FOLDER);
+  public void writeImage(ObjectWriter objWriter, DataOutputStream dos) throws IOException {
+    Element ele =
+        new Element(ElementType.InodeFolder).withParameter("createTimeMs", getCreationTimeMs())
+            .withParameter("id", getId()).withParameter("name", getName())
+            .withParameter("parentId", getParentId()).withParameter("pinned", isPinned())
+            .withParameter("childrenIds", getChildrenIds());
 
-    os.writeLong(getCreationTimeMs());
-    os.writeInt(getId());
-    Utils.writeString(getName(), os);
-    os.writeInt(getParentId());
-    os.writeBoolean(isPinned());
+    writeElement(objWriter, dos, ele);
 
-    List<Integer> children = getChildrenIds();
-    os.writeInt(children.size());
     for (Inode inode : getChildren()) {
-      inode.writeImage(os);
+      inode.writeImage(objWriter, dos);
     }
   }
 }

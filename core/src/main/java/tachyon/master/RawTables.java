@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.fasterxml.jackson.databind.ObjectWriter;
+
 import tachyon.Pair;
 import tachyon.conf.CommonConf;
 import tachyon.io.Utils;
@@ -30,7 +32,7 @@ import tachyon.thrift.TachyonException;
 /**
  * All Raw Table related info in MasterInfo.
  */
-public class RawTables implements ImageWriter {
+public class RawTables extends ImageWriter {
   // Mapping from table id to <Columns, Metadata>
   private Map<Integer, Pair<Integer, ByteBuffer>> mData =
       new HashMap<Integer, Pair<Integer, ByteBuffer>>();
@@ -149,13 +151,19 @@ public class RawTables implements ImageWriter {
   }
 
   @Override
-  public synchronized void writeImage(DataOutputStream os) throws IOException {
-    os.writeByte(Image.T_RAW_TABLE);
-    os.writeInt(mData.size());
+  public synchronized void writeImage(ObjectWriter objWriter, DataOutputStream dos)
+      throws IOException {
+    Map<Integer, Integer> column = new HashMap<Integer, Integer>();
+    Map<Integer, ByteBuffer> data = new HashMap<Integer, ByteBuffer>();
     for (Entry<Integer, Pair<Integer, ByteBuffer>> entry : mData.entrySet()) {
-      os.writeInt(entry.getKey());
-      os.writeInt(entry.getValue().getFirst());
-      Utils.writeByteBuffer(entry.getValue().getSecond(), os);
+      column.put(entry.getKey(), entry.getValue().getFirst());
+      data.put(entry.getKey(), entry.getValue().getSecond());
     }
+
+    Element ele =
+        new Element(ElementType.RawTable).withParameter("column", column).withParameter("data",
+            data);
+
+    writeElement(objWriter, dos, ele);
   }
 }

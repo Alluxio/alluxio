@@ -51,14 +51,6 @@ public class EditLog {
 
   private static long mCurrentTId = 0;
 
-  /** Creates a JSON ObjectMapper configured not to close the underlying stream. */
-  private static ObjectMapper createObjectMapper() {
-    // TODO: Could disable field name quoting, though this would produce technically invalid JSON
-    // See: JsonGenerator.QUOTE_FIELD_NAMES and JsonParser.ALLOW_UNQUOTED_FIELD_NAMES
-    return new ObjectMapper().configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false).configure(
-        SerializationFeature.CLOSE_CLOSEABLE, false);
-  }
-
   /**
    * Load edit log.
    * 
@@ -113,7 +105,7 @@ public class EditLog {
     DataInputStream is = new DataInputStream(ufs.open(path));
     // TODO update the API.
     @SuppressWarnings("deprecation")
-    JsonParser parser = createObjectMapper().getJsonFactory().createJsonParser(is);
+    JsonParser parser = JsonObject.createObjectMapper().getJsonFactory().createJsonParser(is);
 
     while (true) {
       Operation op;
@@ -289,7 +281,7 @@ public class EditLog {
       LOG.info("Created file " + path);
       mFlushedTransactionId = transactionId;
       mTransactionId = transactionId;
-      WRITER = createObjectMapper().writer();
+      WRITER = JsonObject.createObjectMapper().writer();
     } else {
       PATH = null;
       mUfs = null;
