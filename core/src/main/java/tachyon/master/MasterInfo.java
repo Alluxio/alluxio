@@ -36,6 +36,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
@@ -1783,22 +1784,31 @@ public class MasterInfo extends ImageWriter {
    *          the inputstream to load the image.
    * @throws IOException
    */
-  public void loadImage(DataInputStream is) throws IOException {
+  public void loadImage(JsonParser parser, DataInputStream is) throws IOException {
     while (true) {
-      byte type = -1;
+      Element ele;
       try {
-        type = is.readByte();
-      } catch (EOFException e) {
-        return;
+        ele = parser.readValueAs(Element.class);
+        LOG.debug("Read Element: " + ele);
+      } catch (IOException e) {
+        // Unfortunately brittle, but Jackson rethrows EOF with this message.
+        if (e.getMessage().contains("end-of-input")) {
+          break;
+        } else {
+          throw e;
+        }
       }
 
-      if (type == Image.T_CHECKPOINT) {
-        mInodeCounter.set(is.readInt());
-        mCheckpointInfo.updateEditTransactionCounter(is.readLong());
-        mCheckpointInfo.updateDependencyCounter(is.readInt());
-      } else if (type == Image.T_DEPENDENCY) {
-        Dependency dep = Dependency.loadImage(is);
-
+      switch (ele.type) {
+      case Checkpoint: {
+        mInodeCounter.set(ele.getInt("inodeCounter"));
+        mCheckpointInfo.updateEditTransactionCounter(ele.getLong("editTransactionCounter"));
+        mCheckpointInfo.updateDependencyCounter(ele.getInt("dependencyCounter"));
+        break;
+      }
+      case Dependency: {
+        Dependency dep = Dependency.loadImage(ele);
+        
         mDependencies.put(dep.ID, dep);
         if (!dep.hasCheckpointed()) {
           mUncheckpointedDependencies.add(dep.ID);
@@ -1806,6 +1816,23 @@ public class MasterInfo extends ImageWriter {
         for (int parentDependencyId : dep.PARENT_DEPENDENCIES) {
           mDependencies.get(parentDependencyId).addChildrenDependency(dep.ID);
         }
+        break;
+      }
+      case InodeFile: {
+        break;
+      }
+      case InodeFolder: {
+        break;
+      }
+      case RawTable: {
+        mRawTables.loadImage(ele);
+        break;
+      }
+      default:
+        throw new IOException("Invalid ele type " + ele);
+      }
+
+
       } else if (Image.T_INODE_FILE == type || Image.T_INODE_FOLDER == type) {
         Inode inode = null;
 
@@ -2242,9 +2269,10 @@ public class MasterInfo extends ImageWriter {
       mRawTables.writeImage(objWriter, dos);
 
       Element ele =
-          new Element(ElementType.Checkpoint).withParameter("inodeCounter", mInodeCounter.get())
-          .withParameter("editTransactionCounter", mCheckpointInfo.getEditTransactionCounter())
-          .withParameter("dependencyCounter", mCheckpointInfo.getDependencyCounter());
+          new Element(ElementType.Checkpoint)
+              .withParameter("inodeCounter", mInodeCounter.get())
+              .withParameter("editTransactionCounter", mCheckpointInfo.getEditTransactionCounter())
+              .withParameter("dependencyCounter", mCheckpointInfo.getDependencyCounter());
 
       writeElement(objWriter, dos, ele);
     }

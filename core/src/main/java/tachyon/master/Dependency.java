@@ -1,6 +1,5 @@
 package tachyon.master;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,20 +23,25 @@ public class Dependency extends ImageWriter {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Create a new dependency from an image stream.
+   * Create a new dependency from a JSON Element.
    * 
-   * @param is
-   *          the image stream
-   * @return
+   * @param ele
+   *          the JSON element
+   * @return the loaded dependency
    * @throws IOException
    */
-  static Dependency loadImage(DataInputStream is) throws IOException {
+  static Dependency loadImage(Element ele) throws IOException {
     Dependency dep =
-        new Dependency(is.readInt(), Utils.readIntegerList(is), Utils.readIntegerList(is),
-            Utils.readString(is), Utils.readByteBufferList(is), Utils.readString(is),
-            Utils.readString(is), Utils.readString(is), DependencyType.getDependencyType(is
-                .readInt()), Utils.readIntegerList(is), is.readLong());
-    dep.resetUncheckpointedChildrenFiles(Utils.readIntegerList(is));
+        new Dependency(ele.getInt("depID"),
+            ele.<List<Integer>> get("parentFiles"),
+            ele.<List<Integer>> get("childrenFiles"),
+            ele.getString("commandPrefix"),
+            ele.getByteBufferList("data"),
+            ele.getString("comment"), ele.getString("framework"),
+            ele.getString("frameworkVersion"), ele.<DependencyType> get("dependencyType"),
+            ele.<List<Integer>> get("parentDeps"), ele.getLong("creationTimeMs"));
+    dep.resetUncheckpointedChildrenFiles(ele.<List<Integer>> get("unCheckpointedChildrenFiles"));
+
     return dep;
   }
 
@@ -201,10 +205,10 @@ public class Dependency extends ImageWriter {
         new Element(ElementType.Dependency).withParameter("depID", ID)
             .withParameter("parentFiles", PARENT_FILES)
             .withParameter("childrenFiles", CHILDREN_FILES)
-            .withParameter("commandPrefix", COMMAND_PREFIX).withParameter("data", DATA)
+            .withParameter("commandPrefix", COMMAND_PREFIX)
+            .withParameter("data", Utils.byteBufferListToBase64(DATA))
             .withParameter("comment", COMMENT).withParameter("framework", FRAMEWORK)
-            .withParameter("frameworkVersion", FRAMEWORK_VERSION)
-            .withParameter("depType", TYPE.getValue())
+            .withParameter("frameworkVersion", FRAMEWORK_VERSION).withParameter("depType", TYPE)
             .withParameter("parentDeps", PARENT_DEPENDENCIES)
             .withParameter("creationTimeMs", CREATION_TIME_MS)
             .withParameter("unCheckpointedChildrenFiles", getUncheckpointedChildrenFiles());
