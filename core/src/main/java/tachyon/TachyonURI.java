@@ -104,7 +104,7 @@ public class TachyonURI implements Comparable<TachyonURI> {
     try {
       parentUri =
           new URI(parentUri.getScheme(), parentUri.getAuthority(),
-              parentUri.getPath() + SEPARATOR, null);
+              parentUri.getPath() + SEPARATOR, null, null);
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }
@@ -273,7 +273,7 @@ public class TachyonURI implements Comparable<TachyonURI> {
         && (slashed ? path.charAt(0) == '/' : true)
         && path.charAt(start + 1) == ':'
         && ((path.charAt(start) >= 'A' && path.charAt(start) <= 'Z') || (path.charAt(start) >= 'a' && path
-        .charAt(start) <= 'z'));
+            .charAt(start) <= 'z'));
   }
 
   /**
