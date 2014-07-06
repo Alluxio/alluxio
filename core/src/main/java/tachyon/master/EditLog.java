@@ -322,7 +322,7 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.ADD_BLOCK, ++ mTransactionId).withParameter("fileId", fileId)
-        .withParameter("blockIndex", blockIndex).withParameter("blockLength", blockLength);
+            .withParameter("blockIndex", blockIndex).withParameter("blockLength", blockLength);
     writeOperation(operation);
   }
 
@@ -333,8 +333,8 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.ADD_CHECKPOINT, ++ mTransactionId)
-    .withParameter("fileId", fileId).withParameter("length", length)
-    .withParameter("path", checkpointPath);
+            .withParameter("fileId", fileId).withParameter("length", length)
+            .withParameter("path", checkpointPath);
     writeOperation(operation);
   }
 
@@ -374,13 +374,13 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.CREATE_DEPENDENCY, ++ mTransactionId)
-    .withParameter("parents", parents).withParameter("children", children)
-    .withParameter("commandPrefix", commandPrefix)
-    .withParameter("data", Utils.byteBufferListToBase64(data))
-    .withParameter("comment", comment).withParameter("framework", framework)
-    .withParameter("frameworkVersion", frameworkVersion)
-    .withParameter("dependencyType", dependencyType).withParameter("dependencyId", depId)
-    .withParameter("creationTimeMs", creationTimeMs);
+            .withParameter("parents", parents).withParameter("children", children)
+            .withParameter("commandPrefix", commandPrefix)
+            .withParameter("data", Utils.byteBufferListToBase64(data))
+            .withParameter("comment", comment).withParameter("framework", framework)
+            .withParameter("frameworkVersion", frameworkVersion)
+            .withParameter("dependencyType", dependencyType).withParameter("dependencyId", depId)
+            .withParameter("creationTimeMs", creationTimeMs);
     writeOperation(operation);
   }
 
@@ -392,9 +392,9 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.CREATE_FILE, ++ mTransactionId)
-    .withParameter("recursive", recursive).withParameter("path", path)
-    .withParameter("directory", directory).withParameter("blockSizeByte", blockSizeByte)
-    .withParameter("creationTimeMs", creationTimeMs);
+            .withParameter("recursive", recursive).withParameter("path", path)
+            .withParameter("directory", directory).withParameter("blockSizeByte", blockSizeByte)
+            .withParameter("creationTimeMs", creationTimeMs);
     writeOperation(operation);
   }
 
@@ -405,8 +405,8 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.CREATE_RAW_TABLE, ++ mTransactionId)
-    .withParameter("tableId", tableId).withParameter("columns", columns)
-    .withParameter("metadata", Utils.byteBufferToBase64(metadata));
+            .withParameter("tableId", tableId).withParameter("columns", columns)
+            .withParameter("metadata", Utils.byteBufferToBase64(metadata));
     writeOperation(operation);
   }
 
@@ -417,7 +417,7 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.DELETE, ++ mTransactionId).withParameter("fileId", fileId)
-        .withParameter("recursive", recursive);
+            .withParameter("recursive", recursive);
     writeOperation(operation);
   }
 
@@ -475,7 +475,7 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.RENAME, ++ mTransactionId).withParameter("fileId", fileId)
-        .withParameter("dstPath", dstPath);
+            .withParameter("dstPath", dstPath);
     writeOperation(operation);
   }
 
@@ -520,7 +520,7 @@ public class EditLog {
 
     Operation operation =
         new Operation(OperationType.SET_PINNED, ++ mTransactionId).withParameter("fileId", fileId)
-        .withParameter("pinned", pinned);
+            .withParameter("pinned", pinned);
     writeOperation(operation);
   }
 
