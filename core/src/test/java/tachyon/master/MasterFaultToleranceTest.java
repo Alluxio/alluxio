@@ -121,7 +121,7 @@ public class MasterFaultToleranceTest {
       Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
       CommonUtils.sleepMs(null, Constants.SECOND_MS * 2);
       faultTestDataCheck(answer);
-      faultTestDataCreation("/data" + (clients + kills + 1), answer);
+//      faultTestDataCreation("/data" + (clients + kills + 1), answer);
     }
   }
 
