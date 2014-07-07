@@ -53,5 +53,7 @@ public class TachyonURITest {
   @Test
   public void constructFromParentAndChildTests() {
     testParentChild(".", ".", ".");
+    testParentChild("/", "/", ".");
+    testParentChild("/", ".", "/");
   }
 }
