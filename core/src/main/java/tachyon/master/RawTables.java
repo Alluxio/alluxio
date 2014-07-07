@@ -14,11 +14,12 @@
  */
 package tachyon.master;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -112,15 +113,13 @@ public class RawTables extends ImageWriter {
    * @throws TachyonException
    */
   void loadImage(Element ele) throws IOException {
-    int size = is.readInt();
-    for (int k = 0; k < size; k ++) {
+    List<Integer> ids = ele.<List<Integer>> get("ids");
+    List<Integer> columns = ele.<List<Integer>> get("columns");
+    List<ByteBuffer> data = ele.getByteBufferList("data");
 
-      int rawTableId = is.readInt();
-      int columns = is.readInt();
-      ByteBuffer metadata = Utils.readByteBuffer(is);
-
+    for (int k = 0; k < ids.size(); k ++) {
       try {
-        if (!addRawTable(rawTableId, columns, metadata)) {
+        if (!addRawTable(ids.get(k), columns.get(k), data.get(k))) {
           throw new IOException("Failed to create raw table");
         }
       } catch (TachyonException e) {
@@ -154,16 +153,19 @@ public class RawTables extends ImageWriter {
   @Override
   public synchronized void writeImage(ObjectWriter objWriter, DataOutputStream dos)
       throws IOException {
-    Map<Integer, Integer> column = new HashMap<Integer, Integer>();
-    Map<Integer, ByteBuffer> data = new HashMap<Integer, ByteBuffer>();
+    List<Integer> ids = new ArrayList<Integer>();
+    List<Integer> columns = new ArrayList<Integer>();
+    List<ByteBuffer> data = new ArrayList<ByteBuffer>();
     for (Entry<Integer, Pair<Integer, ByteBuffer>> entry : mData.entrySet()) {
-      column.put(entry.getKey(), entry.getValue().getFirst());
-      data.put(entry.getKey(), entry.getValue().getSecond());
+      ids.add(entry.getKey());
+      columns.add(entry.getValue().getFirst());
+      data.add(entry.getValue().getSecond());
     }
 
     Element ele =
-        new Element(ElementType.RawTable).withParameter("column", column).withParameter("data",
-            data);
+        new Element(ElementType.RawTable).withParameter("ids", ids)
+            .withParameter("columns", columns)
+            .withParameter("data", Utils.byteBufferListToBase64(data));
 
     writeElement(objWriter, dos, ele);
   }

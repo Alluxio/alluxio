@@ -14,9 +14,7 @@
  */
 package tachyon.master;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -507,7 +505,7 @@ public class MasterInfo extends ImageWriter {
         Inode delInode = delInodes.get(i);
 
         if (delInode.isFile()) {
-          String checkpointPath = ((InodeFile) delInode).getCheckpointPath();
+          String checkpointPath = ((InodeFile) delInode).getUfsPath();
           if (!checkpointPath.equals("")) {
             UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
             try {
@@ -1784,13 +1782,16 @@ public class MasterInfo extends ImageWriter {
   }
 
   /**
-   * Load the image from <code>is</code>. Assume this blocks the whole MasterInfo.
+   * Load the image from <code>parser</code>, which is created based on the <code>path</code>.
+   * Assume this blocks the whole MasterInfo.
    * 
-   * @param is
-   *          the inputstream to load the image.
+   * @param parser
+   *          the JsonParser to load the image
+   * @param path
+   *          the file to load the image
    * @throws IOException
    */
-  public void loadImage(JsonParser parser) throws IOException {
+  public void loadImage(JsonParser parser, String path) throws IOException {
     while (true) {
       Element ele;
       try {
@@ -1806,6 +1807,12 @@ public class MasterInfo extends ImageWriter {
       }
 
       switch (ele.type) {
+      case Version: {
+        if (ele.getInt("version") != Constants.JOURNAL_VERSION) {
+          throw new IOException("Image " + path + " has journal version " + ele.getInt("version")
+              + " . The system has verion " + Constants.JOURNAL_VERSION);
+        }
+      }
       case Checkpoint: {
         mInodeCounter.set(ele.getInt("inodeCounter"));
         mCheckpointInfo.updateEditTransactionCounter(ele.getLong("editTransactionCounter"));
@@ -1859,7 +1866,7 @@ public class MasterInfo extends ImageWriter {
         break;
       }
       default:
-        throw new IOException("Invalid ele type " + ele);
+        throw new IOException("Invalid element type " + ele);
       }
     }
   }
@@ -2261,6 +2268,11 @@ public class MasterInfo extends ImageWriter {
    */
   @Override
   public void writeImage(ObjectWriter objWriter, DataOutputStream dos) throws IOException {
+    Element ele =
+        new Element(ElementType.Version).withParameter("version", Constants.JOURNAL_VERSION);
+
+    writeElement(objWriter, dos, ele);
+
     synchronized (mRoot) {
       synchronized (mDependencies) {
         for (Dependency dep : mDependencies.values()) {
@@ -2270,7 +2282,7 @@ public class MasterInfo extends ImageWriter {
       mRoot.writeImage(objWriter, dos);
       mRawTables.writeImage(objWriter, dos);
 
-      Element ele =
+      ele =
           new Element(ElementType.Checkpoint)
               .withParameter("inodeCounter", mInodeCounter.get())
               .withParameter("editTransactionCounter", mCheckpointInfo.getEditTransactionCounter())

@@ -55,7 +55,6 @@ public class Image {
     DataOutputStream imageOs = new DataOutputStream(os);
     ObjectWriter writer = JsonObject.createObjectMapper().writer();
 
-    imageOs.writeInt(Constants.JOURNAL_VERSION);
     info.writeImage(writer, imageOs);
     imageOs.flush();
     imageOs.close();
@@ -90,13 +89,7 @@ public class Image {
     @SuppressWarnings("deprecation")
     JsonParser parser = JsonObject.createObjectMapper().getJsonFactory().createJsonParser(imageIs);
 
-    int tVersion = imageIs.readInt();
-    if (tVersion != Constants.JOURNAL_VERSION) {
-      throw new IOException("Image " + path + " has journal version " + tVersion + " ."
-          + "The system has verion " + Constants.JOURNAL_VERSION);
-    }
-
-    info.loadImage(parser);
+    info.loadImage(parser, path);
     imageIs.close();
     ufs.close();
   }
