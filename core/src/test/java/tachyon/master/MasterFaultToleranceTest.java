@@ -90,6 +90,16 @@ public class MasterFaultToleranceTest {
   private void faultTestDataCheck(List<Pair<Integer, String>> answer) throws IOException {
     TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
     List<String> files = mTfs.ls(Constants.PATH_SEPARATOR, true);
+    if (answer.size() != files.size()) {
+      System.out.println("Files===========================");
+      for (int k = 0; k < files.size(); k ++) {
+        System.out.println("Files: " + files.get(k));
+      }
+      System.out.println("Answers===========================");
+      for (int k = 0; k < answer.size(); k ++) {
+        System.out.println("Answers: " + answer.get(k));
+      }
+    }
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
       Assert.assertEquals(answer.get(k).getSecond(), tfs.getFile(answer.get(k).getFirst())
