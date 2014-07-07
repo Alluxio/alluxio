@@ -113,13 +113,13 @@ public class MasterFaultToleranceTest {
 
     for (int kills = 0; kills < 1; kills ++) {
       Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
-      CommonUtils.sleepMs(null, Constants.SECOND_MS);
+      CommonUtils.sleepMs(null, Constants.SECOND_MS * 2);
       faultTestDataCheck(answer);
     }
 
     for (int kills = 1; kills < MASTERS - 1; kills ++) {
       Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
-      CommonUtils.sleepMs(null, Constants.SECOND_MS);
+      CommonUtils.sleepMs(null, Constants.SECOND_MS * 2);
       faultTestDataCheck(answer);
       faultTestDataCreation("/data" + (clients + kills + 1), answer);
     }
