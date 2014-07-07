@@ -355,16 +355,6 @@ public class TachyonURITest {
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void invalidAuthorityTest() {
-    TachyonURI uri = new TachyonURI("tachyon://localhost::/a");
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void invalidAuthorityTest1() {
-    TachyonURI uri = new TachyonURI("tachyon://localhost::8080/a");
-  }
-
-  @Test(expected = IllegalArgumentException.class)
   public void invalidURISyntaxTest() {
     TachyonURI uri = new TachyonURI("://localhost:8080/a");
   }
