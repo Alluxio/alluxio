@@ -257,11 +257,6 @@ public class LocalTachyonClusterMultiMaster {
   public void stop() throws Exception {
     stopTFS();
     stopUFS();
-
-    UnderFileSystem ufs = UnderFileSystem.get(mTachyonHome);
-    if (!ufs.exists(mTachyonHome) || !ufs.delete(mTachyonHome, true)) {
-      throw new IOException("Failed to remove temporary test folder " + mTachyonHome);
-    }
   }
 
   public void stopTFS() throws Exception {
