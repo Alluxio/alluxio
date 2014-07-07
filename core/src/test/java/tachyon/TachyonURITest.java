@@ -52,48 +52,7 @@ public class TachyonURITest {
 
   @Test
   public void constructFromParentAndChildTests() {
-    testParentChild("hdfs://localhost:8080/a/b/d.txt", "hdfs://localhost:8080/a/b/c.txt",
-        "../d.txt");
     testParentChild(".", ".", ".");
     testParentChild("/", "/", ".");
-    testParentChild("/", ".", "/");
-    testParentChild("/foo", "/", "foo");
-    testParentChild("/foo/bar", "/foo", "bar");
-    testParentChild("/foo/bar/baz", "/foo/bar", "baz");
-    testParentChild("/foo/bar/baz", "/foo", "bar/baz");
-    testParentChild("foo", ".", "foo");
-    testParentChild("foo/bar", "foo", "bar");
-    testParentChild("foo/bar/baz", "foo", "bar/baz");
-    testParentChild("foo/bar/baz", "foo/bar", "baz");
-    testParentChild("/foo", "/bar", "/foo");
-    testParentChild("c:/foo", "/bar", "c:/foo");
-    testParentChild("c:/foo", "d:/bar", "c:/foo");
-    testParentChild("/foo/bar/baz/boo", "/foo/bar", "baz/boo");
-    testParentChild("foo/bar/baz/bud", "foo/bar/", "baz/bud");
-    testParentChild("/boo/bud", "/foo/bar", "../../boo/bud");
-    testParentChild("boo/bud", "foo/bar", "../../boo/bud");
-    testParentChild("boo/bud", ".", "boo/bud");
-    testParentChild("/foo/boo/bud", "/foo/bar/baz", "../../boo/bud");
-    testParentChild("foo/boo/bud", "foo/bar/baz", "../../boo/bud");
-    testParentChild("../../../../boo/bud", "../../", "../../boo/bud");
-    testParentChild("../../../../boo/bud", "../../foo", "../../../boo/bud");
-    testParentChild("../../foo/boo/bud", "../../foo/bar", "../boo/bud");
-    testParentChild("", "foo/bar/baz", "../../..");
-    testParentChild("../..", "foo/bar/baz", "../../../../..");
-
-    testParentChild("foo://bar boo:80/.", "foo://bar boo:80/.", ".");
-    testParentChild("foo://bar boo:80/", "foo://bar boo:80/", ".");
-    testParentChild("foo://bar boo:80/", "foo://bar boo:80/.", "/");
-    testParentChild("foo://bar boo:80/foo", "foo://bar boo:80/", "foo");
-    testParentChild("foo://bar boo:80/foo/bar", "foo://bar boo:80/foo", "bar");
-    testParentChild("foo://bar boo:80/foo/bar/baz", "foo://bar boo:80/foo/bar", "baz");
-    testParentChild("foo://bar boo:80/foo/bar/baz", "foo://bar boo:80/foo",
-        "foo://bar boo:80/bar/baz");
-    testParentChild("foo://bar boo:80/foo", "foo://bar boo:80/.", "foo");
-    testParentChild("foo://bar boo:80/foo/bar/baz", "foo://bar boo:80/foo", "bar/baz");
-    testParentChild("foo://bar boo:80/foo/bar/baz", "foo://bar boo:80/foo/bar", "baz");
-    testParentChild("foo://bar boo:80/foo", "foo://bar boo:80/bar", "/foo");
-    testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/bar", "c:/foo");
-    testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/d:/bar", "c:/foo");
   }
 }
