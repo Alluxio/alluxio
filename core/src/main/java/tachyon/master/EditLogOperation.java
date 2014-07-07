@@ -24,19 +24,19 @@ import com.google.common.base.Objects;
  * Each entry in the EditLog is represented as a single Operation, which is serialized as JSON.
  * An Operation has a type, a transaction id, and a set of parameters determined by the type.
  */
-class Operation extends JsonObject {
+class EditLogOperation extends JsonObject {
   // NB: These type names are used in the serialized JSON. They should be concise but readable.
-  public OperationType type;
+  public EditLogOperationType type;
   public long transId;
 
-  public Operation(OperationType type, long transId) {
+  public EditLogOperation(EditLogOperationType type, long transId) {
     this.type = type;
     this.transId = transId;
   }
 
   /** Constructor used for deserializing Operations. */
   @JsonCreator
-  public Operation(@JsonProperty("type") OperationType type,
+  public EditLogOperation(@JsonProperty("type") EditLogOperationType type,
       @JsonProperty("transId") long transId,
       @JsonProperty("parameters") Map<String, Object> parameters) {
     this.type = type;
@@ -51,7 +51,7 @@ class Operation extends JsonObject {
   }
 
   @Override
-  public Operation withParameter(String name, Object value) {
-    return (Operation) super.withParameter(name, value);
+  public EditLogOperation withParameter(String name, Object value) {
+    return (EditLogOperation) super.withParameter(name, value);
   }
 }

@@ -24,17 +24,17 @@ import com.google.common.base.Objects;
  * Each entry in the Image is represented as a single element, which is serialized as JSON.
  * An element has a type and a set of parameters determined by the type.
  */
-class Element extends JsonObject {
+class ImageElement extends JsonObject {
   // NB: These type names are used in the serialized JSON. They should be concise but readable.
-  public ElementType type;
+  public ImageElementType type;
 
-  public Element(ElementType type) {
+  public ImageElement(ImageElementType type) {
     this.type = type;
   }
 
   /** Constructor used for deserializing Elements. */
   @JsonCreator
-  public Element(@JsonProperty("type") ElementType type,
+  public ImageElement(@JsonProperty("type") ImageElementType type,
       @JsonProperty("parameters") Map<String, Object> parameters) {
     this.type = type;
     this.parameters = parameters;
@@ -46,7 +46,7 @@ class Element extends JsonObject {
   }
 
   @Override
-  public Element withParameter(String name, Object value) {
-    return (Element) super.withParameter(name, value);
+  public ImageElement withParameter(String name, Object value) {
+    return (ImageElement) super.withParameter(name, value);
   }
 }

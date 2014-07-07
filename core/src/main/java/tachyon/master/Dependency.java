@@ -30,7 +30,7 @@ public class Dependency extends ImageWriter {
    * @return the loaded dependency
    * @throws IOException
    */
-  static Dependency loadImage(Element ele) throws IOException {
+  static Dependency loadImage(ImageElement ele) throws IOException {
     Dependency dep =
         new Dependency(ele.getInt("depID"),
             ele.<List<Integer>> get("parentFiles"),
@@ -201,8 +201,8 @@ public class Dependency extends ImageWriter {
   @Override
   public synchronized void writeImage(ObjectWriter objWriter, DataOutputStream dos)
       throws IOException {
-    Element ele =
-        new Element(ElementType.Dependency).withParameter("depID", ID)
+    ImageElement ele =
+        new ImageElement(ImageElementType.Dependency).withParameter("depID", ID)
             .withParameter("parentFiles", PARENT_FILES)
             .withParameter("childrenFiles", CHILDREN_FILES)
             .withParameter("commandPrefix", COMMAND_PREFIX)

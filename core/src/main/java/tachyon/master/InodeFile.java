@@ -40,7 +40,7 @@ public class InodeFile extends Inode {
    * @return the created inode file.
    * @throws IOException
    */
-  static InodeFile loadImage(Element ele) throws IOException {
+  static InodeFile loadImage(ImageElement ele) throws IOException {
     long creationTimeMs = ele.getLong("creationTimeMs");
     int fileId = ele.getInt("id");
     String fileName = ele.getString("name");
@@ -308,15 +308,14 @@ public class InodeFile extends Inode {
   @Override
   public synchronized void writeImage(ObjectWriter objWriter, DataOutputStream dos)
       throws IOException {
-    Element ele =
-        new Element(ElementType.InodeFile).withParameter("creationTimeMs", getCreationTimeMs())
-            .withParameter("id", getId()).withParameter("name", getName())
-            .withParameter("parentId", getParentId())
+    ImageElement ele =
+        new ImageElement(ImageElementType.InodeFile)
+            .withParameter("creationTimeMs", getCreationTimeMs()).withParameter("id", getId())
+            .withParameter("name", getName()).withParameter("parentId", getParentId())
             .withParameter("blockSizeByte", getBlockSizeByte())
             .withParameter("length", getLength()).withParameter("complete", isComplete())
             .withParameter("pin", isPinned()).withParameter("cache", isCache())
-            .withParameter("ufsPath", getUfsPath())
-            .withParameter("depId", getDependencyId());
+            .withParameter("ufsPath", getUfsPath()).withParameter("depId", getDependencyId());
 
     writeElement(objWriter, dos, ele);
   }
