@@ -19,7 +19,6 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
-import com.google.common.collect.Maps;
 
 /**
  * Each entry in the EditLog is represented as a single Operation, which is serialized as JSON.
@@ -29,7 +28,6 @@ class Operation extends JsonObject {
   // NB: These type names are used in the serialized JSON. They should be concise but readable.
   public OperationType type;
   public long transId;
-  public Map<String, Object> parameters = Maps.newHashMap();
 
   public Operation(OperationType type, long transId) {
     this.type = type;
