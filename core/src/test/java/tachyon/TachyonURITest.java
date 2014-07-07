@@ -308,7 +308,6 @@ public class TachyonURITest {
     Assert.assertEquals("C://a/b.txt", new TachyonURI("C:\\\\a\\b.txt").toString());
     Assert.assertEquals("file:/a", new TachyonURI("file:/a").toString());
     Assert.assertEquals("file:/a", new TachyonURI("file:///a").toString());
-    Assert.assertEquals("file://a", new TachyonURI("file://a").toString());
     Assert.assertEquals("file:/a", new TachyonURI("file", null, "/a").toString());
   }
 
@@ -334,4 +333,39 @@ public class TachyonURITest {
         new TachyonURI("foo://bar boo:8080/abc///c").toString());
   }
 
+  // Exceptions
+  @Test(expected = IllegalArgumentException.class)
+  public void constructFromEmptyPathTest() {
+    TachyonURI uri = new TachyonURI("");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void constructFromEmptyPathTest1() {
+    TachyonURI uri = new TachyonURI("foo://bar:80");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void constructFromEmptyPathTest2() {
+    TachyonURI uri = new TachyonURI(null, null, null);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void constructFromEmptyPathTest3() {
+    TachyonURI uri = new TachyonURI("file", null, "");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void invalidAuthorityTest() {
+    TachyonURI uri = new TachyonURI("tachyon://localhost::/a");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void invalidAuthorityTest1() {
+    TachyonURI uri = new TachyonURI("tachyon://localhost::8080/a");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void invalidURISyntaxTest() {
+    TachyonURI uri = new TachyonURI("://localhost:8080/a");
+  }
 }
