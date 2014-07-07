@@ -7,7 +7,7 @@ Tachyon can use Glusterfs [Glusterfs](http://www.gluster.org).
 
 # Prerequisites
 
-You need to install Glusterfs on your cluster and create a Glusterfs volume [Glusterfs usage]().
+You need to install Glusterfs on your cluster and create a Glusterfs volume [Glusterfs usage](http://www.gluster.org/community/documentation/index.php/QuickStart).
 
 # Mount a Glusterfs filesystem
 
@@ -23,7 +23,7 @@ Next, config Tachyon in `tachyon` folder
     $ cd /root/tachyon/conf
     $ cp tachyon-glusterfs-env.sh.template tachyon-env.sh
 
-Edit `tachyon-env.sh` file. add `TACHYON_UNDERFS_GLUSTER_VOLUMES=tachyon_vol` and `TACHYON_UNDERFS_GLUSTER_MOUNTS=/vol`.
+Edit `tachyon-env.sh` file, add `TACHYON_UNDERFS_GLUSTER_VOLUMES=tachyon_vol` and `TACHYON_UNDERFS_GLUSTER_MOUNTS=/vol`.
 
 Sync the configuration to all nodes.
 
