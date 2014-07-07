@@ -366,11 +366,6 @@ public final class CommonUtils {
     return sb.toString();
   }
 
-  public static boolean mkdirs(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
-    return ufs.mkdirs(path, true);
-  }
-
   public static String parametersToString(Object... objs) {
     StringBuilder sb = new StringBuilder("(");
     for (int k = 0; k < objs.length; k ++) {
