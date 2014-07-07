@@ -195,7 +195,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     if (!mIsStarted) {
 
       delete(mBaseDir, true);
-      if (mkdirs(mBaseDir)) {
+      if (!mkdirs(mBaseDir)) {
         throw new IOException("Failed to make folder: " + mBaseDir);
       }
 
