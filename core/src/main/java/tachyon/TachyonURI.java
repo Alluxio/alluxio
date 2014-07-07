@@ -106,9 +106,7 @@ public class TachyonURI implements Comparable<TachyonURI> {
       parentPath += SEPARATOR;
     }
     try {
-      parentUri =
-          new URI(parentUri.getScheme(), parentUri.getAuthority(),
-              parentPath, null, null);
+      parentUri = new URI(parentUri.getScheme(), parentUri.getAuthority(), parentPath, null, null);
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }
