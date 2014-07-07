@@ -54,4 +54,11 @@ export TACHYON_JAVA_OPTS+="
   -Dtachyon.underfs.glusterfs.mapred.system.dir=$TACHYON_UNDERFS_GLUSTER_MR_DIR
   -Dorg.apache.jasper.compiler.disablejsr199=true
 "
+
+# Master specific parameters. Default to TACHYON_JAVA_OPTS.
+export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS"
+
+# Worker specific parameters that will be shared to all workers. Default to TACHYON_JAVA_OPTS.
+export TACHYON_WORKER_JAVA_OPTS="$TACHYON_JAVA_OPTS"
+
 export JAVA="$JAVA_HOME/bin/java $TACHYON_JAVA_OPTS"
