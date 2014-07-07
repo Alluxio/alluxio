@@ -1833,33 +1833,19 @@ public class MasterInfo extends ImageWriter {
         break;
       }
       case InodeFile: {
-        Inode inode = InodeFile.loadImage(ele);
-        // TODO: This does not seem to account for the fact that folders recursively load
-        // themselves. Fix this.
-        if (inode.getId() > mInodeCounter.get()) {
-          mInodeCounter.set(inode.getId());
-        }
-        addToInodeMap(inode, mInodes);
-        recomputePinnedFiles(inode, Optional.<Boolean> absent());
-
-        if (inode.getId() == 1) {
-          mRoot = (InodeFolder) inode;
-        }
-        break;
+        // This element should not be loaded here. It should be loaded by InodeFolder.
+        throw new IOException("Invalid element type " + ele);
       }
       case InodeFolder: {
         Inode inode = InodeFolder.loadImage(parser, ele);
-        // TODO: This does not seem to account for the fact that folders recursively load
-        // themselves. Fix this.
-        if (inode.getId() > mInodeCounter.get()) {
-          mInodeCounter.set(inode.getId());
-        }
         addToInodeMap(inode, mInodes);
         recomputePinnedFiles(inode, Optional.<Boolean> absent());
 
-        if (inode.getId() == 1) {
-          mRoot = (InodeFolder) inode;
+        if (inode.getId() != 1) {
+          throw new IOException("Invalid element type " + ele);
         }
+        mRoot = (InodeFolder) inode;
+
         break;
       }
       case RawTable: {
