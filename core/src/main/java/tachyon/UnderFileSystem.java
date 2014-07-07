@@ -169,7 +169,7 @@ public abstract class UnderFileSystem {
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method
-   * returns false.
+   * returns true.
    * 
    * @param path
    *          the folder to create
