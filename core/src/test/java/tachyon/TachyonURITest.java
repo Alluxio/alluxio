@@ -98,7 +98,8 @@ public class TachyonURITest {
     testParentChild("../../../../boo/bud", "../../", "../../boo/bud");
     testParentChild("../../../../boo/bud", "../../foo", "../../../boo/bud");
     testParentChild("../../foo/boo/bud", "../../foo/bar", "../boo/bud");
-    testParentChild("", "foo/bar/baz", "../../..");
+    Assert.assertEquals("",
+            new TachyonURI(new TachyonURI("foo/bar/baz"), new TachyonURI("../../..")).toString());
     testParentChild("../..", "foo/bar/baz", "../../../../..");
 
     testParentChild("foo://bar boo:80/.", "foo://bar boo:80/.", ".");
@@ -107,14 +108,13 @@ public class TachyonURITest {
     testParentChild("foo://bar boo:80/foo", "foo://bar boo:80/", "foo");
     testParentChild("foo://bar boo:80/foo/bar", "foo://bar boo:80/foo", "bar");
     testParentChild("foo://bar boo:80/foo/bar/baz", "foo://bar boo:80/foo/bar", "baz");
-    testParentChild("foo://bar boo:80/foo/bar/baz", "foo://bar boo:80/foo",
-        "foo://bar boo:80/bar/baz");
     testParentChild("foo://bar boo:80/foo", "foo://bar boo:80/.", "foo");
     testParentChild("foo://bar boo:80/foo/bar/baz", "foo://bar boo:80/foo", "bar/baz");
     testParentChild("foo://bar boo:80/foo/bar/baz", "foo://bar boo:80/foo/bar", "baz");
     testParentChild("foo://bar boo:80/foo", "foo://bar boo:80/bar", "/foo");
-    testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/bar", "c:/foo");
-    testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/d:/bar", "c:/foo");
+    testParentChild("c:/foo", "foo://bar boo:80/bar", "c:/foo");
+    testParentChild("c:/foo", "foo://bar boo:80/d:/bar", "c:/foo");
+    testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/d:/bar", "foo://bar boo:80/c:/foo");
   }
 
   @Test
