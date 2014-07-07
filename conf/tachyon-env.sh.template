@@ -52,8 +52,8 @@ export TACHYON_JAVA_OPTS+="
   -Djava.net.preferIPv4Stack=true
 "
 
-# Master specific parameters. Will be appended to the TACHYON_JAVA_OPTS.
+# Master specific parameters. Default to TACHYON_JAVA_OPTS.
 export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS"
 
-# Worker specific parameters that will be shared to all workers. Will be appended to the TACHYON_JAVA_OPTS.
+# Worker specific parameters that will be shared to all workers. Default to TACHYON_JAVA_OPTS.
 export TACHYON_WORKER_JAVA_OPTS="$TACHYON_JAVA_OPTS"
