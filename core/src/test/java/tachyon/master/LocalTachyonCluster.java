@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.Constants;
+import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.conf.CommonConf;
@@ -134,7 +135,13 @@ public class LocalTachyonCluster {
   }
 
   private void mkdir(String path) throws IOException {
-    if (!CommonUtils.mkdirs(path)) {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+
+    if (ufs.exists(path) && !ufs.delete(path, true)) {
+      throw new IOException("Folder " + path + " already exists but can not be deleted.");
+    }
+
+    if (!ufs.mkdirs(path, true)) {
       throw new IOException("Failed to make folder: " + path);
     }
   }
@@ -223,6 +230,11 @@ public class LocalTachyonCluster {
   public void stop() throws Exception {
     stopTFS();
     stopUFS();
+
+    UnderFileSystem ufs = UnderFileSystem.get(mTachyonHome);
+    if (!ufs.exists(mTachyonHome) || !ufs.delete(mTachyonHome, true)) {
+      throw new IOException("Failed to remove temporary test folder " + mTachyonHome);
+    }
   }
 
   /**
