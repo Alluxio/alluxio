@@ -1812,6 +1812,7 @@ public class MasterInfo extends ImageWriter {
           throw new IOException("Image " + path + " has journal version " + ele.getInt("version")
               + " . The system has verion " + Constants.JOURNAL_VERSION);
         }
+        break;
       }
       case Checkpoint: {
         mInodeCounter.set(ele.getInt("inodeCounter"));
