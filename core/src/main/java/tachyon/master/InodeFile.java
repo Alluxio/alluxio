@@ -314,7 +314,7 @@ public class InodeFile extends Inode {
             .withParameter("parentId", getParentId())
             .withParameter("blockSizeByte", getBlockSizeByte())
             .withParameter("length", getLength()).withParameter("complete", isComplete())
-            .withParameter("pin", isPinned()).withParameter("cached", isCache())
+            .withParameter("pin", isPinned()).withParameter("cache", isCache())
             .withParameter("ufsPath", getUfsPath())
             .withParameter("depId", getDependencyId());
 
