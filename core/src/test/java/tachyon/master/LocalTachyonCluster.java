@@ -134,12 +134,16 @@ public class LocalTachyonCluster {
     return mWorkerPort;
   }
 
-  private void mkdir(String path) throws IOException {
+  private void deleteDir(String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
     if (ufs.exists(path) && !ufs.delete(path, true)) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
     }
+  }
+
+  private void mkdir(String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
 
     if (!ufs.mkdirs(path, true)) {
       throw new IOException("Failed to make folder: " + path);
@@ -152,6 +156,7 @@ public class LocalTachyonCluster {
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
 
+    deleteDir(mTachyonHome);
     mkdir(mTachyonHome);
     mkdir(masterDataFolder);
     mkdir(masterLogFolder);
