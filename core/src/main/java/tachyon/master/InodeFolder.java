@@ -14,7 +14,6 @@
  */
 package tachyon.master;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,36 +22,59 @@ import java.util.List;
 import java.util.Set;
 import java.util.Collections;
 
-import tachyon.io.Utils;
+import org.apache.log4j.Logger;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectWriter;
+
+import tachyon.Constants;
 import tachyon.thrift.ClientFileInfo;
 
 /**
  * Tachyon file system's folder representation in master.
  */
 public class InodeFolder extends Inode {
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+
   /**
-   * Create a new InodeFile from an image stream.
+   * Create a new InodeFile from a JsonParser and an image Json element.
    * 
-   * @param is
-   *          the image stream
-   * @return
+   * @param parser
+   *          the JsonParser to get the next element
+   * @param ele
+   *          the current InodeFolder's Json image element.
+   * @return the constructed InodeFolder.
    * @throws IOException
    */
-  static InodeFolder loadImage(DataInputStream is) throws IOException {
-    long creationTimeMs = is.readLong();
-    int fileId = is.readInt();
-    String fileName = Utils.readString(is);
-    int parentId = is.readInt();
-    boolean isPinned = is.readBoolean();
+  static InodeFolder loadImage(JsonParser parser, Element ele) throws IOException {
+    long creationTimeMs = ele.getLong("creationTimeMs");
+    int fileId = ele.getInt("id");
+    String fileName = ele.getString("name");
+    int parentId = ele.getInt("parentId");
+    boolean isPinned = ele.getBoolean("pinned");
+    List<Integer> childrenIds = ele.<List<Integer>> get("childrenIds");
 
-    int numberOfChildren = is.readInt();
+    int numberOfChildren = childrenIds.size();
     Inode[] children = new Inode[numberOfChildren];
     for (int k = 0; k < numberOfChildren; k ++) {
-      byte type = is.readByte();
-      if (type == Image.T_INODE_FILE) {
-        children[k] = InodeFile.loadImage(is);
-      } else {
-        children[k] = InodeFolder.loadImage(is);
+      try {
+        ele = parser.readValueAs(Element.class);
+        LOG.debug("Read Element: " + ele);
+      } catch (IOException e) {
+        throw e;
+      }
+
+      switch (ele.type) {
+      case InodeFile: {
+        children[k] = InodeFile.loadImage(ele);
+        break;
+      }
+      case InodeFolder: {
+        children[k] = InodeFolder.loadImage(parser, ele);
+        break;
+      }
+      default:
+        throw new IOException("Invalid element type " + ele);
       }
     }
 
@@ -224,19 +246,17 @@ public class InodeFolder extends Inode {
    *          The output stream to write the folder to
    */
   @Override
-  public void writeImage(DataOutputStream os) throws IOException {
-    os.writeByte(Image.T_INODE_FOLDER);
+  public void writeImage(ObjectWriter objWriter, DataOutputStream dos) throws IOException {
+    Element ele =
+        new Element(ElementType.InodeFolder).withParameter("creationTimeMs", getCreationTimeMs())
+            .withParameter("id", getId()).withParameter("name", getName())
+            .withParameter("parentId", getParentId()).withParameter("pinned", isPinned())
+            .withParameter("childrenIds", getChildrenIds());
 
-    os.writeLong(getCreationTimeMs());
-    os.writeInt(getId());
-    Utils.writeString(getName(), os);
-    os.writeInt(getParentId());
-    os.writeBoolean(isPinned());
+    writeElement(objWriter, dos, ele);
 
-    List<Integer> children = getChildrenIds();
-    os.writeInt(children.size());
     for (Inode inode : getChildren()) {
-      inode.writeImage(os);
+      inode.writeImage(objWriter, dos);
     }
   }
 }

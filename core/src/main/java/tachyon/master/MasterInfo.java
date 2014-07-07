@@ -14,9 +14,7 @@
  */
 package tachyon.master;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -36,6 +34,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.apache.log4j.Logger;
@@ -71,7 +71,7 @@ import tachyon.util.CommonUtils;
 /**
  * A global view of filesystem in master.
  */
-public class MasterInfo implements ImageWriter {
+public class MasterInfo extends ImageWriter {
   /**
    * Master info periodical status check.
    */
@@ -505,7 +505,7 @@ public class MasterInfo implements ImageWriter {
         Inode delInode = delInodes.get(i);
 
         if (delInode.isFile()) {
-          String checkpointPath = ((InodeFile) delInode).getCheckpointPath();
+          String checkpointPath = ((InodeFile) delInode).getUfsPath();
           if (!checkpointPath.equals("")) {
             UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
             try {
@@ -734,7 +734,7 @@ public class MasterInfo implements ImageWriter {
       }
 
       if (!tFile.hasCheckpointed()) {
-        tFile.setCheckpointPath(checkpointPath);
+        tFile.setUfsPath(checkpointPath);
         needLog = true;
 
         synchronized (mDependencies) {
@@ -1782,27 +1782,46 @@ public class MasterInfo implements ImageWriter {
   }
 
   /**
-   * Load the image from <code>is</code>. Assume this blocks the whole MasterInfo.
+   * Load the image from <code>parser</code>, which is created based on the <code>path</code>.
+   * Assume this blocks the whole MasterInfo.
    * 
-   * @param is
-   *          the inputstream to load the image.
+   * @param parser
+   *          the JsonParser to load the image
+   * @param path
+   *          the file to load the image
    * @throws IOException
    */
-  public void loadImage(DataInputStream is) throws IOException {
+  public void loadImage(JsonParser parser, String path) throws IOException {
     while (true) {
-      byte type = -1;
+      Element ele;
       try {
-        type = is.readByte();
-      } catch (EOFException e) {
-        return;
+        ele = parser.readValueAs(Element.class);
+        LOG.debug("Read Element: " + ele);
+      } catch (IOException e) {
+        // Unfortunately brittle, but Jackson rethrows EOF with this message.
+        if (e.getMessage().contains("end-of-input")) {
+          break;
+        } else {
+          throw e;
+        }
       }
 
-      if (type == Image.T_CHECKPOINT) {
-        mInodeCounter.set(is.readInt());
-        mCheckpointInfo.updateEditTransactionCounter(is.readLong());
-        mCheckpointInfo.updateDependencyCounter(is.readInt());
-      } else if (type == Image.T_DEPENDENCY) {
-        Dependency dep = Dependency.loadImage(is);
+      switch (ele.type) {
+      case Version: {
+        if (ele.getInt("version") != Constants.JOURNAL_VERSION) {
+          throw new IOException("Image " + path + " has journal version " + ele.getInt("version")
+              + " . The system has verion " + Constants.JOURNAL_VERSION);
+        }
+        break;
+      }
+      case Checkpoint: {
+        mInodeCounter.set(ele.getInt("inodeCounter"));
+        mCheckpointInfo.updateEditTransactionCounter(ele.getLong("editTransactionCounter"));
+        mCheckpointInfo.updateDependencyCounter(ele.getInt("dependencyCounter"));
+        break;
+      }
+      case Dependency: {
+        Dependency dep = Dependency.loadImage(ele);
 
         mDependencies.put(dep.ID, dep);
         if (!dep.hasCheckpointed()) {
@@ -1811,31 +1830,44 @@ public class MasterInfo implements ImageWriter {
         for (int parentDependencyId : dep.PARENT_DEPENDENCIES) {
           mDependencies.get(parentDependencyId).addChildrenDependency(dep.ID);
         }
-      } else if (Image.T_INODE_FILE == type || Image.T_INODE_FOLDER == type) {
-        Inode inode = null;
-
-        if (type == Image.T_INODE_FILE) {
-          inode = InodeFile.loadImage(is);
-        } else {
-          inode = InodeFolder.loadImage(is);
-        }
-
+        break;
+      }
+      case InodeFile: {
+        Inode inode = InodeFile.loadImage(ele);
         // TODO: This does not seem to account for the fact that folders recursively load
-        // themselves.
+        // themselves. Fix this.
         if (inode.getId() > mInodeCounter.get()) {
           mInodeCounter.set(inode.getId());
         }
-
         addToInodeMap(inode, mInodes);
         recomputePinnedFiles(inode, Optional.<Boolean> absent());
 
         if (inode.getId() == 1) {
           mRoot = (InodeFolder) inode;
         }
-      } else if (Image.T_RAW_TABLE == type) {
-        mRawTables.loadImage(is);
-      } else {
-        throw new IOException("Corrupted image with unknown element type: " + type);
+        break;
+      }
+      case InodeFolder: {
+        Inode inode = InodeFolder.loadImage(parser, ele);
+        // TODO: This does not seem to account for the fact that folders recursively load
+        // themselves. Fix this.
+        if (inode.getId() > mInodeCounter.get()) {
+          mInodeCounter.set(inode.getId());
+        }
+        addToInodeMap(inode, mInodes);
+        recomputePinnedFiles(inode, Optional.<Boolean> absent());
+
+        if (inode.getId() == 1) {
+          mRoot = (InodeFolder) inode;
+        }
+        break;
+      }
+      case RawTable: {
+        mRawTables.loadImage(ele);
+        break;
+      }
+      default:
+        throw new IOException("Invalid element type " + ele);
       }
     }
   }
@@ -2236,20 +2268,28 @@ public class MasterInfo implements ImageWriter {
    *          The output stream to write the image to
    */
   @Override
-  public void writeImage(DataOutputStream os) throws IOException {
+  public void writeImage(ObjectWriter objWriter, DataOutputStream dos) throws IOException {
+    Element ele =
+        new Element(ElementType.Version).withParameter("version", Constants.JOURNAL_VERSION);
+
+    writeElement(objWriter, dos, ele);
+
     synchronized (mRoot) {
       synchronized (mDependencies) {
         for (Dependency dep : mDependencies.values()) {
-          dep.writeImage(os);
+          dep.writeImage(objWriter, dos);
         }
       }
-      mRoot.writeImage(os);
-      mRawTables.writeImage(os);
+      mRoot.writeImage(objWriter, dos);
+      mRawTables.writeImage(objWriter, dos);
 
-      os.writeByte(Image.T_CHECKPOINT);
-      os.writeInt(mInodeCounter.get());
-      os.writeLong(mCheckpointInfo.getEditTransactionCounter());
-      os.writeInt(mCheckpointInfo.getDependencyCounter());
+      ele =
+          new Element(ElementType.Checkpoint)
+              .withParameter("inodeCounter", mInodeCounter.get())
+              .withParameter("editTransactionCounter", mCheckpointInfo.getEditTransactionCounter())
+              .withParameter("dependencyCounter", mCheckpointInfo.getDependencyCounter());
+
+      writeElement(objWriter, dos, ele);
     }
   }
 }

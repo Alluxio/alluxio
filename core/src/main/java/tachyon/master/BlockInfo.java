@@ -100,10 +100,10 @@ public class BlockInfo {
     List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
     ret.addAll(mLocations.values());
     if (ret.isEmpty() && INODE_FILE.hasCheckpointed()) {
-      UnderFileSystem ufs = UnderFileSystem.get(INODE_FILE.getCheckpointPath());
+      UnderFileSystem ufs = UnderFileSystem.get(INODE_FILE.getUfsPath());
       List<String> locs = null;
       try {
-        locs = ufs.getFileLocations(INODE_FILE.getCheckpointPath(), OFFSET);
+        locs = ufs.getFileLocations(INODE_FILE.getUfsPath(), OFFSET);
       } catch (IOException e) {
         return ret;
       }
