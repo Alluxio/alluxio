@@ -359,7 +359,7 @@ public class MasterInfoTest {
     mMasterInfo.createFile("testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
   }
 
-  @Test(expected = InvalidPathException.class)
+  @Test(expected = FileAlreadyExistException.class)
   public void createFileInvalidPathTest2() throws InvalidPathException, FileAlreadyExistException,
       BlockInfoException, TachyonException {
     mMasterInfo.createFile("/", Constants.DEFAULT_BLOCK_SIZE_BYTE);
