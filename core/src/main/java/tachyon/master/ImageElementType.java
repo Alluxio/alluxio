@@ -15,6 +15,6 @@
 package tachyon.master;
 
 /** Type of Image entry. */
-enum ElementType {
+enum ImageElementType {
   Version, Checkpoint, InodeFile, InodeFolder, RawTable, Dependency,
 }

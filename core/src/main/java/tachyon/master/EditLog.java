@@ -105,9 +105,9 @@ public class EditLog {
     JsonParser parser = JsonObject.createObjectMapper().getJsonFactory().createJsonParser(is);
 
     while (true) {
-      Operation op;
+      EditLogOperation op;
       try {
-        op = parser.readValueAs(Operation.class);
+        op = parser.readValueAs(EditLogOperation.class);
         LOG.debug("Read operation: " + op);
       } catch (IOException e) {
         // Unfortunately brittle, but Jackson rethrows EOF with this message.
@@ -309,9 +309,10 @@ public class EditLog {
       return;
     }
 
-    Operation operation =
-        new Operation(OperationType.ADD_BLOCK, ++ mTransactionId).withParameter("fileId", fileId)
-            .withParameter("blockIndex", blockIndex).withParameter("blockLength", blockLength);
+    EditLogOperation operation =
+        new EditLogOperation(EditLogOperationType.ADD_BLOCK, ++ mTransactionId)
+            .withParameter("fileId", fileId).withParameter("blockIndex", blockIndex)
+            .withParameter("blockLength", blockLength);
     writeOperation(operation);
   }
 
@@ -320,8 +321,8 @@ public class EditLog {
       return;
     }
 
-    Operation operation =
-        new Operation(OperationType.ADD_CHECKPOINT, ++ mTransactionId)
+    EditLogOperation operation =
+        new EditLogOperation(EditLogOperationType.ADD_CHECKPOINT, ++ mTransactionId)
             .withParameter("fileId", fileId).withParameter("length", length)
             .withParameter("path", checkpointPath);
     writeOperation(operation);
@@ -348,9 +349,9 @@ public class EditLog {
       return;
     }
 
-    Operation operation =
-        new Operation(OperationType.COMPLETE_FILE, ++ mTransactionId).withParameter("fileId",
-            fileId);
+    EditLogOperation operation =
+        new EditLogOperation(EditLogOperationType.COMPLETE_FILE, ++ mTransactionId).withParameter(
+            "fileId", fileId);
     writeOperation(operation);
   }
 
@@ -361,8 +362,8 @@ public class EditLog {
       return;
     }
 
-    Operation operation =
-        new Operation(OperationType.CREATE_DEPENDENCY, ++ mTransactionId)
+    EditLogOperation operation =
+        new EditLogOperation(EditLogOperationType.CREATE_DEPENDENCY, ++ mTransactionId)
             .withParameter("parents", parents).withParameter("children", children)
             .withParameter("commandPrefix", commandPrefix)
             .withParameter("data", Utils.byteBufferListToBase64(data))
@@ -379,8 +380,8 @@ public class EditLog {
       return;
     }
 
-    Operation operation =
-        new Operation(OperationType.CREATE_FILE, ++ mTransactionId)
+    EditLogOperation operation =
+        new EditLogOperation(EditLogOperationType.CREATE_FILE, ++ mTransactionId)
             .withParameter("recursive", recursive).withParameter("path", path)
             .withParameter("directory", directory).withParameter("blockSizeByte", blockSizeByte)
             .withParameter("creationTimeMs", creationTimeMs);
@@ -392,8 +393,8 @@ public class EditLog {
       return;
     }
 
-    Operation operation =
-        new Operation(OperationType.CREATE_RAW_TABLE, ++ mTransactionId)
+    EditLogOperation operation =
+        new EditLogOperation(EditLogOperationType.CREATE_RAW_TABLE, ++ mTransactionId)
             .withParameter("tableId", tableId).withParameter("columns", columns)
             .withParameter("metadata", Utils.byteBufferToBase64(metadata));
     writeOperation(operation);
@@ -404,9 +405,9 @@ public class EditLog {
       return;
     }
 
-    Operation operation =
-        new Operation(OperationType.DELETE, ++ mTransactionId).withParameter("fileId", fileId)
-            .withParameter("recursive", recursive);
+    EditLogOperation operation =
+        new EditLogOperation(EditLogOperationType.DELETE, ++ mTransactionId).withParameter(
+            "fileId", fileId).withParameter("recursive", recursive);
     writeOperation(operation);
   }
 
@@ -462,9 +463,9 @@ public class EditLog {
       return;
     }
 
-    Operation operation =
-        new Operation(OperationType.RENAME, ++ mTransactionId).withParameter("fileId", fileId)
-            .withParameter("dstPath", dstPath);
+    EditLogOperation operation =
+        new EditLogOperation(EditLogOperationType.RENAME, ++ mTransactionId).withParameter(
+            "fileId", fileId).withParameter("dstPath", dstPath);
     writeOperation(operation);
   }
 
@@ -507,9 +508,9 @@ public class EditLog {
       return;
     }
 
-    Operation operation =
-        new Operation(OperationType.SET_PINNED, ++ mTransactionId).withParameter("fileId", fileId)
-            .withParameter("pinned", pinned);
+    EditLogOperation operation =
+        new EditLogOperation(EditLogOperationType.SET_PINNED, ++ mTransactionId).withParameter(
+            "fileId", fileId).withParameter("pinned", pinned);
     writeOperation(operation);
   }
 
@@ -518,13 +519,14 @@ public class EditLog {
       return;
     }
 
-    Operation operation =
-        new Operation(OperationType.UPDATE_RAW_TABLE_METADATA, ++ mTransactionId).withParameter(
-            "tableId", tableId).withParameter("metadata", Utils.byteBufferToBase64(metadata));
+    EditLogOperation operation =
+        new EditLogOperation(EditLogOperationType.UPDATE_RAW_TABLE_METADATA, ++ mTransactionId)
+            .withParameter("tableId", tableId).withParameter("metadata",
+                Utils.byteBufferToBase64(metadata));
     writeOperation(operation);
   }
 
-  private void writeOperation(Operation operation) {
+  private void writeOperation(EditLogOperation operation) {
     try {
       WRITER.writeValue(mDos, operation);
       mDos.writeByte('\n');

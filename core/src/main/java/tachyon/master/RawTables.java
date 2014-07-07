@@ -112,7 +112,7 @@ public class RawTables extends ImageWriter {
    * @throws IOException
    * @throws TachyonException
    */
-  void loadImage(Element ele) throws IOException {
+  void loadImage(ImageElement ele) throws IOException {
     List<Integer> ids = ele.<List<Integer>> get("ids");
     List<Integer> columns = ele.<List<Integer>> get("columns");
     List<ByteBuffer> data = ele.getByteBufferList("data");
@@ -162,8 +162,8 @@ public class RawTables extends ImageWriter {
       data.add(entry.getValue().getSecond());
     }
 
-    Element ele =
-        new Element(ElementType.RawTable).withParameter("ids", ids)
+    ImageElement ele =
+        new ImageElement(ImageElementType.RawTable).withParameter("ids", ids)
             .withParameter("columns", columns)
             .withParameter("data", Utils.byteBufferListToBase64(data));
 

@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 public abstract class ImageWriter {
   abstract void writeImage(ObjectWriter objWriter, DataOutputStream dos) throws IOException;
 
-  protected void writeElement(ObjectWriter objWriter, DataOutputStream dos, Element ele) {
+  protected void writeElement(ObjectWriter objWriter, DataOutputStream dos, ImageElement ele) {
     try {
       objWriter.writeValue(dos, ele);
       dos.writeByte('\n');

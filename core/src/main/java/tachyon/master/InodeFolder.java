@@ -46,7 +46,7 @@ public class InodeFolder extends Inode {
    * @return the constructed InodeFolder.
    * @throws IOException
    */
-  static InodeFolder loadImage(JsonParser parser, Element ele) throws IOException {
+  static InodeFolder loadImage(JsonParser parser, ImageElement ele) throws IOException {
     long creationTimeMs = ele.getLong("creationTimeMs");
     int fileId = ele.getInt("id");
     String fileName = ele.getString("name");
@@ -58,7 +58,7 @@ public class InodeFolder extends Inode {
     Inode[] children = new Inode[numberOfChildren];
     for (int k = 0; k < numberOfChildren; k ++) {
       try {
-        ele = parser.readValueAs(Element.class);
+        ele = parser.readValueAs(ImageElement.class);
         LOG.debug("Read Element: " + ele);
       } catch (IOException e) {
         throw e;
@@ -247,11 +247,11 @@ public class InodeFolder extends Inode {
    */
   @Override
   public void writeImage(ObjectWriter objWriter, DataOutputStream dos) throws IOException {
-    Element ele =
-        new Element(ElementType.InodeFolder).withParameter("creationTimeMs", getCreationTimeMs())
-            .withParameter("id", getId()).withParameter("name", getName())
-            .withParameter("parentId", getParentId()).withParameter("pinned", isPinned())
-            .withParameter("childrenIds", getChildrenIds());
+    ImageElement ele =
+        new ImageElement(ImageElementType.InodeFolder)
+            .withParameter("creationTimeMs", getCreationTimeMs()).withParameter("id", getId())
+            .withParameter("name", getName()).withParameter("parentId", getParentId())
+            .withParameter("pinned", isPinned()).withParameter("childrenIds", getChildrenIds());
 
     writeElement(objWriter, dos, ele);
 

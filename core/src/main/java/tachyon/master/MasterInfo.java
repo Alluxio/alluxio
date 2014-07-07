@@ -1793,9 +1793,9 @@ public class MasterInfo extends ImageWriter {
    */
   public void loadImage(JsonParser parser, String path) throws IOException {
     while (true) {
-      Element ele;
+      ImageElement ele;
       try {
-        ele = parser.readValueAs(Element.class);
+        ele = parser.readValueAs(ImageElement.class);
         LOG.debug("Read Element: " + ele);
       } catch (IOException e) {
         // Unfortunately brittle, but Jackson rethrows EOF with this message.
@@ -2255,8 +2255,9 @@ public class MasterInfo extends ImageWriter {
    */
   @Override
   public void writeImage(ObjectWriter objWriter, DataOutputStream dos) throws IOException {
-    Element ele =
-        new Element(ElementType.Version).withParameter("version", Constants.JOURNAL_VERSION);
+    ImageElement ele =
+        new ImageElement(ImageElementType.Version).withParameter("version",
+            Constants.JOURNAL_VERSION);
 
     writeElement(objWriter, dos, ele);
 
@@ -2270,7 +2271,7 @@ public class MasterInfo extends ImageWriter {
       mRawTables.writeImage(objWriter, dos);
 
       ele =
-          new Element(ElementType.Checkpoint)
+          new ImageElement(ImageElementType.Checkpoint)
               .withParameter("inodeCounter", mInodeCounter.get())
               .withParameter("editTransactionCounter", mCheckpointInfo.getEditTransactionCounter())
               .withParameter("dependencyCounter", mCheckpointInfo.getDependencyCounter());
