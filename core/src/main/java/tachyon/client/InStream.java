@@ -30,6 +30,12 @@ public abstract class InStream extends InputStream {
   protected final TachyonFS TFS;
   protected final ReadType READ_TYPE;
 
+  /**
+   * @param file
+   *            the input file of the InStream
+   * @param readType
+   *            the InStream's read type
+   */
   InStream(TachyonFile file, ReadType readType) {
     FILE = file;
     TFS = FILE.TFS;

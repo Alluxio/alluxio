@@ -48,6 +48,15 @@ public class FileOutStream extends OutStream {
   private boolean mClosed = false;
   private boolean mCancel = false;
 
+  /**
+   * @param file
+   *            the output file
+   * @param opType
+   *            the OutStream's write type
+   * @param ufsConf
+   *            the under file system configuration
+   * @throws IOException
+   */
   FileOutStream(TachyonFile file, WriteType opType, Object ufsConf) throws IOException {
     super(file, opType);
 
@@ -156,6 +165,13 @@ public class FileOutStream extends OutStream {
     }
   }
 
+  /**
+   * Write all the bufs in the list one by one
+   *
+   * @param bufs
+   *            the bufs
+   * @throws IOException
+   */
   public void write(ArrayList<ByteBuffer> bufs) throws IOException {
     for (int k = 0; k < bufs.size(); k ++) {
       write(bufs.get(k));
@@ -216,6 +232,13 @@ public class FileOutStream extends OutStream {
     }
   }
 
+  /**
+   * Write a ByteBuffer to the OutStream
+   *
+   * @param buf
+   *            the ByteBuffer to be written
+   * @throws IOException
+   */
   public void write(ByteBuffer buf) throws IOException {
     write(buf.array(), buf.position(), buf.limit() - buf.position());
   }
