@@ -36,7 +36,7 @@ If you use [MacPorts](http://macports.org), the following instruction may help
 Install MacPorts from [sourceforge](http://sourceforge.net/projects/macports/)
 
 Update Port itself:
-  
+
     sudo port selfupdate
 
 Use Port to install flex, bison, autoconf, automake, libtool and pkgconfig:
@@ -90,11 +90,11 @@ Debian Lenny Users need some packages from backports
 
 Tachyon defines a .thrift in:
 
-    ./main/src/thrift/tachyon.thrift
+    ./core/src/thrift/tachyon.thrift
 
 And generate java files from it in:
 
-    ./main/src/main/java/tachyon/thrift/
+    ./core/src/main/java/tachyon/thrift/
 
 To generate the java files on your own, type:
 

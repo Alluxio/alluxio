@@ -16,7 +16,7 @@ A list of tasks that everyone should do before contributing to Tachyon.
     [Command-Line Interface](Command-Line-Interface.html)
     (Optional)
 
-4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/main/src/main/java/tachyon/examples/BasicOperations.java).
+4.  Read and understand [an example](https://github.com/amplab/tachyon/blob/master/core/src/main/java/tachyon/examples/BasicOperations.java).
 
 5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
 
@@ -26,15 +26,15 @@ and then submit a pull request. You are also welcome to address issues in our
 
 * * * * *
 
-    src/main/java/tachyon/Users.java
+    core/src/main/java/tachyon/Users.java
 
-    src/main/java/tachyon/master/MasterWorkerInfo.java
+    core/src/main/java/tachyon/master/MasterWorkerInfo.java
 
-    src/main/java/tachyon/worker/Worker.java
+    core/src/main/java/tachyon/worker/Worker.java
 
-    src/main/java/tachyon/worker/WorkerClient.java
+    core/src/main/java/tachyon/worker/WorkerClient.java
 
-    src/main/java/tachyon/worker/DataServerMessage.java
+    core/src/main/java/tachyon/worker/DataServerMessage.java
 
 After the pull request is reviewed and merged, you become a Tachyon contributor!
 
@@ -48,6 +48,8 @@ After the pull request is reviewed and merged, you become a Tachyon contributor!
 
 -   Quickly test the working of some APIs in an interactive manner, you may leverage
 the Scala shell, as discussed in this [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
+
+-   Run tests with a different Hadoop version: ``mvn -Dhadoop.version=2.2.0 clean test``
 
 ### Coding Style
 
@@ -63,6 +65,7 @@ the Scala shell, as discussed in this [blog](http://scala4fun.tumblr.com/post/84
     Language Specification: **public protected private abstract static final transient volatile
     synchronized native strictfp**, then as **alphabetical order**.
 -   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml).
+    -  If you use Intellij, you can use our formatter with the help from [EclipseCodeFormatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
 
 ### IDE
 

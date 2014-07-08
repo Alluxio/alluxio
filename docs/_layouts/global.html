@@ -51,10 +51,14 @@
     <div class="navbar-inner">
         <div class="container">
             <div class="brand">
-                <a href="index.html">
-                    <img src="img/logo.jpg" style="height:45px;" alt="Tachyon Logo"/>
-                </a>
-                <span class="version">{{site.TACHYON_MASTER_VERSION_SHORT}}</span>
+                <div style="position:absolute;">
+                    <a href="index.html">
+                        <img src="img/logo.png" alt="Tachyon Logo" style="height:34px;"/>
+                    </a>
+                </div>
+                <div style="float:right;margin-top:30px;">
+                    <span class="version">{{site.TACHYON_MASTER_VERSION_SHORT}}</span>
+                </div>
             </div>
             <ul class="nav">
                 <li><a href="index.html">Overview</a></li>
@@ -99,14 +103,10 @@
                         </li>
                         <li><a href="Syncing-the-Underlying-Filesystem.html">Understand Underlayer
                             FS</a></li>
+                        <li><a href="http://goo.gl/DKrE4M">Presentation at Spark Summit 2014</a></li>
                         <li><a href="http://goo.gl/AHgz0E">Presentation at Strata and Hadoop World
                             2013</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Others<b
-                            class="caret"></b></a>
-                    <ul class="dropdown-menu">
+                        <li class="divider"></li>
                         <li><a href="http://tachyon-project.org/master">Master branch document</a></li>
                         <li><a href="http://tachyon-project.org/v0.4.1">V0.4.1 Document</a></li>
                         <li><a href="http://tachyon-project.org/v0.4.0">V0.4.0 Document</a></li>
