@@ -32,10 +32,26 @@ public class FileInStream extends InStream {
 
   private Object mUFSConf = null;
 
+  /**
+   * @param file
+   *            the file to be read
+   * @param opType
+   *            the InStream's read type
+   * @throws IOException
+   */
   public FileInStream(TachyonFile file, ReadType opType) throws IOException {
     this(file, opType, null);
   }
 
+  /**
+   * @param file
+   *            the file to be read
+   * @param opType
+   *            the InStream's read type
+   * @param ufsConf
+   *            the under file system configuration
+   * @throws IOException
+   */
   public FileInStream(TachyonFile file, ReadType opType, Object ufsConf) throws IOException {
     super(file, opType);
 
