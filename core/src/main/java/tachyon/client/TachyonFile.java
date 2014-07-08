@@ -44,6 +44,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
   final int FID;
   Object mUFSConf = null;
 
+  /**
+   * New a TachyonFile in the tfs, use the specified file id
+   * 
+   * @param tfs
+   *            the Tachyon file system
+   * @param fid
+   *            the file id
+   */
   TachyonFile(TachyonFS tfs, int fid) {
     TFS = tfs;
     FID = fid;
@@ -62,18 +70,42 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return false;
   }
 
+  /**
+   * Return the block id of the block in the file, specified by blokcIndex
+   * 
+   * @param blockIndex
+   *            the index of the block in this file
+   * @return the block id
+   * @throws IOException
+   */
   public long getBlockId(int blockIndex) throws IOException {
     return TFS.getBlockId(FID, blockIndex);
   }
 
+  /**
+   * Return the block's size of this file
+   * 
+   * @return the block's size in bytes
+   */
   public long getBlockSizeByte() {
     return TFS.getBlockSizeByte(FID);
   }
 
+  /**
+   * Return the checkpoint path in the under file system of this file
+   * 
+   * @return the checkpoint path
+   * @throws IOException
+   */
   String getCheckpointPath() throws IOException {
     return TFS.getCheckpointPath(FID);
   }
 
+  /**
+   * Return the creation time of this file
+   * 
+   * @return the creation time, in milliseconds
+   */
   public long getCreationTimeMs() {
     return TFS.getCreationTimeMs(FID);
   }
@@ -83,6 +115,17 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return 3;
   }
 
+  /**
+   * Return the InStream of this file, use the specified read type.
+   * If it has no block, return an EmptyBlockInStream. Else if it 
+   * has only one block ,return a BlockInStream of the block. Else,
+   * return a FileInStream
+   * 
+   * @param readType
+   *            the InStream's read type
+   * @return the InStream
+   * @throws IOException
+   */
   public InStream getInStream(ReadType readType) throws IOException {
     if (readType == null) {
       throw new IOException("ReadType can not be null.");
@@ -120,6 +163,12 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return TFS.getLocalFilename(blockInfo.getBlockId());
   }
 
+  /**
+   * Return the net address of all the location hosts
+   * 
+   * @return the list of those net address, in String
+   * @throws IOException
+   */
   public List<String> getLocationHosts() throws IOException {
     List<NetAddress> locations = TFS.getClientBlockInfo(FID, 0).getLocations();
     List<String> ret = null;
@@ -133,10 +182,25 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return ret;
   }
 
+  /**
+   * Return the number of blocks belong to this file
+   * 
+   * @return the number of blocks
+   * @throws IOException
+   */
   public int getNumberOfBlocks() throws IOException {
     return TFS.getNumberOfBlocks(FID);
   }
 
+  /**
+   * Return the OutStream of this file, use the specified write type.
+   * Always return a FileOutStream.
+   *  
+   * @param writeType
+   *            the OutStream's write type
+   * @return the OutStream
+   * @throws IOException
+   */
   public OutStream getOutStream(WriteType writeType) throws IOException {
     if (writeType == null) {
       throw new IOException("WriteType can not be null.");
@@ -145,6 +209,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return new FileOutStream(this, writeType, mUFSConf);
   }
 
+  /**
+   * Return the path of this file in the Tachyon file system
+   * 
+   * @return the path
+   */
   public String getPath() {
     return TFS.getPath(FID);
   }
@@ -163,14 +232,26 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return getPath().hashCode() ^ 1234321;
   }
 
+  /**
+   * Return whether this file is complete or not
+   * 
+   * @return true if this file is complete, false otherwise
+   * @throws IOException
+   */
   public boolean isComplete() throws IOException {
     return TFS.isComplete(FID);
   }
 
+  /**
+   * @return true if this is a directory, false otherwise
+   */
   public boolean isDirectory() {
     return TFS.isDirectory(FID);
   }
 
+  /**
+   * @return true if this is a file, false otherwise
+   */
   public boolean isFile() {
     return !TFS.isDirectory(FID);
   }
@@ -179,18 +260,40 @@ public class TachyonFile implements Comparable<TachyonFile> {
     throw new RuntimeException("Unsupported");
   }
 
+  /**
+   * Return whether the file is in memory or not. Note that a file may
+   * be partly in memory. This value is false only if the file is 
+   * totally not in memory.
+   * 
+   * @return false if the file is totally not in memory, true otherwise
+   * @throws IOException
+   */
   public boolean isInMemory() throws IOException {
     return TFS.isInMemory(FID);
   }
 
+  /**
+   * @return the file length
+   * @throws IOException
+   */
   public long length() throws IOException {
     return TFS.getFileLength(FID);
   }
 
+  /**
+   * @return true if this file is need pin, false otherwise
+   */
   public boolean needPin() {
     return TFS.isNeedPin(FID);
   }
 
+  /**
+   * Return a TachyonByteBuffer of this file's block. It only
+   * works when this file has no more than one block
+   * 
+   * @return TachyonByteBuffer containing the file's block.
+   * @throws IOException
+   */
   public TachyonByteBuffer readByteBuffer() throws IOException {
     if (TFS.getNumberOfBlocks(FID) > 1) {
       throw new IOException("The file has more than one block. This API does not support this.");
@@ -199,6 +302,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return readByteBuffer(0);
   }
 
+  /**
+   * Return a TachyonByteBuffer of the block specified by the blockIndex
+   * 
+   * @param blockIndex
+   *            The block index of the current file to read.
+   * @return TachyonByteBuffer containing the block.
+   * @throws IOException
+   */
   TachyonByteBuffer readByteBuffer(int blockIndex) throws IOException {
     if (!isComplete()) {
       return null;
@@ -228,6 +339,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return TFS.readLocalByteBuffer(info.blockId, 0, info.getLength());
   }
 
+  /**
+   * Get the the whole block from remote workers.
+   * 
+   * @param blockInfo
+   *            The blockInfo of the block to read.
+   * @return TachyonByteBuffer containing the block.
+   */
   TachyonByteBuffer readRemoteByteBuffer(ClientBlockInfo blockInfo) {
     ByteBuffer buf = null;
 
@@ -288,6 +406,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return succeed;
   }
 
+  /**
+   * Re-cache the block into memory
+   * 
+   * @param blockIndex
+   *            The block index of the current file.
+   * @return true if succeed, false otherwise
+   * @throws IOException
+   */
   boolean recache(int blockIndex) throws IOException {
     boolean succeed = true;
     String path = TFS.getCheckpointPath(FID);
@@ -334,6 +460,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return succeed;
   }
 
+  /**
+   * Rename this file
+   * 
+   * @param path
+   *            the new name
+   * @return true if succeed, false otherwise
+   * @throws IOException
+   */
   public boolean rename(String path) throws IOException {
     return TFS.rename(FID, path);
   }

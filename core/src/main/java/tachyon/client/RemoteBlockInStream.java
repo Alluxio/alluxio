@@ -50,10 +50,30 @@ public class RemoteBlockInStream extends BlockInStream {
 
   private Object mUFSConf = null;
 
+  /**
+   * @param file
+   *            the file the block belongs to
+   * @param readType
+   *            the InStream's read type
+   * @param blockIndex
+   *            the index of the block in the file
+   * @throws IOException
+   */
   RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
     this(file, readType, blockIndex, null);
   }
 
+  /**
+   * @param file
+   *            the file the block belongs to
+   * @param readType
+   *            the InStream's read type
+   * @param blockIndex
+   *            the index of the block in the file
+   * @param ufsConf
+   *            the under file system configuration
+   * @throws IOException
+   */
   RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf)
       throws IOException {
     super(file, readType, blockIndex);

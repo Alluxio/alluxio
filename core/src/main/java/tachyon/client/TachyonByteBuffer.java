@@ -32,6 +32,16 @@ public class TachyonByteBuffer {
 
   private boolean mClosed = false;
 
+  /**
+   * @param tfs
+   *            the Tachyon file system
+   * @param buf
+   *            the ByteBuffer wrapped on
+   * @param blockId
+   *            the id of the block
+   * @param blockLockId
+   *            the id of the block's lock
+   */
   TachyonByteBuffer(TachyonFS tfs, ByteBuffer buf, long blockId, int blockLockId) {
     DATA = buf;
     BLOCK_ID = blockId;
@@ -39,6 +49,10 @@ public class TachyonByteBuffer {
     TFS = tfs;
   }
 
+  /**
+   * Close the byte buffer, here it is synchronized
+   * @throws IOException
+   */
   public synchronized void close() throws IOException {
     if (mClosed) {
       return;
