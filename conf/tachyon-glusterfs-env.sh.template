@@ -38,7 +38,7 @@ CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export TACHYON_JAVA_OPTS+="
   -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
-  -Dtachyon.config=$CONF_DIR/tachyon.xml
+  -Dtachyon.config=$CONF_DIR/tachyon.conf
   -Dtachyon.debug=true
   -Dtachyon.underfs.address=$TACHYON_UNDERFS_ADDRESS
   -Dtachyon.data.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/data
@@ -50,6 +50,7 @@ export TACHYON_JAVA_OPTS+="
   -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
   -Dorg.apache.jasper.compiler.disablejsr199=true
 "
+export JAVA="$JAVA $TACHYON_JAVA_OPTS"
 
 # Master specific parameters. Default to TACHYON_JAVA_OPTS.
 export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS"

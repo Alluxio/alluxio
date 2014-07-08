@@ -88,20 +88,19 @@ public class CommonConf extends Utils {
   
   private CommonConf(String name) {
     File file = null;
-
+    CONFIG_FILE = System.getProperty("tachyon.config");
+    
     if (name != null){
       file = new File(name);
       if (file.exists()){
         addResource(name);  
       }
-    }
-
-    CONFIG_FILE = System.getProperty("tachyon.config"); 
-    if (CONFIG_FILE != null) {
-      LOG.info("attempt config file " + CONFIG_FILE);
-      file = new File(CONFIG_FILE);
-      if (file.exists()) {
-        addResource(CONFIG_FILE);
+    }else{
+      if (CONFIG_FILE != null) {
+        file = new File(CONFIG_FILE);
+        if (file.exists()) {
+          addResource(CONFIG_FILE);
+        }
       }
     }
 
