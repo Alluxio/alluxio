@@ -27,6 +27,8 @@ else
   export TACHYON_RAM_FOLDER=/mnt/ramdisk
 fi
 
+export JAVA="$JAVA_HOME/bin/java"
+
 export TACHYON_MASTER_ADDRESS=localhost
 
 export TACHYON_UNDERFS_ADDRESS=glusterfs:///
@@ -60,5 +62,3 @@ export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS"
 
 # Worker specific parameters that will be shared to all workers. Default to TACHYON_JAVA_OPTS.
 export TACHYON_WORKER_JAVA_OPTS="$TACHYON_JAVA_OPTS"
-
-export JAVA="$JAVA_HOME/bin/java $TACHYON_JAVA_OPTS"
