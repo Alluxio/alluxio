@@ -102,7 +102,7 @@ public class TachyonURI implements Comparable<TachyonURI> {
     // Add a slash to parent's path so resolution is compatible with URI's
     URI parentUri = parent.mUri;
     String parentPath = parentUri.getPath();
-    if (!parentPath.endsWith(SEPARATOR)) {
+    if (!parentPath.endsWith(SEPARATOR) && parentPath.length() > 0) {
       parentPath += SEPARATOR;
     }
     try {
