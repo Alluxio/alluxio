@@ -102,13 +102,11 @@ public class TachyonURI implements Comparable<TachyonURI> {
     // Add a slash to parent's path so resolution is compatible with URI's
     URI parentUri = parent.mUri;
     String parentPath = parentUri.getPath();
-    if ((!parentPath.equals("")) && (!parentPath.equals("/"))) {
+    if (!parentPath.endsWith(SEPARATOR)) {
       parentPath += SEPARATOR;
     }
     try {
-      parentUri =
-          new URI(parentUri.getScheme(), parentUri.getAuthority(),
-              parentPath, null, null);
+      parentUri = new URI(parentUri.getScheme(), parentUri.getAuthority(), parentPath, null, null);
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }
