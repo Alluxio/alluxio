@@ -19,7 +19,7 @@ import tachyon.thrift.ClientFileInfo;
 /**
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
-public abstract class Inode implements Comparable<Inode>, ImageWriter {
+public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   private final long CREATION_TIME_MS;
   protected final boolean IS_FOLDER;
 
@@ -122,12 +122,8 @@ public abstract class Inode implements Comparable<Inode>, ImageWriter {
 
   @Override
   public synchronized String toString() {
-    return new StringBuilder("Inode(")
-        .append("ID:").append(mId)
-        .append(", NAME:").append(mName)
-        .append(", PARENT_ID:").append(mParentId)
-        .append(", CREATION_TIME_MS:").append(CREATION_TIME_MS)
-        .append(", PINNED:").append(mPinned)
-        .append(")").toString();
+    return new StringBuilder("Inode(").append("ID:").append(mId).append(", NAME:").append(mName)
+        .append(", PARENT_ID:").append(mParentId).append(", CREATION_TIME_MS:")
+        .append(CREATION_TIME_MS).append(", PINNED:").append(mPinned).append(")").toString();
   }
 }

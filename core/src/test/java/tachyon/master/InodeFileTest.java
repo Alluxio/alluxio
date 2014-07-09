@@ -158,12 +158,12 @@ public class InodeFileTest {
   }
 
   @Test
-  public void setCheckpointPathTest() {
+  public void setUfsTest() {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
     Assert.assertFalse(inodeFile.hasCheckpointed());
-    Assert.assertEquals("", inodeFile.getCheckpointPath());
-    inodeFile.setCheckpointPath("/testPath");
-    Assert.assertEquals("/testPath", inodeFile.getCheckpointPath());
+    Assert.assertEquals("", inodeFile.getUfsPath());
+    inodeFile.setUfsPath("/testPath");
+    Assert.assertEquals("/testPath", inodeFile.getUfsPath());
   }
 
   @Test
