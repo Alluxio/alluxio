@@ -100,8 +100,6 @@ public class EditLog {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
     DataInputStream is = new DataInputStream(ufs.open(path));
-    // TODO update the API.
-    @SuppressWarnings("deprecation")
     JsonParser parser = JsonObject.createObjectMapper().getJsonFactory().createJsonParser(is);
 
     while (true) {
