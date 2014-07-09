@@ -34,8 +34,8 @@ public class TachyonURITest {
   public void basicTests() {
     String[] strs =
         new String[] { "tachyon://localhost:19998/xyz/abc", "hdfs://localhost:19998/xyz/abc",
-        "s3://localhost:19998/xyz/abc", "tachyon://localhost:19998/xy z/a b c",
-        "hdfs://localhost:19998/xy z/a b c", "s3://localhost:19998/xy z/a b c" };
+            "s3://localhost:19998/xyz/abc", "tachyon://localhost:19998/xy z/a b c",
+            "hdfs://localhost:19998/xy z/a b c", "s3://localhost:19998/xy z/a b c" };
     for (String str : strs) {
       TachyonURI uri = new TachyonURI(str);
       Assert.assertEquals(str, uri.toString());
@@ -43,5 +43,17 @@ public class TachyonURITest {
       Assert.assertEquals("localhost", uri.getHost());
       Assert.assertEquals(19998, uri.getPort());
     }
+  }
+
+  private void testParentChild(String target, String parent, String child) {
+    Assert.assertEquals(new TachyonURI(target), new TachyonURI(new TachyonURI(parent),
+        new TachyonURI(child)));
+  }
+
+  @Test
+  public void constructFromParentAndChildTests() {
+    testParentChild(".", ".", ".");
+    testParentChild("/", "/", ".");
+    testParentChild("/", ".", "/");
   }
 }
