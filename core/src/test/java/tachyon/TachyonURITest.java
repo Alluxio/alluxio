@@ -45,15 +45,15 @@ public class TachyonURITest {
     }
   }
 
-  private void testParentChild(String target, String parent, String child) {
-    Assert.assertEquals(new TachyonURI(target), new TachyonURI(new TachyonURI(parent),
-        new TachyonURI(child)));
-  }
-
   @Test
   public void constructFromParentAndChildTests() {
     testParentChild(".", ".", ".");
     testParentChild("/", "/", ".");
     testParentChild("/", ".", "/");
+  }
+
+  private void testParentChild(String target, String parent, String child) {
+    Assert.assertEquals(new TachyonURI(target), new TachyonURI(new TachyonURI(parent),
+        new TachyonURI(child)));
   }
 }
