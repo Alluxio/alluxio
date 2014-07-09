@@ -69,9 +69,6 @@ public class TachyonURI implements Comparable<TachyonURI> {
 
     // uri path is the rest of the string -- query & fragment not supported
     String path = pathStr.substring(start, pathStr.length());
-    if (path == null || path.length() == 0) {
-      throw new IllegalArgumentException("Can not create a Path from a null or empty string");
-    }
 
     initialize(scheme, authority, path);
   }
@@ -290,6 +287,10 @@ public class TachyonURI implements Comparable<TachyonURI> {
    * @throws IllegalArgumentException
    */
   private void initialize(String scheme, String authority, String path) {
+    if (path == null || path.length() == 0) {
+      throw new IllegalArgumentException("Can not create a Path from a null or empty string");
+    }
+
     try {
       mUri = new URI(scheme, authority, normalizePath(path), null, null).normalize();
     } catch (URISyntaxException e) {
