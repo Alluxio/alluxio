@@ -14,13 +14,16 @@
  */
 package tachyon.master;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 import tachyon.Pair;
 import tachyon.conf.CommonConf;
@@ -30,7 +33,7 @@ import tachyon.thrift.TachyonException;
 /**
  * All Raw Table related info in MasterInfo.
  */
-public class RawTables implements ImageWriter {
+public class RawTables extends ImageWriter {
   // Mapping from table id to <Columns, Metadata>
   private Map<Integer, Pair<Integer, ByteBuffer>> mData =
       new HashMap<Integer, Pair<Integer, ByteBuffer>>();
@@ -104,20 +107,19 @@ public class RawTables implements ImageWriter {
   /**
    * Load the image into the RawTables structure.
    * 
-   * @param is
+   * @param ele
+   *          the json element to load
    * @throws IOException
    * @throws TachyonException
    */
-  void loadImage(DataInputStream is) throws IOException {
-    int size = is.readInt();
-    for (int k = 0; k < size; k ++) {
+  void loadImage(ImageElement ele) throws IOException {
+    List<Integer> ids = ele.<List<Integer>> get("ids");
+    List<Integer> columns = ele.<List<Integer>> get("columns");
+    List<ByteBuffer> data = ele.getByteBufferList("data");
 
-      int rawTableId = is.readInt();
-      int columns = is.readInt();
-      ByteBuffer metadata = Utils.readByteBuffer(is);
-
+    for (int k = 0; k < ids.size(); k ++) {
       try {
-        if (!addRawTable(rawTableId, columns, metadata)) {
+        if (!addRawTable(ids.get(k), columns.get(k), data.get(k))) {
           throw new IOException("Failed to create raw table");
         }
       } catch (TachyonException e) {
@@ -149,13 +151,22 @@ public class RawTables implements ImageWriter {
   }
 
   @Override
-  public synchronized void writeImage(DataOutputStream os) throws IOException {
-    os.writeByte(Image.T_RAW_TABLE);
-    os.writeInt(mData.size());
+  public synchronized void writeImage(ObjectWriter objWriter, DataOutputStream dos)
+      throws IOException {
+    List<Integer> ids = new ArrayList<Integer>();
+    List<Integer> columns = new ArrayList<Integer>();
+    List<ByteBuffer> data = new ArrayList<ByteBuffer>();
     for (Entry<Integer, Pair<Integer, ByteBuffer>> entry : mData.entrySet()) {
-      os.writeInt(entry.getKey());
-      os.writeInt(entry.getValue().getFirst());
-      Utils.writeByteBuffer(entry.getValue().getSecond(), os);
+      ids.add(entry.getKey());
+      columns.add(entry.getValue().getFirst());
+      data.add(entry.getValue().getSecond());
     }
+
+    ImageElement ele =
+        new ImageElement(ImageElementType.RawTable).withParameter("ids", ids)
+            .withParameter("columns", columns)
+            .withParameter("data", Utils.byteBufferListToBase64(data));
+
+    writeElement(objWriter, dos, ele);
   }
 }

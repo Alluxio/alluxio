@@ -1,6 +1,5 @@
 package tachyon.master;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -12,30 +11,37 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import com.fasterxml.jackson.databind.ObjectWriter;
+
 import tachyon.Constants;
 import tachyon.conf.MasterConf;
 import tachyon.io.Utils;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.util.CommonUtils;
 
-public class Dependency implements ImageWriter {
+public class Dependency extends ImageWriter {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Create a new dependency from an image stream.
+   * Create a new dependency from a JSON Element.
    * 
-   * @param is
-   *          the image stream
-   * @return
+   * @param ele
+   *          the JSON element
+   * @return the loaded dependency
    * @throws IOException
    */
-  static Dependency loadImage(DataInputStream is) throws IOException {
+  static Dependency loadImage(ImageElement ele) throws IOException {
     Dependency dep =
-        new Dependency(is.readInt(), Utils.readIntegerList(is), Utils.readIntegerList(is),
-            Utils.readString(is), Utils.readByteBufferList(is), Utils.readString(is),
-            Utils.readString(is), Utils.readString(is), DependencyType.getDependencyType(is
-                .readInt()), Utils.readIntegerList(is), is.readLong());
-    dep.resetUncheckpointedChildrenFiles(Utils.readIntegerList(is));
+        new Dependency(ele.getInt("depID"),
+            ele.<List<Integer>> get("parentFiles"),
+            ele.<List<Integer>> get("childrenFiles"),
+            ele.getString("commandPrefix"),
+            ele.getByteBufferList("data"),
+            ele.getString("comment"), ele.getString("framework"),
+            ele.getString("frameworkVersion"), ele.<DependencyType> get("dependencyType"),
+            ele.<List<Integer>> get("parentDeps"), ele.getLong("creationTimeMs"));
+    dep.resetUncheckpointedChildrenFiles(ele.<List<Integer>> get("unCheckpointedChildrenFiles"));
+
     return dep;
   }
 
@@ -193,19 +199,19 @@ public class Dependency implements ImageWriter {
   }
 
   @Override
-  public synchronized void writeImage(DataOutputStream os) throws IOException {
-    os.writeByte(Image.T_DEPENDENCY);
-    os.writeInt(ID);
-    Utils.writeIntegerList(PARENT_FILES, os);
-    Utils.writeIntegerList(CHILDREN_FILES, os);
-    Utils.writeString(COMMAND_PREFIX, os);
-    Utils.writeByteBufferList(DATA, os);
-    Utils.writeString(COMMENT, os);
-    Utils.writeString(FRAMEWORK, os);
-    Utils.writeString(FRAMEWORK_VERSION, os);
-    os.writeInt(TYPE.getValue());
-    Utils.writeIntegerList(PARENT_DEPENDENCIES, os);
-    os.writeLong(CREATION_TIME_MS);
-    Utils.writeIntegerList(getUncheckpointedChildrenFiles(), os);
+  public synchronized void writeImage(ObjectWriter objWriter, DataOutputStream dos)
+      throws IOException {
+    ImageElement ele =
+        new ImageElement(ImageElementType.Dependency).withParameter("depID", ID)
+            .withParameter("parentFiles", PARENT_FILES)
+            .withParameter("childrenFiles", CHILDREN_FILES)
+            .withParameter("commandPrefix", COMMAND_PREFIX)
+            .withParameter("data", Utils.byteBufferListToBase64(DATA))
+            .withParameter("comment", COMMENT).withParameter("framework", FRAMEWORK)
+            .withParameter("frameworkVersion", FRAMEWORK_VERSION).withParameter("depType", TYPE)
+            .withParameter("parentDeps", PARENT_DEPENDENCIES)
+            .withParameter("creationTimeMs", CREATION_TIME_MS)
+            .withParameter("unCheckpointedChildrenFiles", getUncheckpointedChildrenFiles());
+    writeElement(objWriter, dos, ele);
   }
 }
