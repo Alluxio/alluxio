@@ -85,8 +85,6 @@ public class Image {
     }
     LOG.info("Loading image " + path);
     DataInputStream imageIs = new DataInputStream(ufs.open(path));
-    // TODO update the API.
-    @SuppressWarnings("deprecation")
     JsonParser parser = JsonObject.createObjectMapper().getJsonFactory().createJsonParser(imageIs);
 
     info.loadImage(parser, path);

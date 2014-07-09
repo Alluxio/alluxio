@@ -90,16 +90,6 @@ public class MasterFaultToleranceTest {
   private void faultTestDataCheck(List<Pair<Integer, String>> answer) throws IOException {
     TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
     List<String> files = tfs.ls(Constants.PATH_SEPARATOR, true);
-    if (answer.size() != files.size()) {
-      System.out.println("Files===========================");
-      for (int k = 0; k < files.size(); k ++) {
-        System.out.println("Files: " + files.get(k));
-      }
-      System.out.println("Answers===========================");
-      for (int k = 0; k < answer.size(); k ++) {
-        System.out.println("Answers: " + answer.get(k));
-      }
-    }
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
       Assert.assertEquals(answer.get(k).getSecond(), tfs.getFile(answer.get(k).getFirst())
@@ -114,7 +104,7 @@ public class MasterFaultToleranceTest {
     int clients = 10;
     List<Pair<Integer, String>> answer = new ArrayList<Pair<Integer, String>>();
     answer.add(new Pair<Integer, String>(1, Constants.PATH_SEPARATOR));
-//    faultTestDataCreation("/", answer);
+    // faultTestDataCreation("/", answer);
     for (int k = 0; k < clients; k ++) {
       faultTestDataCreation("/data" + k, answer);
     }
@@ -131,7 +121,8 @@ public class MasterFaultToleranceTest {
       Assert.assertTrue(mLocalTachyonClusterMultiMaster.killLeader());
       CommonUtils.sleepMs(null, Constants.SECOND_MS * 3);
       faultTestDataCheck(answer);
-//      faultTestDataCreation("/data" + (clients + kills + 1), answer);
+      // TODO Add the following line back
+      // faultTestDataCreation("/data" + (clients + kills + 1), answer);
     }
   }
 
