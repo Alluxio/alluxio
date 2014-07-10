@@ -42,14 +42,14 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
     DEPENDENCY_ID = fileInfo.getDependencyId();
     NAME = fileInfo.getName();
     ABSOLUATE_PATH = fileInfo.getPath();
-    CHECKPOINT_PATH = fileInfo.getCheckpointPath();
+    CHECKPOINT_PATH = fileInfo.getUfsPath();
     BLOCK_SIZE_BYTES = fileInfo.getBlockSizeByte();
     SIZE = fileInfo.getLength();
     CREATION_TIME_MS = fileInfo.getCreationTimeMs();
-    IN_MEMORY = fileInfo.isInMemory();
+    IN_MEMORY = (100 == fileInfo.inMemoryPercentage);
     IN_MEMORY_PERCENTAGE = fileInfo.getInMemoryPercentage();
-    IS_DIRECTORY = fileInfo.isFolder();
-    NEED_PIN = fileInfo.isNeedPin();
+    IS_DIRECTORY = fileInfo.isFolder;
+    NEED_PIN = fileInfo.isPinned;
     mFileLocations = new ArrayList<String>();
   }
 
@@ -101,7 +101,7 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
   public boolean getIsDirectory() {
     return IS_DIRECTORY;
   }
-  
+
   public boolean getNeedPin() {
     return NEED_PIN;
   }

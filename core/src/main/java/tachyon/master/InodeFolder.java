@@ -126,15 +126,14 @@ public class InodeFolder extends Inode {
     ret.id = getId();
     ret.name = getName();
     ret.path = path;
-    ret.checkpointPath = "";
+    ret.ufsPath = "";
     ret.length = 0;
     ret.blockSizeByte = 0;
     ret.creationTimeMs = getCreationTimeMs();
-    ret.complete = true;
-    ret.folder = true;
-    ret.inMemory = true;
-    ret.needPin = isPinned();
-    ret.needCache = false;
+    ret.isComplete = true;
+    ret.isFolder = true;
+    ret.isPinned = isPinned();
+    ret.isCache = false;
     ret.blockIds = null;
     ret.dependencyId = -1;
 

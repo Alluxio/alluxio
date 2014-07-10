@@ -74,15 +74,15 @@ public class WorkerServiceHandlerTest {
             (int) WORKER_CAPACITY_BYTES / 3);
     Assert.assertTrue(fileId1 >= 0);
     ClientFileInfo fileInfo1 = mMasterInfo.getClientFileInfo("/file1");
-    Assert.assertTrue(fileInfo1.isInMemory());
+    Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
     int fileId2 =
         TestUtils.createByteFile(mTfs, "/file2", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 3);
     Assert.assertTrue(fileId2 >= 0);
     fileInfo1 = mMasterInfo.getClientFileInfo("/file1");
     ClientFileInfo fileInfo2 = mMasterInfo.getClientFileInfo("/file2");
-    Assert.assertTrue(fileInfo1.isInMemory());
-    Assert.assertTrue(fileInfo2.isInMemory());
+    Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
+    Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
     int fileId3 =
         TestUtils.createByteFile(mTfs, "/file3", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 2);
@@ -91,9 +91,9 @@ public class WorkerServiceHandlerTest {
     fileInfo2 = mMasterInfo.getClientFileInfo("/file2");
     ClientFileInfo fileInfo3 = mMasterInfo.getClientFileInfo("/file3");
     Assert.assertTrue(fileId3 >= 0);
-    Assert.assertFalse(fileInfo1.isInMemory());
-    Assert.assertTrue(fileInfo2.isInMemory());
-    Assert.assertTrue(fileInfo3.isInMemory());
+    Assert.assertEquals(0, fileInfo1.inMemoryPercentage);
+    Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
+    Assert.assertEquals(100, fileInfo3.inMemoryPercentage);
   }
 
   @Test

@@ -305,7 +305,7 @@ public class TFsShell {
     String format = "%-10s%-25s%-15s%-5s\n";
     for (ClientFileInfo file : files) {
       System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()), CommonUtils
-          .convertMsToDate(file.getCreationTimeMs()), file.isInMemory() ? "In Memory"
+          .convertMsToDate(file.getCreationTimeMs()), 100 == file.inMemoryPercentage ? "In Memory"
           : "Not In Memory", file.getPath());
     }
     return 0;
@@ -333,9 +333,9 @@ public class TFsShell {
     String format = "%-10s%-25s%-15s%-5s\n";
     for (ClientFileInfo file : files) {
       System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()), CommonUtils
-          .convertMsToDate(file.getCreationTimeMs()), file.isInMemory() ? "In Memory"
+          .convertMsToDate(file.getCreationTimeMs()), 100 == file.inMemoryPercentage ? "In Memory"
           : "Not In Memory", file.getPath());
-      if (file.isFolder()) {
+      if (file.isFolder) {
         lsr(new String[] { "lsr", file.getPath() });
       }
     }
@@ -370,7 +370,7 @@ public class TFsShell {
   /**
    * Pins the given file or folder (recursively pinning all children if a folder). Pinned files
    * are never evicted from memory.
-   *
+   * 
    * @param argv
    *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
@@ -400,7 +400,7 @@ public class TFsShell {
   /**
    * Unpins the given file or folder (recursively unpinning all children if a folder). Pinned files
    * are never evicted from memory, so this method will allow such files to be evicted.
-   *
+   * 
    * @param argv
    *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.

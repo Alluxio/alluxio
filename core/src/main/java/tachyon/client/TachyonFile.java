@@ -92,13 +92,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * Return the checkpoint path in the under file system of this file
+   * Return the under filesystem path in the under file system of this file
    * 
-   * @return the checkpoint path
+   * @return the under filesystem path
    * @throws IOException
    */
-  String getCheckpointPath() throws IOException {
-    return TFS.getCheckpointPath(FID);
+  String getUfsPath() throws IOException {
+    return TFS.getUfsPath(FID);
   }
 
   /**
@@ -413,7 +413,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   boolean recache(int blockIndex) throws IOException {
     boolean succeed = true;
-    String path = TFS.getCheckpointPath(FID);
+    String path = TFS.getUfsPath(FID);
     UnderFileSystem underFsClient = UnderFileSystem.get(path);
 
     try {

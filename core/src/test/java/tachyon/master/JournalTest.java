@@ -73,7 +73,6 @@ public class JournalTest {
     Assert.assertEquals(2, info.ls(Constants.PATH_SEPARATOR, true).size());
     Assert.assertTrue(info.getFileId(Constants.PATH_SEPARATOR) != -1);
     Assert.assertTrue(info.getFileId("/xyz") != -1);
-    fileInfo.setInMemory(false);
     int temp = fileInfo.inMemoryPercentage;
     fileInfo.setInMemoryPercentage(0);
     Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId("/xyz")));
@@ -90,7 +89,7 @@ public class JournalTest {
   public void AddCheckpointTest() throws Exception {
     TestUtils.createByteFile(mTfs, "/xyz", WriteType.THROUGH, 10);
     ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz");
-    String ckPath = fInfo.getCheckpointPath();
+    String ckPath = fInfo.getUfsPath();
     mTfs.createFile("/xyz_ck", ckPath);
     ClientFileInfo ckFileInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz_ck");
     mLocalTachyonCluster.stopTFS();
@@ -299,11 +298,11 @@ public class JournalTest {
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
     Assert.assertEquals(folder, info.getClientFileInfo(info.getFileId("/myFolder")));
-    Assert.assertTrue(info.getClientFileInfo(info.getFileId("/myFolder")).isNeedPin());
+    Assert.assertTrue(info.getClientFileInfo(info.getFileId("/myFolder")).isPinned);
     Assert.assertEquals(file0, info.getClientFileInfo(info.getFileId("/myFolder/file0")));
-    Assert.assertFalse(info.getClientFileInfo(info.getFileId("/myFolder/file0")).isNeedPin());
+    Assert.assertFalse(info.getClientFileInfo(info.getFileId("/myFolder/file0")).isPinned);
     Assert.assertEquals(file1, info.getClientFileInfo(info.getFileId("/myFolder/file1")));
-    Assert.assertTrue(info.getClientFileInfo(info.getFileId("/myFolder/file1")).isNeedPin());
+    Assert.assertTrue(info.getClientFileInfo(info.getFileId("/myFolder/file1")).isPinned);
     info.stop();
   }
 

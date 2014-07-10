@@ -232,13 +232,13 @@ public class MasterInfoTest {
       TachyonException {
     int fileId = mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFile");
-    Assert.assertEquals("", fileInfo.getCheckpointPath());
+    Assert.assertEquals("", fileInfo.getUfsPath());
     mMasterInfo.addCheckpoint(-1, fileId, 1, "/testPath");
     fileInfo = mMasterInfo.getClientFileInfo("/testFile");
-    Assert.assertEquals("/testPath", fileInfo.getCheckpointPath());
+    Assert.assertEquals("/testPath", fileInfo.getUfsPath());
     mMasterInfo.addCheckpoint(-1, fileId, 1, "/testPath");
     fileInfo = mMasterInfo.getClientFileInfo("/testFile");
-    Assert.assertEquals("/testPath", fileInfo.getCheckpointPath());
+    Assert.assertEquals("/testPath", fileInfo.getUfsPath());
   }
 
   @After
@@ -263,11 +263,11 @@ public class MasterInfoTest {
     Assert.assertEquals("testFolder", fileInfo.getName());
     Assert.assertEquals(2, fileInfo.getId());
     Assert.assertEquals(0, fileInfo.getLength());
-    Assert.assertEquals("", fileInfo.getCheckpointPath());
-    Assert.assertTrue(fileInfo.isFolder());
-    Assert.assertFalse(fileInfo.isNeedPin());
-    Assert.assertFalse(fileInfo.isNeedCache());
-    Assert.assertTrue(fileInfo.isComplete());
+    Assert.assertEquals("", fileInfo.getUfsPath());
+    Assert.assertTrue(fileInfo.isFolder);
+    Assert.assertFalse(fileInfo.isPinned);
+    Assert.assertFalse(fileInfo.isCache);
+    Assert.assertTrue(fileInfo.isComplete);
   }
 
   @Test
@@ -278,11 +278,11 @@ public class MasterInfoTest {
     Assert.assertEquals("testFile", fileInfo.getName());
     Assert.assertEquals(fileId, fileInfo.getId());
     Assert.assertEquals(0, fileInfo.getLength());
-    Assert.assertEquals("", fileInfo.getCheckpointPath());
-    Assert.assertFalse(fileInfo.isFolder());
-    Assert.assertFalse(fileInfo.isNeedPin());
-    Assert.assertTrue(fileInfo.isNeedCache());
-    Assert.assertFalse(fileInfo.isComplete());
+    Assert.assertEquals("", fileInfo.getUfsPath());
+    Assert.assertFalse(fileInfo.isFolder);
+    Assert.assertFalse(fileInfo.isPinned);
+    Assert.assertTrue(fileInfo.isCache);
+    Assert.assertFalse(fileInfo.isComplete);
   }
 
   @Test
@@ -350,7 +350,7 @@ public class MasterInfoTest {
       FileDoesNotExistException, TachyonException {
     mMasterInfo.mkdir("/testFolder");
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFolder");
-    Assert.assertTrue(fileInfo.isFolder());
+    Assert.assertTrue(fileInfo.isFolder);
   }
 
   @Test(expected = InvalidPathException.class)
@@ -393,14 +393,14 @@ public class MasterInfoTest {
   public void createFileTest() throws InvalidPathException, FileAlreadyExistException,
       FileDoesNotExistException, BlockInfoException, TachyonException {
     mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
-    Assert.assertFalse(mMasterInfo.getClientFileInfo("/testFile").isFolder());
+    Assert.assertFalse(mMasterInfo.getClientFileInfo("/testFile").isFolder);
   }
 
   @Test
   public void createRawTableTest() throws InvalidPathException, FileAlreadyExistException,
       TableColumnException, FileDoesNotExistException, TachyonException {
     mMasterInfo.createRawTable("/testTable", 1, (ByteBuffer) null);
-    Assert.assertTrue(mMasterInfo.getClientFileInfo("/testTable").isFolder());
+    Assert.assertTrue(mMasterInfo.getClientFileInfo("/testTable").isFolder);
   }
 
   @Test

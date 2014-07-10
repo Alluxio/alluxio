@@ -89,7 +89,7 @@ public class FileOutStreamTest {
 
     if (op.isThrough()) {
       file = mTfs.getFile(filePath);
-      String checkpointPath = file.getCheckpointPath();
+      String checkpointPath = file.getUfsPath();
       UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
 
       InputStream is = ufs.open(checkpointPath);
@@ -136,7 +136,7 @@ public class FileOutStreamTest {
 
     if (op.isThrough()) {
       file = mTfs.getFile(filePath);
-      String checkpointPath = file.getCheckpointPath();
+      String checkpointPath = file.getUfsPath();
       UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
 
       InputStream is = ufs.open(checkpointPath);
@@ -184,7 +184,7 @@ public class FileOutStreamTest {
 
     if (op.isThrough()) {
       file = mTfs.getFile(filePath);
-      String checkpointPath = file.getCheckpointPath();
+      String checkpointPath = file.getUfsPath();
       UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
 
       InputStream is = ufs.open(checkpointPath);
