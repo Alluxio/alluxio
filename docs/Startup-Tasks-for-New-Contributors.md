@@ -22,7 +22,9 @@ A list of tasks that everyone should do before contributing to Tachyon.
 
 6.  Fork the repository, write/add unit tests/java doc for one or two files in the following list,
 and then submit a pull request. You are also welcome to address issues in our
-[JIRA](https://spark-project.atlassian.net/browse/TACHYON)
+[JIRA](https://spark-project.atlassian.net/browse/TACHYON). For a tutorial, see the GitHub guides on
+[forking a repo](https://help.github.com/articles/fork-a-repo) and
+[sending a pull request](https://help.github.com/articles/using-pull-requests).
 
 * * * * *
 
@@ -35,8 +37,6 @@ and then submit a pull request. You are also welcome to address issues in our
     core/src/main/java/tachyon/worker/WorkerClient.java
 
     core/src/main/java/tachyon/worker/DataServerMessage.java
-
-After the pull request is reviewed and merged, you become a Tachyon contributor!
 
 ### Testing
 
