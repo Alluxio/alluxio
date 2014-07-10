@@ -317,7 +317,7 @@ public class TFsShellTest {
             "/testRoot/testFileA");
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(0),
-            CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "In Memory",
+            CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "",
             "/testRoot/testDir");
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(30),
@@ -344,7 +344,7 @@ public class TFsShellTest {
             "/testRoot/testFileA");
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(0),
-            CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "In Memory",
+            CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "",
             "/testRoot/testDir");
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(30),
