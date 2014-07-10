@@ -52,11 +52,11 @@ public class RemoteBlockInStream extends BlockInStream {
 
   /**
    * @param file
-   *            the file the block belongs to
+   *          the file the block belongs to
    * @param readType
-   *            the InStream's read type
+   *          the InStream's read type
    * @param blockIndex
-   *            the index of the block in the file
+   *          the index of the block in the file
    * @throws IOException
    */
   RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
@@ -65,13 +65,13 @@ public class RemoteBlockInStream extends BlockInStream {
 
   /**
    * @param file
-   *            the file the block belongs to
+   *          the file the block belongs to
    * @param readType
-   *            the InStream's read type
+   *          the InStream's read type
    * @param blockIndex
-   *            the index of the block in the file
+   *          the index of the block in the file
    * @param ufsConf
-   *            the under file system configuration
+   *          the under file system configuration
    * @throws IOException
    */
   RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf)

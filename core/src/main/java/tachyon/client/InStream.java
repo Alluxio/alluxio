@@ -32,9 +32,9 @@ public abstract class InStream extends InputStream {
 
   /**
    * @param file
-   *            the input file of the InStream
+   *          the input file of the InStream
    * @param readType
-   *            the InStream's read type
+   *          the InStream's read type
    */
   InStream(TachyonFile file, ReadType readType) {
     FILE = file;

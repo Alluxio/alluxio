@@ -26,7 +26,6 @@ import tachyon.util.CommonUtils;
  * the worker may withdraw the space granted to the particular user.
  */
 class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final WorkerClient WORKER_CLIENT;
   private final long USER_ID;
 

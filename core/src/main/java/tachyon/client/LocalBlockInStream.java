@@ -26,13 +26,13 @@ public class LocalBlockInStream extends BlockInStream {
 
   /**
    * @param file
-   *            the file the block belongs to
+   *          the file the block belongs to
    * @param readType
-   *            the InStream's read type
+   *          the InStream's read type
    * @param blockIndex
-   *            the index of the block in the file
+   *          the index of the block in the file
    * @param buf
-   *            the buffer of the whole block in local memory
+   *          the buffer of the whole block in local memory
    * @throws IOException
    */
   LocalBlockInStream(TachyonFile file, ReadType readType, int blockIndex, TachyonByteBuffer buf)
