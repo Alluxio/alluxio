@@ -288,7 +288,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     while (cnt < MAX_TRY) {
       try {
         if (mFs.exists(new Path(path))) {
-          return true;
+          return false;
         }
         return mFs.mkdirs(new Path(path), PERMISSION);
       } catch (IOException e) {
