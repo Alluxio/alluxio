@@ -304,9 +304,16 @@ public class TFsShell {
     Collections.sort(files);
     String format = "%-10s%-25s%-15s%-5s\n";
     for (ClientFileInfo file : files) {
-      System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()), CommonUtils
-          .convertMsToDate(file.getCreationTimeMs()), 100 == file.inMemoryPercentage ? "In Memory"
-          : "Not In Memory", file.getPath());
+      String inMemory = "";
+      if (!file.isFolder) {
+        if (100 == file.inMemoryPercentage) {
+          inMemory = "In Memory";
+        } else {
+          inMemory = "Not In Memory";
+        }
+      }
+      System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
+          CommonUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
     }
     return 0;
   }
@@ -332,9 +339,16 @@ public class TFsShell {
     Collections.sort(files);
     String format = "%-10s%-25s%-15s%-5s\n";
     for (ClientFileInfo file : files) {
-      System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()), CommonUtils
-          .convertMsToDate(file.getCreationTimeMs()), 100 == file.inMemoryPercentage ? "In Memory"
-          : "Not In Memory", file.getPath());
+      String inMemory = "";
+      if (!file.isFolder) {
+        if (100 == file.inMemoryPercentage) {
+          inMemory = "In Memory";
+        } else {
+          inMemory = "Not In Memory";
+        }
+      }
+      System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
+          CommonUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
       if (file.isFolder) {
         lsr(new String[] { "lsr", file.getPath() });
       }
