@@ -225,42 +225,43 @@ public class MasterInfo extends ImageWriter {
   private final long START_TIME_NS_PREFIX;
   private final long START_TIME_MS;
   private final MasterConf MASTER_CONF;
-  private Counters mCheckpointInfo = new Counters(0, 0, 0);
+  private final Counters mCheckpointInfo = new Counters(0, 0, 0);
 
-  private AtomicInteger mInodeCounter = new AtomicInteger(0);
-  private AtomicInteger mDependencyCounter = new AtomicInteger(0);
-  private AtomicInteger mRerunCounter = new AtomicInteger(0);
+  private final AtomicInteger mInodeCounter = new AtomicInteger(0);
+  private final AtomicInteger mDependencyCounter = new AtomicInteger(0);
+  private final AtomicInteger mRerunCounter = new AtomicInteger(0);
 
-  private AtomicInteger mUserCounter = new AtomicInteger(0);
-  private AtomicInteger mWorkerCounter = new AtomicInteger(0);
+  private final AtomicInteger mUserCounter = new AtomicInteger(0);
+  private final AtomicInteger mWorkerCounter = new AtomicInteger(0);
+
   // Root Inode's id must be 1.
   private InodeFolder mRoot;
+
   // A map from file ID's to Inodes. All operations on it are currently synchronized on mRoot.
-  private Map<Integer, Inode> mInodes = new HashMap<Integer, Inode>();
-  private Map<Integer, Dependency> mDependencies = new HashMap<Integer, Dependency>();
-  private RawTables mRawTables = new RawTables();
+  private final Map<Integer, Inode> mInodes = new HashMap<Integer, Inode>();
+  private final Map<Integer, Dependency> mDependencies = new HashMap<Integer, Dependency>();
+  private final RawTables mRawTables = new RawTables();
 
   // TODO add initialization part for master failover or restart. All operations on these members
   // are synchronized on mDependencies.
-  private Set<Integer> mUncheckpointedDependencies = new HashSet<Integer>();
-  private Set<Integer> mPriorityDependencies = new HashSet<Integer>();
-  private Set<Integer> mLostFiles = new HashSet<Integer>();
+  private final Set<Integer> mUncheckpointedDependencies = new HashSet<Integer>();
+  private final Set<Integer> mPriorityDependencies = new HashSet<Integer>();
+  private final Set<Integer> mLostFiles = new HashSet<Integer>();
 
-  private Set<Integer> mBeingRecomputedFiles = new HashSet<Integer>();
-  private Set<Integer> mMustRecomputeDependencies = new HashSet<Integer>();
-  private Map<Long, MasterWorkerInfo> mWorkers = new HashMap<Long, MasterWorkerInfo>();
+  private final Set<Integer> mBeingRecomputedFiles = new HashSet<Integer>();
+  private final Set<Integer> mMustRecomputeDependencies = new HashSet<Integer>();
+  private final Map<Long, MasterWorkerInfo> mWorkers = new HashMap<Long, MasterWorkerInfo>();
 
-  private Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
+  private final Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
 
-  private BlockingQueue<MasterWorkerInfo> mLostWorkers = new ArrayBlockingQueue<MasterWorkerInfo>(
-      32);
+  private final BlockingQueue<MasterWorkerInfo> mLostWorkers = new ArrayBlockingQueue<MasterWorkerInfo>(32);
 
   // TODO Check the logic related to this two lists.
-  private PrefixList mWhiteList;
+  private final PrefixList mWhiteList;
   // Synchronized set containing all InodeFile ids that are currently pinned.
-  private Set<Integer> mFileIdPinList;
+  private final Set<Integer> mFileIdPinList;
 
-  private Journal mJournal;
+  private final Journal mJournal;
 
   private HeartbeatThread mHeartbeatThread;
 
@@ -1524,8 +1525,8 @@ public class MasterInfo extends ImageWriter {
           Dependency dep = mDependencies.get(depId);
           if (!dep.hasChildrenDependency()) {
             mPriorityDependencies.add(dep.ID);
-          } else {
           }
+
           if (dep.CREATION_TIME_MS < earliest) {
             earliest = dep.CREATION_TIME_MS;
             earliestDepId = dep.ID;
