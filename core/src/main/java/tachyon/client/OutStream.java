@@ -32,9 +32,9 @@ public abstract class OutStream extends OutputStream {
 
   /**
    * @param file
-   *            the output file of the OutStream
+   *          the output file of the OutStream
    * @param writeType
-   *            the OutStream's write type
+   *          the OutStream's write type
    */
   OutStream(TachyonFile file, WriteType writeType) {
     FILE = file;
@@ -44,7 +44,7 @@ public abstract class OutStream extends OutputStream {
 
   /**
    * Cancel the write operations to the OutStream
-   *
+   * 
    * @throws IOException
    */
   public abstract void cancel() throws IOException;

@@ -77,7 +77,7 @@ public class RawTable {
    * Get one column of the raw table
    * 
    * @param columnIndex
-   *            the index of the column
+   *          the index of the column
    * @return the RawColumn
    */
   public RawColumn getRawColumn(int columnIndex) {
@@ -91,9 +91,9 @@ public class RawTable {
 
   /**
    * Update the meta data of the raw table
-   *
+   * 
    * @param metadata
-   *            the new meta data
+   *          the new meta data
    * @throws IOException
    */
   public void updateMetadata(ByteBuffer metadata) throws IOException {

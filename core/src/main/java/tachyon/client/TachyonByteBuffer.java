@@ -34,13 +34,13 @@ public class TachyonByteBuffer {
 
   /**
    * @param tfs
-   *            the Tachyon file system
+   *          the Tachyon file system
    * @param buf
-   *            the ByteBuffer wrapped on
+   *          the ByteBuffer wrapped on
    * @param blockId
-   *            the id of the block
+   *          the id of the block
    * @param blockLockId
-   *            the id of the block's lock
+   *          the id of the block's lock
    */
   TachyonByteBuffer(TachyonFS tfs, ByteBuffer buf, long blockId, int blockLockId) {
     DATA = buf;
@@ -50,8 +50,8 @@ public class TachyonByteBuffer {
   }
 
   /**
-   * Close the byte buffer, here it is synchronized
-   *
+   * Close the TachyonByteBuffer, here it is synchronized
+   * 
    * @throws IOException
    */
   public synchronized void close() throws IOException {

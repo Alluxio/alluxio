@@ -22,9 +22,9 @@ import java.io.IOException;
 public class EmptyBlockInStream extends InStream {
   /**
    * @param file
-   *            the file the block belongs to
+   *          the file the block belongs to
    * @param readType
-   *            the InStream's read type
+   *          the InStream's read type
    */
   EmptyBlockInStream(TachyonFile file, ReadType readType) {
     super(file, readType);

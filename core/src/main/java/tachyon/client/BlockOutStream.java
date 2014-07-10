@@ -54,11 +54,11 @@ public class BlockOutStream extends OutStream {
 
   /**
    * @param file
-   *            the file the block belongs to
+   *          the file the block belongs to
    * @param opType
-   *            the OutStream's write type
+   *          the OutStream's write type
    * @param blockIndex
-   *            the index of the block in the file
+   *          the index of the block in the file
    * @throws IOException
    */
   BlockOutStream(TachyonFile file, WriteType opType, int blockIndex) throws IOException {
@@ -160,7 +160,7 @@ public class BlockOutStream extends OutStream {
 
   @Override
   public void flush() throws IOException {
-    // Since this only writes to memory memory, this flush is not outside visible.
+    // Since this only writes to memory, this flush is not outside visible.
   }
 
   /**
@@ -171,7 +171,7 @@ public class BlockOutStream extends OutStream {
   }
 
   /**
-   * @return the block offset of the block
+   * @return the block offset in the file.
    */
   public long getBlockOffset() {
     return BLOCK_OFFSET;

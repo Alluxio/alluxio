@@ -34,9 +34,9 @@ public class FileInStream extends InStream {
 
   /**
    * @param file
-   *            the file to be read
+   *          the file to be read
    * @param opType
-   *            the InStream's read type
+   *          the InStream's read type
    * @throws IOException
    */
   public FileInStream(TachyonFile file, ReadType opType) throws IOException {
@@ -45,11 +45,11 @@ public class FileInStream extends InStream {
 
   /**
    * @param file
-   *            the file to be read
+   *          the file to be read
    * @param opType
-   *            the InStream's read type
+   *          the InStream's read type
    * @param ufsConf
-   *            the under file system configuration
+   *          the under file system configuration
    * @throws IOException
    */
   public FileInStream(TachyonFile file, ReadType opType, Object ufsConf) throws IOException {
