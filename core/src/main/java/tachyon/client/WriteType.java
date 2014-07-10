@@ -41,6 +41,14 @@ public enum WriteType {
    */
   ASYNC_THROUGH(5);
 
+  /**
+   * Parse the write type
+   * 
+   * @param op
+   *            the String format of the write type
+   * @return the write type
+   * @throws IOException
+   */
   public static WriteType getOpType(String op) throws IOException {
     if (op.equals("MUST_CACHE")) {
       return MUST_CACHE;
@@ -63,23 +71,41 @@ public enum WriteType {
     mValue = value;
   }
 
+  /**
+   * Return the value of the write type
+   * 
+   * @return the value of the write type
+   */
   public int getValue() {
     return mValue;
   }
 
+  /**
+   * @return true if the write type is ASYNC_THROUGH, false otherwise
+   */
   public boolean isAsync() {
     return mValue == ASYNC_THROUGH.mValue;
   }
 
+  /**
+   * @return true if the write type is one of MUST_CACHE, CACHE_THROUGH,
+   * TRY_CACHE, or ASYNC_THROUGH
+   */
   public boolean isCache() {
     return (mValue == MUST_CACHE.mValue) || (mValue == CACHE_THROUGH.mValue)
         || (mValue == TRY_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
   }
 
+  /**
+   * @return true if the write type is MUST_CACHE or ASYNC_THROUGH
+   */
   public boolean isMustCache() {
     return (mValue == MUST_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
   }
 
+  /**
+   * @return true if the write type is CACHE_THROUGH or THROUGH
+   */
   public boolean isThrough() {
     return (mValue == CACHE_THROUGH.mValue) || (mValue == THROUGH.mValue);
   }
