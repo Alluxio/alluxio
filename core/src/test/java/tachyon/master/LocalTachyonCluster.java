@@ -151,7 +151,8 @@ public class LocalTachyonCluster {
   }
 
   public void start() throws IOException {
-    mTachyonHome = File.createTempFile("Tachyon", "").getAbsoluteFile() + "UnitTest";
+    mTachyonHome =
+        File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
     mWorkerDataFolder = mTachyonHome + "/ramdisk";
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
