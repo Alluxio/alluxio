@@ -728,21 +728,21 @@ public class TachyonFS {
   }
 
   /**
-   * Return the checkpoint path of the file
+   * Return the under filesystem path of the file
    * 
    * @param fid
    *          the file id
    * @return the checkpoint path of the file
    * @throws IOException
    */
-  synchronized String getCheckpointPath(int fid) throws IOException {
+  synchronized String getUfsPath(int fid) throws IOException {
     ClientFileInfo info = mClientFileInfos.get(fid);
-    if (info == null || !info.getCheckpointPath().equals("")) {
+    if (info == null || !info.getUfsPath().equals("")) {
       info = fetchClientFileInfo(fid);
       mClientFileInfos.put(fid, info);
     }
 
-    return info.getCheckpointPath();
+    return info.getUfsPath();
   }
 
   /**
@@ -764,7 +764,7 @@ public class TachyonFS {
     ClientFileInfo info = null;
     if (!fetch) {
       info = mClientFileInfos.get(fId);
-      if (info.isFolder() || info.blockIds.size() <= blockIndex) {
+      if (info.isFolder || info.blockIds.size() <= blockIndex) {
         fetch = true;
       }
     }
@@ -778,7 +778,7 @@ public class TachyonFS {
     if (info == null) {
       throw new IOException("File " + fId + " does not exist.");
     }
-    if (info.isFolder()) {
+    if (info.isFolder) {
       throw new IOException(new FileDoesNotExistException("File " + fId + " is a folder."));
     }
     if (info.blockIds.size() <= blockIndex) {
@@ -938,7 +938,7 @@ public class TachyonFS {
     connect();
 
     ClientFileInfo info = mClientFileInfos.get(fId);
-    if (info == null || !info.isComplete()) {
+    if (info == null || !info.isComplete) {
       info = fetchClientFileInfo(fId);
       mClientFileInfos.put(fId, info);
     }
@@ -1031,7 +1031,7 @@ public class TachyonFS {
    * @throws IOException
    */
   synchronized long getFileLength(int fid) throws IOException {
-    if (!mClientFileInfos.get(fid).isComplete()) {
+    if (!mClientFileInfos.get(fid).isComplete) {
       ClientFileInfo info = fetchClientFileInfo(fid);
       mClientFileInfos.put(fid, info);
     }
@@ -1128,7 +1128,7 @@ public class TachyonFS {
    */
   synchronized int getNumberOfBlocks(int fId) throws IOException {
     ClientFileInfo info = mClientFileInfos.get(fId);
-    if (info == null || !info.isComplete()) {
+    if (info == null || !info.isComplete) {
       info = fetchClientFileInfo(fId);
       mClientFileInfos.put(fId, info);
     }
@@ -1259,10 +1259,10 @@ public class TachyonFS {
    * @throws IOException
    */
   synchronized boolean isComplete(int fid) throws IOException {
-    if (!mClientFileInfos.get(fid).isComplete()) {
+    if (!mClientFileInfos.get(fid).isComplete) {
       mClientFileInfos.put(fid, fetchClientFileInfo(fid));
     }
-    return mClientFileInfos.get(fid).isComplete();
+    return mClientFileInfos.get(fid).isComplete;
   }
 
   /**
@@ -1278,7 +1278,7 @@ public class TachyonFS {
    * @return true if the file is a directory, false otherwise
    */
   synchronized boolean isDirectory(int fid) {
-    return mClientFileInfos.get(fid).isFolder();
+    return mClientFileInfos.get(fid).isFolder;
   }
 
   /**
@@ -1293,7 +1293,7 @@ public class TachyonFS {
   synchronized boolean isInMemory(int fid) throws IOException {
     ClientFileInfo info = fetchClientFileInfo(fid);
     mClientFileInfos.put(info.getId(), info);
-    return info.isInMemory();
+    return 100 == info.inMemoryPercentage;
   }
 
   /**
@@ -1302,7 +1302,7 @@ public class TachyonFS {
    * @return true if the file is need pin, false otherwise
    */
   synchronized boolean isNeedPin(int fid) {
-    return mClientFileInfos.get(fid).isNeedPin();
+    return mClientFileInfos.get(fid).isPinned;
   }
 
   /**
@@ -1751,7 +1751,7 @@ public class TachyonFS {
     }
     info = mClientFileInfos.get(fid);
 
-    return info.isNeedPin();
+    return info.isPinned;
   }
 
   /**

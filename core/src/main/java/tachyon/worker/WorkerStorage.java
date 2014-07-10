@@ -185,7 +185,7 @@ public class WorkerStorage {
 
           long startCopyTimeMs = System.currentTimeMillis();
           ClientFileInfo fileInfo = mMasterClient.getClientFileInfoById(fileId);
-          if (!fileInfo.isComplete()) {
+          if (!fileInfo.isComplete) {
             LOG.error("File " + fileInfo + " is not complete!");
             continue;
           }

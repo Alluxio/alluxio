@@ -1,5 +1,8 @@
 namespace java tachyon.thrift
 
+// Version 2: 0.5.0
+// Version 1: before 0.5.0
+
 struct NetAddress {
   1: string mHost
   2: i32 mPort
@@ -26,18 +29,17 @@ struct ClientFileInfo {
   1: i32 id
   2: string name
   3: string path
-  4: string checkpointPath
+  4: string ufsPath
   5: i64 length
   6: i64 blockSizeByte
   7: i64 creationTimeMs
-  8: bool complete
-  9: bool folder
-  10: bool inMemory
-  11: bool needPin
-  12: bool needCache
-  13: list<i64> blockIds
-  14: i32 dependencyId
-  15: i32 inMemoryPercentage
+  8: bool isComplete
+  9: bool isFolder
+  10: bool isPinned
+  11: bool isCache
+  12: list<i64> blockIds
+  13: i32 dependencyId
+  14: i32 inMemoryPercentage
 }
 
 struct ClientDependencyInfo {

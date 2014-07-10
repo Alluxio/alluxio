@@ -125,15 +125,14 @@ public class InodeFile extends Inode {
     ret.id = getId();
     ret.name = getName();
     ret.path = path;
-    ret.checkpointPath = mUfsPath;
+    ret.ufsPath = mUfsPath;
     ret.length = mLength;
     ret.blockSizeByte = BLOCK_SIZE_BYTE;
     ret.creationTimeMs = getCreationTimeMs();
-    ret.complete = isComplete();
-    ret.folder = false;
-    ret.inMemory = isFullyInMemory();
-    ret.needPin = isPinned();
-    ret.needCache = mCache;
+    ret.isComplete = isComplete();
+    ret.isFolder = false;
+    ret.isPinned = isPinned();
+    ret.isCache = mCache;
     ret.blockIds = getBlockIds();
     ret.dependencyId = mDependencyId;
     ret.inMemoryPercentage = getInMemoryPercentage();
@@ -257,6 +256,7 @@ public class InodeFile extends Inode {
   }
 
   public synchronized void setCache(boolean cache) {
+    // TODO this related logic is not complete right. fix this.
     mCache = cache;
   }
 
