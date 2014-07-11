@@ -68,7 +68,7 @@ public class WorkerSpaceCounter {
   }
 
   /**
-   * Return space
+   * Return used space size
    * 
    * @param returnUsedBytes
    *          The returned space size, in bytes
