@@ -58,8 +58,7 @@ node.
     incurring a network cost for every job by increasing the size of the job jar.
 
 In order to make the Tachyon executables available to the JobClient, one can also install the
-Tachyon jar in the `$HADOOP_HOME/lib` directory, or modify `HADOOP_CLASSPATH` by changing `hadoop-
-env.sh` to:
+Tachyon jar in the `$HADOOP_HOME/lib` directory, or modify `HADOOP_CLASSPATH` by changing `hadoop-env.sh` to:
 
     $ export HADOOP_CLASSPATH=/path/to/tachyon/target/tachyon-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar
 
