@@ -278,7 +278,7 @@ public abstract class AbstractTFS extends FileSystem {
    *
    * @return schema hadoop should map to.
    *
-   * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI, org.apache.hadoop.conf.Configuration) 
+   * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI, org.apache.hadoop.conf.Configuration)
    */
   public abstract String getScheme();
 
