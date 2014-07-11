@@ -61,6 +61,13 @@ public class BlocksLocker {
     return locker;
   }
 
+  /**
+   * Check if the block is locked
+   * 
+   * @param blockId
+   *          The id of the block
+   * @return true if the block is locked, false otherwise
+   */
   public synchronized boolean locked(long blockId) {
     return mLockedBlockIds.containsKey(blockId);
   }
