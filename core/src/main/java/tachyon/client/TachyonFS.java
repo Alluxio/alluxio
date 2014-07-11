@@ -1425,8 +1425,7 @@ public class TachyonFS {
     try {
       return mMasterClient.user_mkdir(path);
     } catch (TException e) {
-      throw new IOException(e + "\n\n" + e.getMessage() + "\n\n" + e.getStackTrace() + "\n\n"
-          + path);
+      throw new IOException(e);
     }
   }
 
