@@ -182,7 +182,8 @@ public class TFS extends FileSystem {
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       if (fs.exists(hdfsPath)) {
         String ufsAddrPath = CommonUtils.concat(UNDERFS_ADDRESS, path);
-        UnderfsUtils.loadUnderFs(mTFS, Constants.PATH_SEPARATOR, ufsAddrPath, new PrefixList(null));
+        UnderfsUtils
+            .loadUnderFs(mTFS, Constants.PATH_SEPARATOR, ufsAddrPath, new PrefixList(null));
       }
     }
   }
@@ -308,7 +309,7 @@ public class TFS extends FileSystem {
       ClientFileInfo info = files.get(k);
       // TODO replicate 3 with the number of disk replications.
       ret[k] =
-          new FileStatus(info.getLength(), info.isFolder(), 3, info.getBlockSizeByte(),
+          new FileStatus(info.getLength(), info.isFolder, 3, info.getBlockSizeByte(),
               info.getCreationTimeMs(), info.getCreationTimeMs(), null, null, null, new Path(
                   mTachyonHeader + info.getPath()));
     }

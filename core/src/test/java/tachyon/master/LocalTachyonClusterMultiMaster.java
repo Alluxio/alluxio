@@ -179,7 +179,7 @@ public class LocalTachyonClusterMultiMaster {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
     }
   }
-  
+
   private void mkdir(String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
@@ -187,12 +187,14 @@ public class LocalTachyonClusterMultiMaster {
       throw new IOException("Failed to make folder: " + path);
     }
   }
+
   public void start() throws IOException {
-    mTachyonHome = File.createTempFile("Tachyon", "").getAbsoluteFile() + "UnitTest";
+    mTachyonHome =
+        File.createTempFile("Tachyon", "").getAbsoluteFile() + "U" + System.currentTimeMillis();
     mWorkerDataFolder = mTachyonHome + "/ramdisk";
     String masterDataFolder = mTachyonHome + "/data";
     String masterLogFolder = mTachyonHome + "/logs";
-    
+
     deleteDir(mTachyonHome);
     mkdir(mTachyonHome);
     mkdir(masterDataFolder);

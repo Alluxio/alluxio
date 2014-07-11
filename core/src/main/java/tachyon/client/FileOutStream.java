@@ -16,7 +16,6 @@ package tachyon.client;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,6 +47,15 @@ public class FileOutStream extends OutStream {
   private boolean mClosed = false;
   private boolean mCancel = false;
 
+  /**
+   * @param file
+   *          the output file
+   * @param opType
+   *          the OutStream's write type
+   * @param ufsConf
+   *          the under file system configuration
+   * @throws IOException
+   */
   FileOutStream(TachyonFile file, WriteType opType, Object ufsConf) throws IOException {
     super(file, opType);
 
@@ -156,12 +164,6 @@ public class FileOutStream extends OutStream {
     }
   }
 
-  public void write(ArrayList<ByteBuffer> bufs) throws IOException {
-    for (int k = 0; k < bufs.size(); k ++) {
-      write(bufs.get(k));
-    }
-  }
-
   @Override
   public void write(byte[] b) throws IOException {
     write(b, 0, b.length);
@@ -214,10 +216,6 @@ public class FileOutStream extends OutStream {
     if (WRITE_TYPE.isThrough()) {
       mCheckpointOutputStream.write(b, off, len);
     }
-  }
-
-  public void write(ByteBuffer buf) throws IOException {
-    write(buf.array(), buf.position(), buf.limit() - buf.position());
   }
 
   @Override

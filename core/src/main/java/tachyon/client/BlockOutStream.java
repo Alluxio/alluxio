@@ -52,6 +52,15 @@ public class BlockOutStream extends OutStream {
   private boolean mClosed = false;
   private boolean mCancel = false;
 
+  /**
+   * @param file
+   *          the file the block belongs to
+   * @param opType
+   *          the OutStream's write type
+   * @param blockIndex
+   *          the index of the block in the file
+   * @throws IOException
+   */
   BlockOutStream(TachyonFile file, WriteType opType, int blockIndex) throws IOException {
     super(file, opType);
 
@@ -119,6 +128,9 @@ public class BlockOutStream extends OutStream {
     close();
   }
 
+  /**
+   * @return true if the stream can write and is not closed, otherwise false
+   */
   public boolean canWrite() {
     return !mClosed && mCanWrite;
   }
@@ -148,17 +160,26 @@ public class BlockOutStream extends OutStream {
 
   @Override
   public void flush() throws IOException {
-    // Since this only writes to memory memory, this flush is not outside visible.
+    // Since this only writes to memory, this flush is not outside visible.
   }
 
+  /**
+   * @return the block id of the block
+   */
   public long getBlockId() {
     return BLOCK_ID;
   }
 
+  /**
+   * @return the block offset in the file.
+   */
   public long getBlockOffset() {
     return BLOCK_OFFSET;
   }
 
+  /**
+   * @return the remaining space of the block, in bytes
+   */
   public long getRemainingSpaceByte() {
     return BLOCK_CAPACITY_BYTE - mWrittenBytes;
   }

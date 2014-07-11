@@ -30,12 +30,23 @@ public abstract class OutStream extends OutputStream {
   protected final TachyonFS TFS;
   protected final WriteType WRITE_TYPE;
 
+  /**
+   * @param file
+   *          the output file of the OutStream
+   * @param writeType
+   *          the OutStream's write type
+   */
   OutStream(TachyonFile file, WriteType writeType) {
     FILE = file;
     TFS = FILE.TFS;
     WRITE_TYPE = writeType;
   }
 
+  /**
+   * Cancel the write operations to the OutStream
+   * 
+   * @throws IOException
+   */
   public abstract void cancel() throws IOException;
 
   @Override

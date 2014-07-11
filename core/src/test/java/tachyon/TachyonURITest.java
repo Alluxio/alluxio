@@ -45,11 +45,6 @@ public class TachyonURITest {
     }
   }
 
-  private void testParentChild(String target, String parent, String child) {
-    Assert.assertEquals(new TachyonURI(target), new TachyonURI(new TachyonURI(parent),
-        new TachyonURI(child)));
-  }
-
   @Test
   public void constructFromParentAndChildTests() {
     testParentChild(".", ".", ".");
@@ -329,5 +324,10 @@ public class TachyonURITest {
   @Test(expected = IllegalArgumentException.class)
   public void invalidURISyntaxTest() {
     TachyonURI uri = new TachyonURI("://localhost:8080/a");
+  }
+
+  private void testParentChild(String target, String parent, String child) {
+    Assert.assertEquals(new TachyonURI(target), new TachyonURI(new TachyonURI(parent),
+        new TachyonURI(child)));
   }
 }

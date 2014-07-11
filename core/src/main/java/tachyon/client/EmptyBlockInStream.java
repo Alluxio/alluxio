@@ -20,6 +20,12 @@ import java.io.IOException;
  * <code> EmptyBlockInStream </code> is a <code> InStream </code> can not read anything.
  */
 public class EmptyBlockInStream extends InStream {
+  /**
+   * @param file
+   *          the file the block belongs to
+   * @param readType
+   *          the InStream's read type
+   */
   EmptyBlockInStream(TachyonFile file, ReadType readType) {
     super(file, readType);
   }

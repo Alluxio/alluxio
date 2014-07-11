@@ -48,7 +48,7 @@ public class PinTest {
 
     mTfs.unpinFile(fileId);
     assertFalse(mTfs.getFile("/myFolder/myFile").needPin());
-    assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer>newHashSet());
+    assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer> newHashSet());
 
     // Pinning a folder should recursively pin subfolders.
     mTfs.pinFile(dir1Id);
@@ -58,7 +58,7 @@ public class PinTest {
     // Same with unpinning.
     mTfs.unpinFile(dir0Id);
     assertFalse(mTfs.getFile("/myFolder/myFile").needPin());
-    assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer>newHashSet());
+    assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer> newHashSet());
 
     // The last pin command always wins.
     mTfs.pinFile(fileId);
@@ -76,33 +76,33 @@ public class PinTest {
 
     // Child file should be pinned
     int file0Id = mTfs.createFile("/file0");
-    assertTrue(mMasterInfo.getClientFileInfo(file0Id).isNeedPin());
+    assertTrue(mMasterInfo.getClientFileInfo(file0Id).isPinned);
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id));
 
     // Child folder should be pinned
     mTfs.mkdir("/folder");
     int folderId = mTfs.getFileId("/folder");
-    assertTrue(mMasterInfo.getClientFileInfo(folderId).isNeedPin());
+    assertTrue(mMasterInfo.getClientFileInfo(folderId).isPinned);
 
     // Granchild file also pinned
     int file1Id = mTfs.createFile("/folder/file1");
-    assertTrue(mMasterInfo.getClientFileInfo(file1Id).isNeedPin());
+    assertTrue(mMasterInfo.getClientFileInfo(file1Id).isPinned);
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id, file1Id));
 
     // Unpinning child folder should cause its children to be unpinned as well
     mTfs.unpinFile(folderId);
-    assertFalse(mMasterInfo.getClientFileInfo(folderId).isNeedPin());
-    assertFalse(mMasterInfo.getClientFileInfo(file1Id).isNeedPin());
+    assertFalse(mMasterInfo.getClientFileInfo(folderId).isPinned);
+    assertFalse(mMasterInfo.getClientFileInfo(file1Id).isPinned);
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id));
 
     // And new grandchildren should be unpinned too.
     int file2Id = mTfs.createFile("/folder/file2");
-    assertFalse(mMasterInfo.getClientFileInfo(file2Id).isNeedPin());
+    assertFalse(mMasterInfo.getClientFileInfo(file2Id).isPinned);
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id));
 
     // But toplevel children still should be pinned!
     int file3Id = mTfs.createFile("/file3");
-    assertTrue(mMasterInfo.getClientFileInfo(file3Id).isNeedPin());
+    assertTrue(mMasterInfo.getClientFileInfo(file3Id).isPinned);
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id, file3Id));
   }
 }

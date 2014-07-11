@@ -45,19 +45,6 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.gluster</groupId>
-      <artifactId>glusterfs-hadoop</artifactId>
-      <version>2.3.5</version>
-      <type>jar</type>
-      <scope>compile</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
       <version>${jetty.version}</version>
@@ -147,54 +134,11 @@
 
   <profiles>
     <profile>
-      <id>integrationTest</id>
+      <id>localTest</id>
       <activation>
         <property>
-          <name>integration</name>
-        </property>
-      </activation>
-      <properties>
-        <ufs>tachyon.LocalMiniDFSCluster</ufs>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-minicluster</artifactId>
-          <version>${hadoop.version}</version>
-          <exclusions>
-            <exclusion>
-              <groupId>asm</groupId>
-              <artifactId>asm</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.jboss.netty</groupId>
-              <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-core-asl</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-mapper-asl</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-jaxrs</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-xc</artifactId>
-            </exclusion>
-          </exclusions>
-        </dependency>
-      </dependencies>
-    </profile>
-    <profile>
-      <id>default</id>
-      <activation>
-        <property>
-          <name>!integration</name>
+          <name>test.profile</name>
+          <value>local</value>
         </property>
         <activeByDefault>true</activeByDefault>
       </activation>
@@ -257,8 +201,82 @@
         </dependency>
       </dependencies>
     </profile>
+
     <profile>
-      <id>GlusterfsTest</id>
+      <id>hdfsTest</id>
+      <activation>
+        <property>
+          <name>test.profile</name>
+          <value>hdfs</value>
+        </property>
+      </activation>
+      <properties>
+        <ufs>tachyon.LocalMiniDFSCluster</ufs>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-minicluster</artifactId>
+          <version>${hadoop.version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>asm</groupId>
+              <artifactId>asm</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-core-asl</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-mapper-asl</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-jaxrs</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>org.codehaus.jackson</groupId>
+              <artifactId>jackson-xc</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>glusterfsTest</id>
+      <activation>
+        <property>
+          <name>test.profile</name>
+          <value>glusterfs</value>
+        </property>
+      </activation>
+      <properties>
+        <ufs>tachyon.GlusterfsCluster</ufs>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.gluster</groupId>
+          <artifactId>glusterfs-hadoop</artifactId>
+          <version>${glusterfs-hadoop.version}</version>
+          <type>jar</type>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <version>2.3.0</version>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>Glusterfs</id>
       <activation>
         <property>
           <name>glusterfs</name>
@@ -269,9 +287,11 @@
       </properties>
       <dependencies>
         <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-client</artifactId>
-          <version>2.3.0</version>
+          <groupId>org.gluster</groupId>
+          <artifactId>glusterfs-hadoop</artifactId>
+          <version>${glusterfs-hadoop.version}</version>
+          <type>jar</type>
+          <scope>compile</scope>
         </dependency>
       </dependencies>
     </profile>

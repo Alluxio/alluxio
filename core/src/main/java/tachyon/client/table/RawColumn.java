@@ -29,6 +29,11 @@ public class RawColumn {
   private final RawTable RAW_TABLE;
   private final int COLUMN_INDEX;
 
+  /**
+   * @param tachyonClient
+   * @param rawTable
+   * @param columnIndex
+   */
   RawColumn(TachyonFS tachyonClient, RawTable rawTable, int columnIndex) {
     TFS = tachyonClient;
     RAW_TABLE = rawTable;

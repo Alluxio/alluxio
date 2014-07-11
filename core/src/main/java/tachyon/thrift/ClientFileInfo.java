@@ -36,18 +36,17 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.I32, (short)1);
   private static final org.apache.thrift.protocol.TField NAME_FIELD_DESC = new org.apache.thrift.protocol.TField("name", org.apache.thrift.protocol.TType.STRING, (short)2);
   private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)3);
-  private static final org.apache.thrift.protocol.TField CHECKPOINT_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("checkpointPath", org.apache.thrift.protocol.TType.STRING, (short)4);
+  private static final org.apache.thrift.protocol.TField UFS_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsPath", org.apache.thrift.protocol.TType.STRING, (short)4);
   private static final org.apache.thrift.protocol.TField LENGTH_FIELD_DESC = new org.apache.thrift.protocol.TField("length", org.apache.thrift.protocol.TType.I64, (short)5);
   private static final org.apache.thrift.protocol.TField BLOCK_SIZE_BYTE_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSizeByte", org.apache.thrift.protocol.TType.I64, (short)6);
   private static final org.apache.thrift.protocol.TField CREATION_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("creationTimeMs", org.apache.thrift.protocol.TType.I64, (short)7);
-  private static final org.apache.thrift.protocol.TField COMPLETE_FIELD_DESC = new org.apache.thrift.protocol.TField("complete", org.apache.thrift.protocol.TType.BOOL, (short)8);
-  private static final org.apache.thrift.protocol.TField FOLDER_FIELD_DESC = new org.apache.thrift.protocol.TField("folder", org.apache.thrift.protocol.TType.BOOL, (short)9);
-  private static final org.apache.thrift.protocol.TField IN_MEMORY_FIELD_DESC = new org.apache.thrift.protocol.TField("inMemory", org.apache.thrift.protocol.TType.BOOL, (short)10);
-  private static final org.apache.thrift.protocol.TField NEED_PIN_FIELD_DESC = new org.apache.thrift.protocol.TField("needPin", org.apache.thrift.protocol.TType.BOOL, (short)11);
-  private static final org.apache.thrift.protocol.TField NEED_CACHE_FIELD_DESC = new org.apache.thrift.protocol.TField("needCache", org.apache.thrift.protocol.TType.BOOL, (short)12);
-  private static final org.apache.thrift.protocol.TField BLOCK_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("blockIds", org.apache.thrift.protocol.TType.LIST, (short)13);
-  private static final org.apache.thrift.protocol.TField DEPENDENCY_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("dependencyId", org.apache.thrift.protocol.TType.I32, (short)14);
-  private static final org.apache.thrift.protocol.TField IN_MEMORY_PERCENTAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("inMemoryPercentage", org.apache.thrift.protocol.TType.I32, (short)15);
+  private static final org.apache.thrift.protocol.TField IS_COMPLETE_FIELD_DESC = new org.apache.thrift.protocol.TField("isComplete", org.apache.thrift.protocol.TType.BOOL, (short)8);
+  private static final org.apache.thrift.protocol.TField IS_FOLDER_FIELD_DESC = new org.apache.thrift.protocol.TField("isFolder", org.apache.thrift.protocol.TType.BOOL, (short)9);
+  private static final org.apache.thrift.protocol.TField IS_PINNED_FIELD_DESC = new org.apache.thrift.protocol.TField("isPinned", org.apache.thrift.protocol.TType.BOOL, (short)10);
+  private static final org.apache.thrift.protocol.TField IS_CACHE_FIELD_DESC = new org.apache.thrift.protocol.TField("isCache", org.apache.thrift.protocol.TType.BOOL, (short)11);
+  private static final org.apache.thrift.protocol.TField BLOCK_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("blockIds", org.apache.thrift.protocol.TType.LIST, (short)12);
+  private static final org.apache.thrift.protocol.TField DEPENDENCY_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("dependencyId", org.apache.thrift.protocol.TType.I32, (short)13);
+  private static final org.apache.thrift.protocol.TField IN_MEMORY_PERCENTAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("inMemoryPercentage", org.apache.thrift.protocol.TType.I32, (short)14);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -58,15 +57,14 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   public int id; // required
   public String name; // required
   public String path; // required
-  public String checkpointPath; // required
+  public String ufsPath; // required
   public long length; // required
   public long blockSizeByte; // required
   public long creationTimeMs; // required
-  public boolean complete; // required
-  public boolean folder; // required
-  public boolean inMemory; // required
-  public boolean needPin; // required
-  public boolean needCache; // required
+  public boolean isComplete; // required
+  public boolean isFolder; // required
+  public boolean isPinned; // required
+  public boolean isCache; // required
   public List<Long> blockIds; // required
   public int dependencyId; // required
   public int inMemoryPercentage; // required
@@ -76,18 +74,17 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     ID((short)1, "id"),
     NAME((short)2, "name"),
     PATH((short)3, "path"),
-    CHECKPOINT_PATH((short)4, "checkpointPath"),
+    UFS_PATH((short)4, "ufsPath"),
     LENGTH((short)5, "length"),
     BLOCK_SIZE_BYTE((short)6, "blockSizeByte"),
     CREATION_TIME_MS((short)7, "creationTimeMs"),
-    COMPLETE((short)8, "complete"),
-    FOLDER((short)9, "folder"),
-    IN_MEMORY((short)10, "inMemory"),
-    NEED_PIN((short)11, "needPin"),
-    NEED_CACHE((short)12, "needCache"),
-    BLOCK_IDS((short)13, "blockIds"),
-    DEPENDENCY_ID((short)14, "dependencyId"),
-    IN_MEMORY_PERCENTAGE((short)15, "inMemoryPercentage");
+    IS_COMPLETE((short)8, "isComplete"),
+    IS_FOLDER((short)9, "isFolder"),
+    IS_PINNED((short)10, "isPinned"),
+    IS_CACHE((short)11, "isCache"),
+    BLOCK_IDS((short)12, "blockIds"),
+    DEPENDENCY_ID((short)13, "dependencyId"),
+    IN_MEMORY_PERCENTAGE((short)14, "inMemoryPercentage");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -108,29 +105,27 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
           return NAME;
         case 3: // PATH
           return PATH;
-        case 4: // CHECKPOINT_PATH
-          return CHECKPOINT_PATH;
+        case 4: // UFS_PATH
+          return UFS_PATH;
         case 5: // LENGTH
           return LENGTH;
         case 6: // BLOCK_SIZE_BYTE
           return BLOCK_SIZE_BYTE;
         case 7: // CREATION_TIME_MS
           return CREATION_TIME_MS;
-        case 8: // COMPLETE
-          return COMPLETE;
-        case 9: // FOLDER
-          return FOLDER;
-        case 10: // IN_MEMORY
-          return IN_MEMORY;
-        case 11: // NEED_PIN
-          return NEED_PIN;
-        case 12: // NEED_CACHE
-          return NEED_CACHE;
-        case 13: // BLOCK_IDS
+        case 8: // IS_COMPLETE
+          return IS_COMPLETE;
+        case 9: // IS_FOLDER
+          return IS_FOLDER;
+        case 10: // IS_PINNED
+          return IS_PINNED;
+        case 11: // IS_CACHE
+          return IS_CACHE;
+        case 12: // BLOCK_IDS
           return BLOCK_IDS;
-        case 14: // DEPENDENCY_ID
+        case 13: // DEPENDENCY_ID
           return DEPENDENCY_ID;
-        case 15: // IN_MEMORY_PERCENTAGE
+        case 14: // IN_MEMORY_PERCENTAGE
           return IN_MEMORY_PERCENTAGE;
         default:
           return null;
@@ -176,13 +171,12 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   private static final int __LENGTH_ISSET_ID = 1;
   private static final int __BLOCKSIZEBYTE_ISSET_ID = 2;
   private static final int __CREATIONTIMEMS_ISSET_ID = 3;
-  private static final int __COMPLETE_ISSET_ID = 4;
-  private static final int __FOLDER_ISSET_ID = 5;
-  private static final int __INMEMORY_ISSET_ID = 6;
-  private static final int __NEEDPIN_ISSET_ID = 7;
-  private static final int __NEEDCACHE_ISSET_ID = 8;
-  private static final int __DEPENDENCYID_ISSET_ID = 9;
-  private static final int __INMEMORYPERCENTAGE_ISSET_ID = 10;
+  private static final int __ISCOMPLETE_ISSET_ID = 4;
+  private static final int __ISFOLDER_ISSET_ID = 5;
+  private static final int __ISPINNED_ISSET_ID = 6;
+  private static final int __ISCACHE_ISSET_ID = 7;
+  private static final int __DEPENDENCYID_ISSET_ID = 8;
+  private static final int __INMEMORYPERCENTAGE_ISSET_ID = 9;
   private short __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -193,7 +187,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.CHECKPOINT_PATH, new org.apache.thrift.meta_data.FieldMetaData("checkpointPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.LENGTH, new org.apache.thrift.meta_data.FieldMetaData("length", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
@@ -201,15 +195,13 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.CREATION_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("creationTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.COMPLETE, new org.apache.thrift.meta_data.FieldMetaData("complete", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.IS_COMPLETE, new org.apache.thrift.meta_data.FieldMetaData("isComplete", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.FOLDER, new org.apache.thrift.meta_data.FieldMetaData("folder", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.IS_FOLDER, new org.apache.thrift.meta_data.FieldMetaData("isFolder", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.IN_MEMORY, new org.apache.thrift.meta_data.FieldMetaData("inMemory", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.IS_PINNED, new org.apache.thrift.meta_data.FieldMetaData("isPinned", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.NEED_PIN, new org.apache.thrift.meta_data.FieldMetaData("needPin", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.NEED_CACHE, new org.apache.thrift.meta_data.FieldMetaData("needCache", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.IS_CACHE, new org.apache.thrift.meta_data.FieldMetaData("isCache", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.BLOCK_IDS, new org.apache.thrift.meta_data.FieldMetaData("blockIds", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
@@ -229,15 +221,14 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     int id,
     String name,
     String path,
-    String checkpointPath,
+    String ufsPath,
     long length,
     long blockSizeByte,
     long creationTimeMs,
-    boolean complete,
-    boolean folder,
-    boolean inMemory,
-    boolean needPin,
-    boolean needCache,
+    boolean isComplete,
+    boolean isFolder,
+    boolean isPinned,
+    boolean isCache,
     List<Long> blockIds,
     int dependencyId,
     int inMemoryPercentage)
@@ -247,23 +238,21 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     setIdIsSet(true);
     this.name = name;
     this.path = path;
-    this.checkpointPath = checkpointPath;
+    this.ufsPath = ufsPath;
     this.length = length;
     setLengthIsSet(true);
     this.blockSizeByte = blockSizeByte;
     setBlockSizeByteIsSet(true);
     this.creationTimeMs = creationTimeMs;
     setCreationTimeMsIsSet(true);
-    this.complete = complete;
-    setCompleteIsSet(true);
-    this.folder = folder;
-    setFolderIsSet(true);
-    this.inMemory = inMemory;
-    setInMemoryIsSet(true);
-    this.needPin = needPin;
-    setNeedPinIsSet(true);
-    this.needCache = needCache;
-    setNeedCacheIsSet(true);
+    this.isComplete = isComplete;
+    setIsCompleteIsSet(true);
+    this.isFolder = isFolder;
+    setIsFolderIsSet(true);
+    this.isPinned = isPinned;
+    setIsPinnedIsSet(true);
+    this.isCache = isCache;
+    setIsCacheIsSet(true);
     this.blockIds = blockIds;
     this.dependencyId = dependencyId;
     setDependencyIdIsSet(true);
@@ -283,17 +272,16 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     if (other.isSetPath()) {
       this.path = other.path;
     }
-    if (other.isSetCheckpointPath()) {
-      this.checkpointPath = other.checkpointPath;
+    if (other.isSetUfsPath()) {
+      this.ufsPath = other.ufsPath;
     }
     this.length = other.length;
     this.blockSizeByte = other.blockSizeByte;
     this.creationTimeMs = other.creationTimeMs;
-    this.complete = other.complete;
-    this.folder = other.folder;
-    this.inMemory = other.inMemory;
-    this.needPin = other.needPin;
-    this.needCache = other.needCache;
+    this.isComplete = other.isComplete;
+    this.isFolder = other.isFolder;
+    this.isPinned = other.isPinned;
+    this.isCache = other.isCache;
     if (other.isSetBlockIds()) {
       List<Long> __this__blockIds = new ArrayList<Long>();
       for (Long other_element : other.blockIds) {
@@ -315,23 +303,21 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     this.id = 0;
     this.name = null;
     this.path = null;
-    this.checkpointPath = null;
+    this.ufsPath = null;
     setLengthIsSet(false);
     this.length = 0;
     setBlockSizeByteIsSet(false);
     this.blockSizeByte = 0;
     setCreationTimeMsIsSet(false);
     this.creationTimeMs = 0;
-    setCompleteIsSet(false);
-    this.complete = false;
-    setFolderIsSet(false);
-    this.folder = false;
-    setInMemoryIsSet(false);
-    this.inMemory = false;
-    setNeedPinIsSet(false);
-    this.needPin = false;
-    setNeedCacheIsSet(false);
-    this.needCache = false;
+    setIsCompleteIsSet(false);
+    this.isComplete = false;
+    setIsFolderIsSet(false);
+    this.isFolder = false;
+    setIsPinnedIsSet(false);
+    this.isPinned = false;
+    setIsCacheIsSet(false);
+    this.isCache = false;
     this.blockIds = null;
     setDependencyIdIsSet(false);
     this.dependencyId = 0;
@@ -410,27 +396,27 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     }
   }
 
-  public String getCheckpointPath() {
-    return this.checkpointPath;
+  public String getUfsPath() {
+    return this.ufsPath;
   }
 
-  public ClientFileInfo setCheckpointPath(String checkpointPath) {
-    this.checkpointPath = checkpointPath;
+  public ClientFileInfo setUfsPath(String ufsPath) {
+    this.ufsPath = ufsPath;
     return this;
   }
 
-  public void unsetCheckpointPath() {
-    this.checkpointPath = null;
+  public void unsetUfsPath() {
+    this.ufsPath = null;
   }
 
-  /** Returns true if field checkpointPath is set (has been assigned a value) and false otherwise */
-  public boolean isSetCheckpointPath() {
-    return this.checkpointPath != null;
+  /** Returns true if field ufsPath is set (has been assigned a value) and false otherwise */
+  public boolean isSetUfsPath() {
+    return this.ufsPath != null;
   }
 
-  public void setCheckpointPathIsSet(boolean value) {
+  public void setUfsPathIsSet(boolean value) {
     if (!value) {
-      this.checkpointPath = null;
+      this.ufsPath = null;
     }
   }
 
@@ -503,119 +489,96 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CREATIONTIMEMS_ISSET_ID, value);
   }
 
-  public boolean isComplete() {
-    return this.complete;
+  public boolean isIsComplete() {
+    return this.isComplete;
   }
 
-  public ClientFileInfo setComplete(boolean complete) {
-    this.complete = complete;
-    setCompleteIsSet(true);
+  public ClientFileInfo setIsComplete(boolean isComplete) {
+    this.isComplete = isComplete;
+    setIsCompleteIsSet(true);
     return this;
   }
 
-  public void unsetComplete() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __COMPLETE_ISSET_ID);
+  public void unsetIsComplete() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ISCOMPLETE_ISSET_ID);
   }
 
-  /** Returns true if field complete is set (has been assigned a value) and false otherwise */
-  public boolean isSetComplete() {
-    return EncodingUtils.testBit(__isset_bitfield, __COMPLETE_ISSET_ID);
+  /** Returns true if field isComplete is set (has been assigned a value) and false otherwise */
+  public boolean isSetIsComplete() {
+    return EncodingUtils.testBit(__isset_bitfield, __ISCOMPLETE_ISSET_ID);
   }
 
-  public void setCompleteIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __COMPLETE_ISSET_ID, value);
+  public void setIsCompleteIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ISCOMPLETE_ISSET_ID, value);
   }
 
-  public boolean isFolder() {
-    return this.folder;
+  public boolean isIsFolder() {
+    return this.isFolder;
   }
 
-  public ClientFileInfo setFolder(boolean folder) {
-    this.folder = folder;
-    setFolderIsSet(true);
+  public ClientFileInfo setIsFolder(boolean isFolder) {
+    this.isFolder = isFolder;
+    setIsFolderIsSet(true);
     return this;
   }
 
-  public void unsetFolder() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __FOLDER_ISSET_ID);
+  public void unsetIsFolder() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ISFOLDER_ISSET_ID);
   }
 
-  /** Returns true if field folder is set (has been assigned a value) and false otherwise */
-  public boolean isSetFolder() {
-    return EncodingUtils.testBit(__isset_bitfield, __FOLDER_ISSET_ID);
+  /** Returns true if field isFolder is set (has been assigned a value) and false otherwise */
+  public boolean isSetIsFolder() {
+    return EncodingUtils.testBit(__isset_bitfield, __ISFOLDER_ISSET_ID);
   }
 
-  public void setFolderIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FOLDER_ISSET_ID, value);
+  public void setIsFolderIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ISFOLDER_ISSET_ID, value);
   }
 
-  public boolean isInMemory() {
-    return this.inMemory;
+  public boolean isIsPinned() {
+    return this.isPinned;
   }
 
-  public ClientFileInfo setInMemory(boolean inMemory) {
-    this.inMemory = inMemory;
-    setInMemoryIsSet(true);
+  public ClientFileInfo setIsPinned(boolean isPinned) {
+    this.isPinned = isPinned;
+    setIsPinnedIsSet(true);
     return this;
   }
 
-  public void unsetInMemory() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __INMEMORY_ISSET_ID);
+  public void unsetIsPinned() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ISPINNED_ISSET_ID);
   }
 
-  /** Returns true if field inMemory is set (has been assigned a value) and false otherwise */
-  public boolean isSetInMemory() {
-    return EncodingUtils.testBit(__isset_bitfield, __INMEMORY_ISSET_ID);
+  /** Returns true if field isPinned is set (has been assigned a value) and false otherwise */
+  public boolean isSetIsPinned() {
+    return EncodingUtils.testBit(__isset_bitfield, __ISPINNED_ISSET_ID);
   }
 
-  public void setInMemoryIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __INMEMORY_ISSET_ID, value);
+  public void setIsPinnedIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ISPINNED_ISSET_ID, value);
   }
 
-  public boolean isNeedPin() {
-    return this.needPin;
+  public boolean isIsCache() {
+    return this.isCache;
   }
 
-  public ClientFileInfo setNeedPin(boolean needPin) {
-    this.needPin = needPin;
-    setNeedPinIsSet(true);
+  public ClientFileInfo setIsCache(boolean isCache) {
+    this.isCache = isCache;
+    setIsCacheIsSet(true);
     return this;
   }
 
-  public void unsetNeedPin() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __NEEDPIN_ISSET_ID);
+  public void unsetIsCache() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ISCACHE_ISSET_ID);
   }
 
-  /** Returns true if field needPin is set (has been assigned a value) and false otherwise */
-  public boolean isSetNeedPin() {
-    return EncodingUtils.testBit(__isset_bitfield, __NEEDPIN_ISSET_ID);
+  /** Returns true if field isCache is set (has been assigned a value) and false otherwise */
+  public boolean isSetIsCache() {
+    return EncodingUtils.testBit(__isset_bitfield, __ISCACHE_ISSET_ID);
   }
 
-  public void setNeedPinIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __NEEDPIN_ISSET_ID, value);
-  }
-
-  public boolean isNeedCache() {
-    return this.needCache;
-  }
-
-  public ClientFileInfo setNeedCache(boolean needCache) {
-    this.needCache = needCache;
-    setNeedCacheIsSet(true);
-    return this;
-  }
-
-  public void unsetNeedCache() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __NEEDCACHE_ISSET_ID);
-  }
-
-  /** Returns true if field needCache is set (has been assigned a value) and false otherwise */
-  public boolean isSetNeedCache() {
-    return EncodingUtils.testBit(__isset_bitfield, __NEEDCACHE_ISSET_ID);
-  }
-
-  public void setNeedCacheIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __NEEDCACHE_ISSET_ID, value);
+  public void setIsCacheIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ISCACHE_ISSET_ID, value);
   }
 
   public int getBlockIdsSize() {
@@ -729,11 +692,11 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       }
       break;
 
-    case CHECKPOINT_PATH:
+    case UFS_PATH:
       if (value == null) {
-        unsetCheckpointPath();
+        unsetUfsPath();
       } else {
-        setCheckpointPath((String)value);
+        setUfsPath((String)value);
       }
       break;
 
@@ -761,43 +724,35 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       }
       break;
 
-    case COMPLETE:
+    case IS_COMPLETE:
       if (value == null) {
-        unsetComplete();
+        unsetIsComplete();
       } else {
-        setComplete((Boolean)value);
+        setIsComplete((Boolean)value);
       }
       break;
 
-    case FOLDER:
+    case IS_FOLDER:
       if (value == null) {
-        unsetFolder();
+        unsetIsFolder();
       } else {
-        setFolder((Boolean)value);
+        setIsFolder((Boolean)value);
       }
       break;
 
-    case IN_MEMORY:
+    case IS_PINNED:
       if (value == null) {
-        unsetInMemory();
+        unsetIsPinned();
       } else {
-        setInMemory((Boolean)value);
+        setIsPinned((Boolean)value);
       }
       break;
 
-    case NEED_PIN:
+    case IS_CACHE:
       if (value == null) {
-        unsetNeedPin();
+        unsetIsCache();
       } else {
-        setNeedPin((Boolean)value);
-      }
-      break;
-
-    case NEED_CACHE:
-      if (value == null) {
-        unsetNeedCache();
-      } else {
-        setNeedCache((Boolean)value);
+        setIsCache((Boolean)value);
       }
       break;
 
@@ -839,8 +794,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     case PATH:
       return getPath();
 
-    case CHECKPOINT_PATH:
-      return getCheckpointPath();
+    case UFS_PATH:
+      return getUfsPath();
 
     case LENGTH:
       return Long.valueOf(getLength());
@@ -851,20 +806,17 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     case CREATION_TIME_MS:
       return Long.valueOf(getCreationTimeMs());
 
-    case COMPLETE:
-      return Boolean.valueOf(isComplete());
+    case IS_COMPLETE:
+      return Boolean.valueOf(isIsComplete());
 
-    case FOLDER:
-      return Boolean.valueOf(isFolder());
+    case IS_FOLDER:
+      return Boolean.valueOf(isIsFolder());
 
-    case IN_MEMORY:
-      return Boolean.valueOf(isInMemory());
+    case IS_PINNED:
+      return Boolean.valueOf(isIsPinned());
 
-    case NEED_PIN:
-      return Boolean.valueOf(isNeedPin());
-
-    case NEED_CACHE:
-      return Boolean.valueOf(isNeedCache());
+    case IS_CACHE:
+      return Boolean.valueOf(isIsCache());
 
     case BLOCK_IDS:
       return getBlockIds();
@@ -892,24 +844,22 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       return isSetName();
     case PATH:
       return isSetPath();
-    case CHECKPOINT_PATH:
-      return isSetCheckpointPath();
+    case UFS_PATH:
+      return isSetUfsPath();
     case LENGTH:
       return isSetLength();
     case BLOCK_SIZE_BYTE:
       return isSetBlockSizeByte();
     case CREATION_TIME_MS:
       return isSetCreationTimeMs();
-    case COMPLETE:
-      return isSetComplete();
-    case FOLDER:
-      return isSetFolder();
-    case IN_MEMORY:
-      return isSetInMemory();
-    case NEED_PIN:
-      return isSetNeedPin();
-    case NEED_CACHE:
-      return isSetNeedCache();
+    case IS_COMPLETE:
+      return isSetIsComplete();
+    case IS_FOLDER:
+      return isSetIsFolder();
+    case IS_PINNED:
+      return isSetIsPinned();
+    case IS_CACHE:
+      return isSetIsCache();
     case BLOCK_IDS:
       return isSetBlockIds();
     case DEPENDENCY_ID:
@@ -960,12 +910,12 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         return false;
     }
 
-    boolean this_present_checkpointPath = true && this.isSetCheckpointPath();
-    boolean that_present_checkpointPath = true && that.isSetCheckpointPath();
-    if (this_present_checkpointPath || that_present_checkpointPath) {
-      if (!(this_present_checkpointPath && that_present_checkpointPath))
+    boolean this_present_ufsPath = true && this.isSetUfsPath();
+    boolean that_present_ufsPath = true && that.isSetUfsPath();
+    if (this_present_ufsPath || that_present_ufsPath) {
+      if (!(this_present_ufsPath && that_present_ufsPath))
         return false;
-      if (!this.checkpointPath.equals(that.checkpointPath))
+      if (!this.ufsPath.equals(that.ufsPath))
         return false;
     }
 
@@ -996,48 +946,39 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         return false;
     }
 
-    boolean this_present_complete = true;
-    boolean that_present_complete = true;
-    if (this_present_complete || that_present_complete) {
-      if (!(this_present_complete && that_present_complete))
+    boolean this_present_isComplete = true;
+    boolean that_present_isComplete = true;
+    if (this_present_isComplete || that_present_isComplete) {
+      if (!(this_present_isComplete && that_present_isComplete))
         return false;
-      if (this.complete != that.complete)
-        return false;
-    }
-
-    boolean this_present_folder = true;
-    boolean that_present_folder = true;
-    if (this_present_folder || that_present_folder) {
-      if (!(this_present_folder && that_present_folder))
-        return false;
-      if (this.folder != that.folder)
+      if (this.isComplete != that.isComplete)
         return false;
     }
 
-    boolean this_present_inMemory = true;
-    boolean that_present_inMemory = true;
-    if (this_present_inMemory || that_present_inMemory) {
-      if (!(this_present_inMemory && that_present_inMemory))
+    boolean this_present_isFolder = true;
+    boolean that_present_isFolder = true;
+    if (this_present_isFolder || that_present_isFolder) {
+      if (!(this_present_isFolder && that_present_isFolder))
         return false;
-      if (this.inMemory != that.inMemory)
-        return false;
-    }
-
-    boolean this_present_needPin = true;
-    boolean that_present_needPin = true;
-    if (this_present_needPin || that_present_needPin) {
-      if (!(this_present_needPin && that_present_needPin))
-        return false;
-      if (this.needPin != that.needPin)
+      if (this.isFolder != that.isFolder)
         return false;
     }
 
-    boolean this_present_needCache = true;
-    boolean that_present_needCache = true;
-    if (this_present_needCache || that_present_needCache) {
-      if (!(this_present_needCache && that_present_needCache))
+    boolean this_present_isPinned = true;
+    boolean that_present_isPinned = true;
+    if (this_present_isPinned || that_present_isPinned) {
+      if (!(this_present_isPinned && that_present_isPinned))
         return false;
-      if (this.needCache != that.needCache)
+      if (this.isPinned != that.isPinned)
+        return false;
+    }
+
+    boolean this_present_isCache = true;
+    boolean that_present_isCache = true;
+    if (this_present_isCache || that_present_isCache) {
+      if (!(this_present_isCache && that_present_isCache))
+        return false;
+      if (this.isCache != that.isCache)
         return false;
     }
 
@@ -1114,12 +1055,12 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetCheckpointPath()).compareTo(typedOther.isSetCheckpointPath());
+    lastComparison = Boolean.valueOf(isSetUfsPath()).compareTo(typedOther.isSetUfsPath());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetCheckpointPath()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.checkpointPath, typedOther.checkpointPath);
+    if (isSetUfsPath()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ufsPath, typedOther.ufsPath);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -1154,52 +1095,42 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetComplete()).compareTo(typedOther.isSetComplete());
+    lastComparison = Boolean.valueOf(isSetIsComplete()).compareTo(typedOther.isSetIsComplete());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetComplete()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.complete, typedOther.complete);
+    if (isSetIsComplete()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.isComplete, typedOther.isComplete);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetFolder()).compareTo(typedOther.isSetFolder());
+    lastComparison = Boolean.valueOf(isSetIsFolder()).compareTo(typedOther.isSetIsFolder());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetFolder()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.folder, typedOther.folder);
+    if (isSetIsFolder()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.isFolder, typedOther.isFolder);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetInMemory()).compareTo(typedOther.isSetInMemory());
+    lastComparison = Boolean.valueOf(isSetIsPinned()).compareTo(typedOther.isSetIsPinned());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetInMemory()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.inMemory, typedOther.inMemory);
+    if (isSetIsPinned()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.isPinned, typedOther.isPinned);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetNeedPin()).compareTo(typedOther.isSetNeedPin());
+    lastComparison = Boolean.valueOf(isSetIsCache()).compareTo(typedOther.isSetIsCache());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetNeedPin()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.needPin, typedOther.needPin);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetNeedCache()).compareTo(typedOther.isSetNeedCache());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetNeedCache()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.needCache, typedOther.needCache);
+    if (isSetIsCache()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.isCache, typedOther.isCache);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -1274,11 +1205,11 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("checkpointPath:");
-    if (this.checkpointPath == null) {
+    sb.append("ufsPath:");
+    if (this.ufsPath == null) {
       sb.append("null");
     } else {
-      sb.append(this.checkpointPath);
+      sb.append(this.ufsPath);
     }
     first = false;
     if (!first) sb.append(", ");
@@ -1294,24 +1225,20 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     sb.append(this.creationTimeMs);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("complete:");
-    sb.append(this.complete);
+    sb.append("isComplete:");
+    sb.append(this.isComplete);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("folder:");
-    sb.append(this.folder);
+    sb.append("isFolder:");
+    sb.append(this.isFolder);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("inMemory:");
-    sb.append(this.inMemory);
+    sb.append("isPinned:");
+    sb.append(this.isPinned);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("needPin:");
-    sb.append(this.needPin);
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("needCache:");
-    sb.append(this.needCache);
+    sb.append("isCache:");
+    sb.append(this.isCache);
     first = false;
     if (!first) sb.append(", ");
     sb.append("blockIds:");
@@ -1398,10 +1325,10 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // CHECKPOINT_PATH
+          case 4: // UFS_PATH
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.checkpointPath = iprot.readString();
-              struct.setCheckpointPathIsSet(true);
+              struct.ufsPath = iprot.readString();
+              struct.setUfsPathIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -1430,47 +1357,39 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 8: // COMPLETE
+          case 8: // IS_COMPLETE
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.complete = iprot.readBool();
-              struct.setCompleteIsSet(true);
+              struct.isComplete = iprot.readBool();
+              struct.setIsCompleteIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 9: // FOLDER
+          case 9: // IS_FOLDER
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.folder = iprot.readBool();
-              struct.setFolderIsSet(true);
+              struct.isFolder = iprot.readBool();
+              struct.setIsFolderIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 10: // IN_MEMORY
+          case 10: // IS_PINNED
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.inMemory = iprot.readBool();
-              struct.setInMemoryIsSet(true);
+              struct.isPinned = iprot.readBool();
+              struct.setIsPinnedIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 11: // NEED_PIN
+          case 11: // IS_CACHE
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.needPin = iprot.readBool();
-              struct.setNeedPinIsSet(true);
+              struct.isCache = iprot.readBool();
+              struct.setIsCacheIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 12: // NEED_CACHE
-            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.needCache = iprot.readBool();
-              struct.setNeedCacheIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 13: // BLOCK_IDS
+          case 12: // BLOCK_IDS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();
@@ -1488,7 +1407,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 14: // DEPENDENCY_ID
+          case 13: // DEPENDENCY_ID
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.dependencyId = iprot.readI32();
               struct.setDependencyIdIsSet(true);
@@ -1496,7 +1415,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 15: // IN_MEMORY_PERCENTAGE
+          case 14: // IN_MEMORY_PERCENTAGE
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.inMemoryPercentage = iprot.readI32();
               struct.setInMemoryPercentageIsSet(true);
@@ -1532,9 +1451,9 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         oprot.writeString(struct.path);
         oprot.writeFieldEnd();
       }
-      if (struct.checkpointPath != null) {
-        oprot.writeFieldBegin(CHECKPOINT_PATH_FIELD_DESC);
-        oprot.writeString(struct.checkpointPath);
+      if (struct.ufsPath != null) {
+        oprot.writeFieldBegin(UFS_PATH_FIELD_DESC);
+        oprot.writeString(struct.ufsPath);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldBegin(LENGTH_FIELD_DESC);
@@ -1546,20 +1465,17 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       oprot.writeFieldBegin(CREATION_TIME_MS_FIELD_DESC);
       oprot.writeI64(struct.creationTimeMs);
       oprot.writeFieldEnd();
-      oprot.writeFieldBegin(COMPLETE_FIELD_DESC);
-      oprot.writeBool(struct.complete);
+      oprot.writeFieldBegin(IS_COMPLETE_FIELD_DESC);
+      oprot.writeBool(struct.isComplete);
       oprot.writeFieldEnd();
-      oprot.writeFieldBegin(FOLDER_FIELD_DESC);
-      oprot.writeBool(struct.folder);
+      oprot.writeFieldBegin(IS_FOLDER_FIELD_DESC);
+      oprot.writeBool(struct.isFolder);
       oprot.writeFieldEnd();
-      oprot.writeFieldBegin(IN_MEMORY_FIELD_DESC);
-      oprot.writeBool(struct.inMemory);
+      oprot.writeFieldBegin(IS_PINNED_FIELD_DESC);
+      oprot.writeBool(struct.isPinned);
       oprot.writeFieldEnd();
-      oprot.writeFieldBegin(NEED_PIN_FIELD_DESC);
-      oprot.writeBool(struct.needPin);
-      oprot.writeFieldEnd();
-      oprot.writeFieldBegin(NEED_CACHE_FIELD_DESC);
-      oprot.writeBool(struct.needCache);
+      oprot.writeFieldBegin(IS_CACHE_FIELD_DESC);
+      oprot.writeBool(struct.isCache);
       oprot.writeFieldEnd();
       if (struct.blockIds != null) {
         oprot.writeFieldBegin(BLOCK_IDS_FIELD_DESC);
@@ -1606,7 +1522,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (struct.isSetPath()) {
         optionals.set(2);
       }
-      if (struct.isSetCheckpointPath()) {
+      if (struct.isSetUfsPath()) {
         optionals.set(3);
       }
       if (struct.isSetLength()) {
@@ -1618,31 +1534,28 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (struct.isSetCreationTimeMs()) {
         optionals.set(6);
       }
-      if (struct.isSetComplete()) {
+      if (struct.isSetIsComplete()) {
         optionals.set(7);
       }
-      if (struct.isSetFolder()) {
+      if (struct.isSetIsFolder()) {
         optionals.set(8);
       }
-      if (struct.isSetInMemory()) {
+      if (struct.isSetIsPinned()) {
         optionals.set(9);
       }
-      if (struct.isSetNeedPin()) {
+      if (struct.isSetIsCache()) {
         optionals.set(10);
       }
-      if (struct.isSetNeedCache()) {
+      if (struct.isSetBlockIds()) {
         optionals.set(11);
       }
-      if (struct.isSetBlockIds()) {
+      if (struct.isSetDependencyId()) {
         optionals.set(12);
       }
-      if (struct.isSetDependencyId()) {
+      if (struct.isSetInMemoryPercentage()) {
         optionals.set(13);
       }
-      if (struct.isSetInMemoryPercentage()) {
-        optionals.set(14);
-      }
-      oprot.writeBitSet(optionals, 15);
+      oprot.writeBitSet(optionals, 14);
       if (struct.isSetId()) {
         oprot.writeI32(struct.id);
       }
@@ -1652,8 +1565,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (struct.isSetPath()) {
         oprot.writeString(struct.path);
       }
-      if (struct.isSetCheckpointPath()) {
-        oprot.writeString(struct.checkpointPath);
+      if (struct.isSetUfsPath()) {
+        oprot.writeString(struct.ufsPath);
       }
       if (struct.isSetLength()) {
         oprot.writeI64(struct.length);
@@ -1664,20 +1577,17 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (struct.isSetCreationTimeMs()) {
         oprot.writeI64(struct.creationTimeMs);
       }
-      if (struct.isSetComplete()) {
-        oprot.writeBool(struct.complete);
+      if (struct.isSetIsComplete()) {
+        oprot.writeBool(struct.isComplete);
       }
-      if (struct.isSetFolder()) {
-        oprot.writeBool(struct.folder);
+      if (struct.isSetIsFolder()) {
+        oprot.writeBool(struct.isFolder);
       }
-      if (struct.isSetInMemory()) {
-        oprot.writeBool(struct.inMemory);
+      if (struct.isSetIsPinned()) {
+        oprot.writeBool(struct.isPinned);
       }
-      if (struct.isSetNeedPin()) {
-        oprot.writeBool(struct.needPin);
-      }
-      if (struct.isSetNeedCache()) {
-        oprot.writeBool(struct.needCache);
+      if (struct.isSetIsCache()) {
+        oprot.writeBool(struct.isCache);
       }
       if (struct.isSetBlockIds()) {
         {
@@ -1699,7 +1609,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ClientFileInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(15);
+      BitSet incoming = iprot.readBitSet(14);
       if (incoming.get(0)) {
         struct.id = iprot.readI32();
         struct.setIdIsSet(true);
@@ -1713,8 +1623,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         struct.setPathIsSet(true);
       }
       if (incoming.get(3)) {
-        struct.checkpointPath = iprot.readString();
-        struct.setCheckpointPathIsSet(true);
+        struct.ufsPath = iprot.readString();
+        struct.setUfsPathIsSet(true);
       }
       if (incoming.get(4)) {
         struct.length = iprot.readI64();
@@ -1729,26 +1639,22 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         struct.setCreationTimeMsIsSet(true);
       }
       if (incoming.get(7)) {
-        struct.complete = iprot.readBool();
-        struct.setCompleteIsSet(true);
+        struct.isComplete = iprot.readBool();
+        struct.setIsCompleteIsSet(true);
       }
       if (incoming.get(8)) {
-        struct.folder = iprot.readBool();
-        struct.setFolderIsSet(true);
+        struct.isFolder = iprot.readBool();
+        struct.setIsFolderIsSet(true);
       }
       if (incoming.get(9)) {
-        struct.inMemory = iprot.readBool();
-        struct.setInMemoryIsSet(true);
+        struct.isPinned = iprot.readBool();
+        struct.setIsPinnedIsSet(true);
       }
       if (incoming.get(10)) {
-        struct.needPin = iprot.readBool();
-        struct.setNeedPinIsSet(true);
+        struct.isCache = iprot.readBool();
+        struct.setIsCacheIsSet(true);
       }
       if (incoming.get(11)) {
-        struct.needCache = iprot.readBool();
-        struct.setNeedCacheIsSet(true);
-      }
-      if (incoming.get(12)) {
         {
           org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
           struct.blockIds = new ArrayList<Long>(_list13.size);
@@ -1761,11 +1667,11 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         }
         struct.setBlockIdsIsSet(true);
       }
-      if (incoming.get(13)) {
+      if (incoming.get(12)) {
         struct.dependencyId = iprot.readI32();
         struct.setDependencyIdIsSet(true);
       }
-      if (incoming.get(14)) {
+      if (incoming.get(13)) {
         struct.inMemoryPercentage = iprot.readI32();
         struct.setInMemoryPercentageIsSet(true);
       }

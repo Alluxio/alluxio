@@ -24,6 +24,17 @@ public class LocalBlockInStream extends BlockInStream {
   private TachyonByteBuffer mTachyonBuffer = null;
   private ByteBuffer mBuffer = null;
 
+  /**
+   * @param file
+   *          the file the block belongs to
+   * @param readType
+   *          the InStream's read type
+   * @param blockIndex
+   *          the index of the block in the file
+   * @param buf
+   *          the buffer of the whole block in local memory
+   * @throws IOException
+   */
   LocalBlockInStream(TachyonFile file, ReadType readType, int blockIndex, TachyonByteBuffer buf)
       throws IOException {
     super(file, readType, blockIndex);

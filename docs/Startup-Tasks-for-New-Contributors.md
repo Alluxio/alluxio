@@ -22,7 +22,9 @@ A list of tasks that everyone should do before contributing to Tachyon.
 
 6.  Fork the repository, write/add unit tests/java doc for one or two files in the following list,
 and then submit a pull request. You are also welcome to address issues in our
-[JIRA](https://spark-project.atlassian.net/browse/TACHYON)
+[JIRA](https://spark-project.atlassian.net/browse/TACHYON). For a tutorial, see the GitHub guides on
+[forking a repo](https://help.github.com/articles/fork-a-repo) and
+[sending a pull request](https://help.github.com/articles/using-pull-requests).
 
 * * * * *
 
@@ -36,15 +38,19 @@ and then submit a pull request. You are also welcome to address issues in our
 
     core/src/main/java/tachyon/worker/DataServerMessage.java
 
-After the pull request is reviewed and merged, you become a Tachyon contributor!
-
 ### Testing
 
--   Run all unit tests: ``mvn test`` (use localfs as under filesystem) and ``mvn -Dintegration test`` (use HDFS as under filesystem)
+-   Run all unit tests: ``mvn test`` (use localfs as under filesystem) and
+    ``mvn -Dtest.profile=hdfs test`` (use HDFS as under filesystem)
 
--   In Glusterfs environment, also run Glusterfs unit tests: ``mvn -Dglusterfs -Dtachyon.underfs.glusterfs.mounts=/vol -Dtachyon.underfs.glusterfs.volumes=testvol test`` (use Glusterfs as under filesystem, where /vol is a valid Glusterfs mount point) and ``mvn -Dglusterfs test`` (use localfs as under filesystem)
+-   In Glusterfs environment, also run Glusterfs unit tests:
+    ``mvn -Dhadoop.version=2.3.0 -Dtest.profile=glusterfs -Dtachyon.underfs.glusterfs.mounts=/vol
+    -Dtachyon.underfs.glusterfs.volumes=testvol test``
+    (use Glusterfs as under filesystem, where /vol is a valid Glusterfs mount point) and
+    ``mvn -Dhadoop.version=2.3.0 -Dtest.profile=glusterfs test`` (use localfs as under filesystem)
 
--   Run a single unit test: ``mvn -Dtest=TestCircle#mytest test`` ; e.g.  ``mvn -Dtest=TachyonFSTest#createFileTest test`` ;
+-   Run a single unit test: ``mvn -Dtest=TestCircle#mytest test`` ; e.g.
+    ``mvn -Dtest=TachyonFSTest#createFileTest test`` ;
 
 -   Quickly test the working of some APIs in an interactive manner, you may leverage
 the Scala shell, as discussed in this [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).

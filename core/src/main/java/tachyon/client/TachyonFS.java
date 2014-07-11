@@ -62,7 +62,7 @@ import tachyon.worker.WorkerClient;
 public class TachyonFS {
   /**
    * Create a TachyonFS handler.
-   *
+   * 
    * @param tachyonPath
    *          a Tachyon path contains master address. e.g., tachyon://localhost:19998,
    *          tachyon://localhost:19998/ab/c.txt
@@ -141,7 +141,14 @@ public class TachyonFS {
     mAvailableSpaceBytes = 0L;
   }
 
-  public synchronized void accessLocalBlock(long blockId) throws IOException {
+  /**
+   * Update the latest block access time on the worker.
+   * 
+   * @param blockId
+   *          the local block's id
+   * @throws IOException
+   */
+  synchronized void accessLocalBlock(long blockId) throws IOException {
     connect();
     if (mWorkerClient != null && mIsWorkerLocal) {
       try {
@@ -156,7 +163,14 @@ public class TachyonFS {
     LOG.error("TachyonClient accessLocalBlock(" + blockId + ") failed");
   }
 
-  public synchronized void addCheckpoint(int fid) throws IOException {
+  /**
+   * Notify the worker that the checkpoint file of the file FID has been added.
+   * 
+   * @param fid
+   *          the file id
+   * @throws IOException
+   */
+  synchronized void addCheckpoint(int fid) throws IOException {
     connect();
     if (!mConnected) {
       throw new IOException("Failed to add checkpoint for file " + fid);
@@ -172,7 +186,15 @@ public class TachyonFS {
     }
   }
 
-  public synchronized boolean asyncCheckpoint(int fid) throws IOException {
+  /**
+   * Notify the worker to checkpoint the file asynchronously
+   * 
+   * @param fid
+   *          the file id
+   * @return true if succeed, false otherwise
+   * @throws IOException
+   */
+  synchronized boolean asyncCheckpoint(int fid) throws IOException {
     connect();
     try {
       return mWorkerClient.asyncCheckpoint(fid);
@@ -184,6 +206,13 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Notify the worker the block is cached.
+   * 
+   * @param blockId
+   *          the block id
+   * @throws IOException
+   */
   public synchronized void cacheBlock(long blockId) throws IOException {
     connect();
     if (!mConnected) {
@@ -203,7 +232,7 @@ public class TachyonFS {
 
   /**
    * Cleans the given path, throwing an IOException rather than an InvalidPathException.
-   *
+   * 
    * @param path
    *          The path to clean
    * @return the cleaned path
@@ -216,6 +245,11 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Close the client. Close the connections to both to master and worker
+   * 
+   * @throws TException
+   */
   public synchronized void close() throws TException {
     if (mMasterClient != null) {
       mMasterClient.cleanConnect();
@@ -227,7 +261,14 @@ public class TachyonFS {
     }
   }
 
-  public synchronized void completeFile(int fId) throws IOException {
+  /**
+   * The file is complete.
+   * 
+   * @param fId
+   *          the file id
+   * @throws IOException
+   */
+  synchronized void completeFile(int fId) throws IOException {
     connect();
     try {
       mMasterClient.user_completeFile(fId);
@@ -238,7 +279,7 @@ public class TachyonFS {
   }
 
   // Lazy connection TODO This should be removed since the Thrift server has been fixed.
-  public synchronized void connect() throws IOException {
+  synchronized void connect() throws IOException {
     if (mMasterClient != null) {
       return;
     }
@@ -328,7 +369,13 @@ public class TachyonFS {
     }
   }
 
-  public synchronized File createAndGetUserTempFolder() throws IOException {
+  /**
+   * Create a user local temporary folder and return it
+   * 
+   * @return the local temporary folder
+   * @throws IOException
+   */
+  synchronized File createAndGetUserTempFolder() throws IOException {
     connect();
 
     if (mUserTempFolder == null) {
@@ -350,7 +397,13 @@ public class TachyonFS {
     return ret;
   }
 
-  public synchronized String createAndGetUserUnderfsTempFolder() throws IOException {
+  /**
+   * Create a user UnderFileSystem temporary folder and return it
+   * 
+   * @return the UnderFileSystem temporary folder
+   * @throws IOException
+   */
+  synchronized String createAndGetUserUnderfsTempFolder() throws IOException {
     connect();
 
     if (mUserUnderfsTempFolder == null) {
@@ -366,6 +419,25 @@ public class TachyonFS {
     return mUserUnderfsTempFolder;
   }
 
+  /**
+   * Create a Dependency
+   * 
+   * @param parents
+   *          the dependency's input files
+   * @param children
+   *          the dependency's output files
+   * @param commandPrefix
+   * @param data
+   * @param comment
+   * @param framework
+   * @param frameworkVersion
+   * @param dependencyType
+   *          the dependency's type, Wide or Narrow
+   * @param childrenBlockSizeByte
+   *          the block size of the dependency's output files
+   * @return the dependency's id
+   * @throws IOException
+   */
   public synchronized int createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
@@ -382,7 +454,7 @@ public class TachyonFS {
   /**
    * Create a file with the default block size (1GB) in the system. It also creates necessary
    * folders along the path. // TODO It should not create necessary path.
-   *
+   * 
    * @param path
    *          the path of the file
    * @return The unique file id. It returns -1 if the creation failed.
@@ -396,7 +468,7 @@ public class TachyonFS {
   /**
    * Create a file in the system. It also creates necessary folders along the path.
    * // TODO It should not create necessary path.
-   *
+   * 
    * @param path
    *          the path of the file
    * @param blockSizeByte
@@ -428,7 +500,7 @@ public class TachyonFS {
   /**
    * Create a file in the system with a pre-defined underfsPath. It also creates necessary
    * folders along the path. // TODO It should not create necessary path.
-   *
+   * 
    * @param path
    *          the path of the file in Tachyon
    * @param underfsPath
@@ -453,10 +525,32 @@ public class TachyonFS {
     return fid;
   }
 
+  /**
+   * Create a RawTable and return its id
+   * 
+   * @param path
+   *          the RawTable's path
+   * @param columns
+   *          number of columns it has
+   * @return the id if succeed, -1 otherwise
+   * @throws IOException
+   */
   public synchronized int createRawTable(String path, int columns) throws IOException {
     return createRawTable(path, columns, ByteBuffer.allocate(0));
   }
 
+  /**
+   * Create a RawTable and return its id
+   * 
+   * @param path
+   *          the RawTable's path
+   * @param columns
+   *          number of columns it has
+   * @param metadata
+   *          the meta data of the RawTable
+   * @return the id if succeed, -1 otherwise
+   * @throws IOException
+   */
   public synchronized int createRawTable(String path, int columns, ByteBuffer metadata)
       throws IOException {
     connect();
@@ -480,7 +574,7 @@ public class TachyonFS {
 
   /**
    * Delete the file denoted by the file id.
-   *
+   * 
    * @param fid
    *          file id
    * @param recursive
@@ -505,7 +599,7 @@ public class TachyonFS {
 
   /**
    * Delete the file denoted by the path.
-   *
+   * 
    * @param path
    *          the file path
    * @param recursive
@@ -527,6 +621,14 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Return whether the file exists or not
+   * 
+   * @param path
+   *          the file's path in Tachyon file system
+   * @return true if it exists, false otherwise
+   * @throws IOException
+   */
   public synchronized boolean exist(String path) throws IOException {
     return getFileId(path) != -1;
   }
@@ -551,6 +653,18 @@ public class TachyonFS {
     return ret;
   }
 
+  /**
+   * Get the block id by the file id and block index. it will check whether the file and the block
+   * exist.
+   * 
+   * @param fId
+   *          the file id
+   * @param blockIndex
+   *          The index of the block in the file.
+   * @return the block id if exists
+   * @throws IOException
+   *           if the file does not exist, or connection issue.
+   */
   public synchronized long getBlockId(int fId, int blockIndex) throws IOException {
     ClientFileInfo info = mClientFileInfos.get(fId);
     if (info == null) {
@@ -574,7 +688,17 @@ public class TachyonFS {
     }
   }
 
-  public synchronized long getBlockIdBasedOnOffset(int fId, long offset) throws IOException {
+  /**
+   * Get the block id by the file id and offset. it will check whether the file and the block exist.
+   * 
+   * @param fId
+   *          the file id
+   * @param offset
+   *          The offset of the file.
+   * @return the block id if exists
+   * @throws IOException
+   */
+  synchronized long getBlockIdBasedOnOffset(int fId, long offset) throws IOException {
     ClientFileInfo info;
     if (!mClientFileInfos.containsKey(fId)) {
       info = fetchClientFileInfo(fId);
@@ -587,24 +711,50 @@ public class TachyonFS {
     return getBlockId(fId, index);
   }
 
+  /**
+   * @return a new block lock id
+   */
   public int getBlockLockId() {
     return mBlockLockId.getAndIncrement();
   }
 
+  /**
+   * @param fId
+   *          the file id
+   * @return the block size of the file, in bytes
+   */
   public synchronized long getBlockSizeByte(int fId) {
     return mClientFileInfos.get(fId).getBlockSizeByte();
   }
 
-  synchronized String getCheckpointPath(int fid) throws IOException {
+  /**
+   * Return the under filesystem path of the file
+   * 
+   * @param fid
+   *          the file id
+   * @return the checkpoint path of the file
+   * @throws IOException
+   */
+  synchronized String getUfsPath(int fid) throws IOException {
     ClientFileInfo info = mClientFileInfos.get(fid);
-    if (info == null || !info.getCheckpointPath().equals("")) {
+    if (info == null || !info.getUfsPath().equals("")) {
       info = fetchClientFileInfo(fid);
       mClientFileInfos.put(fid, info);
     }
 
-    return info.getCheckpointPath();
+    return info.getUfsPath();
   }
 
+  /**
+   * Get a ClientBlockInfo by the file id and block index
+   * 
+   * @param fId
+   *          the file id
+   * @param blockIndex
+   *          The index of the block in the file.
+   * @return the ClientBlockInfo of the specified block
+   * @throws IOException
+   */
   public synchronized ClientBlockInfo getClientBlockInfo(int fId, int blockIndex)
       throws IOException {
     boolean fetch = false;
@@ -614,7 +764,7 @@ public class TachyonFS {
     ClientFileInfo info = null;
     if (!fetch) {
       info = mClientFileInfos.get(fId);
-      if (info.isFolder() || info.blockIds.size() <= blockIndex) {
+      if (info.isFolder || info.blockIds.size() <= blockIndex) {
         fetch = true;
       }
     }
@@ -628,7 +778,7 @@ public class TachyonFS {
     if (info == null) {
       throw new IOException("File " + fId + " does not exist.");
     }
-    if (info.isFolder()) {
+    if (info.isFolder) {
       throw new IOException(new FileDoesNotExistException("File " + fId + " is a folder."));
     }
     if (info.blockIds.size() <= blockIndex) {
@@ -646,6 +796,14 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Get a ClientDependencyInfo by the dependency id
+   * 
+   * @param did
+   *          the dependency id
+   * @return the ClientDependencyInfo of the specified dependency
+   * @throws IOException
+   */
   public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
     connect();
     try {
@@ -656,6 +814,16 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Get a ClientFileInfo of the file
+   * 
+   * @param path
+   *          the file path in Tachyon file system
+   * @param useCachedMetadata
+   *          if true use the local cached meta data
+   * @return the ClientFileInfo
+   * @throws IOException
+   */
   private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata)
       throws IOException {
     connect();
@@ -688,17 +856,24 @@ public class TachyonFS {
     return ret;
   }
 
+  /**
+   * Get the creation time of the file
+   * 
+   * @param fId
+   *          the file id
+   * @return the creation time in milliseconds
+   */
   public synchronized long getCreationTimeMs(int fId) {
     return mClientFileInfos.get(fId).getCreationTimeMs();
   }
 
   /**
    * Get <code>TachyonFile</code> based on the file id.
-   *
+   * 
    * NOTE: This *will* use cached file metadata, and so will not see changes to dynamic properties,
    * such as the pinned flag. This is also different from the behavior of getFile(path), which
    * by default will not use cached metadata.
-   *
+   * 
    * @param fid
    *          file id.
    * @return TachyonFile of the file id, or null if the file does not exist.
@@ -710,7 +885,7 @@ public class TachyonFS {
   /**
    * Get <code>TachyonFile</code> based on the file id. If useCachedMetadata, this will not see
    * changes to the file's pin setting, or other dynamic properties.
-   *
+   * 
    * @return TachyonFile of the file id, or null if the file does not exist.
    */
   public synchronized TachyonFile getFile(int fid, boolean useCachedMetadata) throws IOException {
@@ -726,7 +901,7 @@ public class TachyonFS {
 
   /**
    * Get <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
-   *
+   * 
    * @param path
    *          file path.
    * @return TachyonFile of the path, or null if the file does not exist.
@@ -751,11 +926,19 @@ public class TachyonFS {
     return new TachyonFile(this, clientFileInfo.getId());
   }
 
+  /**
+   * Get all the blocks' ids of the file
+   * 
+   * @param fId
+   *          the file id
+   * @return the list of blocks' ids
+   * @throws IOException
+   */
   public synchronized List<Long> getFileBlockIdList(int fId) throws IOException {
     connect();
 
     ClientFileInfo info = mClientFileInfos.get(fId);
-    if (info == null || !info.isComplete()) {
+    if (info == null || !info.isComplete) {
       info = fetchClientFileInfo(fId);
       mClientFileInfos.put(fId, info);
     }
@@ -767,6 +950,14 @@ public class TachyonFS {
     return info.blockIds;
   }
 
+  /**
+   * Get all the blocks' info of the file
+   * 
+   * @param fid
+   *          the file id
+   * @return the list of the blocks' info
+   * @throws IOException
+   */
   public synchronized List<ClientBlockInfo> getFileBlocks(int fid) throws IOException {
     // TODO Should read from mClientFileInfos if possible. Should add timeout to improve this.
     connect();
@@ -782,6 +973,14 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Get the net address of all the file's hosts
+   * 
+   * @param fileId
+   *          the file id
+   * @return the list of all the file's hosts, in String
+   * @throws IOException
+   */
   public synchronized List<String> getFileHosts(int fileId) throws IOException {
     connect();
     if (!mConnected) {
@@ -800,6 +999,14 @@ public class TachyonFS {
     return ret;
   }
 
+  /**
+   * Get file id by the path. It will check if the path exists.
+   * 
+   * @param path
+   *          the path in Tachyon file system
+   * @return the file id if exists, -1 otherwise
+   * @throws IOException
+   */
   public synchronized int getFileId(String path) throws IOException {
     connect();
     if (!mConnected) {
@@ -817,8 +1024,14 @@ public class TachyonFS {
     return fid;
   }
 
+  /**
+   * @param fid
+   *          the file id
+   * @return the current length of the file
+   * @throws IOException
+   */
   synchronized long getFileLength(int fid) throws IOException {
-    if (!mClientFileInfos.get(fid).isComplete()) {
+    if (!mClientFileInfos.get(fid).isComplete) {
       ClientFileInfo info = fetchClientFileInfo(fid);
       mClientFileInfos.put(fid, info);
     }
@@ -870,7 +1083,7 @@ public class TachyonFS {
    * an alpha power-api feature for applications that want short-circuit-read files directly. There
    * is no guarantee that the file still exists after this call returns, as Tachyon may evict blocks
    * from memory at any time.
-   *
+   * 
    * @param blockId
    *          The id of the block.
    * @return filename on local file system or null if file not present on local file system.
@@ -887,6 +1100,14 @@ public class TachyonFS {
     return null;
   }
 
+  /**
+   * Get the next new block's id of the file.
+   * 
+   * @param fId
+   *          the file id
+   * @return the id of the next block
+   * @throws IOException
+   */
   synchronized long getNextBlockId(int fId) throws IOException {
     connect();
     try {
@@ -897,9 +1118,17 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Get the number of blocks of a file. Only works when the file exists.
+   * 
+   * @param fId
+   *          the file id
+   * @return the number of blocks if the file exists
+   * @throws IOException
+   */
   synchronized int getNumberOfBlocks(int fId) throws IOException {
     ClientFileInfo info = mClientFileInfos.get(fId);
-    if (info == null || !info.isComplete()) {
+    if (info == null || !info.isComplete) {
       info = fetchClientFileInfo(fId);
       mClientFileInfos.put(fId, info);
     }
@@ -909,20 +1138,42 @@ public class TachyonFS {
     return info.getBlockIds().size();
   }
 
-  public synchronized int getNumberOfFiles(String folderPath) throws IOException {
+  /**
+   * Get the number of the files under the folder. Return 1 if the path is a file. Return the
+   * number of direct children if the path is a folder.
+   * 
+   * @param path
+   *          the path in Tachyon file system
+   * @return the number of the files
+   * @throws IOException
+   */
+  public synchronized int getNumberOfFiles(String path) throws IOException {
     connect();
     try {
-      return mMasterClient.user_getNumberOfFiles(folderPath);
+      return mMasterClient.user_getNumberOfFiles(path);
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);
     }
   }
 
+  /**
+   * @param fid
+   *          the file id
+   * @return the path of the file in Tachyon file system
+   */
   synchronized String getPath(int fid) {
     return mClientFileInfos.get(fid).getPath();
   }
 
+  /**
+   * Get the RawTable by id
+   * 
+   * @param id
+   *          the id of the raw table
+   * @return the RawTable
+   * @throws IOException
+   */
   public synchronized RawTable getRawTable(int id) throws IOException {
     connect();
     ClientRawTableInfo clientRawTableInfo = null;
@@ -935,6 +1186,14 @@ public class TachyonFS {
     return new RawTable(this, clientRawTableInfo);
   }
 
+  /**
+   * Get the RawTable by path
+   * 
+   * @param path
+   *          the path of the raw table
+   * @return the RawTable
+   * @throws IOException
+   */
   public synchronized RawTable getRawTable(String path) throws IOException {
     connect();
     path = cleanPathIOException(path);
@@ -948,11 +1207,19 @@ public class TachyonFS {
     return new RawTable(this, clientRawTableInfo);
   }
 
-  public synchronized String getRootFolder() throws IOException {
+  /**
+   * @return the local root data folder
+   * @throws IOException
+   */
+  synchronized String getRootFolder() throws IOException {
     connect();
     return mLocalDataFolder;
   }
 
+  /**
+   * @return the address of the UnderFileSystem
+   * @throws IOException
+   */
   public synchronized String getUnderfsAddress() throws IOException {
     connect();
     try {
@@ -962,6 +1229,10 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * @return all the works' info
+   * @throws IOException
+   */
   public synchronized List<ClientWorkerInfo> getWorkersInfo() throws IOException {
     connect();
     try {
@@ -972,36 +1243,79 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * @return true if there is a local worker, false otherwise
+   * @throws IOException
+   */
   public synchronized boolean hasLocalWorker() throws IOException {
     connect();
     return (mIsWorkerLocal && mWorkerClient != null);
   }
 
+  /**
+   * @param fid
+   *          the file id
+   * @return true if this file is complete, false otherwise
+   * @throws IOException
+   */
   synchronized boolean isComplete(int fid) throws IOException {
-    if (!mClientFileInfos.get(fid).isComplete()) {
+    if (!mClientFileInfos.get(fid).isComplete) {
       mClientFileInfos.put(fid, fetchClientFileInfo(fid));
     }
-    return mClientFileInfos.get(fid).isComplete();
+    return mClientFileInfos.get(fid).isComplete;
   }
 
+  /**
+   * @return true if this client is connected to master, false otherwise
+   */
   public synchronized boolean isConnected() {
     return mConnected;
   }
 
+  /**
+   * @param fid
+   *          the file id
+   * @return true if the file is a directory, false otherwise
+   */
   synchronized boolean isDirectory(int fid) {
-    return mClientFileInfos.get(fid).isFolder();
+    return mClientFileInfos.get(fid).isFolder;
   }
 
+  /**
+   * Return whether the file is in memory or not. Note that a file may be partly in memory. This
+   * value is true only if the file is fully in memory.
+   * 
+   * @param fid
+   *          the file id
+   * @return true if the file is fully in memory, false otherwise
+   * @throws IOException
+   */
   synchronized boolean isInMemory(int fid) throws IOException {
     ClientFileInfo info = fetchClientFileInfo(fid);
     mClientFileInfos.put(info.getId(), info);
-    return info.isInMemory();
+    return 100 == info.inMemoryPercentage;
   }
 
+  /**
+   * @param fid
+   *          the file id
+   * @return true if the file is need pin, false otherwise
+   */
   synchronized boolean isNeedPin(int fid) {
-    return mClientFileInfos.get(fid).isNeedPin();
+    return mClientFileInfos.get(fid).isPinned;
   }
 
+  /**
+   * List the files under the given path. List the files recursively if <code>recursive</code> is
+   * true
+   * 
+   * @param path
+   *          the path in Tachyon file system
+   * @param recursive
+   *          if true list the files recursively
+   * @return the list of the files' id
+   * @throws IOException
+   */
   public synchronized List<Integer> listFiles(String path, boolean recursive) throws IOException {
     connect();
     try {
@@ -1015,7 +1329,7 @@ public class TachyonFS {
   /**
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
    * <code>path</code> is a file, return its ClientFileInfo.
-   *
+   * 
    * @param path
    *          the target directory/file path
    * @return A list of ClientFileInfo
@@ -1033,7 +1347,7 @@ public class TachyonFS {
 
   /**
    * Lock a block in the current TachyonFS.
-   *
+   * 
    * @param blockId
    *          The id of the block to lock. <code>blockId</code> must be positive.
    * @param blockLockId
@@ -1068,7 +1382,7 @@ public class TachyonFS {
 
   /**
    * Return a list of files/directories under the given path.
-   *
+   * 
    * @param path
    *          the path in the TFS.
    * @param recursive
@@ -1096,7 +1410,7 @@ public class TachyonFS {
   /**
    * Create a directory if it does not exist. The method also creates necessary non-existing
    * parent folders.
-   *
+   * 
    * @param path
    *          Directory path.
    * @return true if the folder is created successfully or already existing. false otherwise.
@@ -1115,6 +1429,13 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Tell master that out of memory when pin file
+   * 
+   * @param fid
+   *          the file id
+   * @throws IOException
+   */
   public synchronized void outOfMemoryForPinFile(int fid) throws IOException {
     connect();
     if (mConnected) {
@@ -1128,7 +1449,7 @@ public class TachyonFS {
 
   /**
    * Read the whole local block.
-   *
+   * 
    * @param blockId
    *          The id of the block to read.
    * @return <code>TachyonByteBuffer</code> containing the whole block.
@@ -1140,7 +1461,7 @@ public class TachyonFS {
 
   /**
    * Read local block return a TachyonByteBuffer
-   *
+   * 
    * @param blockId
    *          The id of the block.
    * @param offset
@@ -1207,6 +1528,16 @@ public class TachyonFS {
     mAvailableSpaceBytes += releaseSpaceBytes;
   }
 
+  /**
+   * Rename the file
+   * 
+   * @param fId
+   *          the file id
+   * @param path
+   *          the new path of the file in Tachyon file system
+   * @return true if succeed, false otherwise
+   * @throws IOException
+   */
   public synchronized boolean rename(int fId, String path) throws IOException {
     connect();
     if (!mConnected) {
@@ -1225,7 +1556,7 @@ public class TachyonFS {
 
   /**
    * Rename the srcPath to the dstPath
-   *
+   * 
    * @param srcPath
    * @param dstPath
    * @return true if succeed, false otherwise.
@@ -1249,6 +1580,13 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Report the lost file to master
+   * 
+   * @param fileId
+   *          the lost file id
+   * @throws IOException
+   */
   public synchronized void reportLostFile(int fileId) throws IOException {
     connect();
     try {
@@ -1259,6 +1597,13 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Request the dependency's needed files
+   * 
+   * @param depId
+   *          the dependency id
+   * @throws IOException
+   */
   public synchronized void requestFilesInDependency(int depId) throws IOException {
     connect();
     try {
@@ -1269,6 +1614,14 @@ public class TachyonFS {
     }
   }
 
+  /**
+   * Try to request space from worker. Only works when a local worker exists.
+   * 
+   * @param requestSpaceBytes
+   *          the space size in bytes
+   * @return true if succeed, false otherwise
+   * @throws IOException
+   */
   public synchronized boolean requestSpace(long requestSpaceBytes) throws IOException {
     connect();
     if (mWorkerClient == null || !mIsWorkerLocal) {
@@ -1310,7 +1663,7 @@ public class TachyonFS {
 
   /**
    * Print out the string representation of this Tachyon server address.
-   *
+   * 
    * @return the string representation like tachyon://host:port or tachyon-ft://host:port
    */
   @Override
@@ -1320,7 +1673,7 @@ public class TachyonFS {
 
   /**
    * Unlock a block in the current TachyonFS.
-   *
+   * 
    * @param blockId
    *          The id of the block to unlock. <code>blockId</code> must be positive.
    * @param blockLockId
@@ -1360,7 +1713,7 @@ public class TachyonFS {
   /**
    * Sets the "pinned" flag for the given file. Pinned files are never evicted
    * by Tachyon until they are unpinned.
-   *
+   * 
    * Calling setPinned() on a folder will recursively set the "pinned" flag on
    * all of that folder's children. This may be an expensive operation for
    * folders with many files/subfolders.
@@ -1390,8 +1743,7 @@ public class TachyonFS {
   }
 
   /** Returns true if the given file or folder has its "pinned" flag set. */
-  public synchronized boolean isPinned(int fid, boolean useCachedMetadata)
-      throws IOException {
+  public synchronized boolean isPinned(int fid, boolean useCachedMetadata) throws IOException {
     ClientFileInfo info;
     if (!useCachedMetadata || !mClientFileInfos.containsKey(fid)) {
       info = fetchClientFileInfo(fid);
@@ -1399,9 +1751,18 @@ public class TachyonFS {
     }
     info = mClientFileInfos.get(fid);
 
-    return info.isNeedPin();
+    return info.isPinned;
   }
 
+  /**
+   * Update the RawTable's meta data
+   * 
+   * @param id
+   *          the raw table's id
+   * @param metadata
+   *          the new meta data
+   * @throws IOException
+   */
   public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata) throws IOException {
     connect();
     try {

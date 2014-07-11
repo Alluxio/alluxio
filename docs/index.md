@@ -72,6 +72,8 @@ line.
 [Syncing the Underlying Filesystem](Syncing-the-Underlying-Filesystem.html): Make Tachyon understand
 an existing underlayer filesystem.
 
+[Configure Glusterfs as UnderFileSystem](Setup-GlusterFs-as-UnderFileSystem.html)
+
 [Tachyon Java API (Javadoc)](api/java/index.html)
 
 Tachyon Presentations:
