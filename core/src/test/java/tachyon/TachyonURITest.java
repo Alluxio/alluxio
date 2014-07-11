@@ -46,6 +46,26 @@ public class TachyonURITest {
   }
 
   @Test
+  public void constructFromComponentsTests() {
+    String scheme = "tachyon";
+    String authority = "127.0.0.1:90909";
+    String path = "/a/../b/c.txt";
+    String absPath = "/b/c.txt";
+
+    TachyonURI uri0 = new TachyonURI(null, null, path);
+    Assert.assertEquals(absPath, uri0.toString());
+
+    TachyonURI uri1 = new TachyonURI(scheme, null, path);
+    Assert.assertEquals(scheme + ":" + absPath, uri1.toString());
+
+    TachyonURI uri2 = new TachyonURI(scheme, authority, path);
+    Assert.assertEquals(scheme + "://" + authority + absPath, uri2.toString());
+
+    TachyonURI uri3 = new TachyonURI(null, authority, path);
+    Assert.assertEquals("//" + authority + absPath, uri3.toString());
+  }
+
+  @Test
   public void constructFromParentAndChildTests() {
     testParentChild(".", ".", ".");
     testParentChild("/", "/", ".");
