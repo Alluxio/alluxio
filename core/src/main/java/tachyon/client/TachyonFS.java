@@ -93,6 +93,20 @@ public class TachyonFS {
     return new TachyonFS(new InetSocketAddress(masterHost, masterPort), zookeeperMode);
   }
 
+    /**
+     * Create a TachyonFS handler.
+     *
+     * @param masterHost master host details
+     * @param masterPort port master listens on
+     * @param zookeeperMode use zookeeper
+     *                      
+     * @return the corresponding TachyonFS hanlder
+     * @throws IOException
+     */
+    public static synchronized TachyonFS get(String masterHost, int masterPort, boolean zookeeperMode) throws IOException {
+        return new TachyonFS(new InetSocketAddress(masterHost, masterPort), zookeeperMode);
+    }
+
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final long USER_QUOTA_UNIT_BYTES = UserConf.get().QUOTA_UNIT_BYTES;
 

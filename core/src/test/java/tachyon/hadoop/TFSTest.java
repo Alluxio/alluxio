@@ -14,6 +14,8 @@
  */
 package tachyon.hadoop;
 
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -41,17 +43,17 @@ import tachyon.client.TachyonFS;
 @PrepareForTest(TachyonFS.class)
 public class TFSTest {
 
-  private TFS mTfs;
+  private TFSFT mTfs;
 
   private void mockTachyonFSGet() throws IOException {
     mockStatic(TachyonFS.class);
     TachyonFS tachyonFS = mock(TachyonFS.class);
-    when(TachyonFS.get(anyString())).thenReturn(tachyonFS);
+    when(TachyonFS.get(anyString(), anyInt(), anyBoolean())).thenReturn(tachyonFS);
   }
 
   @Before
   public void setup() throws Exception {
-    mTfs = new TFS();
+    mTfs = new TFSFT();
   }
 
   @Test
@@ -62,7 +64,7 @@ public class TFSTest {
         new Configuration());
     // then
     verifyStatic();
-    TachyonFS.get(Constants.HEADER_FT + "stanley:19998");
+    TachyonFS.get("stanley", 19998, true);
   }
 
   @Test
@@ -72,6 +74,6 @@ public class TFSTest {
     mTfs.initialize(new URI(Constants.HEADER + "stanley:19998/tmp/path.txt"), new Configuration());
     // then
     PowerMockito.verifyStatic();
-    TachyonFS.get(Constants.HEADER + "stanley:19998");
+    TachyonFS.get("stanley", 19998, true);
   }
 }
