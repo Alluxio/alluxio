@@ -16,7 +16,7 @@
 
 if [[ `uname -a` == Darwin* ]]; then
   # Assuming Mac OS X
-  export JAVA_HOME=$(/usr/libexec/java_home)
+  export JAVA_HOME=${JAVA_HOME:-$(/usr/libexec/java_home)}
   export TACHYON_RAM_FOLDER=/Volumes/ramdisk
   export TACHYON_JAVA_OPTS="-Djava.security.krb5.realm= -Djava.security.krb5.kdc="
 else
