@@ -40,6 +40,27 @@ import tachyon.util.NetworkUtils;
 public class TachyonWorker implements Runnable {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Create a new TachyonWorker
+   * 
+   * @param masterAddress
+   *          The TachyonMaster's address
+   * @param workerAddress
+   *          This TachyonWorker's address
+   * @param dataPort
+   *          This TachyonWorker's data server's port
+   * @param selectorThreads
+   *          The number of selector threads of the worker's thrift server
+   * @param acceptQueueSizePerThreads
+   *          The accept queue size per thread of the worker's thrift server
+   * @param workerThreads
+   *          The number of threads of the worker's thrift server
+   * @param localFolder
+   *          This TachyonWorker's local folder's path
+   * @param spaceLimitBytes
+   *          The maximum memory space this TachyonWorker can use, in bytes
+   * @return The new TachyonWorker
+   */
   public static synchronized TachyonWorker createWorker(InetSocketAddress masterAddress,
       InetSocketAddress workerAddress, int dataPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads, String localFolder, long spaceLimitBytes) {
@@ -47,6 +68,27 @@ public class TachyonWorker implements Runnable {
         acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
   }
 
+  /**
+   * Create a new TachyonWorker
+   * 
+   * @param masterAddress
+   *          The TachyonMaster's address. e.g., localhost:19998
+   * @param workerAddress
+   *          This TachyonWorker's address. e.g., localhost:29998
+   * @param dataPort
+   *          This TachyonWorker's data server's port
+   * @param selectorThreads
+   *          The number of selector threads of the worker's thrift server
+   * @param acceptQueueSizePerThreads
+   *          The accept queue size per thread of the worker's thrift server
+   * @param workerThreads
+   *          The number of threads of the worker's thrift server
+   * @param localFolder
+   *          This TachyonWorker's local folder's path
+   * @param spaceLimitBytes
+   *          The maximum memory space this TachyonWorker can use, in bytes
+   * @return The new TachyonWorker
+   */
   public static synchronized TachyonWorker createWorker(String masterAddress,
       String workerAddress, int dataPort, int selectorThreads, int acceptQueueSizePerThreads,
       int workerThreads, String localFolder, long spaceLimitBytes) {
@@ -122,6 +164,24 @@ public class TachyonWorker implements Runnable {
 
   private volatile boolean mStop = false;
 
+  /**
+   * @param masterAddress
+   *          The TachyonMaster's address.
+   * @param workerAddress
+   *          This TachyonWorker's address.
+   * @param dataPort
+   *          This TachyonWorker's data server's port
+   * @param selectorThreads
+   *          The number of selector threads of the worker's thrift server
+   * @param acceptQueueSizePerThreads
+   *          The accept queue size per thread of the worker's thrift server
+   * @param workerThreads
+   *          The number of threads of the worker's thrift server
+   * @param dataFolder
+   *          This TachyonWorker's local folder's path
+   * @param memoryCapacityBytes
+   *          The maximum memory space this TachyonWorker can use, in bytes
+   */
   private TachyonWorker(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String dataFolder, long memoryCapacityBytes) {
@@ -227,6 +287,9 @@ public class TachyonWorker implements Runnable {
     }
   }
 
+  /**
+   * Start the data server thread and heartbeat thread of this TachyonWorker.
+   */
   public void start() {
     mDataServerThread.start();
     mHeartbeatThread.start();
@@ -236,6 +299,12 @@ public class TachyonWorker implements Runnable {
     LOG.info("The worker server ends @ " + WorkerAddress);
   }
 
+  /**
+   * Stop this TachyonWorker. Stop all the threads belong to this TachyonWorker.
+   * 
+   * @throws IOException
+   * @throws InterruptedException
+   */
   public void stop() throws IOException, InterruptedException {
     mStop = true;
     mWorkerStorage.stop();
