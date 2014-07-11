@@ -24,7 +24,7 @@ import org.apache.thrift.TException;
 import tachyon.util.CommonUtils;
 
 /**
- * Handle local block locking. This class is NOT thread safe.
+ * Handle local block locking.
  */
 public class BlocksLocker {
   // All Blocks has been locked.
@@ -61,6 +61,13 @@ public class BlocksLocker {
     return locker;
   }
 
+  /**
+   * Check if the block is locked in the local memory
+   * 
+   * @param blockId
+   *          The id of the block
+   * @return true if the block is locked, false otherwise
+   */
   public synchronized boolean locked(long blockId) {
     return mLockedBlockIds.containsKey(blockId);
   }

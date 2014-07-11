@@ -52,6 +52,12 @@ public class WorkerClient {
 
   private String mRootFolder = null;
 
+  /**
+   * @param address
+   *          The address of the worker the client trying to contect to.
+   * @param userId
+   *          The user id of the client
+   */
   public WorkerClient(InetSocketAddress address, long userId) {
     mWorkerAddress = address;
     mProtocol =
@@ -65,10 +71,27 @@ public class WorkerClient {
             this, mUserId), UserConf.get().HEARTBEAT_INTERVAL_MS);
   }
 
+  /**
+   * Update the latest block access time on the worker.
+   * 
+   * @param blockId
+   *          The id of the block
+   * @throws TException
+   */
   public synchronized void accessBlock(long blockId) throws TException {
     CLIENT.accessBlock(blockId);
   }
 
+  /**
+   * Notify the worker that the checkpoint file of the file has been added.
+   * 
+   * @param userId
+   *          The user id of the client who send the notification
+   * @param fileId
+   *          The id of the checkpointed file
+   * @throws IOException
+   * @throws TException
+   */
   public synchronized void addCheckpoint(long userId, int fileId) throws IOException, TException {
     try {
       CLIENT.addCheckpoint(userId, fileId);
@@ -83,10 +106,29 @@ public class WorkerClient {
     }
   }
 
+  /**
+   * Notify the worker to checkpoint the file asynchronously.
+   * 
+   * @param fid
+   *          The id of the file
+   * @return true if succeed, false otherwise
+   * @throws TachyonException
+   * @throws TException
+   */
   public synchronized boolean asyncCheckpoint(int fid) throws TachyonException, TException {
     return CLIENT.asyncCheckpoint(fid);
   }
 
+  /**
+   * Notify the worker the block is cached.
+   * 
+   * @param userId
+   *          The user id of the client who send the notification
+   * @param blockId
+   *          The id of the block
+   * @throws IOException
+   * @throws TException
+   */
   public synchronized void cacheBlock(long userId, long blockId) throws IOException, TException {
     try {
       CLIENT.cacheBlock(userId, blockId);
@@ -99,6 +141,9 @@ public class WorkerClient {
     }
   }
 
+  /**
+   * Close the connection to worker. Shutdown the heartbeat thread.
+   */
   public synchronized void close() {
     if (mIsConnected) {
       mProtocol.getTransport().close();
@@ -107,6 +152,10 @@ public class WorkerClient {
     }
   }
 
+  /**
+   * @return The root local data folder of the worker
+   * @throws TException
+   */
   public synchronized String getDataFolder() throws TException {
     if (mRootFolder == null) {
       mRootFolder = CLIENT.getDataFolder();
@@ -115,22 +164,56 @@ public class WorkerClient {
     return mRootFolder;
   }
 
+  /**
+   * Get the local user temporary folder of the specified user.
+   * 
+   * @param userId
+   *          The id of the user
+   * @return The local user temporary folder of the specified user
+   * @throws TException
+   */
   public synchronized String getUserTempFolder(long userId) throws TException {
     return CLIENT.getUserTempFolder(userId);
   }
 
+  /**
+   * Get the user temporary folder in the under file system of the specified user.
+   * 
+   * @param userId
+   *          The id of the user
+   * @return The user temporary folder in the under file system
+   * @throws TException
+   */
   public synchronized String getUserUnderfsTempFolder(long userId) throws TException {
     return CLIENT.getUserUnderfsTempFolder(userId);
   }
 
+  /**
+   * @return true if it's connected to the worker, false otherwise
+   */
   public synchronized boolean isConnected() {
     return mIsConnected;
   }
 
+  /**
+   * Lock the block, therefore, the worker will lock evict the block from the memory untill it is
+   * unlocked.
+   * 
+   * @param blockId
+   *          The id of the block
+   * @param userId
+   *          The id of the user who wants to lock the block
+   * @throws TException
+   */
   public synchronized void lockBlock(long blockId, long userId) throws TException {
     CLIENT.lockBlock(blockId, userId);
   }
 
+  /**
+   * Open the connection to the worker. And start the heartbeat thread.
+   * 
+   * @return true if succeed, false otherwise
+   */
   public synchronized boolean open() {
     if (!mIsConnected) {
       try {
@@ -146,18 +229,53 @@ public class WorkerClient {
     return mIsConnected;
   }
 
+  /**
+   * Request space from the worker's memory
+   * 
+   * @param userId
+   *          The id of the user who send the request
+   * @param requestBytes
+   *          The requested space size, in bytes
+   * @return true if succeed, false otherwise
+   * @throws TException
+   */
   public synchronized boolean requestSpace(long userId, long requestBytes) throws TException {
     return CLIENT.requestSpace(userId, requestBytes);
   }
 
+  /**
+   * Return the space which has been requested
+   * 
+   * @param userId
+   *          The id of the user who wants to return the space
+   * @param returnSpaceBytes
+   *          The returned space size, in bytes
+   * @throws TException
+   */
   public synchronized void returnSpace(long userId, long returnSpaceBytes) throws TException {
     CLIENT.returnSpace(userId, returnSpaceBytes);
   }
 
+  /**
+   * Unlock the block
+   * 
+   * @param blockId
+   *          The id of the block
+   * @param userId
+   *          The id of the user who wants to unlock the block
+   * @throws TException
+   */
   public synchronized void unlockBlock(long blockId, long userId) throws TException {
     CLIENT.unlockBlock(blockId, userId);
   }
 
+  /**
+   * Users' heartbeat to the Worker.
+   * 
+   * @param userId
+   *          The id of the user
+   * @throws TException
+   */
   public synchronized void userHeartbeat(long userId) throws TException {
     CLIENT.userHeartbeat(userId);
   }

@@ -48,7 +48,11 @@ public class LocalTachyonClusterMultiMaster {
 
     @Override
     public void run() {
-      mMaster.start();
+      try {
+        mMaster.start();
+      } catch (Exception e) {
+        CommonUtils.runtimeException(e + " \n Start Master Error \n" + e.getMessage());
+      }
     }
 
     public void shutdown() {
@@ -254,7 +258,11 @@ public class LocalTachyonClusterMultiMaster {
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
-        mWorker.start();
+        try {
+          mWorker.start();
+        } catch (Exception e) {
+          CommonUtils.runtimeException(e + " \n Start Master Error \n" + e.getMessage());
+        }
       }
     };
     mWorkerThread = new Thread(runWorker);

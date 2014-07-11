@@ -57,6 +57,9 @@ import tachyon.util.CommonUtils;
  * The structure to store a worker's information in worker node.
  */
 public class WorkerStorage {
+  /**
+   * The CheckpointThread, used to checkpoint the files belong to the worker.
+   */
   public class CheckpointThread implements Runnable {
     private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
     private final int ID;
@@ -282,6 +285,16 @@ public class WorkerStorage {
   private ArrayList<Thread> mCheckpointThreads = new ArrayList<Thread>(
       WorkerConf.get().WORKER_CHECKPOINT_THREADS);
 
+  /**
+   * @param masterAddress
+   *          The TachyonMaster's address
+   * @param workerAddress
+   *          This TachyonWorker's address
+   * @param dataFolder
+   *          This TachyonWorker's local folder's path
+   * @param memoryCapacityBytes
+   *          The maximum memory space this TachyonWorker can use, in bytes
+   */
   public WorkerStorage(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       String dataFolder, long memoryCapacityBytes) {
     COMMON_CONF = CommonConf.get();
@@ -295,11 +308,12 @@ public class WorkerStorage {
     while (mWorkerId == 0) {
       try {
         mMasterClient.connect();
-        NetAddress canonicalAddress = new NetAddress(
-            mWorkerAddress.getAddress().getCanonicalHostName(), mWorkerAddress.getPort());
+        NetAddress canonicalAddress =
+            new NetAddress(mWorkerAddress.getAddress().getCanonicalHostName(),
+                mWorkerAddress.getPort());
         mWorkerId =
-            mMasterClient.worker_register(canonicalAddress, mWorkerSpaceCounter.getCapacityBytes(),
-                0, new ArrayList<Long>());
+            mMasterClient.worker_register(canonicalAddress,
+                mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Long>());
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         mWorkerId = 0;
@@ -343,6 +357,12 @@ public class WorkerStorage {
         + ", MemoryCapacityBytes: " + mWorkerSpaceCounter.getCapacityBytes());
   }
 
+  /**
+   * Update the latest block access time on the worker.
+   * 
+   * @param blockId
+   *          The id of the block
+   */
   public void accessBlock(long blockId) {
     synchronized (mLatestBlockAccessTimeMs) {
       mLatestBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
@@ -357,6 +377,19 @@ public class WorkerStorage {
     }
   }
 
+  /**
+   * Add the checkpoint information of a file. The information is from the user <code>userId</code>.
+   * 
+   * @param userId
+   *          The user id of the client who send the notification
+   * @param fileId
+   *          The id of the checkpointed file
+   * @throws FileDoesNotExistException
+   * @throws SuspectedFileSizeException
+   * @throws FailedToCheckpointException
+   * @throws BlockInfoException
+   * @throws TException
+   */
   public void addCheckpoint(long userId, int fileId) throws FileDoesNotExistException,
       SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, TException {
     // TODO This part need to be changed.
@@ -385,6 +418,15 @@ public class WorkerStorage {
         .worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId, length);
   }
 
+  /**
+   * Notify the worker to checkpoint the file asynchronously.
+   * 
+   * @param fileId
+   *          The id of the file
+   * @return true if succeed, false otherwise
+   * @throws IOException
+   * @throws TException
+   */
   public boolean asyncCheckpoint(int fileId) throws IOException, TException {
     ClientFileInfo fileInfo = mMasterClient.getClientFileInfoById(fileId);
 
@@ -402,6 +444,18 @@ public class WorkerStorage {
     return false;
   }
 
+  /**
+   * Notify the worker the block is cached.
+   * 
+   * @param userId
+   *          The user id of the client who send the notification
+   * @param blockId
+   *          The id of the block
+   * @throws FileDoesNotExistException
+   * @throws SuspectedFileSizeException
+   * @throws BlockInfoException
+   * @throws TException
+   */
   public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
       SuspectedFileSizeException, BlockInfoException, TException {
     File srcFile = new File(CommonUtils.concat(getUserTempFolder(userId), blockId));
@@ -486,26 +540,56 @@ public class WorkerStorage {
     }
   }
 
+  /**
+   * @return The root local data folder of the worker
+   * @throws TException
+   */
   public String getDataFolder() throws TException {
     return mLocalDataFolder.toString();
   }
 
+  /**
+   * @return The orphans' folder in the under file system
+   */
   public String getUnderfsOrphansFolder() {
     return mUnderfsOrphansFolder;
   }
 
+  /**
+   * Get the local user temporary folder of the specified user.
+   * 
+   * @param userId
+   *          The id of the user
+   * @return The local user temporary folder of the specified user
+   * @throws TException
+   */
   public String getUserTempFolder(long userId) throws TException {
     String ret = mUsers.getUserTempFolder(userId);
     LOG.info("Return UserTempFolder for " + userId + " : " + ret);
     return ret;
   }
 
+  /**
+   * Get the user temporary folder in the under file system of the specified user.
+   * 
+   * @param userId
+   *          The id of the user
+   * @return The user temporary folder in the under file system
+   * @throws TException
+   */
   public String getUserUnderfsTempFolder(long userId) throws TException {
     String ret = mUsers.getUserUnderfsTempFolder(userId);
     LOG.info("Return UserHdfsTempFolder for " + userId + " : " + ret);
     return ret;
   }
 
+  /**
+   * Heartbeat with the TachyonMaster. Send the removed block list to the Master.
+   * 
+   * @return The Command received from the Master
+   * @throws BlockInfoException
+   * @throws TException
+   */
   public Command heartbeat() throws BlockInfoException, TException {
     ArrayList<Long> sendRemovedPartitionList = new ArrayList<Long>();
     while (mRemovedBlockList.size() > 0) {
@@ -575,6 +659,15 @@ public class WorkerStorage {
     }
   }
 
+  /**
+   * Lock the block
+   * 
+   * @param blockId
+   *          The id of the block
+   * @param userId
+   *          The id of the user who locks the block
+   * @throws TException
+   */
   public void lockBlock(long blockId, long userId) throws TException {
     synchronized (mUsersPerLockedBlock) {
       if (!mUsersPerLockedBlock.containsKey(blockId)) {
@@ -632,16 +725,20 @@ public class WorkerStorage {
     return true;
   }
 
+  /**
+   * Register this TachyonWorker to the TachyonMaster
+   */
   public void register() {
     long id = 0;
     while (id == 0) {
       try {
         mMasterClient.connect();
-        NetAddress canonicalAddress = new NetAddress(
-            mWorkerAddress.getAddress().getCanonicalHostName(), mWorkerAddress.getPort());
+        NetAddress canonicalAddress =
+            new NetAddress(mWorkerAddress.getAddress().getCanonicalHostName(),
+                mWorkerAddress.getPort());
         id =
-            mMasterClient.worker_register(canonicalAddress, mWorkerSpaceCounter.getCapacityBytes(),
-                0, new ArrayList<Long>(mMemoryData));
+            mMasterClient.worker_register(canonicalAddress,
+                mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Long>(mMemoryData));
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
@@ -655,6 +752,16 @@ public class WorkerStorage {
     mWorkerId = id;
   }
 
+  /**
+   * Request space from the worker
+   * 
+   * @param userId
+   *          The id of the user who send the request
+   * @param requestBytes
+   *          The requested space size, in bytes
+   * @return true if succeed, false otherwise
+   * @throws TException
+   */
   public boolean requestSpace(long userId, long requestBytes) throws TException {
     LOG.info("requestSpace(" + userId + ", " + requestBytes + "): Current available: "
         + mWorkerSpaceCounter.getAvailableBytes() + " requested: " + requestBytes);
@@ -675,12 +782,26 @@ public class WorkerStorage {
     return true;
   }
 
+  /**
+   * Set a new MasterClient and connect to it.
+   * 
+   * @throws TException
+   */
   public void resetMasterClient() throws TException {
     MasterClient tMasterClient = new MasterClient(mMasterAddress);
     tMasterClient.connect();
     mMasterClient = tMasterClient;
   }
 
+  /**
+   * Return the space which has been requested
+   * 
+   * @param userId
+   *          The id of the user who wants to return the space
+   * @param returnedBytes
+   *          The returned space size, in bytes
+   * @throws TException
+   */
   public void returnSpace(long userId, long returnedBytes) throws TException {
     long preAvailableBytes = mWorkerSpaceCounter.getAvailableBytes();
     if (returnedBytes > mUsers.ownBytes(userId)) {
@@ -695,6 +816,9 @@ public class WorkerStorage {
         + mWorkerSpaceCounter.getAvailableBytes());
   }
 
+  /**
+   * Disconnect to the Master.
+   */
   public void stop() {
     mMasterClient.shutdown();
   }
@@ -721,6 +845,15 @@ public class WorkerStorage {
     localFile.close();
   }
 
+  /**
+   * Unlock the block
+   * 
+   * @param blockId
+   *          The id of the block
+   * @param userId
+   *          The id of the user who unlocks the block
+   * @throws TException
+   */
   public void unlockBlock(long blockId, long userId) throws TException {
     synchronized (mUsersPerLockedBlock) {
       if (mUsersPerLockedBlock.containsKey(blockId)) {
@@ -736,6 +869,13 @@ public class WorkerStorage {
     }
   }
 
+  /**
+   * Handle the user's heartbeat.
+   * 
+   * @param userId
+   *          The id of the user
+   * @throws TException
+   */
   public void userHeartbeat(long userId) throws TException {
     mUsers.userHeartbeat(userId);
   }
