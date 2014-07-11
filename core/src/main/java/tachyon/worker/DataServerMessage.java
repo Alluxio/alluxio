@@ -310,9 +310,7 @@ public class DataServerMessage {
    * @return The read only buffer of the message's data
    */
   public ByteBuffer getReadOnlyData() {
-    if (!mIsMessageReady) {
-      CommonUtils.runtimeException("Message is not ready.");
-    }
+    checkReady();
     ByteBuffer ret = mData.asReadOnlyBuffer();
     ret.flip();
     return ret;

@@ -54,7 +54,7 @@ public class WorkerClient {
 
   /**
    * @param address
-   *          The client's address
+   *          The address of the worker the client trying to contect to.
    * @param userId
    *          The user id of the client
    */
@@ -196,7 +196,8 @@ public class WorkerClient {
   }
 
   /**
-   * Lock the block
+   * Lock the block, therefore, the worker will lock evict the block from the memory untill it is
+   * unlocked.
    * 
    * @param blockId
    *          The id of the block
@@ -269,7 +270,7 @@ public class WorkerClient {
   }
 
   /**
-   * Heartbeat to the Worker.
+   * Users' heartbeat to the Worker.
    * 
    * @param userId
    *          The id of the user

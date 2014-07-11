@@ -753,7 +753,7 @@ public class WorkerStorage {
   }
 
   /**
-   * Request space from the worker's memory
+   * Request space from the worker
    * 
    * @param userId
    *          The id of the user who send the request
