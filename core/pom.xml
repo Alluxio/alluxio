@@ -45,19 +45,6 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.gluster</groupId>
-      <artifactId>glusterfs-hadoop</artifactId>
-      <version>2.3.5</version>
-      <type>jar</type>
-      <scope>compile</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
       <version>${jetty.version}</version>
@@ -258,6 +245,26 @@
       </dependencies>
     </profile>
     <profile>
+      <id>Glusterfs</id>
+      <activation>
+        <property>
+          <name>glusterfs</name>
+        </property>
+      </activation>
+      <properties>
+        <ufs>tachyon.GlusterfsCluster</ufs>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>org.gluster</groupId>
+          <artifactId>glusterfs-hadoop</artifactId>
+          <version>${glusterfs-hadoop.version}</version>
+          <type>jar</type>
+          <scope>compile</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
       <id>GlusterfsTest</id>
       <activation>
         <property>
@@ -268,6 +275,13 @@
         <ufs>tachyon.GlusterfsCluster</ufs>
       </properties>
       <dependencies>
+        <dependency>
+          <groupId>org.gluster</groupId>
+          <artifactId>glusterfs-hadoop</artifactId>
+          <version>${glusterfs-hadoop.version}</version>
+          <type>jar</type>
+          <scope>compile</scope>
+        </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-client</artifactId>
