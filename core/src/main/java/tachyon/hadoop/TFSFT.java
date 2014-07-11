@@ -10,13 +10,14 @@ import tachyon.Constants;
  * This class will enable zookeeper.
  */
 public final class TFSFT extends AbstractTFS {
-    @Override
-    protected boolean isZookeeperMode() {
-        return true;
-    }
 
-    @Override
-    public String getScheme() {
-        return Constants.SCHEME_FT;
-    }
+  @Override
+  public String getScheme() {
+      return Constants.SCHEME_FT;
+  }
+
+  @Override
+  protected boolean isZookeeperMode() {
+    return true;
+  }
 }
