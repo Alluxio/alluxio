@@ -32,7 +32,7 @@ import tachyon.conf.CommonConf;
  * Unit tests for <code>tachyon.conf.FileConfTest</code>.
  */
 public class FileConfTest {
-  private final String mFile = "/tmp/tachyon-conf-test.xml";
+  private final String mConfFile = "/tmp/tachyon-conf-test.conf";
   private final String mIntProperty = "tachyon.conf.test.int";
   private final int    mIntValue = 99;
   private final String mStringProperty = "tachyon.conf.test.string";
@@ -42,6 +42,17 @@ public class FileConfTest {
   private final String mStringValueFile = "File";
   private final String mStringValueSys = "Cmd";
 
+  private void writeConf() throws IOException {
+    File conf = new File(mConfFile);
+    FileOutputStream is = new FileOutputStream(conf);
+    OutputStreamWriter wr = new OutputStreamWriter(is);
+    Writer w = new BufferedWriter(wr); 
+    w.write(mIntProperty + "=" + mIntValue + "\n");
+    w.write(mStringProperty + "=" + mStringValue + "\n");
+    w.write(mStringPropertyOverwrite + "=" + mStringValueFile + "\n");
+    w.close();
+    conf.deleteOnExit();
+  }
   @After
   public final void after() throws Exception {
     System.clearProperty(mStringPropertyOverwrite);
@@ -50,39 +61,20 @@ public class FileConfTest {
 
   @Before
   public final void before() throws IOException {
-    File conf = new File(mFile);
-    FileOutputStream is = new FileOutputStream(conf);
-    OutputStreamWriter wr = new OutputStreamWriter(is);
-    Writer w = new BufferedWriter(wr); 
-    w.write("<configuration>\n");
-    w.write("<property>\n");
-    w.write("<name>" + mIntProperty + "</name>\n");
-    w.write("<value>" + mIntValue + "</value>\n");
-    w.write("</property>\n");
-    w.write("<property>\n");
-    w.write("<name>" + mStringProperty + "</name>\n");
-    w.write("<value>" + mStringValue + "</value>\n");
-    w.write("</property>\n");    
-    w.write("<property>\n");
-    w.write("<name>" + mStringPropertyOverwrite + "</name>\n");
-    w.write("<value>" + mStringValueFile + "</value>\n");
-    w.write("</property>\n");    
-    w.write("</configuration>\n");
-    w.close();
-    conf.deleteOnExit();
+    writeConf();
     System.setProperty(mStringPropertyOverwrite, mStringValueSys);
-    CommonConf.clear();
   }
 
   @Test
-  public void GetCommonConfProperty() throws Exception {
+  public void GetConfProperty() throws Exception {
+    CommonConf.clear();
     // test constructor
-    Assert.assertNotNull(CommonConf.get(mFile));
+    Assert.assertNotNull(CommonConf.get(mConfFile));
     // test get int
-    Assert.assertEquals(CommonConf.get(mFile).getIntProperty(mIntProperty), mIntValue);
+    Assert.assertEquals(CommonConf.get(mConfFile).getIntProperty(mIntProperty), mIntValue);
     // test get string
-    Assert.assertEquals(CommonConf.get(mFile).getProperty(mStringProperty), mStringValue);
+    Assert.assertEquals(CommonConf.get(mConfFile).getProperty(mStringProperty), mStringValue);
     // test overwrite order sys > file
-    Assert.assertEquals(CommonConf.get(mFile).getProperty(mStringPropertyOverwrite), mStringValueSys);
-  }  
+    Assert.assertEquals(CommonConf.get(mConfFile).getProperty(mStringPropertyOverwrite), mStringValueSys);
+  }
 }
