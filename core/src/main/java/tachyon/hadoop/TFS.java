@@ -23,13 +23,13 @@ import tachyon.Constants;
  */
 public final class TFS extends AbstractTFS {
 
-    @Override
-    protected boolean isZookeeperMode() {
-        return false;
-    }
+  @Override
+  protected boolean isZookeeperMode() {
+    return false;
+  }
 
-    @Override
-    public String getScheme() {
-        return Constants.SCHEME;
-    }
+  @Override
+  public String getScheme() {
+    return Constants.SCHEME;
+  }
 }
