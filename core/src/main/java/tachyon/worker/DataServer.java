@@ -92,6 +92,11 @@ public class DataServer implements Runnable {
     socketChannel.register(mSelector, SelectionKey.OP_READ);
   }
 
+  /**
+   * Close the data server.
+   * 
+   * @throws IOException
+   */
   public void close() throws IOException {
     mShutdown = true;
     mServerChannel.close();
@@ -115,6 +120,9 @@ public class DataServer implements Runnable {
     return socketSelector;
   }
 
+  /**
+   * @return true if the server is closed, false otherwise
+   */
   public boolean isClosed() {
     return mShutdowned;
   }

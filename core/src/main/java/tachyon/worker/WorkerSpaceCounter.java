@@ -21,23 +21,43 @@ public class WorkerSpaceCounter {
   private final long CAPACITY_BYTES;
   private long mUsedBytes;
 
+  /**
+   * @param capacityBytes
+   *          The maximum memory space the TachyonWorker can use, in bytes
+   */
   public WorkerSpaceCounter(long capacityBytes) {
     CAPACITY_BYTES = capacityBytes;
     mUsedBytes = 0;
   }
 
+  /**
+   * @return The available space size, in bytes
+   */
   public synchronized long getAvailableBytes() {
     return CAPACITY_BYTES - mUsedBytes;
   }
 
+  /**
+   * @return The maximum memory space the TachyonWorker can use, in bytes
+   */
   public long getCapacityBytes() {
     return CAPACITY_BYTES;
   }
 
+  /**
+   * @return The bytes that have been used
+   */
   public synchronized long getUsedBytes() {
     return mUsedBytes;
   }
 
+  /**
+   * Request space
+   * 
+   * @param requestSpaceBytes
+   *          The requested space size, in bytes
+   * @return
+   */
   public synchronized boolean requestSpaceBytes(long requestSpaceBytes) {
     if (getAvailableBytes() < requestSpaceBytes) {
       return false;
@@ -47,6 +67,12 @@ public class WorkerSpaceCounter {
     return true;
   }
 
+  /**
+   * Return used space size
+   * 
+   * @param returnUsedBytes
+   *          The returned space size, in bytes
+   */
   public synchronized void returnUsedBytes(long returnUsedBytes) {
     mUsedBytes -= returnUsedBytes;
   }
@@ -61,6 +87,12 @@ public class WorkerSpaceCounter {
     return sb.toString();
   }
 
+  /**
+   * Update the used bytes
+   * 
+   * @param usedBytes
+   *          The new used bytes
+   */
   public synchronized void updateUsedBytes(long usedBytes) {
     mUsedBytes = usedBytes;
   }

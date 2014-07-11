@@ -34,16 +34,44 @@ public class DataServerMessage {
   public static final short DATA_SERVER_REQUEST_MESSAGE = 1;
   public static final short DATA_SERVER_RESPONSE_MESSAGE = 2;
 
+  /**
+   * Create a default block request message, just allocate the message header, and no attribute is
+   * set. The message is not ready to be sent.
+   * 
+   * @return the created block request message
+   */
   public static DataServerMessage createBlockRequestMessage() {
     DataServerMessage ret = new DataServerMessage(false, DATA_SERVER_REQUEST_MESSAGE);
     ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
     return ret;
   }
 
+  /**
+   * Create a block request message specified by the block's id, and the message is ready to be
+   * sent.
+   * 
+   * @param blockId
+   *          The id of the block
+   * @return The created block request message
+   */
   public static DataServerMessage createBlockRequestMessage(long blockId) {
     return createBlockRequestMessage(blockId, 0, -1);
   }
 
+  /**
+   * Create a block request message specified by the block's id, the offset and the length. The
+   * message is ready to be sent. If <code>len</code> is -1, it means request the data from offset
+   * to the block's end.
+   * 
+   * @param blockId
+   *          The id of the block
+   * @param offset
+   *          The requested data's offset in the block
+   * @param len
+   *          The length of the requested data. If it's -1, it means request the data from offset to
+   *          the block's end.
+   * @return The created block request message
+   */
   public static DataServerMessage createBlockRequestMessage(long blockId, long offset, long len) {
     DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
 
@@ -58,10 +86,37 @@ public class DataServerMessage {
     return ret;
   }
 
+  /**
+   * Create a block response message specified by the block's id. If <code>toSend</code> is true, it
+   * will prepare the data to be sent, otherwise the message is used to receive data.
+   * 
+   * @param toSend
+   *          If true the message is to send the data, otherwise it's used to receive data.
+   * @param blockId
+   *          The id of the block
+   * @return The created block response message
+   */
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId) {
     return createBlockResponseMessage(toSend, blockId, 0, -1);
   }
 
+  /**
+   * Create a block response message specified by the block's id, the offset and the length. If
+   * <code>toSend</code> is true, it will prepare the data to be sent, otherwise the message is used
+   * to receive data. If <code>len</code> is -1, it means response the data from offset to the
+   * block's end.
+   * 
+   * @param toSend
+   *          If true the message is to send the data, otherwise it's used to receive data
+   * @param blockId
+   *          The id of the block
+   * @param offset
+   *          The responded data's offset in the block
+   * @param len
+   *          The length of the responded data. If it's -1, it means respond the data from offset to
+   *          the block's end.
+   * @return The created block response message
+   */
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
       long offset, long len) {
     DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
@@ -148,18 +203,32 @@ public class DataServerMessage {
 
   private ByteBuffer mData = null;
 
+  /**
+   * New a DataServerMessage. Notice that it's not ready.
+   * 
+   * @param isToSendData
+   *          true if this is a send message, otherwise this is a recv message
+   * @param msgType
+   *          The message type
+   */
   private DataServerMessage(boolean isToSendData, short msgType) {
     IS_TO_SEND_DATA = isToSendData;
     mMsgType = msgType;
     mIsMessageReady = false;
   }
 
+  /**
+   * Check if the message is ready. If not ready, it will throw a runtime exception.
+   */
   public void checkReady() {
     if (!mIsMessageReady) {
       CommonUtils.runtimeException("Message is not ready.");
     }
   }
 
+  /**
+   * Close the message.
+   */
   public void close() {
     if (mMsgType == DATA_SERVER_RESPONSE_MESSAGE) {
       try {
@@ -172,6 +241,12 @@ public class DataServerMessage {
     }
   }
 
+  /**
+   * Return whether the message finishes sending or not. It will check if the message is a send
+   * message, so don't call this on a recv message.
+   * 
+   * @return true if the message finishes sending, false otherwise
+   */
   public boolean finishSending() {
     isSend(true);
 
@@ -187,34 +262,63 @@ public class DataServerMessage {
     mHeader.flip();
   }
 
+  /**
+   * Get the id of the block. Make sure the message is ready before calling this method.
+   * 
+   * @return The id of the block
+   */
   public long getBlockId() {
     checkReady();
     return mBlockId;
   }
 
+  /**
+   * Get the length of the message's requested or responded data. Make sure the message is ready
+   * before calling this method.
+   * 
+   * @return The length of the message's requested or responded data
+   */
   public long getLength() {
     checkReady();
     return mLength;
   }
 
+  /**
+   * Get the id of the block's locker.
+   * 
+   * @return The id of the block's locker
+   */
   int getLockId() {
     return mLockId;
   }
 
+  /**
+   * Get the offset of the message's data in the block. Make sure the message is ready before
+   * calling this method.
+   * 
+   * @return The offset of the message's data in the block
+   */
   public long getOffset() {
     checkReady();
     return mOffset;
   }
 
+  /**
+   * Get the read only buffer of the message's data. Make sure the message is ready before calling
+   * this method.
+   * 
+   * @return The read only buffer of the message's data
+   */
   public ByteBuffer getReadOnlyData() {
-    if (!mIsMessageReady) {
-      CommonUtils.runtimeException("Message is not ready.");
-    }
+    checkReady();
     ByteBuffer ret = mData.asReadOnlyBuffer();
     ret.flip();
     return ret;
   }
 
+  /**
+   * @return true if the message is ready, false otherwise
+   */
   public boolean isMessageReady() {
     return mIsMessageReady;
   }
@@ -229,6 +333,15 @@ public class DataServerMessage {
     }
   }
 
+  /**
+   * Use this message to receive from the specified socket channel. Make sure this is a recv
+   * message and the message type is matched.
+   * 
+   * @param socketChannel
+   *          The socket channel to receive from
+   * @return The number of bytes read, possibly zero, or -1 if the channel has reached end-of-stream
+   * @throws IOException
+   */
   public int recv(SocketChannel socketChannel) throws IOException {
     isSend(false);
 
@@ -267,6 +380,13 @@ public class DataServerMessage {
     return numRead;
   }
 
+  /**
+   * Send this message to the specified socket channel. Make sure this is a send message.
+   * 
+   * @param socketChannel
+   *          The socket channel to send to
+   * @throws IOException
+   */
   public void send(SocketChannel socketChannel) throws IOException {
     isSend(true);
 
@@ -277,6 +397,12 @@ public class DataServerMessage {
     }
   }
 
+  /**
+   * Set the id of the block's locker.
+   * 
+   * @param lockId
+   *          The id of the block's locker
+   */
   void setLockId(int lockId) {
     mLockId = lockId;
   }

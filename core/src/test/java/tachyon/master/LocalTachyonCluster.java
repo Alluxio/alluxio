@@ -206,7 +206,11 @@ public class LocalTachyonCluster {
     Runnable runMaster = new Runnable() {
       @Override
       public void run() {
-        mMaster.start();
+        try {
+          mMaster.start();
+        } catch (Exception e) {
+          CommonUtils.runtimeException(e + " \n Start Master Error \n" + e.getMessage());
+        }
       }
     };
     mMasterThread = new Thread(runMaster);
@@ -221,7 +225,11 @@ public class LocalTachyonCluster {
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
-        mWorker.start();
+        try {
+          mWorker.start();
+        } catch (Exception e) {
+          CommonUtils.runtimeException(e + " \n Start Worker Error \n" + e.getMessage());
+        }
       }
     };
     mWorkerThread = new Thread(runWorker);
