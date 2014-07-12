@@ -227,6 +227,11 @@ public class TachyonURITest {
     Assert.assertEquals(null, new TachyonURI("/").getScheme());
     Assert.assertEquals("file", new TachyonURI("file:/").getScheme());
     Assert.assertEquals("file", new TachyonURI("file://localhost/").getScheme());
+    Assert.assertEquals("tachyon-ft", new TachyonURI("tachyon-ft://localhost/").getScheme());
+    Assert.assertEquals("s3", new TachyonURI("s3://localhost/").getScheme());
+    Assert.assertEquals("tachyon", new TachyonURI("tachyon://localhost/").getScheme());
+    Assert.assertEquals("hdfs", new TachyonURI("hdfs://localhost/").getScheme());
+    Assert.assertEquals("glusterfs", new TachyonURI("glusterfs://localhost/").getScheme());
   }
 
   @Test
