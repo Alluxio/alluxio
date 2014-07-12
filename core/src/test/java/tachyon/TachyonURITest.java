@@ -125,7 +125,7 @@ public class TachyonURITest {
     for (int i = 0; i < uris.length - 1; i ++) {
       Assert.assertTrue(uris[i].compareTo(uris[i + 1]) < 0);
       Assert.assertTrue(uris[i + 1].compareTo(uris[i]) > 0);
-      Assert.assertTrue(uris[i].compareTo(uris[i]) == 0);
+      Assert.assertEquals(0, uris[i].compareTo(uris[i]));
     }
   }
 
