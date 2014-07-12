@@ -90,8 +90,7 @@ public class TachyonURITest {
     testParentChild("../../../../boo/bud", "../../", "../../boo/bud");
     testParentChild("../../../../boo/bud", "../../foo", "../../../boo/bud");
     testParentChild("../../foo/boo/bud", "../../foo/bar", "../boo/bud");
-    Assert.assertEquals("", new TachyonURI(new TachyonURI("foo/bar/baz"), new TachyonURI(
-        "../../..")).toString());
+    testParentChild("", "foo/bar/baz", "../../..");
     testParentChild("../..", "foo/bar/baz", "../../../../..");
 
     testParentChild("foo://bar boo:80/.", "foo://bar boo:80/.", ".");
@@ -347,7 +346,12 @@ public class TachyonURITest {
   }
 
   private void testParentChild(String target, String parent, String child) {
-    Assert.assertEquals(new TachyonURI(target), new TachyonURI(new TachyonURI(parent),
-        new TachyonURI(child)));
+    if (target.length() > 0) {
+      Assert.assertEquals(new TachyonURI(target), new TachyonURI(new TachyonURI(parent),
+          new TachyonURI(child)));
+    } else {
+      Assert.assertEquals(target,
+          new TachyonURI(new TachyonURI(parent), new TachyonURI(child)).toString());
+    }
   }
 }
