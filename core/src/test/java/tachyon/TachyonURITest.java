@@ -111,20 +111,20 @@ public class TachyonURITest {
 
   @Test
   public void compareToTests() {
-    TachyonURI uri0 = new TachyonURI("hdfs://localhost:8080/a/b/c.txt");
-    TachyonURI uri1 = new TachyonURI("hdfs://localhost:8080/a/b/d.txt");
-    TachyonURI uri2 = new TachyonURI("hdfs://localhost:8081/a/b/c.txt");
-    TachyonURI uri3 = new TachyonURI("hdfs://127.0.0.1:8081/a/b/c.txt");
-    TachyonURI uri4 = new TachyonURI("hdfs://127.0.0.2:8081/a/b/c.txt");
-    TachyonURI uri5 = new TachyonURI("file://127.0.0.2:8081/a/b/c.txt");
-    TachyonURI uri6 = new TachyonURI("hdfs://localhost:8080/a/b/c.txt");
+    TachyonURI[] uris =
+        new TachyonURI[] { new TachyonURI("file://127.0.0.0:8081/a/b/c.txt"),
+            new TachyonURI("glusterfs://127.0.0.0:8081/a/b/c.txt"),
+            new TachyonURI("hdfs://127.0.0.0:8081/a/b/c.txt"),
+            new TachyonURI("hdfs://127.0.0.1:8081/a/b/c.txt"),
+            new TachyonURI("hdfs://127.0.0.1:8081/a/b/d.txt"),
+            new TachyonURI("hdfs://127.0.0.1:8081/a/c/c.txt"),
+            new TachyonURI("hdfs://127.0.0.1:8082/a/c/c.txt"),
+            new TachyonURI("hdfs://localhost:8080/a/b/c.txt"),
+            new TachyonURI("s3://localhost:8080/a/b/c.txt") };
 
-    Assert.assertTrue(uri0.compareTo(uri0) == 0);
-    Assert.assertTrue(uri0.compareTo(uri6) == 0);
-    Assert.assertTrue(uri0.compareTo(uri1) < 0);
-    Assert.assertTrue(uri0.compareTo(uri2) < 0);
-    Assert.assertTrue(uri3.compareTo(uri4) < 0);
-    Assert.assertTrue(uri4.compareTo(uri5) > 0);
+    for (int i = 0; i < uris.length - 1; i ++) {
+      Assert.assertTrue(uris[i].compareTo(uris[i + 1]) < 0);
+    }
   }
 
   @Test
@@ -138,6 +138,7 @@ public class TachyonURITest {
     Assert.assertTrue(uri0.equals(uri1));
     Assert.assertFalse(uri0.equals(path));
     Assert.assertFalse(uri0.equals(uri2));
+
   }
 
   @Test
