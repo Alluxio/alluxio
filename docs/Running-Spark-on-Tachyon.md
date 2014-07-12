@@ -58,30 +58,26 @@ Put a file X into HDFS. Run Spark Shell, you can now point to any tachyon master
 
 ## Persist Spark RDDs into Tachyon
 
-The additional prerequisite for this part is [Spark](http://spark-project.org/docs/latest/) (1.0 or
-later). We also assume that the user is running on Tachyon {{site.TACHYON_RELEASED_VERSION}} or
-later and have set up Tachyon and Hadoop in accordance to these guides
-[Local Mode](Running-Tachyon-Locally.html) or [Cluster Mode](Running-Tachyon-on-a-Cluster.html).
+For this feature, you need to run [Spark](http://spark-project.org/docs/latest/) (1.0 or
+later) and Tachyon (0.4.1 or later).
 
-There are two parameters need to be set in your programs, namely `spark.tachyonStore.url` and
-`spark.tachyonStore.baseDir`. The `spark.tachyonStore.url` is the URL of the underlying Tachyon
-file system in the TachyonStore. It’s default value is tachyon://localhost:19998 etc. The
-`spark.tachyonStore.baseDir` is the directories of the Tachyon File System that store RDDs. The
-Tachyon file system's URL is set by `spark.tachyonStore.url`. It can be a comma-separated list of
-multiple directories on Tachyon file system. If not set, the value of the system property of
-"java.io.tmpdir" will be used by default.
+Your Spark programs need to set two parameters, `spark.tachyonStore.url` and
+`spark.tachyonStore.baseDir`. The `spark.tachyonStore.url` is the URL of the Tachyon
+file system in the TachyonStore, with a default value `tachyon://localhost:19998`. The
+`spark.tachyonStore.baseDir` is the directories of the Tachyon File System that store RDDs, with a
+default value `java.io.tmpdir`. It can be a comma-separated list of multiple directories in Tachyon.
 
-To persist an RDD into Tachyon is easy. You just need to persist the RDD with the
-`StorageLevel.OFF_HEAP` parameter. Run Spark Shell:
+To persist an RDD into Tachyon, you need to persist the RDD with the `StorageLevel.OFF_HEAP`
+parameter. The following is an example with Spark shell:
 
     $ ./spark-shell
     $ val rdd = sc.textFile(inputPath)
     $ rdd.persist(StorageLevel.OFF_HEAP)
 
-Take a look at the `spark.tachyonStore.baseDir` on Tachyon's WebUI, like
-[http://localhost:19999](http://localhost:19999), during the Spark applications is running. There
+Take a look at the `spark.tachyonStore.baseDir` on Tachyon's WebUI (default URI is
+[http://localhost:19999](http://localhost:19999)), when the Spark applications is running. There
 should be a bunch of files there, they are RDD blocks. Currently, the files will be cleaned up
-when the spark application is finished.
+when the spark application finishes.
 
-You can also adopt Tachyon as you Spark applications' input and output sources. The directions are
-shown in the previous section.
+You can also use Tachyon as you Spark applications' input and output sources. The above section
+shows the instructions.
