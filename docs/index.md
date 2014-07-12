@@ -59,6 +59,8 @@ tolerant.
 
 [Running Spark on Tachyon](Running-Spark-on-Tachyon.html): Get Spark running on Tachyon
 
+[Spark OFF_HEAP with Tachyon](Spark-OFF_HEAP-with-Tachyon.html): Persist Spark RDDs into Tachyon
+
 [Running Shark on Tachyon](Running-Shark-on-Tachyon.html): Get Shark running on Tachyon
 
 [Running Hadoop MapReduce on Tachyon](Running-Hadoop-MapReduce-on-Tachyon.html): Get Hadoop
