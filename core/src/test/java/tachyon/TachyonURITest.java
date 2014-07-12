@@ -129,16 +129,17 @@ public class TachyonURITest {
 
   @Test
   public void equalsTests() {
-    String path = "tachyon://localhost:8080/a/b/c.txt";
-    TachyonURI uri0 = new TachyonURI(path);
-    TachyonURI uri1 = new TachyonURI(path);
-    TachyonURI uri2 = new TachyonURI("tachyon://127.0.0.1:8080/a/b/c.txt");
+    Assert.assertFalse(new TachyonURI("tachyon://127.0.0.1:8080/a/b/c.txt").equals(new TachyonURI(
+        "tachyon://localhost:8080/a/b/c.txt")));
 
-    Assert.assertTrue(uri0.equals(uri0));
-    Assert.assertTrue(uri0.equals(uri1));
-    Assert.assertFalse(uri0.equals(path));
-    Assert.assertFalse(uri0.equals(uri2));
-
+    TachyonURI[] uriFromDifferentConstructor =
+        new TachyonURI[] {
+            new TachyonURI("tachyon://127.0.0.1:8080/a/b/c.txt"),
+            new TachyonURI("tachyon", "127.0.0.1:8080", "/a/b/c.txt"),
+            new TachyonURI(new TachyonURI("tachyon://127.0.0.1:8080/a"), new TachyonURI("b/c.txt")) };
+    for (int i = 0; i < uriFromDifferentConstructor.length - 1; i ++) {
+      Assert.assertTrue(uriFromDifferentConstructor[i].equals(uriFromDifferentConstructor[i + 1]));
+    }
   }
 
   @Test
