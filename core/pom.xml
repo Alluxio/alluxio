@@ -347,9 +347,6 @@
         <configuration>
           <argLine>-Dufs=${ufs}</argLine>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <systemPropertyVariables>
-            <log4j.configuration>file:src/test/resources/log4j.properties</log4j.configuration>
-          </systemPropertyVariables>
         </configuration>
       </plugin>
       <plugin>
