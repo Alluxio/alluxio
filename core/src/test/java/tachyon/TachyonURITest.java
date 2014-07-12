@@ -286,13 +286,13 @@ public class TachyonURITest {
 
   @Test
   public void toStringTests() {
-    String[] paths =
+    String[] uris =
         new String[] { "/", "/a", "/a/ b", "tachyon:/a/b/c d.txt",
             "tachyon://localhost:8080/a/b.txt", "foo", "foo/bar", "/foo/bar#boo", "foo/bar#boo",
             "c:/", "c:/foo/bar", "C:/foo/bar#boo", "C:/foo/ bar" };
-    for (String path : paths) {
-      TachyonURI uri = new TachyonURI(path);
-      Assert.assertEquals(path, uri.toString());
+    for (String uri : uris) {
+      TachyonURI turi = new TachyonURI(uri);
+      Assert.assertEquals(turi, uri.toString());
     }
 
     Assert.assertEquals("", new TachyonURI(".").toString());
