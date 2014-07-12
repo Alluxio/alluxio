@@ -35,7 +35,7 @@
     <connection>scm:git:git@github.com:amplab/tachyon.git</connection>
     <developerConnection>scm:git:git@github.com:amplab/tachyon.git</developerConnection>
     <url>scm:git:git@github.com:amplab/tachyon.git</url>
-    <tag>v0.4.1</tag>
+    <tag>v0.5.0</tag>
   </scm>
   <developers>
     <developer>
