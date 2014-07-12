@@ -37,6 +37,10 @@ Tachyon to cache Shark's tables. In summary, the followings are four major ones:
   <td>0.4.1</td>
   <td>0.9.1 +</td>
 </tr>
+<tr>
+  <td>0.5.0</td>
+  <td>0.9.1 +</td>
+</tr>
 </table>
 
 ### Setup
