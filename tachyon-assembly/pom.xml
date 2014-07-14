@@ -46,7 +46,7 @@
         </configuration>
         <executions>
           <execution>
-            <id>src-dist</id>
+            <id>dist</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
