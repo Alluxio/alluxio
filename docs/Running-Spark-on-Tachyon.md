@@ -12,7 +12,7 @@ Edit Spark `spark/conf/spark-env.sh`, add:
 
     export SPARK_CLASSPATH=/pathToTachyon/tachyon/target/tachyon-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar:$SPARK_CLASSPATH
 
-Create a new file `spark/conf/core-site.xml` Add the following to it
+If running a hadoop 1.x cluster, create a new file `spark/conf/core-site.xml` Add the following to it
 
     <configuration>
       <property>
@@ -31,8 +31,8 @@ Put a file X into HDFS. Run Spark Shell:
 Take a look at [http://localhost:19999](http://localhost:19999), there should be a file info
 there.
 
-If you are running tachyon in fault tolerant mode along with zookeeper additionally add new entry in
-previously created `spark/conf/core-site.xml`
+If you are running tachyon in fault tolerant mode with zookeeper and the hadoop cluster is a 1.x cluster, 
+additionally add new entry in previously created `spark/conf/core-site.xml`
 
     <property>
         <name>fs.tachyon-ft.impl</name>

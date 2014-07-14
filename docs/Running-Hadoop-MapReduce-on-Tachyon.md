@@ -13,17 +13,23 @@ The prerequisite for this part is that you have
 Tachyon and Hadoop in accordance to these guides [Local Mode](Running-Tachyon-Locally.html) or
 [Cluster Mode](Running-Tachyon-on-a-Cluster.html)
 
-Ensure that the `hadoop/conf/core-site.xml` file in your Hadoop installation's conf directory has
-the following property added:
+If running a Hadoop 1.x cluster, ensure that the `hadoop/conf/core-site.xml` file in your Hadoop 
+installation's conf directory has the following properties added:
 
     <property>
       <name>fs.tachyon.impl</name>
       <value>tachyon.hadoop.TFS</value>
     </property>
+    <property>
+      <name>fs.tachyon-ft.impl</name>
+      <value>tachyon.hadoop.TFSFT</value>
+    </property>
 
 This will allow your MapReduce jobs to use Tachyon for their input and output files. If you are
-using HDFS as the underlying store for Tachyon, it may be necessary to add this property to the
+using HDFS as the underlying store for Tachyon, it may be necessary to add these properties to the
 `hdfs-site.xml` conf file as well.
+
+If the cluster is a 2.x cluster, then these properties are not needed.
 
 # Distributing Tachyon Executables
 
