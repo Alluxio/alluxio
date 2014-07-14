@@ -65,7 +65,8 @@ public class WorkerConf extends Utils {
     MEMORY_SIZE =
         CommonUtils.parseSpaceSize(getProperty("tachyon.worker.memory.size", (128 * Constants.MB)
             + ""));
-    HEARTBEAT_TIMEOUT_MS = getIntProperty("tachyon.worker.heartbeat.timeout.ms", 10 * Constants.SECOND_MS);
+    HEARTBEAT_TIMEOUT_MS =
+        getIntProperty("tachyon.worker.heartbeat.timeout.ms", 10 * Constants.SECOND_MS);
     TO_MASTER_HEARTBEAT_INTERVAL_MS =
         getIntProperty("tachyon.worker.to.master.heartbeat.interval.ms", Constants.SECOND_MS);
     SELECTOR_THREADS = getIntProperty("tachyon.worker.selector.threads", 3);
