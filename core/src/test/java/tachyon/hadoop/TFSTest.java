@@ -53,25 +53,10 @@ public class TFSTest {
 
   private final Logger LOG = Logger.getLogger(TFSTest.class.getName());
 
-  private TFSFT mTfs;
-
-  private void mockTachyonFSGet() throws IOException {
-    mockStatic(TachyonFS.class);
-    TachyonFS tachyonFS = mock(TachyonFS.class);
-    when(TachyonFS.get(anyString(), anyInt(), anyBoolean())).thenReturn(tachyonFS);
-  }
-
-  private void mockUserGroupInformation() throws IOException {
-    // need to mock out since FileSystem.get calls UGI, which some times has issues on some systems
-    mockStatic(UserGroupInformation.class);
-    final UserGroupInformation ugi = mock(UserGroupInformation.class);
-    when(ugi.getCurrentUser()).thenReturn(ugi);
-  }
-
   @Before
   public void setup() throws Exception {
-    mTfs = new TFSFT();
     mockUserGroupInformation();
+    mockTachyonFSGet();
 
     if(isHadoop1x()) {
       LOG.debug("Running TFS tests against hadoop 1x");
@@ -83,30 +68,7 @@ public class TFSTest {
   }
 
   @Test
-  public void shouldInitializeWithTachyonFTSchemePassedByUser() throws Exception {
-    mockTachyonFSGet();
-    // when
-    mTfs.initialize(new URI(Constants.HEADER_FT + "stanley:19998/tmp/path.txt"),
-        new Configuration());
-    // then
-    verifyStatic();
-    TachyonFS.get("stanley", 19998, true);
-  }
-
-  @Test
-  public void shouldInitializeWithTachyonSchemePassedByUser() throws Exception {
-    mockTachyonFSGet();
-    // when
-    mTfs.initialize(new URI(Constants.HEADER + "stanley:19998/tmp/path.txt"), new Configuration());
-    // then
-    PowerMockito.verifyStatic();
-    TachyonFS.get("stanley", 19998, true);
-  }
-
-  @Test
   public void hadoopShouldLoadTfsWhenConfigured() throws IOException {
-    mockTachyonFSGet();
-
     final Configuration conf = new Configuration();
     if(isHadoop1x()) {
       conf.set("fs."+Constants.SCHEME+".impl", TFS.class.getName());
@@ -124,8 +86,6 @@ public class TFSTest {
 
   @Test
   public void hadoopShouldLoadTfsFtWhenConfigured() throws IOException {
-    mockTachyonFSGet();
-
     final Configuration conf = new Configuration();
     if(isHadoop1x()) {
       conf.set("fs."+Constants.SCHEME_FT+".impl", TFSFT.class.getName());
@@ -139,6 +99,19 @@ public class TFSTest {
 
     PowerMockito.verifyStatic();
     TachyonFS.get("stanley", 19998, true);
+  }
+
+  private void mockTachyonFSGet() throws IOException {
+    mockStatic(TachyonFS.class);
+    TachyonFS tachyonFS = mock(TachyonFS.class);
+    when(TachyonFS.get(anyString(), anyInt(), anyBoolean())).thenReturn(tachyonFS);
+  }
+
+  private void mockUserGroupInformation() throws IOException {
+    // need to mock out since FileSystem.get calls UGI, which some times has issues on some systems
+    mockStatic(UserGroupInformation.class);
+    final UserGroupInformation ugi = mock(UserGroupInformation.class);
+    when(ugi.getCurrentUser()).thenReturn(ugi);
   }
 
   private boolean isHadoop1x() {
