@@ -14,6 +14,10 @@
       <directory>${basedir}/../conf</directory>
       <outputDirectory>/conf</outputDirectory>
     </fileSet>
+    <fileSet>
+      <directory>${basedir}/../libexec</directory>
+      <outputDirectory>/libexec</outputDirectory>
+    </fileSet>
   </fileSets>
   <dependencySets>
     <dependencySet>
