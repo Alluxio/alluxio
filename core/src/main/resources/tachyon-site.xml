@@ -1,0 +1,7 @@
+<!--XML config items-->
+<configuration>
+  <property>
+    <name>tachyon.fs.underfs</name>
+    <value>glusterfs:///</value>
+  </property>
+</configuration>

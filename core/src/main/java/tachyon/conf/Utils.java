@@ -14,6 +14,7 @@
  */
 package tachyon.conf;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 
 import tachyon.util.CommonUtils;
@@ -23,7 +24,20 @@ import tachyon.util.CommonUtils;
  */
 class Utils {
   private static final Logger LOG = Logger.getLogger("");
-
+  
+  protected static Configuration sharedConf;
+  
+  static {
+      Configuration.addDefaultResource("tachyon.properties");
+      Configuration.addDefaultResource("tachyon-site.xml");
+      sharedConf = new Configuration(false);
+  }
+  
+  public static void setConf(Configuration conf){
+      sharedConf=conf;
+      conf.reloadConfiguration();
+  }
+  
   public static boolean getBooleanProperty(String property) {
     return Boolean.valueOf(getProperty(property));
   }
@@ -49,21 +63,22 @@ class Utils {
   }
 
   public static String getProperty(String property) {
-    String ret = System.getProperty(property);
+    String ret =  sharedConf.get(property);
     if (ret == null) {
       CommonUtils.illegalArgumentException(property + " is not configured.");
-    } else {
-      LOG.debug(property + " : " + ret);
-    }
+    } 
+    LOG.debug(property + " : " + ret);
     return ret;
   }
 
   public static String getProperty(String property, String defaultValue) {
-    String ret = System.getProperty(property);
+    String ret = null;
     String msg = "";
-    if (ret == null) {
-      ret = defaultValue;
-      msg = " uses the default value";
+    try{
+        getProperty(property);
+    }catch(IllegalArgumentException ex){
+        ret = defaultValue;
+        msg = " uses the default value";
     }
     LOG.debug(property + msg + " : " + ret);
     return ret;
