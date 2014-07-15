@@ -68,7 +68,7 @@ public class CommonConf extends Utils {
   public final int MAX_TABLE_METADATA_BYTE;
 
   private CommonConf() {
-    if (System.getProperty("tachyon.home") == null) {
+    if (getProperty("tachyon.home") == null) {
       LOG.warn("tachyon.home is not set. Using /mnt/tachyon_default_home as the default value.");
       File file = new File("/mnt/tachyon_default_home");
       if (!file.exists()) {
