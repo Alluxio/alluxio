@@ -3,14 +3,20 @@ layout: global
 title: Running Spark on Tachyon
 ---
 
-## Get Spark running on Tachyon
+## Compatibility
+
+By default, Spark 1.0.x is bundled with Tachyon 0.4.1. If you run a different version Tachyon,
+please recompile Spark with the right version of Tachyon, by changing the Tachyon version in
+spark/core/pom.xml.
+
+## Input/Output data with Tachyon
 
 The additional prerequisite for this part is [Spark](http://spark-project.org/docs/latest/) (0.6 or
 later). We also assume that the user is running on Tachyon {{site.TACHYON_RELEASED_VERSION}} or
 later and have set up Tachyon and Hadoop in accordance to these guides
 [Local Mode](Running-Tachyon-Locally.html) or [Cluster Mode](Running-Tachyon-on-a-Cluster.html).
 
-Edit Spark `spark/conf/spark-env.sh`, add:
+If you run Spark version smaller than 1.0.0, please ddit Spark `spark/conf/spark-env.sh`, add:
 
     export SPARK_CLASSPATH=/pathToTachyon/tachyon/target/tachyon-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar:$SPARK_CLASSPATH
 
@@ -58,8 +64,10 @@ Put a file X into HDFS. Run Spark Shell, you can now point to any tachyon master
 
 ## Persist Spark RDDs into Tachyon
 
-For this feature, you need to run [Spark](http://spark-project.org/docs/latest/) (1.0 or
-later) and Tachyon (0.4.1 or later).
+For this feature, you need to run [Spark](http://spark-project.org/) (1.0 or
+later) and Tachyon (0.4.1 or later).  Please refer to
+[Spark Doc](http://spark.apache.org/docs/latest/programming-guide.html) on the benefit of this
+feature.
 
 Your Spark programs need to set two parameters, `spark.tachyonStore.url` and
 `spark.tachyonStore.baseDir`. The `spark.tachyonStore.url` is the URL of the Tachyon
