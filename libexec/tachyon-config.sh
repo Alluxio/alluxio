@@ -42,7 +42,7 @@ if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
   export TACHYON_HOME=${TACHYON_PREFIX}
   export TACHYON_CONF_DIR="$TACHYON_HOME/conf"
   export TACHYON_LOGS_DIR="$TACHYON_HOME/logs"
-  export TACHYON_CLASSPATH=$(ls $TACHYON_HOME/lib/*.jar | tr "\n" ":")
+  export CLASSPATH=$(ls $TACHYON_HOME/lib/*.jar | tr "\n" ":")
   export JAVA="$JAVA_HOME/bin/java"
 fi
 
@@ -50,3 +50,5 @@ fi
 if [ -e $TACHYON_CONF_DIR/tachyon-env.sh ] ; then
   . $TACHYON_CONF_DIR/tachyon-env.sh
 fi
+
+export CLASSPATH="$CLASSPATH:$TACHYON_CLASSPATH"
