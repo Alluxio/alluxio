@@ -252,9 +252,11 @@ public class MasterInfo extends ImageWriter {
   private final Set<Integer> mMustRecomputeDependencies = new HashSet<Integer>();
   private final Map<Long, MasterWorkerInfo> mWorkers = new HashMap<Long, MasterWorkerInfo>();
 
-  private final Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
+  private final Map<InetSocketAddress, Long> mWorkerAddressToId =
+      new HashMap<InetSocketAddress, Long>();
 
-  private final BlockingQueue<MasterWorkerInfo> mLostWorkers = new ArrayBlockingQueue<MasterWorkerInfo>(32);
+  private final BlockingQueue<MasterWorkerInfo> mLostWorkers =
+      new ArrayBlockingQueue<MasterWorkerInfo>(32);
 
   // TODO Check the logic related to this two lists.
   private final PrefixList mWhiteList;
@@ -415,6 +417,7 @@ public class MasterInfo extends ImageWriter {
                 currentInodeFolder.getId(), creationTimeMs);
         dir.setPinned(currentInodeFolder.isPinned());
         currentInodeFolder.addChild(dir);
+        currentInodeFolder.setLastModificationTimeMs(creationTimeMs);
         mInodes.put(dir.getId(), dir);
         currentInodeFolder = (InodeFolder) dir;
       }
@@ -450,6 +453,7 @@ public class MasterInfo extends ImageWriter {
 
       mInodes.put(ret.getId(), ret);
       currentInodeFolder.addChild(ret);
+      currentInodeFolder.setLastModificationTimeMs(creationTimeMs);
 
       LOG.debug("createFile: File Created: " + ret.toString() + " parent: "
           + currentInodeFolder.toString());
@@ -477,6 +481,7 @@ public class MasterInfo extends ImageWriter {
    * @throws TachyonException
    */
   boolean _delete(int fileId, boolean recursive) throws TachyonException {
+    long delTimeMs = System.currentTimeMillis();
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
       if (inode == null) {
@@ -536,6 +541,7 @@ public class MasterInfo extends ImageWriter {
 
         InodeFolder parent = (InodeFolder) mInodes.get(delInode.getParentId());
         parent.removeChild(delInode);
+        parent.setLastModificationTimeMs(delTimeMs);
 
         if (mRawTables.exist(delInode.getId()) && !mRawTables.delete(delInode.getId())) {
           return false;
@@ -621,6 +627,7 @@ public class MasterInfo extends ImageWriter {
    */
   public boolean _rename(int fileId, String dstPath) throws FileDoesNotExistException,
       InvalidPathException {
+    long renameTimeMs = System.currentTimeMillis();
     synchronized (mRoot) {
       String srcPath = getPath(fileId);
       if (srcPath.equals(dstPath)) {
@@ -673,9 +680,11 @@ public class MasterInfo extends ImageWriter {
 
       // Now we remove srcInode from it's parent and insert it into dstPath's parent
       ((InodeFolder) srcParentInode).removeChild(srcInode);
+      srcParentInode.setLastModificationTimeMs(renameTimeMs);
       srcInode.setParentId(dstParentInode.getId());
       srcInode.setName(dstComponents[dstComponents.length - 1]);
       ((InodeFolder) dstParentInode).addChild(srcInode);
+      dstParentInode.setLastModificationTimeMs(renameTimeMs);
       return true;
     }
   }
@@ -2191,6 +2200,26 @@ public class MasterInfo extends ImageWriter {
 
       mJournal.getEditLog().updateRawTableMetadata(tableId, metadata);
       mJournal.getEditLog().flush();
+    }
+  }
+
+  /**
+   * The user has written to a file, update the inodes' information
+   * 
+   * @param fileId
+   *          The id of the file
+   * @throws FileDoesNotExistException
+   */
+  public void userWriteToFile(int fileId) throws FileDoesNotExistException {
+    long writeTimeMs = System.currentTimeMillis();
+    synchronized (mRoot) {
+      Inode inode = mInodes.get(fileId);
+      if (inode == null) {
+        throw new FileDoesNotExistException("File " + fileId + " does not exist.");
+      }
+      inode.setLastModificationTimeMs(writeTimeMs);
+      Inode parent = mInodes.get(inode.getParentId());
+      parent.setLastModificationTimeMs(writeTimeMs);
     }
   }
 

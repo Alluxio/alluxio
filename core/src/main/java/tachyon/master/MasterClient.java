@@ -794,6 +794,21 @@ public class MasterClient {
     }
   }
 
+  public synchronized void user_writeToFile(int fileId) throws IOException, TException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        mClient.user_writeToFile(fileId);
+        return;
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage());
+        mIsConnected = false;
+      }
+    }
+  }
+
   public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId,
       long length) throws FileDoesNotExistException, SuspectedFileSizeException,
       BlockInfoException, TException {

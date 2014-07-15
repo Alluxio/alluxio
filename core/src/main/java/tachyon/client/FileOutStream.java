@@ -77,6 +77,8 @@ public class FileOutStream extends OutStream {
       }
       mCheckpointOutputStream = underfsClient.create(mUnderFsFile, (int) BLOCK_CAPACITY);
     }
+
+    TFS.userWriteToFile(FILE.FID);
   }
 
   @Override
@@ -216,6 +218,8 @@ public class FileOutStream extends OutStream {
     if (WRITE_TYPE.isThrough()) {
       mCheckpointOutputStream.write(b, off, len);
     }
+
+    TFS.userWriteToFile(FILE.FID);
   }
 
   @Override
@@ -242,5 +246,7 @@ public class FileOutStream extends OutStream {
     if (WRITE_TYPE.isThrough()) {
       mCheckpointOutputStream.write(b);
     }
+
+    TFS.userWriteToFile(FILE.FID);
   }
 }
