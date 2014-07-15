@@ -13,6 +13,7 @@ function printUsage {
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
   echo -e "  thriftGen     \t Generate all thrift code."
+  echo -e "  classpath     \t Printout Tachyon's CLASSPATH."
   echo -e "  version       \t Print Tachyon version and exit."
   echo "Commands print help when invoked without parameters."
 }
@@ -193,6 +194,9 @@ elif [ "$COMMAND" == "thriftGen" ]; then
   exit 0
 elif [ "$COMMAND" == "clearCache" ]; then
   sync; echo 3 > /proc/sys/vm/drop_caches ;
+  exit 0
+elif [ "$COMMAND" == "classpath" ]; then
+  echo "$CLASSPATH"
   exit 0
 elif [ "$COMMAND" == "version" ]; then
   CLASS=tachyon.Version

@@ -51,4 +51,6 @@ if [ -e $TACHYON_CONF_DIR/tachyon-env.sh ] ; then
   . $TACHYON_CONF_DIR/tachyon-env.sh
 fi
 
-export CLASSPATH="$CLASSPATH:$TACHYON_CLASSPATH"
+if [ ! -z "$TACHYON_CLASSPATH" ]; then 
+  export CLASSPATH="$CLASSPATH:$TACHYON_CLASSPATH"
+fi
