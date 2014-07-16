@@ -316,6 +316,7 @@ public class MasterInfo extends ImageWriter {
       for (int k = 0; k < childrenIds.size(); k ++) {
         InodeFile inode = (InodeFile) mInodes.get(childrenIds.get(k));
         inode.setDependencyId(dep.ID);
+        inode.setLastModificationTimeMs(creationTimeMs);
         childrenInodes.add(inode);
         if (inode.hasCheckpointed()) {
           dep.childCheckpointed(inode.getId());
@@ -477,11 +478,12 @@ public class MasterInfo extends ImageWriter {
    *          The inode to delete
    * @param recursive
    *          True if the file and it's subdirectories should be deleted
+   * @param deleteTimeMs
+   *          The time of the delete operation, in milliseconds
    * @return true if the deletion succeeded and false otherwise.
    * @throws TachyonException
    */
-  boolean _delete(int fileId, boolean recursive) throws TachyonException {
-    long delTimeMs = System.currentTimeMillis();
+  boolean _delete(int fileId, boolean recursive, long deleteTimeMs) throws TachyonException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
       if (inode == null) {
@@ -541,7 +543,7 @@ public class MasterInfo extends ImageWriter {
 
         InodeFolder parent = (InodeFolder) mInodes.get(delInode.getParentId());
         parent.removeChild(delInode);
-        parent.setLastModificationTimeMs(delTimeMs);
+        parent.setLastModificationTimeMs(deleteTimeMs);
 
         if (mRawTables.exist(delInode.getId()) && !mRawTables.delete(delInode.getId())) {
           return false;
@@ -619,15 +621,16 @@ public class MasterInfo extends ImageWriter {
    *          The id of the file to rename
    * @param dstPath
    *          The new path of the file
+   * @param renameTimeMs
+   *          The time of the rename operation, in milliseconds
    * @return true if the rename succeeded, false otherwise
    * @throws FileDoesNotExistException
    *           If the id doesn't point to an inode
    * @throws InvalidPathException
    *           if the source path is a prefix of the destination
    */
-  public boolean _rename(int fileId, String dstPath) throws FileDoesNotExistException,
-      InvalidPathException {
-    long renameTimeMs = System.currentTimeMillis();
+  public boolean _rename(int fileId, String dstPath, long renameTimeMs)
+      throws FileDoesNotExistException, InvalidPathException {
     synchronized (mRoot) {
       String srcPath = getPath(fileId);
       if (srcPath.equals(dstPath)) {
@@ -689,9 +692,12 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
-  private void addBlock(InodeFile tFile, BlockInfo blockInfo) throws BlockInfoException {
+  private void addBlock(InodeFile tFile, BlockInfo blockInfo, long addBlockTimeMs)
+      throws BlockInfoException {
     tFile.addBlock(blockInfo);
-    mJournal.getEditLog().addBlock(tFile.getId(), blockInfo.BLOCK_INDEX, blockInfo.LENGTH);
+    tFile.setLastModificationTimeMs(addBlockTimeMs);
+    mJournal.getEditLog().addBlock(tFile.getId(), blockInfo.BLOCK_INDEX, blockInfo.LENGTH,
+        addBlockTimeMs);
     mJournal.getEditLog().flush();
   }
 
@@ -706,13 +712,16 @@ public class MasterInfo extends ImageWriter {
    *          The length of the checkpoint.
    * @param checkpointPath
    *          The path of the checkpoint.
+   * @param addCheckpointTimeMs
+   *          The time of the checkpoint operation, in milliseconds.
    * @return true if the checkpoint is added successfully, false if not.
    * @throws FileNotFoundException
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    */
-  public boolean addCheckpoint(long workerId, int fileId, long length, String checkpointPath)
-      throws FileNotFoundException, SuspectedFileSizeException, BlockInfoException {
+  public boolean addCheckpoint(long workerId, int fileId, long length, String checkpointPath,
+      long addCheckpointTimeMs) throws FileNotFoundException, SuspectedFileSizeException,
+      BlockInfoException {
     LOG.info(CommonUtils.parametersToString(workerId, fileId, length, checkpointPath));
 
     if (workerId != -1) {
@@ -763,7 +772,8 @@ public class MasterInfo extends ImageWriter {
       tFile.setComplete();
 
       if (needLog) {
-        mJournal.getEditLog().addCheckpoint(fileId, length, checkpointPath);
+        tFile.setLastModificationTimeMs(addCheckpointTimeMs);
+        mJournal.getEditLog().addCheckpoint(fileId, length, checkpointPath, addCheckpointTimeMs);
         mJournal.getEditLog().flush();
       }
       return true;
@@ -796,10 +806,14 @@ public class MasterInfo extends ImageWriter {
    * @param setPinState
    *          An optional parameter indicating whether we should also set the "pinned"
    *          flag on each inode we traverse. If absent, the "isPinned" flag is unchanged.
+   * @param setPinnedTimeMs
+   *          The time of set pinned, in milliseconds
    */
-  private void recomputePinnedFiles(Inode inode, Optional<Boolean> setPinState) {
+  private void recomputePinnedFiles(Inode inode, Optional<Boolean> setPinState,
+      long setPinnedTimeMs) {
     if (setPinState.isPresent()) {
       inode.setPinned(setPinState.get());
+      inode.setLastModificationTimeMs(setPinnedTimeMs);
     }
 
     if (inode.isFile()) {
@@ -810,7 +824,7 @@ public class MasterInfo extends ImageWriter {
       }
     } else if (inode.isDirectory()) {
       for (Inode child : ((InodeFolder) inode).getChildren()) {
-        recomputePinnedFiles(child, setPinState);
+        recomputePinnedFiles(child, setPinState, setPinnedTimeMs);
       }
     }
   }
@@ -869,7 +883,7 @@ public class MasterInfo extends ImageWriter {
 
       InodeFile tFile = (InodeFile) inode;
       if (tFile.getNumberOfBlocks() <= blockIndex) {
-        addBlock(tFile, new BlockInfo(tFile, blockIndex, length));
+        addBlock(tFile, new BlockInfo(tFile, blockIndex, length), System.currentTimeMillis());
       }
 
       InetSocketAddress address = tWorkerInfo.ADDRESS;
@@ -889,9 +903,11 @@ public class MasterInfo extends ImageWriter {
    * 
    * @param fileId
    *          The id of the file
+   * @param completeFileTimeMs
+   *          The time of the complete file operation, in milliseconds
    * @throws FileDoesNotExistException
    */
-  public void completeFile(int fileId) throws FileDoesNotExistException {
+  public void completeFile(int fileId, long completeFileTimeMs) throws FileDoesNotExistException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
 
@@ -905,7 +921,8 @@ public class MasterInfo extends ImageWriter {
       addFile(fileId, ((InodeFile) inode).getDependencyId());
 
       ((InodeFile) inode).setComplete();
-      mJournal.getEditLog().completeFile(fileId);
+      inode.setLastModificationTimeMs(completeFileTimeMs);
+      mJournal.getEditLog().completeFile(fileId, completeFileTimeMs);
       mJournal.getEditLog().flush();
     }
   }
@@ -1026,9 +1043,10 @@ public class MasterInfo extends ImageWriter {
    * @throws TachyonException
    */
   public boolean delete(int fileId, boolean recursive) throws TachyonException {
+    long deleteTimeMs = System.currentTimeMillis();
     synchronized (mRoot) {
-      boolean ret = _delete(fileId, recursive);
-      mJournal.getEditLog().delete(fileId, recursive);
+      boolean ret = _delete(fileId, recursive, deleteTimeMs);
+      mJournal.getEditLog().delete(fileId, recursive, deleteTimeMs);
       mJournal.getEditLog().flush();
       return ret;
     }
@@ -1849,7 +1867,7 @@ public class MasterInfo extends ImageWriter {
       case InodeFolder: {
         Inode inode = InodeFolder.loadImage(parser, ele);
         addToInodeMap(inode, mInodes);
-        recomputePinnedFiles(inode, Optional.<Boolean> absent());
+        recomputePinnedFiles(inode, Optional.<Boolean> absent(), 0);
 
         if (inode.getId() != 1) {
           throw new IOException("Invalid element type " + ele);
@@ -1915,11 +1933,12 @@ public class MasterInfo extends ImageWriter {
    * @param fileId
    * @param blockIndex
    * @param blockLength
+   * @param addBlockTimeMs
    * @throws FileDoesNotExistException
    * @throws BlockInfoException
    */
-  void opAddBlock(int fileId, int blockIndex, long blockLength) throws FileDoesNotExistException,
-      BlockInfoException {
+  void opAddBlock(int fileId, int blockIndex, long blockLength, long addBlockTimeMs)
+      throws FileDoesNotExistException, BlockInfoException {
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
 
@@ -1930,7 +1949,8 @@ public class MasterInfo extends ImageWriter {
         throw new FileDoesNotExistException("File " + fileId + " is a folder.");
       }
 
-      addBlock((InodeFile) inode, new BlockInfo((InodeFile) inode, blockIndex, blockLength));
+      addBlock((InodeFile) inode, new BlockInfo((InodeFile) inode, blockIndex, blockLength),
+          addBlockTimeMs);
     }
   }
 
@@ -2007,9 +2027,10 @@ public class MasterInfo extends ImageWriter {
    */
   public boolean rename(int fileId, String dstPath) throws FileDoesNotExistException,
       InvalidPathException {
+    long renameTimeMs = System.currentTimeMillis();
     synchronized (mRoot) {
-      boolean ret = _rename(fileId, dstPath);
-      mJournal.getEditLog().rename(fileId, dstPath);
+      boolean ret = _rename(fileId, dstPath, renameTimeMs);
+      mJournal.getEditLog().rename(fileId, dstPath, renameTimeMs);
       mJournal.getEditLog().flush();
       return ret;
     }
@@ -2161,7 +2182,8 @@ public class MasterInfo extends ImageWriter {
   }
 
   /** Sets the isPinned flag on the given inode and all of its children. */
-  public void setPinned(int fileId, boolean pinned) throws FileDoesNotExistException {
+  public void setPinned(int fileId, boolean pinned, long setPinnedTimeMs)
+      throws FileDoesNotExistException {
     LOG.info("setPinned(" + fileId + ", " + pinned + ")");
     synchronized (mRoot) {
       Inode inode = mInodes.get(fileId);
@@ -2170,9 +2192,9 @@ public class MasterInfo extends ImageWriter {
         throw new FileDoesNotExistException("Failed to find inode" + fileId);
       }
 
-      recomputePinnedFiles(inode, Optional.of(pinned));
+      recomputePinnedFiles(inode, Optional.of(pinned), setPinnedTimeMs);
 
-      mJournal.getEditLog().setPinned(fileId, pinned);
+      mJournal.getEditLog().setPinned(fileId, pinned, setPinnedTimeMs);
       mJournal.getEditLog().flush();
     }
   }
