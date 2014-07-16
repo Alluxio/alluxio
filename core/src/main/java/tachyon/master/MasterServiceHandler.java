@@ -324,11 +324,6 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void user_writeToFile(int fileId) throws FileDoesNotExistException {
-    mMasterInfo.userWriteToFile(fileId);
-  }
-
-  @Override
   public void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     mMasterInfo.cacheBlock(workerId, workerUsedBytes, blockId, length);

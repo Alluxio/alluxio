@@ -1772,21 +1772,4 @@ public class TachyonFS {
       throw new IOException(e);
     }
   }
-
-  /**
-   * Notify the Master that the file is written
-   * 
-   * @param fileId
-   *          The id of the file
-   * @throws IOException
-   */
-  public synchronized void userWriteToFile(int fileId) throws IOException {
-    connect();
-    try {
-      mMasterClient.user_writeToFile(fileId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
-  }
 }
