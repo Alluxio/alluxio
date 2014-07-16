@@ -2204,26 +2204,6 @@ public class MasterInfo extends ImageWriter {
   }
 
   /**
-   * The user has written to a file, update the inodes' information
-   * 
-   * @param fileId
-   *          The id of the file
-   * @throws FileDoesNotExistException
-   */
-  public void userWriteToFile(int fileId) throws FileDoesNotExistException {
-    long writeTimeMs = System.currentTimeMillis();
-    synchronized (mRoot) {
-      Inode inode = mInodes.get(fileId);
-      if (inode == null) {
-        throw new FileDoesNotExistException("File " + fileId + " does not exist.");
-      }
-      inode.setLastModificationTimeMs(writeTimeMs);
-      Inode parent = mInodes.get(inode.getParentId());
-      parent.setLastModificationTimeMs(writeTimeMs);
-    }
-  }
-
-  /**
    * The heartbeat of the worker. It updates the information of the worker and removes the given
    * block id's.
    * 

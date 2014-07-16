@@ -278,9 +278,6 @@ service MasterService {
     throws (1: FileDoesNotExistException eR, 2: InvalidPathException eI)
 
   string user_getUnderfsAddress()
-
-  void user_writeToFile(1:i32 fileId)
-    throws (1: FileDoesNotExistException e)
 }
 
 service WorkerService {
