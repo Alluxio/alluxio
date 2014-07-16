@@ -16,9 +16,9 @@ later). We also assume that the user is running on Tachyon {{site.TACHYON_RELEAS
 later and have set up Tachyon and Hadoop in accordance to these guides
 [Local Mode](Running-Tachyon-Locally.html) or [Cluster Mode](Running-Tachyon-on-a-Cluster.html).
 
-If you run Spark version smaller than 1.0.0, please ddit Spark `spark/conf/spark-env.sh`, add:
+If you run Spark version smaller than 1.0.0, please edit Spark `spark/conf/spark-env.sh`, add:
 
-    export SPARK_CLASSPATH=/pathToTachyon/tachyon/target/tachyon-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar:$SPARK_CLASSPATH
+    export SPARK_CLASSPATH=/pathToTachyon/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar:$SPARK_CLASSPATH
 
 Create a new file `spark/conf/core-site.xml` Add the following to it
 
