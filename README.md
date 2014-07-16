@@ -17,7 +17,7 @@ The master branch is in version 0.5.1-SNAPSHOT:
 ```xml
 <dependency>
   <groupId>org.tachyonproject</groupId>
-  <artifactId>tachyon</artifactId>
+  <artifactId>tachyon-client</artifactId>
   <version>0.5.0</version>
 </dependency>
 ```
@@ -25,11 +25,11 @@ The master branch is in version 0.5.1-SNAPSHOT:
 ### Apache Ant
 ```xml
 <dependency org="org.tachyonproject" name="tachyon" rev="0.5.0">
-  <artifact name="tachyon" type="jar" />
+  <artifact name="tachyon-client" type="jar" />
 </dependency>
 ```
 
 ### SBT
 ```
-libraryDependencies += "org.tachyonproject" % "tachyon" % "0.5.0"
+libraryDependencies += "org.tachyonproject" % "tachyon-client" % "0.5.0"
 ```
