@@ -17,7 +17,7 @@ package tachyon.hadoop;
 import tachyon.Constants;
 
 /**
- * An Hadoop FileSystem interface implementation. Any program working with Hadoop HDFS can work with
+ * An Apache Hadoop FileSystem interface implementation. Any program working with Hadoop HDFS can work with
  * Tachyon transparently by using this class. However, it is not as efficient as using the Tachyon
  * API in tachyon.client package.
  */
