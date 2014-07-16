@@ -204,7 +204,7 @@ public class EditLog {
         toDelete = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
       }
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
     mBackUpLogStartNum = -1;
   }
@@ -298,7 +298,7 @@ public class EditLog {
         mOs.close();
       }
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
   }
 
@@ -338,7 +338,7 @@ public class EditLog {
       _closeActiveStream();
       mUfs.close();
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
   }
 
@@ -420,7 +420,7 @@ public class EditLog {
         ufs.delete(toDelete, true);
       }
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
   }
 
@@ -441,7 +441,7 @@ public class EditLog {
         rotateEditLog(PATH);
       }
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
 
     mFlushedTransactionId = mTransactionId;
@@ -488,7 +488,7 @@ public class EditLog {
       mDos = new DataOutputStream(mOs);
       LOG.info("Created new log file " + path);
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
   }
 
@@ -529,7 +529,7 @@ public class EditLog {
       WRITER.writeValue(mDos, operation);
       mDos.writeByte('\n');
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
   }
 }

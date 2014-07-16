@@ -28,7 +28,7 @@ public class UserInfo {
 
   public UserInfo(long userId) {
     if (userId <= 0) {
-      CommonUtils.runtimeException("Invalid user id " + userId);
+      throw CommonUtils.runtimeException("Invalid user id " + userId);
     }
     USER_ID = userId;
     mOwnBytes = 0;

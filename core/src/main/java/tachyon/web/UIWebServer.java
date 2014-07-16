@@ -91,7 +91,7 @@ public class UIWebServer {
       mServer.start();
       LOG.info(mServerName + " started @ " + mAddress);
     } catch (Exception e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
   }
 }

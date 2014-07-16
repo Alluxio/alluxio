@@ -53,7 +53,7 @@ public class BlocksLocker {
       try {
         mWorkerStorage.lockBlock(blockId, mUserId);
       } catch (TException e) {
-        CommonUtils.runtimeException(e);
+        throw CommonUtils.runtimeException(e);
       }
       mLockedBlockIds.put(blockId, new HashSet<Integer>());
     }
@@ -89,7 +89,7 @@ public class BlocksLocker {
         try {
           mWorkerStorage.unlockBlock(blockId, mUserId);
         } catch (TException e) {
-          CommonUtils.runtimeException(e);
+          throw CommonUtils.runtimeException(e);
         }
       }
     }

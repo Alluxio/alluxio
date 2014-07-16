@@ -73,7 +73,7 @@ public abstract class UnderFileSystemCluster {
       } catch (Exception e) {
         System.out.println("Failed to initialize the ufsCluster of " + mUfsClz
             + " for integration test.");
-        CommonUtils.runtimeException(e);
+        throw CommonUtils.runtimeException(e);
       }
     }
     return new LocalFilesystemCluster(baseDir);

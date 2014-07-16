@@ -86,7 +86,7 @@ public class TachyonFS {
       masterAddress = tempAddress.substring(0, tempAddress.indexOf(Constants.PATH_SEPARATOR));
     }
     if (masterAddress.split(":").length != 2) {
-      CommonUtils.illegalArgumentException("Illegal Tachyon Master Address: " + tachyonPath);
+      throw CommonUtils.illegalArgumentException("Illegal Tachyon Master Address: " + tachyonPath);
     }
     String masterHost = masterAddress.split(":")[0];
     int masterPort = Integer.parseInt(masterAddress.split(":")[1]);
@@ -1728,7 +1728,7 @@ public class TachyonFS {
       mMasterClient.user_setPinned(fid, pinned);
     } catch (TException e) {
       LOG.error(e.getMessage());
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
   }
 

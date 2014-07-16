@@ -25,9 +25,8 @@ public class NetworkUtils {
       return InetAddress.getByName(getLocalIpAddress()).getCanonicalHostName();
     } catch (UnknownHostException e) {
       LOG.error(e);
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
-    return null;
   }
 
   /**
@@ -61,9 +60,8 @@ public class NetworkUtils {
       return address.getHostAddress();
     } catch (IOException e) {
       LOG.error(e);
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
-    return null;
   }
 
   /**

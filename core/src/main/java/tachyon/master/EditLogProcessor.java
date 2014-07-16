@@ -29,7 +29,7 @@ public class EditLogProcessor implements Runnable {
     try {
       mLoadedImageModTime = mJournal.getImageModTimeMs();
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
     LOG.info("Created edit log processor with path " + mPath);
   }
@@ -72,7 +72,7 @@ public class EditLogProcessor implements Runnable {
         }
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       } catch (IOException e) {
-        CommonUtils.runtimeException(e);
+        throw CommonUtils.runtimeException(e);
       }
     }
     LOG.info("Standy log processor with path " + mPath + " stopped.");

@@ -342,15 +342,15 @@ public class WorkerStorage {
     try {
       initializeWorkerStorage();
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     } catch (FileDoesNotExistException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     } catch (SuspectedFileSizeException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     } catch (BlockInfoException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     } catch (TException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
 
     LOG.info("Current Worker Info: ID " + mWorkerId + ", ADDRESS: " + mWorkerAddress
@@ -493,7 +493,7 @@ public class WorkerStorage {
             try {
               unlockBlock(blockId, userId);
             } catch (TException e) {
-              CommonUtils.runtimeException(e);
+              throw CommonUtils.runtimeException(e);
             }
           }
         }
@@ -653,7 +653,7 @@ public class WorkerStorage {
         }
         mAddedBlockList.add(blockId);
         if (!success) {
-          CommonUtils.runtimeException("Pre-existing files exceed the local memory capacity.");
+          throw CommonUtils.runtimeException("Pre-existing files exceed the local memory capacity.");
         }
       }
     }
