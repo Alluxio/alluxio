@@ -39,7 +39,7 @@ class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
     try {
       WORKER_CLIENT.userHeartbeat(USER_ID);
     } catch (TException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
   }
 }

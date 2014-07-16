@@ -222,7 +222,7 @@ public class DataServerMessage {
    */
   public void checkReady() {
     if (!mIsMessageReady) {
-      CommonUtils.runtimeException("Message is not ready.");
+      throw CommonUtils.runtimeException("Message is not ready.");
     }
   }
 
@@ -326,9 +326,9 @@ public class DataServerMessage {
   private void isSend(boolean isSend) {
     if (IS_TO_SEND_DATA != isSend) {
       if (IS_TO_SEND_DATA) {
-        CommonUtils.runtimeException("Try to recv on send message");
+        throw CommonUtils.runtimeException("Try to recv on send message");
       } else {
-        CommonUtils.runtimeException("Try to send on recv message");
+        throw CommonUtils.runtimeException("Try to send on recv message");
       }
     }
   }

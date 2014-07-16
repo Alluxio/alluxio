@@ -125,7 +125,7 @@ public class Users {
       try {
         FileUtils.deleteDirectory(new File(folder));
       } catch (IOException e) {
-        CommonUtils.runtimeException(e);
+        throw CommonUtils.runtimeException(e);
       }
 
       folder = getUserUnderfsTempFolder(userId);

@@ -226,9 +226,8 @@ public class MasterClient {
       return CommonUtils.parseInetSocketAddress(temp);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
-    return null;
   }
 
   public synchronized long getUserId() throws TException {

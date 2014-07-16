@@ -90,7 +90,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       // FileSystem.get(tConf);
       // mFs = FileSystem.get(new URI(fsDefaultName), tConf);
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
   }
 
@@ -177,8 +177,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         te = e;
       }
     }
-    CommonUtils.runtimeException(te);
-    return false;
+    throw CommonUtils.runtimeException(te);
   }
 
   @Override
@@ -297,8 +296,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         te = e;
       }
     }
-    CommonUtils.runtimeException(te);
-    return false;
+    throw CommonUtils.runtimeException(te);
   }
 
   @Override
@@ -314,8 +312,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         te = e;
       }
     }
-    CommonUtils.runtimeException(te);
-    return null;
+    throw CommonUtils.runtimeException(te);
   }
 
   @Override
@@ -340,8 +337,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         te = e;
       }
     }
-    CommonUtils.runtimeException(te);
-    return false;
+    throw CommonUtils.runtimeException(te);
   }
 
   @Override

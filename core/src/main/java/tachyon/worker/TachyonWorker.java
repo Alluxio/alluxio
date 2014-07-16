@@ -212,7 +212,7 @@ public class TachyonWorker implements Runnable {
               .acceptQueueSizePerThread(acceptQueueSizePerThreads).workerThreads(workerThreads));
     } catch (TTransportException e) {
       LOG.error(e.getMessage(), e);
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
   }
 
@@ -254,7 +254,7 @@ public class TachyonWorker implements Runnable {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         cmd = null;
         if (System.currentTimeMillis() - lastHeartbeatMs >= WorkerConf.get().HEARTBEAT_TIMEOUT_MS) {
-          CommonUtils.runtimeException("Timebeat timeout "
+          throw CommonUtils.runtimeException("Timebeat timeout "
               + (System.currentTimeMillis() - lastHeartbeatMs) + "ms");
         }
       }
@@ -279,7 +279,7 @@ public class TachyonWorker implements Runnable {
           LOG.info("Delete command: " + cmd);
           break;
         default:
-          CommonUtils.runtimeException("Un-recognized command from master " + cmd.toString());
+          throw CommonUtils.runtimeException("Un-recognized command from master " + cmd.toString());
         }
       }
 

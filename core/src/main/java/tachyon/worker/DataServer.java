@@ -75,7 +75,7 @@ public class DataServer implements Runnable {
       mSelector = initSelector();
     } catch (IOException e) {
       LOG.error(e.getMessage() + mAddress, e);
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
   }
 

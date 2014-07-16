@@ -51,7 +51,7 @@ class Utils {
   public static String getProperty(String property) {
     String ret = System.getProperty(property);
     if (ret == null) {
-      CommonUtils.illegalArgumentException(property + " is not configured.");
+      throw CommonUtils.illegalArgumentException(property + " is not configured.");
     } else {
       LOG.debug(property + " : " + ret);
     }

@@ -168,7 +168,7 @@ public class Performance {
       try {
         memoryCopyParition();
       } catch (IOException e) {
-        CommonUtils.runtimeException(e);
+        throw CommonUtils.runtimeException(e);
       }
       LOG.info(mMsg + mWorkerId + " just finished.");
     }
@@ -207,7 +207,7 @@ public class Performance {
       try {
         writeParition();
       } catch (Exception e) {
-        CommonUtils.runtimeException(e);
+        throw CommonUtils.runtimeException(e);
       }
       LOG.info("WriteWorker " + mWorkerId + " just finished.");
     }
@@ -290,7 +290,7 @@ public class Performance {
       try {
         readPartition();
       } catch (Exception e) {
-        CommonUtils.runtimeException(e);
+        throw CommonUtils.runtimeException(e);
       }
       LOG.info("ReadWorker " + mWorkerId + " just finished.");
     }
@@ -371,7 +371,7 @@ public class Performance {
       try {
         io();
       } catch (IOException e) {
-        CommonUtils.runtimeException(e);
+        throw CommonUtils.runtimeException(e);
       }
       LOG.info(mMsg + mWorkerId + " just finished.");
     }
@@ -407,7 +407,7 @@ public class Performance {
       try {
         WWs[thread].join();
       } catch (InterruptedException e) {
-        CommonUtils.runtimeException(e);
+        throw CommonUtils.runtimeException(e);
       }
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
@@ -447,7 +447,7 @@ public class Performance {
       try {
         WWs[thread].join();
       } catch (InterruptedException e) {
-        CommonUtils.runtimeException(e);
+        throw CommonUtils.runtimeException(e);
       }
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
@@ -483,7 +483,7 @@ public class Performance {
       try {
         WWs[thread].join();
       } catch (InterruptedException e) {
-        CommonUtils.runtimeException(e);
+        throw CommonUtils.runtimeException(e);
       }
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;

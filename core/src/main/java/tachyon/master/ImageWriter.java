@@ -18,7 +18,7 @@ public abstract class ImageWriter {
       objWriter.writeValue(dos, ele);
       dos.writeByte('\n');
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw CommonUtils.runtimeException(e);
     }
   }
 }
