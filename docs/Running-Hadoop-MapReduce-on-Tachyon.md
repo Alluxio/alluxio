@@ -42,15 +42,16 @@ job jar size by packaging Tachyon with it (Option 2). For this reason, of the th
 out, it is highly recommended to consider the third route, by installing the Tachyon jar on each
 node.
 
--   For installing Tachyon on each node, you must place the `tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`,
-    located in the `tachyon/client/target` directory, in the `$HADOOP_HOME/lib` directory of each node, and
-    then restart all of the TaskTrackers. One downfall of this approach is that the jars must be
-    installed again for each update to a new release.
+-   For installing Tachyon on each node, you must place the
+    `tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`,
+    located in the `tachyon/client/target` directory, in the `$HADOOP_HOME/lib` directory of each
+    node, and then restart all of the TaskTrackers. One downfall of this approach is that the jars
+    must be installed again for each update to a new release.
 
--   You can also run a job by using the `-libjars` command line option when using `hadoop jar...`, and
-    specifying `/pathToTachyon/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` as the argument.
-    This will place the jar in the Hadoop DistributedCache, and is desirable only if you are updating
-    the Tachyon jar a non-trivial number of times.
+-   You can also run a job by using the `-libjars` command line option when using `hadoop jar...`,
+    and specifying`/pathToTachyon/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`
+    as the argument. This will place the jar in the Hadoop DistributedCache, and is desirable only
+    if you are updating the Tachyon jar a non-trivial number of times.
 
 -   For those interested in the second option, please revisit the Cloudera guide for more assistance.
     One must simply package the Tachyon jar in the `lib` subdirectory of the job jar. This option is
@@ -85,7 +86,7 @@ For example, say you have text files in HDFS directory `/user/hduser/gutenberg/`
 following:
 
     $ cd $HADOOP_HOME
-    $ ./bin/hadoop jar hadoop-examples-1.0.4.jar wordcount -libjars /pathToTachyon/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar tachyon://localhost:19998/user/hduser/gutenberg /user/hduser/output
+    $ ./bin/hadoop jar hadoop-examples-1.0.4.jar wordcount -libjars /pathToTachyon/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar tachyon://localhost:19998/user/hduser/gutenberg tachyon://localhost:19998/user/hduser/output
 
 The above command tell the wordcount to load the files from HDFS directory `/user/hduser/gutenberg/`
-into Tachyon and then save the output result to HDFS `/user/hduser/output/`.
+into Tachyon and then save the output result to `/user/hduser/output/` in Tachyon.
