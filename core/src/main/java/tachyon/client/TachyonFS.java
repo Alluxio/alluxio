@@ -66,7 +66,7 @@ public class TachyonFS {
    * @param tachyonPath
    *          a Tachyon path contains master address. e.g., tachyon://localhost:19998,
    *          tachyon://localhost:19998/ab/c.txt
-   * @return the corresponding TachyonFS hanlder
+   * @return the corresponding TachyonFS handler
    * @throws IOException
    */
   public static synchronized TachyonFS get(String tachyonPath) throws IOException {
