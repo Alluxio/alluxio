@@ -39,9 +39,9 @@ public class Users {
 
   /* User's folder */
   private final String USER_FOLDER;
-  /* User's under file-system folder */
+  /* User's under filesystem folder */
   private final String USER_UNDERFS_FOLDER;
-  /* Maps the user id and <code>UserInfo</code> object */
+  /* Maps the user id and <tt>UserInfo</tt> object */
   private final Map<Long, UserInfo> USERS;
 
   public Users(final String userfolder, final String userUnderfsFolder) {
@@ -162,7 +162,7 @@ public class Users {
   }
 
     /**
-     * Updates user's heartbeat using <code>System.currentTimeMillis()</code>
+     * Updates user's heartbeat using <tt>System.currentTimeMillis()</tt>
      *
      * @param userId contains userId of the user
      */

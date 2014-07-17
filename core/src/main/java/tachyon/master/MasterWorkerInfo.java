@@ -45,7 +45,7 @@ public class MasterWorkerInfo {
   private long mLastUpdatedTimeMs;
   /* Collection to store blockIds */
   private Set<Long> mBlocks;
-  /* Collection to store blockId to be removed */
+  /* Collection to store blockIds to be removed */
   private Set<Long> mToRemoveBlocks;
 
   public MasterWorkerInfo(long id, InetSocketAddress address, long capacityBytes) {
@@ -61,9 +61,9 @@ public class MasterWorkerInfo {
   }
 
   /**
-   * Generates <code>ClientWorkerInfo</code> for this worker
+   * Generates <tt>ClientWorkerInfo</tt> for this worker
    *
-   * @return contains instance of <code>ClientWorkerInfo</code>
+   * @return contains instance of <tt>ClientWorkerInfo</tt>
    */
   public synchronized ClientWorkerInfo generateClientWorkerInfo() {
     ClientWorkerInfo ret = new ClientWorkerInfo();
@@ -80,7 +80,7 @@ public class MasterWorkerInfo {
   /**
    * Returns worker's address
    *
-   * @return contains instance of <code>InetSocketAddress</code>
+   * @return contains instance of <tt>InetSocketAddress</tt>
    */
   public InetSocketAddress getAddress() {
     return ADDRESS;
@@ -195,9 +195,9 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes the blockId in to-be-removed blocks set based on flag.
-   * If input flag <code>add</code> is true then blockId will be added into to-be-removed blocks set
+   * If input flag <tt>add</tt> is true then blockId will be added into to-be-removed blocks set
    * only if given blockId is already available in blocks set.
-   * If input flag <code>add</code> is false then blockId will be removed from to-be-removed blocks set
+   * If input flag <tt>add</tt> is false then blockId will be removed from to-be-removed blocks set
    *
    * @param add boolean flag to indicate whether blockId to be added or to be removed in to-be-removed blocks set
    * @param blockId long represents blockId
@@ -214,9 +214,9 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes the blockId in to be removed blocks set based on flag.
-   * If input flag <code>add</code> is true then blockId will be added into to-be-removed blocks set
+   * If input flag <tt>add</tt> is true then blockId will be added into to-be-removed blocks set
    * only if given blockId is already available in blocks set.
-   * If input flag <code>add</code> is false then blockId will be removed from to-be-removed blocks set
+   * If input flag <tt>add</tt> is false then blockId will be removed from to-be-removed blocks set
    *
    * @param add boolean flag to indicate whether blockId to be added or to be removed in to-be-removed blocks set
    * @param blockIds set of blockIds
