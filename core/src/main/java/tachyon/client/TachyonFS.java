@@ -148,7 +148,7 @@ public class TachyonFS {
    *          the local block's id
    * @throws IOException
    */
-  synchronized void accessLocalBlock(long blockId) throws IOException {
+  private synchronized void accessLocalBlock(long blockId) throws IOException {
     connect();
     if (mWorkerClient != null && mIsWorkerLocal) {
       try {
@@ -279,7 +279,7 @@ public class TachyonFS {
   }
 
   // Lazy connection TODO This should be removed since the Thrift server has been fixed.
-  synchronized void connect() throws IOException {
+  private synchronized void connect() throws IOException {
     if (mMasterClient != null) {
       return;
     }
@@ -1108,7 +1108,7 @@ public class TachyonFS {
    * @return the id of the next block
    * @throws IOException
    */
-  synchronized long getNextBlockId(int fId) throws IOException {
+  private synchronized long getNextBlockId(int fId) throws IOException {
     connect();
     try {
       return mMasterClient.user_createNewBlock(fId);
@@ -1354,7 +1354,7 @@ public class TachyonFS {
    *          The block lock id of the block of lock. <code>blockLockId</code> must be non-negative.
    * @return true if successfully lock the block, false otherwise (or invalid parameter).
    */
-  synchronized boolean lockBlock(long blockId, int blockLockId) throws IOException {
+  private synchronized boolean lockBlock(long blockId, int blockLockId) throws IOException {
     if (blockId <= 0 || blockLockId < 0) {
       return false;
     }
@@ -1455,7 +1455,7 @@ public class TachyonFS {
    * @return <code>TachyonByteBuffer</code> containing the whole block.
    * @throws IOException
    */
-  TachyonByteBuffer readLocalByteBuffer(long blockId) throws IOException {
+  private TachyonByteBuffer readLocalByteBuffer(long blockId) throws IOException {
     return readLocalByteBuffer(blockId, 0, -1);
   }
 
