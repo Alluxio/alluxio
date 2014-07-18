@@ -476,7 +476,7 @@ public class TachyonFS {
    * @throws IOException
    *           If file already exists, or path is invalid.
    */
-  public synchronized int createFile(final String path, long blockSizeByte) throws IOException {
+  public synchronized int createFile(String path, long blockSizeByte) throws IOException {
     if (blockSizeByte > (long) Constants.GB * 2) {
       throw new IOException("Block size must be less than 2GB: " + blockSizeByte);
     }
@@ -506,7 +506,7 @@ public class TachyonFS {
    * @throws IOException
    *           If file already exists, or path is invalid.
    */
-  public synchronized int createFile(final String path, String underfsPath) throws IOException {
+  public synchronized int createFile(String path, String underfsPath) throws IOException {
     connect();
     if (!mConnected) {
       return -1;
@@ -546,7 +546,7 @@ public class TachyonFS {
    * @return the id if succeed, -1 otherwise
    * @throws IOException
    */
-  public synchronized int createRawTable(final String path, int columns, ByteBuffer metadata)
+  public synchronized int createRawTable(String path, int columns, ByteBuffer metadata)
       throws IOException {
     connect();
     if (!mConnected) {
@@ -817,7 +817,7 @@ public class TachyonFS {
    * @return the ClientFileInfo
    * @throws IOException
    */
-  private synchronized ClientFileInfo getClientFileInfo(final String path, boolean useCachedMetadata)
+  private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata)
       throws IOException {
     connect();
     if (!mConnected) {
@@ -908,7 +908,7 @@ public class TachyonFS {
    * Get <code>TachyonFile</code> based on the path. If useCachedMetadata, this will not see
    * changes to the file's pin setting, or other dynamic properties.
    */
-  public synchronized TachyonFile getFile(final String path, boolean useCachedMetadata)
+  public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
       throws IOException {
     String cleanedPath = cleanPathIOException(path);
     ClientFileInfo clientFileInfo = getClientFileInfo(cleanedPath, useCachedMetadata);
@@ -1000,7 +1000,7 @@ public class TachyonFS {
    * @return the file id if exists, -1 otherwise
    * @throws IOException
    */
-  public synchronized int getFileId(final String path) throws IOException {
+  public synchronized int getFileId(String path) throws IOException {
     connect();
     if (!mConnected) {
       return -1;
@@ -1185,7 +1185,7 @@ public class TachyonFS {
    * @return the RawTable
    * @throws IOException
    */
-  public synchronized RawTable getRawTable(final String path) throws IOException {
+  public synchronized RawTable getRawTable(String path) throws IOException {
     connect();
     String cleanedPath = cleanPathIOException(path);
     ClientRawTableInfo clientRawTableInfo;
@@ -1407,7 +1407,7 @@ public class TachyonFS {
    * @return true if the folder is created successfully or already existing. false otherwise.
    * @throws IOException
    */
-  public synchronized boolean mkdir(final String path) throws IOException {
+  public synchronized boolean mkdir(String path) throws IOException {
     connect();
     if (!mConnected) {
       return false;
