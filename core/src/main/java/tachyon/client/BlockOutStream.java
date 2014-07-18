@@ -184,6 +184,13 @@ public class BlockOutStream extends OutStream {
     return BLOCK_CAPACITY_BYTE - mWrittenBytes;
   }
 
+  /**
+   * @return the index in the file for this block
+   */
+  public int getBlockIndex() {
+    return BLOCK_INDEX;
+  }
+
   @Override
   public void write(byte[] b) throws IOException {
     write(b, 0, b.length);
