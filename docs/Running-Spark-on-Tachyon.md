@@ -13,14 +13,15 @@ spark/core/pom.xml.
 
 The additional prerequisite for this part is [Spark](http://spark-project.org/docs/latest/) (0.6 or
 later). We also assume that the user is running on Tachyon {{site.TACHYON_RELEASED_VERSION}} or
-later and have set up Tachyon and Hadoop in accordance to these guides
+later and has set up Tachyon and Hadoop in accordance to these guides
 [Local Mode](Running-Tachyon-Locally.html) or [Cluster Mode](Running-Tachyon-on-a-Cluster.html).
 
-If you run Spark version smaller than 1.0.0, please edit Spark `spark/conf/spark-env.sh`, add:
+If you are running a Spark version less than 1.0.0, please add the following line to
+`spark/conf/spark-env.sh`.
 
     export SPARK_CLASSPATH=/pathToTachyon/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar:$SPARK_CLASSPATH
 
-Create a new file `spark/conf/core-site.xml` Add the following to it
+Create a new file `spark/conf/core-site.xml` and add the following to it:
 
     <configuration>
       <property>
@@ -29,25 +30,25 @@ Create a new file `spark/conf/core-site.xml` Add the following to it
       </property>
     </configuration>
 
-Put a file X into HDFS. Run Spark Shell:
+Put a file X into HDFS and run the Spark shell:
 
     $ ./spark-shell
     $ val s = sc.textFile("tachyon://localhost:19998/X")
     $ s.count()
     $ s.saveAsTextFile("tachyon://localhost:19998/Y")
 
-Take a look at [http://localhost:19999](http://localhost:19999), there should be a file info
-there.
+Take a look at [http://localhost:19999](http://localhost:19999). There should be an output file
+`Y` which contains the number of words in the file `X`.
 
-If you are running tachyon in fault tolerant mode along with zookeeper additionally add new entry in
-previously created `spark/conf/core-site.xml`
+If you are running tachyon in fault tolerant mode along with ZooKeeper, add a new entry in the
+previously created `spark/conf/core-site.xml`:
 
     <property>
         <name>fs.tachyon-ft.impl</name>
         <value>tachyon.hadoop.TFS</value>
     </property>
 
-Edit `spark/conf/spark-env.sh`, add:
+Add the following line to `spark/conf/spark-env.sh`:
 
     export SPARK_JAVA_OPTS="
       -Dtachyon.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181
@@ -55,7 +56,7 @@ Edit `spark/conf/spark-env.sh`, add:
       $SPARK_JAVA_OPTS
     "
 
-Put a file X into HDFS. Run Spark Shell, you can now point to any tachyon master:
+Put a file X into HDFS. When running a Spark shell, you can now point to any tachyon master:
 
     $ ./spark-shell
     $ val s = sc.textFile("tachyon-ft://stanbyHost:19998/X")
@@ -70,22 +71,22 @@ later) and Tachyon (0.4.1 or later).  Please refer to
 feature.
 
 Your Spark programs need to set two parameters, `spark.tachyonStore.url` and
-`spark.tachyonStore.baseDir`. The `spark.tachyonStore.url` is the URL of the Tachyon
-file system in the TachyonStore, with a default value `tachyon://localhost:19998`. The
-`spark.tachyonStore.baseDir` is the directories of the Tachyon File System that store RDDs, with a
-default value `java.io.tmpdir`. It can be a comma-separated list of multiple directories in Tachyon.
+`spark.tachyonStore.baseDir`. `spark.tachyonStore.url` (by default `tachyon://localhost:19998`) is
+the URL of the Tachyon filesystem in the TachyonStore. `spark.tachyonStore.baseDir` (by default
+`java.io.tmpdir`) is the base directory in the Tachyon File System that will store the RDDs. It can
+be a comma-separated list of multiple directories in Tachyon.
 
-To persist an RDD into Tachyon, you need to persist the RDD with the `StorageLevel.OFF_HEAP`
-parameter. The following is an example with Spark shell:
+To persist an RDD into Tachyon, you need to use the `StorageLevel.OFF_HEAP` parameter. The following
+is an example with Spark shell:
 
     $ ./spark-shell
     $ val rdd = sc.textFile(inputPath)
     $ rdd.persist(StorageLevel.OFF_HEAP)
 
-Take a look at the `spark.tachyonStore.baseDir` on Tachyon's WebUI (default URI is
-[http://localhost:19999](http://localhost:19999)), when the Spark applications is running. There
-should be a bunch of files there, they are RDD blocks. Currently, the files will be cleaned up
-when the spark application finishes.
+Take a look at the `spark.tachyonStore.baseDir` on Tachyon's WebUI (the default URI is
+[http://localhost:19999](http://localhost:19999)), when the Spark application is running. There
+should be a bunch of files there; they are RDD blocks. Currently, the files will be cleaned up when
+the spark application finishes.
 
-You can also use Tachyon as you Spark applications' input and output sources. The above section
+You can also use Tachyon as input and output sources for your Spark applications. The above section
 shows the instructions.

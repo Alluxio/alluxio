@@ -34,8 +34,8 @@ starting a local system requires users to input their root password for Linux ba
     $ ./bin/tachyon-start.sh local
 
 To verify that Tachyon is running, you can visit
-**[http://localhost:19999](http://localhost:19999)**, or see the log in the folder `tachyon/logs`.
-You can also run a sample program:
+**[http://localhost:19999](http://localhost:19999)**, or see the log in the `logs` folder. You can
+also run a sample program:
 
     $ ./bin/tachyon runTest Basic CACHE_THROUGH
 
@@ -54,6 +54,10 @@ For the first sample program, you should be able to see something similar to the
 To run a more comprehensive sanity check:
 
     $ ./bin/tachyon runTests
+
+You can stop Tachyon any time by running:
+
+	$ ./bin/tachyon-stop.sh
 
 # Set HDFS as Tachyon's under filesystem
 
