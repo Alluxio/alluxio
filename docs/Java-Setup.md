@@ -31,5 +31,5 @@ title: Java Setup
 
     `$ tar zxvf jdk-7u<version>-linux-x64.tar.gz`
 
-4.  The Java Development Kit files are installed in a directory called jdk1.7.0\_ in the current
+4.  The Java Development Kit files are installed in a directory called `jdk1.7.0_` in the current
 directory. Delete the .tar.gz file if you want to save disk space.
