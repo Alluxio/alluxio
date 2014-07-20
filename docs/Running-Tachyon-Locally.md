@@ -57,7 +57,7 @@ To run a more comprehensive sanity check:
 
 You can stop Tachyon any time by running:
 
-	$ ./bin/tachyon-stop.sh
+    $ ./bin/tachyon-stop.sh
 
 # Set HDFS as Tachyon's under filesystem
 
