@@ -43,16 +43,16 @@ out, it is highly recommended to consider the third route, by installing the Tac
 node.
 
 -   For installing Tachyon on each node, you must place the
-    `tachyon-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`, located in the
-    `tachyon/core/target` directory, in the `$HADOOP_HOME/lib` directory of each node, and then
+    `tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`, located in the
+    `tachyon/client/target` directory, in the `$HADOOP_HOME/lib` directory of each node, and then
     restart all of the TaskTrackers. One downfall of this approach is that the jars must be
     installed again for each update to a new release.
 
 -   You can also run a job by using the `-libjars` command line option when using `hadoop jar...`, and
     specifying
-    `/path/to/tachyon/core/target/tachyon-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar` as
-    the argument. This will place the jar in the Hadoop DistributedCache, and is desirable only if
-    you are updating the Tachyon jar a non-trivial number of times.
+    `/pathToTachyon/core/target/tachyon-client={{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar`
+    as the argument. This will place the jar in the Hadoop DistributedCache, and is desirable only
+    if you are updating the Tachyon jar a non-trivial number of times.
 
 -   For those interested in the second option, please revisit the Cloudera guide for more assistance.
     One must simply package the Tachyon jar in the `lib` subdirectory of the job jar. This option is

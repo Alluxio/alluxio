@@ -9,7 +9,7 @@ lineage information and using memory aggressively. Tachyon caches working set fi
 thereby avoiding going to disk to load datasets that are frequently read. This enables different
 jobs/queries and frameworks to access cached files at memory speed.
 
-Tachyon is Hadoop compatible, so existing Spark and MapReduce programs can run on top of it without
+Tachyon is Hadoop compatible. Existing Spark and MapReduce programs can run on top of it without
 any code change. The project is open source
 ([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
 multiple companies. It has more than
@@ -38,8 +38,8 @@ the workload and the framework, since various frameworks have different executio
 
 * **Pluggable underlayer file system**: To provide fault-tolerance, Tachyon checkpoints in-memory
 data to the underlayer file system. It has a generic interface to make plugging different underlayer
-file systems easy. We currently support HDFS, S3, and single-node local file systems, and support
-for many other file systems is coming.
+file systems easy. We currently support HDFS, S3, GlusterFS, and single-node local file systems, and
+support for many other file systems is coming.
 
 * **Native support for raw tables**: Table data with over hundreds of columns is common in data
 warehouses. Tachyon provides native support for multi-columned data, with the option to put only hot
