@@ -20,11 +20,11 @@
   <parent>
     <groupId>org.tachyonproject</groupId>
     <artifactId>tachyon-parent</artifactId>
-    <version>0.5.0</version>
+    <version>0.5.1-SNAPSHOT</version>
   </parent>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon</artifactId>
-  <version>0.5.0</version>
+  <version>0.5.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Tachyon: Reliable File Sharing at Memory Speed Across Cluster Frameworks</description>
   <name>Tachyon Project Core</name>
