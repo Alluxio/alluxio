@@ -72,7 +72,7 @@ the Scala shell, as discussed in this [blog](http://scala4fun.tumblr.com/post/84
     Language Specification: **public protected private abstract static final transient volatile
     synchronized native strictfp**, then as **alphabetical order**.
 -   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml).
-    -  If you use Intellij, you can use our formatter with the help from [EclipseCodeFormatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
+    -  If you use IntelliJ, you can use [Eclipse Code Formatter plugin](http://plugins.jetbrains.com/plugin/6546) in IntelliJ
 
 ### IDE
 
