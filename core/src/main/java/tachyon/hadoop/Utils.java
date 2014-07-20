@@ -24,11 +24,9 @@ import org.apache.hadoop.mapred.InputSplit;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
-import tachyon.util.CommonUtils;
 
 public final class Utils {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private static final boolean DEBUG = Constants.DEBUG;
 
   /**
    * Add S3 keys to the given Hadoop Configuration object if the user has specified them using
