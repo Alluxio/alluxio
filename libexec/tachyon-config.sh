@@ -42,7 +42,7 @@ if [ -z "$TACHYON_SYSTEM_INSTALLATION" ]; then
   export TACHYON_HOME=${TACHYON_PREFIX}
   export TACHYON_CONF_DIR="$TACHYON_HOME/conf"
   export TACHYON_LOGS_DIR="$TACHYON_HOME/logs"
-  export TACHYON_JAR=$TACHYON_HOME/core/target/tachyon-0.5.0-jar-with-dependencies.jar
+  export TACHYON_JAR=$TACHYON_HOME/core/target/tachyon-0.5.1-SNAPSHOT-jar-with-dependencies.jar
   export JAVA="$JAVA_HOME/bin/java"
 fi
 
