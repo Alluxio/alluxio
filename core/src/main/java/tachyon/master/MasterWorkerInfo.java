@@ -30,14 +30,22 @@ import tachyon.util.CommonUtils;
  * The structure to store a worker's information in master node.
  */
 public class MasterWorkerInfo {
-  public final InetSocketAddress ADDRESS;
-  private final long CAPACITY_BYTES;
-  private final long START_TIME_MS;
 
+  /* Worker's address */
+  public final InetSocketAddress ADDRESS;
+  /* Capacity of worker in bytes */
+  private final long CAPACITY_BYTES;
+  /* Worker's start time in ms */
+  private final long START_TIME_MS;
+  /* Id of worker in long */
   private long mId;
+  /* Worker's used bytes */
   private long mUsedBytes;
+  /* Worker's last updated time in ms */
   private long mLastUpdatedTimeMs;
+  /* Collection to store blockIds */
   private Set<Long> mBlocks;
+  /* Collection to store blockIds to be removed */
   private Set<Long> mToRemoveBlocks;
 
   public MasterWorkerInfo(long id, InetSocketAddress address, long capacityBytes) {
@@ -52,6 +60,11 @@ public class MasterWorkerInfo {
     mLastUpdatedTimeMs = System.currentTimeMillis();
   }
 
+  /**
+   * Generates <tt>ClientWorkerInfo</tt> for this worker
+   *
+   * @return contains instance of <tt>ClientWorkerInfo</tt>
+   */
   public synchronized ClientWorkerInfo generateClientWorkerInfo() {
     ClientWorkerInfo ret = new ClientWorkerInfo();
     ret.id = mId;
@@ -64,10 +77,20 @@ public class MasterWorkerInfo {
     return ret;
   }
 
+  /**
+   * Returns worker's address
+   *
+   * @return contains instance of <tt>InetSocketAddress</tt>
+   */
   public InetSocketAddress getAddress() {
     return ADDRESS;
   }
 
+  /**
+   * Returns the available bytes in worker's memory
+   *
+   * @return long contains available bytes
+   */
   public synchronized long getAvailableBytes() {
     return CAPACITY_BYTES - mUsedBytes;
   }
@@ -81,6 +104,11 @@ public class MasterWorkerInfo {
     return new HashSet<Long>(mBlocks);
   }
 
+  /**
+   * Returns the capacity of worker's memory
+   *
+   * @return long represents capacity of worker's memory
+   */
   public long getCapacityBytes() {
     return CAPACITY_BYTES;
   }
@@ -102,6 +130,11 @@ public class MasterWorkerInfo {
     return new ArrayList<Long>(mToRemoveBlocks);
   }
 
+  /**
+   * Get used bytes of worker's memory
+   *
+   * @return long represents used bytes
+   */
   public synchronized long getUsedBytes() {
     return mUsedBytes;
   }
@@ -123,6 +156,13 @@ public class MasterWorkerInfo {
     return sb.toString();
   }
 
+  /**
+   * Adds or removes the blockId based on update flag
+   *
+   * @param add boolean if true then blockId will be added
+   *            in blocks set otherwise will be removed from blocks set
+   * @param blockId blockId to be added or removed
+   */
   public synchronized void updateBlock(boolean add, long blockId) {
     if (add) {
       mBlocks.add(blockId);
@@ -131,6 +171,13 @@ public class MasterWorkerInfo {
     }
   }
 
+  /**
+   * Adds or removes the blockId in blocks set based on update flag
+   *
+   * @param add boolean if true then set of blockIds will be added
+   *            in blocks set otherwise will be removed from blocks set
+   * @param blockIds set of blockIds to be added or removed
+   */
   public synchronized void updateBlocks(boolean add, Collection<Long> blockIds) {
     if (add) {
       mBlocks.addAll(blockIds);
@@ -139,10 +186,22 @@ public class MasterWorkerInfo {
     }
   }
 
+  /**
+   * Updates the last updated time in ms
+   */
   public synchronized void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs = System.currentTimeMillis();
   }
 
+  /**
+   * Adds or removes the blockId in to-be-removed blocks set based on flag.
+   * If input flag <tt>add</tt> is true then blockId will be added into to-be-removed blocks set
+   * only if given blockId is already available in blocks set.
+   * If input flag <tt>add</tt> is false then blockId will be removed from to-be-removed blocks set
+   *
+   * @param add boolean flag to indicate whether blockId to be added or to be removed in to-be-removed blocks set
+   * @param blockId long represents blockId
+   */
   public synchronized void updateToRemovedBlock(boolean add, long blockId) {
     if (add) {
       if (mBlocks.contains(blockId)) {
@@ -153,12 +212,26 @@ public class MasterWorkerInfo {
     }
   }
 
+  /**
+   * Adds or removes the blockId in to be removed blocks set based on flag.
+   * If input flag <tt>add</tt> is true then blockId will be added into to-be-removed blocks set
+   * only if given blockId is already available in blocks set.
+   * If input flag <tt>add</tt> is false then blockId will be removed from to-be-removed blocks set
+   *
+   * @param add boolean flag to indicate whether blockId to be added or to be removed in to-be-removed blocks set
+   * @param blockIds set of blockIds
+   */
   public synchronized void updateToRemovedBlocks(boolean add, Collection<Long> blockIds) {
     for (long blockId : blockIds) {
       updateToRemovedBlock(add, blockId);
     }
   }
 
+  /**
+   * Updates the used bytes of worker's memory
+   *
+   * @param usedBytes long represents used bytes
+   */
   public synchronized void updateUsedBytes(long usedBytes) {
     mUsedBytes = usedBytes;
   }

@@ -37,17 +37,25 @@ public class Users {
 
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
+  /* User's folder */
   private final String USER_FOLDER;
+  /* User's under filesystem folder */
   private final String USER_UNDERFS_FOLDER;
+  /* Maps the user id and <tt>UserInfo</tt> object */
   private final Map<Long, UserInfo> USERS;
 
-  public Users(String userfolder, String userUnderfsFolder) {
+  public Users(final String userfolder, final String userUnderfsFolder) {
     USER_FOLDER = userfolder;
     USER_UNDERFS_FOLDER = userUnderfsFolder;
-
     USERS = new HashMap<Long, UserInfo>();
   }
 
+  /**
+   * Adds user's own bytes and updates the user's heartbeat.
+   *
+   * @param userId contains userId of the user.
+   * @param newBytes contains bytes value.
+   */
   public void addOwnBytes(long userId, long newBytes) {
     UserInfo tUser = null;
     synchronized (USERS) {
@@ -76,10 +84,22 @@ public class Users {
     return ret;
   }
 
+  /**
+   * Returns the user's temp folder.
+   *
+   * @param userId The queried user.
+   * @return String contains user's temp folder.
+   */
   public String getUserTempFolder(long userId) {
     return CommonUtils.concat(USER_FOLDER, userId);
   }
 
+  /**
+   * Returns the user's under fs temp folder
+   *
+   * @param userId The queried user.
+   * @return String contains user's under fs temp folder.
+  */
   public String getUserUnderfsTempFolder(long userId) {
     return CommonUtils.concat(USER_UNDERFS_FOLDER, userId);
   }
@@ -141,6 +161,11 @@ public class Users {
     return returnedBytes;
   }
 
+    /**
+     * Updates user's heartbeat using <tt>System.currentTimeMillis()</tt>
+     *
+     * @param userId contains userId of the user
+     */
   public void userHeartbeat(long userId) {
     synchronized (USERS) {
       if (USERS.containsKey(userId)) {
