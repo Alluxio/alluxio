@@ -57,23 +57,7 @@ public final class Utils {
   }
 
   public static String getPathWithoutScheme(Path path) {
-    Path ori = path;
-    String ret = "";
-    while (path != null) {
-      if (ret.equals("")) {
-        ret = path.getName();
-      } else {
-        ret = CommonUtils.concat(path.getName(), ret);
-      }
-      path = path.getParent();
-    }
-    if (DEBUG) {
-      LOG.info("Utils getPathWithoutScheme(" + ori + ") result: " + ret);
-    }
-    if (ret.isEmpty()) {
-      return Constants.PATH_SEPARATOR;
-    }
-    return ret;
+    return path.toUri().getPath();
   }
 
   public static String getTachyonFileName(String path) {
