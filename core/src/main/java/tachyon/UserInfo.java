@@ -28,7 +28,7 @@ public class UserInfo {
   private long mLastHeartbeatMs;
 
   public UserInfo(long userId) {
-    Preconditions.checkArgument(userId <= 0, "Invalid user id " + userId);
+    Preconditions.checkArgument(userId > 0, "Invalid user id " + userId);
     USER_ID = userId;
     mOwnBytes = 0;
     mLastHeartbeatMs = System.currentTimeMillis();

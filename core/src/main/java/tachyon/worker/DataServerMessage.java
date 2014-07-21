@@ -222,7 +222,7 @@ public class DataServerMessage {
    * Check if the message is ready. If not ready, it will throw a runtime exception.
    */
   public void checkReady() {
-    Preconditions.checkState(!mIsMessageReady, "Message is not ready.");
+    Preconditions.checkState(mIsMessageReady, "Message is not ready.");
   }
 
   /**

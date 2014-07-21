@@ -87,7 +87,7 @@ public class TachyonMaster {
     try {
       mMasterAddress = address;
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
-      Preconditions.checkArgument(!isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX), "Tachyon was not formatted!");
+      Preconditions.checkState(isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX), "Tachyon was not formatted!");
       mJournal = new Journal(journalFolder, "image.data", "log.data");
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal);
 
