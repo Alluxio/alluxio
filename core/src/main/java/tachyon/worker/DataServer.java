@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
@@ -75,7 +76,7 @@ public class DataServer implements Runnable {
       mSelector = initSelector();
     } catch (IOException e) {
       LOG.error(e.getMessage() + mAddress, e);
-      throw CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 

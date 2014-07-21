@@ -22,6 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
 import org.apache.hadoop.fs.FSDataOutputStream;
 
@@ -204,7 +205,7 @@ public class EditLog {
         toDelete = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
       }
     } catch (IOException e) {
-      throw CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
     mBackUpLogStartNum = -1;
   }
@@ -298,7 +299,7 @@ public class EditLog {
         mOs.close();
       }
     } catch (IOException e) {
-      throw CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 
@@ -338,7 +339,7 @@ public class EditLog {
       _closeActiveStream();
       mUfs.close();
     } catch (IOException e) {
-      throw CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 
@@ -420,7 +421,7 @@ public class EditLog {
         ufs.delete(toDelete, true);
       }
     } catch (IOException e) {
-      throw CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 
@@ -441,7 +442,7 @@ public class EditLog {
         rotateEditLog(PATH);
       }
     } catch (IOException e) {
-      throw CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
 
     mFlushedTransactionId = mTransactionId;
@@ -488,7 +489,7 @@ public class EditLog {
       mDos = new DataOutputStream(mOs);
       LOG.info("Created new log file " + path);
     } catch (IOException e) {
-      throw CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 
@@ -529,7 +530,7 @@ public class EditLog {
       WRITER.writeValue(mDos, operation);
       mDos.writeByte('\n');
     } catch (IOException e) {
-      throw CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 }

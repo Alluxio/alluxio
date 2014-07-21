@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.google.common.base.Throwables;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
@@ -125,7 +126,7 @@ public class Users {
       try {
         FileUtils.deleteDirectory(new File(folder));
       } catch (IOException e) {
-        throw CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
 
       folder = getUserUnderfsTempFolder(userId);

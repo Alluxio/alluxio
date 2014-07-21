@@ -70,7 +70,7 @@ public abstract class UnderFileSystem {
     } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return UnderFileSystemSingleLocal.getClient();
     }
-    throw CommonUtils.illegalArgumentException("Unknown under file system scheme " + path);
+    throw new IllegalArgumentException("Unknown under file system scheme " + path);
   }
 
   /**

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.base.Throwables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -90,7 +91,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       // FileSystem.get(tConf);
       // mFs = FileSystem.get(new URI(fsDefaultName), tConf);
     } catch (IOException e) {
-      throw CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 
@@ -177,7 +178,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         te = e;
       }
     }
-    throw CommonUtils.runtimeException(te);
+    throw Throwables.propagate(te);
   }
 
   @Override
@@ -296,7 +297,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         te = e;
       }
     }
-    throw CommonUtils.runtimeException(te);
+    throw Throwables.propagate(te);
   }
 
   @Override
@@ -312,7 +313,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         te = e;
       }
     }
-    throw CommonUtils.runtimeException(te);
+    throw Throwables.propagate(te);
   }
 
   @Override
@@ -337,7 +338,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         te = e;
       }
     }
-    throw CommonUtils.runtimeException(te);
+    throw Throwables.propagate(te);
   }
 
   @Override

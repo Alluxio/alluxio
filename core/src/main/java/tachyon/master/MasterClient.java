@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -226,7 +227,7 @@ public class MasterClient {
       return CommonUtils.parseInetSocketAddress(temp);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
-      throw CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 
