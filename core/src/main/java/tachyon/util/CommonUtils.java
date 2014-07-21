@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Strings;
 import org.apache.commons.io.FilenameUtils;
@@ -174,10 +173,10 @@ public final class CommonUtils {
   }
 
   public static String convertMsToClockTime(long Millis) {
-    long days = dayInterval(Millis);
-    long hours = hourInterval(Millis, days);
-    long mins = minuteInterval(Millis, days, hours);
-    long secs = secondIterval(Millis, days, hours, mins);
+    long days = Millis / Constants.DAY_MS;
+    long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
+    long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
+    long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
 
     return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
         mins, secs);
@@ -189,45 +188,12 @@ public final class CommonUtils {
   }
 
   public static String convertMsToShortClockTime(long Millis) {
-    long days = dayInterval(Millis);
-    long hours = hourInterval(Millis, days);
-    long mins = minuteInterval(Millis, days, hours);
-    long secs = secondIterval(Millis, days, hours, mins);
+    long days = Millis / Constants.DAY_MS;
+    long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
+    long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
+    long secs = (Millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
 
     return String.format("%d d, %d h, %d m, and %d s", days, hours, mins, secs);
-  }
-
-  /**
-   * Calculates how many days are in the given mills.  This call should be referentially
-   * transparent with {@code java.util.concurrent.TimeUnit.MILLISECONDS.toDays(mills)} since
-   * filtering is not used.
-   */
-  private static long dayInterval(long mills) {
-    return TimeUnit.MILLISECONDS.toDays(mills);
-  }
-
-  /**
-   * Calculates how many hours are in the give mills after filtering out the days.
-   */
-  private static long hourInterval(long mills, long days) {
-    return TimeUnit.MILLISECONDS.toHours(mills - TimeUnit.DAYS.toMillis(days));
-  }
-
-  /**
-   * Calculates how many minutes are in the give mills after filtering out the days, and hours.
-   */
-  private static long minuteInterval(long mills, long days, long hours) {
-    return TimeUnit.MILLISECONDS.toMinutes(mills - TimeUnit.DAYS.toMillis(days)
-        - TimeUnit.HOURS.toMillis(hours));
-  }
-
-  /**
-   * Calculates how many seconds are in the given mills after filtering out the days, hours, and
-   * mins.
-   */
-  private static long secondIterval(long millis, long days, long hours, long mins) {
-    return TimeUnit.MILLISECONDS.toSeconds(millis - TimeUnit.DAYS.toMillis(days)
-        - TimeUnit.HOURS.toMillis(hours) - TimeUnit.MINUTES.toMillis(mins));
   }
 
   public static String convertMsToSimpleDate(long Millis) {
