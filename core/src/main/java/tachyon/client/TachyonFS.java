@@ -364,6 +364,7 @@ public class TachyonFS {
       LOG.error(e.getMessage());
       mLocalDataFolder = null;
       mUserTempFolder = null;
+      mWorkerClient = null;
     }
   }
 
