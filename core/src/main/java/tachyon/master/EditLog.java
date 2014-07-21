@@ -144,11 +144,11 @@ public class EditLog {
           break;
         }
         case RENAME: {
-          info._rename(op.getInt("fileId"), op.getString("dstPath"), op.getLong("renameTimeMs"));
+          info._rename(op.getInt("fileId"), op.getString("dstPath"), op.getLong("opTimeMs"));
           break;
         }
         case DELETE: {
-          info._delete(op.getInt("fileId"), op.getBoolean("recursive"), op.getLong("deleteTimeMs"));
+          info._delete(op.getInt("fileId"), op.getBoolean("recursive"), op.getLong("opTimeMs"));
           break;
         }
         case CREATE_RAW_TABLE: {
@@ -401,7 +401,7 @@ public class EditLog {
     writeOperation(operation);
   }
 
-  public synchronized void delete(int fileId, boolean recursive, long deleteTimeMs) {
+  public synchronized void delete(int fileId, boolean recursive, long opTimeMs) {
     if (INACTIVE) {
       return;
     }
@@ -409,7 +409,7 @@ public class EditLog {
     EditLogOperation operation =
         new EditLogOperation(EditLogOperationType.DELETE, ++ mTransactionId)
             .withParameter("fileId", fileId).withParameter("recursive", recursive)
-            .withParameter("deleteTimeMs", deleteTimeMs);
+            .withParameter("opTimeMs", opTimeMs);
     writeOperation(operation);
   }
 
@@ -460,7 +460,7 @@ public class EditLog {
     return new Pair<Long, Long>(mTransactionId, mFlushedTransactionId);
   }
 
-  public synchronized void rename(int fileId, String dstPath, long renameTimeMs) {
+  public synchronized void rename(int fileId, String dstPath, long opTimeMs) {
     if (INACTIVE) {
       return;
     }
@@ -468,7 +468,7 @@ public class EditLog {
     EditLogOperation operation =
         new EditLogOperation(EditLogOperationType.RENAME, ++ mTransactionId)
             .withParameter("fileId", fileId).withParameter("dstPath", dstPath)
-            .withParameter("renameTimeMs", renameTimeMs);
+            .withParameter("opTimeMs", opTimeMs);
     writeOperation(operation);
   }
 
