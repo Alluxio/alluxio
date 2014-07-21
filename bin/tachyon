@@ -13,6 +13,7 @@ function printUsage {
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
   echo -e "  thriftGen     \t Generate all thrift code."
+  echo -e "  classpath     \t Printout Tachyon's CLASSPATH."
   echo -e "  version       \t Print Tachyon version and exit."
   echo "Commands print help when invoked without parameters."
 }
@@ -46,15 +47,15 @@ function runTest {
 
   if [[ "$1" == "Basic" ]]; then
     $bin/tachyon tfs rm /BasicFile_$2
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR $TACHYON_JAVA_OPTS tachyon.examples.BasicOperations tachyon://$MASTER_ADDRESS:19998 /BasicFile_$2 $2
+    $JAVA -cp $TACHYON_CONF_DIR/:$CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicOperations tachyon://$MASTER_ADDRESS:19998 /BasicFile_$2 $2
     exit 0
   elif [[ "$1" == "BasicRawTable" ]]; then
     $bin/tachyon tfs rm /BasicRawTable_$2
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR $TACHYON_JAVA_OPTS tachyon.examples.BasicRawTableOperations tachyon://$MASTER_ADDRESS:19998 /BasicRawTable_$2 $2
+    $JAVA -cp $TACHYON_CONF_DIR/:$CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicRawTableOperations tachyon://$MASTER_ADDRESS:19998 /BasicRawTable_$2 $2
     exit 0
   elif [[ "$1" == "BasicCheckpoint" ]]; then
     $bin/tachyon tfs rm /BasicCheckpoint
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR $TACHYON_JAVA_OPTS tachyon.examples.BasicCheckpoint tachyon://$MASTER_ADDRESS:19998 /BasicCheckpoint 10
+    $JAVA -cp $TACHYON_CONF_DIR/:$CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicCheckpoint tachyon://$MASTER_ADDRESS:19998 /BasicCheckpoint 10
     exit 0
   fi
 
@@ -194,6 +195,9 @@ elif [ "$COMMAND" == "thriftGen" ]; then
 elif [ "$COMMAND" == "clearCache" ]; then
   sync; echo 3 > /proc/sys/vm/drop_caches ;
   exit 0
+elif [ "$COMMAND" == "classpath" ]; then
+  echo "$CLASSPATH"
+  exit 0
 elif [ "$COMMAND" == "version" ]; then
   CLASS=tachyon.Version
 else
@@ -201,4 +205,4 @@ else
   exit 1
 fi
 
-$JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $PARAMETER $@
+$JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $PARAMETER $@

@@ -23,6 +23,7 @@ the dependencies. Subsequent builds, however, will be much faster.
 
 Once it is built, you can start Tachyon:
 
+    $ cd tachyon-assembly/target/tachyon-{{site.TACHYON_RELEASED_VERSION}}
     $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
     $ ./bin/tachyon format
     $ ./bin/tachyon-start.sh local

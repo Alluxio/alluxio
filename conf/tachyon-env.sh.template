@@ -5,6 +5,7 @@
 # the following variables should be set:
 #
 # - JAVA_HOME, to point to your JAVA installation
+# - TACHYON_CLASSPATH, additional paths to include in tachyon's classpath
 # - TACHYON_MASTER_ADDRESS, to bind the master to a different IP address or hostname
 # - TACHYON_UNDERFS_ADDRESS, to set the under filesystem address.
 # - TACHYON_WORKER_MEMORY_SIZE, to set how much memory to use (e.g. 1000mb, 2gb) per worker
@@ -28,6 +29,7 @@ else
 fi
 
 export JAVA="$JAVA_HOME/bin/java"
+export TACHYON_CLASSPATH=""
 export TACHYON_MASTER_ADDRESS=localhost
 export TACHYON_UNDERFS_ADDRESS=$TACHYON_HOME/underfs
 #export TACHYON_UNDERFS_ADDRESS=hdfs://localhost:9000
