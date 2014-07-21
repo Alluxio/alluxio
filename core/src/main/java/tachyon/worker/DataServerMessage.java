@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 
+import com.google.common.base.Preconditions;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
@@ -221,9 +222,7 @@ public class DataServerMessage {
    * Check if the message is ready. If not ready, it will throw a runtime exception.
    */
   public void checkReady() {
-    if (!mIsMessageReady) {
-      throw CommonUtils.runtimeException("Message is not ready.");
-    }
+    Preconditions.checkState(!mIsMessageReady, "Message is not ready.");
   }
 
   /**
@@ -326,9 +325,9 @@ public class DataServerMessage {
   private void isSend(boolean isSend) {
     if (IS_TO_SEND_DATA != isSend) {
       if (IS_TO_SEND_DATA) {
-        throw CommonUtils.runtimeException("Try to recv on send message");
+        throw new RuntimeException("Try to recv on send message");
       } else {
-        throw CommonUtils.runtimeException("Try to send on recv message");
+        throw new RuntimeException("Try to send on recv message");
       }
     }
   }

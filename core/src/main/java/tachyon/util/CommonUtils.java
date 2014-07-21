@@ -337,16 +337,6 @@ public final class CommonUtils {
     return String.format("%.2f PB", ret);
   }
 
-  //TODO should this be replaced by Guava's Preconditions.checkArgument?
-  public static IllegalArgumentException illegalArgumentException(Exception e) {
-    LOG.error(e.getMessage(), e);
-    throw new IllegalArgumentException(e);
-  }
-
-  public static IllegalArgumentException illegalArgumentException(String msg) {
-    throw new IllegalArgumentException(msg);
-  }
-
   /**
    * Check if the given path is the root.
    * 
@@ -436,7 +426,7 @@ public final class CommonUtils {
       BigDecimal PBDecimal = new BigDecimal(Constants.PB);
       return PBDecimal.multiply(BigDecimal.valueOf(ret)).longValue();
     } else {
-      throw runtimeException("Fail to parse " + ori + " as memory size");
+      throw new IllegalArgumentException("Fail to parse " + ori + " as memory size");
     }
   }
 
@@ -468,16 +458,6 @@ public final class CommonUtils {
         scanner.close();
       }
     }).start();
-  }
-
-  //TODO should this be replaced by Guava's Throwables.propagate?
-  public static RuntimeException runtimeException(Exception e) {
-    LOG.error(e.getMessage(), e);
-    throw new RuntimeException(e);
-  }
-
-  public static RuntimeException runtimeException(String msg) {
-    throw new RuntimeException(msg);
   }
 
   /**
