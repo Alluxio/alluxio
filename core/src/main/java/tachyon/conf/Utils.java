@@ -51,7 +51,7 @@ class Utils {
 
   public static String getProperty(String property) {
     String ret = System.getProperty(property);
-    Preconditions.checkArgument(ret == null, property + " is not configured.");
+    Preconditions.checkArgument(ret != null, property + " is not configured.");
     LOG.debug(property + " : " + ret);
     return ret;
   }
