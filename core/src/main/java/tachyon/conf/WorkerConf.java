@@ -14,6 +14,8 @@
  */
 package tachyon.conf;
 
+import java.io.File;
+
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
 
@@ -29,7 +31,15 @@ public class WorkerConf extends Utils {
 
   public static synchronized WorkerConf get() {
     if (WORKER_CONF == null) {
-      WORKER_CONF = new WorkerConf();
+      WORKER_CONF = new WorkerConf(null);
+    }
+
+    return WORKER_CONF;
+  }
+
+  public static synchronized WorkerConf get(String name) {
+    if (WORKER_CONF == null) {
+      WORKER_CONF = new WorkerConf(name);
     }
 
     return WORKER_CONF;
@@ -53,8 +63,27 @@ public class WorkerConf extends Utils {
   public final int WORKER_CHECKPOINT_THREADS;
 
   public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
+  
+  public final String CONFIG_FILE;
 
-  private WorkerConf() {
+  private WorkerConf(String name) {
+    File file = null;
+    CONFIG_FILE = System.getProperty("tachyon.config");
+    
+    if (name != null){
+      file = new File(name);
+      if (file.exists()){
+        addResource(name);  
+      }
+    }else{
+      if (CONFIG_FILE != null) {
+        file = new File(CONFIG_FILE);
+        if (file.exists()) {
+          addResource(CONFIG_FILE);
+        }
+      }
+    }
+
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     MASTER_PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
 

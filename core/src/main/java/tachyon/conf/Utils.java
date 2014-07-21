@@ -16,57 +16,138 @@ package tachyon.conf;
 
 import org.apache.log4j.Logger;
 
-import tachyon.util.CommonUtils;
-
 /**
- * Utils for tachyon.conf package.
+ * Utils class to retrieve configuration from system properties and configuration files.
  */
-class Utils {
-  private static final Logger LOG = Logger.getLogger("");
+public class Utils {
+  UtilsOpt  mSys = null;
+  UtilsFile mFile = null;
+  String    mResource = null;
 
-  public static boolean getBooleanProperty(String property) {
-    return Boolean.valueOf(getProperty(property));
+  public Utils(){
+    mSys = new UtilsOpt();
   }
 
-  public static boolean getBooleanProperty(String property, boolean defaultValue) {
-    return Boolean.valueOf(getProperty(property, defaultValue + ""));
+  public Utils(String name){
+    LOG.info("use configure file " + name);
+    mResource = name;
+    mFile = new UtilsFile(name);
+    mSys = new UtilsOpt();
   }
 
-  public static int getIntProperty(String property) {
-    return Integer.valueOf(getProperty(property));
-  }
-
-  public static int getIntProperty(String property, int defaultValue) {
-    return Integer.valueOf(getProperty(property, defaultValue + ""));
-  }
-
-  public static long getLongProperty(String property) {
-    return Long.valueOf(getProperty(property));
-  }
-
-  public static long getLongProperty(String property, int defaultValue) {
-    return Long.valueOf(getProperty(property, defaultValue + ""));
-  }
-
-  public static String getProperty(String property) {
-    String ret = System.getProperty(property);
-    if (ret == null) {
-      CommonUtils.illegalArgumentException(property + " is not configured.");
-    } else {
-      LOG.debug(property + " : " + ret);
+  public void addResource(String name){
+    LOG.info("use configure file " + name);
+    mResource = name;
+    if (mFile == null){
+      mFile = new UtilsFile(name);
     }
-    return ret;
   }
 
-  public static String getProperty(String property, String defaultValue) {
-    String ret = System.getProperty(property);
-    String msg = "";
-    if (ret == null) {
-      ret = defaultValue;
-      msg = " uses the default value";
+  private final Logger LOG = Logger.getLogger("");
+
+  public boolean getBooleanProperty(String property) {
+    try {
+      // attempt to get property from system first
+      return mSys.getBooleanProperty(property);
     }
-    LOG.debug(property + msg + " : " + ret);
-    return ret;
+    catch (IllegalArgumentException e) {
+      // if property is not found, try config file
+      if (mFile != null) {
+        LOG.debug("search " + mResource + " for property " + property);
+        return mFile.getBooleanProperty(property);
+      }
+      throw e;
+    }
   }
 
+  public boolean getBooleanProperty(String property, boolean defaultValue) {
+    try {
+      return mSys.getBooleanProperty(property);
+    }
+    catch (IllegalArgumentException e) {
+      if (mFile != null) {
+        LOG.debug("search " + mResource + " for property " + property);
+        return mFile.getBooleanProperty(property, defaultValue);
+      }
+      return defaultValue;
+    }
+  }
+
+  public int getIntProperty(String property) {
+    try {
+      return mSys.getIntProperty(property);
+    }
+    catch (IllegalArgumentException e) {
+      if (mFile != null) {
+        LOG.debug("search " + mResource + " for property " + property);
+        return mFile.getIntProperty(property);
+      }
+      throw e;
+    }    
+  }
+
+  public int getIntProperty(String property, int defaultValue) {
+    try {
+      return mSys.getIntProperty(property);
+    }
+    catch (IllegalArgumentException e) {
+      if (mFile != null) {
+        LOG.debug("search " + mResource + " for property " + property);
+        return mFile.getIntProperty(property, defaultValue);
+      }
+      return defaultValue;
+    }        
+  }
+
+  public long getLongProperty(String property) {
+    try {
+      return mSys.getLongProperty(property);
+    }
+    catch (IllegalArgumentException e) {
+      if (mFile != null) {
+        LOG.debug("search " + mResource + " for property " + property);
+        return mFile.getLongProperty(property);
+      }
+      throw e;
+    }    
+  }
+
+  public long getLongProperty(String property, int defaultValue) {
+    try {
+      return mSys.getLongProperty(property);
+    }
+    catch (IllegalArgumentException e) {
+      if (mFile != null) {
+        LOG.debug("search " + mResource + " for property " + property);
+        return mFile.getLongProperty(property);
+      }
+      return defaultValue;
+    }        
+  }
+
+  public String getProperty(String property) {
+    try {
+      return mSys.getProperty(property);
+    }
+    catch (IllegalArgumentException e) {
+      if (mFile != null) {
+        LOG.debug("search " + mResource + " for property " + property);
+        return mFile.getProperty(property);
+      }
+      throw e;
+    }        
+  }
+
+  public String getProperty(String property, String defaultValue) {
+    try {
+      return mSys.getProperty(property);
+    }
+    catch (IllegalArgumentException e) {
+      if (mFile != null) {
+        LOG.debug("search " + mResource + " for property " + property);
+        return mFile.getProperty(property, defaultValue);
+      }
+      return defaultValue;
+    }        
+  }
 }

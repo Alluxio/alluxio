@@ -14,6 +14,7 @@
  */
 package tachyon.conf;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -34,7 +35,15 @@ public class MasterConf extends Utils {
 
   public static synchronized MasterConf get() {
     if (MASTER_CONF == null) {
-      MASTER_CONF = new MasterConf();
+      MASTER_CONF = new MasterConf(null);
+    }
+
+    return MASTER_CONF;
+  }
+
+  public static synchronized MasterConf get(String name) {
+    if (MASTER_CONF == null) {
+      MASTER_CONF = new MasterConf(name);
     }
 
     return MASTER_CONF;
@@ -54,10 +63,29 @@ public class MasterConf extends Utils {
 
   public final int SERVER_THREADS;
   public final int WORKER_TIMEOUT_MS;
-
+  
+  public final String CONFIG_FILE;
+  
   public final ArrayList<String> WHITELIST = new ArrayList<String>();
 
-  private MasterConf() {
+  private MasterConf(String name) {
+    File file = null;
+    CONFIG_FILE = System.getProperty("tachyon.config");
+    
+    if (name != null){
+      file = new File(name);
+      if (file.exists()){
+        addResource(name);  
+      }
+    }else{
+      if (CONFIG_FILE != null) {
+        file = new File(CONFIG_FILE);
+        if (file.exists()) {
+          addResource(CONFIG_FILE);
+        }
+      }
+    }
+
     String journalFolder =
         getProperty("tachyon.master.journal.folder", CommonConf.get().TACHYON_HOME + "/journal/");
     if (!journalFolder.endsWith(Constants.PATH_SEPARATOR)) {
