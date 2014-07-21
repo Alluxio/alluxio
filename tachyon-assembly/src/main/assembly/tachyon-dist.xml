@@ -4,7 +4,7 @@
     <format>tar.gz</format>
     <format>dir</format>
   </formats>
-  <includeBaseDirectory>false</includeBaseDirectory>
+  <includeBaseDirectory>true</includeBaseDirectory>
   <fileSets>
     <fileSet>
       <directory>${basedir}/../bin</directory>
@@ -18,6 +18,30 @@
     <fileSet>
       <directory>${basedir}/../libexec</directory>
       <outputDirectory>/libexec</outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>${basedir}/..</directory>
+      <outputDirectory>/src</outputDirectory>
+      <useDefaultExcludes>true</useDefaultExcludes>
+      <!-- pulled from https://github.com/apache/hadoop-common/blob/trunk/hadoop-assemblies/src/main/resources/assemblies/hadoop-dist.xml -->
+      <excludes>
+        <exclude>.git/**</exclude>
+        <exclude>**/.gitignore</exclude>
+        <exclude>**/.svn</exclude>
+        <exclude>**/*.iws</exclude>
+        <exclude>**/*.ipr</exclude>
+        <exclude>**/*.iml</exclude>
+        <exclude>**/.classpath</exclude>
+        <exclude>**/.project</exclude>
+        <exclude>**/.settings</exclude>
+        <exclude>**/target/**</exclude>
+        <!-- until the code that does this is fixed -->
+        <exclude>**/*.log</exclude>
+        <exclude>**/logs/**</exclude>
+        <exclude>**/build/**</exclude>
+        <exclude>**/file:/**</exclude>
+        <exclude>**/SecurityAuth.audit*</exclude>
+      </excludes>
     </fileSet>
   </fileSets>
   <dependencySets>
