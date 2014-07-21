@@ -14,6 +14,9 @@
  */
 package tachyon.conf;
 
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 
 import tachyon.util.CommonUtils;
@@ -23,6 +26,31 @@ import tachyon.util.CommonUtils;
  */
 class Utils {
   private static final Logger LOG = Logger.getLogger("");
+
+  protected static Configuration hadoopConf;
+  protected static PropertiesConfiguration commonConf;
+
+  static {
+    commonConf = new PropertiesConfiguration();
+    try {
+      /* add tachyon.properties. if not over-ridden then loaded from JAR */
+      commonConf.load(Configuration.class.getClassLoader().getResourceAsStream(
+          "tachyon.properties"));
+    } catch (ConfigurationException e) {
+      LOG.error("Fatal error loading tachyon.properties:" + e);
+    }
+    setConf(new Configuration(false));
+  }
+
+  public static void setConf(Configuration conf) {
+    hadoopConf = conf;
+    /* add default XML values stored in the JAR */
+    hadoopConf.addResource(Configuration.class.getClassLoader().getResourceAsStream(
+        "tachyon-site.xml"));
+    /* add any over-ride tachyon-site.xml from the classpath/class loader */
+    hadoopConf.addResource("tachyon-site.xml");
+    hadoopConf.reloadConfiguration();
+  }
 
   public static boolean getBooleanProperty(String property) {
     return Boolean.valueOf(getProperty(property));
@@ -49,19 +77,31 @@ class Utils {
   }
 
   public static String getProperty(String property) {
+    /*
+     * TODO: Remove all System.setProperty(..) and System.getProperty(..) calls which
+     * breaks o.a.CommonsConfig system property handling. Instead use a shared
+     * configuration object.
+     */
     String ret = System.getProperty(property);
     if (ret == null) {
-      CommonUtils.illegalArgumentException(property + " is not configured.");
-    } else {
-      LOG.debug(property + " : " + ret);
+      ret = commonConf.getString(property);
     }
+    if (ret == null)
+      ret = hadoopConf.get(property);
+
+    if (ret == null) {
+      CommonUtils.illegalArgumentException(property + " is not configured.");
+    }
+    LOG.debug(property + " : " + ret);
     return ret;
   }
 
   public static String getProperty(String property, String defaultValue) {
-    String ret = System.getProperty(property);
+    String ret = null;
     String msg = "";
-    if (ret == null) {
+    try {
+      ret = getProperty(property);
+    } catch (IllegalArgumentException ex) {
       ret = defaultValue;
       msg = " uses the default value";
     }
