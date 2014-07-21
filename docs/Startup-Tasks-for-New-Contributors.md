@@ -41,20 +41,24 @@ and then submit a pull request. You are also welcome to address issues in our
 
 ### Testing
 
--   Run all unit tests with ``mvn test`` (will use the local filesystem as the under filesystem) and
-    -``mvn Dtest.profile=hdfs test`` (will use HDFS as the under filesystem)
+-   Run all unit tests with ``mvn test`` (will use the local filesystem as the
+under filesystem) and ``mvn -Dtest.profile=hdfs -Dhadoop.version=2.4.0 test``
+(will use HDFS 2.4.0 as the under filesystem)
 
--   In GlusterFS environment, also run GlusterFS unit tests:
-    ``mvn -Dhadoop.version=2.3.0 -Dtest.profile=glusterfs -Dtachyon.underfs.glusterfs.mounts=/vol
-    -Dtachyon.underfs.glusterfs.volumes=testvol test``
-    (use GlusterFS as under filesystem, where /vol is a valid GlusterFS mount point) and
-    ``mvn -Dhadoop.version=2.3.0 -Dtest.profile=glusterfs test`` (use localfs as under filesystem)
+-   In GlusterFS environment, also run GlusterFS unit tests: ``mvn
+-Dhadoop.version=2.3.0 -Dtest.profile=glusterfs
+-Dtachyon.underfs.glusterfs.mounts=/vol
+-Dtachyon.underfs.glusterfs.volumes=testvol test`` (use GlusterFS as under
+filesystem, where /vol is a valid GlusterFS mount point) and ``mvn
+-Dhadoop.version=2.3.0 -Dtest.profile=glusterfs test`` (use localfs as under
+filesystem)
 
 -   Run a single unit test: ``mvn -Dtest=TestCircle#mytest test`` ; e.g.
-    ``mvn -Dtest=TachyonFSTest#createFileTest test`` ;
+``mvn -Dtest=TachyonFSTest#createFileTest test`` ;
 
--   To quickly test the working of some APIs in an interactive manner, you may leverage
-the Scala shell, as discussed in this [blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
+-   To quickly test the working of some APIs in an interactive manner, you may
+leverage the Scala shell, as discussed in this
+[blog](http://scala4fun.tumblr.com/post/84791653967/interactivejavacoding).
 
 -   Run tests with a different Hadoop version: ``mvn -Dhadoop.version=2.2.0 clean test``
 
