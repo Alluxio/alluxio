@@ -209,7 +209,7 @@ public class LocalTachyonCluster {
         try {
           mMaster.start();
         } catch (Exception e) {
-          throw CommonUtils.runtimeException(e + " \n Start Master Error \n" + e.getMessage());
+          throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
         }
       }
     };
@@ -228,7 +228,7 @@ public class LocalTachyonCluster {
         try {
           mWorker.start();
         } catch (Exception e) {
-          throw CommonUtils.runtimeException(e + " \n Start Worker Error \n" + e.getMessage());
+          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
         }
       }
     };

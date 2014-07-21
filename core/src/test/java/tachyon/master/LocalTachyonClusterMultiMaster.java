@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Throwables;
 import org.apache.curator.test.TestingServer;
 import org.apache.log4j.Logger;
 
@@ -51,7 +52,7 @@ public class LocalTachyonClusterMultiMaster {
       try {
         mMaster.start();
       } catch (Exception e) {
-        throw CommonUtils.runtimeException(e + " \n Start Master Error \n" + e.getMessage());
+        throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
       }
     }
 
@@ -115,7 +116,7 @@ public class LocalTachyonClusterMultiMaster {
     try {
       mCuratorServer = new TestingServer();
     } catch (Exception e) {
-      throw CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 
@@ -261,7 +262,7 @@ public class LocalTachyonClusterMultiMaster {
         try {
           mWorker.start();
         } catch (Exception e) {
-          throw CommonUtils.runtimeException(e + " \n Start Master Error \n" + e.getMessage());
+          throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
         }
       }
     };
