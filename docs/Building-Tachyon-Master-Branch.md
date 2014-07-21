@@ -6,9 +6,9 @@ title: Building Tachyon Master Branch
 This guide describes how to compile Tachyon from the beginning.
 
 The prerequisite for this guide is that you have [Java 6 (or above)](Java-Setup.html),
-[Maven](Maven.html), and [Thrift 0.9 (Optional)](Thrift.html) installed.
+[Maven](Maven.html), and [Thrift 0.9](Thrift.html) (Optional) installed.
 
-Checkout Tachyon master branch from Github, and package:
+Checkout the Tachyon master branch from Github and package:
 
     $ git clone git://github.com/amplab/tachyon.git
     $ cd tachyon
@@ -21,14 +21,14 @@ The Maven build system fetches its dependencies, compiles, runs system's unit te
 system. If this is the first time you are building the project, it can take a while to download all
 the dependencies. Subsequent builds, however, will be much faster.
 
-Once it is built, you can start the Tachyon:
+Once it is built, you can start Tachyon:
 
     $ cp conf/tachyon-env.sh.template conf/tachyon-env.sh
     $ ./bin/tachyon format
     $ ./bin/tachyon-start.sh local
 
-To verify that Tachyon is running, you can visit [http://localhost:19999](http://localhost:19999),
-or see the log in the folder tachyon/logs. You can also run a simple program:
+To verify that Tachyon is running, you can visit [http://localhost:19999](http://localhost:19999) or
+check the log in the folder tachyon/logs. You can also run a simple program:
 
     $ ./bin/tachyon runTest Basic CACHE_THROUGH
 
