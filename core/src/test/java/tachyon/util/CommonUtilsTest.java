@@ -42,19 +42,19 @@ public class CommonUtilsTest {
     }
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void addLeadingZeroTestWithNegativeNumber() throws IOException {
-    CommonUtils.addLeadingZero(-1, 1);
+    Assert.assertEquals("-1", CommonUtils.addLeadingZero(-1, 1));
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void addLeadingZeroTestWithNegativeWidth() throws IOException {
-    CommonUtils.addLeadingZero(1, 0);
+    Assert.assertEquals("1", CommonUtils.addLeadingZero(1, 0));
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void addLeadingZeroTestWithZeroWidth() throws IOException {
-    CommonUtils.addLeadingZero(1, -1);
+    Assert.assertEquals("1", CommonUtils.addLeadingZero(1, -1));
   }
 
   @Test
