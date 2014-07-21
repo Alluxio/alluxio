@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
+import com.google.common.base.Strings;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 
@@ -51,21 +52,11 @@ public final class CommonUtils {
    * @param width
    *          the fixed width
    * @return a String with a fixed leading zero.
-   * @throws IOException
-   *           the number has to be non-negative; the width has to be positive.
    */
-  public static String addLeadingZero(int number, int width) throws IOException {
-    if (number < 0) {
-      throw new IOException("The number has to be non-negative: " + number);
-    }
-    if (width <= 0) {
-      throw new IOException("The width has to be positive: " + width);
-    }
-    String result = number + "";
-    while (result.length() < width) {
-      result = "0" + result;
-    }
-    return result;
+  @Deprecated
+  //TODO I only see tests for this, no other usage, so should this be removed?
+  public static String addLeadingZero(int number, int width) {
+    return Strings.padStart(Integer.toString(number), width, '0');
   }
 
   /**
