@@ -8,9 +8,9 @@ Worker), and User configurations. The environment configuration file responsible
 properties is under `conf/tachyon-env.sh`. These variables should be set as variables under the
 `TACHYON_JAVA_OPTS` definition. A template is provided with the zip: `conf/tachyon-env.sh.template`.
 
-Additional Java VM options can be set by adding it to `TACHYON_MASTER_JAVA_OPTS` for Master and 
-`TACHYON_WORKER_JAVA_OPTS` for Worker. By default, in the template file `TACHYON_JAVA_OPTS` is copied to both
-`TACHYON_MASTER_JAVA_OPTS` and `TACHYON_WORKER_JAVA_OPTS`.
+Additional Java VM options can be added to `TACHYON_MASTER_JAVA_OPTS` for Master and
+`TACHYON_WORKER_JAVA_OPTS` for Worker configuration. In the template file, `TACHYON_JAVA_OPTS` is
+included in both `TACHYON_MASTER_JAVA_OPTS` and `TACHYON_WORKER_JAVA_OPTS`.
 
 For example if you would like to enable Java remote debugging at port 7001 in the Master you can modify 
 `TACHYON_MASTER_JAVA_OPTS` like this:

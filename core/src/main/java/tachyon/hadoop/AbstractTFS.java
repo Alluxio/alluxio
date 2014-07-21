@@ -230,10 +230,10 @@ public abstract class AbstractTFS extends FileSystem {
     return ret;
   }
 
-  @Override
   /**
    * Return the status of a single file. If the file does not exist in Tachyon, query it from HDFS.
    */
+  @Override
   public FileStatus getFileStatus(Path path) throws IOException {
     String tPath = Utils.getPathWithoutScheme(path);
     Path hdfsPath = Utils.getHDFSPath(tPath);
@@ -292,9 +292,6 @@ public abstract class AbstractTFS extends FileSystem {
   }
 
   @Override
-  /**
-   * List entries of a path
-   */
   public FileStatus[] listStatus(Path path) throws IOException {
     String tPath = Utils.getPathWithoutScheme(path);
     Path hdfsPath = Utils.getHDFSPath(tPath);
@@ -325,9 +322,6 @@ public abstract class AbstractTFS extends FileSystem {
   }
 
   @Override
-  /**
-   * Return the FSDataInputStream of a file.
-   */
   public FSDataInputStream open(Path cPath, int bufferSize) throws IOException {
     LOG.info("open(" + cPath + ", " + bufferSize + ")");
 
