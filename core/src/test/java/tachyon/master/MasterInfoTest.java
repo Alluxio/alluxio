@@ -233,10 +233,10 @@ public class MasterInfoTest {
     int fileId = mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFile");
     Assert.assertEquals("", fileInfo.getUfsPath());
-    mMasterInfo.addCheckpoint(-1, fileId, 1, "/testPath", System.currentTimeMillis());
+    mMasterInfo.addCheckpoint(-1, fileId, 1, "/testPath");
     fileInfo = mMasterInfo.getClientFileInfo("/testFile");
     Assert.assertEquals("/testPath", fileInfo.getUfsPath());
-    mMasterInfo.addCheckpoint(-1, fileId, 1, "/testPath", System.currentTimeMillis());
+    mMasterInfo.addCheckpoint(-1, fileId, 1, "/testPath");
     fileInfo = mMasterInfo.getClientFileInfo("/testFile");
     Assert.assertEquals("/testPath", fileInfo.getUfsPath());
   }
@@ -542,8 +542,7 @@ public class MasterInfoTest {
   public void notFileCheckpointTest() throws FileNotFoundException, SuspectedFileSizeException,
       FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
     Assert.assertTrue(mMasterInfo.mkdir("/testFile"));
-    mMasterInfo.addCheckpoint(-1, mMasterInfo.getFileId("/testFile"), 0, "/testPath",
-        System.currentTimeMillis());
+    mMasterInfo.addCheckpoint(-1, mMasterInfo.getFileId("/testFile"), 0, "/testPath");
   }
 
   @Test
