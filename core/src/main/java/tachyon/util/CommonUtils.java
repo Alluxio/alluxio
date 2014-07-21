@@ -55,7 +55,7 @@ public final class CommonUtils {
    * @return a String with a fixed leading zero.
    */
   @Deprecated
-  //TODO I only see tests use this, no other usage, so should this be removed?
+  //TODO I only see tests use this, no other usage, so should this be moved to test?
   public static String addLeadingZero(int number, int width) {
     return Strings.padStart(Integer.toString(number), width, '0');
   }
