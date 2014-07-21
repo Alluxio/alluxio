@@ -39,20 +39,20 @@ Then, config Tachyon in `tachyon` folder
     $ cd /root/tachyon/conf
     $ cp tachyon-env.sh.template tachyon-env.sh
 
-Edit `tachyon-env.sh` file. Setup `TACHYON_HDFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_PORT`.
+Add the line `TACHYON_HDFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_PORT` to the `tachyon-env.sh` file.
 
-Edit `slaves` file, add slaves' hostnames into it. Sync the configuration to all nodes.
+Add each of the slaves' IP addresses to the `slaves` file and sync the configuration to all nodes.
 
     $ cd /root/tachyon/conf
     $ /root/mesos-ec2/copy-dir .
 
-Edit Spark `/root/spark/conf/spark-env.sh`, add:
+Add the following lines to `/root/spark/conf/spark-env.sh`:
 
     export SPARK_CLASSPATH+=/root/tachyon/target/tachyon-1.0-SNAPSHOT-jar-with-dependencies.jar
     SPARK_JAVA_OPTS+=" -Dtachyon.hdfs.address=hdfs://HDFS_HOSTNAME:HDFS_PORT -Dspark.default.parallelism=1 "
     export SPARK_JAVA_OPTS
 
-Edit Spark's `hdfs-site.xml`, add:
+Add the following lines to `hdfs-site.xml`:
 
     <property>
       <name>fs.tachyon.impl</name>
@@ -65,11 +65,11 @@ Sync Spark's new configuration to all nodes:
     $ cd /root/spark/conf
     $ /root/mesos-ec2/copy-dir .
 
-Put a file X into HDFS. Run Spark Shell:
+Put some file X into HDFS and run the Spark shell:
 
     $ ./spark-shell
     $ val s = sc.textFile("tachyon://tachyon_master_host:9999/X")
     $ s.count()
 
-Take a look at `MasterMachineHostName:9998`, there should be a dataset info there. The Tachyon will
-load `hdfs://HDFS_HOSTNAME:HDFS_PORT/X` into the system.
+Take a look at `MasterMachineHostName:9998`. There should be a dataset info there. Tachyon will have
+loaded `hdfs://HDFS_HOSTNAME:HDFS_PORT/X` into the system.

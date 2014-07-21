@@ -5,14 +5,14 @@ title: Thrift
 
 # Mac OSX
 
-1.  Grab Thrift 0.9.0 distribution from
+1.  Grab the Thrift 0.9.0 distribution from
     [http://archive.apache.org/dist/thrift/0.9.0/](http://archive.apache.org/dist/thrift/0.9.0/)
 2.  Install Xcode from the Mac App Store
 3.  Launch Xcode, open the Preferences, select Downloads, and install
     the “Command Line Tools for Xcode” component.
-4.  Install [Homebrew](http://brew.sh/), if you use MacPorts, skip to corresponding instructions.
+4.  Install [Homebrew](http://brew.sh/), if you use MacPorts, skip to the corresponding instructions.
 
-Here the commands for Homebrew installation:
+Here are the commands for Homebrew installation:
 
     ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
     brew doctor
@@ -51,13 +51,17 @@ Try to use Port to install Thrift:
 
     sudo port install thrift
 
-BUT the last command may fail, refer to this [issue](https://trac.macports.org/ticket/41172). So we recommend to build Thrift 0.9.0 from source ( Assume you use MacPort's default directory /opt/local ):
+The last command MAY fail, according to this [issue](https://trac.macports.org/ticket/41172). In
+this case, we recommend building Thrift 0.9.0 from source (Assuming you use MacPort's default
+directory /opt/local):
 
     ./configure --prefix=/opt/local/ --with-boost=/opt/local/lib --with-libevent=/opt/local/lib CXXFLAGS="-I/usr/include/4.2.1 -L/opt/local/lib"
     make
     make install
 
-You may change CXXFLAGS, here we include /usr/include/4.2.1 for std::tr1 on Mavericks and /opt/local/lib for libraries installed by port. Without the -I, you may fail with "tr1/functional not found". Without the -L, you may fail when link.
+You may change CXXFLAGS. Here we include /usr/include/4.2.1 for std::tr1 on Mavericks and
+/opt/local/lib for libraries installed by port. Without the -I, you may fail with "tr1/functional
+not found". Without the -L, you may fail during linking.
 
 # Linux
 
@@ -74,7 +78,7 @@ or
     sudo yum install automake libtool flex bison pkgconfig gcc-c++ boost-devel libevent-devel zlib-devel python-devel ruby-devel ant python-dev
 
 Then install the Java JDK of your choice. Type javac to see a list of
-available packages, pick the one you prefer and apt-get install it.
+available packages, pick the one you prefer, and apt-get install it.
 
 Debian Lenny Users need some packages from backports
 
@@ -92,7 +96,7 @@ Tachyon defines a .thrift in:
 
     ./core/src/thrift/tachyon.thrift
 
-And generate java files from it in:
+And generates java files from it in:
 
     ./core/src/main/java/tachyon/thrift/
 

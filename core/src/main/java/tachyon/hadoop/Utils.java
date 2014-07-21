@@ -24,11 +24,9 @@ import org.apache.hadoop.mapred.InputSplit;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
-import tachyon.util.CommonUtils;
 
 public final class Utils {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private static final boolean DEBUG = Constants.DEBUG;
 
   /**
    * Add S3 keys to the given Hadoop Configuration object if the user has specified them using
@@ -57,23 +55,7 @@ public final class Utils {
   }
 
   public static String getPathWithoutScheme(Path path) {
-    Path ori = path;
-    String ret = "";
-    while (path != null) {
-      if (ret.equals("")) {
-        ret = path.getName();
-      } else {
-        ret = CommonUtils.concat(path.getName(), ret);
-      }
-      path = path.getParent();
-    }
-    if (DEBUG) {
-      LOG.info("Utils getPathWithoutScheme(" + ori + ") result: " + ret);
-    }
-    if (ret.isEmpty()) {
-      return Constants.PATH_SEPARATOR;
-    }
-    return ret;
+    return path.toUri().getPath();
   }
 
   public static String getTachyonFileName(String path) {

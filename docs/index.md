@@ -5,17 +5,18 @@ title: Tachyon Overview
 
 Tachyon is a memory-centric distributed file system enabling reliable file sharing at memory-speed
 across cluster frameworks, such as Spark and MapReduce. It achieves high performance by leveraging
-lineage information and using memory aggressively. Tachyon caches working set files in memory
+lineage information and using memory aggressively. Tachyon caches working set files in memory,
 thereby avoiding going to disk to load datasets that are frequently read. This enables different
 jobs/queries and frameworks to access cached files at memory speed.
 
-Tachyon is Hadoop compatible. Existing Spark and MapReduce programs can run on top of it without any
-code change. The project is open source
-([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at multiple
-companies. It has more than [40 contributors](https://github.com/amplab/tachyon/graphs/contributors)
-from over 15 institutions, including Yahoo, Intel, Redhat etc. The project is the storage layer of
-the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of
-the [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
+Tachyon is Hadoop compatible. Existing Spark and MapReduce programs can run on top of it without
+any code change. The project is open source
+([Apache License 2.0](https://github.com/amplab/tachyon/blob/master/LICENSE)) and is deployed at
+multiple companies. It has more than
+[40 contributors](https://github.com/amplab/tachyon/graphs/contributors) from over 15 institutions,
+including Yahoo, Intel, and Redhat. The project is the storage layer of the Berkeley Data Analytics
+Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
+[Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
 
 [Github Repository](https://github.com/amplab/tachyon/) |
 [Releases and Downloads](https://github.com/amplab/tachyon/releases) |
@@ -32,20 +33,20 @@ recommend using this API to get the best performance from Tachyon
 
 * **Compatibility**: Tachyon implements the Hadoop FileSystem interface. Therefore, Hadoop MapReduce
 and Spark can run with Tachyon without modification. However, close integration is required to fully
-take advantage of Tachyon and we are working towards that. End-to-end latency speedup depends on the
-workload and the framework, since various frameworks have different execution overhead.
+take advantage of Tachyon, and we are working towards that. End-to-end latency speedup depends on
+the workload and the framework, since various frameworks have different execution overhead.
 
-* **Pluggable underlayer file system**: Tachyon checkpoints in-memory data to the underlayer file
-system. Tachyon has a generic interface to make plugging an underlayer file system easy. It
-currently supports HDFS, S3, and single-node local file systems. Support for many other file systems
-is coming.
+* **Pluggable underlayer file system**: To provide fault-tolerance, Tachyon checkpoints in-memory
+data to the underlayer file system. It has a generic interface to make plugging different underlayer
+file systems easy. We currently support HDFS, S3, GlusterFS, and single-node local file systems, and
+support for many other file systems is coming.
 
 * **Native support for raw tables**: Table data with over hundreds of columns is common in data
-warehouses. Tachyon provides native support for multi-columned data. The user can choose to only put
-hot columns in memory.
+warehouses. Tachyon provides native support for multi-columned data, with the option to put only hot
+columns in memory to save space.
 
-* **[Web UI](Web-Interface.html)**: Users can browse the file system easily through web UI. Under
-debug mode, administrators can view detailed information of each file, including locations,
+* **[Web UI](Web-Interface.html)**: Users can browse the file system easily through the web UI.
+Under debug mode, administrators can view detailed information of each file, including locations,
 checkpoint path, etc.
 
 * **[Command line interaction](Command-Line-Interface.html)**: Users can use ``./bin/tachyon tfs``
