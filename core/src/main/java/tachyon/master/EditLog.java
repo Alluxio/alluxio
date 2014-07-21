@@ -121,12 +121,12 @@ public class EditLog {
         switch (op.type) {
         case ADD_BLOCK: {
           info.opAddBlock(op.getInt("fileId"), op.getInt("blockIndex"), op.getLong("blockLength"),
-              op.getLong("addBlockTimeMs"));
+              op.getLong("opTimeMs"));
           break;
         }
         case ADD_CHECKPOINT: {
-          info.addCheckpoint(-1, op.getInt("fileId"), op.getLong("length"), op.getString("path"),
-              op.getLong("addCheckpointTimeMs"));
+          info._addCheckpoint(-1, op.getInt("fileId"), op.getLong("length"), op.getString("path"),
+              op.getLong("opTimeMs"));
           break;
         }
         case CREATE_FILE: {
@@ -136,12 +136,11 @@ public class EditLog {
           break;
         }
         case COMPLETE_FILE: {
-          info.completeFile(op.<Integer> get("fileId"), op.getLong("completeFileTimeMs"));
+          info._completeFile(op.<Integer> get("fileId"), op.getLong("opTimeMs"));
           break;
         }
         case SET_PINNED: {
-          info.setPinned(op.getInt("fileId"), op.getBoolean("pinned"),
-              op.getLong("setPinnedTimeMs"));
+          info._setPinned(op.getInt("fileId"), op.getBoolean("pinned"), op.getLong("opTimeMs"));
           break;
         }
         case RENAME: {
@@ -305,8 +304,7 @@ public class EditLog {
     }
   }
 
-  public synchronized void addBlock(int fileId, int blockIndex, long blockLength,
-      long addBlockTimeMs) {
+  public synchronized void addBlock(int fileId, int blockIndex, long blockLength, long opTimeMs) {
     if (INACTIVE) {
       return;
     }
@@ -314,13 +312,12 @@ public class EditLog {
     EditLogOperation operation =
         new EditLogOperation(EditLogOperationType.ADD_BLOCK, ++ mTransactionId)
             .withParameter("fileId", fileId).withParameter("blockIndex", blockIndex)
-            .withParameter("blockLength", blockLength)
-            .withParameter("addBlockTimeMs", addBlockTimeMs);
+            .withParameter("blockLength", blockLength).withParameter("opTimeMs", opTimeMs);
     writeOperation(operation);
   }
 
   public synchronized void addCheckpoint(int fileId, long length, String checkpointPath,
-      long addCheckpointTimeMs) {
+      long opTimeMs) {
     if (INACTIVE) {
       return;
     }
@@ -328,8 +325,7 @@ public class EditLog {
     EditLogOperation operation =
         new EditLogOperation(EditLogOperationType.ADD_CHECKPOINT, ++ mTransactionId)
             .withParameter("fileId", fileId).withParameter("length", length)
-            .withParameter("path", checkpointPath)
-            .withParameter("addCheckpointTimeMs", addCheckpointTimeMs);
+            .withParameter("path", checkpointPath).withParameter("opTimeMs", opTimeMs);
     writeOperation(operation);
   }
 
@@ -349,14 +345,14 @@ public class EditLog {
     }
   }
 
-  public synchronized void completeFile(int fileId, long completeFileTimeMs) {
+  public synchronized void completeFile(int fileId, long opTimeMs) {
     if (INACTIVE) {
       return;
     }
 
     EditLogOperation operation =
         new EditLogOperation(EditLogOperationType.COMPLETE_FILE, ++ mTransactionId).withParameter(
-            "fileId", fileId).withParameter("completeFileTimeMs", completeFileTimeMs);
+            "fileId", fileId).withParameter("opTimeMs", opTimeMs);
     writeOperation(operation);
   }
 
@@ -510,7 +506,7 @@ public class EditLog {
     mMaxLogSize = size;
   }
 
-  public synchronized void setPinned(int fileId, boolean pinned, long setPinnedTimeMs) {
+  public synchronized void setPinned(int fileId, boolean pinned, long opTimeMs) {
     if (INACTIVE) {
       return;
     }
@@ -518,7 +514,7 @@ public class EditLog {
     EditLogOperation operation =
         new EditLogOperation(EditLogOperationType.SET_PINNED, ++ mTransactionId)
             .withParameter("fileId", fileId).withParameter("pinned", pinned)
-            .withParameter("setPinnedTimeMs", setPinnedTimeMs);
+            .withParameter("opTimeMs", opTimeMs);
     writeOperation(operation);
   }
 

@@ -67,8 +67,7 @@ public class MasterServiceHandler implements MasterService.Iface {
           throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
           TException {
     try {
-      return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath,
-          System.currentTimeMillis());
+      return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
     } catch (FileNotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     }
@@ -92,7 +91,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public void user_completeFile(int fileId) throws FileDoesNotExistException, TException {
-    mMasterInfo.completeFile(fileId, System.currentTimeMillis());
+    mMasterInfo.completeFile(fileId);
   }
 
   @Override
@@ -127,9 +126,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       long blockSizeByte = underfs.getBlockSizeByte(checkpointPath);
       long fileSizeByte = underfs.getFileSize(checkpointPath);
       int fileId = mMasterInfo.createFile(path, blockSizeByte);
-      if (fileId != -1
-          && mMasterInfo.addCheckpoint(-1, fileId, fileSizeByte, checkpointPath,
-              System.currentTimeMillis())) {
+      if (fileId != -1 && mMasterInfo.addCheckpoint(-1, fileId, fileSizeByte, checkpointPath)) {
         return fileId;
       }
     } catch (IOException e) {
@@ -316,7 +313,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public void user_setPinned(int fileId, boolean pinned) throws FileDoesNotExistException,
       TException {
-    mMasterInfo.setPinned(fileId, pinned, System.currentTimeMillis());
+    mMasterInfo.setPinned(fileId, pinned);
   }
 
   @Override
