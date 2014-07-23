@@ -54,8 +54,6 @@ public class LocalTachyonCluster {
   private TachyonMaster mMaster = null;
 
   private TachyonWorker mWorker = null;
-//  private int mMasterPort;
-//  private int mWorkerPort;
 
   private long mWorkerCapacityBytes;
   private String mTachyonHome;
@@ -70,15 +68,7 @@ public class LocalTachyonCluster {
 
   private List<TachyonFS> mClients = new ArrayList<TachyonFS>();
 
-//  public LocalTachyonCluster(int masterPort, int workerPort, long workerCapacityBytes) {
-//    mMasterPort = masterPort;
-//    mWorkerPort = workerPort;
-//    mWorkerCapacityBytes = workerCapacityBytes;
-//  }
-
   public LocalTachyonCluster(long workerCapacityBytes) {
-//    mMasterPort = Constants.DEFAULT_MASTER_PORT - 1000;
-//    mWorkerPort = Constants.DEFAULT_WORKER_PORT - 1000;
     mWorkerCapacityBytes = workerCapacityBytes;
   }
 
