@@ -17,7 +17,6 @@ package tachyon.master;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
@@ -120,7 +119,6 @@ public class TachyonMaster {
    * the port has been updated.
    * @return
    */
-  @VisibleForTesting
   int getLocalPort() {
     return port;
   }
