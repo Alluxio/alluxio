@@ -23,6 +23,7 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.channels.FileChannel.MapMode;
 
+import com.google.common.base.Throwables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -168,7 +169,7 @@ public class Performance {
       try {
         memoryCopyParition();
       } catch (IOException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
       LOG.info(mMsg + mWorkerId + " just finished.");
     }
@@ -207,7 +208,7 @@ public class Performance {
       try {
         writeParition();
       } catch (Exception e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
       LOG.info("WriteWorker " + mWorkerId + " just finished.");
     }
@@ -237,7 +238,7 @@ public class Performance {
               tmp = intBuf.get();
               if ((k == 0 && tmp == (i + mWorkerId)) || (k != 0 && tmp == k)) {
               } else {
-                CommonUtils.runtimeException("WHAT? " + tmp + " " + k);
+                throw new IllegalStateException("WHAT? " + tmp + " " + k);
               }
             }
           }
@@ -257,7 +258,7 @@ public class Performance {
             int r = is.read(mBuf.array());
             len -= r;
             if (r == -1) {
-              CommonUtils.runtimeException("R == -1");
+              throw new RuntimeException("R == -1");
             }
           }
           is.close();
@@ -290,7 +291,7 @@ public class Performance {
       try {
         readPartition();
       } catch (Exception e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
       LOG.info("ReadWorker " + mWorkerId + " just finished.");
     }
@@ -356,7 +357,7 @@ public class Performance {
             int r = is.read(mBuf.array());
             len -= r;
             if (r == -1) {
-              CommonUtils.runtimeException("R == -1");
+              throw new RuntimeException("R == -1");
             }
           }
           is.close();
@@ -371,7 +372,7 @@ public class Performance {
       try {
         io();
       } catch (IOException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
       LOG.info(mMsg + mWorkerId + " just finished.");
     }
@@ -407,7 +408,7 @@ public class Performance {
       try {
         WWs[thread].join();
       } catch (InterruptedException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
@@ -447,7 +448,7 @@ public class Performance {
       try {
         WWs[thread].join();
       } catch (InterruptedException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
@@ -483,7 +484,7 @@ public class Performance {
       try {
         WWs[thread].join();
       } catch (InterruptedException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
@@ -565,7 +566,7 @@ public class Performance {
       LOG.info(RESULT_PREFIX);
       HdfsTest(false);
     } else {
-      CommonUtils.runtimeException("No Test Case " + testCase);
+      throw new RuntimeException("No Test Case " + testCase);
     }
 
     for (int k = 0; k < RESULT_ARRAY_SIZE; k ++) {
