@@ -159,7 +159,7 @@ public class TachyonWorker implements Runnable {
 
   private WorkerServiceHandler mWorkerServiceHandler;
 
-  private volatile DataServer mDataServer;
+  private final DataServer mDataServer;
 
   private Thread mDataServerThread;
 
@@ -167,8 +167,8 @@ public class TachyonWorker implements Runnable {
 
   private volatile boolean mStop = false;
 
-  private final AtomicInteger port = new AtomicInteger(0);
-  private final AtomicInteger dataPort = new AtomicInteger(0);
+  private final int port;
+  private final int dataPort;
 
   /**
    * @param masterAddress
@@ -202,7 +202,7 @@ public class TachyonWorker implements Runnable {
         new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
             mWorkerStorage);
     mDataServerThread = new Thread(mDataServer);
-    this.dataPort.set(mDataServer.getLocalPort());
+    this.dataPort = mDataServer.getLocalPort();
 
     mHeartbeatThread = new Thread(this);
     try {
@@ -211,7 +211,7 @@ public class TachyonWorker implements Runnable {
           new WorkerService.Processor<WorkerServiceHandler>(mWorkerServiceHandler);
 
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(workerAddress);
-      port.set(NetworkUtils.getPort(mServerTNonblockingServerSocket));
+      port = NetworkUtils.getPort(mServerTNonblockingServerSocket);
       mServer =
           new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
               mServerTNonblockingServerSocket).processor(processor)
@@ -230,20 +230,18 @@ public class TachyonWorker implements Runnable {
     mWorkerStorage.initialize();
   }
 
+  /**
+   * Gets the metadata port of the worker.
+   */
   public int getLocalPort() {
-    // impls a blocking wait until the port shows up
-    while (port.get() == 0) {
-      CommonUtils.sleepMs(null, 10);
-    }
-    return port.get();
+    return port;
   }
 
+  /**
+   * Gets the data port of the worker.
+   */
   public int getDataPort() {
-    // impls a blocking wait until the port shows up
-    while (dataPort.get() == 0) {
-      CommonUtils.sleepMs(null, 10);
-    }
-    return dataPort.get();
+    return dataPort;
   }
 
   /**
