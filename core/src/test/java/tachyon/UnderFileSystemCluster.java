@@ -16,6 +16,7 @@ package tachyon;
 
 import java.io.IOException;
 
+import com.google.common.base.Throwables;
 import tachyon.util.CommonUtils;
 
 public abstract class UnderFileSystemCluster {
@@ -73,7 +74,7 @@ public abstract class UnderFileSystemCluster {
       } catch (Exception e) {
         System.out.println("Failed to initialize the ufsCluster of " + mUfsClz
             + " for integration test.");
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
     }
     return new LocalFilesystemCluster(baseDir);
