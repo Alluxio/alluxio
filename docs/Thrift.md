@@ -99,20 +99,6 @@ Debian Lenny Users need some packages from backports
     make
     make install
 
-# Generate Java files from Thrift
-
-Tachyon defines a .thrift in:
-
-    ./core/src/thrift/tachyon.thrift
-
-And generates java files from it in:
-
-    ./core/src/main/java/tachyon/thrift/
-
-To generate the java files on your own, type:
-
-    ./bin/tachyon thriftGen
-    
 ## CentOS 
 The following steps can be used to setup a CentOS 6.4 system.
 
@@ -133,3 +119,18 @@ Download and install Apache Thrift source
     ./configure --enable-libs=no
     make
     sudo make install
+
+# Generate Java files from Thrift
+
+Tachyon defines a .thrift in:
+
+    ./core/src/thrift/tachyon.thrift
+
+And generates java files from it in:
+
+    ./core/src/main/java/tachyon/thrift/
+
+To generate the java files on your own, type:
+
+    ./bin/tachyon thriftGen
+    
