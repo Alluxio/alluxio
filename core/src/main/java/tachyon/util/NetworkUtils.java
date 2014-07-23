@@ -1,22 +1,28 @@
 package tachyon.util;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
 import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
 
+import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TTransportException;
 import tachyon.Constants;
 
 /**
  * Common network utilities shared by all components in Tachyon.
  */
-public class NetworkUtils {
+public final class NetworkUtils {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+
+  private NetworkUtils() {}
 
   /**
    * @return the local host name, which is not based on a loopback ip address.
@@ -126,5 +132,21 @@ public class NetworkUtils {
     }
 
     return InetAddress.getByName(hostname).getCanonicalHostName();
+  }
+
+  public static int getPort(TNonblockingServerSocket thriftSocket) throws TTransportException {
+    return getSocket(thriftSocket).getLocalPort();
+  }
+
+  public static ServerSocket getSocket(final TNonblockingServerSocket thriftSocket) {
+    try {
+      Field field = TNonblockingServerSocket.class.getDeclaredField("serverSocket_");
+      field.setAccessible(true);
+      return (ServerSocket) field.get(thriftSocket);
+    } catch (NoSuchFieldException e) {
+      throw Throwables.propagate(e);
+    } catch (IllegalAccessException e) {
+      throw Throwables.propagate(e);
+    }
   }
 }

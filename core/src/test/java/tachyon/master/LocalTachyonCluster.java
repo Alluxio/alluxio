@@ -29,6 +29,7 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
+import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.worker.TachyonWorker;
 
@@ -53,8 +54,8 @@ public class LocalTachyonCluster {
   private TachyonMaster mMaster = null;
 
   private TachyonWorker mWorker = null;
-  private int mMasterPort;
-  private int mWorkerPort;
+//  private int mMasterPort;
+//  private int mWorkerPort;
 
   private long mWorkerCapacityBytes;
   private String mTachyonHome;
@@ -69,20 +70,20 @@ public class LocalTachyonCluster {
 
   private List<TachyonFS> mClients = new ArrayList<TachyonFS>();
 
-  public LocalTachyonCluster(int masterPort, int workerPort, long workerCapacityBytes) {
-    mMasterPort = masterPort;
-    mWorkerPort = workerPort;
-    mWorkerCapacityBytes = workerCapacityBytes;
-  }
+//  public LocalTachyonCluster(int masterPort, int workerPort, long workerCapacityBytes) {
+//    mMasterPort = masterPort;
+//    mWorkerPort = workerPort;
+//    mWorkerCapacityBytes = workerCapacityBytes;
+//  }
 
   public LocalTachyonCluster(long workerCapacityBytes) {
-    mMasterPort = Constants.DEFAULT_MASTER_PORT - 1000;
-    mWorkerPort = Constants.DEFAULT_WORKER_PORT - 1000;
+//    mMasterPort = Constants.DEFAULT_MASTER_PORT - 1000;
+//    mWorkerPort = Constants.DEFAULT_WORKER_PORT - 1000;
     mWorkerCapacityBytes = workerCapacityBytes;
   }
 
   public synchronized TachyonFS getClient() throws IOException {
-    mClients.add(TachyonFS.get(Constants.HEADER + mLocalhostName + ":" + mMasterPort));
+    mClients.add(TachyonFS.get(Constants.HEADER + mLocalhostName + ":" + getMasterPort()));
     return mClients.get(mClients.size() - 1);
   }
 
@@ -95,7 +96,7 @@ public class LocalTachyonCluster {
   }
 
   public InetSocketAddress getMasterAddress() {
-    return new InetSocketAddress(mLocalhostName, mMasterPort);
+    return new InetSocketAddress(mLocalhostName, getMasterPort());
   }
 
   public String getMasterHostname() {
@@ -107,7 +108,7 @@ public class LocalTachyonCluster {
   }
 
   public int getMasterPort() {
-    return mMasterPort;
+    return mMaster.getLocalPort();
   }
 
   public String getTachyonHome() {
@@ -122,8 +123,8 @@ public class LocalTachyonCluster {
     return mWorker;
   }
 
-  public InetSocketAddress getWorkerAddress() {
-    return new InetSocketAddress(mLocalhostName, mWorkerPort);
+  public NetAddress getWorkerAddress() {
+    return new NetAddress(mLocalhostName, getWorkerPort(), getWorkerDataPort());
   }
 
   public String getWorkerDataFolder() {
@@ -131,7 +132,11 @@ public class LocalTachyonCluster {
   }
 
   public int getWorkerPort() {
-    return mWorkerPort;
+    return mWorker.getLocalPort();
+  }
+
+  public int getWorkerDataPort() {
+    return mWorker.getDataPort();
   }
 
   private void deleteDir(String path) throws IOException {
@@ -178,10 +183,10 @@ public class LocalTachyonCluster {
     System.setProperty("tachyon.home", mTachyonHome);
     System.setProperty("tachyon.master.hostname", mLocalhostName);
     System.setProperty("tachyon.master.journal.folder", masterJournalFolder);
-    System.setProperty("tachyon.master.port", mMasterPort + "");
-    System.setProperty("tachyon.master.web.port", (mMasterPort + 1) + "");
-    System.setProperty("tachyon.worker.port", mWorkerPort + "");
-    System.setProperty("tachyon.worker.data.port", (mWorkerPort + 1) + "");
+    System.setProperty("tachyon.master.port", 0 + "");
+    System.setProperty("tachyon.master.web.port", 0 + "");
+    System.setProperty("tachyon.worker.port", 0 + "");
+    System.setProperty("tachyon.worker.data.port", 0 + "");
     System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
@@ -200,7 +205,7 @@ public class LocalTachyonCluster {
     mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
 
     mMaster =
-        new TachyonMaster(new InetSocketAddress(mLocalhostName, mMasterPort), mMasterPort + 1, 1,
+        new TachyonMaster(new InetSocketAddress(mLocalhostName, 0), 0, 1,
             1, 1);
 
     Runnable runMaster = new Runnable() {
@@ -217,10 +222,13 @@ public class LocalTachyonCluster {
     mMasterThread.start();
 
     CommonUtils.sleepMs(null, 10);
+    
+    System.setProperty("tachyon.master.port", getMasterPort() + "");
+    System.setProperty("tachyon.master.web.port", (getMasterPort() + 1) + "");
 
     mWorker =
-        TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, mMasterPort),
-            new InetSocketAddress(mLocalhostName, mWorkerPort), mWorkerPort + 1, 1, 1, 1,
+        TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1,
             mWorkerDataFolder, mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {
       @Override
@@ -234,6 +242,9 @@ public class LocalTachyonCluster {
     };
     mWorkerThread = new Thread(runWorker);
     mWorkerThread.start();
+
+    System.setProperty("tachyon.worker.port", getWorkerPort() + "");
+    System.setProperty("tachyon.worker.data.port", getWorkerDataPort() + "");
   }
 
   /**

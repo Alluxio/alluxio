@@ -17,6 +17,7 @@ package tachyon.worker;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
@@ -31,6 +32,7 @@ import tachyon.Version;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
+import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
@@ -149,7 +151,7 @@ public class TachyonWorker implements Runnable {
   }
 
   private final InetSocketAddress MasterAddress;
-  private final InetSocketAddress WorkerAddress;
+  private final NetAddress WorkerAddress;
   private TServer mServer;
 
   private TNonblockingServerSocket mServerTNonblockingServerSocket;
@@ -157,13 +159,16 @@ public class TachyonWorker implements Runnable {
 
   private WorkerServiceHandler mWorkerServiceHandler;
 
-  private DataServer mDataServer;
+  private volatile DataServer mDataServer;
 
   private Thread mDataServerThread;
 
   private Thread mHeartbeatThread;
 
   private volatile boolean mStop = false;
+
+  private final AtomicInteger port = new AtomicInteger(0);
+  private final AtomicInteger dataPort = new AtomicInteger(0);
 
   /**
    * @param masterAddress
@@ -187,10 +192,9 @@ public class TachyonWorker implements Runnable {
       int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String dataFolder, long memoryCapacityBytes) {
     MasterAddress = masterAddress;
-    WorkerAddress = workerAddress;
 
     mWorkerStorage =
-        new WorkerStorage(MasterAddress, WorkerAddress, dataFolder, memoryCapacityBytes);
+        new WorkerStorage(MasterAddress, dataFolder, memoryCapacityBytes);
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
@@ -198,6 +202,7 @@ public class TachyonWorker implements Runnable {
         new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
             mWorkerStorage);
     mDataServerThread = new Thread(mDataServer);
+    this.dataPort.set(mDataServer.getLocalPort());
 
     mHeartbeatThread = new Thread(this);
     try {
@@ -206,6 +211,7 @@ public class TachyonWorker implements Runnable {
           new WorkerService.Processor<WorkerServiceHandler>(mWorkerServiceHandler);
 
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(workerAddress);
+      port.set(NetworkUtils.getPort(mServerTNonblockingServerSocket));
       mServer =
           new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
               mServerTNonblockingServerSocket).processor(processor)
@@ -215,6 +221,29 @@ public class TachyonWorker implements Runnable {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
+    WorkerAddress = new NetAddress(
+        workerAddress.getAddress().getCanonicalHostName(),
+        getLocalPort(),
+        getDataPort()
+    );
+    mWorkerStorage.setWorkerAddress(WorkerAddress);
+    mWorkerStorage.initialize();
+  }
+
+  public int getLocalPort() {
+    // impls a blocking wait until the port shows up
+    while (port.get() == 0) {
+      CommonUtils.sleepMs(null, 10);
+    }
+    return port.get();
+  }
+
+  public int getDataPort() {
+    // impls a blocking wait until the port shows up
+    while (dataPort.get() == 0) {
+      CommonUtils.sleepMs(null, 10);
+    }
+    return dataPort.get();
   }
 
   /**

@@ -80,6 +80,10 @@ public class DataServer implements Runnable {
     }
   }
 
+  public int getLocalPort() {
+    return mServerChannel.socket().getLocalPort();
+  }
+
   private void accept(SelectionKey key) throws IOException {
     // For an accept to be pending the channel must be a server socket channel
     ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
