@@ -454,6 +454,17 @@ public class WorkerStorage {
 
   /**
    * Notify the worker the block is cached.
+   *
+   * This call is called remotely from {@link tachyon.client.TachyonFS#cacheBlock(long)} which is
+   * only ever called from {@link tachyon.client.BlockOutStream#close()} (though its a public api
+   * so anyone could call it).  There are a few interesting preconditions for this to work.
+   *
+   * 1) Client process writes to files locally under a tachyon defined temp directory.
+   * 2) Worker process is on the same node as the client
+   * 3) Client is talking to the local worker directly
+   *
+   * If all conditions are true, then and only then can this method ever be called; all operations
+   * work on local files.
    * 
    * @param userId
    *          The user id of the client who send the notification
