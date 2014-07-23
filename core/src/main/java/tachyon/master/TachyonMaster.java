@@ -102,7 +102,8 @@ public class TachyonMaster {
         CommonConf conf = CommonConf.get();
         mLeaderSelectorClient =
             new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS, conf.ZOOKEEPER_ELECTION_PATH,
-                conf.ZOOKEEPER_LEADER_PATH, mMasterAddress.toString());
+                // InetSocketAddress.toString causes test issues, so build the string by hand
+                conf.ZOOKEEPER_LEADER_PATH, mMasterAddress.getAddress().getHostName() + ":" + mMasterAddress.getPort());
         mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
         Thread logProcessor = new Thread(mEditLogProcessor);
         logProcessor.start();

@@ -287,6 +287,11 @@ public class WorkerStorage {
       WorkerConf.get().WORKER_CHECKPOINT_THREADS);
 
   /**
+   * Main logic behind the worker process.
+   *
+   * This object is lazily initialized.  Before an object of this call should be used,
+   * {@link #initialize()} must be called.
+   *
    * @param masterAddress
    *          The TachyonMaster's address
    * @param dataFolder
