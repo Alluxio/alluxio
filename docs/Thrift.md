@@ -5,12 +5,18 @@ title: Thrift
 
 # Mac OSX
 
-1.  Grab the Thrift 0.9.0 distribution from
-    [http://archive.apache.org/dist/thrift/0.9.0/](http://archive.apache.org/dist/thrift/0.9.0/)
-2.  Install Xcode from the Mac App Store
-3.  Launch Xcode, open the Preferences, select Downloads, and install
+Before you can get [Apache Thift](http://thrift.apache.org) installed, you will first need to setup
+command-line support.  To do this, you will need to:
+
+Install Xcode from the Mac App Store
+
+Launch Xcode, open the Preferences, select Downloads, and install
     the “Command Line Tools for Xcode” component.
-4.  Install [Homebrew](http://brew.sh/), if you use MacPorts, skip to the corresponding instructions.
+    
+## Homebrew
+This section explains install Apache Thrift via [Homebrew](http://brew.sh/).
+
+First, install [Homebrew](http://brew.sh/)
 
 Here are the commands for Homebrew installation:
 
@@ -24,12 +30,13 @@ Use Homebrew to install autoconf, automake, libtool and pkg-config:
 Use Homebrew to install [Boost](http://www.boost.org/)
 
     brew install boost
+    
+Install Thrift
+    
+    brew install thrift
 
-Now build Thrift 0.9.0:
-
-    ./configure --prefix=/usr/local/ --with-boost=/usr/local --with-libevent=/usr/local
-    make
-    make install
+## MacPorts
+This section explains install Apache Thrift via [MacPorts](http://macports.org).
 
 If you use [MacPorts](http://macports.org), the following instruction may help
 
@@ -69,7 +76,6 @@ not found". Without the -L, you may fail during linking.
 
 The following command install all the required tools and libraries to
 build and install the Apache Thrift compiler on a Debian/Ubuntu Linux
-based system.
 
     sudo apt-get install libboost-dev libboost-test-dev libboost-program-options-dev libevent-dev automake libtool flex bison pkg-config g++ libssl-dev ant python-dev
 
@@ -103,4 +109,9 @@ And generates java files from it in:
 To generate the java files on your own, type:
 
     ./bin/tachyon thriftGen
+    
+    
+## References
+
+  * [Thrift Install Page](http://thrift.apache.org/docs/install/)
 
