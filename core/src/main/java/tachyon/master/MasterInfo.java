@@ -300,13 +300,14 @@ public class MasterInfo extends ImageWriter {
    *          The path of the checkpoint.
    * @param opTimeMs
    *          The time of the operation, in milliseconds
-   * @return true if the checkpoint is added successfully, false if not.
+   * @return the Pair of success and needLog
    * @throws FileNotFoundException
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    */
-  boolean _addCheckpoint(long workerId, int fileId, long length, String checkpointPath,
-      long opTimeMs) throws FileNotFoundException, SuspectedFileSizeException, BlockInfoException {
+  Pair<Boolean, Boolean> _addCheckpoint(long workerId, int fileId, long length,
+      String checkpointPath, long opTimeMs) throws FileNotFoundException,
+      SuspectedFileSizeException, BlockInfoException {
     LOG.info(CommonUtils.parametersToString(workerId, fileId, length, checkpointPath));
 
     if (workerId != -1) {
@@ -358,10 +359,8 @@ public class MasterInfo extends ImageWriter {
 
       if (needLog) {
         tFile.setLastModificationTimeMs(opTimeMs);
-        mJournal.getEditLog().addCheckpoint(fileId, length, checkpointPath, opTimeMs);
-        mJournal.getEditLog().flush();
       }
-      return true;
+      return new Pair<Boolean, Boolean>(true, needLog);
     }
   }
 
@@ -720,6 +719,36 @@ public class MasterInfo extends ImageWriter {
   }
 
   /**
+   * Inner method of recomputePinnedFiles. Also directly called by EditLog.
+   * 
+   * @param inode
+   *          The inode to start traversal from
+   * @param setPinState
+   *          An optional parameter indicating whether we should also set the "pinned"
+   *          flag on each inode we traverse. If absent, the "isPinned" flag is unchanged.
+   * @param opTimeMs
+   *          The time of set pinned, in milliseconds
+   */
+  void _recomputePinnedFiles(Inode inode, Optional<Boolean> setPinState, long opTimeMs) {
+    if (setPinState.isPresent()) {
+      inode.setPinned(setPinState.get());
+      inode.setLastModificationTimeMs(opTimeMs);
+    }
+
+    if (inode.isFile()) {
+      if (inode.isPinned()) {
+        mFileIdPinList.add(inode.getId());
+      } else {
+        mFileIdPinList.remove(inode.getId());
+      }
+    } else if (inode.isDirectory()) {
+      for (Inode child : ((InodeFolder) inode).getChildren()) {
+        _recomputePinnedFiles(child, setPinState, opTimeMs);
+      }
+    }
+  }
+
+  /**
    * Rename a file to the given path, inner method.
    * 
    * @param fileId
@@ -806,7 +835,7 @@ public class MasterInfo extends ImageWriter {
         throw new FileDoesNotExistException("Failed to find inode" + fileId);
       }
 
-      recomputePinnedFiles(inode, Optional.of(pinned), opTimeMs);
+      _recomputePinnedFiles(inode, Optional.of(pinned), opTimeMs);
     }
   }
 
@@ -839,8 +868,13 @@ public class MasterInfo extends ImageWriter {
       throws FileNotFoundException, SuspectedFileSizeException, BlockInfoException {
     long opTimeMs = System.currentTimeMillis();
     synchronized (mRoot) {
-      boolean ret = _addCheckpoint(workerId, fileId, length, checkpointPath, opTimeMs);
-      return ret;
+      Pair<Boolean, Boolean> ret =
+          _addCheckpoint(workerId, fileId, length, checkpointPath, opTimeMs);
+      if (ret.getSecond()) {
+        mJournal.getEditLog().addCheckpoint(fileId, length, checkpointPath, opTimeMs);
+        mJournal.getEditLog().flush();
+      }
+      return ret.getFirst();
     }
   }
 
@@ -870,26 +904,10 @@ public class MasterInfo extends ImageWriter {
    * @param setPinState
    *          An optional parameter indicating whether we should also set the "pinned"
    *          flag on each inode we traverse. If absent, the "isPinned" flag is unchanged.
-   * @param opTimeMs
-   *          The time of set pinned, in milliseconds
    */
-  private void recomputePinnedFiles(Inode inode, Optional<Boolean> setPinState, long opTimeMs) {
-    if (setPinState.isPresent()) {
-      inode.setPinned(setPinState.get());
-      inode.setLastModificationTimeMs(opTimeMs);
-    }
-
-    if (inode.isFile()) {
-      if (inode.isPinned()) {
-        mFileIdPinList.add(inode.getId());
-      } else {
-        mFileIdPinList.remove(inode.getId());
-      }
-    } else if (inode.isDirectory()) {
-      for (Inode child : ((InodeFolder) inode).getChildren()) {
-        recomputePinnedFiles(child, setPinState, opTimeMs);
-      }
-    }
+  private void recomputePinnedFiles(Inode inode, Optional<Boolean> setPinState) {
+    long opTimeMs = System.currentTimeMillis();
+    _recomputePinnedFiles(inode, setPinState, opTimeMs);
   }
 
   /**
@@ -1917,7 +1935,7 @@ public class MasterInfo extends ImageWriter {
       case InodeFolder: {
         Inode inode = InodeFolder.loadImage(parser, ele);
         addToInodeMap(inode, mInodes);
-        recomputePinnedFiles(inode, Optional.<Boolean> absent(), 0);
+        recomputePinnedFiles(inode, Optional.<Boolean> absent());
 
         if (inode.getId() != 1) {
           throw new IOException("Invalid element type " + ele);
