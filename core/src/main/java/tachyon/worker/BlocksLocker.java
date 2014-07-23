@@ -20,9 +20,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
-import tachyon.util.CommonUtils;
+
+import com.google.common.base.Throwables;
 
 /**
  * Handle local block locking.

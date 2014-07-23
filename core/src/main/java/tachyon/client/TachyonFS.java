@@ -31,10 +31,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -87,7 +88,8 @@ public class TachyonFS {
     if (tempAddress.contains(Constants.PATH_SEPARATOR)) {
       masterAddress = tempAddress.substring(0, tempAddress.indexOf(Constants.PATH_SEPARATOR));
     }
-    Preconditions.checkArgument(masterAddress.split(":").length == 2, "Illegal Tachyon Master Address: " + tachyonPath);
+    Preconditions.checkArgument(masterAddress.split(":").length == 2,
+        "Illegal Tachyon Master Address: " + tachyonPath);
 
     String masterHost = masterAddress.split(":")[0];
     int masterPort = Integer.parseInt(masterAddress.split(":")[1]);
