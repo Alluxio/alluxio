@@ -250,7 +250,7 @@ public class WorkerStorage {
   private final CommonConf COMMON_CONF;
   private volatile MasterClient mMasterClient;
   private InetSocketAddress mMasterAddress;
-  private InetSocketAddress mWorkerAddress;
+  private NetAddress mWorkerAddress;
   private WorkerSpaceCounter mWorkerSpaceCounter;
 
   private long mWorkerId;
@@ -289,44 +289,25 @@ public class WorkerStorage {
   /**
    * @param masterAddress
    *          The TachyonMaster's address
-   * @param workerAddress
-   *          This TachyonWorker's address
    * @param dataFolder
    *          This TachyonWorker's local folder's path
    * @param memoryCapacityBytes
    *          The maximum memory space this TachyonWorker can use, in bytes
    */
-  public WorkerStorage(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
+  public WorkerStorage(InetSocketAddress masterAddress,
       String dataFolder, long memoryCapacityBytes) {
     COMMON_CONF = CommonConf.get();
 
     mMasterAddress = masterAddress;
     mMasterClient = new MasterClient(mMasterAddress);
-
-    mWorkerAddress = workerAddress;
-    mWorkerSpaceCounter = new WorkerSpaceCounter(memoryCapacityBytes);
-    mWorkerId = 0;
-    while (mWorkerId == 0) {
-      try {
-        mMasterClient.connect();
-        NetAddress canonicalAddress =
-            new NetAddress(mWorkerAddress.getAddress().getCanonicalHostName(),
-                mWorkerAddress.getPort());
-        mWorkerId =
-            mMasterClient.worker_register(canonicalAddress,
-                mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Long>());
-      } catch (BlockInfoException e) {
-        LOG.error(e.getMessage(), e);
-        mWorkerId = 0;
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mWorkerId = 0;
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-      }
-    }
-
     mLocalDataFolder = new File(dataFolder);
+
+    mWorkerSpaceCounter = new WorkerSpaceCounter(memoryCapacityBytes);
+  }
+
+  public void initialize() {
+    register();
+
     mLocalUserFolder =
         new File(mLocalDataFolder.toString(), WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
     mUnderfsWorkerFolder = CommonUtils.concat(COMMON_CONF.UNDERFS_WORKERS_FOLDER, mWorkerId);
@@ -356,6 +337,10 @@ public class WorkerStorage {
 
     LOG.info("Current Worker Info: ID " + mWorkerId + ", ADDRESS: " + mWorkerAddress
         + ", MemoryCapacityBytes: " + mWorkerSpaceCounter.getCapacityBytes());
+  }
+
+  public void setWorkerAddress(final NetAddress address) {
+    this.mWorkerAddress = address;
   }
 
   /**
@@ -734,12 +719,10 @@ public class WorkerStorage {
     while (id == 0) {
       try {
         mMasterClient.connect();
-        NetAddress canonicalAddress =
-            new NetAddress(mWorkerAddress.getAddress().getCanonicalHostName(),
-                mWorkerAddress.getPort());
         id =
-            mMasterClient.worker_register(canonicalAddress,
-                mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Long>(mMemoryData));
+            mMasterClient.worker_register(mWorkerAddress,
+                mWorkerSpaceCounter.getCapacityBytes(), mWorkerSpaceCounter.getUsedBytes(),
+                new ArrayList<Long>(mMemoryData));
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         id = 0;

@@ -16,6 +16,7 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -33,6 +34,7 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.thrift.MasterService;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 import tachyon.web.UIWebServer;
 
 /**
@@ -72,6 +74,8 @@ public class TachyonMaster {
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
+  private final AtomicInteger port = new AtomicInteger(0);
+
   public TachyonMaster(InetSocketAddress address, int webPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads) {
     if (CommonConf.get().USE_ZOOKEEPER) {
@@ -85,7 +89,10 @@ public class TachyonMaster {
     mWorkerThreads = workerThreads;
 
     try {
-      mMasterAddress = address;
+      mServerTNonblockingServerSocket = new TNonblockingServerSocket(address);
+      port.set(NetworkUtils.getPort(mServerTNonblockingServerSocket));
+
+      mMasterAddress = new InetSocketAddress(address.getHostName(), getLocalPort());
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
       Preconditions.checkState(isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX), "Tachyon was not formatted!");
       mJournal = new Journal(journalFolder, "image.data", "log.data");
@@ -95,7 +102,7 @@ public class TachyonMaster {
         CommonConf conf = CommonConf.get();
         mLeaderSelectorClient =
             new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS, conf.ZOOKEEPER_ELECTION_PATH,
-                conf.ZOOKEEPER_LEADER_PATH, address.getHostName() + ":" + address.getPort());
+                conf.ZOOKEEPER_LEADER_PATH, mMasterAddress.getHostName() + ":" + mMasterAddress.getPort());
         mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
         Thread logProcessor = new Thread(mEditLogProcessor);
         logProcessor.start();
@@ -104,6 +111,14 @@ public class TachyonMaster {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
+  }
+
+  public int getLocalPort() {
+    // impls a blocking wait until the port shows up
+    while (port.get() == 0) {
+      CommonUtils.sleepMs(null, 10);
+    }
+    return port.get();
   }
 
   /**
@@ -164,7 +179,6 @@ public class TachyonMaster {
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
-    mServerTNonblockingServerSocket = new TNonblockingServerSocket(mMasterAddress);
     mMasterServiceServer =
         new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
             mServerTNonblockingServerSocket).processor(masterServiceProcessor)

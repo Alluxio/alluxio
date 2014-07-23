@@ -252,7 +252,7 @@ public class MasterInfo extends ImageWriter {
   private final Set<Integer> mMustRecomputeDependencies = new HashSet<Integer>();
   private final Map<Long, MasterWorkerInfo> mWorkers = new HashMap<Long, MasterWorkerInfo>();
 
-  private final Map<InetSocketAddress, Long> mWorkerAddressToId = new HashMap<InetSocketAddress, Long>();
+  private final Map<NetAddress, Long> mWorkerAddressToId = new HashMap<NetAddress, Long>();
 
   private final BlockingQueue<MasterWorkerInfo> mLostWorkers = new ArrayBlockingQueue<MasterWorkerInfo>(32);
 
@@ -863,9 +863,7 @@ public class MasterInfo extends ImageWriter {
         addBlock(tFile, new BlockInfo(tFile, blockIndex, length));
       }
 
-      InetSocketAddress address = tWorkerInfo.ADDRESS;
-      tFile.addLocation(blockIndex, workerId, new NetAddress(address.getAddress()
-          .getCanonicalHostName(), address.getPort()));
+      tFile.addLocation(blockIndex, workerId, tWorkerInfo.ADDRESS);
 
       if (tFile.hasCheckpointed()) {
         return -1;
@@ -1654,24 +1652,22 @@ public class MasterInfo extends ImageWriter {
       }
       if (random) {
         int index = new Random(mWorkerAddressToId.size()).nextInt(mWorkerAddressToId.size());
-        for (InetSocketAddress address : mWorkerAddressToId.keySet()) {
+        for (NetAddress address : mWorkerAddressToId.keySet()) {
           if (index == 0) {
             LOG.debug("getRandomWorker: " + address);
-            return new NetAddress(address.getHostName(), address.getPort());
+            return address;
           }
           index --;
         }
-        for (InetSocketAddress address : mWorkerAddressToId.keySet()) {
+        for (NetAddress address : mWorkerAddressToId.keySet()) {
           LOG.debug("getRandomWorker: " + address);
-          return new NetAddress(address.getHostName(), address.getPort());
+          return address;
         }
       } else {
-        for (InetSocketAddress address : mWorkerAddressToId.keySet()) {
-          if (address.getHostName().equals(host)
-              || address.getAddress().getHostAddress().equals(host)
-              || address.getAddress().getCanonicalHostName().equals(host)) {
+        for (NetAddress address : mWorkerAddressToId.keySet()) {
+          if (address.getMHost().equals(host)) {
             LOG.debug("getLocalWorker: " + address);
-            return new NetAddress(address.getHostName(), address.getPort());
+            return address;
           }
         }
       }
@@ -1943,8 +1939,7 @@ public class MasterInfo extends ImageWriter {
   public long registerWorker(NetAddress workerNetAddress, long totalBytes, long usedBytes,
       List<Long> currentBlockIds) throws BlockInfoException {
     long id = 0;
-    InetSocketAddress workerAddress =
-        new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
+    NetAddress workerAddress = workerNetAddress;
     LOG.info("registerWorker(): WorkerNetAddress: " + workerAddress);
 
     synchronized (mWorkers) {

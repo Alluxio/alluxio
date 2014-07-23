@@ -29,6 +29,7 @@ import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
+import tachyon.thrift.NetAddress;
 import tachyon.worker.DataServerMessage;
 
 /**
@@ -62,9 +63,9 @@ public class DataServerTest {
     long blockId = mTFS.getBlockId(fileId, 0);
     DataServerMessage sendMsg;
     sendMsg = DataServerMessage.createBlockRequestMessage(blockId, 0, 6);
+    NetAddress firstBlock = mTFS.getFileBlocks(fileId).get(0).getLocations().get(0);
     SocketChannel socketChannel =
-        SocketChannel.open(new InetSocketAddress(mTFS.getFileBlocks(fileId).get(0).getLocations()
-            .get(0).mHost, mTFS.getFileBlocks(fileId).get(0).getLocations().get(0).mPort + 1));
+        SocketChannel.open(new InetSocketAddress(firstBlock.mHost, firstBlock.mSecondaryPort));
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }
@@ -88,7 +89,7 @@ public class DataServerTest {
     sendMsg = DataServerMessage.createBlockRequestMessage(blockId, 2, 6);
     SocketChannel socketChannel =
         SocketChannel.open(new InetSocketAddress(mTFS.getFileBlocks(fileId).get(0).getLocations()
-            .get(0).mHost, mTFS.getFileBlocks(fileId).get(0).getLocations().get(0).mPort + 1));
+            .get(0).mHost, mTFS.getFileBlocks(fileId).get(0).getLocations().get(0).mSecondaryPort));
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }
@@ -110,7 +111,7 @@ public class DataServerTest {
     DataServerMessage sendMsg = DataServerMessage.createBlockRequestMessage(blockId);
     SocketChannel socketChannel =
         SocketChannel.open(new InetSocketAddress(mTFS.getFileBlocks(fileId).get(0).getLocations()
-            .get(0).mHost, mTFS.getFileBlocks(fileId).get(0).getLocations().get(0).mPort + 1));
+            .get(0).mHost, mTFS.getFileBlocks(fileId).get(0).getLocations().get(0).mSecondaryPort));
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }

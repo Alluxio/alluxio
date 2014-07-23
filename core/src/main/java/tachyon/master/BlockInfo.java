@@ -115,7 +115,7 @@ public class BlockInfo {
           } catch (UnknownHostException e) {
             resolvedHost = loc;
           }
-          ret.add(new NetAddress(resolvedHost, -1));
+          ret.add(new NetAddress(resolvedHost, -1, -1));
         }
       }
     }
