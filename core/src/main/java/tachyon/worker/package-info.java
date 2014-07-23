@@ -50,5 +50,17 @@
  * Implementation can be found at {@link tachyon.worker.WorkerStorage#lockBlock(long, long)}
  * and {@link tachyon.worker.WorkerStorage#unlockBlock(long, long)}.
  *
+ * <h2>Data</h2>
+ *
+ * This service is the main interaction between users and reading blocks.  Currently this service
+ * only supports reading blocks (writing is to local disk).
+ *
+ * {@link tachyon.worker.DataServer} is the main entrypoint for the service to start and listen on.
+ * The service is implemented with raw NIO.  Take a look at {@link tachyon.worker.DataServer#run()}
+ * to see what the server does, but to see what the data returned looks like, thats the
+ * {@link tachyon.worker.DataServerMessage}.  This has two different types: read
+ * {@link tachyon.worker.DataServerMessage#createBlockRequestMessage(long, long, long)} and write
+ * {@link tachyon.worker.DataServerMessage#createBlockResponseMessage(boolean, long, long, long)}
+ *
  */
 package tachyon.worker;
