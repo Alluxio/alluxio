@@ -16,8 +16,8 @@ package tachyon.master;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
@@ -74,7 +74,7 @@ public class TachyonMaster {
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  private final AtomicInteger port = new AtomicInteger(0);
+  private final int port;
 
   public TachyonMaster(InetSocketAddress address, int webPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads) {
@@ -90,7 +90,7 @@ public class TachyonMaster {
 
     try {
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(address);
-      port.set(NetworkUtils.getPort(mServerTNonblockingServerSocket));
+      port = NetworkUtils.getPort(mServerTNonblockingServerSocket);
 
       mMasterAddress = new InetSocketAddress(address.getHostName(), getLocalPort());
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
@@ -102,7 +102,7 @@ public class TachyonMaster {
         CommonConf conf = CommonConf.get();
         mLeaderSelectorClient =
             new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS, conf.ZOOKEEPER_ELECTION_PATH,
-                conf.ZOOKEEPER_LEADER_PATH, mMasterAddress.getHostName() + ":" + mMasterAddress.getPort());
+                conf.ZOOKEEPER_LEADER_PATH, mMasterAddress.toString());
         mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
         Thread logProcessor = new Thread(mEditLogProcessor);
         logProcessor.start();
@@ -113,12 +113,14 @@ public class TachyonMaster {
     }
   }
 
-  public int getLocalPort() {
-    // impls a blocking wait until the port shows up
-    while (port.get() == 0) {
-      CommonUtils.sleepMs(null, 10);
-    }
-    return port.get();
+  /**
+   * Get the port used by the master thrift service.  This method implements a busy wait until
+   * the port has been updated.
+   * @return
+   */
+  @VisibleForTesting
+  int getLocalPort() {
+    return port;
   }
 
   /**
