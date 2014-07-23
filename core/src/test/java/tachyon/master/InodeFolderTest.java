@@ -122,6 +122,16 @@ public class InodeFolderTest {
   }
 
   @Test
+  public void setLastModificationTimeTest() {
+    long createTimeMs = System.currentTimeMillis();
+    long modificationTimeMs = createTimeMs + 1000;
+    InodeFolder inodeFolder = new InodeFolder("testFolder1", 1, 0, createTimeMs);
+    Assert.assertEquals(createTimeMs, inodeFolder.getLastModificationTimeMs());
+    inodeFolder.setLastModificationTimeMs(modificationTimeMs);
+    Assert.assertEquals(modificationTimeMs, inodeFolder.getLastModificationTimeMs());
+  }
+
+  @Test
   public void setNameTest() {
     InodeFolder inode1 = new InodeFolder("test1", 1, 0, System.currentTimeMillis());
     Assert.assertEquals("test1", inode1.getName());
