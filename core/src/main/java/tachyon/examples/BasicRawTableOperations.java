@@ -104,7 +104,7 @@ public class BasicRawTableOperations {
     for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       if (!rawColumn.createPartition(0)) {
-        CommonUtils.runtimeException("Failed to create partition in table " + sTablePath
+        throw new IOException("Failed to create partition in table " + sTablePath
             + " under column " + column);
       }
 

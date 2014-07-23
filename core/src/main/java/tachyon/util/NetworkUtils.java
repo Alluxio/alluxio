@@ -7,6 +7,7 @@ import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
+import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
@@ -25,9 +26,8 @@ public class NetworkUtils {
       return InetAddress.getByName(getLocalIpAddress()).getCanonicalHostName();
     } catch (UnknownHostException e) {
       LOG.error(e);
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
-    return null;
   }
 
   /**
@@ -61,9 +61,8 @@ public class NetworkUtils {
       return address.getHostAddress();
     } catch (IOException e) {
       LOG.error(e);
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
-    return null;
   }
 
   /**
