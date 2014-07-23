@@ -21,9 +21,10 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Throwables;
 import org.apache.curator.test.TestingServer;
 import org.apache.log4j.Logger;
+
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;

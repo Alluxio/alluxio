@@ -20,11 +20,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
+
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.log4j.Logger;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.base.Throwables;
-import org.apache.log4j.Logger;
-import org.apache.hadoop.fs.FSDataOutputStream;
 
 import tachyon.Constants;
 import tachyon.Pair;

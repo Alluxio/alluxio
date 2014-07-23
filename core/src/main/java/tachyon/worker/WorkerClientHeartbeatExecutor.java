@@ -14,13 +14,11 @@
  */
 package tachyon.worker;
 
-import com.google.common.base.Throwables;
-import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import tachyon.Constants;
+import com.google.common.base.Throwables;
+
 import tachyon.HeartbeatExecutor;
-import tachyon.util.CommonUtils;
 
 /**
  * User client sends periodical heartbeats to the worker it is talking to. It is fails to do so,

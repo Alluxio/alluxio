@@ -69,7 +69,8 @@ leverage the Scala shell, as discussed in this
     with the following changes:
     -  Indent **2** spaces per level, not **4**.
     -  Maximum line length of **100** characters.
-    -  Imported packages should be in **alphabetical order**.
+    -  Imported packages should be in [this order](resources/order.importorder), then in
+    **alphabetical order**.
     -  `i ++` instead of `i++`
     -  `i + j` instead of `i+j`
     -  Class and member modifiers, when present, appear in the order recommended by the Java
