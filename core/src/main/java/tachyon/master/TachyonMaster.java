@@ -17,13 +17,14 @@ package tachyon.master;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
@@ -87,7 +88,8 @@ public class TachyonMaster {
     try {
       mMasterAddress = address;
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
-      Preconditions.checkState(isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX), "Tachyon was not formatted!");
+      Preconditions.checkState(isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX),
+          "Tachyon was not formatted!");
       mJournal = new Journal(journalFolder, "image.data", "log.data");
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal);
 

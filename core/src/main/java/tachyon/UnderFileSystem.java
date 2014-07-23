@@ -19,8 +19,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-import tachyon.util.CommonUtils;
-
 /**
  * Tachyon stores data into an under layer file system. Any file system implementing this interface
  * can be a valid under layer file system
