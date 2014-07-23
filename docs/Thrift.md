@@ -76,6 +76,7 @@ not found". Without the -L, you may fail during linking.
 
 The following command install all the required tools and libraries to
 build and install the Apache Thrift compiler on a Debian/Ubuntu Linux
+based system.
 
     sudo apt-get install libboost-dev libboost-test-dev libboost-program-options-dev libevent-dev automake libtool flex bison pkg-config g++ libssl-dev ant python-dev
 
