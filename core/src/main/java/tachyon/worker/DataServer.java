@@ -26,12 +26,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
+
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.Users;
-import tachyon.util.CommonUtils;
 
 /**
  * The Server to serve data file read request from remote machines. The current implementation

@@ -9,11 +9,12 @@ import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
-import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
 
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 
 /**

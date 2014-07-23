@@ -19,13 +19,14 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
+
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.Version;

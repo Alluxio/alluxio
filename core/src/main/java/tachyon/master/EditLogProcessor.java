@@ -2,8 +2,9 @@ package tachyon.master;
 
 import java.io.IOException;
 
-import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
+
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
