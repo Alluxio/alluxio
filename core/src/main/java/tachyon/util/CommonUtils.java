@@ -330,15 +330,6 @@ public final class CommonUtils {
     return String.format("%.2f PB", ret);
   }
 
-  public static void illegalArgumentException(Exception e) {
-    LOG.error(e.getMessage(), e);
-    throw new IllegalArgumentException(e);
-  }
-
-  public static void illegalArgumentException(String msg) {
-    throw new IllegalArgumentException(msg);
-  }
-
   /**
    * Check if the given path is the root.
    * 
@@ -428,8 +419,7 @@ public final class CommonUtils {
       BigDecimal PBDecimal = new BigDecimal(Constants.PB);
       return PBDecimal.multiply(BigDecimal.valueOf(ret)).longValue();
     } else {
-      runtimeException("Fail to parse " + ori + " as memory size");
-      return -1;
+      throw new IllegalArgumentException("Fail to parse " + ori + " as memory size");
     }
   }
 
@@ -461,15 +451,6 @@ public final class CommonUtils {
         scanner.close();
       }
     }).start();
-  }
-
-  public static void runtimeException(Exception e) {
-    LOG.error(e.getMessage(), e);
-    throw new RuntimeException(e);
-  }
-
-  public static void runtimeException(String msg) {
-    throw new RuntimeException(msg);
   }
 
   /**

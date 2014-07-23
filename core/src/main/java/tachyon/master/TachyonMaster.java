@@ -17,6 +17,8 @@ package tachyon.master;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
@@ -85,10 +87,7 @@ public class TachyonMaster {
     try {
       mMasterAddress = address;
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
-      if (!isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX)) {
-        LOG.error("Tachyon was not formatted!");
-        CommonUtils.runtimeException("Tachyon was not formatted!");
-      }
+      Preconditions.checkState(isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX), "Tachyon was not formatted!");
       mJournal = new Journal(journalFolder, "image.data", "log.data");
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal);
 
@@ -103,7 +102,7 @@ public class TachyonMaster {
       }
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 
@@ -181,7 +180,7 @@ public class TachyonMaster {
         mLeaderSelectorClient.start();
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
 
       Thread currentThread = Thread.currentThread();
@@ -195,10 +194,10 @@ public class TachyonMaster {
               setup();
             } catch (IOException e) {
               LOG.error(e.getMessage(), e);
-              CommonUtils.runtimeException(e);
+              throw Throwables.propagate(e);
             } catch (TTransportException e) {
               LOG.error(e.getMessage(), e);
-              CommonUtils.runtimeException(e);
+              throw Throwables.propagate(e);
             }
             mWebServer.startWebServer();
             LOG.info("The master (leader) server started @ " + mMasterAddress);
@@ -220,10 +219,10 @@ public class TachyonMaster {
         setup();
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage(), e);
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
 
       mWebServer.startWebServer();

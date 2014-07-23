@@ -1,7 +1,7 @@
 Tachyon
 =======
 
-The master branch is in version 0.5.1-SNAPSHOT:
+The master branch is in version 0.6.0-SNAPSHOT:
 
 - [Project Homepage](http://www.tachyonproject.org)
 - [Previous Releases](https://github.com/amplab/tachyon/tags)

@@ -14,6 +14,7 @@
  */
 package tachyon;
 
+import com.google.common.base.Preconditions;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
 
@@ -27,9 +28,7 @@ public class UserInfo {
   private long mLastHeartbeatMs;
 
   public UserInfo(long userId) {
-    if (userId <= 0) {
-      CommonUtils.runtimeException("Invalid user id " + userId);
-    }
+    Preconditions.checkArgument(userId > 0, "Invalid user id " + userId);
     USER_ID = userId;
     mOwnBytes = 0;
     mLastHeartbeatMs = System.currentTimeMillis();
