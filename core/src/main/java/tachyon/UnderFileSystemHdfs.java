@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.google.common.base.Throwables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -32,9 +31,10 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Throwables;
+
 import tachyon.conf.CommonConf;
 import tachyon.hadoop.Utils;
-import tachyon.util.CommonUtils;
 
 /**
  * HDFS UnderFilesystem implementation.

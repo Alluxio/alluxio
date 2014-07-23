@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import com.google.common.base.Preconditions;
+
 import tachyon.client.TachyonFS;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.util.CommonUtils;
@@ -82,7 +83,8 @@ public class RawTable {
    * @return the RawColumn
    */
   public RawColumn getRawColumn(int columnIndex) {
-    Preconditions.checkArgument(columnIndex >= 0 && columnIndex < CLIENT_RAW_TABLE_INFO.getColumns(),
+    Preconditions.checkArgument(
+        columnIndex >= 0 && columnIndex < CLIENT_RAW_TABLE_INFO.getColumns(),
         CLIENT_RAW_TABLE_INFO.getPath() + " does not have column " + columnIndex + ". It has "
             + CLIENT_RAW_TABLE_INFO.getColumns() + " columns.");
 

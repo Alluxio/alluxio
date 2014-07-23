@@ -22,9 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.google.common.base.Throwables;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+
+import com.google.common.base.Throwables;
 
 import tachyon.conf.CommonConf;
 import tachyon.util.CommonUtils;

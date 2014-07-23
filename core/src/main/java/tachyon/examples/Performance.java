@@ -23,11 +23,13 @@ import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.channels.FileChannel.MapMode;
 
-import com.google.common.base.Throwables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.Version;
@@ -59,7 +61,7 @@ public class Performance {
   private static String RESULT_PREFIX = null;
   private static long[] Results = new long[RESULT_ARRAY_SIZE];
   private static int BASE_FILE_NUMBER = 0;
-
+ 
   private static boolean TACHYON_STREAMING_READ = false;
 
   public static void createFiles() throws IOException {
@@ -257,9 +259,7 @@ public class Performance {
           while (len > 0) {
             int r = is.read(mBuf.array());
             len -= r;
-            if (r == -1) {
-              throw new RuntimeException("R == -1");
-            }
+            Preconditions.checkState(r != -1, "R == -1");
           }
           is.close();
           logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
@@ -356,9 +356,7 @@ public class Performance {
           while (len > 0) {
             int r = is.read(mBuf.array());
             len -= r;
-            if (r == -1) {
-              throw new RuntimeException("R == -1");
-            }
+            Preconditions.checkState(r != -1, "R == -1");
           }
           is.close();
           logPerIteration(startTimeMs, times, str, mWorkerId);
