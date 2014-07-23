@@ -14,6 +14,7 @@ Launch Xcode, open the Preferences, select Downloads, and install
     the “Command Line Tools for Xcode” component.
     
 ## Homebrew
+
 This section explains install Apache Thrift via [Homebrew](http://brew.sh/).
 
 First, install [Homebrew](http://brew.sh/)
@@ -36,6 +37,7 @@ Install Thrift
     brew install thrift
 
 ## MacPorts
+
 This section explains install Apache Thrift via [MacPorts](http://macports.org).
 
 If you use [MacPorts](http://macports.org), the following instruction may help
@@ -99,7 +101,8 @@ Debian Lenny Users need some packages from backports
     make
     make install
 
-## CentOS 
+## CentOS
+ 
 The following steps can be used to setup a CentOS 6.4 system.
 
 Install basic utils
