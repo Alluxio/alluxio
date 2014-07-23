@@ -134,10 +134,23 @@ public final class NetworkUtils {
     return InetAddress.getByName(hostname).getCanonicalHostName();
   }
 
-  public static int getPort(TNonblockingServerSocket thriftSocket) throws TTransportException {
+  /**
+   * Gets the port for the underline socket.  This function calls
+   * {@link #getSocket(org.apache.thrift.transport.TNonblockingServerSocket)}, so reflection
+   * will be used to get the port.
+   *
+   * @see #getSocket(org.apache.thrift.transport.TNonblockingServerSocket)
+   */
+  public static int getPort(TNonblockingServerSocket thriftSocket) {
     return getSocket(thriftSocket).getLocalPort();
   }
 
+  /**
+   * Extracts the port from the thrift socket.  As of thrift 0.9, the internal socket used
+   * is not exposed in the API, so this function will use reflection to get access to it.
+   *
+   * @throws java.lang.RuntimeException if reflection calls fail
+   */
   public static ServerSocket getSocket(final TNonblockingServerSocket thriftSocket) {
     try {
       Field field = TNonblockingServerSocket.class.getDeclaredField("serverSocket_");

@@ -80,6 +80,9 @@ public class DataServer implements Runnable {
     }
   }
 
+  /**
+   * Gets the port listening on.
+   */
   public int getLocalPort() {
     return mServerChannel.socket().getLocalPort();
   }
