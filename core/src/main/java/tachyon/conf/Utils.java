@@ -14,10 +14,9 @@
  */
 package tachyon.conf;
 
-import com.google.common.base.Preconditions;
 import org.apache.log4j.Logger;
 
-import tachyon.util.CommonUtils;
+import com.google.common.base.Preconditions;
 
 /**
  * Utils for tachyon.conf package.
