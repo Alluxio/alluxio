@@ -17,6 +17,7 @@ package tachyon.web;
 import java.io.File;
 import java.net.InetSocketAddress;
 
+import com.google.common.base.Throwables;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -91,7 +92,7 @@ public class UIWebServer {
       mServer.start();
       LOG.info(mServerName + " started @ " + mAddress);
     } catch (Exception e) {
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 }

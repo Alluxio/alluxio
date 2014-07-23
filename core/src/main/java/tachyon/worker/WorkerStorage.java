@@ -33,6 +33,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+import com.google.common.base.Throwables;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
@@ -342,15 +343,15 @@ public class WorkerStorage {
     try {
       initializeWorkerStorage();
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     } catch (FileDoesNotExistException e) {
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     } catch (SuspectedFileSizeException e) {
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     } catch (BlockInfoException e) {
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     } catch (TException e) {
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
 
     LOG.info("Current Worker Info: ID " + mWorkerId + ", ADDRESS: " + mWorkerAddress
@@ -493,7 +494,7 @@ public class WorkerStorage {
             try {
               unlockBlock(blockId, userId);
             } catch (TException e) {
-              CommonUtils.runtimeException(e);
+              throw Throwables.propagate(e);
             }
           }
         }
@@ -653,7 +654,7 @@ public class WorkerStorage {
         }
         mAddedBlockList.add(blockId);
         if (!success) {
-          CommonUtils.runtimeException("Pre-existing files exceed the local memory capacity.");
+          throw new RuntimeException("Pre-existing files exceed the local memory capacity.");
         }
       }
     }

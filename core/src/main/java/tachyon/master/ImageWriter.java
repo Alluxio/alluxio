@@ -3,6 +3,7 @@ package tachyon.master;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import com.google.common.base.Throwables;
 import tachyon.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -18,7 +19,7 @@ public abstract class ImageWriter {
       objWriter.writeValue(dos, ele);
       dos.writeByte('\n');
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 }
