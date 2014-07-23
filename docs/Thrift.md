@@ -74,6 +74,8 @@ not found". Without the -L, you may fail during linking.
 
 [Reference](http://thrift.apache.org/docs/install/)
 
+## Debian/Ubuntu
+
 The following command install all the required tools and libraries to
 build and install the Apache Thrift compiler on a Debian/Ubuntu Linux
 based system.
@@ -111,8 +113,23 @@ To generate the java files on your own, type:
 
     ./bin/tachyon thriftGen
     
-    
-## References
+## CentOS 
+The following steps can be used to setup a CentOS 6.4 system.
 
-  * [Thrift Install Page](http://thrift.apache.org/docs/install/)
+Install basic utils
 
+    sudo yum install automake libtool flex bison pkgconfig gcc-c++ make
+
+Upgraded autoconf to 2.69 (yum will most likely pull 2.63 which won't work with Apache Thrift)
+
+    sudo yum install 'ftp://ftp.pbone.net/mirror/ftp5.gwdg.de/pub/opensuse/repositories/home:/monkeyiq:/centos6updates/CentOS_CentOS-6/noarch/autoconf-2.69-12.2.noarch.rpm' 
+
+Download and install Apache Thrift source
+
+    wget 'https://github.com/apache/thrift/archive/0.9.1.tar.gz'
+    tar zxvf 0.9.1
+    cd thrift-0.9.1/
+    ./bootstrap.sh
+    ./configure --enable-libs=no
+    make
+    sudo make install
