@@ -53,7 +53,7 @@ class Utils {
     return Long.valueOf(getProperty(property, defaultValue + ""));
   }
 
-  public static List<String> getListProperty(String property, List<String> defaultValue) {
+  public static ImmutableList<String> getListProperty(String property, ImmutableList<String> defaultValue) {
     final String strList = getProperty(property, null);
     if(strList == null) {
       return defaultValue;
