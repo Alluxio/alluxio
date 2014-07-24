@@ -34,6 +34,7 @@
             <th>Block Size</th>
             <th>Pin</th>
             <th>Creation Time</th>
+            <th>Modification Time</th>
           </thead>
           <tbody>
             <% if (request.getAttribute("fileInfos") != null) { %>
@@ -44,6 +45,7 @@
                   <th><%= fileInfo.getBlockSizeBytes() %></th>
                   <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
+                  <th><%= fileInfo.getModificationTime() %></th>
                 </tr>
               <% } %>
             <% } %>

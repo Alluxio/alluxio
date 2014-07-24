@@ -41,6 +41,7 @@ struct ClientFileInfo {
   12: list<i64> blockIds
   13: i32 dependencyId
   14: i32 inMemoryPercentage
+  15: i64 lastModificationTimeMs
 }
 
 struct ClientDependencyInfo {
