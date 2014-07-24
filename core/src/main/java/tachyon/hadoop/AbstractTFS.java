@@ -21,12 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
 import org.apache.log4j.Logger;
@@ -45,9 +45,9 @@ import tachyon.util.CommonUtils;
 import tachyon.util.UnderfsUtils;
 
 /**
- * Base class for Apache Hadoop based Tachyon {@link FileSystem}.  This class really just delegates
+ * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
  * to {@link tachyon.client.TachyonFS} for most operations.
- *
+ * 
  * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant
  * is used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
@@ -353,18 +353,22 @@ public abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Get the URI schema that maps to the FileSystem.  This was introduced in Hadoop 2.x as a means to make
-   * loading new FileSystems simpler.  This doesn't exist in Hadoop 1.x, so can not put @Override on
-   * this method.
-   *
+   * Get the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means
+   * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so can not put
+   * 
+   * @Override on this method.
+   * 
    * @return schema hadoop should map to.
-   *
-   * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI, org.apache.hadoop.conf.Configuration)
+   * 
+   * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
+   *      org.apache.hadoop.conf.Configuration)
    */
   public abstract String getScheme();
 
   /**
-   * Determines if zookeeper should be used for the FileSystem.  This method should only be used for {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
+   * Determines if zookeeper should be used for the FileSystem. This method should only be used for
+   * {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
+   * 
    * @return true if zookeeper should be used
    */
   protected abstract boolean isZookeeperMode();

@@ -20,7 +20,6 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +28,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import junit.framework.Assert;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -48,7 +48,7 @@ import tachyon.client.TachyonFS;
  * Unit tests for TFS
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TachyonFS.class, UserGroupInformation.class})
+@PrepareForTest({ TachyonFS.class, UserGroupInformation.class })
 public class TFSTest {
 
   private final Logger LOG = Logger.getLogger(TFSTest.class.getName());
@@ -58,9 +58,9 @@ public class TFSTest {
     mockUserGroupInformation();
     mockTachyonFSGet();
 
-    if(isHadoop1x()) {
+    if (isHadoop1x()) {
       LOG.debug("Running TFS tests against hadoop 1x");
-    } else if(isHadoop2x()) {
+    } else if (isHadoop2x()) {
       LOG.debug("Running TFS tests against hadoop 2x");
     } else {
       LOG.warn("Running TFS tests against untargeted Hadoop version: " + getHadoopVersion());
@@ -70,35 +70,35 @@ public class TFSTest {
   @Test
   public void hadoopShouldLoadTfsWhenConfigured() throws IOException {
     final Configuration conf = new Configuration();
-    if(isHadoop1x()) {
-      conf.set("fs."+Constants.SCHEME+".impl", TFS.class.getName());
+    if (isHadoop1x()) {
+      conf.set("fs." + Constants.SCHEME + ".impl", TFS.class.getName());
     }
 
     // when
-    final URI uri = URI.create(Constants.HEADER + "stanley:19998/tmp/path.txt");
+    final URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
     final FileSystem fs = FileSystem.get(uri, conf);
 
     Assert.assertTrue(fs instanceof TFS);
 
     PowerMockito.verifyStatic();
-    TachyonFS.get("stanley", 19998, false);
+    TachyonFS.get("localhost", 19998, false);
   }
 
   @Test
   public void hadoopShouldLoadTfsFtWhenConfigured() throws IOException {
     final Configuration conf = new Configuration();
-    if(isHadoop1x()) {
-      conf.set("fs."+Constants.SCHEME_FT+".impl", TFSFT.class.getName());
+    if (isHadoop1x()) {
+      conf.set("fs." + Constants.SCHEME_FT + ".impl", TFSFT.class.getName());
     }
 
     // when
-    final URI uri = URI.create(Constants.HEADER_FT + "stanley:19998/tmp/path.txt");
+    final URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
     final FileSystem fs = FileSystem.get(uri, conf);
 
     Assert.assertTrue(fs instanceof TFSFT);
 
     PowerMockito.verifyStatic();
-    TachyonFS.get("stanley", 19998, true);
+    TachyonFS.get("localhost", 19998, true);
   }
 
   private void mockTachyonFSGet() throws IOException {
@@ -146,7 +146,7 @@ public class TFSTest {
   private ClassLoader getClassLoader(Class<?> clazz) {
     // Power Mock makes this hard, so try to hack it
     ClassLoader cl = clazz.getClassLoader();
-    if(cl instanceof MockClassLoader) {
+    if (cl instanceof MockClassLoader) {
       cl = cl.getParent();
     }
     return cl;
