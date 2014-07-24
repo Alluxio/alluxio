@@ -75,13 +75,13 @@ public class TFSTest {
     }
 
     // when
-    final URI uri = URI.create(Constants.HEADER + "stanley:19998/tmp/path.txt");
+    final URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
     final FileSystem fs = FileSystem.get(uri, conf);
 
     Assert.assertTrue(fs instanceof TFS);
 
     PowerMockito.verifyStatic();
-    TachyonFS.get("stanley", 19998, false);
+    TachyonFS.get("localhost", 19998, false);
   }
 
   @Test
@@ -92,13 +92,13 @@ public class TFSTest {
     }
 
     // when
-    final URI uri = URI.create(Constants.HEADER_FT + "stanley:19998/tmp/path.txt");
+    final URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
     final FileSystem fs = FileSystem.get(uri, conf);
 
     Assert.assertTrue(fs instanceof TFSFT);
 
     PowerMockito.verifyStatic();
-    TachyonFS.get("stanley", 19998, true);
+    TachyonFS.get("localhost", 19998, true);
   }
 
   private void mockTachyonFSGet() throws IOException {
