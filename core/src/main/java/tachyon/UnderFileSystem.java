@@ -14,6 +14,8 @@
  */
 package tachyon;
 
+import tachyon.conf.CommonConf;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -54,7 +56,7 @@ public abstract class UnderFileSystem {
 
   /**
    * Get the UnderFileSystem instance according to its scheme and configuration.
-   * 
+   *
    * @param path
    *          file path storing over the ufs
    * @param conf
@@ -62,8 +64,7 @@ public abstract class UnderFileSystem {
    * @return null for any unknown scheme.
    */
   public static UnderFileSystem get(String path, Object conf) {
-    if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")
-        || path.startsWith("glusterfs:///")) {
+    if (isHadoopUnderFS(path)) {
       return UnderFileSystemHdfs.getClient(path, conf);
     } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return UnderFileSystemSingleLocal.getClient();
@@ -71,11 +72,20 @@ public abstract class UnderFileSystem {
     throw new IllegalArgumentException("Unknown under file system scheme " + path);
   }
 
+  private static boolean isHadoopUnderFS(final String path) {
+    for(final String prefix : CommonConf.get().HADOOP_UFS_PREFIXES) {
+      if (path.startsWith(prefix)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir
    * into a pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
    * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
-   * 
+   *
    * @param path
    *          the input path string
    * @return null if path does not start with tachyon://, tachyon-ft://, hdfs://, s3://, s3n://,
