@@ -14,15 +14,20 @@
  */
 package tachyon.conf;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import org.apache.log4j.Logger;
 
 import com.google.common.base.Preconditions;
+
+import java.util.List;
 
 /**
  * Utils for tachyon.conf package.
  */
 class Utils {
   private static final Logger LOG = Logger.getLogger("");
+  private static final Splitter LIST_SPLITTER = Splitter.on(",").omitEmptyStrings().trimResults();
 
   public static boolean getBooleanProperty(String property) {
     return Boolean.valueOf(getProperty(property));
@@ -46,6 +51,15 @@ class Utils {
 
   public static long getLongProperty(String property, int defaultValue) {
     return Long.valueOf(getProperty(property, defaultValue + ""));
+  }
+
+  public static List<String> getListProperty(String property, List<String> defaultValue) {
+    final String strList = getProperty(property, null);
+    if(strList == null) {
+      return defaultValue;
+    } else {
+      return ImmutableList.copyOf(LIST_SPLITTER.split(strList));
+    }
   }
 
   public static String getProperty(String property) {
