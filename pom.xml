@@ -69,6 +69,29 @@
         <enabled>false</enabled>
       </snapshots>
     </repository>
+    <repository>
+      <id>mapr-repo</id>
+      <name>MapR Repository</name>
+      <url>http://repository.mapr.com/maven</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <!-- for Pivotal's distribution -->
+      <id>spring-releases</id>
+      <name>Spring Release Repository</name>
+      <url>http://repo.spring.io/libs-release</url> 
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository> 
   </repositories>
 
   <pluginRepositories>
