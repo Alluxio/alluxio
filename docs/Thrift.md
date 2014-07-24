@@ -12,7 +12,7 @@ Install Xcode from the Mac App Store
 
 Launch Xcode, open the Preferences, select Downloads, and install
     the “Command Line Tools for Xcode” component.
-    
+
 ## Homebrew
 
 This section explains install Apache Thrift via [Homebrew](http://brew.sh/).
@@ -31,9 +31,9 @@ Use Homebrew to install autoconf, automake, libtool and pkg-config:
 Use Homebrew to install [Boost](http://www.boost.org/)
 
     brew install boost
-    
+
 Install Thrift
-    
+
     brew install thrift
 
 ## MacPorts
@@ -61,7 +61,7 @@ Try to use Port to install Thrift:
     sudo port install thrift
 
 The last command MAY fail, according to this [issue](https://trac.macports.org/ticket/41172). In
-this case, we recommend building Thrift 0.9.0 from source (Assuming you use MacPort's default
+this case, we recommend building Thrift 0.9.1 from source (Assuming you use MacPort's default
 directory /opt/local):
 
     ./configure --prefix=/opt/local/ --with-boost=/opt/local/lib --with-libevent=/opt/local/lib CXXFLAGS="-I/usr/include/4.2.1 -L/opt/local/lib"
@@ -102,7 +102,7 @@ Debian Lenny Users need some packages from backports
     make install
 
 ## CentOS
- 
+
 The following steps can be used to setup a CentOS 6.4 system.
 
 Install basic utils
@@ -111,7 +111,7 @@ Install basic utils
 
 Upgraded autoconf to 2.69 (yum will most likely pull 2.63 which won't work with Apache Thrift)
 
-    sudo yum install 'ftp://ftp.pbone.net/mirror/ftp5.gwdg.de/pub/opensuse/repositories/home:/monkeyiq:/centos6updates/CentOS_CentOS-6/noarch/autoconf-2.69-12.2.noarch.rpm' 
+    sudo yum install 'ftp://ftp.pbone.net/mirror/ftp5.gwdg.de/pub/opensuse/repositories/home:/monkeyiq:/centos6updates/CentOS_CentOS-6/noarch/autoconf-2.69-12.2.noarch.rpm'
 
 Download and install Apache Thrift source
 
@@ -136,4 +136,4 @@ And generates java files from it in:
 To generate the java files on your own, type:
 
     ./bin/tachyon thriftGen
-    
+
