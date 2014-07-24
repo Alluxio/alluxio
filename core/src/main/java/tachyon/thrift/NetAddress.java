@@ -37,7 +37,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
 
   private static final org.apache.thrift.protocol.TField M_HOST_FIELD_DESC = new org.apache.thrift.protocol.TField("mHost", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField M_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("mPort", org.apache.thrift.protocol.TType.I32, (short)2);
-  private static final org.apache.thrift.protocol.TField M_SECONDARY_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("mSecondaryPort", org.apache.thrift.protocol.TType.I32, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -47,13 +46,11 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
 
   public String mHost; // required
   public int mPort; // required
-  public int mSecondaryPort; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     M_HOST((short)1, "mHost"),
-    M_PORT((short)2, "mPort"),
-    M_SECONDARY_PORT((short)3, "mSecondaryPort");
+    M_PORT((short)2, "mPort");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -72,8 +69,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
           return M_HOST;
         case 2: // M_PORT
           return M_PORT;
-        case 3: // M_SECONDARY_PORT
-          return M_SECONDARY_PORT;
         default:
           return null;
       }
@@ -115,7 +110,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
 
   // isset id assignments
   private static final int __MPORT_ISSET_ID = 0;
-  private static final int __MSECONDARYPORT_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -123,8 +117,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
     tmpMap.put(_Fields.M_HOST, new org.apache.thrift.meta_data.FieldMetaData("mHost", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.M_PORT, new org.apache.thrift.meta_data.FieldMetaData("mPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.M_SECONDARY_PORT, new org.apache.thrift.meta_data.FieldMetaData("mSecondaryPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(NetAddress.class, metaDataMap);
@@ -135,15 +127,12 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
 
   public NetAddress(
     String mHost,
-    int mPort,
-    int mSecondaryPort)
+    int mPort)
   {
     this();
     this.mHost = mHost;
     this.mPort = mPort;
     setMPortIsSet(true);
-    this.mSecondaryPort = mSecondaryPort;
-    setMSecondaryPortIsSet(true);
   }
 
   /**
@@ -155,7 +144,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
       this.mHost = other.mHost;
     }
     this.mPort = other.mPort;
-    this.mSecondaryPort = other.mSecondaryPort;
   }
 
   public NetAddress deepCopy() {
@@ -167,8 +155,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
     this.mHost = null;
     setMPortIsSet(false);
     this.mPort = 0;
-    setMSecondaryPortIsSet(false);
-    this.mSecondaryPort = 0;
   }
 
   public String getMHost() {
@@ -218,29 +204,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MPORT_ISSET_ID, value);
   }
 
-  public int getMSecondaryPort() {
-    return this.mSecondaryPort;
-  }
-
-  public NetAddress setMSecondaryPort(int mSecondaryPort) {
-    this.mSecondaryPort = mSecondaryPort;
-    setMSecondaryPortIsSet(true);
-    return this;
-  }
-
-  public void unsetMSecondaryPort() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MSECONDARYPORT_ISSET_ID);
-  }
-
-  /** Returns true if field mSecondaryPort is set (has been assigned a value) and false otherwise */
-  public boolean isSetMSecondaryPort() {
-    return EncodingUtils.testBit(__isset_bitfield, __MSECONDARYPORT_ISSET_ID);
-  }
-
-  public void setMSecondaryPortIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MSECONDARYPORT_ISSET_ID, value);
-  }
-
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case M_HOST:
@@ -259,14 +222,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
       }
       break;
 
-    case M_SECONDARY_PORT:
-      if (value == null) {
-        unsetMSecondaryPort();
-      } else {
-        setMSecondaryPort((Integer)value);
-      }
-      break;
-
     }
   }
 
@@ -277,9 +232,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
 
     case M_PORT:
       return Integer.valueOf(getMPort());
-
-    case M_SECONDARY_PORT:
-      return Integer.valueOf(getMSecondaryPort());
 
     }
     throw new IllegalStateException();
@@ -296,8 +248,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
       return isSetMHost();
     case M_PORT:
       return isSetMPort();
-    case M_SECONDARY_PORT:
-      return isSetMSecondaryPort();
     }
     throw new IllegalStateException();
   }
@@ -330,15 +280,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
       if (!(this_present_mPort && that_present_mPort))
         return false;
       if (this.mPort != that.mPort)
-        return false;
-    }
-
-    boolean this_present_mSecondaryPort = true;
-    boolean that_present_mSecondaryPort = true;
-    if (this_present_mSecondaryPort || that_present_mSecondaryPort) {
-      if (!(this_present_mSecondaryPort && that_present_mSecondaryPort))
-        return false;
-      if (this.mSecondaryPort != that.mSecondaryPort)
         return false;
     }
 
@@ -378,16 +319,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetMSecondaryPort()).compareTo(other.isSetMSecondaryPort());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetMSecondaryPort()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mSecondaryPort, other.mSecondaryPort);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     return 0;
   }
 
@@ -418,10 +349,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
     if (!first) sb.append(", ");
     sb.append("mPort:");
     sb.append(this.mPort);
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("mSecondaryPort:");
-    sb.append(this.mSecondaryPort);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -484,14 +411,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // M_SECONDARY_PORT
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.mSecondaryPort = iprot.readI32();
-              struct.setMSecondaryPortIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -514,9 +433,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
       }
       oprot.writeFieldBegin(M_PORT_FIELD_DESC);
       oprot.writeI32(struct.mPort);
-      oprot.writeFieldEnd();
-      oprot.writeFieldBegin(M_SECONDARY_PORT_FIELD_DESC);
-      oprot.writeI32(struct.mSecondaryPort);
       oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -542,25 +458,19 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
       if (struct.isSetMPort()) {
         optionals.set(1);
       }
-      if (struct.isSetMSecondaryPort()) {
-        optionals.set(2);
-      }
-      oprot.writeBitSet(optionals, 3);
+      oprot.writeBitSet(optionals, 2);
       if (struct.isSetMHost()) {
         oprot.writeString(struct.mHost);
       }
       if (struct.isSetMPort()) {
         oprot.writeI32(struct.mPort);
       }
-      if (struct.isSetMSecondaryPort()) {
-        oprot.writeI32(struct.mSecondaryPort);
-      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, NetAddress struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
         struct.mHost = iprot.readString();
         struct.setMHostIsSet(true);
@@ -568,10 +478,6 @@ public class NetAddress implements org.apache.thrift.TBase<NetAddress, NetAddres
       if (incoming.get(1)) {
         struct.mPort = iprot.readI32();
         struct.setMPortIsSet(true);
-      }
-      if (incoming.get(2)) {
-        struct.mSecondaryPort = iprot.readI32();
-        struct.setMSecondaryPortIsSet(true);
       }
     }
   }

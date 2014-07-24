@@ -49,6 +49,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   private static final org.apache.thrift.protocol.TField BLOCK_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("blockIds", org.apache.thrift.protocol.TType.LIST, (short)12);
   private static final org.apache.thrift.protocol.TField DEPENDENCY_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("dependencyId", org.apache.thrift.protocol.TType.I32, (short)13);
   private static final org.apache.thrift.protocol.TField IN_MEMORY_PERCENTAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("inMemoryPercentage", org.apache.thrift.protocol.TType.I32, (short)14);
+  private static final org.apache.thrift.protocol.TField LAST_MODIFICATION_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("lastModificationTimeMs", org.apache.thrift.protocol.TType.I64, (short)15);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -70,6 +71,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   public List<Long> blockIds; // required
   public int dependencyId; // required
   public int inMemoryPercentage; // required
+  public long lastModificationTimeMs; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -86,7 +88,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     IS_CACHE((short)11, "isCache"),
     BLOCK_IDS((short)12, "blockIds"),
     DEPENDENCY_ID((short)13, "dependencyId"),
-    IN_MEMORY_PERCENTAGE((short)14, "inMemoryPercentage");
+    IN_MEMORY_PERCENTAGE((short)14, "inMemoryPercentage"),
+    LAST_MODIFICATION_TIME_MS((short)15, "lastModificationTimeMs");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -129,6 +132,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
           return DEPENDENCY_ID;
         case 14: // IN_MEMORY_PERCENTAGE
           return IN_MEMORY_PERCENTAGE;
+        case 15: // LAST_MODIFICATION_TIME_MS
+          return LAST_MODIFICATION_TIME_MS;
         default:
           return null;
       }
@@ -179,6 +184,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
   private static final int __ISCACHE_ISSET_ID = 7;
   private static final int __DEPENDENCYID_ISSET_ID = 8;
   private static final int __INMEMORYPERCENTAGE_ISSET_ID = 9;
+  private static final int __LASTMODIFICATIONTIMEMS_ISSET_ID = 10;
   private short __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -212,6 +218,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.IN_MEMORY_PERCENTAGE, new org.apache.thrift.meta_data.FieldMetaData("inMemoryPercentage", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.LAST_MODIFICATION_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("lastModificationTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ClientFileInfo.class, metaDataMap);
   }
@@ -233,7 +241,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     boolean isCache,
     List<Long> blockIds,
     int dependencyId,
-    int inMemoryPercentage)
+    int inMemoryPercentage,
+    long lastModificationTimeMs)
   {
     this();
     this.id = id;
@@ -260,6 +269,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     setDependencyIdIsSet(true);
     this.inMemoryPercentage = inMemoryPercentage;
     setInMemoryPercentageIsSet(true);
+    this.lastModificationTimeMs = lastModificationTimeMs;
+    setLastModificationTimeMsIsSet(true);
   }
 
   /**
@@ -290,6 +301,7 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     }
     this.dependencyId = other.dependencyId;
     this.inMemoryPercentage = other.inMemoryPercentage;
+    this.lastModificationTimeMs = other.lastModificationTimeMs;
   }
 
   public ClientFileInfo deepCopy() {
@@ -322,6 +334,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     this.dependencyId = 0;
     setInMemoryPercentageIsSet(false);
     this.inMemoryPercentage = 0;
+    setLastModificationTimeMsIsSet(false);
+    this.lastModificationTimeMs = 0;
   }
 
   public int getId() {
@@ -665,6 +679,29 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __INMEMORYPERCENTAGE_ISSET_ID, value);
   }
 
+  public long getLastModificationTimeMs() {
+    return this.lastModificationTimeMs;
+  }
+
+  public ClientFileInfo setLastModificationTimeMs(long lastModificationTimeMs) {
+    this.lastModificationTimeMs = lastModificationTimeMs;
+    setLastModificationTimeMsIsSet(true);
+    return this;
+  }
+
+  public void unsetLastModificationTimeMs() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __LASTMODIFICATIONTIMEMS_ISSET_ID);
+  }
+
+  /** Returns true if field lastModificationTimeMs is set (has been assigned a value) and false otherwise */
+  public boolean isSetLastModificationTimeMs() {
+    return EncodingUtils.testBit(__isset_bitfield, __LASTMODIFICATIONTIMEMS_ISSET_ID);
+  }
+
+  public void setLastModificationTimeMsIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __LASTMODIFICATIONTIMEMS_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case ID:
@@ -779,6 +816,14 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       }
       break;
 
+    case LAST_MODIFICATION_TIME_MS:
+      if (value == null) {
+        unsetLastModificationTimeMs();
+      } else {
+        setLastModificationTimeMs((Long)value);
+      }
+      break;
+
     }
   }
 
@@ -826,6 +871,9 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     case IN_MEMORY_PERCENTAGE:
       return Integer.valueOf(getInMemoryPercentage());
 
+    case LAST_MODIFICATION_TIME_MS:
+      return Long.valueOf(getLastModificationTimeMs());
+
     }
     throw new IllegalStateException();
   }
@@ -865,6 +913,8 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       return isSetDependencyId();
     case IN_MEMORY_PERCENTAGE:
       return isSetInMemoryPercentage();
+    case LAST_MODIFICATION_TIME_MS:
+      return isSetLastModificationTimeMs();
     }
     throw new IllegalStateException();
   }
@@ -1005,6 +1055,15 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (!(this_present_inMemoryPercentage && that_present_inMemoryPercentage))
         return false;
       if (this.inMemoryPercentage != that.inMemoryPercentage)
+        return false;
+    }
+
+    boolean this_present_lastModificationTimeMs = true;
+    boolean that_present_lastModificationTimeMs = true;
+    if (this_present_lastModificationTimeMs || that_present_lastModificationTimeMs) {
+      if (!(this_present_lastModificationTimeMs && that_present_lastModificationTimeMs))
+        return false;
+      if (this.lastModificationTimeMs != that.lastModificationTimeMs)
         return false;
     }
 
@@ -1164,6 +1223,16 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetLastModificationTimeMs()).compareTo(other.isSetLastModificationTimeMs());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetLastModificationTimeMs()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.lastModificationTimeMs, other.lastModificationTimeMs);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -1254,6 +1323,10 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
     if (!first) sb.append(", ");
     sb.append("inMemoryPercentage:");
     sb.append(this.inMemoryPercentage);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("lastModificationTimeMs:");
+    sb.append(this.lastModificationTimeMs);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -1422,6 +1495,14 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 15: // LAST_MODIFICATION_TIME_MS
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.lastModificationTimeMs = iprot.readI64();
+              struct.setLastModificationTimeMsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -1494,6 +1575,9 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       oprot.writeFieldBegin(IN_MEMORY_PERCENTAGE_FIELD_DESC);
       oprot.writeI32(struct.inMemoryPercentage);
       oprot.writeFieldEnd();
+      oprot.writeFieldBegin(LAST_MODIFICATION_TIME_MS_FIELD_DESC);
+      oprot.writeI64(struct.lastModificationTimeMs);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -1554,7 +1638,10 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (struct.isSetInMemoryPercentage()) {
         optionals.set(13);
       }
-      oprot.writeBitSet(optionals, 14);
+      if (struct.isSetLastModificationTimeMs()) {
+        optionals.set(14);
+      }
+      oprot.writeBitSet(optionals, 15);
       if (struct.isSetId()) {
         oprot.writeI32(struct.id);
       }
@@ -1603,12 +1690,15 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (struct.isSetInMemoryPercentage()) {
         oprot.writeI32(struct.inMemoryPercentage);
       }
+      if (struct.isSetLastModificationTimeMs()) {
+        oprot.writeI64(struct.lastModificationTimeMs);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ClientFileInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(14);
+      BitSet incoming = iprot.readBitSet(15);
       if (incoming.get(0)) {
         struct.id = iprot.readI32();
         struct.setIdIsSet(true);
@@ -1673,6 +1763,10 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
       if (incoming.get(13)) {
         struct.inMemoryPercentage = iprot.readI32();
         struct.setInMemoryPercentageIsSet(true);
+      }
+      if (incoming.get(14)) {
+        struct.lastModificationTimeMs = iprot.readI64();
+        struct.setLastModificationTimeMsIsSet(true);
       }
     }
   }

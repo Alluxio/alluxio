@@ -5,12 +5,19 @@ title: Thrift
 
 # Mac OSX
 
-1.  Grab the Thrift 0.9.0 distribution from
-    [http://archive.apache.org/dist/thrift/0.9.0/](http://archive.apache.org/dist/thrift/0.9.0/)
-2.  Install Xcode from the Mac App Store
-3.  Launch Xcode, open the Preferences, select Downloads, and install
+Before you can get [Apache Thift](http://thrift.apache.org) installed, you will first need to setup
+command-line support.  To do this, you will need to:
+
+Install Xcode from the Mac App Store
+
+Launch Xcode, open the Preferences, select Downloads, and install
     the “Command Line Tools for Xcode” component.
-4.  Install [Homebrew](http://brew.sh/), if you use MacPorts, skip to the corresponding instructions.
+
+## Homebrew
+
+This section explains install Apache Thrift via [Homebrew](http://brew.sh/).
+
+First, install [Homebrew](http://brew.sh/)
 
 Here are the commands for Homebrew installation:
 
@@ -25,11 +32,13 @@ Use Homebrew to install [Boost](http://www.boost.org/)
 
     brew install boost
 
-Now build Thrift 0.9.0:
+Install Thrift
 
-    ./configure --prefix=/usr/local/ --with-boost=/usr/local --with-libevent=/usr/local
-    make
-    make install
+    brew install thrift
+
+## MacPorts
+
+This section explains install Apache Thrift via [MacPorts](http://macports.org).
 
 If you use [MacPorts](http://macports.org), the following instruction may help
 
@@ -52,7 +61,7 @@ Try to use Port to install Thrift:
     sudo port install thrift
 
 The last command MAY fail, according to this [issue](https://trac.macports.org/ticket/41172). In
-this case, we recommend building Thrift 0.9.0 from source (Assuming you use MacPort's default
+this case, we recommend building Thrift 0.9.1 from source (Assuming you use MacPort's default
 directory /opt/local):
 
     ./configure --prefix=/opt/local/ --with-boost=/opt/local/lib --with-libevent=/opt/local/lib CXXFLAGS="-I/usr/include/4.2.1 -L/opt/local/lib"
@@ -66,6 +75,8 @@ not found". Without the -L, you may fail during linking.
 # Linux
 
 [Reference](http://thrift.apache.org/docs/install/)
+
+## Debian/Ubuntu
 
 The following command install all the required tools and libraries to
 build and install the Apache Thrift compiler on a Debian/Ubuntu Linux
@@ -89,6 +100,28 @@ Debian Lenny Users need some packages from backports
     ./configure --with-boost=/usr/local
     make
     make install
+
+## CentOS
+
+The following steps can be used to setup a CentOS 6.4 system.
+
+Install basic utils
+
+    sudo yum install automake libtool flex bison pkgconfig gcc-c++ make
+
+Upgraded autoconf to 2.69 (yum will most likely pull 2.63 which won't work with Apache Thrift)
+
+    sudo yum install 'ftp://ftp.pbone.net/mirror/ftp5.gwdg.de/pub/opensuse/repositories/home:/monkeyiq:/centos6updates/CentOS_CentOS-6/noarch/autoconf-2.69-12.2.noarch.rpm'
+
+Download and install Apache Thrift source
+
+    wget 'https://github.com/apache/thrift/archive/0.9.1.tar.gz'
+    tar zxvf 0.9.1
+    cd thrift-0.9.1/
+    ./bootstrap.sh
+    ./configure --enable-libs=no
+    make
+    sudo make install
 
 # Generate Java files from Thrift
 
