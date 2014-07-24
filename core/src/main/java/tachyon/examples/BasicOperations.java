@@ -38,12 +38,6 @@ public class BasicOperations {
   private static int sNumbers = 20;
   private static boolean sPass = true;
 
-  public static void createFile() throws IOException {
-    long startTimeMs = CommonUtils.getCurrentMs();
-    int fileId = sTachyonClient.createFile(sFilePath);
-    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createFile with fileId " + fileId);
-  }
-
   public static void main(String[] args) throws IOException {
     if (args.length != 3) {
       System.out.println("java -cp target/tachyon-" + Version.VERSION
@@ -61,19 +55,11 @@ public class BasicOperations {
     System.exit(0);
   }
 
-  public static void readFile() throws IOException {
-    LOG.debug("Reading data...");
-    TachyonFile file = sTachyonClient.getFile(sFilePath);
-    TachyonByteBuffer buf = file.readByteBuffer();
-    if (buf == null) {
-      file.recache();
-      buf = file.readByteBuffer();
-    }
-    buf.DATA.order(ByteOrder.nativeOrder());
-    for (int k = 0; k < sNumbers; k ++) {
-      sPass = sPass && (buf.DATA.getInt() == k);
-    }
-    buf.close();
+  public static void createFile() throws IOException {
+    LOG.debug("Creating file...");
+    long startTimeMs = CommonUtils.getCurrentMs();
+    int fileId = sTachyonClient.createFile(sFilePath);
+    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createFile with fileId " + fileId);
   }
 
   public static void writeFile() throws IOException {
@@ -87,9 +73,31 @@ public class BasicOperations {
     LOG.debug("Writing data...");
     buf.flip();
 
+    long startTimeMs = CommonUtils.getCurrentMs();
     TachyonFile file = sTachyonClient.getFile(sFilePath);
     OutStream os = file.getOutStream(sWriteType);
     os.write(buf.array());
     os.close();
+
+    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "writeFile to file " + sFilePath);
+  }
+
+  public static void readFile() throws IOException {
+    LOG.debug("Reading data...");
+
+    long startTimeMs = CommonUtils.getCurrentMs();
+    TachyonFile file = sTachyonClient.getFile(sFilePath);
+    TachyonByteBuffer buf = file.readByteBuffer();
+    if (buf == null) {
+      file.recache();
+      buf = file.readByteBuffer();
+    }
+    buf.DATA.order(ByteOrder.nativeOrder());
+    for (int k = 0; k < sNumbers; k ++) {
+      sPass = sPass && (buf.DATA.getInt() == k);
+    }
+    buf.close();
+
+    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "readFile file " + sFilePath);
   }
 }
