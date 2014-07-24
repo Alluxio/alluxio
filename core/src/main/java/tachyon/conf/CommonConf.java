@@ -76,7 +76,7 @@ public class CommonConf extends Utils {
 
   public final int MAX_TABLE_METADATA_BYTE;
 
-  public final List<String> HADOOP_UFS_PREFIXES;
+  public final ImmutableList<String> HADOOP_UFS_PREFIXES;
 
   private CommonConf() {
     if (System.getProperty("tachyon.home") == null) {
