@@ -25,38 +25,6 @@ import org.junit.Test;
 import tachyon.Constants;
 
 public class CommonUtilsTest {
-  @Test
-  public void addLeadingZeroTest() throws IOException {
-    for (int k = 0; k < 10; k ++) {
-      Assert.assertEquals("" + k, CommonUtils.addLeadingZero(k, 1));
-      Assert.assertEquals("0" + k, CommonUtils.addLeadingZero(k, 2));
-      Assert.assertEquals("00" + k, CommonUtils.addLeadingZero(k, 3));
-      Assert.assertEquals("000" + k, CommonUtils.addLeadingZero(k, 4));
-      Assert.assertEquals("0000" + k, CommonUtils.addLeadingZero(k, 5));
-    }
-    for (int k = 10; k < 100; k ++) {
-      Assert.assertEquals("" + k, CommonUtils.addLeadingZero(k, 1));
-      Assert.assertEquals("" + k, CommonUtils.addLeadingZero(k, 2));
-      Assert.assertEquals("0" + k, CommonUtils.addLeadingZero(k, 3));
-      Assert.assertEquals("00" + k, CommonUtils.addLeadingZero(k, 4));
-      Assert.assertEquals("000" + k, CommonUtils.addLeadingZero(k, 5));
-    }
-  }
-
-  @Test
-  public void addLeadingZeroTestWithNegativeNumber() throws IOException {
-    Assert.assertEquals("-1", CommonUtils.addLeadingZero(-1, 1));
-  }
-
-  @Test
-  public void addLeadingZeroTestWithNegativeWidth() throws IOException {
-    Assert.assertEquals("1", CommonUtils.addLeadingZero(1, 0));
-  }
-
-  @Test
-  public void addLeadingZeroTestWithZeroWidth() throws IOException {
-    Assert.assertEquals("1", CommonUtils.addLeadingZero(1, -1));
-  }
 
   @Test
   public void getPathWithoutSchemaTest() {
