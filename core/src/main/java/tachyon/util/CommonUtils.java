@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
@@ -173,6 +174,8 @@ public final class CommonUtils {
   }
 
   public static String convertMsToClockTime(long Millis) {
+    Preconditions.checkArgument(Millis >= 0, "Negative values are not supported");
+
     long days = Millis / Constants.DAY_MS;
     long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
     long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
@@ -188,6 +191,8 @@ public final class CommonUtils {
   }
 
   public static String convertMsToShortClockTime(long Millis) {
+    Preconditions.checkArgument(Millis >= 0, "Negative values are not supported");
+
     long days = Millis / Constants.DAY_MS;
     long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
     long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
