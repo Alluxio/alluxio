@@ -72,6 +72,12 @@ public abstract class UnderFileSystem {
     throw new IllegalArgumentException("Unknown under file system scheme " + path);
   }
 
+  /**
+   * Determines if the Hadoop implementation of {@link tachyon.UnderFileSystem} should be used.
+   *
+   * The logic to say if a path should use the hadoop implementation is by checking if
+   * {@link String#startsWith(String)} to see if the configured schemas are found.
+   */
   private static boolean isHadoopUnderFS(final String path) {
     for(final String prefix : CommonConf.get().HADOOP_UFS_PREFIXES) {
       if (path.startsWith(prefix)) {
@@ -97,8 +103,7 @@ public abstract class UnderFileSystem {
     if (path == null) {
       return null;
     } else if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)
-        || path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")
-        || path.startsWith("glusterfs:///")) {
+        || isHadoopUnderFS(path)) {
       String prefix = path.substring(0, path.indexOf("://") + 3);
       String body = path.substring(prefix.length());
       if (body.contains(Constants.PATH_SEPARATOR)) {
