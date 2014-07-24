@@ -53,6 +53,7 @@ public class InodeFile extends Inode {
     boolean isCache = ele.getBoolean("cache");
     String ufsPath = ele.getString("ufsPath");
     int dependencyId = ele.getInt("depId");
+    long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
 
     InodeFile inode = new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
 
@@ -66,6 +67,7 @@ public class InodeFile extends Inode {
     inode.setCache(isCache);
     inode.setUfsPath(ufsPath);
     inode.setDependencyId(dependencyId);
+    inode.setLastModificationTimeMs(lastModificationTimeMs);
     return inode;
   }
 
@@ -136,6 +138,7 @@ public class InodeFile extends Inode {
     ret.blockIds = getBlockIds();
     ret.dependencyId = mDependencyId;
     ret.inMemoryPercentage = getInMemoryPercentage();
+    ret.lastModificationTimeMs = getLastModificationTimeMs();
 
     return ret;
   }
@@ -315,7 +318,8 @@ public class InodeFile extends Inode {
             .withParameter("blockSizeByte", getBlockSizeByte())
             .withParameter("length", getLength()).withParameter("complete", isComplete())
             .withParameter("pin", isPinned()).withParameter("cache", isCache())
-            .withParameter("ufsPath", getUfsPath()).withParameter("depId", getDependencyId());
+            .withParameter("ufsPath", getUfsPath()).withParameter("depId", getDependencyId())
+            .withParameter("lastModificationTimeMs", getLastModificationTimeMs());
 
     writeElement(objWriter, dos, ele);
   }

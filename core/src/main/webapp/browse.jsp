@@ -53,6 +53,7 @@
             <th>In-Memory</th>
             <th>Pin</th>
             <th>Creation Time</th>
+            <th>Modification Time</th>
           <!--
             <c:if test = "${debug}">
               <th>[D]Inode Number</th>
@@ -136,6 +137,7 @@
                   </th>
                   <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
+                  <th><%= fileInfo.getModificationTime() %></th>
                   <% if ((Boolean) request.getAttribute("debug")) { %>
                     <th>
                       <% if (fileInfo.getDependencyId() != -1) { %>

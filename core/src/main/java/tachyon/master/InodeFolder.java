@@ -53,6 +53,7 @@ public class InodeFolder extends Inode {
     int parentId = ele.getInt("parentId");
     boolean isPinned = ele.getBoolean("pinned");
     List<Integer> childrenIds = ele.<List<Integer>> get("childrenIds");
+    long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
 
     int numberOfChildren = childrenIds.size();
     Inode[] children = new Inode[numberOfChildren];
@@ -81,6 +82,7 @@ public class InodeFolder extends Inode {
     InodeFolder folder = new InodeFolder(fileName, fileId, parentId, creationTimeMs);
     folder.setPinned(isPinned);
     folder.addChildren(children);
+    folder.setLastModificationTimeMs(lastModificationTimeMs);
     return folder;
   }
 
@@ -136,6 +138,7 @@ public class InodeFolder extends Inode {
     ret.isCache = false;
     ret.blockIds = null;
     ret.dependencyId = -1;
+    ret.lastModificationTimeMs = getLastModificationTimeMs();
 
     return ret;
   }
@@ -250,7 +253,8 @@ public class InodeFolder extends Inode {
         new ImageElement(ImageElementType.InodeFolder)
             .withParameter("creationTimeMs", getCreationTimeMs()).withParameter("id", getId())
             .withParameter("name", getName()).withParameter("parentId", getParentId())
-            .withParameter("pinned", isPinned()).withParameter("childrenIds", getChildrenIds());
+            .withParameter("pinned", isPinned()).withParameter("childrenIds", getChildrenIds())
+            .withParameter("lastModificationTimeMs", getLastModificationTimeMs());
 
     writeElement(objWriter, dos, ele);
 

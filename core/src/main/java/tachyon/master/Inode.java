@@ -33,6 +33,8 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
    */
   private boolean mPinned = false;
 
+  private long mLastModificationTimeMs;
+
   /**
    * Create an inode.
    * 
@@ -54,6 +56,7 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
     mId = id;
     mName = name;
     mParentId = parentId;
+    mLastModificationTimeMs = creationTimeMs;
   }
 
   @Override
@@ -91,6 +94,10 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
     return mPinned;
   }
 
+  public synchronized long getLastModificationTimeMs() {
+    return mLastModificationTimeMs;
+  }
+
   @Override
   public synchronized int hashCode() {
     return mId;
@@ -120,10 +127,16 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
     mPinned = pinned;
   }
 
+  public synchronized void setLastModificationTimeMs(long lastModificationTimeMs) {
+    mLastModificationTimeMs = lastModificationTimeMs;
+  }
+
   @Override
   public synchronized String toString() {
     return new StringBuilder("Inode(").append("ID:").append(mId).append(", NAME:").append(mName)
         .append(", PARENT_ID:").append(mParentId).append(", CREATION_TIME_MS:")
-        .append(CREATION_TIME_MS).append(", PINNED:").append(mPinned).append(")").toString();
+        .append(CREATION_TIME_MS).append(", PINNED:").append(mPinned)
+        .append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs).append(")")
+        .toString();
   }
 }
