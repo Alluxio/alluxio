@@ -14,13 +14,11 @@
  */
 package tachyon.conf;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import org.apache.log4j.Logger;
 
-import com.google.common.base.Preconditions;
-
-import java.util.List;
 
 /**
  * Utils for tachyon.conf package.
