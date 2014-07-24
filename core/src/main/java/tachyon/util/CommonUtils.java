@@ -46,22 +46,6 @@ public final class CommonUtils {
   private static final Logger LOG = Logger.getLogger("");
 
   /**
-   * Add leading zero to make the number has a fixed width. e.g., 81 with width 4 returns 0081;
-   * 12345 with width 4 returns 12345.
-   * 
-   * @param number
-   *          the number to add leading zero
-   * @param width
-   *          the fixed width
-   * @return a String with a fixed leading zero.
-   */
-  @Deprecated
-  //TODO I only see tests use this, no other usage, so should this be moved to test?
-  public static String addLeadingZero(int number, int width) {
-    return Strings.padStart(Integer.toString(number), width, '0');
-  }
-
-  /**
    * Change local file's permission.
    * 
    * @param filePath
