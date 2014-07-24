@@ -21,8 +21,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
 
+import tachyon.conf.MasterConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -202,7 +202,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
       // TODO For hadoop 1.x, there exists NPE while startDataNode. It is a known issue caused by
       // "umask 002"(should be 022) see [HDFS-2556]. So the following codes only work for
       // hadoop 2.x or "umask 022"
-      System.setProperty("test.build.data", mBaseDir);
+      MasterConf.get().setProperty("test.build.data", mBaseDir);
       mDfsCluster = new MiniDFSCluster(mNamenodePort, CONF, mNumDataNode, true, true, null, null);
       mDfsCluster.waitClusterUp();
 

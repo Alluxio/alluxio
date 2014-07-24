@@ -210,22 +210,22 @@ public class LocalTachyonClusterMultiMaster {
     String underfsFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
     String masterJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
 
-    System.setProperty("tachyon.home", mTachyonHome);
-    System.setProperty("tachyon.underfs.address", underfsFolder);
-    System.setProperty("tachyon.master.journal.folder", masterJournalFolder
+    MasterConf.get().setProperty("tachyon.home", mTachyonHome);
+    MasterConf.get().setProperty("tachyon.underfs.address", underfsFolder);
+    MasterConf.get().setProperty("tachyon.master.journal.folder", masterJournalFolder
         + Constants.PATH_SEPARATOR);
-    System.setProperty("tachyon.usezookeeper", "true");
-    System.setProperty("tachyon.zookeeper.address", mCuratorServer.getConnectString());
-    System.setProperty("tachyon.zookeeper.election.path", "/election");
-    System.setProperty("tachyon.zookeeper.leader.path", "/leader");
-    System.setProperty("tachyon.master.hostname", mLocalhostName);
-    System.setProperty("tachyon.master.port", mMastersPorts.get(0) + "");
-    System.setProperty("tachyon.master.web.port", (mMastersPorts.get(0) + 1) + "");
-    System.setProperty("tachyon.worker.port", mWorkerPort + "");
-    System.setProperty("tachyon.worker.data.port", (mWorkerPort + 1) + "");
-    System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
-    System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
-    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
+    MasterConf.get().setProperty("tachyon.usezookeeper", "true");
+    MasterConf.get().setProperty("tachyon.zookeeper.address", mCuratorServer.getConnectString());
+    MasterConf.get().setProperty("tachyon.zookeeper.election.path", "/election");
+    MasterConf.get().setProperty("tachyon.zookeeper.leader.path", "/leader");
+    MasterConf.get().setProperty("tachyon.master.hostname", mLocalhostName);
+    MasterConf.get().setProperty("tachyon.master.port", mMastersPorts.get(0) + "");
+    MasterConf.get().setProperty("tachyon.master.web.port", (mMastersPorts.get(0) + 1) + "");
+    MasterConf.get().setProperty("tachyon.worker.port", mWorkerPort + "");
+    MasterConf.get().setProperty("tachyon.worker.data.port", (mWorkerPort + 1) + "");
+    MasterConf.get().setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
+    MasterConf.get().setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
+    MasterConf.get().setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
 
     CommonConf.clear();
     MasterConf.clear();

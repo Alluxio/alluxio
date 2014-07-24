@@ -88,7 +88,7 @@ class Utils {
     }
     if (ret == null)
       ret = hadoopConf.get(property);
-
+    
     if (ret == null) {
       CommonUtils.illegalArgumentException(property + " is not configured.");
     }
@@ -108,5 +108,26 @@ class Utils {
     LOG.debug(property + msg + " : " + ret);
     return ret;
   }
+  public static void setProperty(String key, String value) {
+    String ret = System.getProperty(key);
+    if (ret != null) {
+      System.setProperty(key, value);
+    }else{
+      ret = commonConf.getString(key);
+    }
+    
+    if(ret!=null){
+      commonConf.setProperty(key, value);
+    }else{
+      ret = hadoopConf.get(key);
+    }
+    
+    if(ret!=null){
+      hadoopConf.set(key, value);
+    }else{
+      //default spot for unset properties.  can be changed later.
+      System.setProperty(key, value);
+    }
 
+  }
 }

@@ -30,6 +30,7 @@ import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.conf.MasterConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.worker.WorkerStorage;
 
@@ -57,7 +58,7 @@ public class WorkerStorageTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
+    MasterConf.get().setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();

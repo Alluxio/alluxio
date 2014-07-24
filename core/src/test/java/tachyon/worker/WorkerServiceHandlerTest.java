@@ -17,6 +17,7 @@ package tachyon.worker;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
+import tachyon.conf.MasterConf;
 import tachyon.conf.WorkerConf;
 
 import java.io.IOException;
@@ -25,7 +26,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.After;
 import org.junit.Before;
-
 import org.apache.thrift.TException;
 
 import tachyon.master.LocalTachyonCluster;
@@ -58,7 +58,7 @@ public class WorkerServiceHandlerTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
+    MasterConf.get().setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mWorkerServiceHandler = mLocalTachyonCluster.getWorker().getWorkerServiceHandler();

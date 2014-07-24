@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.TestUtils;
+import tachyon.conf.MasterConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -46,8 +47,8 @@ public class FileInStreamTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    System.setProperty("tachyon.user.default.block.size.byte", String.valueOf(BLOCK_SIZE));
+    MasterConf.get().setProperty("tachyon.user.quota.unit.bytes", "1000");
+    MasterConf.get().setProperty("tachyon.user.default.block.size.byte", String.valueOf(BLOCK_SIZE));
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();

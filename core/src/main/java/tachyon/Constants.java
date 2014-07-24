@@ -14,6 +14,8 @@
  */
 package tachyon;
 
+import tachyon.conf.MasterConf;
+
 /**
  * System wide constants
  */
@@ -53,9 +55,9 @@ public class Constants {
 
   public static final int WORKER_BLOCKS_QUEUE_SIZE = 10000;
 
-  public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
+  public static final String LOGGER_TYPE = MasterConf.get().getProperty("tachyon.logger.type", "");
   public static final boolean DEBUG = Boolean
-      .valueOf(System.getProperty("tachyon.debug", "false"));
+      .valueOf(MasterConf.get().getProperty("tachyon.debug", "false"));
 
   // Version 1 [Before 0.5.0] is customized ser/de based.
   // Version 2 [From 0.5.0] starts to use JSON.

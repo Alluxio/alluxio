@@ -27,6 +27,7 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.client.TachyonFS;
+import tachyon.conf.MasterConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -49,9 +50,9 @@ public class MasterFaultToleranceTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    System.setProperty("tachyon.user.default.block.size.byte", String.valueOf(BLOCK_SIZE));
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+    MasterConf.get().setProperty("tachyon.user.quota.unit.bytes", "1000");
+    MasterConf.get().setProperty("tachyon.user.default.block.size.byte", String.valueOf(BLOCK_SIZE));
+    MasterConf.get().setProperty("fs.hdfs.impl.disable.cache", "true");
     mLocalTachyonClusterMultiMaster = new LocalTachyonClusterMultiMaster(10000, MASTERS);
     mLocalTachyonClusterMultiMaster.start();
     mTfs = mLocalTachyonClusterMultiMaster.getClient();

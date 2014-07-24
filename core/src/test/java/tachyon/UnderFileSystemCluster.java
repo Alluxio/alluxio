@@ -16,6 +16,7 @@ package tachyon;
 
 import java.io.IOException;
 
+import tachyon.conf.MasterConf;
 import tachyon.util.CommonUtils;
 
 public abstract class UnderFileSystemCluster {
@@ -62,7 +63,7 @@ public abstract class UnderFileSystemCluster {
   }
 
   public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir) {
-    mUfsClz = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
+    mUfsClz = MasterConf.get().getProperty(INTEGRATION_UFS_PROFILE_KEY);
 
     if (mUfsClz != null && !mUfsClz.equals("")) {
       try {

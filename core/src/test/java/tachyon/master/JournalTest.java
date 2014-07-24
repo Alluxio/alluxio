@@ -127,8 +127,8 @@ public class JournalTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+    MasterConf.get().setProperty("tachyon.user.quota.unit.bytes", "1000");
+    MasterConf.get().setProperty("fs.hdfs.impl.disable.cache", "true");
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();

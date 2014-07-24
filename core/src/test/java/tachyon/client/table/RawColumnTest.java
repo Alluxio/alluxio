@@ -29,6 +29,7 @@ import tachyon.client.TachyonFile;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 import tachyon.conf.CommonConf;
+import tachyon.conf.MasterConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.FileAlreadyExistException;
@@ -71,7 +72,7 @@ public class RawColumnTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
+    MasterConf.get().setProperty("tachyon.user.quota.unit.bytes", "1000");
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();

@@ -32,6 +32,7 @@ import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.CommonConf;
+import tachyon.conf.MasterConf;
 import tachyon.hadoop.Utils;
 import tachyon.util.CommonUtils;
 
@@ -80,7 +81,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         // FileSystem closed exception. Being configurable for unit/integration
         // test only, and not expose to the end-user currently.
         tConf.set("fs.hdfs.impl.disable.cache",
-            System.getProperty("fs.hdfs.impl.disable.cache", "false"));
+            MasterConf.get().getProperty("fs.hdfs.impl.disable.cache", "false"));
       }
 
       Utils.addS3Credentials(tConf);
