@@ -1223,12 +1223,12 @@ public class ClientFileInfo implements org.apache.thrift.TBase<ClientFileInfo, C
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetLastModificationTimeMs()).compareTo(typedOther.isSetLastModificationTimeMs());
+    lastComparison = Boolean.valueOf(isSetLastModificationTimeMs()).compareTo(other.isSetLastModificationTimeMs());
     if (lastComparison != 0) {
       return lastComparison;
     }
     if (isSetLastModificationTimeMs()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.lastModificationTimeMs, typedOther.lastModificationTimeMs);
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.lastModificationTimeMs, other.lastModificationTimeMs);
       if (lastComparison != 0) {
         return lastComparison;
       }
