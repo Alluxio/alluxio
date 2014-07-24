@@ -166,24 +166,23 @@ public class CommonUtilsTest {
 
   @Test
   public void convertToClockTimeWithOneDay4Hours10Minutes45Seconds() {
-    String out = CommonUtils.convertMsToClockTime(TimeUnit.DAYS.toMillis(1) + TimeUnit.HOURS.toMillis(4)
-        + TimeUnit.MINUTES.toMillis(10) + TimeUnit.SECONDS.toMillis(45));
+    long time = TimeUnit.DAYS.toMillis(1) + TimeUnit.HOURS.toMillis(4)
+        + TimeUnit.MINUTES.toMillis(10) + TimeUnit.SECONDS.toMillis(45);
+    String out = CommonUtils.convertMsToClockTime(time);
     Assert.assertEquals("1 day(s), 4 hour(s), 10 minute(s), and 45 second(s)", out);
   }
 
   @Test
   public void convertToClockTimeWithOneDay4Hours10Minutes45SecondsWithStopwatch() {
-    String out = CommonUtils.convertMsToClockTime(TimeUnit.DAYS.toMillis(1) + TimeUnit.HOURS.toMillis(4)
-        + TimeUnit.MINUTES.toMillis(10) + TimeUnit.SECONDS.toMillis(45));
+    long time = TimeUnit.DAYS.toMillis(1) + TimeUnit.HOURS.toMillis(4)
+        + TimeUnit.MINUTES.toMillis(10) + TimeUnit.SECONDS.toMillis(45);
+    String out = CommonUtils.convertMsToClockTime(time);
     Assert.assertEquals("1 day(s), 4 hour(s), 10 minute(s), and 45 second(s)", out);
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void convertToClockTimeWithNegativeValue() {
-    String out = CommonUtils.convertMsToClockTime(1 - TimeUnit.DAYS.toMillis(1) + TimeUnit.HOURS.toMillis(4)
+    CommonUtils.convertMsToClockTime(1 - TimeUnit.DAYS.toMillis(1) + TimeUnit.HOURS.toMillis(4)
         + TimeUnit.MINUTES.toMillis(10) + TimeUnit.SECONDS.toMillis(45));
-    //TODO should this be 0, 0, 0, 0?
-    // if you look at usage, its always with system time, so increasing numbers (positive values)
-    Assert.assertEquals("0 day(s), -19 hour(s), -49 minute(s), and -14 second(s)", out);
   }
 }
