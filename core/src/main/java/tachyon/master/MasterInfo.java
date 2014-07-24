@@ -253,12 +253,7 @@ public class MasterInfo extends ImageWriter {
   private final Set<Integer> mMustRecomputeDependencies = new HashSet<Integer>();
   private final Map<Long, MasterWorkerInfo> mWorkers = new HashMap<Long, MasterWorkerInfo>();
 
-<<<<<<< HEAD
   private final Map<NetAddress, Long> mWorkerAddressToId = new HashMap<NetAddress, Long>();
-=======
-  private final Map<InetSocketAddress, Long> mWorkerAddressToId =
-      new HashMap<InetSocketAddress, Long>();
->>>>>>> master
 
   private final BlockingQueue<MasterWorkerInfo> mLostWorkers =
       new ArrayBlockingQueue<MasterWorkerInfo>(32);
