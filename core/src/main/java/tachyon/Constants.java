@@ -39,8 +39,11 @@ public class Constants {
   public static final int HOUR_MS = MINUTE_MS * 60;
   public static final int DAY_MS = HOUR_MS * 24;
 
-  public static final String HEADER = "tachyon://";
-  public static final String HEADER_FT = "tachyon-ft://";
+  public static final String SCHEME = "tachyon";
+  public static final String HEADER = SCHEME + "://";
+
+  public static final String SCHEME_FT = "tachyon-ft";
+  public static final String HEADER_FT = SCHEME_FT + "://";
 
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
