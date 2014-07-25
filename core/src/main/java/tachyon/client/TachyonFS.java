@@ -1466,6 +1466,18 @@ public class TachyonFS {
   }
 
   /**
+   * Read the whole local block.
+   * 
+   * @param blockId
+   *          The id of the block to read.
+   * @return <code>TachyonByteBuffer</code> containing the whole block.
+   * @throws IOException
+   */
+  private TachyonByteBuffer readLocalByteBuffer(long blockId) throws IOException {
+    return readLocalByteBuffer(blockId, 0, -1);
+  }
+
+  /**
    * Read local block return a TachyonByteBuffer
    * 
    * @param blockId

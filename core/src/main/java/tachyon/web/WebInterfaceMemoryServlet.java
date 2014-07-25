@@ -60,7 +60,7 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
     for (String file : inMemoryFiles) {
       try {
         ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(file);
-        if (fileInfo.getInMemoryPercentage() == 100) {
+        if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
           fileInfos.add(new UiFileInfo(fileInfo));
         }
       } catch (InvalidPathException ipe) {
