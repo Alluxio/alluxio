@@ -30,7 +30,7 @@ public class CommonConf extends Utils {
 
   private static CommonConf COMMON_CONF = null;
 
-  public static ImmutableList<String> DEFAULT_HADOOP_UFS_PREFIX = ImmutableList.of(
+  public static final ImmutableList<String> DEFAULT_HADOOP_UFS_PREFIX = ImmutableList.of(
       "hdfs://",
       "s3://",
       "s3n://",

@@ -729,7 +729,7 @@ public class WorkerStorage {
    * @return <code> true </code> if the space is granted, <code> false </code> if not.
    */
   private boolean memoryEvictionLRU(long requestBytes) {
-    Set<Integer> pinList = new HashSet<Integer>();
+    Set<Integer> pinList;
 
     try {
       pinList = mMasterClient.worker_getPinIdList();
