@@ -58,9 +58,11 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
 
     List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>(inMemoryFiles.size());
     for (String file : inMemoryFiles) {
-      ClientFileInfo fileInfo = null;
       try {
-        fileInfo = mMasterInfo.getClientFileInfo(file);
+        ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(file);
+        if (fileInfo.getInMemoryPercentage() == 100) {
+          fileInfos.add(new UiFileInfo(fileInfo));
+        }
       } catch (InvalidPathException ipe) {
         request.setAttribute("invalidPathError",
             "Error: Invalid Path " + ipe.getLocalizedMessage());
@@ -68,9 +70,6 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
         return;
       } catch (FileDoesNotExistException fdne) {
         // ignore
-      }
-      if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
-        fileInfos.add(new UiFileInfo(fileInfo));
       }
     }
     request.setAttribute("fileInfos", fileInfos);
