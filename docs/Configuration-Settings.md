@@ -103,6 +103,11 @@ The common configuration contains constants which specify paths and the log appe
   <td>glusterfs:///mapred/system</td>
   <td>Optionally specify subdirectory under GLusterfs for intermediary MapReduce data.</td>
 </tr>
+<tr>
+  <td>tachyon.underfs.hadoop.prefixes</td>
+  <td>hdfs:// s3:// s3n:// glusterfs:///</td>
+  <td>Optionally specify which prefixes should run through the Apache Hadoop's implementation of UnderFileSystem.  The delimiter is any whitespace and/or ','</td>
+</tr>
 </table>
 
 # Master Configuration
