@@ -31,14 +31,39 @@ import tachyon.util.NetworkUtils;
  * Block info on the master side.
  */
 public class BlockInfo {
+  /**
+   * Compute the block's id with the inode's id and the block's index in the inode. In Tachyon, the
+   * blockId is equal to ((inodeId << 30) + blockIndex).
+   * 
+   * @param inodeId
+   *          The inode's id of the block
+   * @param blockIndex
+   *          The block's index of the block in the inode
+   * @return the block's id
+   */
   public static long computeBlockId(int inodeId, int blockIndex) {
     return ((long) inodeId << 30) + blockIndex;
   }
 
+  /**
+   * Compute the block's index in the inode with the block's id. The blockIndex is the last 30 bits
+   * of the blockId.
+   * 
+   * @param blockId
+   *          The id of the block
+   * @return the block's index in the inode
+   */
   public static int computeBlockIndex(long blockId) {
     return (int) (blockId & 0x3fffffff);
   }
 
+  /**
+   * Compute the inode's id of the block. The inodeId is the first 34 bits of the blockId.
+   * 
+   * @param blockId
+   *          The id of the block
+   * @return the inode's id of the block
+   */
   public static int computeInodeId(long blockId) {
     return (int) (blockId >> 30);
   }
@@ -69,10 +94,23 @@ public class BlockInfo {
     LENGTH = length;
   }
 
+  /**
+   * Add a location of the block. It means that the worker has the data of the block in memory.
+   * 
+   * @param workerId
+   *          The id of the worker
+   * @param workerAddress
+   *          The net address of the worker
+   */
   public synchronized void addLocation(long workerId, NetAddress workerAddress) {
     mLocations.put(workerId, workerAddress);
   }
 
+  /**
+   * Generate a ClientBlockInfo of the block, which is used for the thrift server.
+   * 
+   * @return the generated ClientBlockInfo
+   */
   public synchronized ClientBlockInfo generateClientBlockInfo() {
     ClientBlockInfo ret = new ClientBlockInfo();
 
@@ -84,6 +122,12 @@ public class BlockInfo {
     return ret;
   }
 
+  /**
+   * Get the list of pairs "blockId, workerId", where the blockId is the id of this block, and the
+   * workerId is the id of the worker who has the block's data in memory.
+   * 
+   * @return the list of those pairs
+   */
   public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
     List<Pair<Long, Long>> ret = new ArrayList<Pair<Long, Long>>(mLocations.size());
     for (long workerId : mLocations.keySet()) {
@@ -92,10 +136,21 @@ public class BlockInfo {
     return ret;
   }
 
+  /**
+   * Get the InodeFile of the block
+   * 
+   * @return the InodeFile of the block
+   */
   public synchronized InodeFile getInodeFile() {
     return INODE_FILE;
   }
 
+  /**
+   * Get the locations of the block, which are the workers' net address who has the data of the
+   * block in memory.
+   * 
+   * @return the net addresses of the locations
+   */
   public synchronized List<NetAddress> getLocations() {
     List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
     ret.addAll(mLocations.values());
@@ -122,10 +177,19 @@ public class BlockInfo {
     return ret;
   }
 
+  /**
+   * @return true if the block is in some worker's memory, false otherwise
+   */
   public synchronized boolean isInMemory() {
     return mLocations.size() > 0;
   }
 
+  /**
+   * Remove the worker from the block's locations
+   * 
+   * @param workerId
+   *          The id of the removed worker
+   */
   public synchronized void removeLocation(long workerId) {
     mLocations.remove(workerId);
   }
