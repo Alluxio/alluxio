@@ -431,12 +431,12 @@ public final class CommonUtils {
   }
 
   public static void printByteBuffer(Logger LOG, ByteBuffer buf) {
-    String tmp = "";
+    StringBuilder sb = new StringBuilder();
     for (int k = 0; k < buf.limit() / 4; k ++) {
-      tmp += buf.getInt() + " ";
+      sb.append(buf.getInt()).append(" ");
     }
 
-    LOG.info(tmp);
+    LOG.info(sb.toString());
   }
 
   public static void printTimeTakenMs(long startTimeMs, Logger logger, String message) {

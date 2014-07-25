@@ -38,7 +38,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
    * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association
    * by array indexes.
    */
-  public class NodeInfo {
+  public static class NodeInfo {
     private final String NAME;
     private final String LAST_CONTACT_SEC;
     private final String STATE;

@@ -48,7 +48,7 @@ public class WorkerConf extends Utils {
   public final int SERVER_THREADS;
 
   public final int USER_TIMEOUT_MS;
-  public final String USER_TEMP_RELATIVE_FOLDER = "users";
+  public static final String USER_TEMP_RELATIVE_FOLDER = "users";
 
   public final int WORKER_CHECKPOINT_THREADS;
 
