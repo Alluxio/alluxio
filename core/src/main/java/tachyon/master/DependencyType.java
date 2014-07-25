@@ -2,6 +2,9 @@ package tachyon.master;
 
 import java.io.IOException;
 
+/**
+ * The type of Dependency.
+ */
 public enum DependencyType {
   Wide(1), Narrow(2);
 
