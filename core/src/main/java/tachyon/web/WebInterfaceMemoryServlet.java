@@ -69,7 +69,7 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
       } catch (FileDoesNotExistException fdne) {
         // ignore
       }
-      if (fileInfo.getInMemoryPercentage() == 100) {
+      if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
         fileInfos.add(new UiFileInfo(fileInfo));
       }
     }

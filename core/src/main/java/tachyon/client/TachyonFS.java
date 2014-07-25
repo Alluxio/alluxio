@@ -1466,18 +1466,6 @@ public class TachyonFS {
   }
 
   /**
-   * Read the whole local block.
-   * 
-   * @param blockId
-   *          The id of the block to read.
-   * @return <code>TachyonByteBuffer</code> containing the whole block.
-   * @throws IOException
-   */
-  private TachyonByteBuffer readLocalByteBuffer(long blockId) throws IOException {
-    return readLocalByteBuffer(blockId, 0, -1);
-  }
-
-  /**
    * Read local block return a TachyonByteBuffer
    * 
    * @param blockId
@@ -1647,10 +1635,6 @@ public class TachyonFS {
     }
     int failedTimes = 0;
     while (mAvailableSpaceBytes < requestSpaceBytes) {
-      if (mWorkerClient == null) {
-        LOG.error("The current host does not have a Tachyon worker.");
-        return false;
-      }
       try {
         long toRequestSpaceBytes =
             Math.max(requestSpaceBytes - mAvailableSpaceBytes, USER_QUOTA_UNIT_BYTES);
