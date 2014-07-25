@@ -275,7 +275,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       }
       return rtn;
     } else {
-      return new String[0];
+      return null;
     }
   }
 
