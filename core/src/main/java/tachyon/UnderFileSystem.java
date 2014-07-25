@@ -45,7 +45,7 @@ public abstract class UnderFileSystem {
 
   /**
    * Get the UnderFileSystem instance according to its schema.
-   * 
+   *
    * @param path
    *          file path storing over the ufs.
    * @return null for any unknown scheme.
