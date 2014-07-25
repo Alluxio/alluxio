@@ -32,6 +32,7 @@ class Utils {
 
   static {
     commonConf = new PropertiesConfiguration();
+    Configuration.addDefaultResource("tachyon-default.xml");
     try {
       /* add tachyon.properties. if not over-ridden then loaded from JAR */
       commonConf.load(Configuration.class.getClassLoader().getResourceAsStream(
@@ -44,10 +45,6 @@ class Utils {
 
   public static void setConf(Configuration conf) {
     hadoopConf = conf;
-    /* add default XML values stored in the JAR */
-    hadoopConf.addResource(Configuration.class.getClassLoader().getResourceAsStream(
-        "tachyon-site.xml"));
-    /* add any over-ride tachyon-site.xml from the classpath/class loader */
     hadoopConf.addResource("tachyon-site.xml");
     hadoopConf.reloadConfiguration();
   }
@@ -88,10 +85,7 @@ class Utils {
     }
     if (ret == null)
       ret = hadoopConf.get(property);
-    
-    if (ret == null) {
-      CommonUtils.illegalArgumentException(property + " is not configured.");
-    }
+
     LOG.debug(property + " : " + ret);
     return ret;
   }
@@ -99,33 +93,35 @@ class Utils {
   public static String getProperty(String property, String defaultValue) {
     String ret = null;
     String msg = "";
-    try {
-      ret = getProperty(property);
-    } catch (IllegalArgumentException ex) {
+
+    ret = getProperty(property);
+    if (ret == null) {
       ret = defaultValue;
       msg = " uses the default value";
     }
     LOG.debug(property + msg + " : " + ret);
+
     return ret;
   }
+
   public static void setProperty(String key, String value) {
     String ret = System.getProperty(key);
     if (ret != null) {
       System.setProperty(key, value);
-    }else{
+    } else {
       ret = commonConf.getString(key);
     }
-    
-    if(ret!=null){
+
+    if (ret != null) {
       commonConf.setProperty(key, value);
-    }else{
+    } else {
       ret = hadoopConf.get(key);
     }
-    
-    if(ret!=null){
+
+    if (ret != null) {
       hadoopConf.set(key, value);
-    }else{
-      //default spot for unset properties.  can be changed later.
+    } else {
+      // default spot for unset properties. can be changed later.
       System.setProperty(key, value);
     }
 

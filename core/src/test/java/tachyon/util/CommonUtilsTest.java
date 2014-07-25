@@ -65,24 +65,15 @@ public class CommonUtilsTest {
   public void testSystemProperty() {
     MasterConf conf = MasterConf.get();
     String testProperty = "ANYTHING." + System.currentTimeMillis();
-
-    try {
-      conf.getProperty(testProperty);
-      Assert.fail();
-    } catch (IllegalArgumentException ex) {
-      // expected
-    }
+    String prop = conf.getProperty(testProperty);
+    Assert.assertNull(prop); 
 
     System.setProperty(testProperty, testProperty);
     Assert.assertEquals(testProperty, conf.getProperty(testProperty));
     System.clearProperty(testProperty);
 
-    try {
-      conf.getProperty(testProperty);
-      Assert.fail();
-    } catch (IllegalArgumentException ex) {
-      // expected
-    }
+    prop = conf.getProperty(testProperty);
+    Assert.assertNull(prop); 
 
   }
 
