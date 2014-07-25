@@ -170,6 +170,17 @@
         <artifactId>maven-release-plugin</artifactId>
         <version>2.4.1</version>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>2.5.2</version>
+        <configuration>
+          <excludeFilterFile>${project.basedir}/../findbugs-exclude.xml</excludeFilterFile>
+          <findbugsXmlOutput>true</findbugsXmlOutput>
+          <xmlOutput>true</xmlOutput>
+          <effort>Max</effort>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
