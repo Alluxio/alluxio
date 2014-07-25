@@ -206,7 +206,7 @@ public class TFsShell {
     }
     String path = argv[1];
     long[] values = countHelper(path);
-    String format = "%-25s%-25s%-15s\n";
+    String format = "%-25s%-25s%-15s%n";
     System.out.format(format, "File Count", "Folder Count", "Total Bytes");
     System.out.format(format, values[0], values[1], values[2]);
     return 0;
@@ -302,7 +302,7 @@ public class TFsShell {
     TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
     List<ClientFileInfo> files = tachyonClient.listStatus(folder);
     Collections.sort(files);
-    String format = "%-10s%-25s%-15s%-5s\n";
+    String format = "%-10s%-25s%-15s%-5s%n";
     for (ClientFileInfo file : files) {
       String inMemory = "";
       if (!file.isFolder) {
@@ -337,7 +337,7 @@ public class TFsShell {
     TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
     List<ClientFileInfo> files = tachyonClient.listStatus(folder);
     Collections.sort(files);
-    String format = "%-10s%-25s%-15s%-5s\n";
+    String format = "%-10s%-25s%-15s%-5s%n";
     for (ClientFileInfo file : files) {
       String inMemory = "";
       if (!file.isFolder) {
