@@ -1647,10 +1647,6 @@ public class TachyonFS {
     }
     int failedTimes = 0;
     while (mAvailableSpaceBytes < requestSpaceBytes) {
-      if (mWorkerClient == null) {
-        LOG.error("The current host does not have a Tachyon worker.");
-        return false;
-      }
       try {
         long toRequestSpaceBytes =
             Math.max(requestSpaceBytes - mAvailableSpaceBytes, USER_QUOTA_UNIT_BYTES);
