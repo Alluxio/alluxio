@@ -23,7 +23,7 @@ Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [User Documentation](#user-documentation) |
 [Developer Documentation](#developer-documentation) |
 [Acknowledgement](#acknowledgement) |
-[Meetup Group](http://www.meetup.com/Tachyon/)
+[Meetup Group](http://www.meetup.com/Tachyon/) | [JIRA](https://tachyon.atlassian.net/browse/TACHYON) | [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users)
 
 # Current Features
 

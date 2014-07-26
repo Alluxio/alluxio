@@ -549,6 +549,9 @@ public class WorkerStorage {
 
   /**
    * Remove blocks from the memory.
+   *
+   * This is triggered when the worker heartbeats to the master, which sends a
+   * {@link tachyon.thrift.Command} with type {@link tachyon.thrift.CommandType#Free}
    * 
    * @param blocks
    *          The list of blocks to be removed.
@@ -700,6 +703,12 @@ public class WorkerStorage {
 
   /**
    * Lock the block
+   *
+   * Used internally to make sure blocks are unmodified, but also used in
+   * {@link tachyon.client.TachyonFS} for cacheing blocks locally for users.  When a user tries
+   * to read a block ({@link tachyon.client.TachyonFile#readByteBuffer()}), the client will attempt
+   * to cache the block on the local users's node, while the user is reading from the local block,
+   * the given block is locked and unlocked once read.
    * 
    * @param blockId
    *          The id of the block
@@ -729,7 +738,7 @@ public class WorkerStorage {
    * @return <code> true </code> if the space is granted, <code> false </code> if not.
    */
   private boolean memoryEvictionLRU(long requestBytes) {
-    Set<Integer> pinList = new HashSet<Integer>();
+    Set<Integer> pinList;
 
     try {
       pinList = mMasterClient.worker_getPinIdList();
@@ -886,6 +895,12 @@ public class WorkerStorage {
 
   /**
    * Unlock the block
+   *
+   * Used internally to make sure blocks are unmodified, but also used in
+   * {@link tachyon.client.TachyonFS} for cacheing blocks locally for users.  When a user tries
+   * to read a block ({@link tachyon.client.TachyonFile#readByteBuffer()}), the client will attempt
+   * to cache the block on the local users's node, while the user is reading from the local block,
+   * the given block is locked and unlocked once read.
    * 
    * @param blockId
    *          The id of the block

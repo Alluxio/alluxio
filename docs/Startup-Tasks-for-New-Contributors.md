@@ -79,6 +79,12 @@ leverage the Scala shell, as discussed in this
 -   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml).
     -  If you use IntelliJ: you can either use our formatter with the help from [EclipseCodeFormatter](https://github.com/krasa/EclipseCodeFormatter#instructions) or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in IntelliJ
 
+### FindBugs
+
+Before submitting the pull-request, run the latest code against [FindBugs](http://findbugs.sourceforge.net/) to verify no new warnings are introduced.
+
+    mvn compile findbugs:findbugs findbugs:gui
+
 ### IDE
 
 You can generate an Eclipse configuration file by running:
