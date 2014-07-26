@@ -229,7 +229,7 @@ public class EditLog {
     mBackUpLogStartNum = -1;
   }
 
-  // When a master is replaying an edit log, mark the current edit log as an INACTIVE one.
+  /** When a master is replaying an edit log, mark the current edit log as an INACTIVE one. */
   private final boolean INACTIVE;
 
   private final String PATH;
@@ -239,10 +239,10 @@ public class EditLog {
 
   private UnderFileSystem mUfs;
 
-  // Raw output stream to the UnderFS
+  /** Raw output stream to the UnderFS */
   private OutputStream mOs;
 
-  // Wraps the raw output stream.
+  /** Wraps the raw output stream. */
   private DataOutputStream mDos;
 
   // Starting from 1.
