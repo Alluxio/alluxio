@@ -218,12 +218,12 @@ public class WorkerClient {
     if (!mIsConnected) {
       try {
         mProtocol.getTransport().open();
+        mHeartbeatThread.start();
+        mIsConnected = true;
       } catch (TTransportException e) {
         LOG.error(e.getMessage(), e);
-        return false;
+        mIsConnected = false;
       }
-      mHeartbeatThread.start();
-      mIsConnected = true;
     }
 
     return mIsConnected;
