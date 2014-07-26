@@ -130,7 +130,7 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
 
   public void setFileLocations(List<NetAddress> fileLocations) {
     for (NetAddress addr : fileLocations) {
-      mFileLocations.add(new String(addr.getMHost() + ":" + addr.getMPort()));
+      mFileLocations.add(addr.getMHost() + ":" + addr.getMPort());
     }
   }
 }
