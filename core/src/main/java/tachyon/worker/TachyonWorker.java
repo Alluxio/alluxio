@@ -159,7 +159,7 @@ public class TachyonWorker implements Runnable {
 
   private WorkerServiceHandler mWorkerServiceHandler;
 
-  private final DataServer mDataServer;
+  private final DataServer DATA_SERVER;
 
   private Thread mDataServerThread;
 
@@ -167,8 +167,8 @@ public class TachyonWorker implements Runnable {
 
   private volatile boolean mStop = false;
 
-  private final int port;
-  private final int dataPort;
+  private final int PORT;
+  private final int DATA_PORT;
 
   /**
    * @param masterAddress
@@ -198,11 +198,11 @@ public class TachyonWorker implements Runnable {
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
-    mDataServer =
+    DATA_SERVER =
         new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
             mWorkerStorage);
-    mDataServerThread = new Thread(mDataServer);
-    this.dataPort = mDataServer.getLocalPort();
+    mDataServerThread = new Thread(DATA_SERVER);
+    this.DATA_PORT = DATA_SERVER.getLocalPort();
 
     mHeartbeatThread = new Thread(this);
     try {
@@ -211,7 +211,7 @@ public class TachyonWorker implements Runnable {
           new WorkerService.Processor<WorkerServiceHandler>(mWorkerServiceHandler);
 
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(workerAddress);
-      port = NetworkUtils.getPort(mServerTNonblockingServerSocket);
+      PORT = NetworkUtils.getPort(mServerTNonblockingServerSocket);
       mServer =
           new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
               mServerTNonblockingServerSocket).processor(processor)
@@ -234,14 +234,14 @@ public class TachyonWorker implements Runnable {
    * Gets the metadata port of the worker.
    */
   public int getLocalPort() {
-    return port;
+    return PORT;
   }
 
   /**
    * Gets the data port of the worker.
    */
   public int getDataPort() {
-    return dataPort;
+    return DATA_PORT;
   }
 
   /**
@@ -336,10 +336,10 @@ public class TachyonWorker implements Runnable {
   public void stop() throws IOException, InterruptedException {
     mStop = true;
     mWorkerStorage.stop();
-    mDataServer.close();
+    DATA_SERVER.close();
     mServer.stop();
     mServerTNonblockingServerSocket.close();
-    while (!mDataServer.isClosed() || mServer.isServing() || mHeartbeatThread.isAlive()) {
+    while (!DATA_SERVER.isClosed() || mServer.isServing() || mHeartbeatThread.isAlive()) {
       // TODO The reason to stop and close again is due to some issues in Thrift.
       mServer.stop();
       mServerTNonblockingServerSocket.close();
