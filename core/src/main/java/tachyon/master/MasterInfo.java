@@ -17,7 +17,9 @@ package tachyon.master;
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1740,7 +1742,7 @@ public class MasterInfo extends ImageWriter {
    *          If <code>random</code> is false, select a worker on this host
    * @return the address of the selected worker, or null if no address could be found
    */
-  public NetAddress getWorker(boolean random, String host) {
+  public NetAddress getWorker(boolean random, String host) throws UnknownHostException {
     synchronized (mWorkers) {
       if (mWorkerAddressToId.isEmpty()) {
         return null;
@@ -1760,7 +1762,10 @@ public class MasterInfo extends ImageWriter {
         }
       } else {
         for (NetAddress address : mWorkerAddressToId.keySet()) {
-          if (address.getMHost().equals(host)) {
+          InetAddress inetAddress = InetAddress.getByName(address.getMHost());
+          if (inetAddress.getHostName().equals(host)
+              || inetAddress.getHostAddress().equals(host)
+              || inetAddress.getCanonicalHostName().equals(host)) {
             LOG.debug("getLocalWorker: " + address);
             return address;
           }

@@ -16,6 +16,7 @@ package tachyon.master;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.List;
@@ -253,7 +254,12 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public NetAddress user_getWorker(boolean random, String host) throws NoWorkerException,
       TException {
-    NetAddress ret = mMasterInfo.getWorker(random, host);
+    NetAddress ret = null;
+    try {
+      ret = mMasterInfo.getWorker(random, host);
+    } catch (UnknownHostException e) {
+      throw new NoWorkerException(e.getMessage());
+    }
     if (ret == null) {
       if (random) {
         throw new NoWorkerException("No worker in the system");
