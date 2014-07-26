@@ -73,7 +73,7 @@ public class TachyonMaster {
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  private final int port;
+  private final int PORT;
 
   public TachyonMaster(InetSocketAddress address, int webPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads) {
@@ -89,9 +89,9 @@ public class TachyonMaster {
 
     try {
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(address);
-      port = NetworkUtils.getPort(mServerTNonblockingServerSocket);
+      PORT = NetworkUtils.getPort(mServerTNonblockingServerSocket);
 
-      mMasterAddress = new InetSocketAddress(address.getHostName(), getLocalPort());
+      mMasterAddress = new InetSocketAddress(address.getHostName(), PORT);
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
       Preconditions.checkState(isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX),
           "Tachyon was not formatted!");
@@ -100,10 +100,11 @@ public class TachyonMaster {
 
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
+        String name = mMasterAddress.getAddress().getHostName() + ":" + mMasterAddress.getPort();
         mLeaderSelectorClient =
             new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS, conf.ZOOKEEPER_ELECTION_PATH,
                 // InetSocketAddress.toString causes test issues, so build the string by hand
-                conf.ZOOKEEPER_LEADER_PATH, mMasterAddress.getAddress().getHostName() + ":" + mMasterAddress.getPort());
+                conf.ZOOKEEPER_LEADER_PATH, name);
         mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
         Thread logProcessor = new Thread(mEditLogProcessor);
         logProcessor.start();
@@ -120,7 +121,7 @@ public class TachyonMaster {
    * @return
    */
   int getLocalPort() {
-    return port;
+    return PORT;
   }
 
   /**
