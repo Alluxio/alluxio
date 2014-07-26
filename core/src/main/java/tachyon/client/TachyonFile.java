@@ -426,28 +426,31 @@ public class TachyonFile implements Comparable<TachyonFile> {
       byte buffer[] = new byte[USER_CONF.FILE_BUFFER_BYTES * 4];
 
       BlockOutStream bos = new BlockOutStream(this, WriteType.TRY_CACHE, blockIndex);
-      int limit;
-      while (length > 0 && ((limit = inputStream.read(buffer)) >= 0)) {
-        if (limit != 0) {
-          try {
-            if (length >= limit) {
-              bos.write(buffer, 0, limit);
-              length -= limit;
-            } else {
-              bos.write(buffer, 0, (int) length);
-              length = 0;
+      try {
+        int limit;
+        while (length > 0 && ((limit = inputStream.read(buffer)) >= 0)) {
+          if (limit != 0) {
+            try {
+              if (length >= limit) {
+                bos.write(buffer, 0, limit);
+                length -= limit;
+              } else {
+                bos.write(buffer, 0, (int) length);
+                length = 0;
+              }
+            } catch (IOException e) {
+              LOG.warn(e);
+              succeed = false;
+              break;
             }
-          } catch (IOException e) {
-            LOG.warn(e);
-            succeed = false;
-            break;
           }
         }
-      }
-      if (succeed) {
-        bos.close();
-      } else {
-        bos.cancel();
+      } finally {
+        if (succeed) {
+          bos.close();
+        } else {
+          bos.cancel();
+        }
       }
     } catch (IOException e) {
       LOG.info(e);

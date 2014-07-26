@@ -46,7 +46,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * Class to make referencing file objects more intuitive. Mainly to avoid
    * implicit association by array indexes.
    */
-  public class UiBlockInfo implements Comparable<UiBlockInfo> {
+  public static class UiBlockInfo implements Comparable<UiBlockInfo> {
 
     private final long ID;
     private final long BLOCK_LENGTH;
