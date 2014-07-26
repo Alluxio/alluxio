@@ -88,6 +88,18 @@ public class InodeFolder extends Inode {
 
   private Set<Inode> mChildren = new HashSet<Inode>();
 
+  /**
+   * Create a new InodeFolder.
+   * 
+   * @param name
+   *          The name of the folder
+   * @param id
+   *          The id of the folder
+   * @param parentId
+   *          The id of the parent of the folder
+   * @param creationTimeMs
+   *          The creation time of the folder, in milliseconds
+   */
   public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
     super(name, id, parentId, true, creationTimeMs);
   }

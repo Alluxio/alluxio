@@ -25,12 +25,23 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 
+/**
+ * The recompute command class. Used to execute the recomputation.
+ */
 public class RecomputeCommand implements Runnable {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final String CMD;
   private final String FILE_PATH;
 
+  /**
+   * Create a new RecomputeCommand.
+   * 
+   * @param cmd
+   *          The command to execute
+   * @param filePath
+   *          The path of the output file, which records the output of the recompute process.
+   */
   public RecomputeCommand(String cmd, String filePath) {
     CMD = cmd;
     FILE_PATH = filePath;
