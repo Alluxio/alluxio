@@ -56,9 +56,9 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
     }
     NAME = name;
 
-    // create a leader selector using the given path for management
-    // all participants in a given leader selection must use the same path
-    // ExampleClient here is also a LeaderSelectorListener but this isn't required
+    // Create a leader selector using the given path for management.
+    // All participants in a given leader selection must use the same path.
+    // ExampleClient here is also a LeaderSelectorListener but this isn't required.
     CuratorFramework client =
         CuratorFrameworkFactory.newClient(ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(
             Constants.SECOND_MS, 3));

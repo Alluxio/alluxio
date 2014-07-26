@@ -22,6 +22,7 @@ import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -29,6 +30,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
 
@@ -43,32 +46,6 @@ public final class CommonUtils {
   private static final Logger LOG = Logger.getLogger("");
 
   /**
-   * Add leading zero to make the number has a fixed width. e.g., 81 with width 4 returns 0081;
-   * 12345 with width 4 returns 12345.
-   * 
-   * @param number
-   *          the number to add leading zero
-   * @param width
-   *          the fixed width
-   * @return a String with a fixed leading zero.
-   * @throws IOException
-   *           the number has to be non-negative; the width has to be positive.
-   */
-  public static String addLeadingZero(int number, int width) throws IOException {
-    if (number < 0) {
-      throw new IOException("The number has to be non-negative: " + number);
-    }
-    if (width <= 0) {
-      throw new IOException("The width has to be positive: " + width);
-    }
-    String result = number + "";
-    while (result.length() < width) {
-      result = "0" + result;
-    }
-    return result;
-  }
-
-  /**
    * Change local file's permission.
    * 
    * @param filePath
@@ -78,6 +55,7 @@ public final class CommonUtils {
    * @throws IOException
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
+    //TODO switch to java's Files.setPosixFilePermissions() if java 6 support is dropped
     List<String> commands = new ArrayList<String>();
     commands.add("/bin/chmod");
     commands.add(perms);
@@ -180,6 +158,8 @@ public final class CommonUtils {
   }
 
   public static String convertMsToClockTime(long Millis) {
+    Preconditions.checkArgument(Millis >= 0, "Negative values are not supported");
+
     long days = Millis / Constants.DAY_MS;
     long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
     long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
@@ -195,6 +175,8 @@ public final class CommonUtils {
   }
 
   public static String convertMsToShortClockTime(long Millis) {
+    Preconditions.checkArgument(Millis >= 0, "Negative values are not supported");
+
     long days = Millis / Constants.DAY_MS;
     long hours = (Millis % Constants.DAY_MS) / Constants.HOUR_MS;
     long mins = (Millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
