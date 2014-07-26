@@ -92,6 +92,15 @@ public class Image {
     ufs.close();
   }
 
+  /**
+   * Rename the src to the dst. Only used to rename the Image.
+   * 
+   * @param src
+   *          The src image path
+   * @param dst
+   *          The dst image path
+   * @throws IOException
+   */
   public static void rename(String src, String dst) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(src);
     ufs.rename(src, dst);

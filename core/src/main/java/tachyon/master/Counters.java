@@ -26,6 +26,17 @@ public class Counters implements Serializable, Comparable<Counters> {
   private long mEditTransactionId;
   private int mDependencyCounter;
 
+  /**
+   * Create a new Counters. It contains three counters, the counter for inode's id, the counter for
+   * edit transaction's id, and the counter for dependency's id.
+   * 
+   * @param inodeCounter
+   *          The initial value of the inodeCounter
+   * @param editTransactionId
+   *          The initial value of the editTransactionId
+   * @param dependencyCounter
+   *          The initial value of the dependencyCounter
+   */
   public Counters(int inodeCounter, long editTransactionId, int dependencyCounter) {
     mInodeCounter = inodeCounter;
     mEditTransactionId = editTransactionId;
@@ -71,14 +82,35 @@ public class Counters implements Serializable, Comparable<Counters> {
     return (int) (mInodeCounter + mEditTransactionId + mDependencyCounter);
   }
 
+  /**
+   * Update the dependencyCounter. Choose the maximum value between the current counter and the
+   * parameter.
+   * 
+   * @param dependencyCounter
+   *          The input dependencyCounter
+   */
   public synchronized void updateDependencyCounter(int dependencyCounter) {
     mDependencyCounter = Math.max(mDependencyCounter, dependencyCounter);
   }
 
+  /**
+   * Update the editTransactionId. Choose the maximum value between the current counter and the
+   * parameter.
+   * 
+   * @param id
+   *          The input editTransactionId
+   */
   public synchronized void updateEditTransactionCounter(long id) {
     mEditTransactionId = Math.max(mEditTransactionId, id);
   }
 
+  /**
+   * Update the inodeCounter. Choose the maximum value between the current counter and the
+   * parameter.
+   * 
+   * @param inodeCounter
+   *          The input inodeCounter
+   */
   public synchronized void updateInodeCounter(int inodeCounter) {
     mInodeCounter = Math.max(mInodeCounter, inodeCounter);
   }
