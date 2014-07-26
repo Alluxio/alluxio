@@ -69,6 +69,14 @@ public class Journal {
     mEditLog = new EditLog(mEditLogPath, false, startingTransactionId);
   }
 
+  /**
+   * Create a new image of the Master. It will be created at the mImagePath. If the
+   * mStandbyImagePath isn't null, it will rename the mStandbyImagePath to the mImagePath.
+   * 
+   * @param info
+   *          The Master Info
+   * @throws IOException
+   */
   public void createImage(MasterInfo info) throws IOException {
     if (mStandbyImagePath == null) {
       Image.create(info, mImagePath);
@@ -78,6 +86,15 @@ public class Journal {
     }
   }
 
+  /**
+   * Create a new image of the Master to the specified path.
+   * 
+   * @param info
+   *          The Master Info
+   * @param imagePath
+   *          The path of the image to be created
+   * @throws IOException
+   */
   public void createImage(MasterInfo info, String imagePath) throws IOException {
     Image.create(info, imagePath);
     mStandbyImagePath = imagePath;
@@ -124,6 +141,15 @@ public class Journal {
     Image.load(info, mImagePath);
   }
 
+  /**
+   * Load one log file of the Master
+   * 
+   * @param info
+   *          The Master Info
+   * @param path
+   *          The path of the edit log
+   * @throws IOException
+   */
   public void loadSingleLogFile(MasterInfo info, String path) throws IOException {
     EditLog.loadSingleLog(info, path);
     mCurrentLogFileNum ++;

@@ -60,7 +60,10 @@ public class Constants {
   public static final boolean DEBUG = Boolean
       .valueOf(System.getProperty("tachyon.debug", "false"));
 
-  // Version 1 [Before 0.5.0] is customized ser/de based.
-  // Version 2 [From 0.5.0] starts to use JSON.
-  public static final int JOURNAL_VERSION = 2; // The version keeps increasing.
+  /**
+   * Version 1 [Before 0.5.0] Customized ser/de based.
+   * Version 2 [0.5.0] Starts to use JSON.
+   * Version 3 [0.6.0] Add lastModificationTimeMs to inode.
+   */
+  public static final int JOURNAL_VERSION = 2;
 }

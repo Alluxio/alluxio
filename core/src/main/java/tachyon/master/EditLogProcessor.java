@@ -24,6 +24,16 @@ public class EditLogProcessor implements Runnable {
   private long mLoadedImageModTime = 0L;
   private boolean mIsStandby = true;
 
+  /**
+   * Create a new EditLogProcessor.
+   * 
+   * @param journal
+   *          The journal of the Master
+   * @param path
+   *          The path of the edit logs
+   * @param info
+   *          The Master Info
+   */
   public EditLogProcessor(Journal journal, String path, MasterInfo info) {
     mJournal = journal;
     mPath = path;
@@ -80,6 +90,9 @@ public class EditLogProcessor implements Runnable {
     LOG.info("Standy log processor with path " + mPath + " stopped.");
   }
 
+  /**
+   * Stop the log processor. Set the stand-by flag false.
+   */
   public void stop() {
     LOG.info("Stopping standby log processor with path " + mPath);
     mIsStandby = false;
