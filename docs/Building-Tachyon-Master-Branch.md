@@ -64,6 +64,10 @@ Current supported profiles:
     hdfs # uses hadoop's minicluster
     glusterfs # uses glusterfs
 
+To have the logs output to STDOUT, append the following to the `mvn` command
+
+    -Dtest.output.redirect=false -Dtachyon.root.logger=DEBUG,CONSOLE
+
 # Distro Support
 
 To build master against one of the different distros of hadoop, you only need to change the `hadoop.version`.
