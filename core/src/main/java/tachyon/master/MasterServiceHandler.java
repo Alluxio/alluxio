@@ -62,10 +62,8 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean
-      addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath)
-          throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
-          TException {
+  public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath)
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     try {
       return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
     } catch (FileNotFoundException e) {

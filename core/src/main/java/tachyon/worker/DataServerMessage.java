@@ -134,7 +134,7 @@ public class DataServerMessage {
         }
 
         String filePath = CommonUtils.concat(WorkerConf.get().DATA_FOLDER, blockId);
-        ret.LOG.info("Try to response remote requst by reading from " + filePath);
+        ret.LOG.info("Try to response remote request by reading from " + filePath);
         RandomAccessFile file = new RandomAccessFile(filePath, "r");
 
         long fileLength = file.length();
@@ -143,9 +143,8 @@ public class DataServerMessage {
           error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
         }
         if (error == null && len != -1 && offset + len > fileLength) {
-          error =
-              String.format("Offset(%d) plus length(%d) is larger than file length(%d)", offset,
-                  len, fileLength);
+          error = String.format("Offset(%d) plus length(%d) is larger than file length(%d)",
+            offset, len, fileLength);
         }
         if (error != null) {
           file.close();
@@ -166,7 +165,7 @@ public class DataServerMessage {
         file.close();
         ret.mIsMessageReady = true;
         ret.generateHeader();
-        ret.LOG.info("Response remote requst by reading from " + filePath + " preparation done.");
+        ret.LOG.info("Response remote request by reading from " + filePath + " preparation done.");
       } catch (Exception e) {
         // TODO This is a trick for now. The data may have been removed before remote retrieving.
         ret.mBlockId = -ret.mBlockId;
