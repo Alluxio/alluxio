@@ -25,42 +25,30 @@ import tachyon.client.WriteType;
 public class HdfsFileOutputStream extends OutputStream { // implements Syncable
 
   HdfsFileOutputStream(TachyonFile file, WriteType writeType) {
-    // TODO Auto-generated constructor stub
   }
-
-  // @Override
-  // public void sync() throws IOException {
-  // // TODO Auto-generated method stub
-  //
-  // }
 
   @Override
   public void close() throws IOException {
-    // TODO Auto-generated method stub
-
+    throw new IOException("Not supported");
   }
 
   @Override
   public void flush() throws IOException {
-    // TODO Auto-generated method stub
-
+    throw new IOException("Not supported");
   }
 
   @Override
   public void write(byte[] b) throws IOException {
-    // TODO Auto-generated method stub
-
+    throw new IOException("Not supported");
   }
 
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    // TODO Auto-generated method stub
-
+    throw new IOException("Not supported");
   }
 
   @Override
   public void write(int b) throws IOException {
-    // TODO Auto-generated method stub
-
+    throw new IOException("Not supported");
   }
 }

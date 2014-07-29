@@ -164,8 +164,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   @Override
   public int read(long position, byte[] buffer, int offset, int length) throws IOException {
     throw new IOException("Not supported");
-    // TODO Auto-generated method stub
-    // return 0;
   }
 
   private int readFromHdfsBuffer() throws IOException {
@@ -190,7 +188,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public void readFully(long position, byte[] buffer) throws IOException {
-    // TODO Auto-generated method stub
     throw new IOException("Not supported");
   }
 
@@ -200,7 +197,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public void readFully(long position, byte[] buffer, int offset, int length) throws IOException {
-    // TODO Auto-generated method stub
     throw new IOException("Not supported");
   }
 
@@ -233,7 +229,5 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   @Override
   public boolean seekToNewSource(long targetPos) throws IOException {
     throw new IOException("Not supported");
-    // TODO Auto-generated method stub
-    // return false;
   }
 }
