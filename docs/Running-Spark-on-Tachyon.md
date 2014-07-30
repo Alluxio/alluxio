@@ -39,6 +39,14 @@ Put a file X into HDFS and run the Spark shell:
 
 Take a look at [http://localhost:19999](http://localhost:19999). There should be an output file
 `Y` which contains the number of words in the file `X`.
+Put a file X into HDFS and run the Spark shell:
+
+If you are invoking spark job using sbt or from other frameworks like play using sbt:
+
+    val conf = new SparkConf()
+    val sc = new SparkContext(conf)
+    sc.hadoopConfiguration.set("fs.tachyon.impl", "tachyon.hadoop.TFS")
+    
 
 If you are running tachyon in fault tolerant mode with zookeeper and the hadoop cluster is a 1.x cluster, 
 additionally add new entry in previously created `spark/conf/core-site.xml`:
