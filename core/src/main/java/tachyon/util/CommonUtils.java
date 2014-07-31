@@ -22,7 +22,6 @@ import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,6 +45,25 @@ public final class CommonUtils {
   private static final Logger LOG = Logger.getLogger("");
 
   /**
+<<<<<<< HEAD
+=======
+   * Add leading zero to make the number has a fixed width. e.g., 81 with width 4 returns 0081;
+   * 12345 with width 4 returns 12345.
+   * 
+   * @param number
+   *          the number to add leading zero
+   * @param width
+   *          the fixed width
+   * @return a String with a fixed leading zero.
+   */
+  @Deprecated
+  //TODO I only see tests for this, no other usage, so should this be removed?
+  public static String addLeadingZero(int number, int width) {
+    return Strings.padStart(Integer.toString(number), width, '0');
+  }
+
+  /**
+>>>>>>> parent of 8b29770... added todo
    * Change local file's permission.
    * 
    * @param filePath
@@ -55,7 +73,6 @@ public final class CommonUtils {
    * @throws IOException
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
-    //TODO switch to java's Files.setPosixFilePermissions() if java 6 support is dropped
     List<String> commands = new ArrayList<String>();
     commands.add("/bin/chmod");
     commands.add(perms);
