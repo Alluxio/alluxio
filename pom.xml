@@ -136,25 +136,44 @@
 
   <build>
     <plugins>
-<!--
+      <!--
+         <plugin>
+           <artifactId>exec-maven-plugin</artifactId>
+           <groupId>org.codehaus.mojo</groupId>
+           <version>1.2.1</version>
+           <executions>
+             <execution>
+               <id>Version Calculation</id>
+               <phase>generate-sources</phase>
+               <goals>
+                 <goal>exec</goal>
+               </goals>
+               <configuration>
+                 <executable>${basedir}/bin/thrift-gen.sh</executable>
+               </configuration>
+             </execution>
+           </executions>
+         </plugin>
+         -->
       <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <version>1.2.1</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
         <executions>
           <execution>
-            <id>Version Calculation</id>
-            <phase>generate-sources</phase>
+            <id>enforce-versions</id>
             <goals>
-              <goal>exec</goal>
+              <goal>enforce</goal>
             </goals>
             <configuration>
-              <executable>${basedir}/bin/thrift-gen.sh</executable>
+              <rules>
+                <requireJavaVersion>
+                  <version>1.7</version>
+                </requireJavaVersion>
+              </rules>
             </configuration>
           </execution>
         </executions>
       </plugin>
--->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
