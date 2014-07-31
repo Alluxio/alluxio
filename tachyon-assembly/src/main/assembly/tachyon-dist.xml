@@ -49,6 +49,7 @@
         <exclude>**/*.iws</exclude>
         <exclude>**/*.ipr</exclude>
         <exclude>**/*.iml</exclude>
+        <exclude>.idea/**</exclude>
         <exclude>**/.classpath</exclude>
         <exclude>**/.project</exclude>
         <exclude>**/.settings</exclude>
