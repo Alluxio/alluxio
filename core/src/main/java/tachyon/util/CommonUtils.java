@@ -22,7 +22,6 @@ import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -55,7 +54,6 @@ public final class CommonUtils {
    * @throws IOException
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
-    //TODO switch to java's Files.setPosixFilePermissions() if java 6 support is dropped
     List<String> commands = new ArrayList<String>();
     commands.add("/bin/chmod");
     commands.add(perms);
