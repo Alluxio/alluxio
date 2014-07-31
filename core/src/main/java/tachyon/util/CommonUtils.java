@@ -54,6 +54,7 @@ public final class CommonUtils {
    * @throws IOException
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
+    //TODO switch to java's Files.setPosixFilePermissions() if java 6 support is dropped
     List<String> commands = new ArrayList<String>();
     commands.add("/bin/chmod");
     commands.add(perms);
