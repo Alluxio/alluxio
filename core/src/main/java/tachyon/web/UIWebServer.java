@@ -51,7 +51,6 @@ public class UIWebServer {
    *          Address of the server
    * @param masterInfo
    *          MasterInfo for the tachyon filesystem this UIWebServer supports
-   * @return A new UIWebServer
    */
   public UIWebServer(String serverName, InetSocketAddress address, MasterInfo masterInfo) {
     mAddress = address;
