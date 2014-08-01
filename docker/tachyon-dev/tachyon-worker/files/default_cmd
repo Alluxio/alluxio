@@ -22,11 +22,16 @@ sleep 5
 
 echo "starting Tachyon Worker"
 #source /root/tachyon_worker_files/run_tachyon_worker.sh
-chown -R hdfs:hdfs $TACHYON_CONTAINER
-run_tachyon=run_tachyon_worker.sh
-cp /root/tachyon_master_files/"$run_tachyon" /
-chmod a+rx /"$run_tachyon"
-sudo -u hdfs TACHYON_CONTAINER=$TACHYON_CONTAINER MASTER_IP=$MASTER_IP /"$run_tachyon"
+#chown -R hdfs:hdfs $TACHYON_CONTAINER
+#run_tachyon=run_tachyon_worker.sh
+#cp /root/tachyon_worker_files/"$run_tachyon" /
+#chmod a+rx /"$run_tachyon"
+#sudo -u hdfs TACHYON_CONTAINER=$TACHYON_CONTAINER MASTER_IP=$MASTER_IP /"$run_tachyon"
+
+$TACHYON_CONTAINER/bin/tachyon bootstrap-conf $MASTER_IP
+
+$TACHYON_CONTAINER/bin/tachyon-start.sh worker SudoMount
+
 
 # Keep this script alive in container, so that docker will keep the container running
 while [ 1 ];
