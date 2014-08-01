@@ -14,6 +14,8 @@ function deploy_hadoop_files() {
     do
         filename=$(basename $i);
         cp $i /etc/hadoop/$filename;
+        chown hdfs:hdfs /etc/hadoop/$filename;
+        chmod 0644 /etc/hadoop/$filename;
     done
     cp /root/hadoop_files/id_rsa /root/.ssh
     chmod go-rwx /root/.ssh/id_rsa

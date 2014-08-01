@@ -21,11 +21,12 @@ echo "starting sshd"
 sleep 5
 
 echo "starting Tachyon Master"
-source /root/tachyon_master_files/run_tachyon_master.sh
-#run_tachyon=run_tachyon_master.sh
-#cp /root/tachyon_master_files/"$run_tachyon" /
-#chmod a+rx /"$run_tachyon"
-#sudo -u root TACHYON_CONTAINER=$TACHYON_CONTAINER MASTER_IP=$MASTER_IP /"$run_tachyon"
+#source /root/tachyon_master_files/run_tachyon_master.sh
+chown -R hdfs:hdfs $TACHYON_CONTAINER
+run_tachyon=run_tachyon_master.sh
+cp /root/tachyon_master_files/"$run_tachyon" /
+chmod a+rx /"$run_tachyon"
+sudo -u hdfs TACHYON_CONTAINER=$TACHYON_CONTAINER MASTER_IP=$MASTER_IP /"$run_tachyon"
 
 # Keep this script alive in container, so that docker will keep the container running
 while [ 1 ];
