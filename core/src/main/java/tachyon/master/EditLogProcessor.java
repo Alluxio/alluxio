@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.util.CommonUtils;
@@ -22,6 +24,16 @@ public class EditLogProcessor implements Runnable {
   private long mLoadedImageModTime = 0L;
   private boolean mIsStandby = true;
 
+  /**
+   * Create a new EditLogProcessor.
+   * 
+   * @param journal
+   *          The journal of the Master
+   * @param path
+   *          The path of the edit logs
+   * @param info
+   *          The Master Info
+   */
   public EditLogProcessor(Journal journal, String path, MasterInfo info) {
     mJournal = journal;
     mPath = path;
@@ -29,7 +41,7 @@ public class EditLogProcessor implements Runnable {
     try {
       mLoadedImageModTime = mJournal.getImageModTimeMs();
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
     LOG.info("Created edit log processor with path " + mPath);
   }
@@ -72,12 +84,15 @@ public class EditLogProcessor implements Runnable {
         }
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       } catch (IOException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
     }
     LOG.info("Standy log processor with path " + mPath + " stopped.");
   }
 
+  /**
+   * Stop the log processor. Set the stand-by flag false.
+   */
   public void stop() {
     LOG.info("Stopping standby log processor with path " + mPath);
     mIsStandby = false;

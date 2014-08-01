@@ -28,9 +28,10 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.Users;
-import tachyon.util.CommonUtils;
 
 /**
  * The Server to serve data file read request from remote machines. The current implementation
@@ -75,7 +76,7 @@ public class DataServer implements Runnable {
       mSelector = initSelector();
     } catch (IOException e) {
       LOG.error(e.getMessage() + mAddress, e);
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 

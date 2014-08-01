@@ -25,6 +25,8 @@ import java.util.Map.Entry;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Throwables;
+
 import tachyon.conf.CommonConf;
 import tachyon.util.CommonUtils;
 
@@ -37,17 +39,27 @@ public class Users {
 
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
+  /** User's temporary data folder in the worker **/
   private final String USER_FOLDER;
+  /** User's teomporary data folder in the under filesystem **/
   private final String USER_UNDERFS_FOLDER;
+  /** Map from UserId to {@link tachyon.UserInfo} object **/
   private final Map<Long, UserInfo> USERS;
 
-  public Users(String userfolder, String userUnderfsFolder) {
+  public Users(final String userfolder, final String userUnderfsFolder) {
     USER_FOLDER = userfolder;
     USER_UNDERFS_FOLDER = userUnderfsFolder;
-
     USERS = new HashMap<Long, UserInfo>();
   }
 
+  /**
+   * Adds user's own bytes and updates the user's heartbeat.
+   * 
+   * @param userId
+   *          id of the user.
+   * @param newBytes
+   *          delta bytes the user owns.
+   */
   public void addOwnBytes(long userId, long newBytes) {
     UserInfo tUser = null;
     synchronized (USERS) {
@@ -76,10 +88,24 @@ public class Users {
     return ret;
   }
 
+  /**
+   * Returns the user's temporary data folder in the worker's machine.
+   * 
+   * @param userId
+   *          The queried user.
+   * @return String contains user's temporary data folder in the worker's machine..
+   */
   public String getUserTempFolder(long userId) {
     return CommonUtils.concat(USER_FOLDER, userId);
   }
 
+  /**
+   * Returns the user's temporary data folder in the under filesystem.
+   * 
+   * @param userId
+   *          The queried user.
+   * @return String contains the user's temporary data folder in the under filesystem.
+   */
   public String getUserUnderfsTempFolder(long userId) {
     return CommonUtils.concat(USER_UNDERFS_FOLDER, userId);
   }
@@ -125,7 +151,7 @@ public class Users {
       try {
         FileUtils.deleteDirectory(new File(folder));
       } catch (IOException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
 
       folder = getUserUnderfsTempFolder(userId);
@@ -141,6 +167,12 @@ public class Users {
     return returnedBytes;
   }
 
+  /**
+   * Updates user's heartbeat.
+   * 
+   * @param userId
+   *          the id of the user
+   */
   public void userHeartbeat(long userId) {
     synchronized (USERS) {
       if (USERS.containsKey(userId)) {

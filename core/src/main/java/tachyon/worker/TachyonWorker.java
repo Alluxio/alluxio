@@ -25,6 +25,8 @@ import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.conf.WorkerConf;
@@ -212,7 +214,7 @@ public class TachyonWorker implements Runnable {
               .acceptQueueSizePerThread(acceptQueueSizePerThreads).workerThreads(workerThreads));
     } catch (TTransportException e) {
       LOG.error(e.getMessage(), e);
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 
@@ -254,7 +256,7 @@ public class TachyonWorker implements Runnable {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         cmd = null;
         if (System.currentTimeMillis() - lastHeartbeatMs >= WorkerConf.get().HEARTBEAT_TIMEOUT_MS) {
-          CommonUtils.runtimeException("Timebeat timeout "
+          throw new RuntimeException("Timebeat timeout "
               + (System.currentTimeMillis() - lastHeartbeatMs) + "ms");
         }
       }
@@ -279,7 +281,7 @@ public class TachyonWorker implements Runnable {
           LOG.info("Delete command: " + cmd);
           break;
         default:
-          CommonUtils.runtimeException("Un-recognized command from master " + cmd.toString());
+          throw new RuntimeException("Un-recognized command from master " + cmd.toString());
         }
       }
 

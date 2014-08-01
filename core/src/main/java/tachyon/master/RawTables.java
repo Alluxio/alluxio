@@ -38,6 +38,18 @@ public class RawTables extends ImageWriter {
   private Map<Integer, Pair<Integer, ByteBuffer>> mData =
       new HashMap<Integer, Pair<Integer, ByteBuffer>>();
 
+  /**
+   * Add a raw table. It will check if the raw table is already added.
+   * 
+   * @param tableId
+   *          The id of the raw table
+   * @param columns
+   *          The number of columns in the raw table
+   * @param metadata
+   *          The additional metadata of the raw table
+   * @return true if success, false otherwise
+   * @throws TachyonException
+   */
   public synchronized boolean addRawTable(int tableId, int columns, ByteBuffer metadata)
       throws TachyonException {
     if (mData.containsKey(tableId)) {
@@ -50,6 +62,13 @@ public class RawTables extends ImageWriter {
     return true;
   }
 
+  /**
+   * Remove a raw table.
+   * 
+   * @param tableId
+   *          The id of the raw table
+   * @return true if success, false otherwise
+   */
   public synchronized boolean delete(int tableId) {
     mData.remove(tableId);
     return true;
@@ -79,6 +98,13 @@ public class RawTables extends ImageWriter {
     return null == data ? -1 : data.getFirst();
   }
 
+  /**
+   * Get the metadata of the specified raw table. It will return a duplication.
+   * 
+   * @param tableId
+   *          The id of the raw table
+   * @return null if it has no metadata, or a duplication of the metadata
+   */
   public synchronized ByteBuffer getMetadata(int tableId) {
     Pair<Integer, ByteBuffer> data = mData.get(tableId);
 
@@ -128,6 +154,15 @@ public class RawTables extends ImageWriter {
     }
   }
 
+  /**
+   * Update the metadata of the specified raw table. It will check if the table exists.
+   * 
+   * @param tableId
+   *          The id of the raw table
+   * @param metadata
+   *          The new metadata of the raw table
+   * @throws TachyonException
+   */
   // TODO add version number.
   public synchronized void updateMetadata(int tableId, ByteBuffer metadata)
       throws TachyonException {

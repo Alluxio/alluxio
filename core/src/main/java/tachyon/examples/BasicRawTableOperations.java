@@ -29,7 +29,6 @@ import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
-import tachyon.util.CommonUtils;
 
 public class BasicRawTableOperations {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
@@ -104,7 +103,7 @@ public class BasicRawTableOperations {
     for (int column = 0; column < COLS; column ++) {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       if (!rawColumn.createPartition(0)) {
-        CommonUtils.runtimeException("Failed to create partition in table " + sTablePath
+        throw new IOException("Failed to create partition in table " + sTablePath
             + " under column " + column);
       }
 

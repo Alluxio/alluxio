@@ -167,6 +167,16 @@ public class InodeFileTest {
   }
 
   @Test
+  public void setLastModificationTimeTest() {
+    long createTimeMs = System.currentTimeMillis();
+    long modificationTimeMs = createTimeMs + 1000;
+    InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, createTimeMs);
+    Assert.assertEquals(createTimeMs, inodeFile.getLastModificationTimeMs());
+    inodeFile.setLastModificationTimeMs(modificationTimeMs);
+    Assert.assertEquals(modificationTimeMs, inodeFile.getLastModificationTimeMs());
+  }
+
+  @Test
   public void setNameTest() {
     InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
     Assert.assertEquals("test1", inode1.getName());

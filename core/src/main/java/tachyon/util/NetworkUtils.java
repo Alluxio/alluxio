@@ -1,7 +1,15 @@
 package tachyon.util;
 
+import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.UnknownHostException;
+import java.util.Enumeration;
+
+import org.apache.log4j.Logger;
+
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 
@@ -9,6 +17,55 @@ import tachyon.Constants;
  * Common network utilities shared by all components in Tachyon.
  */
 public class NetworkUtils {
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+
+  /**
+   * @return the local host name, which is not based on a loopback ip address.
+   */
+  public static String getLocalHostName() {
+    try {
+      return InetAddress.getByName(getLocalIpAddress()).getCanonicalHostName();
+    } catch (UnknownHostException e) {
+      LOG.error(e);
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * @return the local ip address, which is not a loopback address.
+   */
+  public static String getLocalIpAddress() {
+    try {
+      InetAddress address = InetAddress.getLocalHost();
+      System.out.println("address " + address.toString() + " " + address.isLoopbackAddress() + " "
+          + address.getHostAddress() + " " + address.getHostName());
+      if (address.isLoopbackAddress()) {
+        Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+        while (networkInterfaces.hasMoreElements()) {
+          NetworkInterface ni = networkInterfaces.nextElement();
+          Enumeration<InetAddress> addresses = ni.getInetAddresses();
+          while (addresses.hasMoreElements()) {
+            address = addresses.nextElement();
+
+            if (!address.isLinkLocalAddress() && !address.isLoopbackAddress()
+                && (address instanceof Inet4Address)) {
+              return address.getHostAddress();
+            }
+          }
+        }
+
+        LOG.warn("Your hostname, " + InetAddress.getLocalHost().getHostName() + " resolves to"
+            + " a loopback address: " + address.getHostAddress() + ", but we couldn't find any"
+            + " external IP address!");
+      }
+
+      return address.getHostAddress();
+    } catch (IOException e) {
+      LOG.error(e);
+      throw Throwables.propagate(e);
+    }
+  }
+
   /**
    * Replace and resolve the hostname in a given address or path string.
    * 

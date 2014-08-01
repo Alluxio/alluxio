@@ -14,12 +14,12 @@
  */
 package tachyon;
 
+import tachyon.conf.CommonConf;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-
-import tachyon.util.CommonUtils;
 
 /**
  * Tachyon stores data into an under layer file system. Any file system implementing this interface
@@ -45,7 +45,7 @@ public abstract class UnderFileSystem {
 
   /**
    * Get the UnderFileSystem instance according to its schema.
-   * 
+   *
    * @param path
    *          file path storing over the ufs.
    * @return null for any unknown scheme.
@@ -56,7 +56,7 @@ public abstract class UnderFileSystem {
 
   /**
    * Get the UnderFileSystem instance according to its scheme and configuration.
-   * 
+   *
    * @param path
    *          file path storing over the ufs
    * @param conf
@@ -64,21 +64,34 @@ public abstract class UnderFileSystem {
    * @return null for any unknown scheme.
    */
   public static UnderFileSystem get(String path, Object conf) {
-    if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")
-        || path.startsWith("glusterfs:///")) {
+    if (isHadoopUnderFS(path)) {
       return UnderFileSystemHdfs.getClient(path, conf);
     } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return UnderFileSystemSingleLocal.getClient();
     }
-    CommonUtils.illegalArgumentException("Unknown under file system scheme " + path);
-    return null;
+    throw new IllegalArgumentException("Unknown under file system scheme " + path);
+  }
+
+  /**
+   * Determines if the Hadoop implementation of {@link tachyon.UnderFileSystem} should be used.
+   *
+   * The logic to say if a path should use the hadoop implementation is by checking if
+   * {@link String#startsWith(String)} to see if the configured schemas are found.
+   */
+  private static boolean isHadoopUnderFS(final String path) {
+    for(final String prefix : CommonConf.get().HADOOP_UFS_PREFIXES) {
+      if (path.startsWith(prefix)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
    * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir
    * into a pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
    * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
-   * 
+   *
    * @param path
    *          the input path string
    * @return null if path does not start with tachyon://, tachyon-ft://, hdfs://, s3://, s3n://,
@@ -90,8 +103,7 @@ public abstract class UnderFileSystem {
     if (path == null) {
       return null;
     } else if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)
-        || path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")
-        || path.startsWith("glusterfs:///")) {
+        || isHadoopUnderFS(path)) {
       String prefix = path.substring(0, path.indexOf("://") + 3);
       String body = path.substring(prefix.length());
       if (body.contains(Constants.PATH_SEPARATOR)) {

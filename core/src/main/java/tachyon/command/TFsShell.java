@@ -206,7 +206,7 @@ public class TFsShell {
     }
     String path = argv[1];
     long[] values = countHelper(path);
-    String format = "%-25s%-25s%-15s\n";
+    String format = "%-25s%-25s%-15s%n";
     System.out.format(format, "File Count", "Folder Count", "Total Bytes");
     System.out.format(format, values[0], values[1], values[2]);
     return 0;
@@ -302,7 +302,7 @@ public class TFsShell {
     TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
     List<ClientFileInfo> files = tachyonClient.listStatus(folder);
     Collections.sort(files);
-    String format = "%-10s%-25s%-15s%-5s\n";
+    String format = "%-10s%-25s%-15s%-5s%n";
     for (ClientFileInfo file : files) {
       String inMemory = "";
       if (!file.isFolder) {
@@ -337,7 +337,7 @@ public class TFsShell {
     TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
     List<ClientFileInfo> files = tachyonClient.listStatus(folder);
     Collections.sort(files);
-    String format = "%-10s%-25s%-15s%-5s\n";
+    String format = "%-10s%-25s%-15s%-5s%n";
     for (ClientFileInfo file : files) {
       String inMemory = "";
       if (!file.isFolder) {
@@ -407,35 +407,6 @@ public class TFsShell {
     } catch (Exception e) {
       e.printStackTrace();
       System.out.println("File '" + file + "' could not be pinned.");
-      return -1;
-    }
-  }
-
-  /**
-   * Unpins the given file or folder (recursively unpinning all children if a folder). Pinned files
-   * are never evicted from memory, so this method will allow such files to be evicted.
-   * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
-   * @return 0 if command is successful, -1 if an error occurred.
-   * @throws IOException
-   */
-  public int unpin(String argv[]) throws IOException {
-    if (argv.length != 2) {
-      System.out.println("Usage: tfs unpin <path>");
-      return -1;
-    }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
-    int fileId = tachyonClient.getFileId(file);
-    try {
-      tachyonClient.unpinFile(fileId);
-      System.out.println("File '" + file + "' was successfully unpinned.");
-      return 0;
-    } catch (Exception e) {
-      e.printStackTrace();
-      System.out.println("File '" + file + "' could not be unpinned.");
       return -1;
     }
   }
@@ -673,5 +644,34 @@ public class TFsShell {
     out.close();
     System.out.println(path + " has been created");
     return 0;
+  }
+
+  /**
+   * Unpins the given file or folder (recursively unpinning all children if a folder). Pinned files
+   * are never evicted from memory, so this method will allow such files to be evicted.
+   * 
+   * @param argv
+   *          [] Array of arguments given by the user's input from the terminal
+   * @return 0 if command is successful, -1 if an error occurred.
+   * @throws IOException
+   */
+  public int unpin(String argv[]) throws IOException {
+    if (argv.length != 2) {
+      System.out.println("Usage: tfs unpin <path>");
+      return -1;
+    }
+    String path = argv[1];
+    String file = Utils.getFilePath(path);
+    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    int fileId = tachyonClient.getFileId(file);
+    try {
+      tachyonClient.unpinFile(fileId);
+      System.out.println("File '" + file + "' was successfully unpinned.");
+      return 0;
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("File '" + file + "' could not be unpinned.");
+      return -1;
+    }
   }
 }

@@ -21,7 +21,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.thrift.TException;
-import tachyon.util.CommonUtils;
+
+import com.google.common.base.Throwables;
 
 /**
  * Handle local block locking.
@@ -53,7 +54,7 @@ public class BlocksLocker {
       try {
         mWorkerStorage.lockBlock(blockId, mUserId);
       } catch (TException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
       mLockedBlockIds.put(blockId, new HashSet<Integer>());
     }
@@ -89,7 +90,7 @@ public class BlocksLocker {
         try {
           mWorkerStorage.unlockBlock(blockId, mUserId);
         } catch (TException e) {
-          CommonUtils.runtimeException(e);
+          throw Throwables.propagate(e);
         }
       }
     }

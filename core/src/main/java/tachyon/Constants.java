@@ -39,8 +39,11 @@ public class Constants {
   public static final int HOUR_MS = MINUTE_MS * 60;
   public static final int DAY_MS = HOUR_MS * 24;
 
-  public static final String HEADER = "tachyon://";
-  public static final String HEADER_FT = "tachyon-ft://";
+  public static final String SCHEME = "tachyon";
+  public static final String HEADER = SCHEME + "://";
+
+  public static final String SCHEME_FT = "tachyon-ft";
+  public static final String HEADER_FT = SCHEME_FT + "://";
 
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
@@ -57,7 +60,10 @@ public class Constants {
   public static final boolean DEBUG = Boolean
       .valueOf(System.getProperty("tachyon.debug", "false"));
 
-  // Version 1 [Before 0.5.0] is customized ser/de based.
-  // Version 2 [From 0.5.0] starts to use JSON.
-  public static final int JOURNAL_VERSION = 2; // The version keeps increasing.
+  /**
+   * Version 1 [Before 0.5.0] Customized ser/de based.
+   * Version 2 [0.5.0] Starts to use JSON.
+   * Version 3 [0.6.0] Add lastModificationTimeMs to inode.
+   */
+  public static final int JOURNAL_VERSION = 2;
 }
