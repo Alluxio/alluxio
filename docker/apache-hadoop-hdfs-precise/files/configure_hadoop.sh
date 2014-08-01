@@ -22,8 +22,8 @@ function deploy_hadoop_files() {
 }		
 
 function configure_hadoop() {
-    sed -i s/__MASTER__/$1/ /etc/hadoop/core-site.xml
-    sed -i s/"JAVA_HOME=\/usr\/lib\/jvm\/java-6-sun"/"JAVA_HOME=$JAVA_HOME"/ /etc/hadoop/hadoop-env.sh
+    sed -i "s/__MASTER__/$1/" /etc/hadoop/core-site.xml
+    sed -i "s+JAVA_HOME=/usr/lib/jvm/java-6-sun+JAVA_HOME=$JAVA_HOME+" /etc/hadoop/hadoop-env.sh
 }
 
 function prepare_hadoop() {
