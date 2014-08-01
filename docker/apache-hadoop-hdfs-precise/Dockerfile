@@ -16,7 +16,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y less openjdk-6-jr
 # Install Hadoop
 ADD https://archive.apache.org/dist/hadoop/common/hadoop-1.0.4/hadoop_1.0.4-1_x86_64.deb /root/
 RUN dpkg -i /root/hadoop_1.0.4-1_x86_64.deb
-rm !$
+RUN rm !$
 
 # Docker messes up /etc/hosts and adds two entries for 127.0.0.1
 # we try to recover from that by giving /etc/resolv.conf and therefore
