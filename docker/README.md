@@ -45,7 +45,7 @@ browser, you need to configure the network between your host and VirtualBox and 
 between them. so why not just choose your favorite virtual machine software, install a ubuntu, and
 work in this ubuntu either directly in the VM or ssh into it from host with your favorite terminal.
 
-## Development issues
+## Example Usages:
 ### Testing environment:
 * ubuntu14.04
 * docker0.9.1
@@ -94,15 +94,4 @@ In this example, we want to deploy a hdfs as under filesystem for tachyon.
 * set under filesystem settings to hdfs in tachyon-dev/tachyon_base/files/tachyon-env.sh.template
 * cd tachyon-dev && ./build && cd ..
 * ./deploy/deploy.sh
-* "sudo docker ps" to see all the running docker containers, find the ID(first item) for
-tachyon-master:dev, replace "$ID" in following commands with this ID
-* "sudo docker logs $ID" to see what happens when docker starts this container and runs its default commands
-* Bug happens! I got the exception:
-
-  Exception in thread "main" java.lang.NoSuchMethodError: org.apache.hadoop.ipc.RPC.getProxy
-
-  You can ssh into master, and see hadoop logs in /var/log/hadoop/*, you'll find that hadoop runs
-  well, but when tachyon tries to format, this exception is thrown!
-
-  I've digged into tachyon-0.5.0-SNAPSHOT-with-dependency.jar, and find the RPC class and getProxy
-  method. I'm trapped by this problem.
+* now, open master web ui according to the output hints
