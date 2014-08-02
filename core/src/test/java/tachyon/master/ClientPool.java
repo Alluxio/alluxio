@@ -28,14 +28,16 @@ public final class ClientPool implements Closeable {
 
   @Override
   public void close() throws IOException {
-    for (TachyonFS fs : mClients) {
-      try {
-        fs.close();
-      } catch (TException e) {
-        throw new IOException(e);
+    synchronized (mClients) {
+      for (TachyonFS fs : mClients) {
+        try {
+          fs.close();
+        } catch (TException e) {
+          throw new IOException(e);
+        }
       }
-    }
 
-    mClients.clear();
+      mClients.clear();
+    }
   }
 }
