@@ -254,7 +254,7 @@ public class LocalTachyonCluster {
    */
   public void stop() throws Exception {
     stopTFS();
-//    stopUFS();
+    stopUFS();
   }
 
   /**
@@ -282,18 +282,20 @@ public class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
   }
 
-//  /**
-//   * Cleanup the underfs cluster test folder only
-//   *
-//   * @throws Exception
-//   */
-//  public void stopUFS() throws Exception {
+  /**
+   * Cleanup the underfs cluster test folder only
+   *
+   * @throws Exception
+   */
+  public void stopUFS() throws Exception {
 //    if (null != mUnderFSCluster) {
 //      mUnderFSCluster.cleanup();
 //    }
 //    System.clearProperty("tachyon.master.journal.folder");
 //    System.clearProperty("tachyon.underfs.address");
-//  }
+
+    mMaster.cleanupUnderfs();
+  }
 
   public void stopWorker() throws Exception {
 //    for (TachyonFS fs : mClients) {
