@@ -6,7 +6,7 @@ This module is to unify the different tachyon modules into a release package; ty
 
 The defaults are set up so that the following command will generate the tarball
 
-    mvn package
+    mvn package assembly:single
 
 This command will output the tar at `target/tachyon-$VERSION.tar.gz` along with a `target/tachyon-$VERSION` directory that has the same content as the tar.
 
