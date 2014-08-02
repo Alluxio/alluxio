@@ -111,7 +111,6 @@ public class BlockOutStream extends OutStream {
               + ") or no worker for " + FILE.FID + " " + BLOCK_ID;
       if (PIN) {
         TFS.outOfMemoryForPinFile(FILE.FID);
-        throw new IOException(msg);
       }
 
       throw new IOException(msg);
