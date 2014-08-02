@@ -1,7 +1,7 @@
 package tachyon.master;
 
 import com.google.common.base.Preconditions;
-import org.apache.thrift.TException;
+import com.google.common.base.Supplier;
 import tachyon.Constants;
 import tachyon.UnderFileSystemCluster;
 import tachyon.UnderFileSystems;
@@ -16,9 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Constructs an isolated master.  Primary users of this class are the
@@ -42,8 +39,13 @@ public final class LocalTachyonMaster {
   private final TachyonMaster mMaster;
   private final Thread mMasterThread;
 
-  private final List<TachyonFS> mClients =
-      Collections.synchronizedList(new ArrayList<TachyonFS>());
+  private final Supplier<String> clientSupplier = new Supplier<String>() {
+    @Override
+    public String get() {
+      return getUri();
+    }
+  };
+  private final ClientPool clientPool = new ClientPool(clientSupplier);
 
   private LocalTachyonMaster(final String tachyonHome) throws IOException {
     mTachyonHome = tachyonHome;
@@ -51,8 +53,8 @@ public final class LocalTachyonMaster {
     mData = path(mTachyonHome, "data");
     mLogs = path(mTachyonHome, "logs");
 
-    UnderFileSystems.mkdir(mData);
-    UnderFileSystems.mkdir(mLogs);
+    UnderFileSystems.mkdirIfNotExists(mData);
+    UnderFileSystems.mkdirIfNotExists(mLogs);
 
     mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
 
@@ -67,7 +69,7 @@ public final class LocalTachyonMaster {
     // miniDFSCluster
     mJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
 
-    UnderFileSystems.mkdir(mJournalFolder);
+    UnderFileSystems.mkdirIfNotExists(mJournalFolder);
     CommonUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis());
 
     System.setProperty("tachyon.master.hostname", mLocalhostName);
@@ -108,7 +110,7 @@ public final class LocalTachyonMaster {
   public static LocalTachyonMaster create() throws IOException {
     final String tachyonHome = uniquePath();
     UnderFileSystems.deleteDir(tachyonHome);
-    UnderFileSystems.mkdir(tachyonHome);
+    UnderFileSystems.mkdirIfNotExists(tachyonHome);
 
     System.setProperty("tachyon.home", tachyonHome);
 
@@ -122,7 +124,7 @@ public final class LocalTachyonMaster {
    * Clean is defined as
    * <pre>{@code
    *   UnderFileSystems.deleteDir(tachyonHome);
-   *   UnderFileSystems.mkdir(tachyonHome);
+   *   UnderFileSystems.mkdirIfNotExists(tachyonHome);
    * }</pre>
    *
    * @throws IOException unable to do file operation or listen on port
@@ -151,12 +153,8 @@ public final class LocalTachyonMaster {
     System.clearProperty("tachyon.master.port");
   }
 
-  public void clearClients() throws TException {
-    for (TachyonFS fs : mClients) {
-      fs.close();
-    }
-
-    mClients.clear();
+  public void clearClients() throws IOException {
+    clientPool.close();
   }
 
   public void cleanupUnderfs() throws IOException {
@@ -176,9 +174,7 @@ public final class LocalTachyonMaster {
   }
 
   public TachyonFS getClient() throws IOException {
-    final TachyonFS fs = TachyonFS.get(getUri());
-    mClients.add(fs);
-    return fs;
+    return clientPool.getClient();
   }
 
   public String getEditLogPath() {
@@ -199,5 +195,9 @@ public final class LocalTachyonMaster {
 
   private static String path(final String parent, final String child) {
     return parent + "/" + child;
+  }
+
+  public boolean isStarted() {
+    return mMaster.isStarted();
   }
 }
