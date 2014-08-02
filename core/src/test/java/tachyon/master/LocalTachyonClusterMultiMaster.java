@@ -104,7 +104,7 @@ public class LocalTachyonClusterMultiMaster {
 
   private List<TachyonFS> mClients = new ArrayList<TachyonFS>();
 
-  private LocalTachyonClusterMultiMaster(int masterPort, int workerPort, long workerCapacityBytes,
+  public LocalTachyonClusterMultiMaster(int masterPort, int workerPort, long workerCapacityBytes,
       int masters) {
     mNumOfMasters = masters;
     mMastersPorts = new ArrayList<Integer>(masters);
@@ -122,7 +122,8 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters) {
-    this(0, 0, workerCapacityBytes, masters);
+    this(Constants.DEFAULT_MASTER_PORT - 1000, Constants.DEFAULT_WORKER_PORT - 1000,
+        workerCapacityBytes, masters);
   }
 
   public synchronized TachyonFS getClient() throws IOException {
