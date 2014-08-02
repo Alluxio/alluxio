@@ -134,7 +134,7 @@
   <modules>
     <module>core</module>
     <module>client</module>
-    <module>tachyon-assembly</module>
+    <module>assembly</module>
   </modules>
 
   <build>
