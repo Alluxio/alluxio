@@ -122,7 +122,7 @@ public class LocalTachyonCluster {
   }
 
   public int getWorkerPort() {
-    return mWorker.getLocalPort();
+    return mWorker.getMetaPort();
   }
 
   public int getWorkerDataPort() {
