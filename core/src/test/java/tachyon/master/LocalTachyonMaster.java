@@ -134,6 +134,12 @@ public final class LocalTachyonMaster {
     mMasterThread.start();
   }
 
+  /**
+   * Stops the master and cleans up client connections.
+   *
+   * This method will not clean up {@link tachyon.UnderFileSystems} data.  To do that you must call
+   * {@link #cleanupUnderfs()}.
+   */
   public void stop() throws Exception {
     for (TachyonFS fs : mClients) {
       fs.close();
@@ -146,7 +152,9 @@ public final class LocalTachyonMaster {
     System.clearProperty("tachyon.home");
     System.clearProperty("tachyon.master.hostname");
     System.clearProperty("tachyon.master.port");
+  }
 
+  public void cleanupUnderfs() throws IOException {
     if (null != mUnderFSCluster) {
       mUnderFSCluster.cleanup();
     }
