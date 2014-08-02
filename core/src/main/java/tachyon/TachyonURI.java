@@ -34,6 +34,8 @@ public class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Construct a path from a String. Path strings are URIs, but with unescaped elements and some
    * additional normalization.
+   * @param pathStr
+   *          the unescaped path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    */
   public TachyonURI(String pathStr) {
     if (pathStr == null || pathStr.length() == 0) {
@@ -289,7 +291,8 @@ public class TachyonURI implements Comparable<TachyonURI> {
    *          the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    * @throws IllegalArgumentException
    */
-  private void initialize(String scheme, String authority, String path) {
+  private void initialize(String scheme, String authority, String path)
+      throws IllegalArgumentException {
     try {
       mUri = new URI(scheme, authority, normalizePath(path), null, null).normalize();
     } catch (URISyntaxException e) {
@@ -338,7 +341,7 @@ public class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Add a suffix to the end of the Tachyon URI.
    * 
-   * @param TachyonURI
+   * @param suffix
    *          the suffix to add
    * @return the new TachyonURI
    */
@@ -349,15 +352,12 @@ public class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Normalize the path component of the TachyonURI, by replacing all "//" and "\\" with "/", and
    * trimming trailing slash from non-root path (ignoring windows drive).
-   * 
-   * @param path
-   * @return
    */
   private String normalizePath(String path) {
-    while (path.indexOf("//") != -1) {
+    while (path.contains("//")) {
       path = path.replace("//", "/");
     }
-    while (path.indexOf("\\") != -1) {
+    while (path.contains("\\")) {
       path = path.replace("\\", "/");
     }
 
