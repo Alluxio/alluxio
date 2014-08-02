@@ -302,6 +302,7 @@ public class LocalTachyonCluster {
 //      fs.close();
 //    }
 //    mClients.clear();
+    mMaster.clearClients();
     mWorker.stop();
   }
 }
