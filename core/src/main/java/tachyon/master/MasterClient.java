@@ -94,7 +94,7 @@ public class MasterClient {
    * @param fileId
    * @param length
    * @param checkpointPath
-   * @return
+   * @return true if checkpoint is added for the <code>fileId</code> and false otherwise
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException

@@ -2341,9 +2341,11 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Create an image of the dependencies and filesystem tree.
-   * 
-   * @param os
-   *          The output stream to write the image to
+   * @param objWriter
+   *          The used object writer
+   * @param dos
+   *          The target data output stream
+   * @throws IOException
    */
   @Override
   public void writeImage(ObjectWriter objWriter, DataOutputStream dos) throws IOException {
