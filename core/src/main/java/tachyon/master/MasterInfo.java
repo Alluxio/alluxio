@@ -2041,7 +2041,7 @@ public class MasterInfo extends ImageWriter {
   public long registerWorker(NetAddress workerNetAddress, long totalBytes, long usedBytes,
       List<Long> currentBlockIds) throws BlockInfoException {
     long id = 0;
-    NetAddress workerAddress = workerNetAddress;
+    NetAddress workerAddress = new NetAddress(workerNetAddress);
     LOG.info("registerWorker(): WorkerNetAddress: " + workerAddress);
 
     synchronized (mWorkers) {
@@ -2072,7 +2072,7 @@ public class MasterInfo extends ImageWriter {
         int blockIndex = BlockInfo.computeBlockIndex(blockId);
         Inode inode = mInodes.get(fileId);
         if (inode != null && inode.isFile()) {
-          ((InodeFile) inode).addLocation(blockIndex, id, workerNetAddress);
+          ((InodeFile) inode).addLocation(blockIndex, id, workerAddress);
         } else {
           LOG.warn("registerWorker failed to add fileId " + fileId + " blockIndex " + blockIndex);
         }

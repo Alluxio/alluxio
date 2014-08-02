@@ -346,7 +346,7 @@ public class WorkerStorage {
   }
 
   public void setWorkerAddress(final NetAddress address) {
-    this.mWorkerAddress = address;
+    mWorkerAddress = address;
   }
 
   /**

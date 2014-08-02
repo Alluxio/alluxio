@@ -223,7 +223,7 @@ public class TachyonWorker implements Runnable {
     }
     WorkerAddress = new NetAddress(
         workerAddress.getAddress().getCanonicalHostName(),
-        getLocalPort(),
+        getMetaPort(),
         getDataPort()
     );
     mWorkerStorage.setWorkerAddress(WorkerAddress);
@@ -233,7 +233,7 @@ public class TachyonWorker implements Runnable {
   /**
    * Gets the metadata port of the worker.
    */
-  public int getLocalPort() {
+  public int getMetaPort() {
     return PORT;
   }
 
