@@ -99,7 +99,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws IOException
    * @throws InvalidPathException
-   * @throws TException
    */
   private void displayFile(String path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException {
@@ -138,7 +137,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
     request.setAttribute("fileBlocks", uiBlockInfo);
     request.setAttribute("fileData", fileData);
-    return;
   }
 
   /**
@@ -259,6 +257,5 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       pathInfos[i] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     }
     request.setAttribute("pathInfos", pathInfos);
-    return;
   }
 }
