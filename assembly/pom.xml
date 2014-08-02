@@ -29,8 +29,8 @@
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-assemblies</artifactId>
   <version>0.6.0-SNAPSHOT</version>
-  <name>Tachyon Assemblies</name>
-  <description>Tachyon Assemblies</description>
+  <name>Tachyon Project Assemblies</name>
+  <description>Tachyon Project Assemblies</description>
 
   <properties>
     <failIfNoTests>false</failIfNoTests>
