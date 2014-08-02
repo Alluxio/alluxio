@@ -1,6 +1,7 @@
 package tachyon.master;
 
 import com.google.common.base.Preconditions;
+import org.apache.thrift.TException;
 import tachyon.Constants;
 import tachyon.UnderFileSystemCluster;
 import tachyon.UnderFileSystems;
@@ -141,17 +142,21 @@ public final class LocalTachyonMaster {
    * {@link #cleanupUnderfs()}.
    */
   public void stop() throws Exception {
-    for (TachyonFS fs : mClients) {
-      fs.close();
-    }
-
-    mClients.clear();
+    clearClients();
 
     mMaster.stop();
 
     System.clearProperty("tachyon.home");
     System.clearProperty("tachyon.master.hostname");
     System.clearProperty("tachyon.master.port");
+  }
+
+  public void clearClients() throws TException {
+    for (TachyonFS fs : mClients) {
+      fs.close();
+    }
+
+    mClients.clear();
   }
 
   public void cleanupUnderfs() throws IOException {
