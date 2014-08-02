@@ -1,6 +1,5 @@
 package tachyon;
 
-import java.io.File;
 import java.io.IOException;
 
 public final class UnderFileSystems {
@@ -14,11 +13,13 @@ public final class UnderFileSystems {
     }
   }
 
-  public static void mkdir(final String path) throws IOException {
+  public static void mkdirIfNotExists(final String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
-    if (!ufs.mkdirs(path, true)) {
-      throw new IOException("Failed to make folder: " + path);
+    if (! ufs.exists(path)) {
+      if (!ufs.mkdirs(path, true)) {
+        throw new IOException("Failed to make folder: " + path);
+      }
     }
   }
 }
