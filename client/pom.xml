@@ -68,6 +68,10 @@
           <groupId>org.apache.curator</groupId>
           <artifactId>curator-test</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
   </dependencies>
