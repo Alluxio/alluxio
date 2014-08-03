@@ -10,9 +10,8 @@ import java.net.UnknownHostException;
 import java.util.Enumeration;
 
 import org.apache.log4j.Logger;
-
 import org.apache.thrift.transport.TNonblockingServerSocket;
-import org.apache.thrift.transport.TTransportException;
+
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -23,7 +22,8 @@ import tachyon.Constants;
 public final class NetworkUtils {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private NetworkUtils() {}
+  private NetworkUtils() {
+  }
 
   /**
    * @return the local host name, which is not based on a loopback ip address.
@@ -139,7 +139,7 @@ public final class NetworkUtils {
    * Gets the port for the underline socket. This function calls
    * {@link #getSocket(org.apache.thrift.transport.TNonblockingServerSocket)}, so reflection
    * will be used to get the port.
-   *
+   * 
    * @see #getSocket(org.apache.thrift.transport.TNonblockingServerSocket)
    */
   public static int getPort(TNonblockingServerSocket thriftSocket) {
@@ -149,8 +149,9 @@ public final class NetworkUtils {
   /**
    * Extracts the port from the thrift socket. As of thrift 0.9, the internal socket used
    * is not exposed in the API, so this function will use reflection to get access to it.
-   *
-   * @throws java.lang.RuntimeException if reflection calls fail
+   * 
+   * @throws java.lang.RuntimeException
+   *           if reflection calls fail
    */
   public static ServerSocket getSocket(final TNonblockingServerSocket thriftSocket) {
     try {

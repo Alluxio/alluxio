@@ -1763,8 +1763,7 @@ public class MasterInfo extends ImageWriter {
       } else {
         for (NetAddress address : mWorkerAddressToId.keySet()) {
           InetAddress inetAddress = InetAddress.getByName(address.getMHost());
-          if (inetAddress.getHostName().equals(host)
-              || inetAddress.getHostAddress().equals(host)
+          if (inetAddress.getHostName().equals(host) || inetAddress.getHostAddress().equals(host)
               || inetAddress.getCanonicalHostName().equals(host)) {
             LOG.debug("getLocalWorker: " + address);
             return address;
@@ -2341,6 +2340,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Create an image of the dependencies and filesystem tree.
+   * 
    * @param objWriter
    *          The used object writer
    * @param dos

@@ -21,10 +21,10 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Supplier;
 import org.apache.curator.test.TestingServer;
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -172,8 +172,8 @@ public class LocalTachyonClusterMultiMaster {
     mWorker =
         TachyonWorker.createWorker(
             CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1,
-            mWorkerDataFolder, mWorkerCapacityBytes);
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
+            mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {

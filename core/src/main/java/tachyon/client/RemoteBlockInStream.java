@@ -29,8 +29,8 @@ import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.worker.DataServerMessage;
 import tachyon.util.CommonUtils;
+import tachyon.worker.DataServerMessage;
 
 /**
  * BlockInStream for remote block.

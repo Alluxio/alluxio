@@ -29,10 +29,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -54,7 +54,7 @@ public final class CommonUtils {
    * @throws IOException
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
-    //TODO switch to java's Files.setPosixFilePermissions() if java 6 support is dropped
+    // TODO switch to java's Files.setPosixFilePermissions() if java 6 support is dropped
     List<String> commands = new ArrayList<String>();
     commands.add("/bin/chmod");
     commands.add(perms);

@@ -18,11 +18,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
@@ -32,7 +32,6 @@ import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.NetAddress;
-import tachyon.worker.WorkerStorage;
 
 /**
  * Unit tests for tachyon.WorkerStorage
@@ -74,8 +73,7 @@ public class WorkerStorageTest {
     mLocalTachyonCluster.stopWorker();
     mTfs.delete(fid, true);
 
-    WorkerStorage ws =
-        new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
+    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
     ws.initialize(mWorkerAddress);
     String orpahnblock = ws.getUnderfsOrphansFolder() + Constants.PATH_SEPARATOR + bid;
     UnderFileSystem ufs = UnderFileSystem.get(orpahnblock);

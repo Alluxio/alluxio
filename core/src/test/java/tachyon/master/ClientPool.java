@@ -21,18 +21,19 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.thrift.TException;
+
 import com.google.common.base.Supplier;
+
 import tachyon.client.TachyonFS;
 
 /**
  * Keeps a collection of all clients ({@link tachyon.client.TachyonFS}) returned. The main reason
- * for this is to built cleanup clients.
+ * for this is to build cleanup clients.
  */
 public final class ClientPool implements Closeable {
   private final Supplier<String> URI_SUPPLIER;
 
-  private final List<TachyonFS> CLIENTS =
-      Collections.synchronizedList(new ArrayList<TachyonFS>());
+  private final List<TachyonFS> CLIENTS = Collections.synchronizedList(new ArrayList<TachyonFS>());
 
   ClientPool(Supplier<String> uriSupplier) {
     URI_SUPPLIER = uriSupplier;
