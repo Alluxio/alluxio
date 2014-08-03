@@ -18,7 +18,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 /**
- * Constructs an isolated master.  Primary users of this class are the
+ * Constructs an isolated master. Primary users of this class are the
  * {@link tachyon.master.LocalTachyonCluster} and
  * {@link tachyon.master.LocalTachyonClusterMultiMaster}.
  *

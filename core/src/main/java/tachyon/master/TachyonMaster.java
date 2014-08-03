@@ -77,6 +77,9 @@ public class TachyonMaster {
 
   public TachyonMaster(InetSocketAddress address, int webPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads) {
+    CommonConf.assertValidPort(address);
+    CommonConf.assertValidPort(webPort);
+
     if (CommonConf.get().USE_ZOOKEEPER) {
       mZookeeperMode = true;
     }
@@ -121,9 +124,7 @@ public class TachyonMaster {
   }
 
   /**
-   * Get the port used by the master thrift service.  This method implements a busy wait until
-   * the port has been updated.
-   * @return
+   * Get the port used by the master thrift service.
    */
   int getLocalPort() {
     return PORT;

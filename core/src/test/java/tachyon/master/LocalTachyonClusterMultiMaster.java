@@ -144,6 +144,7 @@ public class LocalTachyonClusterMultiMaster {
 
     mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
 
+    System.setProperty("tachyon.test.mode", "true");
     System.setProperty("tachyon.home", mTachyonHome);
     System.setProperty("tachyon.usezookeeper", "true");
     System.setProperty("tachyon.zookeeper.address", mCuratorServer.getConnectString());

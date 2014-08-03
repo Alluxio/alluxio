@@ -149,6 +149,7 @@ public class LocalTachyonCluster {
 
     mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
 
+    System.setProperty("tachyon.test.mode", "true");
     System.setProperty("tachyon.home", mTachyonHome);
     System.setProperty("tachyon.master.port", 0 + "");
     System.setProperty("tachyon.master.web.port", 0 + "");
