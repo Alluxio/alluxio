@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import tachyon.Pair;
+import tachyon.StorageId;
+import tachyon.StorageLevelAlias;
 import tachyon.UnderFileSystem;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
@@ -78,7 +80,9 @@ public class BlockInfo {
 
   public final long LENGTH;
 
-  private Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>(5);
+  private final Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>(5);
+
+  private final Map<NetAddress, Long> mStorageIds = new HashMap<NetAddress, Long>();
 
   /**
    * @param inodeFile
@@ -102,8 +106,9 @@ public class BlockInfo {
    * @param workerAddress
    *          The net address of the worker
    */
-  public synchronized void addLocation(long workerId, NetAddress workerAddress) {
+  public synchronized void addLocation(long workerId, NetAddress workerAddress, long storageId) {
     mLocations.put(workerId, workerAddress);
+    mStorageIds.put(workerAddress, storageId);
   }
 
   /**
@@ -113,11 +118,11 @@ public class BlockInfo {
    */
   public synchronized ClientBlockInfo generateClientBlockInfo() {
     ClientBlockInfo ret = new ClientBlockInfo();
-
     ret.blockId = BLOCK_ID;
     ret.offset = OFFSET;
     ret.length = LENGTH;
     ret.locations = getLocations();
+    ret.storageIds = getStorageIds();
 
     return ret;
   }
@@ -178,10 +183,23 @@ public class BlockInfo {
   }
 
   /**
+   * get storage id for the block
+   */
+  public synchronized Map<NetAddress, Long> getStorageIds() {
+    return mStorageIds;
+  }
+
+  /**
    * @return true if the block is in some worker's memory, false otherwise
    */
   public synchronized boolean isInMemory() {
-    return mLocations.size() > 0;
+    for (Long storageId : mStorageIds.values()) {
+      int storageLevelValue = StorageId.getStorageLevelAliasValue(storageId);
+      if (storageLevelValue == StorageLevelAlias.MEM.getValue()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -191,7 +209,8 @@ public class BlockInfo {
    *          The id of the removed worker
    */
   public synchronized void removeLocation(long workerId) {
-    mLocations.remove(workerId);
+    NetAddress address = mLocations.remove(workerId);
+    mStorageIds.remove(address);
   }
 
   @Override

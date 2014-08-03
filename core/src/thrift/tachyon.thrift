@@ -13,6 +13,7 @@ struct ClientBlockInfo {
   2: i64 offset
   3: i64 length
   4: list<NetAddress> locations
+  5: map<NetAddress, i64> storageIds
 }
 
 struct ClientWorkerInfo {
@@ -69,6 +70,12 @@ enum CommandType {
 struct Command {
   1: CommandType mCommandType
   2: list<i64> mData
+}
+
+struct WorkerDirInfo {
+  1: i64 storageId
+  2: string dirPath //TODO add classname to make it pluggable
+  3: binary conf
 }
 
 exception BlockInfoException {
@@ -136,13 +143,13 @@ service MasterService {
    * @return value rv % 100,000 is really workerId, rv / 1000,000 is master started time.
    */
   i64 worker_register(1: NetAddress workerNetAddress, 2: i64 totalBytes, 3: i64 usedBytes,
-      4: list<i64> currentBlocks)
+      4: map<i64, list<i64>> blockInfos)
     throws (1: BlockInfoException e)
 
-  Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedBlocks)
+  Command worker_heartbeat(1: i64 workerId, 2: i64 usedBytes, 3: list<i64> removedBlockIds 4: map<i64, list<i64>> swappedBlocks)
     throws (1: BlockInfoException e)
 
-  void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 blockId, 4: i64 length)
+  void worker_cacheBlock(1: i64 workerId, 2: i64 workerUsedBytes, 3: i64 blockId, 4: i64 length, 5: i64 storageId)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS, 3: BlockInfoException eB)
 
   set<i32> worker_getPinIdList()
@@ -290,11 +297,23 @@ service WorkerService {
   bool asyncCheckpoint(1: i32 fileId)
     throws (1: TachyonException e)
 
-  void cacheBlock(1: i64 userId, 2: i64 blockId)
+  void cacheBlock(1: i64 storageId, 2: i64 userId, 3: i64 blockId)
     throws (1: FileDoesNotExistException eP, 2: SuspectedFileSizeException eS,
       3: BlockInfoException eB)
 
+  string getBlockFilePath(1: i64 blockId)
+    throws (1: FileDoesNotExistException eP)
+
+  i64 getBlockFileSize(1: i64 blockId)
+    throws (1: FileDoesNotExistException eP)
+
   string getDataFolder()
+
+  WorkerDirInfo getDirInfoByBlockId(1: i64 blockid)
+    throws (1: TachyonException eP)
+
+  WorkerDirInfo getDirInfoByStorageId(1: i64 storageId)
+    throws (1: TachyonException eP)
 
   string getUserTempFolder(1: i64 userId)
 
@@ -302,9 +321,10 @@ service WorkerService {
 
   void lockBlock(1: i64 blockId, 2: i64 userId) // Lock the file in memory while the user is reading it.
 
-  void returnSpace(1: i64 userId, 2: i64 returnedBytes)
+  void returnSpace(1: i64 storageId, 2: i64 userId, 3: i64 returnedBytes)
 
-  bool requestSpace(1: i64 userId, 2: i64 requestBytes)   // Should change this to return i64, means how much space to grant.
+  WorkerDirInfo requestSpace(1: i64 userId, 2: i64 requestBytes)   // Should change this to return i64, means how much space to grant.
+    throws (1: TachyonException eP)
 
   void unlockBlock(1: i64 blockId, 2: i64 userId) // unlock the file
 

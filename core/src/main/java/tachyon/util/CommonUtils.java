@@ -14,9 +14,13 @@
  */
 package tachyon.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.math.BigDecimal;
@@ -43,6 +47,24 @@ import tachyon.thrift.InvalidPathException;
  */
 public final class CommonUtils {
   private static final Logger LOG = Logger.getLogger("");
+
+  /**
+   * get object from byteArray
+   * 
+   * @param buf
+   *          data for the object
+   * @return object converted from byte array
+   * @throws IOException
+   * @throws ClassNotFoundException
+   */
+  public static Object byteArrayToObject(byte[] buf) throws ClassNotFoundException, IOException {
+    ByteArrayInputStream is = new ByteArrayInputStream(buf);
+    ObjectInputStream oi = new ObjectInputStream(is);
+    Object data = oi.readObject();
+    is.close();
+    oi.close();
+    return data;
+  }
 
   /**
    * Change local file's permission.
@@ -336,6 +358,16 @@ public final class CommonUtils {
       sb.append(list.get(k)).append(" ");
     }
     return sb.toString();
+  }
+
+  public static ByteBuffer objectToByteBuffer(Object data) throws IOException {
+    ByteArrayOutputStream bo = new ByteArrayOutputStream();
+    ObjectOutputStream oo = new ObjectOutputStream(bo);
+    oo.writeObject(data);
+    bo.close();
+    oo.close();
+    byte[] bytes = bo.toByteArray();
+    return ByteBuffer.wrap(bytes);
   }
 
   public static String parametersToString(Object... objs) {

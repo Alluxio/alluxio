@@ -15,6 +15,7 @@
 package tachyon.worker;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -32,6 +33,8 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.Users;
+import tachyon.util.CommonUtils;
+import tachyon.worker.hierarchy.StorageDir;
 
 /**
  * The Server to serve data file read request from remote machines. The current implementation
@@ -59,6 +62,7 @@ public class DataServer implements Runnable {
 
   private volatile boolean mShutdown = false;
   private volatile boolean mShutdowned = false;
+  private WorkerStorage mWorkerStorage;
 
   /**
    * Create a data server with direct access to worker storage.
@@ -72,6 +76,7 @@ public class DataServer implements Runnable {
     LOG.info("Starting DataServer @ " + address);
     mAddress = address;
     mBlocksLocker = new BlocksLocker(workerStorage, Users.sDATASERVER_USER_ID);
+    mWorkerStorage = workerStorage;
     try {
       mSelector = initSelector();
     } catch (IOException e) {
@@ -171,12 +176,35 @@ public class DataServer implements Runnable {
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getBlockId());
       int lockId = mBlocksLocker.lock(tMessage.getBlockId());
+      ByteBuffer blockData =
+          getBlockFileData(tMessage.getBlockId(), tMessage.getOffset(), tMessage.getLength());
       DataServerMessage tResponseMessage =
           DataServerMessage.createBlockResponseMessage(true, tMessage.getBlockId(),
-              tMessage.getOffset(), tMessage.getLength());
+              tMessage.getOffset(), blockData.limit(), blockData);
       tResponseMessage.setLockId(lockId);
       mSendingData.put(socketChannel, tResponseMessage);
     }
+  }
+
+  private ByteBuffer getBlockFileData(long blockId, long offset, long length) throws IOException {
+    StorageDir dir = mWorkerStorage.getStorageDirByBlockId(blockId);
+    long blockSize = dir.getBlockSize(blockId);
+    String error = null;
+    if (offset > blockSize) {
+      error = String.format("Offset(%d) is larger than blockSize(%d)", offset, blockSize);
+    }
+    if (error == null && length != -1 && offset + length > blockSize) {
+      error =
+          String.format("Offset(%d) plus length(%d) is larger than blockSize(%d)", offset,
+              length, blockSize);
+    }
+    if (error != null) {
+      throw new IOException(error);
+    }
+    if (length == -1) {
+      length = blockSize - offset;
+    }
+    return dir.getBlockData(blockId, offset, length);
   }
 
   @Override

@@ -14,20 +14,18 @@
  */
 package tachyon.client;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -54,6 +52,7 @@ import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.NoWorkerException;
 import tachyon.thrift.TachyonException;
+import tachyon.thrift.WorkerDirInfo;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.WorkerClient;
@@ -117,25 +116,25 @@ public class TachyonFS {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final long USER_QUOTA_UNIT_BYTES = UserConf.get().QUOTA_UNIT_BYTES;
 
-  private final int USER_FAILED_SPACE_REQUEST_LIMITS = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
   // The RPC client talks to the system master.
   private MasterClient mMasterClient = null;
   // The Master address.
   private InetSocketAddress mMasterAddress = null;
   // Whether use ZooKeeper or not
-  private boolean mZookeeperMode;
+  private final boolean mZookeeperMode;
   // Cached ClientFileInfo
-  private Map<String, ClientFileInfo> mCachedClientFileInfos =
+  private final Map<String, ClientFileInfo> mCachedClientFileInfos =
       new HashMap<String, ClientFileInfo>();
-  private Map<Integer, ClientFileInfo> mClientFileInfos = new HashMap<Integer, ClientFileInfo>();
+  private final Map<Integer, ClientFileInfo> mClientFileInfos =
+      new HashMap<Integer, ClientFileInfo>();
   // Cached ClientBlockInfo
   // private Map<Long, ClientBlockInfo> mClientBlockInfos = new HashMap<Long, ClientBlockInfo>();
   // The RPC client talks to the local worker if there is one.
   private WorkerClient mWorkerClient = null;
-  // The local root data folder.
-  private String mLocalDataFolder = null;
   // Whether the client is local or remote.
   private boolean mIsWorkerLocal = false;
+  // The local root data folder.
+  private String mLocalDataFolder;
   // The local data folder.
   private String mUserTempFolder = null;
   // The HDFS data folder
@@ -146,20 +145,20 @@ public class TachyonFS {
   // The user id of the client.
   private long mUserId = 0;
   // All Blocks has been locked.
-  private Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
+  private final Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
 
   // Each user facing block has a unique block lock id.
-  private AtomicInteger mBlockLockId = new AtomicInteger(0);
+  private final AtomicInteger mBlockLockId = new AtomicInteger(0);
 
-  // Available memory space for this client.
-  private Long mAvailableSpaceBytes;
+  private final Map<Long, WorkerDirInfo> mIdToDirInfo = new HashMap<Long, WorkerDirInfo>();
+  private final Map<Long, UnderFileSystem> mIdToUFS = new HashMap<Long, UnderFileSystem>();
+  private final Map<Long, Long> mAvailableSpaceBytes = new HashMap<Long, Long>();
 
   private boolean mConnected = false;
 
   private TachyonFS(InetSocketAddress masterAddress, boolean zookeeperMode) {
     mMasterAddress = masterAddress;
     mZookeeperMode = zookeeperMode;
-    mAvailableSpaceBytes = 0L;
   }
 
   /**
@@ -230,11 +229,13 @@ public class TachyonFS {
   /**
    * Notify the worker the block is cached.
    * 
+   * @param storageId
+   *          the storage id of the Dir that the block is cached into
    * @param blockId
    *          the block id
    * @throws IOException
    */
-  public synchronized void cacheBlock(long blockId) throws IOException {
+  public synchronized void cacheBlock(long storageId, long blockId) throws IOException {
     connect();
     if (!mConnected) {
       return;
@@ -242,7 +243,7 @@ public class TachyonFS {
 
     if (mWorkerClient != null) {
       try {
-        mWorkerClient.cacheBlock(mUserId, blockId);
+        mWorkerClient.cacheBlock(storageId, mUserId, blockId);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mWorkerClient = null;
@@ -277,7 +278,9 @@ public class TachyonFS {
     }
 
     if (mWorkerClient != null && mWorkerClient.isConnected()) {
-      mWorkerClient.returnSpace(mUserId, mAvailableSpaceBytes);
+      for (Entry<Long, Long> entry : mAvailableSpaceBytes.entrySet()) {
+        mWorkerClient.returnSpace(entry.getKey(), mUserId, entry.getValue());
+      }
       mWorkerClient.close();
     }
   }
@@ -390,31 +393,49 @@ public class TachyonFS {
   }
 
   /**
-   * Create a user local temporary folder and return it
+   * Create a user local temporary folder in the specified Dir and return it
    * 
+   * @param storageId
+   *          the storage id of the Dir
    * @return the local temporary folder
    * @throws IOException
    */
-  synchronized File createAndGetUserTempFolder() throws IOException {
+  public synchronized String createAndGetUserTempFolder(long storageId) throws IOException {
     connect();
 
     if (mUserTempFolder == null) {
       return null;
     }
-
-    File ret = new File(mUserTempFolder);
-
-    if (!ret.exists()) {
-      if (ret.mkdir()) {
-        CommonUtils.changeLocalFileToFullPermission(ret.getAbsolutePath());
-        LOG.info("Folder " + ret + " was created!");
-      } else {
-        LOG.error("Failed to create folder " + ret);
+    WorkerDirInfo dirInfo;
+    if (mIdToDirInfo.containsKey(storageId)) {
+      dirInfo = mIdToDirInfo.get(storageId);
+    } else {
+      dirInfo = getDirInfoByStorageId(storageId);
+      if (dirInfo == null) {
+        LOG.error("not found storage dir! storageId:" + storageId);
         return null;
+      } else {
+        mIdToDirInfo.put(storageId, dirInfo);
       }
     }
+    UnderFileSystem dirFs = getDirUFS(storageId);
+    String userTempFolder = CommonUtils.concat(dirInfo.getDirPath(), mUserTempFolder);
+    boolean ret = false;
 
-    return ret;
+    if (dirFs.exists(userTempFolder)) {
+      if (dirFs.isFile(userTempFolder)) {
+        ret = dirFs.mkdirs(userTempFolder, true);
+      } else {
+        ret = true;
+      }
+    } else {
+      ret = dirFs.mkdirs(userTempFolder, true);
+    }
+    if (ret) {
+      return userTempFolder;
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -672,6 +693,47 @@ public class TachyonFS {
   }
 
   /**
+   * Returns the filename for the block if that file exists on the worker. This is
+   * an alpha power-api feature for applications that want short-circuit-read files directly. There
+   * is no guarantee that the file still exists after this call returns, as Tachyon may evict blocks
+   * from memory at any time.
+   * 
+   * @param blockId
+   *          The id of the block.
+   * @return file path on local file system.
+   */
+  String getBlockFilePath(long blockId) throws IOException {
+    connect();
+    try {
+      return mWorkerClient.getBlockFilePath(blockId);
+    } catch (FileDoesNotExistException e) {
+      return null;
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
+  }
+
+  /**
+   * Get the size of the block file. it will check whether the file and get the block size
+   * 
+   * @param blockId
+   *          the id of the block
+   * @return the size of the block file
+   * @throws IOException
+   *           if the block file does not exist, or connection issue.
+   */
+  public synchronized long getBlockFileSize(long blockId) throws IOException {
+    try {
+      return mWorkerClient.getBlockFileSize(blockId);
+    } catch (FileDoesNotExistException e) {
+      return -1;
+    } catch (TException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
+  /**
    * Get the block id by the file id and block index. it will check whether the file and the block
    * exist.
    * 
@@ -743,24 +805,6 @@ public class TachyonFS {
    */
   public synchronized long getBlockSizeByte(int fId) {
     return mClientFileInfos.get(fId).getBlockSizeByte();
-  }
-
-  /**
-   * Return the under filesystem path of the file
-   * 
-   * @param fid
-   *          the file id
-   * @return the checkpoint path of the file
-   * @throws IOException
-   */
-  synchronized String getUfsPath(int fid) throws IOException {
-    ClientFileInfo info = mClientFileInfos.get(fid);
-    if (info == null || !info.getUfsPath().equals("")) {
-      info = fetchClientFileInfo(fid);
-      mClientFileInfos.put(fid, info);
-    }
-
-    return info.getUfsPath();
   }
 
   /**
@@ -883,6 +927,86 @@ public class TachyonFS {
    */
   public synchronized long getCreationTimeMs(int fId) {
     return mClientFileInfos.get(fId).getCreationTimeMs();
+  }
+
+  /**
+   * Get the worker dir info that contains the blockId
+   * 
+   * @param blockId
+   *          the id of the block
+   * @return the worker dir info containing the block id, null if not found
+   * @throws IOException
+   */
+  public synchronized WorkerDirInfo getDirInfoByBlockId(long blockId) throws IOException {
+    connect();
+    WorkerDirInfo dirInfo = null;
+    try {
+      dirInfo = mWorkerClient.getDirInfoByBlockId(blockId);
+    } catch (TachyonException e) {
+      return null;
+    } catch (TException e) {
+      throw new IOException(e);
+    }
+    return dirInfo;
+  }
+
+  /**
+   * Get the worker dir info by the dir's storageId
+   * 
+   * @param storageId
+   *          the storage id of the dir
+   * @return the worker dir info of the storageId, null if not found
+   * @throws IOException
+   */
+  public synchronized WorkerDirInfo getDirInfoByStorageId(long storageId) throws IOException {
+    connect();
+    WorkerDirInfo dirInfo = null;
+    try {
+      dirInfo = mWorkerClient.getDirInfoByStorageId(storageId);
+    } catch (TachyonException e) {
+      return null;
+    } catch (TException e) {
+      throw new IOException(e);
+    }
+    return dirInfo;
+  }
+
+  /**
+   * get UnderFileSystem of a specified DIR
+   * 
+   * @param storageId
+   *          the storage id of the Dir
+   * @return the UnderFileSystem of the Dir
+   * @throws IOException
+   */
+  private UnderFileSystem getDirUFS(long storageId) throws IOException {
+    if (mIdToUFS.containsKey(storageId)) {
+      return mIdToUFS.get(storageId);
+    } else {
+      WorkerDirInfo dirInfo;
+      if (mIdToDirInfo.containsKey(storageId)) {
+        dirInfo = mIdToDirInfo.get(storageId);
+      } else {
+        dirInfo = getDirInfoByStorageId(storageId);
+        if (dirInfo == null) {
+          LOG.error("not found storage dir! storageId:" + storageId);
+          return null;
+        } else {
+          mIdToDirInfo.put(storageId, dirInfo);
+        }
+      }
+      UnderFileSystem ufs;
+      try {
+        ufs =
+            UnderFileSystem.get(dirInfo.getDirPath(),
+                CommonUtils.byteArrayToObject(dirInfo.getConf()));
+      } catch (ClassNotFoundException e) {
+        LOG.error(e.getMessage());
+        return null;
+      }
+      mIdToUFS.put(storageId, ufs);
+      return ufs;
+    }
   }
 
   /**
@@ -1097,28 +1221,6 @@ public class TachyonFS {
   }
 
   /**
-   * Returns the local filename for the block if that file exists on the local file system. This is
-   * an alpha power-api feature for applications that want short-circuit-read files directly. There
-   * is no guarantee that the file still exists after this call returns, as Tachyon may evict blocks
-   * from memory at any time.
-   * 
-   * @param blockId
-   *          The id of the block.
-   * @return filename on local file system or null if file not present on local file system.
-   */
-  String getLocalFilename(long blockId) throws IOException {
-    String rootFolder = getRootFolder();
-    if (rootFolder != null) {
-      String localFileName = CommonUtils.concat(rootFolder, blockId);
-      File file = new File(localFileName);
-      if (file.exists()) {
-        return localFileName;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Get the next new block's id of the file.
    * 
    * @param fId
@@ -1229,9 +1331,27 @@ public class TachyonFS {
    * @return the local root data folder
    * @throws IOException
    */
-  synchronized String getRootFolder() throws IOException {
+  public synchronized String getRootFolder() throws IOException {
     connect();
     return mLocalDataFolder;
+  }
+
+  /**
+   * Return the under file system path of the file
+   * 
+   * @param fid
+   *          the file id
+   * @return the checkpoint path of the file
+   * @throws IOException
+   */
+  synchronized String getUfsPath(int fid) throws IOException {
+    ClientFileInfo info = mClientFileInfos.get(fid);
+    if (info == null || !info.getUfsPath().equals("")) {
+      info = fetchClientFileInfo(fid);
+      mClientFileInfos.put(fid, info);
+    }
+
+    return info.getUfsPath();
   }
 
   /**
@@ -1321,6 +1441,18 @@ public class TachyonFS {
    */
   synchronized boolean isNeedPin(int fid) {
     return mClientFileInfos.get(fid).isPinned;
+  }
+
+  /** Returns true if the given file or folder has its "pinned" flag set. */
+  public synchronized boolean isPinned(int fid, boolean useCachedMetadata) throws IOException {
+    ClientFileInfo info;
+    if (!useCachedMetadata || !mClientFileInfos.containsKey(fid)) {
+      info = fetchClientFileInfo(fid);
+      mClientFileInfos.put(fid, info);
+    }
+    info = mClientFileInfos.get(fid);
+
+    return info.isPinned;
   }
 
   /**
@@ -1466,18 +1598,6 @@ public class TachyonFS {
   }
 
   /**
-   * Read the whole local block.
-   * 
-   * @param blockId
-   *          The id of the block to read.
-   * @return <code>TachyonByteBuffer</code> containing the whole block.
-   * @throws IOException
-   */
-  private TachyonByteBuffer readLocalByteBuffer(long blockId) throws IOException {
-    return readLocalByteBuffer(blockId, 0, -1);
-  }
-
-  /**
    * Read local block return a TachyonByteBuffer
    * 
    * @param blockId
@@ -1486,10 +1606,13 @@ public class TachyonFS {
    *          The start position to read.
    * @param len
    *          The length to read. -1 represents read the whole block.
+   * @param ufsConf
+   *          The configuration of UnderFileSystem.
    * @return <code>TachyonByteBuffer</code> containing the block.
    * @throws IOException
    */
-  TachyonByteBuffer readLocalByteBuffer(long blockId, long offset, long len) throws IOException {
+  public TachyonByteBuffer
+      readLocalByteBuffer(long blockId, long offset, long len, Object ufsConf) throws IOException {
     if (offset < 0) {
       throw new IOException("Offset can not be negative: " + offset);
     }
@@ -1501,12 +1624,13 @@ public class TachyonFS {
     if (!lockBlock(blockId, blockLockId)) {
       return null;
     }
-    String localFileName = getLocalFilename(blockId);
+    String localFileName = getBlockFilePath(blockId);
     if (localFileName != null) {
       try {
-        RandomAccessFile localFile = new RandomAccessFile(localFileName, "r");
-
-        long fileLength = localFile.length();
+        long fileLength = getBlockFileSize(blockId);
+        if (fileLength == -1) {
+          throw new FileNotFoundException("Block file not found, blockId:" + blockId);
+        }
         String error = null;
         if (offset > fileLength) {
           error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
@@ -1517,24 +1641,21 @@ public class TachyonFS {
                   len, fileLength);
         }
         if (error != null) {
-          localFile.close();
           throw new IOException(error);
         }
 
         if (len == -1) {
           len = fileLength - offset;
         }
-
-        FileChannel localFileChannel = localFile.getChannel();
-        ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
-        localFileChannel.close();
-        localFile.close();
+        BlockHandler handler = BlockHandler.get(localFileName, ufsConf);
+        ByteBuffer buf = handler.readByteBuffer((int) offset, (int) len);
+        handler.close();
         accessLocalBlock(blockId);
         return new TachyonByteBuffer(this, buf, blockId, blockLockId);
       } catch (FileNotFoundException e) {
-        LOG.info(localFileName + " is not on local disk.");
-      } catch (IOException e) {
-        LOG.info("Failed to read local file " + localFileName + " because: \n" + e.getMessage());
+        LOG.info(localFileName + " is not found.");
+      } catch (IllegalArgumentException e) {
+        LOG.info(e.getMessage()); // TODO better way to handle Exception
       }
     }
 
@@ -1542,8 +1663,33 @@ public class TachyonFS {
     return null;
   }
 
-  public synchronized void releaseSpace(long releaseSpaceBytes) {
-    mAvailableSpaceBytes += releaseSpaceBytes;
+  /**
+   * Read the whole local block.
+   * 
+   * @param blockId
+   *          The id of the block to read.
+   * @return <code>TachyonByteBuffer</code> containing the whole block.
+   * @throws IOException
+   */
+  TachyonByteBuffer readLocalByteBuffer(long blockId, Object ufsConf) throws IOException {
+    return readLocalByteBuffer(blockId, 0, -1, ufsConf);
+  }
+
+  /**
+   * Rename the file
+   * 
+   * @param storageId
+   *          the storage id of the Dir
+   * @param releaseSpaceBytes
+   *          the size of the space released
+   */
+  public synchronized void releaseSpace(long storageId, long releaseSpaceBytes) {
+    if (mAvailableSpaceBytes.containsKey(storageId)) {
+      long curAvaliableSpaceBytes = mAvailableSpaceBytes.get(storageId);
+      mAvailableSpaceBytes.put(storageId, curAvaliableSpaceBytes + releaseSpaceBytes);
+    } else {
+      mAvailableSpaceBytes.put(storageId, releaseSpaceBytes);
+    }
   }
 
   /**
@@ -1640,39 +1786,64 @@ public class TachyonFS {
    * @return true if succeed, false otherwise
    * @throws IOException
    */
-  public synchronized boolean requestSpace(long requestSpaceBytes) throws IOException {
+  public synchronized WorkerDirInfo requestSpace(long requestSpaceBytes) throws IOException {
     connect();
     if (mWorkerClient == null || !mIsWorkerLocal) {
-      return false;
+      return null;
     }
-    int failedTimes = 0;
-    while (mAvailableSpaceBytes < requestSpaceBytes) {
+    WorkerDirInfo dirInfo = requestSpaceInplace(requestSpaceBytes);
+    if (dirInfo != null) {
+      return dirInfo;
+    } else {
+      long toRequestSpaceBytes = Math.max(requestSpaceBytes, USER_QUOTA_UNIT_BYTES);
       try {
-        long toRequestSpaceBytes =
-            Math.max(requestSpaceBytes - mAvailableSpaceBytes, USER_QUOTA_UNIT_BYTES);
-        if (mWorkerClient.requestSpace(mUserId, toRequestSpaceBytes)) {
-          mAvailableSpaceBytes += toRequestSpaceBytes;
-        } else {
-          LOG.info("Failed to request " + toRequestSpaceBytes + " bytes local space. " + "Time "
-              + (failedTimes ++));
-          if (failedTimes == USER_FAILED_SPACE_REQUEST_LIMITS) {
-            return false;
-          }
-        }
+        dirInfo = mWorkerClient.requestSpace(mUserId, toRequestSpaceBytes);
+      } catch (TachyonException e) {
+        LOG.error(e.getMessage());
+        return null;
       } catch (TException e) {
-        LOG.error(e.getMessage(), e);
+        LOG.error(e.getMessage());
         mWorkerClient = null;
-        return false;
+        return null;
+      }
+      if (!mIdToDirInfo.containsKey(dirInfo.getStorageId())) {
+        mIdToDirInfo.put(dirInfo.getStorageId(), dirInfo);
+      }
+      long availableSpace = toRequestSpaceBytes;
+      if (mAvailableSpaceBytes.containsKey(dirInfo.getStorageId())) {
+        availableSpace = toRequestSpaceBytes + mAvailableSpaceBytes.get(dirInfo.getStorageId());
+      }
+      if (availableSpace >= requestSpaceBytes) {
+        mAvailableSpaceBytes.put(dirInfo.getStorageId(), availableSpace - requestSpaceBytes);
+        return dirInfo;
+      } else {
+        return null;
       }
     }
+  }
 
-    if (mAvailableSpaceBytes < requestSpaceBytes) {
-      return false;
+  public synchronized WorkerDirInfo requestSpaceInplace(long requestSpaceBytes) throws IOException {
+    WorkerDirInfo dirInfo = null;
+    for (Entry<Long, Long> entry : mAvailableSpaceBytes.entrySet()) {
+      if (entry.getValue() >= requestSpaceBytes) {
+        long storageId = entry.getKey();
+        if (mIdToDirInfo.containsKey(storageId)) {
+          dirInfo = mIdToDirInfo.get(storageId);
+        } else {
+          dirInfo = getDirInfoByStorageId(storageId);
+          if (dirInfo == null) {
+            LOG.error("not found storage dir! storageId:" + storageId);
+            mAvailableSpaceBytes.remove(storageId);
+            continue;
+          } else {
+            mIdToDirInfo.put(storageId, dirInfo);
+          }
+        }
+        mAvailableSpaceBytes.put(storageId, entry.getValue() - requestSpaceBytes);
+        break;
+      }
     }
-
-    mAvailableSpaceBytes -= requestSpaceBytes;
-
-    return true;
+    return dirInfo;
   }
 
   /**
@@ -1754,18 +1925,6 @@ public class TachyonFS {
   /** Alias for setPinned(fid, false). */
   public synchronized void unpinFile(int fid) throws IOException {
     setPinned(fid, false);
-  }
-
-  /** Returns true if the given file or folder has its "pinned" flag set. */
-  public synchronized boolean isPinned(int fid, boolean useCachedMetadata) throws IOException {
-    ClientFileInfo info;
-    if (!useCachedMetadata || !mClientFileInfos.containsKey(fid)) {
-      info = fetchClientFileInfo(fid);
-      mClientFileInfos.put(fid, info);
-    }
-    info = mClientFileInfos.get(fid);
-
-    return info.isPinned;
   }
 
   /**

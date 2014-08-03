@@ -81,7 +81,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   private final Configuration CONF = new Configuration();
   private int mNamenodePort;
 
-  private int mNumDataNode;
+  private final int mNumDataNode;
   private MiniDFSCluster mDfsCluster = null;
 
   private DistributedFileSystem mDfsClient = null;

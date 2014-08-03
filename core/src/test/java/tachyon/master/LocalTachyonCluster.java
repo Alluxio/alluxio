@@ -53,10 +53,10 @@ public class LocalTachyonCluster {
   private TachyonMaster mMaster = null;
 
   private TachyonWorker mWorker = null;
-  private int mMasterPort;
-  private int mWorkerPort;
+  private final int mMasterPort;
+  private final int mWorkerPort;
 
-  private long mWorkerCapacityBytes;
+  private final long mWorkerMemCapacityBytes;
   private String mTachyonHome;
 
   private String mWorkerDataFolder;
@@ -67,18 +67,26 @@ public class LocalTachyonCluster {
 
   private UnderFileSystemCluster mUnderFSCluster = null;
 
-  private List<TachyonFS> mClients = new ArrayList<TachyonFS>();
+  private final List<TachyonFS> mClients = new ArrayList<TachyonFS>();
 
-  public LocalTachyonCluster(int masterPort, int workerPort, long workerCapacityBytes) {
+  public LocalTachyonCluster(int masterPort, int workerPort, long workerMemCapacityBytes) {
     mMasterPort = masterPort;
     mWorkerPort = workerPort;
-    mWorkerCapacityBytes = workerCapacityBytes;
+    mWorkerMemCapacityBytes = workerMemCapacityBytes;
   }
 
-  public LocalTachyonCluster(long workerCapacityBytes) {
+  public LocalTachyonCluster(long workerMemCapacityBytes) {
     mMasterPort = Constants.DEFAULT_MASTER_PORT - 1000;
     mWorkerPort = Constants.DEFAULT_WORKER_PORT - 1000;
-    mWorkerCapacityBytes = workerCapacityBytes;
+    mWorkerMemCapacityBytes = workerMemCapacityBytes;
+  }
+
+  private void deleteDir(String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
+
+    if (ufs.exists(path) && !ufs.delete(path, true)) {
+      throw new IOException("Folder " + path + " already exists but can not be deleted.");
+    }
   }
 
   public synchronized TachyonFS getClient() throws IOException {
@@ -134,14 +142,6 @@ public class LocalTachyonCluster {
     return mWorkerPort;
   }
 
-  private void deleteDir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path);
-
-    if (ufs.exists(path) && !ufs.delete(path, true)) {
-      throw new IOException("Folder " + path + " already exists but can not be deleted.");
-    }
-  }
-
   private void mkdir(String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
@@ -183,7 +183,15 @@ public class LocalTachyonCluster {
     System.setProperty("tachyon.worker.port", mWorkerPort + "");
     System.setProperty("tachyon.worker.data.port", (mWorkerPort + 1) + "");
     System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
-    System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
+    if (System.getProperty("tachyon.worker.hierarchystore.level.max") == null) {
+      System.setProperty("tachyon.worker.hierarchystore.level.max", 1 + "");
+    }
+    System.setProperty("tachyon.worker.hierarchystore.level0.alias", "MEM");
+    String sysTempDir = System.getProperty("java.io.tmpdir", "/tmp");
+    System.setProperty("tachyon.worker.hierarchystore.level0.dirs", sysTempDir + "/mem");
+    System.setProperty("tachyon.worker.hierarchystore.level0.dir.quota", mWorkerMemCapacityBytes
+        + "");
+
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
     System.setProperty("tachyon.underfs.address", underfsFolder);
     System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
@@ -221,7 +229,7 @@ public class LocalTachyonCluster {
     mWorker =
         TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, mMasterPort),
             new InetSocketAddress(mLocalhostName, mWorkerPort), mWorkerPort + 1, 1, 1, 1,
-            mWorkerDataFolder, mWorkerCapacityBytes);
+            mWorkerDataFolder/* , mWorkerCapacityBytes */);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
@@ -258,7 +266,6 @@ public class LocalTachyonCluster {
 
     mWorker.stop();
     mMaster.stop();
-
     System.clearProperty("tachyon.home");
     System.clearProperty("tachyon.master.hostname");
     System.clearProperty("tachyon.master.port");
@@ -269,6 +276,7 @@ public class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.memory.size");
     System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
     System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
+    System.clearProperty("tachyon.worker.hierarchystore.level.max");
   }
 
   /**

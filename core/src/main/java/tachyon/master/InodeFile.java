@@ -18,6 +18,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -145,12 +146,12 @@ public class InodeFile extends Inode {
    *          The net address of the worker
    * @throws BlockInfoException
    */
-  public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress)
+  public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress, long storageId)
       throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
-    mBlocks.get(blockIndex).addLocation(workerId, workerAddress);
+    mBlocks.get(blockIndex).addLocation(workerId, workerAddress, storageId);
   }
 
   @Override

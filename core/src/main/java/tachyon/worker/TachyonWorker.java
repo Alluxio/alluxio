@@ -65,9 +65,9 @@ public class TachyonWorker implements Runnable {
    */
   public static synchronized TachyonWorker createWorker(InetSocketAddress masterAddress,
       InetSocketAddress workerAddress, int dataPort, int selectorThreads,
-      int acceptQueueSizePerThreads, int workerThreads, String localFolder, long spaceLimitBytes) {
+      int acceptQueueSizePerThreads, int workerThreads, String localFolder) {
     return new TachyonWorker(masterAddress, workerAddress, dataPort, selectorThreads,
-        acceptQueueSizePerThreads, workerThreads, localFolder, spaceLimitBytes);
+        acceptQueueSizePerThreads, workerThreads, localFolder);
   }
 
   /**
@@ -93,13 +93,13 @@ public class TachyonWorker implements Runnable {
    */
   public static synchronized TachyonWorker createWorker(String masterAddress,
       String workerAddress, int dataPort, int selectorThreads, int acceptQueueSizePerThreads,
-      int workerThreads, String localFolder, long spaceLimitBytes) {
+      int workerThreads, String localFolder) {
     String[] address = masterAddress.split(":");
     InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
     address = workerAddress.split(":");
     InetSocketAddress worker = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
     return new TachyonWorker(master, worker, dataPort, selectorThreads, acceptQueueSizePerThreads,
-        workerThreads, localFolder, spaceLimitBytes);
+        workerThreads, localFolder);
   }
 
   private static String getMasterLocation(String[] args) {
@@ -140,7 +140,7 @@ public class TachyonWorker implements Runnable {
     TachyonWorker worker =
         TachyonWorker.createWorker(getMasterLocation(args), resolvedWorkerHost + ":" + wConf.PORT,
             wConf.DATA_PORT, wConf.SELECTOR_THREADS, wConf.QUEUE_SIZE_PER_SELECTOR,
-            wConf.SERVER_THREADS, wConf.DATA_FOLDER, wConf.MEMORY_SIZE);
+            wConf.SERVER_THREADS, wConf.DATA_FOLDER);
     try {
       worker.start();
     } catch (Exception e) {
@@ -154,15 +154,15 @@ public class TachyonWorker implements Runnable {
   private TServer mServer;
 
   private TNonblockingServerSocket mServerTNonblockingServerSocket;
-  private WorkerStorage mWorkerStorage;
+  private final WorkerStorage mWorkerStorage;
 
-  private WorkerServiceHandler mWorkerServiceHandler;
+  private final WorkerServiceHandler mWorkerServiceHandler;
 
-  private DataServer mDataServer;
+  private final DataServer mDataServer;
 
-  private Thread mDataServerThread;
+  private final Thread mDataServerThread;
 
-  private Thread mHeartbeatThread;
+  private final Thread mHeartbeatThread;
 
   private volatile boolean mStop = false;
 
@@ -186,12 +186,11 @@ public class TachyonWorker implements Runnable {
    */
   private TachyonWorker(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
-      String dataFolder, long memoryCapacityBytes) {
+      String dataFolder) {
     MasterAddress = masterAddress;
     WorkerAddress = workerAddress;
 
-    mWorkerStorage =
-        new WorkerStorage(MasterAddress, WorkerAddress, dataFolder, memoryCapacityBytes);
+    mWorkerStorage = new WorkerStorage(MasterAddress, WorkerAddress, dataFolder);
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
@@ -242,9 +241,11 @@ public class TachyonWorker implements Runnable {
 
       try {
         cmd = mWorkerStorage.heartbeat();
-
         lastHeartbeatMs = System.currentTimeMillis();
       } catch (BlockInfoException e) {
+        LOG.error(e.getMessage(), e);
+      } catch (IOException e) {
+        e.printStackTrace();
         LOG.error(e.getMessage(), e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -274,7 +275,11 @@ public class TachyonWorker implements Runnable {
           mWorkerStorage.register();
           break;
         case Free:
-          mWorkerStorage.freeBlocks(cmd.mData);
+          try {
+            mWorkerStorage.freeBlocks(cmd.mData);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
           LOG.info("Free command: " + cmd);
           break;
         case Delete:
@@ -284,8 +289,11 @@ public class TachyonWorker implements Runnable {
           throw new RuntimeException("Un-recognized command from master " + cmd.toString());
         }
       }
-
-      mWorkerStorage.checkStatus();
+      try {
+        mWorkerStorage.checkStatus();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 
