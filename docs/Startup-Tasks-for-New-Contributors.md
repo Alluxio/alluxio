@@ -92,7 +92,7 @@ Before submitting the pull-request, run the latest code against [FindBugs](http:
 
 You can generate an Eclipse configuration file by running:
 
-    mvn install -Dintegration -DskipTests eclipse:eclipse
+    mvn install -Dtest.profile=hdfs -DskipTests eclipse:eclipse
 
 Then import the folder into Eclipse.
 
