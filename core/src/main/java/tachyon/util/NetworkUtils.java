@@ -1,14 +1,18 @@
 package tachyon.util;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
 import org.apache.log4j.Logger;
 
+import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TTransportException;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -16,8 +20,10 @@ import tachyon.Constants;
 /**
  * Common network utilities shared by all components in Tachyon.
  */
-public class NetworkUtils {
+public final class NetworkUtils {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+
+  private NetworkUtils() {}
 
   /**
    * @return the local host name, which is not based on a loopback ip address.
@@ -127,5 +133,34 @@ public class NetworkUtils {
     }
 
     return InetAddress.getByName(hostname).getCanonicalHostName();
+  }
+
+  /**
+   * Gets the port for the underline socket. This function calls
+   * {@link #getSocket(org.apache.thrift.transport.TNonblockingServerSocket)}, so reflection
+   * will be used to get the port.
+   *
+   * @see #getSocket(org.apache.thrift.transport.TNonblockingServerSocket)
+   */
+  public static int getPort(TNonblockingServerSocket thriftSocket) {
+    return getSocket(thriftSocket).getLocalPort();
+  }
+
+  /**
+   * Extracts the port from the thrift socket. As of thrift 0.9, the internal socket used
+   * is not exposed in the API, so this function will use reflection to get access to it.
+   *
+   * @throws java.lang.RuntimeException if reflection calls fail
+   */
+  public static ServerSocket getSocket(final TNonblockingServerSocket thriftSocket) {
+    try {
+      Field field = TNonblockingServerSocket.class.getDeclaredField("serverSocket_");
+      field.setAccessible(true);
+      return (ServerSocket) field.get(thriftSocket);
+    } catch (NoSuchFieldException e) {
+      throw Throwables.propagate(e);
+    } catch (IllegalAccessException e) {
+      throw Throwables.propagate(e);
+    }
   }
 }
