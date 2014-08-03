@@ -1,21 +1,35 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package tachyon.master;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import tachyon.Constants;
 import tachyon.UnderFileSystemCluster;
-import tachyon.UnderFileSystems;
+import tachyon.UnderFileSystemsUtils;
 import tachyon.client.TachyonFS;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 
 /**
  * Constructs an isolated master. Primary users of this class are the
@@ -27,62 +41,62 @@ import java.net.InetSocketAddress;
 public final class LocalTachyonMaster {
   //TODO should this be moved to TachyonURI?  Prob after UFS supports it
 
-  private final String mTachyonHome;
-  private final String mData;
-  private final String mLogs;
-  private final String mLocalhostName;
+  private final String TACHYON_HOME;
+  private final String DATA_DIR;
+  private final String LOG_DIR;
+  private final String HOSTNAME;
 
-  private final UnderFileSystemCluster mUnderFSCluster;
-  private final String mUnderfsFolder;
-  private final String mJournalFolder;
+  private final UnderFileSystemCluster UNDERFS_CLUSTER;
+  private final String UNDERFS_FOLDER;
+  private final String JOURNAL_FOLDER;
 
-  private final TachyonMaster mMaster;
-  private final Thread mMasterThread;
+  private final TachyonMaster MASTER;
+  private final Thread MASTER_THREAD;
 
-  private final Supplier<String> clientSupplier = new Supplier<String>() {
+  private final Supplier<String> CLIENT_SUPPLIER = new Supplier<String>() {
     @Override
     public String get() {
       return getUri();
     }
   };
-  private final ClientPool clientPool = new ClientPool(clientSupplier);
+  private final ClientPool CLIENT_POOL = new ClientPool(CLIENT_SUPPLIER);
 
   private LocalTachyonMaster(final String tachyonHome) throws IOException {
-    mTachyonHome = tachyonHome;
+    TACHYON_HOME = tachyonHome;
 
-    mData = path(mTachyonHome, "data");
-    mLogs = path(mTachyonHome, "logs");
+    DATA_DIR = path(TACHYON_HOME, "data");
+    LOG_DIR = path(TACHYON_HOME, "logs");
 
-    UnderFileSystems.mkdirIfNotExists(mData);
-    UnderFileSystems.mkdirIfNotExists(mLogs);
+    UnderFileSystemsUtils.mkdirIfNotExists(DATA_DIR);
+    UnderFileSystemsUtils.mkdirIfNotExists(LOG_DIR);
 
-    mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
+    HOSTNAME = InetAddress.getLocalHost().getCanonicalHostName();
 
     // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
     // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of
     // "mTachyonHome/tachyon*". Otherwise, it starts some distributed file system cluster e.g.,
     // miniDFSCluster (see also {@link tachyon.LocalMiniDFScluster} and setup the folder like
     // "hdfs://xxx:xxx/tachyon*".
-    mUnderFSCluster = UnderFileSystemCluster.get(mTachyonHome + "/dfs");
-    mUnderfsFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
+    UNDERFS_CLUSTER = UnderFileSystemCluster.get(TACHYON_HOME + "/dfs");
+    UNDERFS_FOLDER = UNDERFS_CLUSTER.getUnderFilesystemAddress() + "/tachyon_underfs_folder";
     // To setup the journalFolder under either local file system or distributed ufs like
     // miniDFSCluster
-    mJournalFolder = mUnderFSCluster.getUnderFilesystemAddress() + "/journal";
+    JOURNAL_FOLDER = UNDERFS_CLUSTER.getUnderFilesystemAddress() + "/journal";
 
-    UnderFileSystems.mkdirIfNotExists(mJournalFolder);
-    CommonUtils.touch(mJournalFolder + "/_format_" + System.currentTimeMillis());
+    UnderFileSystemsUtils.mkdirIfNotExists(JOURNAL_FOLDER);
+    CommonUtils.touch(JOURNAL_FOLDER + "/_format_" + System.currentTimeMillis());
 
-    System.setProperty("tachyon.master.hostname", mLocalhostName);
-    System.setProperty("tachyon.master.journal.folder", mJournalFolder);
-    System.setProperty("tachyon.underfs.address", mUnderfsFolder);
+    System.setProperty("tachyon.master.hostname", HOSTNAME);
+    System.setProperty("tachyon.master.journal.folder", JOURNAL_FOLDER);
+    System.setProperty("tachyon.underfs.address", UNDERFS_FOLDER);
 
     CommonConf.clear();
     MasterConf.clear();
     WorkerConf.clear();
     UserConf.clear();
 
-    mMaster =
-        new TachyonMaster(new InetSocketAddress(mLocalhostName, 0), 0, 1,
+    MASTER =
+        new TachyonMaster(new InetSocketAddress(HOSTNAME, 0), 0, 1,
             1, 1);
 
     System.setProperty("tachyon.master.port", Integer.toString(getPort()));
@@ -92,14 +106,14 @@ public final class LocalTachyonMaster {
       @Override
       public void run() {
         try {
-          mMaster.start();
+          MASTER.start();
         } catch (Exception e) {
           throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
         }
       }
     };
 
-    mMasterThread = new Thread(runMaster);
+    MASTER_THREAD = new Thread(runMaster);
   }
 
   /**
@@ -109,8 +123,8 @@ public final class LocalTachyonMaster {
    */
   public static LocalTachyonMaster create() throws IOException {
     final String tachyonHome = uniquePath();
-    UnderFileSystems.deleteDir(tachyonHome);
-    UnderFileSystems.mkdirIfNotExists(tachyonHome);
+    UnderFileSystemsUtils.deleteDir(tachyonHome);
+    UnderFileSystemsUtils.mkdirIfNotExists(tachyonHome);
 
     System.setProperty("tachyon.home", tachyonHome);
 
@@ -134,19 +148,19 @@ public final class LocalTachyonMaster {
   }
 
   public void start() {
-    mMasterThread.start();
+    MASTER_THREAD.start();
   }
 
   /**
    * Stops the master and cleans up client connections.
    *
-   * This method will not clean up {@link tachyon.UnderFileSystems} data.  To do that you must call
+   * This method will not clean up {@link tachyon.UnderFileSystemsUtils} data.  To do that you must call
    * {@link #cleanupUnderfs()}.
    */
   public void stop() throws Exception {
     clearClients();
 
-    mMaster.stop();
+    MASTER.stop();
 
     System.clearProperty("tachyon.home");
     System.clearProperty("tachyon.master.hostname");
@@ -154,39 +168,39 @@ public final class LocalTachyonMaster {
   }
 
   public void clearClients() throws IOException {
-    clientPool.close();
+    CLIENT_POOL.close();
   }
 
   public void cleanupUnderfs() throws IOException {
-    if (null != mUnderFSCluster) {
-      mUnderFSCluster.cleanup();
+    if (null != UNDERFS_CLUSTER) {
+      UNDERFS_CLUSTER.cleanup();
     }
     System.clearProperty("tachyon.master.journal.folder");
     System.clearProperty("tachyon.underfs.address");
   }
 
   public int getPort() {
-    return mMaster.getLocalPort();
+    return MASTER.getLocalPort();
   }
 
   public String getUri() {
-    return Constants.HEADER + mLocalhostName + ":" + getPort();
+    return Constants.HEADER + HOSTNAME + ":" + getPort();
   }
 
   public TachyonFS getClient() throws IOException {
-    return clientPool.getClient();
+    return CLIENT_POOL.getClient();
   }
 
   public String getEditLogPath() {
-    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/log.data";
+    return UNDERFS_CLUSTER.getUnderFilesystemAddress() + "/journal/log.data";
   }
 
   public String getImagePath() {
-    return mUnderFSCluster.getUnderFilesystemAddress() + "/journal/image.data";
+    return UNDERFS_CLUSTER.getUnderFilesystemAddress() + "/journal/image.data";
   }
 
   public MasterInfo getMasterInfo() {
-    return mMaster.getMasterInfo();
+    return MASTER.getMasterInfo();
   }
 
   private static String uniquePath() throws IOException {
@@ -198,6 +212,6 @@ public final class LocalTachyonMaster {
   }
 
   public boolean isStarted() {
-    return mMaster.isStarted();
+    return MASTER.isStarted();
   }
 }

@@ -212,7 +212,7 @@ public class TachyonWorker implements Runnable {
         new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
             mWorkerStorage);
     mDataServerThread = new Thread(DATA_SERVER);
-    DATA_PORT = DATA_SERVER.getLocalPort();
+    DATA_PORT = DATA_SERVER.getPort();
 
     mHeartbeatThread = new Thread(this);
     try {

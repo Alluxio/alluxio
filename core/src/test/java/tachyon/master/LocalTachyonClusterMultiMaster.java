@@ -29,7 +29,6 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
@@ -70,15 +69,15 @@ public class LocalTachyonClusterMultiMaster {
 
   private String mLocalhostName = null;
 
-  private final List<LocalTachyonMaster> mMasters = new ArrayList<LocalTachyonMaster>();
+  private final List<LocalTachyonMaster> MASTERS = new ArrayList<LocalTachyonMaster>();
 
-  private final Supplier<String> clientSupplier = new Supplier<String>() {
+  private final Supplier<String> CLIENT_SUPPLIER = new Supplier<String>() {
     @Override
     public String get() {
       return getUri();
     }
   };
-  private final ClientPool clientPool = new ClientPool(clientSupplier);
+  private final ClientPool CLIENT_POOL = new ClientPool(CLIENT_SUPPLIER);
 
   public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters) {
     mNumOfMasters = masters;
@@ -92,7 +91,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public synchronized TachyonFS getClient() throws IOException {
-    return clientPool.getClient();
+    return CLIENT_POOL.getClient();
   }
 
   public String getUri() {
@@ -101,9 +100,9 @@ public class LocalTachyonClusterMultiMaster {
 
   public boolean killLeader() {
     for (int k = 0; k < mNumOfMasters; k ++) {
-      if (mMasters.get(k).isStarted()) {
+      if (MASTERS.get(k).isStarted()) {
         try {
-          mMasters.get(k).stop();
+          MASTERS.get(k).stop();
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
           return false;
@@ -165,7 +164,7 @@ public class LocalTachyonClusterMultiMaster {
     for (int k = 0; k < mNumOfMasters; k ++) {
       final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome);
       master.start();
-      mMasters.add(master);
+      MASTERS.add(master);
     }
 
     CommonUtils.sleepMs(null, 10);
@@ -197,11 +196,11 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public void stopTFS() throws Exception {
-    clientPool.close();
+    CLIENT_POOL.close();
 
     mWorker.stop();
     for (int k = 0; k < mNumOfMasters; k ++) {
-      mMasters.get(k).stop();
+      MASTERS.get(k).stop();
     }
     mCuratorServer.stop();
 
@@ -222,6 +221,6 @@ public class LocalTachyonClusterMultiMaster {
 
   public void stopUFS() throws Exception {
     // masters share underfs, so only need to call on the first master
-    mMasters.get(0).cleanupUnderfs();
+    MASTERS.get(0).cleanupUnderfs();
   }
 }
