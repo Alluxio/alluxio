@@ -309,8 +309,6 @@ public class WorkerStorage {
 
     mWorkerSpaceCounter = new WorkerSpaceCounter(memoryCapacityBytes);
     mLocalUserFolder = new File(mLocalDataFolder, WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
-    mUnderfsWorkerFolder = CommonUtils.concat(COMMON_CONF.UNDERFS_WORKERS_FOLDER, mWorkerId);
-    mUnderfsWorkerDataFolder = mUnderfsWorkerFolder + "/data";
   }
 
   public void initialize(final NetAddress address) {
@@ -318,6 +316,8 @@ public class WorkerStorage {
 
     register();
 
+    mUnderfsWorkerFolder = CommonUtils.concat(COMMON_CONF.UNDERFS_WORKERS_FOLDER, mWorkerId);
+    mUnderfsWorkerDataFolder = mUnderfsWorkerFolder + "/data";
     mUnderFs = UnderFileSystem.get(COMMON_CONF.UNDERFS_ADDRESS);
     mUsers = new Users(mLocalUserFolder.toString(), mUnderfsWorkerFolder);
 
