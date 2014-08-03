@@ -53,6 +53,7 @@ public class WorkerConf extends Utils {
   public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
 
   // hierarchy storage
+  public final boolean DROP_AFTER_PROMOTE;
   public final int MAX_HIERARCHY_STORAGE_LEVEL;
   public final String[] STORAGE_LEVEL_DIRS;
   public final String[] STORAGE_LEVEL_ALIAS;
@@ -81,6 +82,8 @@ public class WorkerConf extends Utils {
         getIntProperty("tachyon.worker.per.thread.checkpoint.cap.mb.sec", Constants.SECOND_MS);
 
     // hierarchy storage
+    DROP_AFTER_PROMOTE =
+        getBooleanProperty("tachyon.worker.hierarchystore.dropAfterPromote", true);
     MAX_HIERARCHY_STORAGE_LEVEL = getIntProperty("tachyon.worker.hierarchystore.level.max", 4);
     STORAGE_LEVEL_DIRS = new String[MAX_HIERARCHY_STORAGE_LEVEL];
     STORAGE_LEVEL_ALIAS = new String[MAX_HIERARCHY_STORAGE_LEVEL];

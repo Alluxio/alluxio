@@ -27,7 +27,12 @@ public enum ReadType {
   /**
    * Read the file and cache it.
    */
-  CACHE(2);
+  CACHE(2),
+
+  /*
+   * Read file and re-cache it to Top storageTier
+   */
+  CACHE_PROMOTE(3);
 
   /**
    * Parse the read type
@@ -42,6 +47,8 @@ public enum ReadType {
       return NO_CACHE;
     } else if (op.equals("CACHE")) {
       return CACHE;
+    } else if (op.equals("CACHE_PROMOTE")) {
+      return CACHE_PROMOTE;
     }
 
     throw new IOException("Unknown ReadType : " + op);
@@ -66,6 +73,11 @@ public enum ReadType {
    * @return true if the read type is CACHE, false otherwise
    */
   public boolean isCache() {
-    return mValue == CACHE.mValue;
+    return mValue == CACHE.mValue ||
+        mValue == CACHE_PROMOTE.mValue;
+  }
+  
+  public boolean isPromote() {
+    return mValue == CACHE_PROMOTE.mValue;
   }
 }

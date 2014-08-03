@@ -246,6 +246,7 @@ public class WorkerStorage {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final CommonConf COMMON_CONF;
+  private final boolean mDropAfterPromote;
   private volatile MasterClient mMasterClient;
   private final InetSocketAddress mMasterAddress;
   private final InetSocketAddress mWorkerAddress;
@@ -287,6 +288,7 @@ public class WorkerStorage {
       String dataFolder) {
     COMMON_CONF = CommonConf.get();
 
+    mDropAfterPromote = WorkerConf.get().DROP_AFTER_PROMOTE; // can be set by per tier
     mLocalDataFolder = dataFolder;
     mLocalUserFolder = CommonUtils.concat(dataFolder, WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
 
@@ -837,6 +839,46 @@ public class WorkerStorage {
     if (foundDir != null) {
       foundDir.lockBlock(blockId, userId);
     }
+  }
+
+  /**
+   * promote the block into top storage tier
+   * 
+   * @param userId
+   * @param blockId
+   *          The id of the block
+   * @param readTypeValue
+   *          Read type the block
+   */
+  public boolean promoteBlock(long userId, long blockId) throws TException {
+    StorageDir srcDir = getStorageDirByBlockId(blockId);
+    long storageId = srcDir.getStorageId();
+    if (StorageId.getStorageLevelAliasValue(storageId) != mStorageTiers[0].getStorageLevelAlias()
+        .getValue()) {
+      long blockSize = srcDir.getBlockSize(blockId);
+      lockBlock(userId, blockId);
+      StorageDir dstDir = requestSpace(userId, blockSize);
+      unlockBlock(userId, blockId);
+      if (dstDir == null) {
+        LOG.error("promote block failed! blockId:" + blockId);
+        return false;
+      }
+      boolean result;
+      try {
+        if (mDropAfterPromote) {
+          result = srcDir.moveBlock(blockId, dstDir);
+        } else {
+          result = srcDir.copyBlock(blockId, dstDir);
+        }
+      } catch (IOException e) {
+        LOG.error("Error during promote block! blockId:" + blockId);
+        return false;
+      }
+      mMasterClient.worker_cacheBlock(mWorkerId, getCapacity(), blockId, blockSize,
+          dstDir.getStorageId());
+      return result;
+    }
+    return true;
   }
 
   /**
