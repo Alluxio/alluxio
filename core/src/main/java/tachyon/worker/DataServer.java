@@ -83,7 +83,7 @@ public class DataServer implements Runnable {
   /**
    * Gets the port listening on.
    */
-  int getLocalPort() {
+  int getPort() {
     return mServerChannel.socket().getLocalPort();
   }
 

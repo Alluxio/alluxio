@@ -136,7 +136,7 @@ public final class NetworkUtils {
   }
 
   /**
-   * Gets the port for the underline socket.  This function calls
+   * Gets the port for the underline socket. This function calls
    * {@link #getSocket(org.apache.thrift.transport.TNonblockingServerSocket)}, so reflection
    * will be used to get the port.
    *
@@ -147,7 +147,7 @@ public final class NetworkUtils {
   }
 
   /**
-   * Extracts the port from the thrift socket.  As of thrift 0.9, the internal socket used
+   * Extracts the port from the thrift socket. As of thrift 0.9, the internal socket used
    * is not exposed in the API, so this function will use reflection to get access to it.
    *
    * @throws java.lang.RuntimeException if reflection calls fail
