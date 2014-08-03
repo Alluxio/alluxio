@@ -29,6 +29,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.Version;
+import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
@@ -191,6 +192,10 @@ public class TachyonWorker implements Runnable {
   private TachyonWorker(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String dataFolder, long memoryCapacityBytes) {
+    CommonConf.assertValidPort(masterAddress);
+    CommonConf.assertValidPort(workerAddress);
+    CommonConf.assertValidPort(dataPort);
+
     MasterAddress = masterAddress;
 
     mWorkerStorage =
