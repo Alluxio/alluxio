@@ -198,16 +198,15 @@ public class TachyonWorker implements Runnable {
 
     MasterAddress = masterAddress;
 
-    mWorkerStorage =
-        new WorkerStorage(MasterAddress, dataFolder, memoryCapacityBytes);
+    mWorkerStorage = new WorkerStorage(MasterAddress, dataFolder, memoryCapacityBytes);
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
-    // extract the port from the generated socket.
-    // when running tests, its great to use port '0' so the system will figure
-    // out what port to use (any random free port).
-    // in a production or any real deployment setup, port '0' should not be
-    // used as it will make deployment more complicated.
+    // Extract the port from the generated socket.
+    // When running tests, its great to use port '0' so the system will figure out what port to use
+    // (any random free port).
+    // In a production or any real deployment setup, port '0' should not be used as it will make
+    // deployment more complicated.
     DATA_SERVER =
         new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
             mWorkerStorage);
@@ -231,23 +230,20 @@ public class TachyonWorker implements Runnable {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
-    WorkerAddress = new NetAddress(
-        workerAddress.getAddress().getCanonicalHostName(),
-        getMetaPort(),
-        getDataPort()
-    );
+    WorkerAddress =
+        new NetAddress(workerAddress.getAddress().getCanonicalHostName(), PORT, DATA_PORT);
     mWorkerStorage.initialize(WorkerAddress);
   }
 
   /**
-   * Gets the metadata port of the worker.
+   * Gets the metadata port of the worker. For unit tests only.
    */
   public int getMetaPort() {
     return PORT;
   }
 
   /**
-   * Gets the data port of the worker.
+   * Gets the data port of the worker. For unit tests only.
    */
   public int getDataPort() {
     return DATA_PORT;

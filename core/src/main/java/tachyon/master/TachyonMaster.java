@@ -17,13 +17,14 @@ package tachyon.master;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
@@ -73,6 +74,7 @@ public class TachyonMaster {
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
+  /** metadata port */
   private final int PORT;
 
   public TachyonMaster(InetSocketAddress address, int webPort, int selectorThreads,
@@ -91,11 +93,11 @@ public class TachyonMaster {
     mWorkerThreads = workerThreads;
 
     try {
-      // extract the port from the generated socket.
-      // when running tests, its great to use port '0' so the system will figure
-      // out what port to use (any random free port).
-      // in a production or any real deployment setup, port '0' should not be
-      // used as it will make deployment more complicated.
+      // Extract the port from the generated socket.
+      // When running tests, its great to use port '0' so the system will figure out what port to
+      // use (any random free port).
+      // In a production or any real deployment setup, port '0' should not be used as it will make
+      // deployment more complicated.
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(address);
       PORT = NetworkUtils.getPort(mServerTNonblockingServerSocket);
 
@@ -108,10 +110,10 @@ public class TachyonMaster {
 
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
+        // InetSocketAddress.toString causes test issues, so build the string by hand
         String name = mMasterAddress.getAddress().getHostName() + ":" + mMasterAddress.getPort();
         mLeaderSelectorClient =
             new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS, conf.ZOOKEEPER_ELECTION_PATH,
-                // InetSocketAddress.toString causes test issues, so build the string by hand
                 conf.ZOOKEEPER_LEADER_PATH, name);
         mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
         Thread logProcessor = new Thread(mEditLogProcessor);
@@ -124,9 +126,9 @@ public class TachyonMaster {
   }
 
   /**
-   * Get the port used by the master thrift service.
+   * Get the port used by unit test only
    */
-  int getLocalPort() {
+  int getMetaPort() {
     return PORT;
   }
 

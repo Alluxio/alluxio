@@ -32,6 +32,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.Users;
+import tachyon.conf.CommonConf;
 
 /**
  * The Server to serve data file read request from remote machines. The current implementation
@@ -70,6 +71,7 @@ public class DataServer implements Runnable {
    */
   public DataServer(InetSocketAddress address, WorkerStorage workerStorage) {
     LOG.info("Starting DataServer @ " + address);
+    CommonConf.assertValidPort(address);
     mAddress = address;
     mBlocksLocker = new BlocksLocker(workerStorage, Users.sDATASERVER_USER_ID);
     try {

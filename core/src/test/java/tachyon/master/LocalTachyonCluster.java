@@ -18,12 +18,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
@@ -92,7 +89,7 @@ public class LocalTachyonCluster {
   }
 
   public int getMasterPort() {
-    return mMaster.getPort();
+    return mMaster.getMetaPort();
   }
 
   public String getTachyonHome() {
@@ -172,14 +169,14 @@ public class LocalTachyonCluster {
     mkdir(CommonConf.get().UNDERFS_WORKERS_FOLDER);
 
     CommonUtils.sleepMs(null, 10);
-    
+
     System.setProperty("tachyon.master.port", getMasterPort() + "");
     System.setProperty("tachyon.master.web.port", (getMasterPort() + 1) + "");
 
     mWorker =
         TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1,
-            mWorkerDataFolder, mWorkerCapacityBytes);
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
+            mWorkerCapacityBytes);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
@@ -230,7 +227,7 @@ public class LocalTachyonCluster {
 
   /**
    * Cleanup the underfs cluster test folder only
-   *
+   * 
    * @throws Exception
    */
   public void stopUFS() throws Exception {

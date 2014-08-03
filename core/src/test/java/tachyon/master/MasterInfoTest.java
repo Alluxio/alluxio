@@ -524,9 +524,8 @@ public class MasterInfoTest {
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
     Assert.assertTrue(mMasterInfo.mkdir("/testFolder"));
     long opTimeMs = System.currentTimeMillis();
-    int fileId =
-        mMasterInfo._createFile(false, "/testFolder/testFile", false,
-            Constants.DEFAULT_BLOCK_SIZE_BYTE, opTimeMs);
+    mMasterInfo._createFile(false, "/testFolder/testFile", false,
+        Constants.DEFAULT_BLOCK_SIZE_BYTE, opTimeMs);
     ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo("/testFolder");
     Assert.assertEquals(opTimeMs, folderInfo.lastModificationTimeMs);
   }

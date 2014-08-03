@@ -22,8 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.thrift.TException;
 import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -63,8 +63,10 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
+  public boolean
+      addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath)
+          throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
+          TException {
     try {
       return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
     } catch (FileNotFoundException e) {

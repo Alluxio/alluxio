@@ -21,6 +21,7 @@ import java.net.InetSocketAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
+
 import tachyon.Constants;
 import tachyon.UnderFileSystemCluster;
 import tachyon.UnderFileSystemsUtils;
@@ -35,11 +36,11 @@ import tachyon.util.CommonUtils;
  * Constructs an isolated master. Primary users of this class are the
  * {@link tachyon.master.LocalTachyonCluster} and
  * {@link tachyon.master.LocalTachyonClusterMultiMaster}.
- *
+ * 
  * Isolated is defined as having its own root directory, and port.
  */
 public final class LocalTachyonMaster {
-  //TODO should this be moved to TachyonURI?  Prob after UFS supports it
+  // TODO should this be moved to TachyonURI? Prob after UFS supports it
 
   private final String TACHYON_HOME;
   private final String DATA_DIR;
@@ -95,12 +96,10 @@ public final class LocalTachyonMaster {
     WorkerConf.clear();
     UserConf.clear();
 
-    MASTER =
-        new TachyonMaster(new InetSocketAddress(HOSTNAME, 0), 0, 1,
-            1, 1);
+    MASTER = new TachyonMaster(new InetSocketAddress(HOSTNAME, 0), 0, 1, 1, 1);
 
-    System.setProperty("tachyon.master.port", Integer.toString(getPort()));
-    System.setProperty("tachyon.master.web.port", Integer.toString(getPort() + 1));
+    System.setProperty("tachyon.master.port", Integer.toString(getMetaPort()));
+    System.setProperty("tachyon.master.web.port", Integer.toString(getMetaPort() + 1));
 
     Runnable runMaster = new Runnable() {
       @Override
@@ -118,8 +117,9 @@ public final class LocalTachyonMaster {
 
   /**
    * Creates a new local tachyon master with a isolated home and port.
-   *
-   * @throws IOException unable to do file operation or listen on port
+   * 
+   * @throws IOException
+   *           unable to do file operation or listen on port
    */
   public static LocalTachyonMaster create() throws IOException {
     final String tachyonHome = uniquePath();
@@ -132,16 +132,20 @@ public final class LocalTachyonMaster {
   }
 
   /**
-   * Creates a new local tachyon master with a isolated port.  tachyonHome is expected to be clean
+   * Creates a new local tachyon master with a isolated port. tachyonHome is expected to be clean
    * before calling this method.
    * <p />
    * Clean is defined as
-   * <pre>{@code
+   * 
+   * <pre>
+   * {@code
    *   UnderFileSystems.deleteDir(tachyonHome);
    *   UnderFileSystems.mkdirIfNotExists(tachyonHome);
-   * }</pre>
-   *
-   * @throws IOException unable to do file operation or listen on port
+   * }
+   * </pre>
+   * 
+   * @throws IOException
+   *           unable to do file operation or listen on port
    */
   public static LocalTachyonMaster create(final String tachyonHome) throws IOException {
     return new LocalTachyonMaster(Preconditions.checkNotNull(tachyonHome));
@@ -153,9 +157,9 @@ public final class LocalTachyonMaster {
 
   /**
    * Stops the master and cleans up client connections.
-   *
-   * This method will not clean up {@link tachyon.UnderFileSystemsUtils} data.  To do that you must call
-   * {@link #cleanupUnderfs()}.
+   * 
+   * This method will not clean up {@link tachyon.UnderFileSystemsUtils} data. To do that you must
+   * call {@link #cleanupUnderfs()}.
    */
   public void stop() throws Exception {
     clearClients();
@@ -179,12 +183,12 @@ public final class LocalTachyonMaster {
     System.clearProperty("tachyon.underfs.address");
   }
 
-  public int getPort() {
-    return MASTER.getLocalPort();
+  public int getMetaPort() {
+    return MASTER.getMetaPort();
   }
 
   public String getUri() {
-    return Constants.HEADER + HOSTNAME + ":" + getPort();
+    return Constants.HEADER + HOSTNAME + ":" + getMetaPort();
   }
 
   public TachyonFS getClient() throws IOException {
