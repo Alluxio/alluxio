@@ -17,14 +17,13 @@ package tachyon.master;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.apache.log4j.Logger;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
@@ -34,6 +33,7 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.thrift.MasterService;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 import tachyon.web.UIWebServer;
 
 /**
@@ -73,8 +73,13 @@ public class TachyonMaster {
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
+  private final int PORT;
+
   public TachyonMaster(InetSocketAddress address, int webPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads) {
+    CommonConf.assertValidPort(address);
+    CommonConf.assertValidPort(webPort);
+
     if (CommonConf.get().USE_ZOOKEEPER) {
       mZookeeperMode = true;
     }
@@ -86,7 +91,15 @@ public class TachyonMaster {
     mWorkerThreads = workerThreads;
 
     try {
-      mMasterAddress = address;
+      // extract the port from the generated socket.
+      // when running tests, its great to use port '0' so the system will figure
+      // out what port to use (any random free port).
+      // in a production or any real deployment setup, port '0' should not be
+      // used as it will make deployment more complicated.
+      mServerTNonblockingServerSocket = new TNonblockingServerSocket(address);
+      PORT = NetworkUtils.getPort(mServerTNonblockingServerSocket);
+
+      mMasterAddress = new InetSocketAddress(address.getHostName(), PORT);
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
       Preconditions.checkState(isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX),
           "Tachyon was not formatted!");
@@ -95,9 +108,11 @@ public class TachyonMaster {
 
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
+        String name = mMasterAddress.getAddress().getHostName() + ":" + mMasterAddress.getPort();
         mLeaderSelectorClient =
             new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS, conf.ZOOKEEPER_ELECTION_PATH,
-                conf.ZOOKEEPER_LEADER_PATH, address.getHostName() + ":" + address.getPort());
+                // InetSocketAddress.toString causes test issues, so build the string by hand
+                conf.ZOOKEEPER_LEADER_PATH, name);
         mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
         Thread logProcessor = new Thread(mEditLogProcessor);
         logProcessor.start();
@@ -106,6 +121,13 @@ public class TachyonMaster {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
+  }
+
+  /**
+   * Get the port used by the master thrift service.
+   */
+  int getLocalPort() {
+    return PORT;
   }
 
   /**
@@ -166,7 +188,6 @@ public class TachyonMaster {
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
-    mServerTNonblockingServerSocket = new TNonblockingServerSocket(mMasterAddress);
     mMasterServiceServer =
         new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
             mServerTNonblockingServerSocket).processor(masterServiceProcessor)

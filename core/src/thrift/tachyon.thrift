@@ -6,6 +6,7 @@ namespace java tachyon.thrift
 struct NetAddress {
   1: string mHost
   2: i32 mPort
+  3: i32 mSecondaryPort
 }
 
 struct ClientBlockInfo {

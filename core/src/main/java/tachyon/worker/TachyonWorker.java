@@ -29,9 +29,11 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.Version;
+import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
+import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
@@ -150,7 +152,7 @@ public class TachyonWorker implements Runnable {
   }
 
   private final InetSocketAddress MasterAddress;
-  private final InetSocketAddress WorkerAddress;
+  private final NetAddress WorkerAddress;
   private TServer mServer;
 
   private TNonblockingServerSocket mServerTNonblockingServerSocket;
@@ -158,13 +160,16 @@ public class TachyonWorker implements Runnable {
 
   private WorkerServiceHandler mWorkerServiceHandler;
 
-  private DataServer mDataServer;
+  private final DataServer DATA_SERVER;
 
   private Thread mDataServerThread;
 
   private Thread mHeartbeatThread;
 
   private volatile boolean mStop = false;
+
+  private final int PORT;
+  private final int DATA_PORT;
 
   /**
    * @param masterAddress
@@ -187,18 +192,27 @@ public class TachyonWorker implements Runnable {
   private TachyonWorker(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String dataFolder, long memoryCapacityBytes) {
+    CommonConf.assertValidPort(masterAddress);
+    CommonConf.assertValidPort(workerAddress);
+    CommonConf.assertValidPort(dataPort);
+
     MasterAddress = masterAddress;
-    WorkerAddress = workerAddress;
 
     mWorkerStorage =
-        new WorkerStorage(MasterAddress, WorkerAddress, dataFolder, memoryCapacityBytes);
+        new WorkerStorage(MasterAddress, dataFolder, memoryCapacityBytes);
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
-    mDataServer =
+    // extract the port from the generated socket.
+    // when running tests, its great to use port '0' so the system will figure
+    // out what port to use (any random free port).
+    // in a production or any real deployment setup, port '0' should not be
+    // used as it will make deployment more complicated.
+    DATA_SERVER =
         new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
             mWorkerStorage);
-    mDataServerThread = new Thread(mDataServer);
+    mDataServerThread = new Thread(DATA_SERVER);
+    DATA_PORT = DATA_SERVER.getPort();
 
     mHeartbeatThread = new Thread(this);
     try {
@@ -207,6 +221,7 @@ public class TachyonWorker implements Runnable {
           new WorkerService.Processor<WorkerServiceHandler>(mWorkerServiceHandler);
 
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(workerAddress);
+      PORT = NetworkUtils.getPort(mServerTNonblockingServerSocket);
       mServer =
           new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
               mServerTNonblockingServerSocket).processor(processor)
@@ -216,6 +231,26 @@ public class TachyonWorker implements Runnable {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
+    WorkerAddress = new NetAddress(
+        workerAddress.getAddress().getCanonicalHostName(),
+        getMetaPort(),
+        getDataPort()
+    );
+    mWorkerStorage.initialize(WorkerAddress);
+  }
+
+  /**
+   * Gets the metadata port of the worker.
+   */
+  public int getMetaPort() {
+    return PORT;
+  }
+
+  /**
+   * Gets the data port of the worker.
+   */
+  public int getDataPort() {
+    return DATA_PORT;
   }
 
   /**
@@ -310,10 +345,10 @@ public class TachyonWorker implements Runnable {
   public void stop() throws IOException, InterruptedException {
     mStop = true;
     mWorkerStorage.stop();
-    mDataServer.close();
+    DATA_SERVER.close();
     mServer.stop();
     mServerTNonblockingServerSocket.close();
-    while (!mDataServer.isClosed() || mServer.isServing() || mHeartbeatThread.isAlive()) {
+    while (!DATA_SERVER.isClosed() || mServer.isServing() || mHeartbeatThread.isAlive()) {
       // TODO The reason to stop and close again is due to some issues in Thrift.
       mServer.stop();
       mServerTNonblockingServerSocket.close();

@@ -220,7 +220,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
       for (int k = 0; k < blockLocations.size(); k ++) {
         String host = blockLocations.get(k).mHost;
-        int port = blockLocations.get(k).mPort;
+        int port = blockLocations.get(k).mSecondaryPort;
 
         // The data is not in remote machine's memory if port == -1.
         if (port == -1) {
@@ -231,13 +231,13 @@ public class RemoteBlockInStream extends BlockInStream {
           String localFileName = CommonUtils.concat(TFS.getRootFolder(), blockInfo.blockId);
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         }
-        LOG.info(host + ":" + (port + 1) + " current host is "
+        LOG.info(host + ":" + port + " current host is "
             + InetAddress.getLocalHost().getHostName() + " "
             + InetAddress.getLocalHost().getHostAddress());
 
         try {
           buf =
-              retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port + 1),
+              retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port),
                   blockInfo.blockId, offset, len);
           if (buf != null) {
             break;

@@ -17,7 +17,9 @@ package tachyon.master;
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -253,8 +255,7 @@ public class MasterInfo extends ImageWriter {
   private final Set<Integer> mMustRecomputeDependencies = new HashSet<Integer>();
   private final Map<Long, MasterWorkerInfo> mWorkers = new HashMap<Long, MasterWorkerInfo>();
 
-  private final Map<InetSocketAddress, Long> mWorkerAddressToId =
-      new HashMap<InetSocketAddress, Long>();
+  private final Map<NetAddress, Long> mWorkerAddressToId = new HashMap<NetAddress, Long>();
 
   private final BlockingQueue<MasterWorkerInfo> mLostWorkers =
       new ArrayBlockingQueue<MasterWorkerInfo>(32);
@@ -968,9 +969,7 @@ public class MasterInfo extends ImageWriter {
         addBlock(tFile, new BlockInfo(tFile, blockIndex, length), System.currentTimeMillis());
       }
 
-      InetSocketAddress address = tWorkerInfo.ADDRESS;
-      tFile.addLocation(blockIndex, workerId, new NetAddress(address.getAddress()
-          .getCanonicalHostName(), address.getPort()));
+      tFile.addLocation(blockIndex, workerId, tWorkerInfo.ADDRESS);
 
       if (tFile.hasCheckpointed()) {
         return -1;
@@ -1743,31 +1742,32 @@ public class MasterInfo extends ImageWriter {
    *          If <code>random</code> is false, select a worker on this host
    * @return the address of the selected worker, or null if no address could be found
    */
-  public NetAddress getWorker(boolean random, String host) {
+  public NetAddress getWorker(boolean random, String host) throws UnknownHostException {
     synchronized (mWorkers) {
       if (mWorkerAddressToId.isEmpty()) {
         return null;
       }
       if (random) {
         int index = new Random(mWorkerAddressToId.size()).nextInt(mWorkerAddressToId.size());
-        for (InetSocketAddress address : mWorkerAddressToId.keySet()) {
+        for (NetAddress address : mWorkerAddressToId.keySet()) {
           if (index == 0) {
             LOG.debug("getRandomWorker: " + address);
-            return new NetAddress(address.getHostName(), address.getPort());
+            return address;
           }
           index --;
         }
-        for (InetSocketAddress address : mWorkerAddressToId.keySet()) {
+        for (NetAddress address : mWorkerAddressToId.keySet()) {
           LOG.debug("getRandomWorker: " + address);
-          return new NetAddress(address.getHostName(), address.getPort());
+          return address;
         }
       } else {
-        for (InetSocketAddress address : mWorkerAddressToId.keySet()) {
-          if (address.getHostName().equals(host)
-              || address.getAddress().getHostAddress().equals(host)
-              || address.getAddress().getCanonicalHostName().equals(host)) {
+        for (NetAddress address : mWorkerAddressToId.keySet()) {
+          InetAddress inetAddress = InetAddress.getByName(address.getMHost());
+          if (inetAddress.getHostName().equals(host)
+              || inetAddress.getHostAddress().equals(host)
+              || inetAddress.getCanonicalHostName().equals(host)) {
             LOG.debug("getLocalWorker: " + address);
-            return new NetAddress(address.getHostName(), address.getPort());
+            return address;
           }
         }
       }
@@ -2041,8 +2041,7 @@ public class MasterInfo extends ImageWriter {
   public long registerWorker(NetAddress workerNetAddress, long totalBytes, long usedBytes,
       List<Long> currentBlockIds) throws BlockInfoException {
     long id = 0;
-    InetSocketAddress workerAddress =
-        new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
+    NetAddress workerAddress = new NetAddress(workerNetAddress);
     LOG.info("registerWorker(): WorkerNetAddress: " + workerAddress);
 
     synchronized (mWorkers) {
@@ -2073,7 +2072,7 @@ public class MasterInfo extends ImageWriter {
         int blockIndex = BlockInfo.computeBlockIndex(blockId);
         Inode inode = mInodes.get(fileId);
         if (inode != null && inode.isFile()) {
-          ((InodeFile) inode).addLocation(blockIndex, id, workerNetAddress);
+          ((InodeFile) inode).addLocation(blockIndex, id, workerAddress);
         } else {
           LOG.warn("registerWorker failed to add fileId " + fileId + " blockIndex " + blockIndex);
         }
