@@ -314,7 +314,8 @@ public class WorkerStorage {
     mUnderfsWorkerDataFolder = mUnderfsWorkerFolder + "/data";
   }
 
-  public void initialize() {
+  public void initialize(final NetAddress address) {
+    mWorkerAddress = address;
     register();
 
     mUnderFs = UnderFileSystem.get(COMMON_CONF.UNDERFS_ADDRESS);
@@ -342,10 +343,6 @@ public class WorkerStorage {
 
     LOG.info("Current Worker Info: ID " + mWorkerId + ", ADDRESS: " + mWorkerAddress
         + ", MemoryCapacityBytes: " + mWorkerSpaceCounter.getCapacityBytes());
-  }
-
-  public void setWorkerAddress(final NetAddress address) {
-    mWorkerAddress = address;
   }
 
   /**
