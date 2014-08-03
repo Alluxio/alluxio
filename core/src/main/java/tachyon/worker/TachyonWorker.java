@@ -237,7 +237,7 @@ public class TachyonWorker implements Runnable {
         getDataPort()
     );
     mWorkerStorage.setWorkerAddress(WorkerAddress);
-    mWorkerStorage.initialize();
+    mWorkerStorage.initialize(WorkerAddress);
   }
 
   /**
