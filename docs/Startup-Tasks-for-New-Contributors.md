@@ -21,9 +21,12 @@ few things that everyone should do before developing on Tachyon.
 
 5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
 
-6.  Fork the repository, add unit tests or javadoc for one or two files in the following list,
-and then submit a pull request. You are also welcome to address issues in our
-[JIRA](https://spark-project.atlassian.net/browse/TACHYON). For a tutorial, see the GitHub guides on
+6.  Fork the repository, add unit tests or javadoc for one or two files in the
+following list, and then submit a pull request. You are also welcome to address
+issues in our [JIRA](https://spark-project.atlassian.net/browse/TACHYON).
+Here are a list of
+[tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner)
+for beginners. For a tutorial, see the GitHub guides on
 [forking a repo](https://help.github.com/articles/fork-a-repo) and
 [sending a pull request](https://help.github.com/articles/using-pull-requests).
 
@@ -89,7 +92,7 @@ Before submitting the pull-request, run the latest code against [FindBugs](http:
 
 You can generate an Eclipse configuration file by running:
 
-    mvn install -Dintegration -DskipTests eclipse:eclipse
+    mvn install -Dtest.profile=hdfs -DskipTests eclipse:eclipse
 
 Then import the folder into Eclipse.
 
