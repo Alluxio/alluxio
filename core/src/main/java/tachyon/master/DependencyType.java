@@ -35,16 +35,16 @@ public enum DependencyType {
     throw new IOException("Unknown DependencyType value " + value);
   }
 
-  private final int mValue;
+  private final int VALUE;
 
   private DependencyType(int value) {
-    mValue = value;
+    VALUE = value;
   }
 
   /**
    * Get the integer value of this enum value.
    */
   public int getValue() {
-    return mValue;
+    return VALUE;
   }
 }

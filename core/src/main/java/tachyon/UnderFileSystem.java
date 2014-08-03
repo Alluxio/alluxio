@@ -14,12 +14,12 @@
  */
 package tachyon;
 
-import tachyon.conf.CommonConf;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+
+import tachyon.conf.CommonConf;
 
 /**
  * Tachyon stores data into an under layer file system. Any file system implementing this interface
@@ -29,23 +29,23 @@ public abstract class UnderFileSystem {
   public enum SpaceType {
     SPACE_TOTAL(0), SPACE_FREE(1), SPACE_USED(2);
 
-    private final int value;
+    private final int VALUE;
 
     private SpaceType(int value) {
-      this.value = value;
+      VALUE = value;
     }
 
     /**
      * Get the integer value of this enum value.
      */
     public int getValue() {
-      return value;
+      return VALUE;
     }
   }
 
   /**
    * Get the UnderFileSystem instance according to its schema.
-   *
+   * 
    * @param path
    *          file path storing over the ufs.
    * @return null for any unknown scheme.
@@ -56,7 +56,7 @@ public abstract class UnderFileSystem {
 
   /**
    * Get the UnderFileSystem instance according to its scheme and configuration.
-   *
+   * 
    * @param path
    *          file path storing over the ufs
    * @param conf
@@ -74,12 +74,12 @@ public abstract class UnderFileSystem {
 
   /**
    * Determines if the Hadoop implementation of {@link tachyon.UnderFileSystem} should be used.
-   *
+   * 
    * The logic to say if a path should use the hadoop implementation is by checking if
    * {@link String#startsWith(String)} to see if the configured schemas are found.
    */
   private static boolean isHadoopUnderFS(final String path) {
-    for(final String prefix : CommonConf.get().HADOOP_UFS_PREFIXES) {
+    for (final String prefix : CommonConf.get().HADOOP_UFS_PREFIXES) {
       if (path.startsWith(prefix)) {
         return true;
       }
@@ -91,7 +91,7 @@ public abstract class UnderFileSystem {
    * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir
    * into a pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
    * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
-   *
+   * 
    * @param path
    *          the input path string
    * @return null if path does not start with tachyon://, tachyon-ft://, hdfs://, s3://, s3n://,

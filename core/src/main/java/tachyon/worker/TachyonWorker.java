@@ -151,8 +151,8 @@ public class TachyonWorker implements Runnable {
     }
   }
 
-  private final InetSocketAddress MasterAddress;
-  private final NetAddress WorkerAddress;
+  private final InetSocketAddress MASTER_ADDRESS;
+  private final NetAddress WORKER_ADDRESS;
   private TServer mServer;
 
   private TNonblockingServerSocket mServerTNonblockingServerSocket;
@@ -196,9 +196,9 @@ public class TachyonWorker implements Runnable {
     CommonConf.assertValidPort(workerAddress);
     CommonConf.assertValidPort(dataPort);
 
-    MasterAddress = masterAddress;
+    MASTER_ADDRESS = masterAddress;
 
-    mWorkerStorage = new WorkerStorage(MasterAddress, dataFolder, memoryCapacityBytes);
+    mWorkerStorage = new WorkerStorage(MASTER_ADDRESS, dataFolder, memoryCapacityBytes);
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
@@ -230,9 +230,9 @@ public class TachyonWorker implements Runnable {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
-    WorkerAddress =
+    WORKER_ADDRESS =
         new NetAddress(workerAddress.getAddress().getCanonicalHostName(), PORT, DATA_PORT);
-    mWorkerStorage.initialize(WorkerAddress);
+    mWorkerStorage.initialize(WORKER_ADDRESS);
   }
 
   /**
@@ -327,9 +327,9 @@ public class TachyonWorker implements Runnable {
     mDataServerThread.start();
     mHeartbeatThread.start();
 
-    LOG.info("The worker server started @ " + WorkerAddress);
+    LOG.info("The worker server started @ " + WORKER_ADDRESS);
     mServer.serve();
-    LOG.info("The worker server ends @ " + WorkerAddress);
+    LOG.info("The worker server ends @ " + WORKER_ADDRESS);
   }
 
   /**

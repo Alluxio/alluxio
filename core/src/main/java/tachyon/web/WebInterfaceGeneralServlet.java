@@ -110,12 +110,12 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    DependencyVariables.sVariables.clear();
+    DependencyVariables.VARIABLES.clear();
     for (String key : (Set<String>) request.getParameterMap().keySet()) {
       if (key.startsWith("varName")) {
         String value = request.getParameter("varVal" + key.substring(7));
         if (value != null) {
-          DependencyVariables.sVariables.put(request.getParameter(key), value);
+          DependencyVariables.VARIABLES.put(request.getParameter(key), value);
         }
       }
     }
@@ -172,7 +172,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("diskFreeCapacity", "UNKNOWN");
     }
 
-    request.setAttribute("recomputeVariables", DependencyVariables.sVariables);
+    request.setAttribute("recomputeVariables", DependencyVariables.VARIABLES);
 
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
     for (int i = 0; i < workerInfos.size(); i ++) {

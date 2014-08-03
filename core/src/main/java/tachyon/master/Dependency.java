@@ -260,8 +260,8 @@ public class Dependency extends ImageWriter {
    */
   String parseCommandPrefix() {
     String rtn = COMMAND_PREFIX;
-    for (String s : DependencyVariables.sVariables.keySet()) {
-      rtn = rtn.replace("$" + s, DependencyVariables.sVariables.get(s));
+    for (String s : DependencyVariables.VARIABLES.keySet()) {
+      rtn = rtn.replace("$" + s, DependencyVariables.VARIABLES.get(s));
     }
     return rtn;
   }

@@ -36,7 +36,7 @@ public class DependencyTest {
 
   @After
   public final void after() throws Exception {
-    DependencyVariables.sVariables.clear();
+    DependencyVariables.VARIABLES.clear();
     mLocalTachyonCluster.stop();
   }
 
@@ -44,8 +44,8 @@ public class DependencyTest {
   public final void before() throws IOException {
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
-    DependencyVariables.sVariables.put("master", mMasterValue);
-    DependencyVariables.sVariables.put("port", mPortValue);
+    DependencyVariables.VARIABLES.put("master", mMasterValue);
+    DependencyVariables.VARIABLES.put("port", mPortValue);
   }
 
   @Test

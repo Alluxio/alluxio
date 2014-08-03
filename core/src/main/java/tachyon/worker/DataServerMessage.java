@@ -20,8 +20,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 
-import com.google.common.base.Preconditions;
 import org.apache.log4j.Logger;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 import tachyon.client.TachyonByteBuffer;
@@ -143,8 +144,9 @@ public class DataServerMessage {
           error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
         }
         if (error == null && len != -1 && offset + len > fileLength) {
-          error = String.format("Offset(%d) plus length(%d) is larger than file length(%d)",
-            offset, len, fileLength);
+          error =
+              String.format("Offset(%d) plus length(%d) is larger than file length(%d)", offset,
+                  len, fileLength);
         }
         if (error != null) {
           file.close();
@@ -186,7 +188,7 @@ public class DataServerMessage {
 
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final boolean IS_TO_SEND_DATA;
-  private final short mMsgType;
+  private final short MSG_TYPE;
   private boolean mIsMessageReady;
   private ByteBuffer mHeader;
 
@@ -213,7 +215,7 @@ public class DataServerMessage {
    */
   private DataServerMessage(boolean isToSendData, short msgType) {
     IS_TO_SEND_DATA = isToSendData;
-    mMsgType = msgType;
+    MSG_TYPE = msgType;
     mIsMessageReady = false;
   }
 
@@ -228,7 +230,7 @@ public class DataServerMessage {
    * Close the message.
    */
   public void close() {
-    if (mMsgType == DATA_SERVER_RESPONSE_MESSAGE) {
+    if (MSG_TYPE == DATA_SERVER_RESPONSE_MESSAGE) {
       try {
         if (mTachyonData != null) {
           mTachyonData.close();
@@ -253,7 +255,7 @@ public class DataServerMessage {
 
   private void generateHeader() {
     mHeader.clear();
-    mHeader.putShort(mMsgType);
+    mHeader.putShort(MSG_TYPE);
     mHeader.putLong(mBlockId);
     mHeader.putLong(mOffset);
     mHeader.putLong(mLength);
@@ -349,13 +351,13 @@ public class DataServerMessage {
       if (mHeader.remaining() == 0) {
         mHeader.flip();
         short msgType = mHeader.getShort();
-        assert (mMsgType == msgType);
+        assert (MSG_TYPE == msgType);
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();
         mLength = mHeader.getLong();
         // TODO make this better to truncate the file.
         assert mLength < Integer.MAX_VALUE;
-        if (mMsgType == DATA_SERVER_RESPONSE_MESSAGE) {
+        if (MSG_TYPE == DATA_SERVER_RESPONSE_MESSAGE) {
           if (mLength == -1) {
             mData = ByteBuffer.allocate(0);
           } else {
@@ -364,7 +366,7 @@ public class DataServerMessage {
         }
         LOG.info(String.format("data" + mData + ", blockId(%d), offset(%d), dataLength(%d)",
             mBlockId, mOffset, mLength));
-        if (mMsgType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
+        if (MSG_TYPE == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
           mIsMessageReady = true;
         }
       }

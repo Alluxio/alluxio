@@ -10,6 +10,5 @@ import tachyon.conf.MasterConf;
 public class DependencyVariables {
   public static final String MASTER_HOSTNAME = MasterConf.get().HOSTNAME;
   public static final int MASTER_PORT = MasterConf.get().PORT;
-
-  public static final Hashtable<String, String> sVariables = new Hashtable<String, String>();
+  public static final Hashtable<String, String> VARIABLES = new Hashtable<String, String>();
 }
