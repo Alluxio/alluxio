@@ -39,6 +39,7 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
   private static final org.apache.thrift.protocol.TField OFFSET_FIELD_DESC = new org.apache.thrift.protocol.TField("offset", org.apache.thrift.protocol.TType.I64, (short)2);
   private static final org.apache.thrift.protocol.TField LENGTH_FIELD_DESC = new org.apache.thrift.protocol.TField("length", org.apache.thrift.protocol.TType.I64, (short)3);
   private static final org.apache.thrift.protocol.TField LOCATIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("locations", org.apache.thrift.protocol.TType.LIST, (short)4);
+  private static final org.apache.thrift.protocol.TField STORAGE_IDS_FIELD_DESC = new org.apache.thrift.protocol.TField("storageIds", org.apache.thrift.protocol.TType.MAP, (short)5);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -50,13 +51,15 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
   public long offset; // required
   public long length; // required
   public List<NetAddress> locations; // required
+  public Map<NetAddress,Long> storageIds; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     BLOCK_ID((short)1, "blockId"),
     OFFSET((short)2, "offset"),
     LENGTH((short)3, "length"),
-    LOCATIONS((short)4, "locations");
+    LOCATIONS((short)4, "locations"),
+    STORAGE_IDS((short)5, "storageIds");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -79,6 +82,8 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
           return LENGTH;
         case 4: // LOCATIONS
           return LOCATIONS;
+        case 5: // STORAGE_IDS
+          return STORAGE_IDS;
         default:
           return null;
       }
@@ -135,6 +140,10 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     tmpMap.put(_Fields.LOCATIONS, new org.apache.thrift.meta_data.FieldMetaData("locations", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NetAddress.class))));
+    tmpMap.put(_Fields.STORAGE_IDS, new org.apache.thrift.meta_data.FieldMetaData("storageIds", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, NetAddress.class), 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ClientBlockInfo.class, metaDataMap);
   }
@@ -146,7 +155,8 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     long blockId,
     long offset,
     long length,
-    List<NetAddress> locations)
+    List<NetAddress> locations,
+    Map<NetAddress,Long> storageIds)
   {
     this();
     this.blockId = blockId;
@@ -156,6 +166,7 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     this.length = length;
     setLengthIsSet(true);
     this.locations = locations;
+    this.storageIds = storageIds;
   }
 
   /**
@@ -173,6 +184,21 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       }
       this.locations = __this__locations;
     }
+    if (other.isSetStorageIds()) {
+      Map<NetAddress,Long> __this__storageIds = new HashMap<NetAddress,Long>(other.storageIds.size());
+      for (Map.Entry<NetAddress, Long> other_element : other.storageIds.entrySet()) {
+
+        NetAddress other_element_key = other_element.getKey();
+        Long other_element_value = other_element.getValue();
+
+        NetAddress __this__storageIds_copy_key = new NetAddress(other_element_key);
+
+        Long __this__storageIds_copy_value = other_element_value;
+
+        __this__storageIds.put(__this__storageIds_copy_key, __this__storageIds_copy_value);
+      }
+      this.storageIds = __this__storageIds;
+    }
   }
 
   public ClientBlockInfo deepCopy() {
@@ -188,6 +214,7 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     setLengthIsSet(false);
     this.length = 0;
     this.locations = null;
+    this.storageIds = null;
   }
 
   public long getBlockId() {
@@ -298,6 +325,41 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     }
   }
 
+  public int getStorageIdsSize() {
+    return (this.storageIds == null) ? 0 : this.storageIds.size();
+  }
+
+  public void putToStorageIds(NetAddress key, long val) {
+    if (this.storageIds == null) {
+      this.storageIds = new HashMap<NetAddress,Long>();
+    }
+    this.storageIds.put(key, val);
+  }
+
+  public Map<NetAddress,Long> getStorageIds() {
+    return this.storageIds;
+  }
+
+  public ClientBlockInfo setStorageIds(Map<NetAddress,Long> storageIds) {
+    this.storageIds = storageIds;
+    return this;
+  }
+
+  public void unsetStorageIds() {
+    this.storageIds = null;
+  }
+
+  /** Returns true if field storageIds is set (has been assigned a value) and false otherwise */
+  public boolean isSetStorageIds() {
+    return this.storageIds != null;
+  }
+
+  public void setStorageIdsIsSet(boolean value) {
+    if (!value) {
+      this.storageIds = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case BLOCK_ID:
@@ -332,6 +394,14 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       }
       break;
 
+    case STORAGE_IDS:
+      if (value == null) {
+        unsetStorageIds();
+      } else {
+        setStorageIds((Map<NetAddress,Long>)value);
+      }
+      break;
+
     }
   }
 
@@ -348,6 +418,9 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
 
     case LOCATIONS:
       return getLocations();
+
+    case STORAGE_IDS:
+      return getStorageIds();
 
     }
     throw new IllegalStateException();
@@ -368,6 +441,8 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       return isSetLength();
     case LOCATIONS:
       return isSetLocations();
+    case STORAGE_IDS:
+      return isSetStorageIds();
     }
     throw new IllegalStateException();
   }
@@ -418,6 +493,15 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       if (!(this_present_locations && that_present_locations))
         return false;
       if (!this.locations.equals(that.locations))
+        return false;
+    }
+
+    boolean this_present_storageIds = true && this.isSetStorageIds();
+    boolean that_present_storageIds = true && that.isSetStorageIds();
+    if (this_present_storageIds || that_present_storageIds) {
+      if (!(this_present_storageIds && that_present_storageIds))
+        return false;
+      if (!this.storageIds.equals(that.storageIds))
         return false;
     }
 
@@ -477,6 +561,16 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetStorageIds()).compareTo(other.isSetStorageIds());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetStorageIds()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.storageIds, other.storageIds);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -514,6 +608,14 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       sb.append("null");
     } else {
       sb.append(this.locations);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("storageIds:");
+    if (this.storageIds == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.storageIds);
     }
     first = false;
     sb.append(")");
@@ -604,6 +706,27 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 5: // STORAGE_IDS
+            if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
+              {
+                org.apache.thrift.protocol.TMap _map3 = iprot.readMapBegin();
+                struct.storageIds = new HashMap<NetAddress,Long>(2*_map3.size);
+                for (int _i4 = 0; _i4 < _map3.size; ++_i4)
+                {
+                  NetAddress _key5;
+                  long _val6;
+                  _key5 = new NetAddress();
+                  _key5.read(iprot);
+                  _val6 = iprot.readI64();
+                  struct.storageIds.put(_key5, _val6);
+                }
+                iprot.readMapEnd();
+              }
+              struct.setStorageIdsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -632,11 +755,24 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
         oprot.writeFieldBegin(LOCATIONS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.locations.size()));
-          for (NetAddress _iter3 : struct.locations)
+          for (NetAddress _iter7 : struct.locations)
           {
-            _iter3.write(oprot);
+            _iter7.write(oprot);
           }
           oprot.writeListEnd();
+        }
+        oprot.writeFieldEnd();
+      }
+      if (struct.storageIds != null) {
+        oprot.writeFieldBegin(STORAGE_IDS_FIELD_DESC);
+        {
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRUCT, org.apache.thrift.protocol.TType.I64, struct.storageIds.size()));
+          for (Map.Entry<NetAddress, Long> _iter8 : struct.storageIds.entrySet())
+          {
+            _iter8.getKey().write(oprot);
+            oprot.writeI64(_iter8.getValue());
+          }
+          oprot.writeMapEnd();
         }
         oprot.writeFieldEnd();
       }
@@ -670,7 +806,10 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       if (struct.isSetLocations()) {
         optionals.set(3);
       }
-      oprot.writeBitSet(optionals, 4);
+      if (struct.isSetStorageIds()) {
+        optionals.set(4);
+      }
+      oprot.writeBitSet(optionals, 5);
       if (struct.isSetBlockId()) {
         oprot.writeI64(struct.blockId);
       }
@@ -683,9 +822,19 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       if (struct.isSetLocations()) {
         {
           oprot.writeI32(struct.locations.size());
-          for (NetAddress _iter4 : struct.locations)
+          for (NetAddress _iter9 : struct.locations)
           {
-            _iter4.write(oprot);
+            _iter9.write(oprot);
+          }
+        }
+      }
+      if (struct.isSetStorageIds()) {
+        {
+          oprot.writeI32(struct.storageIds.size());
+          for (Map.Entry<NetAddress, Long> _iter10 : struct.storageIds.entrySet())
+          {
+            _iter10.getKey().write(oprot);
+            oprot.writeI64(_iter10.getValue());
           }
         }
       }
@@ -694,7 +843,7 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ClientBlockInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(4);
+      BitSet incoming = iprot.readBitSet(5);
       if (incoming.get(0)) {
         struct.blockId = iprot.readI64();
         struct.setBlockIdIsSet(true);
@@ -709,17 +858,33 @@ public class ClientBlockInfo implements org.apache.thrift.TBase<ClientBlockInfo,
       }
       if (incoming.get(3)) {
         {
-          org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.locations = new ArrayList<NetAddress>(_list5.size);
-          for (int _i6 = 0; _i6 < _list5.size; ++_i6)
+          org.apache.thrift.protocol.TList _list11 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.locations = new ArrayList<NetAddress>(_list11.size);
+          for (int _i12 = 0; _i12 < _list11.size; ++_i12)
           {
-            NetAddress _elem7;
-            _elem7 = new NetAddress();
-            _elem7.read(iprot);
-            struct.locations.add(_elem7);
+            NetAddress _elem13;
+            _elem13 = new NetAddress();
+            _elem13.read(iprot);
+            struct.locations.add(_elem13);
           }
         }
         struct.setLocationsIsSet(true);
+      }
+      if (incoming.get(4)) {
+        {
+          org.apache.thrift.protocol.TMap _map14 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRUCT, org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.storageIds = new HashMap<NetAddress,Long>(2*_map14.size);
+          for (int _i15 = 0; _i15 < _map14.size; ++_i15)
+          {
+            NetAddress _key16;
+            long _val17;
+            _key16 = new NetAddress();
+            _key16.read(iprot);
+            _val17 = iprot.readI64();
+            struct.storageIds.put(_key16, _val17);
+          }
+        }
+        struct.setStorageIdsIsSet(true);
       }
     }
   }
