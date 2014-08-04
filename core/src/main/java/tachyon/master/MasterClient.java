@@ -19,6 +19,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -65,7 +66,7 @@ public class MasterClient {
   private final static int MAX_CONNECT_TRY = 5;
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private boolean mUseZookeeper;
+  private final boolean mUseZookeeper;
   private MasterService.Client mClient = null;
   private InetSocketAddress mMasterAddress = null;
   private TProtocol mProtocol = null;
@@ -761,8 +762,7 @@ public class MasterClient {
     }
   }
 
-  public synchronized void user_setPinned(int id, boolean pinned)
-      throws IOException, TException {
+  public synchronized void user_setPinned(int id, boolean pinned) throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -796,12 +796,12 @@ public class MasterClient {
   }
 
   public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId,
-      long length) throws FileDoesNotExistException, SuspectedFileSizeException,
+      long length, long storageId) throws FileDoesNotExistException, SuspectedFileSizeException,
       BlockInfoException, TException {
     while (!mIsShutdown) {
       connect();
       try {
-        mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
+        mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length, storageId);
         return;
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
@@ -837,11 +837,12 @@ public class MasterClient {
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
-      List<Long> removedPartitionList) throws BlockInfoException, TException {
+      List<Long> removedBlockIds, Map<Long, List<Long>> swappedBlocks) throws BlockInfoException,
+      TException {
     while (!mIsShutdown) {
       connect();
       try {
-        return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
+        return mClient.worker_heartbeat(workerId, usedBytes, removedBlockIds, swappedBlocks);
       } catch (TTransportException e) {
         LOG.error(e.getMessage());
         mIsConnected = false;
@@ -866,12 +867,11 @@ public class MasterClient {
    * @throws TException
    */
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
-      long usedBytes, List<Long> currentBlockList) throws BlockInfoException, TException {
+      long usedBytes, Map<Long, List<Long>> blockInfos) throws BlockInfoException, TException {
     while (!mIsShutdown) {
       connect();
       try {
-        long ret =
-            mClient.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList);
+        long ret = mClient.worker_register(workerNetAddress, totalBytes, usedBytes, blockInfos);
         LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress
             + " , got WorkerId " + ret);
         return ret;

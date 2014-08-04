@@ -20,6 +20,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class UiFileInfo implements Comparable<UiFileInfo> {
@@ -128,7 +129,7 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
     }
   }
 
-  public void setFileLocations(List<NetAddress> fileLocations) {
+  public void setFileLocations(Collection<NetAddress> fileLocations) {
     for (NetAddress addr : fileLocations) {
       mFileLocations.add(addr.getMHost() + ":" + addr.getMPort());
     }

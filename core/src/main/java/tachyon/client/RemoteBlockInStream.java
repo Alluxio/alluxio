@@ -29,7 +29,6 @@ import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.util.CommonUtils;
 import tachyon.worker.DataServerMessage;
 
 /**
@@ -218,9 +217,9 @@ public class RemoteBlockInStream extends BlockInStream {
       List<NetAddress> blockLocations = blockInfo.getLocations();
       LOG.info("Block locations:" + blockLocations);
 
-      for (int k = 0; k < blockLocations.size(); k ++) {
-        String host = blockLocations.get(k).mHost;
-        int port = blockLocations.get(k).mSecondaryPort;
+      for (NetAddress blockLocation : blockLocations) {
+        String host = blockLocation.mHost;
+        int port = blockLocation.mSecondaryPort;
 
         // The data is not in remote machine's memory if port == -1.
         if (port == -1) {
@@ -228,8 +227,7 @@ public class RemoteBlockInStream extends BlockInStream {
         }
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())) {
-          String localFileName = CommonUtils.concat(TFS.getRootFolder(), blockInfo.blockId);
-          LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
+          LOG.warn("Master thinks the local machine has data " + blockInfo.blockId + "! But not!");
         }
         LOG.info(host + ":" + port + " current host is "
             + InetAddress.getLocalHost().getHostName() + " "
@@ -269,7 +267,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
     LOG.info("Data " + blockId + " to remote machine " + address + " sent");
 
-    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
+    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId, null);
     while (!recvMsg.isMessageReady()) {
       int numRead = recvMsg.recv(socketChannel);
       if (numRead == -1) {

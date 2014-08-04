@@ -74,11 +74,13 @@ public class MasterConf extends Utils {
     WEB_PORT = getIntProperty("tachyon.master.web.port", Constants.DEFAULT_MASTER_WEB_PORT);
     TEMPORARY_FOLDER = getProperty("tachyon.master.temporary.folder", "/tmp");
 
-    HEARTBEAT_INTERVAL_MS = getIntProperty("tachyon.master.heartbeat.interval.ms", Constants.SECOND_MS);
+    HEARTBEAT_INTERVAL_MS =
+        getIntProperty("tachyon.master.heartbeat.interval.ms", Constants.SECOND_MS);
     SELECTOR_THREADS = getIntProperty("tachyon.master.selector.threads", 3);
     QUEUE_SIZE_PER_SELECTOR = getIntProperty("tachyon.master.queue.size.per.selector", 3000);
     SERVER_THREADS = getIntProperty("tachyon.master.server.threads", 128);
-    WORKER_TIMEOUT_MS = getIntProperty("tachyon.master.worker.timeout.ms", 10 * Constants.SECOND_MS);
+    WORKER_TIMEOUT_MS =
+        getIntProperty("tachyon.master.worker.timeout.ms", 10 * Constants.SECOND_MS);
 
     WHITELIST.addAll(Arrays.asList(getProperty("tachyon.master.whitelist",
         Constants.PATH_SEPARATOR).split(",")));

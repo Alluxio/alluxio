@@ -14,17 +14,13 @@
  */
 package tachyon.client;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileChannel.MapMode;
 
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
+import tachyon.thrift.WorkerDirInfo;
 import tachyon.util.CommonUtils;
 
 /**
@@ -41,16 +37,14 @@ public class BlockOutStream extends OutStream {
 
   private long mInFileBytes = 0;
   private long mWrittenBytes = 0;
-
+  private WorkerDirInfo mDirInfo;
   private String mLocalFilePath = null;
-  private RandomAccessFile mLocalFile = null;
-  private FileChannel mLocalFileChannel = null;
 
   private ByteBuffer mBuffer = ByteBuffer.allocate(0);
-
   private boolean mCanWrite = false;
   private boolean mClosed = false;
   private boolean mCancel = false;
+  private BlockHandler mBlockHandler = null;
 
   /**
    * @param file
@@ -82,28 +76,13 @@ public class BlockOutStream extends OutStream {
       throw new IOException(msg);
     }
 
-    File localFolder = TFS.createAndGetUserTempFolder();
-    if (localFolder == null) {
-      mCanWrite = false;
-      String msg = "Failed to create temp user folder for tachyon client.";
-      throw new IOException(msg);
-    }
-
-    mLocalFilePath = CommonUtils.concat(localFolder.getPath(), BLOCK_ID);
-    mLocalFile = new RandomAccessFile(mLocalFilePath, "rw");
-    mLocalFileChannel = mLocalFile.getChannel();
-    // change the permission of the temporary file in order that the worker can move it.
-    CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
-    // use the sticky bit, only the client and the worker can write to the block
-    CommonUtils.setLocalFileStickyBit(mLocalFilePath);
-    LOG.info(mLocalFilePath + " was created!");
-
     mBuffer = ByteBuffer.allocate(USER_CONF.FILE_BUFFER_BYTES + 4);
   }
 
   private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
       throws IOException {
-    if (!TFS.requestSpace(length)) {
+    mDirInfo = TFS.requestSpace(length);
+    if (mDirInfo == null) {
       mCanWrite = false;
 
       String msg =
@@ -115,10 +94,15 @@ public class BlockOutStream extends OutStream {
 
       throw new IOException(msg);
     }
-
-    MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, mInFileBytes, length);
-    out.put(buf, offset, length);
-    mInFileBytes += length;
+    String userTempFolder = createUserTempFolder(mDirInfo.getStorageId());
+    mLocalFilePath = CommonUtils.concat(userTempFolder, BLOCK_ID);
+    try {
+      mBlockHandler = BlockHandler.get(mLocalFilePath, mDirInfo.getConf());
+      mBlockHandler.appendCurrentBuffer(buf, mInFileBytes, offset, length);
+      mInFileBytes += length;
+    } catch (IllegalArgumentException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   @Override
@@ -140,21 +124,32 @@ public class BlockOutStream extends OutStream {
       if (!mCancel && mBuffer.position() > 0) {
         appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       }
-
-      if (mLocalFileChannel != null) {
-        mLocalFileChannel.close();
-        mLocalFile.close();
-      }
-
       if (mCancel) {
-        TFS.releaseSpace(mWrittenBytes - mBuffer.position());
-        new File(mLocalFilePath).delete();
+        if (mDirInfo != null) {
+          TFS.releaseSpace(mDirInfo.getStorageId(), mWrittenBytes - mBuffer.position());
+        }
+        if (mBlockHandler != null) {
+          mBlockHandler.delete();
+          mBlockHandler.close();
+        }
         LOG.info("Canceled output of block " + BLOCK_ID + ", deleted local file " + mLocalFilePath);
       } else {
-        TFS.cacheBlock(BLOCK_ID);
+        mBlockHandler.close();
+        TFS.cacheBlock(mDirInfo.getStorageId(), BLOCK_ID);
       }
     }
     mClosed = true;
+  }
+
+  private String createUserTempFolder(long storageId) throws IOException {
+    String tempFolder = null;
+    tempFolder = TFS.createAndGetUserTempFolder(storageId);
+    if (tempFolder == null) {
+      mCanWrite = false;
+      String msg = "Failed to create temp user folder for tachyon client.";
+      throw new IOException(msg);
+    }
+    return tempFolder;
   }
 
   @Override

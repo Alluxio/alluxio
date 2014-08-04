@@ -16,6 +16,7 @@ package tachyon.worker;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -33,6 +34,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.Users;
 import tachyon.conf.CommonConf;
+import tachyon.worker.hierarchy.StorageDir;
 
 /**
  * The Server to serve data file read request from remote machines. The current implementation
@@ -42,7 +44,7 @@ public class DataServer implements Runnable {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   // The host:port combination to listen on
-  private InetSocketAddress mAddress;
+  private final InetSocketAddress mAddress;
 
   // The channel on which we will accept connections
   private ServerSocketChannel mServerChannel;
@@ -50,9 +52,9 @@ public class DataServer implements Runnable {
   // The selector we will be monitoring.
   private Selector mSelector;
 
-  private Map<SocketChannel, DataServerMessage> mSendingData = Collections
+  private final Map<SocketChannel, DataServerMessage> mSendingData = Collections
       .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
-  private Map<SocketChannel, DataServerMessage> mReceivingData = Collections
+  private final Map<SocketChannel, DataServerMessage> mReceivingData = Collections
       .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
   // The blocks locker manager.
@@ -60,6 +62,7 @@ public class DataServer implements Runnable {
 
   private volatile boolean mShutdown = false;
   private volatile boolean mShutdowned = false;
+  private final WorkerStorage mWorkerStorage;
 
   /**
    * Create a data server with direct access to worker storage.
@@ -74,19 +77,13 @@ public class DataServer implements Runnable {
     CommonConf.assertValidPort(address);
     mAddress = address;
     BLOCKS_LOCKER = new BlocksLocker(workerStorage, Users.sDATASERVER_USER_ID);
+    mWorkerStorage = workerStorage;
     try {
       mSelector = initSelector();
     } catch (IOException e) {
       LOG.error(e.getMessage() + mAddress, e);
       throw Throwables.propagate(e);
     }
-  }
-
-  /**
-   * Gets the port listening on.
-   */
-  int getPort() {
-    return mServerChannel.socket().getLocalPort();
   }
 
   private void accept(SelectionKey key) throws IOException {
@@ -111,6 +108,34 @@ public class DataServer implements Runnable {
     mShutdown = true;
     mServerChannel.close();
     mSelector.close();
+  }
+
+  private ByteBuffer getBlockFileData(long blockId, long offset, long length) throws IOException {
+    StorageDir dir = mWorkerStorage.getStorageDirByBlockId(blockId);
+    long blockSize = dir.getBlockSize(blockId);
+    String error = null;
+    if (offset > blockSize) {
+      error = String.format("Offset(%d) is larger than blockSize(%d)", offset, blockSize);
+    }
+    if (error == null && length != -1 && offset + length > blockSize) {
+      error =
+          String.format("Offset(%d) plus length(%d) is larger than blockSize(%d)", offset, length,
+              blockSize);
+    }
+    if (error != null) {
+      throw new IOException(error);
+    }
+    if (length == -1) {
+      length = blockSize - offset;
+    }
+    return dir.getBlockData(blockId, offset, length);
+  }
+
+  /**
+   * Gets the port listening on.
+   */
+  int getPort() {
+    return mServerChannel.socket().getLocalPort();
   }
 
   private Selector initSelector() throws IOException {
@@ -180,9 +205,11 @@ public class DataServer implements Runnable {
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getBlockId());
       int lockId = BLOCKS_LOCKER.lock(tMessage.getBlockId());
+      ByteBuffer blockData =
+          getBlockFileData(tMessage.getBlockId(), tMessage.getOffset(), tMessage.getLength());
       DataServerMessage tResponseMessage =
           DataServerMessage.createBlockResponseMessage(true, tMessage.getBlockId(),
-              tMessage.getOffset(), tMessage.getLength());
+              tMessage.getOffset(), blockData.limit(), blockData);
       tResponseMessage.setLockId(lockId);
       mSendingData.put(socketChannel, tResponseMessage);
     }

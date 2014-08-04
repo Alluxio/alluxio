@@ -77,7 +77,7 @@ public class InodeFile extends Inode {
   private boolean mCache = false;
   private String mUfsPath = "";
 
-  private List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(3);
+  private final List<BlockInfo> mBlocks = new ArrayList<BlockInfo>(3);
 
   private int mDependencyId;
 
@@ -145,12 +145,12 @@ public class InodeFile extends Inode {
    *          The net address of the worker
    * @throws BlockInfoException
    */
-  public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress)
-      throws BlockInfoException {
+  public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress,
+      long storageId) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
     }
-    mBlocks.get(blockIndex).addLocation(workerId, workerAddress);
+    mBlocks.get(blockIndex).addLocation(workerId, workerAddress, storageId);
   }
 
   @Override
@@ -250,15 +250,6 @@ public class InodeFile extends Inode {
   }
 
   /**
-   * Get the path of the file in under file system
-   * 
-   * @return the path of the file in under file system
-   */
-  public synchronized String getUfsPath() {
-    return mUfsPath;
-  }
-
-  /**
    * Get a ClientBlockInfo of the specified block.
    * 
    * @param blockIndex
@@ -343,6 +334,15 @@ public class InodeFile extends Inode {
   }
 
   /**
+   * Get the path of the file in under file system
+   * 
+   * @return the path of the file in under file system
+   */
+  public synchronized String getUfsPath() {
+    return mUfsPath;
+  }
+
+  /**
    * Return whether the file has checkpointed or not. Note that the file has checkpointed only if
    * the under file system path is not empty.
    * 
@@ -408,16 +408,6 @@ public class InodeFile extends Inode {
   }
 
   /**
-   * Set the path of the file in under file system.
-   * 
-   * @param ufsPath
-   *          The new path of the file in under file system
-   */
-  public synchronized void setUfsPath(String ufsPath) {
-    mUfsPath = ufsPath;
-  }
-
-  /**
    * The file is complete. Set the complete flag true.
    */
   public synchronized void setComplete() {
@@ -470,6 +460,16 @@ public class InodeFile extends Inode {
       addBlock(new BlockInfo(this, mBlocks.size(), (int) length));
     }
     mIsComplete = true;
+  }
+
+  /**
+   * Set the path of the file in under file system.
+   * 
+   * @param ufsPath
+   *          The new path of the file in under file system
+   */
+  public synchronized void setUfsPath(String ufsPath) {
+    mUfsPath = ufsPath;
   }
 
   @Override

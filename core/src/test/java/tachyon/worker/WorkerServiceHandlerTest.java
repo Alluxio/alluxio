@@ -14,28 +14,29 @@
  */
 package tachyon.worker;
 
+import java.io.IOException;
+
+import org.apache.thrift.TException;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import tachyon.StorageId;
+import tachyon.StorageLevelAlias;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.WorkerConf;
-
-import java.io.IOException;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.After;
-import org.junit.Before;
-
-import org.apache.thrift.TException;
-
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterInfo;
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.TachyonException;
+import tachyon.thrift.WorkerDirInfo;
 import tachyon.util.CommonUtils;
-import tachyon.worker.WorkerServiceHandler;
 
 /**
  * Unit tests for tachyon.WorkerServiceHandler
@@ -59,6 +60,7 @@ public class WorkerServiceHandlerTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
+
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mWorkerServiceHandler = mLocalTachyonCluster.getWorker().getWorkerServiceHandler();
@@ -97,34 +99,85 @@ public class WorkerServiceHandlerTest {
   }
 
   @Test
-  public void overCapacityRequestSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES * 10L));
+  public void overCapacityRequestSpaceTest() throws TException, IOException {
+    WorkerDirInfo actual = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L);
+    Assert.assertEquals(actual.getStorageId(),
+        StorageId.getStorageId(0, StorageLevelAlias.MEM.getValue(), 0));
+    TachyonException exception = null;
+    try {
+      actual = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    } catch (TachyonException e) {
+      exception = e;
+    }
+    Assert.assertEquals(exception, new TachyonException("no block can be evicted in current tier!"));
   }
 
   @Test
-  public void overReturnSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 10));
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 10));
-    mWorkerServiceHandler.returnSpace(1, WORKER_CAPACITY_BYTES);
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
+  public void overReturnSpaceTest() throws TException, IOException {
+    WorkerDirInfo actual = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES / 10L);
+    Assert.assertEquals(actual.getStorageId(),
+        StorageId.getStorageId(0, StorageLevelAlias.MEM.getValue(), 0));
+    mWorkerServiceHandler.returnSpace(actual.getStorageId(), 1, WORKER_CAPACITY_BYTES);
+    TachyonException exception = null;
+    try {
+      actual = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    } catch (TachyonException e) {
+      exception = e;
+    }
+    Assert.assertEquals(exception, new TachyonException("no block can be evicted in current tier!"));
   }
 
   @Test
-  public void returnSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
-    mWorkerServiceHandler.returnSpace(1, WORKER_CAPACITY_BYTES);
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES));
-    mWorkerServiceHandler.returnSpace(2, WORKER_CAPACITY_BYTES);
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 10));
+  public void returnSpaceTest() throws TException, IOException {
+    WorkerDirInfo actual0 = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    Assert.assertEquals(actual0.getStorageId(),
+        StorageId.getStorageId(0, StorageLevelAlias.MEM.getValue(), 0));
+    TachyonException exception = null;
+    try {
+      WorkerDirInfo actual1 = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    } catch (TachyonException e) {
+      exception = e;
+    }
+    Assert.assertEquals(exception, new TachyonException("no block can be evicted in current tier!"));
+    mWorkerServiceHandler.returnSpace(actual0.getStorageId(), 1, WORKER_CAPACITY_BYTES);
+    WorkerDirInfo actual2 = mWorkerServiceHandler.requestSpace(1L, WORKER_CAPACITY_BYTES);
+    Assert.assertEquals(actual2.getStorageId(),
+        StorageId.getStorageId(0, StorageLevelAlias.MEM.getValue(), 0));
+    mWorkerServiceHandler.returnSpace(actual2.getStorageId(), 2, WORKER_CAPACITY_BYTES);
+    try {
+      WorkerDirInfo actual3 = mWorkerServiceHandler.requestSpace(2L, WORKER_CAPACITY_BYTES / 10);
+    } catch (TachyonException e) {
+      exception = e;
+    }
+    Assert.assertEquals(exception, new TachyonException("no block can be evicted in current tier!"));
   }
 
   @Test
-  public void totalOverCapacityRequestSpaceTest() throws TException {
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2));
-    Assert.assertTrue(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2));
-    Assert.assertFalse(mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2));
+  public void totalOverCapacityRequestSpaceTest() throws TException, IOException {
+    WorkerDirInfo actual = mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2);
+    Assert.assertEquals(actual.getStorageId(),
+        StorageId.getStorageId(0, StorageLevelAlias.MEM.getValue(), 0));
+    TachyonException exception = null;
+    try {
+      actual = mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES + 1);
+    } catch (TachyonException e) {
+      exception = e;
+    }
+    Assert.assertEquals(exception, new TachyonException("no dir is allocated!"));
+    actual = mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2);
+    Assert.assertEquals(actual.getStorageId(),
+        StorageId.getStorageId(0, StorageLevelAlias.MEM.getValue(), 0));
+    try {
+      actual = mWorkerServiceHandler.requestSpace(1, WORKER_CAPACITY_BYTES / 2);
+    } catch (TachyonException e) {
+      exception = e;
+    }
+    Assert.assertEquals(exception, new TachyonException("no block can be evicted in current tier!"));
+    try {
+      actual = mWorkerServiceHandler.requestSpace(2, WORKER_CAPACITY_BYTES / 2);
+    } catch (TachyonException e) {
+      exception = e;
+    }
+    Assert.assertEquals(exception, new TachyonException("no block can be evicted in current tier!"));
   }
 }

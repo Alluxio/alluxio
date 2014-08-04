@@ -50,7 +50,7 @@ public class LocalTachyonCluster {
 
   private TachyonWorker mWorker = null;
 
-  private long mWorkerCapacityBytes;
+  private final long mWorkerMemCapacityBytes;
   private String mTachyonHome;
 
   private String mWorkerDataFolder;
@@ -60,8 +60,8 @@ public class LocalTachyonCluster {
 
   private LocalTachyonMaster mMaster;
 
-  public LocalTachyonCluster(long workerCapacityBytes) {
-    mWorkerCapacityBytes = workerCapacityBytes;
+  public LocalTachyonCluster(long workerMemCapacityBytes) {
+    mWorkerMemCapacityBytes = workerMemCapacityBytes;
   }
 
   public TachyonFS getClient() throws IOException {
@@ -153,7 +153,15 @@ public class LocalTachyonCluster {
     System.setProperty("tachyon.worker.port", 0 + "");
     System.setProperty("tachyon.worker.data.port", 0 + "");
     System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
-    System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
+    if (System.getProperty("tachyon.worker.hierarchystore.level.max") == null) {
+      System.setProperty("tachyon.worker.hierarchystore.level.max", 1 + "");
+    }
+    System.setProperty("tachyon.worker.hierarchystore.level0.alias", "MEM");
+    String sysTempDir = System.getProperty("java.io.tmpdir", "/tmp");
+    System.setProperty("tachyon.worker.hierarchystore.level0.dirs", sysTempDir + "/mem");
+    System.setProperty("tachyon.worker.hierarchystore.level0.dir.quota", mWorkerMemCapacityBytes
+        + "");
+
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
     System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
 
@@ -175,8 +183,7 @@ public class LocalTachyonCluster {
 
     mWorker =
         TachyonWorker.createWorker(new InetSocketAddress(mLocalhostName, getMasterPort()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
-            mWorkerCapacityBytes);
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {
@@ -223,6 +230,7 @@ public class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.memory.size");
     System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
     System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
+    System.clearProperty("tachyon.worker.hierarchystore.level.max");
   }
 
   /**
