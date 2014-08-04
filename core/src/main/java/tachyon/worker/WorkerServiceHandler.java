@@ -23,13 +23,15 @@ import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
+import tachyon.thrift.WorkerDirInfo;
 import tachyon.thrift.WorkerService;
+import tachyon.worker.hierarchy.StorageDir;
 
 /**
  * <code>WorkerServiceHandler</code> handles all the RPC calls to the worker.
  */
 public class WorkerServiceHandler implements WorkerService.Iface {
-  private WorkerStorage mWorkerStorage;
+  private final WorkerStorage mWorkerStorage;
 
   public WorkerServiceHandler(WorkerStorage workerStorage) {
     mWorkerStorage = workerStorage;
@@ -56,14 +58,36 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
-      SuspectedFileSizeException, BlockInfoException, TException {
-    mWorkerStorage.cacheBlock(userId, blockId);
+  public void cacheBlock(long storageId, long userId, long blockId)
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
+    mWorkerStorage.cacheBlock(storageId, userId, blockId);
+  }
+
+  @Override
+  public String getBlockFilePath(long blockId) throws FileDoesNotExistException, TException {
+    return mWorkerStorage.getBlockFilePath(blockId);
+  }
+
+  @Override
+  public long getBlockFileSize(long blockId) throws FileDoesNotExistException, TException {
+    return mWorkerStorage.getBlockFileSize(blockId);
   }
 
   @Override
   public String getDataFolder() throws TException {
     return mWorkerStorage.getDataFolder();
+  }
+
+  @Override
+  public synchronized WorkerDirInfo getDirInfoByBlockId(long blockId) throws TException,
+      TachyonException {
+    return mWorkerStorage.getDirInfoByBlockId(blockId);
+  }
+
+  @Override
+  public synchronized WorkerDirInfo getDirInfoByStorageId(long storageId) throws TException,
+      TachyonException {
+    return mWorkerStorage.getDirInfoByStorageId(storageId);
   }
 
   @Override
@@ -82,13 +106,20 @@ public class WorkerServiceHandler implements WorkerService.Iface {
   }
 
   @Override
-  public boolean requestSpace(long userId, long requestBytes) throws TException {
-    return mWorkerStorage.requestSpace(userId, requestBytes);
+  public boolean promoteBlock(long userId, long blockId) throws TException {
+    return mWorkerStorage.promoteBlock(userId, blockId);
   }
 
   @Override
-  public void returnSpace(long userId, long returnedBytes) throws TException {
-    mWorkerStorage.returnSpace(userId, returnedBytes);
+  public WorkerDirInfo requestSpace(long userId, long requestBytes) throws TachyonException,
+      TException {
+    StorageDir dir = mWorkerStorage.requestSpace(userId, requestBytes);
+    return mWorkerStorage.generateWorkerDirInfo(dir);
+  }
+
+  @Override
+  public void returnSpace(long storageId, long userId, long returnedBytes) throws TException {
+    mWorkerStorage.returnSpace(storageId, userId, returnedBytes);
   }
 
   @Override

@@ -150,7 +150,14 @@ public class LocalTachyonClusterMultiMaster {
     System.setProperty("tachyon.zookeeper.election.path", "/election");
     System.setProperty("tachyon.zookeeper.leader.path", "/leader");
     System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
-    System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
+    if(System.getProperty("tachyon.worker.hierarchystore.level.max") == null) {
+      System.setProperty("tachyon.worker.hierarchystore.level.max", 1 + "");
+    }
+    System.setProperty("tachyon.worker.hierarchystore.level0.alias", "MEM");
+    String sysTempDir = System.getProperty("java.io.tmpdir", "/tmp");
+    System.setProperty("tachyon.worker.hierarchystore.level0.dirs", sysTempDir + "/mem");
+    System.setProperty("tachyon.worker.hierarchystore.level0.dir.quota", mWorkerCapacityBytes + "");
+
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
 
     CommonConf.clear();
@@ -172,8 +179,7 @@ public class LocalTachyonClusterMultiMaster {
     mWorker =
         TachyonWorker.createWorker(
             CommonUtils.parseInetSocketAddress(mCuratorServer.getConnectString()),
-            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder,
-            mWorkerCapacityBytes);
+            new InetSocketAddress(mLocalhostName, 0), 0, 1, 1, 1, mWorkerDataFolder);
     Runnable runWorker = new Runnable() {
       @Override
       public void run() {

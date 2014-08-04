@@ -17,13 +17,13 @@ package tachyon.worker;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.HeartbeatThread;
@@ -33,6 +33,7 @@ import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
+import tachyon.thrift.WorkerDirInfo;
 import tachyon.thrift.WorkerService;
 
 /**
@@ -44,10 +45,10 @@ public class WorkerClient {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final WorkerService.Client CLIENT;
 
-  private TProtocol mProtocol;
-  private InetSocketAddress mWorkerAddress;
+  private final TProtocol mProtocol;
+  private final InetSocketAddress mWorkerAddress;
   private boolean mIsConnected = false;
-  private long mUserId;
+  private final long mUserId;
   private HeartbeatThread mHeartbeatThread = null;
 
   private String mRootFolder = null;
@@ -122,6 +123,8 @@ public class WorkerClient {
   /**
    * Notify the worker the block is cached.
    * 
+   * @param storageId
+   *          The storage id of the Dir that cache the block
    * @param userId
    *          The user id of the client who send the notification
    * @param blockId
@@ -129,9 +132,10 @@ public class WorkerClient {
    * @throws IOException
    * @throws TException
    */
-  public synchronized void cacheBlock(long userId, long blockId) throws IOException, TException {
+  public synchronized void cacheBlock(long storageId, long userId, long blockId)
+      throws IOException, TException {
     try {
-      CLIENT.cacheBlock(userId, blockId);
+      CLIENT.cacheBlock(storageId, userId, blockId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (BlockInfoException e) {
@@ -153,6 +157,30 @@ public class WorkerClient {
   }
 
   /**
+   * Get block file's path of the specified blockId.
+   * 
+   * @param blockId
+   *          The id of the block
+   * @return The path of the block file
+   * @throws TException
+   */
+  public synchronized String getBlockFilePath(long blockId) throws TException {
+    return CLIENT.getBlockFilePath(blockId);
+  }
+
+  /**
+   * Get block file's size of the specified blockId.
+   * 
+   * @param blockId
+   *          The id of the block
+   * @return The size of the block file
+   * @throws TException
+   */
+  public synchronized long getBlockFileSize(long blockId) throws TException {
+    return CLIENT.getBlockFileSize(blockId);
+  }
+
+  /**
    * @return The root local data folder of the worker
    * @throws TException
    */
@@ -160,8 +188,35 @@ public class WorkerClient {
     if (mRootFolder == null) {
       mRootFolder = CLIENT.getDataFolder();
     }
-
     return mRootFolder;
+  }
+
+  /**
+   * Get dir info that contains given block id
+   * 
+   * @param blockId
+   *          The id of the block
+   * @return info of the dir containing the block's file
+   * @throws TException
+   * @throws TachyonException
+   */
+  public synchronized WorkerDirInfo getDirInfoByBlockId(long blockId) throws TException,
+      TachyonException {
+    return CLIENT.getDirInfoByBlockId(blockId);
+  }
+
+  /**
+   * Get the user temporary folder in the under file system of the specified user.
+   * 
+   * @param storageId
+   *          The storage id of the dir
+   * @return The info of the dir with the storageId
+   * @throws TException
+   * @throws TachyonException
+   */
+  public synchronized WorkerDirInfo getDirInfoByStorageId(long storageId) throws TException,
+      TachyonException {
+    return CLIENT.getDirInfoByStorageId(storageId);
   }
 
   /**
@@ -230,30 +285,47 @@ public class WorkerClient {
   }
 
   /**
-   * Request space from the worker's memory
+   * promote the block into memory
+   * 
+   * @param userId
+   *          The id of the user who send the request
+   * @param blockId
+   *          The id of the block
+   * @return true if succeed, false otherwise
+   * @throws TException
+   */
+  public boolean promoteBlock(long userId, long blockId) throws TachyonException, TException {
+    return CLIENT.promoteBlock(userId, blockId);
+  }
+
+  /**
+   * Request space from the worker's cache space
    * 
    * @param userId
    *          The id of the user who send the request
    * @param requestBytes
    *          The requested space size, in bytes
-   * @return true if succeed, false otherwise
+   * @return the Dir Info of the space allocated
    * @throws TException
    */
-  public synchronized boolean requestSpace(long userId, long requestBytes) throws TException {
+  public synchronized WorkerDirInfo requestSpace(long userId, long requestBytes) throws TException {
     return CLIENT.requestSpace(userId, requestBytes);
   }
 
   /**
    * Return the space which has been requested
    * 
+   * @param storageId
+   *          the storage id of the Dir the space is returned to
    * @param userId
    *          The id of the user who wants to return the space
    * @param returnSpaceBytes
    *          The returned space size, in bytes
    * @throws TException
    */
-  public synchronized void returnSpace(long userId, long returnSpaceBytes) throws TException {
-    CLIENT.returnSpace(userId, returnSpaceBytes);
+  public synchronized void returnSpace(long storageId, long userId, long returnSpaceBytes)
+      throws TException {
+    CLIENT.returnSpace(storageId, userId, returnSpaceBytes);
   }
 
   /**

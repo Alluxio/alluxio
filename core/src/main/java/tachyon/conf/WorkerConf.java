@@ -15,7 +15,6 @@
 package tachyon.conf;
 
 import tachyon.Constants;
-import tachyon.util.CommonUtils;
 
 public class WorkerConf extends Utils {
   private static WorkerConf WORKER_CONF = null;
@@ -40,7 +39,6 @@ public class WorkerConf extends Utils {
   public final int PORT;
   public final int DATA_PORT;
   public final String DATA_FOLDER;
-  public final long MEMORY_SIZE;
   public final long HEARTBEAT_TIMEOUT_MS;
   public final int TO_MASTER_HEARTBEAT_INTERVAL_MS;
   public final int SELECTOR_THREADS;
@@ -54,6 +52,14 @@ public class WorkerConf extends Utils {
 
   public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
 
+  // hierarchy storage
+  public final boolean DROP_AFTER_PROMOTE;
+  public final int MAX_HIERARCHY_STORAGE_LEVEL;
+  public final String[] STORAGE_LEVEL_DIRS;
+  public final String[] STORAGE_LEVEL_ALIAS;
+  public final String[] STORAGE_LEVEL_DIR_QUOTA;
+  public final String[] STORAGE_LEVEL_DIR_QUOTA_DEFAULTS = "512MB,64GB,1TB".split(",");
+
   private WorkerConf() {
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
     MASTER_PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
@@ -62,9 +68,6 @@ public class WorkerConf extends Utils {
     DATA_PORT =
         getIntProperty("tachyon.worker.data.port", Constants.DEFAULT_WORKER_DATA_SERVER_PORT);
     DATA_FOLDER = getProperty("tachyon.worker.data.folder", "/mnt/ramdisk");
-    MEMORY_SIZE =
-        CommonUtils.parseSpaceSize(getProperty("tachyon.worker.memory.size", (128 * Constants.MB)
-            + ""));
     HEARTBEAT_TIMEOUT_MS =
         getIntProperty("tachyon.worker.heartbeat.timeout.ms", 10 * Constants.SECOND_MS);
     TO_MASTER_HEARTBEAT_INTERVAL_MS =
@@ -77,5 +80,28 @@ public class WorkerConf extends Utils {
     WORKER_CHECKPOINT_THREADS = getIntProperty("tachyon.worker.checkpoint.threads", 1);
     WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
         getIntProperty("tachyon.worker.per.thread.checkpoint.cap.mb.sec", Constants.SECOND_MS);
+
+    // hierarchy storage
+    DROP_AFTER_PROMOTE =
+        getBooleanProperty("tachyon.worker.hierarchystore.dropAfterPromote", true);
+    MAX_HIERARCHY_STORAGE_LEVEL = getIntProperty("tachyon.worker.hierarchystore.level.max", 4);
+    STORAGE_LEVEL_DIRS = new String[MAX_HIERARCHY_STORAGE_LEVEL];
+    STORAGE_LEVEL_ALIAS = new String[MAX_HIERARCHY_STORAGE_LEVEL];
+    STORAGE_LEVEL_DIR_QUOTA = new String[MAX_HIERARCHY_STORAGE_LEVEL];
+    for (int i = 0; i < MAX_HIERARCHY_STORAGE_LEVEL; i ++) {
+      STORAGE_LEVEL_ALIAS[i] =
+          getProperty("tachyon.worker.hierarchystore.level" + (i) + ".alias", "MEM");
+      STORAGE_LEVEL_DIRS[i] =
+          getProperty("tachyon.worker.hierarchystore.level" + (i) + ".dirs", "/tmp");
+      if (i < STORAGE_LEVEL_DIR_QUOTA_DEFAULTS.length) {
+        STORAGE_LEVEL_DIR_QUOTA[i] =
+            getProperty("tachyon.worker.hierarchystore.level" + (i) + ".dir.quota",
+                STORAGE_LEVEL_DIR_QUOTA_DEFAULTS[i]);
+      } else {
+        STORAGE_LEVEL_DIR_QUOTA[i] =
+            getProperty("tachyon.worker.hierarchystore.level" + (i) + ".dir.quota",
+                STORAGE_LEVEL_DIR_QUOTA_DEFAULTS[STORAGE_LEVEL_DIR_QUOTA_DEFAULTS.length - 1]);
+      }
+    }
   }
 }

@@ -439,13 +439,13 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
           case 2: // M_DATA
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list40 = iprot.readListBegin();
-                struct.mData = new ArrayList<Long>(_list40.size);
-                for (int _i41 = 0; _i41 < _list40.size; ++_i41)
+                org.apache.thrift.protocol.TList _list50 = iprot.readListBegin();
+                struct.mData = new ArrayList<Long>(_list50.size);
+                for (int _i51 = 0; _i51 < _list50.size; ++_i51)
                 {
-                  long _elem42;
-                  _elem42 = iprot.readI64();
-                  struct.mData.add(_elem42);
+                  long _elem52;
+                  _elem52 = iprot.readI64();
+                  struct.mData.add(_elem52);
                 }
                 iprot.readListEnd();
               }
@@ -478,9 +478,9 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
         oprot.writeFieldBegin(M_DATA_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.mData.size()));
-          for (long _iter43 : struct.mData)
+          for (long _iter53 : struct.mData)
           {
-            oprot.writeI64(_iter43);
+            oprot.writeI64(_iter53);
           }
           oprot.writeListEnd();
         }
@@ -517,9 +517,9 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
       if (struct.isSetMData()) {
         {
           oprot.writeI32(struct.mData.size());
-          for (long _iter44 : struct.mData)
+          for (long _iter54 : struct.mData)
           {
-            oprot.writeI64(_iter44);
+            oprot.writeI64(_iter54);
           }
         }
       }
@@ -535,13 +535,13 @@ public class Command implements org.apache.thrift.TBase<Command, Command._Fields
       }
       if (incoming.get(1)) {
         {
-          org.apache.thrift.protocol.TList _list45 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-          struct.mData = new ArrayList<Long>(_list45.size);
-          for (int _i46 = 0; _i46 < _list45.size; ++_i46)
+          org.apache.thrift.protocol.TList _list55 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.mData = new ArrayList<Long>(_list55.size);
+          for (int _i56 = 0; _i56 < _list55.size; ++_i56)
           {
-            long _elem47;
-            _elem47 = iprot.readI64();
-            struct.mData.add(_elem47);
+            long _elem57;
+            _elem57 = iprot.readI64();
+            struct.mData.add(_elem57);
           }
         }
         struct.setMDataIsSet(true);

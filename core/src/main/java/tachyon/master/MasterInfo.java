@@ -898,21 +898,6 @@ public class MasterInfo extends ImageWriter {
   }
 
   /**
-   * Recomputes mFileIdPinList at the given Inode, recursively recomputing for children.
-   * Optionally will set the "pinned" flag as we go.
-   * 
-   * @param inode
-   *          The inode to start traversal from
-   * @param setPinState
-   *          An optional parameter indicating whether we should also set the "pinned"
-   *          flag on each inode we traverse. If absent, the "isPinned" flag is unchanged.
-   */
-  private void recomputePinnedFiles(Inode inode, Optional<Boolean> setPinState) {
-    long opTimeMs = System.currentTimeMillis();
-    _recomputePinnedFiles(inode, setPinState, opTimeMs);
-  }
-
-  /**
    * While loading an image, addToInodeMap will map the various ids to their inodes.
    * 
    * @param inode
@@ -937,14 +922,16 @@ public class MasterInfo extends ImageWriter {
    * @param workerUsedBytes
    * @param blockId
    * @param length
+   * @param storageId
    * @return the dependency id of the file if it has not been checkpointed. -1
    *         means the file either does not have dependency or has already been checkpointed.
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    */
-  public int cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
-      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
+  public int cacheBlock(long workerId, long workerUsedBytes, long blockId, long length,
+      Long storageId) throws FileDoesNotExistException, SuspectedFileSizeException,
+      BlockInfoException {
     LOG.debug(CommonUtils.parametersToString(workerId, workerUsedBytes, blockId, length));
 
     MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
@@ -969,7 +956,7 @@ public class MasterInfo extends ImageWriter {
         addBlock(tFile, new BlockInfo(tFile, blockIndex, length), System.currentTimeMillis());
       }
 
-      tFile.addLocation(blockIndex, workerId, tWorkerInfo.ADDRESS);
+      tFile.addLocation(blockIndex, workerId, tWorkerInfo.ADDRESS, storageId);
 
       if (tFile.hasCheckpointed()) {
         return -1;
@@ -2023,6 +2010,21 @@ public class MasterInfo extends ImageWriter {
   }
 
   /**
+   * Recomputes mFileIdPinList at the given Inode, recursively recomputing for children.
+   * Optionally will set the "pinned" flag as we go.
+   * 
+   * @param inode
+   *          The inode to start traversal from
+   * @param setPinState
+   *          An optional parameter indicating whether we should also set the "pinned"
+   *          flag on each inode we traverse. If absent, the "isPinned" flag is unchanged.
+   */
+  private void recomputePinnedFiles(Inode inode, Optional<Boolean> setPinState) {
+    long opTimeMs = System.currentTimeMillis();
+    _recomputePinnedFiles(inode, setPinState, opTimeMs);
+  }
+
+  /**
    * Register a worker at the given address, setting it up and associating it with a given list of
    * blocks.
    * 
@@ -2034,11 +2036,13 @@ public class MasterInfo extends ImageWriter {
    *          The number of bytes already used in the worker
    * @param currentBlockIds
    *          The id's of the blocks held by the worker
+   * @param blockInfos
+   *          The info of the blocks existing on the worker
    * @return the new id of the registered worker
    * @throws BlockInfoException
    */
   public long registerWorker(NetAddress workerNetAddress, long totalBytes, long usedBytes,
-      List<Long> currentBlockIds) throws BlockInfoException {
+      Map<Long, List<Long>> blockInfos) throws BlockInfoException {
     long id = 0;
     NetAddress workerAddress = new NetAddress(workerNetAddress);
     LOG.info("registerWorker(): WorkerNetAddress: " + workerAddress);
@@ -2058,7 +2062,9 @@ public class MasterInfo extends ImageWriter {
       id = START_TIME_NS_PREFIX + WORKER_COUNTER.incrementAndGet();
       MasterWorkerInfo tWorkerInfo = new MasterWorkerInfo(id, workerAddress, totalBytes);
       tWorkerInfo.updateUsedBytes(usedBytes);
-      tWorkerInfo.updateBlocks(true, currentBlockIds);
+      for (List<Long> currentBlockIds : blockInfos.values()) {
+        tWorkerInfo.updateBlocks(true, currentBlockIds);
+      }
       tWorkerInfo.updateLastUpdatedTimeMs();
       WORKERS.put(id, tWorkerInfo);
       WORKER_ADDRESS_TO_ID.put(workerAddress, id);
@@ -2066,14 +2072,17 @@ public class MasterInfo extends ImageWriter {
     }
 
     synchronized (mRoot) {
-      for (long blockId : currentBlockIds) {
-        int fileId = BlockInfo.computeInodeId(blockId);
-        int blockIndex = BlockInfo.computeBlockIndex(blockId);
-        Inode inode = INODES.get(fileId);
-        if (inode != null && inode.isFile()) {
-          ((InodeFile) inode).addLocation(blockIndex, id, workerAddress);
-        } else {
-          LOG.warn("registerWorker failed to add fileId " + fileId + " blockIndex " + blockIndex);
+      for (Entry<Long, List<Long>> blockInfoEntry : blockInfos.entrySet()) {
+        for (long blockId : blockInfoEntry.getValue()) {
+          int fileId = BlockInfo.computeInodeId(blockId);
+          int blockIndex = BlockInfo.computeBlockIndex(blockId);
+          Inode inode = INODES.get(fileId);
+          if (inode != null && inode.isFile()) {
+            ((InodeFile) inode)
+                .addLocation(blockIndex, id, workerAddress, blockInfoEntry.getKey());
+          } else {
+            LOG.warn("registerWorker failed to add fileId " + fileId + " blockIndex " + blockIndex);
+          }
         }
       }
     }
@@ -2177,6 +2186,16 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
+  /** Sets the isPinned flag on the given inode and all of its children. */
+  public void setPinned(int fileId, boolean pinned) throws FileDoesNotExistException {
+    long opTimeMs = System.currentTimeMillis();
+    synchronized (mRoot) {
+      _setPinned(fileId, pinned, opTimeMs);
+      JOURNAL.getEditLog().setPinned(fileId, pinned, opTimeMs);
+      JOURNAL.getEditLog().flush();
+    }
+  }
+
   /**
    * Stops the heartbeat thread.
    */
@@ -2248,16 +2267,6 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
-  /** Sets the isPinned flag on the given inode and all of its children. */
-  public void setPinned(int fileId, boolean pinned) throws FileDoesNotExistException {
-    long opTimeMs = System.currentTimeMillis();
-    synchronized (mRoot) {
-      _setPinned(fileId, pinned, opTimeMs);
-      JOURNAL.getEditLog().setPinned(fileId, pinned, opTimeMs);
-      JOURNAL.getEditLog().flush();
-    }
-  }
-
   /**
    * Update the metadata of a table.
    * 
@@ -2294,12 +2303,15 @@ public class MasterInfo extends ImageWriter {
    *          The number of bytes used in the worker
    * @param removedBlockIds
    *          The id's of the blocks that have been removed
+   * @param swappedBlocks
+   *          The swapped blocks on the worker with their new storageIds
    * @return a command specifying an action to take
    * @throws BlockInfoException
    */
-  public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds)
-      throws BlockInfoException {
+  public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds,
+      Map<Long, List<Long>> swappedBlocks) throws BlockInfoException {
     LOG.debug("WorkerId: " + workerId);
+
     synchronized (mRoot) {
       synchronized (WORKERS) {
         MasterWorkerInfo tWorkerInfo = WORKERS.get(workerId);
@@ -2311,9 +2323,9 @@ public class MasterInfo extends ImageWriter {
         }
 
         tWorkerInfo.updateUsedBytes(usedBytes);
+        tWorkerInfo.updateLastUpdatedTimeMs();
         tWorkerInfo.updateBlocks(false, removedBlockIds);
         tWorkerInfo.updateToRemovedBlocks(false, removedBlockIds);
-        tWorkerInfo.updateLastUpdatedTimeMs();
 
         for (long blockId : removedBlockIds) {
           int fileId = BlockInfo.computeInodeId(blockId);
@@ -2331,6 +2343,29 @@ public class MasterInfo extends ImageWriter {
         List<Long> toRemovedBlocks = tWorkerInfo.getToRemovedBlocks();
         if (toRemovedBlocks.size() != 0) {
           return new Command(CommandType.Free, toRemovedBlocks);
+        }
+
+        for (Entry<Long, List<Long>> blocks : swappedBlocks.entrySet()) {
+          long storageId = blocks.getKey();
+          List<Long> blockIds = blocks.getValue();
+          for (long blockId : blockIds) {
+            int fileId = BlockInfo.computeInodeId(blockId);
+            int blockIndex = BlockInfo.computeBlockIndex(blockId);
+            Inode inode = INODES.get(fileId);
+            if (inode == null) {
+              LOG.error("File " + fileId + " does not exist");
+            } else if (inode.isFile()) { // add block for a file
+              List<BlockInfo> blockInfoList = ((InodeFile) inode).getBlockList();
+              NetAddress workerAddress = WORKERS.get(workerId).ADDRESS;
+              BlockInfo blockInfo = null;
+              if (blockInfoList.size() <= blockIndex) {
+                throw new BlockInfoException("not found block info, blockIndex:" + blockIndex);
+              } else { // add or update storageId for a block
+                blockInfo = blockInfoList.get(blockIndex);
+              }
+              blockInfo.addLocation(workerId, workerAddress, storageId);
+            }
+          }
         }
       }
     }

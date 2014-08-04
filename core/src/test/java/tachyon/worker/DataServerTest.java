@@ -17,7 +17,7 @@ package tachyon.worker;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
-
+import java.nio.ByteBuffer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,7 +33,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.worker.DataServerMessage;
 
 /**
- * Unit tests for tachyon.DataServer.
+ * Unit tests for tachyon.worker.DataServer.
  */
 public class DataServerTest {
   private final int WORKER_CAPACITY_BYTES = 1000;
@@ -69,7 +69,7 @@ public class DataServerTest {
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }
-    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId, 0, 6);
+    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId, 0, 6, ByteBuffer.allocate(0));
     while (!recvMsg.isMessageReady()) {
       int numRead = recvMsg.recv(socketChannel);
       if (numRead == -1) {
@@ -85,15 +85,14 @@ public class DataServerTest {
       IOException {
     int fileId = TestUtils.createByteFile(mTFS, "/testFile", WriteType.MUST_CACHE, 10);
     long blockId = mTFS.getBlockId(fileId, 0);
-    DataServerMessage sendMsg;
-    sendMsg = DataServerMessage.createBlockRequestMessage(blockId, 2, 6);
+    DataServerMessage sendMsg = DataServerMessage.createBlockRequestMessage(blockId, 2, 6);
     SocketChannel socketChannel =
         SocketChannel.open(new InetSocketAddress(mTFS.getFileBlocks(fileId).get(0).getLocations()
             .get(0).mHost, mTFS.getFileBlocks(fileId).get(0).getLocations().get(0).mSecondaryPort));
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }
-    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId, 2, 6);
+    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId, 2, 6, ByteBuffer.allocate(0));
     while (!recvMsg.isMessageReady()) {
       int numRead = recvMsg.recv(socketChannel);
       if (numRead == -1) {
@@ -115,7 +114,7 @@ public class DataServerTest {
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
     }
-    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
+    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId, null);
     while (!recvMsg.isMessageReady()) {
       int numRead = recvMsg.recv(socketChannel);
       if (numRead == -1) {
