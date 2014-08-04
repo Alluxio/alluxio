@@ -322,6 +322,9 @@ service WorkerService {
 
   void lockBlock(1: i64 blockId, 2: i64 userId) // Lock the file in memory while the user is reading it.
 
+  bool promoteBlock(1: i64 userId, 2: i64 blockId)
+    throws (1: TachyonException eP)
+
   void returnSpace(1: i64 storageId, 2: i64 userId, 3: i64 returnedBytes)
 
   WorkerDirInfo requestSpace(1: i64 userId, 2: i64 requestBytes)   // Should change this to return i64, means how much space to grant.
