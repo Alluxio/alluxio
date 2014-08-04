@@ -1603,6 +1603,27 @@ public class TachyonFS {
   }
 
   /**
+   * promte block file back to the top storage tier, after access it
+   * 
+   * @param blockId
+   *          id of the block
+   * @return true if promote success, false otherwise
+   * @throws IOException
+   */
+  public boolean promoteBlock(long blockId) throws IOException {
+    connect();
+    if (mWorkerClient == null || !mIsWorkerLocal) {
+      return false;
+    }
+    try {
+      return mWorkerClient.promoteBlock(mUserId, blockId);
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      return false;
+    }
+  }
+
+  /**
    * Read local block return a TachyonByteBuffer
    * 
    * @param blockId

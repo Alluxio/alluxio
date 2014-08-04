@@ -10,6 +10,8 @@ import org.junit.Test;
 import tachyon.StorageId;
 import tachyon.StorageLevelAlias;
 import tachyon.TestUtils;
+import tachyon.client.InStream;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
@@ -98,5 +100,34 @@ public class HierarchyStoreTest {
         StorageLevelAlias.MEM.getValue());
     Assert.assertEquals(StorageId.getStorageLevelAliasValue(storageId5),
         StorageLevelAlias.MEM.getValue());
+  }
+
+  @Test
+  public void promoteBlock() throws IOException, InterruptedException {
+    int fileId1 =
+        TestUtils.createByteFile(mTFS, "/root/test3", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 6);
+    int fileId2 =
+        TestUtils.createByteFile(mTFS, "/root/test4", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
+    int fileId3 =
+        TestUtils.createByteFile(mTFS, "/root/test5", WriteType.TRY_CACHE, MEM_CAPACITY_BYTES / 2);
+
+    Thread.sleep(150);
+    TachyonFile file1 = mTFS.getFile(fileId1);
+    TachyonFile file2 = mTFS.getFile(fileId2);
+    TachyonFile file3 = mTFS.getFile(fileId3);
+
+    Assert.assertEquals(file1.isInMemory(), false);
+    Assert.assertEquals(file2.isInMemory(), true);
+    Assert.assertEquals(file3.isInMemory(), true);
+
+    InStream is = file1.getInStream(ReadType.CACHE_PROMOTE);
+    byte[] buf = new byte[MEM_CAPACITY_BYTES / 6];
+    int len = is.read(buf);
+
+    Thread.sleep(150);
+    Assert.assertEquals(len, MEM_CAPACITY_BYTES / 6);
+    Assert.assertEquals(file1.isInMemory(), true);
+    Assert.assertEquals(file2.isInMemory(), false);
+    Assert.assertEquals(file3.isInMemory(), true);
   }
 }

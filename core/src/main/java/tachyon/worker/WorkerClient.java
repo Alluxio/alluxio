@@ -285,6 +285,20 @@ public class WorkerClient {
   }
 
   /**
+   * promote the block into memory
+   * 
+   * @param userId
+   *          The id of the user who send the request
+   * @param blockId
+   *          The id of the block
+   * @return true if succeed, false otherwise
+   * @throws TException
+   */
+  public boolean promoteBlock(long userId, long blockId) throws TachyonException, TException {
+    return CLIENT.promoteBlock(userId, blockId);
+  }
+
+  /**
    * Request space from the worker's cache space
    * 
    * @param userId
