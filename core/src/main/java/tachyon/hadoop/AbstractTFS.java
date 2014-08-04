@@ -14,23 +14,11 @@
  */
 package tachyon.hadoop;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.BlockLocation;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
 import org.apache.log4j.Logger;
-
 import tachyon.Constants;
 import tachyon.PrefixList;
 import tachyon.client.TachyonFS;
@@ -43,6 +31,12 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.UnderfsUtils;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
@@ -163,6 +157,23 @@ abstract class AbstractTFS extends FileSystem {
       return new FSDataOutputStream(file.getOutStream(type), null);
     }
   }
+
+  /**
+  * Use to address the HBase support issue in TACHYON-27
+  */
+  @Override
+  @Deprecated
+  public FSDataOutputStream createNonRecursive(Path cPath, FsPermission permission, boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress) throws IOException {
+   return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
+  }
+
+/* The additional method introduced in Hadoop 2.x */
+//  @Override
+//  @Deprecated
+//  public FSDataOutputStream createNonRecursive(Path cPath, FsPermission permission, EnumSet<CreateFlag> flags, int bufferSize, short replication, long blockSize, Progressable progress) throws IOException {
+//    boolean overwrite = flags.contains(CreateFlag.OVERWRITE) ? true : false;
+//    return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
+//  }
 
   @Override
   @Deprecated
