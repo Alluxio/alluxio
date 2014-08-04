@@ -14,6 +14,17 @@
 
 # The following gives an example:
 
+# Base tachyon classpath
+export TACHYON_CLASSPATH=$TACHYON_CONF_DIR/:$TACHYON_JAR
+
+# Hadoop installation path
+# export HADOOP_HOME=/opt/hadoop-2.2.0
+
+# If hadoop is installed add it to the TACHYON_CLASSPATH. This assumes hadoop 2.x tarball path structure.
+if [ ! -z "$HADOOP_HOME" ]; then
+  export TACHYON_CLASSPATH=${HADOOP_HOME}/share/hadoop/common/lib/*:${HADOOP_HOME}/share/hadoop/common/*:$TACHYON_CONF_DIR/:$TACHYON_JAR:${HADOOP_HOME}/share/hadoop/common/lib/*:${HADOOP_HOME}/etc/hadoop:${TACHYON_CLASSPATH}
+fi
+
 if [[ `uname -a` == Darwin* ]]; then
   # Assuming Mac OS X
   export JAVA_HOME=${JAVA_HOME:-$(/usr/libexec/java_home)}
@@ -22,7 +33,7 @@ if [[ `uname -a` == Darwin* ]]; then
 else
   # Assuming Linux
   if [ -z "$JAVA_HOME" ]; then
-    export JAVA_HOME=/usr/lib/jvm/java-1.6.0-sun-1.6.0.45.x86_64/
+   export JAVA_HOME=/usr/java/latest 
   fi
   export TACHYON_RAM_FOLDER=/mnt/ramdisk
 fi
