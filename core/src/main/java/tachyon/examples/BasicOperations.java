@@ -87,10 +87,10 @@ public class BasicOperations {
 
     long startTimeMs = CommonUtils.getCurrentMs();
     TachyonFile file = sTachyonClient.getFile(sFilePath);
-    TachyonByteBuffer buf = file.readByteBuffer();
+    TachyonByteBuffer buf = file.readByteBuffer(0);
     if (buf == null) {
       file.recache();
-      buf = file.readByteBuffer();
+      buf = file.readByteBuffer(0);
     }
     buf.DATA.order(ByteOrder.nativeOrder());
     for (int k = 0; k < sNumbers; k ++) {
