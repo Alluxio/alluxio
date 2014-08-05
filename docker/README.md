@@ -45,6 +45,21 @@ browser, you need to configure the network between your host and VirtualBox and 
 between them. so why not just choose your favorite virtual machine software, install a ubuntu, and
 work in this ubuntu either directly in the VM or ssh into it from host with your favorite terminal.
 
+If you would prefer to use a Mac enviornment, first ssh into boot2docker.
+* boot2docker ssh
+Then install bash.
+* tce-ab
+* Search for bash.tcz, then install
+Clone the repo in your boot2docker VM.
+SCP the tachyon snapshot jar you wish to test to tachyon/core/target. You can get the VM's ip by
+* boot2docker ip
+Now you can build and deploy.
+* cd tachyon-dev
+* ./build
+* cd ..
+* ./deploy/deploy.sh
+
+
 ## Example Usages:
 ### Testing environment:
 * ubuntu14.04

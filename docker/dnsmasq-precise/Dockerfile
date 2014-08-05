@@ -4,6 +4,7 @@ MAINTAINER amplab amp-docker@eecs.berkeley.edu
 
 VOLUME [ "/etc/dnsmasq.d" ]
 
+RUN apt-get update
 RUN apt-get install -y dnsmasq-base
 
 RUN echo "user=root" > /etc/dnsmasq.conf
