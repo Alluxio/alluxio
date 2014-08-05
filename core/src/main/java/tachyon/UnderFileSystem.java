@@ -78,7 +78,7 @@ public abstract class UnderFileSystem {
    * The logic to say if a path should use the hadoop implementation is by checking if
    * {@link String#startsWith(String)} to see if the configured schemas are found.
    */
-  private static boolean isHadoopUnderFS(final String path) {
+  public static boolean isHadoopUnderFS(final String path) {
     for (final String prefix : CommonConf.get().HADOOP_UFS_PREFIXES) {
       if (path.startsWith(prefix)) {
         return true;
