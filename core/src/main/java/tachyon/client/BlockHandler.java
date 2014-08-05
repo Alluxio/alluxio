@@ -26,7 +26,7 @@ import tachyon.UnderFileSystem;
 /**
  * It is the base class for handling block files. Block handlers for different under
  * file systems can be implemented by extending this class. It also creates a specific
- * BlockHandler for certain block file by checking the block file's path
+ * BlockHandler for certain block file by checking the block file's path.
  */
 public abstract class BlockHandler {
   /**
@@ -40,6 +40,7 @@ public abstract class BlockHandler {
    *          configuration of under file system
    * @return block handler of the block file
    * @throws IOException
+   * @throws FileNotFoundException
    * @throws IllegalArgumentException
    */
   public static BlockHandler get(String path, Object ufsConf) throws IOException,
@@ -78,6 +79,8 @@ public abstract class BlockHandler {
 
   /**
    * Close block file
+   * 
+   * @throws IOException
    */
   public abstract void close() throws IOException;
 
