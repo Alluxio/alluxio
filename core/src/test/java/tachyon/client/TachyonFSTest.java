@@ -59,14 +59,14 @@ public class TachyonFSTest {
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
   }
-  
+
   @Test
   public void getRootTest() throws IOException {
     Assert.assertEquals(1, mTfs.getFileId("/"));
   }
 
   @Test
-  public void createFileTest() throws IOException  {
+  public void createFileTest() throws IOException {
     int fileId = mTfs.createFile("/root/testFile1");
     Assert.assertEquals(3, fileId);
     fileId = mTfs.createFile("/root/testFile2");
@@ -308,7 +308,7 @@ public class TachyonFSTest {
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
-      Assert.assertNotNull(tFile.readByteBuffer());
+      Assert.assertNotNull(tFile.readByteBuffer(0));
     }
     fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH,
         fileSize));
@@ -335,7 +335,7 @@ public class TachyonFSTest {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
       if (k < numOfFiles - 1) {
-        Assert.assertNotNull(tFile.readByteBuffer());
+        Assert.assertNotNull(tFile.readByteBuffer(0));
       }
     }
     fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH,
@@ -366,13 +366,13 @@ public class TachyonFSTest {
       CommonUtils.sleepMs(null, SLEEP_MS);
       Assert.assertFalse(tFile.isInMemory());
       if (k < numOfFiles) {
-        Assert.assertNull(tFile.readByteBuffer());
+        Assert.assertNull(tFile.readByteBuffer(0));
         Assert.assertTrue(tFile.recache());
-        Assert.assertNotNull(tFile.readByteBuffer());
+        Assert.assertNotNull(tFile.readByteBuffer(0));
       } else {
-        Assert.assertNull(tFile.readByteBuffer());
+        Assert.assertNull(tFile.readByteBuffer(0));
         Assert.assertFalse(tFile.recache());
-        Assert.assertNull(tFile.readByteBuffer());
+        Assert.assertNull(tFile.readByteBuffer(0));
       }
     }
   }
@@ -433,7 +433,7 @@ public class TachyonFSTest {
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
-      TachyonByteBuffer tBuf = tFile.readByteBuffer();
+      TachyonByteBuffer tBuf = tFile.readByteBuffer(0);
       Assert.assertNotNull(tBuf);
       tBuf.close();
     }
@@ -461,9 +461,9 @@ public class TachyonFSTest {
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
-      TachyonByteBuffer tBuf = tFile.readByteBuffer();
+      TachyonByteBuffer tBuf = tFile.readByteBuffer(0);
       Assert.assertNotNull(tBuf);
-      tBuf = tFile.readByteBuffer();
+      tBuf = tFile.readByteBuffer(0);
       Assert.assertNotNull(tBuf);
       tBuf.close();
     }
@@ -491,9 +491,9 @@ public class TachyonFSTest {
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
-      TachyonByteBuffer tBuf1 = tFile.readByteBuffer();
+      TachyonByteBuffer tBuf1 = tFile.readByteBuffer(0);
       Assert.assertNotNull(tBuf1);
-      TachyonByteBuffer tBuf2 = tFile.readByteBuffer();
+      TachyonByteBuffer tBuf2 = tFile.readByteBuffer(0);
       Assert.assertNotNull(tBuf2);
       tBuf1.close();
       tBuf2.close();

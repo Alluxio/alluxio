@@ -29,8 +29,6 @@ import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
-import tachyon.client.table.RawColumn;
-import tachyon.client.table.RawTable;
 import tachyon.conf.CommonConf;
 import tachyon.master.LocalTachyonCluster;
 
@@ -147,18 +145,13 @@ public class RawTableTest {
   public void rawtablePerfTest() throws IOException {
     int col = 200;
 
-    long sMs = System.currentTimeMillis();
     int fileId = mTfs.createRawTable("/table", col);
-    // System.out.println("A " + (System.currentTimeMillis() - sMs));
 
-    sMs = System.currentTimeMillis();
     RawTable table = mTfs.getRawTable(fileId);
     Assert.assertEquals(col, table.getColumns());
     table = mTfs.getRawTable("/table");
     Assert.assertEquals(col, table.getColumns());
-    // System.out.println("B " + (System.currentTimeMillis() - sMs));
 
-    sMs = System.currentTimeMillis();
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       rawCol.createPartition(0);
@@ -167,27 +160,22 @@ public class RawTableTest {
       outStream.write(TestUtils.getIncreasingByteArray(10));
       outStream.close();
     }
-    // System.out.println("C " + (System.currentTimeMillis() - sMs));
 
-    sMs = System.currentTimeMillis();
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      TachyonByteBuffer buf = file.readByteBuffer();
+      TachyonByteBuffer buf = file.readByteBuffer(0);
       Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
       buf.close();
     }
-    // System.out.println("D " + (System.currentTimeMillis() - sMs));
 
-    sMs = System.currentTimeMillis();
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      TachyonByteBuffer buf = file.readByteBuffer();
+      TachyonByteBuffer buf = file.readByteBuffer(0);
       Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
       buf.close();
     }
-    // System.out.println("E " + (System.currentTimeMillis() - sMs));
   }
 
   @Test
