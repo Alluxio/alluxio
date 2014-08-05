@@ -26,16 +26,16 @@ import java.nio.channels.FileChannel.MapMode;
 import tachyon.util.CommonUtils;
 
 /**
- * it is used for handling block files on LocalFS, such as RamDisk SSD and HDD.
+ * It is used for handling block files on LocalFS, such as RamDisk, SSD and HDD.
  */
 public class BlockHandlerLocalFS extends BlockHandler {
 
   RandomAccessFile mLocalFile = null;
   FileChannel mLocalFileChannel = null;
 
-  public BlockHandlerLocalFS(String path) throws IOException {
+  public BlockHandlerLocalFS(String path) throws IOException, FileNotFoundException {
     super(path);
-    LOG.info(mPath + " is created");
+    LOG.debug(mPath + " is created");
     mLocalFile = new RandomAccessFile(mPath, "rw");
     mLocalFileChannel = mLocalFile.getChannel();
     // change the permission of the temporary file in order that the worker can move it.
@@ -46,8 +46,10 @@ public class BlockHandlerLocalFS extends BlockHandler {
 
   @Override
   public int appendCurrentBuffer(byte[] buf, long inFileBytes, int offset, int length)
-      throws IOException, FileNotFoundException {
-
+      throws IOException {
+    if (mLocalFileChannel == null) {
+      throw new IOException("Writing to unopened file!");
+    }
     MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, inFileBytes, length);
     out.put(buf, offset, length);
 
@@ -72,8 +74,10 @@ public class BlockHandlerLocalFS extends BlockHandler {
   }
 
   @Override
-  public ByteBuffer readByteBuffer(int offset, int length) throws IOException,
-      FileNotFoundException {
+  public ByteBuffer readByteBuffer(int offset, int length) throws IOException {
+    if (mLocalFileChannel == null || mLocalFile == null) {
+      throw new IOException("Reading from unopened file!");
+    }
     int fileLength = (int) mLocalFile.length();
     String error = null;
     if (offset > fileLength) {

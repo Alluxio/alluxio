@@ -19,39 +19,32 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * it is used for handling block files on HDFS.
+ * It is used for handling block files on HDFS.
  */
-// TODO how to simulate read & write with HDFS just like localFS (using ByteBuffer)
+// TODO How to simulate read & write with HDFS just like localFS (using ByteBuffer)
 public class BlockHandlerHdfs extends BlockHandler {
-
-  public BlockHandlerHdfs(String path, Object conf) throws IOException {
+  public BlockHandlerHdfs(String path, Object conf) throws IOException, FileNotFoundException {
     super(path);
-
   }
 
   @Override
   public int appendCurrentBuffer(byte[] buf, long inFileBytes, int offset, int length)
-      throws IOException, FileNotFoundException {
-
+      throws IOException {
     return 0;
   }
 
   @Override
   public void close() throws IOException {
-
     return;
   }
 
   @Override
   public void delete() {
-
     return;
   }
 
   @Override
-  public ByteBuffer readByteBuffer(int offset, int length) throws IOException,
-      FileNotFoundException {
-
+  public ByteBuffer readByteBuffer(int offset, int length) throws IOException {
     return ByteBuffer.allocate(0);
   }
 }
