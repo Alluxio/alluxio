@@ -40,7 +40,7 @@ public class BlockHandlerLocalFS extends BlockHandler {
     mLocalFileChannel = mLocalFile.getChannel();
     // change the permission of the temporary file in order that the worker can move it.
     CommonUtils.changeLocalFileToFullPermission(mPath);
-    // use the sticky bit, only the client and the worker can write to the block
+    // use the sticky bit, only the client and the worker can write to the block.
     CommonUtils.setLocalFileStickyBit(mPath);
   }
 
