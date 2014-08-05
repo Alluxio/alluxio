@@ -30,8 +30,8 @@ import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.worker.DataServerMessage;
 import tachyon.util.CommonUtils;
+import tachyon.worker.DataServerMessage;
 
 /**
  * Tachyon File.
@@ -285,21 +285,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * Return a TachyonByteBuffer of this file's block. It only works when this file has no more than
-   * one block.
+   * Advanced API.
    * 
-   * @return TachyonByteBuffer containing the file's block.
-   * @throws IOException
-   */
-  public TachyonByteBuffer readByteBuffer() throws IOException {
-    if (TFS.getNumberOfBlocks(FID) > 1) {
-      throw new IOException("The file has more than one block. This API does not support this.");
-    }
-
-    return readByteBuffer(0);
-  }
-
-  /**
    * Return a TachyonByteBuffer of the block specified by the blockIndex
    * 
    * @param blockIndex
@@ -307,7 +294,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return TachyonByteBuffer containing the block.
    * @throws IOException
    */
-  TachyonByteBuffer readByteBuffer(int blockIndex) throws IOException {
+  public TachyonByteBuffer readByteBuffer(int blockIndex) throws IOException {
     if (!isComplete()) {
       return null;
     }
