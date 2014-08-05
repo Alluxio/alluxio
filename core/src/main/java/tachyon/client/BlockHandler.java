@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
+import tachyon.UnderFileSystem;
 
 /**
  * it is the base class for handling block files. block handlers for different under
@@ -42,7 +43,7 @@ public abstract class BlockHandler {
    */
   public static BlockHandler get(String path, Object ufsConf) throws IOException,
       IllegalArgumentException {
-    if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")) {
+    if (UnderFileSystem.isHadoopUnderFS(path)) {
       return new BlockHandlerHdfs(path, ufsConf);
     } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return new BlockHandlerLocalFS(path);
