@@ -14,6 +14,7 @@
  */
 package tachyon.client;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -23,8 +24,8 @@ import tachyon.Constants;
 import tachyon.UnderFileSystem;
 
 /**
- * it is the base class for handling block files. block handlers for different under
- * file system can be implemented by extending this class. it also create specific
+ * It is the base class for handling block files. Block handlers for different under
+ * file systems can be implemented by extending this class. It also creates a specific
  * BlockHandler for certain block file by checking the block file's path
  */
 public abstract class BlockHandler {
@@ -42,7 +43,7 @@ public abstract class BlockHandler {
    * @throws IllegalArgumentException
    */
   public static BlockHandler get(String path, Object ufsConf) throws IOException,
-      IllegalArgumentException {
+      FileNotFoundException, IllegalArgumentException {
     if (UnderFileSystem.isHadoopUnderFS(path)) {
       return new BlockHandlerHdfs(path, ufsConf);
     } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
@@ -76,12 +77,12 @@ public abstract class BlockHandler {
       throws IOException;
 
   /**
-   * close block file
+   * Close block file
    */
   public abstract void close() throws IOException;
 
   /**
-   * delete block file
+   * Delete block file
    */
   public abstract void delete();
 
