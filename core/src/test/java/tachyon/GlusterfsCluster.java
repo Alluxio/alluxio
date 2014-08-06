@@ -24,7 +24,7 @@ public class GlusterfsCluster extends UnderFileSystemCluster {
 
   @Override
   public String getUnderFilesystemAddress() {
-    return "glusterfs:///";
+    return "glusterfs:///tachyon_test";
   }
 
   @Override
