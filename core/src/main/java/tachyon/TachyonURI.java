@@ -22,14 +22,14 @@ import java.net.URISyntaxException;
  * 
  * Does not support fragment or query in the URI.
  */
-public class TachyonURI implements Comparable<TachyonURI> {
+public final class TachyonURI implements Comparable<TachyonURI> {
   public static final String SEPARATOR = "/";
   public static final String CUR_DIR = ".";
 
   private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
   // a hierarchical uri
-  private URI mUri;
+  private final URI mUri;
 
   /**
    * Construct a path from a String. Path strings are URIs, but with unescaped elements and some
@@ -72,7 +72,7 @@ public class TachyonURI implements Comparable<TachyonURI> {
     // uri path is the rest of the string -- query & fragment not supported
     String path = pathStr.substring(start, pathStr.length());
 
-    initialize(scheme, authority, path);
+    mUri = createURI(scheme, authority, path);
   }
 
   /**
@@ -89,7 +89,7 @@ public class TachyonURI implements Comparable<TachyonURI> {
     if (path == null || path.length() == 0) {
       throw new IllegalArgumentException("Can not create a Path from a null or empty string");
     }
-    initialize(scheme, authority, path);
+    mUri = createURI(scheme, authority, path);
   }
 
   /**
@@ -113,7 +113,14 @@ public class TachyonURI implements Comparable<TachyonURI> {
       throw new IllegalArgumentException(e);
     }
     URI resolved = parentUri.resolve(child.mUri);
-    initialize(resolved.getScheme(), resolved.getAuthority(), resolved.getPath());
+    mUri = createURI(resolved.getScheme(), resolved.getAuthority(), resolved.getPath());
+  }
+
+  /**
+   * Converts this path into a {@link java.net.URI}
+   */
+  public URI toURI() {
+    return mUri;
   }
 
   @Override
@@ -129,13 +136,9 @@ public class TachyonURI implements Comparable<TachyonURI> {
     return mUri.equals(((TachyonURI) o).mUri);
   }
 
-  /**
-   * Gets the authority of this TachyonURI
-   * 
-   * @return the authority, null if it does not have one.
-   */
-  public String getAuthority() {
-    return mUri.getAuthority();
+  @Override
+  public int hashCode() {
+    return mUri.hashCode();
   }
 
   /**
@@ -166,15 +169,6 @@ public class TachyonURI implements Comparable<TachyonURI> {
       slash = path.indexOf(SEPARATOR, slash + 1);
     }
     return depth;
-  }
-
-  /**
-   * Gets the host of this TachyonURI.
-   * 
-   * @return the host, null if it does not have one.
-   */
-  public String getHost() {
-    return mUri.getHost();
   }
 
   /**
@@ -212,56 +206,6 @@ public class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Gets the part component of this TachyonURI.
-   * 
-   * @return the path.
-   */
-  public String getPath() {
-    return mUri.getPath();
-  }
-
-  /**
-   * Gets the port of this TachyonURI.
-   * 
-   * @return the port, -1 if it does not have one.
-   */
-  public int getPort() {
-    return mUri.getPort();
-  }
-
-  /**
-   * Get the scheme of the Tachyon URI.
-   * 
-   * @return the scheme, null if there is no scheme.
-   */
-  public String getScheme() {
-    return mUri.getScheme();
-  }
-
-  /**
-   * Tells if this TachyonURI has authority or not.
-   * 
-   * @return true if it has, false otherwise.
-   */
-  public boolean hasAuthority() {
-    return mUri.getAuthority() != null;
-  }
-
-  @Override
-  public int hashCode() {
-    return mUri.hashCode();
-  }
-
-  /**
-   * Tells if this TachyonURI has scheme or not.
-   * 
-   * @return true if it has, false otherwise.
-   */
-  public boolean hasScheme() {
-    return mUri.getScheme() != null;
-  }
-
-  /**
    * Check if the path is a windows path.
    * 
    * @param path
@@ -270,7 +214,7 @@ public class TachyonURI implements Comparable<TachyonURI> {
    *          if the path starts with a slash.
    * @return true if it is a windows path, false otherwise.
    */
-  private boolean hasWindowsDrive(String path, boolean slashed) {
+  private static boolean hasWindowsDrive(String path, boolean slashed) {
     int start = slashed ? 1 : 0;
     return WINDOWS
         && path.length() >= start + 2
@@ -291,26 +235,13 @@ public class TachyonURI implements Comparable<TachyonURI> {
    *          the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    * @throws IllegalArgumentException
    */
-  private void initialize(String scheme, String authority, String path)
+  private static URI createURI(String scheme, String authority, String path)
       throws IllegalArgumentException {
     try {
-      mUri = new URI(scheme, authority, normalizePath(path), null, null).normalize();
+      return new URI(scheme, authority, normalizePath(path), null, null).normalize();
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }
-  }
-
-  /**
-   * Tells whether or not this URI is absolute.
-   * 
-   * <p>
-   * A URI is absolute if, and only if, it has a scheme component.
-   * </p>
-   * 
-   * @return <tt>true</tt> if, and only if, this URI is absolute
-   */
-  public boolean isAbsolute() {
-    return mUri.isAbsolute();
   }
 
   /**
@@ -328,32 +259,10 @@ public class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Add a suffix to the end of the Tachyon URI.
-   * 
-   * @param suffix
-   *          the suffix to add
-   * @return the new TachyonURI
-   */
-  public TachyonURI join(String suffix) {
-    return new TachyonURI(toString() + suffix);
-  }
-
-  /**
-   * Add a suffix to the end of the Tachyon URI.
-   * 
-   * @param suffix
-   *          the suffix to add
-   * @return the new TachyonURI
-   */
-  public TachyonURI join(TachyonURI suffix) {
-    return new TachyonURI(toString() + suffix.toString());
-  }
-
-  /**
    * Normalize the path component of the TachyonURI, by replacing all "//" and "\\" with "/", and
    * trimming trailing slash from non-root path (ignoring windows drive).
    */
-  private String normalizePath(String path) {
+  private static String normalizePath(String path) {
     while (path.contains("//")) {
       path = path.replace("//", "/");
     }
