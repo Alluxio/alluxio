@@ -166,8 +166,7 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Note: This method is intended to address the HBase support issue (TACHYON-27). We need to
-   * refactor this method after having a new internal API support (TACHYON-46).
+   * TODO: We need to refactor this method after having a new internal API support (TACHYON-46).
    * <p>
    * Opens an FSDataOutputStream at the indicated Path with write-progress reporting. Same as
    * create(), except fails if parent directory doesn't already exist.
