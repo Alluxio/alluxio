@@ -247,7 +247,6 @@ abstract class AbstractTFS extends FileSystem {
 
     LOG.info("getFileStatus(" + path + "): HDFS Path: " + hdfsPath + " TPath: " + mTachyonHeader
         + tPath);
-
     if(USE_HDFS) {
       fromHdfsToTachyon(tPath);
     }
