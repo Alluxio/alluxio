@@ -247,6 +247,7 @@ abstract class AbstractTFS extends FileSystem {
 
     LOG.info("getFileStatus(" + path + "): HDFS Path: " + hdfsPath + " TPath: " + mTachyonHeader
         + tPath);
+
     if(USE_HDFS) {
       fromHdfsToTachyon(tPath);
     }
@@ -296,9 +297,11 @@ abstract class AbstractTFS extends FileSystem {
     mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode());
     mUri = URI.create(mTachyonHeader);
     UNDERFS_ADDRESS = mTFS.getUnderfsAddress();
+
     if (URI.create(UNDERFS_ADDRESS).getScheme() == null) {
       USE_HDFS = false;
     }
+
     LOG.info(mTachyonHeader + " " + mUri + " " + UNDERFS_ADDRESS);
   }
 
