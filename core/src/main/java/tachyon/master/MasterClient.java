@@ -149,6 +149,9 @@ public class MasterClient {
     Exception lastException = null;
     while (tries ++ < MAX_CONNECT_TRY && !mIsShutdown) {
       mMasterAddress = getMasterAddress();
+
+      LOG.info("Trying to connect master @ " + mMasterAddress);
+
       mProtocol =
           new TBinaryProtocol(new TFramedTransport(new TSocket(mMasterAddress.getHostName(),
               mMasterAddress.getPort())));
@@ -761,8 +764,7 @@ public class MasterClient {
     }
   }
 
-  public synchronized void user_setPinned(int id, boolean pinned)
-      throws IOException, TException {
+  public synchronized void user_setPinned(int id, boolean pinned) throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
