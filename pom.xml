@@ -120,6 +120,7 @@
     <java.version>1.6</java.version>
     <hadoop.version>1.0.4</hadoop.version>
     <glusterfs-hadoop.version>2.3.5</glusterfs-hadoop.version>
+    <cephfs-hadoop.version>0.80.4</cephfs-hadoop.version>
     <libthrift.version>0.9.1</libthrift.version>
     <cxf.version>2.7.0</cxf.version>
     <jetty.version>7.6.8.v20121106</jetty.version>
