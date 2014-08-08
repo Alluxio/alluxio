@@ -691,8 +691,8 @@ public class WorkerStorage {
    * Lock the block
    * 
    * Used internally to make sure blocks are unmodified, but also used in
-   * {@link tachyon.client.TachyonFS} for cacheing blocks locally for users. When a user tries
-   * to read a block ({@link tachyon.client.TachyonFile#readByteBuffer()}), the client will attempt
+   * {@link tachyon.client.TachyonFS} for caching blocks locally for users. When a user tries
+   * to read a block ({@link tachyon.client.TachyonFile#readByteBuffer(int)} ()}), the client will attempt
    * to cache the block on the local users's node, while the user is reading from the local block,
    * the given block is locked and unlocked once read.
    * 
@@ -881,7 +881,7 @@ public class WorkerStorage {
    * 
    * Used internally to make sure blocks are unmodified, but also used in
    * {@link tachyon.client.TachyonFS} for cacheing blocks locally for users. When a user tries
-   * to read a block ({@link tachyon.client.TachyonFile#readByteBuffer()}), the client will attempt
+   * to read a block ({@link tachyon.client.TachyonFile#readByteBuffer(int)}), the client will attempt
    * to cache the block on the local users's node, while the user is reading from the local block,
    * the given block is locked and unlocked once read.
    * 
