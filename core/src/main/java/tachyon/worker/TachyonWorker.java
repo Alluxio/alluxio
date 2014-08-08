@@ -13,6 +13,7 @@ import org.apache.thrift.transport.TTransportException;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.Users;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
@@ -22,6 +23,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
+import tachyon.worker.netty.NettyDataServer;
 
 /**
  * Entry point for a worker daemon.
@@ -141,9 +143,7 @@ public class TachyonWorker implements Runnable {
 
   private WorkerServiceHandler mWorkerServiceHandler;
 
-  private final DataServer mDataServer;
-
-  private Thread mDataServerThread;
+  private final NettyDataServer mDataServer;
 
   private Thread mHeartbeatThread;
 
@@ -188,10 +188,11 @@ public class TachyonWorker implements Runnable {
     // (any random free port).
     // In a production or any real deployment setup, port '0' should not be used as it will make
     // deployment more complicated.
-    mDataServer =
-        new DataServer(new InetSocketAddress(NetworkUtils.getFqdnHost(workerAddress), dataPort),
-            mWorkerStorage);
-    mDataServerThread = new Thread(mDataServer);
+    try {
+      mDataServer = new NettyDataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort), new BlocksLocker(mWorkerStorage, Users.sDATASERVER_USER_ID));
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    }
     mDataPort = mDataServer.getPort();
 
     mHeartbeatThread = new Thread(this);
@@ -305,7 +306,6 @@ public class TachyonWorker implements Runnable {
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
   public void start() {
-    mDataServerThread.start();
     mHeartbeatThread.start();
 
     LOG.info("The worker server started @ " + mWorkerAddress);
