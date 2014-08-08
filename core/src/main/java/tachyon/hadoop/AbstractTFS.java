@@ -247,9 +247,11 @@ abstract class AbstractTFS extends FileSystem {
 
     LOG.info("getFileStatus(" + path + "): HDFS Path: " + hdfsPath + " TPath: " + mTachyonHeader
         + tPath);
+
     if(USE_HDFS) {
       fromHdfsToTachyon(tPath);
     }
+
     TachyonFile file = mTFS.getFile(tPath);
     if (file == null) {
       LOG.info("File does not exist: " + path);
