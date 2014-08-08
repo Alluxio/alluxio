@@ -56,6 +56,7 @@ abstract class AbstractTFS extends FileSystem {
   public static final String RECOMPUTE_PATH = "tachyon_recompute/";
 
   public static String UNDERFS_ADDRESS;
+  public static boolean USE_HDFS = true;
 
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
@@ -80,6 +81,12 @@ abstract class AbstractTFS extends FileSystem {
 
     return new FSDataOutputStream(file.getOutStream(WriteType.CACHE_THROUGH), null);
   }
+  @Override
+  public FSDataOutputStream createNonRecursive(Path cPath, FsPermission permission, boolean overwrite,
+      int bufferSize, short replication, long blockSize, Progressable progress) throws IOException {
+    return create(cPath, permission, overwrite,bufferSize, replication, blockSize, progress);
+  }
+
 
   @Override
   public FSDataOutputStream create(Path cPath, FsPermission permission, boolean overwrite,
@@ -240,8 +247,8 @@ abstract class AbstractTFS extends FileSystem {
 
     LOG.info("getFileStatus(" + path + "): HDFS Path: " + hdfsPath + " TPath: " + mTachyonHeader
         + tPath);
-
-    fromHdfsToTachyon(tPath);
+    if(USE_HDFS)
+      fromHdfsToTachyon(tPath);
     TachyonFile file = mTFS.getFile(tPath);
     if (file == null) {
       LOG.info("File does not exist: " + path);
@@ -288,6 +295,8 @@ abstract class AbstractTFS extends FileSystem {
     mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode());
     mUri = URI.create(mTachyonHeader);
     UNDERFS_ADDRESS = mTFS.getUnderfsAddress();
+    if (URI.create(UNDERFS_ADDRESS).getScheme() == null)
+      USE_HDFS = false;
     LOG.info(mTachyonHeader + " " + mUri + " " + UNDERFS_ADDRESS);
   }
 
