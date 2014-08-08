@@ -10,7 +10,7 @@ TACHYON_DIR=$(cd $BASE_DIR/../..; pwd)
 # if deploy on a virtual machine, id_rsa's mode may be too open, 
 # ssh will then ignore this key, so we copy it to /tmp and change mode to 0600
 SSH_ID_RSA_DIR=/tmp/id_rsa${RANDOM}
-cp ${TACHYON_DIR}/docker/apache-hadoop-hdfs-precise/files/id_rsa $SSH_ID_RSA_DIR
+cp ${TACHYON_DIR}/docker/apache-hadoop-hdfs1.0.4-precise/files/id_rsa $SSH_ID_RSA_DIR
 chmod 0600 $SSH_ID_RSA_DIR
 
 NAMESERVER_IMAGE="dnsmasq-precise"
