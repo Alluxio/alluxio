@@ -31,5 +31,5 @@ create a directory called `_site` containing index.html as well as the rest of t
 Read more about Jekyll at https://github.com/mojombo/jekyll/wiki.
 
 In addition to generating the site as html from the markdown files, jekyll can serve up the site via
-a webserver. To build and run a webserver use the command `jekyll --serve` which runs
+a webserver. To build and run a webserver use the command `jekyll serve` which runs
 the webserver on default port 4000, then visit the site at http://localhost:4000.
