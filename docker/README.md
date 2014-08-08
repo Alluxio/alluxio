@@ -28,8 +28,10 @@ machine, and follow the instructions below to deploy the current tachyon "releas
 * make sure this directory is under your tachyon home directory
 * before building images, you should configure tachyon configuration template file in
 tachyon-dev/tachyon-base/files, otherwise, default configuration will be used
+* since docker typically needs to be run as root(you can change its executive privilege definitely), please 'sudo -s' to become root before the following steps. 
 * cd docker, ./build to build all docker images in this directory
 * if you want to, say, independently build images in tachyon-dev, cd tachyon-dev, ./build
+* you can check whether tachyon-dev images have been successfully built by running 'docker images | grep tachyon', you should see these images' information 
 * after building the images, ./deploy/deploy.sh to start nameserver, master and worker nodes.
 then you will have a virtualized tachyon cluster with hdfs support on your host. Default worker
 number is 2, you can change it in deploy/deploy.sh:NUM_WORKERS
