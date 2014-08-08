@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
+import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
@@ -64,8 +65,38 @@ public class LocalTachyonCluster {
     mWorkerCapacityBytes = workerCapacityBytes;
   }
 
+  /**
+   * Creates a new cluster and starts it.
+   *
+   * @throws IOException if {@link #start()} fails
+   */
+  public static final LocalTachyonCluster createAndStart(long workerCapacityBytes)
+      throws IOException {
+    LocalTachyonCluster cluster = new LocalTachyonCluster(workerCapacityBytes);
+    cluster.start();
+    return cluster;
+  }
+
+  /**
+   * Creates a new cluster and starts it.  If {@link #start()} fails, a
+   * {@link java.lang.RuntimeException} is thrown.
+   */
+  public static final LocalTachyonCluster createAndStartOrThrow(long workerCapacityBytes) {
+    LocalTachyonCluster cluster = new LocalTachyonCluster(workerCapacityBytes);
+    try {
+      cluster.start();
+      return cluster;
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
   public TachyonFS getClient() throws IOException {
     return mMaster.getClient();
+  }
+
+  public String getUri() {
+    return mMaster.getUri();
   }
 
   public String getEditLogPath() {

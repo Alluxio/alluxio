@@ -29,6 +29,10 @@
   <description>Tachyon Project Client</description>
   <name>Tachyon Project Client</name>
 
+  <properties>
+    <failIfNoTests>false</failIfNoTests>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.tachyonproject</groupId>
