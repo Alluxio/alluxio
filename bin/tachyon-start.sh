@@ -100,7 +100,7 @@ start_master() {
     MASTER_ADDRESS=localhost
   fi
 
-  if [ -z $TACHYON_MASTER_JAVA_OPTS ] ; then
+  if [[ -z $TACHYON_MASTER_JAVA_OPTS ]] ; then
     TACHYON_MASTER_JAVA_OPTS=$TACHYON_JAVA_OPTS
   fi
 
@@ -115,7 +115,7 @@ start_worker() {
     exit 1
   fi
 
-  if [ -z $TACHYON_WORKER_JAVA_OPTS ] ; then
+  if [[ -z $TACHYON_WORKER_JAVA_OPTS ]] ; then
     TACHYON_WORKER_JAVA_OPTS=$TACHYON_JAVA_OPTS
   fi
 
@@ -124,7 +124,7 @@ start_worker() {
 }
 
 restart_worker() {
-  if [ -z $TACHYON_WORKER_JAVA_OPTS ] ; then
+  if [[ -z $TACHYON_WORKER_JAVA_OPTS ]] ; then
     TACHYON_WORKER_JAVA_OPTS=$TACHYON_JAVA_OPTS
   fi
 
