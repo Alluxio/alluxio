@@ -75,6 +75,8 @@ public class MasterClient {
 
   private HeartbeatThread mHeartbeatThread = null;
 
+  private long mUserId = -1;
+
   public MasterClient(InetSocketAddress masterAddress) {
     this(masterAddress, CommonConf.get().USE_ZOOKEEPER);
   }
@@ -140,7 +142,9 @@ public class MasterClient {
     if (mIsConnected) {
       return;
     }
+
     cleanConnect();
+
     if (mIsShutdown) {
       throw new TException("Client is shutdown, will not try to connect");
     }
@@ -175,6 +179,10 @@ public class MasterClient {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         continue;
       }
+
+      mUserId = mClient.user_getUserId();
+      LOG.info("User registered at the master " + mMasterAddress + " got UserId " + mUserId);
+
       mIsConnected = true;
       return;
     }
@@ -238,15 +246,10 @@ public class MasterClient {
   public synchronized long getUserId() throws TException {
     while (!mIsShutdown) {
       connect();
-      try {
-        long ret = mClient.user_getUserId();
-        LOG.info("User registered at the master " + mMasterAddress + " got UserId " + ret);
-        return ret;
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
-      }
+
+      return mUserId;
     }
+
     return -1;
   }
 
