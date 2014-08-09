@@ -18,9 +18,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -52,10 +50,8 @@ import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
-import tachyon.thrift.NoWorkerException;
 import tachyon.thrift.TachyonException;
 import tachyon.util.CommonUtils;
-import tachyon.util.NetworkUtils;
 import tachyon.worker.WorkerClient;
 
 /**
@@ -130,14 +126,6 @@ public class TachyonFS {
   private Map<Integer, ClientFileInfo> mClientFileInfos = new HashMap<Integer, ClientFileInfo>();
   // The RPC client talks to the local worker if there is one.
   private WorkerClient mWorkerClient = null;
-  // The local root data folder.
-  private String mLocalDataFolder = null;
-  // Whether the client is local or remote.
-  private boolean mIsWorkerLocal = false;
-  // The local data folder.
-  private String mUserTempFolder = null;
-  // The HDFS data folder
-  private String mUserUnderfsTempFolder = null;
 
   private UnderFileSystem mUnderFileSystem = null;
 
@@ -167,7 +155,7 @@ public class TachyonFS {
    */
   private synchronized void accessLocalBlock(long blockId) throws IOException {
     connect();
-    if (mWorkerClient != null && mIsWorkerLocal) {
+    if (mWorkerClient != null && mWorkerClient.isLocal()) {
       try {
         mWorkerClient.accessBlock(blockId);
         return;
@@ -265,9 +253,10 @@ public class TachyonFS {
   /**
    * Close the client. Close the connections to both to master and worker
    * 
+   * @throws IOException
    * @throws TException
    */
-  public synchronized void close() throws TException {
+  public synchronized void close() throws TException, IOException {
     if (mMasterClient != null) {
       mMasterClient.cleanConnect();
     }
@@ -304,74 +293,12 @@ public class TachyonFS {
 
     mConnected = true;
 
-    InetSocketAddress workerAddress = null;
-    NetAddress workerNetAddress = null;
-    mIsWorkerLocal = false;
-    try {
-      String localHostName;
-      try {
-        localHostName =
-            NetworkUtils.resolveHostName(InetAddress.getLocalHost().getCanonicalHostName());
-      } catch (UnknownHostException e) {
-        localHostName = InetAddress.getLocalHost().getCanonicalHostName();
-      }
-      LOG.info("Trying to get local worker host : " + localHostName);
-      workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
-      mIsWorkerLocal = true;
-    } catch (NoWorkerException e) {
-      LOG.info(e.getMessage());
-      workerNetAddress = null;
-    } catch (UnknownHostException e) {
-      LOG.error(e.getMessage());
-      workerNetAddress = null;
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      mConnected = false;
-      workerNetAddress = null;
-    }
-
-    if (workerNetAddress == null) {
-      try {
-        workerNetAddress = mMasterClient.user_getWorker(true, "");
-      } catch (NoWorkerException e) {
-        LOG.info(e.getMessage());
-        workerNetAddress = null;
-      } catch (TException e) {
-        LOG.error(e.getMessage());
-        mConnected = false;
-        workerNetAddress = null;
-      }
-    }
-
-    if (workerNetAddress == null) {
-      LOG.info("No worker running in the system");
-      return;
-    }
-
-    workerAddress = new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
-
-    LOG.info("Connecting " + (mIsWorkerLocal ? "local" : "remote") + " worker @ " + workerAddress);
-    try {
-      mWorkerClient = new WorkerClient(workerAddress, mMasterClient.getUserId());
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-    }
-    if (!mWorkerClient.open()) {
-      LOG.error("Failed to connect " + (mIsWorkerLocal ? "local" : "remote") + " worker @ "
-          + workerAddress);
+    mWorkerClient = new WorkerClient(mMasterClient);
+    if (!mWorkerClient.connect()) {
+      LOG.error("Failed to connect " + (mWorkerClient.isLocal() ? "local" : "remote")
+          + " worker @ " + mWorkerClient.getAddress());
       mWorkerClient = null;
       return;
-    }
-
-    try {
-      mLocalDataFolder = mWorkerClient.getDataFolder();
-      mUserTempFolder = mWorkerClient.getUserTempFolder(mMasterClient.getUserId());
-      mUserUnderfsTempFolder = mWorkerClient.getUserUnderfsTempFolder(mMasterClient.getUserId());
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      mLocalDataFolder = null;
-      mUserTempFolder = null;
-      mWorkerClient = null;
     }
   }
 
@@ -384,12 +311,12 @@ public class TachyonFS {
   synchronized File createAndGetUserTempFolder() throws IOException {
     connect();
 
-    if (mUserTempFolder == null) {
+    String userTempFolder = mWorkerClient.getUserTempFolder();
+    if (userTempFolder == null) {
       return null;
     }
 
-    File ret = new File(mUserTempFolder);
-
+    File ret = new File(userTempFolder);
     if (!ret.exists()) {
       if (ret.mkdir()) {
         CommonUtils.changeLocalFileToFullPermission(ret.getAbsolutePath());
@@ -412,17 +339,18 @@ public class TachyonFS {
   synchronized String createAndGetUserUnderfsTempFolder() throws IOException {
     connect();
 
-    if (mUserUnderfsTempFolder == null) {
+    String tmpFolder = mWorkerClient.getUserUnderfsTempFolder();
+    if (tmpFolder == null) {
       return null;
     }
 
     if (mUnderFileSystem == null) {
-      mUnderFileSystem = UnderFileSystem.get(mUserUnderfsTempFolder);
+      mUnderFileSystem = UnderFileSystem.get(tmpFolder);
     }
 
-    mUnderFileSystem.mkdirs(mUserUnderfsTempFolder, true);
+    mUnderFileSystem.mkdirs(tmpFolder, true);
 
-    return mUserUnderfsTempFolder;
+    return tmpFolder;
   }
 
   /**
@@ -1217,7 +1145,7 @@ public class TachyonFS {
    */
   synchronized String getRootFolder() throws IOException {
     connect();
-    return mLocalDataFolder;
+    return mWorkerClient == null ? null : mWorkerClient.getDataFolder();
   }
 
   /**
@@ -1253,7 +1181,7 @@ public class TachyonFS {
    */
   public synchronized boolean hasLocalWorker() throws IOException {
     connect();
-    return (mIsWorkerLocal && mWorkerClient != null);
+    return (mWorkerClient != null && mWorkerClient.isLocal());
   }
 
   /**
@@ -1369,7 +1297,7 @@ public class TachyonFS {
     }
 
     connect();
-    if (!mConnected || mWorkerClient == null || !mIsWorkerLocal) {
+    if (!mConnected || mWorkerClient == null || !mWorkerClient.isLocal()) {
       return false;
     }
     try {
@@ -1628,7 +1556,7 @@ public class TachyonFS {
    */
   public synchronized boolean requestSpace(long requestSpaceBytes) throws IOException {
     connect();
-    if (mWorkerClient == null || !mIsWorkerLocal) {
+    if (mWorkerClient == null || !mWorkerClient.isLocal()) {
       return false;
     }
     int failedTimes = 0;
@@ -1697,7 +1625,7 @@ public class TachyonFS {
     }
 
     connect();
-    if (!mConnected || mWorkerClient == null || !mIsWorkerLocal) {
+    if (!mConnected || mWorkerClient == null || !mWorkerClient.isLocal()) {
       return false;
     }
     try {
