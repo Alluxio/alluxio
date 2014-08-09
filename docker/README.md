@@ -25,6 +25,8 @@ machine, and follow the instructions below to deploy the current tachyon "releas
 "docker cluster".
 
 ## How to use tachyon docker
+* If you haven't installed docker, please refer to www.docker.com for help.
+* **If you're under ubuntu and using apt, do run "apt-get install docker.io" instead of "apt-get install docker", the later is a software for KDE3/GNOME2 docklet applications**
 * make sure this directory is under your tachyon home directory
 * before building images, you should configure tachyon configuration template file in
 tachyon-dev/tachyon-base/files, otherwise, default configuration will be used
