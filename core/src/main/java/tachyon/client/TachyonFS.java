@@ -57,7 +57,7 @@ import tachyon.thrift.TachyonException;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.WorkerClient;
- 
+
 /**
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients
  * depending on how many workers the client program is interacting with.
@@ -128,8 +128,6 @@ public class TachyonFS {
   private Map<String, ClientFileInfo> mCachedClientFileInfos =
       new HashMap<String, ClientFileInfo>();
   private Map<Integer, ClientFileInfo> mClientFileInfos = new HashMap<Integer, ClientFileInfo>();
-  // Cached ClientBlockInfo
-  // private Map<Long, ClientBlockInfo> mClientBlockInfos = new HashMap<Long, ClientBlockInfo>();
   // The RPC client talks to the local worker if there is one.
   private WorkerClient mWorkerClient = null;
   // The local root data folder.
@@ -143,8 +141,6 @@ public class TachyonFS {
 
   private UnderFileSystem mUnderFileSystem = null;
 
-  // The user id of the client.
-  private long mUserId = 0;
   // All Blocks has been locked.
   private Map<Long, Set<Integer>> mLockedBlockIds = new HashMap<Long, Set<Integer>>();
 
@@ -198,7 +194,7 @@ public class TachyonFS {
     }
     if (mWorkerClient != null) {
       try {
-        mWorkerClient.addCheckpoint(mUserId, fid);
+        mWorkerClient.addCheckpoint(mMasterClient.getUserId(), fid);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mWorkerClient = null;
@@ -242,7 +238,7 @@ public class TachyonFS {
 
     if (mWorkerClient != null) {
       try {
-        mWorkerClient.cacheBlock(mUserId, blockId);
+        mWorkerClient.cacheBlock(mMasterClient.getUserId(), blockId);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mWorkerClient = null;
@@ -277,7 +273,7 @@ public class TachyonFS {
     }
 
     if (mWorkerClient != null && mWorkerClient.isConnected()) {
-      mWorkerClient.returnSpace(mUserId, mAvailableSpaceBytes);
+      mWorkerClient.returnSpace(mMasterClient.getUserId(), mAvailableSpaceBytes);
       mWorkerClient.close();
     }
   }
@@ -304,23 +300,9 @@ public class TachyonFS {
     if (mMasterClient != null) {
       return;
     }
-    LOG.info("Trying to connect master @ " + mMasterAddress);
     mMasterClient = new MasterClient(mMasterAddress, mZookeeperMode);
 
-    try {
-      mMasterClient.connect();
-      mConnected = true;
-    } catch (TException e) {
-      throw new IOException(e.getMessage(), e);
-    }
-
-    try {
-      mUserId = mMasterClient.getUserId();
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      mConnected = false;
-      return;
-    }
+    mConnected = true;
 
     InetSocketAddress workerAddress = null;
     NetAddress workerNetAddress = null;
@@ -369,7 +351,11 @@ public class TachyonFS {
     workerAddress = new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
 
     LOG.info("Connecting " + (mIsWorkerLocal ? "local" : "remote") + " worker @ " + workerAddress);
-    mWorkerClient = new WorkerClient(workerAddress, mUserId);
+    try {
+      mWorkerClient = new WorkerClient(workerAddress, mMasterClient.getUserId());
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+    }
     if (!mWorkerClient.open()) {
       LOG.error("Failed to connect " + (mIsWorkerLocal ? "local" : "remote") + " worker @ "
           + workerAddress);
@@ -379,8 +365,8 @@ public class TachyonFS {
 
     try {
       mLocalDataFolder = mWorkerClient.getDataFolder();
-      mUserTempFolder = mWorkerClient.getUserTempFolder(mUserId);
-      mUserUnderfsTempFolder = mWorkerClient.getUserUnderfsTempFolder(mUserId);
+      mUserTempFolder = mWorkerClient.getUserTempFolder(mMasterClient.getUserId());
+      mUserUnderfsTempFolder = mWorkerClient.getUserUnderfsTempFolder(mMasterClient.getUserId());
     } catch (TException e) {
       LOG.error(e.getMessage());
       mLocalDataFolder = null;
@@ -1387,7 +1373,7 @@ public class TachyonFS {
       return false;
     }
     try {
-      mWorkerClient.lockBlock(blockId, mUserId);
+      mWorkerClient.lockBlock(blockId, mMasterClient.getUserId());
     } catch (TException e) {
       LOG.error(e.getMessage());
       return false;
@@ -1650,7 +1636,7 @@ public class TachyonFS {
       try {
         long toRequestSpaceBytes =
             Math.max(requestSpaceBytes - mAvailableSpaceBytes, USER_QUOTA_UNIT_BYTES);
-        if (mWorkerClient.requestSpace(mUserId, toRequestSpaceBytes)) {
+        if (mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes)) {
           mAvailableSpaceBytes += toRequestSpaceBytes;
         } else {
           LOG.info("Failed to request " + toRequestSpaceBytes + " bytes local space. " + "Time "
@@ -1715,7 +1701,7 @@ public class TachyonFS {
       return false;
     }
     try {
-      mWorkerClient.unlockBlock(blockId, mUserId);
+      mWorkerClient.unlockBlock(blockId, mMasterClient.getUserId());
       mLockedBlockIds.remove(blockId);
     } catch (TException e) {
       LOG.error(e.getMessage());
