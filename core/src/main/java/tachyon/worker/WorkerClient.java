@@ -15,25 +15,31 @@
 package tachyon.worker;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.HeartbeatThread;
 import tachyon.conf.UserConf;
+import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.NetAddress;
+import tachyon.thrift.NoWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
+import tachyon.util.NetworkUtils;
 
 /**
  * The client talks to a worker server. It keeps sending keep alive message to the worker server.
@@ -47,28 +53,73 @@ public class WorkerClient {
   private TProtocol mProtocol;
   private InetSocketAddress mWorkerAddress;
   private boolean mIsConnected = false;
-  private long mUserId;
+  private boolean mIsLocal = false;
+  private MasterClient mMasterClient = null;
+  private String mDataFolder = null;
+
   private HeartbeatThread mHeartbeatThread = null;
 
-  private String mRootFolder = null;
-
   /**
-   * @param address
-   *          The address of the worker the client trying to contect to.
-   * @param userId
-   *          The user id of the client
+   * Create a WorkerClient, with a given MasterClient.
+   * 
+   * @param masterClient
+   * @throws TException
    */
-  public WorkerClient(InetSocketAddress address, long userId) {
-    mWorkerAddress = address;
+  public WorkerClient(MasterClient masterClient) throws IOException {
+    mMasterClient = masterClient;
+
+    NetAddress workerNetAddress = null;
+    try {
+      String localHostName;
+      try {
+        localHostName =
+            NetworkUtils.resolveHostName(InetAddress.getLocalHost().getCanonicalHostName());
+      } catch (UnknownHostException e) {
+        localHostName = InetAddress.getLocalHost().getCanonicalHostName();
+      }
+      LOG.info("Trying to get local worker host : " + localHostName);
+      workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
+      mIsLocal = true;
+    } catch (NoWorkerException e) {
+      LOG.info(e.getMessage());
+      workerNetAddress = null;
+    } catch (UnknownHostException e) {
+      LOG.error(e.getMessage());
+      workerNetAddress = null;
+    } catch (TException e) {
+      LOG.error(e.getMessage());
+      workerNetAddress = null;
+    }
+
+    if (workerNetAddress == null) {
+      try {
+        workerNetAddress = mMasterClient.user_getWorker(true, "");
+      } catch (NoWorkerException e) {
+        LOG.info(e.getMessage());
+        workerNetAddress = null;
+      } catch (TException e) {
+        LOG.error(e.getMessage());
+        workerNetAddress = null;
+      }
+    }
+
+    if (workerNetAddress == null) {
+      LOG.info("No worker running in the system");
+      CLIENT = null;
+      return;
+    }
+
+    mWorkerAddress = new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
+    LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
+
     mProtocol =
         new TBinaryProtocol(new TFramedTransport(new TSocket(mWorkerAddress.getHostName(),
             mWorkerAddress.getPort())));
     CLIENT = new WorkerService.Client(mProtocol);
 
-    mUserId = userId;
     mHeartbeatThread =
         new HeartbeatThread("WorkerClientToWorkerHeartbeat", new WorkerClientHeartbeatExecutor(
-            this, mUserId), UserConf.get().HEARTBEAT_INTERVAL_MS);
+            this, mMasterClient.getUserId()), UserConf.get().HEARTBEAT_INTERVAL_MS);
   }
 
   /**
@@ -153,27 +204,42 @@ public class WorkerClient {
   }
 
   /**
+   * @return the address of the worker.
+   */
+  public synchronized InetSocketAddress getAddress() {
+    return mWorkerAddress;
+  }
+
+  /**
    * @return The root local data folder of the worker
    * @throws TException
    */
-  public synchronized String getDataFolder() throws TException {
-    if (mRootFolder == null) {
-      mRootFolder = CLIENT.getDataFolder();
+  public synchronized String getDataFolder() throws IOException {
+    if (mDataFolder == null) {
+      try {
+        mDataFolder = CLIENT.getDataFolder();
+      } catch (TException e) {
+        mDataFolder = null;
+        mIsConnected = false;
+        throw new IOException(e);
+      }
     }
 
-    return mRootFolder;
+    return mDataFolder;
   }
 
   /**
    * Get the local user temporary folder of the specified user.
    * 
-   * @param userId
-   *          The id of the user
    * @return The local user temporary folder of the specified user
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized String getUserTempFolder(long userId) throws TException {
-    return CLIENT.getUserTempFolder(userId);
+  public synchronized String getUserTempFolder() throws IOException {
+    try {
+      return CLIENT.getUserTempFolder(mMasterClient.getUserId());
+    } catch (TException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -182,17 +248,28 @@ public class WorkerClient {
    * @param userId
    *          The id of the user
    * @return The user temporary folder in the under file system
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized String getUserUnderfsTempFolder(long userId) throws TException {
-    return CLIENT.getUserUnderfsTempFolder(userId);
+  public synchronized String getUserUnderfsTempFolder() throws IOException {
+    try {
+      return CLIENT.getUserUnderfsTempFolder(mMasterClient.getUserId());
+    } catch (TException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
-   * @return true if it's connected to the worker, false otherwise
+   * @return true if it's connected to the worker, false otherwise.
    */
   public synchronized boolean isConnected() {
     return mIsConnected;
+  }
+
+  /**
+   * @return true if the worker is local, false otherwise.
+   */
+  public synchronized boolean isLocal() {
+    return mIsLocal;
   }
 
   /**
@@ -214,7 +291,7 @@ public class WorkerClient {
    * 
    * @return true if succeed, false otherwise
    */
-  public synchronized boolean open() {
+  public synchronized boolean connect() {
     if (!mIsConnected) {
       try {
         mProtocol.getTransport().open();

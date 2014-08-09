@@ -72,10 +72,9 @@ public class MasterClient {
   private volatile boolean mIsConnected;
   private volatile boolean mIsShutdown;
   private volatile long mLastAccessedMs;
+  private volatile long mUserId = -1;
 
   private HeartbeatThread mHeartbeatThread = null;
-
-  private long mUserId = -1;
 
   public MasterClient(InetSocketAddress masterAddress) {
     this(masterAddress, CommonConf.get().USE_ZOOKEEPER);
@@ -243,9 +242,14 @@ public class MasterClient {
     }
   }
 
-  public synchronized long getUserId() throws TException {
+  public synchronized long getUserId() throws IOException {
     while (!mIsShutdown) {
-      connect();
+      try {
+        connect();
+      } catch (TException e) {
+        mIsConnected = false;
+        throw new IOException(e);
+      }
 
       return mUserId;
     }
