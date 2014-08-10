@@ -156,7 +156,6 @@ public class MasterClient {
       mMasterAddress = getMasterAddress();
 
       LOG.info("Trying to connect master @ " + mMasterAddress);
-      // System.out.println("Trying to connect master @ " + mMasterAddress + " " + tries);
 
       mProtocol =
           new TBinaryProtocol(new TFramedTransport(new TSocket(mMasterAddress.getHostName(),
@@ -173,11 +172,6 @@ public class MasterClient {
         mHeartbeatThread.start();
       } catch (TTransportException e) {
         lastException = e;
-        // System.out.println(e.getMessage());
-        // e.printStackTrace();
-        // System.out.println("Failed to connect (" + tries + ") to master " + mMasterAddress +
-        // " : "
-        // + e.getMessage());
         LOG.error("Failed to connect (" + tries + ") to master " + mMasterAddress + " : "
             + e.getMessage());
         if (mHeartbeatThread != null) {
@@ -191,8 +185,6 @@ public class MasterClient {
         mUserId = mClient.user_getUserId();
       } catch (TException e) {
         lastException = e;
-        // System.out.println(e.getMessage());
-        // e.printStackTrace();
         LOG.error(e.getMessage(), e);
         continue;
       }
@@ -825,17 +817,25 @@ public class MasterClient {
   }
 
   public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId,
-      long length) throws FileDoesNotExistException, SuspectedFileSizeException,
-      BlockInfoException, IOException {
+      long length) throws IOException, FileDoesNotExistException, SuspectedFileSizeException,
+      BlockInfoException {
     while (!mIsShutdown) {
       connect();
 
       try {
         mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
         return;
-      } catch (TException e) {
+      } catch (FileDoesNotExistException e) {
+        throw e;
+      } catch (SuspectedFileSizeException e) {
+        throw e;
+      } catch (BlockInfoException e) {
+        throw e;
+      } catch (TTransportException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
+      } catch (TException e) {
+        throw new IOException(e);
       }
     }
   }
