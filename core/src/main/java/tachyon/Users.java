@@ -42,13 +42,13 @@ public class Users {
   /** User's temporary data folder in the worker **/
   private final String USER_FOLDER;
   /** User's teomporary data folder in the under filesystem **/
-  private final String USER_UNDERFS_FOLDER;
+  private final String USER_UFS_FOLDER;
   /** Map from UserId to {@link tachyon.UserInfo} object **/
   private final Map<Long, UserInfo> USERS;
 
-  public Users(final String userfolder, final String userUnderfsFolder) {
+  public Users(final String userfolder, final String userUfsFolder) {
     USER_FOLDER = userfolder;
-    USER_UNDERFS_FOLDER = userUnderfsFolder;
+    USER_UFS_FOLDER = userUfsFolder;
     USERS = new HashMap<Long, UserInfo>();
   }
 
@@ -106,8 +106,8 @@ public class Users {
    *          The queried user.
    * @return String contains the user's temporary data folder in the under filesystem.
    */
-  public String getUserUnderfsTempFolder(long userId) {
-    return CommonUtils.concat(USER_UNDERFS_FOLDER, userId);
+  public String getUserUfsTempFolder(long userId) {
+    return CommonUtils.concat(USER_UFS_FOLDER, userId);
   }
 
   /**
@@ -154,7 +154,7 @@ public class Users {
         throw Throwables.propagate(e);
       }
 
-      folder = getUserUnderfsTempFolder(userId);
+      folder = getUserUfsTempFolder(userId);
       sb.append(" Also remove users underfs folder " + folder);
       try {
         UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
