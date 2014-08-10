@@ -388,10 +388,17 @@ public class WorkerClient {
    *          The id of the user who wants to return the space
    * @param returnSpaceBytes
    *          The returned space size, in bytes
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized void returnSpace(long userId, long returnSpaceBytes) throws TException {
-    mClient.returnSpace(userId, returnSpaceBytes);
+  public synchronized void returnSpace(long userId, long returnSpaceBytes) throws IOException {
+    mustConnect();
+
+    try {
+      mClient.returnSpace(userId, returnSpaceBytes);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   /**

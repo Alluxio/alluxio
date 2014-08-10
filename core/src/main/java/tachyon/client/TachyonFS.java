@@ -30,10 +30,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -223,9 +221,8 @@ public class TachyonFS {
    * Close the client. Close the connections to both to master and worker
    * 
    * @throws IOException
-   * @throws TException
    */
-  public synchronized void close() throws TException, IOException {
+  public synchronized void close() throws IOException {
     if (mMasterClient != null) {
       mMasterClient.close();
     }
@@ -337,13 +334,8 @@ public class TachyonFS {
       String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
     connect();
 
-    try {
-      return mMasterClient.user_createDependency(parents, children, commandPrefix, data, comment,
-          framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+    return mMasterClient.user_createDependency(parents, children, commandPrefix, data, comment,
+        framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
   }
 
   /**
@@ -401,12 +393,7 @@ public class TachyonFS {
       return -1;
     }
     String cleanedPath = cleanPathIOException(path);
-    try {
-      return mMasterClient.user_createFileOnCheckpoint(cleanedPath, underfsPath);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+    return mMasterClient.user_createFileOnCheckpoint(cleanedPath, underfsPath);
   }
 
   /**
@@ -447,13 +434,8 @@ public class TachyonFS {
           + CommonConf.get().MAX_COLUMNS);
     }
 
-    try {
-      return mMasterClient.user_createRawTable(cleanedPath, columns, metadata);
-    } catch (TException e) {
-      LOG.error(e.getMessage(), e);
-      mConnected = false;
-      return -1;
-    }
+    return mMasterClient.user_createRawTable(cleanedPath, columns, metadata);
+
   }
 
   /**
@@ -473,12 +455,7 @@ public class TachyonFS {
       return false;
     }
 
-    try {
-      return mMasterClient.user_delete(fid, recursive);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+    return mMasterClient.user_delete(fid, recursive);
   }
 
   /**
@@ -494,15 +471,8 @@ public class TachyonFS {
    */
   public synchronized boolean delete(String path, boolean recursive) throws IOException {
     connect();
-    if (!mConnected) {
-      return false;
-    }
 
-    try {
-      return mMasterClient.user_delete(path, recursive);
-    } catch (TException e) {
-      throw new IOException(e);
-    }
+    return mMasterClient.user_delete(path, recursive);
   }
 
   /**
@@ -519,22 +489,12 @@ public class TachyonFS {
 
   private synchronized ClientFileInfo fetchClientFileInfo(int fid) throws IOException {
     connect();
+
     if (!mConnected) {
       return null;
     }
-    ClientFileInfo ret = null;
-    try {
-      ret = mMasterClient.getClientFileInfoById(fid);
-    } catch (IOException e) {
-      LOG.info(e.getMessage() + fid);
-      return null;
-    } catch (TException e) {
-      LOG.error(e.getMessage(), e);
-      mConnected = false;
-      return null;
-    }
 
-    return ret;
+    return mMasterClient.getClientFileInfoById(fid);
   }
 
   /**
@@ -677,19 +637,15 @@ public class TachyonFS {
   /**
    * Get a ClientDependencyInfo by the dependency id
    * 
-   * @param did
+   * @param depId
    *          the dependency id
    * @return the ClientDependencyInfo of the specified dependency
    * @throws IOException
    */
-  public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
+  public synchronized ClientDependencyInfo getClientDependencyInfo(int depId) throws IOException {
     connect();
-    try {
-      return mMasterClient.getClientDependencyInfo(did);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+
+    return mMasterClient.getClientDependencyInfo(depId);
   }
 
   /**
@@ -717,10 +673,6 @@ public class TachyonFS {
       ret = mMasterClient.user_getClientFileInfoByPath(cleanedPath);
     } catch (IOException e) {
       LOG.info(e.getMessage() + cleanedPath);
-      return null;
-    } catch (TException e) {
-      LOG.error(e.getMessage(), e);
-      mConnected = false;
       return null;
     }
 
@@ -840,12 +792,7 @@ public class TachyonFS {
     // TODO Should read from mClientFileInfos if possible. Should add timeout to improve this.
     connect();
 
-    try {
-      return mMasterClient.user_getFileBlocks(fid);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+    return mMasterClient.user_getFileBlocks(fid);
   }
 
   /**
@@ -884,19 +831,8 @@ public class TachyonFS {
    */
   public synchronized int getFileId(String path) throws IOException {
     connect();
-    if (!mConnected) {
-      return -1;
-    }
-    int fid = -1;
     String cleanedPath = cleanPathIOException(path);
-    try {
-      fid = mMasterClient.user_getFileId(cleanedPath);
-    } catch (TException e) {
-      LOG.error(e.getMessage(), e);
-      mConnected = false;
-      return -1;
-    }
-    return fid;
+    return mMasterClient.user_getFileId(cleanedPath);
   }
 
   /**
@@ -920,17 +856,13 @@ public class TachyonFS {
     }
 
     List<NetAddress> ret = new ArrayList<NetAddress>();
-    try {
-      List<ClientBlockInfo> blocks = mMasterClient.user_getFileBlocks(fileId);
-      Set<NetAddress> locationSet = new HashSet<NetAddress>();
-      for (ClientBlockInfo info : blocks) {
-        locationSet.addAll(info.getLocations());
-      }
-      ret.addAll(locationSet);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
+    List<ClientBlockInfo> blocks = mMasterClient.user_getFileBlocks(fileId);
+    Set<NetAddress> locationSet = new HashSet<NetAddress>();
+    for (ClientBlockInfo info : blocks) {
+      locationSet.addAll(info.getLocations());
     }
+    ret.addAll(locationSet);
+
     return ret;
   }
 
@@ -985,12 +917,8 @@ public class TachyonFS {
    */
   private synchronized long getNextBlockId(int fId) throws IOException {
     connect();
-    try {
-      return mMasterClient.user_createNewBlock(fId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+
+    return mMasterClient.user_createNewBlock(fId);
   }
 
   /**
@@ -1024,12 +952,8 @@ public class TachyonFS {
    */
   public synchronized int getNumberOfFiles(String path) throws IOException {
     connect();
-    try {
-      return mMasterClient.user_getNumberOfFiles(path);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+
+    return mMasterClient.user_getNumberOfFiles(path);
   }
 
   /**
@@ -1051,13 +975,8 @@ public class TachyonFS {
    */
   public synchronized RawTable getRawTable(int id) throws IOException {
     connect();
-    ClientRawTableInfo clientRawTableInfo = null;
-    try {
-      clientRawTableInfo = mMasterClient.user_getClientRawTableInfoById(id);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+
+    ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfoById(id);
     return new RawTable(this, clientRawTableInfo);
   }
 
@@ -1072,13 +991,8 @@ public class TachyonFS {
   public synchronized RawTable getRawTable(String path) throws IOException {
     connect();
     String cleanedPath = cleanPathIOException(path);
-    ClientRawTableInfo clientRawTableInfo;
-    try {
-      clientRawTableInfo = mMasterClient.user_getClientRawTableInfoByPath(cleanedPath);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+    ClientRawTableInfo clientRawTableInfo =
+        mMasterClient.user_getClientRawTableInfoByPath(cleanedPath);
     return new RawTable(this, clientRawTableInfo);
   }
 
@@ -1184,12 +1098,8 @@ public class TachyonFS {
    */
   public synchronized List<Integer> listFiles(String path, boolean recursive) throws IOException {
     connect();
-    try {
-      return mMasterClient.user_listFiles(path, recursive);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+
+    return mMasterClient.user_listFiles(path, recursive);
   }
 
   /**
@@ -1203,12 +1113,8 @@ public class TachyonFS {
    */
   public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
     connect();
-    try {
-      return mMasterClient.listStatus(path);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+
+    return mMasterClient.listStatus(path);
   }
 
   /**
@@ -1254,19 +1160,11 @@ public class TachyonFS {
    *         null
    *         if the content of path is empty, i.e., no files found under path.
    * @throws IOException
-   *           if some TException is thrown when trying to read content of path.
    */
   public synchronized List<String> ls(String path, boolean recursive) throws IOException {
     connect();
-    try {
-      return mMasterClient.user_ls(path, recursive);
-    } catch (FileDoesNotExistException e) {
-      mConnected = false;
-      return null;
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+
+    return mMasterClient.user_ls(path, recursive);
   }
 
   /**
@@ -1280,15 +1178,8 @@ public class TachyonFS {
    */
   public synchronized boolean mkdir(String path) throws IOException {
     connect();
-    if (!mConnected) {
-      return false;
-    }
-    String cleanedPath = cleanPathIOException(path);
-    try {
-      return mMasterClient.user_mkdir(cleanedPath);
-    } catch (TException e) {
-      throw new IOException(e);
-    }
+
+    return mMasterClient.user_mkdir(cleanPathIOException(path));
   }
 
   /**
@@ -1400,12 +1291,7 @@ public class TachyonFS {
       return false;
     }
 
-    try {
-      mMasterClient.user_renameTo(fId, path);
-    } catch (TException e) {
-      LOG.error(e.getMessage(), e);
-      return false;
-    }
+    mMasterClient.user_renameTo(fId, path);
 
     return true;
   }
@@ -1424,16 +1310,11 @@ public class TachyonFS {
       return false;
     }
 
-    try {
-      if (srcPath.equals(dstPath) && exist(srcPath)) {
-        return true;
-      }
-
-      return mMasterClient.user_rename(srcPath, dstPath);
-    } catch (TException e) {
-      LOG.error(e.getMessage(), e);
-      return false;
+    if (srcPath.equals(dstPath) && exist(srcPath)) {
+      return true;
     }
+
+    return mMasterClient.user_rename(srcPath, dstPath);
   }
 
   /**
@@ -1445,12 +1326,8 @@ public class TachyonFS {
    */
   public synchronized void reportLostFile(int fileId) throws IOException {
     connect();
-    try {
-      mMasterClient.user_reportLostFile(fileId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+
+    mMasterClient.user_reportLostFile(fileId);
   }
 
   /**
@@ -1462,12 +1339,8 @@ public class TachyonFS {
    */
   public synchronized void requestFilesInDependency(int depId) throws IOException {
     connect();
-    try {
-      mMasterClient.user_requestFilesInDependency(depId);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+
+    mMasterClient.user_requestFilesInDependency(depId);
   }
 
   /**
@@ -1567,12 +1440,7 @@ public class TachyonFS {
       throw new IOException("Could not connect to Tachyon Master");
     }
 
-    try {
-      mMasterClient.user_setPinned(fid, pinned);
-    } catch (TException e) {
-      LOG.error(e.getMessage(), e);
-      throw Throwables.propagate(e);
-    }
+    mMasterClient.user_setPinned(fid, pinned);
   }
 
   /** Alias for setPinned(fid, true). */
@@ -1608,11 +1476,7 @@ public class TachyonFS {
    */
   public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata) throws IOException {
     connect();
-    try {
-      mMasterClient.user_updateRawTableMetadata(id, metadata);
-    } catch (TException e) {
-      mConnected = false;
-      throw new IOException(e);
-    }
+
+    mMasterClient.user_updateRawTableMetadata(id, metadata);
   }
 }
