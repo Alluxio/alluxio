@@ -14,32 +14,17 @@
  */
 package tachyon;
 
-import java.io.File;
 import java.io.IOException;
 
 public class GlusterfsCluster extends UnderFileSystemCluster {
-  private String mMount = null;
-  private String mVolume = null;
-  private boolean mUseGfs = false;
-
+  
   public GlusterfsCluster(String baseDir) {
     super(baseDir);
-    mMount = System.getProperty("tachyon.underfs.glusterfs.mounts");
-    mVolume = System.getProperty("tachyon.underfs.glusterfs.volumes");
-    if (mMount != null && !mMount.equals("") && mVolume != null && !mVolume.equals("")) {
-      if (new File(mMount).exists()) {
-        mUseGfs = true;
-      }
-    }
   }
 
   @Override
   public String getUnderFilesystemAddress() {
-    if (mUseGfs) {
-      return new File(mMount + Constants.PATH_SEPARATOR + mBaseDir).getAbsolutePath();
-    }
-    // for env that doesn't have a glusterfs mount point, we fall to local fs
-    return new File(mBaseDir).getAbsolutePath();
+    return "glusterfs:///tachyon_test";
   }
 
   @Override
