@@ -60,6 +60,7 @@ Now you can build and deploy.
 
 ### Install docker
 * If you haven't installed docker, please refer to [official docker document](https://docs.docker.com/installation/) for help.
+* **sudo apt-get install docker** will install something related to KDE3/GENOME's docklet instead of the docker we want to use, do visit the official site for instructions!
 
 ### Configure tachyon-dev
 * Before building containers, please configure tachyon template configuration files in
@@ -78,7 +79,7 @@ Now you can build and deploy.
 * You can check whether containers in tachyon-dev have been successfully built by running `docker images | grep tachyon`, you should see information related to tachyon-base:dev, tachyon-master:dev and tachyon-worker:dev
 
 ### Package tachyon snapshot
-* If tachyon jars on your host is not up-to-date, run `mvn package`
+* If tachyon jars on your host are not up-to-date, run `mvn package`
 
 ### Deploy the cluster
 * Make sure to be under the docker directory
@@ -86,7 +87,7 @@ Now you can build and deploy.
 
 ### Wait for several seconds
 
-* Now, you have a virtualized tachyon cluster with hdfs support on your host. Default worker
+* Now, you have a virtualized tachyon cluster on your host. Default worker
 number is 2, you can change the default value of `NUM_WORKERS` in `deploy/deploy.sh`
 * there is help information on how to ssh into your cluster, how to see the web UI, etc in stdout
 
@@ -111,9 +112,13 @@ share the tachyon home folder on your host with your VM.*
 #### Instructions
 set `TACHYON_UNDERFS_ADDRESS` in `tachyon-dev/tachyon_base/files/tachyon-env.sh.template` to `$TACHYON_HOME/underfs`
 
+Then:
+
     sudo -s
 
 if you have built other containers, just re-build containers in tachyon-dev via `cd tachyon-dev && ./build && cd ..` or you can re-build all containers via `./build`
+
+Then: 
 
     ./deploy/deploy.sh
 
@@ -155,24 +160,36 @@ The instructions between star lines will tell you how to see Tachyon web UI and 
 Copy the web UI's URL in the instruction to your browser, you should see tachyon's web UI, if worker
 number is not 2, refresh the page after a while because workers may be connecting to master.
 
-Then, we want to run `bin/tachyon runTests` on master node, so, copy the command for sshing into
-master node from the instruction to your command line, run it and you should be in your master node as root now.
+copy the command for sshing into master node from the instruction to your command line, run it and you should be in your master node as root now.
 
-cd to the tachyon home on your master node
+cd to the tachyon home on your master node:
 
     cd /opt/tachyon_container
 
-start a local worker on master because runTests need a local worker
+start a local worker on master because runTests need a local worker:
 
     bin/tachyon-start.sh worker
 
 after the local worker start, refresh the web UI, 3 workers should be active now
 
-run tests, all tests should pass if everything works well
+run tests:
 
     bin/tachyon runTests
 
+all tests should pass if everything works well
+
 refresh web UI again, and browse the file system in the UI, see files in memory!
+
+If something goes wrong, you can check via:
+
+    docker logs
+
+or ssh into master, worker, then:
+
+    cd /opt/tachyon_container/logs
+    ls
+
+and view the logs
 
 ### Example 1
 
