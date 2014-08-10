@@ -193,6 +193,7 @@ public class WorkerClient {
   public synchronized String getDataFolder() throws IOException {
     if (mDataFolder == null) {
       try {
+        mustConnect();
         mDataFolder = mClient.getDataFolder();
       } catch (TException e) {
         mDataFolder = null;
