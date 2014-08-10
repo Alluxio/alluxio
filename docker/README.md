@@ -83,12 +83,12 @@ Now you can build and deploy.
 
 ### Deploy the cluster
 * Make sure to be under the docker directory
-* `./deploy/deploy.sh` to start nameserver, master and worker nodes.
+* `./deploy/deploy.sh` to start nameserver, master and worker nodes. Default worker
+number is 2, you can change the default value of `NUM_WORKERS` in `deploy/deploy.sh`
 
 ### Wait for several seconds
 
-* Now, you have a virtualized tachyon cluster on your host. Default worker
-number is 2, you can change the default value of `NUM_WORKERS` in `deploy/deploy.sh`
+* Now, you have a virtualized tachyon cluster on your host. 
 * there is help information on how to ssh into your cluster, how to see the web UI, etc in stdout
 
 ### Stop the cluster
@@ -96,7 +96,7 @@ number is 2, you can change the default value of `NUM_WORKERS` in `deploy/deploy
 
 ## Example Usages:
 ### Testing environment:
-* ubuntu14.04
+* ubuntu14.04 and ubuntu12.04
 * docker0.9.1
 
 *If you're running a virtual machine, all the examples below should be run in the VM, you need to
@@ -110,7 +110,7 @@ share the tachyon home folder on your host with your VM.*
 * finally have a look at web UI
 
 #### Instructions
-set `TACHYON_UNDERFS_ADDRESS` in `tachyon-dev/tachyon_base/files/tachyon-env.sh.template` to `$TACHYON_HOME/underfs`
+set `TACHYON_UNDERFS_ADDRESS` in `tachyon-dev/tachyon-base/files/tachyon-env.sh.template` to `$TACHYON_HOME/underfs`
 
 Then:
 
@@ -168,7 +168,7 @@ cd to the tachyon home on your master node:
 
 start a local worker on master because runTests need a local worker:
 
-    bin/tachyon-start.sh worker
+    bin/tachyon-start.sh worker Mount
 
 after the local worker start, refresh the web UI, 3 workers should be active now
 
@@ -182,7 +182,10 @@ refresh web UI again, and browse the file system in the UI, see files in memory!
 
 If something goes wrong, you can check via:
 
-    docker logs
+    # get the container ID of a running container you want to inspect
+    docker ps
+    # copy the first column(container ID), 
+    docker logs #containerID
 
 or ssh into master, worker, then:
 
@@ -191,12 +194,16 @@ or ssh into master, worker, then:
 
 and view the logs
 
+after all the work, remember to stop the cluster, if you're now in a container, exit it and then
+
+    ./deploy/killAll.sh
+
 ### Example 1
 
 #### Goal
 * deploy hdfs as under filesystem for tachyon.
 
 #### Instructions
-set `TACHYON_UNDERFS_ADDRESS` in `tachyon-dev/tachyon_base/files/tachyon-env.sh.template` to `hdfs://master:9000`
+set `TACHYON_UNDERFS_ADDRESS` in `tachyon-dev/tachyon-base/files/tachyon-env.sh.template` to `hdfs://master:9000`
 
 Now follow the same instructions in Example 0 above, except the first step
