@@ -1,0 +1,3 @@
+#!/bin/bash
+
+docker build -t ${IMAGE_PREFIX}tachyon-base:dev .
