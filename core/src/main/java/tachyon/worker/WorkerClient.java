@@ -259,10 +259,17 @@ public class WorkerClient {
    *          The id of the block
    * @param userId
    *          The id of the user who wants to lock the block
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized void lockBlock(long blockId, long userId) throws TException {
-    mClient.lockBlock(blockId, userId);
+  public synchronized void lockBlock(long blockId, long userId) throws IOException {
+    mustConnect();
+
+    try {
+      mClient.lockBlock(blockId, userId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -273,7 +280,6 @@ public class WorkerClient {
    */
   public synchronized boolean connect() throws IOException {
     if (!mConnected) {
-
       NetAddress workerNetAddress = null;
       try {
         String localHostName;
@@ -292,9 +298,6 @@ public class WorkerClient {
       } catch (UnknownHostException e) {
         LOG.error(e.getMessage(), e);
         workerNetAddress = null;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        workerNetAddress = null;
       }
 
       if (workerNetAddress == null) {
@@ -302,9 +305,6 @@ public class WorkerClient {
           workerNetAddress = MASTER_CLIENT.user_getWorker(true, "");
         } catch (NoWorkerException e) {
           LOG.info(e.getMessage());
-          workerNetAddress = null;
-        } catch (TException e) {
-          LOG.error(e.getMessage(), e);
           workerNetAddress = null;
         }
       }
@@ -362,8 +362,15 @@ public class WorkerClient {
    * @return true if succeed, false otherwise
    * @throws TException
    */
-  public synchronized boolean requestSpace(long userId, long requestBytes) throws TException {
-    return mClient.requestSpace(userId, requestBytes);
+  public synchronized boolean requestSpace(long userId, long requestBytes) throws IOException {
+    mustConnect();
+
+    try {
+      return mClient.requestSpace(userId, requestBytes);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -388,8 +395,15 @@ public class WorkerClient {
    *          The id of the user who wants to unlock the block
    * @throws TException
    */
-  public synchronized void unlockBlock(long blockId, long userId) throws TException {
-    mClient.unlockBlock(blockId, userId);
+  public synchronized void unlockBlock(long blockId, long userId) throws IOException {
+    mustConnect();
+
+    try {
+      mClient.unlockBlock(blockId, userId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   /**

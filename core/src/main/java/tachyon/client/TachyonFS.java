@@ -681,8 +681,6 @@ public class TachyonFS {
       throw new IOException(e);
     } catch (BlockInfoException e) {
       throw new IOException(e);
-    } catch (TException e) {
-      throw new IOException(e);
     }
   }
 
@@ -851,9 +849,6 @@ public class TachyonFS {
   public synchronized List<ClientBlockInfo> getFileBlocks(int fid) throws IOException {
     // TODO Should read from mClientFileInfos if possible. Should add timeout to improve this.
     connect();
-    if (!mConnected) {
-      return null;
-    }
 
     try {
       return mMasterClient.user_getFileBlocks(fid);
@@ -1249,12 +1244,8 @@ public class TachyonFS {
     if (!mConnected || mWorkerClient == null || !mWorkerClient.isLocal()) {
       return false;
     }
-    try {
-      mWorkerClient.lockBlock(blockId, mMasterClient.getUserId());
-    } catch (TException e) {
-      LOG.error(e.getMessage(), e);
-      return false;
-    }
+    mWorkerClient.lockBlock(blockId, mMasterClient.getUserId());
+
     Set<Integer> lockIds = new HashSet<Integer>(4);
     lockIds.add(blockLockId);
     mLockedBlockIds.put(blockId, lockIds);
@@ -1504,22 +1495,16 @@ public class TachyonFS {
     }
     int failedTimes = 0;
     while (mAvailableSpaceBytes < requestSpaceBytes) {
-      try {
-        long toRequestSpaceBytes =
-            Math.max(requestSpaceBytes - mAvailableSpaceBytes, USER_QUOTA_UNIT_BYTES);
-        if (mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes)) {
-          mAvailableSpaceBytes += toRequestSpaceBytes;
-        } else {
-          LOG.info("Failed to request " + toRequestSpaceBytes + " bytes local space. " + "Time "
-              + (failedTimes ++));
-          if (failedTimes == USER_FAILED_SPACE_REQUEST_LIMITS) {
-            return false;
-          }
+      long toRequestSpaceBytes =
+          Math.max(requestSpaceBytes - mAvailableSpaceBytes, USER_QUOTA_UNIT_BYTES);
+      if (mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes)) {
+        mAvailableSpaceBytes += toRequestSpaceBytes;
+      } else {
+        LOG.info("Failed to request " + toRequestSpaceBytes + " bytes local space. " + "Time "
+            + (failedTimes ++));
+        if (failedTimes == USER_FAILED_SPACE_REQUEST_LIMITS) {
+          return false;
         }
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mWorkerClient = null;
-        return false;
       }
     }
 
@@ -1571,13 +1556,10 @@ public class TachyonFS {
     if (!mConnected || mWorkerClient == null || !mWorkerClient.isLocal()) {
       return false;
     }
-    try {
-      mWorkerClient.unlockBlock(blockId, mMasterClient.getUserId());
-      mLockedBlockIds.remove(blockId);
-    } catch (TException e) {
-      LOG.error(e.getMessage(), e);
-      return false;
-    }
+
+    mWorkerClient.unlockBlock(blockId, mMasterClient.getUserId());
+    mLockedBlockIds.remove(blockId);
+
     return true;
   }
 
