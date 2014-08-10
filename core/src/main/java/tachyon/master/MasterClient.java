@@ -199,14 +199,15 @@ public class MasterClient {
         + (tries - 1) + " attempts", lastException);
   }
 
-  public ClientDependencyInfo getClientDependencyInfo(int did) throws IOException, TException {
+  public ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_getClientDependencyInfo(did);
       } catch (DependencyDoesNotExistException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -214,9 +215,10 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized ClientFileInfo getClientFileInfoById(int id) throws IOException, TException {
+  public synchronized ClientFileInfo getClientFileInfoById(int id) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.getClientFileInfoById(id);
       } catch (FileDoesNotExistException e) {
@@ -278,7 +280,7 @@ public class MasterClient {
     return mConnected;
   }
 
-  public synchronized List<ClientFileInfo> listStatus(String path) throws IOException, TException {
+  public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -324,8 +326,7 @@ public class MasterClient {
 
   public synchronized int user_createDependency(List<String> parents, List<String> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
-      String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException,
-      TException {
+      String frameworkVersion, int dependencyType, long childrenBlockSizeByte) throws IOException {
     while (!mIsShutdown) {
       connect();
 
@@ -373,9 +374,10 @@ public class MasterClient {
   }
 
   public synchronized int user_createFileOnCheckpoint(String path, String checkpointPath)
-      throws IOException, TException {
+      throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_createFileOnCheckpoint(path, checkpointPath);
       } catch (FileAlreadyExistException e) {
@@ -388,7 +390,7 @@ public class MasterClient {
         throw new IOException(e);
       } catch (TachyonException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -396,14 +398,15 @@ public class MasterClient {
     return -1;
   }
 
-  public synchronized long user_createNewBlock(int fId) throws IOException, TException {
+  public synchronized long user_createNewBlock(int fId) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_createNewBlock(fId);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -412,12 +415,14 @@ public class MasterClient {
   }
 
   public synchronized int user_createRawTable(String path, int columns, ByteBuffer metadata)
-      throws IOException, TException {
+      throws IOException {
     if (metadata == null) {
       metadata = ByteBuffer.allocate(0);
     }
+
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_createRawTable(path, columns, metadata);
       } catch (FileAlreadyExistException e) {
@@ -428,7 +433,7 @@ public class MasterClient {
         throw new IOException(e);
       } catch (TachyonException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -436,15 +441,15 @@ public class MasterClient {
     return -1;
   }
 
-  public synchronized boolean user_delete(int fileId, boolean recursive) throws IOException,
-      TException {
+  public synchronized boolean user_delete(int fileId, boolean recursive) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_deleteById(fileId, recursive);
       } catch (TachyonException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -452,15 +457,15 @@ public class MasterClient {
     return false;
   }
 
-  public synchronized boolean user_delete(String path, boolean recursive) throws IOException,
-      TException {
+  public synchronized boolean user_delete(String path, boolean recursive) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_deleteByPath(path, recursive);
       } catch (TachyonException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -498,17 +503,17 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized ClientFileInfo user_getClientFileInfoByPath(String path) throws IOException,
-      TException {
+  public synchronized ClientFileInfo user_getClientFileInfoByPath(String path) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_getClientFileInfoByPath(path);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (InvalidPathException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -516,17 +521,17 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized ClientRawTableInfo user_getClientRawTableInfoById(int id)
-      throws IOException, TException {
+  public synchronized ClientRawTableInfo user_getClientRawTableInfoById(int id) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         ClientRawTableInfo ret = mClient.user_getClientRawTableInfoById(id);
         ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
         return ret;
       } catch (TableDoesNotExistException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -535,9 +540,10 @@ public class MasterClient {
   }
 
   public synchronized ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
-      throws IOException, TException {
+      throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         ClientRawTableInfo ret = mClient.user_getClientRawTableInfoByPath(path);
         ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
@@ -546,7 +552,7 @@ public class MasterClient {
         throw new IOException(e);
       } catch (InvalidPathException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -554,15 +560,15 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized List<ClientBlockInfo> user_getFileBlocks(int id) throws IOException,
-      TException {
+  public synchronized List<ClientBlockInfo> user_getFileBlocks(int id) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_getFileBlocksById(id);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -570,14 +576,15 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized int user_getFileId(String path) throws IOException, TException {
+  public synchronized int user_getFileId(String path) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_getFileId(path);
       } catch (InvalidPathException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -585,16 +592,17 @@ public class MasterClient {
     return -1;
   }
 
-  public synchronized int user_getNumberOfFiles(String folderPath) throws IOException, TException {
+  public synchronized int user_getNumberOfFiles(String folderPath) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_getNumberOfFiles(folderPath);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (InvalidPathException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -647,7 +655,7 @@ public class MasterClient {
   }
 
   public synchronized List<Integer> user_listFiles(String path, boolean recursive)
-      throws IOException, TException {
+      throws IOException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -656,7 +664,7 @@ public class MasterClient {
         throw new IOException(e);
       } catch (InvalidPathException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -664,17 +672,17 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized List<String> user_ls(String path, boolean recursive) throws IOException,
-      TException {
+  public synchronized List<String> user_ls(String path, boolean recursive) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_ls(path, recursive);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (InvalidPathException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -682,7 +690,7 @@ public class MasterClient {
     return null;
   }
 
-  public synchronized boolean user_mkdir(String path) throws IOException, TException {
+  public synchronized boolean user_mkdir(String path) throws IOException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -693,7 +701,7 @@ public class MasterClient {
         throw new IOException(e);
       } catch (TachyonException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -715,10 +723,10 @@ public class MasterClient {
     }
   }
 
-  public synchronized boolean user_rename(String srcPath, String dstPath) throws IOException,
-      TException {
+  public synchronized boolean user_rename(String srcPath, String dstPath) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_rename(srcPath, dstPath);
       } catch (FileAlreadyExistException e) {
@@ -727,7 +735,7 @@ public class MasterClient {
         throw new IOException(e);
       } catch (InvalidPathException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -735,9 +743,10 @@ public class MasterClient {
     return false;
   }
 
-  public void user_renameTo(int fId, String path) throws IOException, TException {
+  public void user_renameTo(int fId, String path) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         mClient.user_renameTo(fId, path);
         return;
@@ -747,52 +756,55 @@ public class MasterClient {
         throw new IOException(e);
       } catch (InvalidPathException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
     }
   }
 
-  public synchronized void user_reportLostFile(int fileId) throws IOException, TException {
+  public synchronized void user_reportLostFile(int fileId) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         mClient.user_reportLostFile(fileId);
         return;
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
     }
   }
 
-  public synchronized void user_requestFilesInDependency(int depId) throws IOException, TException {
+  public synchronized void user_requestFilesInDependency(int depId) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         mClient.user_requestFilesInDependency(depId);
         return;
       } catch (DependencyDoesNotExistException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
     }
   }
 
-  public synchronized void user_setPinned(int id, boolean pinned) throws IOException, TException {
+  public synchronized void user_setPinned(int id, boolean pinned) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         mClient.user_setPinned(id, pinned);
         return;
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
@@ -800,9 +812,10 @@ public class MasterClient {
   }
 
   public synchronized void user_updateRawTableMetadata(int id, ByteBuffer metadata)
-      throws IOException, TException {
+      throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         mClient.user_updateRawTableMetadata(id, metadata);
         return;
@@ -810,7 +823,7 @@ public class MasterClient {
         throw new IOException(e);
       } catch (TachyonException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }
