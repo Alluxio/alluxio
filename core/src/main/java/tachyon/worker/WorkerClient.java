@@ -49,8 +49,7 @@ import tachyon.util.NetworkUtils;
 public class WorkerClient {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final MasterClient MASTER_CLIENT;
-  // TODO Implement the retry logic
-  private final int CONNECTION_RETRY_TIMES = 10;
+  private final int CONNECTION_RETRY_TIMES = 5;
 
   private WorkerService.Client mClient;
   private TProtocol mProtocol;
@@ -180,6 +179,74 @@ public class WorkerClient {
   }
 
   /**
+   * Open the connection to the worker. And start the heartbeat thread.
+   * 
+   * @return true if succeed, false otherwise
+   * @throws IOException
+   */
+  private synchronized boolean connect() throws IOException {
+    if (!mConnected) {
+      NetAddress workerNetAddress = null;
+      try {
+        String localHostName;
+        try {
+          localHostName =
+              NetworkUtils.resolveHostName(InetAddress.getLocalHost().getCanonicalHostName());
+        } catch (UnknownHostException e) {
+          localHostName = InetAddress.getLocalHost().getCanonicalHostName();
+        }
+        LOG.info("Trying to get local worker host : " + localHostName);
+        workerNetAddress = MASTER_CLIENT.user_getWorker(false, localHostName);
+        mIsLocal = true;
+      } catch (NoWorkerException e) {
+        LOG.info(e.getMessage());
+        workerNetAddress = null;
+      } catch (UnknownHostException e) {
+        LOG.error(e.getMessage(), e);
+        workerNetAddress = null;
+      }
+
+      if (workerNetAddress == null) {
+        try {
+          workerNetAddress = MASTER_CLIENT.user_getWorker(true, "");
+        } catch (NoWorkerException e) {
+          LOG.info(e.getMessage());
+          workerNetAddress = null;
+        }
+      }
+
+      if (workerNetAddress == null) {
+        LOG.info("No worker running in the system");
+        mClient = null;
+        return false;
+      }
+
+      mWorkerAddress = new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
+      LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
+
+      mProtocol =
+          new TBinaryProtocol(new TFramedTransport(new TSocket(mWorkerAddress.getHostName(),
+              mWorkerAddress.getPort())));
+      mClient = new WorkerService.Client(mProtocol);
+
+      mHeartbeatThread =
+          new HeartbeatThread("WorkerClientToWorkerHeartbeat", new WorkerClientHeartbeatExecutor(
+              this, MASTER_CLIENT.getUserId()), UserConf.get().HEARTBEAT_INTERVAL_MS);
+
+      try {
+        mProtocol.getTransport().open();
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage(), e);
+        return false;
+      }
+      mHeartbeatThread.start();
+      mConnected = true;
+    }
+
+    return mConnected;
+  }
+
+  /**
    * @return the address of the worker.
    */
   public synchronized InetSocketAddress getAddress() {
@@ -282,83 +349,19 @@ public class WorkerClient {
   }
 
   /**
-   * Open the connection to the worker. And start the heartbeat thread.
-   * 
-   * @return true if succeed, false otherwise
-   * @throws IOException
-   */
-  private synchronized boolean connect() throws IOException {
-    if (!mConnected) {
-      NetAddress workerNetAddress = null;
-      try {
-        String localHostName;
-        try {
-          localHostName =
-              NetworkUtils.resolveHostName(InetAddress.getLocalHost().getCanonicalHostName());
-        } catch (UnknownHostException e) {
-          localHostName = InetAddress.getLocalHost().getCanonicalHostName();
-        }
-        LOG.info("Trying to get local worker host : " + localHostName);
-        workerNetAddress = MASTER_CLIENT.user_getWorker(false, localHostName);
-        mIsLocal = true;
-      } catch (NoWorkerException e) {
-        LOG.info(e.getMessage());
-        workerNetAddress = null;
-      } catch (UnknownHostException e) {
-        LOG.error(e.getMessage(), e);
-        workerNetAddress = null;
-      }
-
-      if (workerNetAddress == null) {
-        try {
-          workerNetAddress = MASTER_CLIENT.user_getWorker(true, "");
-        } catch (NoWorkerException e) {
-          LOG.info(e.getMessage());
-          workerNetAddress = null;
-        }
-      }
-
-      if (workerNetAddress == null) {
-        LOG.info("No worker running in the system");
-        mClient = null;
-        return false;
-      }
-
-      mWorkerAddress = new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
-      LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
-
-      mProtocol =
-          new TBinaryProtocol(new TFramedTransport(new TSocket(mWorkerAddress.getHostName(),
-              mWorkerAddress.getPort())));
-      mClient = new WorkerService.Client(mProtocol);
-
-      mHeartbeatThread =
-          new HeartbeatThread("WorkerClientToWorkerHeartbeat", new WorkerClientHeartbeatExecutor(
-              this, MASTER_CLIENT.getUserId()), UserConf.get().HEARTBEAT_INTERVAL_MS);
-
-      try {
-        mProtocol.getTransport().open();
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage(), e);
-        return false;
-      }
-      mHeartbeatThread.start();
-      mConnected = true;
-    }
-
-    return mConnected;
-  }
-
-  /**
    * Connect to the worker.
    * 
    * @throws IOException
    *           throw if the connection fails
    */
   public synchronized void mustConnect() throws IOException {
-    if (!connect()) {
-      throw new IOException("Failed to connect to the worker");
+    int tries = 0;
+    while (tries ++ <= CONNECTION_RETRY_TIMES) {
+      if (connect()) {
+        return;
+      }
     }
+    throw new IOException("Failed to connect to the worker");
   }
 
   /**

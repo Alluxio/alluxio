@@ -65,7 +65,7 @@ public class WorkerStorage {
   public class CheckpointThread implements Runnable {
     private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
     private final int ID;
-    private UnderFileSystem mCheckpointUnderFs = null;
+    private UnderFileSystem mCheckpointUfs = null;
 
     public CheckpointThread(int id) {
       ID = id;
@@ -179,13 +179,13 @@ public class WorkerStorage {
 
           // TODO checkpoint process. In future, move from midPath to dstPath should be done by
           // master
-          String midPath = CommonUtils.concat(mUnderfsWorkerDataFolder, fileId);
+          String midPath = CommonUtils.concat(mUfsWorkerDataFolder, fileId);
           String dstPath = CommonUtils.concat(CommonConf.get().UNDERFS_DATA_FOLDER, fileId);
           LOG.info("Thread " + ID + " is checkpointing file " + fileId + " from "
               + mLocalDataFolder.toString() + " to " + midPath + " to " + dstPath);
 
-          if (mCheckpointUnderFs == null) {
-            mCheckpointUnderFs = UnderFileSystem.get(midPath);
+          if (mCheckpointUfs == null) {
+            mCheckpointUfs = UnderFileSystem.get(midPath);
           }
 
           long startCopyTimeMs = System.currentTimeMillis();
@@ -197,7 +197,7 @@ public class WorkerStorage {
           for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
             lockBlock(fileInfo.blockIds.get(k), Users.sCHECKPOINT_USER_ID);
           }
-          OutputStream os = mCheckpointUnderFs.create(midPath, (int) fileInfo.getBlockSizeByte());
+          OutputStream os = mCheckpointUfs.create(midPath, (int) fileInfo.getBlockSizeByte());
           long fileSizeByte = 0;
           for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
             File tempFile =
@@ -213,7 +213,7 @@ public class WorkerStorage {
             is.close();
           }
           os.close();
-          if (!mCheckpointUnderFs.rename(midPath, dstPath)) {
+          if (!mCheckpointUfs.rename(midPath, dstPath)) {
             LOG.error("Failed to rename from " + midPath + " to " + dstPath);
           }
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
@@ -269,11 +269,11 @@ public class WorkerStorage {
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
   private File mLocalDataFolder;
   private File mLocalUserFolder;
-  private String mUnderfsWorkerFolder;
-  private String mUnderfsWorkerDataFolder;
-  private String mUnderfsOrphansFolder;
+  private String mUfsWorkerFolder;
+  private String mUfsWorkerDataFolder;
+  private String mUfsOrphansFolder;
 
-  private UnderFileSystem mUnderFs;
+  private UnderFileSystem mUfs;
 
   private Users mUsers;
   // Dependency related lock
@@ -316,10 +316,10 @@ public class WorkerStorage {
 
     register();
 
-    mUnderfsWorkerFolder = CommonUtils.concat(COMMON_CONF.UNDERFS_WORKERS_FOLDER, mWorkerId);
-    mUnderfsWorkerDataFolder = mUnderfsWorkerFolder + "/data";
-    mUnderFs = UnderFileSystem.get(COMMON_CONF.UNDERFS_ADDRESS);
-    mUsers = new Users(mLocalUserFolder.toString(), mUnderfsWorkerFolder);
+    mUfsWorkerFolder = CommonUtils.concat(COMMON_CONF.UNDERFS_WORKERS_FOLDER, mWorkerId);
+    mUfsWorkerDataFolder = mUfsWorkerFolder + "/data";
+    mUfs = UnderFileSystem.get(COMMON_CONF.UNDERFS_ADDRESS);
+    mUsers = new Users(mLocalUserFolder.toString(), mUfsWorkerFolder);
 
     for (int k = 0; k < WorkerConf.get().WORKER_CHECKPOINT_THREADS; k ++) {
       Thread thread = new Thread(new CheckpointThread(k));
@@ -388,7 +388,7 @@ public class WorkerStorage {
     String srcPath = CommonUtils.concat(getUserUfsTempFolder(userId), fileId);
     String dstPath = CommonUtils.concat(COMMON_CONF.UNDERFS_DATA_FOLDER, fileId);
     try {
-      if (!mUnderFs.rename(srcPath, dstPath)) {
+      if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
       }
     } catch (IOException e) {
@@ -396,7 +396,7 @@ public class WorkerStorage {
     }
     long fileSize;
     try {
-      fileSize = mUnderFs.getFileSize(dstPath);
+      fileSize = mUfs.getFileSize(dstPath);
     } catch (IOException e) {
       throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
     }
@@ -557,8 +557,8 @@ public class WorkerStorage {
   /**
    * @return The orphans' folder in the under file system
    */
-  public String getUnderfsOrphansFolder() {
-    return mUnderfsOrphansFolder;
+  public String getUfsOrphansFolder() {
+    return mUfsOrphansFolder;
   }
 
   /**
@@ -589,10 +589,10 @@ public class WorkerStorage {
   /**
    * Get the user temporary folder in the under file system of the specified user.
    * 
-   * This method is a wrapper around {@link tachyon.Users#getUserUnderfsTempFolder(long)}, and as
-   * such should be referentially transparent with {@link Users#getUserUnderfsTempFolder(long)}. In
+   * This method is a wrapper around {@link tachyon.Users#getUserUfsTempFolder(long)}, and as
+   * such should be referentially transparent with {@link Users#getUserUfsTempFolder(long)}. In
    * the context of {@code this}, this call will output the result of path concat of
-   * {@link #mUnderfsWorkerFolder} with the provided {@literal userId}.
+   * {@link #mUfsWorkerFolder} with the provided {@literal userId}.
    * 
    * This method differs from {@link #getUserLocalTempFolder(long)} in the context of where write
    * operations end up. This temp folder generated lives inside the {@link tachyon.UnderFileSystem},
@@ -604,7 +604,7 @@ public class WorkerStorage {
    * @throws IOException
    */
   public String getUserUfsTempFolder(long userId) throws IOException {
-    String ret = mUsers.getUserUnderfsTempFolder(userId);
+    String ret = mUsers.getUserUfsTempFolder(userId);
     LOG.info("Return UserHdfsTempFolder for " + userId + " : " + ret);
     return ret;
   }
@@ -654,9 +654,9 @@ public class WorkerStorage {
     mLocalUserFolder.mkdir();
     CommonUtils.changeLocalFilePermission(mLocalUserFolder.getPath(), "775");
 
-    mUnderfsOrphansFolder = mUnderfsWorkerFolder + "/orphans";
-    if (!mUnderFs.exists(mUnderfsOrphansFolder)) {
-      mUnderFs.mkdirs(mUnderfsOrphansFolder, true);
+    mUfsOrphansFolder = mUfsWorkerFolder + "/orphans";
+    if (!mUfs.exists(mUfsOrphansFolder)) {
+      mUfs.mkdirs(mUfsOrphansFolder, true);
     }
 
     int cnt = 0;
@@ -672,7 +672,7 @@ public class WorkerStorage {
         } catch (FileDoesNotExistException e) {
           LOG.error("BlockId: " + blockId + " becomes orphan for: \"" + e.message + "\"");
           LOG.info("Swapout File " + cnt + ": blockId: " + blockId + " to "
-              + mUnderfsOrphansFolder);
+              + mUfsOrphansFolder);
           swapoutOrphanBlocks(blockId, tFile);
           freeBlock(blockId);
           continue;
@@ -859,8 +859,8 @@ public class WorkerStorage {
     RandomAccessFile localFile = new RandomAccessFile(file, "r");
     ByteBuffer buf = localFile.getChannel().map(MapMode.READ_ONLY, 0, file.length());
 
-    String ufsOrphanBlock = CommonUtils.concat(mUnderfsOrphansFolder, blockId);
-    OutputStream os = mUnderFs.create(ufsOrphanBlock);
+    String ufsOrphanBlock = CommonUtils.concat(mUfsOrphansFolder, blockId);
+    OutputStream os = mUfs.create(ufsOrphanBlock);
     int BULKSIZE = Constants.KB * 64;
     byte[] bulk = new byte[BULKSIZE];
     for (int k = 0; k < (buf.limit() + BULKSIZE - 1) / BULKSIZE; k ++) {
