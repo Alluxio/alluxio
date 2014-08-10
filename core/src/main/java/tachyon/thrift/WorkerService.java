@@ -48,7 +48,7 @@ public class WorkerService {
 
     public String getUserTempFolder(long userId) throws org.apache.thrift.TException;
 
-    public String getUserUnderfsTempFolder(long userId) throws org.apache.thrift.TException;
+    public String getUserUfsTempFolder(long userId) throws org.apache.thrift.TException;
 
     public void lockBlock(long blockId, long userId) throws org.apache.thrift.TException;
 
@@ -76,7 +76,7 @@ public class WorkerService {
 
     public void getUserTempFolder(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void getUserUnderfsTempFolder(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getUserUfsTempFolder(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void lockBlock(long blockId, long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -264,27 +264,27 @@ public class WorkerService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUserTempFolder failed: unknown result");
     }
 
-    public String getUserUnderfsTempFolder(long userId) throws org.apache.thrift.TException
+    public String getUserUfsTempFolder(long userId) throws org.apache.thrift.TException
     {
-      send_getUserUnderfsTempFolder(userId);
-      return recv_getUserUnderfsTempFolder();
+      send_getUserUfsTempFolder(userId);
+      return recv_getUserUfsTempFolder();
     }
 
-    public void send_getUserUnderfsTempFolder(long userId) throws org.apache.thrift.TException
+    public void send_getUserUfsTempFolder(long userId) throws org.apache.thrift.TException
     {
-      getUserUnderfsTempFolder_args args = new getUserUnderfsTempFolder_args();
+      getUserUfsTempFolder_args args = new getUserUfsTempFolder_args();
       args.setUserId(userId);
-      sendBase("getUserUnderfsTempFolder", args);
+      sendBase("getUserUfsTempFolder", args);
     }
 
-    public String recv_getUserUnderfsTempFolder() throws org.apache.thrift.TException
+    public String recv_getUserUfsTempFolder() throws org.apache.thrift.TException
     {
-      getUserUnderfsTempFolder_result result = new getUserUnderfsTempFolder_result();
-      receiveBase(result, "getUserUnderfsTempFolder");
+      getUserUfsTempFolder_result result = new getUserUfsTempFolder_result();
+      receiveBase(result, "getUserUfsTempFolder");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUserUnderfsTempFolder failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUserUfsTempFolder failed: unknown result");
     }
 
     public void lockBlock(long blockId, long userId) throws org.apache.thrift.TException
@@ -607,23 +607,23 @@ public class WorkerService {
       }
     }
 
-    public void getUserUnderfsTempFolder(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getUserUfsTempFolder(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getUserUnderfsTempFolder_call method_call = new getUserUnderfsTempFolder_call(userId, resultHandler, this, ___protocolFactory, ___transport);
+      getUserUfsTempFolder_call method_call = new getUserUfsTempFolder_call(userId, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class getUserUnderfsTempFolder_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class getUserUfsTempFolder_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long userId;
-      public getUserUnderfsTempFolder_call(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public getUserUfsTempFolder_call(long userId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.userId = userId;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getUserUnderfsTempFolder", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        getUserUnderfsTempFolder_args args = new getUserUnderfsTempFolder_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getUserUfsTempFolder", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getUserUfsTempFolder_args args = new getUserUfsTempFolder_args();
         args.setUserId(userId);
         args.write(prot);
         prot.writeMessageEnd();
@@ -635,7 +635,7 @@ public class WorkerService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_getUserUnderfsTempFolder();
+        return (new Client(prot)).recv_getUserUfsTempFolder();
       }
     }
 
@@ -830,7 +830,7 @@ public class WorkerService {
       processMap.put("cacheBlock", new cacheBlock());
       processMap.put("getDataFolder", new getDataFolder());
       processMap.put("getUserTempFolder", new getUserTempFolder());
-      processMap.put("getUserUnderfsTempFolder", new getUserUnderfsTempFolder());
+      processMap.put("getUserUfsTempFolder", new getUserUfsTempFolder());
       processMap.put("lockBlock", new lockBlock());
       processMap.put("returnSpace", new returnSpace());
       processMap.put("requestSpace", new requestSpace());
@@ -982,22 +982,22 @@ public class WorkerService {
       }
     }
 
-    public static class getUserUnderfsTempFolder<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getUserUnderfsTempFolder_args> {
-      public getUserUnderfsTempFolder() {
-        super("getUserUnderfsTempFolder");
+    public static class getUserUfsTempFolder<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getUserUfsTempFolder_args> {
+      public getUserUfsTempFolder() {
+        super("getUserUfsTempFolder");
       }
 
-      public getUserUnderfsTempFolder_args getEmptyArgsInstance() {
-        return new getUserUnderfsTempFolder_args();
+      public getUserUfsTempFolder_args getEmptyArgsInstance() {
+        return new getUserUfsTempFolder_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public getUserUnderfsTempFolder_result getResult(I iface, getUserUnderfsTempFolder_args args) throws org.apache.thrift.TException {
-        getUserUnderfsTempFolder_result result = new getUserUnderfsTempFolder_result();
-        result.success = iface.getUserUnderfsTempFolder(args.userId);
+      public getUserUfsTempFolder_result getResult(I iface, getUserUfsTempFolder_args args) throws org.apache.thrift.TException {
+        getUserUfsTempFolder_result result = new getUserUfsTempFolder_result();
+        result.success = iface.getUserUfsTempFolder(args.userId);
         return result;
       }
     }
@@ -1122,7 +1122,7 @@ public class WorkerService {
       processMap.put("cacheBlock", new cacheBlock());
       processMap.put("getDataFolder", new getDataFolder());
       processMap.put("getUserTempFolder", new getUserTempFolder());
-      processMap.put("getUserUnderfsTempFolder", new getUserUnderfsTempFolder());
+      processMap.put("getUserUfsTempFolder", new getUserUfsTempFolder());
       processMap.put("lockBlock", new lockBlock());
       processMap.put("returnSpace", new returnSpace());
       processMap.put("requestSpace", new requestSpace());
@@ -1478,20 +1478,20 @@ public class WorkerService {
       }
     }
 
-    public static class getUserUnderfsTempFolder<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getUserUnderfsTempFolder_args, String> {
-      public getUserUnderfsTempFolder() {
-        super("getUserUnderfsTempFolder");
+    public static class getUserUfsTempFolder<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getUserUfsTempFolder_args, String> {
+      public getUserUfsTempFolder() {
+        super("getUserUfsTempFolder");
       }
 
-      public getUserUnderfsTempFolder_args getEmptyArgsInstance() {
-        return new getUserUnderfsTempFolder_args();
+      public getUserUfsTempFolder_args getEmptyArgsInstance() {
+        return new getUserUfsTempFolder_args();
       }
 
       public AsyncMethodCallback<String> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<String>() { 
           public void onComplete(String o) {
-            getUserUnderfsTempFolder_result result = new getUserUnderfsTempFolder_result();
+            getUserUfsTempFolder_result result = new getUserUfsTempFolder_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -1504,7 +1504,7 @@ public class WorkerService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            getUserUnderfsTempFolder_result result = new getUserUnderfsTempFolder_result();
+            getUserUfsTempFolder_result result = new getUserUfsTempFolder_result();
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -1524,8 +1524,8 @@ public class WorkerService {
         return false;
       }
 
-      public void start(I iface, getUserUnderfsTempFolder_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
-        iface.getUserUnderfsTempFolder(args.userId,resultHandler);
+      public void start(I iface, getUserUfsTempFolder_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
+        iface.getUserUfsTempFolder(args.userId,resultHandler);
       }
     }
 
@@ -6609,15 +6609,15 @@ public class WorkerService {
 
   }
 
-  public static class getUserUnderfsTempFolder_args implements org.apache.thrift.TBase<getUserUnderfsTempFolder_args, getUserUnderfsTempFolder_args._Fields>, java.io.Serializable, Cloneable, Comparable<getUserUnderfsTempFolder_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getUserUnderfsTempFolder_args");
+  public static class getUserUfsTempFolder_args implements org.apache.thrift.TBase<getUserUfsTempFolder_args, getUserUfsTempFolder_args._Fields>, java.io.Serializable, Cloneable, Comparable<getUserUfsTempFolder_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getUserUfsTempFolder_args");
 
     private static final org.apache.thrift.protocol.TField USER_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("userId", org.apache.thrift.protocol.TType.I64, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getUserUnderfsTempFolder_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getUserUnderfsTempFolder_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getUserUfsTempFolder_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getUserUfsTempFolder_argsTupleSchemeFactory());
     }
 
     public long userId; // required
@@ -6689,13 +6689,13 @@ public class WorkerService {
       tmpMap.put(_Fields.USER_ID, new org.apache.thrift.meta_data.FieldMetaData("userId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getUserUnderfsTempFolder_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getUserUfsTempFolder_args.class, metaDataMap);
     }
 
-    public getUserUnderfsTempFolder_args() {
+    public getUserUfsTempFolder_args() {
     }
 
-    public getUserUnderfsTempFolder_args(
+    public getUserUfsTempFolder_args(
       long userId)
     {
       this();
@@ -6706,13 +6706,13 @@ public class WorkerService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getUserUnderfsTempFolder_args(getUserUnderfsTempFolder_args other) {
+    public getUserUfsTempFolder_args(getUserUfsTempFolder_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.userId = other.userId;
     }
 
-    public getUserUnderfsTempFolder_args deepCopy() {
-      return new getUserUnderfsTempFolder_args(this);
+    public getUserUfsTempFolder_args deepCopy() {
+      return new getUserUfsTempFolder_args(this);
     }
 
     @Override
@@ -6725,7 +6725,7 @@ public class WorkerService {
       return this.userId;
     }
 
-    public getUserUnderfsTempFolder_args setUserId(long userId) {
+    public getUserUfsTempFolder_args setUserId(long userId) {
       this.userId = userId;
       setUserIdIsSet(true);
       return this;
@@ -6783,12 +6783,12 @@ public class WorkerService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getUserUnderfsTempFolder_args)
-        return this.equals((getUserUnderfsTempFolder_args)that);
+      if (that instanceof getUserUfsTempFolder_args)
+        return this.equals((getUserUfsTempFolder_args)that);
       return false;
     }
 
-    public boolean equals(getUserUnderfsTempFolder_args that) {
+    public boolean equals(getUserUfsTempFolder_args that) {
       if (that == null)
         return false;
 
@@ -6810,7 +6810,7 @@ public class WorkerService {
     }
 
     @Override
-    public int compareTo(getUserUnderfsTempFolder_args other) {
+    public int compareTo(getUserUfsTempFolder_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -6844,7 +6844,7 @@ public class WorkerService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getUserUnderfsTempFolder_args(");
+      StringBuilder sb = new StringBuilder("getUserUfsTempFolder_args(");
       boolean first = true;
 
       sb.append("userId:");
@@ -6877,15 +6877,15 @@ public class WorkerService {
       }
     }
 
-    private static class getUserUnderfsTempFolder_argsStandardSchemeFactory implements SchemeFactory {
-      public getUserUnderfsTempFolder_argsStandardScheme getScheme() {
-        return new getUserUnderfsTempFolder_argsStandardScheme();
+    private static class getUserUfsTempFolder_argsStandardSchemeFactory implements SchemeFactory {
+      public getUserUfsTempFolder_argsStandardScheme getScheme() {
+        return new getUserUfsTempFolder_argsStandardScheme();
       }
     }
 
-    private static class getUserUnderfsTempFolder_argsStandardScheme extends StandardScheme<getUserUnderfsTempFolder_args> {
+    private static class getUserUfsTempFolder_argsStandardScheme extends StandardScheme<getUserUfsTempFolder_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getUserUnderfsTempFolder_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getUserUfsTempFolder_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -6914,7 +6914,7 @@ public class WorkerService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getUserUnderfsTempFolder_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getUserUfsTempFolder_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -6927,16 +6927,16 @@ public class WorkerService {
 
     }
 
-    private static class getUserUnderfsTempFolder_argsTupleSchemeFactory implements SchemeFactory {
-      public getUserUnderfsTempFolder_argsTupleScheme getScheme() {
-        return new getUserUnderfsTempFolder_argsTupleScheme();
+    private static class getUserUfsTempFolder_argsTupleSchemeFactory implements SchemeFactory {
+      public getUserUfsTempFolder_argsTupleScheme getScheme() {
+        return new getUserUfsTempFolder_argsTupleScheme();
       }
     }
 
-    private static class getUserUnderfsTempFolder_argsTupleScheme extends TupleScheme<getUserUnderfsTempFolder_args> {
+    private static class getUserUfsTempFolder_argsTupleScheme extends TupleScheme<getUserUfsTempFolder_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getUserUnderfsTempFolder_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getUserUfsTempFolder_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetUserId()) {
@@ -6949,7 +6949,7 @@ public class WorkerService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getUserUnderfsTempFolder_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getUserUfsTempFolder_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
@@ -6961,15 +6961,15 @@ public class WorkerService {
 
   }
 
-  public static class getUserUnderfsTempFolder_result implements org.apache.thrift.TBase<getUserUnderfsTempFolder_result, getUserUnderfsTempFolder_result._Fields>, java.io.Serializable, Cloneable, Comparable<getUserUnderfsTempFolder_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getUserUnderfsTempFolder_result");
+  public static class getUserUfsTempFolder_result implements org.apache.thrift.TBase<getUserUfsTempFolder_result, getUserUfsTempFolder_result._Fields>, java.io.Serializable, Cloneable, Comparable<getUserUfsTempFolder_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getUserUfsTempFolder_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getUserUnderfsTempFolder_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getUserUnderfsTempFolder_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getUserUfsTempFolder_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getUserUfsTempFolder_resultTupleSchemeFactory());
     }
 
     public String success; // required
@@ -7039,13 +7039,13 @@ public class WorkerService {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getUserUnderfsTempFolder_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getUserUfsTempFolder_result.class, metaDataMap);
     }
 
-    public getUserUnderfsTempFolder_result() {
+    public getUserUfsTempFolder_result() {
     }
 
-    public getUserUnderfsTempFolder_result(
+    public getUserUfsTempFolder_result(
       String success)
     {
       this();
@@ -7055,14 +7055,14 @@ public class WorkerService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getUserUnderfsTempFolder_result(getUserUnderfsTempFolder_result other) {
+    public getUserUfsTempFolder_result(getUserUfsTempFolder_result other) {
       if (other.isSetSuccess()) {
         this.success = other.success;
       }
     }
 
-    public getUserUnderfsTempFolder_result deepCopy() {
-      return new getUserUnderfsTempFolder_result(this);
+    public getUserUfsTempFolder_result deepCopy() {
+      return new getUserUfsTempFolder_result(this);
     }
 
     @Override
@@ -7074,7 +7074,7 @@ public class WorkerService {
       return this.success;
     }
 
-    public getUserUnderfsTempFolder_result setSuccess(String success) {
+    public getUserUfsTempFolder_result setSuccess(String success) {
       this.success = success;
       return this;
     }
@@ -7133,12 +7133,12 @@ public class WorkerService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getUserUnderfsTempFolder_result)
-        return this.equals((getUserUnderfsTempFolder_result)that);
+      if (that instanceof getUserUfsTempFolder_result)
+        return this.equals((getUserUfsTempFolder_result)that);
       return false;
     }
 
-    public boolean equals(getUserUnderfsTempFolder_result that) {
+    public boolean equals(getUserUfsTempFolder_result that) {
       if (that == null)
         return false;
 
@@ -7160,7 +7160,7 @@ public class WorkerService {
     }
 
     @Override
-    public int compareTo(getUserUnderfsTempFolder_result other) {
+    public int compareTo(getUserUfsTempFolder_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -7194,7 +7194,7 @@ public class WorkerService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getUserUnderfsTempFolder_result(");
+      StringBuilder sb = new StringBuilder("getUserUfsTempFolder_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -7229,15 +7229,15 @@ public class WorkerService {
       }
     }
 
-    private static class getUserUnderfsTempFolder_resultStandardSchemeFactory implements SchemeFactory {
-      public getUserUnderfsTempFolder_resultStandardScheme getScheme() {
-        return new getUserUnderfsTempFolder_resultStandardScheme();
+    private static class getUserUfsTempFolder_resultStandardSchemeFactory implements SchemeFactory {
+      public getUserUfsTempFolder_resultStandardScheme getScheme() {
+        return new getUserUfsTempFolder_resultStandardScheme();
       }
     }
 
-    private static class getUserUnderfsTempFolder_resultStandardScheme extends StandardScheme<getUserUnderfsTempFolder_result> {
+    private static class getUserUfsTempFolder_resultStandardScheme extends StandardScheme<getUserUfsTempFolder_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getUserUnderfsTempFolder_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getUserUfsTempFolder_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -7266,7 +7266,7 @@ public class WorkerService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getUserUnderfsTempFolder_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getUserUfsTempFolder_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -7281,16 +7281,16 @@ public class WorkerService {
 
     }
 
-    private static class getUserUnderfsTempFolder_resultTupleSchemeFactory implements SchemeFactory {
-      public getUserUnderfsTempFolder_resultTupleScheme getScheme() {
-        return new getUserUnderfsTempFolder_resultTupleScheme();
+    private static class getUserUfsTempFolder_resultTupleSchemeFactory implements SchemeFactory {
+      public getUserUfsTempFolder_resultTupleScheme getScheme() {
+        return new getUserUfsTempFolder_resultTupleScheme();
       }
     }
 
-    private static class getUserUnderfsTempFolder_resultTupleScheme extends TupleScheme<getUserUnderfsTempFolder_result> {
+    private static class getUserUfsTempFolder_resultTupleScheme extends TupleScheme<getUserUfsTempFolder_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getUserUnderfsTempFolder_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getUserUfsTempFolder_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -7303,7 +7303,7 @@ public class WorkerService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getUserUnderfsTempFolder_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getUserUfsTempFolder_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {

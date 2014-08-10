@@ -64,16 +64,17 @@ import tachyon.util.CommonUtils;
 public class MasterClient {
   private final static int MAX_CONNECT_TRY = 5;
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  // TODO Implement the retry logic
+  private final int CONNECTION_RETRY_TIMES = 10;
 
   private boolean mUseZookeeper;
   private MasterService.Client mClient = null;
   private InetSocketAddress mMasterAddress = null;
   private TProtocol mProtocol = null;
-  private volatile boolean mIsConnected;
+  private volatile boolean mConnected;
   private volatile boolean mIsShutdown;
   private volatile long mLastAccessedMs;
   private volatile long mUserId = -1;
-
   private HeartbeatThread mHeartbeatThread = null;
 
   public MasterClient(InetSocketAddress masterAddress) {
@@ -85,7 +86,7 @@ public class MasterClient {
     if (!mUseZookeeper) {
       mMasterAddress = masterAddress;
     }
-    mIsConnected = false;
+    mConnected = false;
     mIsShutdown = false;
   }
 
@@ -103,14 +104,15 @@ public class MasterClient {
    */
   public synchronized boolean addCheckpoint(long workerId, int fileId, long length,
       String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException,
-      BlockInfoException, TException {
+      BlockInfoException, IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.addCheckpoint(workerId, fileId, length, checkpointPath);
       } catch (TException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return false;
@@ -120,10 +122,10 @@ public class MasterClient {
    * Clean the connect. E.g. if the client has not connect the master for a while, the connection
    * should be shut down.
    */
-  public synchronized void cleanConnect() {
-    if (mIsConnected) {
+  public synchronized void close() {
+    if (mConnected) {
       LOG.debug("Disconnecting from the master " + mMasterAddress);
-      mIsConnected = false;
+      mConnected = false;
     }
     if (mProtocol != null) {
       mProtocol.getTransport().close();
@@ -136,16 +138,16 @@ public class MasterClient {
   /**
    * Connects to the Tachyon Master; an exception is thrown if this fails.
    */
-  public synchronized void connect() throws TException {
+  public synchronized void connect() throws IOException {
     mLastAccessedMs = System.currentTimeMillis();
-    if (mIsConnected) {
+    if (mConnected) {
       return;
     }
 
-    cleanConnect();
+    close();
 
     if (mIsShutdown) {
-      throw new TException("Client is shutdown, will not try to connect");
+      throw new IOException("Client is shutdown, will not try to connect");
     }
 
     int tries = 0;
@@ -154,6 +156,7 @@ public class MasterClient {
       mMasterAddress = getMasterAddress();
 
       LOG.info("Trying to connect master @ " + mMasterAddress);
+      // System.out.println("Trying to connect master @ " + mMasterAddress + " " + tries);
 
       mProtocol =
           new TBinaryProtocol(new TFramedTransport(new TSocket(mMasterAddress.getHostName(),
@@ -170,6 +173,11 @@ public class MasterClient {
         mHeartbeatThread.start();
       } catch (TTransportException e) {
         lastException = e;
+        // System.out.println(e.getMessage());
+        // e.printStackTrace();
+        // System.out.println("Failed to connect (" + tries + ") to master " + mMasterAddress +
+        // " : "
+        // + e.getMessage());
         LOG.error("Failed to connect (" + tries + ") to master " + mMasterAddress + " : "
             + e.getMessage());
         if (mHeartbeatThread != null) {
@@ -179,16 +187,24 @@ public class MasterClient {
         continue;
       }
 
-      mUserId = mClient.user_getUserId();
+      try {
+        mUserId = mClient.user_getUserId();
+      } catch (TException e) {
+        lastException = e;
+        // System.out.println(e.getMessage());
+        // e.printStackTrace();
+        LOG.error(e.getMessage(), e);
+        continue;
+      }
       LOG.info("User registered at the master " + mMasterAddress + " got UserId " + mUserId);
 
-      mIsConnected = true;
+      mConnected = true;
       return;
     }
 
     // Reaching here indicates that we did not successfully connect.
-    throw new TException("Failed to connect to master " + mMasterAddress + " after " + (tries - 1)
-        + " attempts", lastException);
+    throw new IOException("Failed to connect to master " + mMasterAddress + " after "
+        + (tries - 1) + " attempts", lastException);
   }
 
   public ClientDependencyInfo getClientDependencyInfo(int did) throws IOException, TException {
@@ -199,8 +215,8 @@ public class MasterClient {
       } catch (DependencyDoesNotExistException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
@@ -214,8 +230,8 @@ public class MasterClient {
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
@@ -244,12 +260,7 @@ public class MasterClient {
 
   public synchronized long getUserId() throws IOException {
     while (!mIsShutdown) {
-      try {
-        connect();
-      } catch (TException e) {
-        mIsConnected = false;
-        throw new IOException(e);
-      }
+      connect();
 
       return mUserId;
     }
@@ -257,21 +268,22 @@ public class MasterClient {
     return -1;
   }
 
-  public synchronized List<ClientWorkerInfo> getWorkersInfo() throws TException {
+  public synchronized List<ClientWorkerInfo> getWorkersInfo() throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.getWorkersInfo();
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
   }
 
   public synchronized boolean isConnected() {
-    return mIsConnected;
+    return mConnected;
   }
 
   public synchronized List<ClientFileInfo> listStatus(String path) throws IOException, TException {
@@ -284,32 +296,36 @@ public class MasterClient {
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
   }
 
+  /**
+   * TODO Consolidate this with close()
+   */
   public void shutdown() {
     mIsShutdown = true;
     if (mProtocol != null) {
       mProtocol.getTransport().close();
     }
-    cleanConnect();
+    close();
   }
 
-  public synchronized void user_completeFile(int fId) throws IOException, TException {
+  public synchronized void user_completeFile(int fId) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         mClient.user_completeFile(fId);
         return;
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
   }
@@ -333,18 +349,18 @@ public class MasterClient {
         throw new IOException(e);
       } catch (TachyonException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return -1;
   }
 
-  public synchronized int user_createFile(String path, long blockSizeByte) throws IOException,
-      TException {
+  public synchronized int user_createFile(String path, long blockSizeByte) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_createFile(path, blockSizeByte);
       } catch (FileAlreadyExistException e) {
@@ -355,16 +371,16 @@ public class MasterClient {
         throw new IOException(e);
       } catch (TachyonException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return -1;
   }
 
-  public int user_createFileOnCheckpoint(String path, String checkpointPath) throws IOException,
-      TException {
+  public synchronized int user_createFileOnCheckpoint(String path, String checkpointPath)
+      throws IOException, TException {
     while (!mIsShutdown) {
       connect();
       try {
@@ -380,8 +396,8 @@ public class MasterClient {
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return -1;
@@ -395,8 +411,8 @@ public class MasterClient {
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return -1;
@@ -420,8 +436,8 @@ public class MasterClient {
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return -1;
@@ -436,8 +452,8 @@ public class MasterClient {
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return false;
@@ -452,8 +468,8 @@ public class MasterClient {
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return false;
@@ -467,22 +483,23 @@ public class MasterClient {
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return -1;
   }
 
   public ClientBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException,
-      BlockInfoException, TException {
+      BlockInfoException, IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_getClientBlockInfo(blockId);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
@@ -499,8 +516,8 @@ public class MasterClient {
       } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
@@ -517,8 +534,8 @@ public class MasterClient {
       } catch (TableDoesNotExistException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
@@ -537,8 +554,8 @@ public class MasterClient {
       } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
@@ -553,8 +570,8 @@ public class MasterClient {
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
@@ -568,8 +585,8 @@ public class MasterClient {
       } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return -1;
@@ -585,8 +602,8 @@ public class MasterClient {
       } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return -1;
@@ -600,35 +617,37 @@ public class MasterClient {
       } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return -1;
   }
 
-  public synchronized String user_getUnderfsAddress() throws TException {
+  public synchronized String user_getUfsAddress() throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
-        return mClient.user_getUnderfsAddress();
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        return mClient.user_getUfsAddress();
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
   }
 
   public synchronized NetAddress user_getWorker(boolean random, String hostname)
-      throws NoWorkerException, TException {
+      throws NoWorkerException, IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_getWorker(random, hostname);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
@@ -645,8 +664,8 @@ public class MasterClient {
       } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
@@ -663,8 +682,8 @@ public class MasterClient {
       } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
@@ -682,22 +701,23 @@ public class MasterClient {
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return false;
   }
 
-  public synchronized void user_outOfMemoryForPinFile(int fileId) throws TException {
+  public synchronized void user_outOfMemoryForPinFile(int fileId) throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         mClient.user_outOfMemoryForPinFile(fileId);
         return;
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
   }
@@ -715,8 +735,8 @@ public class MasterClient {
       } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return false;
@@ -735,8 +755,8 @@ public class MasterClient {
       } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
   }
@@ -750,8 +770,8 @@ public class MasterClient {
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
   }
@@ -765,8 +785,8 @@ public class MasterClient {
       } catch (DependencyDoesNotExistException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
   }
@@ -780,8 +800,8 @@ public class MasterClient {
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
   }
@@ -798,62 +818,66 @@ public class MasterClient {
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
   }
 
   public synchronized void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId,
       long length) throws FileDoesNotExistException, SuspectedFileSizeException,
-      BlockInfoException, TException {
+      BlockInfoException, IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         mClient.worker_cacheBlock(workerId, workerUsedBytes, blockId, length);
         return;
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
   }
 
-  public synchronized Set<Integer> worker_getPinIdList() throws TException {
+  public synchronized Set<Integer> worker_getPinIdList() throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.worker_getPinIdList();
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
   }
 
-  public synchronized List<Integer> worker_getPriorityDependencyList() throws TException {
+  public synchronized List<Integer> worker_getPriorityDependencyList() throws IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.worker_getPriorityDependencyList();
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return new ArrayList<Integer>();
   }
 
   public synchronized Command worker_heartbeat(long workerId, long usedBytes,
-      List<Long> removedPartitionList) throws BlockInfoException, TException {
+      List<Long> removedPartitionList) throws BlockInfoException, IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.worker_heartbeat(workerId, usedBytes, removedPartitionList);
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return null;
@@ -875,18 +899,19 @@ public class MasterClient {
    * @throws TException
    */
   public synchronized long worker_register(NetAddress workerNetAddress, long totalBytes,
-      long usedBytes, List<Long> currentBlockList) throws BlockInfoException, TException {
+      long usedBytes, List<Long> currentBlockList) throws BlockInfoException, IOException {
     while (!mIsShutdown) {
       connect();
+
       try {
         long ret =
             mClient.worker_register(workerNetAddress, totalBytes, usedBytes, currentBlockList);
         LOG.info("Registered at the master " + mMasterAddress + " from worker " + workerNetAddress
             + " , got WorkerId " + ret);
         return ret;
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage());
-        mIsConnected = false;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
       }
     }
     return -1;
