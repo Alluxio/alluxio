@@ -1,6 +1,6 @@
 ## What is docker
 
-Please refer to [official docker homepage](www.docker.com) for help. Simply put, you can think of it as a lightweight virtual machine although this is not an exact description.
+Please refer to [official docker homepage](https://www.docker.com) for help. Simply put, you can think of it as a lightweight virtual machine although this is not an exact description.
 
 ## Why to use tachyon-dev
 
@@ -111,66 +111,66 @@ share the tachyon home folder on your host with your VM.*
 #### Instructions
 set `TACHYON_UNDERFS_ADDRESS` in `tachyon-dev/tachyon_base/files/tachyon-env.sh.template` to `$TACHYON_HOME/underfs`
 
-`sudo -s`
+    sudo -s
 
 if you have built other containers, just re-build containers in tachyon-dev via `cd tachyon-dev && ./build && cd ..` or you can re-build all containers via `./build`
 
-`./deploy/deploy.sh`
+    ./deploy/deploy.sh
 
 you'll have output in your terminal like:
 
-  starting nameserver container
-  WARNING: Local (127.0.0.1) DNS resolver found in resolv.conf and containers can't use it. Using default external servers : [8.8.8.8 8.8.4.4]
-  started nameserver container:  4cc00bdcb23bf76264a3c807a328c439d36aca0452fe1c80af04270ef9c31c40
-  DNS host->IP file mapped:      /tmp/dnsdir_29039/0hosts
-  NAMESERVER_IP:                 172.17.0.9
-  waiting for nameserver to come up
-  starting master container
-  local tachyon directory is resolved to: /media/sf_tachyon
-  started master container: 323f34924a44781a338d6a60baf181cfc779c6dde47c7ef8a90329650a44cbe1
-  MASTER_IP:                172.17.0.10
-  NO.1 remote worker
-  starting worker1
-  started worker container: 1df5589fb07a32f0160c00b51f479eba8c9f667090ea9409add120465c44485e
-  WORKER_IP:             172.17.0.11
-  NO.2 remote worker
-  starting worker2
-  started worker container: e3a2a61c7177848432c8ad70b1461c8c467d98f41a0af83b7a6d545c30fe7dad
-  WORKER_IP:             172.17.0.12
-  **************************************************
-
-  visit Tachyon Web UI at: http://172.17.0.10:19999
-
-  ssh into master via:     ssh -i /tmp/id_rsa13436 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@172.17.0.10
-  you can also ssh into workers via the command above with the ip substituted
-
-  after ssh into either master/worker, /root/tachyon_container is tachyon home
-
-  to enable the host to resolve {'master', 'worker1', 'worker2'...} to corresponding ip, set 'nameserver 172.17.0.9' as first line in your host's /etc/resolv.conf
-
-  ************************************************** 
+    starting nameserver container
+    WARNING: Local (127.0.0.1) DNS resolver found in resolv.conf and containers can't use it. Using default external servers : [8.8.8.8 8.8.4.4]    
+    started nameserver container:  4cc00    bdcb23bf76264a3c807a328c439d36aca0452fe1c80af04270ef9c31c40    
+    DNS host->IP file mapped:      /tmp/dnsdir_29039/0hosts    
+    NAMESERVER_IP:                 172.17.0.9    
+    waiting for nameserver to come up    
+    starting master container    
+    local tachyon directory is resolved to: /media/sf_tachyon    
+    started master container:     323f34924a44781a338d6a60baf181cfc779c6dde47c7ef8a90329650a44cbe1    
+    MASTER_IP:                    172.17.0.10    
+    NO.1 remote worker    
+    starting worker1    
+    started worker container: 1df5589fb07a32f0160c00b51f479eba8c9f667090ea9409add120465c44485e    
+    WORKER_IP:                 172.17.0.11    
+    NO.2 remote worker    
+    starting worker2    
+    started worker container: e3a2a61c7177848432c8ad70b1461c8c467d98f41a0af83b7a6d545c30fe7dad    
+    WORKER_IP:                 172.17.0.12    
+    **************************************************    
+    
+    visit Tachyon Web UI at: http://172.17.0.10:19999
+    
+    ssh into master via:     ssh -i /tmp/id_rsa13436 -o UserKnownHostsFile=/dev/null -o     StrictHostKeyChecking=no root@172.17.0.10    
+    you can also ssh into workers via the command above with the ip substituted    
+    
+    after ssh into either master/worker, /root/tachyon_container is tachyon home
+    
+    to enable the host to resolve {'master', 'worker1', 'worker2'...} to corresponding ip, set 'nameserver     172.17.0.9' as first line in your host's /etc/resolv.conf    
+    
+    ************************************************** 
 
 The instructions between star lines will tell you how to see Tachyon web UI and how to ssh to cluster nodes.
 
 Copy the web UI's URL in the instruction to your browser, you should see tachyon's web UI, if worker
 number is not 2, refresh the page after a while because workers may be connecting to master.
 
-Then, we want to run "bin/tachyon runTests" on master node, so, copy the command for sshing into
+Then, we want to run `bin/tachyon runTests` on master node, so, copy the command for sshing into
 master node from the instruction to your command line, run it and you should be in your master node as root now.
 
 cd to the tachyon home on your master node
 
-  cd /opt/tachyon_container
+    cd /opt/tachyon_container
 
 start a local worker on master because runTests need a local worker
 
-  bin/tachyon-start.sh worker
+    bin/tachyon-start.sh worker
 
 after the local worker start, refresh the web UI, 3 workers should be active now
 
 run tests, all tests should pass if everything works well
 
-  bin/tachyon runTests
+    bin/tachyon runTests
 
 refresh web UI again, and browse the file system in the UI, see files in memory!
 
