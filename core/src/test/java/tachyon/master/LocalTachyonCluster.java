@@ -131,6 +131,9 @@ public class LocalTachyonCluster {
   private void mkdir(String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
+    if (ufs.exists(path)) {
+      ufs.delete(path, true);
+    }
     if (!ufs.mkdirs(path, true)) {
       throw new IOException("Failed to make folder: " + path);
     }
