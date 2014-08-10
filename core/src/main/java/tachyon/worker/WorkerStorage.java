@@ -765,7 +765,6 @@ public class WorkerStorage {
     long id = 0;
     while (id == 0) {
       try {
-        mMasterClient.connect();
         id =
             mMasterClient.worker_register(mWorkerAddress, mWorkerSpaceCounter.getCapacityBytes(),
                 mWorkerSpaceCounter.getUsedBytes(), new ArrayList<Long>(mMemoryData));
@@ -819,7 +818,6 @@ public class WorkerStorage {
    */
   public void resetMasterClient() throws IOException {
     MasterClient tMasterClient = new MasterClient(mMasterAddress);
-    tMasterClient.connect();
     mMasterClient = tMasterClient;
   }
 

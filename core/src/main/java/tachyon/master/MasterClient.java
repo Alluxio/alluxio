@@ -328,6 +328,7 @@ public class MasterClient {
       TException {
     while (!mIsShutdown) {
       connect();
+
       try {
         return mClient.user_createDependency(parents, children, commandPrefix, data, comment,
             framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
@@ -467,14 +468,14 @@ public class MasterClient {
     return false;
   }
 
-  public synchronized long user_getBlockId(int fId, int index) throws IOException, TException {
+  public synchronized long user_getBlockId(int fId, int index) throws IOException {
     while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getBlockId(fId, index);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }

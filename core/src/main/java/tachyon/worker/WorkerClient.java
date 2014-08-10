@@ -248,6 +248,14 @@ public class WorkerClient {
    * @return true if the worker is local, false otherwise.
    */
   public synchronized boolean isLocal() {
+    if (!isConnected()) {
+      try {
+        connect();
+      } catch (IOException e) {
+        LOG.error(e.getMessage(), e);
+      }
+    }
+
     return mIsLocal;
   }
 
@@ -278,7 +286,7 @@ public class WorkerClient {
    * @return true if succeed, false otherwise
    * @throws IOException
    */
-  public synchronized boolean connect() throws IOException {
+  private synchronized boolean connect() throws IOException {
     if (!mConnected) {
       NetAddress workerNetAddress = null;
       try {
