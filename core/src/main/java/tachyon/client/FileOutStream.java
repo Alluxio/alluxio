@@ -203,12 +203,12 @@ public class FileOutStream extends OutStream {
             mCurrentBlockLeftByte = 0;
           }
         }
-      } catch (IOException ioe) {
+      } catch (IOException e) {
         if (WRITE_TYPE.isMustCache()) {
-          LOG.error(ioe.getMessage());
+          LOG.error(e.getMessage(), e);
           throw new IOException("Fail to cache: " + WRITE_TYPE);
         } else {
-          LOG.warn("Fail to cache for: " + ioe.getMessage());
+          LOG.warn("Fail to cache for: " + e.getMessage());
         }
       }
     }
@@ -229,12 +229,12 @@ public class FileOutStream extends OutStream {
         mCurrentBlockOutStream.write(b);
         mCurrentBlockLeftByte --;
         mCachedBytes ++;
-      } catch (IOException ioe) {
+      } catch (IOException e) {
         if (WRITE_TYPE.isMustCache()) {
-          LOG.error(ioe.getMessage());
+          LOG.error(e.getMessage(), e);
           throw new IOException("Fail to cache: " + WRITE_TYPE);
         } else {
-          LOG.warn("Fail to cache for: " + ioe.getMessage());
+          LOG.warn("Fail to cache for: " + e.getMessage());
         }
       }
     }

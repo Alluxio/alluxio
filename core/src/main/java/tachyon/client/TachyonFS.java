@@ -259,12 +259,6 @@ public class TachyonFS {
     mConnected = true;
 
     mWorkerClient = new WorkerClient(mMasterClient);
-    if (!mWorkerClient.connect()) {
-      LOG.error("Failed to connect " + (mWorkerClient.isLocal() ? "local" : "remote")
-          + " worker @ " + mWorkerClient.getAddress());
-      mWorkerClient = null;
-      return;
-    }
   }
 
   /**
@@ -571,11 +565,7 @@ public class TachyonFS {
     }
 
     connect();
-    try {
-      return mMasterClient.user_getBlockId(fId, blockIndex);
-    } catch (TException e) {
-      throw new IOException(e);
-    }
+    return mMasterClient.user_getBlockId(fId, blockIndex);
   }
 
   /**
