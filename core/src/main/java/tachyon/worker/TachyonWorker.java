@@ -19,7 +19,6 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
 import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
@@ -277,11 +276,11 @@ public class TachyonWorker implements Runnable {
         lastHeartbeatMs = System.currentTimeMillis();
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
-      } catch (TException e) {
+      } catch (IOException e) {
         LOG.error(e.getMessage(), e);
         try {
           mWorkerStorage.resetMasterClient();
-        } catch (TException e2) {
+        } catch (IOException e2) {
           LOG.error("Received exception while attempting to reset client", e2);
         }
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);

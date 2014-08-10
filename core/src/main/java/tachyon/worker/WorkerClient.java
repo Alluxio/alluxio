@@ -48,13 +48,15 @@ import tachyon.util.NetworkUtils;
  */
 public class WorkerClient {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private final WorkerService.Client CLIENT;
+  private final MasterClient MASTER_CLIENT;
+  // TODO Implement the retry logic
+  private final int CONNECTION_RETRY_TIMES = 10;
 
+  private WorkerService.Client mClient;
   private TProtocol mProtocol;
   private InetSocketAddress mWorkerAddress;
-  private boolean mIsConnected = false;
+  private boolean mConnected = false;
   private boolean mIsLocal = false;
-  private MasterClient mMasterClient = null;
   private String mDataFolder = null;
 
   private HeartbeatThread mHeartbeatThread = null;
@@ -66,60 +68,7 @@ public class WorkerClient {
    * @throws TException
    */
   public WorkerClient(MasterClient masterClient) throws IOException {
-    mMasterClient = masterClient;
-
-    NetAddress workerNetAddress = null;
-    try {
-      String localHostName;
-      try {
-        localHostName =
-            NetworkUtils.resolveHostName(InetAddress.getLocalHost().getCanonicalHostName());
-      } catch (UnknownHostException e) {
-        localHostName = InetAddress.getLocalHost().getCanonicalHostName();
-      }
-      LOG.info("Trying to get local worker host : " + localHostName);
-      workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
-      mIsLocal = true;
-    } catch (NoWorkerException e) {
-      LOG.info(e.getMessage());
-      workerNetAddress = null;
-    } catch (UnknownHostException e) {
-      LOG.error(e.getMessage());
-      workerNetAddress = null;
-    } catch (TException e) {
-      LOG.error(e.getMessage());
-      workerNetAddress = null;
-    }
-
-    if (workerNetAddress == null) {
-      try {
-        workerNetAddress = mMasterClient.user_getWorker(true, "");
-      } catch (NoWorkerException e) {
-        LOG.info(e.getMessage());
-        workerNetAddress = null;
-      } catch (TException e) {
-        LOG.error(e.getMessage());
-        workerNetAddress = null;
-      }
-    }
-
-    if (workerNetAddress == null) {
-      LOG.info("No worker running in the system");
-      CLIENT = null;
-      return;
-    }
-
-    mWorkerAddress = new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
-    LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
-
-    mProtocol =
-        new TBinaryProtocol(new TFramedTransport(new TSocket(mWorkerAddress.getHostName(),
-            mWorkerAddress.getPort())));
-    CLIENT = new WorkerService.Client(mProtocol);
-
-    mHeartbeatThread =
-        new HeartbeatThread("WorkerClientToWorkerHeartbeat", new WorkerClientHeartbeatExecutor(
-            this, mMasterClient.getUserId()), UserConf.get().HEARTBEAT_INTERVAL_MS);
+    MASTER_CLIENT = masterClient;
   }
 
   /**
@@ -127,10 +76,18 @@ public class WorkerClient {
    * 
    * @param blockId
    *          The id of the block
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized void accessBlock(long blockId) throws TException {
-    CLIENT.accessBlock(blockId);
+  public synchronized void accessBlock(long blockId) throws IOException {
+    if (connect()) {
+      try {
+        mClient.accessBlock(blockId);
+      } catch (TException e) {
+        LOG.error("TachyonClient accessLocalBlock(" + blockId + ") failed");
+        mConnected = false;
+        throw new IOException(e);
+      }
+    }
   }
 
   /**
@@ -143,9 +100,11 @@ public class WorkerClient {
    * @throws IOException
    * @throws TException
    */
-  public synchronized void addCheckpoint(long userId, int fileId) throws IOException, TException {
+  public synchronized void addCheckpoint(long userId, int fileId) throws IOException {
+    mustConnect();
+
     try {
-      CLIENT.addCheckpoint(userId, fileId);
+      mClient.addCheckpoint(userId, fileId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
@@ -153,6 +112,9 @@ public class WorkerClient {
     } catch (FailedToCheckpointException e) {
       throw new IOException(e);
     } catch (BlockInfoException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
       throw new IOException(e);
     }
   }
@@ -166,8 +128,17 @@ public class WorkerClient {
    * @throws TachyonException
    * @throws TException
    */
-  public synchronized boolean asyncCheckpoint(int fid) throws TachyonException, TException {
-    return CLIENT.asyncCheckpoint(fid);
+  public synchronized boolean asyncCheckpoint(int fid) throws IOException {
+    mustConnect();
+
+    try {
+      return mClient.asyncCheckpoint(fid);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -180,14 +151,19 @@ public class WorkerClient {
    * @throws IOException
    * @throws TException
    */
-  public synchronized void cacheBlock(long userId, long blockId) throws IOException, TException {
+  public synchronized void cacheBlock(long userId, long blockId) throws IOException {
+    mustConnect();
+
     try {
-      CLIENT.cacheBlock(userId, blockId);
+      mClient.cacheBlock(userId, blockId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (BlockInfoException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
       throw new IOException(e);
     }
   }
@@ -196,10 +172,10 @@ public class WorkerClient {
    * Close the connection to worker. Shutdown the heartbeat thread.
    */
   public synchronized void close() {
-    if (mIsConnected) {
+    if (mConnected) {
       mProtocol.getTransport().close();
       mHeartbeatThread.shutdown();
-      mIsConnected = false;
+      mConnected = false;
     }
   }
 
@@ -217,10 +193,10 @@ public class WorkerClient {
   public synchronized String getDataFolder() throws IOException {
     if (mDataFolder == null) {
       try {
-        mDataFolder = CLIENT.getDataFolder();
+        mDataFolder = mClient.getDataFolder();
       } catch (TException e) {
         mDataFolder = null;
-        mIsConnected = false;
+        mConnected = false;
         throw new IOException(e);
       }
     }
@@ -236,7 +212,7 @@ public class WorkerClient {
    */
   public synchronized String getUserTempFolder() throws IOException {
     try {
-      return CLIENT.getUserTempFolder(mMasterClient.getUserId());
+      return mClient.getUserTempFolder(MASTER_CLIENT.getUserId());
     } catch (TException e) {
       throw new IOException(e);
     }
@@ -250,10 +226,13 @@ public class WorkerClient {
    * @return The user temporary folder in the under file system
    * @throws IOException
    */
-  public synchronized String getUserUnderfsTempFolder() throws IOException {
+  public synchronized String getUserUfsTempFolder() throws IOException {
+    mustConnect();
+
     try {
-      return CLIENT.getUserUnderfsTempFolder(mMasterClient.getUserId());
+      return mClient.getUserUfsTempFolder(MASTER_CLIENT.getUserId());
     } catch (TException e) {
+      mConnected = false;
       throw new IOException(e);
     }
   }
@@ -262,7 +241,7 @@ public class WorkerClient {
    * @return true if it's connected to the worker, false otherwise.
    */
   public synchronized boolean isConnected() {
-    return mIsConnected;
+    return mConnected;
   }
 
   /**
@@ -283,16 +262,71 @@ public class WorkerClient {
    * @throws TException
    */
   public synchronized void lockBlock(long blockId, long userId) throws TException {
-    CLIENT.lockBlock(blockId, userId);
+    mClient.lockBlock(blockId, userId);
   }
 
   /**
    * Open the connection to the worker. And start the heartbeat thread.
    * 
    * @return true if succeed, false otherwise
+   * @throws IOException
    */
-  public synchronized boolean connect() {
-    if (!mIsConnected) {
+  public synchronized boolean connect() throws IOException {
+    if (!mConnected) {
+
+      NetAddress workerNetAddress = null;
+      try {
+        String localHostName;
+        try {
+          localHostName =
+              NetworkUtils.resolveHostName(InetAddress.getLocalHost().getCanonicalHostName());
+        } catch (UnknownHostException e) {
+          localHostName = InetAddress.getLocalHost().getCanonicalHostName();
+        }
+        LOG.info("Trying to get local worker host : " + localHostName);
+        workerNetAddress = MASTER_CLIENT.user_getWorker(false, localHostName);
+        mIsLocal = true;
+      } catch (NoWorkerException e) {
+        LOG.info(e.getMessage());
+        workerNetAddress = null;
+      } catch (UnknownHostException e) {
+        LOG.error(e.getMessage(), e);
+        workerNetAddress = null;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        workerNetAddress = null;
+      }
+
+      if (workerNetAddress == null) {
+        try {
+          workerNetAddress = MASTER_CLIENT.user_getWorker(true, "");
+        } catch (NoWorkerException e) {
+          LOG.info(e.getMessage());
+          workerNetAddress = null;
+        } catch (TException e) {
+          LOG.error(e.getMessage(), e);
+          workerNetAddress = null;
+        }
+      }
+
+      if (workerNetAddress == null) {
+        LOG.info("No worker running in the system");
+        mClient = null;
+        return false;
+      }
+
+      mWorkerAddress = new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
+      LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
+
+      mProtocol =
+          new TBinaryProtocol(new TFramedTransport(new TSocket(mWorkerAddress.getHostName(),
+              mWorkerAddress.getPort())));
+      mClient = new WorkerService.Client(mProtocol);
+
+      mHeartbeatThread =
+          new HeartbeatThread("WorkerClientToWorkerHeartbeat", new WorkerClientHeartbeatExecutor(
+              this, MASTER_CLIENT.getUserId()), UserConf.get().HEARTBEAT_INTERVAL_MS);
+
       try {
         mProtocol.getTransport().open();
       } catch (TTransportException e) {
@@ -300,10 +334,22 @@ public class WorkerClient {
         return false;
       }
       mHeartbeatThread.start();
-      mIsConnected = true;
+      mConnected = true;
     }
 
-    return mIsConnected;
+    return mConnected;
+  }
+
+  /**
+   * Connect to the worker.
+   * 
+   * @throws IOException
+   *           throw if the connection fails
+   */
+  public synchronized void mustConnect() throws IOException {
+    if (!connect()) {
+      throw new IOException("Failed to connect to the worker");
+    }
   }
 
   /**
@@ -317,7 +363,7 @@ public class WorkerClient {
    * @throws TException
    */
   public synchronized boolean requestSpace(long userId, long requestBytes) throws TException {
-    return CLIENT.requestSpace(userId, requestBytes);
+    return mClient.requestSpace(userId, requestBytes);
   }
 
   /**
@@ -330,7 +376,7 @@ public class WorkerClient {
    * @throws TException
    */
   public synchronized void returnSpace(long userId, long returnSpaceBytes) throws TException {
-    CLIENT.returnSpace(userId, returnSpaceBytes);
+    mClient.returnSpace(userId, returnSpaceBytes);
   }
 
   /**
@@ -343,7 +389,7 @@ public class WorkerClient {
    * @throws TException
    */
   public synchronized void unlockBlock(long blockId, long userId) throws TException {
-    CLIENT.unlockBlock(blockId, userId);
+    mClient.unlockBlock(blockId, userId);
   }
 
   /**
@@ -354,6 +400,6 @@ public class WorkerClient {
    * @throws TException
    */
   public synchronized void userHeartbeat(long userId) throws TException {
-    CLIENT.userHeartbeat(userId);
+    mClient.userHeartbeat(userId);
   }
 }
