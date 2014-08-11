@@ -43,7 +43,7 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.util.UnderfsUtils;
+import tachyon.util.UfsUtils;
 
 /**
  * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
@@ -57,6 +57,8 @@ abstract class AbstractTFS extends FileSystem {
   public static final String RECOMPUTE_PATH = "tachyon_recompute/";
 
   public static String UNDERFS_ADDRESS;
+
+  public static boolean USE_HDFS = true;
 
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
@@ -205,6 +207,14 @@ abstract class AbstractTFS extends FileSystem {
 
   @Override
   @Deprecated
+  public FSDataOutputStream createNonRecursive(Path cPath, FsPermission permission,
+      boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress)
+      throws IOException {
+    return create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
+  }
+
+  @Override
+  @Deprecated
   public boolean delete(Path path) throws IOException {
     return delete(path, true);
   }
@@ -224,7 +234,7 @@ abstract class AbstractTFS extends FileSystem {
       if (fs.exists(hdfsPath)) {
         String ufsAddrPath = CommonUtils.concat(UNDERFS_ADDRESS, path);
         // Set the path as the TFS root path.
-        UnderfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null));
+        UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null));
       }
     }
   }
@@ -279,8 +289,9 @@ abstract class AbstractTFS extends FileSystem {
 
     LOG.info("getFileStatus(" + path + "): HDFS Path: " + hdfsPath + " TPath: " + mTachyonHeader
         + tPath);
-
-    fromHdfsToTachyon(tPath);
+    if (USE_HDFS) {
+      fromHdfsToTachyon(tPath);
+    }
     TachyonFile file = mTFS.getFile(tPath);
     if (file == null) {
       LOG.info("File does not exist: " + path);
@@ -336,7 +347,9 @@ abstract class AbstractTFS extends FileSystem {
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
     mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode());
     mUri = URI.create(mTachyonHeader);
-    UNDERFS_ADDRESS = mTFS.getUnderfsAddress();
+    if (UNDERFS_ADDRESS == null || URI.create(UNDERFS_ADDRESS).getScheme() == null) {
+      USE_HDFS = false;
+    }
     LOG.info(mTachyonHeader + " " + mUri + " " + UNDERFS_ADDRESS);
   }
 

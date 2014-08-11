@@ -83,10 +83,10 @@ public class BasicRawTableOperations {
       RawColumn rawColumn = rawTable.getRawColumn(column);
       TachyonFile tFile = rawColumn.getPartition(0);
 
-      TachyonByteBuffer buf = tFile.readByteBuffer();
+      TachyonByteBuffer buf = tFile.readByteBuffer(0);
       if (buf == null) {
         tFile.recache();
-        buf = tFile.readByteBuffer();
+        buf = tFile.readByteBuffer(0);
       }
       buf.DATA.order(ByteOrder.nativeOrder());
       for (int k = 0; k < sDataLength; k ++) {

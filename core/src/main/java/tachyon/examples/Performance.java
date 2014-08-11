@@ -61,7 +61,7 @@ public class Performance {
   private static String RESULT_PREFIX = null;
   private static long[] Results = new long[RESULT_ARRAY_SIZE];
   private static int BASE_FILE_NUMBER = 0;
- 
+
   private static boolean TACHYON_STREAMING_READ = false;
 
   public static void createFiles() throws IOException {
@@ -231,7 +231,7 @@ public class Performance {
 
         for (int pId = mLeft; pId < mRight; pId ++) {
           TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-          buf = file.readByteBuffer();
+          buf = file.readByteBuffer(0);
           IntBuffer intBuf;
           intBuf = buf.DATA.asIntBuffer();
           int tmp;
@@ -268,7 +268,7 @@ public class Performance {
         for (int pId = mLeft; pId < mRight; pId ++) {
           long startTimeMs = System.currentTimeMillis();
           TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
-          buf = file.readByteBuffer();
+          buf = file.readByteBuffer(0);
           for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
             buf.DATA.get(mBuf.array());
           }
