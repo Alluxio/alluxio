@@ -168,9 +168,10 @@ abstract class AbstractTFS extends FileSystem {
 
   @Override
   @Deprecated
-  public FSDataOutputStream createNonRecursive(Path cPath, FsPermission permission, boolean overwrite,
-         int bufferSize, short replication, long blockSize, Progressable progress) throws IOException {
-      return create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
+  public FSDataOutputStream createNonRecursive(Path cPath, FsPermission permission,
+      boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress)
+      throws IOException {
+    return create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
 
   @Override

@@ -163,7 +163,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public int read(long position, byte[] buffer, int offset, int length) throws IOException {
-    int ret = -1 ;
+    int ret = -1;
 
     if (mTachyonFileInputStream != null) {
       try {
@@ -180,10 +180,10 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     if (mHdfsInputStream != null) {
       try {
         mHdfsInputStream.seek(position);
-        ret = mHdfsInputStream.read(buffer,offset,length);
+        ret = mHdfsInputStream.read(buffer, offset, length);
         return ret;
       } catch (IOException e) {
-        LOG.error(e.getMessage(),e);
+        LOG.error(e.getMessage(), e);
         mHdfsInputStream = null;
       }
     }
@@ -195,7 +195,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       ret = mHdfsInputStream.read(buffer, offset, length);
       return ret;
     } catch (IOException e) {
-      LOG.error(e.getMessage(),e);
+      LOG.error(e.getMessage(), e);
     }
 
     return -1;
