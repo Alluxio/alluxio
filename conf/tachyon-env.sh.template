@@ -14,14 +14,14 @@
 
 # The following gives an example:
 
-# Uncomment this section to add a local installation of Hadoop to Tachyon's CLASSPATH.  The hadoop command
-# must be in the path to automatically populate the Hadoop classpath.
+# Uncomment this section to add a local installation of Hadoop to Tachyon's CLASSPATH.
+# The hadoop command must be in the path to automatically populate the Hadoop classpath.
 #
 # if type "hadoop" > /dev/null 2>&1; then
-#  export HADOOP_CLASSPATH=`hadoop classpath`
+#  export HADOOP_TACHYON_CLASSPATH=`hadoop classpath`
 # fi
 
-export TACHYON_CLASSPATH=$TACHYON_CONF_DIR/:$HADOOP_CLASSPATH:$TACHYON_JAR
+export TACHYON_CLASSPATH=$TACHYON_CONF_DIR/:$HADOOP_TACHYON_CLASSPATH:$TACHYON_JAR
 
 if [[ `uname -a` == Darwin* ]]; then
   # Assuming Mac OS X
