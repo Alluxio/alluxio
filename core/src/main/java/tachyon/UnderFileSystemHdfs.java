@@ -66,13 +66,26 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       tConf = new Configuration();
     }
     tConf.set("fs.defaultFS", fsDefaultName);
-    String glusterfsPrefix = "glusterfs:///";
+    
+    final String glusterfsPrefix = "glusterfs:///";
+    final String cephPrefix = "ceph://";
+    // Setting Hadoop compatible filesystem (HCFS) properties in command argument is not scalable
+    // for some HCFS e.g. ceph, that has numerous parameters.
+    // Providing a hadoop core-site.xml that is required for this type of underfs.
+    if (fsDefaultName.startsWith(cephPrefix)) {
+      if (null != CommonConf.get().HADOOP_CORE_SITE_PATH && !CommonConf.get().HADOOP_CORE_SITE_PATH.equals("")){
+        tConf.addResource(new Path(CommonConf.get().HADOOP_CORE_SITE_PATH));
+      }else {
+        throw Throwables.propagate(new IOException("No core-site.xml provided"));
+      }
+    }
+
     if (fsDefaultName.startsWith(glusterfsPrefix)) {
-      tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
-      tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
-      tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
-      tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
-          CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
+        tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
+        tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
+        tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
+        tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
+            CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
     } else {
       tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
 

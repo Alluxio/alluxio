@@ -33,7 +33,7 @@ public class CommonConf extends Utils {
   private static CommonConf COMMON_CONF = null;
 
   public static final ImmutableList<String> DEFAULT_HADOOP_UFS_PREFIX = ImmutableList.of(
-      "hdfs://", "s3://", "s3n://", "glusterfs:///");
+      "hdfs://", "s3://", "s3n://", "glusterfs:///", "ceph://");
 
   /**
    * This is for unit test only. DO NOT use it for other purpose.
@@ -75,6 +75,8 @@ public class CommonConf extends Utils {
   public final int MAX_TABLE_METADATA_BYTE;
 
   public final ImmutableList<String> HADOOP_UFS_PREFIXES;
+  
+  public final String HADOOP_CORE_SITE_PATH;
 
   public final boolean IN_TEST_MODE;
 
@@ -121,6 +123,9 @@ public class CommonConf extends Utils {
         getListProperty("tachyon.underfs.hadoop.prefixes", DEFAULT_HADOOP_UFS_PREFIX);
 
     IN_TEST_MODE = getBooleanProperty("tachyon.test.mode", false);
+    
+    HADOOP_CORE_SITE_PATH = 
+        getProperty("tachyon.underfs.hadoop.core-site", null);
   }
 
   public static void assertValidPort(final int port) {
