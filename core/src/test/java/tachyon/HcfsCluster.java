@@ -23,7 +23,6 @@ public class HcfsCluster extends UnderFileSystemCluster {
   public HcfsCluster(String baseDir) {
     super(baseDir);
     String uri = System.getProperty(HCFS_URI_KEY);
-    System.out.println("properties ::::::: " + uri);
     if (null != uri && !uri.equals("")) {
       mUri = uri;
     }
