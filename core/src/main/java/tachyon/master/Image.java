@@ -85,7 +85,7 @@ public class Image {
     }
     LOG.info("Loading image " + path);
     DataInputStream imageIs = new DataInputStream(ufs.open(path));
-    JsonParser parser = JsonObject.createObjectMapper().getJsonFactory().createJsonParser(imageIs);
+    JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(imageIs);
 
     info.loadImage(parser, path);
     imageIs.close();
