@@ -288,27 +288,28 @@
           <version>${hadoop.version}</version>
         </dependency>
       </dependencies>
-    </profile>
-
-    <profile>
-      <id>Glusterfs</id>
-      <activation>
-        <property>
-          <name>glusterfs</name>
-        </property>
-      </activation>
-      <properties>
-        <ufs>tachyon.GlusterfsCluster</ufs>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>org.gluster</groupId>
-          <artifactId>glusterfs-hadoop</artifactId>
-          <version>${glusterfs-hadoop.version}</version>
-          <type>jar</type>
-          <scope>compile</scope>
-        </dependency>
-      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>default-testCompile</id>
+                <phase>test-compile</phase>
+                <configuration>
+                  <testExcludes>
+                    <exclude>**/LocalMiniDFSCluster.java</exclude>
+                  </testExcludes>
+                </configuration>
+                <goals>
+                  <goal>testCompile</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 

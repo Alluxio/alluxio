@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.thrift.TException;
-
 import com.google.common.base.Supplier;
 
 import tachyon.client.TachyonFS;
@@ -53,11 +51,7 @@ public final class ClientPool implements Closeable {
   public void close() throws IOException {
     synchronized (CLIENTS) {
       for (TachyonFS fs : CLIENTS) {
-        try {
-          fs.close();
-        } catch (TException e) {
-          throw new IOException(e);
-        }
+        fs.close();
       }
 
       CLIENTS.clear();
