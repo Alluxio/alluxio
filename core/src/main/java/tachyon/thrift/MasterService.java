@@ -166,7 +166,7 @@ public class MasterService {
 
     public int user_getNumberOfFiles(String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
-    public String user_getUnderfsAddress() throws org.apache.thrift.TException;
+    public String user_getUfsAddress() throws org.apache.thrift.TException;
 
   }
 
@@ -252,7 +252,7 @@ public class MasterService {
 
     public void user_getNumberOfFiles(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void user_getUnderfsAddress(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void user_getUfsAddress(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -1405,26 +1405,26 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getNumberOfFiles failed: unknown result");
     }
 
-    public String user_getUnderfsAddress() throws org.apache.thrift.TException
+    public String user_getUfsAddress() throws org.apache.thrift.TException
     {
-      send_user_getUnderfsAddress();
-      return recv_user_getUnderfsAddress();
+      send_user_getUfsAddress();
+      return recv_user_getUfsAddress();
     }
 
-    public void send_user_getUnderfsAddress() throws org.apache.thrift.TException
+    public void send_user_getUfsAddress() throws org.apache.thrift.TException
     {
-      user_getUnderfsAddress_args args = new user_getUnderfsAddress_args();
-      sendBase("user_getUnderfsAddress", args);
+      user_getUfsAddress_args args = new user_getUfsAddress_args();
+      sendBase("user_getUfsAddress", args);
     }
 
-    public String recv_user_getUnderfsAddress() throws org.apache.thrift.TException
+    public String recv_user_getUfsAddress() throws org.apache.thrift.TException
     {
-      user_getUnderfsAddress_result result = new user_getUnderfsAddress_result();
-      receiveBase(result, "user_getUnderfsAddress");
+      user_getUfsAddress_result result = new user_getUfsAddress_result();
+      receiveBase(result, "user_getUfsAddress");
       if (result.isSetSuccess()) {
         return result.success;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getUnderfsAddress failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getUfsAddress failed: unknown result");
     }
 
   }
@@ -2812,21 +2812,21 @@ public class MasterService {
       }
     }
 
-    public void user_getUnderfsAddress(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void user_getUfsAddress(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_getUnderfsAddress_call method_call = new user_getUnderfsAddress_call(resultHandler, this, ___protocolFactory, ___transport);
+      user_getUfsAddress_call method_call = new user_getUfsAddress_call(resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class user_getUnderfsAddress_call extends org.apache.thrift.async.TAsyncMethodCall {
-      public user_getUnderfsAddress_call(org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class user_getUfsAddress_call extends org.apache.thrift.async.TAsyncMethodCall {
+      public user_getUfsAddress_call(org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_getUnderfsAddress", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_getUnderfsAddress_args args = new user_getUnderfsAddress_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_getUfsAddress", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        user_getUfsAddress_args args = new user_getUfsAddress_args();
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -2837,7 +2837,7 @@ public class MasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_getUnderfsAddress();
+        return (new Client(prot)).recv_user_getUfsAddress();
       }
     }
 
@@ -2894,7 +2894,7 @@ public class MasterService {
       processMap.put("user_getClientRawTableInfoByPath", new user_getClientRawTableInfoByPath());
       processMap.put("user_updateRawTableMetadata", new user_updateRawTableMetadata());
       processMap.put("user_getNumberOfFiles", new user_getNumberOfFiles());
-      processMap.put("user_getUnderfsAddress", new user_getUnderfsAddress());
+      processMap.put("user_getUfsAddress", new user_getUfsAddress());
       return processMap;
     }
 
@@ -3920,22 +3920,22 @@ public class MasterService {
       }
     }
 
-    public static class user_getUnderfsAddress<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_getUnderfsAddress_args> {
-      public user_getUnderfsAddress() {
-        super("user_getUnderfsAddress");
+    public static class user_getUfsAddress<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_getUfsAddress_args> {
+      public user_getUfsAddress() {
+        super("user_getUfsAddress");
       }
 
-      public user_getUnderfsAddress_args getEmptyArgsInstance() {
-        return new user_getUnderfsAddress_args();
+      public user_getUfsAddress_args getEmptyArgsInstance() {
+        return new user_getUfsAddress_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public user_getUnderfsAddress_result getResult(I iface, user_getUnderfsAddress_args args) throws org.apache.thrift.TException {
-        user_getUnderfsAddress_result result = new user_getUnderfsAddress_result();
-        result.success = iface.user_getUnderfsAddress();
+      public user_getUfsAddress_result getResult(I iface, user_getUfsAddress_args args) throws org.apache.thrift.TException {
+        user_getUfsAddress_result result = new user_getUfsAddress_result();
+        result.success = iface.user_getUfsAddress();
         return result;
       }
     }
@@ -3993,7 +3993,7 @@ public class MasterService {
       processMap.put("user_getClientRawTableInfoByPath", new user_getClientRawTableInfoByPath());
       processMap.put("user_updateRawTableMetadata", new user_updateRawTableMetadata());
       processMap.put("user_getNumberOfFiles", new user_getNumberOfFiles());
-      processMap.put("user_getUnderfsAddress", new user_getUnderfsAddress());
+      processMap.put("user_getUfsAddress", new user_getUfsAddress());
       return processMap;
     }
 
@@ -6420,20 +6420,20 @@ public class MasterService {
       }
     }
 
-    public static class user_getUnderfsAddress<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getUnderfsAddress_args, String> {
-      public user_getUnderfsAddress() {
-        super("user_getUnderfsAddress");
+    public static class user_getUfsAddress<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getUfsAddress_args, String> {
+      public user_getUfsAddress() {
+        super("user_getUfsAddress");
       }
 
-      public user_getUnderfsAddress_args getEmptyArgsInstance() {
-        return new user_getUnderfsAddress_args();
+      public user_getUfsAddress_args getEmptyArgsInstance() {
+        return new user_getUfsAddress_args();
       }
 
       public AsyncMethodCallback<String> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<String>() { 
           public void onComplete(String o) {
-            user_getUnderfsAddress_result result = new user_getUnderfsAddress_result();
+            user_getUfsAddress_result result = new user_getUfsAddress_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -6446,7 +6446,7 @@ public class MasterService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            user_getUnderfsAddress_result result = new user_getUnderfsAddress_result();
+            user_getUfsAddress_result result = new user_getUfsAddress_result();
             {
               msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
               msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
@@ -6466,8 +6466,8 @@ public class MasterService {
         return false;
       }
 
-      public void start(I iface, user_getUnderfsAddress_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
-        iface.user_getUnderfsAddress(resultHandler);
+      public void start(I iface, user_getUfsAddress_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
+        iface.user_getUfsAddress(resultHandler);
       }
     }
 
@@ -44395,14 +44395,14 @@ public class MasterService {
 
   }
 
-  public static class user_getUnderfsAddress_args implements org.apache.thrift.TBase<user_getUnderfsAddress_args, user_getUnderfsAddress_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_getUnderfsAddress_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getUnderfsAddress_args");
+  public static class user_getUfsAddress_args implements org.apache.thrift.TBase<user_getUfsAddress_args, user_getUfsAddress_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_getUfsAddress_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getUfsAddress_args");
 
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_getUnderfsAddress_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getUnderfsAddress_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_getUfsAddress_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_getUfsAddress_argsTupleSchemeFactory());
     }
 
 
@@ -44465,20 +44465,20 @@ public class MasterService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getUnderfsAddress_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getUfsAddress_args.class, metaDataMap);
     }
 
-    public user_getUnderfsAddress_args() {
+    public user_getUfsAddress_args() {
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_getUnderfsAddress_args(user_getUnderfsAddress_args other) {
+    public user_getUfsAddress_args(user_getUfsAddress_args other) {
     }
 
-    public user_getUnderfsAddress_args deepCopy() {
-      return new user_getUnderfsAddress_args(this);
+    public user_getUfsAddress_args deepCopy() {
+      return new user_getUfsAddress_args(this);
     }
 
     @Override
@@ -44511,12 +44511,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_getUnderfsAddress_args)
-        return this.equals((user_getUnderfsAddress_args)that);
+      if (that instanceof user_getUfsAddress_args)
+        return this.equals((user_getUfsAddress_args)that);
       return false;
     }
 
-    public boolean equals(user_getUnderfsAddress_args that) {
+    public boolean equals(user_getUfsAddress_args that) {
       if (that == null)
         return false;
 
@@ -44529,7 +44529,7 @@ public class MasterService {
     }
 
     @Override
-    public int compareTo(user_getUnderfsAddress_args other) {
+    public int compareTo(user_getUfsAddress_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -44553,7 +44553,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_getUnderfsAddress_args(");
+      StringBuilder sb = new StringBuilder("user_getUfsAddress_args(");
       boolean first = true;
 
       sb.append(")");
@@ -44581,15 +44581,15 @@ public class MasterService {
       }
     }
 
-    private static class user_getUnderfsAddress_argsStandardSchemeFactory implements SchemeFactory {
-      public user_getUnderfsAddress_argsStandardScheme getScheme() {
-        return new user_getUnderfsAddress_argsStandardScheme();
+    private static class user_getUfsAddress_argsStandardSchemeFactory implements SchemeFactory {
+      public user_getUfsAddress_argsStandardScheme getScheme() {
+        return new user_getUfsAddress_argsStandardScheme();
       }
     }
 
-    private static class user_getUnderfsAddress_argsStandardScheme extends StandardScheme<user_getUnderfsAddress_args> {
+    private static class user_getUfsAddress_argsStandardScheme extends StandardScheme<user_getUfsAddress_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getUnderfsAddress_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getUfsAddress_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -44610,7 +44610,7 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getUnderfsAddress_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getUfsAddress_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -44620,36 +44620,36 @@ public class MasterService {
 
     }
 
-    private static class user_getUnderfsAddress_argsTupleSchemeFactory implements SchemeFactory {
-      public user_getUnderfsAddress_argsTupleScheme getScheme() {
-        return new user_getUnderfsAddress_argsTupleScheme();
+    private static class user_getUfsAddress_argsTupleSchemeFactory implements SchemeFactory {
+      public user_getUfsAddress_argsTupleScheme getScheme() {
+        return new user_getUfsAddress_argsTupleScheme();
       }
     }
 
-    private static class user_getUnderfsAddress_argsTupleScheme extends TupleScheme<user_getUnderfsAddress_args> {
+    private static class user_getUfsAddress_argsTupleScheme extends TupleScheme<user_getUfsAddress_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getUnderfsAddress_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_getUfsAddress_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getUnderfsAddress_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_getUfsAddress_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
       }
     }
 
   }
 
-  public static class user_getUnderfsAddress_result implements org.apache.thrift.TBase<user_getUnderfsAddress_result, user_getUnderfsAddress_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_getUnderfsAddress_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getUnderfsAddress_result");
+  public static class user_getUfsAddress_result implements org.apache.thrift.TBase<user_getUfsAddress_result, user_getUfsAddress_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_getUfsAddress_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getUfsAddress_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_getUnderfsAddress_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getUnderfsAddress_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_getUfsAddress_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_getUfsAddress_resultTupleSchemeFactory());
     }
 
     public String success; // required
@@ -44719,13 +44719,13 @@ public class MasterService {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getUnderfsAddress_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getUfsAddress_result.class, metaDataMap);
     }
 
-    public user_getUnderfsAddress_result() {
+    public user_getUfsAddress_result() {
     }
 
-    public user_getUnderfsAddress_result(
+    public user_getUfsAddress_result(
       String success)
     {
       this();
@@ -44735,14 +44735,14 @@ public class MasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_getUnderfsAddress_result(user_getUnderfsAddress_result other) {
+    public user_getUfsAddress_result(user_getUfsAddress_result other) {
       if (other.isSetSuccess()) {
         this.success = other.success;
       }
     }
 
-    public user_getUnderfsAddress_result deepCopy() {
-      return new user_getUnderfsAddress_result(this);
+    public user_getUfsAddress_result deepCopy() {
+      return new user_getUfsAddress_result(this);
     }
 
     @Override
@@ -44754,7 +44754,7 @@ public class MasterService {
       return this.success;
     }
 
-    public user_getUnderfsAddress_result setSuccess(String success) {
+    public user_getUfsAddress_result setSuccess(String success) {
       this.success = success;
       return this;
     }
@@ -44813,12 +44813,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_getUnderfsAddress_result)
-        return this.equals((user_getUnderfsAddress_result)that);
+      if (that instanceof user_getUfsAddress_result)
+        return this.equals((user_getUfsAddress_result)that);
       return false;
     }
 
-    public boolean equals(user_getUnderfsAddress_result that) {
+    public boolean equals(user_getUfsAddress_result that) {
       if (that == null)
         return false;
 
@@ -44840,7 +44840,7 @@ public class MasterService {
     }
 
     @Override
-    public int compareTo(user_getUnderfsAddress_result other) {
+    public int compareTo(user_getUfsAddress_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -44874,7 +44874,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_getUnderfsAddress_result(");
+      StringBuilder sb = new StringBuilder("user_getUfsAddress_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -44909,15 +44909,15 @@ public class MasterService {
       }
     }
 
-    private static class user_getUnderfsAddress_resultStandardSchemeFactory implements SchemeFactory {
-      public user_getUnderfsAddress_resultStandardScheme getScheme() {
-        return new user_getUnderfsAddress_resultStandardScheme();
+    private static class user_getUfsAddress_resultStandardSchemeFactory implements SchemeFactory {
+      public user_getUfsAddress_resultStandardScheme getScheme() {
+        return new user_getUfsAddress_resultStandardScheme();
       }
     }
 
-    private static class user_getUnderfsAddress_resultStandardScheme extends StandardScheme<user_getUnderfsAddress_result> {
+    private static class user_getUfsAddress_resultStandardScheme extends StandardScheme<user_getUfsAddress_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getUnderfsAddress_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getUfsAddress_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -44946,7 +44946,7 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getUnderfsAddress_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getUfsAddress_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -44961,16 +44961,16 @@ public class MasterService {
 
     }
 
-    private static class user_getUnderfsAddress_resultTupleSchemeFactory implements SchemeFactory {
-      public user_getUnderfsAddress_resultTupleScheme getScheme() {
-        return new user_getUnderfsAddress_resultTupleScheme();
+    private static class user_getUfsAddress_resultTupleSchemeFactory implements SchemeFactory {
+      public user_getUfsAddress_resultTupleScheme getScheme() {
+        return new user_getUfsAddress_resultTupleScheme();
       }
     }
 
-    private static class user_getUnderfsAddress_resultTupleScheme extends TupleScheme<user_getUnderfsAddress_result> {
+    private static class user_getUfsAddress_resultTupleScheme extends TupleScheme<user_getUfsAddress_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getUnderfsAddress_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_getUfsAddress_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -44983,7 +44983,7 @@ public class MasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getUnderfsAddress_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_getUfsAddress_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {

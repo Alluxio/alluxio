@@ -75,7 +75,7 @@ public class WorkerStorageTest {
 
     WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
     ws.initialize(mWorkerAddress);
-    String orpahnblock = ws.getUnderfsOrphansFolder() + Constants.PATH_SEPARATOR + bid;
+    String orpahnblock = ws.getUfsOrphansFolder() + Constants.PATH_SEPARATOR + bid;
     UnderFileSystem ufs = UnderFileSystem.get(orpahnblock);
     Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", new File(
         mWorkerDataFolder + Constants.PATH_SEPARATOR + bid).exists());

@@ -112,7 +112,7 @@ public class EditLog {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
     DataInputStream is = new DataInputStream(ufs.open(path));
-    JsonParser parser = JsonObject.createObjectMapper().getJsonFactory().createJsonParser(is);
+    JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(is);
 
     while (true) {
       EditLogOperation op;
