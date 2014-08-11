@@ -242,7 +242,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public String user_getUnderfsAddress() throws TException {
+  public String user_getUfsAddress() throws TException {
     return CommonConf.get().UNDERFS_ADDRESS;
   }
 

@@ -82,7 +82,7 @@ public class BlockOutStream extends OutStream {
       throw new IOException(msg);
     }
 
-    File localFolder = TFS.createAndGetUserTempFolder();
+    File localFolder = TFS.createAndGetUserLocalTempFolder();
     if (localFolder == null) {
       mCanWrite = false;
       String msg = "Failed to create temp user folder for tachyon client.";

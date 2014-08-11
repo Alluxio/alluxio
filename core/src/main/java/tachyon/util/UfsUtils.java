@@ -31,13 +31,13 @@ import tachyon.client.TachyonFS;
 /**
  * Utilities related to under filesystem
  */
-public class UnderfsUtils {
+public class UfsUtils {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Build a new path relative to a given TFS root by retrieving the given path relative to
    * the ufsRootPath.
-   *
+   * 
    * @param tfsRootPath
    *          the destination point in TFS to load the under FS path onto
    * @param ufsRootPath
@@ -58,7 +58,7 @@ public class UnderfsUtils {
   /**
    * Load files under path "ufsAddrRootPath" (excluding excludePathPrefix relative to the path)
    * to the given tfs under a given destination path.
-   *
+   * 
    * @param tfsAddrRootPath
    *          the TFS address and path to load the src files, like "tachyon://host:port/dest".
    * @param ufsAddrRootPath
@@ -67,8 +67,8 @@ public class UnderfsUtils {
    *          paths to exclude from ufsRootPath, which will not be loaded in TFS.
    * @throws IOException
    */
-  public static void loadUnderFs(String tfsAddrRootPath, String ufsAddrRootPath,
-      String excludePaths) throws IOException {
+  public static void loadUfs(String tfsAddrRootPath, String ufsAddrRootPath, String excludePaths)
+      throws IOException {
     Pair<String, String> tfsPair = UnderFileSystem.parse(tfsAddrRootPath);
     String tfsAddress = tfsPair.getFirst();
     String tfsRootPath = tfsPair.getSecond();
@@ -82,7 +82,7 @@ public class UnderfsUtils {
   /**
    * Load files under path "ufsAddress/ufsRootPath" (excluding excludePathPrefix)
    * to the given tfs under the given tfsRootPath directory.
-   *
+   * 
    * @param tfs
    *          the TFS handler created out of address like "tachyon://host:port"
    * @param tfsRootPath
@@ -189,7 +189,7 @@ public class UnderfsUtils {
     String exList = (args.length == 3) ? args[2] : "";
 
     try {
-      loadUnderFs(args[0], args[1], exList);
+      loadUfs(args[0], args[1], exList);
     } catch (Exception e) {
       e.printStackTrace();
       printUsage();
@@ -202,9 +202,9 @@ public class UnderfsUtils {
   public static void printUsage() {
     String cmd =
         "java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-            + "tachyon.util.UnderfsUtils ";
+            + "tachyon.util.UfsUtils ";
 
-    System.out.println("Usage: " + cmd + "<TachyonPath> <UnderfsPath> "
+    System.out.println("Usage: " + cmd + "<TachyonPath> <UfsPath> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");
     System.out
         .println("Example: " + cmd + "tachyon://127.0.0.1:19998/a hdfs://localhost:9000/b c");
