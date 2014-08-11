@@ -272,7 +272,7 @@
         </property>
       </activation>
       <properties>
-        <ufs>tachyon.GlusterfsCluster</ufs>
+        <ufs>tachyon.HcfsCluster</ufs>
       </properties>
       <dependencies>
         <dependency>
@@ -308,6 +308,19 @@
               </execution>
             </executions>
           </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.17</version>
+            <configuration>
+              <systemProperties>
+                <property>
+                  <name>uri</name>
+                  <value>glusterfs:///</value>
+                </property>
+              </systemProperties>
+            </configuration>
+          </plugin>
         </plugins>
       </build>
     </profile>
@@ -321,7 +334,7 @@
         </property>
       </activation>
       <properties>
-        <ufs/>
+        <ufs>tachyon.HcfsCluster</ufs>        
       </properties>
       <dependencies>
         <dependency>
@@ -337,6 +350,41 @@
           <version>${hadoop.version}</version>
         </dependency>
       </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>default-testCompile</id>
+                <phase>test-compile</phase>
+                <configuration>
+                  <testExcludes>
+                    <exclude>**/LocalMiniDFSCluster.java</exclude>
+                  </testExcludes>
+                </configuration>
+                <goals>
+                  <goal>testCompile</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.17</version>
+            <configuration>
+              <systemProperties>
+                <property>
+                  <name>uri</name>
+                  <value>ceph://localhost:6789/</value>
+                </property>
+              </systemProperties>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 
