@@ -295,13 +295,12 @@ abstract class AbstractTFS extends FileSystem {
     LOG.info("initialize(" + uri + ", " + conf + "). Connecting to Tachyon: " + uri.toString());
     Utils.addS3Credentials(conf);
     setConf(conf);
-    if (URI.create(UNDERFS_ADDRESS).getScheme() == null) {
-      USE_HDFS = false;
-    }
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
     mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode());
     mUri = URI.create(mTachyonHeader);
-    UNDERFS_ADDRESS = mTFS.getUfsAddress();
+    if (UNDERFS_ADDRESS == null || URI.create(UNDERFS_ADDRESS).getScheme() == null) {
+      USE_HDFS = false;
+    }
     LOG.info(mTachyonHeader + " " + mUri + " " + UNDERFS_ADDRESS);
   }
 
