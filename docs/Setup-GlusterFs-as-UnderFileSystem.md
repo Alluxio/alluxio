@@ -10,7 +10,7 @@ Tachyon can use [GlusterFs](http://www.gluster.org) as its UnderFileSystem.
 You need to install GlusterFS on your cluster and create a GlusterFS volume
 [GlusterFS usage](http://www.gluster.org/community/documentation/index.php/QuickStart).
 
-Compile Tachyon with GlusterFS: `mvn clean install -P glusterfs -DGlusterfsTest -Dhadoop.version=2.3.0`
+Compile Tachyon with GlusterFS: `mvn clean install -Dtest.profile=glusterfs -Dhadoop.version=2.3.0 -Dtachyon.underfs.glusterfs.mounts=/vol -Dtachyon.underfs.glusterfs.volumes=testvol `, where /vol is a valid GlusterFS mount point.
 
 # Mount a GlusterFS filesystem
 
