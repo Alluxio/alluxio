@@ -40,7 +40,6 @@ import tachyon.conf.CommonConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.UfsUtils;
@@ -193,24 +192,12 @@ abstract class AbstractTFS extends FileSystem {
   public FSDataOutputStream createNonRecursive(Path cPath, FsPermission permission,
       boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress)
       throws IOException {
-    String parentDir = null;
-    try {
-      parentDir = CommonUtils.getParent(cPath.toString());
-    } catch (InvalidPathException e) {
-      throw new FileNotFoundException("Can not retrieve parent directory!");
-    }
-    if (!mTFS.exist(parentDir)) {
+    String tPath = Utils.getPathWithoutScheme(cPath.getParent());
+    fromHdfsToTachyon(tPath);
+    if (!mTFS.exist(tPath)) {
       throw new FileNotFoundException("Parent directory does not exist!");
     }
     return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
-  }
-
-  @Override
-  @Deprecated
-  public FSDataOutputStream createNonRecursive(Path cPath, FsPermission permission,
-      boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress)
-      throws IOException {
-    return create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
 
   @Override
