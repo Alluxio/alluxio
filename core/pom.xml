@@ -338,33 +338,6 @@
         </dependency>
       </dependencies>
     </profile>
-
-    <profile>
-      <id>cephfsTest</id>
-      <activation>
-        <property>
-          <name>test.profile</name>
-          <value>cephfs</value>
-        </property>
-      </activation>
-      <properties>
-        <ufs/>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>com.ceph.fs</groupId>
-          <artifactId>cephfs-hadoop</artifactId>
-          <version>${cephfs-hadoop.version}</version>
-          <type>jar</type>
-          <scope>compile</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-client</artifactId>
-          <version>${hadoop.version}</version>
-        </dependency>
-      </dependencies>
-    </profile>
   </profiles>
 
   <build>
