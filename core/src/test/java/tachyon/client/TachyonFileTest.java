@@ -26,6 +26,7 @@ import org.junit.Test;
 import tachyon.TestUtils;
 import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
@@ -200,6 +201,19 @@ public class TachyonFileTest {
 
       lfile.close();
     }
+  }
+
+  @Test
+  public void readRemoteTest() throws IOException {
+    int fileId =
+        TestUtils.createByteFile(mTfs, "/root/testFile", WriteType.MUST_CACHE,
+            USER_QUOTA_UNIT_BYTES);
+
+    TachyonFile file = mTfs.getFile(fileId);
+    ClientBlockInfo blockInfo = mTfs.getClientBlockInfo(fileId, 0);
+    TachyonByteBuffer buf = file.readRemoteByteBuffer(blockInfo);
+    buf.close();
+    Assert.assertEquals(USER_QUOTA_UNIT_BYTES, buf.DATA.limit());
   }
 
   @Test
