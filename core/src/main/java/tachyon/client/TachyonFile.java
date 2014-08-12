@@ -340,7 +340,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
       for (int k = 0; k < blockLocations.size(); k ++) {
         String host = blockLocations.get(k).mHost;
-        int port = blockLocations.get(k).mPort;
+        int port = blockLocations.get(k).mSecondaryPort;
 
         // The data is not in remote machine's memory if port == -1.
         if (port == -1) {
@@ -357,8 +357,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
           try {
             buf =
-                retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port + 1),
-                    blockInfo);
+                retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port),
+                    blockInfo.blockId);
             if (buf != null) {
               break;
             }
@@ -460,12 +460,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
-      ClientBlockInfo blockInfo) throws IOException {
+      long blockId) throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
     socketChannel.connect(address);
 
     LOG.info("Connected to remote machine " + address + " sent");
-    long blockId = blockInfo.blockId;
     DataServerMessage sendMsg = DataServerMessage.createBlockRequestMessage(blockId);
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
