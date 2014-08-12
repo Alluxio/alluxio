@@ -343,21 +343,20 @@
           <version>${cephfs-hadoop.version}</version>
           <type>jar</type>
           <scope>compile</scope>
-	  <exclusions>
-	    <exclusion>
+	      <exclusions>
+	        <exclusion>
               <groupId>*</groupId>
               <artifactId>*</artifactId>
-	    </exclusion>
-	  </exclusions>
+	        </exclusion>
+	      </exclusions>
         </dependency>
-	<dependency>
+	    <dependency>
           <groupId>com.ceph.fs</groupId>
           <artifactId>cephfs</artifactId>
           <version>0.80.4</version>
-	  <scope>system</scope>
-	  <systemPath>${libcephfs.path}</systemPath>
-	</dependency>
-
+	      <scope>system</scope>
+	      <systemPath>${libcephfs.path}</systemPath>
+	    </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-client</artifactId>
