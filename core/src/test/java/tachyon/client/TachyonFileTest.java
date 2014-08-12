@@ -212,8 +212,8 @@ public class TachyonFileTest {
     TachyonFile file = mTfs.getFile(fileId);
     ClientBlockInfo blockInfo = mTfs.getClientBlockInfo(fileId, 0);
     TachyonByteBuffer buf = file.readRemoteByteBuffer(blockInfo);
-    buf.close();
     Assert.assertEquals(USER_QUOTA_UNIT_BYTES, buf.DATA.limit());
+    buf.close();
   }
 
   @Test
