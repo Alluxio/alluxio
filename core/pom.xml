@@ -355,7 +355,7 @@
           <artifactId>cephfs</artifactId>
           <version>0.80.4</version>
 	  <scope>system</scope>
-	  <systemPath>/usr/share/java/libcephfs.jar</systemPath>
+	  <systemPath>${libcephfs.path}</systemPath>
 	</dependency>
 
         <dependency>
