@@ -92,16 +92,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * Return the under filesystem path in the under file system of this file
-   * 
-   * @return the under filesystem path
-   * @throws IOException
-   */
-  String getUfsPath() throws IOException {
-    return TFS.getUfsPath(FID);
-  }
-
-  /**
    * Return the creation time of this file
    * 
    * @return the creation time, in milliseconds
@@ -223,6 +213,16 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   public Object getUFSConf() {
     return mUFSConf;
+  }
+
+  /**
+   * Return the under filesystem path in the under file system of this file
+   * 
+   * @return the under filesystem path
+   * @throws IOException
+   */
+  String getUfsPath() throws IOException {
+    return TFS.getUfsPath(FID);
   }
 
   @Override
@@ -459,8 +459,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return TFS.rename(FID, path);
   }
 
-  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
-      long blockId) throws IOException {
+  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, long blockId)
+      throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
     socketChannel.connect(address);
 
