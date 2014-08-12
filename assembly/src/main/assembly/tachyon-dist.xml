@@ -69,6 +69,10 @@
         <include>**/tachyon-*-jar-with-dependencies.jar</include>
       </includes>
     </fileSet>
+    <fileSet>
+      <directory>${basedir}/../core/src/main/webapp</directory>
+      <outputDirectory>/core/src/main/webapp</outputDirectory>
+    </fileSet>
   </fileSets>
   <!-- If bundled dependencies gets supported, uncomment -->
   <!--
