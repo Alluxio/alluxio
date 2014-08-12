@@ -7,4 +7,5 @@ echo "make sure to export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_
 echo "Now building package !!!!!!!!!!!!!"
 cd /tachyon
 
+
 mvn clean package -Dtest.profile=cephfs -Dhadoop.version=2.3.0 -Dtachyon.underfs.hadoop.core-site=`pwd`/conf/core-site.xml
