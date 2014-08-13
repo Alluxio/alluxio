@@ -92,16 +92,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
-   * Return the under filesystem path in the under file system of this file
-   * 
-   * @return the under filesystem path
-   * @throws IOException
-   */
-  String getUfsPath() throws IOException {
-    return TFS.getUfsPath(FID);
-  }
-
-  /**
    * Return the creation time of this file
    * 
    * @return the creation time, in milliseconds
@@ -225,6 +215,16 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return mUFSConf;
   }
 
+  /**
+   * Return the under filesystem path in the under file system of this file
+   * 
+   * @return the under filesystem path
+   * @throws IOException
+   */
+  String getUfsPath() throws IOException {
+    return TFS.getUfsPath(FID);
+  }
+
   @Override
   public int hashCode() {
     return getPath().hashCode() ^ 1234321;
@@ -340,7 +340,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
       for (int k = 0; k < blockLocations.size(); k ++) {
         String host = blockLocations.get(k).mHost;
-        int port = blockLocations.get(k).mPort;
+        int port = blockLocations.get(k).mSecondaryPort;
 
         // The data is not in remote machine's memory if port == -1.
         if (port == -1) {
@@ -357,8 +357,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
           try {
             buf =
-                retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port + 1),
-                    blockInfo);
+                retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port),
+                    blockInfo.blockId);
             if (buf != null) {
               break;
             }
@@ -459,13 +459,12 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return TFS.rename(FID, path);
   }
 
-  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address,
-      ClientBlockInfo blockInfo) throws IOException {
+  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, long blockId)
+      throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
     socketChannel.connect(address);
 
     LOG.info("Connected to remote machine " + address + " sent");
-    long blockId = blockInfo.blockId;
     DataServerMessage sendMsg = DataServerMessage.createBlockRequestMessage(blockId);
     while (!sendMsg.finishSending()) {
       sendMsg.send(socketChannel);
