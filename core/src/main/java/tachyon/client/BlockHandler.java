@@ -42,7 +42,7 @@ public abstract class BlockHandler {
   public static BlockHandler get(String path, Object ufsConf) throws IOException,
       IllegalArgumentException {
     if (UnderFileSystem.isHadoopUnderFS(path)) {
-      throw new IllegalArgumentException("HDFS is not support yet!");
+      throw new IllegalArgumentException("HDFS is not supported yet: " + path);
     } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return new BlockHandlerLocalFS(path);
     }
