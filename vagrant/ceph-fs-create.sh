@@ -79,3 +79,5 @@ ceph-mds -m 127.0.0.1:6789 -i ${OSD_ID}
 mkdir -p /mnt/ceph  
 ceph-fuse -m 127.0.0.1:6789 /mnt/ceph/  
 mount
+
+ceph osd pool set data size 3
