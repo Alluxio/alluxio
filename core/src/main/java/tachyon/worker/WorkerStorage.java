@@ -461,13 +461,13 @@ public class WorkerStorage {
    */
   public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
       SuspectedFileSizeException, BlockInfoException, IOException {
+    File srcFile = new File(CommonUtils.concat(getUserLocalTempFolder(userId), blockId));
+    File dstFile = new File(CommonUtils.concat(mLocalDataFolder, blockId));
+    long fileSizeBytes = srcFile.length();
+    if (!srcFile.exists()) {
+      throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
+    }
     synchronized (mLatestBlockAccessTimeMs) {
-      File srcFile = new File(CommonUtils.concat(getUserLocalTempFolder(userId), blockId));
-      File dstFile = new File(CommonUtils.concat(mLocalDataFolder, blockId));
-      long fileSizeBytes = srcFile.length();
-      if (!srcFile.exists()) {
-        throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
-      }
       if (!srcFile.renameTo(dstFile)) {
         throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath()
             + " to " + dstFile.getPath());
@@ -479,8 +479,8 @@ public class WorkerStorage {
       mUsers.addOwnBytes(userId, -fileSizeBytes);
       mMasterClient.worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId,
           fileSizeBytes);
-      LOG.info(userId + " " + dstFile);
     }
+    LOG.info(userId + " " + dstFile);
   }
 
   /**
