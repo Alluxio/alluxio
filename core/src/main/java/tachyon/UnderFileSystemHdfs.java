@@ -65,8 +65,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     } else {
       tConf = new Configuration();
     }
-    tConf.set("fs.defaultFS", fsDefaultName);
-    
     final String glusterfsPrefix = "glusterfs:///";
     final String cephPrefix = "ceph://";
     // Setting Hadoop compatible filesystem (HCFS) properties in command argument is not scalable
@@ -78,6 +76,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       }else {
         throw Throwables.propagate(new IOException("No core-site.xml provided"));
       }
+    }else {
+     tConf.set("fs.defaultFS", fsDefaultName);
     }
 
     if (fsDefaultName.startsWith(glusterfsPrefix)) {
