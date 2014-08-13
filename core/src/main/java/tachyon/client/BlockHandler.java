@@ -14,7 +14,6 @@
  */
 package tachyon.client;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -34,19 +33,16 @@ public abstract class BlockHandler {
    * 
    * @param path
    *          block file path
-   * @param blockid
-   *          id of the block
    * @param ufsConf
    *          configuration of under file system
    * @return block handler of the block file
    * @throws IOException
-   * @throws FileNotFoundException
    * @throws IllegalArgumentException
    */
   public static BlockHandler get(String path, Object ufsConf) throws IOException,
-      FileNotFoundException, IllegalArgumentException {
+      IllegalArgumentException {
     if (UnderFileSystem.isHadoopUnderFS(path)) {
-      return new BlockHandlerHdfs(path, ufsConf);
+      throw new IllegalArgumentException("HDFS is not support yet!");
     } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return new BlockHandlerLocalFS(path);
     }
@@ -56,7 +52,10 @@ public abstract class BlockHandler {
   protected final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   protected String mPath;
 
-  public BlockHandler(String path) {
+  protected BlockHandler(String path) throws IOException {
+    if (path == null) {
+      throw new IOException("Block file's path is null");
+    }
     mPath = path;
   }
 
@@ -65,7 +64,7 @@ public abstract class BlockHandler {
    * 
    * @param buf
    *          buffer that data is stored in
-   * @param inFileBytes
+   * @param inFilePos
    *          starting position of the file
    * @param offset
    *          offset of the buf
@@ -74,7 +73,7 @@ public abstract class BlockHandler {
    * @return size of data that is written
    * @throws IOException
    */
-  public abstract int appendCurrentBuffer(byte[] buf, long inFileBytes, int offset, int length)
+  public abstract int appendCurrentBuffer(byte[] buf, long inFilePos, int offset, int length)
       throws IOException;
 
   /**
@@ -95,7 +94,7 @@ public abstract class BlockHandler {
    * @param offset
    *          offset from starting of the file
    * @param length
-   *          length of data to read
+   *          length of data to read, -1 represents reading the rest of the block file
    * @return byte buffer storing data that is read
    * @throws IOException
    */
