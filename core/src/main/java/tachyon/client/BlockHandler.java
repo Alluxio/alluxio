@@ -42,11 +42,11 @@ public abstract class BlockHandler {
   public static BlockHandler get(String path, Object ufsConf) throws IOException,
       IllegalArgumentException {
     if (UnderFileSystem.isHadoopUnderFS(path)) {
-      throw new IllegalArgumentException("HDFS is not supported yet: " + path);
+      throw new IllegalArgumentException("Unsupported block file path: " + path);
     } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return new BlockHandlerLocalFS(path);
     }
-    throw new IllegalArgumentException("Unknown path scheme: " + path);
+    throw new IllegalArgumentException("Unsupported block file path: " + path);
   }
 
   protected final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
