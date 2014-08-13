@@ -20,8 +20,7 @@
 # if type "hadoop" > /dev/null 2>&1; then
 #  export HADOOP_TACHYON_CLASSPATH=`hadoop classpath`
 # fi
-
-export TACHYON_CLASSPATH=$TACHYON_CONF_DIR/:$HADOOP_TACHYON_CLASSPATH:$TACHYON_JAR
+# export TACHYON_CLASSPATH=$HADOOP_TACHYON_CLASSPATH
 
 if [[ `uname -a` == Darwin* ]]; then
   # Assuming Mac OS X
