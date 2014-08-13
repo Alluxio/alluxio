@@ -363,13 +363,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
               break;
             }
           } catch (IOException e) {
-            LOG.error(e.getMessage());
+            LOG.error(e);
             buf = null;
           }
         }
       }
     } catch (IOException e) {
-      LOG.error("Failed to get read data from remote " + e.getMessage());
+      LOG.error("Failed to get read data from remote ", e);
     }
 
     return buf == null ? null : new TachyonByteBuffer(TFS, buf, blockInfo.blockId, -1);
@@ -440,7 +440,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
         }
       }
     } catch (IOException e) {
-      LOG.info(e);
+      LOG.warn(e);
       return false;
     }
 

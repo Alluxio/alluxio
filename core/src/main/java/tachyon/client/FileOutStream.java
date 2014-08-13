@@ -120,10 +120,10 @@ public class FileOutStream extends OutStream {
           }
         } catch (IOException ioe) {
           if (WRITE_TYPE.isMustCache()) {
-            LOG.error(ioe.getMessage());
-            throw new IOException("Fail to cache: " + WRITE_TYPE);
+            LOG.error(ioe);
+            throw new IOException("Fail to cache: " + WRITE_TYPE, ioe);
           } else {
-            LOG.warn("Fail to cache for: " + ioe.getMessage());
+            LOG.warn("Fail to cache for: ", ioe);
           }
         }
       }
@@ -206,9 +206,9 @@ public class FileOutStream extends OutStream {
       } catch (IOException e) {
         if (WRITE_TYPE.isMustCache()) {
           LOG.error(e.getMessage(), e);
-          throw new IOException("Fail to cache: " + WRITE_TYPE);
+          throw new IOException("Fail to cache: " + WRITE_TYPE, e);
         } else {
-          LOG.warn("Fail to cache for: " + e.getMessage());
+          LOG.warn("Fail to cache for: ", e);
         }
       }
     }
@@ -232,9 +232,9 @@ public class FileOutStream extends OutStream {
       } catch (IOException e) {
         if (WRITE_TYPE.isMustCache()) {
           LOG.error(e.getMessage(), e);
-          throw new IOException("Fail to cache: " + WRITE_TYPE);
+          throw new IOException("Fail to cache: " + WRITE_TYPE, e);
         } else {
-          LOG.warn("Fail to cache for: " + e.getMessage());
+          LOG.warn("Fail to cache for: ", e);
         }
       }
     }
