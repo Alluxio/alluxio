@@ -243,12 +243,12 @@ public class RemoteBlockInStream extends BlockInStream {
             break;
           }
         } catch (IOException e) {
-          LOG.error(e.getMessage());
+          LOG.error(e);
           buf = null;
         }
       }
     } catch (IOException e) {
-      LOG.error("Failed to get read data from remote " + e.getMessage());
+      LOG.error("Failed to get read data from remote ", e);
       buf = null;
     }
 
@@ -332,8 +332,7 @@ public class RemoteBlockInStream extends BlockInStream {
           }
         }
       } catch (IOException e) {
-        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " + FILE.FID
-            + "\n" + e);
+        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " + FILE.FID, e);
         mCheckpointInputStream = null;
       }
     }
