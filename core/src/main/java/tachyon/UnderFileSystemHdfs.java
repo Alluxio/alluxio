@@ -73,8 +73,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     if (fsDefaultName.startsWith(cephPrefix)) {
       if (null != CommonConf.get().HADOOP_CORE_SITE_PATH && !CommonConf.get().HADOOP_CORE_SITE_PATH.equals("")){
         tConf.addResource(new Path(CommonConf.get().HADOOP_CORE_SITE_PATH));
-        tConf.set("fs.ceph.impl.disable.cache",
-                System.getProperty("fs.ceph.impl.disable.cache", "false"));
+        tConf.set("fs.ceph.impl.disable.cache", "true");
       }else {
         throw Throwables.propagate(new IOException("No core-site.xml provided"));
       }
@@ -94,7 +93,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       // To disable the instance cache for hdfs client, otherwise it causes the
       // FileSystem closed exception. Being configurable for unit/integration
       // test only, and not expose to the end-user currently.
-      tConf.set("fs.hdfs.impl.disable.cache",
+      tConf.set("fs.hdfs.impl.disable.cache", 
           System.getProperty("fs.hdfs.impl.disable.cache", "false"));
     }
 
