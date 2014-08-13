@@ -64,7 +64,7 @@ public class WorkerClient {
    * Create a WorkerClient, with a given MasterClient.
    * 
    * @param masterClient
-   * @throws TException
+   * @throws IOException
    */
   public WorkerClient(MasterClient masterClient) throws IOException {
     MASTER_CLIENT = masterClient;
@@ -97,7 +97,6 @@ public class WorkerClient {
    * @param fileId
    *          The id of the checkpointed file
    * @throws IOException
-   * @throws TException
    */
   public synchronized void addCheckpoint(long userId, int fileId) throws IOException {
     mustConnect();
@@ -124,8 +123,7 @@ public class WorkerClient {
    * @param fid
    *          The id of the file
    * @return true if succeed, false otherwise
-   * @throws TachyonException
-   * @throws TException
+   * @throws IOException
    */
   public synchronized boolean asyncCheckpoint(int fid) throws IOException {
     mustConnect();
@@ -148,7 +146,6 @@ public class WorkerClient {
    * @param blockId
    *          The id of the block
    * @throws IOException
-   * @throws TException
    */
   public synchronized void cacheBlock(long userId, long blockId) throws IOException {
     mustConnect();
@@ -255,7 +252,7 @@ public class WorkerClient {
 
   /**
    * @return The root local data folder of the worker
-   * @throws TException
+   * @throws IOException
    */
   public synchronized String getDataFolder() throws IOException {
     if (mDataFolder == null) {
@@ -288,9 +285,7 @@ public class WorkerClient {
 
   /**
    * Get the user temporary folder in the under file system of the specified user.
-   * 
-   * @param userId
-   *          The id of the user
+   *
    * @return The user temporary folder in the under file system
    * @throws IOException
    */
@@ -352,7 +347,6 @@ public class WorkerClient {
    * Connect to the worker.
    * 
    * @throws IOException
-   *           throw if the connection fails
    */
   public synchronized void mustConnect() throws IOException {
     int tries = 0;
@@ -372,7 +366,7 @@ public class WorkerClient {
    * @param requestBytes
    *          The requested space size, in bytes
    * @return true if succeed, false otherwise
-   * @throws TException
+   * @throws IOException
    */
   public synchronized boolean requestSpace(long userId, long requestBytes) throws IOException {
     mustConnect();
@@ -412,7 +406,7 @@ public class WorkerClient {
    *          The id of the block
    * @param userId
    *          The id of the user who wants to unlock the block
-   * @throws TException
+   * @throws IOException
    */
   public synchronized void unlockBlock(long blockId, long userId) throws IOException {
     mustConnect();
@@ -430,9 +424,13 @@ public class WorkerClient {
    * 
    * @param userId
    *          The id of the user
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized void userHeartbeat(long userId) throws TException {
-    mClient.userHeartbeat(userId);
+  public synchronized void userHeartbeat(long userId) throws IOException {
+    try {
+      mClient.userHeartbeat(userId);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
   }
 }
