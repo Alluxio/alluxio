@@ -15,7 +15,6 @@
 package tachyon.client;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -33,7 +32,7 @@ public class BlockHandlerLocalFS extends BlockHandler {
   RandomAccessFile mLocalFile = null;
   FileChannel mLocalFileChannel = null;
 
-  public BlockHandlerLocalFS(String path) throws IOException, FileNotFoundException {
+  BlockHandlerLocalFS(String path) throws IOException {
     super(path);
     LOG.debug(mPath + " is created");
     mLocalFile = new RandomAccessFile(mPath, "rw");
@@ -45,12 +44,9 @@ public class BlockHandlerLocalFS extends BlockHandler {
   }
 
   @Override
-  public int appendCurrentBuffer(byte[] buf, long inFileBytes, int offset, int length)
+  public int appendCurrentBuffer(byte[] buf, long inFilePos, int offset, int length)
       throws IOException {
-    if (mLocalFileChannel == null) {
-      throw new IOException("Writing to unopened file!");
-    }
-    MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, inFileBytes, length);
+    MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, inFilePos, length);
     out.put(buf, offset, length);
 
     return offset + length;
@@ -68,16 +64,11 @@ public class BlockHandlerLocalFS extends BlockHandler {
 
   @Override
   public void delete() {
-    if (mPath != null) {
-      new File(mPath).delete();
-    }
+    new File(mPath).delete();
   }
 
   @Override
   public ByteBuffer readByteBuffer(int offset, int length) throws IOException {
-    if (mLocalFileChannel == null || mLocalFile == null) {
-      throw new IOException("Reading from unopened file!");
-    }
     int fileLength = (int) mLocalFile.length();
     String error = null;
     if (offset > fileLength) {
@@ -89,6 +80,7 @@ public class BlockHandlerLocalFS extends BlockHandler {
               length, fileLength);
     }
     if (error != null) {
+      mLocalFileChannel.close();
       mLocalFile.close();
       throw new IOException(error);
     }
