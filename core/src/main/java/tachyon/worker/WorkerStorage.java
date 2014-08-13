@@ -461,21 +461,26 @@ public class WorkerStorage {
    */
   public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
       SuspectedFileSizeException, BlockInfoException, IOException {
-    File srcFile = new File(CommonUtils.concat(getUserLocalTempFolder(userId), blockId));
-    File dstFile = new File(CommonUtils.concat(mLocalDataFolder, blockId));
-    long fileSizeBytes = srcFile.length();
-    if (!srcFile.exists()) {
-      throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
+    synchronized (mLatestBlockAccessTimeMs) {
+      File srcFile = new File(CommonUtils.concat(getUserLocalTempFolder(userId), blockId));
+      File dstFile = new File(CommonUtils.concat(mLocalDataFolder, blockId));
+      long fileSizeBytes = srcFile.length();
+      if (!srcFile.exists()) {
+        throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
+      }
+      if (!srcFile.renameTo(dstFile)) {
+        throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath()
+            + " to " + dstFile.getPath());
+      }
+      if (mBlockSizes.containsKey(blockId)) {
+        mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
+      }
+      addBlockId(blockId, fileSizeBytes);
+      mUsers.addOwnBytes(userId, -fileSizeBytes);
+      mMasterClient.worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId,
+          fileSizeBytes);
+      LOG.info(userId + " " + dstFile);
     }
-    if (!srcFile.renameTo(dstFile)) {
-      throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath()
-          + " to " + dstFile.getPath());
-    }
-    addBlockId(blockId, fileSizeBytes);
-    mUsers.addOwnBytes(userId, -fileSizeBytes);
-    mMasterClient.worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId,
-        fileSizeBytes);
-    LOG.info(userId + " " + dstFile);
   }
 
   /**
@@ -671,8 +676,7 @@ public class WorkerStorage {
           addFoundBlock(blockId, tFile.length());
         } catch (FileDoesNotExistException e) {
           LOG.error("BlockId: " + blockId + " becomes orphan for: \"" + e.message + "\"");
-          LOG.info("Swapout File " + cnt + ": blockId: " + blockId + " to "
-              + mUfsOrphansFolder);
+          LOG.info("Swapout File " + cnt + ": blockId: " + blockId + " to " + mUfsOrphansFolder);
           swapoutOrphanBlocks(blockId, tFile);
           freeBlock(blockId);
           continue;
