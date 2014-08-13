@@ -202,7 +202,7 @@ public class TachyonFS {
     try {
       return CommonUtils.cleanPath(path);
     } catch (InvalidPathException e) {
-      throw new IOException(e.getMessage());
+      throw new IOException(e);
     }
   }
 
@@ -610,7 +610,7 @@ public class TachyonFS {
     try {
       ret = mMasterClient.user_getClientFileInfoByPath(cleanedPath);
     } catch (IOException e) {
-      LOG.info(e.getMessage() + cleanedPath);
+      LOG.warn(e.getMessage() + cleanedPath, e);
       return null;
     }
 
@@ -1165,7 +1165,7 @@ public class TachyonFS {
       } catch (FileNotFoundException e) {
         LOG.info(localFileName + " is not on local disk.");
       } catch (IOException e) {
-        LOG.info("Failed to read local file " + localFileName + " because: \n" + e.getMessage());
+        LOG.warn("Failed to read local file " + localFileName + " because:", e);
       }
     }
 
