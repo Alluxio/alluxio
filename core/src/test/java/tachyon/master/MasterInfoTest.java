@@ -559,15 +559,19 @@ public class MasterInfoTest {
   public void listFilesTest() throws InvalidPathException, FileDoesNotExistException,
       FileAlreadyExistException, BlockInfoException, TachyonException {
     HashSet<Integer> ids = new HashSet<Integer>();
+    HashSet<Integer> dirIds = new HashSet<Integer>();
     for (int i = 0; i < 10; i ++) {
       String dir = "/i" + i;
       mMasterInfo.mkdir(dir);
+      dirIds.add(mMasterInfo.getFileId(dir));
       for (int j = 0; j < 10; j ++) {
         ids.add(mMasterInfo.createFile(dir + "/j" + j, 64));
       }
     }
     HashSet<Integer> listedIds = new HashSet<Integer>(mMasterInfo.listFiles("/", true));
+    HashSet<Integer> listedDirIds = new HashSet<Integer>(mMasterInfo.listFiles("/", false));
     Assert.assertEquals(ids, listedIds);
+    Assert.assertEquals(dirIds, listedDirIds);
   }
 
   @Test
