@@ -351,7 +351,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
           String localFileName = CommonUtils.concat(TFS.getRootFolder(), FID);
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         } else {
-          LOG.info(host + ":" + (port + 1) + " current host is "
+          LOG.info("Trying to read remote byte buffer from " + host + ":" + (port) +
+              " current host is "
               + InetAddress.getLocalHost().getHostName() + " "
               + InetAddress.getLocalHost().getHostAddress());
 
