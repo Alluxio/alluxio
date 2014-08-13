@@ -73,6 +73,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     if (fsDefaultName.startsWith(cephPrefix)) {
       if (null != CommonConf.get().HADOOP_CORE_SITE_PATH && !CommonConf.get().HADOOP_CORE_SITE_PATH.equals("")){
         tConf.addResource(new Path(CommonConf.get().HADOOP_CORE_SITE_PATH));
+        tConf.set("fs.ceph.impl.disable.cache",
+                System.getProperty("fs.ceph.impl.disable.cache", "false"));
       }else {
         throw Throwables.propagate(new IOException("No core-site.xml provided"));
       }
