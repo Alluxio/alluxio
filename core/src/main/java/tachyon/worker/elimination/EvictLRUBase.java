@@ -24,7 +24,7 @@ import tachyon.master.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * it is the base class which is used to evict blocks by LRU strategy.
+ * It is the base class which is used to evict blocks by LRU strategy.
  */
 public abstract class EvictLRUBase implements EvictStrategy {
 
@@ -35,7 +35,7 @@ public abstract class EvictLRUBase implements EvictStrategy {
   }
 
   /**
-   * if current block can be evicted
+   * Check if current block can be evicted
    * 
    * @param blockId
    *          id of the block
@@ -53,7 +53,7 @@ public abstract class EvictLRUBase implements EvictStrategy {
   }
 
   /**
-   * get oldest block access information
+   * Get oldest block access information
    * 
    * @param curDir
    *          current storage dir

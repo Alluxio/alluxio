@@ -25,7 +25,7 @@ import tachyon.Pair;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * it is used to evict old blocks among several storage dirs by LRU.
+ * It is used to evict old blocks among several storage dirs by LRU.
  */
 public class EvictLRU extends EvictLRUBase {
 
@@ -46,7 +46,7 @@ public class EvictLRU extends EvictLRUBase {
       long blockId = candidate.getSecond();
       long blockSize = 0;
       if (dirIndex == -1) {
-        throw new IOException("no block can be evicted in current tier!");
+        throw new IOException("No block can be evicted in current tier!");
       } else {
         blockSize = mStorageDirs[dirIndex].getBlockSize(blockId);
       }
@@ -74,7 +74,7 @@ public class EvictLRU extends EvictLRUBase {
   }
 
   /**
-   * get block to be evicted
+   * Get block to be evicted
    * 
    * @param dir2LRUBlocks
    *          oldest access information for each storage dir
