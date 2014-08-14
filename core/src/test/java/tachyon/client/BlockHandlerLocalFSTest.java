@@ -63,7 +63,7 @@ public class BlockHandlerLocalFSTest {
   public void writeTest() throws IOException {
     int fileId = mTfs.createFile("/root/testFile");
     long blockId = mTfs.getBlockId(fileId, 0);
-    String localFolder = mTfs.createAndGetUserTempFolder().getPath();
+    String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
     String filename = CommonUtils.concat(localFolder, blockId);
     BlockHandler handler = BlockHandler.get(filename, null);
     byte[] buf = TestUtils.getIncreasingByteArray(100);

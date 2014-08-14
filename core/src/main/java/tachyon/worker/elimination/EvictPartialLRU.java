@@ -23,7 +23,7 @@ import tachyon.Pair;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * it is used to evict blocks in certain storage dir by LRU strategy.
+ * It is used to evict blocks in certain storage dir by LRU strategy.
  */
 public class EvictPartialLRU extends EvictLRUBase {
 
@@ -61,7 +61,7 @@ public class EvictPartialLRU extends EvictLRUBase {
         return dirIndex;
       }
     }
-    throw new IOException("no suitable dir can be found!");
+    throw new IOException("No suitable dir can be found!");
   }
 
   public int getDirWithMaxFreeSpace(long requestSize, Set<Integer> ignoredList) {

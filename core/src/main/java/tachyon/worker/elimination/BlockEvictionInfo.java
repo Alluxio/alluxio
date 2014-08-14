@@ -15,7 +15,7 @@
 package tachyon.worker.elimination;
 
 /**
- * it is used for recording block information that will be used in block eviction.
+ * It is used for recording block information that will be used in block eviction.
  */
 public class BlockEvictionInfo {
   int mDirIndex;
@@ -29,7 +29,7 @@ public class BlockEvictionInfo {
   }
 
   /**
-   * get id of the block
+   * Get id of the block
    * 
    * @return id of the block
    */
@@ -38,7 +38,7 @@ public class BlockEvictionInfo {
   }
 
   /**
-   * get size of the block
+   * Get size of the block
    * 
    * @return size of the block
    */
@@ -47,7 +47,7 @@ public class BlockEvictionInfo {
   }
 
   /**
-   * get index of the storage dir containing the block
+   * Get index of the storage dir containing the block
    * 
    * @return index of the storage dir
    */
