@@ -352,7 +352,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
           String localFileName = CommonUtils.concat(TFS.getRootFolder(), blockInfo.blockId);
           LOG.warn("Reading remotely even though request is local; file is " + localFileName);
         }
-        LOG.info(host + ":" + port + " current host is " + hostname + " " + hostaddress);
+
+        LOG.info("Trying to read remote byte buffer from " + host + ":" + port +
+            " current host is "
+            + InetAddress.getLocalHost().getHostName() + " "
+            + InetAddress.getLocalHost().getHostAddress());
 
         try {
           buf =
