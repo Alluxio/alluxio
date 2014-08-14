@@ -30,7 +30,7 @@ import tachyon.util.CommonUtils;
  * calling the methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by
  * the client code.
  */
-public class FileOutStream extends OutStream {
+public final class FileOutStream extends OutStream {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final long BLOCK_CAPACITY;

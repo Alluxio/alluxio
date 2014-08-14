@@ -28,7 +28,10 @@ import com.google.common.collect.Lists;
 /**
  * Utilities to do ser/de String, and ByteBuffer
  */
-public class Utils {
+public final class Utils {
+
+  private Utils() {}
+
   /**
    * Converts a list of byte buffers to a list of base64-encoded Strings.
    */

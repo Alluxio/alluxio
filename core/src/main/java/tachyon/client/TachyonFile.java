@@ -36,7 +36,7 @@ import tachyon.worker.DataServerMessage;
 /**
  * Tachyon File.
  */
-public class TachyonFile implements Comparable<TachyonFile> {
+public final class TachyonFile implements Comparable<TachyonFile> {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final UserConf USER_CONF = UserConf.get();
 

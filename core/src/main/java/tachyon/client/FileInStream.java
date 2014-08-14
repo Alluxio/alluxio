@@ -19,7 +19,7 @@ import java.io.IOException;
 /**
  * FileInStream implementation of TachyonFile.
  */
-public class FileInStream extends InStream {
+public final class FileInStream extends InStream {
   private final long FILE_LENGTH;
   private final long BLOCK_CAPACITY;
 

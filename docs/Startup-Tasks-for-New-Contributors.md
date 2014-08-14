@@ -81,6 +81,8 @@ leverage the Scala shell, as discussed in this
     synchronized native strictfp**, then as **alphabetical order**.
 -   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml).
     -  If you use IntelliJ: you can either use our formatter with the help from [EclipseCodeFormatter](https://github.com/krasa/EclipseCodeFormatter#instructions) or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in IntelliJ
+-   To verify that the coding standards match, you should run [checkstyle](http://checkstyle.sourceforge.net) before sending a pull-request to verify no new warnings are introduced.
+    - `mvn checkstyle:checkstyle`
 
 ### FindBugs
 

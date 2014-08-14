@@ -27,7 +27,7 @@ import tachyon.util.CommonUtils;
  * Tachyon provides native support for tables with multiple columns. Each table contains one or
  * more columns. Each columns contains one or more ordered files.
  */
-public class RawTable {
+public final class RawTable {
   private final TachyonFS TACHYON_CLIENT;
   private final ClientRawTableInfo CLIENT_RAW_TABLE_INFO;
 

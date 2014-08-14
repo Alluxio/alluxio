@@ -20,7 +20,8 @@ import java.nio.ByteBuffer;
 /**
  * The wrapper for to read ByteBuffer using ByteBuffer's default methods.
  */
-public class JavaByteBufferReader extends ByteBufferReader {
+public final class JavaByteBufferReader extends ByteBufferReader {
+
   public JavaByteBufferReader(ByteBuffer buf) throws IOException {
     super(buf);
   }

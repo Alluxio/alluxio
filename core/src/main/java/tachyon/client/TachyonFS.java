@@ -56,7 +56,7 @@ import tachyon.worker.WorkerClient;
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients
  * depending on how many workers the client program is interacting with.
  */
-public class TachyonFS implements Closeable {
+public final class TachyonFS implements Closeable {
   /**
    * Create a TachyonFS handler.
    * 

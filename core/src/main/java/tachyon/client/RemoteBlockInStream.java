@@ -35,7 +35,7 @@ import tachyon.worker.DataServerMessage;
 /**
  * BlockInStream for remote block.
  */
-public class RemoteBlockInStream extends BlockInStream {
+public final class RemoteBlockInStream extends BlockInStream {
   private static final int BUFFER_SIZE = UserConf.get().REMOTE_READ_BUFFER_SIZE_BYTE;
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 

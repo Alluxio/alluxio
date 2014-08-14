@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 /**
  * TachyonByteBuffer is a wrapper on Java ByteBuffer plus some information needed by Tachyon.
  */
-public class TachyonByteBuffer implements Closeable {
+public final class TachyonByteBuffer implements Closeable {
   // ByteBuffer contains data.
   public final ByteBuffer DATA;
 

@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 /**
  * The wrapper for to write ByteBuffer using ByteBuffer's default methods.
  */
-public class JavaByteBufferWriter extends ByteBufferWriter {
+public final class JavaByteBufferWriter extends ByteBufferWriter {
 
   public JavaByteBufferWriter(ByteBuffer buf) throws IOException {
     super(buf);
