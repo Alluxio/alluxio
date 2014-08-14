@@ -16,7 +16,8 @@ import tachyon.util.CommonUtils;
 public class EditLogProcessor implements Runnable {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private Journal mJournal;
+  private final Journal mJournal;
+
   private String mPath;
   private MasterInfo mMasterInfo;
   private int mCurrentLogFileNum = 0;

@@ -258,8 +258,8 @@ public class WorkerStorage {
   private Set<Long> mMemoryData = new HashSet<Long>();
   private Map<Long, Long> mBlockSizes = new HashMap<Long, Long>();
 
-  private Map<Long, Long> mLatestBlockAccessTimeMs = new HashMap<Long, Long>();
-  private Map<Long, Set<Long>> mUsersPerLockedBlock = new HashMap<Long, Set<Long>>();
+  private final Map<Long, Long> mLatestBlockAccessTimeMs = new HashMap<Long, Long>();
+  private final Map<Long, Set<Long>> mUsersPerLockedBlock = new HashMap<Long, Set<Long>>();
 
   private Map<Long, Set<Long>> mLockedBlocksPerUser = new HashMap<Long, Set<Long>>();
   private BlockingQueue<Long> mRemovedBlockList = new ArrayBlockingQueue<Long>(
@@ -277,7 +277,7 @@ public class WorkerStorage {
 
   private Users mUsers;
   // Dependency related lock
-  private Object mDependencyLock = new Object();
+  private final Object mDependencyLock = new Object();
   private Set<Integer> mUncheckpointFiles = new HashSet<Integer>();
   // From dependencyId to files in that set.
   private Map<Integer, Set<Integer>> mDepIdToFiles = new HashMap<Integer, Set<Integer>>();
