@@ -285,7 +285,7 @@ public class WorkerClient {
 
   /**
    * Get the user temporary folder in the under file system of the specified user.
-   *
+   * 
    * @return The user temporary folder in the under file system
    * @throws IOException
    */
@@ -427,6 +427,8 @@ public class WorkerClient {
    * @throws IOException
    */
   public synchronized void userHeartbeat(long userId) throws IOException {
+    mustConnect();
+
     try {
       mClient.userHeartbeat(userId);
     } catch (TException e) {

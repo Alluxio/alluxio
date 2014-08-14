@@ -14,11 +14,11 @@
  */
 package tachyon.worker;
 
+import java.io.IOException;
+
 import com.google.common.base.Throwables;
 
 import tachyon.HeartbeatExecutor;
-
-import java.io.IOException;
 
 /**
  * User client sends periodical heartbeats to the worker it is talking to. It is fails to do so,
