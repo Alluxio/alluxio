@@ -241,13 +241,13 @@ public class MasterInfo extends ImageWriter {
   private InodeFolder mRoot;
   private final Object ROOT_LOCK = new Object();
 
-  // A map from file ID's to Inodes. All operations on it are currently synchronized on mRoot.
+  // A map from file ID's to Inodes. All operations on it are currently synchronized on ROOT_LOCK.
   private final Map<Integer, Inode> INODES = new HashMap<Integer, Inode>();
   private final Map<Integer, Dependency> DEPENDENCIES = new HashMap<Integer, Dependency>();
   private final RawTables RAWTABLES = new RawTables();
 
   // TODO add initialization part for master failover or restart. All operations on these members
-  // are synchronized on mDependencies.
+  // are synchronized on DEPENDENCIES.
   private final Set<Integer> UNCHECKPOINTED_DEPENDENCIES = new HashSet<Integer>();
   private final Set<Integer> PRIORITY_DEPENDENCIES = new HashSet<Integer>();
   private final Set<Integer> LOST_FILES = new HashSet<Integer>();
