@@ -1871,6 +1871,10 @@ public class MasterInfo extends ImageWriter {
             ret.add(qinode.getId());
           }
         }
+      } else {
+        for (Inode child : ((InodeFolder) inode).getChildren()) {
+          ret.add(child.getId());
+        }
       }
     }
 
