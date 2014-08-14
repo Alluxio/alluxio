@@ -34,7 +34,7 @@ import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerSpaceCounter;
 
 /**
- * it is used to store and manage block files in storage directory on different
+ * It is used to store and manage block files in storage directory on different
  * under file systems.
  */
 public class StorageDir {
@@ -56,7 +56,7 @@ public class StorageDir {
   private final String mUserTempPath;
   private final Map<Long, Set<Long>> mUsersPerLockedBlock = new HashMap<Long, Set<Long>>();
 
-  public StorageDir(long storageId, String dirPath, long capacity, String dataFolder,
+  StorageDir(long storageId, String dirPath, long capacity, String dataFolder,
       String userTempFolder, Object conf) {
     mDirPath = dirPath;
     mUFSConf = conf;
@@ -68,7 +68,7 @@ public class StorageDir {
   }
 
   /**
-   * update the access time of the block
+   * Update the access time of the block
    * 
    * @param blockId
    *          id of the block
@@ -80,7 +80,7 @@ public class StorageDir {
   }
 
   /**
-   * add a block id in current storage dir
+   * Add a block id in current storage dir
    * 
    * @param blockId
    *          id of the block
@@ -96,7 +96,7 @@ public class StorageDir {
   }
 
   /**
-   * move the cached file from user temp directory to data directory
+   * Move the cached file from user temp directory to data directory
    * 
    * @param userId
    *          id of the user
@@ -116,7 +116,7 @@ public class StorageDir {
   }
 
   /**
-   * check status of the users
+   * Check status of the users
    * 
    * @param removedUsers
    *          id of the removed users
@@ -136,7 +136,7 @@ public class StorageDir {
   }
 
   /**
-   * check whether current storage dir contains certain block
+   * Check whether current storage dir contains certain block
    * 
    * @param blockId
    *          id of the block
@@ -147,16 +147,16 @@ public class StorageDir {
   }
 
   /**
-   * copy block from current storage dir to another
+   * Copy block from current storage dir to another
    * 
    * @param blockId
    *          id of the block
-   * @param dst
+   * @param dstDir
    *          Destiny storage dir
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public boolean copyBlock(long blockId, StorageDir dst) throws IOException {
+  public boolean copyBlock(long blockId, StorageDir dstDir) throws IOException {
     BlockHandler bhSrc = getBlockHandler(blockId);
     int len = (int) getBlockSize(blockId);
     ByteBuffer bf = bhSrc.readByteBuffer(0, len);
@@ -164,11 +164,11 @@ public class StorageDir {
     try {
       byte[] blockData = new byte[len];
       bf.get(blockData);
-      String filePath = dst.getBlockFilePath(blockId);
+      String filePath = dstDir.getBlockFilePath(blockId);
       BlockHandler bhDst = BlockHandler.get(filePath, mUFSConf);
       boolean copySuccess = bhDst.appendCurrentBuffer(blockData, 0, 0, len) > 0;
       if (copySuccess) {
-        dst.addBlockId(blockId, len);
+        dstDir.addBlockId(blockId, len);
       }
       bhDst.close();
       return copySuccess;
@@ -178,11 +178,12 @@ public class StorageDir {
   }
 
   /**
-   * Remove a block from the memory.
+   * Remove a block from the memory
    * 
    * @param blockId
    *          The block to be removed.
-   * @return Removed file size in bytes.
+   * @return true if succeed, false otherwise
+   * @throws IOException
    */
   public boolean deleteBlock(long blockId) throws IOException {
     synchronized (mLatestBlockAccessTimeMs) {
@@ -193,7 +194,7 @@ public class StorageDir {
           deleteBlockId(blockId);
           LOG.info("Removed Data " + blockId);
         } else {
-          LOG.warn("error during delete block! blockfile:" + blockfile);
+          LOG.warn("Error during delete block! blockfile:" + blockfile);
         }
         return result;
       } else {
@@ -204,7 +205,7 @@ public class StorageDir {
   }
 
   /**
-   * delete block from current storage dir
+   * Delete block from current storage dir
    * 
    * @param blockId
    *          id of the block
@@ -220,16 +221,16 @@ public class StorageDir {
   }
 
   /**
-   * get available space on current storage dir
+   * Get available space in current storage dir
    * 
-   * @return available space on current storage dir
+   * @return available space in current storage dir
    */
   public long getAvailable() {
     return mSpaceCounter.getAvailableBytes();
   }
 
   /**
-   * get data of the block file
+   * Get data of the block file
    * 
    * @param blockId
    *          id of the block
@@ -237,7 +238,7 @@ public class StorageDir {
    *          offset of the file
    * @param length
    *          length of data to read
-   * @return bytebuffer contains data of the block
+   * @return a ByteBuffer contains data of the block
    * @throws IOException
    */
   public ByteBuffer getBlockData(long blockId, long offset, long length) throws IOException {
@@ -247,7 +248,7 @@ public class StorageDir {
   }
 
   /**
-   * get file path of the block
+   * Get file path of the block
    * 
    * @param blockId
    *          id of the block
@@ -258,11 +259,11 @@ public class StorageDir {
   }
 
   /**
-   * get block handler of the block
+   * Get block handler of the block
    * 
    * @param blockId
    *          id of the block
-   * @return block handler of the block
+   * @return block handler of the block file
    * @throws IOException
    */
   public BlockHandler getBlockHandler(long blockId) throws IOException {
@@ -275,7 +276,7 @@ public class StorageDir {
   }
 
   /**
-   * get ids of the blocks on current storage dir
+   * Get ids of the blocks on current storage dir
    * 
    * @return ids of the blocks
    */
@@ -284,7 +285,7 @@ public class StorageDir {
   }
 
   /**
-   * get size of the block
+   * Get size of the block
    * 
    * @param blockId
    *          id of the block
@@ -299,7 +300,7 @@ public class StorageDir {
   }
 
   /**
-   * get sizes of the blocks on current storage dir
+   * Get sizes of the blocks on current storage dir
    * 
    * @return sizes of the blocks
    * @throws IOException
@@ -309,7 +310,7 @@ public class StorageDir {
   }
 
   /**
-   * get capacity of current storage dir
+   * Get capacity of current storage dir
    * 
    * @return capacity of current storage dir
    */
@@ -318,7 +319,7 @@ public class StorageDir {
   }
 
   /**
-   * get data path on current storage dir
+   * Get data path on current storage dir
    * 
    * @return data path on current storage dir
    */
@@ -327,7 +328,7 @@ public class StorageDir {
   }
 
   /**
-   * get path of current storage dir
+   * Get path of current storage dir
    * 
    * @return path of storage dir
    */
@@ -336,7 +337,7 @@ public class StorageDir {
   }
 
   /**
-   * get size of the block file on current storage dir
+   * Get size of the block file on current storage dir
    * 
    * @param blockId
    *          id of the block
@@ -349,7 +350,7 @@ public class StorageDir {
   }
 
   /**
-   * get access time of blocks
+   * Get access time of blocks
    * 
    * @return access time of blocks
    */
@@ -358,7 +359,7 @@ public class StorageDir {
   }
 
   /**
-   * get removed block ids
+   * Get removed block ids
    * 
    * @return removed block ids
    */
@@ -371,7 +372,7 @@ public class StorageDir {
   }
 
   /**
-   * get storage id of current storage dir
+   * Get storage id of current storage dir
    * 
    * @return storage id of current storage dir
    */
@@ -380,7 +381,7 @@ public class StorageDir {
   }
 
   /**
-   * get configuration of current dir's under file system
+   * Get configuration of current dir's under file system
    * 
    * @return configuration of the under file system
    */
@@ -389,7 +390,7 @@ public class StorageDir {
   }
 
   /**
-   * get used space on current storage dir
+   * Get used space on current storage dir
    * 
    * @return used space on current storage dir
    */
@@ -398,7 +399,7 @@ public class StorageDir {
   }
 
   /**
-   * get users of locked blocks
+   * Get users of locked blocks
    * 
    * @return users of locked blocks
    */
@@ -407,7 +408,7 @@ public class StorageDir {
   }
 
   /**
-   * get temp file path for block written by some user
+   * Get temp file path for block written by some user
    * 
    * @param userId
    *          id of the user
@@ -420,7 +421,7 @@ public class StorageDir {
   }
 
   /**
-   * initailize the storage dir
+   * Initailize the storage dir
    * 
    * @throws IOException
    */
@@ -461,7 +462,7 @@ public class StorageDir {
   }
 
   /**
-   * lock block by the user
+   * Lock block by the user
    * 
    * @param blockId
    *          id of the block
@@ -485,18 +486,18 @@ public class StorageDir {
   }
 
   /**
-   * move block from current storage dir to another storage dir
+   * Move block from current storage dir to another storage dir
    * 
    * @param blockId
    *          id of the block
-   * @param dst
+   * @param dstDir
    *          destiny storage dir
    * @return true if success, false otherwise
    * @throws IOException
    */
-  public boolean moveBlock(long blockId, StorageDir dst) throws IOException {
+  public boolean moveBlock(long blockId, StorageDir dstDir) throws IOException {
     boolean copySuccess = false;
-    copySuccess = copyBlock(blockId, dst);
+    copySuccess = copyBlock(blockId, dstDir);
     if (copySuccess) {
       return deleteBlock(blockId);
     } else {
@@ -505,7 +506,7 @@ public class StorageDir {
   }
 
   /**
-   * allocate space from current storage dir
+   * Allocate space from current storage dir
    * 
    * @param userId
    *          id of the user
@@ -527,7 +528,7 @@ public class StorageDir {
   }
 
   /**
-   * return space to current storage dir
+   * Return space to current storage dir
    * 
    * @param size
    *          size to return
@@ -537,7 +538,7 @@ public class StorageDir {
   }
 
   /**
-   * return space to current storage dir by some user
+   * Return space to current storage dir by some user
    * 
    * @param userId
    *          id of the user
@@ -550,12 +551,12 @@ public class StorageDir {
       long current = mUserAllocatedSpace.get(userId);
       mUserAllocatedSpace.put(userId, current - size);
     } else {
-      LOG.warn("error during return space: unknown user ID");
+      LOG.warn("Error during return space: unknown user ID");
     }
   }
 
   /**
-   * unlock block by some user
+   * Unlock block by some user
    * 
    * @param blockId
    *          id of the block
