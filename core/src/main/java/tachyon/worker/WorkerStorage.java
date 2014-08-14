@@ -380,7 +380,6 @@ public class WorkerStorage {
    * @throws SuspectedFileSizeException
    * @throws FailedToCheckpointException
    * @throws BlockInfoException
-   * @throws TException
    */
   public void addCheckpoint(long userId, int fileId) throws FileDoesNotExistException,
       SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, IOException {
