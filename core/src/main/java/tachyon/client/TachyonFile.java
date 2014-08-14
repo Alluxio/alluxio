@@ -346,26 +346,24 @@ public class TachyonFile implements Comparable<TachyonFile> {
         if (port == -1) {
           continue;
         }
-        if (host.equals(InetAddress.getLocalHost().getHostName())
-            || host.equals(InetAddress.getLocalHost().getHostAddress())) {
-          String localFileName = CommonUtils.concat(TFS.getRootFolder(), FID);
-          LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
-        } else {
-          LOG.info(host + ":" + (port + 1) + " current host is "
-              + InetAddress.getLocalHost().getHostName() + " "
-              + InetAddress.getLocalHost().getHostAddress());
+        final String hostname = InetAddress.getLocalHost().getHostName();
+        final String hostaddress = InetAddress.getLocalHost().getHostAddress();
+        if (host.equals(hostname) || host.equals(hostaddress)) {
+          String localFileName = CommonUtils.concat(TFS.getRootFolder(), blockInfo.blockId);
+          LOG.warn("Reading remotely even though request is local; file is " + localFileName);
+        }
+        LOG.info(host + ":" + port + " current host is " + hostname + " " + hostaddress);
 
-          try {
-            buf =
-                retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port),
-                    blockInfo.blockId);
-            if (buf != null) {
-              break;
-            }
-          } catch (IOException e) {
-            LOG.error(e);
-            buf = null;
+        try {
+          buf =
+              retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port),
+                  blockInfo.blockId);
+          if (buf != null) {
+            break;
           }
+        } catch (IOException e) {
+          LOG.error(e);
+          buf = null;
         }
       }
     } catch (IOException e) {
