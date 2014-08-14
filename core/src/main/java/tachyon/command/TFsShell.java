@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.thrift.TException;
 
 import tachyon.Constants;
 import tachyon.client.InStream;
@@ -48,7 +47,7 @@ public class TFsShell {
    * @param argv
    *          [] Array of arguments given by the user's input from the terminal
    */
-  public static void main(String argv[]) throws TException {
+  public static void main(String argv[]) {
     TFsShell shell = new TFsShell();
     System.exit(shell.run(argv));
   }
@@ -442,7 +441,7 @@ public class TFsShell {
    * @param argv
    *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
-   * @throws TException
+   * @throws IOException
    */
   public int rename(String argv[]) throws IOException {
     if (argv.length != 3) {
@@ -526,9 +525,8 @@ public class TFsShell {
    * @param argv
    *          [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred
-   * @throws TException
    */
-  public int run(String argv[]) throws TException {
+  public int run(String argv[]) {
     if (argv.length == 0) {
       printUsage();
       return -1;
@@ -577,7 +575,6 @@ public class TFsShell {
       }
     } catch (IOException ioe) {
       System.out.println(ioe.getMessage());
-    } finally {
     }
 
     return exitCode;
