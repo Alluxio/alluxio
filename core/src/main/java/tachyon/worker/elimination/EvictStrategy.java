@@ -19,12 +19,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * interface used to determine which blocks will be evicted to get enough free space requested.
+ * Interface used to determine which blocks will be evicted to get enough free space requested.
  */
 public interface EvictStrategy {
 
   /**
-   * get storage dir for request size and also get blocks to be evicted
+   * Get storage dir for request size and also get blocks to be evicted
    * 
    * @param blockEvictionInfoList
    *          blocks to be evicted
