@@ -276,6 +276,8 @@ public class WorkerClient {
    * @throws IOException
    */
   public synchronized String getUserTempFolder() throws IOException {
+    mustConnect();
+
     try {
       return mClient.getUserTempFolder(MASTER_CLIENT.getUserId());
     } catch (TException e) {
