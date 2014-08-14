@@ -71,7 +71,7 @@ public class WorkerStorage {
       ID = id;
     }
 
-    // This method assumes the mDependencyLock has been acquired.
+    // This method assumes the DEPENDENCY_LOCK has been acquired.
     private int getFileIdBasedOnPriorityDependency() throws TException {
       if (mPriorityDependencies.isEmpty()) {
         return -1;
@@ -85,7 +85,7 @@ public class WorkerStorage {
       return -1;
     }
 
-    // This method assumes the mDependencyLock has been acquired.
+    // This method assumes the DEPENDENCY_LOCK has been acquired.
     private int getFileIdFromOneDependency(int depId) throws TException {
       Set<Integer> fileIds = mDepIdToFiles.get(depId);
       if (fileIds != null && !fileIds.isEmpty()) {
@@ -100,7 +100,7 @@ public class WorkerStorage {
       return -1;
     }
 
-    // This method assumes the mDependencyLock has been acquired.
+    // This method assumes the DEPENDENCY_LOCK has been acquired.
     private int getRandomUncheckpointedFile() throws TException {
       if (mUncheckpointFiles.isEmpty()) {
         return -1;
@@ -133,7 +133,7 @@ public class WorkerStorage {
       while (true) {
         try {
           int fileId = -1;
-          synchronized (mDependencyLock) {
+          synchronized (DEPENDENCY_LOCK) {
             fileId = getFileIdBasedOnPriorityDependency();
 
             if (fileId == -1) {
@@ -258,8 +258,8 @@ public class WorkerStorage {
   private Set<Long> mMemoryData = new HashSet<Long>();
   private Map<Long, Long> mBlockSizes = new HashMap<Long, Long>();
 
-  private final Map<Long, Long> mLatestBlockAccessTimeMs = new HashMap<Long, Long>();
-  private final Map<Long, Set<Long>> mUsersPerLockedBlock = new HashMap<Long, Set<Long>>();
+  private final Map<Long, Long> LATEST_BLOCK_ACCESS_TIME_MS = new HashMap<Long, Long>();
+  private final Map<Long, Set<Long>> USERS_PER_LOCKED_BLOCK = new HashMap<Long, Set<Long>>();
 
   private Map<Long, Set<Long>> mLockedBlocksPerUser = new HashMap<Long, Set<Long>>();
   private BlockingQueue<Long> mRemovedBlockList = new ArrayBlockingQueue<Long>(
@@ -277,7 +277,7 @@ public class WorkerStorage {
 
   private Users mUsers;
   // Dependency related lock
-  private final Object mDependencyLock = new Object();
+  private final Object DEPENDENCY_LOCK = new Object();
   private Set<Integer> mUncheckpointFiles = new HashSet<Integer>();
   // From dependencyId to files in that set.
   private Map<Integer, Set<Integer>> mDepIdToFiles = new HashMap<Integer, Set<Integer>>();
@@ -350,14 +350,14 @@ public class WorkerStorage {
    *          The id of the block
    */
   void accessBlock(long blockId) {
-    synchronized (mLatestBlockAccessTimeMs) {
-      mLatestBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
+    synchronized (LATEST_BLOCK_ACCESS_TIME_MS) {
+      LATEST_BLOCK_ACCESS_TIME_MS.put(blockId, System.currentTimeMillis());
     }
   }
 
   private void addBlockId(long blockId, long fileSizeBytes) {
-    synchronized (mLatestBlockAccessTimeMs) {
-      mLatestBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
+    synchronized (LATEST_BLOCK_ACCESS_TIME_MS) {
+      LATEST_BLOCK_ACCESS_TIME_MS.put(blockId, System.currentTimeMillis());
       mBlockSizes.put(blockId, fileSizeBytes);
       mMemoryData.add(blockId);
     }
@@ -422,7 +422,7 @@ public class WorkerStorage {
     ClientFileInfo fileInfo = mMasterClient.getClientFileInfoById(fileId);
 
     if (fileInfo.getDependencyId() != -1) {
-      synchronized (mDependencyLock) {
+      synchronized (DEPENDENCY_LOCK) {
         mUncheckpointFiles.add(fileId);
         if (!mDepIdToFiles.containsKey(fileInfo.getDependencyId())) {
           mDepIdToFiles.put(fileInfo.getDependencyId(), new HashSet<Integer>());
@@ -487,7 +487,7 @@ public class WorkerStorage {
 
     for (long userId : removedUsers) {
       mWorkerSpaceCounter.returnUsedBytes(mUsers.removeUser(userId));
-      synchronized (mUsersPerLockedBlock) {
+      synchronized (USERS_PER_LOCKED_BLOCK) {
         Set<Long> blockds = mLockedBlocksPerUser.get(userId);
         mLockedBlocksPerUser.remove(userId);
         if (blockds != null) {
@@ -512,12 +512,12 @@ public class WorkerStorage {
    */
   private long freeBlock(long blockId) {
     long freedFileBytes = 0;
-    synchronized (mLatestBlockAccessTimeMs) {
+    synchronized (LATEST_BLOCK_ACCESS_TIME_MS) {
       if (mBlockSizes.containsKey(blockId)) {
         mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
         File srcFile = new File(CommonUtils.concat(mLocalDataFolder, blockId));
         srcFile.delete();
-        mLatestBlockAccessTimeMs.remove(blockId);
+        LATEST_BLOCK_ACCESS_TIME_MS.remove(blockId);
         freedFileBytes = mBlockSizes.remove(blockId);
         mRemovedBlockList.add(blockId);
         mMemoryData.remove(blockId);
@@ -701,11 +701,11 @@ public class WorkerStorage {
    * @throws TException
    */
   public void lockBlock(long blockId, long userId) throws TException {
-    synchronized (mUsersPerLockedBlock) {
-      if (!mUsersPerLockedBlock.containsKey(blockId)) {
-        mUsersPerLockedBlock.put(blockId, new HashSet<Long>());
+    synchronized (USERS_PER_LOCKED_BLOCK) {
+      if (!USERS_PER_LOCKED_BLOCK.containsKey(blockId)) {
+        USERS_PER_LOCKED_BLOCK.put(blockId, new HashSet<Long>());
       }
-      mUsersPerLockedBlock.get(blockId).add(userId);
+      USERS_PER_LOCKED_BLOCK.get(blockId).add(userId);
 
       if (!mLockedBlocksPerUser.containsKey(userId)) {
         mLockedBlocksPerUser.put(userId, new HashSet<Long>());
@@ -731,15 +731,15 @@ public class WorkerStorage {
       pinList = new HashSet<Integer>();
     }
 
-    synchronized (mLatestBlockAccessTimeMs) {
-      synchronized (mUsersPerLockedBlock) {
+    synchronized (LATEST_BLOCK_ACCESS_TIME_MS) {
+      synchronized (USERS_PER_LOCKED_BLOCK) {
         while (mWorkerSpaceCounter.getAvailableBytes() < requestBytes) {
           long blockId = -1;
           long latestTimeMs = Long.MAX_VALUE;
-          for (Entry<Long, Long> entry : mLatestBlockAccessTimeMs.entrySet()) {
+          for (Entry<Long, Long> entry : LATEST_BLOCK_ACCESS_TIME_MS.entrySet()) {
             if (entry.getValue() < latestTimeMs
                 && !pinList.contains(BlockInfo.computeInodeId(entry.getKey()))) {
-              if (!mUsersPerLockedBlock.containsKey(entry.getKey())) {
+              if (!USERS_PER_LOCKED_BLOCK.containsKey(entry.getKey())) {
                 blockId = entry.getKey();
                 latestTimeMs = entry.getValue();
               }
@@ -889,11 +889,11 @@ public class WorkerStorage {
    * @throws TException
    */
   public void unlockBlock(long blockId, long userId) throws TException {
-    synchronized (mUsersPerLockedBlock) {
-      if (mUsersPerLockedBlock.containsKey(blockId)) {
-        mUsersPerLockedBlock.get(blockId).remove(userId);
-        if (mUsersPerLockedBlock.get(blockId).size() == 0) {
-          mUsersPerLockedBlock.remove(blockId);
+    synchronized (USERS_PER_LOCKED_BLOCK) {
+      if (USERS_PER_LOCKED_BLOCK.containsKey(blockId)) {
+        USERS_PER_LOCKED_BLOCK.get(blockId).remove(userId);
+        if (USERS_PER_LOCKED_BLOCK.get(blockId).size() == 0) {
+          USERS_PER_LOCKED_BLOCK.remove(blockId);
         }
       }
 
