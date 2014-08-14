@@ -14,7 +14,7 @@
  */
 package tachyon.worker;
 
-import org.apache.thrift.TException;
+import java.io.IOException;
 
 import com.google.common.base.Throwables;
 
@@ -37,7 +37,7 @@ class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   public void heartbeat() {
     try {
       WORKER_CLIENT.userHeartbeat(USER_ID);
-    } catch (TException e) {
+    } catch (IOException e) {
       throw Throwables.propagate(e);
     }
   }

@@ -100,7 +100,6 @@ public class MasterClient {
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
-   * @throws TException
    */
   public synchronized boolean addCheckpoint(long workerId, int fileId, long length,
       String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException,
@@ -610,14 +609,14 @@ public class MasterClient {
     return -1;
   }
 
-  public synchronized int user_getRawTableId(String path) throws IOException, TException {
+  public synchronized int user_getRawTableId(String path) throws IOException {
     while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getRawTableId(path);
       } catch (InvalidPathException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }

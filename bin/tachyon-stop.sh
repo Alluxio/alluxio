@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-usage="Usage: tachyon-stop.sh"
+Usage="Usage: tachyon-stop.sh"
 
 if [ "$#" -ne 0 ]; then
   echo $Usage
