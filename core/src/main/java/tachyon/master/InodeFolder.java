@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Collections;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -193,7 +194,7 @@ public class InodeFolder extends Inode {
    * @return an unmodifiable set of the children inodes.
    */
   public synchronized Set<Inode> getChildren() {
-    return Collections.unmodifiableSet(mChildren);
+    return ImmutableSet.copyOf(mChildren);
   }
 
   /**
