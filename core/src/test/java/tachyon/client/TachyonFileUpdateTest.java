@@ -34,13 +34,18 @@ import tachyon.master.LocalTachyonCluster;
  */
 public final class TachyonFileUpdateTest {
 
+  private static final int WORKER_CAPACITY_BYTES = 1000;
+
+  private static final int USER_QUOTA_UNIT_BYTES = 100;
+  private static final String USER_QUOTA_UNIT_BYTES_STR = Integer.toString(USER_QUOTA_UNIT_BYTES);
+
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", Constants.USER_QUOTA_UNIT_BYTES_STR);
-    mLocalTachyonCluster = new LocalTachyonCluster(Constants.WORKER_CAPACITY_BYTES);
+    System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES_STR);
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
   }
