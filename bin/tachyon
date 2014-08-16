@@ -178,17 +178,11 @@ elif [ "$COMMAND" == "runTests" ]; then
 
   for op in ${opArr[@]}
   do
-    echo $bin/tachyon runTest Basic $op
-    $bin/tachyon runTest Basic $op
-
-    echo $bin/tachyon runTest BasicRawTable $op
-    $bin/tachyon runTest BasicRawTable $op
-
-    echo $bin/tachyon runTest BasicCheckpoint $op
-    $bin/tachyon runTest BasicCheckpoint $op
-
-    echo $bin/tachyon runTest BasicNonByteBuffer $op
-    $bin/tachyon runTest BasicNonByteBuffer $op
+    for example in Basic BasicRawTable BasicCheckpoint BasicNonByteBuffer
+    do
+      echo $bin/tachyon runTest $example $op
+      $bin/tachyon runTest $example $op
+    done
   done
 
   exit 0
