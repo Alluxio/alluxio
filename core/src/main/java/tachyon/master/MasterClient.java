@@ -155,7 +155,7 @@ public class MasterClient {
     while (tries ++ < MAX_CONNECT_TRY && !mIsShutdown) {
       mMasterAddress = getMasterAddress();
 
-      LOG.info("Client version " + Version.VERSION + " is trying to connect master @ "
+      LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect master @ "
           + mMasterAddress);
 
       mProtocol =
