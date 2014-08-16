@@ -34,6 +34,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.HeartbeatThread;
 import tachyon.LeaderInquireClient;
+import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 import tachyon.thrift.BlockInfoException;
@@ -154,7 +155,8 @@ public class MasterClient {
     while (tries ++ < MAX_CONNECT_TRY && !mIsShutdown) {
       mMasterAddress = getMasterAddress();
 
-      LOG.info("Trying to connect master @ " + mMasterAddress);
+      LOG.info("Client version " + Version.VERSION + " is trying to connect master @ "
+          + mMasterAddress);
 
       mProtocol =
           new TBinaryProtocol(new TFramedTransport(new TSocket(mMasterAddress.getHostName(),

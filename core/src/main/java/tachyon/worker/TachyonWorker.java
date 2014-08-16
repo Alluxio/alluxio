@@ -214,7 +214,7 @@ public class TachyonWorker implements Runnable {
 
     mHeartbeatThread = new Thread(this);
     try {
-      LOG.info("The worker server tries to start @ " + workerAddress);
+      LOG.info("Tachyon Worker version " + Version.VERSION + " tries to start @ " + workerAddress);
       WorkerService.Processor<WorkerServiceHandler> processor =
           new WorkerService.Processor<WorkerServiceHandler>(mWorkerServiceHandler);
 
@@ -235,17 +235,17 @@ public class TachyonWorker implements Runnable {
   }
 
   /**
-   * Gets the metadata port of the worker. For unit tests only.
-   */
-  public int getMetaPort() {
-    return PORT;
-  }
-
-  /**
    * Gets the data port of the worker. For unit tests only.
    */
   public int getDataPort() {
     return DATA_PORT;
+  }
+
+  /**
+   * Gets the metadata port of the worker. For unit tests only.
+   */
+  public int getMetaPort() {
+    return PORT;
   }
 
   /**
