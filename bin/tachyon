@@ -32,7 +32,7 @@ TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
 function runTest {
-  Usage="Usage: tachyon runTest <Basic|BasicRawTable> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
+  Usage="Usage: tachyon runTest <Basic|BasicRawTable|BasicCheckpoint|BasicNonByteBuffer> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
 
   if [ "$#" -ne 2 ]; then
     echo $Usage
@@ -55,6 +55,10 @@ function runTest {
   elif [[ "$1" == "BasicCheckpoint" ]]; then
     $bin/tachyon tfs rm /BasicCheckpoint
     $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicCheckpoint tachyon://$MASTER_ADDRESS:19998 /BasicCheckpoint 10
+    exit 0
+  elif [[ "$1" == "BasicNonByteBuffer" ]]; then
+    $bin/tachyon tfs rm /BasicNonByteBuffer_$2
+    $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicNonByteBufferOperations tachyon://$MASTER_ADDRESS:19998 /BasicNonByteBuffer_$2 "$2"
     exit 0
   fi
 
@@ -176,8 +180,15 @@ elif [ "$COMMAND" == "runTests" ]; then
   do
     echo $bin/tachyon runTest Basic $op
     $bin/tachyon runTest Basic $op
+
     echo $bin/tachyon runTest BasicRawTable $op
     $bin/tachyon runTest BasicRawTable $op
+
+    echo $bin/tachyon runTest BasicCheckpoint $op
+    $bin/tachyon runTest BasicCheckpoint $op
+
+    echo $bin/tachyon runTest BasicNonByteBuffer $op
+    $bin/tachyon runTest BasicNonByteBuffer $op
   done
 
   exit 0

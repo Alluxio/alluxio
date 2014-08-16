@@ -22,6 +22,8 @@ import tachyon.client.WriteType;
  * file if exists.
  */
 public final class BasicNonByteBufferOperations {
+  private static final boolean PASS = true;
+
   private static void usage() {
     System.out.println("java -cp target/tachyon-" + Version.VERSION
         + "-jar-with-dependencies.jar "
@@ -47,6 +49,9 @@ public final class BasicNonByteBufferOperations {
 
     write(client, filePath, writeType, deleteIfExists, length);
     read(client, filePath, readType);
+
+    Utils.printPassInfo(PASS);
+    System.exit(0);
   }
 
   private static void write(TachyonFS client, String filePath, WriteType writeType,
