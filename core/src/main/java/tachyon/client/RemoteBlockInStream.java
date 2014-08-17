@@ -29,8 +29,8 @@ import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
-import tachyon.worker.DataServerMessage;
 import tachyon.util.CommonUtils;
+import tachyon.worker.DataServerMessage;
 
 /**
  * BlockInStream for remote block.
@@ -220,7 +220,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
       for (int k = 0; k < blockLocations.size(); k ++) {
         String host = blockLocations.get(k).mHost;
-        int port = blockLocations.get(k).mPort;
+        int port = blockLocations.get(k).mSecondaryPort;
 
         // The data is not in remote machine's memory if port == -1.
         if (port == -1) {
@@ -231,24 +231,24 @@ public class RemoteBlockInStream extends BlockInStream {
           String localFileName = CommonUtils.concat(TFS.getRootFolder(), blockInfo.blockId);
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         }
-        LOG.info(host + ":" + (port + 1) + " current host is "
+        LOG.info(host + ":" + port + " current host is "
             + InetAddress.getLocalHost().getHostName() + " "
             + InetAddress.getLocalHost().getHostAddress());
 
         try {
           buf =
-              retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port + 1),
+              retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port),
                   blockInfo.blockId, offset, len);
           if (buf != null) {
             break;
           }
         } catch (IOException e) {
-          LOG.error(e.getMessage());
+          LOG.error(e);
           buf = null;
         }
       }
     } catch (IOException e) {
-      LOG.error("Failed to get read data from remote " + e.getMessage());
+      LOG.error("Failed to get read data from remote ", e);
       buf = null;
     }
 
@@ -332,8 +332,7 @@ public class RemoteBlockInStream extends BlockInStream {
           }
         }
       } catch (IOException e) {
-        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " + FILE.FID
-            + "\n" + e);
+        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " + FILE.FID, e);
         mCheckpointInputStream = null;
       }
     }

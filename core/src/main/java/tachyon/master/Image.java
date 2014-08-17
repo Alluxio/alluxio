@@ -85,13 +85,22 @@ public class Image {
     }
     LOG.info("Loading image " + path);
     DataInputStream imageIs = new DataInputStream(ufs.open(path));
-    JsonParser parser = JsonObject.createObjectMapper().getJsonFactory().createJsonParser(imageIs);
+    JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(imageIs);
 
     info.loadImage(parser, path);
     imageIs.close();
     ufs.close();
   }
 
+  /**
+   * Rename the src to the dst. Only used to rename the Image.
+   * 
+   * @param src
+   *          The src image path
+   * @param dst
+   *          The dst image path
+   * @throws IOException
+   */
   public static void rename(String src, String dst) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(src);
     ufs.rename(src, dst);

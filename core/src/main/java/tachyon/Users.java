@@ -25,6 +25,8 @@ import java.util.Map.Entry;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Throwables;
+
 import tachyon.conf.CommonConf;
 import tachyon.util.CommonUtils;
 
@@ -37,24 +39,26 @@ public class Users {
 
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  /* User's folder */
+  /** User's temporary data folder in the worker **/
   private final String USER_FOLDER;
-  /* User's under filesystem folder */
-  private final String USER_UNDERFS_FOLDER;
-  /* Maps the user id and <tt>UserInfo</tt> object */
+  /** User's teomporary data folder in the under filesystem **/
+  private final String USER_UFS_FOLDER;
+  /** Map from UserId to {@link tachyon.UserInfo} object **/
   private final Map<Long, UserInfo> USERS;
 
-  public Users(final String userfolder, final String userUnderfsFolder) {
+  public Users(final String userfolder, final String userUfsFolder) {
     USER_FOLDER = userfolder;
-    USER_UNDERFS_FOLDER = userUnderfsFolder;
+    USER_UFS_FOLDER = userUfsFolder;
     USERS = new HashMap<Long, UserInfo>();
   }
 
   /**
    * Adds user's own bytes and updates the user's heartbeat.
-   *
-   * @param userId contains userId of the user.
-   * @param newBytes contains bytes value.
+   * 
+   * @param userId
+   *          id of the user.
+   * @param newBytes
+   *          delta bytes the user owns.
    */
   public void addOwnBytes(long userId, long newBytes) {
     UserInfo tUser = null;
@@ -85,23 +89,25 @@ public class Users {
   }
 
   /**
-   * Returns the user's temp folder.
-   *
-   * @param userId The queried user.
-   * @return String contains user's temp folder.
+   * Returns the user's temporary data folder in the worker's machine.
+   * 
+   * @param userId
+   *          The queried user.
+   * @return String contains user's temporary data folder in the worker's machine..
    */
   public String getUserTempFolder(long userId) {
     return CommonUtils.concat(USER_FOLDER, userId);
   }
 
   /**
-   * Returns the user's under fs temp folder
-   *
-   * @param userId The queried user.
-   * @return String contains user's under fs temp folder.
-  */
-  public String getUserUnderfsTempFolder(long userId) {
-    return CommonUtils.concat(USER_UNDERFS_FOLDER, userId);
+   * Returns the user's temporary data folder in the under filesystem.
+   * 
+   * @param userId
+   *          The queried user.
+   * @return String contains the user's temporary data folder in the under filesystem.
+   */
+  public String getUserUfsTempFolder(long userId) {
+    return CommonUtils.concat(USER_UFS_FOLDER, userId);
   }
 
   /**
@@ -145,10 +151,10 @@ public class Users {
       try {
         FileUtils.deleteDirectory(new File(folder));
       } catch (IOException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
 
-      folder = getUserUnderfsTempFolder(userId);
+      folder = getUserUfsTempFolder(userId);
       sb.append(" Also remove users underfs folder " + folder);
       try {
         UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
@@ -161,11 +167,12 @@ public class Users {
     return returnedBytes;
   }
 
-    /**
-     * Updates user's heartbeat using <tt>System.currentTimeMillis()</tt>
-     *
-     * @param userId contains userId of the user
-     */
+  /**
+   * Updates user's heartbeat.
+   * 
+   * @param userId
+   *          the id of the user
+   */
   public void userHeartbeat(long userId) {
     synchronized (USERS) {
       if (USERS.containsKey(userId)) {

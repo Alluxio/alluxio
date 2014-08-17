@@ -82,7 +82,7 @@ public class BlockOutStream extends OutStream {
       throw new IOException(msg);
     }
 
-    File localFolder = TFS.createAndGetUserTempFolder();
+    File localFolder = TFS.createAndGetUserLocalTempFolder();
     if (localFolder == null) {
       mCanWrite = false;
       String msg = "Failed to create temp user folder for tachyon client.";
@@ -111,7 +111,6 @@ public class BlockOutStream extends OutStream {
               + ") or no worker for " + FILE.FID + " " + BLOCK_ID;
       if (PIN) {
         TFS.outOfMemoryForPinFile(FILE.FID);
-        throw new IOException(msg);
       }
 
       throw new IOException(msg);

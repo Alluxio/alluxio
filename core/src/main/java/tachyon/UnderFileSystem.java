@@ -19,7 +19,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-import tachyon.util.CommonUtils;
+import tachyon.conf.CommonConf;
 
 /**
  * Tachyon stores data into an under layer file system. Any file system implementing this interface
@@ -29,17 +29,17 @@ public abstract class UnderFileSystem {
   public enum SpaceType {
     SPACE_TOTAL(0), SPACE_FREE(1), SPACE_USED(2);
 
-    private final int value;
+    private final int VALUE;
 
     private SpaceType(int value) {
-      this.value = value;
+      VALUE = value;
     }
 
     /**
      * Get the integer value of this enum value.
      */
     public int getValue() {
-      return value;
+      return VALUE;
     }
   }
 
@@ -64,14 +64,27 @@ public abstract class UnderFileSystem {
    * @return null for any unknown scheme.
    */
   public static UnderFileSystem get(String path, Object conf) {
-    if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")
-        || path.startsWith("glusterfs:///")) {
+    if (isHadoopUnderFS(path)) {
       return UnderFileSystemHdfs.getClient(path, conf);
     } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return UnderFileSystemSingleLocal.getClient();
     }
-    CommonUtils.illegalArgumentException("Unknown under file system scheme " + path);
-    return null;
+    throw new IllegalArgumentException("Unknown under file system scheme " + path);
+  }
+
+  /**
+   * Determines if the Hadoop implementation of {@link tachyon.UnderFileSystem} should be used.
+   * 
+   * The logic to say if a path should use the hadoop implementation is by checking if
+   * {@link String#startsWith(String)} to see if the configured schemas are found.
+   */
+  private static boolean isHadoopUnderFS(final String path) {
+    for (final String prefix : CommonConf.get().HADOOP_UFS_PREFIXES) {
+      if (path.startsWith(prefix)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -90,8 +103,7 @@ public abstract class UnderFileSystem {
     if (path == null) {
       return null;
     } else if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)
-        || path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")
-        || path.startsWith("glusterfs:///")) {
+        || isHadoopUnderFS(path)) {
       String prefix = path.substring(0, path.indexOf("://") + 3);
       String body = path.substring(prefix.length());
       if (body.contains(Constants.PATH_SEPARATOR)) {
