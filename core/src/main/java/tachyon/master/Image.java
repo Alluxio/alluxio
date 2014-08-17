@@ -47,25 +47,32 @@ public class Image {
     String parentFolder = path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR));
     LOG.info("Creating the image file: " + tPath);
     UnderFileSystem ufs = UnderFileSystem.get(path);
-    if (!ufs.exists(parentFolder)) {
-      LOG.info("Creating parent folder " + parentFolder);
-      ufs.mkdirs(parentFolder, true);
+    DataOutputStream imageOs = null;
+    try {
+      if (!ufs.exists(parentFolder)) {
+        LOG.info("Creating parent folder " + parentFolder);
+        ufs.mkdirs(parentFolder, true);
+      }
+      OutputStream os = ufs.create(tPath);
+      imageOs = new DataOutputStream(os);
+      ObjectWriter writer = JsonObject.createObjectMapper().writer();
+
+      info.writeImage(writer, imageOs);
+      imageOs.flush();
+
+      LOG.info("Succefully created the image file: " + tPath);
+      ufs.delete(path, false);
+      ufs.rename(tPath, path);
+      ufs.delete(tPath, false);
+      LOG.info("Renamed " + tPath + " to " + path);
+
+    } finally {
+      if (imageOs != null) {
+        imageOs.close();
+      }
+      // safe to close, nothing created here with scope outside function
+      ufs.close();
     }
-    OutputStream os = ufs.create(tPath);
-    DataOutputStream imageOs = new DataOutputStream(os);
-    ObjectWriter writer = JsonObject.createObjectMapper().writer();
-
-    info.writeImage(writer, imageOs);
-    imageOs.flush();
-    imageOs.close();
-
-    LOG.info("Succefully created the image file: " + tPath);
-    ufs.delete(path, false);
-    ufs.rename(tPath, path);
-    ufs.delete(tPath, false);
-    LOG.info("Renamed " + tPath + " to " + path);
-    // safe to close, nothing created here with scope outside function
-    ufs.close();
   }
 
   /**
@@ -79,17 +86,22 @@ public class Image {
    */
   public static void load(MasterInfo info, String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
-    if (!ufs.exists(path)) {
-      LOG.info("Image " + path + " does not exist.");
-      return;
+    DataInputStream imageIs = null;
+    try {
+      if (!ufs.exists(path)) {
+        LOG.info("Image " + path + " does not exist.");
+        return;
+      }
+      LOG.info("Loading image " + path);
+      imageIs = new DataInputStream(ufs.open(path));
+      JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(imageIs);
+      info.loadImage(parser, path);
+    } finally {
+      if (imageIs != null) {
+        imageIs.close();
+      }
+      ufs.close();
     }
-    LOG.info("Loading image " + path);
-    DataInputStream imageIs = new DataInputStream(ufs.open(path));
-    JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(imageIs);
-
-    info.loadImage(parser, path);
-    imageIs.close();
-    ufs.close();
   }
 
   /**
