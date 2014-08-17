@@ -59,9 +59,9 @@ public class InodeFileTest {
   public void inMemoryLocationsTest() throws IOException, BlockInfoException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
     List<NetAddress> testAddresses = new ArrayList<NetAddress>(3);
-    testAddresses.add(new NetAddress("testhost1", 1000));
-    testAddresses.add(new NetAddress("testhost2", 2000));
-    testAddresses.add(new NetAddress("testhost3", 3000));
+    testAddresses.add(new NetAddress("testhost1", 1000, 1001));
+    testAddresses.add(new NetAddress("testhost2", 2000, 2001));
+    testAddresses.add(new NetAddress("testhost3", 3000, 3001));
     inodeFile.addBlock(new BlockInfo(inodeFile, 0, 5));
     inodeFile.addLocation(0, 1, testAddresses.get(0));
     Assert.assertEquals(1, inodeFile.getBlockLocations(0).size());
@@ -75,7 +75,7 @@ public class InodeFileTest {
   @Test(expected = BlockInfoException.class)
   public void inMemoryLocationsTestWithBlockInfoException() throws IOException, BlockInfoException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
   }
 
   @Test
@@ -83,17 +83,17 @@ public class InodeFileTest {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
     inodeFile.addBlock(new BlockInfo(inodeFile, 0, 5));
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
     Assert.assertTrue(inodeFile.isFullyInMemory());
     inodeFile.removeLocation(0, 1);
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
     Assert.assertTrue(inodeFile.isFullyInMemory());
     inodeFile.removeLocation(0, 1);
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
-    inodeFile.addLocation(0, 2, new NetAddress("testhost1", 1000));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
+    inodeFile.addLocation(0, 2, new NetAddress("testhost1", 1000, 1001));
     Assert.assertTrue(inodeFile.isFullyInMemory());
     inodeFile.removeLocation(0, 1);
     Assert.assertTrue(inodeFile.isFullyInMemory());
@@ -164,6 +164,16 @@ public class InodeFileTest {
     Assert.assertEquals("", inodeFile.getUfsPath());
     inodeFile.setUfsPath("/testPath");
     Assert.assertEquals("/testPath", inodeFile.getUfsPath());
+  }
+
+  @Test
+  public void setLastModificationTimeTest() {
+    long createTimeMs = System.currentTimeMillis();
+    long modificationTimeMs = createTimeMs + 1000;
+    InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, createTimeMs);
+    Assert.assertEquals(createTimeMs, inodeFile.getLastModificationTimeMs());
+    inodeFile.setLastModificationTimeMs(modificationTimeMs);
+    Assert.assertEquals(modificationTimeMs, inodeFile.getLastModificationTimeMs());
   }
 
   @Test

@@ -336,22 +336,22 @@ public class TachyonURITest {
   // Exceptions
   @Test(expected = IllegalArgumentException.class)
   public void constructFromEmptyPathTest() {
-    TachyonURI uri = new TachyonURI("");
+    new TachyonURI("");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void constructFromEmptyPathTest2() {
-    TachyonURI uri = new TachyonURI(null, null, null);
+    new TachyonURI(null, null, null);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void constructFromEmptyPathTest3() {
-    TachyonURI uri = new TachyonURI("file", null, "");
+    new TachyonURI("file", null, "");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void invalidURISyntaxTest() {
-    TachyonURI uri = new TachyonURI("://localhost:8080/a");
+    new TachyonURI("://localhost:8080/a");
   }
 
   private void testParentChild(String target, String parent, String child) {

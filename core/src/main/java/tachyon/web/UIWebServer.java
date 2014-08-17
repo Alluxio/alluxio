@@ -17,6 +17,7 @@ package tachyon.web;
 import java.io.File;
 import java.net.InetSocketAddress;
 
+import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -24,12 +25,12 @@ import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.apache.log4j.Logger;
+
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.conf.CommonConf;
 import tachyon.master.MasterInfo;
-import tachyon.util.CommonUtils;
 
 /**
  * Class that bootstraps and starts the web server for the web interface.
@@ -50,7 +51,6 @@ public class UIWebServer {
    *          Address of the server
    * @param masterInfo
    *          MasterInfo for the tachyon filesystem this UIWebServer supports
-   * @return A new UIWebServer
    */
   public UIWebServer(String serverName, InetSocketAddress address, MasterInfo masterInfo) {
     mAddress = address;
@@ -91,7 +91,7 @@ public class UIWebServer {
       mServer.start();
       LOG.info(mServerName + " started @ " + mAddress);
     } catch (Exception e) {
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 }

@@ -18,11 +18,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.rules.ExpectedException;
 
 import tachyon.Constants;
@@ -31,7 +31,7 @@ import tachyon.UnderFileSystem;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
-import tachyon.worker.WorkerStorage;
+import tachyon.thrift.NetAddress;
 
 /**
  * Unit tests for tachyon.WorkerStorage
@@ -40,7 +40,7 @@ public class WorkerStorageTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
   private InetSocketAddress mMasterAddress = null;
-  private InetSocketAddress mWorkerAddress = null;
+  private NetAddress mWorkerAddress = null;
   private String mWorkerDataFolder = null;
 
   private final long WORKER_CAPACITY_BYTES = 100000;
@@ -73,9 +73,9 @@ public class WorkerStorageTest {
     mLocalTachyonCluster.stopWorker();
     mTfs.delete(fid, true);
 
-    WorkerStorage ws =
-        new WorkerStorage(mMasterAddress, mWorkerAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
-    String orpahnblock = ws.getUnderfsOrphansFolder() + Constants.PATH_SEPARATOR + bid;
+    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
+    ws.initialize(mWorkerAddress);
+    String orpahnblock = ws.getUfsOrphansFolder() + Constants.PATH_SEPARATOR + bid;
     UnderFileSystem ufs = UnderFileSystem.get(orpahnblock);
     Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", new File(
         mWorkerDataFolder + Constants.PATH_SEPARATOR + bid).exists());
@@ -116,6 +116,7 @@ public class WorkerStorageTest {
     // try a non-numerical file name
     File unknownFile = new File(mWorkerDataFolder + Constants.PATH_SEPARATOR + "xyz");
     unknownFile.createNewFile();
-    new WorkerStorage(mMasterAddress, mWorkerAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
+    WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
+    ws.initialize(mWorkerAddress);
   }
 }

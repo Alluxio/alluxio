@@ -14,8 +14,19 @@
  */
 package tachyon.web;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
+
 import tachyon.Constants;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
@@ -28,16 +39,6 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Servlet that provides data for browsing the file system.
  */
@@ -46,7 +47,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * Class to make referencing file objects more intuitive. Mainly to avoid
    * implicit association by array indexes.
    */
-  public class UiBlockInfo implements Comparable<UiBlockInfo> {
+  public static class UiBlockInfo implements Comparable<UiBlockInfo> {
 
     private final long ID;
     private final long BLOCK_LENGTH;
@@ -99,7 +100,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws IOException
    * @throws InvalidPathException
-   * @throws TException
    */
   private void displayFile(String path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException {
@@ -128,7 +128,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
     try {
       tachyonClient.close();
-    } catch (TException e) {
+    } catch (IOException e) {
       LOG.error(e.getMessage());
     }
     List<BlockInfo> rawBlockList = mMasterInfo.getBlockList(path);
@@ -138,7 +138,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
     request.setAttribute("fileBlocks", uiBlockInfo);
     request.setAttribute("fileData", fileData);
-    return;
   }
 
   /**
@@ -217,7 +216,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
           toAdd
-          .setFileLocations(mMasterInfo.getFileLocations(toAdd.getId()).get(0).getLocations());
+              .setFileLocations(mMasterInfo.getFileLocations(toAdd.getId()).get(0).getLocations());
         }
       } catch (FileDoesNotExistException fdne) {
         request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
@@ -259,6 +258,5 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       pathInfos[i] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     }
     request.setAttribute("pathInfos", pathInfos);
-    return;
   }
 }

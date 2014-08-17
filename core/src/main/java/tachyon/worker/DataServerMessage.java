@@ -22,6 +22,8 @@ import java.nio.channels.SocketChannel;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.client.TachyonByteBuffer;
 import tachyon.conf.WorkerConf;
@@ -133,7 +135,7 @@ public class DataServerMessage {
         }
 
         String filePath = CommonUtils.concat(WorkerConf.get().DATA_FOLDER, blockId);
-        ret.LOG.info("Try to response remote requst by reading from " + filePath);
+        ret.LOG.info("Try to response remote request by reading from " + filePath);
         RandomAccessFile file = new RandomAccessFile(filePath, "r");
 
         long fileLength = file.length();
@@ -165,7 +167,7 @@ public class DataServerMessage {
         file.close();
         ret.mIsMessageReady = true;
         ret.generateHeader();
-        ret.LOG.info("Response remote requst by reading from " + filePath + " preparation done.");
+        ret.LOG.info("Response remote request by reading from " + filePath + " preparation done.");
       } catch (Exception e) {
         // TODO This is a trick for now. The data may have been removed before remote retrieving.
         ret.mBlockId = -ret.mBlockId;
@@ -186,7 +188,7 @@ public class DataServerMessage {
 
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final boolean IS_TO_SEND_DATA;
-  private final short mMsgType;
+  private final short MSG_TYPE;
   private boolean mIsMessageReady;
   private ByteBuffer mHeader;
 
@@ -213,7 +215,7 @@ public class DataServerMessage {
    */
   private DataServerMessage(boolean isToSendData, short msgType) {
     IS_TO_SEND_DATA = isToSendData;
-    mMsgType = msgType;
+    MSG_TYPE = msgType;
     mIsMessageReady = false;
   }
 
@@ -221,16 +223,14 @@ public class DataServerMessage {
    * Check if the message is ready. If not ready, it will throw a runtime exception.
    */
   public void checkReady() {
-    if (!mIsMessageReady) {
-      CommonUtils.runtimeException("Message is not ready.");
-    }
+    Preconditions.checkState(mIsMessageReady, "Message is not ready.");
   }
 
   /**
    * Close the message.
    */
   public void close() {
-    if (mMsgType == DATA_SERVER_RESPONSE_MESSAGE) {
+    if (MSG_TYPE == DATA_SERVER_RESPONSE_MESSAGE) {
       try {
         if (mTachyonData != null) {
           mTachyonData.close();
@@ -255,7 +255,7 @@ public class DataServerMessage {
 
   private void generateHeader() {
     mHeader.clear();
-    mHeader.putShort(mMsgType);
+    mHeader.putShort(MSG_TYPE);
     mHeader.putLong(mBlockId);
     mHeader.putLong(mOffset);
     mHeader.putLong(mLength);
@@ -326,9 +326,9 @@ public class DataServerMessage {
   private void isSend(boolean isSend) {
     if (IS_TO_SEND_DATA != isSend) {
       if (IS_TO_SEND_DATA) {
-        CommonUtils.runtimeException("Try to recv on send message");
+        throw new RuntimeException("Try to recv on send message");
       } else {
-        CommonUtils.runtimeException("Try to send on recv message");
+        throw new RuntimeException("Try to send on recv message");
       }
     }
   }
@@ -351,13 +351,13 @@ public class DataServerMessage {
       if (mHeader.remaining() == 0) {
         mHeader.flip();
         short msgType = mHeader.getShort();
-        assert (mMsgType == msgType);
+        assert (MSG_TYPE == msgType);
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();
         mLength = mHeader.getLong();
         // TODO make this better to truncate the file.
         assert mLength < Integer.MAX_VALUE;
-        if (mMsgType == DATA_SERVER_RESPONSE_MESSAGE) {
+        if (MSG_TYPE == DATA_SERVER_RESPONSE_MESSAGE) {
           if (mLength == -1) {
             mData = ByteBuffer.allocate(0);
           } else {
@@ -366,7 +366,7 @@ public class DataServerMessage {
         }
         LOG.info(String.format("data" + mData + ", blockId(%d), offset(%d), dataLength(%d)",
             mBlockId, mOffset, mLength));
-        if (mMsgType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
+        if (MSG_TYPE == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
           mIsMessageReady = true;
         }
       }

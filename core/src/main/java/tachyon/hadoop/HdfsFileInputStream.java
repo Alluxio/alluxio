@@ -163,9 +163,42 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public int read(long position, byte[] buffer, int offset, int length) throws IOException {
-    throw new IOException("Not supported");
-    // TODO Auto-generated method stub
-    // return 0;
+    int ret = -1;
+
+    if (mTachyonFileInputStream != null) {
+      try {
+        seek(position);
+        ret = mTachyonFileInputStream.read(buffer, offset, length);
+        mCurrentPosition += ret;
+        return ret;
+      } catch (IOException e) {
+        LOG.error(e.getMessage(), e);
+        mTachyonFileInputStream = null;
+      }
+    }
+
+    if (mHdfsInputStream != null) {
+      try {
+        mHdfsInputStream.seek(position);
+        ret = mHdfsInputStream.read(buffer, offset, length);
+        return ret;
+      } catch (IOException e) {
+        LOG.error(e.getMessage(), e);
+        mHdfsInputStream = null;
+      }
+    }
+
+    try {
+      FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
+      mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
+      mHdfsInputStream.seek(position);
+      ret = mHdfsInputStream.read(buffer, offset, length);
+      return ret;
+    } catch (IOException e) {
+      LOG.error(e.getMessage(), e);
+    }
+
+    return -1;
   }
 
   private int readFromHdfsBuffer() throws IOException {
@@ -190,7 +223,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public void readFully(long position, byte[] buffer) throws IOException {
-    // TODO Auto-generated method stub
     throw new IOException("Not supported");
   }
 
@@ -200,7 +232,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public void readFully(long position, byte[] buffer, int offset, int length) throws IOException {
-    // TODO Auto-generated method stub
     throw new IOException("Not supported");
   }
 
@@ -233,7 +264,5 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   @Override
   public boolean seekToNewSource(long targetPos) throws IOException {
     throw new IOException("Not supported");
-    // TODO Auto-generated method stub
-    // return false;
   }
 }

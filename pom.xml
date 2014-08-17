@@ -15,11 +15,13 @@
   ~ limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon-parent</artifactId>
-  <version>0.5.0-SNAPSHOT</version>
+  <version>0.6.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <description>Tachyon Project Parent</description>
   <name>Tachyon Project Parent</name>
@@ -35,7 +37,6 @@
     <connection>scm:git:git@github.com:amplab/tachyon.git</connection>
     <developerConnection>scm:git:git@github.com:amplab/tachyon.git</developerConnection>
     <url>scm:git:git@github.com:amplab/tachyon.git</url>
-    <tag>v0.5.0</tag>
   </scm>
   <developers>
     <developer>
@@ -49,7 +50,7 @@
   </developers>
   <issueManagement>
     <system>github</system>
-    <url>https://spark-project.atlassian.net/browse/TACH</url>
+    <url>https://tachyon.atlassian.net</url>
   </issueManagement>
 
   <parent>
@@ -70,6 +71,45 @@
         <enabled>false</enabled>
       </snapshots>
     </repository>
+    <repository>
+      <id>mapr-repo</id>
+      <name>MapR Repository</name>
+      <url>http://repository.mapr.com/maven</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <!-- for Pivotal's distribution -->
+      <id>spring-releases</id>
+      <name>Spring Release Repository</name>
+      <url>http://repo.spring.io/libs-release</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>HDPReleases</id>
+      <name>HDP Releases</name>
+      <url>http://repo.hortonworks.com/content/repositories/releases/</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+        <updatePolicy>never</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+    </repository>
   </repositories>
 
   <pluginRepositories>
@@ -77,11 +117,12 @@
 
   <properties>
     <test.profile>local</test.profile>
+    <test.output.redirect>true</test.output.redirect>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>1.6</java.version>
     <hadoop.version>1.0.4</hadoop.version>
     <glusterfs-hadoop.version>2.3.5</glusterfs-hadoop.version>
-    <libthrift.version>0.9.0</libthrift.version>
+    <libthrift.version>0.9.1</libthrift.version>
     <cxf.version>2.7.0</cxf.version>
     <jetty.version>7.6.8.v20121106</jetty.version>
     <slf4j.version>1.7.2</slf4j.version>
@@ -93,29 +134,30 @@
   <modules>
     <module>core</module>
     <module>client</module>
+    <module>assembly</module>
   </modules>
 
   <build>
     <plugins>
-<!--
-      <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <version>1.2.1</version>
-        <executions>
-          <execution>
-            <id>Version Calculation</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>${basedir}/bin/thrift-gen.sh</executable>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
--->
+      <!--
+            <plugin>
+              <artifactId>exec-maven-plugin</artifactId>
+              <groupId>org.codehaus.mojo</groupId>
+              <version>1.2.1</version>
+              <executions>
+                <execution>
+                  <id>Version Calculation</id>
+                  <phase>generate-sources</phase>
+                  <goals>
+                    <goal>exec</goal>
+                  </goals>
+                  <configuration>
+                    <executable>${basedir}/bin/thrift-gen.sh</executable>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+      -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -131,6 +173,14 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
         <version>2.4.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.3</version>
+        <configuration>
+          <skipAssembly>true</skipAssembly>
+        </configuration>
       </plugin>
     </plugins>
   </build>

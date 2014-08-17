@@ -17,6 +17,7 @@ package tachyon.util;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,38 +25,6 @@ import org.junit.Test;
 import tachyon.Constants;
 
 public class CommonUtilsTest {
-  @Test
-  public void addLeadingZeroTest() throws IOException {
-    for (int k = 0; k < 10; k ++) {
-      Assert.assertEquals("" + k, CommonUtils.addLeadingZero(k, 1));
-      Assert.assertEquals("0" + k, CommonUtils.addLeadingZero(k, 2));
-      Assert.assertEquals("00" + k, CommonUtils.addLeadingZero(k, 3));
-      Assert.assertEquals("000" + k, CommonUtils.addLeadingZero(k, 4));
-      Assert.assertEquals("0000" + k, CommonUtils.addLeadingZero(k, 5));
-    }
-    for (int k = 10; k < 100; k ++) {
-      Assert.assertEquals("" + k, CommonUtils.addLeadingZero(k, 1));
-      Assert.assertEquals("" + k, CommonUtils.addLeadingZero(k, 2));
-      Assert.assertEquals("0" + k, CommonUtils.addLeadingZero(k, 3));
-      Assert.assertEquals("00" + k, CommonUtils.addLeadingZero(k, 4));
-      Assert.assertEquals("000" + k, CommonUtils.addLeadingZero(k, 5));
-    }
-  }
-
-  @Test(expected = IOException.class)
-  public void addLeadingZeroTestWithNegativeNumber() throws IOException {
-    CommonUtils.addLeadingZero(-1, 1);
-  }
-
-  @Test(expected = IOException.class)
-  public void addLeadingZeroTestWithNegativeWidth() throws IOException {
-    CommonUtils.addLeadingZero(1, 0);
-  }
-
-  @Test(expected = IOException.class)
-  public void addLeadingZeroTestWithZeroWidth() throws IOException {
-    CommonUtils.addLeadingZero(1, -1);
-  }
 
   @Test
   public void getPathWithoutSchemaTest() {
@@ -117,5 +86,71 @@ public class CommonUtilsTest {
       Assert.assertEquals(k * Constants.PB / 10, CommonUtils.parseSpaceSize(k / 10.0 + "PB"));
       Assert.assertEquals(k * Constants.PB / 10, CommonUtils.parseSpaceSize(k / 10.0 + "pB"));
     }
+  }
+
+  @Test
+  public void convertToClockTimeWithShortValue() {
+    String out = CommonUtils.convertMsToClockTime(10);
+    Assert.assertEquals("0 day(s), 0 hour(s), 0 minute(s), and 0 second(s)", out);
+  }
+
+  @Test
+  public void convertToClockTimeWithOneSecond() {
+    String out = CommonUtils.convertMsToClockTime(TimeUnit.SECONDS.toMillis(1));
+    Assert.assertEquals("0 day(s), 0 hour(s), 0 minute(s), and 1 second(s)", out);
+  }
+
+  @Test
+  public void convertToClockTimeWithOneMinute() {
+    String out = CommonUtils.convertMsToClockTime(TimeUnit.MINUTES.toMillis(1));
+    Assert.assertEquals("0 day(s), 0 hour(s), 1 minute(s), and 0 second(s)", out);
+  }
+
+  @Test
+  public void convertToClockTimeWithOneMinute30Seconds() {
+    String out = CommonUtils.convertMsToClockTime(TimeUnit.MINUTES.toMillis(1)
+        + TimeUnit.SECONDS.toMillis(30));
+    Assert.assertEquals("0 day(s), 0 hour(s), 1 minute(s), and 30 second(s)", out);
+  }
+
+  @Test
+  public void convertToClockTimeWithOneHour() {
+    String out = CommonUtils.convertMsToClockTime(TimeUnit.HOURS.toMillis(1));
+    Assert.assertEquals("0 day(s), 1 hour(s), 0 minute(s), and 0 second(s)", out);
+  }
+
+  @Test
+  public void convertToClockTimeWithOneHour10Minutes45Seconds() {
+    String out = CommonUtils.convertMsToClockTime(TimeUnit.HOURS.toMillis(1)
+        + TimeUnit.MINUTES.toMillis(10) + TimeUnit.SECONDS.toMillis(45));
+    Assert.assertEquals("0 day(s), 1 hour(s), 10 minute(s), and 45 second(s)", out);
+  }
+
+  @Test
+  public void convertToClockTimeWithOneDay() {
+    String out = CommonUtils.convertMsToClockTime(TimeUnit.DAYS.toMillis(1));
+    Assert.assertEquals("1 day(s), 0 hour(s), 0 minute(s), and 0 second(s)", out);
+  }
+
+  @Test
+  public void convertToClockTimeWithOneDay4Hours10Minutes45Seconds() {
+    long time = TimeUnit.DAYS.toMillis(1) + TimeUnit.HOURS.toMillis(4)
+        + TimeUnit.MINUTES.toMillis(10) + TimeUnit.SECONDS.toMillis(45);
+    String out = CommonUtils.convertMsToClockTime(time);
+    Assert.assertEquals("1 day(s), 4 hour(s), 10 minute(s), and 45 second(s)", out);
+  }
+
+  @Test
+  public void convertToClockTimeWithOneDay4Hours10Minutes45SecondsWithStopwatch() {
+    long time = TimeUnit.DAYS.toMillis(1) + TimeUnit.HOURS.toMillis(4)
+        + TimeUnit.MINUTES.toMillis(10) + TimeUnit.SECONDS.toMillis(45);
+    String out = CommonUtils.convertMsToClockTime(time);
+    Assert.assertEquals("1 day(s), 4 hour(s), 10 minute(s), and 45 second(s)", out);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void convertToClockTimeWithNegativeValue() {
+    CommonUtils.convertMsToClockTime(1 - TimeUnit.DAYS.toMillis(1) + TimeUnit.HOURS.toMillis(4)
+        + TimeUnit.MINUTES.toMillis(10) + TimeUnit.SECONDS.toMillis(45));
   }
 }

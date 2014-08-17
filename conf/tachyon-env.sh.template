@@ -14,6 +14,14 @@
 
 # The following gives an example:
 
+# Uncomment this section to add a local installation of Hadoop to Tachyon's CLASSPATH.
+# The hadoop command must be in the path to automatically populate the Hadoop classpath.
+#
+# if type "hadoop" > /dev/null 2>&1; then
+#  export HADOOP_TACHYON_CLASSPATH=`hadoop classpath`
+# fi
+# export TACHYON_CLASSPATH=$HADOOP_TACHYON_CLASSPATH
+
 if [[ `uname -a` == Darwin* ]]; then
   # Assuming Mac OS X
   export JAVA_HOME=${JAVA_HOME:-$(/usr/libexec/java_home)}
@@ -22,9 +30,20 @@ if [[ `uname -a` == Darwin* ]]; then
 else
   # Assuming Linux
   if [ -z "$JAVA_HOME" ]; then
-    export JAVA_HOME=/usr/lib/jvm/java-7-oracle
+    if [ -d /usr/lib/jvm/java-7-oracle ]; then
+      export JAVA_HOME=/usr/lib/jvm/java-7-oracle
+    else
+      # openjdk will set this
+      if [ -d /usr/lib/jvm/jre-1.7.0 ]; then
+        export JAVA_HOME=/usr/lib/jvm/jre-1.7.0
+      fi
+    fi
   fi
   export TACHYON_RAM_FOLDER=/mnt/ramdisk
+fi
+
+if [ -z "$JAVA_HOME" ]; then
+  export JAVA_HOME="$(dirname $(which java))/.."
 fi
 
 export JAVA="$JAVA_HOME/bin/java"

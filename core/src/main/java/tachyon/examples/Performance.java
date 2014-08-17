@@ -28,6 +28,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.Version;
 import tachyon.client.OutStream;
@@ -71,7 +74,7 @@ public class Performance {
 
   public static void logPerIteration(long startTimeMs, int times, String msg, int workerId) {
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-    double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
+    double result = 1000.0 * FILE_BYTES / takenTimeMs / 1024 / 1024;
     LOG.info(times + msg + workerId + " : " + result + " Mb/sec. Took " + takenTimeMs + " ms. ");
   }
 
@@ -168,7 +171,7 @@ public class Performance {
       try {
         memoryCopyParition();
       } catch (IOException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
       LOG.info(mMsg + mWorkerId + " just finished.");
     }
@@ -207,7 +210,7 @@ public class Performance {
       try {
         writeParition();
       } catch (Exception e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
       LOG.info("WriteWorker " + mWorkerId + " just finished.");
     }
@@ -228,7 +231,7 @@ public class Performance {
 
         for (int pId = mLeft; pId < mRight; pId ++) {
           TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-          buf = file.readByteBuffer();
+          buf = file.readByteBuffer(0);
           IntBuffer intBuf;
           intBuf = buf.DATA.asIntBuffer();
           int tmp;
@@ -237,7 +240,7 @@ public class Performance {
               tmp = intBuf.get();
               if ((k == 0 && tmp == (i + mWorkerId)) || (k != 0 && tmp == k)) {
               } else {
-                CommonUtils.runtimeException("WHAT? " + tmp + " " + k);
+                throw new IllegalStateException("WHAT? " + tmp + " " + k);
               }
             }
           }
@@ -256,9 +259,7 @@ public class Performance {
           while (len > 0) {
             int r = is.read(mBuf.array());
             len -= r;
-            if (r == -1) {
-              CommonUtils.runtimeException("R == -1");
-            }
+            Preconditions.checkState(r != -1, "R == -1");
           }
           is.close();
           logPerIteration(startTimeMs, pId, "th ReadTachyonFile @ Worker ", pId);
@@ -267,7 +268,7 @@ public class Performance {
         for (int pId = mLeft; pId < mRight; pId ++) {
           long startTimeMs = System.currentTimeMillis();
           TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
-          buf = file.readByteBuffer();
+          buf = file.readByteBuffer(0);
           for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
             buf.DATA.get(mBuf.array());
           }
@@ -290,7 +291,7 @@ public class Performance {
       try {
         readPartition();
       } catch (Exception e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
       LOG.info("ReadWorker " + mWorkerId + " just finished.");
     }
@@ -355,9 +356,7 @@ public class Performance {
           while (len > 0) {
             int r = is.read(mBuf.array());
             len -= r;
-            if (r == -1) {
-              CommonUtils.runtimeException("R == -1");
-            }
+            Preconditions.checkState(r != -1, "R == -1");
           }
           is.close();
           logPerIteration(startTimeMs, times, str, mWorkerId);
@@ -371,7 +370,7 @@ public class Performance {
       try {
         io();
       } catch (IOException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
       LOG.info(mMsg + mWorkerId + " just finished.");
     }
@@ -407,11 +406,11 @@ public class Performance {
       try {
         WWs[thread].join();
       } catch (InterruptedException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-    double result = 1000L * FILES_BYTES / takenTimeMs / 1024 / 1024;
+    double result = 1000.0 * FILES_BYTES / takenTimeMs / 1024 / 1024;
 
     LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + msg + " Test : " + " Took "
         + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
@@ -447,11 +446,11 @@ public class Performance {
       try {
         WWs[thread].join();
       } catch (InterruptedException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-    double result = FILES_BYTES * 1000L / takenTimeMs / 1024 / 1024;
+    double result = FILES_BYTES * 1000.0 / takenTimeMs / 1024 / 1024;
     LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write " : "Read ")
         + " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
@@ -483,11 +482,11 @@ public class Performance {
       try {
         WWs[thread].join();
       } catch (InterruptedException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-    double result = FILES_BYTES * 1000L / takenTimeMs / 1024 / 1024;
+    double result = FILES_BYTES * 1000.0 / takenTimeMs / 1024 / 1024;
     LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write " : "Read ")
         + " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
@@ -565,7 +564,7 @@ public class Performance {
       LOG.info(RESULT_PREFIX);
       HdfsTest(false);
     } else {
-      CommonUtils.runtimeException("No Test Case " + testCase);
+      throw new RuntimeException("No Test Case " + testCase);
     }
 
     for (int k = 0; k < RESULT_ARRAY_SIZE; k ++) {

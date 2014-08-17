@@ -20,16 +20,23 @@
   <parent>
     <groupId>org.tachyonproject</groupId>
     <artifactId>tachyon-parent</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
   </parent>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon</artifactId>
-  <version>0.5.0-SNAPSHOT</version>
+  <version>0.6.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Tachyon: Reliable File Sharing at Memory Speed Across Cluster Frameworks</description>
   <name>Tachyon Project Core</name>
 
   <dependencies>
+    <dependency>
+      <!-- using older version to map dependency version from Hadoop -->
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>14.0.1</version>
+      <scope>compile</scope>
+    </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-jsp</artifactId>
@@ -117,6 +124,10 @@
           <groupId>org.jboss.netty</groupId>
           <artifactId>netty</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -197,6 +208,10 @@
               <groupId>org.codehaus.jackson</groupId>
               <artifactId>jackson-xc</artifactId>
             </exclusion>
+            <exclusion>
+              <groupId>com.google.guava</groupId>
+              <artifactId>guava</artifactId>
+            </exclusion>
           </exclusions>
         </dependency>
       </dependencies>
@@ -273,27 +288,28 @@
           <version>${hadoop.version}</version>
         </dependency>
       </dependencies>
-    </profile>
-
-    <profile>
-      <id>Glusterfs</id>
-      <activation>
-        <property>
-          <name>glusterfs</name>
-        </property>
-      </activation>
-      <properties>
-        <ufs>tachyon.GlusterfsCluster</ufs>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>org.gluster</groupId>
-          <artifactId>glusterfs-hadoop</artifactId>
-          <version>${glusterfs-hadoop.version}</version>
-          <type>jar</type>
-          <scope>compile</scope>
-        </dependency>
-      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>default-testCompile</id>
+                <phase>test-compile</phase>
+                <configuration>
+                  <testExcludes>
+                    <exclude>**/LocalMiniDFSCluster.java</exclude>
+                  </testExcludes>
+                </configuration>
+                <goals>
+                  <goal>testCompile</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 
@@ -311,6 +327,7 @@
         <version>2.2</version>
         <executions>
           <execution>
+            <id>include-thrift</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
@@ -338,6 +355,29 @@
               </relocations>
             </configuration>
           </execution>
+          <execution>
+            <id>uber-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+              </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:* </artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -346,26 +386,8 @@
         <version>2.14</version>
         <configuration>
           <argLine>-Dufs=${ufs}</argLine>
-          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
         </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-        </configuration>
-        <executions>
-          <execution>
-            <id>make-assembly</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -385,6 +407,17 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>2.5.2</version>
+        <configuration>
+          <excludeFilterFile>${project.basedir}/src/main/findbugs/findbugs-exclude.xml</excludeFilterFile>
+          <findbugsXmlOutput>true</findbugsXmlOutput>
+          <xmlOutput>true</xmlOutput>
+          <effort>Max</effort>
+        </configuration>
       </plugin>
     </plugins>
   </build>

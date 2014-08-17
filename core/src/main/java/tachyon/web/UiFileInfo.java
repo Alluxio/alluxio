@@ -31,6 +31,7 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
   private final long BLOCK_SIZE_BYTES;
   private final long SIZE;
   private final long CREATION_TIME_MS;
+  private final long MODIFICATION_TIME_MS;
   private final boolean IN_MEMORY;
   private final int IN_MEMORY_PERCENTAGE;
   private final boolean IS_DIRECTORY;
@@ -46,6 +47,7 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
     BLOCK_SIZE_BYTES = fileInfo.getBlockSizeByte();
     SIZE = fileInfo.getLength();
     CREATION_TIME_MS = fileInfo.getCreationTimeMs();
+    MODIFICATION_TIME_MS = fileInfo.getLastModificationTimeMs();
     IN_MEMORY = (100 == fileInfo.inMemoryPercentage);
     IN_MEMORY_PERCENTAGE = fileInfo.getInMemoryPercentage();
     IS_DIRECTORY = fileInfo.isFolder;
@@ -76,6 +78,10 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
 
   public String getCreationTime() {
     return CommonUtils.convertMsToDate(CREATION_TIME_MS);
+  }
+
+  public String getModificationTime() {
+    return CommonUtils.convertMsToDate(MODIFICATION_TIME_MS);
   }
 
   public int getDependencyId() {
@@ -124,7 +130,7 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
 
   public void setFileLocations(List<NetAddress> fileLocations) {
     for (NetAddress addr : fileLocations) {
-      mFileLocations.add(new String(addr.getMHost() + ":" + addr.getMPort()));
+      mFileLocations.add(addr.getMHost() + ":" + addr.getMPort());
     }
   }
 }

@@ -69,10 +69,10 @@ public class BasicCheckpoint {
       String filePath = sFileFolder + "/part-" + i;
       LOG.debug("Reading data from " + filePath);
       TachyonFile file = sTachyonClient.getFile(filePath);
-      TachyonByteBuffer buf = file.readByteBuffer();
+      TachyonByteBuffer buf = file.readByteBuffer(0);
       if (buf == null) {
         file.recache();
-        buf = file.readByteBuffer();
+        buf = file.readByteBuffer(0);
       }
       buf.DATA.order(ByteOrder.nativeOrder());
       for (int k = 0; k < sNumbers; k ++) {

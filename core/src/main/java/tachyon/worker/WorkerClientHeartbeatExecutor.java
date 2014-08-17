@@ -14,12 +14,11 @@
  */
 package tachyon.worker;
 
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
+import java.io.IOException;
 
-import tachyon.Constants;
+import com.google.common.base.Throwables;
+
 import tachyon.HeartbeatExecutor;
-import tachyon.util.CommonUtils;
 
 /**
  * User client sends periodical heartbeats to the worker it is talking to. It is fails to do so,
@@ -38,8 +37,8 @@ class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   public void heartbeat() {
     try {
       WORKER_CLIENT.userHeartbeat(USER_ID);
-    } catch (TException e) {
-      CommonUtils.runtimeException(e);
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
     }
   }
 }

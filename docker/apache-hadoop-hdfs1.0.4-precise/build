@@ -1,0 +1,1 @@
+docker build -t ${IMAGE_PREFIX}apache-hadoop-hdfs-precise:1.0.4 .

@@ -19,17 +19,20 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
 import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.Version;
+import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
+import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
@@ -147,8 +150,8 @@ public class TachyonWorker implements Runnable {
     }
   }
 
-  private final InetSocketAddress MasterAddress;
-  private final InetSocketAddress WorkerAddress;
+  private final InetSocketAddress MASTER_ADDRESS;
+  private final NetAddress WORKER_ADDRESS;
   private TServer mServer;
 
   private TNonblockingServerSocket mServerTNonblockingServerSocket;
@@ -156,13 +159,16 @@ public class TachyonWorker implements Runnable {
 
   private WorkerServiceHandler mWorkerServiceHandler;
 
-  private DataServer mDataServer;
+  private final DataServer DATA_SERVER;
 
   private Thread mDataServerThread;
 
   private Thread mHeartbeatThread;
 
   private volatile boolean mStop = false;
+
+  private final int PORT;
+  private final int DATA_PORT;
 
   /**
    * @param masterAddress
@@ -185,26 +191,35 @@ public class TachyonWorker implements Runnable {
   private TachyonWorker(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
       String dataFolder, long memoryCapacityBytes) {
-    MasterAddress = masterAddress;
-    WorkerAddress = workerAddress;
+    CommonConf.assertValidPort(masterAddress);
+    CommonConf.assertValidPort(workerAddress);
+    CommonConf.assertValidPort(dataPort);
 
-    mWorkerStorage =
-        new WorkerStorage(MasterAddress, WorkerAddress, dataFolder, memoryCapacityBytes);
+    MASTER_ADDRESS = masterAddress;
+
+    mWorkerStorage = new WorkerStorage(MASTER_ADDRESS, dataFolder, memoryCapacityBytes);
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
-    mDataServer =
+    // Extract the port from the generated socket.
+    // When running tests, its great to use port '0' so the system will figure out what port to use
+    // (any random free port).
+    // In a production or any real deployment setup, port '0' should not be used as it will make
+    // deployment more complicated.
+    DATA_SERVER =
         new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
             mWorkerStorage);
-    mDataServerThread = new Thread(mDataServer);
+    mDataServerThread = new Thread(DATA_SERVER);
+    DATA_PORT = DATA_SERVER.getPort();
 
     mHeartbeatThread = new Thread(this);
     try {
-      LOG.info("The worker server tries to start @ " + workerAddress);
+      LOG.info("Tachyon Worker version " + Version.VERSION + " tries to start @ " + workerAddress);
       WorkerService.Processor<WorkerServiceHandler> processor =
           new WorkerService.Processor<WorkerServiceHandler>(mWorkerServiceHandler);
 
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(workerAddress);
+      PORT = NetworkUtils.getPort(mServerTNonblockingServerSocket);
       mServer =
           new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
               mServerTNonblockingServerSocket).processor(processor)
@@ -212,8 +227,25 @@ public class TachyonWorker implements Runnable {
               .acceptQueueSizePerThread(acceptQueueSizePerThreads).workerThreads(workerThreads));
     } catch (TTransportException e) {
       LOG.error(e.getMessage(), e);
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
+    WORKER_ADDRESS =
+        new NetAddress(workerAddress.getAddress().getCanonicalHostName(), PORT, DATA_PORT);
+    mWorkerStorage.initialize(WORKER_ADDRESS);
+  }
+
+  /**
+   * Gets the data port of the worker. For unit tests only.
+   */
+  public int getDataPort() {
+    return DATA_PORT;
+  }
+
+  /**
+   * Gets the metadata port of the worker. For unit tests only.
+   */
+  public int getMetaPort() {
+    return PORT;
   }
 
   /**
@@ -244,17 +276,17 @@ public class TachyonWorker implements Runnable {
         lastHeartbeatMs = System.currentTimeMillis();
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
-      } catch (TException e) {
+      } catch (IOException e) {
         LOG.error(e.getMessage(), e);
         try {
           mWorkerStorage.resetMasterClient();
-        } catch (TException e2) {
+        } catch (IOException e2) {
           LOG.error("Received exception while attempting to reset client", e2);
         }
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         cmd = null;
         if (System.currentTimeMillis() - lastHeartbeatMs >= WorkerConf.get().HEARTBEAT_TIMEOUT_MS) {
-          CommonUtils.runtimeException("Timebeat timeout "
+          throw new RuntimeException("Timebeat timeout "
               + (System.currentTimeMillis() - lastHeartbeatMs) + "ms");
         }
       }
@@ -279,7 +311,7 @@ public class TachyonWorker implements Runnable {
           LOG.info("Delete command: " + cmd);
           break;
         default:
-          CommonUtils.runtimeException("Un-recognized command from master " + cmd.toString());
+          throw new RuntimeException("Un-recognized command from master " + cmd.toString());
         }
       }
 
@@ -294,9 +326,9 @@ public class TachyonWorker implements Runnable {
     mDataServerThread.start();
     mHeartbeatThread.start();
 
-    LOG.info("The worker server started @ " + WorkerAddress);
+    LOG.info("The worker server started @ " + WORKER_ADDRESS);
     mServer.serve();
-    LOG.info("The worker server ends @ " + WorkerAddress);
+    LOG.info("The worker server ends @ " + WORKER_ADDRESS);
   }
 
   /**
@@ -308,10 +340,10 @@ public class TachyonWorker implements Runnable {
   public void stop() throws IOException, InterruptedException {
     mStop = true;
     mWorkerStorage.stop();
-    mDataServer.close();
+    DATA_SERVER.close();
     mServer.stop();
     mServerTNonblockingServerSocket.close();
-    while (!mDataServer.isClosed() || mServer.isServing() || mHeartbeatThread.isAlive()) {
+    while (!DATA_SERVER.isClosed() || mServer.isServing() || mHeartbeatThread.isAlive()) {
       // TODO The reason to stop and close again is due to some issues in Thrift.
       mServer.stop();
       mServerTNonblockingServerSocket.close();
