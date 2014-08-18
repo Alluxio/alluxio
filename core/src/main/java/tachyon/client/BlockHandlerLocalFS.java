@@ -27,10 +27,10 @@ import tachyon.util.CommonUtils;
 /**
  * It is used for handling block files on LocalFS, such as RamDisk, SSD and HDD.
  */
-public class BlockHandlerLocalFS extends BlockHandler {
+public final class BlockHandlerLocalFS extends BlockHandler {
 
-  RandomAccessFile mLocalFile = null;
-  FileChannel mLocalFileChannel = null;
+  private final RandomAccessFile mLocalFile;
+  private final FileChannel mLocalFileChannel;
 
   BlockHandlerLocalFS(String path) throws IOException {
     super(path);
