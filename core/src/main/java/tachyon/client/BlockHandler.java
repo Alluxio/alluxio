@@ -14,10 +14,13 @@
  */
 package tachyon.client;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.apache.log4j.Logger;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 
@@ -26,7 +29,7 @@ import tachyon.Constants;
  * file systems can be implemented by extending this class. It also creates a specific
  * BlockHandler for certain block file by checking the block file's path.
  */
-public abstract class BlockHandler {
+public abstract class BlockHandler implements Closeable {
   /**
    * Create a block handler according to path scheme
    * 
@@ -47,13 +50,10 @@ public abstract class BlockHandler {
   }
 
   protected final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  protected String mPath;
+  protected final String mPath;
 
   protected BlockHandler(String path) throws IOException {
-    if (path == null) {
-      throw new IOException("Block file's path is null");
-    }
-    mPath = path;
+    mPath = Preconditions.checkNotNull(path);
   }
 
   /**
@@ -72,13 +72,6 @@ public abstract class BlockHandler {
    */
   public abstract int appendCurrentBuffer(byte[] buf, long inFilePos, int offset, int length)
       throws IOException;
-
-  /**
-   * Close block file
-   * 
-   * @throws IOException
-   */
-  public abstract void close() throws IOException;
 
   /**
    * Delete block file
