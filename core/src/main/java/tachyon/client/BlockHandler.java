@@ -52,7 +52,7 @@ public abstract class BlockHandler implements Closeable {
   protected final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   protected final String mPath;
 
-  protected BlockHandler(String path) throws IOException {
+  protected BlockHandler(String path) {
     mPath = Preconditions.checkNotNull(path);
   }
 
@@ -88,5 +88,5 @@ public abstract class BlockHandler implements Closeable {
    * @return byte buffer storing data that is read
    * @throws IOException
    */
-  public abstract ByteBuffer readByteBuffer(int offset, int length) throws IOException;
+  public abstract ByteBuffer readByteBuffer(long offset, int length) throws IOException;
 }
