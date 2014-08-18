@@ -460,7 +460,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return TFS.rename(FID, path);
   }
 
-
   private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, long blockId)
       throws IOException {
     SocketChannel socketChannel = SocketChannel.open();

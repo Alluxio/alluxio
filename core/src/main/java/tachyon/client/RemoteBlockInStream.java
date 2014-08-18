@@ -263,7 +263,7 @@ public class RemoteBlockInStream extends BlockInStream {
 
       LOG.info("Connected to remote machine " + address + " sent");
       DataServerMessage sendMsg =
-                DataServerMessage.createBlockRequestMessage(blockId, offset, length);
+          DataServerMessage.createBlockRequestMessage(blockId, offset, length);
       while (!sendMsg.finishSending()) {
         sendMsg.send(socketChannel);
       }
@@ -290,7 +290,7 @@ public class RemoteBlockInStream extends BlockInStream {
       }
       return recvMsg.getReadOnlyData();
     } finally {
-        socketChannel.close();
+      socketChannel.close();
     }
   }
 
