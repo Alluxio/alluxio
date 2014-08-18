@@ -14,13 +14,14 @@
  */
 package tachyon.client;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
  * TachyonByteBuffer is a wrapper on Java ByteBuffer plus some information needed by Tachyon.
  */
-public class TachyonByteBuffer {
+public class TachyonByteBuffer implements Closeable {
   // ByteBuffer contains data.
   public final ByteBuffer DATA;
 
@@ -54,6 +55,7 @@ public class TachyonByteBuffer {
    * 
    * @throws IOException
    */
+  @Override
   public synchronized void close() throws IOException {
     if (mClosed) {
       return;
