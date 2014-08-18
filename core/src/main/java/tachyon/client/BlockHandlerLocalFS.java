@@ -68,15 +68,15 @@ public final class BlockHandlerLocalFS extends BlockHandler {
   }
 
   @Override
-  public ByteBuffer readByteBuffer(int offset, int length) throws IOException {
-    int fileLength = (int) mLocalFile.length();
+  public ByteBuffer readByteBuffer(long inFilePos, int length) throws IOException {
+    long fileLength = mLocalFile.length();
     String error = null;
-    if (offset > fileLength) {
-      error = String.format("Offset(%d) is larger than file length(%d)", offset, fileLength);
+    if (inFilePos > fileLength) {
+      error = String.format("inFilePos(%d) is larger than file length(%d)", inFilePos, fileLength);
     }
-    if (error == null && length != -1 && offset + length > fileLength) {
+    if (error == null && length != -1 && inFilePos + length > fileLength) {
       error =
-          String.format("Offset(%d) plus length(%d) is larger than file length(%d)", offset,
+          String.format("inFilePos(%d) plus length(%d) is larger than file length(%d)", inFilePos,
               length, fileLength);
     }
     if (error != null) {
@@ -85,9 +85,9 @@ public final class BlockHandlerLocalFS extends BlockHandler {
       throw new IOException(error);
     }
     if (length == -1) {
-      length = fileLength - offset;
+      length = (int) (fileLength - inFilePos);
     }
-    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, length);
+    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, inFilePos, length);
     return buf;
   }
 }
