@@ -189,7 +189,9 @@ public class TachyonWorker implements Runnable {
     // In a production or any real deployment setup, port '0' should not be used as it will make
     // deployment more complicated.
     try {
-      mDataServer = new NettyDataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort), new BlocksLocker(mWorkerStorage, Users.sDATASERVER_USER_ID));
+      InetSocketAddress dataAddress = new InetSocketAddress(workerAddress.getHostName(), dataPort);
+      BlocksLocker blockLocker = new BlocksLocker(mWorkerStorage, Users.sDATASERVER_USER_ID);
+      mDataServer = new NettyDataServer(dataAddress, blockLocker);
     } catch (InterruptedException e) {
       throw Throwables.propagate(e);
     }
