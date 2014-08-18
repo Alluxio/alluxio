@@ -47,8 +47,8 @@ public final class NettyDataServer implements Closeable {
 
   @Override
   public void close() throws IOException {
-    WORKER_GROUP.shutdownGracefully();
     BOSS_GROUP.shutdownGracefully();
+    WORKER_GROUP.shutdownGracefully();
   }
 
   /**
