@@ -51,6 +51,9 @@
   <name>fs.ceph.impl</name>
   <value>org.apache.hadoop.fs.ceph.CephFileSystem</value>
 </property>
-
+<property>
+  <name>fs.ceph.impl.disable.cache</name>
+  <value>true</value>
+</property>
 
 </configuration>
