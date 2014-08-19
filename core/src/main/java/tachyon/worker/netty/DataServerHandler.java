@@ -76,14 +76,8 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
           readLength = len;
         }
 
-        //TODO make it so ChunkedNioFile and DefaultFileRegion are supported
-        // should give a speedup on linux environments.
-        // http://www.programcreek.com/java-api-examples/index.php?api=org.jboss.netty.channel#197052
+        ctx.write(new BlockResponse(blockId, offset, readLength));
         FileChannel channel = closer.register(file.getChannel());
-
-        BlockResponse resp = new BlockResponse(blockId, offset, readLength);
-
-        ctx.write(resp);
         ChannelFuture future = ctx.writeAndFlush(new DefaultFileRegion(channel, offset, readLength));
         future.addListener(ChannelFutureListener.CLOSE);
       } finally {
