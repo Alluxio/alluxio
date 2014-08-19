@@ -2,6 +2,9 @@ package tachyon.worker.netty;
 
 import java.nio.ByteBuffer;
 
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.FileRegion;
 import tachyon.worker.DataServerMessage;
 
 import com.google.common.base.Preconditions;
@@ -14,13 +17,11 @@ public final class BlockResponse {
   private final long BLOCK_ID;
   private final long OFFSET;
   private final long LENGTH;
-  private final ByteBuffer DATA;
 
-  public BlockResponse(long blockId, long offset, long length, ByteBuffer data) {
+  public BlockResponse(long blockId, long offset, long length) {
     BLOCK_ID = blockId;
     OFFSET = offset;
     LENGTH = length;
-    DATA = Preconditions.checkNotNull(data);
   }
 
   public long getBlockId() {
@@ -35,10 +36,6 @@ public final class BlockResponse {
     return LENGTH;
   }
 
-  public ByteBuffer getData() {
-    return DATA;
-  }
-
   public static final class Encoder extends MessageToByteEncoder<BlockResponse> {
 
     @Override
@@ -48,7 +45,6 @@ public final class BlockResponse {
       out.writeLong(msg.getBlockId());
       out.writeLong(msg.getOffset());
       out.writeLong(msg.getLength());
-      out.writeBytes(msg.getData());
     }
   }
 }
