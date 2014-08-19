@@ -40,13 +40,16 @@ public final class BasicNonByteBufferOperations {
     String filePath = args[1];
     WriteType writeType = Utils.option(args, 2, WriteType.MUST_CACHE);
     ReadType readType = Utils.option(args, 3, ReadType.NO_CACHE);
-    boolean deleteIfExists = Utils.option(args, 4, false);
+    boolean deleteIfExists = Utils.option(args, 4, true);
     int length = Utils.option(args, 5, 20);
 
     TachyonFS client = TachyonFS.get(address);
 
     write(client, filePath, writeType, deleteIfExists, length);
-    read(client, filePath, readType);
+    boolean passes = read(client, filePath, readType);
+
+    Utils.printPassInfo(passes);
+    System.exit(0);
   }
 
   private static void write(TachyonFS client, String filePath, WriteType writeType,
@@ -81,17 +84,19 @@ public final class BasicNonByteBufferOperations {
     return file;
   }
 
-  private static void read(TachyonFS client, String filePath, ReadType readType)
+  private static boolean read(TachyonFS client, String filePath, ReadType readType)
       throws IOException {
     TachyonFile file = client.getFile(filePath);
     DataInputStream input = new DataInputStream(file.getInStream(readType));
+    boolean passes = true;
     try {
       int length = input.readInt();
       for (int i = 0; i < length; i ++) {
-        System.out.println(input.readInt());
+        passes &= (input.readInt() == i);
       }
     } finally {
       input.close();
     }
+    return passes;
   }
 }
