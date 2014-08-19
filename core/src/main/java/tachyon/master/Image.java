@@ -21,11 +21,11 @@ import java.io.OutputStream;
 
 import org.apache.log4j.Logger;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectWriter;
-
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 /**
  * Master data image.
@@ -67,11 +67,20 @@ public class Image {
       LOG.info("Renamed " + tPath + " to " + path);
 
     } finally {
+      boolean ufsClosed = false;
       if (imageOs != null) {
-        imageOs.close();
+        try {
+          imageOs.close();
+        } catch (IOException e) {
+          ufs.close();
+          ufsClosed = true;
+          //TODO: Do we need to throw this IOException if ufs.close() succeeded?
+          //We can save this IOException and throw after line # 83
+        }
       }
-      // safe to close, nothing created here with scope outside function
-      ufs.close();
+      if (!ufsClosed) {
+        ufs.close();
+      }
     }
   }
 
@@ -97,10 +106,20 @@ public class Image {
       JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(imageIs);
       info.loadImage(parser, path);
     } finally {
+      boolean ufsClosed = false;
       if (imageIs != null) {
-        imageIs.close();
+        try {
+          imageIs.close();
+        } catch (IOException e) {
+          ufs.close();
+          ufsClosed = true;
+          //TODO: Do we need to throw this IOException if ufs.close() succeeded?
+          //We can save this IOException and throw after line # 122
+        }
       }
-      ufs.close();
+      if (!ufsClosed) {
+        ufs.close();
+      }
     }
   }
 
