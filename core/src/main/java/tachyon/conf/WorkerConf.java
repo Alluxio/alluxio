@@ -4,6 +4,8 @@ import tachyon.Constants;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 
+import io.netty.channel.epoll.Epoll;
+
 public class WorkerConf extends Utils {
   private static WorkerConf WORKER_CONF = null;
 
@@ -40,6 +42,7 @@ public class WorkerConf extends Utils {
   public final int WORKER_CHECKPOINT_THREADS;
 
   public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
+  public final boolean NETTY_USER_EPOLL;
 
   private WorkerConf() {
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", NetworkUtils.getLocalHostName());
@@ -66,5 +69,7 @@ public class WorkerConf extends Utils {
     WORKER_CHECKPOINT_THREADS = getIntProperty("tachyon.worker.checkpoint.threads", 1);
     WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
         getIntProperty("tachyon.worker.per.thread.checkpoint.cap.mb.sec", Constants.SECOND_MS);
+
+    NETTY_USER_EPOLL = getBooleanProperty("tachyon.worker.netty.epoll.enable", Epoll.isAvailable());
   }
 }
