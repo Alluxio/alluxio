@@ -7,6 +7,7 @@ import java.net.SocketAddress;
 
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import tachyon.worker.BlocksLocker;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -28,6 +29,7 @@ public final class NettyDataServer implements Closeable {
       @Override
       protected void initChannel(SocketChannel ch) throws Exception {
         ch.pipeline().addLast(new BlockRequest.Decoder(), new BlockResponse.Encoder(),
+            new ChunkedWriteHandler(),
             new DataServerHandler(locker));
       }
     };

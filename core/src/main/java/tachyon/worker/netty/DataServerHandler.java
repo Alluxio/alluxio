@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
+import io.netty.channel.DefaultFileRegion;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.WorkerConf;
@@ -79,12 +80,11 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
         // should give a speedup on linux environments.
         // http://www.programcreek.com/java-api-examples/index.php?api=org.jboss.netty.channel#197052
         FileChannel channel = closer.register(file.getChannel());
-        final MappedByteBuffer data =
-            channel.map(FileChannel.MapMode.READ_ONLY, offset, readLength);
 
-        BlockResponse resp = new BlockResponse(blockId, offset, readLength, data);
+        BlockResponse resp = new BlockResponse(blockId, offset, readLength);
 
-        ChannelFuture future = ctx.writeAndFlush(resp);
+        ctx.write(resp);
+        ChannelFuture future = ctx.writeAndFlush(new DefaultFileRegion(channel, offset, readLength));
         future.addListener(ChannelFutureListener.CLOSE);
       } finally {
         closer.close();
@@ -93,7 +93,7 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
     } catch (Exception e) {
       // TODO This is a trick for now. The data may have been removed before remote retrieving.
       LOG.error("The file is not here : " + e.getMessage(), e);
-      BlockResponse resp = new BlockResponse(-blockId, 0, 0, ByteBuffer.allocate(0));
+      BlockResponse resp = new BlockResponse(-blockId, 0, 0);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
     } finally {
