@@ -91,14 +91,16 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
 
       ChannelFuture future = null;
       FileChannel channel = file.getChannel();
-      if (ctx.channel().getClass().equals(NioSocketChannel.class)) {
-        ctx.write(new BlockResponse(blockId, offset, readLength));
-        future = ctx.writeAndFlush(new DefaultFileRegion(channel, offset, readLength));
-      } else {
-        // only nio supports FileRegion, so read data here
-        MappedByteBuffer data = channel.map(FileChannel.MapMode.READ_ONLY, offset, readLength);
-        future = ctx.writeAndFlush(new BlockResponse(blockId, offset, readLength, data));
-      }
+//      if (ctx.channel().getClass().equals(NioSocketChannel.class)) {
+//        ctx.write(new BlockResponse(blockId, offset, readLength));
+//        future = ctx.writeAndFlush(new DefaultFileRegion(channel, offset, readLength));
+//      } else {
+//        // only nio supports FileRegion, so read data here
+//        MappedByteBuffer data = channel.map(FileChannel.MapMode.READ_ONLY, offset, readLength);
+//        future = ctx.writeAndFlush(new BlockResponse(blockId, offset, readLength, data));
+//      }
+      ctx.write(new BlockResponse(blockId, offset, readLength));
+      future = ctx.writeAndFlush(new DefaultFileRegion(channel, offset, readLength));
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(file));
       LOG.info("Response remote request by reading from " + filePath + " preparation done.");
