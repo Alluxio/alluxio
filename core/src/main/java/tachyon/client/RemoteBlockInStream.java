@@ -17,7 +17,7 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
-import tachyon.worker.DataServerMessage;
+import tachyon.worker.nio.DataServerMessage;
 
 /**
  * BlockInStream for remote block.

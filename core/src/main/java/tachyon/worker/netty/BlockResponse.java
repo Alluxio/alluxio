@@ -17,7 +17,7 @@ package tachyon.worker.netty;
 import java.nio.channels.FileChannel;
 import java.util.List;
 
-import tachyon.worker.DataServerMessage;
+import tachyon.worker.nio.DataServerMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultFileRegion;
