@@ -20,6 +20,10 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
+/**
+ * Request from the client for a given block. To go from netty to this object,
+ * {@link tachyon.worker.netty.BlockRequest.Decoder} is used.
+ */
 public final class BlockRequest {
   private final long BLOCK_ID;
   private final long OFFSET;
@@ -43,9 +47,13 @@ public final class BlockRequest {
     return LENGTH;
   }
 
+  /**
+   * Creates a new {@link tachyon.worker.netty.BlockRequest} from the user's request.
+   */
   public static final class Decoder extends ByteToMessageDecoder {
     private static final int LONG_SIZE = 8;
-    private static final int MESSAGE_LENGTH = LONG_SIZE * 3 + 2;
+    private static final int SHORT_SIZE = 2;
+    private static final int MESSAGE_LENGTH = SHORT_SIZE + LONG_SIZE * 3;
 
     @Override
     protected void

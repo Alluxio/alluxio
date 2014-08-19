@@ -26,19 +26,17 @@ import tachyon.worker.BlocksLocker;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.stream.ChunkedWriteHandler;
 
+/**
+ * Runs a netty server that will response to block requests.
+ */
 public final class NettyDataServer implements Closeable {
   // private final EventExecutorGroup SYNC_GROUP = new DefaultEventExecutorGroup(16);
   private final ServerBootstrap BOOTSTRAP;
@@ -46,55 +44,11 @@ public final class NettyDataServer implements Closeable {
 
   public NettyDataServer(final SocketAddress address, final BlocksLocker locker)
       throws InterruptedException {
-    ChannelInitializer<SocketChannel> childHandler = new ChannelInitializer<SocketChannel>() {
-      @Override
-      protected void initChannel(SocketChannel ch) throws Exception {
-        ChannelPipeline pipeline = ch.pipeline();
-        pipeline.addLast("blockRequestDecoder", new BlockRequest.Decoder());
-        pipeline.addLast("blockRequestEncoder", new BlockResponse.Encoder());
-        pipeline.addLast("nioChunckedWriter", new ChunkedWriteHandler());
-        // TODO move out of worker group
-        // pipeline.addLast(SYNC_GROUP, "dataServerHandler", new DataServerHandler(locker));
-        pipeline.addLast("dataServerHandler", new DataServerHandler(locker));
-      }
-    };
-
     BOOTSTRAP =
-        createBootstrap().handler(new LoggingHandler(LogLevel.DEBUG)).childHandler(childHandler)
+        createBootstrap().childHandler(new PipelineHandler(locker))
             .option(ChannelOption.SO_BACKLOG, 1024).childOption(ChannelOption.SO_KEEPALIVE, true);
 
     this.CHANNEL_FUTURE = BOOTSTRAP.bind(address).sync();
-  }
-
-  private static ServerBootstrap createBootstrap() {
-    ServerBootstrap boot = new ServerBootstrap();
-    boot = setupGroups(boot);
-
-    // use pooled buffers
-    // wait for perf test results before commenting back in
-    // boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-    // boot.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-    return boot;
-  }
-
-  private static ServerBootstrap setupGroups(final ServerBootstrap boot) {
-    ThreadFactory bossFactory =
-        new ThreadFactoryBuilder().setNameFormat("data-server-boss-%d").build();
-    ThreadFactory workerFactory =
-        new ThreadFactoryBuilder().setNameFormat("data-server-worker-%d").build();
-    // one thread to accept connections, 2 * num_cores for workers
-    if (WorkerConf.get().NETTY_USER_EPOLL) {
-      EpollEventLoopGroup bossGroup = new EpollEventLoopGroup(1, bossFactory);
-      EpollEventLoopGroup workerGroup = new EpollEventLoopGroup(0, workerFactory);
-      boot.group(bossGroup, workerGroup);
-      boot.channel(EpollServerSocketChannel.class);
-    } else {
-      NioEventLoopGroup bossGroup = new NioEventLoopGroup(1, bossFactory);
-      NioEventLoopGroup workerGroup = new NioEventLoopGroup(0, workerFactory);
-      boot.group(bossGroup, workerGroup);
-      boot.channel(NioServerSocketChannel.class);
-    }
-    return boot;
   }
 
   @Override
@@ -114,5 +68,41 @@ public final class NettyDataServer implements Closeable {
 
   public boolean isClosed() {
     return BOOTSTRAP.group().isShutdown();
+  }
+
+  private static ServerBootstrap createBootstrap() {
+    ServerBootstrap boot = new ServerBootstrap();
+    boot = setupGroups(boot, WorkerConf.get().NETTY_USER_EPOLL);
+
+    // use pooled buffers
+    boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+    boot.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+    return boot;
+  }
+
+  /**
+   * Creates a default {@link io.netty.bootstrap.ServerBootstrap} where the channel and
+   * groups are preset. Current channel type supported are nio and epoll.
+   */
+  private static ServerBootstrap setupGroups(final ServerBootstrap boot, final boolean useEpoll) {
+    ThreadFactory bossFactory = createThreadFactory("data-server-boss-%d");
+    ThreadFactory workerFactory = createThreadFactory("data-server-worker-%d");
+    // one thread to accept connections, 2 * num_cores for workers
+    if (useEpoll) {
+      EpollEventLoopGroup bossGroup = new EpollEventLoopGroup(1, bossFactory);
+      EpollEventLoopGroup workerGroup = new EpollEventLoopGroup(0, workerFactory);
+      boot.group(bossGroup, workerGroup);
+      boot.channel(EpollServerSocketChannel.class);
+    } else {
+      NioEventLoopGroup bossGroup = new NioEventLoopGroup(1, bossFactory);
+      NioEventLoopGroup workerGroup = new NioEventLoopGroup(0, workerFactory);
+      boot.group(bossGroup, workerGroup);
+      boot.channel(NioServerSocketChannel.class);
+    }
+    return boot;
+  }
+
+  private static ThreadFactory createThreadFactory(final String nameFormat) {
+    return new ThreadFactoryBuilder().setNameFormat(nameFormat).build();
   }
 }
