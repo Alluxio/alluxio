@@ -33,11 +33,12 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import tachyon.worker.DataServer;
 
 /**
  * Runs a netty server that will response to block requests.
  */
-public final class NettyDataServer implements Closeable {
+public final class NettyDataServer implements DataServer {
   // private final EventExecutorGroup SYNC_GROUP = new DefaultEventExecutorGroup(16);
   private final ServerBootstrap BOOTSTRAP;
   private final ChannelFuture CHANNEL_FUTURE;
@@ -61,11 +62,13 @@ public final class NettyDataServer implements Closeable {
   /**
    * Gets the port listening on.
    */
+  @Override
   public int getPort() {
     // according to the docs, a InetSocketAddress is returned and the user must down-cast
     return ((InetSocketAddress) CHANNEL_FUTURE.channel().localAddress()).getPort();
   }
 
+  @Override
   public boolean isClosed() {
     return BOOTSTRAP.group().isShutdown();
   }
