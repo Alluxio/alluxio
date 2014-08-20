@@ -1,10 +1,13 @@
 package tachyon.conf;
 
+import com.google.common.base.Optional;
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
 import tachyon.worker.NetworkType;
 import tachyon.worker.netty.ChannelType;
 import tachyon.util.NetworkUtils;
+
+import javax.swing.text.html.Option;
 
 public class WorkerConf extends Utils {
   private static WorkerConf WORKER_CONF = null;
@@ -49,9 +52,9 @@ public class WorkerConf extends Utils {
 
   public final int NETTY_HIGH_WATER_MARK;
   public final int NETTY_LOW_WATER_MARK;
-  public final Integer NETTY_BACKLOG;
-  public final Integer NETTY_SEND_BUFFER;
-  public final Integer NETTY_RECIEVE_BUFFER;
+  public final Optional<Integer> NETTY_BACKLOG;
+  public final Optional<Integer> NETTY_SEND_BUFFER;
+  public final Optional<Integer> NETTY_RECIEVE_BUFFER;
 
   private WorkerConf() {
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", NetworkUtils.getLocalHostName());
@@ -90,8 +93,12 @@ public class WorkerConf extends Utils {
     NETTY_HIGH_WATER_MARK =
         getIntProperty("tachyon.worker.network.netty.watermark.high", 32 * 1024);
     NETTY_LOW_WATER_MARK = getIntProperty("tachyon.worker.network.netty.watermark.low", 8 * 1024);
-    NETTY_BACKLOG = getIntegerProperty("tachyon.worker.network.netty.backlog", null);
-    NETTY_SEND_BUFFER = getIntegerProperty("tachyon.worker.network.netty.buffer.send", null);
-    NETTY_RECIEVE_BUFFER = getIntegerProperty("tachyon.worker.network.netty.buffer.recieve", null);
+    NETTY_BACKLOG =
+        Optional.fromNullable(getIntegerProperty("tachyon.worker.network.netty.backlog", null));
+    NETTY_SEND_BUFFER =
+        Optional.fromNullable(getIntegerProperty("tachyon.worker.network.netty.buffer.send", null));
+    NETTY_RECIEVE_BUFFER =
+        Optional.fromNullable(getIntegerProperty("tachyon.worker.network.netty.buffer.recieve",
+            null));
   }
 }

@@ -1,16 +1,12 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the Apache Software Foundation (ASF) under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable
+ * law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
+ * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+ * for the specific language governing permissions and limitations under the License.
  */
 package tachyon.worker.netty;
 
@@ -19,6 +15,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.ThreadFactory;
 
+import com.google.common.base.Throwables;
 import tachyon.conf.WorkerConf;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
@@ -34,32 +31,29 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import io.netty.util.concurrent.EventExecutorGroup;
 
 /**
  * Runs a netty server that will response to block requests.
  */
 public final class NettyDataServer implements DataServer {
-  private final EventExecutorGroup SYNC_GROUP = new DefaultEventExecutorGroup(
-      WorkerConf.get().NETTY_DATA_PROCESS_THREADS);
-  private final ServerBootstrap BOOTSTRAP;
-  private final ChannelFuture CHANNEL_FUTURE;
+  private final ServerBootstrap mBootstrap;
+  private final ChannelFuture mChannelFuture;
 
-  public NettyDataServer(final SocketAddress address, final BlocksLocker locker)
-      throws InterruptedException {
-    BOOTSTRAP =
-        createBootstrap().childHandler(new PipelineHandler(locker, SYNC_GROUP));
+  public NettyDataServer(final SocketAddress address, final BlocksLocker locker) {
+    mBootstrap = createBootstrap().childHandler(new PipelineHandler(locker));
 
-    CHANNEL_FUTURE = BOOTSTRAP.bind(address).sync();
+    try {
+      mChannelFuture = mBootstrap.bind(address).sync();
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    }
   }
 
   @Override
   public void close() throws IOException {
-    CHANNEL_FUTURE.channel().close().awaitUninterruptibly();
-    BOOTSTRAP.group().shutdownGracefully();
-    BOOTSTRAP.childGroup().shutdownGracefully();
-    SYNC_GROUP.shutdownGracefully();
+    mChannelFuture.channel().close().awaitUninterruptibly();
+    mBootstrap.group().shutdownGracefully();
+    mBootstrap.childGroup().shutdownGracefully();
   }
 
   /**
@@ -68,12 +62,12 @@ public final class NettyDataServer implements DataServer {
   @Override
   public int getPort() {
     // according to the docs, a InetSocketAddress is returned and the user must down-cast
-    return ((InetSocketAddress) CHANNEL_FUTURE.channel().localAddress()).getPort();
+    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getPort();
   }
 
   @Override
   public boolean isClosed() {
-    return BOOTSTRAP.group().isShutdown();
+    return mBootstrap.group().isShutdown();
   }
 
   private static ServerBootstrap createBootstrap() {
@@ -91,33 +85,33 @@ public final class NettyDataServer implements DataServer {
     boot.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, conf.NETTY_LOW_WATER_MARK);
 
     // more buffer settings
-    if (conf.NETTY_BACKLOG != null) {
-      boot.option(ChannelOption.SO_BACKLOG, conf.NETTY_BACKLOG);
+    if (conf.NETTY_BACKLOG.isPresent()) {
+      boot.option(ChannelOption.SO_BACKLOG, conf.NETTY_BACKLOG.get());
     }
-    if (conf.NETTY_SEND_BUFFER != null) {
-      boot.option(ChannelOption.SO_SNDBUF, conf.NETTY_SEND_BUFFER);
+    if (conf.NETTY_SEND_BUFFER.isPresent()) {
+      boot.option(ChannelOption.SO_SNDBUF, conf.NETTY_SEND_BUFFER.get());
     }
-    if (conf.NETTY_RECIEVE_BUFFER != null) {
-      boot.option(ChannelOption.SO_RCVBUF, conf.NETTY_RECIEVE_BUFFER);
+    if (conf.NETTY_RECIEVE_BUFFER.isPresent()) {
+      boot.option(ChannelOption.SO_RCVBUF, conf.NETTY_RECIEVE_BUFFER.get());
     }
     return boot;
   }
 
   /**
-   * Creates a default {@link io.netty.bootstrap.ServerBootstrap} where the channel and
-   * groups are preset. Current channel type supported are nio and epoll.
+   * Creates a default {@link io.netty.bootstrap.ServerBootstrap} where the channel and groups are
+   * preset. Current channel type supported are nio and epoll.
    */
   private static ServerBootstrap setupGroups(final ServerBootstrap boot, final ChannelType type) {
     ThreadFactory workerFactory = createThreadFactory("data-server-%d");
     EventLoopGroup bossGroup, workerGroup;
     switch (type) {
-    case EPOLL:
-      bossGroup = workerGroup = new EpollEventLoopGroup(0, workerFactory);
-      boot.channel(EpollServerSocketChannel.class);
-      break;
-    default:
-      bossGroup = workerGroup = new NioEventLoopGroup(0, workerFactory);
-      boot.channel(NioServerSocketChannel.class);
+      case EPOLL:
+        bossGroup = workerGroup = new EpollEventLoopGroup(0, workerFactory);
+        boot.channel(EpollServerSocketChannel.class);
+        break;
+      default:
+        bossGroup = workerGroup = new NioEventLoopGroup(0, workerFactory);
+        boot.channel(NioServerSocketChannel.class);
     }
     boot.group(bossGroup, workerGroup);
     return boot;
