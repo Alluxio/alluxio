@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import tachyon.worker.hierarchy.StorageDir;
+
 /**
  * Interface used to determine which blocks will be evicted to get enough free space requested.
  */
@@ -30,13 +32,11 @@ public interface EvictStrategy {
    *          blocks to be evicted
    * @param pinList
    *          list of pinned file
-   * @param lastTier
-   *          whether current storage tier is the last tier
    * @param requestSize
    *          size to request
    * @return index of the storage dir allocated, toEvictedBlocks also returned as output
    * @throws IOException
    */
-  int getDirCandidate(List<BlockEvictionInfo> blockEvictionInfoList, Set<Integer> pinList,
-      boolean lastTier, long requestSize) throws IOException;
+  StorageDir getDirCandidate(List<BlockEvictionInfo> blockEvictionInfoList, Set<Integer> pinList,
+      long requestSize) throws IOException;
 }
