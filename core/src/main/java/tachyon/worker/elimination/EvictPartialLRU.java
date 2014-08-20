@@ -27,23 +27,22 @@ import tachyon.worker.hierarchy.StorageDir;
  */
 public class EvictPartialLRU extends EvictLRUBase {
 
-  public EvictPartialLRU(StorageDir[] storageDirs) {
-    super(storageDirs);
+  public EvictPartialLRU(StorageDir[] storageDirs, boolean lastTier) {
+    super(storageDirs, lastTier);
   }
 
   @Override
-  public int getDirCandidate(List<BlockEvictionInfo> blockEvictionInfoList, Set<Integer> pinList,
-      boolean isLastTier, long requestSize) throws IOException {
+  public StorageDir getDirCandidate(List<BlockEvictionInfo> blockEvictionInfoList,
+      Set<Integer> pinList, long requestSize) throws IOException {
     Set<Integer> ignoredDirs = new HashSet<Integer>();
     int dirIndex = getDirWithMaxFreeSpace(requestSize, ignoredDirs);
     while (dirIndex != -1) {
       Set<Long> blockIdSet = new HashSet<Long>();
       long sizeToEvict = 0;
-      while (sizeToEvict + mStorageDirs[dirIndex].getAvailable() < requestSize) {
-        Pair<Long, Long> oldestAccess =
-            getLRUBlock(mStorageDirs[dirIndex], blockIdSet, pinList, isLastTier);
+      while (sizeToEvict + STORAGE_DIRS[dirIndex].getAvailable() < requestSize) {
+        Pair<Long, Long> oldestAccess = getLRUBlock(STORAGE_DIRS[dirIndex], blockIdSet, pinList);
         if (oldestAccess.getFirst() != -1) {
-          long blockSize = mStorageDirs[dirIndex].getBlockSizes().get(oldestAccess.getFirst());
+          long blockSize = STORAGE_DIRS[dirIndex].getBlockSizes().get(oldestAccess.getFirst());
           sizeToEvict += blockSize;
           blockEvictionInfoList.add(new BlockEvictionInfo(dirIndex, oldestAccess.getFirst(),
               blockSize));
@@ -52,13 +51,13 @@ public class EvictPartialLRU extends EvictLRUBase {
           break;
         }
       }
-      if (sizeToEvict + mStorageDirs[dirIndex].getAvailable() < requestSize) {
+      if (sizeToEvict + STORAGE_DIRS[dirIndex].getAvailable() < requestSize) {
         ignoredDirs.add(dirIndex);
         blockEvictionInfoList.clear();
         blockIdSet.clear();
         dirIndex = getDirWithMaxFreeSpace(requestSize, ignoredDirs);
       } else {
-        return dirIndex;
+        return STORAGE_DIRS[dirIndex];
       }
     }
     throw new IOException("No suitable dir can be found!");
@@ -67,14 +66,14 @@ public class EvictPartialLRU extends EvictLRUBase {
   public int getDirWithMaxFreeSpace(long requestSize, Set<Integer> ignoredList) {
     int dirSelected = -1;
     long maxAvailableSize = -1;
-    for (int index = 0; index < mStorageDirs.length; index ++) {
+    for (int index = 0; index < STORAGE_DIRS.length; index ++) {
       if (ignoredList.contains(index)) {
         continue;
       }
-      if (mStorageDirs[index].getCapacity() >= requestSize
-          && mStorageDirs[index].getAvailable() > maxAvailableSize) {
+      if (STORAGE_DIRS[index].getCapacity() >= requestSize
+          && STORAGE_DIRS[index].getAvailable() > maxAvailableSize) {
         dirSelected = index;
-        maxAvailableSize = mStorageDirs[index].getAvailable();
+        maxAvailableSize = STORAGE_DIRS[index].getAvailable();
       }
     }
     return dirSelected;

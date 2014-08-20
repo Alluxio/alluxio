@@ -29,26 +29,26 @@ import tachyon.worker.hierarchy.StorageDir;
  */
 public class EvictLRU extends EvictLRUBase {
 
-  public EvictLRU(StorageDir[] storageDirs) {
-    super(storageDirs);
+  public EvictLRU(StorageDir[] storageDirs, boolean lastTier) {
+    super(storageDirs, lastTier);
   }
 
   @Override
-  public int getDirCandidate(List<BlockEvictionInfo> blockEvictInfoList, Set<Integer> pinList,
-      boolean isLastTier, long requestSize) throws IOException {
+  public StorageDir getDirCandidate(List<BlockEvictionInfo> blockEvictInfoList,
+      Set<Integer> pinList, long requestSize) throws IOException {
     Map<Integer, Pair<Long, Long>> dir2LRUBlocks = new HashMap<Integer, Pair<Long, Long>>();
     Map<Integer, Set<Long>> dir2BlocksToEvict = new HashMap<Integer, Set<Long>>();
     Map<Integer, Long> sizeToEvict = new HashMap<Integer, Long>();
     while (true) {
       Pair<Integer, Long> candidate =
-          getLRUBlockCandidate(dir2LRUBlocks, dir2BlocksToEvict, pinList, isLastTier);
+          getLRUBlockCandidate(dir2LRUBlocks, dir2BlocksToEvict, pinList);
       int dirIndex = candidate.getFirst();
       long blockId = candidate.getSecond();
       long blockSize = 0;
       if (dirIndex == -1) {
         throw new IOException("No block can be evicted in current tier!");
       } else {
-        blockSize = mStorageDirs[dirIndex].getBlockSize(blockId);
+        blockSize = STORAGE_DIRS[dirIndex].getBlockSize(blockId);
       }
       blockEvictInfoList.add(new BlockEvictionInfo(dirIndex, blockId, blockSize));
       Set<Long> blocksToEvict;
@@ -67,8 +67,8 @@ public class EvictLRU extends EvictLRUBase {
         evictionSize = blockSize;
       }
       sizeToEvict.put(dirIndex, evictionSize);
-      if (evictionSize + mStorageDirs[dirIndex].getAvailable() >= requestSize) {
-        return dirIndex;
+      if (evictionSize + STORAGE_DIRS[dirIndex].getAvailable() >= requestSize) {
+        return STORAGE_DIRS[dirIndex];
       }
     }
   }
@@ -87,10 +87,10 @@ public class EvictLRU extends EvictLRUBase {
    * @return block to be evicted
    */
   public Pair<Integer, Long> getLRUBlockCandidate(Map<Integer, Pair<Long, Long>> dir2LRUBlocks,
-      Map<Integer, Set<Long>> dir2BlocksToEvict, Set<Integer> pinList, boolean isLastTier) {
+      Map<Integer, Set<Long>> dir2BlocksToEvict, Set<Integer> pinList) {
     int dirIndex = -1;
     long blockId = -1;
-    for (int index = 0; index < mStorageDirs.length; index ++) {
+    for (int index = 0; index < STORAGE_DIRS.length; index ++) {
       Pair<Long, Long> lruBlock;
       long oldestTime = Long.MAX_VALUE;
       if (!dir2LRUBlocks.containsKey(index)) {
@@ -100,7 +100,7 @@ public class EvictLRU extends EvictLRUBase {
         } else {
           blocksToEvict = new HashSet<Long>();
         }
-        lruBlock = getLRUBlock(mStorageDirs[index], blocksToEvict, pinList, isLastTier);
+        lruBlock = getLRUBlock(STORAGE_DIRS[index], blocksToEvict, pinList);
         if (lruBlock.getFirst() != -1) {
           dir2LRUBlocks.put(index, lruBlock);
         } else {
