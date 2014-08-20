@@ -56,9 +56,8 @@ public final class BlockRequest {
     private static final int MESSAGE_LENGTH = SHORT_SIZE + LONG_SIZE * 3;
 
     @Override
-    protected void
-        decode(final ChannelHandlerContext ctx, final ByteBuf in, final List<Object> out)
-            throws Exception {
+    protected void decode(final ChannelHandlerContext ctx, final ByteBuf in, final List<Object> out)
+        throws Exception {
       if (in.readableBytes() < MESSAGE_LENGTH) {
         return;
       }
