@@ -24,6 +24,7 @@ import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.netty.NettyDataServer;
+import tachyon.worker.nio.NIODataServer;
 
 /**
  * Entry point for a worker daemon.
@@ -191,7 +192,7 @@ public class TachyonWorker implements Runnable {
     try {
       InetSocketAddress dataAddress = new InetSocketAddress(workerAddress.getHostName(), dataPort);
       BlocksLocker blockLocker = new BlocksLocker(mWorkerStorage, Users.sDATASERVER_USER_ID);
-      mDataServer = new NettyDataServer(dataAddress, blockLocker);
+      mDataServer = createDataServer(dataAddress, blockLocker);
     } catch (InterruptedException e) {
       throw Throwables.propagate(e);
     }
@@ -217,6 +218,18 @@ public class TachyonWorker implements Runnable {
     mWorkerAddress =
         new NetAddress(workerAddress.getAddress().getCanonicalHostName(), mPort, mDataPort);
     mWorkerStorage.initialize(mWorkerAddress);
+  }
+
+  private DataServer createDataServer(final InetSocketAddress dataAddress,
+                                      final BlocksLocker blockLocker) throws InterruptedException {
+    switch (WorkerConf.get().NETWORK_TYPE) {
+      case NIO:
+        return new NIODataServer(dataAddress, blockLocker);
+      case NETTY:
+        return new NettyDataServer(dataAddress, blockLocker);
+      default:
+        throw new AssertionError("Unknown network type: " + WorkerConf.get().NETWORK_TYPE);
+    }
   }
 
   /**

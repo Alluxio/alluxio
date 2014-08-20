@@ -14,7 +14,6 @@
  */
 package tachyon.worker.netty;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -22,6 +21,7 @@ import java.util.concurrent.ThreadFactory;
 
 import tachyon.conf.WorkerConf;
 import tachyon.worker.BlocksLocker;
+import tachyon.worker.DataServer;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -29,11 +29,11 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import tachyon.worker.DataServer;
 
 /**
  * Runs a netty server that will response to block requests.
@@ -46,8 +46,10 @@ public final class NettyDataServer implements DataServer {
   public NettyDataServer(final SocketAddress address, final BlocksLocker locker)
       throws InterruptedException {
     BOOTSTRAP =
-        createBootstrap().childHandler(new PipelineHandler(locker))
-            .option(ChannelOption.SO_BACKLOG, 1024).childOption(ChannelOption.SO_KEEPALIVE, true);
+        createBootstrap()
+            .childHandler(new PipelineHandler(locker))
+            .option(ChannelOption.SO_BACKLOG, 1024)
+            .childOption(ChannelOption.SO_KEEPALIVE, true);
 
     this.CHANNEL_FUTURE = BOOTSTRAP.bind(address).sync();
   }
@@ -75,7 +77,7 @@ public final class NettyDataServer implements DataServer {
 
   private static ServerBootstrap createBootstrap() {
     ServerBootstrap boot = new ServerBootstrap();
-    boot = setupGroups(boot, WorkerConf.get().NETTY_USER_EPOLL);
+    boot = setupGroups(boot, WorkerConf.get().NETTY_CHANNEL_TYPE);
 
     // use pooled buffers
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
@@ -87,21 +89,23 @@ public final class NettyDataServer implements DataServer {
    * Creates a default {@link io.netty.bootstrap.ServerBootstrap} where the channel and
    * groups are preset. Current channel type supported are nio and epoll.
    */
-  private static ServerBootstrap setupGroups(final ServerBootstrap boot, final boolean useEpoll) {
+  private static ServerBootstrap setupGroups(final ServerBootstrap boot, final ChannelType type) {
     ThreadFactory bossFactory = createThreadFactory("data-server-boss-%d");
     ThreadFactory workerFactory = createThreadFactory("data-server-worker-%d");
     // one thread to accept connections, 2 * num_cores for workers
-    if (useEpoll) {
-      EpollEventLoopGroup bossGroup = new EpollEventLoopGroup(1, bossFactory);
-      EpollEventLoopGroup workerGroup = new EpollEventLoopGroup(0, workerFactory);
-      boot.group(bossGroup, workerGroup);
+    EventLoopGroup bossGroup, workerGroup;
+    switch (type) {
+    case EPOLL:
+      bossGroup = new EpollEventLoopGroup(1, bossFactory);
+      workerGroup = new EpollEventLoopGroup(0, workerFactory);
       boot.channel(EpollServerSocketChannel.class);
-    } else {
-      NioEventLoopGroup bossGroup = new NioEventLoopGroup(1, bossFactory);
-      NioEventLoopGroup workerGroup = new NioEventLoopGroup(0, workerFactory);
-      boot.group(bossGroup, workerGroup);
+      break;
+    default:
+      bossGroup = new NioEventLoopGroup(1, bossFactory);
+      workerGroup = new NioEventLoopGroup(0, workerFactory);
       boot.channel(NioServerSocketChannel.class);
     }
+    boot.group(bossGroup, workerGroup);
     return boot;
   }
 

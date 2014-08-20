@@ -171,6 +171,21 @@ number.
   <td>128 MB</td>
   <td>Memory capacity of each worker node.</td>
 </tr>
+<tr>
+  <td>tachyon.worker.network.type</td>
+  <td>NETTY</td>
+  <td>Selects networking stack to run the worker with.  Valid options are NETTY and NIO.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.channel</td>
+  <td>EPOLL</td>
+  <td>Selects netty's channel implementation.  On linux, epoll is used; valid options are NIO and EPOLL.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.file.stream</td>
+  <td>TRANSFER</td>
+  <td>Selects how files are streamed over the network.  valid options are TRANSFER and MAPPED.</td>
+</tr>
 </table>
 
 # User Configuration

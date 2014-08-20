@@ -60,6 +60,7 @@ public class NIODataServer implements Runnable, DataServer {
 
   // The blocks locker manager.
   private final BlocksLocker BLOCKS_LOCKER;
+  private final Thread LISTENER_THREAD;
 
   private volatile boolean mShutdown = false;
   private volatile boolean mShutdowned = false;
@@ -69,16 +70,18 @@ public class NIODataServer implements Runnable, DataServer {
    * 
    * @param address
    *          The address of the data server.
-   * @param workerStorage
-   *          The handler of the directly accessed worker storage.
+   * @param locker
+   *          The lock system for lock blocks.
    */
-  public NIODataServer(InetSocketAddress address, WorkerStorage workerStorage) {
+  public NIODataServer(InetSocketAddress address, BlocksLocker locker) {
     LOG.info("Starting DataServer @ " + address);
     CommonConf.assertValidPort(address);
     mAddress = address;
-    BLOCKS_LOCKER = new BlocksLocker(workerStorage, Users.sDATASERVER_USER_ID);
+    BLOCKS_LOCKER = locker;
     try {
       mSelector = initSelector();
+      LISTENER_THREAD = new Thread(this);
+      LISTENER_THREAD.start();
     } catch (IOException e) {
       LOG.error(e.getMessage() + mAddress, e);
       throw Throwables.propagate(e);

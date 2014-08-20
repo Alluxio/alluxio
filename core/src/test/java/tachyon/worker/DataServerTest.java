@@ -3,12 +3,17 @@ package tachyon.worker;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
@@ -21,26 +26,45 @@ import tachyon.worker.nio.DataServerMessage;
 /**
  * Unit tests for tachyon.DataServer.
  */
+@RunWith(Parameterized.class)
 public class DataServerTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
+  private final NetworkType type;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTFS = null;
+
+  public DataServerTest(NetworkType type) {
+    this.type = type;
+  }
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("tachyon.worker.network.type");
   }
 
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
+    System.setProperty("tachyon.worker.network.type", type.toString());
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
   }
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    // creates a new instance of DataServerTest for each network type
+    List<Object[]> list = new ArrayList<Object[]>();
+    for (final NetworkType type : NetworkType.values()) {
+      list.add(new Object[] {type});
+    }
+    return list;
+  }
+
 
   @Test
   public void readPartialTest1() throws InvalidPathException, FileAlreadyExistException,
