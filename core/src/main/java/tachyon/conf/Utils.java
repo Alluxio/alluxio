@@ -39,6 +39,14 @@ class Utils {
     return Integer.valueOf(getProperty(property, defaultValue + ""));
   }
 
+  public static Integer getIntegerProperty(String property, Integer defaultValue) {
+    try {
+      return Integer.valueOf(getProperty(property, null));
+    } catch (NumberFormatException e) {
+      return defaultValue;
+    }
+  }
+
   public static long getLongProperty(String property) {
     return Long.valueOf(getProperty(property));
   }
