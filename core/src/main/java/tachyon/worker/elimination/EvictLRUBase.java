@@ -28,10 +28,12 @@ import tachyon.worker.hierarchy.StorageDir;
  */
 public abstract class EvictLRUBase implements EvictStrategy {
 
-  StorageDir[] mStorageDirs;
+  protected final StorageDir[] STORAGE_DIRS;
+  private final boolean LAST_TIER;
 
-  EvictLRUBase(StorageDir[] storageDirs) {
-    mStorageDirs = storageDirs;
+  EvictLRUBase(StorageDir[] storageDirs, boolean lastTier) {
+    STORAGE_DIRS = storageDirs;
+    LAST_TIER = lastTier;
   }
 
   /**
@@ -41,12 +43,10 @@ public abstract class EvictLRUBase implements EvictStrategy {
    *          id of the block
    * @param pinList
    *          list of pinned files
-   * @param isLastTier
-   *          whether current storage tier is the last tier
    * @return true if can be evicted, false otherwise
    */
-  boolean blockEvictable(long blockId, Set<Integer> pinList, boolean isLastTier) {
-    if (isLastTier && pinList.contains(BlockInfo.computeInodeId(blockId))) {
+  boolean blockEvictable(long blockId, Set<Integer> pinList) {
+    if (LAST_TIER && pinList.contains(BlockInfo.computeInodeId(blockId))) {
       return false;
     }
     return true;
@@ -66,7 +66,7 @@ public abstract class EvictLRUBase implements EvictStrategy {
    * @return oldest access information of current storage dir
    */
   Pair<Long, Long> getLRUBlock(StorageDir curDir, Collection<Long> toEvictBlockIds,
-      Set<Integer> pinList, boolean isLastTier) {
+      Set<Integer> pinList) {
     long blockId = -1;
     long oldestTime = Long.MAX_VALUE;
     Map<Long, Long> accessTimes = curDir.getLastBlockAccessTime();
@@ -77,7 +77,7 @@ public abstract class EvictLRUBase implements EvictStrategy {
         continue;
       }
       if (accessTime.getValue() < oldestTime && !lockedBlocks.containsKey(accessTime.getKey())) {
-        if (blockEvictable(accessTime.getKey(), pinList, isLastTier)) {
+        if (blockEvictable(accessTime.getKey(), pinList)) {
           oldestTime = accessTime.getValue();
           blockId = accessTime.getKey();
         }

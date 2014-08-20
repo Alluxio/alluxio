@@ -14,10 +14,13 @@
  */
 package tachyon.client;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.apache.log4j.Logger;
+
+import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
 
@@ -26,7 +29,7 @@ import tachyon.Constants;
  * file systems can be implemented by extending this class. It also creates a specific
  * BlockHandler for certain block file by checking the block file's path.
  */
-public abstract class BlockHandler {
+public abstract class BlockHandler implements Closeable {
   /**
    * Create a block handler according to path scheme
    * 
@@ -41,19 +44,16 @@ public abstract class BlockHandler {
   public static BlockHandler get(String path, Object ufsConf) throws IOException,
       IllegalArgumentException {
     if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
-      return new BlockHandlerLocalFS(path);
+      return new BlockHandlerLocal(path);
     }
     throw new IllegalArgumentException("Unsupported block file path: " + path);
   }
 
   protected final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  protected String mPath;
+  protected final String FILE_PATH;
 
-  protected BlockHandler(String path) throws IOException {
-    if (path == null) {
-      throw new IOException("Block file's path is null");
-    }
-    mPath = path;
+  protected BlockHandler(String path) {
+    FILE_PATH = Preconditions.checkNotNull(path);
   }
 
   /**
@@ -74,16 +74,12 @@ public abstract class BlockHandler {
       throws IOException;
 
   /**
-   * Close block file
+   * Delete block file
    * 
+   * @return true if success, otherwise false
    * @throws IOException
    */
-  public abstract void close() throws IOException;
-
-  /**
-   * Delete block file
-   */
-  public abstract void delete();
+  public abstract boolean delete() throws IOException;
 
   /**
    * Read data from block file
@@ -95,5 +91,5 @@ public abstract class BlockHandler {
    * @return byte buffer storing data that is read
    * @throws IOException
    */
-  public abstract ByteBuffer readByteBuffer(int offset, int length) throws IOException;
+  public abstract ByteBuffer readByteBuffer(long offset, int length) throws IOException;
 }

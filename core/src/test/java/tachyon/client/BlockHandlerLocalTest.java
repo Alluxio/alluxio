@@ -26,7 +26,7 @@ import tachyon.TestUtils;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
 
-public class BlockHandlerLocalFSTest {
+public class BlockHandlerLocalTest {
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
