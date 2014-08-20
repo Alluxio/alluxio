@@ -31,7 +31,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 /**
- * Main logic for the read path.  This class consumes {@link tachyon.worker.netty.BlockRequest}
+ * Main logic for the read path. This class consumes {@link tachyon.worker.netty.BlockRequest}
  * messages and returns {@link tachyon.worker.netty.BlockResponse} messages.
  */
 public final class DataServerHandler extends ChannelInboundHandlerAdapter {

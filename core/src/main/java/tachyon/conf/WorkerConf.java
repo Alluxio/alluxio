@@ -2,6 +2,9 @@ package tachyon.conf;
 
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
+import tachyon.worker.NetworkType;
+import tachyon.worker.netty.ChannelType;
+import tachyon.worker.netty.FileStreamType;
 import tachyon.util.NetworkUtils;
 
 import io.netty.channel.epoll.Epoll;
@@ -42,7 +45,10 @@ public class WorkerConf extends Utils {
   public final int WORKER_CHECKPOINT_THREADS;
 
   public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
-  public final boolean NETTY_USER_EPOLL;
+
+  public final NetworkType NETWORK_TYPE;
+  public final ChannelType NETTY_CHANNEL_TYPE;
+  public final FileStreamType NETTY_FILE_STREAM_TYPE;
 
   private WorkerConf() {
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", NetworkUtils.getLocalHostName());
@@ -70,6 +76,10 @@ public class WorkerConf extends Utils {
     WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC =
         getIntProperty("tachyon.worker.per.thread.checkpoint.cap.mb.sec", Constants.SECOND_MS);
 
-    NETTY_USER_EPOLL = getBooleanProperty("tachyon.worker.netty.epoll.enable", Epoll.isAvailable());
+    NETWORK_TYPE = getEnumProperty("tachyon.worker.network.type", NetworkType.NETTY);
+    NETTY_CHANNEL_TYPE =
+        getEnumProperty("tachyon.worker.network.netty.channel", ChannelType.defaultType());
+    NETTY_FILE_STREAM_TYPE =
+        getEnumProperty("tachyon.worker.network.netty.file.stream", FileStreamType.TRANSFER);
   }
 }
