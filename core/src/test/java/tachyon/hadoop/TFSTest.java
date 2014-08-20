@@ -58,19 +58,20 @@ public class TFSTest {
     mockUserGroupInformation();
     mockTachyonFSGet();
 
-    if (isHadoop1x()) {
+    if (HadoopUtils.isHadoop1x()) {
       LOG.debug("Running TFS tests against hadoop 1x");
-    } else if (isHadoop2x()) {
+    } else if (HadoopUtils.isHadoop2x()) {
       LOG.debug("Running TFS tests against hadoop 2x");
     } else {
-      LOG.warn("Running TFS tests against untargeted Hadoop version: " + getHadoopVersion());
+      LOG.warn("Running TFS tests against untargeted Hadoop version: "
+          + HadoopUtils.getHadoopVersion());
     }
   }
 
   @Test
   public void hadoopShouldLoadTfsWhenConfigured() throws IOException {
     final Configuration conf = new Configuration();
-    if (isHadoop1x()) {
+    if (HadoopUtils.isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME + ".impl", TFS.class.getName());
     }
 
@@ -87,7 +88,7 @@ public class TFSTest {
   @Test
   public void hadoopShouldLoadTfsFtWhenConfigured() throws IOException {
     final Configuration conf = new Configuration();
-    if (isHadoop1x()) {
+    if (HadoopUtils.isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME_FT + ".impl", TFSFT.class.getName());
     }
 
@@ -114,41 +115,5 @@ public class TFSTest {
     when(ugi.getCurrentUser()).thenReturn(ugi);
   }
 
-  private boolean isHadoop1x() {
-    return getHadoopVersion().startsWith("1");
-  }
 
-  private boolean isHadoop2x() {
-    return getHadoopVersion().startsWith("2");
-  }
-
-  private String getHadoopVersion() {
-    try {
-      final URL url = getSourcePath(FileSystem.class);
-      final File path = new File(url.toURI());
-      final String[] splits = path.getName().split("-");
-      final String last = splits[splits.length - 1];
-      return last.substring(0, last.lastIndexOf("."));
-    } catch (URISyntaxException e) {
-      throw new AssertionError(e);
-    }
-  }
-
-  private URL getSourcePath(Class<?> clazz) {
-    try {
-      clazz = getClassLoader(clazz).loadClass(clazz.getName());
-      return clazz.getProtectionDomain().getCodeSource().getLocation();
-    } catch (ClassNotFoundException e) {
-      throw new AssertionError("Unable to find class " + clazz.getName());
-    }
-  }
-
-  private ClassLoader getClassLoader(Class<?> clazz) {
-    // Power Mock makes this hard, so try to hack it
-    ClassLoader cl = clazz.getClassLoader();
-    if (cl instanceof MockClassLoader) {
-      cl = cl.getParent();
-    }
-    return cl;
-  }
 }
