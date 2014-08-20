@@ -14,6 +14,7 @@
  */
 package tachyon.master;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -62,7 +63,7 @@ import tachyon.util.CommonUtils;
  * 
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
-public class MasterClient {
+public class MasterClient implements Closeable {
   private final static int MAX_CONNECT_TRY = 5;
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   // TODO Implement the retry logic
@@ -122,6 +123,7 @@ public class MasterClient {
    * Clean the connect. E.g. if the client has not connect the master for a while, the connection
    * should be shut down.
    */
+  @Override
   public synchronized void close() {
     if (mConnected) {
       LOG.debug("Disconnecting from the master " + mMasterAddress);

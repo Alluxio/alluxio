@@ -14,6 +14,7 @@
  */
 package tachyon.client;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -55,7 +56,7 @@ import tachyon.worker.WorkerClient;
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients
  * depending on how many workers the client program is interacting with.
  */
-public class TachyonFS {
+public class TachyonFS implements Closeable {
   /**
    * Create a TachyonFS handler.
    * 
@@ -211,6 +212,7 @@ public class TachyonFS {
    * 
    * @throws IOException
    */
+  @Override
   public synchronized void close() throws IOException {
     if (mMasterClient != null) {
       mMasterClient.close();
