@@ -17,6 +17,7 @@ package tachyon.worker.netty;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 
+import io.netty.channel.ChannelHandler;
 import org.apache.log4j.Logger;
 
 import tachyon.conf.WorkerConf;
@@ -34,6 +35,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  * Main logic for the read path. This class consumes {@link tachyon.worker.netty.BlockRequest}
  * messages and returns {@link tachyon.worker.netty.BlockResponse} messages.
  */
+@ChannelHandler.Sharable
 public final class DataServerHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = Logger.getLogger(DataServerHandler.class);
 

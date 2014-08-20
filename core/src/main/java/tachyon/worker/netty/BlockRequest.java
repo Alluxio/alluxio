@@ -70,6 +70,9 @@ public final class BlockRequest {
       long length = in.readLong();
 
       out.add(new BlockRequest(blockId, offset, length));
+
+      // remove this from the pipeline so it won't be called again for this connection
+      ctx.channel().pipeline().remove(this);
     }
   }
 }
