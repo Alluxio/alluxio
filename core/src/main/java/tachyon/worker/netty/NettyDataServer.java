@@ -54,7 +54,7 @@ public final class NettyDataServer implements DataServer {
             .option(ChannelOption.SO_BACKLOG, 1024)
             .childOption(ChannelOption.SO_KEEPALIVE, true);
 
-    this.CHANNEL_FUTURE = BOOTSTRAP.bind(address).sync();
+    CHANNEL_FUTURE = BOOTSTRAP.bind(address).sync();
   }
 
   @Override
