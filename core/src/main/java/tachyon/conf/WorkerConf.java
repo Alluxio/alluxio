@@ -47,6 +47,12 @@ public class WorkerConf extends Utils {
   public final ChannelType NETTY_CHANNEL_TYPE;
   public final int NETTY_DATA_PROCESS_THREADS;
 
+  public final int NETTY_HIGH_WATER_MARK;
+  public final int NETTY_LOW_WATER_MARK;
+  public final Integer NETTY_BACKLOG;
+  public final Integer NETTY_SEND_BUFFER;
+  public final Integer NETTY_RECIEVE_BUFFER;
+
   private WorkerConf() {
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", NetworkUtils.getLocalHostName());
     MASTER_PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
@@ -80,5 +86,12 @@ public class WorkerConf extends Utils {
     NETTY_DATA_PROCESS_THREADS =
         getIntProperty("tachyon.worker.network.netty.process.threads", Runtime.getRuntime()
             .availableProcessors());
+
+    NETTY_HIGH_WATER_MARK =
+        getIntProperty("tachyon.worker.network.netty.watermark.high", 32 * 1024);
+    NETTY_LOW_WATER_MARK = getIntProperty("tachyon.worker.network.netty.watermark.low", 8 * 1024);
+    NETTY_BACKLOG = getIntegerProperty("tachyon.worker.network.netty.backlog", null);
+    NETTY_SEND_BUFFER = getIntegerProperty("tachyon.worker.network.netty.buffer.send", null);
+    NETTY_RECIEVE_BUFFER = getIntegerProperty("tachyon.worker.network.netty.buffer.recieve", null);
   }
 }

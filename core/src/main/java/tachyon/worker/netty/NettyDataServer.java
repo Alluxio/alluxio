@@ -49,10 +49,7 @@ public final class NettyDataServer implements DataServer {
   public NettyDataServer(final SocketAddress address, final BlocksLocker locker)
       throws InterruptedException {
     BOOTSTRAP =
-        createBootstrap()
-            .childHandler(new PipelineHandler(locker, SYNC_GROUP))
-            .option(ChannelOption.SO_BACKLOG, 1024)
-            .childOption(ChannelOption.SO_KEEPALIVE, true);
+        createBootstrap().childHandler(new PipelineHandler(locker, SYNC_GROUP));
 
     CHANNEL_FUTURE = BOOTSTRAP.bind(address).sync();
   }
@@ -80,12 +77,29 @@ public final class NettyDataServer implements DataServer {
   }
 
   private static ServerBootstrap createBootstrap() {
+    final WorkerConf conf = WorkerConf.get();
     ServerBootstrap boot = new ServerBootstrap();
-    boot = setupGroups(boot, WorkerConf.get().NETTY_CHANNEL_TYPE);
+    boot = setupGroups(boot, conf.NETTY_CHANNEL_TYPE);
 
     // use pooled buffers
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
     boot.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+
+    // set write buffer
+    // this is the default, but its recommended to set it in case of change in future netty.
+    boot.childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, conf.NETTY_HIGH_WATER_MARK);
+    boot.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, conf.NETTY_LOW_WATER_MARK);
+
+    // more buffer settings
+    if (conf.NETTY_BACKLOG != null) {
+      boot.option(ChannelOption.SO_BACKLOG, conf.NETTY_BACKLOG);
+    }
+    if (conf.NETTY_SEND_BUFFER != null) {
+      boot.option(ChannelOption.SO_SNDBUF, conf.NETTY_SEND_BUFFER);
+    }
+    if (conf.NETTY_RECIEVE_BUFFER != null) {
+      boot.option(ChannelOption.SO_RCVBUF, conf.NETTY_RECIEVE_BUFFER);
+    }
     return boot;
   }
 
