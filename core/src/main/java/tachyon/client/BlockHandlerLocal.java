@@ -18,58 +18,76 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 
+import org.apache.log4j.Logger;
+
+import tachyon.Constants;
 import tachyon.util.CommonUtils;
 
 /**
  * It is used for handling block files on LocalFS, such as RamDisk, SSD and HDD.
  */
-public final class BlockHandlerLocalFS extends BlockHandler {
+public final class BlockHandlerLocal extends BlockHandler {
 
-  private final RandomAccessFile mLocalFile;
-  private final FileChannel mLocalFileChannel;
+  private final RandomAccessFile LOCAL_FILE;
+  private final FileChannel LOCAL_FILE_CHANNEL;
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private boolean mPermission = false;
 
-  BlockHandlerLocalFS(String path) throws IOException {
-    super(path);
-    LOG.debug(mPath + " is created");
-    mLocalFile = new RandomAccessFile(mPath, "rw");
-    mLocalFileChannel = mLocalFile.getChannel();
-    // change the permission of the temporary file in order that the worker can move it.
-    CommonUtils.changeLocalFileToFullPermission(mPath);
-    // use the sticky bit, only the client and the worker can write to the block.
-    CommonUtils.setLocalFileStickyBit(mPath);
+  BlockHandlerLocal(String filePath) throws IOException {
+    super(filePath);
+    LOG.debug(FILE_PATH + " is created");
+    LOCAL_FILE = new RandomAccessFile(FILE_PATH, "rw");
+    LOCAL_FILE_CHANNEL = LOCAL_FILE.getChannel();
   }
 
   @Override
   public int appendCurrentBuffer(byte[] buf, long inFilePos, int offset, int length)
       throws IOException {
-    MappedByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, inFilePos, length);
+    checkPermission();
+    ByteBuffer out = LOCAL_FILE_CHANNEL.map(MapMode.READ_WRITE, inFilePos, length);
     out.put(buf, offset, length);
 
     return offset + length;
   }
 
-  @Override
-  public void close() throws IOException {
-    if (mLocalFileChannel != null) {
-      mLocalFileChannel.close();
-    }
-    if (mLocalFile != null) {
-      mLocalFile.close();
+  private void checkPermission() throws IOException {
+    if (!mPermission) {
+      // change the permission of the file and use the sticky bit
+      CommonUtils.changeLocalFileToFullPermission(FILE_PATH);
+      CommonUtils.setLocalFileStickyBit(FILE_PATH);
+      mPermission = true;
     }
   }
 
   @Override
-  public void delete() {
-    new File(mPath).delete();
+  public void close() throws IOException {
+    if (LOCAL_FILE_CHANNEL != null) {
+      try {
+        LOCAL_FILE_CHANNEL.close();
+      } catch (IOException e) {
+        if (LOCAL_FILE != null) {
+          LOCAL_FILE.close();
+        }
+        throw e;
+      }
+    }
+    if (LOCAL_FILE != null) {
+      LOCAL_FILE.close();
+    }
+  }
+
+  @Override
+  public boolean delete() throws IOException {
+    checkPermission();
+    return new File(FILE_PATH).delete();
   }
 
   @Override
   public ByteBuffer readByteBuffer(long inFilePos, int length) throws IOException {
-    long fileLength = mLocalFile.length();
+    long fileLength = LOCAL_FILE.length();
     String error = null;
     if (inFilePos > fileLength) {
       error = String.format("inFilePos(%d) is larger than file length(%d)", inFilePos, fileLength);
@@ -80,14 +98,21 @@ public final class BlockHandlerLocalFS extends BlockHandler {
               length, fileLength);
     }
     if (error != null) {
-      mLocalFileChannel.close();
-      mLocalFile.close();
       throw new IOException(error);
     }
     if (length == -1) {
       length = (int) (fileLength - inFilePos);
     }
-    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, inFilePos, length);
+    ByteBuffer buf = LOCAL_FILE_CHANNEL.map(FileChannel.MapMode.READ_ONLY, inFilePos, length);
     return buf;
+  }
+
+  public FileChannel readChannel() {
+    return LOCAL_FILE_CHANNEL;
+  }
+
+  public FileChannel writeChannel() throws IOException {
+    checkPermission();
+    return LOCAL_FILE_CHANNEL;
   }
 }
