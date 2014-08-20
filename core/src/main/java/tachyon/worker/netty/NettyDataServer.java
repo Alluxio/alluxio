@@ -34,12 +34,15 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 
 /**
  * Runs a netty server that will response to block requests.
  */
 public final class NettyDataServer implements DataServer {
-  // private final EventExecutorGroup SYNC_GROUP = new DefaultEventExecutorGroup(16);
+  private final EventExecutorGroup SYNC_GROUP =
+      new DefaultEventExecutorGroup(WorkerConf.get().NETTY_DATA_PROCESS_THREADS);
   private final ServerBootstrap BOOTSTRAP;
   private final ChannelFuture CHANNEL_FUTURE;
 
@@ -47,7 +50,7 @@ public final class NettyDataServer implements DataServer {
       throws InterruptedException {
     BOOTSTRAP =
         createBootstrap()
-            .childHandler(new PipelineHandler(locker))
+            .childHandler(new PipelineHandler(locker, SYNC_GROUP))
             .option(ChannelOption.SO_BACKLOG, 1024)
             .childOption(ChannelOption.SO_KEEPALIVE, true);
 
@@ -59,6 +62,7 @@ public final class NettyDataServer implements DataServer {
     CHANNEL_FUTURE.channel().close().awaitUninterruptibly();
     BOOTSTRAP.group().shutdownGracefully();
     BOOTSTRAP.childGroup().shutdownGracefully();
+    SYNC_GROUP.shutdownGracefully();
   }
 
   /**
