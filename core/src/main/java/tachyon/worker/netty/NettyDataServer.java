@@ -94,19 +94,15 @@ public final class NettyDataServer implements DataServer {
    * groups are preset. Current channel type supported are nio and epoll.
    */
   private static ServerBootstrap setupGroups(final ServerBootstrap boot, final ChannelType type) {
-    ThreadFactory bossFactory = createThreadFactory("data-server-boss-%d");
-    ThreadFactory workerFactory = createThreadFactory("data-server-worker-%d");
-    // one thread to accept connections, 2 * num_cores for workers
+    ThreadFactory workerFactory = createThreadFactory("data-server-%d");
     EventLoopGroup bossGroup, workerGroup;
     switch (type) {
     case EPOLL:
-      bossGroup = new EpollEventLoopGroup(1, bossFactory);
-      workerGroup = new EpollEventLoopGroup(0, workerFactory);
+      bossGroup = workerGroup = new EpollEventLoopGroup(0, workerFactory);
       boot.channel(EpollServerSocketChannel.class);
       break;
     default:
-      bossGroup = new NioEventLoopGroup(1, bossFactory);
-      workerGroup = new NioEventLoopGroup(0, workerFactory);
+      bossGroup = workerGroup = new NioEventLoopGroup(0, workerFactory);
       boot.channel(NioServerSocketChannel.class);
     }
     boot.group(bossGroup, workerGroup);
