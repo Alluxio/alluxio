@@ -219,4 +219,9 @@ The user configuration specifies values regarding file system access.
   <td>1 MB</td>
   <td>The size of the file buffer to read data from remote Tachyon worker.</td>
 </tr>
+<tr>
+  <td>tachyon.worker.network.netty.process.threads</td>
+  <td>16</td>
+  <td>How many threads to use to process block requests.</td>
+</tr>
 </table>

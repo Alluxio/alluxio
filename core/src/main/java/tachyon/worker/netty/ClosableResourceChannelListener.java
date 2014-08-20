@@ -24,16 +24,16 @@ import io.netty.channel.ChannelFutureListener;
  * accepts null resources.
  */
 final class ClosableResourceChannelListener implements ChannelFutureListener {
-  private final Closeable resource;
+  private final Closeable RESOURCE;
 
   ClosableResourceChannelListener(Closeable resource) {
-    this.resource = resource;
+    RESOURCE = resource;
   }
 
   @Override
   public void operationComplete(ChannelFuture future) throws Exception {
-    if (resource != null) {
-      resource.close();
+    if (RESOURCE != null) {
+      RESOURCE.close();
     }
   }
 }

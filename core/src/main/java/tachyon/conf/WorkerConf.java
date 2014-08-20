@@ -49,6 +49,7 @@ public class WorkerConf extends Utils {
   public final NetworkType NETWORK_TYPE;
   public final ChannelType NETTY_CHANNEL_TYPE;
   public final FileStreamType NETTY_FILE_STREAM_TYPE;
+  public final int NETTY_DATA_PROCESS_THREADS;
 
   private WorkerConf() {
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", NetworkUtils.getLocalHostName());
@@ -81,5 +82,9 @@ public class WorkerConf extends Utils {
         getEnumProperty("tachyon.worker.network.netty.channel", ChannelType.defaultType());
     NETTY_FILE_STREAM_TYPE =
         getEnumProperty("tachyon.worker.network.netty.file.stream", FileStreamType.TRANSFER);
+
+    NETTY_DATA_PROCESS_THREADS =
+        getIntProperty("tachyon.worker.network.netty.process.threads",
+            Runtime.getRuntime().availableProcessors());
   }
 }

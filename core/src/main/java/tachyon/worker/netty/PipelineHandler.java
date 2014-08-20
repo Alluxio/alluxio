@@ -15,20 +15,22 @@
 package tachyon.worker.netty;
 
 import tachyon.worker.BlocksLocker;
-
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.util.concurrent.EventExecutorGroup;
 
 /**
  * Adds the block server's pipeline into the channel.
  */
 public final class PipelineHandler extends ChannelInitializer<SocketChannel> {
-  private final BlocksLocker locker;
+  private final BlocksLocker LOCKER;
+  private final EventExecutorGroup SYNC_GROUP;
 
-  public PipelineHandler(BlocksLocker locker) {
-    this.locker = locker;
+  public PipelineHandler(BlocksLocker locker, EventExecutorGroup group) {
+    LOCKER = locker;
+    SYNC_GROUP = group;
   }
 
   @Override
@@ -37,8 +39,6 @@ public final class PipelineHandler extends ChannelInitializer<SocketChannel> {
     pipeline.addLast("nioChunckedWriter", new ChunkedWriteHandler());
     pipeline.addLast("blockRequestDecoder", new BlockRequest.Decoder());
     pipeline.addLast("blockRequestEncoder", new BlockResponse.Encoder());
-    // TODO move out of worker group
-    // pipeline.addLast(SYNC_GROUP, "dataServerHandler", new DataServerHandler(locker));
-    pipeline.addLast("dataServerHandler", new DataServerHandler(locker));
+    pipeline.addLast(SYNC_GROUP, "dataServerHandler", new DataServerHandler(LOCKER));
   }
 }
