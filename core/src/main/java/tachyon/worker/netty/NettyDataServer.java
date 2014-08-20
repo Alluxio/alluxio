@@ -41,8 +41,8 @@ import io.netty.util.concurrent.EventExecutorGroup;
  * Runs a netty server that will response to block requests.
  */
 public final class NettyDataServer implements DataServer {
-  private final EventExecutorGroup SYNC_GROUP =
-      new DefaultEventExecutorGroup(WorkerConf.get().NETTY_DATA_PROCESS_THREADS);
+  private final EventExecutorGroup SYNC_GROUP = new DefaultEventExecutorGroup(
+      WorkerConf.get().NETTY_DATA_PROCESS_THREADS);
   private final ServerBootstrap BOOTSTRAP;
   private final ChannelFuture CHANNEL_FUTURE;
 
