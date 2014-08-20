@@ -14,6 +14,7 @@
  */
 package tachyon.worker;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -46,7 +47,7 @@ import tachyon.util.NetworkUtils;
  * 
  * Since WorkerService.Client is not thread safe, this class has to guarantee thread safe.
  */
-public class WorkerClient {
+public class WorkerClient implements Closeable {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final MasterClient MASTER_CLIENT;
   private final int CONNECTION_RETRY_TIMES = 5;
@@ -167,6 +168,7 @@ public class WorkerClient {
   /**
    * Close the connection to worker. Shutdown the heartbeat thread.
    */
+  @Override
   public synchronized void close() {
     if (mConnected) {
       mProtocol.getTransport().close();
