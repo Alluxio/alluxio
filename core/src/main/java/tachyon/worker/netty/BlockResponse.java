@@ -81,20 +81,7 @@ public final class BlockResponse {
         final List<Object> out) throws Exception {
       out.add(createHeader(ctx, msg));
       if (msg.getChannel() != null) {
-        switch (WorkerConf.get().NETTY_FILE_STREAM_TYPE) {
-        case TRANSFER:
-          out.add(new DefaultFileRegion(msg.getChannel(), msg.getOffset(), msg.getLength()));
-          break;
-        case MAPPED:
-          ByteBuffer data =
-              msg.getChannel()
-                  .map(FileChannel.MapMode.READ_ONLY, msg.getOffset(), msg.getLength());
-          out.add(Unpooled.wrappedBuffer(data));
-          break;
-        default:
-          throw new AssertionError("Unsupported stream type: " +
-              WorkerConf.get().NETTY_FILE_STREAM_TYPE);
-        }
+        out.add(new DefaultFileRegion(msg.getChannel(), msg.getOffset(), msg.getLength()));
       }
     }
 

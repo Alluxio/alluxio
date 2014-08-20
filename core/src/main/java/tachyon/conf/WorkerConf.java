@@ -4,10 +4,7 @@ import tachyon.Constants;
 import tachyon.util.CommonUtils;
 import tachyon.worker.NetworkType;
 import tachyon.worker.netty.ChannelType;
-import tachyon.worker.netty.FileStreamType;
 import tachyon.util.NetworkUtils;
-
-import io.netty.channel.epoll.Epoll;
 
 public class WorkerConf extends Utils {
   private static WorkerConf WORKER_CONF = null;
@@ -48,7 +45,6 @@ public class WorkerConf extends Utils {
 
   public final NetworkType NETWORK_TYPE;
   public final ChannelType NETTY_CHANNEL_TYPE;
-  public final FileStreamType NETTY_FILE_STREAM_TYPE;
   public final int NETTY_DATA_PROCESS_THREADS;
 
   private WorkerConf() {
@@ -80,11 +76,9 @@ public class WorkerConf extends Utils {
     NETWORK_TYPE = getEnumProperty("tachyon.worker.network.type", NetworkType.NETTY);
     NETTY_CHANNEL_TYPE =
         getEnumProperty("tachyon.worker.network.netty.channel", ChannelType.defaultType());
-    NETTY_FILE_STREAM_TYPE =
-        getEnumProperty("tachyon.worker.network.netty.file.stream", FileStreamType.TRANSFER);
 
     NETTY_DATA_PROCESS_THREADS =
-        getIntProperty("tachyon.worker.network.netty.process.threads",
-            Runtime.getRuntime().availableProcessors());
+        getIntProperty("tachyon.worker.network.netty.process.threads", Runtime.getRuntime()
+            .availableProcessors());
   }
 }
