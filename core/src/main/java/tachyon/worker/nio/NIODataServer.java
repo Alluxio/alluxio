@@ -26,16 +26,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.google.common.io.Closeables;
 import org.apache.log4j.Logger;
 
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
-import tachyon.Users;
 import tachyon.conf.CommonConf;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
-import tachyon.worker.WorkerStorage;
 
 /**
  * The Server to serve data file read request from remote machines. The current implementation
@@ -59,8 +58,8 @@ public class NIODataServer implements Runnable, DataServer {
       .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
   // The blocks locker manager.
-  private final BlocksLocker BLOCKS_LOCKER;
-  private final Thread LISTENER_THREAD;
+  private final BlocksLocker mBlockLocker;
+  private final Thread mListenerThread;
 
   private volatile boolean mShutdown = false;
   private volatile boolean mShutdowned = false;
@@ -77,11 +76,11 @@ public class NIODataServer implements Runnable, DataServer {
     LOG.info("Starting DataServer @ " + address);
     CommonConf.assertValidPort(address);
     mAddress = address;
-    BLOCKS_LOCKER = locker;
+    mBlockLocker = locker;
     try {
       mSelector = initSelector();
-      LISTENER_THREAD = new Thread(this);
-      LISTENER_THREAD.start();
+      mListenerThread = new Thread(this);
+      mListenerThread.start();
     } catch (IOException e) {
       LOG.error(e.getMessage() + mAddress, e);
       throw Throwables.propagate(e);
@@ -126,16 +125,23 @@ public class NIODataServer implements Runnable, DataServer {
     Selector socketSelector = SelectorProvider.provider().openSelector();
 
     // Create a new non-blocking server socket channel
-    mServerChannel = ServerSocketChannel.open();
-    mServerChannel.configureBlocking(false);
+    try {
+      mServerChannel = ServerSocketChannel.open();
+      mServerChannel.configureBlocking(false);
 
-    // Bind the server socket to the specified address and port
-    mServerChannel.socket().bind(mAddress);
+      // Bind the server socket to the specified address and port
+      mServerChannel.socket().bind(mAddress);
 
-    // Register the server socket channel, indicating an interest in accepting new connections.
-    mServerChannel.register(socketSelector, SelectionKey.OP_ACCEPT);
+      // Register the server socket channel, indicating an interest in accepting new connections.
+      mServerChannel.register(socketSelector, SelectionKey.OP_ACCEPT);
 
-    return socketSelector;
+      return socketSelector;
+    } catch (IOException e) {
+      // we wan't to throw the original IO issue, not the close issue, so don't throw
+      // #close IOException.
+      Closeables.closeQuietly(socketSelector);
+      throw e;
+    }
   }
 
   /**
@@ -188,7 +194,7 @@ public class NIODataServer implements Runnable, DataServer {
 
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getBlockId());
-      int lockId = BLOCKS_LOCKER.lock(tMessage.getBlockId());
+      int lockId = mBlockLocker.lock(tMessage.getBlockId());
       DataServerMessage tResponseMessage =
           DataServerMessage.createBlockResponseMessage(true, tMessage.getBlockId(),
               tMessage.getOffset(), tMessage.getLength());
@@ -261,7 +267,7 @@ public class NIODataServer implements Runnable, DataServer {
       mReceivingData.remove(socketChannel);
       mSendingData.remove(socketChannel);
       sendMessage.close();
-      BLOCKS_LOCKER.unlock(Math.abs(sendMessage.getBlockId()), sendMessage.getLockId());
+      mBlockLocker.unlock(Math.abs(sendMessage.getBlockId()), sendMessage.getLockId());
     }
   }
 }

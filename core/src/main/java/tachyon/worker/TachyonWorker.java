@@ -144,7 +144,7 @@ public class TachyonWorker implements Runnable {
 
   private WorkerServiceHandler mWorkerServiceHandler;
 
-  private final NettyDataServer mDataServer;
+  private final DataServer mDataServer;
 
   private Thread mHeartbeatThread;
 
@@ -189,13 +189,9 @@ public class TachyonWorker implements Runnable {
     // (any random free port).
     // In a production or any real deployment setup, port '0' should not be used as it will make
     // deployment more complicated.
-    try {
-      InetSocketAddress dataAddress = new InetSocketAddress(workerAddress.getHostName(), dataPort);
-      BlocksLocker blockLocker = new BlocksLocker(mWorkerStorage, Users.sDATASERVER_USER_ID);
-      mDataServer = createDataServer(dataAddress, blockLocker);
-    } catch (InterruptedException e) {
-      throw Throwables.propagate(e);
-    }
+    InetSocketAddress dataAddress = new InetSocketAddress(workerAddress.getHostName(), dataPort);
+    BlocksLocker blockLocker = new BlocksLocker(mWorkerStorage, Users.sDATASERVER_USER_ID);
+    mDataServer = createDataServer(dataAddress, blockLocker);
     mDataPort = mDataServer.getPort();
 
     mHeartbeatThread = new Thread(this);
@@ -221,7 +217,7 @@ public class TachyonWorker implements Runnable {
   }
 
   private DataServer createDataServer(final InetSocketAddress dataAddress,
-                                      final BlocksLocker blockLocker) throws InterruptedException {
+                                      final BlocksLocker blockLocker) {
     switch (WorkerConf.get().NETWORK_TYPE) {
       case NIO:
         return new NIODataServer(dataAddress, blockLocker);
