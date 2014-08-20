@@ -44,16 +44,16 @@ public abstract class BlockHandler implements Closeable {
   public static BlockHandler get(String path, Object ufsConf) throws IOException,
       IllegalArgumentException {
     if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
-      return new BlockHandlerLocalFS(path);
+      return new BlockHandlerLocal(path);
     }
     throw new IllegalArgumentException("Unsupported block file path: " + path);
   }
 
   protected final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  protected final String mPath;
+  protected final String FILE_PATH;
 
   protected BlockHandler(String path) {
-    mPath = Preconditions.checkNotNull(path);
+    FILE_PATH = Preconditions.checkNotNull(path);
   }
 
   /**
@@ -75,8 +75,11 @@ public abstract class BlockHandler implements Closeable {
 
   /**
    * Delete block file
+   * 
+   * @return true if success, otherwise false
+   * @throws IOException
    */
-  public abstract void delete();
+  public abstract boolean delete() throws IOException;
 
   /**
    * Read data from block file
