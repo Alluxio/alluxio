@@ -78,7 +78,8 @@ public class MasterConf extends Utils {
         getIntProperty("tachyon.master.heartbeat.interval.ms", Constants.SECOND_MS);
     SELECTOR_THREADS = getIntProperty("tachyon.master.selector.threads", 3);
     QUEUE_SIZE_PER_SELECTOR = getIntProperty("tachyon.master.queue.size.per.selector", 3000);
-    SERVER_THREADS = getIntProperty("tachyon.master.server.threads", 128);
+    SERVER_THREADS = getIntProperty("tachyon.master.server.threads", 
+        2 * Runtime.getRuntime().availableProcessors());
     WORKER_TIMEOUT_MS =
         getIntProperty("tachyon.master.worker.timeout.ms", 10 * Constants.SECOND_MS);
 
