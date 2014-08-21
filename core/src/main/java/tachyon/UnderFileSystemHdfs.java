@@ -116,10 +116,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     throw te;
   }
 
+  /**
+   * BlockSize should be a multiple of 512
+   */
   @Override
-  // BlockSize should be a multiple of 512
-      public
-      FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
+  public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
     // TODO Fix this
     // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
     return create(path);
