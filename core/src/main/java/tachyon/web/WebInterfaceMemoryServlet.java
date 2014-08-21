@@ -14,19 +14,20 @@
  */
 package tachyon.web;
 
-import tachyon.master.MasterInfo;
-import tachyon.thrift.ClientFileInfo;
-import tachyon.thrift.FileDoesNotExistException;
-import tachyon.thrift.InvalidPathException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+
+import tachyon.master.MasterInfo;
+import tachyon.thrift.ClientFileInfo;
+import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.InvalidPathException;
 
 /**
  * Servlet that provides data for displaying which files are currently in memory.

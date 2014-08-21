@@ -30,7 +30,6 @@ import org.junit.Test;
 import tachyon.TestUtils;
 
 public class UtilsTest {
-
   @Test
   public void writeReadByteBufferTest() throws IOException {
     ByteArrayOutputStream os = new ByteArrayOutputStream();

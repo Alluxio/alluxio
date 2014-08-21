@@ -34,6 +34,7 @@ public class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Construct a path from a String. Path strings are URIs, but with unescaped elements and some
    * additional normalization.
+   * 
    * @param pathStr
    *          the unescaped path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    */

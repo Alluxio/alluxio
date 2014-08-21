@@ -18,13 +18,13 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-import java.lang.Math;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.spi.ErrorCode;
 import org.apache.log4j.spi.LoggingEvent;
+
 import tachyon.util.CommonUtils;
 
 /**

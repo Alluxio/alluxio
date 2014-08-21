@@ -14,20 +14,22 @@
  */
 package tachyon.conf;
 
+import org.apache.log4j.Logger;
+
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import org.apache.log4j.Logger;
-
 
 /**
  * Utils for tachyon.conf package.
  */
 class Utils {
   private static final Logger LOG = Logger.getLogger("");
-  private static final CharMatcher LIST_SPLITTER_MATCHER = CharMatcher.is(',').or(CharMatcher.WHITESPACE);
-  private static final Splitter LIST_SPLITTER = Splitter.on(LIST_SPLITTER_MATCHER).omitEmptyStrings().trimResults();
+  private static final CharMatcher LIST_SPLITTER_MATCHER = CharMatcher.is(',').or(
+      CharMatcher.WHITESPACE);
+  private static final Splitter LIST_SPLITTER = Splitter.on(LIST_SPLITTER_MATCHER)
+      .omitEmptyStrings().trimResults();
 
   public static boolean getBooleanProperty(String property) {
     return Boolean.valueOf(getProperty(property));
@@ -53,7 +55,8 @@ class Utils {
     return Long.valueOf(getProperty(property, defaultValue + ""));
   }
 
-  public static ImmutableList<String> getListProperty(String property, ImmutableList<String> defaultValue) {
+  public static ImmutableList<String> getListProperty(String property,
+      ImmutableList<String> defaultValue) {
     final String strList = getProperty(property, null);
     if (strList == null) {
       return defaultValue;

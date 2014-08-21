@@ -14,20 +14,18 @@ import tachyon.client.WriteType;
  * Basic example of using the TachyonFS and TachyonFile for writing to and reading from files.
  * <p />
  * This class is different from {@link tachyon.examples.BasicOperations} in the way writes happen.
- * Over there {@link java.nio.ByteBuffer} is used directly, where as here byte data is done
- * via input/output streams.
+ * Over there {@link java.nio.ByteBuffer} is used directly, where as here byte data is done via
+ * input/output streams.
  * <p />
- * This example also let users play around with how to work with files a bit more.  The
- * {@link tachyon.client.ReadType} is something that can be set, as well as ability to delete
- * file if exists.
+ * This example also let users play around with how to work with files a bit more. The
+ * {@link tachyon.client.ReadType} is something that can be set, as well as ability to delete file
+ * if exists.
  */
 public final class BasicNonByteBufferOperations {
   private static void usage() {
     System.out.println("java -cp target/tachyon-" + Version.VERSION
-        + "-jar-with-dependencies.jar "
-        + BasicNonByteBufferOperations.class.getName()
-        + " <master address> <file path> [write type] [read type] [delete file] [num writes]"
-    );
+        + "-jar-with-dependencies.jar " + BasicNonByteBufferOperations.class.getName()
+        + " <master address> <file path> [write type] [read type] [delete file] [num writes]");
     System.exit(-1);
   }
 
@@ -67,8 +65,8 @@ public final class BasicNonByteBufferOperations {
     }
   }
 
-  private static TachyonFile getOrCreate(TachyonFS client, String filePath, boolean deleteIfExists)
-      throws IOException {
+  private static TachyonFile
+      getOrCreate(TachyonFS client, String filePath, boolean deleteIfExists) throws IOException {
     TachyonFile file = client.getFile(filePath);
     if (file == null) {
       // file doesn't exist yet, so create it

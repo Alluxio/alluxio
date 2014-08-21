@@ -14,28 +14,25 @@
  */
 package tachyon.worker;
 
+import java.io.IOException;
+
+import org.apache.thrift.TException;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.WorkerConf;
-
-import java.io.IOException;
-
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.After;
-import org.junit.Before;
-
-import org.apache.thrift.TException;
-
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterInfo;
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.ClientFileInfo;
 import tachyon.util.CommonUtils;
-import tachyon.worker.WorkerServiceHandler;
 
 /**
  * Unit tests for tachyon.WorkerServiceHandler

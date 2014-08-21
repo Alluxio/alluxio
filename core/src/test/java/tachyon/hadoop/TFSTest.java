@@ -50,7 +50,6 @@ import tachyon.client.TachyonFS;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ TachyonFS.class, UserGroupInformation.class })
 public class TFSTest {
-
   private final Logger LOG = Logger.getLogger(TFSTest.class.getName());
 
   @Before

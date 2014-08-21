@@ -48,8 +48,10 @@ public class UserConf extends Utils {
     FAILED_SPACE_REQUEST_LIMITS = getIntProperty("tachyon.user.failed.space.request.limits", 3);
     QUOTA_UNIT_BYTES = getLongProperty("tachyon.user.quota.unit.bytes", 8 * Constants.MB);
     FILE_BUFFER_BYTES = getIntProperty("tachyon.user.file.buffer.bytes", Constants.MB);
-    HEARTBEAT_INTERVAL_MS = getLongProperty("tachyon.user.heartbeat.interval.ms", Constants.SECOND_MS);
-    MASTER_CLIENT_TIMEOUT_MS = getLongProperty("tachyon.user.master.client.timeout.ms", 10 * Constants.SECOND_MS);
+    HEARTBEAT_INTERVAL_MS =
+        getLongProperty("tachyon.user.heartbeat.interval.ms", Constants.SECOND_MS);
+    MASTER_CLIENT_TIMEOUT_MS =
+        getLongProperty("tachyon.user.master.client.timeout.ms", 10 * Constants.SECOND_MS);
     DEFAULT_BLOCK_SIZE_BYTE =
         getLongProperty("tachyon.user.default.block.size.byte", Constants.GB);
     REMOTE_READ_BUFFER_SIZE_BYTE =

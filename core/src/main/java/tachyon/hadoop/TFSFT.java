@@ -27,7 +27,7 @@ public final class TFSFT extends AbstractTFS {
 
   @Override
   public String getScheme() {
-      return Constants.SCHEME_FT;
+    return Constants.SCHEME_FT;
   }
 
   @Override

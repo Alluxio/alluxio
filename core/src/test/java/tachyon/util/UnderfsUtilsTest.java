@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.List;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Assert;
 
 import tachyon.Constants;
 import tachyon.PrefixList;

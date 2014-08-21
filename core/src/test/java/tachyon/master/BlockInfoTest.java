@@ -18,8 +18,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.master.BlockInfo;
-import tachyon.master.InodeFile;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 
