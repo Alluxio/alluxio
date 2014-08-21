@@ -50,7 +50,7 @@ public class BlockHandlerLocalTest {
     int fileId = TestUtils.createByteFile(mTfs, "/root/testFile", WriteType.MUST_CACHE, 100);
     long blockId = mTfs.getBlockId(fileId, 0);
     String filename = mTfs.getLocalFilename(blockId);
-    BlockHandler handler = BlockHandler.get(filename, null);
+    BlockHandler handler = BlockHandler.get(filename);
     ByteBuffer buf = handler.readByteBuffer(0, 100);
     Assert.assertEquals(TestUtils.getIncreasingByteBuffer(100), buf);
     buf = handler.readByteBuffer(0, -1);
@@ -65,7 +65,7 @@ public class BlockHandlerLocalTest {
     long blockId = mTfs.getBlockId(fileId, 0);
     String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
     String filename = CommonUtils.concat(localFolder, blockId);
-    BlockHandler handler = BlockHandler.get(filename, null);
+    BlockHandler handler = BlockHandler.get(filename);
     byte[] buf = TestUtils.getIncreasingByteArray(100);
     handler.appendCurrentBuffer(buf, 0, 0, 100);
     handler.close();

@@ -272,7 +272,7 @@ public class StorageDir {
   public BlockHandler getBlockHandler(long blockId) throws IOException {
     String filePath = getBlockFilePath(blockId);
     try {
-      return BlockHandler.get(filePath, UFS_CONF);
+      return BlockHandler.get(filePath);
     } catch (IllegalArgumentException e) {
       throw new IOException(e.getMessage());
     }
