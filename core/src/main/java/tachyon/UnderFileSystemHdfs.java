@@ -71,7 +71,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     // Providing a hadoop core-site.xml that is required for this type of underfs.
     if (null != CommonConf.get().HADOOP_CORE_SITE_PATH && !CommonConf.get().HADOOP_CORE_SITE_PATH.equals("")){
       tConf.addResource(new Path(CommonConf.get().HADOOP_CORE_SITE_PATH));
-    }else {
+    } else {
       final String glusterfsPrefix = "glusterfs:///";
       tConf.set("fs.defaultFS", fsDefaultName);
       if (fsDefaultName.startsWith(glusterfsPrefix)) {
