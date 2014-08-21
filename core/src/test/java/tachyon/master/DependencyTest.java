@@ -25,10 +25,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.master.Dependency;
-import tachyon.master.DependencyType;
-import tachyon.master.DependencyVariables;
-
 public class DependencyTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private String mMasterValue = "localhost";

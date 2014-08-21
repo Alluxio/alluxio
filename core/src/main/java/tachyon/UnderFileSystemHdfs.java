@@ -118,7 +118,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   // BlockSize should be a multiple of 512
-  public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
+      public
+      FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
     // TODO Fix this
     // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
     return create(path);
@@ -172,7 +173,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         return mFs.exists(new Path(path));
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " try to check if " + path + " exists " +  " : " + e.getMessage(), e);
+        LOG.error(cnt + " try to check if " + path + " exists " + " : " + e.getMessage(), e);
         te = e;
       }
     }
@@ -225,7 +226,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         return fs.getLen();
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " try to get file size for " + path +  " : " + e.getMessage(), e);
+        LOG.error(cnt + " try to get file size for " + path + " : " + e.getMessage(), e);
       }
     }
     return -1;
@@ -333,7 +334,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         return mFs.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " try to rename " + src + " to " + dst +  " : " + e.getMessage(), e);
+        LOG.error(cnt + " try to rename " + src + " to " + dst + " : " + e.getMessage(), e);
         te = e;
       }
     }

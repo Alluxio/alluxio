@@ -26,8 +26,6 @@ import org.junit.Test;
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
-import tachyon.client.table.RawColumn;
-import tachyon.client.table.RawTable;
 import tachyon.conf.CommonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterInfo;

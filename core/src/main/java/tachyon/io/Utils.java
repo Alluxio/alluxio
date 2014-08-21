@@ -21,8 +21,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.codec.binary.Base64;
+
+import com.google.common.collect.Lists;
 
 /**
  * Utilities to do ser/de String, and ByteBuffer

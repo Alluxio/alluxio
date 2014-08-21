@@ -15,14 +15,12 @@
 package tachyon.master;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.master.BlockInfo;
-import tachyon.master.InodeFile;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;

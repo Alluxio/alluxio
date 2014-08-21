@@ -17,9 +17,6 @@ package tachyon.master;
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.master.InodeFile;
-import tachyon.master.InodeFolder;
-
 /**
  * Unit tests for tachyon.InodeFolder
  */

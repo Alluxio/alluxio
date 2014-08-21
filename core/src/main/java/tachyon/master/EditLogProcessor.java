@@ -78,7 +78,7 @@ public class EditLogProcessor implements Runnable {
             LOG.info("Last image was updated with log number: " + mLastImageFileNum
                 + " writing new image up to log number " + mCurrentLogFileNum);
             JOURNAL.createImage(mMasterInfo, mPath + mMasterInfo.getMasterAddress().getHostName()
-                    + mMasterInfo.getMasterAddress().getPort() + "/standby.image");
+                + mMasterInfo.getMasterAddress().getPort() + "/standby.image");
             LOG.info("Finished creating image");
             mLastImageFileNum = mCurrentLogFileNum;
           }

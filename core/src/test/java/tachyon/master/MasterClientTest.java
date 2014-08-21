@@ -24,8 +24,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-import tachyon.master.MasterClient;
-import tachyon.master.MasterInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 

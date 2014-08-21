@@ -21,7 +21,8 @@ import tachyon.client.ReadType;
 import tachyon.client.WriteType;
 
 public final class Utils {
-  private Utils() {}
+  private Utils() {
+  }
 
   public static void printPassInfo(boolean pass) {
     if (pass) {
@@ -41,7 +42,7 @@ public final class Utils {
 
   public static boolean option(String[] args, int index, boolean defaultValue) {
     if (index < args.length && index >= 0) {
-      // if data isn't a boolean, false is returned here.  Unable to check this.
+      // if data isn't a boolean, false is returned here. Unable to check this.
       return Boolean.parseBoolean(args[index]);
     } else {
       return defaultValue;

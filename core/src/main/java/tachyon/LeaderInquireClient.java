@@ -14,14 +14,15 @@
  */
 package tachyon;
 
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.data.Stat;
+
 import tachyon.util.CommonUtils;
 
 /**
@@ -53,7 +54,8 @@ public class LeaderInquireClient {
     LEADER_PATH = leaderPath;
 
     CLIENT =
-        CuratorFrameworkFactory.newClient(ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
+        CuratorFrameworkFactory.newClient(ZOOKEEPER_ADDRESS, new ExponentialBackoffRetry(
+            Constants.SECOND_MS, 3));
     CLIENT.start();
   }
 
