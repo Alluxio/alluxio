@@ -258,39 +258,40 @@ public class RemoteBlockInStream extends BlockInStream {
   private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, long blockId,
       long offset, long length) throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
-    socketChannel.connect(address);
+    try {
+      socketChannel.connect(address);
 
-    LOG.info("Connected to remote machine " + address + " sent");
-    DataServerMessage sendMsg =
-        DataServerMessage.createBlockRequestMessage(blockId, offset, length);
-    while (!sendMsg.finishSending()) {
-      sendMsg.send(socketChannel);
-    }
-
-    LOG.info("Data " + blockId + " to remote machine " + address + " sent");
-
-    DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
-    while (!recvMsg.isMessageReady()) {
-      int numRead = recvMsg.recv(socketChannel);
-      if (numRead == -1) {
-        LOG.warn("Read nothing");
+      LOG.info("Connected to remote machine " + address + " sent");
+      DataServerMessage sendMsg =
+          DataServerMessage.createBlockRequestMessage(blockId, offset, length);
+      while (!sendMsg.finishSending()) {
+        sendMsg.send(socketChannel);
       }
+
+      LOG.info("Data " + blockId + " to remote machine " + address + " sent");
+
+      DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
+      while (!recvMsg.isMessageReady()) {
+        int numRead = recvMsg.recv(socketChannel);
+        if (numRead == -1) {
+          LOG.warn("Read nothing");
+        }
+      }
+      LOG.info("Data " + blockId + " from remote machine " + address + " received");
+
+      if (!recvMsg.isMessageReady()) {
+        LOG.info("Data " + blockId + " from remote machine is not ready.");
+        return null;
+      }
+
+      if (recvMsg.getBlockId() < 0) {
+        LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
+        return null;
+      }
+      return recvMsg.getReadOnlyData();
+    } finally {
+      socketChannel.close();
     }
-    LOG.info("Data " + blockId + " from remote machine " + address + " received");
-
-    socketChannel.close();
-
-    if (!recvMsg.isMessageReady()) {
-      LOG.info("Data " + blockId + " from remote machine is not ready.");
-      return null;
-    }
-
-    if (recvMsg.getBlockId() < 0) {
-      LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
-      return null;
-    }
-
-    return recvMsg.getReadOnlyData();
   }
 
   @Override

@@ -166,12 +166,38 @@ abstract class AbstractTFS extends FileSystem {
     }
   }
 
+  /**
+   * TODO: We need to refactor this method after having a new internal API support (TACHYON-46).
+   * <p>
+   * Opens an FSDataOutputStream at the indicated Path with write-progress reporting. Same as
+   * create(), except fails if parent directory doesn't already exist.
+   * 
+   * @param cPath
+   *          the file name to open
+   * @param overwrite
+   *          if a file with this name already exists, then if true,
+   *          the file will be overwritten, and if false an error will be thrown.
+   * @param bufferSize
+   *          the size of the buffer to be used.
+   * @param replication
+   *          required block replication for the file.
+   * @param blockSize
+   * @param progress
+   * @throws IOException
+   * @see #setPermission(Path, FsPermission)
+   * @deprecated API only for 0.20-append
+   */
   @Override
   @Deprecated
   public FSDataOutputStream createNonRecursive(Path cPath, FsPermission permission,
       boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress)
       throws IOException {
-    return create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
+    String tPath = Utils.getPathWithoutScheme(cPath.getParent());
+    fromHdfsToTachyon(tPath);
+    if (!mTFS.exist(tPath)) {
+      throw new FileNotFoundException("Parent directory does not exist!");
+    }
+    return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
   }
 
   @Override
@@ -286,6 +312,16 @@ abstract class AbstractTFS extends FileSystem {
     return mWorkingDir;
   }
 
+  @Override
+  public void setWorkingDirectory(Path path) {
+    LOG.info("setWorkingDirectory(" + path + ")");
+    if (path.isAbsolute()) {
+      mWorkingDir = path;
+    } else {
+      mWorkingDir = new Path(mWorkingDir, path);
+    }
+  }
+
   /**
    * Initialize the class, have a lazy connection with Tachyon through mTFS.
    */
@@ -353,16 +389,6 @@ abstract class AbstractTFS extends FileSystem {
     String hDst = Utils.getPathWithoutScheme(dst);
     fromHdfsToTachyon(hSrc);
     return mTFS.rename(hSrc, hDst);
-  }
-
-  @Override
-  public void setWorkingDirectory(Path path) {
-    LOG.info("setWorkingDirectory(" + path + ")");
-    if (path.isAbsolute()) {
-      mWorkingDir = path;
-    } else {
-      mWorkingDir = new Path(mWorkingDir, path);
-    }
   }
 
   /**
