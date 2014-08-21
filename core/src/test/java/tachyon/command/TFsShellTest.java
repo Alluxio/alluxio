@@ -45,6 +45,7 @@ public class TFsShellTest {
 
   @After
   public final void after() throws Exception {
+    mFsShell.close();
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.setOut(mOldOutput);
