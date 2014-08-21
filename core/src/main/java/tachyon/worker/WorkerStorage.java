@@ -466,7 +466,7 @@ public class WorkerStorage {
     if (!srcFile.exists()) {
       throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
     }
-    synchronized (mLatestBlockAccessTimeMs) {
+    synchronized (LATEST_BLOCK_ACCESS_TIME_MS) {
       if (!srcFile.renameTo(dstFile)) {
         throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath()
             + " to " + dstFile.getPath());
