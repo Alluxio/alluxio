@@ -35,14 +35,11 @@ public abstract class BlockHandler implements Closeable {
    * 
    * @param path
    *          block file path
-   * @param ufsConf
-   *          configuration of under file system
    * @return block handler of the block file
    * @throws IOException
    * @throws IllegalArgumentException
    */
-  public static BlockHandler get(String path, Object ufsConf) throws IOException,
-      IllegalArgumentException {
+  public static BlockHandler get(String path) throws IOException, IllegalArgumentException {
     if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return new BlockHandlerLocal(path);
     }
