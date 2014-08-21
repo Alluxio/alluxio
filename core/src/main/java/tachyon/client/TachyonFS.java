@@ -214,13 +214,13 @@ public class TachyonFS implements Closeable {
    */
   @Override
   public synchronized void close() throws IOException {
-    if (mMasterClient != null) {
-      mMasterClient.close();
-    }
-
     if (mWorkerClient.isConnected()) {
       mWorkerClient.returnSpace(mMasterClient.getUserId(), mAvailableSpaceBytes);
       mWorkerClient.close();
+    }
+
+    if (mMasterClient != null) {
+      mMasterClient.close();
     }
   }
 

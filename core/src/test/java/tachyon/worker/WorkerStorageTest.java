@@ -28,6 +28,8 @@ import org.junit.rules.ExpectedException;
 import tachyon.Constants;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
+import tachyon.client.InStream;
+import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
@@ -81,6 +83,31 @@ public class WorkerStorageTest {
         mWorkerDataFolder + Constants.PATH_SEPARATOR + bid).exists());
     Assert.assertTrue("UFS hasn't the orphan block file ", ufs.exists(orpahnblock));
     Assert.assertTrue("Orpahblock file size is changed", ufs.getFileSize(orpahnblock) == filesize);
+  }
+
+  /**
+   * To test the cacheBlock method when multi clients cache the same block.
+   * 
+   * @throws IOException
+   */
+  @Test
+  public void cacheBlockTest() throws Exception {
+    int fileLen = USER_QUOTA_UNIT_BYTES + 4;
+    int fid = TestUtils.createByteFile(mTfs, "/cacheBlockTest", WriteType.THROUGH, fileLen);
+    long usedBytes = mLocalTachyonCluster.getMasterInfo().getWorkersInfo().get(0).getUsedBytes();
+    Assert.assertEquals(0, usedBytes);
+    TachyonFS tfs1 = mLocalTachyonCluster.getClient();
+    TachyonFS tfs2 = mLocalTachyonCluster.getClient();
+    InStream fin1 = tfs1.getFile(fid).getInStream(ReadType.CACHE);
+    InStream fin2 = tfs2.getFile(fid).getInStream(ReadType.CACHE);
+    for (int i = 0; i < fileLen + 1; i ++) {
+      fin1.read();
+      fin2.read();
+    }
+    fin1.close();
+    fin2.close();
+    usedBytes = mLocalTachyonCluster.getMasterInfo().getWorkersInfo().get(0).getUsedBytes();
+    Assert.assertEquals(fileLen, usedBytes);
   }
 
   /**

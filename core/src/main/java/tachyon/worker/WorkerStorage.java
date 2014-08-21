@@ -466,14 +466,19 @@ public class WorkerStorage {
     if (!srcFile.exists()) {
       throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
     }
-    if (!srcFile.renameTo(dstFile)) {
-      throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath()
-          + " to " + dstFile.getPath());
+    synchronized (LATEST_BLOCK_ACCESS_TIME_MS) {
+      if (!srcFile.renameTo(dstFile)) {
+        throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath()
+            + " to " + dstFile.getPath());
+      }
+      if (mBlockSizes.containsKey(blockId)) {
+        mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
+      }
+      addBlockId(blockId, fileSizeBytes);
+      mUsers.addOwnBytes(userId, -fileSizeBytes);
+      mMasterClient.worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId,
+          fileSizeBytes);
     }
-    addBlockId(blockId, fileSizeBytes);
-    mUsers.addOwnBytes(userId, -fileSizeBytes);
-    mMasterClient.worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId,
-        fileSizeBytes);
     LOG.info(userId + " " + dstFile);
   }
 
@@ -670,8 +675,7 @@ public class WorkerStorage {
           addFoundBlock(blockId, tFile.length());
         } catch (FileDoesNotExistException e) {
           LOG.error("BlockId: " + blockId + " becomes orphan for: \"" + e.message + "\"");
-          LOG.info("Swapout File " + cnt + ": blockId: " + blockId + " to "
-              + mUfsOrphansFolder);
+          LOG.info("Swapout File " + cnt + ": blockId: " + blockId + " to " + mUfsOrphansFolder);
           swapoutOrphanBlocks(blockId, tFile);
           freeBlock(blockId);
           continue;
