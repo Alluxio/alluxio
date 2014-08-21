@@ -14,6 +14,7 @@
  */
 package tachyon.master;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -34,6 +35,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.HeartbeatThread;
 import tachyon.LeaderInquireClient;
+import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 import tachyon.thrift.BlockInfoException;
@@ -61,7 +63,7 @@ import tachyon.util.CommonUtils;
  * 
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
-public class MasterClient {
+public class MasterClient implements Closeable {
   private final static int MAX_CONNECT_TRY = 5;
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   // TODO Implement the retry logic
@@ -100,7 +102,6 @@ public class MasterClient {
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
-   * @throws TException
    */
   public synchronized boolean addCheckpoint(long workerId, int fileId, long length,
       String checkpointPath) throws FileDoesNotExistException, SuspectedFileSizeException,
@@ -122,6 +123,7 @@ public class MasterClient {
    * Clean the connect. E.g. if the client has not connect the master for a while, the connection
    * should be shut down.
    */
+  @Override
   public synchronized void close() {
     if (mConnected) {
       LOG.debug("Disconnecting from the master " + mMasterAddress);
@@ -155,7 +157,8 @@ public class MasterClient {
     while (tries ++ < MAX_CONNECT_TRY && !mIsShutdown) {
       mMasterAddress = getMasterAddress();
 
-      LOG.info("Trying to connect master @ " + mMasterAddress);
+      LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect master @ "
+          + mMasterAddress);
 
       mProtocol =
           new TBinaryProtocol(new TFramedTransport(new TSocket(mMasterAddress.getHostName(),
@@ -610,14 +613,14 @@ public class MasterClient {
     return -1;
   }
 
-  public synchronized int user_getRawTableId(String path) throws IOException, TException {
+  public synchronized int user_getRawTableId(String path) throws IOException {
     while (!mIsShutdown) {
       connect();
       try {
         return mClient.user_getRawTableId(path);
       } catch (InvalidPathException e) {
         throw new IOException(e);
-      } catch (TTransportException e) {
+      } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
       }

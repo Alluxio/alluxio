@@ -126,19 +126,19 @@ public class TachyonMaster {
   }
 
   /**
-   * Get the port used by unit test only
-   */
-  int getMetaPort() {
-    return PORT;
-  }
-
-  /**
    * Get MasterInfo instance for Unit Test
    * 
    * @return MasterInfo of the Master
    */
   MasterInfo getMasterInfo() {
     return mMasterInfo;
+  }
+
+  /**
+   * Get the port used by unit test only
+   */
+  int getMetaPort() {
+    return PORT;
   }
 
   private boolean isFormatted(String folder, String path) throws IOException {
@@ -251,9 +251,9 @@ public class TachyonMaster {
       }
 
       mWebServer.startWebServer();
-      LOG.info("The master server started @ " + mMasterAddress);
+      LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress);
       mMasterServiceServer.serve();
-      LOG.info("The master server ended @ " + mMasterAddress);
+      LOG.info("Tachyon Master version " + Version.VERSION + " ended @ " + mMasterAddress);
     }
   }
 
