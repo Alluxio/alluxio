@@ -16,15 +16,21 @@ package tachyon;
 
 import java.io.IOException;
 
-public class GlusterfsCluster extends UnderFileSystemCluster {
+public class HcfsCluster extends UnderFileSystemCluster {
+  private static final String HCFS_URI_KEY = "uri";
+  private static String mUri = null;
   
-  public GlusterfsCluster(String baseDir) {
+  public HcfsCluster(String baseDir) {
     super(baseDir);
+    String uri = System.getProperty(HCFS_URI_KEY);
+    if (null != uri && !uri.equals("")) {
+      mUri = uri;
+    }
   }
 
   @Override
   public String getUnderFilesystemAddress() {
-    return "glusterfs:///tachyon_test";
+    return mUri + "tachyon_test";
   }
 
   @Override
