@@ -17,11 +17,6 @@ package tachyon.worker;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -33,6 +28,7 @@ import org.junit.rules.ExpectedException;
 import tachyon.Constants;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
+import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
@@ -43,28 +39,6 @@ import tachyon.thrift.NetAddress;
  * Unit tests for tachyon.WorkerStorage
  */
 public class WorkerStorageTest {
-  class ConcurrentCacheBlock implements Callable<Void> {
-    private int fid;
-    private int fileLen;
-
-    ConcurrentCacheBlock(int fid, int fileLen) {
-      this.fid = fid;
-      this.fileLen = fileLen;
-    }
-
-    @Override
-    public Void call() throws Exception {
-      exec(this.fid, this.fileLen);
-      return null;
-    }
-
-    public void exec(int fid, int fileLen) throws Exception {
-      byte[] content = new byte[fileLen];
-      TachyonFS tfs = mLocalTachyonCluster.getClient();
-      tfs.getFile(fid).getInStream(ReadType.CACHE).read(content);
-    }
-  }
-
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
   private InetSocketAddress mMasterAddress = null;
@@ -112,34 +86,28 @@ public class WorkerStorageTest {
   }
 
   /**
-   * To test the cacheBlock method when multi clients cache the same block concurrently.
+   * To test the cacheBlock method when multi clients cache the same block.
    * 
    * @throws IOException
    */
   @Test
   public void cacheBlockTest() throws Exception {
-    int fileLen = USER_QUOTA_UNIT_BYTES + 1000;
-
-    // In order to detect whether there exists some random bugs, we reconduct the concurrent tests
-    // in a loop here
-    for (int round = 0; round < 10; round ++) {
-      int fid = TestUtils.createByteFile(mTfs, "/cacheBlockTest", WriteType.THROUGH, fileLen);
-      long usedBytes = mLocalTachyonCluster.getMasterInfo().getWorkersInfo().get(0).getUsedBytes();
-      Assert.assertEquals(0, usedBytes);
-      ExecutorService executor = Executors.newCachedThreadPool();
-      ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(5);
-      for (int i = 0; i < 5; i ++) {
-        Callable<Void> call = new ConcurrentCacheBlock(fid, fileLen);
-        futures.add(executor.submit(call));
-      }
-      for (Future<Void> f : futures) {
-        f.get();
-      }
-      executor.shutdown();
-      usedBytes = mLocalTachyonCluster.getMasterInfo().getWorkersInfo().get(0).getUsedBytes();
-      Assert.assertEquals(fileLen, usedBytes);
-      mTfs.delete(fid, false);
+    int fileLen = USER_QUOTA_UNIT_BYTES + 4;
+    int fid = TestUtils.createByteFile(mTfs, "/cacheBlockTest", WriteType.THROUGH, fileLen);
+    long usedBytes = mLocalTachyonCluster.getMasterInfo().getWorkersInfo().get(0).getUsedBytes();
+    Assert.assertEquals(0, usedBytes);
+    TachyonFS tfs1 = mLocalTachyonCluster.getClient();
+    TachyonFS tfs2 = mLocalTachyonCluster.getClient();
+    InStream fin1 = tfs1.getFile(fid).getInStream(ReadType.CACHE);
+    InStream fin2 = tfs2.getFile(fid).getInStream(ReadType.CACHE);
+    for (int i = 0; i < fileLen + 1; i ++) {
+      fin1.read();
+      fin2.read();
     }
+    fin1.close();
+    fin2.close();
+    usedBytes = mLocalTachyonCluster.getMasterInfo().getWorkersInfo().get(0).getUsedBytes();
+    Assert.assertEquals(fileLen, usedBytes);
   }
 
   /**
