@@ -9,7 +9,7 @@ Install VirtualBox and Vagrant. Make sure they work properly.
 
 Just run
 
-    $ cd vagrant
+    $ cd vagrant/glusterfs
     $ vagrant up
 
 You then get a VM console. The `root` password is `vagrant`.

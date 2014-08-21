@@ -9,7 +9,7 @@ Install VirtualBox and Vagrant. Make sure they work properly.
 
 Just run
 
-    $ cd vagrant
+    $ cd vagrant/ceph
     $ vagrant up
 
 You then get a VM console. The `root` password is `vagrant`.
@@ -20,4 +20,4 @@ In the background, the shell scripts also download necessary packages, create a 
 Run unit test using CephFS as under filesystem in the following way.
 
     $cd /tachyon
-    $mvn test -Dtest.profile=cephfs -Dhadoop.version=2.3.0 -Dtachyon.underfs.hadoop.core-site=/tachyon/conf/core-site.xml
+    $mvn test -Dtest.profile=cephfs -Dhadoop.version=2.3.0 -Dtachyon.underfs.hadoop.core-site=/tachyon/vagrant/ceph/core-site.xml
