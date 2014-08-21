@@ -44,6 +44,8 @@ import tachyon.thrift.InvalidPathException;
 public final class CommonUtils {
   private static final Logger LOG = Logger.getLogger("");
 
+  private CommonUtils() {}
+
   /**
    * Change local file's permission.
    * 

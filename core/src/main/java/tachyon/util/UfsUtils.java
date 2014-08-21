@@ -31,8 +31,10 @@ import tachyon.client.TachyonFS;
 /**
  * Utilities related to under filesystem
  */
-public class UfsUtils {
+public final class UnderfsUtils {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+
+  private UnderfsUtils() {}
 
   /**
    * Build a new path relative to a given TFS root by retrieving the given path relative to

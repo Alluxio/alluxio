@@ -19,7 +19,7 @@ import java.io.IOException;
 /**
  * <code> EmptyBlockInStream </code> is a <code> InStream </code> can not read anything.
  */
-public class EmptyBlockInStream extends InStream {
+public final class EmptyBlockInStream extends InStream {
   /**
    * @param file
    *          the file the block belongs to

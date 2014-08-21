@@ -419,6 +419,15 @@
           <effort>Max</effort>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.12.1</version>
+        <configuration>
+          <configLocation>src/main/resources/tachyon_checks.xml</configLocation>
+          <excludes>**/tachyon/thrift/**</excludes>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>

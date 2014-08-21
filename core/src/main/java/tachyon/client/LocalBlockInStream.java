@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 /**
  * BlockInStream for local block.
  */
-public class LocalBlockInStream extends BlockInStream {
+public final class LocalBlockInStream extends BlockInStream {
   private TachyonByteBuffer mTachyonBuffer = null;
   private ByteBuffer mBuffer = null;
 

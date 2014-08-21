@@ -33,7 +33,7 @@ import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.conf.UserConf;
 
-public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
+public final class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
   private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private long mCurrentPosition;

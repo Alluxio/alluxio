@@ -30,7 +30,7 @@ import tachyon.util.CommonUtils;
 /**
  * <code>BlockOutStream</code> implementation of TachyonFile. This class is not client facing.
  */
-public class BlockOutStream extends OutStream {
+public final class BlockOutStream extends OutStream {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final int BLOCK_INDEX;

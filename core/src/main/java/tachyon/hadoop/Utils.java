@@ -28,6 +28,8 @@ import tachyon.Constants;
 public final class Utils {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
+  private Utils() {}
+
   /**
    * Add S3 keys to the given Hadoop Configuration object if the user has specified them using
    * System properties, and they're not already set.

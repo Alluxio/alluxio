@@ -24,7 +24,7 @@ import tachyon.util.CommonUtils;
 /**
  * The column of a <code>RawTable</code>.
  */
-public class RawColumn {
+public final class RawColumn {
   private final TachyonFS TFS;
   private final RawTable RAW_TABLE;
   private final int COLUMN_INDEX;
