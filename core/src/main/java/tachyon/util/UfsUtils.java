@@ -15,6 +15,8 @@
 package tachyon.util;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -153,7 +155,13 @@ public class UfsUtils {
           for (String filePath : files) {
             LOG.info("Get: " + filePath);
             String aPath = CommonUtils.concat(ufsPath, filePath);
-            String checkPath = aPath.substring(ufsAddrRootPath.length());
+            String checkPath = null;
+            try {
+                checkPath = new URI(aPath).getPath();
+            } catch (URISyntaxException e) {
+              throw new IOException("Error while parsing URI: " + e);
+            }
+            
             if (checkPath.startsWith(Constants.PATH_SEPARATOR)) {
               checkPath = checkPath.substring(Constants.PATH_SEPARATOR.length());
             }

@@ -6,6 +6,8 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
@@ -87,33 +89,24 @@ public final class NetworkUtils {
       return null;
     }
 
-    if (addr.contains("://")) {
-      int idx = addr.indexOf("://");
-      String prefix = addr.substring(0, idx + 3);
-      String rest = addr.substring(idx + 3);
-      if (rest.contains(":")) {
-        // case host:port/dir or host:port or host:port/
-        int idx2 = rest.indexOf(":");
-        String hostname = rest.substring(0, idx2);
-        hostname = resolveHostName(hostname);
-        String suffix = rest.substring(idx2);
-        return prefix + hostname + suffix;
-      } else if (rest.contains(Constants.PATH_SEPARATOR)) {
-        // case host/dir or /dir or host/
-        int idx2 = rest.indexOf(Constants.PATH_SEPARATOR);
-        if (idx2 > 0) {
-          String hostname = rest.substring(0, idx2);
-          hostname = resolveHostName(hostname);
-          String suffix = rest.substring(idx2);
-          return prefix + hostname + suffix;
+    URI uri = null;
+    try {
+        uri = new URI(addr);
+        String hostname = uri.getHost();
+        if(hostname==null) return addr;
+        
+        String newHost = resolveHostName(hostname);
+        
+        if(newHost!=null){
+            URI newURI = new URI(uri.getScheme(), uri.getUserInfo(), newHost, uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+            return newURI.toString();
         }
-      } else {
-        // case host is rest of the path
-        return prefix + resolveHostName(rest);
-      }
+        
+    } catch (URISyntaxException e) {
+        throw new UnknownHostException("Error parsing host: " + e);
     }
-
     return addr;
+
   }
 
   /**

@@ -16,6 +16,8 @@ package tachyon;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -65,15 +67,9 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     } else {
       tConf = new Configuration();
     }
-    tConf.set("fs.defaultFS", fsDefaultName);
-    String glusterfsPrefix = "glusterfs:///";
-    if (fsDefaultName.startsWith(glusterfsPrefix)) {
-      tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
-      tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
-      tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
-      tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
-          CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
-    } else {
+   // tConf.set("fs.defaultFS", fsDefaultName);
+  
+    if (!fsDefaultName.startsWith("hdfs:")) {
       tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
 
       // To disable the instance cache for hdfs client, otherwise it causes the
@@ -271,7 +267,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       int i = 0;
       for (FileStatus status : files) {
         // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i ++] = status.getPath().toUri().toString().substring(path.length()); // mUfsPrefix
+        try {
+            rtn[i ++] = new URI(path).relativize(status.getPath().toUri()).getPath();
+        } catch (URISyntaxException e) {
+          throw new IOException ("Problem with URIs:" + e);
+        }
       }
       return rtn;
     } else {
