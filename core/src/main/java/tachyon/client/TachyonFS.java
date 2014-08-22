@@ -1224,8 +1224,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   @Override
-  public ClientFileInfo getFileStatus(int fid, String path) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+  public ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
+    return mMasterClient.getFileStatus(fileId, path);
   }
 }
