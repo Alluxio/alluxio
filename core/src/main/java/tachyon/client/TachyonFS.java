@@ -493,40 +493,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get a ClientFileInfo of the file
-   * 
-   * @param path
-   *          the file path in Tachyon file system
-   * @param useCachedMetadata
-   *          if true use the local cached meta data
-   * @return the ClientFileInfo
-   * @throws IOException
-   */
-  private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata)
-      throws IOException {
-    ClientFileInfo ret;
-    String cleanedPath = cleanPathIOException(path);
-    if (useCachedMetadata && mPathToClientFileInfo.containsKey(cleanedPath)) {
-      return mPathToClientFileInfo.get(path);
-    }
-    try {
-      ret = mMasterClient.getFileStatus(-1, cleanedPath);
-    } catch (IOException e) {
-      LOG.warn(e.getMessage() + cleanedPath, e);
-      return null;
-    }
-
-    // TODO LRU on this Map.
-    if (ret != null && useCachedMetadata) {
-      mPathToClientFileInfo.put(cleanedPath, ret);
-    } else {
-      mPathToClientFileInfo.remove(cleanedPath);
-    }
-
-    return ret;
-  }
-
-  /**
    * Get the creation time of the file
    * 
    * @param fid
@@ -588,7 +554,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
       throws IOException {
     String cleanedPath = cleanPathIOException(path);
-    ClientFileInfo clientFileInfo = getClientFileInfo(cleanedPath, useCachedMetadata);
+    ClientFileInfo clientFileInfo = getFileStatus(cleanedPath, useCachedMetadata);
     if (clientFileInfo == null) {
       return null;
     }
@@ -1141,19 +1107,37 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
+   * Get a ClientFileInfo of the file
    * 
-   * @param fid
    * @param path
-   * @param cached
-   * @return
+   *          the file path in Tachyon file system
+   * @param useCachedMetadata
+   *          if true use the local cached meta data
+   * @return the ClientFileInfo
    * @throws IOException
    */
-  public ClientFileInfo getFileStatus(int fid, String path, boolean cached) throws IOException {
-    if (fid != -1) {
-    } else {
+  private synchronized ClientFileInfo getFileStatus(String path, boolean useCachedMetadata)
+      throws IOException {
+    ClientFileInfo ret = null;
+    String cleanedPath = cleanPathIOException(path);
+    if (useCachedMetadata && mPathToClientFileInfo.containsKey(cleanedPath)) {
+      return mPathToClientFileInfo.get(path);
+    }
+    try {
+      ret = getFileStatus(-1, cleanedPath);
+    } catch (IOException e) {
+      LOG.warn(e.getMessage() + cleanedPath, e);
+      return null;
     }
 
-    return null;
+    // TODO LRU on this Map.
+    if (ret != null && useCachedMetadata) {
+      mPathToClientFileInfo.put(cleanedPath, ret);
+    } else {
+      mPathToClientFileInfo.remove(cleanedPath);
+    }
+
+    return ret;
   }
 
   @Override
