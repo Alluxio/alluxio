@@ -102,6 +102,11 @@ Then import the folder into Eclipse.
 
 -   Make sure that your code passes all unit tests: ``mvn test`` and ``mvn -Dintegration test``
 
+### Presentations:
+
+-   Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
+-   Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
+
 ### Readings
 
 -   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_tachyon.pdf)
