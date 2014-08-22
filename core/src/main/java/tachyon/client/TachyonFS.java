@@ -213,12 +213,12 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * The file is complete.
    * 
-   * @param fId
+   * @param fid
    *          the file id
    * @throws IOException
    */
-  synchronized void completeFile(int fId) throws IOException {
-    mMasterClient.user_completeFile(fId);
+  synchronized void completeFile(int fid) throws IOException {
+    mMasterClient.user_completeFile(fid);
   }
 
   /**
@@ -345,15 +345,11 @@ public class TachyonFS extends AbstractTachyonFS {
     return getFileId(path) != -1;
   }
 
-  private synchronized ClientFileInfo fetchClientFileInfo(int fid) throws IOException {
-    return getFileStatus(fid, "");
-  }
-
   /**
    * Get the block id by the file id and block index. it will check whether the file and the block
    * exist.
    * 
-   * @param fId
+   * @param fid
    *          the file id
    * @param blockIndex
    *          The index of the block in the file.
@@ -361,14 +357,14 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    *           if the file does not exist, or connection issue.
    */
-  public synchronized long getBlockId(int fId, int blockIndex) throws IOException {
-    ClientFileInfo info = mIdToClientFileInfo.get(fId);
+  public synchronized long getBlockId(int fid, int blockIndex) throws IOException {
+    ClientFileInfo info = mIdToClientFileInfo.get(fid);
     if (info == null) {
-      info = fetchClientFileInfo(fId);
+      info = getFileStatus(fid, "");
       if (info != null) {
-        mIdToClientFileInfo.put(fId, info);
+        mIdToClientFileInfo.put(fid, info);
       } else {
-        throw new IOException("File " + fId + " does not exist.");
+        throw new IOException("File " + fid + " does not exist.");
       }
     }
 
@@ -376,30 +372,30 @@ public class TachyonFS extends AbstractTachyonFS {
       return info.blockIds.get(blockIndex);
     }
 
-    return mMasterClient.user_getBlockId(fId, blockIndex);
+    return mMasterClient.user_getBlockId(fid, blockIndex);
   }
 
   /**
    * Get the block id by the file id and offset. it will check whether the file and the block exist.
    * 
-   * @param fId
+   * @param fid
    *          the file id
    * @param offset
    *          The offset of the file.
    * @return the block id if exists
    * @throws IOException
    */
-  synchronized long getBlockIdBasedOnOffset(int fId, long offset) throws IOException {
+  synchronized long getBlockIdBasedOnOffset(int fid, long offset) throws IOException {
     ClientFileInfo info;
-    if (!mIdToClientFileInfo.containsKey(fId)) {
-      info = fetchClientFileInfo(fId);
-      mIdToClientFileInfo.put(fId, info);
+    if (!mIdToClientFileInfo.containsKey(fid)) {
+      info = getFileStatus(fid, "");
+      mIdToClientFileInfo.put(fid, info);
     }
-    info = mIdToClientFileInfo.get(fId);
+    info = mIdToClientFileInfo.get(fid);
 
     int index = (int) (offset / info.getBlockSizeByte());
 
-    return getBlockId(fId, index);
+    return getBlockId(fid, index);
   }
 
   /**
@@ -410,12 +406,12 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * @param fId
+   * @param fid
    *          the file id
    * @return the block size of the file, in bytes
    */
-  public synchronized long getBlockSizeByte(int fId) {
-    return mIdToClientFileInfo.get(fId).getBlockSizeByte();
+  public synchronized long getBlockSizeByte(int fid) {
+    return mIdToClientFileInfo.get(fid).getBlockSizeByte();
   }
 
   /**
@@ -429,7 +425,7 @@ public class TachyonFS extends AbstractTachyonFS {
   synchronized String getUfsPath(int fid) throws IOException {
     ClientFileInfo info = mIdToClientFileInfo.get(fid);
     if (info == null || !info.getUfsPath().equals("")) {
-      info = fetchClientFileInfo(fid);
+      info = getFileStatus(fid, "");
       mIdToClientFileInfo.put(fid, info);
     }
 
@@ -439,37 +435,37 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get a ClientBlockInfo by the file id and block index
    * 
-   * @param fId
+   * @param fid
    *          the file id
    * @param blockIndex
    *          The index of the block in the file.
    * @return the ClientBlockInfo of the specified block
    * @throws IOException
    */
-  public synchronized ClientBlockInfo getClientBlockInfo(int fId, int blockIndex)
+  public synchronized ClientBlockInfo getClientBlockInfo(int fid, int blockIndex)
       throws IOException {
     boolean fetch = false;
-    if (!mIdToClientFileInfo.containsKey(fId)) {
+    if (!mIdToClientFileInfo.containsKey(fid)) {
       fetch = true;
     }
     ClientFileInfo info = null;
     if (!fetch) {
-      info = mIdToClientFileInfo.get(fId);
+      info = mIdToClientFileInfo.get(fid);
       if (info.isFolder || info.blockIds.size() <= blockIndex) {
         fetch = true;
       }
     }
 
     if (fetch) {
-      info = fetchClientFileInfo(fId);
-      mIdToClientFileInfo.put(fId, info);
+      info = getFileStatus(fid, "");
+      mIdToClientFileInfo.put(fid, info);
     }
 
     if (info == null) {
-      throw new IOException("File " + fId + " does not exist.");
+      throw new IOException("File " + fid + " does not exist.");
     }
     if (info.isFolder) {
-      throw new IOException(new FileDoesNotExistException("File " + fId + " is a folder."));
+      throw new IOException(new FileDoesNotExistException("File " + fid + " is a folder."));
     }
     if (info.blockIds.size() <= blockIndex) {
       throw new IOException("BlockIndex " + blockIndex + " is out of the bound in file " + info);
@@ -533,12 +529,12 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get the creation time of the file
    * 
-   * @param fId
+   * @param fid
    *          the file id
    * @return the creation time in milliseconds
    */
-  public synchronized long getCreationTimeMs(int fId) {
-    return mIdToClientFileInfo.get(fId).getCreationTimeMs();
+  public synchronized long getCreationTimeMs(int fid) {
+    return mIdToClientFileInfo.get(fid).getCreationTimeMs();
   }
 
   /**
@@ -564,7 +560,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized TachyonFile getFile(int fid, boolean useCachedMetadata) throws IOException {
     if (!useCachedMetadata || !mIdToClientFileInfo.containsKey(fid)) {
-      ClientFileInfo clientFileInfo = fetchClientFileInfo(fid);
+      ClientFileInfo clientFileInfo = getFileStatus(fid, "");
       if (clientFileInfo == null) {
         return null;
       }
@@ -603,20 +599,20 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get all the blocks' ids of the file
    * 
-   * @param fId
+   * @param fid
    *          the file id
    * @return the list of blocks' ids
    * @throws IOException
    */
-  public synchronized List<Long> getFileBlockIdList(int fId) throws IOException {
-    ClientFileInfo info = mIdToClientFileInfo.get(fId);
+  public synchronized List<Long> getFileBlockIdList(int fid) throws IOException {
+    ClientFileInfo info = mIdToClientFileInfo.get(fid);
     if (info == null || !info.isComplete) {
-      info = fetchClientFileInfo(fId);
-      mIdToClientFileInfo.put(fId, info);
+      info = getFileStatus(fid, "");
+      mIdToClientFileInfo.put(fid, info);
     }
 
     if (info == null) {
-      throw new IOException("File " + fId + " does not exist.");
+      throw new IOException("File " + fid + " does not exist.");
     }
 
     return info.blockIds;
@@ -670,20 +666,6 @@ public class TachyonFS extends AbstractTachyonFS {
     } catch (IOException e) {
       return -1;
     }
-  }
-
-  /**
-   * @param fid
-   *          the file id
-   * @return the current length of the file
-   * @throws IOException
-   */
-  synchronized long getFileLength(int fid) throws IOException {
-    if (!mIdToClientFileInfo.get(fid).isComplete) {
-      ClientFileInfo info = fetchClientFileInfo(fid);
-      mIdToClientFileInfo.put(fid, info);
-    }
-    return mIdToClientFileInfo.get(fid).getLength();
   }
 
   public synchronized List<NetAddress> getFileNetAddresses(int fileId) throws IOException {
@@ -742,31 +724,31 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Get the next new block's id of the file.
    * 
-   * @param fId
+   * @param fid
    *          the file id
    * @return the id of the next block
    * @throws IOException
    */
-  private synchronized long getNextBlockId(int fId) throws IOException {
-    return mMasterClient.user_createNewBlock(fId);
+  private synchronized long getNextBlockId(int fid) throws IOException {
+    return mMasterClient.user_createNewBlock(fid);
   }
 
   /**
    * Get the number of blocks of a file. Only works when the file exists.
    * 
-   * @param fId
+   * @param fid
    *          the file id
    * @return the number of blocks if the file exists
    * @throws IOException
    */
-  synchronized int getNumberOfBlocks(int fId) throws IOException {
-    ClientFileInfo info = mIdToClientFileInfo.get(fId);
+  synchronized int getNumberOfBlocks(int fid) throws IOException {
+    ClientFileInfo info = mIdToClientFileInfo.get(fid);
     if (info == null || !info.isComplete) {
-      info = fetchClientFileInfo(fId);
-      mIdToClientFileInfo.put(fId, info);
+      info = getFileStatus(fid, "");
+      mIdToClientFileInfo.put(fid, info);
     }
     if (info == null) {
-      throw new IOException("File " + fId + " does not exist.");
+      throw new IOException("File " + fid + " does not exist.");
     }
     return info.getBlockIds().size();
   }
@@ -848,7 +830,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   synchronized boolean isComplete(int fid) throws IOException {
     if (!mIdToClientFileInfo.get(fid).isComplete) {
-      mIdToClientFileInfo.put(fid, fetchClientFileInfo(fid));
+      mIdToClientFileInfo.put(fid, getFileStatus(fid, ""));
     }
     return mIdToClientFileInfo.get(fid).isComplete;
   }
@@ -879,7 +861,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   synchronized boolean isInMemory(int fid) throws IOException {
-    ClientFileInfo info = fetchClientFileInfo(fid);
+    ClientFileInfo info = getFileStatus(fid, "");
     mIdToClientFileInfo.put(info.getId(), info);
     return 100 == info.inMemoryPercentage;
   }
@@ -1150,7 +1132,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean isPinned(int fid, boolean useCachedMetadata) throws IOException {
     ClientFileInfo info;
     if (!useCachedMetadata || !mIdToClientFileInfo.containsKey(fid)) {
-      info = fetchClientFileInfo(fid);
+      info = getFileStatus(fid, "");
       mIdToClientFileInfo.put(fid, info);
     }
     info = mIdToClientFileInfo.get(fid);
