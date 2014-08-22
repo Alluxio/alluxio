@@ -224,10 +224,7 @@ service MasterService {
   list<string> user_ls(1: string path, 2: bool recursive)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
 
-  bool user_deleteById(1: i32 fileId, 2: bool recursive) // Delete file
-    throws (1: TachyonException e)
-
-  bool user_deleteByPath(1: string path, 2: bool recursive) // Delete file
+  bool user_delete(1: i32 fileId, 2: string path, 3: bool recursive) // Delete file
     throws (1: TachyonException e)
 
   void user_outOfMemoryForPinFile(1: i32 fileId)
