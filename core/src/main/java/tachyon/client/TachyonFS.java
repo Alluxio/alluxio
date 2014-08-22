@@ -665,8 +665,11 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   public synchronized int getFileId(String path) throws IOException {
-    String cleanedPath = cleanPathIOException(path);
-    return mMasterClient.user_getFileId(cleanedPath);
+    try {
+      return mMasterClient.getFileStatus(-1, cleanPathIOException(path)).getId();
+    } catch (IOException e) {
+      return -1;
+    }
   }
 
   /**

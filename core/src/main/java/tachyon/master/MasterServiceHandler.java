@@ -8,10 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.conf.CommonConf;
 import tachyon.thrift.BlockInfoException;
@@ -40,8 +38,6 @@ import tachyon.util.CommonUtils;
  * It maintains the state of each worker. It never keeps the state of any user.
  */
 public class MasterServiceHandler implements MasterService.Iface {
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-
   private final MasterInfo MASTER_INFO;
 
   public MasterServiceHandler(MasterInfo masterInfo) {
@@ -204,11 +200,6 @@ public class MasterServiceHandler implements MasterService.Iface {
       throw new FileDoesNotExistException(e.getMessage());
     }
     return ret;
-  }
-
-  @Override
-  public int user_getFileId(String filePath) throws InvalidPathException, TException {
-    return MASTER_INFO.getFileId(filePath);
   }
 
   @Override

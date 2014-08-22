@@ -130,7 +130,6 @@ service MasterService {
   list<ClientFileInfo> liststatus(1: string path)
     throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
 
-
   // Services to Workers
   /**
    * Worker register.
@@ -149,7 +148,6 @@ service MasterService {
   set<i32> worker_getPinIdList()
 
   list<i32> worker_getPriorityDependencyList()
-
 
   // Services to Users
   i32 user_createDependency(1: list<string> parents, 2: list<string> children,
@@ -176,12 +174,6 @@ service MasterService {
 
   void user_completeFile(1: i32 fileId)
     throws (1: FileDoesNotExistException e)
-
-  /**
-   * Return -1 if does not contain the file, return fileId if it exists.
-   */
-  i32 user_getFileId(1: string path)
-    throws (1: InvalidPathException e)
 
   i64 user_getUserId()
 
