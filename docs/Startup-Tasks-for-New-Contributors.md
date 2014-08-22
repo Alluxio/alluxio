@@ -60,7 +60,7 @@ leverage the Scala shell, as discussed in this
     with the following changes or deviations:
     -  Maximum line length of **100** characters.
     -  Imported packages should be in [this order](resources/order.importorder), then in
-    **alphabetical order**.
+    **alphabetical order** in each group.
     -  `i ++` instead of `i++`
     -  `i + j` instead of `i+j`
     -  Class and member modifiers, when present, appear in the order recommended by the Java
@@ -69,12 +69,15 @@ leverage the Scala shell, as discussed in this
     -  Class member variable names should be prefixed with `m`, for example `private WorkerClient mWorkerClient;`
     -  Static variable names should be prefixed with `s`, for example `public static String sUnderFSAddress;`
 -   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml)
-    -  If you use IntelliJ IDEA: you can either use our formatter with the help from [EclipseCodeFormatter](https://github.com/krasa/EclipseCodeFormatter#instructions) 
-       or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in IntelliJ IDEA
+    -  If you use IntelliJ IDEA: you can either use our formatter with the help from
+       [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
+       or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in IntelliJ
+       IDEA
 
 ### FindBugs
 
-Before submitting the pull-request, run the latest code against [FindBugs](http://findbugs.sourceforge.net/) to verify no new warnings are introduced.
+Before submitting the pull-request, run the latest code against
+[FindBugs](http://findbugs.sourceforge.net/) to verify no new warnings are introduced.
 
     mvn compile findbugs:findbugs findbugs:gui
 
@@ -101,5 +104,7 @@ Then import the folder into Eclipse.
 
 ### Readings
 
+-   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_tachyon.pdf)
+Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *UC Berkeley EECS 2014*.
 -   [Tachyon: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)
-Haoyuan Li, Ali Ghodsi, Matei Zaharia, Eric Baldeschwieler, Scott Shenker, Ion Stoica, *LADIS 2013*, November 2013.
+Haoyuan Li, Ali Ghodsi, Matei Zaharia, Eric Baldeschwieler, Scott Shenker, Ion Stoica, *LADIS 2013*.
