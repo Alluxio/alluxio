@@ -24,6 +24,12 @@ The master branch is in version 0.6.0-SNAPSHOT:
 </dependency>
 ```
 
+### Gradle
+
+```groovy
+compile 'org.tachyonproject:tachyon-client:0.5.0'
+```
+
 ### Apache Ant
 ```xml
 <dependency org="org.tachyonproject" name="tachyon" rev="0.5.0">
