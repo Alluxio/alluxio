@@ -30,18 +30,6 @@ for beginners. For a tutorial, see the GitHub guides on
 [forking a repo](https://help.github.com/articles/fork-a-repo) and
 [sending a pull request](https://help.github.com/articles/using-pull-requests).
 
-* * * * *
-
-    core/src/main/java/tachyon/Users.java
-
-    core/src/main/java/tachyon/master/MasterWorkerInfo.java
-
-    core/src/main/java/tachyon/worker/Worker.java
-
-    core/src/main/java/tachyon/worker/WorkerClient.java
-
-    core/src/main/java/tachyon/worker/DataServerMessage.java
-
 ### Testing
 
 -   Run all unit tests with ``mvn test`` (will use the local filesystem as the
