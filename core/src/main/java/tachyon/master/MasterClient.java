@@ -655,20 +655,6 @@ public class MasterClient implements Closeable {
     return false;
   }
 
-  public synchronized void user_outOfMemoryForPinFile(int fileId) throws IOException {
-    while (!mIsShutdown) {
-      connect();
-
-      try {
-        mClient.user_outOfMemoryForPinFile(fileId);
-        return;
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-  }
-
   public synchronized boolean user_rename(int fileId, String srcPath, String dstPath)
       throws IOException {
     if (srcPath == null) {

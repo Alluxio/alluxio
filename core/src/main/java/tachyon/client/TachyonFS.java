@@ -938,17 +938,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Tell master that out of memory when pin file
-   * 
-   * @param fid
-   *          the file id
-   * @throws IOException
-   */
-  public synchronized void outOfMemoryForPinFile(int fid) throws IOException {
-    mMasterClient.user_outOfMemoryForPinFile(fid);
-  }
-
-  /**
    * Read the whole local block.
    * 
    * @param blockId
