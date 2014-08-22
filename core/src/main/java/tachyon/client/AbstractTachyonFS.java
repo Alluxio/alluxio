@@ -87,6 +87,19 @@ abstract class AbstractTachyonFS extends AbstractTachyonFSCore {
   }
 
   /**
+   * Create a directory if it does not exist. The method also creates necessary non-existing
+   * parent folders.
+   * 
+   * @param path
+   *          Directory path.
+   * @return true if the folder is created successfully or already existing. false otherwise.
+   * @throws IOException
+   */
+  public synchronized boolean mkdir(String path) throws IOException {
+    return mkdirs(path, true);
+  }
+
+  /**
    * Renames the file
    * 
    * @param fId
@@ -112,18 +125,5 @@ abstract class AbstractTachyonFS extends AbstractTachyonFSCore {
    */
   public synchronized boolean rename(String srcPath, String dstPath) throws IOException {
     return rename(-1, srcPath, dstPath);
-  }
-
-  /**
-   * Create a directory if it does not exist. The method also creates necessary non-existing
-   * parent folders.
-   * 
-   * @param path
-   *          Directory path.
-   * @return true if the folder is created successfully or already existing. false otherwise.
-   * @throws IOException
-   */
-  public synchronized boolean mkdir(String path) throws IOException {
-    return mkdirs(path, true);
   }
 }

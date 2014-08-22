@@ -295,6 +295,12 @@ public class TachyonFS extends AbstractTachyonFS {
         framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
   }
 
+  @Override
+  public synchronized int createFile(String path, String ufsPath, long blockSizeByte,
+      boolean recursive) throws IOException {
+    return mMasterClient.user_createFile(path, ufsPath, blockSizeByte, recursive);
+  }
+
   /**
    * Create a RawTable and return its id
    * 
@@ -331,6 +337,12 @@ public class TachyonFS extends AbstractTachyonFS {
 
     return mMasterClient.user_createRawTable(cleanedPath, columns, metadata);
 
+  }
+
+  @Override
+  public synchronized boolean delete(int fileId, String path, boolean recursive)
+      throws IOException {
+    return mMasterClient.user_delete(fileId, path, recursive);
   }
 
   /**
@@ -412,24 +424,6 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized long getBlockSizeByte(int fid) {
     return mIdToClientFileInfo.get(fid).getBlockSizeByte();
-  }
-
-  /**
-   * Return the under filesystem path of the file
-   * 
-   * @param fid
-   *          the file id
-   * @return the checkpoint path of the file
-   * @throws IOException
-   */
-  synchronized String getUfsPath(int fid) throws IOException {
-    ClientFileInfo info = mIdToClientFileInfo.get(fid);
-    if (info == null || !info.getUfsPath().equals("")) {
-      info = getFileStatus(fid, "");
-      mIdToClientFileInfo.put(fid, info);
-    }
-
-    return info.getUfsPath();
   }
 
   /**
@@ -665,6 +659,45 @@ public class TachyonFS extends AbstractTachyonFS {
     return ret;
   }
 
+  @Override
+  public ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
+    return mMasterClient.getFileStatus(fileId, path);
+  }
+
+  /**
+   * Get a ClientFileInfo of the file
+   * 
+   * @param path
+   *          the file path in Tachyon file system
+   * @param useCachedMetadata
+   *          if true use the local cached meta data
+   * @return the ClientFileInfo
+   * @throws IOException
+   */
+  private synchronized ClientFileInfo getFileStatus(String path, boolean useCachedMetadata)
+      throws IOException {
+    ClientFileInfo ret = null;
+    String cleanedPath = cleanPathIOException(path);
+    if (useCachedMetadata && mPathToClientFileInfo.containsKey(cleanedPath)) {
+      return mPathToClientFileInfo.get(path);
+    }
+    try {
+      ret = getFileStatus(-1, cleanedPath);
+    } catch (IOException e) {
+      LOG.warn(e.getMessage() + cleanedPath, e);
+      return null;
+    }
+
+    // TODO LRU on this Map.
+    if (ret != null && useCachedMetadata) {
+      mPathToClientFileInfo.put(cleanedPath, ret);
+    } else {
+      mPathToClientFileInfo.remove(cleanedPath);
+    }
+
+    return ret;
+  }
+
   /**
    * Returns the local filename for the block if that file exists on the local file system. This is
    * an alpha power-api feature for applications that want short-circuit-read files directly. There
@@ -761,6 +794,24 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
+   * Return the under filesystem path of the file
+   * 
+   * @param fid
+   *          the file id
+   * @return the checkpoint path of the file
+   * @throws IOException
+   */
+  synchronized String getUfsPath(int fid) throws IOException {
+    ClientFileInfo info = mIdToClientFileInfo.get(fid);
+    if (info == null || !info.getUfsPath().equals("")) {
+      info = getFileStatus(fid, "");
+      mIdToClientFileInfo.put(fid, info);
+    }
+
+    return info.getUfsPath();
+  }
+
+  /**
    * @return all the works' info
    * @throws IOException
    */
@@ -829,6 +880,23 @@ public class TachyonFS extends AbstractTachyonFS {
     return mIdToClientFileInfo.get(fid).isPinned;
   }
 
+  /** Returns true if the given file or folder has its "pinned" flag set. */
+  public synchronized boolean isPinned(int fid, boolean useCachedMetadata) throws IOException {
+    ClientFileInfo info;
+    if (!useCachedMetadata || !mIdToClientFileInfo.containsKey(fid)) {
+      info = getFileStatus(fid, "");
+      mIdToClientFileInfo.put(fid, info);
+    }
+    info = mIdToClientFileInfo.get(fid);
+
+    return info.isPinned;
+  }
+
+  @Override
+  public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
+    return mMasterClient.listStatus(path);
+  }
+
   /**
    * Lock a block in the current TachyonFS.
    * 
@@ -857,6 +925,16 @@ public class TachyonFS extends AbstractTachyonFS {
     lockIds.add(blockLockId);
     mLockedBlockIds.put(blockId, lockIds);
     return true;
+  }
+
+  @Override
+  public synchronized boolean mkdirs(String path, boolean recursive) throws IOException {
+    return mMasterClient.user_mkdirs(path, recursive);
+  }
+
+  /** Alias for setPinned(fid, true). */
+  public synchronized void pinFile(int fid) throws IOException {
+    setPinned(fid, true);
   }
 
   /**
@@ -928,6 +1006,12 @@ public class TachyonFS extends AbstractTachyonFS {
     mAvailableSpaceBytes += releaseSpaceBytes;
   }
 
+  @Override
+  public synchronized boolean rename(int fileId, String srcPath, String dstPath)
+      throws IOException {
+    return mMasterClient.user_rename(fileId, srcPath, dstPath);
+  }
+
   /**
    * Report the lost file to master
    * 
@@ -987,6 +1071,18 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
+   * Sets the "pinned" flag for the given file. Pinned files are never evicted
+   * by Tachyon until they are unpinned.
+   * 
+   * Calling setPinned() on a folder will recursively set the "pinned" flag on
+   * all of that folder's children. This may be an expensive operation for
+   * folders with many files/subfolders.
+   */
+  public synchronized void setPinned(int fid, boolean pinned) throws IOException {
+    mMasterClient.user_setPinned(fid, pinned);
+  }
+
+  /**
    * Print out the string representation of this Tachyon server address.
    * 
    * @return the string representation like tachyon://host:port or tachyon-ft://host:port
@@ -1031,38 +1127,9 @@ public class TachyonFS extends AbstractTachyonFS {
     return true;
   }
 
-  /**
-   * Sets the "pinned" flag for the given file. Pinned files are never evicted
-   * by Tachyon until they are unpinned.
-   * 
-   * Calling setPinned() on a folder will recursively set the "pinned" flag on
-   * all of that folder's children. This may be an expensive operation for
-   * folders with many files/subfolders.
-   */
-  public synchronized void setPinned(int fid, boolean pinned) throws IOException {
-    mMasterClient.user_setPinned(fid, pinned);
-  }
-
-  /** Alias for setPinned(fid, true). */
-  public synchronized void pinFile(int fid) throws IOException {
-    setPinned(fid, true);
-  }
-
   /** Alias for setPinned(fid, false). */
   public synchronized void unpinFile(int fid) throws IOException {
     setPinned(fid, false);
-  }
-
-  /** Returns true if the given file or folder has its "pinned" flag set. */
-  public synchronized boolean isPinned(int fid, boolean useCachedMetadata) throws IOException {
-    ClientFileInfo info;
-    if (!useCachedMetadata || !mIdToClientFileInfo.containsKey(fid)) {
-      info = getFileStatus(fid, "");
-      mIdToClientFileInfo.put(fid, info);
-    }
-    info = mIdToClientFileInfo.get(fid);
-
-    return info.isPinned;
   }
 
   /**
@@ -1076,72 +1143,5 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata) throws IOException {
     mMasterClient.user_updateRawTableMetadata(id, metadata);
-  }
-
-  @Override
-  public synchronized int createFile(String path, String ufsPath, long blockSizeByte,
-      boolean recursive) throws IOException {
-    return mMasterClient.user_createFile(path, ufsPath, blockSizeByte, recursive);
-  }
-
-  @Override
-  public synchronized boolean delete(int fileId, String path, boolean recursive)
-      throws IOException {
-    return mMasterClient.user_delete(fileId, path, recursive);
-  }
-
-  @Override
-  public synchronized boolean rename(int fileId, String srcPath, String dstPath)
-      throws IOException {
-    return mMasterClient.user_rename(fileId, srcPath, dstPath);
-  }
-
-  @Override
-  public synchronized boolean mkdirs(String path, boolean recursive) throws IOException {
-    return mMasterClient.user_mkdirs(path, recursive);
-  }
-
-  @Override
-  public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
-    return mMasterClient.listStatus(path);
-  }
-
-  /**
-   * Get a ClientFileInfo of the file
-   * 
-   * @param path
-   *          the file path in Tachyon file system
-   * @param useCachedMetadata
-   *          if true use the local cached meta data
-   * @return the ClientFileInfo
-   * @throws IOException
-   */
-  private synchronized ClientFileInfo getFileStatus(String path, boolean useCachedMetadata)
-      throws IOException {
-    ClientFileInfo ret = null;
-    String cleanedPath = cleanPathIOException(path);
-    if (useCachedMetadata && mPathToClientFileInfo.containsKey(cleanedPath)) {
-      return mPathToClientFileInfo.get(path);
-    }
-    try {
-      ret = getFileStatus(-1, cleanedPath);
-    } catch (IOException e) {
-      LOG.warn(e.getMessage() + cleanedPath, e);
-      return null;
-    }
-
-    // TODO LRU on this Map.
-    if (ret != null && useCachedMetadata) {
-      mPathToClientFileInfo.put(cleanedPath, ret);
-    } else {
-      mPathToClientFileInfo.remove(cleanedPath);
-    }
-
-    return ret;
-  }
-
-  @Override
-  public ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
-    return mMasterClient.getFileStatus(fileId, path);
   }
 }
