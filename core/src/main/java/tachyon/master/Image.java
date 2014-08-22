@@ -21,11 +21,11 @@ import java.io.OutputStream;
 
 import org.apache.log4j.Logger;
 
-import tachyon.Constants;
-import tachyon.UnderFileSystem;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
+
+import tachyon.Constants;
+import tachyon.UnderFileSystem;
 
 /**
  * Master data image.
