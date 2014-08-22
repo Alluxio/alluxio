@@ -14,7 +14,6 @@
  */
 package tachyon.worker.elimination;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +34,7 @@ public class EvictLRU extends EvictLRUBase {
 
   @Override
   public StorageDir getDirCandidate(List<BlockEvictionInfo> blockEvictInfoList,
-      Set<Integer> pinList, long requestSize) throws IOException {
+      Set<Integer> pinList, long requestSize) {
     Map<Integer, Pair<Long, Long>> dir2LRUBlocks = new HashMap<Integer, Pair<Long, Long>>();
     Map<Integer, Set<Long>> dir2BlocksToEvict = new HashMap<Integer, Set<Long>>();
     Map<Integer, Long> sizeToEvict = new HashMap<Integer, Long>();
@@ -46,7 +45,7 @@ public class EvictLRU extends EvictLRUBase {
       long blockId = candidate.getSecond();
       long blockSize = 0;
       if (dirIndex == -1) {
-        throw new IOException("No block can be evicted in current tier!");
+        return null;
       } else {
         blockSize = STORAGE_DIRS[dirIndex].getBlockSize(blockId);
       }
@@ -82,8 +81,6 @@ public class EvictLRU extends EvictLRUBase {
    *          block ids that already selected to be evicted
    * @param pinList
    *          list of pinned files
-   * @param isLastTier
-   *          whether current storage tier is the last tier
    * @return block to be evicted
    */
   public Pair<Integer, Long> getLRUBlockCandidate(Map<Integer, Pair<Long, Long>> dir2LRUBlocks,
