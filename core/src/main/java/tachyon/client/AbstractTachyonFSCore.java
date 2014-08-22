@@ -27,8 +27,8 @@ abstract class AbstractTachyonFSCore implements Closeable {
    * @return The file id, which is globally unique.
    */
   public abstract int
-      createFile(String path, String ufsPath, long blockSizeByte, boolean recursive)
-          throws IOException;
+  createFile(String path, String ufsPath, long blockSizeByte, boolean recursive)
+      throws IOException;
 
   /**
    * Deletes a file or folder
@@ -46,19 +46,27 @@ abstract class AbstractTachyonFSCore implements Closeable {
   public abstract boolean delete(int fileId, String path, boolean recursive) throws IOException;
 
   /**
-   * Renames a file or folder to another path.
+   * Return a ClientFileInfo object that represents the fid, or the path if fid is -1.
    * 
-   * @param fileId
-   *          The id of the source file / folder. If it is not -1, path parameter is ignored.
-   *          Otherwise, the method uses the srcPath parameter.
-   * @param srcPath
-   *          The path of the source file / folder. It could be empty or null iff id is not -1.
-   * @param dstPath
-   *          The path of the destination file / folder. It could be empty or null iff id is not -1.
-   * @return true if renames successfully, false otherwise.
+   * @param fid
+   *          the file id of the file or folder.
+   * @param path
+   *          the path of the file or folder. valid iff fid is -1.
+   * @return the ClientFileInfo of the file or folder, null if the file or folder does not exist.
    * @throws IOException
    */
-  public abstract boolean rename(int fileId, String srcPath, String dstPath) throws IOException;
+  public abstract ClientFileInfo getFileStatus(int fid, String path) throws IOException;
+
+  /**
+   * If the <code>path</code> is a directory, return all the direct entries in it. If the
+   * <code>path</code> is a file, return its ClientFileInfo.
+   * 
+   * @param path
+   *          the target directory/file path
+   * @return A list of ClientFileInfo, null if the file or folder does not exist.
+   * @throws IOException
+   */
+  public abstract List<ClientFileInfo> listStatus(String path) throws IOException;
 
   /**
    * Creates a folder.
@@ -73,25 +81,17 @@ abstract class AbstractTachyonFSCore implements Closeable {
   public abstract boolean mkdirs(String path, boolean recursive) throws IOException;
 
   /**
-   * If the <code>path</code> is a directory, return all the direct entries in it. If the
-   * <code>path</code> is a file, return its ClientFileInfo.
+   * Renames a file or folder to another path.
    * 
-   * @param path
-   *          the target directory/file path
-   * @return A list of ClientFileInfo, null if the file or folder does not exist.
+   * @param fileId
+   *          The id of the source file / folder. If it is not -1, path parameter is ignored.
+   *          Otherwise, the method uses the srcPath parameter.
+   * @param srcPath
+   *          The path of the source file / folder. It could be empty or null iff id is not -1.
+   * @param dstPath
+   *          The path of the destination file / folder. It could be empty or null iff id is not -1.
+   * @return true if renames successfully, false otherwise.
    * @throws IOException
    */
-  public abstract List<ClientFileInfo> listStatus(String path) throws IOException;
-
-  /**
-   * Return a ClientFileInfo object that represents the fid, or the path if fid is -1.
-   * 
-   * @param fid
-   *          the file id of the file or folder.
-   * @param path
-   *          the path of the file or folder. valid iff fid is -1.
-   * @return the ClientFileInfo of the file or folder, null if the file or folder does not exist.
-   * @throws IOException
-   */
-  public abstract ClientFileInfo getFileStatus(int fid, String path) throws IOException;
+  public abstract boolean rename(int fileId, String srcPath, String dstPath) throws IOException;
 }
