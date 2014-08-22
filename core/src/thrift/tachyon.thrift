@@ -194,10 +194,7 @@ service MasterService {
   NetAddress user_getWorker(1: bool random, 2: string host)
     throws (1: NoWorkerException e)
 
-  ClientFileInfo getClientFileInfoById(1: i32 fileId)
-    throws (1: FileDoesNotExistException e)
-
-  ClientFileInfo user_getClientFileInfoByPath(1: string path)
+  ClientFileInfo getFileStatus(1: i32 fileId, 2: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
 
   /**
@@ -229,18 +226,14 @@ service MasterService {
 
   void user_outOfMemoryForPinFile(1: i32 fileId)
 
-  bool user_rename(1: string srcPath, 2: string dstPath)
-    throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF,
-      3: InvalidPathException eI)
-
-  void user_renameTo(1: i32 fileId, 2: string dstPath)
+  bool user_rename(1: i32 fileId, 2: string srcPath, 3: string dstPath)
     throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF,
       3: InvalidPathException eI)
 
   void user_setPinned(1: i32 fileId, 2: bool pinned)
     throws (1: FileDoesNotExistException e)
 
-  bool user_mkdir(1: string path)
+  bool user_mkdirs(1: string path, 2: bool recursive)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TachyonException eT)
 
   i32 user_createRawTable(1: string path, 2: i32 columns, 3: binary metadata)

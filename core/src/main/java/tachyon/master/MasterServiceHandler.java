@@ -61,8 +61,14 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public ClientFileInfo getClientFileInfoById(int id) throws FileDoesNotExistException, TException {
-    return MASTER_INFO.getClientFileInfo(id);
+  public ClientFileInfo getFileStatus(int fileId, String path) throws FileDoesNotExistException,
+      InvalidPathException, TException {
+    if (fileId != -1) {
+      return MASTER_INFO.getClientFileInfo(fileId);
+
+    }
+
+    return MASTER_INFO.getClientFileInfo(path);
   }
 
   @Override
@@ -167,12 +173,6 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public ClientFileInfo user_getClientFileInfoByPath(String path)
-      throws FileDoesNotExistException, InvalidPathException, TException {
-    return MASTER_INFO.getClientFileInfo(path);
-  }
-
-  @Override
   public ClientRawTableInfo user_getClientRawTableInfoById(int id)
       throws TableDoesNotExistException, TException {
     return MASTER_INFO.getClientRawTableInfo(id);
@@ -266,9 +266,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean user_mkdir(String path) throws FileAlreadyExistException, InvalidPathException,
-      TachyonException, TException {
-    return MASTER_INFO.mkdir(path);
+  public boolean user_mkdirs(String path, boolean recursive) throws FileAlreadyExistException,
+      InvalidPathException, TachyonException, TException {
+    return MASTER_INFO.mkdirs(path, recursive);
   }
 
   @Override
@@ -277,15 +277,14 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean user_rename(String srcPath, String dstPath) throws FileAlreadyExistException,
-      FileDoesNotExistException, InvalidPathException, TException {
-    return MASTER_INFO.rename(srcPath, dstPath);
-  }
+  public boolean user_rename(int fileId, String srcPath, String dstPath)
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException,
+      TException {
+    if (fileId != -1) {
+      return MASTER_INFO.rename(fileId, dstPath);
+    }
 
-  @Override
-  public void user_renameTo(int fileId, String dstPath) throws FileAlreadyExistException,
-      FileDoesNotExistException, InvalidPathException, TException {
-    MASTER_INFO.rename(fileId, dstPath);
+    return MASTER_INFO.rename(srcPath, dstPath);
   }
 
   @Override

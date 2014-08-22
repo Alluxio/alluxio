@@ -346,7 +346,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   private synchronized ClientFileInfo fetchClientFileInfo(int fid) throws IOException {
-    return mMasterClient.getClientFileInfoById(fid);
+    return getFileStatus(fid, "");
   }
 
   /**
@@ -514,7 +514,7 @@ public class TachyonFS extends AbstractTachyonFS {
       return mPathToClientFileInfo.get(path);
     }
     try {
-      ret = mMasterClient.user_getClientFileInfoByPath(cleanedPath);
+      ret = mMasterClient.getFileStatus(-1, cleanedPath);
     } catch (IOException e) {
       LOG.warn(e.getMessage() + cleanedPath, e);
       return null;
@@ -1192,19 +1192,14 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   @Override
-  public synchronized boolean rename(int fildId, String srcPath, String dstPath)
+  public synchronized boolean rename(int fileId, String srcPath, String dstPath)
       throws IOException {
-    // mMasterClient.user_renameTo(fId, path);
-    // mMasterClient.user_rename(srcPath, dstPath);
-    // TODO Auto-generated method stub
-    return false;
+    return mMasterClient.user_rename(fileId, srcPath, dstPath);
   }
 
   @Override
   public synchronized boolean mkdirs(String path, boolean recursive) throws IOException {
-    // mMasterClient.user_mkdir(cleanPathIOException(path));
-    // TODO Auto-generated method stub
-    return false;
+    return mMasterClient.user_mkdirs(path, recursive);
   }
 
   @Override
