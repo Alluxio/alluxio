@@ -2,11 +2,14 @@ package tachyon;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import tachyon.client.OutStream;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.thrift.ClientFileInfo;
 
 public final class TestUtils {
   /**
@@ -101,5 +104,19 @@ public final class TestUtils {
     }
     ret.flip();
     return ret;
+  }
+
+  public static List<String> listFiles(TachyonFS tfs, String path) throws IOException {
+    List<ClientFileInfo> infos = tfs.listStatus(path);
+    List<String> res = new ArrayList<String>();
+    for (ClientFileInfo info : infos) {
+      res.add(info.getPath());
+
+      if (info.isFolder) {
+        res.addAll(listFiles(tfs, info.getPath()));
+      }
+    }
+
+    return res;
   }
 }

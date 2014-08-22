@@ -722,18 +722,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get the next new block's id of the file.
-   * 
-   * @param fid
-   *          the file id
-   * @return the id of the next block
-   * @throws IOException
-   */
-  private synchronized long getNextBlockId(int fid) throws IOException {
-    return mMasterClient.user_createNewBlock(fid);
-  }
-
-  /**
    * Get the number of blocks of a file. Only works when the file exists.
    * 
    * @param fid
@@ -903,35 +891,6 @@ public class TachyonFS extends AbstractTachyonFS {
     lockIds.add(blockLockId);
     mLockedBlockIds.put(blockId, lockIds);
     return true;
-  }
-
-  /**
-   * Return a list of files/directories under the given path.
-   * 
-   * @param path
-   *          the path in the TFS.
-   * @param recursive
-   *          whether or not to list files/directories under path recursively.
-   * @return a list of files/directories under path if recursive is false, or files/directories
-   *         under its subdirectories (sub-subdirectories, and so forth) if recursive is true, or
-   *         null
-   *         if the content of path is empty, i.e., no files found under path.
-   * @throws IOException
-   */
-  public synchronized List<String> ls(String path, boolean recursive) throws IOException {
-    return mMasterClient.user_ls(path, recursive);
-  }
-
-  /**
-   * Read the whole local block.
-   * 
-   * @param blockId
-   *          The id of the block to read.
-   * @return <code>TachyonByteBuffer</code> containing the whole block.
-   * @throws IOException
-   */
-  private TachyonByteBuffer readLocalByteBuffer(long blockId) throws IOException {
-    return readLocalByteBuffer(blockId, 0, -1);
   }
 
   /**

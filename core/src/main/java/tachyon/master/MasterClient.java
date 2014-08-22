@@ -52,8 +52,6 @@ import tachyon.util.CommonUtils;
 public class MasterClient implements Closeable {
   private final static int MAX_CONNECT_TRY = 5;
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  // TODO Implement the retry logic
-  private final int CONNECTION_RETRY_TIMES = 10;
 
   private boolean mUseZookeeper;
   private MasterService.Client mClient = null;
@@ -576,24 +574,6 @@ public class MasterClient implements Closeable {
 
       try {
         return mClient.user_getWorker(random, hostname);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    return null;
-  }
-
-  public synchronized List<Integer> user_listFiles(String path, boolean recursive)
-      throws IOException {
-    while (!mIsShutdown) {
-      connect();
-      try {
-        return mClient.user_listFiles(path, recursive);
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

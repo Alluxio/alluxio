@@ -207,9 +207,6 @@ service MasterService {
   list<ClientBlockInfo> user_getFileBlocksByPath(1: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
 
-  list<i32> user_listFiles(1: string path, 2: bool recursive)
-    throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
-
   list<string> user_ls(1: string path, 2: bool recursive)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
 
