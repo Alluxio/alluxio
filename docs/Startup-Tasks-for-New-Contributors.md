@@ -30,18 +30,6 @@ for beginners. For a tutorial, see the GitHub guides on
 [forking a repo](https://help.github.com/articles/fork-a-repo) and
 [sending a pull request](https://help.github.com/articles/using-pull-requests).
 
-* * * * *
-
-    core/src/main/java/tachyon/Users.java
-
-    core/src/main/java/tachyon/master/MasterWorkerInfo.java
-
-    core/src/main/java/tachyon/worker/Worker.java
-
-    core/src/main/java/tachyon/worker/WorkerClient.java
-
-    core/src/main/java/tachyon/worker/DataServerMessage.java
-
 ### Testing
 
 -   Run all unit tests with ``mvn test`` (will use the local filesystem as the
@@ -68,9 +56,8 @@ leverage the Scala shell, as discussed in this
 ### Coding Style
 
 -   Please follow the style of the existing codebase. Specifically, we use
-    [Sun's conventions](http://www.oracle.com/technetwork/java/codeconvtoc-136057.html),
-    with the following changes:
-    -  Indent **2** spaces per level, not **4**.
+    [Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html),
+    with the following changes or deviations:
     -  Maximum line length of **100** characters.
     -  Imported packages should be in [this order](resources/order.importorder), then in
     **alphabetical order**.
@@ -79,8 +66,11 @@ leverage the Scala shell, as discussed in this
     -  Class and member modifiers, when present, appear in the order recommended by the Java
     Language Specification: **public protected private abstract static final transient volatile
     synchronized native strictfp**, then as **alphabetical order**.
--   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml).
-    -  If you use IntelliJ: you can either use our formatter with the help from [EclipseCodeFormatter](https://github.com/krasa/EclipseCodeFormatter#instructions) or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in IntelliJ
+    -  Class member variable names should be prefixed with `m`, for example `private WorkerClient mWorkerClient;`
+    -  Static variable names should be prefixed with `s`, for example `public static String sUnderFSAddress;`
+-   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml)
+    -  If you use IntelliJ IDEA: you can either use our formatter with the help from [EclipseCodeFormatter](https://github.com/krasa/EclipseCodeFormatter#instructions) 
+       or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in IntelliJ IDEA
 
 ### FindBugs
 
