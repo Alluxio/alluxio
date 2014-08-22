@@ -1188,10 +1188,7 @@ public class TachyonFS extends AbstractTachyonFS {
   @Override
   public synchronized boolean delete(int fileId, String path, boolean recursive)
       throws IOException {
-    // mMasterClient.user_delete(fid, recursive);
-    // mMasterClient.user_delete(path, recursive);
-    // TODO Auto-generated method stub
-    return false;
+    return mMasterClient.user_delete(fileId, path, recursive);
   }
 
   @Override

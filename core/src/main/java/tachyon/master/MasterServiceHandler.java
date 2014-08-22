@@ -135,13 +135,11 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean user_deleteById(int id, boolean recursive) throws TachyonException, TException {
-    return MASTER_INFO.delete(id, recursive);
-  }
-
-  @Override
-  public boolean user_deleteByPath(String path, boolean recursive) throws TachyonException,
+  public boolean user_delete(int fileId, String path, boolean recursive) throws TachyonException,
       TException {
+    if (fileId != -1) {
+      return MASTER_INFO.delete(fileId, recursive);
+    }
     return MASTER_INFO.delete(path, recursive);
   }
 

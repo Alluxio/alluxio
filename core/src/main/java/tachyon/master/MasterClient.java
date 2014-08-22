@@ -413,28 +413,13 @@ public class MasterClient implements Closeable {
     return -1;
   }
 
-  public synchronized boolean user_delete(int fileId, boolean recursive) throws IOException {
+  public synchronized boolean user_delete(int fileId, String path, boolean recursive)
+      throws IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        return mClient.user_deleteById(fileId, recursive);
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    return false;
-  }
-
-  public synchronized boolean user_delete(String path, boolean recursive) throws IOException {
-    while (!mIsShutdown) {
-      connect();
-
-      try {
-        return mClient.user_deleteByPath(path, recursive);
+        return mClient.user_delete(fileId, path, recursive);
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TException e) {
