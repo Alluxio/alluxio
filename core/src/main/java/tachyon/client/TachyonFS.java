@@ -20,7 +20,6 @@ import org.apache.log4j.Logger;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
-import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
 import tachyon.conf.CommonConf;
@@ -107,9 +106,10 @@ public class TachyonFS extends AbstractTachyonFS {
   // Whether use ZooKeeper or not
   private boolean mZookeeperMode;
   // Cached ClientFileInfo
-  private Map<String, ClientFileInfo> mCachedClientFileInfos =
+  private Map<String, ClientFileInfo> mPathToClientFileInfo =
       new HashMap<String, ClientFileInfo>();
-  private Map<Integer, ClientFileInfo> mClientFileInfos = new HashMap<Integer, ClientFileInfo>();
+  private Map<Integer, ClientFileInfo> mIdToClientFileInfo =
+      new HashMap<Integer, ClientFileInfo>();
 
   private UnderFileSystem mUnderFileSystem = null;
 
@@ -362,11 +362,11 @@ public class TachyonFS extends AbstractTachyonFS {
    *           if the file does not exist, or connection issue.
    */
   public synchronized long getBlockId(int fId, int blockIndex) throws IOException {
-    ClientFileInfo info = mClientFileInfos.get(fId);
+    ClientFileInfo info = mIdToClientFileInfo.get(fId);
     if (info == null) {
       info = fetchClientFileInfo(fId);
       if (info != null) {
-        mClientFileInfos.put(fId, info);
+        mIdToClientFileInfo.put(fId, info);
       } else {
         throw new IOException("File " + fId + " does not exist.");
       }
@@ -391,11 +391,11 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   synchronized long getBlockIdBasedOnOffset(int fId, long offset) throws IOException {
     ClientFileInfo info;
-    if (!mClientFileInfos.containsKey(fId)) {
+    if (!mIdToClientFileInfo.containsKey(fId)) {
       info = fetchClientFileInfo(fId);
-      mClientFileInfos.put(fId, info);
+      mIdToClientFileInfo.put(fId, info);
     }
-    info = mClientFileInfos.get(fId);
+    info = mIdToClientFileInfo.get(fId);
 
     int index = (int) (offset / info.getBlockSizeByte());
 
@@ -415,7 +415,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the block size of the file, in bytes
    */
   public synchronized long getBlockSizeByte(int fId) {
-    return mClientFileInfos.get(fId).getBlockSizeByte();
+    return mIdToClientFileInfo.get(fId).getBlockSizeByte();
   }
 
   /**
@@ -427,10 +427,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   synchronized String getUfsPath(int fid) throws IOException {
-    ClientFileInfo info = mClientFileInfos.get(fid);
+    ClientFileInfo info = mIdToClientFileInfo.get(fid);
     if (info == null || !info.getUfsPath().equals("")) {
       info = fetchClientFileInfo(fid);
-      mClientFileInfos.put(fid, info);
+      mIdToClientFileInfo.put(fid, info);
     }
 
     return info.getUfsPath();
@@ -449,12 +449,12 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized ClientBlockInfo getClientBlockInfo(int fId, int blockIndex)
       throws IOException {
     boolean fetch = false;
-    if (!mClientFileInfos.containsKey(fId)) {
+    if (!mIdToClientFileInfo.containsKey(fId)) {
       fetch = true;
     }
     ClientFileInfo info = null;
     if (!fetch) {
-      info = mClientFileInfos.get(fId);
+      info = mIdToClientFileInfo.get(fId);
       if (info.isFolder || info.blockIds.size() <= blockIndex) {
         fetch = true;
       }
@@ -462,7 +462,7 @@ public class TachyonFS extends AbstractTachyonFS {
 
     if (fetch) {
       info = fetchClientFileInfo(fId);
-      mClientFileInfos.put(fId, info);
+      mIdToClientFileInfo.put(fId, info);
     }
 
     if (info == null) {
@@ -510,8 +510,8 @@ public class TachyonFS extends AbstractTachyonFS {
       throws IOException {
     ClientFileInfo ret;
     String cleanedPath = cleanPathIOException(path);
-    if (useCachedMetadata && mCachedClientFileInfos.containsKey(cleanedPath)) {
-      return mCachedClientFileInfos.get(path);
+    if (useCachedMetadata && mPathToClientFileInfo.containsKey(cleanedPath)) {
+      return mPathToClientFileInfo.get(path);
     }
     try {
       ret = mMasterClient.user_getClientFileInfoByPath(cleanedPath);
@@ -522,9 +522,9 @@ public class TachyonFS extends AbstractTachyonFS {
 
     // TODO LRU on this Map.
     if (ret != null && useCachedMetadata) {
-      mCachedClientFileInfos.put(cleanedPath, ret);
+      mPathToClientFileInfo.put(cleanedPath, ret);
     } else {
-      mCachedClientFileInfos.remove(cleanedPath);
+      mPathToClientFileInfo.remove(cleanedPath);
     }
 
     return ret;
@@ -538,7 +538,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the creation time in milliseconds
    */
   public synchronized long getCreationTimeMs(int fId) {
-    return mClientFileInfos.get(fId).getCreationTimeMs();
+    return mIdToClientFileInfo.get(fId).getCreationTimeMs();
   }
 
   /**
@@ -563,12 +563,12 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return TachyonFile of the file id, or null if the file does not exist.
    */
   public synchronized TachyonFile getFile(int fid, boolean useCachedMetadata) throws IOException {
-    if (!useCachedMetadata || !mClientFileInfos.containsKey(fid)) {
+    if (!useCachedMetadata || !mIdToClientFileInfo.containsKey(fid)) {
       ClientFileInfo clientFileInfo = fetchClientFileInfo(fid);
       if (clientFileInfo == null) {
         return null;
       }
-      mClientFileInfos.put(fid, clientFileInfo);
+      mIdToClientFileInfo.put(fid, clientFileInfo);
     }
     return new TachyonFile(this, fid);
   }
@@ -596,7 +596,7 @@ public class TachyonFS extends AbstractTachyonFS {
     if (clientFileInfo == null) {
       return null;
     }
-    mClientFileInfos.put(clientFileInfo.getId(), clientFileInfo);
+    mIdToClientFileInfo.put(clientFileInfo.getId(), clientFileInfo);
     return new TachyonFile(this, clientFileInfo.getId());
   }
 
@@ -609,10 +609,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   public synchronized List<Long> getFileBlockIdList(int fId) throws IOException {
-    ClientFileInfo info = mClientFileInfos.get(fId);
+    ClientFileInfo info = mIdToClientFileInfo.get(fId);
     if (info == null || !info.isComplete) {
       info = fetchClientFileInfo(fId);
-      mClientFileInfos.put(fId, info);
+      mIdToClientFileInfo.put(fId, info);
     }
 
     if (info == null) {
@@ -676,11 +676,11 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   synchronized long getFileLength(int fid) throws IOException {
-    if (!mClientFileInfos.get(fid).isComplete) {
+    if (!mIdToClientFileInfo.get(fid).isComplete) {
       ClientFileInfo info = fetchClientFileInfo(fid);
-      mClientFileInfos.put(fid, info);
+      mIdToClientFileInfo.put(fid, info);
     }
-    return mClientFileInfos.get(fid).getLength();
+    return mIdToClientFileInfo.get(fid).getLength();
   }
 
   public synchronized List<NetAddress> getFileNetAddresses(int fileId) throws IOException {
@@ -757,10 +757,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   synchronized int getNumberOfBlocks(int fId) throws IOException {
-    ClientFileInfo info = mClientFileInfos.get(fId);
+    ClientFileInfo info = mIdToClientFileInfo.get(fId);
     if (info == null || !info.isComplete) {
       info = fetchClientFileInfo(fId);
-      mClientFileInfos.put(fId, info);
+      mIdToClientFileInfo.put(fId, info);
     }
     if (info == null) {
       throw new IOException("File " + fId + " does not exist.");
@@ -769,25 +769,12 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get the number of the files under the folder. Return 1 if the path is a file. Return the
-   * number of direct children if the path is a folder.
-   * 
-   * @param path
-   *          the path in Tachyon file system
-   * @return the number of the files
-   * @throws IOException
-   */
-  public synchronized int getNumberOfFiles(String path) throws IOException {
-    return mMasterClient.user_getNumberOfFiles(path);
-  }
-
-  /**
    * @param fid
    *          the file id
-   * @return the path of the file in Tachyon file system
+   * @return the path of the file in Tachyon file system, null if the file does not exist.
    */
   synchronized String getPath(int fid) {
-    return mClientFileInfos.get(fid).getPath();
+    return mIdToClientFileInfo.get(fid).getPath();
   }
 
   /**
@@ -857,10 +844,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   synchronized boolean isComplete(int fid) throws IOException {
-    if (!mClientFileInfos.get(fid).isComplete) {
-      mClientFileInfos.put(fid, fetchClientFileInfo(fid));
+    if (!mIdToClientFileInfo.get(fid).isComplete) {
+      mIdToClientFileInfo.put(fid, fetchClientFileInfo(fid));
     }
-    return mClientFileInfos.get(fid).isComplete;
+    return mIdToClientFileInfo.get(fid).isComplete;
   }
 
   /**
@@ -876,7 +863,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return true if the file is a directory, false otherwise
    */
   synchronized boolean isDirectory(int fid) {
-    return mClientFileInfos.get(fid).isFolder;
+    return mIdToClientFileInfo.get(fid).isFolder;
   }
 
   /**
@@ -890,7 +877,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   synchronized boolean isInMemory(int fid) throws IOException {
     ClientFileInfo info = fetchClientFileInfo(fid);
-    mClientFileInfos.put(info.getId(), info);
+    mIdToClientFileInfo.put(info.getId(), info);
     return 100 == info.inMemoryPercentage;
   }
 
@@ -900,22 +887,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return true if the file is need pin, false otherwise
    */
   synchronized boolean isNeedPin(int fid) {
-    return mClientFileInfos.get(fid).isPinned;
-  }
-
-  /**
-   * List the files under the given path. List the files recursively if <code>recursive</code> is
-   * true
-   * 
-   * @param path
-   *          the path in Tachyon file system
-   * @param recursive
-   *          if true list the files recursively
-   * @return the list of the files' id
-   * @throws IOException
-   */
-  public synchronized List<Integer> listFiles(String path, boolean recursive) throws IOException {
-    return mMasterClient.user_listFiles(path, recursive);
+    return mIdToClientFileInfo.get(fid).isPinned;
   }
 
   /**
@@ -1185,11 +1157,11 @@ public class TachyonFS extends AbstractTachyonFS {
   /** Returns true if the given file or folder has its "pinned" flag set. */
   public synchronized boolean isPinned(int fid, boolean useCachedMetadata) throws IOException {
     ClientFileInfo info;
-    if (!useCachedMetadata || !mClientFileInfos.containsKey(fid)) {
+    if (!useCachedMetadata || !mIdToClientFileInfo.containsKey(fid)) {
       info = fetchClientFileInfo(fid);
-      mClientFileInfos.put(fid, info);
+      mIdToClientFileInfo.put(fid, info);
     }
-    info = mClientFileInfos.get(fid);
+    info = mIdToClientFileInfo.get(fid);
 
     return info.isPinned;
   }
@@ -1208,19 +1180,9 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   @Override
-  public synchronized TachyonURI getUri() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public synchronized int createFile(String path, String ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {
-    // String cleanedPath = cleanPathIOException(path);
-    // mMasterClient.user_createFile(cleanedPath, blockSizeByte);
-    // mMasterClient.user_createFileOnCheckpoint(cleanedPath, underfsPath);
-    // TODO Auto-generated method stub
-    return 0;
+    return mMasterClient.user_createFile(path, ufsPath, blockSizeByte, recursive);
   }
 
   @Override
@@ -1251,6 +1213,22 @@ public class TachyonFS extends AbstractTachyonFS {
   @Override
   public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
     return mMasterClient.listStatus(path);
+  }
+
+  /**
+   * 
+   * @param fid
+   * @param path
+   * @param cached
+   * @return
+   * @throws IOException
+   */
+  public ClientFileInfo getFileStatus(int fid, String path, boolean cached) throws IOException {
+    if (fid != -1) {
+    } else {
+    }
+
+    return null;
   }
 
   @Override

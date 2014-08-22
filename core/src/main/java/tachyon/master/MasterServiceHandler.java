@@ -99,26 +99,25 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_createFile(String path, long blockSizeByte) throws FileAlreadyExistException,
-      InvalidPathException, BlockInfoException, TachyonException, TException {
-    return MASTER_INFO.createFile(path, blockSizeByte);
-  }
-
-  @Override
-  public int user_createFileOnCheckpoint(String path, String checkpointPath)
-      throws FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException,
-      BlockInfoException, TachyonException, TException {
-    UnderFileSystem underfs = UnderFileSystem.get(checkpointPath);
-    try {
-      long blockSizeByte = underfs.getBlockSizeByte(checkpointPath);
-      long fileSizeByte = underfs.getFileSize(checkpointPath);
-      int fileId = MASTER_INFO.createFile(path, blockSizeByte);
-      if (fileId != -1 && MASTER_INFO.addCheckpoint(-1, fileId, fileSizeByte, checkpointPath)) {
-        return fileId;
+  public int user_createFile(String path, String ufsPath, long blockSizeByte, boolean recursive)
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
+      SuspectedFileSizeException, TachyonException, TException {
+    if (!ufsPath.isEmpty()) {
+      UnderFileSystem underfs = UnderFileSystem.get(ufsPath);
+      try {
+        long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
+        long fileSizeByte = underfs.getFileSize(ufsPath);
+        int fileId = MASTER_INFO.createFile(path, ufsBlockSizeByte, recursive);
+        if (fileId != -1 && MASTER_INFO.addCheckpoint(-1, fileId, fileSizeByte, ufsPath)) {
+          return fileId;
+        }
+      } catch (IOException e) {
+        throw new TachyonException(e.getMessage());
       }
-    } catch (IOException e) {
-      throw new TachyonException(e.getMessage());
+    } else {
+      MASTER_INFO.createFile(path, blockSizeByte, recursive);
     }
+
     return -1;
   }
 

@@ -167,13 +167,9 @@ service MasterService {
   void user_requestFilesInDependency(1: i32 depId)
     throws (1: DependencyDoesNotExistException e)
 
-  i32 user_createFile(1: string path, 2: i64 blockSizeByte)
+  i32 user_createFile(1: string path, 2: string ufsPath, 3: i64 blockSizeByte, 4: bool recursive)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: BlockInfoException eB,
-      4: TachyonException eT)
-
-  i32 user_createFileOnCheckpoint(1: string path, 2: string checkpointPath)
-    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI,
-      3: SuspectedFileSizeException eS, 4: BlockInfoException eB, 5: TachyonException eT)
+      4: SuspectedFileSizeException eS, 5: TachyonException eT)
 
   i64 user_createNewBlock(1: i32 fileId)
     throws (1: FileDoesNotExistException e)

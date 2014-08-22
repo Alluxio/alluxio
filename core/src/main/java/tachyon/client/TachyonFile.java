@@ -263,7 +263,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public long length() throws IOException {
-    return TFS.getFileLength(FID);
+    return TFS.getFileStatus(FID, null).getLength();
   }
 
   /**

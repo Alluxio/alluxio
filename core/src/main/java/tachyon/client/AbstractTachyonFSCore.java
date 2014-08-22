@@ -4,13 +4,13 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
-import tachyon.TachyonURI;
 import tachyon.thrift.ClientFileInfo;
 
 abstract class AbstractTachyonFSCore implements Closeable {
 
-  /** Returns a URI whose scheme and authority identify this FileSystem. */
-  public abstract TachyonURI getUri();
+  // TODO add this when TachyonURI works.
+  // /** Returns a URI whose scheme and authority identify this FileSystem. */
+  // public abstract TachyonURI getUri();
 
   /**
    * Creates a new file in the file system.
