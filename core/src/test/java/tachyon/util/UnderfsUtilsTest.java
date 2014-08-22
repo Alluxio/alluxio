@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.PrefixList;
+import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
@@ -73,7 +74,7 @@ public class UnderfsUtilsTest {
     List<String> paths = null;
     for (String exclusion : exclusions) {
       try {
-        paths = mTfs.ls(exclusion, true);
+        paths = TestUtils.listFiles(mTfs, exclusion);
         fail("NO FileDoesNotExistException is expected here");
       } catch (IOException ioe) {
         Assert.assertNotNull(ioe);
@@ -82,7 +83,7 @@ public class UnderfsUtilsTest {
     }
 
     for (String inclusion : inclusions) {
-      paths = mTfs.ls(inclusion, true);
+      paths = TestUtils.listFiles(mTfs, inclusion);
       Assert.assertNotNull(paths);
     }
   }
