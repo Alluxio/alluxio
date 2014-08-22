@@ -207,9 +207,6 @@ service MasterService {
   list<ClientBlockInfo> user_getFileBlocksByPath(1: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
 
-  list<string> user_ls(1: string path, 2: bool recursive)
-    throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
-
   bool user_delete(1: i32 fileId, 2: string path, 3: bool recursive) // Delete file
     throws (1: TachyonException e)
 
@@ -247,9 +244,6 @@ service MasterService {
 
   void user_updateRawTableMetadata(1: i32 tableId, 2: binary metadata)
     throws (1: TableDoesNotExistException eT, 2: TachyonException eTa)
-
-  i32 user_getNumberOfFiles(1:string path)
-    throws (1: FileDoesNotExistException eR, 2: InvalidPathException eI)
 
   string user_getUfsAddress()
 }

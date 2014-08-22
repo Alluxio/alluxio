@@ -520,24 +520,6 @@ public class MasterClient implements Closeable {
     return null;
   }
 
-  public synchronized int user_getNumberOfFiles(String folderPath) throws IOException {
-    while (!mIsShutdown) {
-      connect();
-
-      try {
-        return mClient.user_getNumberOfFiles(folderPath);
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    return -1;
-  }
-
   public synchronized int user_getRawTableId(String path) throws IOException {
     while (!mIsShutdown) {
       connect();
@@ -574,24 +556,6 @@ public class MasterClient implements Closeable {
 
       try {
         return mClient.user_getWorker(random, hostname);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    return null;
-  }
-
-  public synchronized List<String> user_ls(String path, boolean recursive) throws IOException {
-    while (!mIsShutdown) {
-      connect();
-
-      try {
-        return mClient.user_ls(path, recursive);
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;

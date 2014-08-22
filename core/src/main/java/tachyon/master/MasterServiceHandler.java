@@ -203,12 +203,6 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_getNumberOfFiles(String path) throws FileDoesNotExistException,
-      InvalidPathException, TException {
-    return MASTER_INFO.getNumberOfFiles(path);
-  }
-
-  @Override
   public int user_getRawTableId(String path) throws InvalidPathException, TException {
     return MASTER_INFO.getRawTableId(path);
   }
@@ -240,12 +234,6 @@ public class MasterServiceHandler implements MasterService.Iface {
       }
     }
     return ret;
-  }
-
-  @Override
-  public List<String> user_ls(String path, boolean recursive) throws FileDoesNotExistException,
-      InvalidPathException, TException {
-    return MASTER_INFO.ls(path, recursive);
   }
 
   @Override
