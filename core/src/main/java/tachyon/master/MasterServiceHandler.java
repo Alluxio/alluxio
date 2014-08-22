@@ -120,11 +120,9 @@ public class MasterServiceHandler implements MasterService.Iface {
       } catch (IOException e) {
         throw new TachyonException(e.getMessage());
       }
-    } else {
-      MASTER_INFO.createFile(path, blockSizeByte, recursive);
     }
 
-    return -1;
+    return MASTER_INFO.createFile(path, blockSizeByte, recursive);
   }
 
   @Override
