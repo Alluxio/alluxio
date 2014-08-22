@@ -522,22 +522,6 @@ public class MasterClient implements Closeable {
     return null;
   }
 
-  public synchronized int user_getFileId(String path) throws IOException {
-    while (!mIsShutdown) {
-      connect();
-
-      try {
-        return mClient.user_getFileId(path);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    return -1;
-  }
-
   public synchronized int user_getNumberOfFiles(String folderPath) throws IOException {
     while (!mIsShutdown) {
       connect();
