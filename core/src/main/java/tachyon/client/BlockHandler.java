@@ -20,7 +20,6 @@ abstract class BlockHandler implements Closeable {
    *          block file path
    * @return block handler of the block file
    * @throws IOException
-   * @throws IllegalArgumentException
    */
   public static BlockHandler get(String path) throws IOException, IllegalArgumentException {
     if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
