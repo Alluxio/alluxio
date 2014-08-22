@@ -1019,6 +1019,11 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
+  public int createFile(String path, long blockSizeByte, boolean recursive)
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
+    return createFile(recursive, path, false, blockSizeByte);
+  }
+
   public int createFile(String path, long blockSizeByte) throws FileAlreadyExistException,
       InvalidPathException, BlockInfoException, TachyonException {
     return createFile(true, path, false, blockSizeByte);

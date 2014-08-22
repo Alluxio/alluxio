@@ -340,40 +340,23 @@ public class MasterClient implements Closeable {
     return -1;
   }
 
-  public synchronized int user_createFile(String path, long blockSizeByte) throws IOException {
-    while (!mIsShutdown) {
-      connect();
-
-      try {
-        return mClient.user_createFile(path, blockSizeByte);
-      } catch (FileAlreadyExistException e) {
-        throw new IOException(e);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
-      } catch (BlockInfoException e) {
-        throw new IOException(e);
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
+  public synchronized int user_createFile(String path, String ufsPath, long blockSizeByte,
+      boolean recursive) throws IOException {
+    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR)) {
+      throw new IOException("Illegal path parameter: " + path);
     }
-    return -1;
-  }
+    if (ufsPath == null) {
+      ufsPath = "";
+    }
 
-  public synchronized int user_createFileOnCheckpoint(String path, String checkpointPath)
-      throws IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        return mClient.user_createFileOnCheckpoint(path, checkpointPath);
+        return mClient.user_createFile(path, ufsPath, blockSizeByte, recursive);
       } catch (FileAlreadyExistException e) {
         throw new IOException(e);
       } catch (InvalidPathException e) {
-        throw new IOException(e);
-      } catch (SuspectedFileSizeException e) {
         throw new IOException(e);
       } catch (BlockInfoException e) {
         throw new IOException(e);
