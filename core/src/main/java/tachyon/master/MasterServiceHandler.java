@@ -270,11 +270,6 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public void user_outOfMemoryForPinFile(int fileId) throws TException {
-    LOG.error("The user can not allocate enough space for PIN list File " + fileId);
-  }
-
-  @Override
   public boolean user_rename(int fileId, String srcPath, String dstPath)
       throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException,
       TException {
