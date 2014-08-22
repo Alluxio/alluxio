@@ -1,6 +1,5 @@
 package tachyon.client;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -21,6 +20,7 @@ import org.apache.log4j.Logger;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
 import tachyon.conf.CommonConf;
@@ -42,7 +42,7 @@ import tachyon.worker.WorkerClient;
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients
  * depending on how many workers the client program is interacting with.
  */
-public class TachyonFS implements Closeable {
+public class TachyonFS extends AbstractTachyonFS {
   /**
    * Create a TachyonFS handler.
    * 
@@ -296,58 +296,6 @@ public class TachyonFS implements Closeable {
   }
 
   /**
-   * Create a file with the default block size (1GB) in the system. It also creates necessary
-   * folders along the path. // TODO It should not create necessary path.
-   * 
-   * @param path
-   *          the path of the file
-   * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException
-   *           If file already exists, or path is invalid.
-   */
-  public synchronized int createFile(String path) throws IOException {
-    return createFile(path, UserConf.get().DEFAULT_BLOCK_SIZE_BYTE);
-  }
-
-  /**
-   * Create a file in the system. It also creates necessary folders along the path.
-   * // TODO It should not create necessary path.
-   * 
-   * @param path
-   *          the path of the file
-   * @param blockSizeByte
-   *          the block size of the file
-   * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException
-   *           If file already exists, or path is invalid.
-   */
-  public synchronized int createFile(String path, long blockSizeByte) throws IOException {
-    if (blockSizeByte > (long) Constants.GB * 2) {
-      throw new IOException("Block size must be less than 2GB: " + blockSizeByte);
-    }
-
-    String cleanedPath = cleanPathIOException(path);
-    return mMasterClient.user_createFile(cleanedPath, blockSizeByte);
-  }
-
-  /**
-   * Create a file in the system with a pre-defined underfsPath. It also creates necessary
-   * folders along the path. // TODO It should not create necessary path.
-   * 
-   * @param path
-   *          the path of the file in Tachyon
-   * @param underfsPath
-   *          the path of the file in the underfs
-   * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException
-   *           If file already exists, or path is invalid.
-   */
-  public synchronized int createFile(String path, String underfsPath) throws IOException {
-    String cleanedPath = cleanPathIOException(path);
-    return mMasterClient.user_createFileOnCheckpoint(cleanedPath, underfsPath);
-  }
-
-  /**
    * Create a RawTable and return its id
    * 
    * @param path
@@ -383,36 +331,6 @@ public class TachyonFS implements Closeable {
 
     return mMasterClient.user_createRawTable(cleanedPath, columns, metadata);
 
-  }
-
-  /**
-   * Delete the file denoted by the file id.
-   * 
-   * @param fid
-   *          file id
-   * @param recursive
-   *          if delete the path recursively.
-   * @return true if deletion succeed (including the case the file does not exist in the first
-   *         place), false otherwise.
-   * @throws IOException
-   */
-  public synchronized boolean delete(int fid, boolean recursive) throws IOException {
-    return mMasterClient.user_delete(fid, recursive);
-  }
-
-  /**
-   * Delete the file denoted by the path.
-   * 
-   * @param path
-   *          the file path
-   * @param recursive
-   *          if delete the path recursively.
-   * @return true if the deletion succeed (including the case that the path does not exist in the
-   *         first place), false otherwise.
-   * @throws IOException
-   */
-  public synchronized boolean delete(String path, boolean recursive) throws IOException {
-    return mMasterClient.user_delete(path, recursive);
   }
 
   /**
@@ -1001,19 +919,6 @@ public class TachyonFS implements Closeable {
   }
 
   /**
-   * If the <code>path</code> is a directory, return all the direct entries in it. If the
-   * <code>path</code> is a file, return its ClientFileInfo.
-   * 
-   * @param path
-   *          the target directory/file path
-   * @return A list of ClientFileInfo
-   * @throws IOException
-   */
-  public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
-    return mMasterClient.listStatus(path);
-  }
-
-  /**
    * Lock a block in the current TachyonFS.
    * 
    * @param blockId
@@ -1058,19 +963,6 @@ public class TachyonFS implements Closeable {
    */
   public synchronized List<String> ls(String path, boolean recursive) throws IOException {
     return mMasterClient.user_ls(path, recursive);
-  }
-
-  /**
-   * Create a directory if it does not exist. The method also creates necessary non-existing
-   * parent folders.
-   * 
-   * @param path
-   *          Directory path.
-   * @return true if the folder is created successfully or already existing. false otherwise.
-   * @throws IOException
-   */
-  public synchronized boolean mkdir(String path) throws IOException {
-    return mMasterClient.user_mkdir(cleanPathIOException(path));
   }
 
   /**
@@ -1163,38 +1055,6 @@ public class TachyonFS implements Closeable {
 
   public synchronized void releaseSpace(long releaseSpaceBytes) {
     mAvailableSpaceBytes += releaseSpaceBytes;
-  }
-
-  /**
-   * Rename the file
-   * 
-   * @param fId
-   *          the file id
-   * @param path
-   *          the new path of the file in Tachyon file system
-   * @return true if succeed, false otherwise
-   * @throws IOException
-   */
-  public synchronized boolean rename(int fId, String path) throws IOException {
-    mMasterClient.user_renameTo(fId, path);
-
-    return true;
-  }
-
-  /**
-   * Rename the srcPath to the dstPath
-   * 
-   * @param srcPath
-   * @param dstPath
-   * @return true if succeed, false otherwise.
-   * @throws IOException
-   */
-  public synchronized boolean rename(String srcPath, String dstPath) throws IOException {
-    if (srcPath.equals(dstPath) && exist(srcPath)) {
-      return true;
-    }
-
-    return mMasterClient.user_rename(srcPath, dstPath);
   }
 
   /**
@@ -1345,5 +1205,57 @@ public class TachyonFS implements Closeable {
    */
   public synchronized void updateRawTableMetadata(int id, ByteBuffer metadata) throws IOException {
     mMasterClient.user_updateRawTableMetadata(id, metadata);
+  }
+
+  @Override
+  public synchronized TachyonURI getUri() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public synchronized int createFile(String path, String ufsPath, long blockSizeByte,
+      boolean recursive) throws IOException {
+    // String cleanedPath = cleanPathIOException(path);
+    // mMasterClient.user_createFile(cleanedPath, blockSizeByte);
+    // mMasterClient.user_createFileOnCheckpoint(cleanedPath, underfsPath);
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  public synchronized boolean delete(int fileId, String path, boolean recursive)
+      throws IOException {
+    // mMasterClient.user_delete(fid, recursive);
+    // mMasterClient.user_delete(path, recursive);
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public synchronized boolean rename(int fildId, String srcPath, String dstPath)
+      throws IOException {
+    // mMasterClient.user_renameTo(fId, path);
+    // mMasterClient.user_rename(srcPath, dstPath);
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public synchronized boolean mkdirs(String path, boolean recursive) throws IOException {
+    // mMasterClient.user_mkdir(cleanPathIOException(path));
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
+    return mMasterClient.listStatus(path);
+  }
+
+  @Override
+  public ClientFileInfo getFileStatus(int fid, String path) throws IOException {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
