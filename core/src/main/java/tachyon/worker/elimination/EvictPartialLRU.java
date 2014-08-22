@@ -14,7 +14,6 @@
  */
 package tachyon.worker.elimination;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +32,7 @@ public class EvictPartialLRU extends EvictLRUBase {
 
   @Override
   public StorageDir getDirCandidate(List<BlockEvictionInfo> blockEvictionInfoList,
-      Set<Integer> pinList, long requestSize) throws IOException {
+      Set<Integer> pinList, long requestSize) {
     Set<Integer> ignoredDirs = new HashSet<Integer>();
     int dirIndex = getDirWithMaxFreeSpace(requestSize, ignoredDirs);
     while (dirIndex != -1) {
@@ -60,7 +59,7 @@ public class EvictPartialLRU extends EvictLRUBase {
         return STORAGE_DIRS[dirIndex];
       }
     }
-    throw new IOException("No suitable dir can be found!");
+    return null;
   }
 
   public int getDirWithMaxFreeSpace(long requestSize, Set<Integer> ignoredList) {

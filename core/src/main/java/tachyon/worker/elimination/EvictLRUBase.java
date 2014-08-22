@@ -61,8 +61,6 @@ public abstract class EvictLRUBase implements EvictStrategy {
    *          block ids that already selected to be evicted
    * @param pinList
    *          list of pinned files
-   * @param isLastTier
-   *          whether current storage tier is the last tier
    * @return oldest access information of current storage dir
    */
   Pair<Long, Long> getLRUBlock(StorageDir curDir, Collection<Long> toEvictBlockIds,

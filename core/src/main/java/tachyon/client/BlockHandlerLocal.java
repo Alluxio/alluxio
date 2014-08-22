@@ -23,34 +23,36 @@ import java.nio.channels.FileChannel.MapMode;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Preconditions;
+
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
 
 /**
- * It is used for handling block files on LocalFS, such as RamDisk, SSD and HDD.
+ * BlockHandler for files on LocalFS, such as RamDisk, SSD and HDD.
  */
 public final class BlockHandlerLocal extends BlockHandler {
 
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final RandomAccessFile LOCAL_FILE;
   private final FileChannel LOCAL_FILE_CHANNEL;
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private boolean mPermission = false;
+  protected final String FILE_PATH;
 
   BlockHandlerLocal(String filePath) throws IOException {
-    super(filePath);
+    FILE_PATH = Preconditions.checkNotNull(filePath);
     LOG.debug(FILE_PATH + " is created");
     LOCAL_FILE = new RandomAccessFile(FILE_PATH, "rw");
     LOCAL_FILE_CHANNEL = LOCAL_FILE.getChannel();
   }
 
   @Override
-  public int appendCurrentBuffer(byte[] buf, long inFilePos, int offset, int length)
-      throws IOException {
+  public int append(long blockOffset, byte[] buf, int offset, int length) throws IOException {
     checkPermission();
-    ByteBuffer out = LOCAL_FILE_CHANNEL.map(MapMode.READ_WRITE, inFilePos, length);
+    ByteBuffer out = LOCAL_FILE_CHANNEL.map(MapMode.READ_WRITE, blockOffset, length);
     out.put(buf, offset, length);
 
-    return offset + length;
+    return length;
   }
 
   private void checkPermission() throws IOException {
@@ -64,18 +66,19 @@ public final class BlockHandlerLocal extends BlockHandler {
 
   @Override
   public void close() throws IOException {
+    IOException exception = null;
     if (LOCAL_FILE_CHANNEL != null) {
       try {
         LOCAL_FILE_CHANNEL.close();
       } catch (IOException e) {
-        if (LOCAL_FILE != null) {
-          LOCAL_FILE.close();
-        }
-        throw e;
+        exception = e;
       }
     }
     if (LOCAL_FILE != null) {
       LOCAL_FILE.close();
+    }
+    if (exception != null) {
+      throw exception;
     }
   }
 
@@ -86,24 +89,25 @@ public final class BlockHandlerLocal extends BlockHandler {
   }
 
   @Override
-  public ByteBuffer readByteBuffer(long inFilePos, int length) throws IOException {
+  public ByteBuffer read(long blockOffset, int length) throws IOException {
     long fileLength = LOCAL_FILE.length();
     String error = null;
-    if (inFilePos > fileLength) {
-      error = String.format("inFilePos(%d) is larger than file length(%d)", inFilePos, fileLength);
-    }
-    if (error == null && length != -1 && inFilePos + length > fileLength) {
+    if (blockOffset > fileLength) {
       error =
-          String.format("inFilePos(%d) plus length(%d) is larger than file length(%d)", inFilePos,
-              length, fileLength);
+          String.format("inFilePos(%d) is larger than file length(%d)", blockOffset, fileLength);
+    }
+    if (error == null && length != -1 && blockOffset + length > fileLength) {
+      error =
+          String.format("inFilePos(%d) plus length(%d) is larger than file length(%d)",
+              blockOffset, length, fileLength);
     }
     if (error != null) {
-      throw new IOException(error);
+      throw new IllegalArgumentException(error);
     }
     if (length == -1) {
-      length = (int) (fileLength - inFilePos);
+      length = (int) (fileLength - blockOffset);
     }
-    ByteBuffer buf = LOCAL_FILE_CHANNEL.map(FileChannel.MapMode.READ_ONLY, inFilePos, length);
+    ByteBuffer buf = LOCAL_FILE_CHANNEL.map(FileChannel.MapMode.READ_ONLY, blockOffset, length);
     return buf;
   }
 

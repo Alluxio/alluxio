@@ -168,9 +168,9 @@ public class StorageDir {
               ((BlockHandlerLocal) bhDst).writeChannel()) > 0;
     } else {
       byte[] blockData = new byte[len];
-      ByteBuffer bf = bhSrc.readByteBuffer(0, len);
+      ByteBuffer bf = bhSrc.read(0, len);
       bf.get(blockData);
-      copySuccess = bhDst.appendCurrentBuffer(blockData, 0, 0, len) > 0;
+      copySuccess = bhDst.append(0, blockData, 0, len) > 0;
     }
     bhSrc.close();
     bhDst.close();
@@ -246,7 +246,7 @@ public class StorageDir {
    */
   public ByteBuffer getBlockData(long blockId, long offset, long length) throws IOException {
     BlockHandler bh = getBlockHandler(blockId);
-    ByteBuffer bf = bh.readByteBuffer((int) offset, (int) length);
+    ByteBuffer bf = bh.read((int) offset, (int) length);
     return bf;
   }
 
@@ -258,7 +258,7 @@ public class StorageDir {
    * @return file path of the block
    */
   public String getBlockFilePath(long blockId) {
-    return DATA_PATH + Constants.PATH_SEPARATOR + blockId;
+    return CommonUtils.concat(DATA_PATH, blockId);
   }
 
   /**
@@ -308,7 +308,7 @@ public class StorageDir {
    * @return sizes of the blocks
    * @throws IOException
    */
-  public Map<Long, Long> getBlockSizes() throws IOException {
+  public Map<Long, Long> getBlockSizes() {
     return BLOCK_SIZES;
   }
 

@@ -38,5 +38,5 @@ public interface EvictStrategy {
    * @throws IOException
    */
   StorageDir getDirCandidate(List<BlockEvictionInfo> blockEvictionInfoList, Set<Integer> pinList,
-      long requestSize) throws IOException;
+      long requestSize);
 }
