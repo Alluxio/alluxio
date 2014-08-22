@@ -204,12 +204,19 @@ public class MasterClient implements Closeable {
     return null;
   }
 
-  public synchronized ClientFileInfo getClientFileInfoById(int id) throws IOException {
+  public synchronized ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
+    if (path == null) {
+      path = "";
+    }
+    if (fileId == -1 && !path.startsWith(Constants.PATH_SEPARATOR)) {
+      throw new IOException("Illegal path parameter: " + path);
+    }
+
     while (!mIsShutdown) {
       connect();
 
       try {
-        return mClient.getClientFileInfoById(id);
+        return mClient.getFileStatus(fileId, path);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -460,24 +467,6 @@ public class MasterClient implements Closeable {
     return null;
   }
 
-  public synchronized ClientFileInfo user_getClientFileInfoByPath(String path) throws IOException {
-    while (!mIsShutdown) {
-      connect();
-
-      try {
-        return mClient.user_getClientFileInfoByPath(path);
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    return null;
-  }
-
   public synchronized ClientRawTableInfo user_getClientRawTableInfoById(int id) throws IOException {
     while (!mIsShutdown) {
       connect();
@@ -647,11 +636,11 @@ public class MasterClient implements Closeable {
     return null;
   }
 
-  public synchronized boolean user_mkdir(String path) throws IOException {
+  public synchronized boolean user_mkdirs(String path, boolean recursive) throws IOException {
     while (!mIsShutdown) {
       connect();
       try {
-        return mClient.user_mkdir(path);
+        return mClient.user_mkdirs(path, recursive);
       } catch (FileAlreadyExistException e) {
         throw new IOException(e);
       } catch (InvalidPathException e) {
@@ -680,12 +669,20 @@ public class MasterClient implements Closeable {
     }
   }
 
-  public synchronized boolean user_rename(String srcPath, String dstPath) throws IOException {
+  public synchronized boolean user_rename(int fileId, String srcPath, String dstPath)
+      throws IOException {
+    if (srcPath == null) {
+      srcPath = "";
+    }
+    if (fileId == -1 && !srcPath.startsWith(Constants.PATH_SEPARATOR)) {
+      throw new IOException("Illegal srcPath parameter: " + srcPath);
+    }
+
     while (!mIsShutdown) {
       connect();
 
       try {
-        return mClient.user_rename(srcPath, dstPath);
+        return mClient.user_rename(fileId, srcPath, dstPath);
       } catch (FileAlreadyExistException e) {
         throw new IOException(e);
       } catch (FileDoesNotExistException e) {
@@ -698,26 +695,6 @@ public class MasterClient implements Closeable {
       }
     }
     return false;
-  }
-
-  public void user_renameTo(int fId, String path) throws IOException {
-    while (!mIsShutdown) {
-      connect();
-
-      try {
-        mClient.user_renameTo(fId, path);
-        return;
-      } catch (FileAlreadyExistException e) {
-        throw new IOException(e);
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
   }
 
   public synchronized void user_reportLostFile(int fileId) throws IOException {

@@ -1086,7 +1086,7 @@ public class MasterInfo extends ImageWriter {
     }
 
     for (int k = 0; k < columns; k ++) {
-      mkdir(CommonUtils.concat(path, COL + k));
+      mkdirs(CommonUtils.concat(path, COL + k), true);
     }
 
     return id;
@@ -1982,10 +1982,10 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    * @throws TachyonException
    */
-  public boolean mkdir(String path) throws FileAlreadyExistException, InvalidPathException,
-      TachyonException {
+  public boolean mkdirs(String path, boolean recursive) throws FileAlreadyExistException,
+      InvalidPathException, TachyonException {
     try {
-      return createFile(true, path, true, 0) > 0;
+      return createFile(recursive, path, true, 0) > 0;
     } catch (BlockInfoException e) {
       throw new FileAlreadyExistException(e.getMessage());
     }

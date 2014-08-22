@@ -48,7 +48,7 @@ abstract class AbstractTachyonFSCore implements Closeable {
   /**
    * Renames a file or folder to another path.
    * 
-   * @param fildId
+   * @param fileId
    *          The id of the source file / folder. If it is not -1, path parameter is ignored.
    *          Otherwise, the method uses the srcPath parameter.
    * @param srcPath
@@ -58,7 +58,7 @@ abstract class AbstractTachyonFSCore implements Closeable {
    * @return true if renames successfully, false otherwise.
    * @throws IOException
    */
-  public abstract boolean rename(int fildId, String srcPath, String dstPath) throws IOException;
+  public abstract boolean rename(int fileId, String srcPath, String dstPath) throws IOException;
 
   /**
    * Creates a folder.
