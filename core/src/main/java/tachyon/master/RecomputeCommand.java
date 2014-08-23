@@ -15,10 +15,10 @@ import tachyon.Constants;
  * The recompute command class. Used to execute the recomputation.
  */
 public class RecomputeCommand implements Runnable {
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private final String CMD;
-  private final String FILE_PATH;
+  private final String mCommand;
+  private final String mFilePath;
 
   /**
    * Create a new RecomputeCommand.
@@ -29,19 +29,19 @@ public class RecomputeCommand implements Runnable {
    *          The path of the output file, which records the output of the recompute process.
    */
   public RecomputeCommand(String cmd, String filePath) {
-    CMD = cmd;
-    FILE_PATH = filePath;
+    mCommand = cmd;
+    mFilePath = filePath;
   }
 
   @Override
   public void run() {
     try {
-      LOG.info("Exec " + CMD + " output to " + FILE_PATH);
-      Process p = java.lang.Runtime.getRuntime().exec(CMD);
+      LOG.info("Exec " + mCommand + " output to " + mFilePath);
+      Process p = java.lang.Runtime.getRuntime().exec(mCommand);
       String line;
       BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
       BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-      File file = new File(FILE_PATH);
+      File file = new File(mFilePath);
       FileWriter fw = new FileWriter(file.getAbsoluteFile());
       BufferedWriter bw = new BufferedWriter(fw);
       while ((line = bri.readLine()) != null) {
@@ -55,7 +55,7 @@ public class RecomputeCommand implements Runnable {
       bw.flush();
       bw.close();
       p.waitFor();
-      LOG.info("Exec " + CMD + " output to " + FILE_PATH + " done.");
+      LOG.info("Exec " + mCommand + " output to " + mFilePath + " done.");
     } catch (IOException e) {
       LOG.error(e.getMessage());
     } catch (InterruptedException e) {

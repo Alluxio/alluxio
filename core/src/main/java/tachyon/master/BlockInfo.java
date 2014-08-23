@@ -54,15 +54,15 @@ public class BlockInfo {
     return (int) (blockId >> 30);
   }
 
-  private final InodeFile INODE_FILE;
+  private final InodeFile mInodeFile;
 
-  public final int BLOCK_INDEX;
+  public final int mBlockIndex;
 
-  public final long BLOCK_ID;
+  public final long mBlockId;
 
-  public final long OFFSET;
+  public final long mOffset;
 
-  public final long LENGTH;
+  public final long mLength;
 
   private Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>(5);
 
@@ -73,11 +73,11 @@ public class BlockInfo {
    *          Can not be no bigger than 2^31 - 1
    */
   BlockInfo(InodeFile inodeFile, int blockIndex, long length) {
-    INODE_FILE = inodeFile;
-    BLOCK_INDEX = blockIndex;
-    BLOCK_ID = computeBlockId(INODE_FILE.getId(), BLOCK_INDEX);
-    OFFSET = inodeFile.getBlockSizeByte() * blockIndex;
-    LENGTH = length;
+    mInodeFile = inodeFile;
+    mBlockIndex = blockIndex;
+    mBlockId = computeBlockId(mInodeFile.getId(), mBlockIndex);
+    mOffset = inodeFile.getBlockSizeByte() * blockIndex;
+    mLength = length;
   }
 
   /**
@@ -100,9 +100,9 @@ public class BlockInfo {
   public synchronized ClientBlockInfo generateClientBlockInfo() {
     ClientBlockInfo ret = new ClientBlockInfo();
 
-    ret.blockId = BLOCK_ID;
-    ret.offset = OFFSET;
-    ret.length = LENGTH;
+    ret.blockId = mBlockId;
+    ret.offset = mOffset;
+    ret.length = mLength;
     ret.locations = getLocations();
 
     return ret;
@@ -117,7 +117,7 @@ public class BlockInfo {
   public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
     List<Pair<Long, Long>> ret = new ArrayList<Pair<Long, Long>>(mLocations.size());
     for (long workerId : mLocations.keySet()) {
-      ret.add(new Pair<Long, Long>(BLOCK_ID, workerId));
+      ret.add(new Pair<Long, Long>(mBlockId, workerId));
     }
     return ret;
   }
@@ -128,7 +128,7 @@ public class BlockInfo {
    * @return the InodeFile of the block
    */
   public synchronized InodeFile getInodeFile() {
-    return INODE_FILE;
+    return mInodeFile;
   }
 
   /**
@@ -140,11 +140,11 @@ public class BlockInfo {
   public synchronized List<NetAddress> getLocations() {
     List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
     ret.addAll(mLocations.values());
-    if (ret.isEmpty() && INODE_FILE.hasCheckpointed()) {
-      UnderFileSystem ufs = UnderFileSystem.get(INODE_FILE.getUfsPath());
+    if (ret.isEmpty() && mInodeFile.hasCheckpointed()) {
+      UnderFileSystem ufs = UnderFileSystem.get(mInodeFile.getUfsPath());
       List<String> locs = null;
       try {
-        locs = ufs.getFileLocations(INODE_FILE.getUfsPath(), OFFSET);
+        locs = ufs.getFileLocations(mInodeFile.getUfsPath(), mOffset);
       } catch (IOException e) {
         return ret;
       }
@@ -182,11 +182,11 @@ public class BlockInfo {
 
   @Override
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("BlockInfo(BLOCK_INDEX: ");
-    sb.append(BLOCK_INDEX);
-    sb.append(", BLOCK_ID: ").append(BLOCK_ID);
-    sb.append(", OFFSET: ").append(OFFSET);
-    sb.append(", LENGTH: ").append(LENGTH);
+    StringBuilder sb = new StringBuilder("BlockInfo(mBlockIndex: ");
+    sb.append(mBlockIndex);
+    sb.append(", mBlockId: ").append(mBlockId);
+    sb.append(", mOffset: ").append(mOffset);
+    sb.append(", mLength: ").append(mLength);
     sb.append(", mLocations: ").append(mLocations).append(")");
     return sb.toString();
   }

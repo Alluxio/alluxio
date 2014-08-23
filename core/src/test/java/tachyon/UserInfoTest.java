@@ -7,9 +7,12 @@ import org.junit.Test;
  * Unit tests for tachyon.UserInfo
  */
 public class UserInfoTest {
-  private final int MIN_LEN = 1;
-  private final int MAX_LEN = 1000;
-  private final int DELTA = 50;
+  private static final int MIN_LEN = 1;
+  private static final int MAX_LEN = 1000;
+  private static final int DELTA = 50;
+
+  private static final String USERINFOR_TOSTRING =
+      "UserInfo( mUserId: 99, mOwnBytes: 1064, mLastHeartbeatMs: ";
 
   @Test
   public void addOwnBytesTest() {
@@ -67,7 +70,7 @@ public class UserInfoTest {
     UserInfo tUserInfo = new UserInfo(99);
     tUserInfo.addOwnBytes(2093);
     tUserInfo.addOwnBytes(-1029);
-    Assert.assertEquals("UserInfo( USER_ID: 99, mOwnBytes: 1064, mLastHeartbeatMs: ", tUserInfo
-        .toString().substring(0, 58));
+    Assert.assertEquals(USERINFOR_TOSTRING, tUserInfo
+        .toString().substring(0, USERINFOR_TOSTRING.length()));
   }
 }

@@ -27,7 +27,7 @@ import tachyon.hadoop.Utils;
  */
 public class UnderFileSystemHdfs extends UnderFileSystem {
   private static final int MAX_TRY = 5;
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private FileSystem mFs = null;
   private String mUfsPrefix = null;

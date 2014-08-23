@@ -202,15 +202,15 @@ public class MasterInfoTest {
 
   private MasterInfo mMasterInfo = null;
 
-  private final int DEPTH = 6;
+  private static final int DEPTH = 6;
 
-  private final int FILES_PER_NODE = 4;
+  private static final int FILES_PER_NODE = 4;
 
-  private final int CONCURRENCY_DEPTH = 3;
+  private static final int CONCURRENCY_DEPTH = 3;
 
-  private final String ROOT_PATH = "/root";
+  private static final String ROOT_PATH = "/root";
 
-  private final String ROOT_PATH2 = "/root2";
+  private static final String ROOT_PATH2 = "/root2";
 
   @Test
   public void addCheckpointTest() throws FileDoesNotExistException, SuspectedFileSizeException,

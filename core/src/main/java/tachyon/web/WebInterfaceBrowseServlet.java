@@ -35,37 +35,37 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    */
   public static class UiBlockInfo implements Comparable<UiBlockInfo> {
 
-    private final long ID;
-    private final long BLOCK_LENGTH;
-    private final boolean IN_MEMORY;
+    private final long mId;
+    private final long mBlockLength;
+    private final boolean mInMemory;
 
     public UiBlockInfo(BlockInfo blockInfo) {
-      ID = blockInfo.BLOCK_ID;
-      BLOCK_LENGTH = blockInfo.LENGTH;
-      IN_MEMORY = blockInfo.isInMemory();
+      mId = blockInfo.mBlockId;
+      mBlockLength = blockInfo.mLength;
+      mInMemory = blockInfo.isInMemory();
     }
 
     @Override
     public int compareTo(UiBlockInfo p) {
-      return (ID < p.ID ? -1 : (ID == p.ID ? 0 : 1));
+      return (mId < p.mId ? -1 : (mId == p.mId ? 0 : 1));
     }
 
     public long getBlockLength() {
-      return BLOCK_LENGTH;
+      return mBlockLength;
     }
 
     public long getID() {
-      return ID;
+      return mId;
     }
 
     public boolean inMemory() {
-      return IN_MEMORY;
+      return mInMemory;
     }
   }
 
   private static final long serialVersionUID = 6121623049981468871L;
 
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private MasterInfo mMasterInfo;
 

@@ -6,8 +6,8 @@ import tachyon.thrift.ClientFileInfo;
  * <code>Inode</code> is an abstract class, with information shared by all types of Inodes.
  */
 public abstract class Inode extends ImageWriter implements Comparable<Inode> {
-  private final long CREATION_TIME_MS;
-  protected final boolean IS_FOLDER;
+  private final long mCreationTimeMs;
+  protected final boolean mIsFolder;
 
   private int mId;
   private String mName;
@@ -36,8 +36,8 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
    *          the creation time of the inode.
    */
   protected Inode(String name, int id, int parentId, boolean isFolder, long creationTimeMs) {
-    CREATION_TIME_MS = creationTimeMs;
-    IS_FOLDER = isFolder;
+    mCreationTimeMs = creationTimeMs;
+    mIsFolder = isFolder;
 
     mId = id;
     mName = name;
@@ -73,7 +73,7 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
    * @return the create time, in milliseconds
    */
   public long getCreationTimeMs() {
-    return CREATION_TIME_MS;
+    return mCreationTimeMs;
   }
 
   /**
@@ -132,7 +132,7 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
    * @return true if the inode is a directory, false otherwise
    */
   public boolean isDirectory() {
-    return IS_FOLDER;
+    return mIsFolder;
   }
 
   /**
@@ -141,7 +141,7 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
    * @return true if the inode is a file, false otherwise
    */
   public boolean isFile() {
-    return !IS_FOLDER;
+    return !mIsFolder;
   }
 
   /**
@@ -195,7 +195,7 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   public synchronized String toString() {
     return new StringBuilder("Inode(").append("ID:").append(mId).append(", NAME:").append(mName)
         .append(", PARENT_ID:").append(mParentId).append(", CREATION_TIME_MS:")
-        .append(CREATION_TIME_MS).append(", PINNED:").append(mPinned)
+        .append(mCreationTimeMs).append(", PINNED:").append(mPinned)
         .append(", LAST_MODIFICATION_TIME_MS:").append(mLastModificationTimeMs).append(")")
         .toString();
   }

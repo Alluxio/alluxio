@@ -21,15 +21,15 @@ import tachyon.util.CommonUtils;
  * Unit tests for tachyon.client.TachyonFile.
  */
 public class TachyonFileTest {
-  private final int WORKER_CAPACITY_BYTES = 1000;
-  private final int USER_QUOTA_UNIT_BYTES = 100;
-  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
+  private static final int WORKER_CAPACITY_BYTES = 1000;
+  private static final int USER_QUOTA_UNIT_BYTES = 100;
+  private static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
       WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
-  private final int MAX_FILES = WORKER_CAPACITY_BYTES / USER_QUOTA_UNIT_BYTES;
+  private static final int MAX_FILES = WORKER_CAPACITY_BYTES / USER_QUOTA_UNIT_BYTES;
 
-  private final int MIN_LEN = 0;
-  private final int MAX_LEN = 255;
-  private final int DELTA = 33;
+  private static final int MIN_LEN = 0;
+  private static final int MAX_LEN = 255;
+  private static final int DELTA = 33;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
@@ -176,7 +176,7 @@ public class TachyonFileTest {
 
       TachyonFile file = mTfs.getFile(fileId);
       Assert.assertEquals(1, file.getNumberOfBlocks());
-      long bid = mTfs.getBlockIdBasedOnOffset(file.FID, 0);
+      long bid = mTfs.getBlockIdBasedOnOffset(file.mFileId, 0);
       String localFname = mTfs.getLocalFilename(bid);
       Assert.assertNotNull("Block not found on local ramdisk", localFname);
       RandomAccessFile lfile = new RandomAccessFile(localFname, "r");

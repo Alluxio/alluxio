@@ -19,9 +19,9 @@ import tachyon.thrift.InvalidPathException;
  * Unit tests for <code>tachyon.client.FileOutStream</code>.
  */
 public class FileOutStreamTest {
-  private final int MIN_LEN = 0;
-  private final int MAX_LEN = 255;
-  private final int DELTA = 32;
+  private static final int MIN_LEN = 0;
+  private static final int MAX_LEN = 255;
+  private static final int DELTA = 32;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 

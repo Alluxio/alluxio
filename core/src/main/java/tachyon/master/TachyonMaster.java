@@ -61,7 +61,7 @@ public class TachyonMaster {
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
   /** metadata port */
-  private final int PORT;
+  private final int mPort;
 
   public TachyonMaster(InetSocketAddress address, int webPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads) {
@@ -85,9 +85,9 @@ public class TachyonMaster {
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(address);
-      PORT = NetworkUtils.getPort(mServerTNonblockingServerSocket);
+      mPort = NetworkUtils.getPort(mServerTNonblockingServerSocket);
 
-      mMasterAddress = new InetSocketAddress(address.getHostName(), PORT);
+      mMasterAddress = new InetSocketAddress(address.getHostName(), mPort);
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
       Preconditions.checkState(isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX),
           "Tachyon was not formatted!");
@@ -124,7 +124,7 @@ public class TachyonMaster {
    * Get the port used by unit test only
    */
   int getMetaPort() {
-    return PORT;
+    return mPort;
   }
 
   private boolean isFormatted(String folder, String path) throws IOException {

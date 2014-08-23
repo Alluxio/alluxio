@@ -33,10 +33,10 @@ public enum ReadType {
     throw new IOException("Unknown ReadType : " + op);
   }
 
-  private final int VALUE;
+  private final int mValue;
 
   private ReadType(int value) {
-    VALUE = value;
+    mValue = value;
   }
 
   /**
@@ -45,13 +45,13 @@ public enum ReadType {
    * @return the read type value
    */
   public int getValue() {
-    return VALUE;
+    return mValue;
   }
 
   /**
    * @return true if the read type is CACHE, false otherwise
    */
   public boolean isCache() {
-    return VALUE == CACHE.VALUE;
+    return mValue == CACHE.mValue;
   }
 }

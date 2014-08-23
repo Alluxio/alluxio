@@ -11,10 +11,10 @@ import tachyon.conf.UserConf;
  * can not be initialized by the client code.
  */
 public abstract class OutStream extends OutputStream {
-  protected final UserConf USER_CONF = UserConf.get();
-  protected final TachyonFile FILE;
-  protected final TachyonFS TFS;
-  protected final WriteType WRITE_TYPE;
+  protected final UserConf mUserConf = UserConf.get();
+  protected final TachyonFile mFile;
+  protected final TachyonFS mTachyonFS;
+  protected final WriteType mWriteType;
 
   /**
    * @param file
@@ -23,9 +23,9 @@ public abstract class OutStream extends OutputStream {
    *          the OutStream's write type
    */
   OutStream(TachyonFile file, WriteType writeType) {
-    FILE = file;
-    TFS = FILE.TFS;
-    WRITE_TYPE = writeType;
+    mFile = file;
+    mTachyonFS = mFile.mTachyonFS;
+    mWriteType = writeType;
   }
 
   /**

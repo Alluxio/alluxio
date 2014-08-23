@@ -31,12 +31,12 @@ import tachyon.Constants;
 import tachyon.client.TachyonFS;
 
 /**
- * Unit tests for TFS
+ * Unit tests for mTachyonFS
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ TachyonFS.class, UserGroupInformation.class })
 public class TFSTest {
-  private final Logger LOG = Logger.getLogger(TFSTest.class.getName());
+  private static final Logger LOG = Logger.getLogger(TFSTest.class.getName());
 
   @Before
   public void setup() throws Exception {

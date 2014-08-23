@@ -7,10 +7,11 @@ import org.apache.log4j.Logger;
  * This Thread is daemonic, so it will not prevent the JVM from exiting.
  */
 public class HeartbeatThread extends Thread {
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private final String THREAD_NAME;
-  private final HeartbeatExecutor EXECUTOR;
-  private final long FIXED_EXECUTION_INTERVAL_MS;
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+
+  private final String mThreadName;
+  private final HeartbeatExecutor mExecutor;
+  private final long mFixedExecutionIntervalMs;
 
   private volatile boolean mIsShutdown = false;
 
@@ -22,9 +23,9 @@ public class HeartbeatThread extends Thread {
    */
   public HeartbeatThread(String threadName, HeartbeatExecutor hbExecutor,
       long fixedExecutionIntervalMs) {
-    THREAD_NAME = threadName;
-    EXECUTOR = hbExecutor;
-    FIXED_EXECUTION_INTERVAL_MS = fixedExecutionIntervalMs;
+    mThreadName = threadName;
+    mExecutor = hbExecutor;
+    mFixedExecutionIntervalMs = fixedExecutionIntervalMs;
     setDaemon(true);
   }
 
@@ -33,13 +34,13 @@ public class HeartbeatThread extends Thread {
     try {
       while (!mIsShutdown) {
         long lastMs = System.currentTimeMillis();
-        EXECUTOR.heartbeat();
+        mExecutor.heartbeat();
         long executionTimeMs = System.currentTimeMillis() - lastMs;
-        if (executionTimeMs > FIXED_EXECUTION_INTERVAL_MS) {
-          LOG.warn(THREAD_NAME + " last execution took " + executionTimeMs + " ms. Longer than "
-              + " the FIXED_EXECUTION_INTERVAL_MS " + FIXED_EXECUTION_INTERVAL_MS);
+        if (executionTimeMs > mFixedExecutionIntervalMs) {
+          LOG.warn(mThreadName + " last execution took " + executionTimeMs + " ms. Longer than "
+              + " the mFixedExecutionIntervalMs " + mFixedExecutionIntervalMs);
         } else {
-          Thread.sleep(FIXED_EXECUTION_INTERVAL_MS - executionTimeMs);
+          Thread.sleep(mFixedExecutionIntervalMs - executionTimeMs);
         }
       }
     } catch (InterruptedException e) {

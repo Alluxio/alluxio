@@ -21,8 +21,8 @@ import tachyon.thrift.NetAddress;
  * Unit tests for tachyon.DataServer.
  */
 public class DataServerTest {
-  private final int WORKER_CAPACITY_BYTES = 1000;
-  private final int USER_QUOTA_UNIT_BYTES = 100;
+  private static final int WORKER_CAPACITY_BYTES = 1000;
+  private static final int USER_QUOTA_UNIT_BYTES = 100;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTFS = null;

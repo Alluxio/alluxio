@@ -8,14 +8,14 @@ import tachyon.conf.WorkerConf;
  * Represent one user in the worker daemon.
  */
 public class UserInfo {
-  private final long USER_ID;
+  private final long mUserId;
 
   private long mOwnBytes;
   private long mLastHeartbeatMs;
 
   public UserInfo(long userId) {
     Preconditions.checkArgument(userId > 0, "Invalid user id " + userId);
-    USER_ID = userId;
+    mUserId = userId;
     mOwnBytes = 0;
     mLastHeartbeatMs = System.currentTimeMillis();
   }
@@ -29,7 +29,7 @@ public class UserInfo {
   }
 
   public long getUserId() {
-    return USER_ID;
+    return mUserId;
   }
 
   public synchronized void heartbeat() {
@@ -43,7 +43,7 @@ public class UserInfo {
   @Override
   public synchronized String toString() {
     StringBuilder sb = new StringBuilder("UserInfo(");
-    sb.append(" USER_ID: ").append(USER_ID);
+    sb.append(" mUserId: ").append(mUserId);
     sb.append(", mOwnBytes: ").append(mOwnBytes);
     sb.append(", mLastHeartbeatMs: ").append(mLastHeartbeatMs);
     sb.append(")");

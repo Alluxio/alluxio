@@ -38,10 +38,10 @@ import tachyon.util.CommonUtils;
  * It maintains the state of each worker. It never keeps the state of any user.
  */
 public class MasterServiceHandler implements MasterService.Iface {
-  private final MasterInfo MASTER_INFO;
+  private final MasterInfo mMasterInfo;
 
   public MasterServiceHandler(MasterInfo masterInfo) {
-    MASTER_INFO = masterInfo;
+    mMasterInfo = masterInfo;
   }
 
   @Override
@@ -50,7 +50,7 @@ public class MasterServiceHandler implements MasterService.Iface {
           throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
           TException {
     try {
-      return MASTER_INFO.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+      return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
     } catch (FileNotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     }
@@ -60,27 +60,27 @@ public class MasterServiceHandler implements MasterService.Iface {
   public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException,
       TException {
     if (fileId != -1) {
-      return MASTER_INFO.getClientFileInfo(fileId);
+      return mMasterInfo.getClientFileInfo(fileId);
 
     }
 
-    return MASTER_INFO.getClientFileInfo(path);
+    return mMasterInfo.getClientFileInfo(path);
   }
 
   @Override
   public List<ClientWorkerInfo> getWorkersInfo() throws TException {
-    return MASTER_INFO.getWorkersInfo();
+    return mMasterInfo.getWorkersInfo();
   }
 
   @Override
   public List<ClientFileInfo> liststatus(String path) throws InvalidPathException,
       FileDoesNotExistException, TException {
-    return MASTER_INFO.getFilesInfo(path);
+    return mMasterInfo.getFilesInfo(path);
   }
 
   @Override
   public void user_completeFile(int fileId) throws FileDoesNotExistException, TException {
-    MASTER_INFO.completeFile(fileId);
+    mMasterInfo.completeFile(fileId);
   }
 
   @Override
@@ -91,9 +91,9 @@ public class MasterServiceHandler implements MasterService.Iface {
       BlockInfoException, TachyonException, TException {
     try {
       for (int k = 0; k < children.size(); k ++) {
-        MASTER_INFO.createFile(children.get(k), childrenBlockSizeByte);
+        mMasterInfo.createFile(children.get(k), childrenBlockSizeByte);
       }
-      return MASTER_INFO.createDependency(parents, children, commandPrefix, data, comment,
+      return mMasterInfo.createDependency(parents, children, commandPrefix, data, comment,
           framework, frameworkVersion, DependencyType.getDependencyType(dependencyType));
     } catch (IOException e) {
       throw new FileDoesNotExistException(e.getMessage());
@@ -109,8 +109,8 @@ public class MasterServiceHandler implements MasterService.Iface {
       try {
         long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
         long fileSizeByte = underfs.getFileSize(ufsPath);
-        int fileId = MASTER_INFO.createFile(path, ufsBlockSizeByte, recursive);
-        if (fileId != -1 && MASTER_INFO.addCheckpoint(-1, fileId, fileSizeByte, ufsPath)) {
+        int fileId = mMasterInfo.createFile(path, ufsBlockSizeByte, recursive);
+        if (fileId != -1 && mMasterInfo.addCheckpoint(-1, fileId, fileSizeByte, ufsPath)) {
           return fileId;
         }
       } catch (IOException e) {
@@ -118,19 +118,19 @@ public class MasterServiceHandler implements MasterService.Iface {
       }
     }
 
-    return MASTER_INFO.createFile(path, blockSizeByte, recursive);
+    return mMasterInfo.createFile(path, blockSizeByte, recursive);
   }
 
   @Override
   public long user_createNewBlock(int fileId) throws FileDoesNotExistException, TException {
-    return MASTER_INFO.createNewBlock(fileId);
+    return mMasterInfo.createNewBlock(fileId);
   }
 
   @Override
   public int user_createRawTable(String path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException,
       TachyonException, TException {
-    return MASTER_INFO.createRawTable(path, columns,
+    return mMasterInfo.createRawTable(path, columns,
         CommonUtils.generateNewByteBufferFromThriftRPCResults(metadata));
   }
 
@@ -138,9 +138,9 @@ public class MasterServiceHandler implements MasterService.Iface {
   public boolean user_delete(int fileId, String path, boolean recursive) throws TachyonException,
       TException {
     if (fileId != -1) {
-      return MASTER_INFO.delete(fileId, recursive);
+      return mMasterInfo.delete(fileId, recursive);
     }
-    return MASTER_INFO.delete(path, recursive);
+    return mMasterInfo.delete(path, recursive);
   }
 
   @Override
@@ -153,7 +153,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       BlockInfoException, TException {
     ClientBlockInfo ret = null;
     try {
-      ret = MASTER_INFO.getClientBlockInfo(blockId);
+      ret = mMasterInfo.getClientBlockInfo(blockId);
     } catch (IOException e) {
       throw new FileDoesNotExistException(e.getMessage());
     }
@@ -163,19 +163,19 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public ClientDependencyInfo user_getClientDependencyInfo(int dependencyId)
       throws DependencyDoesNotExistException, TException {
-    return MASTER_INFO.getClientDependencyInfo(dependencyId);
+    return mMasterInfo.getClientDependencyInfo(dependencyId);
   }
 
   @Override
   public ClientRawTableInfo user_getClientRawTableInfoById(int id)
       throws TableDoesNotExistException, TException {
-    return MASTER_INFO.getClientRawTableInfo(id);
+    return mMasterInfo.getClientRawTableInfo(id);
   }
 
   @Override
   public ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
       throws TableDoesNotExistException, InvalidPathException, TException {
-    return MASTER_INFO.getClientRawTableInfo(path);
+    return mMasterInfo.getClientRawTableInfo(path);
   }
 
   @Override
@@ -183,7 +183,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       throws FileDoesNotExistException, TException {
     List<ClientBlockInfo> ret = null;
     try {
-      ret = MASTER_INFO.getFileLocations(fileId);
+      ret = mMasterInfo.getFileLocations(fileId);
     } catch (IOException e) {
       throw new FileDoesNotExistException(e.getMessage());
     }
@@ -195,7 +195,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       throws FileDoesNotExistException, InvalidPathException, TException {
     List<ClientBlockInfo> ret = null;
     try {
-      ret = MASTER_INFO.getFileLocations(path);
+      ret = mMasterInfo.getFileLocations(path);
     } catch (IOException e) {
       throw new FileDoesNotExistException(e.getMessage());
     }
@@ -204,7 +204,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public int user_getRawTableId(String path) throws InvalidPathException, TException {
-    return MASTER_INFO.getRawTableId(path);
+    return mMasterInfo.getRawTableId(path);
   }
 
   @Override
@@ -214,7 +214,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public long user_getUserId() throws TException {
-    return MASTER_INFO.getNewUserId();
+    return mMasterInfo.getNewUserId();
   }
 
   @Override
@@ -222,7 +222,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       TException {
     NetAddress ret = null;
     try {
-      ret = MASTER_INFO.getWorker(random, host);
+      ret = mMasterInfo.getWorker(random, host);
     } catch (UnknownHostException e) {
       throw new NoWorkerException(e.getMessage());
     }
@@ -239,7 +239,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public boolean user_mkdirs(String path, boolean recursive) throws FileAlreadyExistException,
       InvalidPathException, TachyonException, TException {
-    return MASTER_INFO.mkdirs(path, recursive);
+    return mMasterInfo.mkdirs(path, recursive);
   }
 
   @Override
@@ -247,62 +247,62 @@ public class MasterServiceHandler implements MasterService.Iface {
       throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException,
       TException {
     if (fileId != -1) {
-      return MASTER_INFO.rename(fileId, dstPath);
+      return mMasterInfo.rename(fileId, dstPath);
     }
 
-    return MASTER_INFO.rename(srcPath, dstPath);
+    return mMasterInfo.rename(srcPath, dstPath);
   }
 
   @Override
   public void user_reportLostFile(int fileId) throws FileDoesNotExistException, TException {
-    MASTER_INFO.reportLostFile(fileId);
+    mMasterInfo.reportLostFile(fileId);
   }
 
   @Override
   public void user_requestFilesInDependency(int depId) throws DependencyDoesNotExistException,
       TException {
-    MASTER_INFO.requestFilesInDependency(depId);
+    mMasterInfo.requestFilesInDependency(depId);
   }
 
   @Override
   public void user_setPinned(int fileId, boolean pinned) throws FileDoesNotExistException,
       TException {
-    MASTER_INFO.setPinned(fileId, pinned);
+    mMasterInfo.setPinned(fileId, pinned);
   }
 
   @Override
   public void user_updateRawTableMetadata(int tableId, ByteBuffer metadata)
       throws TableDoesNotExistException, TachyonException, TException {
-    MASTER_INFO.updateRawTableMetadata(tableId,
+    mMasterInfo.updateRawTableMetadata(tableId,
         CommonUtils.generateNewByteBufferFromThriftRPCResults(metadata));
   }
 
   @Override
   public void worker_cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
-    MASTER_INFO.cacheBlock(workerId, workerUsedBytes, blockId, length);
+    mMasterInfo.cacheBlock(workerId, workerUsedBytes, blockId, length);
   }
 
   @Override
   public Set<Integer> worker_getPinIdList() throws TException {
-    List<Integer> ret = MASTER_INFO.getPinIdList();
+    List<Integer> ret = mMasterInfo.getPinIdList();
     return new HashSet<Integer>(ret);
   }
 
   @Override
   public List<Integer> worker_getPriorityDependencyList() throws TException {
-    return MASTER_INFO.getPriorityDependencyList();
+    return mMasterInfo.getPriorityDependencyList();
   }
 
   @Override
   public Command worker_heartbeat(long workerId, long usedBytes, List<Long> removedBlockIds)
       throws BlockInfoException, TException {
-    return MASTER_INFO.workerHeartbeat(workerId, usedBytes, removedBlockIds);
+    return mMasterInfo.workerHeartbeat(workerId, usedBytes, removedBlockIds);
   }
 
   @Override
   public long worker_register(NetAddress workerNetAddress, long totalBytes, long usedBytes,
       List<Long> currentBlockIds) throws BlockInfoException, TException {
-    return MASTER_INFO.registerWorker(workerNetAddress, totalBytes, usedBytes, currentBlockIds);
+    return mMasterInfo.registerWorker(workerNetAddress, totalBytes, usedBytes, currentBlockIds);
   }
 }
