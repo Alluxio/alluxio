@@ -304,7 +304,7 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   private void setupStreamFromUnderFs(long offset, Object conf) throws IOException {
-    String checkpointPath = TFS.getUfsPath(FILE.FID);
+    String checkpointPath = FILE.getUfsPath();
     if (!checkpointPath.equals("")) {
       LOG.info("May stream from underlayer fs: " + checkpointPath);
       UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath, conf);

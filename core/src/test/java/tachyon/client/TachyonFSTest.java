@@ -79,7 +79,7 @@ public class TachyonFSTest {
     os.close();
     mTfs.createFile("/abc", tempFolder + "/temp");
     Assert.assertTrue(mTfs.exist("/abc"));
-    Assert.assertEquals(tempFolder + "/temp", mTfs.getUfsPath(mTfs.getFileId("/abc")));
+    Assert.assertEquals(tempFolder + "/temp", mTfs.getFile("/abc").getUfsPath());
   }
 
   @Test(expected = IOException.class)
