@@ -64,7 +64,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     return ufs.mkdirs(path, true);
   }
 
-  private final Configuration CONF = new Configuration();
+  private final Configuration mConf = new Configuration();
   private int mNamenodePort;
 
   private int mNumDataNode;
@@ -189,7 +189,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
       // "umask 002"(should be 022) see [HDFS-2556]. So the following codes only work for
       // hadoop 2.x or "umask 022"
       System.setProperty("test.build.data", mBaseDir);
-      mDfsCluster = new MiniDFSCluster(mNamenodePort, CONF, mNumDataNode, true, true, null, null);
+      mDfsCluster = new MiniDFSCluster(mNamenodePort, mConf, mNumDataNode, true, true, null, null);
       mDfsCluster.waitClusterUp();
 
       if (0 == mNamenodePort) {

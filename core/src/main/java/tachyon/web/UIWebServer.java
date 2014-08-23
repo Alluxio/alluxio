@@ -22,7 +22,7 @@ import tachyon.master.MasterInfo;
  * Class that bootstraps and starts the web server for the web interface.
  */
 public class UIWebServer {
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private Server mServer;
   private String mServerName;

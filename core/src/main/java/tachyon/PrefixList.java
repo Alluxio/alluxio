@@ -12,32 +12,32 @@ import com.google.common.collect.ImmutableList;
  * Prefix list is used by PinList and WhiteList to do file filtering.
  */
 public class PrefixList {
-  private final List<String> LIST;
+  private final List<String> mInnerList;
 
   public PrefixList(List<String> prefixList) {
     if (prefixList == null) {
-      LIST = new ArrayList<String>(0);
+      mInnerList = new ArrayList<String>(0);
     } else {
-      LIST = prefixList;
+      mInnerList = prefixList;
     }
   }
 
   public PrefixList(String prefixes, String separator) {
     Validate.notNull(separator);
-    LIST = new ArrayList<String>(0);
+    mInnerList = new ArrayList<String>(0);
     if (prefixes != null && !prefixes.trim().isEmpty()) {
       String[] candidates = prefixes.trim().split(separator);
       for (String prefix : candidates) {
         String trimmed = prefix.trim();
         if (!trimmed.isEmpty()) {
-          LIST.add(trimmed);
+          mInnerList.add(trimmed);
         }
       }
     }
   }
 
   public List<String> getList() {
-    return ImmutableList.copyOf(LIST);
+    return ImmutableList.copyOf(mInnerList);
   }
 
   public boolean inList(String path) {
@@ -45,8 +45,8 @@ public class PrefixList {
       return false;
     }
 
-    for (int k = 0; k < LIST.size(); k ++) {
-      if (path.startsWith(LIST.get(k))) {
+    for (int k = 0; k < mInnerList.size(); k ++) {
+      if (path.startsWith(mInnerList.get(k))) {
         return true;
       }
     }
@@ -66,7 +66,7 @@ public class PrefixList {
   @Override
   public String toString() {
     StringBuilder s = new StringBuilder();
-    for (String prefix : LIST) {
+    for (String prefix : mInnerList) {
       s.append(prefix).append(";");
     }
     return s.toString();

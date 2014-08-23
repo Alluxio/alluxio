@@ -14,51 +14,51 @@ import tachyon.util.CommonUtils;
  * more columns. Each columns contains one or more ordered files.
  */
 public class RawTable {
-  private final TachyonFS TACHYON_CLIENT;
-  private final ClientRawTableInfo CLIENT_RAW_TABLE_INFO;
+  private final TachyonFS mTachyonFS;
+  private final ClientRawTableInfo mClientRawTableInfo;
 
   /**
    * @param tachyonClient
    * @param clientRawTableInfo
    */
   public RawTable(TachyonFS tachyonClient, ClientRawTableInfo clientRawTableInfo) {
-    TACHYON_CLIENT = tachyonClient;
-    CLIENT_RAW_TABLE_INFO = clientRawTableInfo;
+    mTachyonFS = tachyonClient;
+    mClientRawTableInfo = clientRawTableInfo;
   }
 
   /**
    * @return the number of columns of the raw table
    */
   public int getColumns() {
-    return CLIENT_RAW_TABLE_INFO.getColumns();
+    return mClientRawTableInfo.getColumns();
   }
 
   /**
    * @return the id of the raw table
    */
   public int getId() {
-    return CLIENT_RAW_TABLE_INFO.getId();
+    return mClientRawTableInfo.getId();
   }
 
   /**
    * @return the meta data of the raw table
    */
   public ByteBuffer getMetadata() {
-    return CommonUtils.cloneByteBuffer(CLIENT_RAW_TABLE_INFO.metadata);
+    return CommonUtils.cloneByteBuffer(mClientRawTableInfo.metadata);
   }
 
   /**
    * @return the name of the raw table
    */
   public String getName() {
-    return CLIENT_RAW_TABLE_INFO.getName();
+    return mClientRawTableInfo.getName();
   }
 
   /**
    * @return the path of the raw table
    */
   public String getPath() {
-    return CLIENT_RAW_TABLE_INFO.getPath();
+    return mClientRawTableInfo.getPath();
   }
 
   /**
@@ -70,11 +70,11 @@ public class RawTable {
    */
   public RawColumn getRawColumn(int columnIndex) {
     Preconditions.checkArgument(
-        columnIndex >= 0 && columnIndex < CLIENT_RAW_TABLE_INFO.getColumns(),
-        CLIENT_RAW_TABLE_INFO.getPath() + " does not have column " + columnIndex + ". It has "
-            + CLIENT_RAW_TABLE_INFO.getColumns() + " columns.");
+        columnIndex >= 0 && columnIndex < mClientRawTableInfo.getColumns(),
+        mClientRawTableInfo.getPath() + " does not have column " + columnIndex + ". It has "
+            + mClientRawTableInfo.getColumns() + " columns.");
 
-    return new RawColumn(TACHYON_CLIENT, this, columnIndex);
+    return new RawColumn(mTachyonFS, this, columnIndex);
   }
 
   /**
@@ -85,7 +85,7 @@ public class RawTable {
    * @throws IOException
    */
   public void updateMetadata(ByteBuffer metadata) throws IOException {
-    TACHYON_CLIENT.updateRawTableMetadata(CLIENT_RAW_TABLE_INFO.getId(), metadata);
-    CLIENT_RAW_TABLE_INFO.setMetadata(CommonUtils.cloneByteBuffer(metadata));
+    mTachyonFS.updateRawTableMetadata(mClientRawTableInfo.getId(), metadata);
+    mClientRawTableInfo.setMetadata(CommonUtils.cloneByteBuffer(metadata));
   }
 }

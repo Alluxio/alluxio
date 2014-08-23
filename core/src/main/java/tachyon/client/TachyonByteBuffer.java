@@ -11,11 +11,11 @@ public class TachyonByteBuffer implements Closeable {
   // ByteBuffer contains data.
   public final ByteBuffer DATA;
 
-  private final long BLOCK_ID;
+  private final long mBlockId;
 
-  private final int BLOCK_LOCK_ID;
+  private final int mBlockLockId;
 
-  private final TachyonFS TFS;
+  private final TachyonFS mTachyonFS;
 
   private boolean mClosed = false;
 
@@ -31,9 +31,9 @@ public class TachyonByteBuffer implements Closeable {
    */
   TachyonByteBuffer(TachyonFS tfs, ByteBuffer buf, long blockId, int blockLockId) {
     DATA = buf;
-    BLOCK_ID = blockId;
-    BLOCK_LOCK_ID = blockLockId;
-    TFS = tfs;
+    mBlockId = blockId;
+    mBlockLockId = blockLockId;
+    mTachyonFS = tfs;
   }
 
   /**
@@ -48,8 +48,8 @@ public class TachyonByteBuffer implements Closeable {
     }
 
     mClosed = true;
-    if (BLOCK_LOCK_ID >= 0) {
-      TFS.unlockBlock(BLOCK_ID, BLOCK_LOCK_ID);
+    if (mBlockLockId >= 0) {
+      mTachyonFS.unlockBlock(mBlockId, mBlockLockId);
     }
   }
 }

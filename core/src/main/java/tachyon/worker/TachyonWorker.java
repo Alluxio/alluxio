@@ -136,8 +136,8 @@ public class TachyonWorker implements Runnable {
     }
   }
 
-  private final InetSocketAddress MASTER_ADDRESS;
-  private final NetAddress WORKER_ADDRESS;
+  private final InetSocketAddress mMasterAddress;
+  private final NetAddress mWorkerAddress;
   private TServer mServer;
 
   private TNonblockingServerSocket mServerTNonblockingServerSocket;
@@ -145,7 +145,7 @@ public class TachyonWorker implements Runnable {
 
   private WorkerServiceHandler mWorkerServiceHandler;
 
-  private final DataServer DATA_SERVER;
+  private final DataServer mDataServer;
 
   private Thread mDataServerThread;
 
@@ -153,8 +153,8 @@ public class TachyonWorker implements Runnable {
 
   private volatile boolean mStop = false;
 
-  private final int PORT;
-  private final int DATA_PORT;
+  private final int mPort;
+  private final int mDataPort;
 
   /**
    * @param masterAddress
@@ -181,9 +181,9 @@ public class TachyonWorker implements Runnable {
     CommonConf.assertValidPort(workerAddress);
     CommonConf.assertValidPort(dataPort);
 
-    MASTER_ADDRESS = masterAddress;
+    mMasterAddress = masterAddress;
 
-    mWorkerStorage = new WorkerStorage(MASTER_ADDRESS, dataFolder, memoryCapacityBytes);
+    mWorkerStorage = new WorkerStorage(mMasterAddress, dataFolder, memoryCapacityBytes);
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
@@ -192,11 +192,11 @@ public class TachyonWorker implements Runnable {
     // (any random free port).
     // In a production or any real deployment setup, port '0' should not be used as it will make
     // deployment more complicated.
-    DATA_SERVER =
+    mDataServer =
         new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
             mWorkerStorage);
-    mDataServerThread = new Thread(DATA_SERVER);
-    DATA_PORT = DATA_SERVER.getPort();
+    mDataServerThread = new Thread(mDataServer);
+    mDataPort = mDataServer.getPort();
 
     mHeartbeatThread = new Thread(this);
     try {
@@ -205,7 +205,7 @@ public class TachyonWorker implements Runnable {
           new WorkerService.Processor<WorkerServiceHandler>(mWorkerServiceHandler);
 
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(workerAddress);
-      PORT = NetworkUtils.getPort(mServerTNonblockingServerSocket);
+      mPort = NetworkUtils.getPort(mServerTNonblockingServerSocket);
       mServer =
           new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
               mServerTNonblockingServerSocket).processor(processor)
@@ -215,23 +215,23 @@ public class TachyonWorker implements Runnable {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
-    WORKER_ADDRESS =
-        new NetAddress(workerAddress.getAddress().getCanonicalHostName(), PORT, DATA_PORT);
-    mWorkerStorage.initialize(WORKER_ADDRESS);
+    mWorkerAddress =
+        new NetAddress(workerAddress.getAddress().getCanonicalHostName(), mPort, mDataPort);
+    mWorkerStorage.initialize(mWorkerAddress);
   }
 
   /**
    * Gets the data port of the worker. For unit tests only.
    */
   public int getDataPort() {
-    return DATA_PORT;
+    return mDataPort;
   }
 
   /**
    * Gets the metadata port of the worker. For unit tests only.
    */
   public int getMetaPort() {
-    return PORT;
+    return mPort;
   }
 
   /**
@@ -312,9 +312,9 @@ public class TachyonWorker implements Runnable {
     mDataServerThread.start();
     mHeartbeatThread.start();
 
-    LOG.info("The worker server started @ " + WORKER_ADDRESS);
+    LOG.info("The worker server started @ " + mWorkerAddress);
     mServer.serve();
-    LOG.info("The worker server ends @ " + WORKER_ADDRESS);
+    LOG.info("The worker server ends @ " + mWorkerAddress);
   }
 
   /**
@@ -326,10 +326,10 @@ public class TachyonWorker implements Runnable {
   public void stop() throws IOException, InterruptedException {
     mStop = true;
     mWorkerStorage.stop();
-    DATA_SERVER.close();
+    mDataServer.close();
     mServer.stop();
     mServerTNonblockingServerSocket.close();
-    while (!DATA_SERVER.isClosed() || mServer.isServing() || mHeartbeatThread.isAlive()) {
+    while (!mDataServer.isClosed() || mServer.isServing() || mHeartbeatThread.isAlive()) {
       // TODO The reason to stop and close again is due to some issues in Thrift.
       mServer.stop();
       mServerTNonblockingServerSocket.close();

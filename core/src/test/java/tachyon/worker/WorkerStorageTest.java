@@ -25,14 +25,14 @@ import tachyon.thrift.NetAddress;
  * Unit tests for tachyon.WorkerStorage
  */
 public class WorkerStorageTest {
+  private static final long WORKER_CAPACITY_BYTES = 100000;
+  private static final int USER_QUOTA_UNIT_BYTES = 100;
+
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
   private InetSocketAddress mMasterAddress = null;
   private NetAddress mWorkerAddress = null;
   private String mWorkerDataFolder = null;
-
-  private final long WORKER_CAPACITY_BYTES = 100000;
-  private final int USER_QUOTA_UNIT_BYTES = 100;
 
   @Rule
   public ExpectedException thrown = ExpectedException.none();

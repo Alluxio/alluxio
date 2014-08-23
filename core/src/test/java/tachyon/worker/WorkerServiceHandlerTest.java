@@ -24,14 +24,15 @@ import tachyon.util.CommonUtils;
  * Unit tests for tachyon.WorkerServiceHandler
  */
 public class WorkerServiceHandlerTest {
+  private static final long WORKER_CAPACITY_BYTES = 10000;
+  private static final int USER_QUOTA_UNIT_BYTES = 100;
+  private static final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
+      WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
+
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
   private WorkerServiceHandler mWorkerServiceHandler = null;
   private TachyonFS mTfs = null;
-  private final long WORKER_CAPACITY_BYTES = 10000;
-  private final int USER_QUOTA_UNIT_BYTES = 100;
-  private final int WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS =
-      WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS;
 
   @After
   public final void after() throws Exception {

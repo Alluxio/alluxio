@@ -17,9 +17,9 @@ import tachyon.util.CommonUtils;
  * the client code.
  */
 public class FileOutStream extends OutStream {
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private final long BLOCK_CAPACITY;
+  private final long mBlockCapacityByte;
 
   private BlockOutStream mCurrentBlockOutStream;
   private long mCurrentBlockId;
@@ -45,7 +45,7 @@ public class FileOutStream extends OutStream {
   FileOutStream(TachyonFile file, WriteType opType, Object ufsConf) throws IOException {
     super(file, opType);
 
-    BLOCK_CAPACITY = file.getBlockSizeByte();
+    mBlockCapacityByte = file.getBlockSizeByte();
 
     // TODO Support and test append.
     mCurrentBlockOutStream = null;
@@ -54,14 +54,14 @@ public class FileOutStream extends OutStream {
     mPreviousBlockOutStreams = new ArrayList<BlockOutStream>();
     mCachedBytes = 0;
 
-    if (WRITE_TYPE.isThrough()) {
-      mUnderFsFile = CommonUtils.concat(TFS.createAndGetUserUfsTempFolder(), FILE.FID);
+    if (mWriteType.isThrough()) {
+      mUnderFsFile = CommonUtils.concat(mTachyonFS.createAndGetUserUfsTempFolder(), mFile.mFid);
       UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile, ufsConf);
-      if (BLOCK_CAPACITY > Integer.MAX_VALUE) {
-        throw new IOException("BLOCK_CAPCAITY (" + BLOCK_CAPACITY + ") can not bigger than "
+      if (mBlockCapacityByte > Integer.MAX_VALUE) {
+        throw new IOException("BLOCK_CAPCAITY (" + mBlockCapacityByte + ") can not bigger than "
             + Integer.MAX_VALUE);
       }
-      mCheckpointOutputStream = underfsClient.create(mUnderFsFile, (int) BLOCK_CAPACITY);
+      mCheckpointOutputStream = underfsClient.create(mUnderFsFile, (int) mBlockCapacityByte);
     }
   }
 
@@ -79,7 +79,7 @@ public class FileOutStream extends OutStream {
       }
 
       Boolean canComplete = false;
-      if (WRITE_TYPE.isThrough()) {
+      if (mWriteType.isThrough()) {
         if (mCancel) {
           mCheckpointOutputStream.close();
           UnderFileSystem underFsClient = UnderFileSystem.get(mUnderFsFile);
@@ -87,12 +87,12 @@ public class FileOutStream extends OutStream {
         } else {
           mCheckpointOutputStream.flush();
           mCheckpointOutputStream.close();
-          TFS.addCheckpoint(FILE.FID);
+          mTachyonFS.addCheckpoint(mFile.mFid);
           canComplete = true;
         }
       }
 
-      if (WRITE_TYPE.isCache()) {
+      if (mWriteType.isCache()) {
         try {
           if (mCancel) {
             for (BlockOutStream bos : mPreviousBlockOutStreams) {
@@ -105,9 +105,9 @@ public class FileOutStream extends OutStream {
             canComplete = true;
           }
         } catch (IOException ioe) {
-          if (WRITE_TYPE.isMustCache()) {
+          if (mWriteType.isMustCache()) {
             LOG.error(ioe);
-            throw new IOException("Fail to cache: " + WRITE_TYPE, ioe);
+            throw new IOException("Fail to cache: " + mWriteType, ioe);
           } else {
             LOG.warn("Fail to cache for: ", ioe);
           }
@@ -115,10 +115,10 @@ public class FileOutStream extends OutStream {
       }
 
       if (canComplete) {
-        if (WRITE_TYPE.isAsync()) {
-          TFS.asyncCheckpoint(FILE.FID);
+        if (mWriteType.isAsync()) {
+          mTachyonFS.asyncCheckpoint(mFile.mFid);
         }
-        TFS.completeFile(FILE.FID);
+        mTachyonFS.completeFile(mFile.mFid);
       }
     }
 
@@ -128,7 +128,7 @@ public class FileOutStream extends OutStream {
   @Override
   public void flush() throws IOException {
     // TODO We only flush the checkpoint output stream. Flush for RAMFS block streams.
-    if (WRITE_TYPE.isThrough()) {
+    if (mWriteType.isThrough()) {
       mCheckpointOutputStream.flush();
     }
   }
@@ -141,12 +141,12 @@ public class FileOutStream extends OutStream {
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
-    if (WRITE_TYPE.isCache()) {
-      mCurrentBlockId = TFS.getBlockIdBasedOnOffset(FILE.FID, mCachedBytes);
-      mCurrentBlockLeftByte = BLOCK_CAPACITY;
+    if (mWriteType.isCache()) {
+      mCurrentBlockId = mTachyonFS.getBlockIdBasedOnOffset(mFile.mFid, mCachedBytes);
+      mCurrentBlockLeftByte = mBlockCapacityByte;
 
       mCurrentBlockOutStream =
-          new BlockOutStream(FILE, WRITE_TYPE, (int) (mCachedBytes / BLOCK_CAPACITY));
+          new BlockOutStream(mFile, mWriteType, (int) (mCachedBytes / mBlockCapacityByte));
     }
   }
 
@@ -164,7 +164,7 @@ public class FileOutStream extends OutStream {
       throw new IndexOutOfBoundsException();
     }
 
-    if (WRITE_TYPE.isCache()) {
+    if (mWriteType.isCache()) {
       try {
         int tLen = len;
         int tOff = off;
@@ -190,23 +190,23 @@ public class FileOutStream extends OutStream {
           }
         }
       } catch (IOException e) {
-        if (WRITE_TYPE.isMustCache()) {
+        if (mWriteType.isMustCache()) {
           LOG.error(e.getMessage(), e);
-          throw new IOException("Fail to cache: " + WRITE_TYPE, e);
+          throw new IOException("Fail to cache: " + mWriteType, e);
         } else {
           LOG.warn("Fail to cache for: ", e);
         }
       }
     }
 
-    if (WRITE_TYPE.isThrough()) {
+    if (mWriteType.isThrough()) {
       mCheckpointOutputStream.write(b, off, len);
     }
   }
 
   @Override
   public void write(int b) throws IOException {
-    if (WRITE_TYPE.isCache()) {
+    if (mWriteType.isCache()) {
       try {
         if (mCurrentBlockId == -1 || mCurrentBlockLeftByte == 0) {
           getNextBlock();
@@ -216,16 +216,16 @@ public class FileOutStream extends OutStream {
         mCurrentBlockLeftByte --;
         mCachedBytes ++;
       } catch (IOException e) {
-        if (WRITE_TYPE.isMustCache()) {
+        if (mWriteType.isMustCache()) {
           LOG.error(e.getMessage(), e);
-          throw new IOException("Fail to cache: " + WRITE_TYPE, e);
+          throw new IOException("Fail to cache: " + mWriteType, e);
         } else {
           LOG.warn("Fail to cache for: ", e);
         }
       }
     }
 
-    if (WRITE_TYPE.isThrough()) {
+    if (mWriteType.isThrough()) {
       mCheckpointOutputStream.write(b);
     }
   }

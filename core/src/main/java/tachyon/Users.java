@@ -23,19 +23,19 @@ public class Users {
   public static final int sDATASERVER_USER_ID = -1;
   public static final int sCHECKPOINT_USER_ID = -2;
 
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   /** User's temporary data folder in the worker **/
-  private final String USER_FOLDER;
-  /** User's teomporary data folder in the under filesystem **/
-  private final String USER_UFS_FOLDER;
+  private final String mUserFolder;
+  /** User's temporary data folder in the under filesystem **/
+  private final String mUserUnderFSFolder;
   /** Map from UserId to {@link tachyon.UserInfo} object **/
-  private final Map<Long, UserInfo> USERS;
+  private final Map<Long, UserInfo> mUsers;
 
   public Users(final String userfolder, final String userUfsFolder) {
-    USER_FOLDER = userfolder;
-    USER_UFS_FOLDER = userUfsFolder;
-    USERS = new HashMap<Long, UserInfo>();
+    mUserFolder = userfolder;
+    mUserUnderFSFolder = userUfsFolder;
+    mUsers = new HashMap<Long, UserInfo>();
   }
 
   /**
@@ -48,9 +48,9 @@ public class Users {
    */
   public void addOwnBytes(long userId, long newBytes) {
     UserInfo tUser = null;
-    synchronized (USERS) {
+    synchronized (mUsers) {
       userHeartbeat(userId);
-      tUser = USERS.get(userId);
+      tUser = mUsers.get(userId);
     }
 
     tUser.addOwnBytes(newBytes);
@@ -64,8 +64,8 @@ public class Users {
   public List<Long> checkStatus() {
     LOG.debug("Worker is checking all users' status.");
     List<Long> ret = new ArrayList<Long>();
-    synchronized (USERS) {
-      for (Entry<Long, UserInfo> entry : USERS.entrySet()) {
+    synchronized (mUsers) {
+      for (Entry<Long, UserInfo> entry : mUsers.entrySet()) {
         if (entry.getValue().timeout()) {
           ret.add(entry.getKey());
         }
@@ -82,7 +82,7 @@ public class Users {
    * @return String contains user's temporary data folder in the worker's machine..
    */
   public String getUserTempFolder(long userId) {
-    return CommonUtils.concat(USER_FOLDER, userId);
+    return CommonUtils.concat(mUserFolder, userId);
   }
 
   /**
@@ -93,7 +93,7 @@ public class Users {
    * @return String contains the user's temporary data folder in the under filesystem.
    */
   public String getUserUfsTempFolder(long userId) {
-    return CommonUtils.concat(USER_UFS_FOLDER, userId);
+    return CommonUtils.concat(mUserUnderFSFolder, userId);
   }
 
   /**
@@ -104,8 +104,8 @@ public class Users {
    * @return Bytes the user owns.
    */
   public long ownBytes(long userId) {
-    synchronized (USERS) {
-      UserInfo tUser = USERS.get(userId);
+    synchronized (mUsers) {
+      UserInfo tUser = mUsers.get(userId);
       return tUser == null ? 0 : tUser.getOwnBytes();
     }
   }
@@ -120,9 +120,9 @@ public class Users {
   public synchronized long removeUser(long userId) {
     StringBuilder sb = new StringBuilder("Trying to cleanup user " + userId + " : ");
     UserInfo tUser = null;
-    synchronized (USERS) {
-      tUser = USERS.get(userId);
-      USERS.remove(userId);
+    synchronized (mUsers) {
+      tUser = mUsers.get(userId);
+      mUsers.remove(userId);
     }
 
     long returnedBytes = 0;
@@ -160,11 +160,11 @@ public class Users {
    *          the id of the user
    */
   public void userHeartbeat(long userId) {
-    synchronized (USERS) {
-      if (USERS.containsKey(userId)) {
-        USERS.get(userId).heartbeat();
+    synchronized (mUsers) {
+      if (mUsers.containsKey(userId)) {
+        mUsers.get(userId).heartbeat();
       } else {
-        USERS.put(userId, new UserInfo(userId));
+        mUsers.put(userId, new UserInfo(userId));
       }
     }
   }
