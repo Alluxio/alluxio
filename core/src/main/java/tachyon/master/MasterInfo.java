@@ -1243,13 +1243,13 @@ public class MasterInfo extends ImageWriter {
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public ClientFileInfo getClientFileInfo(int fid) throws FileDoesNotExistException,
-      InvalidPathException {
+  public ClientFileInfo getClientFileInfo(int fid) throws InvalidPathException {
     synchronized (ROOT_LOCK) {
       Inode inode = INODES.get(fid);
       if (inode == null) {
-        throw new FileDoesNotExistException("Failed to get client file info: " + fid
-            + " does not exist");
+        ClientFileInfo info = new ClientFileInfo();
+        info.id = -1;
+        return info;
       }
       return inode.generateClientFileInfo(getPath(inode));
     }
@@ -1264,13 +1264,13 @@ public class MasterInfo extends ImageWriter {
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public ClientFileInfo getClientFileInfo(String path) throws FileDoesNotExistException,
-      InvalidPathException {
+  public ClientFileInfo getClientFileInfo(String path) throws InvalidPathException {
     synchronized (ROOT_LOCK) {
       Inode inode = getInode(path);
       if (inode == null) {
-        throw new FileDoesNotExistException("Failed to getClientFileInfo: " + path
-            + " does not exist");
+        ClientFileInfo info = new ClientFileInfo();
+        info.id = -1;
+        return info;
       }
       return inode.generateClientFileInfo(path);
     }

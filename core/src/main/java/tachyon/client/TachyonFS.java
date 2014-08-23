@@ -450,11 +450,12 @@ public class TachyonFS extends AbstractTachyonFS {
 
     if (fetch) {
       info = getFileStatus(fid, "");
-      mIdToClientFileInfo.put(fid, info);
     }
 
     if (info == null) {
       throw new IOException("File " + fid + " does not exist.");
+    } else if (fetch) {
+      mIdToClientFileInfo.put(fid, info);
     }
     if (info.isFolder) {
       throw new IOException(new FileDoesNotExistException("File " + fid + " is a folder."));
@@ -546,7 +547,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
       throws IOException {
     String cleanedPath = cleanPathIOException(path);
-    ClientFileInfo clientFileInfo = getFileStatus(cleanedPath, useCachedMetadata);
+    ClientFileInfo clientFileInfo = getFileStatus(-1, cleanedPath, useCachedMetadata);
     if (clientFileInfo == null) {
       return null;
     }
@@ -566,7 +567,9 @@ public class TachyonFS extends AbstractTachyonFS {
     ClientFileInfo info = mIdToClientFileInfo.get(fid);
     if (info == null || !info.isComplete) {
       info = getFileStatus(fid, "");
-      mIdToClientFileInfo.put(fid, info);
+      if (info != null) {
+        mIdToClientFileInfo.put(fid, info);
+      }
     }
 
     if (info == null) {
@@ -607,41 +610,60 @@ public class TachyonFS extends AbstractTachyonFS {
 
   @Override
   public ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
-    return mMasterClient.getFileStatus(fileId, path);
+    ClientFileInfo info = mMasterClient.getFileStatus(fileId, path);
+    return info.getId() == -1 ? null : info;
   }
 
   /**
-   * Get a ClientFileInfo of the file
+   * Get a ClientFileInfo of the file.
    * 
    * @param path
    *          the file path in Tachyon file system
    * @param useCachedMetadata
    *          if true use the local cached meta data
-   * @return the ClientFileInfo
+   * @return the ClientFileInfo of the file. null if the file does not exist.
    * @throws IOException
    */
-  private synchronized ClientFileInfo getFileStatus(String path, boolean useCachedMetadata)
-      throws IOException {
-    ClientFileInfo ret = null;
-    String cleanedPath = cleanPathIOException(path);
-    if (useCachedMetadata && mPathToClientFileInfo.containsKey(cleanedPath)) {
-      return mPathToClientFileInfo.get(path);
-    }
-    try {
-      ret = getFileStatus(-1, cleanedPath);
-    } catch (IOException e) {
-      LOG.warn(e.getMessage() + cleanedPath, e);
-      return null;
-    }
+  private synchronized ClientFileInfo getFileStatus(int fileId, String path,
+      boolean useCachedMetadata) throws IOException {
+    ClientFileInfo info = null;
+    boolean updated = false;
 
-    // TODO LRU on this Map.
-    if (ret != null && useCachedMetadata) {
-      mPathToClientFileInfo.put(cleanedPath, ret);
+    if (fileId != -1) {
+      info = mIdToClientFileInfo.get(fileId);
+      if (!useCachedMetadata || info == null) {
+        info = getFileStatus(fileId, "");
+        updated = true;
+      }
+
+      if (info == null) {
+        mIdToClientFileInfo.remove(fileId);
+        return null;
+      }
+
+      path = info.getPath();
     } else {
-      mPathToClientFileInfo.remove(cleanedPath);
+      info = mPathToClientFileInfo.get(path);
+      if (!useCachedMetadata || info == null) {
+        info = getFileStatus(-1, path);
+        updated = true;
+      }
+
+      if (info == null) {
+        mPathToClientFileInfo.remove(path);
+        return null;
+      }
+
+      fileId = info.getId();
     }
 
-    return ret;
+    if (updated) {
+      // TODO LRU on this Map.
+      mIdToClientFileInfo.put(fileId, info);
+      mPathToClientFileInfo.put(path, info);
+    }
+
+    return info;
   }
 
   /**

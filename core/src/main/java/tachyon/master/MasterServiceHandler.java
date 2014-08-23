@@ -57,8 +57,8 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public ClientFileInfo getFileStatus(int fileId, String path) throws FileDoesNotExistException,
-      InvalidPathException, TException {
+  public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException,
+      TException {
     if (fileId != -1) {
       return MASTER_INFO.getClientFileInfo(fileId);
 

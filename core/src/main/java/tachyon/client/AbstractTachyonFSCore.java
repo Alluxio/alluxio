@@ -46,16 +46,16 @@ abstract class AbstractTachyonFSCore implements Closeable {
   public abstract boolean delete(int fileId, String path, boolean recursive) throws IOException;
 
   /**
-   * Return a ClientFileInfo object that represents the fid, or the path if fid is -1.
+   * Return a ClientFileInfo object that represents the fileId, or the path if fileId is -1.
    * 
-   * @param fid
+   * @param fileId
    *          the file id of the file or folder.
    * @param path
-   *          the path of the file or folder. valid iff fid is -1.
+   *          the path of the file or folder. valid iff fileId is -1.
    * @return the ClientFileInfo of the file or folder, null if the file or folder does not exist.
    * @throws IOException
    */
-  public abstract ClientFileInfo getFileStatus(int fid, String path) throws IOException;
+  public abstract ClientFileInfo getFileStatus(int fileId, String path) throws IOException;
 
   /**
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
