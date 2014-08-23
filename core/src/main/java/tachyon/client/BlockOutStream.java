@@ -94,10 +94,7 @@ public class BlockOutStream extends OutStream {
 
       String msg =
           "Local tachyon worker does not have enough " + "space (" + length
-              + ") or no worker for " + mFile.mFid + " " + mBlockId;
-      if (mPin) {
-        mTachyonFS.outOfMemoryForPinFile(mFile.mFid);
-      }
+              + ") or no worker for " + mFile.mFileId + " " + mBlockId;
 
       throw new IOException(msg);
     }

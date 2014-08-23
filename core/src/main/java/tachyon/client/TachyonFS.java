@@ -1,6 +1,5 @@
 package tachyon.client;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -8,7 +7,6 @@ import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,7 +32,6 @@ import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerClient;
 
@@ -42,7 +39,7 @@ import tachyon.worker.WorkerClient;
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients
  * depending on how many workers the client program is interacting with.
  */
-public class TachyonFS implements Closeable {
+public class TachyonFS extends AbstractTachyonFS {
   /**
    * Create a TachyonFS handler.
    * 
@@ -97,7 +94,7 @@ public class TachyonFS implements Closeable {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final long mUserQuotaUnitBytes = UserConf.get().QUOTA_UNIT_BYTES;
   private final int mUserFailedSpaceRequestLimits = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
-  
+
   // The RPC client talks to the system master.
   private MasterClient mMasterClient = null;
   // The Master address.
@@ -107,9 +104,10 @@ public class TachyonFS implements Closeable {
   // Whether use ZooKeeper or not
   private boolean mZookeeperMode;
   // Cached ClientFileInfo
-  private Map<String, ClientFileInfo> mCachedClientFileInfos =
+  private Map<String, ClientFileInfo> mPathToClientFileInfo =
       new HashMap<String, ClientFileInfo>();
-  private Map<Integer, ClientFileInfo> mClientFileInfos = new HashMap<Integer, ClientFileInfo>();
+  private Map<Integer, ClientFileInfo> mIdToClientFileInfo =
+      new HashMap<Integer, ClientFileInfo>();
 
   private UnderFileSystem mUnderFileSystem = null;
 
@@ -145,7 +143,7 @@ public class TachyonFS implements Closeable {
   }
 
   /**
-   * Notify the worker that the checkpoint file of the file FID has been added.
+   * Notify the worker that the checkpoint file of the file mFileId has been added.
    * 
    * @param fid
    *          the file id
@@ -175,7 +173,7 @@ public class TachyonFS implements Closeable {
    * @throws IOException
    */
   public synchronized void cacheBlock(long blockId) throws IOException {
-    mWorkerClient.cacheBlock(mMasterClient.getUserId(), blockId);
+    mWorkerClient.cacheBlock(blockId);
   }
 
   /**
@@ -213,12 +211,12 @@ public class TachyonFS implements Closeable {
   /**
    * The file is complete.
    * 
-   * @param fId
+   * @param fid
    *          the file id
    * @throws IOException
    */
-  synchronized void completeFile(int fId) throws IOException {
-    mMasterClient.user_completeFile(fId);
+  synchronized void completeFile(int fid) throws IOException {
+    mMasterClient.user_completeFile(fid);
   }
 
   /**
@@ -295,56 +293,10 @@ public class TachyonFS implements Closeable {
         framework, frameworkVersion, dependencyType, childrenBlockSizeByte);
   }
 
-  /**
-   * Create a file with the default block size (1GB) in the system. It also creates necessary
-   * folders along the path. // TODO It should not create necessary path.
-   * 
-   * @param path
-   *          the path of the file
-   * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException
-   *           If file already exists, or path is invalid.
-   */
-  public synchronized int createFile(String path) throws IOException {
-    return createFile(path, UserConf.get().DEFAULT_BLOCK_SIZE_BYTE);
-  }
-
-  /**
-   * Create a file in the system. It also creates necessary folders along the path.
-   * // TODO It should not create necessary path.
-   * 
-   * @param path
-   *          the path of the file
-   * @param blockSizeByte
-   *          the block size of the file
-   * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException
-   *           If file already exists, or path is invalid.
-   */
-  public synchronized int createFile(String path, long blockSizeByte) throws IOException {
-    if (blockSizeByte > (long) Constants.GB * 2) {
-      throw new IOException("Block size must be less than 2GB: " + blockSizeByte);
-    }
-
-    String cleanedPath = cleanPathIOException(path);
-    return mMasterClient.user_createFile(cleanedPath, blockSizeByte);
-  }
-
-  /**
-   * Create a file in the system with a pre-defined underfsPath. It also creates necessary
-   * folders along the path. // TODO It should not create necessary path.
-   * 
-   * @param path
-   *          the path of the file in Tachyon
-   * @param underfsPath
-   *          the path of the file in the underfs
-   * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException
-   *           If file already exists, or path is invalid.
-   */
-  public synchronized int createFile(String path, String underfsPath) throws IOException {
-    String cleanedPath = cleanPathIOException(path);
-    return mMasterClient.user_createFileOnCheckpoint(cleanedPath, underfsPath);
+  @Override
+  public synchronized int createFile(String path, String ufsPath, long blockSizeByte,
+      boolean recursive) throws IOException {
+    return mMasterClient.user_createFile(path, ufsPath, blockSizeByte, recursive);
   }
 
   /**
@@ -385,34 +337,10 @@ public class TachyonFS implements Closeable {
 
   }
 
-  /**
-   * Delete the file denoted by the file id.
-   * 
-   * @param fid
-   *          file id
-   * @param recursive
-   *          if delete the path recursively.
-   * @return true if deletion succeed (including the case the file does not exist in the first
-   *         place), false otherwise.
-   * @throws IOException
-   */
-  public synchronized boolean delete(int fid, boolean recursive) throws IOException {
-    return mMasterClient.user_delete(fid, recursive);
-  }
-
-  /**
-   * Delete the file denoted by the path.
-   * 
-   * @param path
-   *          the file path
-   * @param recursive
-   *          if delete the path recursively.
-   * @return true if the deletion succeed (including the case that the path does not exist in the
-   *         first place), false otherwise.
-   * @throws IOException
-   */
-  public synchronized boolean delete(String path, boolean recursive) throws IOException {
-    return mMasterClient.user_delete(path, recursive);
+  @Override
+  public synchronized boolean delete(int fileId, String path, boolean recursive)
+      throws IOException {
+    return mMasterClient.user_delete(fileId, path, recursive);
   }
 
   /**
@@ -424,18 +352,14 @@ public class TachyonFS implements Closeable {
    * @throws IOException
    */
   public synchronized boolean exist(String path) throws IOException {
-    return getFileId(path) != -1;
-  }
-
-  private synchronized ClientFileInfo fetchClientFileInfo(int fid) throws IOException {
-    return mMasterClient.getClientFileInfoById(fid);
+    return getFileStatus(-1, path, false) != null;
   }
 
   /**
    * Get the block id by the file id and block index. it will check whether the file and the block
    * exist.
    * 
-   * @param fId
+   * @param fid
    *          the file id
    * @param blockIndex
    *          The index of the block in the file.
@@ -443,14 +367,14 @@ public class TachyonFS implements Closeable {
    * @throws IOException
    *           if the file does not exist, or connection issue.
    */
-  public synchronized long getBlockId(int fId, int blockIndex) throws IOException {
-    ClientFileInfo info = mClientFileInfos.get(fId);
+  public synchronized long getBlockId(int fid, int blockIndex) throws IOException {
+    ClientFileInfo info = mIdToClientFileInfo.get(fid);
     if (info == null) {
-      info = fetchClientFileInfo(fId);
+      info = getFileStatus(fid, "");
       if (info != null) {
-        mClientFileInfos.put(fId, info);
+        mIdToClientFileInfo.put(fid, info);
       } else {
-        throw new IOException("File " + fId + " does not exist.");
+        throw new IOException("File " + fid + " does not exist.");
       }
     }
 
@@ -458,30 +382,30 @@ public class TachyonFS implements Closeable {
       return info.blockIds.get(blockIndex);
     }
 
-    return mMasterClient.user_getBlockId(fId, blockIndex);
+    return mMasterClient.user_getBlockId(fid, blockIndex);
   }
 
   /**
    * Get the block id by the file id and offset. it will check whether the file and the block exist.
    * 
-   * @param fId
+   * @param fid
    *          the file id
    * @param offset
    *          The offset of the file.
    * @return the block id if exists
    * @throws IOException
    */
-  synchronized long getBlockIdBasedOnOffset(int fId, long offset) throws IOException {
+  synchronized long getBlockIdBasedOnOffset(int fid, long offset) throws IOException {
     ClientFileInfo info;
-    if (!mClientFileInfos.containsKey(fId)) {
-      info = fetchClientFileInfo(fId);
-      mClientFileInfos.put(fId, info);
+    if (!mIdToClientFileInfo.containsKey(fid)) {
+      info = getFileStatus(fid, "");
+      mIdToClientFileInfo.put(fid, info);
     }
-    info = mClientFileInfos.get(fId);
+    info = mIdToClientFileInfo.get(fid);
 
     int index = (int) (offset / info.getBlockSizeByte());
 
-    return getBlockId(fId, index);
+    return getBlockId(fid, index);
   }
 
   /**
@@ -492,66 +416,40 @@ public class TachyonFS implements Closeable {
   }
 
   /**
-   * @param fId
-   *          the file id
-   * @return the block size of the file, in bytes
-   */
-  public synchronized long getBlockSizeByte(int fId) {
-    return mClientFileInfos.get(fId).getBlockSizeByte();
-  }
-
-  /**
-   * Return the under filesystem path of the file
-   * 
-   * @param fid
-   *          the file id
-   * @return the checkpoint path of the file
-   * @throws IOException
-   */
-  synchronized String getUfsPath(int fid) throws IOException {
-    ClientFileInfo info = mClientFileInfos.get(fid);
-    if (info == null || !info.getUfsPath().equals("")) {
-      info = fetchClientFileInfo(fid);
-      mClientFileInfos.put(fid, info);
-    }
-
-    return info.getUfsPath();
-  }
-
-  /**
    * Get a ClientBlockInfo by the file id and block index
    * 
-   * @param fId
+   * @param fid
    *          the file id
    * @param blockIndex
    *          The index of the block in the file.
    * @return the ClientBlockInfo of the specified block
    * @throws IOException
    */
-  public synchronized ClientBlockInfo getClientBlockInfo(int fId, int blockIndex)
+  public synchronized ClientBlockInfo getClientBlockInfo(int fid, int blockIndex)
       throws IOException {
     boolean fetch = false;
-    if (!mClientFileInfos.containsKey(fId)) {
+    if (!mIdToClientFileInfo.containsKey(fid)) {
       fetch = true;
     }
     ClientFileInfo info = null;
     if (!fetch) {
-      info = mClientFileInfos.get(fId);
+      info = mIdToClientFileInfo.get(fid);
       if (info.isFolder || info.blockIds.size() <= blockIndex) {
         fetch = true;
       }
     }
 
     if (fetch) {
-      info = fetchClientFileInfo(fId);
-      mClientFileInfos.put(fId, info);
+      info = getFileStatus(fid, "");
     }
 
     if (info == null) {
-      throw new IOException("File " + fId + " does not exist.");
+      throw new IOException("File " + fid + " does not exist.");
+    } else if (fetch) {
+      mIdToClientFileInfo.put(fid, info);
     }
     if (info.isFolder) {
-      throw new IOException(new FileDoesNotExistException("File " + fId + " is a folder."));
+      throw new IOException(new FileDoesNotExistException("File " + fid + " is a folder."));
     }
     if (info.blockIds.size() <= blockIndex) {
       throw new IOException("BlockIndex " + blockIndex + " is out of the bound in file " + info);
@@ -579,51 +477,6 @@ public class TachyonFS implements Closeable {
   }
 
   /**
-   * Get a ClientFileInfo of the file
-   * 
-   * @param path
-   *          the file path in Tachyon file system
-   * @param useCachedMetadata
-   *          if true use the local cached meta data
-   * @return the ClientFileInfo
-   * @throws IOException
-   */
-  private synchronized ClientFileInfo getClientFileInfo(String path, boolean useCachedMetadata)
-      throws IOException {
-    ClientFileInfo ret;
-    String cleanedPath = cleanPathIOException(path);
-    if (useCachedMetadata && mCachedClientFileInfos.containsKey(cleanedPath)) {
-      return mCachedClientFileInfos.get(path);
-    }
-    try {
-      ret = mMasterClient.user_getClientFileInfoByPath(cleanedPath);
-    } catch (IOException e) {
-      LOG.warn(e.getMessage() + cleanedPath, e);
-      return null;
-    }
-
-    // TODO LRU on this Map.
-    if (ret != null && useCachedMetadata) {
-      mCachedClientFileInfos.put(cleanedPath, ret);
-    } else {
-      mCachedClientFileInfos.remove(cleanedPath);
-    }
-
-    return ret;
-  }
-
-  /**
-   * Get the creation time of the file
-   * 
-   * @param fId
-   *          the file id
-   * @return the creation time in milliseconds
-   */
-  public synchronized long getCreationTimeMs(int fId) {
-    return mClientFileInfos.get(fId).getCreationTimeMs();
-  }
-
-  /**
    * Get <code>TachyonFile</code> based on the file id.
    * 
    * NOTE: This *will* use cached file metadata, and so will not see changes to dynamic properties,
@@ -645,12 +498,12 @@ public class TachyonFS implements Closeable {
    * @return TachyonFile of the file id, or null if the file does not exist.
    */
   public synchronized TachyonFile getFile(int fid, boolean useCachedMetadata) throws IOException {
-    if (!useCachedMetadata || !mClientFileInfos.containsKey(fid)) {
-      ClientFileInfo clientFileInfo = fetchClientFileInfo(fid);
+    if (!useCachedMetadata || !mIdToClientFileInfo.containsKey(fid)) {
+      ClientFileInfo clientFileInfo = getFileStatus(fid, "");
       if (clientFileInfo == null) {
         return null;
       }
-      mClientFileInfos.put(fid, clientFileInfo);
+      mIdToClientFileInfo.put(fid, clientFileInfo);
     }
     return new TachyonFile(this, fid);
   }
@@ -674,34 +527,12 @@ public class TachyonFS implements Closeable {
   public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
       throws IOException {
     String cleanedPath = cleanPathIOException(path);
-    ClientFileInfo clientFileInfo = getClientFileInfo(cleanedPath, useCachedMetadata);
+    ClientFileInfo clientFileInfo = getFileStatus(-1, cleanedPath, useCachedMetadata);
     if (clientFileInfo == null) {
       return null;
     }
-    mClientFileInfos.put(clientFileInfo.getId(), clientFileInfo);
+    mIdToClientFileInfo.put(clientFileInfo.getId(), clientFileInfo);
     return new TachyonFile(this, clientFileInfo.getId());
-  }
-
-  /**
-   * Get all the blocks' ids of the file
-   * 
-   * @param fId
-   *          the file id
-   * @return the list of blocks' ids
-   * @throws IOException
-   */
-  public synchronized List<Long> getFileBlockIdList(int fId) throws IOException {
-    ClientFileInfo info = mClientFileInfos.get(fId);
-    if (info == null || !info.isComplete) {
-      info = fetchClientFileInfo(fId);
-      mClientFileInfos.put(fId, info);
-    }
-
-    if (info == null) {
-      throw new IOException("File " + fId + " does not exist.");
-    }
-
-    return info.blockIds;
   }
 
   /**
@@ -718,27 +549,6 @@ public class TachyonFS implements Closeable {
   }
 
   /**
-   * Get the net address of all the file's hosts
-   * 
-   * @param fileId
-   *          the file id
-   * @return the list of all the file's hosts, in String
-   * @throws IOException
-   */
-  public synchronized List<String> getFileHosts(int fileId) throws IOException {
-    List<NetAddress> adresses = getFileNetAddresses(fileId);
-    List<String> ret = new ArrayList<String>(adresses.size());
-    for (NetAddress address : adresses) {
-      ret.add(address.mHost);
-      if (address.mHost.endsWith(".ec2.internal")) {
-        ret.add(address.mHost.substring(0, address.mHost.length() - 13));
-      }
-    }
-
-    return ret;
-  }
-
-  /**
    * Get file id by the path. It will check if the path exists.
    * 
    * @param path
@@ -747,53 +557,71 @@ public class TachyonFS implements Closeable {
    * @throws IOException
    */
   public synchronized int getFileId(String path) throws IOException {
-    String cleanedPath = cleanPathIOException(path);
-    return mMasterClient.user_getFileId(cleanedPath);
+    try {
+      return mMasterClient.getFileStatus(-1, cleanPathIOException(path)).getId();
+    } catch (IOException e) {
+      return -1;
+    }
+  }
+
+  @Override
+  public ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
+    ClientFileInfo info = mMasterClient.getFileStatus(fileId, path);
+    return info.getId() == -1 ? null : info;
   }
 
   /**
-   * @param fid
-   *          the file id
-   * @return the current length of the file
+   * Advanced API.
+   * 
+   * Get a ClientFileInfo of the file.
+   * 
+   * @param path
+   *          the file path in Tachyon file system
+   * @param useCachedMetadata
+   *          if true use the local cached meta data
+   * @return the ClientFileInfo of the file. null if the file does not exist.
    * @throws IOException
    */
-  synchronized long getFileLength(int fid) throws IOException {
-    if (!mClientFileInfos.get(fid).isComplete) {
-      ClientFileInfo info = fetchClientFileInfo(fid);
-      mClientFileInfos.put(fid, info);
-    }
-    return mClientFileInfos.get(fid).getLength();
-  }
+  public synchronized ClientFileInfo getFileStatus(int fileId, String path,
+      boolean useCachedMetadata) throws IOException {
+    ClientFileInfo info = null;
+    boolean updated = false;
 
-  public synchronized List<NetAddress> getFileNetAddresses(int fileId) throws IOException {
-    List<NetAddress> ret = new ArrayList<NetAddress>();
-    List<ClientBlockInfo> blocks = mMasterClient.user_getFileBlocks(fileId);
-    Set<NetAddress> locationSet = new HashSet<NetAddress>();
-    for (ClientBlockInfo info : blocks) {
-      locationSet.addAll(info.getLocations());
-    }
-    ret.addAll(locationSet);
+    if (fileId != -1) {
+      info = mIdToClientFileInfo.get(fileId);
+      if (!useCachedMetadata || info == null) {
+        info = getFileStatus(fileId, "");
+        updated = true;
+      }
 
-    return ret;
-  }
+      if (info == null) {
+        mIdToClientFileInfo.remove(fileId);
+        return null;
+      }
 
-  public synchronized List<List<String>> getFilesHosts(List<Integer> fileIds) throws IOException {
-    List<List<String>> ret = new ArrayList<List<String>>();
-    for (int k = 0; k < fileIds.size(); k ++) {
-      ret.add(getFileHosts(fileIds.get(k)));
-    }
+      path = info.getPath();
+    } else {
+      info = mPathToClientFileInfo.get(path);
+      if (!useCachedMetadata || info == null) {
+        info = getFileStatus(-1, path);
+        updated = true;
+      }
 
-    return ret;
-  }
+      if (info == null) {
+        mPathToClientFileInfo.remove(path);
+        return null;
+      }
 
-  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fileIds)
-      throws IOException {
-    List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
-    for (int k = 0; k < fileIds.size(); k ++) {
-      ret.add(getFileNetAddresses(fileIds.get(k)));
+      fileId = info.getId();
     }
 
-    return ret;
+    if (updated) {
+      // TODO LRU on this Map.
+      mIdToClientFileInfo.put(fileId, info);
+      mPathToClientFileInfo.put(path, info);
+    }
+
+    return info;
   }
 
   /**
@@ -816,60 +644,6 @@ public class TachyonFS implements Closeable {
       }
     }
     return null;
-  }
-
-  /**
-   * Get the next new block's id of the file.
-   * 
-   * @param fId
-   *          the file id
-   * @return the id of the next block
-   * @throws IOException
-   */
-  private synchronized long getNextBlockId(int fId) throws IOException {
-    return mMasterClient.user_createNewBlock(fId);
-  }
-
-  /**
-   * Get the number of blocks of a file. Only works when the file exists.
-   * 
-   * @param fId
-   *          the file id
-   * @return the number of blocks if the file exists
-   * @throws IOException
-   */
-  synchronized int getNumberOfBlocks(int fId) throws IOException {
-    ClientFileInfo info = mClientFileInfos.get(fId);
-    if (info == null || !info.isComplete) {
-      info = fetchClientFileInfo(fId);
-      mClientFileInfos.put(fId, info);
-    }
-    if (info == null) {
-      throw new IOException("File " + fId + " does not exist.");
-    }
-    return info.getBlockIds().size();
-  }
-
-  /**
-   * Get the number of the files under the folder. Return 1 if the path is a file. Return the
-   * number of direct children if the path is a folder.
-   * 
-   * @param path
-   *          the path in Tachyon file system
-   * @return the number of the files
-   * @throws IOException
-   */
-  public synchronized int getNumberOfFiles(String path) throws IOException {
-    return mMasterClient.user_getNumberOfFiles(path);
-  }
-
-  /**
-   * @param fid
-   *          the file id
-   * @return the path of the file in Tachyon file system
-   */
-  synchronized String getPath(int fid) {
-    return mClientFileInfos.get(fid).getPath();
   }
 
   /**
@@ -933,19 +707,6 @@ public class TachyonFS implements Closeable {
   }
 
   /**
-   * @param fid
-   *          the file id
-   * @return true if this file is complete, false otherwise
-   * @throws IOException
-   */
-  synchronized boolean isComplete(int fid) throws IOException {
-    if (!mClientFileInfos.get(fid).isComplete) {
-      mClientFileInfos.put(fid, fetchClientFileInfo(fid));
-    }
-    return mClientFileInfos.get(fid).isComplete;
-  }
-
-  /**
    * @return true if this client is connected to master, false otherwise
    */
   public synchronized boolean isConnected() {
@@ -958,22 +719,7 @@ public class TachyonFS implements Closeable {
    * @return true if the file is a directory, false otherwise
    */
   synchronized boolean isDirectory(int fid) {
-    return mClientFileInfos.get(fid).isFolder;
-  }
-
-  /**
-   * Return whether the file is in memory or not. Note that a file may be partly in memory. This
-   * value is true only if the file is fully in memory.
-   * 
-   * @param fid
-   *          the file id
-   * @return true if the file is fully in memory, false otherwise
-   * @throws IOException
-   */
-  synchronized boolean isInMemory(int fid) throws IOException {
-    ClientFileInfo info = fetchClientFileInfo(fid);
-    mClientFileInfos.put(info.getId(), info);
-    return 100 == info.inMemoryPercentage;
+    return mIdToClientFileInfo.get(fid).isFolder;
   }
 
   /**
@@ -982,33 +728,22 @@ public class TachyonFS implements Closeable {
    * @return true if the file is need pin, false otherwise
    */
   synchronized boolean isNeedPin(int fid) {
-    return mClientFileInfos.get(fid).isPinned;
+    return mIdToClientFileInfo.get(fid).isPinned;
   }
 
-  /**
-   * List the files under the given path. List the files recursively if <code>recursive</code> is
-   * true
-   * 
-   * @param path
-   *          the path in Tachyon file system
-   * @param recursive
-   *          if true list the files recursively
-   * @return the list of the files' id
-   * @throws IOException
-   */
-  public synchronized List<Integer> listFiles(String path, boolean recursive) throws IOException {
-    return mMasterClient.user_listFiles(path, recursive);
+  /** Returns true if the given file or folder has its "pinned" flag set. */
+  public synchronized boolean isPinned(int fid, boolean useCachedMetadata) throws IOException {
+    ClientFileInfo info;
+    if (!useCachedMetadata || !mIdToClientFileInfo.containsKey(fid)) {
+      info = getFileStatus(fid, "");
+      mIdToClientFileInfo.put(fid, info);
+    }
+    info = mIdToClientFileInfo.get(fid);
+
+    return info.isPinned;
   }
 
-  /**
-   * If the <code>path</code> is a directory, return all the direct entries in it. If the
-   * <code>path</code> is a file, return its ClientFileInfo.
-   * 
-   * @param path
-   *          the target directory/file path
-   * @return A list of ClientFileInfo
-   * @throws IOException
-   */
+  @Override
   public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
     return mMasterClient.listStatus(path);
   }
@@ -1043,57 +778,14 @@ public class TachyonFS implements Closeable {
     return true;
   }
 
-  /**
-   * Return a list of files/directories under the given path.
-   * 
-   * @param path
-   *          the path in the mTachyonFS.
-   * @param recursive
-   *          whether or not to list files/directories under path recursively.
-   * @return a list of files/directories under path if recursive is false, or files/directories
-   *         under its subdirectories (sub-subdirectories, and so forth) if recursive is true, or
-   *         null
-   *         if the content of path is empty, i.e., no files found under path.
-   * @throws IOException
-   */
-  public synchronized List<String> ls(String path, boolean recursive) throws IOException {
-    return mMasterClient.user_ls(path, recursive);
+  @Override
+  public synchronized boolean mkdirs(String path, boolean recursive) throws IOException {
+    return mMasterClient.user_mkdirs(path, recursive);
   }
 
-  /**
-   * Create a directory if it does not exist. The method also creates necessary non-existing
-   * parent folders.
-   * 
-   * @param path
-   *          Directory path.
-   * @return true if the folder is created successfully or already existing. false otherwise.
-   * @throws IOException
-   */
-  public synchronized boolean mkdir(String path) throws IOException {
-    return mMasterClient.user_mkdir(cleanPathIOException(path));
-  }
-
-  /**
-   * Tell master that out of memory when pin file
-   * 
-   * @param fid
-   *          the file id
-   * @throws IOException
-   */
-  public synchronized void outOfMemoryForPinFile(int fid) throws IOException {
-    mMasterClient.user_outOfMemoryForPinFile(fid);
-  }
-
-  /**
-   * Read the whole local block.
-   * 
-   * @param blockId
-   *          The id of the block to read.
-   * @return <code>TachyonByteBuffer</code> containing the whole block.
-   * @throws IOException
-   */
-  private TachyonByteBuffer readLocalByteBuffer(long blockId) throws IOException {
-    return readLocalByteBuffer(blockId, 0, -1);
+  /** Alias for setPinned(fid, true). */
+  public synchronized void pinFile(int fid) throws IOException {
+    setPinned(fid, true);
   }
 
   /**
@@ -1165,36 +857,10 @@ public class TachyonFS implements Closeable {
     mAvailableSpaceBytes += releaseSpaceBytes;
   }
 
-  /**
-   * Rename the file
-   * 
-   * @param fId
-   *          the file id
-   * @param path
-   *          the new path of the file in Tachyon file system
-   * @return true if succeed, false otherwise
-   * @throws IOException
-   */
-  public synchronized boolean rename(int fId, String path) throws IOException {
-    mMasterClient.user_renameTo(fId, path);
-
-    return true;
-  }
-
-  /**
-   * Rename the srcPath to the dstPath
-   * 
-   * @param srcPath
-   * @param dstPath
-   * @return true if succeed, false otherwise.
-   * @throws IOException
-   */
-  public synchronized boolean rename(String srcPath, String dstPath) throws IOException {
-    if (srcPath.equals(dstPath) && exist(srcPath)) {
-      return true;
-    }
-
-    return mMasterClient.user_rename(srcPath, dstPath);
+  @Override
+  public synchronized boolean rename(int fileId, String srcPath, String dstPath)
+      throws IOException {
+    return mMasterClient.user_rename(fileId, srcPath, dstPath);
   }
 
   /**
@@ -1256,6 +922,18 @@ public class TachyonFS implements Closeable {
   }
 
   /**
+   * Sets the "pinned" flag for the given file. Pinned files are never evicted
+   * by Tachyon until they are unpinned.
+   * 
+   * Calling setPinned() on a folder will recursively set the "pinned" flag on
+   * all of that folder's children. This may be an expensive operation for
+   * folders with many files/subfolders.
+   */
+  public synchronized void setPinned(int fid, boolean pinned) throws IOException {
+    mMasterClient.user_setPinned(fid, pinned);
+  }
+
+  /**
    * Print out the string representation of this Tachyon server address.
    * 
    * @return the string representation like tachyon://host:port or tachyon-ft://host:port
@@ -1300,38 +978,9 @@ public class TachyonFS implements Closeable {
     return true;
   }
 
-  /**
-   * Sets the "pinned" flag for the given file. Pinned files are never evicted
-   * by Tachyon until they are unpinned.
-   * 
-   * Calling setPinned() on a folder will recursively set the "pinned" flag on
-   * all of that folder's children. This may be an expensive operation for
-   * folders with many files/subfolders.
-   */
-  public synchronized void setPinned(int fid, boolean pinned) throws IOException {
-    mMasterClient.user_setPinned(fid, pinned);
-  }
-
-  /** Alias for setPinned(fid, true). */
-  public synchronized void pinFile(int fid) throws IOException {
-    setPinned(fid, true);
-  }
-
   /** Alias for setPinned(fid, false). */
   public synchronized void unpinFile(int fid) throws IOException {
     setPinned(fid, false);
-  }
-
-  /** Returns true if the given file or folder has its "pinned" flag set. */
-  public synchronized boolean isPinned(int fid, boolean useCachedMetadata) throws IOException {
-    ClientFileInfo info;
-    if (!useCachedMetadata || !mClientFileInfos.containsKey(fid)) {
-      info = fetchClientFileInfo(fid);
-      mClientFileInfos.put(fid, info);
-    }
-    info = mClientFileInfos.get(fid);
-
-    return info.isPinned;
   }
 
   /**

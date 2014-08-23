@@ -46,7 +46,7 @@ public class RawColumn {
 
   // TODO creating file here should be based on id.
   public int partitions() throws IOException {
-    return mTachyonFS.getNumberOfFiles(CommonUtils.concat(mRawTable.getPath(), MasterInfo.COL
-        + mColumnIndex));
+    return mTachyonFS.listStatus(CommonUtils.concat(mRawTable.getPath(), MasterInfo.COL + mColumnIndex))
+        .size();
   }
 }

@@ -136,7 +136,7 @@ public class WorkerClient implements Closeable {
     mustConnect();
 
     try {
-      mClient.cacheBlock(MASTER_CLIENT.getUserId(), blockId);
+      mClient.cacheBlock(mMasterClient.getUserId(), blockId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (BlockInfoException e) {

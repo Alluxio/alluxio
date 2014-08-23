@@ -55,7 +55,7 @@ public class FileOutStream extends OutStream {
     mCachedBytes = 0;
 
     if (mWriteType.isThrough()) {
-      mUnderFsFile = CommonUtils.concat(mTachyonFS.createAndGetUserUfsTempFolder(), mFile.mFid);
+      mUnderFsFile = CommonUtils.concat(mTachyonFS.createAndGetUserUfsTempFolder(), mFile.mFileId);
       UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile, ufsConf);
       if (mBlockCapacityByte > Integer.MAX_VALUE) {
         throw new IOException("BLOCK_CAPCAITY (" + mBlockCapacityByte + ") can not bigger than "
@@ -87,7 +87,7 @@ public class FileOutStream extends OutStream {
         } else {
           mCheckpointOutputStream.flush();
           mCheckpointOutputStream.close();
-          mTachyonFS.addCheckpoint(mFile.mFid);
+          mTachyonFS.addCheckpoint(mFile.mFileId);
           canComplete = true;
         }
       }
@@ -116,9 +116,9 @@ public class FileOutStream extends OutStream {
 
       if (canComplete) {
         if (mWriteType.isAsync()) {
-          mTachyonFS.asyncCheckpoint(mFile.mFid);
+          mTachyonFS.asyncCheckpoint(mFile.mFileId);
         }
-        mTachyonFS.completeFile(mFile.mFid);
+        mTachyonFS.completeFile(mFile.mFileId);
       }
     }
 
@@ -142,7 +142,7 @@ public class FileOutStream extends OutStream {
     }
 
     if (mWriteType.isCache()) {
-      mCurrentBlockId = mTachyonFS.getBlockIdBasedOnOffset(mFile.mFid, mCachedBytes);
+      mCurrentBlockId = mTachyonFS.getBlockIdBasedOnOffset(mFile.mFileId, mCachedBytes);
       mCurrentBlockLeftByte = mBlockCapacityByte;
 
       mCurrentBlockOutStream =
