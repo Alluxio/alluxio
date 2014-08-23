@@ -7,7 +7,6 @@ import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,7 +32,6 @@ import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
-import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerClient;
 
@@ -175,7 +173,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   public synchronized void cacheBlock(long blockId) throws IOException {
-    mWorkerClient.cacheBlock(mMasterClient.getUserId(), blockId);
+    mWorkerClient.cacheBlock(blockId);
   }
 
   /**
@@ -592,27 +590,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get the net address of all the file's hosts
-   * 
-   * @param fileId
-   *          the file id
-   * @return the list of all the file's hosts, in String
-   * @throws IOException
-   */
-  public synchronized List<String> getFileHosts(int fileId) throws IOException {
-    List<NetAddress> adresses = getFileNetAddresses(fileId);
-    List<String> ret = new ArrayList<String>(adresses.size());
-    for (NetAddress address : adresses) {
-      ret.add(address.mHost);
-      if (address.mHost.endsWith(".ec2.internal")) {
-        ret.add(address.mHost.substring(0, address.mHost.length() - 13));
-      }
-    }
-
-    return ret;
-  }
-
-  /**
    * Get file id by the path. It will check if the path exists.
    * 
    * @param path
@@ -626,37 +603,6 @@ public class TachyonFS extends AbstractTachyonFS {
     } catch (IOException e) {
       return -1;
     }
-  }
-
-  public synchronized List<NetAddress> getFileNetAddresses(int fileId) throws IOException {
-    List<NetAddress> ret = new ArrayList<NetAddress>();
-    List<ClientBlockInfo> blocks = mMasterClient.user_getFileBlocks(fileId);
-    Set<NetAddress> locationSet = new HashSet<NetAddress>();
-    for (ClientBlockInfo info : blocks) {
-      locationSet.addAll(info.getLocations());
-    }
-    ret.addAll(locationSet);
-
-    return ret;
-  }
-
-  public synchronized List<List<String>> getFilesHosts(List<Integer> fileIds) throws IOException {
-    List<List<String>> ret = new ArrayList<List<String>>();
-    for (int k = 0; k < fileIds.size(); k ++) {
-      ret.add(getFileHosts(fileIds.get(k)));
-    }
-
-    return ret;
-  }
-
-  public synchronized List<List<NetAddress>> getFilesNetAddresses(List<Integer> fileIds)
-      throws IOException {
-    List<List<NetAddress>> ret = new ArrayList<List<NetAddress>>();
-    for (int k = 0; k < fileIds.size(); k ++) {
-      ret.add(getFileNetAddresses(fileIds.get(k)));
-    }
-
-    return ret;
   }
 
   @Override
