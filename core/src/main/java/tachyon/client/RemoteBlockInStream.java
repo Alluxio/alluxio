@@ -64,12 +64,12 @@ public class RemoteBlockInStream extends BlockInStream {
       throws IOException {
     super(file, readType, blockIndex);
 
-    mBlockInfo = mTachyonFS.getClientBlockInfo(mTachyonFile.mFileId, mBlockIndex);
+    mBlockInfo = mTachyonFS.getClientBlockInfo(mFile.mFileId, mBlockIndex);
     mReadByte = 0;
     mBufferStartPosition = 0;
 
-    if (!mTachyonFile.isComplete()) {
-      throw new IOException("File " + mTachyonFile.getPath() + " is not ready to read");
+    if (!mFile.isComplete()) {
+      throw new IOException("File " + mFile.getPath() + " is not ready to read");
     }
 
     mRecache = readType.isCache();
@@ -84,9 +84,9 @@ public class RemoteBlockInStream extends BlockInStream {
       setupStreamFromUnderFs(mBlockInfo.offset, mUFSConf);
 
       if (mCheckpointInputStream == null) {
-        mTachyonFS.reportLostFile(mTachyonFile.mFileId);
+        mTachyonFS.reportLostFile(mFile.mFileId);
 
-        throw new IOException("Can not find the block " + mTachyonFile + " " + mBlockIndex);
+        throw new IOException("Can not find the block " + mFile + " " + mBlockIndex);
       }
     }
   }
@@ -304,7 +304,7 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   private void setupStreamFromUnderFs(long offset, Object conf) throws IOException {
-    String checkpointPath = mTachyonFile.getUfsPath();
+    String checkpointPath = mFile.getUfsPath();
     if (!checkpointPath.equals("")) {
       LOG.info("May stream from underlayer fs: " + checkpointPath);
       UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath, conf);
@@ -320,7 +320,7 @@ public class RemoteBlockInStream extends BlockInStream {
         }
       } catch (IOException e) {
         LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " +
-            mTachyonFile.mFileId, e);
+            mFile.mFileId, e);
         mCheckpointInputStream = null;
       }
     }
@@ -379,7 +379,7 @@ public class RemoteBlockInStream extends BlockInStream {
     mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
 
     if (mCurrentBuffer == null) {
-      mBlockInfo = mTachyonFS.getClientBlockInfo(mTachyonFile.mFileId, mBlockIndex);
+      mBlockInfo = mTachyonFS.getClientBlockInfo(mFile.mFileId, mBlockIndex);
       mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
     }
   }

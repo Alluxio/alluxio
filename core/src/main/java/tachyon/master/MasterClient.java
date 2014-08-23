@@ -46,12 +46,12 @@ import tachyon.util.CommonUtils;
 
 /**
  * The master server client side.
- * 
+ *
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class MasterClient implements Closeable {
-  private static final int MAX_CONNECT_TRY = 5;
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final int MAX_CONNECT_TRY = 5;
 
   private boolean mUseZookeeper;
   private MasterService.Client mClient = null;
@@ -747,7 +747,7 @@ public class MasterClient implements Closeable {
 
   /**
    * Register the worker to the master.
-   * 
+   *
    * @param workerNetAddress
    *          Worker's NetAddress
    * @param totalBytes

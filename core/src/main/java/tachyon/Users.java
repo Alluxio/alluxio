@@ -40,7 +40,7 @@ public class Users {
 
   /**
    * Adds user's own bytes and updates the user's heartbeat.
-   * 
+   *
    * @param userId
    *          id of the user.
    * @param newBytes
@@ -58,7 +58,7 @@ public class Users {
 
   /**
    * Check the status of the users pool.
-   * 
+   *
    * @return the list of timeout users.
    */
   public List<Long> checkStatus() {
@@ -76,7 +76,7 @@ public class Users {
 
   /**
    * Returns the user's temporary data folder in the worker's machine.
-   * 
+   *
    * @param userId
    *          The queried user.
    * @return String contains user's temporary data folder in the worker's machine..
@@ -87,7 +87,7 @@ public class Users {
 
   /**
    * Returns the user's temporary data folder in the under filesystem.
-   * 
+   *
    * @param userId
    *          The queried user.
    * @return String contains the user's temporary data folder in the under filesystem.
@@ -98,7 +98,7 @@ public class Users {
 
   /**
    * Get how much space quote does a user own.
-   * 
+   *
    * @param userId
    *          The queried user.
    * @return Bytes the user owns.
@@ -112,7 +112,7 @@ public class Users {
 
   /**
    * Remove <code> userId </code> from user pool.
-   * 
+   *
    * @param userId
    *          The user to be removed.
    * @return The space quote the removed user occupied in bytes.
@@ -155,7 +155,7 @@ public class Users {
 
   /**
    * Updates user's heartbeat.
-   * 
+   *
    * @param userId
    *          the id of the user
    */

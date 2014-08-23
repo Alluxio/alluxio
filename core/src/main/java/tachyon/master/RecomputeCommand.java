@@ -22,7 +22,7 @@ public class RecomputeCommand implements Runnable {
 
   /**
    * Create a new RecomputeCommand.
-   * 
+   *
    * @param cmd
    *          The command to execute
    * @param filePath
