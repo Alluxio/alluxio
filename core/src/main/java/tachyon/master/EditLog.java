@@ -34,12 +34,11 @@ public class EditLog {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private static int mBackUpLogStartNum = -1;
-
   private static long mCurrentTId = 0;
 
   /**
    * Load edit log.
-   * 
+   *
    * @param info
    *          The Master Info.
    * @param path
@@ -90,7 +89,7 @@ public class EditLog {
 
   /**
    * Load one edit log.
-   * 
+   *
    * @param info
    *          The Master Info
    * @param path
@@ -207,7 +206,7 @@ public class EditLog {
 
   /**
    * Make the edit log up-to-date, It will delete all editlogs since mBackUpLogStartNum.
-   * 
+   *
    * @param path
    *          The path of the edit logs
    */
@@ -257,7 +256,7 @@ public class EditLog {
 
   /**
    * Create a new EditLog
-   * 
+   *
    * @param path
    *          The path of the edit logs.
    * @param inactive
@@ -336,7 +335,7 @@ public class EditLog {
 
   /**
    * Log an addBlock operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param fileId
    *          The id of the file
    * @param blockIndex
@@ -360,7 +359,7 @@ public class EditLog {
 
   /**
    * Log an addCheckpoint operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param fileId
    *          The file to add the checkpoint
    * @param length
@@ -401,7 +400,7 @@ public class EditLog {
 
   /**
    * Log a completeFile operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param fileId
    *          The id of the file
    * @param opTimeMs
@@ -421,7 +420,7 @@ public class EditLog {
   /**
    * Log a createDependency operation. The parameters are like creating a new Dependency. Do nothing
    * if the edit log is inactive.
-   * 
+   *
    * @param parents
    *          The input files' id of the dependency
    * @param children
@@ -464,7 +463,7 @@ public class EditLog {
 
   /**
    * Log a createFile operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param recursive
    *          If recursive is true and the filesystem tree is not filled in all the way to path yet,
    *          it fills in the missing components.
@@ -493,7 +492,7 @@ public class EditLog {
 
   /**
    * Log a createRawTable operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param tableId
    *          The id of the raw table
    * @param columns
@@ -515,7 +514,7 @@ public class EditLog {
 
   /**
    * Log a delete operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param fileId
    *          the file to be deleted.
    * @param recursive
@@ -537,7 +536,7 @@ public class EditLog {
 
   /**
    * Delete the completed logs.
-   * 
+   *
    * @param path
    *          The path of the logs
    * @param upTo
@@ -583,7 +582,7 @@ public class EditLog {
 
   /**
    * Get the current TransactionId and FlushedTransactionId
-   * 
+   *
    * @return (TransactionId, FlushedTransactionId)
    */
   public synchronized Pair<Long, Long> getTransactionIds() {
@@ -592,7 +591,7 @@ public class EditLog {
 
   /**
    * Log a rename operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param fileId
    *          The id of the file to rename
    * @param dstPath
@@ -614,7 +613,7 @@ public class EditLog {
 
   /**
    * The edit log reaches the max log size and needs rotate. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param path
    *          The path of the edit log
    */
@@ -645,7 +644,7 @@ public class EditLog {
 
   /**
    * Changes the max log size for testing purposes.
-   * 
+   *
    * @param size
    */
   public void setMaxLogSize(int size) {
@@ -654,7 +653,7 @@ public class EditLog {
 
   /**
    * Log a setPinned operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param fileId
    *          The id of the file
    * @param pinned
@@ -676,7 +675,7 @@ public class EditLog {
 
   /**
    * Log an updateRawTableMetadata operation. Do nothing if the edit log is inactive.
-   * 
+   *
    * @param tableId
    *          The id of the raw table
    * @param metadata

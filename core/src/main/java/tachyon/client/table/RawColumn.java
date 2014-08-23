@@ -28,8 +28,8 @@ public class RawColumn {
 
   // TODO creating file here should be based on id.
   public boolean createPartition(int pId) throws IOException {
-    return mTachyonFS.createFile(CommonUtils.concat(mRawTable.getPath(), MasterInfo.COL + mColumnIndex,
-        pId)) > 0;
+    return mTachyonFS.createFile(
+        CommonUtils.concat(mRawTable.getPath(), MasterInfo.COL + mColumnIndex, pId)) > 0;
   }
 
   // TODO creating file here should be based on id.
@@ -46,7 +46,7 @@ public class RawColumn {
 
   // TODO creating file here should be based on id.
   public int partitions() throws IOException {
-    return mTachyonFS.listStatus(CommonUtils.concat(mRawTable.getPath(), MasterInfo.COL + mColumnIndex))
-        .size();
+    return mTachyonFS.listStatus(
+        CommonUtils.concat(mRawTable.getPath(), MasterInfo.COL + mColumnIndex)).size();
   }
 }

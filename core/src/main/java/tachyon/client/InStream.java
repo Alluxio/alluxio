@@ -9,7 +9,7 @@ import java.io.InputStream;
  * can not be initialized by the client code.
  */
 public abstract class InStream extends InputStream {
-  protected final TachyonFile mTachyonFile;
+  protected final TachyonFile mFile;
   protected final TachyonFS mTachyonFS;
   protected final ReadType mReadType;
 
@@ -20,8 +20,8 @@ public abstract class InStream extends InputStream {
    *          the InStream's read type
    */
   InStream(TachyonFile file, ReadType readType) {
-    mTachyonFile = file;
-    mTachyonFS = mTachyonFile.mTachyonFS;
+    mFile = file;
+    mTachyonFS = mFile.mTachyonFS;
     mReadType = readType;
   }
 

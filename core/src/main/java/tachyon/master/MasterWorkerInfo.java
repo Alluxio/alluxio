@@ -15,7 +15,6 @@ import tachyon.util.CommonUtils;
  * The structure to store a worker's information in master node.
  */
 public class MasterWorkerInfo {
-
   /** Worker's address **/
   public final NetAddress mWorkerAddress;
   /** Capacity of worker in bytes **/
@@ -136,7 +135,7 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes a block from the worker
-   * 
+   *
    * @param add
    *          true if to add, to remove otherwise.
    * @param blockId
@@ -152,7 +151,7 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes blocks from the worker
-   * 
+   *
    * @param add
    *          true if to add, to remove otherwise.
    * @param blockIds
@@ -175,7 +174,7 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes a block from the to-be-removed blocks set of the worker.
-   * 
+   *
    * @param add
    *          true if to add, to remove otherwise.
    * @param blockId
@@ -193,7 +192,7 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes blocks from the to-be-removed blocks set of the worker.
-   * 
+   *
    * @param add
    *          true if to add, to remove otherwise.
    * @param blockIds
@@ -207,7 +206,7 @@ public class MasterWorkerInfo {
 
   /**
    * Set the used space of the worker in bytes.
-   * 
+   *
    * @param usedBytes
    *          the used space in bytes
    */

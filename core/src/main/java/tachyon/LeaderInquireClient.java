@@ -16,6 +16,10 @@ import tachyon.util.CommonUtils;
  */
 public class LeaderInquireClient {
   private static final int MAX_TRY = 10;
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+
+  private static HashMap<String, LeaderInquireClient> createdClients =
+      new HashMap<String, LeaderInquireClient>();
 
   public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
       String leaderPath) {
@@ -26,14 +30,9 @@ public class LeaderInquireClient {
     return createdClients.get(key);
   }
 
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final String mZookeeperAddress;
   private final String mLeaderPath;
-
   private final CuratorFramework mCLient;
-
-  private static HashMap<String, LeaderInquireClient> createdClients =
-      new HashMap<String, LeaderInquireClient>();
 
   private LeaderInquireClient(String zookeeperAddress, String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
