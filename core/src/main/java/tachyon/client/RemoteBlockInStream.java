@@ -64,7 +64,7 @@ public class RemoteBlockInStream extends BlockInStream {
       throws IOException {
     super(file, readType, blockIndex);
 
-    mBlockInfo = mTachyonFS.getClientBlockInfo(mTachyonFile.mFid, mBlockIndex);
+    mBlockInfo = mTachyonFS.getClientBlockInfo(mTachyonFile.mFileId, mBlockIndex);
     mReadByte = 0;
     mBufferStartPosition = 0;
 
@@ -84,7 +84,7 @@ public class RemoteBlockInStream extends BlockInStream {
       setupStreamFromUnderFs(mBlockInfo.offset, mUFSConf);
 
       if (mCheckpointInputStream == null) {
-        mTachyonFS.reportLostFile(mTachyonFile.mFid);
+        mTachyonFS.reportLostFile(mTachyonFile.mFileId);
 
         throw new IOException("Can not find the block " + mTachyonFile + " " + mBlockIndex);
       }
@@ -304,7 +304,7 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   private void setupStreamFromUnderFs(long offset, Object conf) throws IOException {
-    String checkpointPath = mTachyonFS.getUfsPath(mTachyonFile.mFid);
+    String checkpointPath = mTachyonFile.getUfsPath();
     if (!checkpointPath.equals("")) {
       LOG.info("May stream from underlayer fs: " + checkpointPath);
       UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath, conf);
@@ -319,7 +319,8 @@ public class RemoteBlockInStream extends BlockInStream {
           }
         }
       } catch (IOException e) {
-        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " + mTachyonFile.mFid, e);
+        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " +
+            mTachyonFile.mFileId, e);
         mCheckpointInputStream = null;
       }
     }
@@ -378,7 +379,7 @@ public class RemoteBlockInStream extends BlockInStream {
     mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
 
     if (mCurrentBuffer == null) {
-      mBlockInfo = mTachyonFS.getClientBlockInfo(mTachyonFile.mFid, mBlockIndex);
+      mBlockInfo = mTachyonFS.getClientBlockInfo(mTachyonFile.mFileId, mBlockIndex);
       mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
     }
   }

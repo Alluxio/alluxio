@@ -8,10 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.conf.CommonConf;
 import tachyon.thrift.BlockInfoException;
@@ -40,8 +38,6 @@ import tachyon.util.CommonUtils;
  * It maintains the state of each worker. It never keeps the state of any user.
  */
 public class MasterServiceHandler implements MasterService.Iface {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-
   private final MasterInfo mMasterInfo;
 
   public MasterServiceHandler(MasterInfo masterInfo) {
@@ -61,8 +57,14 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public ClientFileInfo getClientFileInfoById(int id) throws FileDoesNotExistException, TException {
-    return mMasterInfo.getClientFileInfo(id);
+  public ClientFileInfo getFileStatus(int fileId, String path) throws InvalidPathException,
+      TException {
+    if (fileId != -1) {
+      return mMasterInfo.getClientFileInfo(fileId);
+
+    }
+
+    return mMasterInfo.getClientFileInfo(path);
   }
 
   @Override
@@ -99,27 +101,24 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_createFile(String path, long blockSizeByte) throws FileAlreadyExistException,
-      InvalidPathException, BlockInfoException, TachyonException, TException {
-    return mMasterInfo.createFile(path, blockSizeByte);
-  }
-
-  @Override
-  public int user_createFileOnCheckpoint(String path, String checkpointPath)
-      throws FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException,
-      BlockInfoException, TachyonException, TException {
-    UnderFileSystem underfs = UnderFileSystem.get(checkpointPath);
-    try {
-      long blockSizeByte = underfs.getBlockSizeByte(checkpointPath);
-      long fileSizeByte = underfs.getFileSize(checkpointPath);
-      int fileId = mMasterInfo.createFile(path, blockSizeByte);
-      if (fileId != -1 && mMasterInfo.addCheckpoint(-1, fileId, fileSizeByte, checkpointPath)) {
-        return fileId;
+  public int user_createFile(String path, String ufsPath, long blockSizeByte, boolean recursive)
+      throws FileAlreadyExistException, InvalidPathException, BlockInfoException,
+      SuspectedFileSizeException, TachyonException, TException {
+    if (!ufsPath.isEmpty()) {
+      UnderFileSystem underfs = UnderFileSystem.get(ufsPath);
+      try {
+        long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
+        long fileSizeByte = underfs.getFileSize(ufsPath);
+        int fileId = mMasterInfo.createFile(path, ufsBlockSizeByte, recursive);
+        if (fileId != -1 && mMasterInfo.addCheckpoint(-1, fileId, fileSizeByte, ufsPath)) {
+          return fileId;
+        }
+      } catch (IOException e) {
+        throw new TachyonException(e.getMessage());
       }
-    } catch (IOException e) {
-      throw new TachyonException(e.getMessage());
     }
-    return -1;
+
+    return mMasterInfo.createFile(path, blockSizeByte, recursive);
   }
 
   @Override
@@ -136,13 +135,11 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean user_deleteById(int id, boolean recursive) throws TachyonException, TException {
-    return mMasterInfo.delete(id, recursive);
-  }
-
-  @Override
-  public boolean user_deleteByPath(String path, boolean recursive) throws TachyonException,
+  public boolean user_delete(int fileId, String path, boolean recursive) throws TachyonException,
       TException {
+    if (fileId != -1) {
+      return mMasterInfo.delete(fileId, recursive);
+    }
     return mMasterInfo.delete(path, recursive);
   }
 
@@ -167,12 +164,6 @@ public class MasterServiceHandler implements MasterService.Iface {
   public ClientDependencyInfo user_getClientDependencyInfo(int dependencyId)
       throws DependencyDoesNotExistException, TException {
     return mMasterInfo.getClientDependencyInfo(dependencyId);
-  }
-
-  @Override
-  public ClientFileInfo user_getClientFileInfoByPath(String path)
-      throws FileDoesNotExistException, InvalidPathException, TException {
-    return mMasterInfo.getClientFileInfo(path);
   }
 
   @Override
@@ -212,17 +203,6 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public int user_getFileId(String filePath) throws InvalidPathException, TException {
-    return mMasterInfo.getFileId(filePath);
-  }
-
-  @Override
-  public int user_getNumberOfFiles(String path) throws FileDoesNotExistException,
-      InvalidPathException, TException {
-    return mMasterInfo.getNumberOfFiles(path);
-  }
-
-  @Override
   public int user_getRawTableId(String path) throws InvalidPathException, TException {
     return mMasterInfo.getRawTableId(path);
   }
@@ -257,38 +237,20 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public List<Integer> user_listFiles(String path, boolean recursive)
-      throws FileDoesNotExistException, InvalidPathException, TException {
-    return mMasterInfo.listFiles(path, recursive);
+  public boolean user_mkdirs(String path, boolean recursive) throws FileAlreadyExistException,
+      InvalidPathException, TachyonException, TException {
+    return mMasterInfo.mkdirs(path, recursive);
   }
 
   @Override
-  public List<String> user_ls(String path, boolean recursive) throws FileDoesNotExistException,
-      InvalidPathException, TException {
-    return mMasterInfo.ls(path, recursive);
-  }
+  public boolean user_rename(int fileId, String srcPath, String dstPath)
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException,
+      TException {
+    if (fileId != -1) {
+      return mMasterInfo.rename(fileId, dstPath);
+    }
 
-  @Override
-  public boolean user_mkdir(String path) throws FileAlreadyExistException, InvalidPathException,
-      TachyonException, TException {
-    return mMasterInfo.mkdir(path);
-  }
-
-  @Override
-  public void user_outOfMemoryForPinFile(int fileId) throws TException {
-    LOG.error("The user can not allocate enough space for PIN list File " + fileId);
-  }
-
-  @Override
-  public boolean user_rename(String srcPath, String dstPath) throws FileAlreadyExistException,
-      FileDoesNotExistException, InvalidPathException, TException {
     return mMasterInfo.rename(srcPath, dstPath);
-  }
-
-  @Override
-  public void user_renameTo(int fileId, String dstPath) throws FileAlreadyExistException,
-      FileDoesNotExistException, InvalidPathException, TException {
-    mMasterInfo.rename(fileId, dstPath);
   }
 
   @Override

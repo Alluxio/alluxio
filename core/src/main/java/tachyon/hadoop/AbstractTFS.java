@@ -41,11 +41,9 @@ abstract class AbstractTFS extends FileSystem {
   public static final String FIRST_COM_PATH = "tachyon_dep/";
   public static final String RECOMPUTE_PATH = "tachyon_recompute/";
 
-  public static String UNDERFS_ADDRESS;
-
-  public static boolean USE_HDFS = true;
-
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+
+  public static String mUnderFSAddress;
 
   private URI mUri = null;
   private Path mWorkingDir = new Path(Constants.PATH_SEPARATOR);
@@ -205,8 +203,8 @@ abstract class AbstractTFS extends FileSystem {
       Path hdfsPath = Utils.getHDFSPath(path);
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       if (fs.exists(hdfsPath)) {
-        String ufsAddrPath = CommonUtils.concat(UNDERFS_ADDRESS, path);
-        // Set the path as the mTachyonFS root path.
+        String ufsAddrPath = CommonUtils.concat(mUnderFSAddress, path);
+        // Set the path as the TFS root path.
         UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null));
       }
     }
@@ -262,7 +260,7 @@ abstract class AbstractTFS extends FileSystem {
 
     LOG.info("getFileStatus(" + path + "): HDFS Path: " + hdfsPath + " TPath: " + mTachyonHeader
         + tPath);
-    if (USE_HDFS) {
+    if (useHdfs()) {
       fromHdfsToTachyon(tPath);
     }
     TachyonFile file = mTFS.getFile(tPath);
@@ -276,6 +274,20 @@ abstract class AbstractTFS extends FileSystem {
             file.getBlockSizeByte(), file.getCreationTimeMs(), file.getCreationTimeMs(), null,
             null, null, new Path(mTachyonHeader + tPath));
     return ret;
+  }
+
+  /**
+   * When underfs has a schema, then we can use the hdfs underfs code base.
+   * <p />
+   * When this check is not done, {@link #fromHdfsToTachyon(String)} is called, which loads
+   * the default filesystem (hadoop's).  When there is no schema, then it may default to tachyon
+   * which causes a recursive loop.
+   *
+   * @see <a href="https://tachyon.atlassian.net/browse/TACHYON-54">TACHYON-54</a>
+   */
+  @Deprecated
+  private boolean useHdfs() {
+    return mUnderFSAddress != null && URI.create(mUnderFSAddress).getScheme() != null;
   }
 
   /**
@@ -320,11 +332,8 @@ abstract class AbstractTFS extends FileSystem {
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
     mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode());
     mUri = URI.create(mTachyonHeader);
-    UNDERFS_ADDRESS = mTFS.getUfsAddress();
-    if (UNDERFS_ADDRESS == null || URI.create(UNDERFS_ADDRESS).getScheme() == null) {
-      USE_HDFS = false;
-    }
-    LOG.info(mTachyonHeader + " " + mUri + " " + UNDERFS_ADDRESS);
+    mUnderFSAddress = mTFS.getUfsAddress();
+    LOG.info(mTachyonHeader + " " + mUri + " " + mUnderFSAddress);
   }
 
   @Override
