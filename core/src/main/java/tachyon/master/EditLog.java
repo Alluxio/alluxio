@@ -190,19 +190,17 @@ public class EditLog {
         }
       }
     } finally {
-      boolean ufsClosed = false;
+      IOException exception = null;
       if (is != null) {
         try {
           is.close();
         } catch (IOException e) {
-          ufs.close();
-          ufsClosed = true;
-          // TODO: Do we need to throw this IOException if ufs.close() succeeded?
-          // We can save this IOException and throw after line # 220
+          exception = e;
         }
       }
-      if (!ufsClosed) {
-        ufs.close();
+      ufs.close();
+      if (exception != null) {
+        throw exception;
       }
     }
   }

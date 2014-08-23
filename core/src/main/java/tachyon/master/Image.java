@@ -53,19 +53,17 @@ public class Image {
       LOG.info("Renamed " + tPath + " to " + path);
 
     } finally {
-      boolean ufsClosed = false;
+      IOException exception = null;
       if (imageOs != null) {
         try {
           imageOs.close();
         } catch (IOException e) {
-          ufs.close();
-          ufsClosed = true;
-          //TODO: Do we need to throw this IOException if ufs.close() succeeded?
-          //We can save this IOException and throw after line # 83
+          exception = e;
         }
       }
-      if (!ufsClosed) {
-        ufs.close();
+      ufs.close();
+      if (exception != null) {
+        throw exception;
       }
     }
   }
@@ -92,19 +90,17 @@ public class Image {
       JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(imageIs);
       info.loadImage(parser, path);
     } finally {
-      boolean ufsClosed = false;
+      IOException exception = null;
       if (imageIs != null) {
         try {
           imageIs.close();
         } catch (IOException e) {
-          ufs.close();
-          ufsClosed = true;
-          //TODO: Do we need to throw this IOException if ufs.close() succeeded?
-          //We can save this IOException and throw after line # 122
+          exception = e;
         }
       }
-      if (!ufsClosed) {
-        ufs.close();
+      ufs.close();
+      if (exception != null) {
+        throw exception;
       }
     }
   }
