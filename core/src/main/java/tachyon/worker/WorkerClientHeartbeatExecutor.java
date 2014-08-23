@@ -11,18 +11,18 @@ import tachyon.HeartbeatExecutor;
  * the worker may withdraw the space granted to the particular user.
  */
 class WorkerClientHeartbeatExecutor implements HeartbeatExecutor {
-  private final WorkerClient WORKER_CLIENT;
-  private final long USER_ID;
+  private final WorkerClient mWorkerClient;
+  private final long mUserId;
 
   public WorkerClientHeartbeatExecutor(WorkerClient workerClient, long userId) {
-    WORKER_CLIENT = workerClient;
-    USER_ID = userId;
+    mWorkerClient = workerClient;
+    mUserId = userId;
   }
 
   @Override
   public void heartbeat() {
     try {
-      WORKER_CLIENT.userHeartbeat(USER_ID);
+      mWorkerClient.userHeartbeat(mUserId);
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }

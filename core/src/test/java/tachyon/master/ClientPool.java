@@ -15,12 +15,12 @@ import tachyon.client.TachyonFS;
  * for this is to build cleanup clients.
  */
 public final class ClientPool implements Closeable {
-  private final Supplier<String> URI_SUPPLIER;
+  private final Supplier<String> mUriSuppliers;
 
-  private final List<TachyonFS> CLIENTS = Collections.synchronizedList(new ArrayList<TachyonFS>());
+  private final List<TachyonFS> mClients = Collections.synchronizedList(new ArrayList<TachyonFS>());
 
   ClientPool(Supplier<String> uriSupplier) {
-    URI_SUPPLIER = uriSupplier;
+    mUriSuppliers = uriSupplier;
   }
 
   /**
@@ -28,19 +28,19 @@ public final class ClientPool implements Closeable {
    * directly, but can be closed by calling {@link #close()} on this object.
    */
   public TachyonFS getClient() throws IOException {
-    final TachyonFS fs = TachyonFS.get(URI_SUPPLIER.get());
-    CLIENTS.add(fs);
+    final TachyonFS fs = TachyonFS.get(mUriSuppliers.get());
+    mClients.add(fs);
     return fs;
   }
 
   @Override
   public void close() throws IOException {
-    synchronized (CLIENTS) {
-      for (TachyonFS fs : CLIENTS) {
+    synchronized (mClients) {
+      for (TachyonFS fs : mClients) {
         fs.close();
       }
 
-      CLIENTS.clear();
+      mClients.clear();
     }
   }
 }

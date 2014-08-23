@@ -50,8 +50,10 @@ import tachyon.util.CommonUtils;
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class MasterClient implements Closeable {
-  private final static int MAX_CONNECT_TRY = 5;
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final int MAX_CONNECT_TRY = 5;
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  // TODO Implement the retry logic
+  private final int CONNECTION_RETRY_TIMES = 10;
 
   private boolean mUseZookeeper;
   private MasterService.Client mClient = null;
@@ -202,19 +204,12 @@ public class MasterClient implements Closeable {
     return null;
   }
 
-  public synchronized ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
-    if (path == null) {
-      path = "";
-    }
-    if (fileId == -1 && !path.startsWith(Constants.PATH_SEPARATOR)) {
-      throw new IOException("Illegal path parameter: " + path);
-    }
-
+  public synchronized ClientFileInfo getClientFileInfoById(int id) throws IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        return mClient.getFileStatus(fileId, path);
+        return mClient.getClientFileInfoById(id);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -345,23 +340,40 @@ public class MasterClient implements Closeable {
     return -1;
   }
 
-  public synchronized int user_createFile(String path, String ufsPath, long blockSizeByte,
-      boolean recursive) throws IOException {
-    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR)) {
-      throw new IOException("Illegal path parameter: " + path);
-    }
-    if (ufsPath == null) {
-      ufsPath = "";
-    }
-
+  public synchronized int user_createFile(String path, long blockSizeByte) throws IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        return mClient.user_createFile(path, ufsPath, blockSizeByte, recursive);
+        return mClient.user_createFile(path, blockSizeByte);
       } catch (FileAlreadyExistException e) {
         throw new IOException(e);
       } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (BlockInfoException e) {
+        throw new IOException(e);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return -1;
+  }
+
+  public synchronized int user_createFileOnCheckpoint(String path, String checkpointPath)
+      throws IOException {
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_createFileOnCheckpoint(path, checkpointPath);
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (SuspectedFileSizeException e) {
         throw new IOException(e);
       } catch (BlockInfoException e) {
         throw new IOException(e);
@@ -418,13 +430,28 @@ public class MasterClient implements Closeable {
     return -1;
   }
 
-  public synchronized boolean user_delete(int fileId, String path, boolean recursive)
-      throws IOException {
+  public synchronized boolean user_delete(int fileId, boolean recursive) throws IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        return mClient.user_delete(fileId, path, recursive);
+        return mClient.user_deleteById(fileId, recursive);
+      } catch (TachyonException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return false;
+  }
+
+  public synchronized boolean user_delete(String path, boolean recursive) throws IOException {
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_deleteByPath(path, recursive);
       } catch (TachyonException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -457,6 +484,24 @@ public class MasterClient implements Closeable {
 
       try {
         return mClient.user_getClientBlockInfo(blockId);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return null;
+  }
+
+  public synchronized ClientFileInfo user_getClientFileInfoByPath(String path) throws IOException {
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_getClientFileInfoByPath(path);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -520,6 +565,40 @@ public class MasterClient implements Closeable {
     return null;
   }
 
+  public synchronized int user_getFileId(String path) throws IOException {
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_getFileId(path);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return -1;
+  }
+
+  public synchronized int user_getNumberOfFiles(String folderPath) throws IOException {
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_getNumberOfFiles(folderPath);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return -1;
+  }
+
   public synchronized int user_getRawTableId(String path) throws IOException {
     while (!mIsShutdown) {
       connect();
@@ -564,11 +643,47 @@ public class MasterClient implements Closeable {
     return null;
   }
 
-  public synchronized boolean user_mkdirs(String path, boolean recursive) throws IOException {
+  public synchronized List<Integer> user_listFiles(String path, boolean recursive)
+      throws IOException {
     while (!mIsShutdown) {
       connect();
       try {
-        return mClient.user_mkdirs(path, recursive);
+        return mClient.user_listFiles(path, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return null;
+  }
+
+  public synchronized List<String> user_ls(String path, boolean recursive) throws IOException {
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_ls(path, recursive);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+    return null;
+  }
+
+  public synchronized boolean user_mkdir(String path) throws IOException {
+    while (!mIsShutdown) {
+      connect();
+      try {
+        return mClient.user_mkdir(path);
       } catch (FileAlreadyExistException e) {
         throw new IOException(e);
       } catch (InvalidPathException e) {
@@ -583,20 +698,26 @@ public class MasterClient implements Closeable {
     return false;
   }
 
-  public synchronized boolean user_rename(int fileId, String srcPath, String dstPath)
-      throws IOException {
-    if (srcPath == null) {
-      srcPath = "";
-    }
-    if (fileId == -1 && !srcPath.startsWith(Constants.PATH_SEPARATOR)) {
-      throw new IOException("Illegal srcPath parameter: " + srcPath);
-    }
-
+  public synchronized void user_outOfMemoryForPinFile(int fileId) throws IOException {
     while (!mIsShutdown) {
       connect();
 
       try {
-        return mClient.user_rename(fileId, srcPath, dstPath);
+        mClient.user_outOfMemoryForPinFile(fileId);
+        return;
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
+  }
+
+  public synchronized boolean user_rename(String srcPath, String dstPath) throws IOException {
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        return mClient.user_rename(srcPath, dstPath);
       } catch (FileAlreadyExistException e) {
         throw new IOException(e);
       } catch (FileDoesNotExistException e) {
@@ -609,6 +730,26 @@ public class MasterClient implements Closeable {
       }
     }
     return false;
+  }
+
+  public void user_renameTo(int fId, String path) throws IOException {
+    while (!mIsShutdown) {
+      connect();
+
+      try {
+        mClient.user_renameTo(fId, path);
+        return;
+      } catch (FileAlreadyExistException e) {
+        throw new IOException(e);
+      } catch (FileDoesNotExistException e) {
+        throw new IOException(e);
+      } catch (InvalidPathException e) {
+        throw new IOException(e);
+      } catch (TException e) {
+        LOG.error(e.getMessage(), e);
+        mConnected = false;
+      }
+    }
   }
 
   public synchronized void user_reportLostFile(int fileId) throws IOException {

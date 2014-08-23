@@ -16,9 +16,9 @@ import tachyon.master.LocalTachyonCluster;
  * Unit tests for <code>tachyon.client.LocalBlockInStream</code>.
  */
 public class LocalBlockInStreamTest {
-  private final int MIN_LEN = 0;
-  private final int MAX_LEN = 255;
-  private final int DELTA = 33;
+  private static final int MIN_LEN = 0;
+  private static final int MAX_LEN = 255;
+  private static final int DELTA = 33;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;

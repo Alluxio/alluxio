@@ -43,7 +43,9 @@ abstract class AbstractTFS extends FileSystem {
 
   public static String UNDERFS_ADDRESS;
 
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  public static boolean USE_HDFS = true;
+
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private URI mUri = null;
   private Path mWorkingDir = new Path(Constants.PATH_SEPARATOR);
@@ -204,7 +206,7 @@ abstract class AbstractTFS extends FileSystem {
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       if (fs.exists(hdfsPath)) {
         String ufsAddrPath = CommonUtils.concat(UNDERFS_ADDRESS, path);
-        // Set the path as the TFS root path.
+        // Set the path as the mTachyonFS root path.
         UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null));
       }
     }
@@ -260,7 +262,7 @@ abstract class AbstractTFS extends FileSystem {
 
     LOG.info("getFileStatus(" + path + "): HDFS Path: " + hdfsPath + " TPath: " + mTachyonHeader
         + tPath);
-    if (useHdfs()) {
+    if (USE_HDFS) {
       fromHdfsToTachyon(tPath);
     }
     TachyonFile file = mTFS.getFile(tPath);
@@ -274,20 +276,6 @@ abstract class AbstractTFS extends FileSystem {
             file.getBlockSizeByte(), file.getCreationTimeMs(), file.getCreationTimeMs(), null,
             null, null, new Path(mTachyonHeader + tPath));
     return ret;
-  }
-
-  /**
-   * When underfs has a schema, then we can use the hdfs underfs code base.
-   * <p />
-   * When this check is not done, {@link #fromHdfsToTachyon(String)} is called, which loads
-   * the default filesystem (hadoop's).  When there is no schema, then it may default to tachyon
-   * which causes a recursive loop.
-   *
-   * @see <a href="https://tachyon.atlassian.net/browse/TACHYON-54">TACHYON-54</a>
-   */
-  @Deprecated
-  private boolean useHdfs() {
-    return UNDERFS_ADDRESS != null && URI.create(UNDERFS_ADDRESS).getScheme() != null;
   }
 
   /**
@@ -333,6 +321,9 @@ abstract class AbstractTFS extends FileSystem {
     mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode());
     mUri = URI.create(mTachyonHeader);
     UNDERFS_ADDRESS = mTFS.getUfsAddress();
+    if (UNDERFS_ADDRESS == null || URI.create(UNDERFS_ADDRESS).getScheme() == null) {
+      USE_HDFS = false;
+    }
     LOG.info(mTachyonHeader + " " + mUri + " " + UNDERFS_ADDRESS);
   }
 

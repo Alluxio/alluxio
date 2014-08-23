@@ -49,15 +49,14 @@ public class WorkerStorage {
    * The CheckpointThread, used to checkpoint the files belong to the worker.
    */
   public class CheckpointThread implements Runnable {
-    private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-    private final int ID;
+    private final int mId;
     private UnderFileSystem mCheckpointUfs = null;
 
     public CheckpointThread(int id) {
-      ID = id;
+      mId = id;
     }
 
-    // This method assumes the DEPENDENCY_LOCK has been acquired.
+    // This method assumes the mDependencyLock has been acquired.
     private int getFileIdBasedOnPriorityDependency() throws TException {
       if (mPriorityDependencies.isEmpty()) {
         return -1;
@@ -71,7 +70,7 @@ public class WorkerStorage {
       return -1;
     }
 
-    // This method assumes the DEPENDENCY_LOCK has been acquired.
+    // This method assumes the mDependencyLock has been acquired.
     private int getFileIdFromOneDependency(int depId) throws TException {
       Set<Integer> fileIds = mDepIdToFiles.get(depId);
       if (fileIds != null && !fileIds.isEmpty()) {
@@ -86,7 +85,7 @@ public class WorkerStorage {
       return -1;
     }
 
-    // This method assumes the DEPENDENCY_LOCK has been acquired.
+    // This method assumes the mDependencyLock has been acquired.
     private int getRandomUncheckpointedFile() throws TException {
       if (mUncheckpointFiles.isEmpty()) {
         return -1;
@@ -119,7 +118,7 @@ public class WorkerStorage {
       while (true) {
         try {
           int fileId = -1;
-          synchronized (DEPENDENCY_LOCK) {
+          synchronized (mDependencyLock) {
             fileId = getFileIdBasedOnPriorityDependency();
 
             if (fileId == -1) {
@@ -158,7 +157,7 @@ public class WorkerStorage {
           }
 
           if (fileId == -1) {
-            LOG.debug("Thread " + ID + " has nothing to checkpoint. Sleep for 1 sec.");
+            LOG.debug("Thread " + mId + " has nothing to checkpoint. Sleep for 1 sec.");
             CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
             continue;
           }
@@ -167,7 +166,7 @@ public class WorkerStorage {
           // master
           String midPath = CommonUtils.concat(mUfsWorkerDataFolder, fileId);
           String dstPath = CommonUtils.concat(CommonConf.get().UNDERFS_DATA_FOLDER, fileId);
-          LOG.info("Thread " + ID + " is checkpointing file " + fileId + " from "
+          LOG.info("Thread " + mId + " is checkpointing file " + fileId + " from "
               + mLocalDataFolder.toString() + " to " + midPath + " to " + dstPath);
 
           if (mCheckpointUfs == null) {
@@ -232,9 +231,9 @@ public class WorkerStorage {
     }
   }
 
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private final CommonConf COMMON_CONF;
+  private final CommonConf mCommonConf;
   private volatile MasterClient mMasterClient;
   private InetSocketAddress mMasterAddress;
   private NetAddress mWorkerAddress;
@@ -244,8 +243,8 @@ public class WorkerStorage {
   private Set<Long> mMemoryData = new HashSet<Long>();
   private Map<Long, Long> mBlockSizes = new HashMap<Long, Long>();
 
-  private final Map<Long, Long> LATEST_BLOCK_ACCESS_TIME_MS = new HashMap<Long, Long>();
-  private final Map<Long, Set<Long>> USERS_PER_LOCKED_BLOCK = new HashMap<Long, Set<Long>>();
+  private final Map<Long, Long> mBlockIdToLatestAccessTimeMs = new HashMap<Long, Long>();
+  private final Map<Long, Set<Long>> mLockedBlockIdToUserId = new HashMap<Long, Set<Long>>();
 
   private Map<Long, Set<Long>> mLockedBlocksPerUser = new HashMap<Long, Set<Long>>();
   private BlockingQueue<Long> mRemovedBlockList = new ArrayBlockingQueue<Long>(
@@ -263,7 +262,7 @@ public class WorkerStorage {
 
   private Users mUsers;
   // Dependency related lock
-  private final Object DEPENDENCY_LOCK = new Object();
+  private final Object mDependencyLock = new Object();
   private Set<Integer> mUncheckpointFiles = new HashSet<Integer>();
   // From dependencyId to files in that set.
   private Map<Integer, Set<Integer>> mDepIdToFiles = new HashMap<Integer, Set<Integer>>();
@@ -277,7 +276,7 @@ public class WorkerStorage {
    * Main logic behind the worker process.
    * 
    * This object is lazily initialized. Before an object of this call should be used,
-   * {@link #initialize()} must be called.
+   * {@link #initialize} must be called.
    * 
    * @param masterAddress
    *          The TachyonMaster's address
@@ -287,7 +286,7 @@ public class WorkerStorage {
    *          The maximum memory space this TachyonWorker can use, in bytes
    */
   public WorkerStorage(InetSocketAddress masterAddress, String dataFolder, long memoryCapacityBytes) {
-    COMMON_CONF = CommonConf.get();
+    mCommonConf = CommonConf.get();
 
     mMasterAddress = masterAddress;
     mMasterClient = new MasterClient(mMasterAddress);
@@ -302,9 +301,9 @@ public class WorkerStorage {
 
     register();
 
-    mUfsWorkerFolder = CommonUtils.concat(COMMON_CONF.UNDERFS_WORKERS_FOLDER, mWorkerId);
+    mUfsWorkerFolder = CommonUtils.concat(mCommonConf.UNDERFS_WORKERS_FOLDER, mWorkerId);
     mUfsWorkerDataFolder = mUfsWorkerFolder + "/data";
-    mUfs = UnderFileSystem.get(COMMON_CONF.UNDERFS_ADDRESS);
+    mUfs = UnderFileSystem.get(mCommonConf.UNDERFS_ADDRESS);
     mUsers = new Users(mLocalUserFolder.toString(), mUfsWorkerFolder);
 
     for (int k = 0; k < WorkerConf.get().WORKER_CHECKPOINT_THREADS; k ++) {
@@ -325,7 +324,7 @@ public class WorkerStorage {
       throw Throwables.propagate(e);
     }
 
-    LOG.info("Current Worker Info: ID " + mWorkerId + ", ADDRESS: " + mWorkerAddress
+    LOG.info("Current Worker Info: ID " + mWorkerId + ", mWorkerAddress: " + mWorkerAddress
         + ", MemoryCapacityBytes: " + mWorkerSpaceCounter.getCapacityBytes());
   }
 
@@ -336,14 +335,14 @@ public class WorkerStorage {
    *          The id of the block
    */
   void accessBlock(long blockId) {
-    synchronized (LATEST_BLOCK_ACCESS_TIME_MS) {
-      LATEST_BLOCK_ACCESS_TIME_MS.put(blockId, System.currentTimeMillis());
+    synchronized (mBlockIdToLatestAccessTimeMs) {
+      mBlockIdToLatestAccessTimeMs.put(blockId, System.currentTimeMillis());
     }
   }
 
   private void addBlockId(long blockId, long fileSizeBytes) {
-    synchronized (LATEST_BLOCK_ACCESS_TIME_MS) {
-      LATEST_BLOCK_ACCESS_TIME_MS.put(blockId, System.currentTimeMillis());
+    synchronized (mBlockIdToLatestAccessTimeMs) {
+      mBlockIdToLatestAccessTimeMs.put(blockId, System.currentTimeMillis());
       mBlockSizes.put(blockId, fileSizeBytes);
       mMemoryData.add(blockId);
     }
@@ -371,7 +370,7 @@ public class WorkerStorage {
       SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, IOException {
     // TODO This part need to be changed.
     String srcPath = CommonUtils.concat(getUserUfsTempFolder(userId), fileId);
-    String dstPath = CommonUtils.concat(COMMON_CONF.UNDERFS_DATA_FOLDER, fileId);
+    String dstPath = CommonUtils.concat(mCommonConf.UNDERFS_DATA_FOLDER, fileId);
     try {
       if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
@@ -408,7 +407,7 @@ public class WorkerStorage {
     ClientFileInfo fileInfo = mMasterClient.getFileStatus(fileId, "");
 
     if (fileInfo.getDependencyId() != -1) {
-      synchronized (DEPENDENCY_LOCK) {
+      synchronized (mDependencyLock) {
         mUncheckpointFiles.add(fileId);
         if (!mDepIdToFiles.containsKey(fileInfo.getDependencyId())) {
           mDepIdToFiles.put(fileInfo.getDependencyId(), new HashSet<Integer>());
@@ -452,7 +451,7 @@ public class WorkerStorage {
     if (!srcFile.exists()) {
       throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
     }
-    synchronized (LATEST_BLOCK_ACCESS_TIME_MS) {
+    synchronized (mBlockIdToLatestAccessTimeMs) {
       if (!srcFile.renameTo(dstFile)) {
         throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath()
             + " to " + dstFile.getPath());
@@ -478,7 +477,7 @@ public class WorkerStorage {
 
     for (long userId : removedUsers) {
       mWorkerSpaceCounter.returnUsedBytes(mUsers.removeUser(userId));
-      synchronized (USERS_PER_LOCKED_BLOCK) {
+      synchronized (mLockedBlockIdToUserId) {
         Set<Long> blockds = mLockedBlocksPerUser.get(userId);
         mLockedBlocksPerUser.remove(userId);
         if (blockds != null) {
@@ -503,12 +502,12 @@ public class WorkerStorage {
    */
   private long freeBlock(long blockId) {
     long freedFileBytes = 0;
-    synchronized (LATEST_BLOCK_ACCESS_TIME_MS) {
+    synchronized (mBlockIdToLatestAccessTimeMs) {
       if (mBlockSizes.containsKey(blockId)) {
         mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
         File srcFile = new File(CommonUtils.concat(mLocalDataFolder, blockId));
         srcFile.delete();
-        LATEST_BLOCK_ACCESS_TIME_MS.remove(blockId);
+        mBlockIdToLatestAccessTimeMs.remove(blockId);
         freedFileBytes = mBlockSizes.remove(blockId);
         mRemovedBlockList.add(blockId);
         mMemoryData.remove(blockId);
@@ -691,11 +690,11 @@ public class WorkerStorage {
    * @throws TException
    */
   public void lockBlock(long blockId, long userId) throws TException {
-    synchronized (USERS_PER_LOCKED_BLOCK) {
-      if (!USERS_PER_LOCKED_BLOCK.containsKey(blockId)) {
-        USERS_PER_LOCKED_BLOCK.put(blockId, new HashSet<Long>());
+    synchronized (mLockedBlockIdToUserId) {
+      if (!mLockedBlockIdToUserId.containsKey(blockId)) {
+        mLockedBlockIdToUserId.put(blockId, new HashSet<Long>());
       }
-      USERS_PER_LOCKED_BLOCK.get(blockId).add(userId);
+      mLockedBlockIdToUserId.get(blockId).add(userId);
 
       if (!mLockedBlocksPerUser.containsKey(userId)) {
         mLockedBlocksPerUser.put(userId, new HashSet<Long>());
@@ -721,15 +720,15 @@ public class WorkerStorage {
       pinList = new HashSet<Integer>();
     }
 
-    synchronized (LATEST_BLOCK_ACCESS_TIME_MS) {
-      synchronized (USERS_PER_LOCKED_BLOCK) {
+    synchronized (mBlockIdToLatestAccessTimeMs) {
+      synchronized (mLockedBlockIdToUserId) {
         while (mWorkerSpaceCounter.getAvailableBytes() < requestBytes) {
           long blockId = -1;
           long latestTimeMs = Long.MAX_VALUE;
-          for (Entry<Long, Long> entry : LATEST_BLOCK_ACCESS_TIME_MS.entrySet()) {
+          for (Entry<Long, Long> entry : mBlockIdToLatestAccessTimeMs.entrySet()) {
             if (entry.getValue() < latestTimeMs
                 && !pinList.contains(BlockInfo.computeInodeId(entry.getKey()))) {
-              if (!USERS_PER_LOCKED_BLOCK.containsKey(entry.getKey())) {
+              if (!mLockedBlockIdToUserId.containsKey(entry.getKey())) {
                 blockId = entry.getKey();
                 latestTimeMs = entry.getValue();
               }
@@ -842,7 +841,7 @@ public class WorkerStorage {
 
   /**
    * Swap out those blocks missing INode information onto underFS which can be
-   * retrieved by user later. Its cleanup only happens while formating the TFS.
+   * retrieved by user later. Its cleanup only happens while formating the mTachyonFS.
    */
   private void swapoutOrphanBlocks(long blockId, File file) throws IOException {
     RandomAccessFile localFile = new RandomAccessFile(file, "r");
@@ -879,11 +878,11 @@ public class WorkerStorage {
    * @throws TException
    */
   public void unlockBlock(long blockId, long userId) throws TException {
-    synchronized (USERS_PER_LOCKED_BLOCK) {
-      if (USERS_PER_LOCKED_BLOCK.containsKey(blockId)) {
-        USERS_PER_LOCKED_BLOCK.get(blockId).remove(userId);
-        if (USERS_PER_LOCKED_BLOCK.get(blockId).size() == 0) {
-          USERS_PER_LOCKED_BLOCK.remove(blockId);
+    synchronized (mLockedBlockIdToUserId) {
+      if (mLockedBlockIdToUserId.containsKey(blockId)) {
+        mLockedBlockIdToUserId.get(blockId).remove(userId);
+        if (mLockedBlockIdToUserId.get(blockId).size() == 0) {
+          mLockedBlockIdToUserId.remove(blockId);
         }
       }
 

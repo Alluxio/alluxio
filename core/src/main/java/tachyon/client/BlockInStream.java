@@ -51,7 +51,7 @@ public abstract class BlockInStream extends InStream {
     return new RemoteBlockInStream(tachyonFile, readType, blockIndex, ufsConf);
   }
 
-  protected final int BLOCK_INDEX;
+  protected final int mBlockIndex;
 
   protected boolean mClosed = false;
 
@@ -63,6 +63,6 @@ public abstract class BlockInStream extends InStream {
    */
   BlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
     super(file, readType);
-    BLOCK_INDEX = blockIndex;
+    mBlockIndex = blockIndex;
   }
 }
