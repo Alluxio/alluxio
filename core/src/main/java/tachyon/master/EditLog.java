@@ -51,38 +51,41 @@ public class EditLog {
    */
   public static long load(MasterInfo info, String path, int currentLogFileNum) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
-    if (!ufs.exists(path)) {
-      LOG.info("Edit Log " + path + " does not exist.");
-      return 0;
-    }
-    LOG.info("currentLogNum passed in was " + currentLogFileNum);
-    int completedLogs = currentLogFileNum;
-    mBackUpLogStartNum = currentLogFileNum;
-    int numFiles = 1;
-    String completedPath =
-        path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
-    if (!ufs.exists(completedPath)) {
-      LOG.info("No completed edit logs to be parsed");
-    } else {
-      while (ufs.exists(CommonUtils.concat(completedPath, (completedLogs ++) + ".editLog"))) {
-        numFiles ++;
+    try {
+      if (!ufs.exists(path)) {
+        LOG.info("Edit Log " + path + " does not exist.");
+        return 0;
       }
-    }
-    String editLogs[] = new String[numFiles];
-    for (int i = 0; i < numFiles; i ++) {
-      if (i != numFiles - 1) {
-        editLogs[i] = CommonUtils.concat(completedPath, (i + currentLogFileNum) + ".editLog");
+      LOG.info("currentLogNum passed in was " + currentLogFileNum);
+      int completedLogs = currentLogFileNum;
+      mBackUpLogStartNum = currentLogFileNum;
+      int numFiles = 1;
+      String completedPath =
+          path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
+      if (!ufs.exists(completedPath)) {
+        LOG.info("No completed edit logs to be parsed");
       } else {
-        editLogs[i] = path;
+        while (ufs.exists(CommonUtils.concat(completedPath, (completedLogs ++) + ".editLog"))) {
+          numFiles ++;
+        }
       }
-    }
+      String editLogs[] = new String[numFiles];
+      for (int i = 0; i < numFiles; i ++) {
+        if (i != numFiles - 1) {
+          editLogs[i] = CommonUtils.concat(completedPath, (i + currentLogFileNum) + ".editLog");
+        } else {
+          editLogs[i] = path;
+        }
+      }
 
-    for (String currentPath : editLogs) {
-      LOG.info("Loading Edit Log " + currentPath);
-      loadSingleLog(info, currentPath);
+      for (String currentPath : editLogs) {
+        LOG.info("Loading Edit Log " + currentPath);
+        loadSingleLog(info, currentPath);
+      }
+      return mCurrentTId;
+    } finally {
+      ufs.close();
     }
-    ufs.close();
-    return mCurrentTId;
   }
 
   /**
@@ -96,98 +99,112 @@ public class EditLog {
    */
   public static void loadSingleLog(MasterInfo info, String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
+    DataInputStream is = null;
+    try {
+      is = new DataInputStream(ufs.open(path));
+      JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(is);
 
-    DataInputStream is = new DataInputStream(ufs.open(path));
-    JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(is);
+      while (true) {
+        EditLogOperation op;
+        try {
+          op = parser.readValueAs(EditLogOperation.class);
+          LOG.debug("Read operation: " + op);
+        } catch (IOException e) {
+          // Unfortunately brittle, but Jackson rethrows EOF with this message.
+          if (e.getMessage().contains("end-of-input")) {
+            break;
+          } else {
+            throw e;
+          }
+        }
 
-    while (true) {
-      EditLogOperation op;
-      try {
-        op = parser.readValueAs(EditLogOperation.class);
-        LOG.debug("Read operation: " + op);
-      } catch (IOException e) {
-        // Unfortunately brittle, but Jackson rethrows EOF with this message.
-        if (e.getMessage().contains("end-of-input")) {
-          break;
-        } else {
-          throw e;
+        mCurrentTId = op.transId;
+        try {
+          switch (op.type) {
+          case ADD_BLOCK: {
+            info.opAddBlock(op.getInt("fileId"), op.getInt("blockIndex"),
+                op.getLong("blockLength"), op.getLong("opTimeMs"));
+            break;
+          }
+          case ADD_CHECKPOINT: {
+            info._addCheckpoint(-1, op.getInt("fileId"), op.getLong("length"),
+                op.getString("path"), op.getLong("opTimeMs"));
+            break;
+          }
+          case CREATE_FILE: {
+            info._createFile(op.getBoolean("recursive"), op.getString("path"),
+                op.getBoolean("directory"), op.getLong("blockSizeByte"),
+                op.getLong("creationTimeMs"));
+            break;
+          }
+          case COMPLETE_FILE: {
+            info._completeFile(op.<Integer> get("fileId"), op.getLong("opTimeMs"));
+            break;
+          }
+          case SET_PINNED: {
+            info._setPinned(op.getInt("fileId"), op.getBoolean("pinned"), op.getLong("opTimeMs"));
+            break;
+          }
+          case RENAME: {
+            info._rename(op.getInt("fileId"), op.getString("dstPath"), op.getLong("opTimeMs"));
+            break;
+          }
+          case DELETE: {
+            info._delete(op.getInt("fileId"), op.getBoolean("recursive"), op.getLong("opTimeMs"));
+            break;
+          }
+          case CREATE_RAW_TABLE: {
+            info._createRawTable(op.getInt("tableId"), op.getInt("columns"),
+                op.getByteBuffer("metadata"));
+            break;
+          }
+          case UPDATE_RAW_TABLE_METADATA: {
+            info.updateRawTableMetadata(op.getInt("tableId"), op.getByteBuffer("metadata"));
+            break;
+          }
+          case CREATE_DEPENDENCY: {
+            info._createDependency(op.<List<Integer>> get("parents"),
+                op.<List<Integer>> get("children"), op.getString("commandPrefix"),
+                op.getByteBufferList("data"), op.getString("comment"), op.getString("framework"),
+                op.getString("frameworkVersion"), op.<DependencyType> get("dependencyType"),
+                op.getInt("dependencyId"), op.getLong("creationTimeMs"));
+            break;
+          }
+          default:
+            throw new IOException("Invalid op type " + op);
+          }
+        } catch (SuspectedFileSizeException e) {
+          throw new IOException(e);
+        } catch (BlockInfoException e) {
+          throw new IOException(e);
+        } catch (FileDoesNotExistException e) {
+          throw new IOException(e);
+        } catch (FileAlreadyExistException e) {
+          throw new IOException(e);
+        } catch (InvalidPathException e) {
+          throw new IOException(e);
+        } catch (TachyonException e) {
+          throw new IOException(e);
+        } catch (TableDoesNotExistException e) {
+          throw new IOException(e);
         }
       }
-
-      mCurrentTId = op.transId;
-      try {
-        switch (op.type) {
-        case ADD_BLOCK: {
-          info.opAddBlock(op.getInt("fileId"), op.getInt("blockIndex"), op.getLong("blockLength"),
-              op.getLong("opTimeMs"));
-          break;
+    } finally {
+      boolean ufsClosed = false;
+      if (is != null) {
+        try {
+          is.close();
+        } catch (IOException e) {
+          ufs.close();
+          ufsClosed = true;
+          // TODO: Do we need to throw this IOException if ufs.close() succeeded?
+          // We can save this IOException and throw after line # 220
         }
-        case ADD_CHECKPOINT: {
-          info._addCheckpoint(-1, op.getInt("fileId"), op.getLong("length"), op.getString("path"),
-              op.getLong("opTimeMs"));
-          break;
-        }
-        case CREATE_FILE: {
-          info._createFile(op.getBoolean("recursive"), op.getString("path"),
-              op.getBoolean("directory"), op.getLong("blockSizeByte"),
-              op.getLong("creationTimeMs"));
-          break;
-        }
-        case COMPLETE_FILE: {
-          info._completeFile(op.<Integer> get("fileId"), op.getLong("opTimeMs"));
-          break;
-        }
-        case SET_PINNED: {
-          info._setPinned(op.getInt("fileId"), op.getBoolean("pinned"), op.getLong("opTimeMs"));
-          break;
-        }
-        case RENAME: {
-          info._rename(op.getInt("fileId"), op.getString("dstPath"), op.getLong("opTimeMs"));
-          break;
-        }
-        case DELETE: {
-          info._delete(op.getInt("fileId"), op.getBoolean("recursive"), op.getLong("opTimeMs"));
-          break;
-        }
-        case CREATE_RAW_TABLE: {
-          info._createRawTable(op.getInt("tableId"), op.getInt("columns"),
-              op.getByteBuffer("metadata"));
-          break;
-        }
-        case UPDATE_RAW_TABLE_METADATA: {
-          info.updateRawTableMetadata(op.getInt("tableId"), op.getByteBuffer("metadata"));
-          break;
-        }
-        case CREATE_DEPENDENCY: {
-          info._createDependency(op.<List<Integer>> get("parents"),
-              op.<List<Integer>> get("children"), op.getString("commandPrefix"),
-              op.getByteBufferList("data"), op.getString("comment"), op.getString("framework"),
-              op.getString("frameworkVersion"), op.<DependencyType> get("dependencyType"),
-              op.getInt("dependencyId"), op.getLong("creationTimeMs"));
-          break;
-        }
-        default:
-          throw new IOException("Invalid op type " + op);
-        }
-      } catch (SuspectedFileSizeException e) {
-        throw new IOException(e);
-      } catch (BlockInfoException e) {
-        throw new IOException(e);
-      } catch (FileDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (FileAlreadyExistException e) {
-        throw new IOException(e);
-      } catch (InvalidPathException e) {
-        throw new IOException(e);
-      } catch (TachyonException e) {
-        throw new IOException(e);
-      } catch (TableDoesNotExistException e) {
-        throw new IOException(e);
+      }
+      if (!ufsClosed) {
+        ufs.close();
       }
     }
-
-    is.close();
-    ufs.close();
   }
 
   /**
