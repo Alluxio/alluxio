@@ -31,7 +31,7 @@ import tachyon.util.CommonUtils;
  * Master operation journal.
  */
 public class EditLog {
-  private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private static int mBackUpLogStartNum = -1;
 
@@ -230,13 +230,13 @@ public class EditLog {
     mBackUpLogStartNum = -1;
   }
 
-  /** When a master is replaying an edit log, mark the current edit log as an INACTIVE one. */
-  private final boolean INACTIVE;
+  /** When a master is replaying an edit log, mark the current edit log as an mInactive one. */
+  private final boolean mInactive;
 
-  private final String PATH;
+  private final String mPath;
 
   /** Writer used to serialize Operations into the edit log. */
-  private final ObjectWriter WRITER;
+  private final ObjectWriter mWriter;
 
   private UnderFileSystem mUfs;
 
@@ -267,11 +267,11 @@ public class EditLog {
    * @throws IOException
    */
   public EditLog(String path, boolean inactive, long transactionId) throws IOException {
-    INACTIVE = inactive;
+    mInactive = inactive;
 
-    if (!INACTIVE) {
+    if (!mInactive) {
       LOG.info("Creating edit log file " + path);
-      PATH = path;
+      mPath = path;
       mUfs = UnderFileSystem.get(path);
       if (mBackUpLogStartNum != -1) {
         String folder =
@@ -308,13 +308,13 @@ public class EditLog {
       LOG.info("Created file " + path);
       mFlushedTransactionId = transactionId;
       mTransactionId = transactionId;
-      WRITER = JsonObject.createObjectMapper().writer();
+      mWriter = JsonObject.createObjectMapper().writer();
     } else {
-      PATH = null;
+      mPath = null;
       mUfs = null;
       mOs = null;
       mDos = null;
-      WRITER = null;
+      mWriter = null;
     }
   }
 
@@ -347,7 +347,7 @@ public class EditLog {
    *          The time of the addBlock operation, in milliseconds
    */
   public synchronized void addBlock(int fileId, int blockIndex, long blockLength, long opTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -372,7 +372,7 @@ public class EditLog {
    */
   public synchronized void addCheckpoint(int fileId, long length, String checkpointPath,
       long opTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -387,7 +387,7 @@ public class EditLog {
    * Close the log.
    */
   public synchronized void close() {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -408,7 +408,7 @@ public class EditLog {
    *          The time of the completeFile operation, in milliseconds
    */
   public synchronized void completeFile(int fileId, long opTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -446,7 +446,7 @@ public class EditLog {
   public synchronized void createDependency(List<Integer> parents, List<Integer> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, DependencyType dependencyType, int depId, long creationTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -479,7 +479,7 @@ public class EditLog {
    */
   public synchronized void createFile(boolean recursive, String path, boolean directory,
       long blockSizeByte, long creationTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -502,7 +502,7 @@ public class EditLog {
    *          Additional metadata about the table
    */
   public synchronized void createRawTable(int tableId, int columns, ByteBuffer metadata) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -524,7 +524,7 @@ public class EditLog {
    *          The time of the delete operation, in milliseconds
    */
   public synchronized void delete(int fileId, boolean recursive, long opTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -562,7 +562,7 @@ public class EditLog {
    * Flush the log onto the storage.
    */
   public synchronized void flush() {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -572,7 +572,7 @@ public class EditLog {
         ((FSDataOutputStream) mOs).sync();
       }
       if (mDos.size() > mMaxLogSize) {
-        rotateEditLog(PATH);
+        rotateEditLog(mPath);
       }
     } catch (IOException e) {
       throw Throwables.propagate(e);
@@ -601,7 +601,7 @@ public class EditLog {
    *          The time of the rename operation, in milliseconds
    */
   public synchronized void rename(int fileId, String dstPath, long opTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -619,7 +619,7 @@ public class EditLog {
    *          The path of the edit log
    */
   public void rotateEditLog(String path) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -663,7 +663,7 @@ public class EditLog {
    *          The time of the setPinned operation, in milliseconds
    */
   public synchronized void setPinned(int fileId, boolean pinned, long opTimeMs) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -683,7 +683,7 @@ public class EditLog {
    *          The new metadata of the raw table
    */
   public synchronized void updateRawTableMetadata(int tableId, ByteBuffer metadata) {
-    if (INACTIVE) {
+    if (mInactive) {
       return;
     }
 
@@ -696,7 +696,7 @@ public class EditLog {
 
   private void writeOperation(EditLogOperation operation) {
     try {
-      WRITER.writeValue(mDos, operation);
+      mWriter.writeValue(mDos, operation);
       mDos.writeByte('\n');
     } catch (IOException e) {
       throw Throwables.propagate(e);

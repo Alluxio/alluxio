@@ -4,7 +4,7 @@ package tachyon.worker;
  * The worker space counter, in charge of counting and granting spaces in a worker daemon.
  */
 public class WorkerSpaceCounter {
-  private final long CAPACITY_BYTES;
+  private final long mCapacityBytes;
   private long mUsedBytes;
 
   /**
@@ -12,7 +12,7 @@ public class WorkerSpaceCounter {
    *          The maximum memory space the TachyonWorker can use, in bytes
    */
   public WorkerSpaceCounter(long capacityBytes) {
-    CAPACITY_BYTES = capacityBytes;
+    mCapacityBytes = capacityBytes;
     mUsedBytes = 0;
   }
 
@@ -20,14 +20,14 @@ public class WorkerSpaceCounter {
    * @return The available space size, in bytes
    */
   public synchronized long getAvailableBytes() {
-    return CAPACITY_BYTES - mUsedBytes;
+    return mCapacityBytes - mUsedBytes;
   }
 
   /**
    * @return The maximum memory space the TachyonWorker can use, in bytes
    */
   public long getCapacityBytes() {
-    return CAPACITY_BYTES;
+    return mCapacityBytes;
   }
 
   /**
@@ -66,9 +66,9 @@ public class WorkerSpaceCounter {
   @Override
   public synchronized String toString() {
     StringBuilder sb = new StringBuilder("WorkerSpaceCounter(");
-    sb.append(" TOTAL_BYTES: ").append(CAPACITY_BYTES);
+    sb.append(" TOTAL_BYTES: ").append(mCapacityBytes);
     sb.append(", mUsedBytes: ").append(mUsedBytes);
-    sb.append(", mAvailableBytes: ").append(CAPACITY_BYTES - mUsedBytes);
+    sb.append(", mAvailableBytes: ").append(mCapacityBytes - mUsedBytes);
     sb.append(" )");
     return sb.toString();
   }

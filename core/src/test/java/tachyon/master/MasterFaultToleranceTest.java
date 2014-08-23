@@ -20,8 +20,8 @@ import tachyon.util.CommonUtils;
  * Local Tachyon cluster with multiple master for unit tests.
  */
 public class MasterFaultToleranceTest {
-  private final int BLOCK_SIZE = 30;
-  private final int MASTERS = 5;
+  private static final int BLOCK_SIZE = 30;
+  private static final int MASTERS = 5;
 
   private LocalTachyonClusterMultiMaster mLocalTachyonClusterMultiMaster = null;
   private TachyonFS mTfs = null;
@@ -47,7 +47,7 @@ public class MasterFaultToleranceTest {
   /**
    * Create 10 files in the folder
    * 
-   * @param foldername
+   * @param folderName
    *          the folder name to create
    * @param answer
    *          the results, the mapping from file id to file path

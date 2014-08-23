@@ -42,7 +42,7 @@ public class DataServer implements Runnable {
       .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
   // The blocks locker manager.
-  private final BlocksLocker BLOCKS_LOCKER;
+  private final BlocksLocker mBlocksLocker;
 
   private volatile boolean mShutdown = false;
   private volatile boolean mShutdowned = false;
@@ -59,7 +59,7 @@ public class DataServer implements Runnable {
     LOG.info("Starting DataServer @ " + address);
     CommonConf.assertValidPort(address);
     mAddress = address;
-    BLOCKS_LOCKER = new BlocksLocker(workerStorage, Users.sDATASERVER_USER_ID);
+    mBlocksLocker = new BlocksLocker(workerStorage, Users.sDATASERVER_USER_ID);
     try {
       mSelector = initSelector();
     } catch (IOException e) {
@@ -165,7 +165,7 @@ public class DataServer implements Runnable {
 
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getBlockId());
-      int lockId = BLOCKS_LOCKER.lock(tMessage.getBlockId());
+      int lockId = mBlocksLocker.lock(tMessage.getBlockId());
       DataServerMessage tResponseMessage =
           DataServerMessage.createBlockResponseMessage(true, tMessage.getBlockId(),
               tMessage.getOffset(), tMessage.getLength());
@@ -238,7 +238,7 @@ public class DataServer implements Runnable {
       mReceivingData.remove(socketChannel);
       mSendingData.remove(socketChannel);
       sendMessage.close();
-      BLOCKS_LOCKER.unlock(Math.abs(sendMessage.getBlockId()), sendMessage.getLockId());
+      mBlocksLocker.unlock(Math.abs(sendMessage.getBlockId()), sendMessage.getLockId());
     }
   }
 }

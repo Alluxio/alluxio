@@ -51,10 +51,10 @@ public enum WriteType {
     throw new IOException("Unknown WriteType : " + op);
   }
 
-  private final int VALUE;
+  private final int mValue;
 
   private WriteType(int value) {
-    VALUE = value;
+    mValue = value;
   }
 
   /**
@@ -63,14 +63,14 @@ public enum WriteType {
    * @return the value of the write type
    */
   public int getValue() {
-    return VALUE;
+    return mValue;
   }
 
   /**
    * @return true if the write type is ASYNC_THROUGH, false otherwise
    */
   public boolean isAsync() {
-    return VALUE == ASYNC_THROUGH.VALUE;
+    return mValue == ASYNC_THROUGH.mValue;
   }
 
   /**
@@ -78,21 +78,21 @@ public enum WriteType {
    *         TRY_CACHE, or ASYNC_THROUGH
    */
   public boolean isCache() {
-    return (VALUE == MUST_CACHE.VALUE) || (VALUE == CACHE_THROUGH.VALUE)
-        || (VALUE == TRY_CACHE.VALUE) || (VALUE == ASYNC_THROUGH.VALUE);
+    return (mValue == MUST_CACHE.mValue) || (mValue == CACHE_THROUGH.mValue)
+        || (mValue == TRY_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
   }
 
   /**
    * @return true if the write type is MUST_CACHE or ASYNC_THROUGH
    */
   public boolean isMustCache() {
-    return (VALUE == MUST_CACHE.VALUE) || (VALUE == ASYNC_THROUGH.VALUE);
+    return (mValue == MUST_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
   }
 
   /**
    * @return true if the write type is CACHE_THROUGH or THROUGH
    */
   public boolean isThrough() {
-    return (VALUE == CACHE_THROUGH.VALUE) || (VALUE == THROUGH.VALUE);
+    return (mValue == CACHE_THROUGH.mValue) || (mValue == THROUGH.mValue);
   }
 }

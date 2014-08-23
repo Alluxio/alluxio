@@ -41,9 +41,9 @@ abstract class AbstractTFS extends FileSystem {
   public static final String FIRST_COM_PATH = "tachyon_dep/";
   public static final String RECOMPUTE_PATH = "tachyon_recompute/";
 
-  public static String UNDERFS_ADDRESS;
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  public static String mUnderFSAddress;
 
   private URI mUri = null;
   private Path mWorkingDir = new Path(Constants.PATH_SEPARATOR);
@@ -203,7 +203,7 @@ abstract class AbstractTFS extends FileSystem {
       Path hdfsPath = Utils.getHDFSPath(path);
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       if (fs.exists(hdfsPath)) {
-        String ufsAddrPath = CommonUtils.concat(UNDERFS_ADDRESS, path);
+        String ufsAddrPath = CommonUtils.concat(mUnderFSAddress, path);
         // Set the path as the TFS root path.
         UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null));
       }
@@ -287,7 +287,7 @@ abstract class AbstractTFS extends FileSystem {
    */
   @Deprecated
   private boolean useHdfs() {
-    return UNDERFS_ADDRESS != null && URI.create(UNDERFS_ADDRESS).getScheme() != null;
+    return mUnderFSAddress != null && URI.create(mUnderFSAddress).getScheme() != null;
   }
 
   /**
@@ -332,8 +332,8 @@ abstract class AbstractTFS extends FileSystem {
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
     mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode());
     mUri = URI.create(mTachyonHeader);
-    UNDERFS_ADDRESS = mTFS.getUfsAddress();
-    LOG.info(mTachyonHeader + " " + mUri + " " + UNDERFS_ADDRESS);
+    mUnderFSAddress = mTFS.getUfsAddress();
+    LOG.info(mTachyonHeader + " " + mUri + " " + mUnderFSAddress);
   }
 
   @Override

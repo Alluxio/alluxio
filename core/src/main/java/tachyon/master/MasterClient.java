@@ -50,8 +50,8 @@ import tachyon.util.CommonUtils;
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class MasterClient implements Closeable {
-  private final static int MAX_CONNECT_TRY = 5;
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final int MAX_CONNECT_TRY = 5;
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private boolean mUseZookeeper;
   private MasterService.Client mClient = null;

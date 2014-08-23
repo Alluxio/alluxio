@@ -15,17 +15,17 @@ public abstract class UnderFileSystem {
   public enum SpaceType {
     SPACE_TOTAL(0), SPACE_FREE(1), SPACE_USED(2);
 
-    private final int VALUE;
+    private final int mValue;
 
     private SpaceType(int value) {
-      VALUE = value;
+      mValue = value;
     }
 
     /**
      * Get the integer value of this enum value.
      */
     public int getValue() {
-      return VALUE;
+      return mValue;
     }
   }
 

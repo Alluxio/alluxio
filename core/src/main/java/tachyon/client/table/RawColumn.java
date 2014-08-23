@@ -11,9 +11,9 @@ import tachyon.util.CommonUtils;
  * The column of a <code>RawTable</code>.
  */
 public class RawColumn {
-  private final TachyonFS TFS;
-  private final RawTable RAW_TABLE;
-  private final int COLUMN_INDEX;
+  private final TachyonFS mTachyonFS;
+  private final RawTable mRawTable;
+  private final int mColumnIndex;
 
   /**
    * @param tachyonClient
@@ -21,14 +21,14 @@ public class RawColumn {
    * @param columnIndex
    */
   RawColumn(TachyonFS tachyonClient, RawTable rawTable, int columnIndex) {
-    TFS = tachyonClient;
-    RAW_TABLE = rawTable;
-    COLUMN_INDEX = columnIndex;
+    mTachyonFS = tachyonClient;
+    mRawTable = rawTable;
+    mColumnIndex = columnIndex;
   }
 
   // TODO creating file here should be based on id.
   public boolean createPartition(int pId) throws IOException {
-    return TFS.createFile(CommonUtils.concat(RAW_TABLE.getPath(), MasterInfo.COL + COLUMN_INDEX,
+    return mTachyonFS.createFile(CommonUtils.concat(mRawTable.getPath(), MasterInfo.COL + mColumnIndex,
         pId)) > 0;
   }
 
@@ -39,14 +39,14 @@ public class RawColumn {
 
   // TODO creating file here should be based on id.
   public TachyonFile getPartition(int pId, boolean cachedMetadata) throws IOException {
-    return TFS.getFile(
-        CommonUtils.concat(RAW_TABLE.getPath(), MasterInfo.COL + COLUMN_INDEX, pId),
+    return mTachyonFS.getFile(
+        CommonUtils.concat(mRawTable.getPath(), MasterInfo.COL + mColumnIndex, pId),
         cachedMetadata);
   }
 
   // TODO creating file here should be based on id.
   public int partitions() throws IOException {
-    return TFS.listStatus(CommonUtils.concat(RAW_TABLE.getPath(), MasterInfo.COL + COLUMN_INDEX))
+    return mTachyonFS.listStatus(CommonUtils.concat(mRawTable.getPath(), MasterInfo.COL + mColumnIndex))
         .size();
   }
 }

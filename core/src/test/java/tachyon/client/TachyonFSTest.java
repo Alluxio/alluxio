@@ -24,9 +24,9 @@ import tachyon.util.CommonUtils;
  * Unit tests on TachyonClient.
  */
 public class TachyonFSTest {
-  private final int WORKER_CAPACITY_BYTES = 20000;
-  private final int USER_QUOTA_UNIT_BYTES = 1000;
-  private final int SLEEP_MS = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
+  private static final int WORKER_CAPACITY_BYTES = 20000;
+  private static final int USER_QUOTA_UNIT_BYTES = 1000;
+  private static final int SLEEP_MS = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 

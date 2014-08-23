@@ -91,10 +91,10 @@ public class TachyonFS extends AbstractTachyonFS {
     return new TachyonFS(new InetSocketAddress(masterHost, masterPort), zookeeperMode);
   }
 
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private final long USER_QUOTA_UNIT_BYTES = UserConf.get().QUOTA_UNIT_BYTES;
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private final long mUserQuotaUnitBytes = UserConf.get().QUOTA_UNIT_BYTES;
+  private final int mUserFailedSpaceRequestLimits = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
 
-  private final int USER_FAILED_SPACE_REQUEST_LIMITS = UserConf.get().FAILED_SPACE_REQUEST_LIMITS;
   // The RPC client talks to the system master.
   private MasterClient mMasterClient = null;
   // The Master address.
@@ -143,7 +143,7 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Notify the worker that the checkpoint file of the file FID has been added.
+   * Notify the worker that the checkpoint file of the file mFileId has been added.
    * 
    * @param fid
    *          the file id
@@ -900,13 +900,13 @@ public class TachyonFS extends AbstractTachyonFS {
     int failedTimes = 0;
     while (mAvailableSpaceBytes < requestSpaceBytes) {
       long toRequestSpaceBytes =
-          Math.max(requestSpaceBytes - mAvailableSpaceBytes, USER_QUOTA_UNIT_BYTES);
+          Math.max(requestSpaceBytes - mAvailableSpaceBytes, mUserQuotaUnitBytes);
       if (mWorkerClient.requestSpace(mMasterClient.getUserId(), toRequestSpaceBytes)) {
         mAvailableSpaceBytes += toRequestSpaceBytes;
       } else {
         LOG.info("Failed to request " + toRequestSpaceBytes + " bytes local space. " + "Time "
             + (failedTimes ++));
-        if (failedTimes == USER_FAILED_SPACE_REQUEST_LIMITS) {
+        if (failedTimes == mUserFailedSpaceRequestLimits) {
           return false;
         }
       }

@@ -14,11 +14,11 @@ import tachyon.master.LocalTachyonCluster;
  * Unit tests for <code>tachyon.client.FileInStream</code>.
  */
 public class FileInStreamTest {
-  private final int BLOCK_SIZE = 30;
-  private final int MIN_LEN = BLOCK_SIZE + 1;
-  private final int MAX_LEN = 255;
-  private final int MEAN = (MIN_LEN + MAX_LEN) / 2;
-  private final int DELTA = 33;
+  private static final int BLOCK_SIZE = 30;
+  private static final int MIN_LEN = BLOCK_SIZE + 1;
+  private static final int MAX_LEN = 255;
+  private static final int MEAN = (MIN_LEN + MAX_LEN) / 2;
+  private static final int DELTA = 33;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
