@@ -128,17 +128,15 @@ public class WorkerClient implements Closeable {
   /**
    * Notify the worker the block is cached.
    * 
-   * @param userId
-   *          The user id of the client who send the notification
    * @param blockId
    *          The id of the block
    * @throws IOException
    */
-  public synchronized void cacheBlock(long userId, long blockId) throws IOException {
+  public synchronized void cacheBlock(long blockId) throws IOException {
     mustConnect();
 
     try {
-      mClient.cacheBlock(userId, blockId);
+      mClient.cacheBlock(MASTER_CLIENT.getUserId(), blockId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (BlockInfoException e) {
