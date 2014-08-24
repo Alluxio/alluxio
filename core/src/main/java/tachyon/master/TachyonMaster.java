@@ -87,7 +87,7 @@ public class TachyonMaster {
       mServerTNonblockingServerSocket = new TNonblockingServerSocket(address);
       mPort = NetworkUtils.getPort(mServerTNonblockingServerSocket);
 
-      mMasterAddress = new InetSocketAddress(address.getHostName(), mPort);
+      mMasterAddress = new InetSocketAddress(address.getAddress().getCanonicalHostName(), mPort);
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
       Preconditions.checkState(isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX),
           "Tachyon was not formatted!");
@@ -97,7 +97,8 @@ public class TachyonMaster {
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
         // InetSocketAddress.toString causes test issues, so build the string by hand
-        String name = mMasterAddress.getAddress().getHostName() + ":" + mMasterAddress.getPort();
+        String name =
+            mMasterAddress.getAddress().getCanonicalHostName() + ":" + mMasterAddress.getPort();
         mLeaderSelectorClient =
             new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS, conf.ZOOKEEPER_ELECTION_PATH,
                 conf.ZOOKEEPER_LEADER_PATH, name);
@@ -170,7 +171,7 @@ public class TachyonMaster {
 
     mWebServer =
         new UIWebServer("Tachyon Master Server", new InetSocketAddress(
-            mMasterAddress.getHostName(), mWebPort), mMasterInfo);
+            mMasterAddress.getAddress().getCanonicalHostName(), mWebPort), mMasterInfo);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
