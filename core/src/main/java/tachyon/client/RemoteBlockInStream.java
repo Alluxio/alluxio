@@ -64,7 +64,7 @@ public class RemoteBlockInStream extends BlockInStream {
       throws IOException {
     super(file, readType, blockIndex);
 
-    mBlockInfo = mTachyonFS.getClientBlockInfo(mFile.mFileId, mBlockIndex);
+    mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
     mReadByte = 0;
     mBufferStartPosition = 0;
 
@@ -214,7 +214,8 @@ public class RemoteBlockInStream extends BlockInStream {
         }
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())) {
-          String localFileName = CommonUtils.concat(mTachyonFS.getRootFolder(), blockInfo.blockId);
+          String localFileName =
+              CommonUtils.concat(mTachyonFS.getLocalDataFolder(), blockInfo.blockId);
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         }
         LOG.info(host + ":" + port + " current host is "
@@ -319,8 +320,8 @@ public class RemoteBlockInStream extends BlockInStream {
           }
         }
       } catch (IOException e) {
-        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " +
-            mFile.mFileId, e);
+        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File "
+            + mFile.mFileId, e);
         mCheckpointInputStream = null;
       }
     }
@@ -379,7 +380,7 @@ public class RemoteBlockInStream extends BlockInStream {
     mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
 
     if (mCurrentBuffer == null) {
-      mBlockInfo = mTachyonFS.getClientBlockInfo(mFile.mFileId, mBlockIndex);
+      mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
       mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
     }
   }

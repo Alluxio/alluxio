@@ -142,7 +142,7 @@ public class FileOutStream extends OutStream {
     }
 
     if (mWriteType.isCache()) {
-      mCurrentBlockId = mTachyonFS.getBlockIdBasedOnOffset(mFile.mFileId, mCachedBytes);
+      mCurrentBlockId = mFile.getBlockIdBasedOnOffset(mCachedBytes);
       mCurrentBlockLeftByte = mBlockCapacityByte;
 
       mCurrentBlockOutStream =

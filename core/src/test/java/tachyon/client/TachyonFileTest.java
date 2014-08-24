@@ -176,8 +176,7 @@ public class TachyonFileTest {
 
       TachyonFile file = mTfs.getFile(fileId);
       Assert.assertEquals(1, file.getNumberOfBlocks());
-      long bid = mTfs.getBlockIdBasedOnOffset(file.mFileId, 0);
-      String localFname = file.getLocalFilename(bid);
+      String localFname = file.getLocalFilename(0);
       Assert.assertNotNull("Block not found on local ramdisk", localFname);
       RandomAccessFile lfile = new RandomAccessFile(localFname, "r");
       byte[] buf = new byte[k];
@@ -196,7 +195,7 @@ public class TachyonFileTest {
             USER_QUOTA_UNIT_BYTES);
 
     TachyonFile file = mTfs.getFile(fileId);
-    ClientBlockInfo blockInfo = mTfs.getClientBlockInfo(fileId, 0);
+    ClientBlockInfo blockInfo = file.getClientBlockInfo(0);
     TachyonByteBuffer buf = file.readRemoteByteBuffer(blockInfo);
     Assert.assertEquals(USER_QUOTA_UNIT_BYTES, buf.DATA.limit());
     buf.close();
