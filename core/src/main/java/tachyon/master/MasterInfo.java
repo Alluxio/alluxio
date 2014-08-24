@@ -833,8 +833,8 @@ public class MasterInfo extends ImageWriter {
       throws BlockInfoException {
     tFile.addBlock(blockInfo);
     tFile.setLastModificationTimeMs(opTimeMs);
-    mJournal.getEditLog()
-        .addBlock(tFile.getId(), blockInfo.mBlockIndex, blockInfo.mLength, opTimeMs);
+    mJournal.getEditLog().addBlock(tFile.getId(), blockInfo.mBlockIndex, blockInfo.mLength,
+        opTimeMs);
     mJournal.getEditLog().flush();
   }
 
@@ -1329,7 +1329,7 @@ public class MasterInfo extends ImageWriter {
    * @throws FileDoesNotExistException
    * @throws IOException
    */
-  public List<ClientBlockInfo> getFileLocations(int fileId) throws FileDoesNotExistException,
+  public List<ClientBlockInfo> getFileBlocks(int fileId) throws FileDoesNotExistException,
       IOException {
     synchronized (ROOT_LOCK) {
       Inode inode = mFileIdToInodes.get(fileId);
@@ -1353,7 +1353,7 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    * @throws IOException
    */
-  public List<ClientBlockInfo> getFileLocations(String path) throws FileDoesNotExistException,
+  public List<ClientBlockInfo> getFileBlocks(String path) throws FileDoesNotExistException,
       InvalidPathException, IOException {
     LOG.info("getFileLocations: " + path);
     synchronized (ROOT_LOCK) {
@@ -1361,7 +1361,7 @@ public class MasterInfo extends ImageWriter {
       if (inode == null) {
         throw new FileDoesNotExistException(path);
       }
-      return getFileLocations(inode.getId());
+      return getFileBlocks(inode.getId());
     }
   }
 
@@ -1550,7 +1550,8 @@ public class MasterInfo extends ImageWriter {
       if (inode.getParentId() == 1) {
         return Constants.PATH_SEPARATOR + inode.getName();
       }
-      return CommonUtils.concat(getPath(mFileIdToInodes.get(inode.getParentId())), inode.getName());
+      return CommonUtils
+          .concat(getPath(mFileIdToInodes.get(inode.getParentId())), inode.getName());
     }
   }
 

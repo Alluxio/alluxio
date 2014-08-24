@@ -1,5 +1,6 @@
 namespace java tachyon.thrift
 
+// Version 3: 0.6.0
 // Version 2: 0.5.0
 // Version 1: before 0.5.0
 
@@ -196,15 +197,9 @@ service MasterService {
     throws (1: FileDoesNotExistException eF, 2: BlockInfoException eB)
 
   /**
-   * Get file locations by file Id.
+   * Get file blocks info.
    */
-  list<ClientBlockInfo> user_getFileBlocksById(1: i32 fileId)
-    throws (1: FileDoesNotExistException e)
-
-  /**
-   * Get file locations by path
-   */
-  list<ClientBlockInfo> user_getFileBlocksByPath(1: string path)
+  list<ClientBlockInfo> user_getFileBlocks(1: i32 fileId, 2: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
 
   bool user_delete(1: i32 fileId, 2: string path, 3: bool recursive) // Delete file
@@ -229,17 +224,12 @@ service MasterService {
    */
   i32 user_getRawTableId(1: string path)
     throws (1: InvalidPathException e)
-
+     
   /**
-   * Get Table info by Table Id.
+   * Get RawTable's info; Return a ClientRawTable instance with id 0 if the system does not contain
+   * the table. path if valid iff id is -1.
    */
-  ClientRawTableInfo user_getClientRawTableInfoById(1: i32 tableId)
-    throws (1: TableDoesNotExistException e)
-
-  /**
-   * Get Table info by path
-   */
-  ClientRawTableInfo user_getClientRawTableInfoByPath(1: string tablePath)
+  ClientRawTableInfo user_getClientRawTableInfo(1: i32 id, 2: string path)
     throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI)
 
   void user_updateRawTableMetadata(1: i32 tableId, 2: binary metadata)
