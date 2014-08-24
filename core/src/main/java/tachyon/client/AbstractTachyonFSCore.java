@@ -18,7 +18,7 @@ abstract class AbstractTachyonFSCore implements Closeable {
    * @param path
    *          The path of the file
    * @param ufsPath
-   *          The path of the file in the under file system. If this is empty or null, the file
+   *          The path of the file in the under file system. If this is empty, the file
    *          does not exist in the under file system yet.
    * @param blockSizeByte
    *          The size of the block in bytes. It is -1 iff ufsPath is non-empty.
@@ -37,7 +37,7 @@ abstract class AbstractTachyonFSCore implements Closeable {
    *          The id of the file / folder. If it is not -1, path parameter is ignored. Otherwise,
    *          the method uses the path parameter.
    * @param path
-   *          The path of the file / folder. It could be empty or null iff id is not -1.
+   *          The path of the file / folder. It could be empty iff id is not -1.
    * @param recursive
    *          If fileId or path represents a non-empty folder, delete the folder recursively or not
    * @return true if deletes successfully, false otherwise.
@@ -87,9 +87,9 @@ abstract class AbstractTachyonFSCore implements Closeable {
    *          The id of the source file / folder. If it is not -1, path parameter is ignored.
    *          Otherwise, the method uses the srcPath parameter.
    * @param srcPath
-   *          The path of the source file / folder. It could be empty or null iff id is not -1.
+   *          The path of the source file / folder. It could be empty iff id is not -1.
    * @param dstPath
-   *          The path of the destination file / folder. It could be empty or null iff id is not -1.
+   *          The path of the destination file / folder. It could be empty iff id is not -1.
    * @return true if renames successfully, false otherwise.
    * @throws IOException
    */

@@ -475,7 +475,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized List<ClientBlockInfo> getFileBlocks(int fid) throws IOException {
     // TODO Should read from mClientFileInfos if possible. Should add timeout to improve this.
-    return mMasterClient.user_getFileBlocks(fid);
+    return mMasterClient.user_getFileBlocks(fid, "");
   }
 
   /**
@@ -565,7 +565,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   public synchronized RawTable getRawTable(int id) throws IOException {
-    ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfoById(id);
+    ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfo(id, "");
     return new RawTable(this, clientRawTableInfo);
   }
 
@@ -578,9 +578,8 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   public synchronized RawTable getRawTable(String path) throws IOException {
-    String cleanedPath = cleanPathIOException(path);
     ClientRawTableInfo clientRawTableInfo =
-        mMasterClient.user_getClientRawTableInfoByPath(cleanedPath);
+        mMasterClient.user_getClientRawTableInfo(-1, cleanPathIOException(path));
     return new RawTable(this, clientRawTableInfo);
   }
 

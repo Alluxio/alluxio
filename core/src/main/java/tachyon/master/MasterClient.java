@@ -291,6 +291,15 @@ public class MasterClient implements Closeable {
     return null;
   }
 
+  private synchronized void parameterCheck(int id, String path) throws IOException {
+    if (path == null) {
+      throw new IOException("Illegal path parameter: " + path + " ; Please use an empty string.");
+    }
+    if (id == -1 && (path == null || !path.startsWith(Constants.PATH_SEPARATOR))) {
+      throw new IOException("Illegal path parameter: " + path);
+    }
+  }
+
   /**
    * TODO Consolidate this with close()
    */
@@ -464,36 +473,18 @@ public class MasterClient implements Closeable {
     return null;
   }
 
-  public synchronized ClientRawTableInfo user_getClientRawTableInfoById(int id) throws IOException {
-    while (!mIsShutdown) {
-      connect();
-
-      try {
-        ClientRawTableInfo ret = mClient.user_getClientRawTableInfoById(id);
-        ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
-        return ret;
-      } catch (TableDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mConnected = false;
-      }
-    }
-    return null;
-  }
-
-  public synchronized ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
+  public synchronized ClientRawTableInfo user_getClientRawTableInfo(int id, String path)
       throws IOException {
+    parameterCheck(id, path);
+
     while (!mIsShutdown) {
       connect();
 
       try {
-        ClientRawTableInfo ret = mClient.user_getClientRawTableInfoByPath(path);
+        ClientRawTableInfo ret = mClient.user_getClientRawTableInfo(id, path);
         ret.setMetadata(CommonUtils.generateNewByteBufferFromThriftRPCResults(ret.metadata));
         return ret;
       } catch (TableDoesNotExistException e) {
-        throw new IOException(e);
-      } catch (InvalidPathException e) {
         throw new IOException(e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
@@ -503,12 +494,15 @@ public class MasterClient implements Closeable {
     return null;
   }
 
-  public synchronized List<ClientBlockInfo> user_getFileBlocks(int id) throws IOException {
+  public synchronized List<ClientBlockInfo> user_getFileBlocks(int fileId, String path)
+      throws IOException {
+    parameterCheck(fileId, path);
+
     while (!mIsShutdown) {
       connect();
 
       try {
-        return mClient.user_getFileBlocksById(id);
+        return mClient.user_getFileBlocks(fileId, path);
       } catch (FileDoesNotExistException e) {
         throw new IOException(e);
       } catch (TException e) {
@@ -584,12 +578,7 @@ public class MasterClient implements Closeable {
 
   public synchronized boolean user_rename(int fileId, String srcPath, String dstPath)
       throws IOException {
-    if (srcPath == null) {
-      srcPath = "";
-    }
-    if (fileId == -1 && !srcPath.startsWith(Constants.PATH_SEPARATOR)) {
-      throw new IOException("Illegal srcPath parameter: " + srcPath);
-    }
+    parameterCheck(fileId, srcPath);
 
     while (!mIsShutdown) {
       connect();

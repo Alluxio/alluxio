@@ -35,7 +35,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
   private final UserConf USER_CONF = UserConf.get();
 
   private Object mUFSConf = null;
-  private ClientFileInfo mInfo = null;
 
   /**
    * A Tachyon File handler, based file id
@@ -85,15 +84,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public long getBlockSizeByte() throws IOException {
-    return getInfo(false).getBlockSizeByte();
-  }
-
-  private ClientFileInfo getInfo(boolean update) throws IOException {
-    if (mInfo == null || update) {
-      mInfo = mTachyonFS.getFileStatus(mFileId, "", false);
-    }
-
-    return mInfo;
+    return mTachyonFS.getFileStatus(mFileId, "", true).getBlockSizeByte();
   }
 
   /**
@@ -103,7 +94,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public long getCreationTimeMs() throws IOException {
-    return getInfo(false).getCreationTimeMs();
+    return mTachyonFS.getFileStatus(mFileId, "", true).getCreationTimeMs();
   }
 
   public int getDiskReplication() {
@@ -130,7 +121,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("The file " + this + " is not complete.");
     }
 
-    List<Long> blocks = getInfo(true).getBlockIds();
+    List<Long> blocks = mTachyonFS.getFileStatus(mFileId, "", false).getBlockIds();
 
     if (blocks.size() == 0) {
       return new EmptyBlockInStream(this, readType);
@@ -206,7 +197,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public int getNumberOfBlocks() throws IOException {
-    return getInfo(true).getBlockIds().size();
+    return mTachyonFS.getFileStatus(mFileId, "", false).getBlockIds().size();
   }
 
   /**
@@ -236,7 +227,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public String getPath() throws IOException {
-    return getInfo(true).getPath();
+    return mTachyonFS.getFileStatus(mFileId, "", false).getPath();
   }
 
   /**
@@ -255,13 +246,13 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   String getUfsPath() throws IOException {
-    ClientFileInfo info = getInfo(false);
+    ClientFileInfo info = mTachyonFS.getFileStatus(mFileId, "", true);
 
     if (!info.getUfsPath().isEmpty()) {
       return info.getUfsPath();
     }
 
-    return getInfo(true).getUfsPath();
+    return mTachyonFS.getFileStatus(mFileId, "", false).getUfsPath();
   }
 
   /**
@@ -275,7 +266,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   long getBlockIdBasedOnOffset(long offset) throws IOException {
-    int index = (int) (offset / getInfo(false).getBlockSizeByte());
+    int index = (int) (offset / mTachyonFS.getFileStatus(mFileId, "", true).getBlockSizeByte());
 
     return mTachyonFS.getBlockId(mFileId, index);
   }
@@ -292,9 +283,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public boolean isComplete() throws IOException {
-    ClientFileInfo info = getInfo(false);
+    ClientFileInfo info = mTachyonFS.getFileStatus(mFileId, "", true);
 
-    return info.isComplete ? true : getInfo(true).isComplete;
+    return info.isComplete ? true : mTachyonFS.getFileStatus(mFileId, "", false).isComplete;
   }
 
   /**
@@ -302,7 +293,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public boolean isDirectory() throws IOException {
-    return getInfo(false).isFolder;
+    return mTachyonFS.getFileStatus(mFileId, "", true).isFolder;
   }
 
   /**
@@ -321,7 +312,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public boolean isInMemory() throws IOException {
-    return getInfo(true).getInMemoryPercentage() == 100;
+    return mTachyonFS.getFileStatus(mFileId, "", false).getInMemoryPercentage() == 100;
   }
 
   /**
@@ -329,7 +320,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public long length() throws IOException {
-    return getInfo(true).getLength();
+    return mTachyonFS.getFileStatus(mFileId, "", false).getLength();
   }
 
   /**
@@ -633,7 +624,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     try {
       return getPath();
     } catch (IOException e) {
-      throw new RuntimeException("File does not exist anymore: " + mInfo);
+      throw new RuntimeException("File does not exist anymore: " + mFileId);
     }
   }
 }
