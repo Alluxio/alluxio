@@ -145,8 +145,8 @@ public class MasterClient implements Closeable {
           + mMasterAddress);
 
       mProtocol =
-          new TBinaryProtocol(new TFramedTransport(new TSocket(mMasterAddress.getHostName(),
-              mMasterAddress.getPort())));
+          new TBinaryProtocol(new TFramedTransport(new TSocket(mMasterAddress.getAddress()
+              .getCanonicalHostName(), mMasterAddress.getPort())));
       mClient = new MasterService.Client(mProtocol);
       mLastAccessedMs = System.currentTimeMillis();
       try {
