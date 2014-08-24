@@ -184,8 +184,7 @@ public class TachyonURITest {
     Assert.assertEquals(3, new TachyonURI("/a/b/c.txt").getDepth());
     Assert.assertEquals(2, new TachyonURI("/a/b/").getDepth());
     Assert.assertEquals(2, new TachyonURI("a\\b").getDepth());
-    // TODO fix this.
-    // Assert.assertEquals(1, new TachyonURI("C:\\\\a").getDepth());
+    Assert.assertEquals(1, new TachyonURI("C:\\\\a").getDepth());
     Assert.assertEquals(0, new TachyonURI("C:\\\\").getDepth());
     Assert.assertEquals(0, new TachyonURI("tachyon://localhost:1998/").getDepth());
     Assert.assertEquals(1, new TachyonURI("tachyon://localhost:1998/a").getDepth());
@@ -323,9 +322,8 @@ public class TachyonURITest {
         new TachyonURI("tachyon:/a").join("/b.txt"));
     Assert.assertEquals(new TachyonURI("tachyon:/a/b.txt"),
         new TachyonURI("tachyon:/a/c.txt").join(new TachyonURI("/../b.txt")));
-    // TODO Fix this, a possible URI bug.
-    // Assert.assertEquals(new TachyonURI("C:\\\\a\b"),
-    // new TachyonURI("C:\\\\a").join(new TachyonURI("\\b")));
+    Assert.assertEquals(new TachyonURI("C:\\\\a\\b"),
+        new TachyonURI("C:\\\\a").join(new TachyonURI("\\b")));
   }
 
   @Test
@@ -341,7 +339,7 @@ public class TachyonURITest {
 
     Assert.assertEquals("", new TachyonURI(".").toString());
     Assert.assertEquals("C:/", new TachyonURI("C:\\\\").toString());
-    Assert.assertEquals("C://a/b.txt", new TachyonURI("C:\\\\a\\b.txt").toString());
+    Assert.assertEquals("C:/a/b.txt", new TachyonURI("C:\\\\a\\b.txt").toString());
     Assert.assertEquals("file:/a", new TachyonURI("file:/a").toString());
     Assert.assertEquals("file:/a", new TachyonURI("file:///a").toString());
     Assert.assertEquals("file:/a", new TachyonURI("file", null, "/a").toString());
