@@ -22,6 +22,7 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 import tachyon.worker.DataServerMessage;
 
 /**
@@ -455,8 +456,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
         if (port == -1) {
           continue;
         }
-        final String hostname = InetAddress.getLocalHost().getHostName();
-        final String hostaddress = InetAddress.getLocalHost().getHostAddress();
+        final String hostname = NetworkUtils.getLocalHostName();
+        final String hostaddress = NetworkUtils.getLocalIpAddress();
         if (host.equals(hostname) || host.equals(hostaddress)) {
           String localFileName = CommonUtils.concat(mTachyonFS.getRootFolder(), blockInfo.blockId);
           LOG.warn("Reading remotely even though request is local; file is " + localFileName);
