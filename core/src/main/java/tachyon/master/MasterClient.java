@@ -186,7 +186,7 @@ public class MasterClient implements Closeable {
         + (tries - 1) + " attempts", lastException);
   }
 
-  public ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
+  public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
     while (!mIsShutdown) {
       connect();
 
@@ -225,11 +225,11 @@ public class MasterClient implements Closeable {
     return null;
   }
 
-  long getLastAccessedMs() {
+  synchronized long getLastAccessedMs() {
     return mLastAccessedMs;
   }
 
-  private InetSocketAddress getMasterAddress() {
+  private synchronized InetSocketAddress getMasterAddress() {
     if (!mUseZookeeper) {
       return mMasterAddress;
     }
@@ -294,7 +294,7 @@ public class MasterClient implements Closeable {
   /**
    * TODO Consolidate this with close()
    */
-  public void shutdown() {
+  public synchronized void shutdown() {
     mIsShutdown = true;
     if (mProtocol != null) {
       mProtocol.getTransport().close();
@@ -450,8 +450,7 @@ public class MasterClient implements Closeable {
     return -1;
   }
 
-  public ClientBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException,
-      BlockInfoException, IOException {
+  public synchronized ClientBlockInfo user_getClientBlockInfo(long blockId) throws IOException {
     while (!mIsShutdown) {
       connect();
 

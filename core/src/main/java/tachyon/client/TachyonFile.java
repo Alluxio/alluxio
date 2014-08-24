@@ -85,10 +85,10 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public long getBlockSizeByte() throws IOException {
-    return getClientFileInfo(false).getBlockSizeByte();
+    return getInfo(false).getBlockSizeByte();
   }
 
-  private synchronized ClientFileInfo getClientFileInfo(boolean update) throws IOException {
+  private ClientFileInfo getInfo(boolean update) throws IOException {
     if (mInfo == null || update) {
       mInfo = mTachyonFS.getFileStatus(mFileId, "", false);
     }
@@ -103,7 +103,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public long getCreationTimeMs() throws IOException {
-    return getClientFileInfo(false).getCreationTimeMs();
+    return getInfo(false).getCreationTimeMs();
   }
 
   public int getDiskReplication() {
@@ -130,7 +130,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("The file " + this + " is not complete.");
     }
 
-    List<Long> blocks = getClientFileInfo(true).getBlockIds();
+    List<Long> blocks = getInfo(true).getBlockIds();
 
     if (blocks.size() == 0) {
       return new EmptyBlockInStream(this, readType);
@@ -139,6 +139,20 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
 
     return new FileInStream(this, readType, mUFSConf);
+  }
+
+  /**
+   * Get a ClientBlockInfo by the file id and block index
+   * 
+   * @param fid
+   *          the file id
+   * @param blockIndex
+   *          The index of the block in the file.
+   * @return the ClientBlockInfo of the specified block
+   * @throws IOException
+   */
+  public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws IOException {
+    return mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
   }
 
   /**
@@ -153,25 +167,11 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public String getLocalFilename(int blockIndex) throws IOException {
-    ClientBlockInfo blockInfo = mTachyonFS.getClientBlockInfo(mFileId, blockIndex);
+    ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
 
-    return getLocalFilename(blockInfo.getBlockId());
-  }
-
-  /**
-   * Returns the local filename for the block if that file exists on the local file system. This is
-   * an alpha power-api feature for applications that want short-circuit-read files directly. There
-   * is no guarantee that the file still exists after this call returns, as Tachyon may evict blocks
-   * from memory at any time.
-   * 
-   * @param blockId
-   *          The id of the block.
-   * @return filename on local file system or null if file not present on local file system.
-   */
-  String getLocalFilename(long blockId) throws IOException {
-    String rootFolder = mTachyonFS.getRootFolder();
+    String rootFolder = mTachyonFS.getLocalDataFolder();
     if (rootFolder != null) {
-      String localFileName = CommonUtils.concat(rootFolder, blockId);
+      String localFileName = CommonUtils.concat(rootFolder, blockInfo.getBlockId());
       File file = new File(localFileName);
       if (file.exists()) {
         return localFileName;
@@ -187,7 +187,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public List<String> getLocationHosts() throws IOException {
-    List<NetAddress> locations = mTachyonFS.getClientBlockInfo(mFileId, 0).getLocations();
+    List<NetAddress> locations = getClientBlockInfo(0).getLocations();
     List<String> ret = null;
     if (locations != null) {
       ret = new ArrayList<String>(locations.size());
@@ -206,7 +206,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public int getNumberOfBlocks() throws IOException {
-    return getClientFileInfo(true).getBlockIds().size();
+    return getInfo(true).getBlockIds().size();
   }
 
   /**
@@ -236,7 +236,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public String getPath() throws IOException {
-    return getClientFileInfo(true).getPath();
+    return getInfo(true).getPath();
   }
 
   /**
@@ -255,13 +255,29 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   String getUfsPath() throws IOException {
-    ClientFileInfo info = getClientFileInfo(false);
+    ClientFileInfo info = getInfo(false);
 
     if (!info.getUfsPath().isEmpty()) {
       return info.getUfsPath();
     }
 
-    return getClientFileInfo(true).getUfsPath();
+    return getInfo(true).getUfsPath();
+  }
+
+  /**
+   * Get the block id by the file id and offset. it will check whether the file and the block exist.
+   * 
+   * @param fid
+   *          the file id
+   * @param offset
+   *          The offset of the file.
+   * @return the block id if exists
+   * @throws IOException
+   */
+  long getBlockIdBasedOnOffset(long offset) throws IOException {
+    int index = (int) (offset / getInfo(false).getBlockSizeByte());
+
+    return mTachyonFS.getBlockId(mFileId, index);
   }
 
   @Override
@@ -276,13 +292,9 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public boolean isComplete() throws IOException {
-    ClientFileInfo info = getClientFileInfo(false);
+    ClientFileInfo info = getInfo(false);
 
-    if (info.isComplete) {
-      return true;
-    }
-
-    return getClientFileInfo(true).isComplete;
+    return info.isComplete ? true : getInfo(true).isComplete;
   }
 
   /**
@@ -290,7 +302,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public boolean isDirectory() throws IOException {
-    return getClientFileInfo(false).isFolder;
+    return getInfo(false).isFolder;
   }
 
   /**
@@ -309,7 +321,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public boolean isInMemory() throws IOException {
-    return getClientFileInfo(true).getInMemoryPercentage() == 100;
+    return getInfo(true).getInMemoryPercentage() == 100;
   }
 
   /**
@@ -317,14 +329,15 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   public long length() throws IOException {
-    return getClientFileInfo(true).getLength();
+    return getInfo(true).getLength();
   }
 
   /**
    * @return true if this file is pinned, false otherwise
+   * @throws IOException
    */
-  public boolean needPin() {
-    return mTachyonFS.isNeedPin(mFileId);
+  public boolean needPin() throws IOException {
+    return mTachyonFS.getFileStatus(mFileId, "", false).isPinned;
   }
 
   /**
@@ -342,7 +355,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       return null;
     }
 
-    ClientBlockInfo blockInfo = mTachyonFS.getClientBlockInfo(mFileId, blockIndex);
+    ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
 
     TachyonByteBuffer ret = readLocalByteBuffer(blockIndex);
     if (ret == null) {
@@ -362,8 +375,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   TachyonByteBuffer readLocalByteBuffer(int blockIndex) throws IOException {
-    ClientBlockInfo info = mTachyonFS.getClientBlockInfo(mFileId, blockIndex);
-    return readLocalByteBuffer(info.blockId, 0, info.getLength());
+    return readLocalByteBuffer(blockIndex, 0, -1);
   }
 
   /**
@@ -378,7 +390,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @return <code>TachyonByteBuffer</code> containing the block.
    * @throws IOException
    */
-  private TachyonByteBuffer readLocalByteBuffer(long blockId, long offset, long len)
+  private TachyonByteBuffer readLocalByteBuffer(int blockIndex, long offset, long len)
       throws IOException {
     if (offset < 0) {
       throw new IOException("Offset can not be negative: " + offset);
@@ -387,11 +399,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("Length can not be negative except -1: " + len);
     }
 
+    ClientBlockInfo info = getClientBlockInfo(blockIndex);
+    long blockId = info.blockId;
+
     int blockLockId = mTachyonFS.getBlockLockId();
     if (!mTachyonFS.lockBlock(blockId, blockLockId)) {
       return null;
     }
-    String localFileName = getLocalFilename(blockId);
+    String localFileName = getLocalFilename(blockIndex);
     if (localFileName != null) {
       try {
         RandomAccessFile localFile = new RandomAccessFile(localFileName, "r");
@@ -458,15 +473,14 @@ public class TachyonFile implements Comparable<TachyonFile> {
         final String hostname = InetAddress.getLocalHost().getHostName();
         final String hostaddress = InetAddress.getLocalHost().getHostAddress();
         if (host.equals(hostname) || host.equals(hostaddress)) {
-          String localFileName = CommonUtils.concat(mTachyonFS.getRootFolder(), blockInfo.blockId);
+          String localFileName =
+              CommonUtils.concat(mTachyonFS.getLocalDataFolder(), blockInfo.blockId);
           LOG.warn("Reading remotely even though request is local; file is " + localFileName);
         }
         LOG.info(host + ":" + port + " current host is " + hostname + " " + hostaddress);
 
         try {
-          buf =
-              retrieveByteBufferFromRemoteMachine(new InetSocketAddress(host, port),
-                  blockInfo.blockId);
+          buf = retrieveRemoteByteBuffer(new InetSocketAddress(host, port), blockInfo.blockId);
           if (buf != null) {
             break;
           }
@@ -566,7 +580,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
     return mTachyonFS.rename(mFileId, path);
   }
 
-  private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, long blockId)
+  private ByteBuffer retrieveRemoteByteBuffer(InetSocketAddress address, long blockId)
       throws IOException {
     SocketChannel socketChannel = SocketChannel.open();
     try {
