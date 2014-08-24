@@ -355,12 +355,10 @@ public class TachyonFile implements Comparable<TachyonFile> {
       return null;
     }
 
-    ClientBlockInfo blockInfo = getClientBlockInfo(blockIndex);
-
     TachyonByteBuffer ret = readLocalByteBuffer(blockIndex);
     if (ret == null) {
       // TODO Make it local cache if the OpType is try cache.
-      ret = readRemoteByteBuffer(blockInfo);
+      ret = readRemoteByteBuffer(getClientBlockInfo(blockIndex));
     }
 
     return ret;
