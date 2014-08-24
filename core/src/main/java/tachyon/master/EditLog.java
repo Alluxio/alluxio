@@ -31,7 +31,7 @@ import tachyon.util.CommonUtils;
  * Master operation journal.
  */
 public class EditLog {
-  private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private static int mBackUpLogStartNum = -1;
   private static long mCurrentTId = 0;

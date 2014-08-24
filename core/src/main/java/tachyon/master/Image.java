@@ -17,7 +17,7 @@ import tachyon.UnderFileSystem;
  * Master data image.
  */
 public class Image {
-  private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Write a new image to path. This method assumes having a lock on the master info.
