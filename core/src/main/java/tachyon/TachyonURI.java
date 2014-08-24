@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon;
 
 import java.net.URI;
@@ -28,70 +14,8 @@ public final class TachyonURI implements Comparable<TachyonURI> {
 
   private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
-  /**
-   * Create the internal URI. Called by all constructors.
-   *
-   * @param scheme
-   *          the scheme of the path. e.g. tachyon, hdfs, s3, file, null, etc.
-   * @param authority
-   *          the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
-   * @param path
-   *          the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
-   * @throws IllegalArgumentException
-   */
-  private static URI createURI(String scheme, String authority, String path)
-      throws IllegalArgumentException {
-    try {
-      return new URI(scheme, authority, normalizePath(path), null, null).normalize();
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException(e);
-    }
-  }
-
-  /**
-   * Check if the path is a windows path.
-   *
-   * @param path
-   *          the path to check
-   * @param slashed
-   *          if the path starts with a slash.
-   * @return true if it is a windows path, false otherwise.
-   */
-  private static boolean hasWindowsDrive(String path, boolean slashed) {
-    int start = slashed ? 1 : 0;
-    return WINDOWS
-        && path.length() >= start + 2
-        && (!slashed || path.charAt(0) == '/')
-        && path.charAt(start + 1) == ':'
-        && ((path.charAt(start) >= 'A' && path.charAt(start) <= 'Z') ||
-            (path.charAt(start) >= 'a' && path.charAt(start) <= 'z'));
-  }
-
-  /**
-   * Normalize the path component of the TachyonURI, by replacing all "//" and "\\" with "/", and
-   * trimming trailing slash from non-root path (ignoring windows drive).
-   *
-   * @param path
-   * @return
-   */
-  private static String normalizePath(String path) {
-    while (path.indexOf("\\") != -1) {
-      path = path.replace("\\", "/");
-    }
-    while (path.indexOf("//") != -1) {
-      path = path.replace("//", "/");
-    }
-
-    int minLength = hasWindowsDrive(path, true) ? 4 : 1;
-    while (path.length() > minLength && path.endsWith("/")) {
-      path = path.substring(0, path.length() - 1);
-    }
-
-    return path;
-  }
-
   // a hierarchical uri
-  private final URI URI;
+  private final URI mUri;
 
   /**
    * Construct a path from a String. Path strings are URIs, but with unescaped elements and some
@@ -133,7 +57,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     // uri path is the rest of the string -- query & fragment not supported
     String path = pathStr.substring(start, pathStr.length());
 
-    URI = createURI(scheme, authority, path);
+    mUri = createURI(scheme, authority, path);
   }
 
   /**
@@ -150,7 +74,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     if (path == null || path.length() == 0) {
       throw new IllegalArgumentException("Can not create a Path from a null or empty string");
     }
-    URI = createURI(scheme, authority, path);
+    mUri = createURI(scheme, authority, path);
   }
 
   /**
@@ -163,7 +87,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    */
   public TachyonURI(TachyonURI parent, TachyonURI child) {
     // Add a slash to parent's path so resolution is compatible with URI's
-    URI parentUri = parent.URI;
+    URI parentUri = parent.mUri;
     String parentPath = parentUri.getPath();
     if (!parentPath.endsWith(SEPARATOR) && parentPath.length() > 0) {
       parentPath += SEPARATOR;
@@ -173,13 +97,33 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }
-    URI resolved = parentUri.resolve(child.URI);
-    URI = createURI(resolved.getScheme(), resolved.getAuthority(), resolved.getPath());
+    URI resolved = parentUri.resolve(child.mUri);
+    mUri = createURI(resolved.getScheme(), resolved.getAuthority(), resolved.getPath());
   }
 
   @Override
   public int compareTo(TachyonURI other) {
-    return URI.compareTo(other.URI);
+    return mUri.compareTo(other.mUri);
+  }
+
+  /**
+   * Create the internal URI. Called by all constructors.
+   *
+   * @param scheme
+   *          the scheme of the path. e.g. tachyon, hdfs, s3, file, null, etc.
+   * @param authority
+   *          the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
+   * @param path
+   *          the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
+   * @throws IllegalArgumentException
+   */
+  private URI createURI(String scheme, String authority, String path)
+      throws IllegalArgumentException {
+    try {
+      return new URI(scheme, authority, normalizePath(path), null, null).normalize();
+    } catch (URISyntaxException e) {
+      throw new IllegalArgumentException(e);
+    }
   }
 
   @Override
@@ -187,7 +131,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
     if (!(o instanceof TachyonURI)) {
       return false;
     }
-    return URI.equals(((TachyonURI) o).URI);
+    return mUri.equals(((TachyonURI) o).mUri);
   }
 
   /**
@@ -196,7 +140,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return the authority, null if it does not have one.
    */
   public String getAuthority() {
-    return URI.getAuthority();
+    return mUri.getAuthority();
   }
 
   /**
@@ -219,7 +163,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return the depth
    */
   public int getDepth() {
-    String path = URI.getPath();
+    String path = mUri.getPath();
     if (path.isEmpty()) {
       return 0;
     }
@@ -238,7 +182,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return the host, null if it does not have one.
    */
   public String getHost() {
-    return URI.getHost();
+    return mUri.getHost();
   }
 
   /**
@@ -247,7 +191,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return the final component of the TachyonURI
    */
   public String getName() {
-    String path = URI.getPath();
+    String path = mUri.getPath();
     int slash = path.lastIndexOf(SEPARATOR);
     return path.substring(slash + 1);
   }
@@ -258,7 +202,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return the parent of this TachyonURI or null if at root.
    */
   public TachyonURI getParent() {
-    String path = URI.getPath();
+    String path = mUri.getPath();
     int lastSlash = path.lastIndexOf('/');
     int start = hasWindowsDrive(path, true) ? 3 : 0;
     if ((path.length() == start) ||               // empty path
@@ -272,7 +216,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
       int end = hasWindowsDrive(path, true) ? 3 : 0;
       parent = path.substring(0, lastSlash == end ? end + 1 : lastSlash);
     }
-    return new TachyonURI(URI.getScheme(), URI.getAuthority(), parent);
+    return new TachyonURI(mUri.getScheme(), mUri.getAuthority(), parent);
   }
 
   /**
@@ -281,7 +225,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return the path.
    */
   public String getPath() {
-    return URI.getPath();
+    return mUri.getPath();
   }
 
   /**
@@ -290,7 +234,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return the port, -1 if it does not have one.
    */
   public int getPort() {
-    return URI.getPort();
+    return mUri.getPort();
   }
 
   /**
@@ -299,7 +243,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return the scheme, null if there is no scheme.
    */
   public String getScheme() {
-    return URI.getScheme();
+    return mUri.getScheme();
   }
 
   /**
@@ -308,12 +252,12 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return true if it has, false otherwise.
    */
   public boolean hasAuthority() {
-    return URI.getAuthority() != null;
+    return mUri.getAuthority() != null;
   }
 
   @Override
   public int hashCode() {
-    return URI.hashCode();
+    return mUri.hashCode();
   }
 
   /**
@@ -322,7 +266,26 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return true if it has, false otherwise.
    */
   public boolean hasScheme() {
-    return URI.getScheme() != null;
+    return mUri.getScheme() != null;
+  }
+
+  /**
+   * Check if the path is a windows path.
+   *
+   * @param path
+   *          the path to check
+   * @param slashed
+   *          if the path starts with a slash.
+   * @return true if it is a windows path, false otherwise.
+   */
+  private  boolean hasWindowsDrive(String path, boolean slashed) {
+    int start = slashed ? 1 : 0;
+    return WINDOWS
+        && path.length() >= start + 2
+        && (!slashed || path.charAt(0) == '/')
+        && path.charAt(start + 1) == ':'
+        && ((path.charAt(start) >= 'A' && path.charAt(start) <= 'Z') ||
+            (path.charAt(start) >= 'a' && path.charAt(start) <= 'z'));
   }
 
   /**
@@ -335,7 +298,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return <tt>true</tt> if, and only if, this URI is absolute
    */
   public boolean isAbsolute() {
-    return URI.isAbsolute();
+    return mUri.isAbsolute();
   }
 
   /**
@@ -348,8 +311,8 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return <tt>true</tt> if, and only if, this TachyonURI's path component is absolute
    */
   public boolean isPathAbsolute() {
-    int start = hasWindowsDrive(URI.getPath(), true) ? 3 : 0;
-    return URI.getPath().startsWith(SEPARATOR, start);
+    int start = hasWindowsDrive(mUri.getPath(), true) ? 3 : 0;
+    return mUri.getPath().startsWith(SEPARATOR, start);
   }
 
   /**
@@ -362,8 +325,8 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return <tt>true</tt> if, and only if, this URI is root
    */
   public boolean isRoot() {
-    return URI.getPath().equals(SEPARATOR)
-        || (URI.getPath().isEmpty() && URI.getAuthority() != null);
+    return mUri.getPath().equals(SEPARATOR)
+        || (mUri.getPath().isEmpty() && mUri.getAuthority() != null);
   }
 
   /**
@@ -389,24 +352,47 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
+   * Normalize the path component of the TachyonURI, by replacing all "//" and "\\" with "/", and
+   * trimming trailing slash from non-root path (ignoring windows drive).
+   *
+   * @param path
+   * @return
+   */
+  private String normalizePath(String path) {
+    while (path.indexOf("\\") != -1) {
+      path = path.replace("\\", "/");
+    }
+    while (path.indexOf("//") != -1) {
+      path = path.replace("//", "/");
+    }
+
+    int minLength = hasWindowsDrive(path, true) ? 4 : 1;
+    while (path.length() > minLength && path.endsWith("/")) {
+      path = path.substring(0, path.length() - 1);
+    }
+
+    return path;
+  }
+
+  /**
    * Illegal characters unescaped in the string, for glob processing, etc.
    */
   @Override
   public String toString() {
     StringBuffer sb = new StringBuffer();
-    if (URI.getScheme() != null) {
-      sb.append(URI.getScheme());
+    if (mUri.getScheme() != null) {
+      sb.append(mUri.getScheme());
       sb.append(":");
     }
-    if (URI.getAuthority() != null) {
+    if (mUri.getAuthority() != null) {
       sb.append("//");
-      sb.append(URI.getAuthority());
+      sb.append(mUri.getAuthority());
     }
-    if (URI.getPath() != null) {
-      String path = URI.getPath();
+    if (mUri.getPath() != null) {
+      String path = mUri.getPath();
       if (path.indexOf('/') == 0 && hasWindowsDrive(path, true) &&          // has windows drive
-          URI.getScheme() == null &&              // but no scheme
-          URI.getAuthority() == null) {            // or authority
+          mUri.getScheme() == null &&              // but no scheme
+          mUri.getAuthority() == null) {            // or authority
         path = path.substring(1);                 // remove slash before drive
       }
       sb.append(path);
