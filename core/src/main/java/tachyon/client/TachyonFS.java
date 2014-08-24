@@ -21,13 +21,11 @@ import tachyon.client.table.RawTable;
 import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
 import tachyon.master.MasterClient;
-import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientRawTableInfo;
 import tachyon.thrift.ClientWorkerInfo;
-import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerClient;
@@ -365,14 +363,10 @@ public class TachyonFS extends AbstractTachyonFS {
    *           if the file does not exist, or connection issue.
    */
   public synchronized long getBlockId(int fid, int blockIndex) throws IOException {
-    ClientFileInfo info = mIdToClientFileInfo.get(fid);
+    ClientFileInfo info = getFileStatus(fid, "", true);
+
     if (info == null) {
-      info = getFileStatus(fid, "");
-      if (info != null) {
-        mIdToClientFileInfo.put(fid, info);
-      } else {
-        throw new IOException("File " + fid + " does not exist.");
-      }
+      throw new IOException("File " + fid + " does not exist.");
     }
 
     if (info.blockIds.size() > blockIndex) {
@@ -383,82 +377,22 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Get the block id by the file id and offset. it will check whether the file and the block exist.
-   * 
-   * @param fid
-   *          the file id
-   * @param offset
-   *          The offset of the file.
-   * @return the block id if exists
-   * @throws IOException
-   */
-  synchronized long getBlockIdBasedOnOffset(int fid, long offset) throws IOException {
-    ClientFileInfo info;
-    if (!mIdToClientFileInfo.containsKey(fid)) {
-      info = getFileStatus(fid, "");
-      mIdToClientFileInfo.put(fid, info);
-    }
-    info = mIdToClientFileInfo.get(fid);
-
-    int index = (int) (offset / info.getBlockSizeByte());
-
-    return getBlockId(fid, index);
-  }
-
-  /**
    * @return a new block lock id
    */
-  int getBlockLockId() {
+  synchronized int getBlockLockId() {
     return mBlockLockId.getAndIncrement();
   }
 
   /**
-   * Get a ClientBlockInfo by the file id and block index
+   * Get a ClientBlockInfo by blockId
    * 
-   * @param fid
-   *          the file id
-   * @param blockIndex
-   *          The index of the block in the file.
+   * @param blockId
+   *          the id of the block
    * @return the ClientBlockInfo of the specified block
    * @throws IOException
    */
-  public synchronized ClientBlockInfo getClientBlockInfo(int fid, int blockIndex)
-      throws IOException {
-    boolean fetch = false;
-    if (!mIdToClientFileInfo.containsKey(fid)) {
-      fetch = true;
-    }
-    ClientFileInfo info = null;
-    if (!fetch) {
-      info = mIdToClientFileInfo.get(fid);
-      if (info.isFolder || info.blockIds.size() <= blockIndex) {
-        fetch = true;
-      }
-    }
-
-    if (fetch) {
-      info = getFileStatus(fid, "");
-    }
-
-    if (info == null) {
-      throw new IOException("File " + fid + " does not exist.");
-    } else if (fetch) {
-      mIdToClientFileInfo.put(fid, info);
-    }
-    if (info.isFolder) {
-      throw new IOException(new FileDoesNotExistException("File " + fid + " is a folder."));
-    }
-    if (info.blockIds.size() <= blockIndex) {
-      throw new IOException("BlockIndex " + blockIndex + " is out of the bound in file " + info);
-    }
-
-    try {
-      return mMasterClient.user_getClientBlockInfo(info.blockIds.get(blockIndex));
-    } catch (FileDoesNotExistException e) {
-      throw new IOException(e);
-    } catch (BlockInfoException e) {
-      throw new IOException(e);
-    }
+  synchronized ClientBlockInfo getClientBlockInfo(long blockId) throws IOException {
+    return mMasterClient.user_getClientBlockInfo(blockId);
   }
 
   /**
@@ -528,7 +462,6 @@ public class TachyonFS extends AbstractTachyonFS {
     if (clientFileInfo == null) {
       return null;
     }
-    mIdToClientFileInfo.put(clientFileInfo.getId(), clientFileInfo);
     return new TachyonFile(this, clientFileInfo.getId());
   }
 
@@ -555,7 +488,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized int getFileId(String path) throws IOException {
     try {
-      return mMasterClient.getFileStatus(-1, cleanPathIOException(path)).getId();
+      return getFileStatus(-1, cleanPathIOException(path), false).getId();
     } catch (IOException e) {
       return -1;
     }
@@ -570,10 +503,12 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Advanced API.
    * 
-   * Get a ClientFileInfo of the file.
+   * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
    * 
+   * @param fileId
+   *          the file id of the file or folder.
    * @param path
-   *          the file path in Tachyon file system
+   *          the path of the file or folder. valid iff fileId is -1.
    * @param useCachedMetadata
    *          if true use the local cached meta data
    * @return the ClientFileInfo of the file. null if the file does not exist.
@@ -653,7 +588,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the local root data folder
    * @throws IOException
    */
-  synchronized String getRootFolder() throws IOException {
+  synchronized String getLocalDataFolder() throws IOException {
     return mWorkerClient.getDataFolder();
   }
 
@@ -695,27 +630,6 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   synchronized boolean isDirectory(int fid) {
     return mIdToClientFileInfo.get(fid).isFolder;
-  }
-
-  /**
-   * @param fid
-   *          the file id
-   * @return true if the file is need pin, false otherwise
-   */
-  synchronized boolean isNeedPin(int fid) {
-    return mIdToClientFileInfo.get(fid).isPinned;
-  }
-
-  /** Returns true if the given file or folder has its "pinned" flag set. */
-  public synchronized boolean isPinned(int fid, boolean useCachedMetadata) throws IOException {
-    ClientFileInfo info;
-    if (!useCachedMetadata || !mIdToClientFileInfo.containsKey(fid)) {
-      info = getFileStatus(fid, "");
-      mIdToClientFileInfo.put(fid, info);
-    }
-    info = mIdToClientFileInfo.get(fid);
-
-    return info.isPinned;
   }
 
   @Override
