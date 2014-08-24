@@ -38,13 +38,16 @@ public final class NetworkUtils {
   }
 
   /**
+   * Best effort method to find the local external ipv4 address
+   * the same with Apache Spark's design
+   *
    * @return the local ip address, which is not a loopback address.
    */
   public static String getLocalIpAddress() {
     try {
       InetAddress address = InetAddress.getLocalHost();
       System.out.println("address " + address.toString() + " " + address.isLoopbackAddress() + " "
-          + address.getHostAddress() + " " + address.getHostName());
+          + address.getHostAddress() + " " + address.getCanonicalHostName());
       if (address.isLoopbackAddress()) {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
         while (networkInterfaces.hasMoreElements()) {
@@ -60,9 +63,9 @@ public final class NetworkUtils {
           }
         }
 
-        LOG.warn("Your hostname, " + InetAddress.getLocalHost().getHostName() + " resolves to"
-            + " a loopback address: " + address.getHostAddress() + ", but we couldn't find any"
-            + " external IP address!");
+        LOG.warn("Your hostname, " + InetAddress.getLocalHost().getCanonicalHostName()
+            + " resolves to" + " a loopback address: " + address.getHostAddress()
+            + ", but we couldn't find any" + " external IP address!");
       }
 
       return address.getHostAddress();

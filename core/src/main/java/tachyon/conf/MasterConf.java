@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import tachyon.Constants;
+import tachyon.util.NetworkUtils;
 
 /**
  * Configurations used by master only.
@@ -52,7 +53,7 @@ public class MasterConf extends Utils {
     JOURNAL_FOLDER = journalFolder;
     FORMAT_FILE_PREFIX = "_format_";
 
-    HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
+    HOSTNAME = getProperty("tachyon.master.hostname", NetworkUtils.getLocalHostName());
     PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
     MASTER_ADDRESS =
         (CommonConf.get().USE_ZOOKEEPER ? Constants.HEADER_FT : Constants.HEADER) + HOSTNAME + ":"
@@ -68,8 +69,8 @@ public class MasterConf extends Utils {
     WORKER_TIMEOUT_MS =
         getIntProperty("tachyon.master.worker.timeout.ms", 10 * Constants.SECOND_MS);
 
-    WHITELIST.addAll(Arrays.asList(getProperty("tachyon.master.whitelist",
-        Constants.PATH_SEPARATOR).split(",")));
+    WHITELIST.addAll(Arrays
+        .asList(getProperty("tachyon.master.whitelist", Constants.PATH_SEPARATOR).split(",")));
     String tPinList = getProperty("tachyon.master.pinlist", null);
     if (tPinList != null && !tPinList.isEmpty()) {
       System.err.println("WARNING: tachyon.master.pinlist is set but no longer supported!"
