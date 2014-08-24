@@ -75,11 +75,11 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return
    */
   private static String normalizePath(String path) {
-    while (path.indexOf("//") != -1) {
-      path = path.replace("//", "/");
-    }
     while (path.indexOf("\\") != -1) {
       path = path.replace("\\", "/");
+    }
+    while (path.indexOf("//") != -1) {
+      path = path.replace("//", "/");
     }
 
     int minLength = hasWindowsDrive(path, true) ? 4 : 1;
