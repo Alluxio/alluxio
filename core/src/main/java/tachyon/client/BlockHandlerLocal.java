@@ -47,12 +47,12 @@ public final class BlockHandlerLocal extends BlockHandler {
   }
 
   @Override
-  public int append(long blockOffset, byte[] buf, int offset, int length) throws IOException {
+  public int append(long blockOffset, ByteBuffer srcBuf) throws IOException {
     checkPermission();
-    ByteBuffer out = LOCAL_FILE_CHANNEL.map(MapMode.READ_WRITE, blockOffset, length);
-    out.put(buf, offset, length);
+    ByteBuffer out = LOCAL_FILE_CHANNEL.map(MapMode.READ_WRITE, blockOffset, srcBuf.limit());
+    out.put(srcBuf);
 
-    return length;
+    return srcBuf.limit();
   }
 
   private void checkPermission() throws IOException {
@@ -75,7 +75,15 @@ public final class BlockHandlerLocal extends BlockHandler {
       }
     }
     if (LOCAL_FILE != null) {
-      LOCAL_FILE.close();
+      try {
+        LOCAL_FILE.close();
+      } catch (IOException e) {
+        if (exception == null) {
+          exception = e;
+        } else {
+          LOG.warn("Error during close file:" + FILE_PATH, e);
+        }
+      }
     }
     if (exception != null) {
       throw exception;
