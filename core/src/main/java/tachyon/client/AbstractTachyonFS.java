@@ -49,7 +49,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * 
    * @param path
    *          the path of the file in Tachyon
-   * @param underfsPath
+   * @param ufsPath
    *          the path of the file in the underfs
    * @return The unique file id. It returns -1 if the creation failed.
    * @throws IOException
@@ -105,15 +105,15 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
   /**
    * Renames the file
    * 
-   * @param fId
+   * @param fileId
    *          the file id
    * @param dstPath
    *          the new path of the file in the file system.
    * @return true if succeed, false otherwise
    * @throws IOException
    */
-  public synchronized boolean rename(int fid, String dstPath) throws IOException {
-    return rename(fid, "", dstPath);
+  public synchronized boolean rename(int fileId, String dstPath) throws IOException {
+    return rename(fileId, "", dstPath);
   }
 
   /**
