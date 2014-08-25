@@ -1,3 +1,17 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package tachyon;
 
 import java.io.FileNotFoundException;
@@ -26,8 +40,8 @@ import tachyon.hadoop.Utils;
  * HDFS UnderFilesystem implementation.
  */
 public class UnderFileSystemHdfs extends UnderFileSystem {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_TRY = 5;
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private FileSystem mFs = null;
   private String mUfsPrefix = null;
@@ -51,22 +65,30 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     } else {
       tConf = new Configuration();
     }
-    tConf.set("fs.defaultFS", fsDefaultName);
-    String glusterfsPrefix = "glusterfs:///";
-    if (fsDefaultName.startsWith(glusterfsPrefix)) {
-      tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
-      tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
-      tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
-      tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
-          CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
-    } else {
-      tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
 
-      // To disable the instance cache for hdfs client, otherwise it causes the
-      // FileSystem closed exception. Being configurable for unit/integration
-      // test only, and not expose to the end-user currently.
-      tConf.set("fs.hdfs.impl.disable.cache",
-          System.getProperty("fs.hdfs.impl.disable.cache", "false"));
+    // Setting Hadoop compatible filesystem (HCFS) properties in command argument is not scalable
+    // for some HCFS e.g. ceph, that has numerous parameters.
+    // Providing a hadoop core-site.xml that is required for this type of underfs.
+    if (null != CommonConf.get().HADOOP_CORE_SITE_PATH && !CommonConf.get().HADOOP_CORE_SITE_PATH.equals("")){
+      tConf.addResource(new Path(CommonConf.get().HADOOP_CORE_SITE_PATH));
+    } else {
+      final String glusterfsPrefix = "glusterfs:///";
+      tConf.set("fs.defaultFS", fsDefaultName);
+      if (fsDefaultName.startsWith(glusterfsPrefix)) {
+        tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
+        tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
+        tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
+        tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
+            CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
+      } else {
+        tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
+
+        // To disable the instance cache for hdfs client, otherwise it causes the
+        // FileSystem closed exception. Being configurable for unit/integration
+        // test only, and not expose to the end-user currently.
+        tConf.set("fs.hdfs.impl.disable.cache", 
+            System.getProperty("fs.hdfs.impl.disable.cache", "false"));
+      }
     }
 
     Utils.addS3Credentials(tConf);
@@ -102,10 +124,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     throw te;
   }
 
-  /**
-   * BlockSize should be a multiple of 512
-   */
   @Override
+  // BlockSize should be a multiple of 512
   public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
     // TODO Fix this
     // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
@@ -160,7 +180,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         return mFs.exists(new Path(path));
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " try to check if " + path + " exists " + " : " + e.getMessage(), e);
+        LOG.error(cnt + " try to check if " + path + " exists " +  " : " + e.getMessage(), e);
         te = e;
       }
     }
@@ -213,7 +233,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         return fs.getLen();
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " try to get file size for " + path + " : " + e.getMessage(), e);
+        LOG.error(cnt + " try to get file size for " + path +  " : " + e.getMessage(), e);
       }
     }
     return -1;
@@ -321,7 +341,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         return mFs.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " try to rename " + src + " to " + dst + " : " + e.getMessage(), e);
+        LOG.error(cnt + " try to rename " + src + " to " + dst +  " : " + e.getMessage(), e);
         te = e;
       }
     }
