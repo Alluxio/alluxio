@@ -279,25 +279,25 @@ public class TachyonWorker implements Runnable {
 
       if (cmd != null) {
         switch (cmd.mCommandType) {
-        case Unknown:
-          LOG.error("Unknown command: " + cmd);
-          break;
-        case Nothing:
-          LOG.debug("Nothing command: " + cmd);
-          break;
-        case Register:
-          LOG.info("Register command: " + cmd);
-          mWorkerStorage.register();
-          break;
-        case Free:
-          mWorkerStorage.freeBlocks(cmd.mData);
-          LOG.info("Free command: " + cmd);
-          break;
-        case Delete:
-          LOG.info("Delete command: " + cmd);
-          break;
-        default:
-          throw new RuntimeException("Un-recognized command from master " + cmd.toString());
+          case Unknown:
+            LOG.error("Unknown command: " + cmd);
+            break;
+          case Nothing:
+            LOG.debug("Nothing command: " + cmd);
+            break;
+          case Register:
+            LOG.info("Register command: " + cmd);
+            mWorkerStorage.register();
+            break;
+          case Free:
+            mWorkerStorage.freeBlocks(cmd.mData);
+            LOG.info("Free command: " + cmd);
+            break;
+          case Delete:
+            LOG.info("Delete command: " + cmd);
+            break;
+          default:
+            throw new RuntimeException("Un-recognized command from master " + cmd.toString());
         }
       }
 
