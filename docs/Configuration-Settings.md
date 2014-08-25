@@ -111,7 +111,7 @@ The common configuration contains constants which specify paths and the log appe
 <tr>
   <td>tachyon.underfs.hadoop.core-site</td>
   <td>/path/to/core-site.xml</td>
-  <td>Optionally specify the location of Hadoop core-site.xml if using CephFS as UnderFileSystem.</td>
+  <td>Optionally specify the location of Hadoop core-site.xml for special configurations for HDFS or other Hadoop Compatible FIlesystems used as UnderFileSystem.</td>
 </tr>
 </table>
 
