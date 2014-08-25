@@ -377,6 +377,9 @@
                   <value>ceph://localhost:6789/</value>
                 </property>
               </systemProperties>
+              <additionalClasspathElements>
+                <additionalClasspathElement>core/src/test/resources/ceph</additionalClasspathElement>
+              </additionalClasspathElements>
             </configuration>
           </plugin>
         </plugins>

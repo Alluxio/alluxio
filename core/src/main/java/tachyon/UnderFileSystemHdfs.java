@@ -2,6 +2,7 @@ package tachyon;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -55,8 +56,9 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     // Setting Hadoop compatible filesystem (HCFS) properties in command argument is not scalable
     // for some HCFS e.g. ceph, that has numerous parameters.
     // Providing a hadoop core-site.xml that is required for this type of underfs.
-    if (null != CommonConf.get().HADOOP_CORE_SITE_PATH && !CommonConf.get().HADOOP_CORE_SITE_PATH.equals("")){
-      tConf.addResource(new Path(CommonConf.get().HADOOP_CORE_SITE_PATH));
+    InputStream config = UnderFileSystemHdfs.class.getClassLoader().getResourceAsStream("core-site.xml");
+    if (null != config){
+      tConf.addResource(config);
     } else {
       final String glusterfsPrefix = "glusterfs:///";
       tConf.set("fs.defaultFS", fsDefaultName);

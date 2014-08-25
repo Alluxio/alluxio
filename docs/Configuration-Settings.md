@@ -108,11 +108,6 @@ The common configuration contains constants which specify paths and the log appe
   <td>hdfs:// s3:// s3n:// glusterfs:///</td>
   <td>Optionally specify which prefixes should run through the Apache Hadoop's implementation of UnderFileSystem.  The delimiter is any whitespace and/or ','</td>
 </tr>
-<tr>
-  <td>tachyon.underfs.hadoop.core-site</td>
-  <td>/path/to/core-site.xml</td>
-  <td>Optionally specify the location of Hadoop core-site.xml for special configurations for HDFS or other Hadoop Compatible FIlesystems used as UnderFileSystem.</td>
-</tr>
 </table>
 
 # Master Configuration

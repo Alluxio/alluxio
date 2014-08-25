@@ -62,8 +62,6 @@ public class CommonConf extends Utils {
 
   public final ImmutableList<String> HADOOP_UFS_PREFIXES;
   
-  public final String HADOOP_CORE_SITE_PATH;
-
   public final boolean IN_TEST_MODE;
 
   private CommonConf() {
@@ -109,9 +107,6 @@ public class CommonConf extends Utils {
         getListProperty("tachyon.underfs.hadoop.prefixes", DEFAULT_HADOOP_UFS_PREFIX);
 
     IN_TEST_MODE = getBooleanProperty("tachyon.test.mode", false);
-    
-    HADOOP_CORE_SITE_PATH = 
-        getProperty("tachyon.underfs.hadoop.core-site", null);
   }
 
   public static void assertValidPort(final int port) {
