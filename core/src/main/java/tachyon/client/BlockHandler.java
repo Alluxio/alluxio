@@ -33,30 +33,25 @@ public abstract class BlockHandler implements Closeable {
    *          block file path
    * @return block handler of the block file
    * @throws IOException
+   * @throws IllegalArgumentException
    */
-  public static BlockHandler get(String path) throws IOException {
+  public static BlockHandler get(String path) throws IOException, IllegalArgumentException {
     if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return new BlockHandlerLocal(path);
     }
-    throw new IOException("Unsupported block file path: " + path);
+    throw new IllegalArgumentException("Unsupported block file path: " + path);
   }
 
   /**
-   * Write data into block file
+   * append data from ByteBuffer
    * 
    * @param blockOffset
    *          starting position of the block file
-   * @param buf
-   *          buffer that data is stored in
-   * @param offset
-   *          offset of the buf
-   * @param length
-   *          length of the data
-   * @return size of data that is written
+   * @param srcBuf
+   *          ByteBuffer that data is stored in
    * @throws IOException
    */
-  public abstract int append(long blockOffset, byte[] buf, int offset, int length)
-      throws IOException;
+  public abstract int append(long blockOffset, ByteBuffer srcBuf) throws IOException;
 
   /**
    * Delete block file
