@@ -61,7 +61,7 @@ public class CommonConf extends Utils {
   public final int MAX_TABLE_METADATA_BYTE;
 
   public final ImmutableList<String> HADOOP_UFS_PREFIXES;
-  
+
   public final boolean IN_TEST_MODE;
 
   private CommonConf() {
