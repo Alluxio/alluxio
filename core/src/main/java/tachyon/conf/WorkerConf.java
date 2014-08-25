@@ -57,7 +57,9 @@ public class WorkerConf extends Utils {
         getIntProperty("tachyon.worker.to.master.heartbeat.interval.ms", Constants.SECOND_MS);
     SELECTOR_THREADS = getIntProperty("tachyon.worker.selector.threads", 3);
     QUEUE_SIZE_PER_SELECTOR = getIntProperty("tachyon.worker.queue.size.per.selector", 3000);
-    SERVER_THREADS = getIntProperty("tachyon.worker.server.threads", 128);
+    SERVER_THREADS =
+        getIntProperty("tachyon.worker.server.threads",
+            Runtime.getRuntime().availableProcessors());
     USER_TIMEOUT_MS = getIntProperty("tachyon.worker.user.timeout.ms", 10 * Constants.SECOND_MS);
 
     WORKER_CHECKPOINT_THREADS = getIntProperty("tachyon.worker.checkpoint.threads", 1);
