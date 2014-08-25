@@ -18,7 +18,7 @@
         <li><a href="./home">Overview</a></li>
         <li><a href="./configuration">System Configuration</a></li>
         <li><a href="./browse?path=/">Browse File System</a></li>
-        <li class="active"><a href="./memory">In Memory Files</a></li>
+        <li class="active"><a href="./memory?pageNum=1">In Memory Files</a></li>
       </ul>
     </div>
   </div>
@@ -51,6 +51,45 @@
             <% } %>
           </tbody>
         </table>
+
+        <% int lastPageNum = ((Integer)request.getAttribute("lastPageNum")).intValue(); %>
+        <% if (lastPageNum > 0) { %>
+          <% int currentPageNum = ((Integer)request.getAttribute("currentPageNum")).intValue(); %>
+          <% int firstPageNum = ((Integer)request.getAttribute("firstPageNum")).intValue(); %>
+          <% int paginationShow = ((Integer)request.getAttribute("paginationShow")).intValue(); %>
+          <div class="pagination pagination-large pagination-centered">
+            <ul>
+              <li><a href='./memory?pageNum=1'>First</a></li>
+
+              <% int prevPageNum = currentPageNum - 1; %>
+              <% if (prevPageNum < 1) { %>
+                <li class='disabled'><a href='./memory?pageNum=1'>Prev</a></li>
+              <% } else { %>
+                <li><a href='./memory?pageNum=<%= prevPageNum %>'>Prev</a></li>
+              <% } %>
+
+              <% for (int i = 1; i <= paginationShow; i ++) { %>
+                <% int thisPageNum = firstPageNum - 1 + i; %>
+                <% if (thisPageNum == currentPageNum) { %>
+                  <li class='active'><a href='./memory?pageNum=<%= thisPageNum %>'><%= thisPageNum %></a></li>
+                <% } else if (thisPageNum > lastPageNum) { %>
+                  <li class='disabled'><a href='./memory?pageNum=<%= thisPageNum %>'><%= thisPageNum %></a></li>
+                <% } else { %>
+                  <li><a href='./memory?pageNum=<%= thisPageNum %>'><%= thisPageNum %></a></li>
+                <% } %>
+              <% } %>
+
+              <% int nextPageNum = currentPageNum + 1; %>
+              <% if (nextPageNum > lastPageNum) { %>
+                <li class='disabled'><a href='./memory?pageNum=<%= lastPageNum %>'>Next</a></li>
+              <% } else { %>
+                <li><a href='./memory?pageNum=<%= nextPageNum %>'>Next</a></li>
+              <% } %>
+
+              <li><a href="./memory?pageNum=<%= lastPageNum %>">Last</a></li>
+            </ul>
+          </div>
+        <% } %>
       </div>
     </div>
   </div>
@@ -60,5 +99,11 @@
     </p>
   </footer>
 </div>
+<script>
+// REALLY disable bootstrap's disabled <li> in pagination
+$('.pagination .disabled a').on('click', function(e) {
+    e.preventDefault();
+});
+</script>
 </body>
 </html>

@@ -20,7 +20,7 @@
         <li><a href="./home">Overview</a></li>
         <li><a href="./configuration">System Configuration</a></li>
         <li class="active"><a href="./browse?path=/">Browse File System</a></li>
-        <li><a href="./memory">In Memory Files</a></li>
+        <li><a href="./memory?pageNum=1">In Memory Files</a></li>
       </ul>
     </div>
   </div>
