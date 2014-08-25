@@ -19,6 +19,12 @@ import tachyon.thrift.InvalidPathException;
  */
 public class WebInterfaceMemoryServlet extends HttpServlet {
   private static final long serialVersionUID = 4293149962399443914L;
+  private static final int ITEMS_PER_PAGE = 20;
+  // number of pages shown in the pagination UI component
+  private static final int PAGINATION_SHOW = 5;
+  private int mCurrentPageNum;
+  private int mFirstPageNum;
+  private int mLastPageNum;
   private MasterInfo mMasterInfo;
 
   public WebInterfaceMemoryServlet(MasterInfo masterInfo) {
@@ -56,8 +62,37 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
         return;
       }
     }
-    request.setAttribute("fileInfos", fileInfos);
+    final int ITEMS_PER_PAGE = 20;
+    int pageNum;
+    try {
+      pageNum = Integer.parseInt(request.getParameter("pageNum"));
+    } catch (NumberFormatException nfe) {
+      pageNum = 1;
+    }
+    int from = Math.min(fileInfos.size(), (pageNum - 1) * ITEMS_PER_PAGE);
+    int to = Math.min(fileInfos.size(), pageNum * ITEMS_PER_PAGE);
+    request.setAttribute("fileInfos", fileInfos.subList(from, to));
+
+    updatePaginationValues(fileInfos, pageNum);
+    populatePaginationValues(request);
 
     getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
+  }
+
+  private void updatePaginationValues(List<UiFileInfo> fileInfos, int pageNum) {
+    mCurrentPageNum = pageNum;
+    mFirstPageNum = mCurrentPageNum - (mCurrentPageNum - 1) % PAGINATION_SHOW;
+    if (fileInfos.size() == 0) {
+      mLastPageNum = 0;
+    } else {
+      mLastPageNum = (fileInfos.size() - 1) / ITEMS_PER_PAGE + 1;
+    }
+  }
+
+  private void populatePaginationValues(HttpServletRequest request) {
+    request.setAttribute("paginationShow", new Integer(PAGINATION_SHOW));
+    request.setAttribute("currentPageNum", new Integer(mCurrentPageNum));
+    request.setAttribute("firstPageNum", new Integer(mFirstPageNum));
+    request.setAttribute("lastPageNum", new Integer(mLastPageNum));
   }
 }
