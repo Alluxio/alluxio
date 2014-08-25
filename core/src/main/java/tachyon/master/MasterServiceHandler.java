@@ -167,35 +167,25 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public ClientRawTableInfo user_getClientRawTableInfoById(int id)
-      throws TableDoesNotExistException, TException {
-    return mMasterInfo.getClientRawTableInfo(id);
-  }
-
-  @Override
-  public ClientRawTableInfo user_getClientRawTableInfoByPath(String path)
+  public ClientRawTableInfo user_getClientRawTableInfo(int id, String path)
       throws TableDoesNotExistException, InvalidPathException, TException {
+    if (id != -1) {
+      return mMasterInfo.getClientRawTableInfo(id);
+    }
+
     return mMasterInfo.getClientRawTableInfo(path);
   }
 
   @Override
-  public List<ClientBlockInfo> user_getFileBlocksById(int fileId)
-      throws FileDoesNotExistException, TException {
-    List<ClientBlockInfo> ret = null;
-    try {
-      ret = mMasterInfo.getFileLocations(fileId);
-    } catch (IOException e) {
-      throw new FileDoesNotExistException(e.getMessage());
-    }
-    return ret;
-  }
-
-  @Override
-  public List<ClientBlockInfo> user_getFileBlocksByPath(String path)
+  public List<ClientBlockInfo> user_getFileBlocks(int fileId, String path)
       throws FileDoesNotExistException, InvalidPathException, TException {
     List<ClientBlockInfo> ret = null;
     try {
-      ret = mMasterInfo.getFileLocations(path);
+      if (fileId != -1) {
+        ret = mMasterInfo.getFileBlocks(fileId);
+      } else {
+        ret = mMasterInfo.getFileBlocks(path);
+      }
     } catch (IOException e) {
       throw new FileDoesNotExistException(e.getMessage());
     }

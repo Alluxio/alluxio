@@ -202,7 +202,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
           toAdd
-              .setFileLocations(mMasterInfo.getFileLocations(toAdd.getId()).get(0).getLocations());
+              .setFileLocations(mMasterInfo.getFileBlocks(toAdd.getId()).get(0).getLocations());
         }
       } catch (FileDoesNotExistException fdne) {
         request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
