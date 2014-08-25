@@ -39,7 +39,7 @@ the workload and the framework, since various frameworks have different executio
 
 * **Pluggable underlayer file system**: To provide fault-tolerance, Tachyon checkpoints in-memory
 data to the underlayer file system. It has a generic interface to make plugging different underlayer
-file systems easy. We currently support HDFS, S3, GlusterFS, and single-node local file systems, and
+file systems easy. We currently support HDFS, S3, GlusterFS, CephFS, and single-node local file systems, and
 support for many other file systems is coming.
 
 * **Native support for raw tables**: Table data with over hundreds of columns is common in data
@@ -80,6 +80,8 @@ line.
 an existing underlayer filesystem.
 
 [Configure Glusterfs as UnderFileSystem](Setup-GlusterFs-as-UnderFileSystem.html)
+
+[Configure Cephfs as UnderFileSystem](Setup-CephFs-as-UnderFileSystem.html)
 
 [Tachyon Java API (Javadoc)](api/java/index.html)
 
