@@ -67,7 +67,7 @@ public class BlockHandlerLocalTest {
     String filename = CommonUtils.concat(localFolder, blockId);
     BlockHandler handler = BlockHandler.get(filename);
     byte[] buf = TestUtils.getIncreasingByteArray(100);
-    handler.append(0, buf, 0, 100);
+    handler.append(0, ByteBuffer.wrap(buf));
     handler.close();
     mTfs.cacheBlock(blockId);
     long fileLen = mTfs.getFileLength(fileId);

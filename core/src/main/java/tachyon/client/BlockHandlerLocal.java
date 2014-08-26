@@ -45,7 +45,8 @@ public final class BlockHandlerLocal extends BlockHandler {
     return srcBuf.limit();
   }
 
-  private void checkPermission() throws IOException {
+  @Override
+  protected void checkPermission() throws IOException {
     if (!mPermission) {
       // change the permission of the file and use the sticky bit
       CommonUtils.changeLocalFileToFullPermission(mFilePath);
