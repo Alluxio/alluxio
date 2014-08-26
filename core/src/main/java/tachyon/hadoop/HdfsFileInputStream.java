@@ -26,6 +26,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   private TachyonFS mTFS;
   private int mFileId;
   private Path mHdfsPath;
+  private long mFileLength;
   private Configuration mHadoopConf;
   private int mHadoopBufferSize;
 
@@ -53,6 +54,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new FileNotFoundException("File " + hdfsPath + " with FID " + fileId
           + " is not found.");
     }
+    mFileLength = tachyonFile.length();
     tachyonFile.setUFSConf(mHadoopConf);
     try {
       mTachyonFileInputStream = tachyonFile.getInStream(ReadType.CACHE);
@@ -149,42 +151,54 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public int read(long position, byte[] buffer, int offset, int length) throws IOException {
-    int ret = -1;
-
-    if (mTachyonFileInputStream != null) {
-      try {
-        seek(position);
-        ret = mTachyonFileInputStream.read(buffer, offset, length);
-        mCurrentPosition += ret;
-        return ret;
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-        mTachyonFileInputStream = null;
+    synchronized (this) {
+      int ret = -1;
+      long oldPos = getPos();
+      if ((position < 0) || (position >= mFileLength)) {
+        return -1;
       }
-    }
 
-    if (mHdfsInputStream != null) {
+      if (mTachyonFileInputStream != null) {
+        try {
+          seek(position);
+          ret = mTachyonFileInputStream.read(buffer, offset, length);
+          mCurrentPosition += ret;
+          return ret;
+        } catch (IOException e) {
+          LOG.error(e.getMessage(), e);
+          mTachyonFileInputStream = null;
+        } finally {
+          seek(oldPos);
+        }
+      }
+
+      if (mHdfsInputStream != null) {
+        try {
+          mHdfsInputStream.seek(position);
+          ret = mHdfsInputStream.read(buffer, offset, length);
+          return ret;
+        } catch (IOException e) {
+          LOG.error(e.getMessage(), e);
+          mHdfsInputStream = null;
+        } finally {
+          mHdfsInputStream.seek(oldPos);
+        }
+      }
+
       try {
+        FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
+        mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
         mHdfsInputStream.seek(position);
         ret = mHdfsInputStream.read(buffer, offset, length);
         return ret;
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        mHdfsInputStream = null;
+      } finally {
+        mHdfsInputStream.seek(oldPos);
       }
-    }
 
-    try {
-      FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
-      mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-      mHdfsInputStream.seek(position);
-      ret = mHdfsInputStream.read(buffer, offset, length);
-      return ret;
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
+      return -1;
     }
-
-    return -1;
   }
 
   private int readFromHdfsBuffer() throws IOException {
