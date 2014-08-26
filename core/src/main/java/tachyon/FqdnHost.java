@@ -18,7 +18,13 @@ public class FqdnHost {
   }
 
   public FqdnHost(String host) throws UnknownHostException {
-    init(InetAddress.getByName(host));
+    // when host is null or empty, InetAddress.getByName will return a lookback address,
+    // we don't want this behavior here
+    if (host == null || host.isEmpty()) {
+      mHost = mIp = null;
+    } else {
+      init(InetAddress.getByName(host));
+    }
   }
 
   public FqdnHost(InetSocketAddress addr) {
