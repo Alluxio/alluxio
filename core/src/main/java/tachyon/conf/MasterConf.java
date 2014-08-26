@@ -69,8 +69,8 @@ public class MasterConf extends Utils {
     WORKER_TIMEOUT_MS =
         getIntProperty("tachyon.master.worker.timeout.ms", 10 * Constants.SECOND_MS);
 
-    WHITELIST.addAll(Arrays
-        .asList(getProperty("tachyon.master.whitelist", Constants.PATH_SEPARATOR).split(",")));
+    WHITELIST.addAll(Arrays.asList(getProperty("tachyon.master.whitelist",
+        Constants.PATH_SEPARATOR).split(",")));
     String tPinList = getProperty("tachyon.master.pinlist", null);
     if (tPinList != null && !tPinList.isEmpty()) {
       System.err.println("WARNING: tachyon.master.pinlist is set but no longer supported!"
