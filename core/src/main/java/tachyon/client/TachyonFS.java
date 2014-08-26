@@ -529,7 +529,7 @@ public class TachyonFS extends AbstractTachyonFS {
       if (info == null) {
         mIdToClientFileInfo.remove(fileId);
 
-        LOG.warn("Unable to find client file info for file: " +  path);
+        LOG.warn("Unable to find client file info for file id: " +  fileId);
         return null;
       }
 
@@ -544,7 +544,7 @@ public class TachyonFS extends AbstractTachyonFS {
       if (info == null) {
         mPathToClientFileInfo.remove(path);
 
-        LOG.warn("Unable to find client file info for file id: " +  fileId);
+        LOG.warn("Unable to find client file info for file: " +  path);
         return null;
       }
 
