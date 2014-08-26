@@ -15,10 +15,11 @@
 package tachyon.worker.elimination;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.google.common.collect.HashMultimap;
 
 import tachyon.Pair;
 import tachyon.worker.hierarchy.StorageDir;
@@ -36,7 +37,7 @@ public class EvictLRU extends EvictLRUBase {
   public StorageDir getDirCandidate(List<BlockEvictionInfo> blockEvictInfoList,
       Set<Integer> pinList, long requestSize) {
     Map<Integer, Pair<Long, Long>> dir2LRUBlocks = new HashMap<Integer, Pair<Long, Long>>();
-    Map<Integer, Set<Long>> dir2BlocksToEvict = new HashMap<Integer, Set<Long>>();
+    HashMultimap<Integer, Long> dir2BlocksToEvict = HashMultimap.create();
     Map<Integer, Long> sizeToEvict = new HashMap<Integer, Long>();
     while (true) {
       Pair<Integer, Long> candidate =
@@ -50,14 +51,7 @@ public class EvictLRU extends EvictLRUBase {
         blockSize = STORAGE_DIRS[dirIndex].getBlockSize(blockId);
       }
       blockEvictInfoList.add(new BlockEvictionInfo(dirIndex, blockId, blockSize));
-      Set<Long> blocksToEvict;
-      if (dir2BlocksToEvict.containsKey(dirIndex)) {
-        blocksToEvict = dir2BlocksToEvict.get(dirIndex);
-      } else {
-        blocksToEvict = new HashSet<Long>();
-        dir2BlocksToEvict.put(dirIndex, blocksToEvict);
-      }
-      blocksToEvict.add(blockId);
+      dir2BlocksToEvict.put(dirIndex, blockId);
       dir2LRUBlocks.remove(dirIndex);
       long evictionSize;
       if (sizeToEvict.containsKey(dirIndex)) {
@@ -73,7 +67,7 @@ public class EvictLRU extends EvictLRUBase {
   }
 
   /**
-   * Get block to be evicted
+   * Get block to be evicted by choosing the oldest block in current StorageDirs
    * 
    * @param dir2LRUBlocks
    *          oldest access information for each storage dir
@@ -84,19 +78,14 @@ public class EvictLRU extends EvictLRUBase {
    * @return block to be evicted
    */
   public Pair<Integer, Long> getLRUBlockCandidate(Map<Integer, Pair<Long, Long>> dir2LRUBlocks,
-      Map<Integer, Set<Long>> dir2BlocksToEvict, Set<Integer> pinList) {
+      HashMultimap<Integer, Long> dir2BlocksToEvict, Set<Integer> pinList) {
     int dirIndex = -1;
     long blockId = -1;
     for (int index = 0; index < STORAGE_DIRS.length; index ++) {
       Pair<Long, Long> lruBlock;
       long oldestTime = Long.MAX_VALUE;
       if (!dir2LRUBlocks.containsKey(index)) {
-        Set<Long> blocksToEvict;
-        if (dir2BlocksToEvict.containsKey(index)) {
-          blocksToEvict = dir2BlocksToEvict.get(index);
-        } else {
-          blocksToEvict = new HashSet<Long>();
-        }
+        Set<Long> blocksToEvict = dir2BlocksToEvict.get(index);
         lruBlock = getLRUBlock(STORAGE_DIRS[index], blocksToEvict, pinList);
         if (lruBlock.getFirst() != -1) {
           dir2LRUBlocks.put(index, lruBlock);

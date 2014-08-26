@@ -47,15 +47,15 @@ public final class BlockHandlerLocal extends BlockHandler {
   }
 
   @Override
-  public int append(long blockOffset, byte[] buf, int offset, int length) throws IOException {
-    checkPermission();
-    ByteBuffer out = LOCAL_FILE_CHANNEL.map(MapMode.READ_WRITE, blockOffset, length);
-    out.put(buf, offset, length);
+  protected int append_(long blockOffset, ByteBuffer srcBuf) throws IOException {
+    ByteBuffer out = LOCAL_FILE_CHANNEL.map(MapMode.READ_WRITE, blockOffset, srcBuf.limit());
+    out.put(srcBuf);
 
-    return length;
+    return srcBuf.limit();
   }
 
-  private void checkPermission() throws IOException {
+  @Override
+  protected void checkPermission() throws IOException {
     if (!mPermission) {
       // change the permission of the file and use the sticky bit
       CommonUtils.changeLocalFileToFullPermission(FILE_PATH);
@@ -75,7 +75,15 @@ public final class BlockHandlerLocal extends BlockHandler {
       }
     }
     if (LOCAL_FILE != null) {
-      LOCAL_FILE.close();
+      try {
+        LOCAL_FILE.close();
+      } catch (IOException e) {
+        if (exception == null) {
+          exception = e;
+        } else {
+          LOG.warn("Error during close file:" + FILE_PATH, e);
+        }
+      }
     }
     if (exception != null) {
       throw exception;
@@ -83,8 +91,7 @@ public final class BlockHandlerLocal extends BlockHandler {
   }
 
   @Override
-  public boolean delete() throws IOException {
-    checkPermission();
+  protected boolean delete_() throws IOException {
     return new File(FILE_PATH).delete();
   }
 
@@ -94,11 +101,11 @@ public final class BlockHandlerLocal extends BlockHandler {
     String error = null;
     if (blockOffset > fileLength) {
       error =
-          String.format("inFilePos(%d) is larger than file length(%d)", blockOffset, fileLength);
+          String.format("blockOffset(%d) is larger than file length(%d)", blockOffset, fileLength);
     }
     if (error == null && length != -1 && blockOffset + length > fileLength) {
       error =
-          String.format("inFilePos(%d) plus length(%d) is larger than file length(%d)",
+          String.format("blockOffset(%d) plus length(%d) is larger than file length(%d)",
               blockOffset, length, fileLength);
     }
     if (error != null) {

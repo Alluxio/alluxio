@@ -27,10 +27,11 @@ import java.util.concurrent.BlockingQueue;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.collect.HashMultimap;
+
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.client.BlockHandler;
-import tachyon.client.BlockHandlerLocal;
 import tachyon.util.CommonUtils;
 import tachyon.worker.WorkerSpaceCounter;
 
@@ -38,14 +39,13 @@ import tachyon.worker.WorkerSpaceCounter;
  * It is used to store and manage block files in storage directory on different
  * under file systems.
  */
-public class StorageDir {
+public final class StorageDir {
   protected final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final Set<Long> BLOCK_IDS = new HashSet<Long>();
   private final Map<Long, Long> BLOCK_SIZES = new HashMap<Long, Long>();
   private final String DATA_PATH;
   private final Map<Long, Long> LAST_BLOCK_ACCESS_TIME_MS = new HashMap<Long, Long>();
-
-  private final Map<Long, Set<Long>> LOCKED_BLOCKS_PER_USER = new HashMap<Long, Set<Long>>();
+  private final HashMultimap<Long, Long> LOCKED_BLOCKS_PER_USER = HashMultimap.create();
   private final BlockingQueue<Long> REMOVED_BLOCK_LIST = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
   private final WorkerSpaceCounter SPACE_COUNTER;
@@ -55,7 +55,7 @@ public class StorageDir {
   private final Object UFS_CONF;
   private final Map<Long, Long> USER_ALLOCATED_SPACE = new HashMap<Long, Long>();
   private final String USER_TEMP_PATH;
-  private final Map<Long, Set<Long>> USER_PER_LOCKED_BLOCK = new HashMap<Long, Set<Long>>();
+  private final HashMultimap<Long, Long> USER_PER_LOCKED_BLOCK = HashMultimap.create();
 
   StorageDir(long storageId, String dirPath, long capacity, String dataFolder,
       String userTempFolder, Object conf) {
@@ -75,7 +75,7 @@ public class StorageDir {
    *          id of the block
    */
   public void accessBlock(long blockId) {
-    synchronized (LAST_BLOCK_ACCESS_TIME_MS) {
+    synchronized (this) {
       LAST_BLOCK_ACCESS_TIME_MS.put(blockId, System.currentTimeMillis());
     }
   }
@@ -89,7 +89,7 @@ public class StorageDir {
    *          size of the block file
    */
   private void addBlockId(long blockId, long size) {
-    synchronized (LAST_BLOCK_ACCESS_TIME_MS) {
+    synchronized (this) {
       LAST_BLOCK_ACCESS_TIME_MS.put(blockId, System.currentTimeMillis());
       BLOCK_SIZES.put(blockId, size);
       BLOCK_IDS.add(blockId);
@@ -117,7 +117,8 @@ public class StorageDir {
   }
 
   /**
-   * Check status of the users
+   * Check status of the users, removed users are passed down from the caller, and can't be modified
+   * any more
    * 
    * @param removedUsers
    *          id of the removed users
@@ -126,12 +127,15 @@ public class StorageDir {
     for (long userId : removedUsers) {
       synchronized (USER_PER_LOCKED_BLOCK) {
         Set<Long> blockIds = LOCKED_BLOCKS_PER_USER.get(userId);
-        LOCKED_BLOCKS_PER_USER.remove(userId);
+        LOCKED_BLOCKS_PER_USER.removeAll(userId);
         if (blockIds != null) {
           for (long blockId : blockIds) {
             unlockBlock(blockId, userId);
           }
         }
+      }
+      synchronized (USER_ALLOCATED_SPACE) {
+        USER_ALLOCATED_SPACE.remove(userId);
       }
     }
   }
@@ -144,7 +148,9 @@ public class StorageDir {
    * @return true if contains, false otherwise
    */
   public boolean containsBlock(long blockId) {
-    return BLOCK_IDS.contains(blockId);
+    synchronized (this) {
+      return BLOCK_IDS.contains(blockId);
+    }
   }
 
   /**
@@ -162,16 +168,9 @@ public class StorageDir {
     BlockHandler bhDst = dstDir.getBlockHandler(blockId);
     int len = (int) getBlockSize(blockId);
     boolean copySuccess = false;
-    if ((bhSrc instanceof BlockHandlerLocal) && (bhDst instanceof BlockHandlerLocal)) {
-      copySuccess =
-          ((BlockHandlerLocal) bhSrc).readChannel().transferTo(0, len,
-              ((BlockHandlerLocal) bhDst).writeChannel()) > 0;
-    } else {
-      byte[] blockData = new byte[len];
-      ByteBuffer bf = bhSrc.read(0, len);
-      bf.get(blockData);
-      copySuccess = bhDst.append(0, blockData, 0, len) > 0;
-    }
+
+    ByteBuffer srcBuf = bhSrc.read(0, len);
+    copySuccess = bhDst.append(0, srcBuf) > 0;
     bhSrc.close();
     bhDst.close();
     if (copySuccess) {
@@ -189,7 +188,7 @@ public class StorageDir {
    * @throws IOException
    */
   public boolean deleteBlock(long blockId) throws IOException {
-    synchronized (LAST_BLOCK_ACCESS_TIME_MS) {
+    synchronized (this) {
       if (BLOCK_IDS.contains(blockId)) {
         String blockfile = getBlockFilePath(blockId);
         boolean result = UFS.delete(blockfile, true);
@@ -214,12 +213,11 @@ public class StorageDir {
    *          id of the block
    */
   private void deleteBlockId(long blockId) {
-    synchronized (LAST_BLOCK_ACCESS_TIME_MS) {
+    synchronized (this) {
       LAST_BLOCK_ACCESS_TIME_MS.remove(blockId);
       returnSpace(BLOCK_SIZES.remove(blockId));
       BLOCK_IDS.remove(blockId);
       REMOVED_BLOCK_LIST.add(blockId);
-
     }
   }
 
@@ -279,7 +277,7 @@ public class StorageDir {
   }
 
   /**
-   * Get ids of the blocks on current storage dir
+   * Get ids of the blocks on current storage dir, caller must maintain the synchronization
    * 
    * @return ids of the blocks
    */
@@ -295,15 +293,17 @@ public class StorageDir {
    * @return size of the block
    */
   public long getBlockSize(long blockId) {
-    if (BLOCK_SIZES.containsKey(blockId)) {
-      return BLOCK_SIZES.get(blockId);
-    } else {
-      return -1;
+    synchronized (this) {
+      if (BLOCK_SIZES.containsKey(blockId)) {
+        return BLOCK_SIZES.get(blockId);
+      } else {
+        return -1;
+      }
     }
   }
 
   /**
-   * Get sizes of the blocks on current storage dir
+   * Get sizes of the blocks on current storage dir, caller must maintain the synchronization
    * 
    * @return sizes of the blocks
    * @throws IOException
@@ -415,7 +415,7 @@ public class StorageDir {
    * 
    * @return users of locked blocks
    */
-  public Map<Long, Set<Long>> getUsersPerLockedBlock() {
+  public HashMultimap<Long, Long> getUsersPerLockedBlock() {
     return USER_PER_LOCKED_BLOCK;
   }
 
@@ -429,7 +429,7 @@ public class StorageDir {
    * @return path of the temp file
    */
   public String getUserTempFilePath(long userId, long blockId) {
-    return USER_TEMP_PATH + Constants.PATH_SEPARATOR + userId + Constants.PATH_SEPARATOR + blockId;
+    return CommonUtils.concat(USER_TEMP_PATH, userId, blockId);
   }
 
   /**
@@ -482,18 +482,14 @@ public class StorageDir {
    *          id of the user
    */
   public void lockBlock(long blockId, long userId) {
-    if (!BLOCK_IDS.contains(blockId)) {
+    if (!containsBlock(blockId)) {
       return;
     }
     synchronized (USER_PER_LOCKED_BLOCK) {
-      if (!USER_PER_LOCKED_BLOCK.containsKey(blockId)) {
-        USER_PER_LOCKED_BLOCK.put(blockId, new HashSet<Long>());
-      }
-      USER_PER_LOCKED_BLOCK.get(blockId).add(userId);
-      if (!LOCKED_BLOCKS_PER_USER.containsKey(userId)) {
-        LOCKED_BLOCKS_PER_USER.put(userId, new HashSet<Long>());
-      }
-      LOCKED_BLOCKS_PER_USER.get(userId).add(blockId);
+      USER_PER_LOCKED_BLOCK.put(blockId, userId);
+    }
+    synchronized (LOCKED_BLOCKS_PER_USER) {
+      LOCKED_BLOCKS_PER_USER.put(userId, blockId);
     }
   }
 
@@ -526,13 +522,18 @@ public class StorageDir {
    * @return true if sucess, false otherwise
    */
   public boolean requestSpace(long userId, long size) {
-    boolean result = SPACE_COUNTER.requestSpaceBytes(size);
+    boolean result = false;
+    synchronized (SPACE_COUNTER) {
+      result = SPACE_COUNTER.requestSpaceBytes(size);
+    }
     if (result) {
-      if (USER_ALLOCATED_SPACE.containsKey(userId)) {
-        long current = USER_ALLOCATED_SPACE.get(userId);
-        USER_ALLOCATED_SPACE.put(userId, current + size);
-      } else {
-        USER_ALLOCATED_SPACE.put(userId, size);
+      synchronized (USER_ALLOCATED_SPACE) {
+        if (USER_ALLOCATED_SPACE.containsKey(userId)) {
+          long current = USER_ALLOCATED_SPACE.get(userId);
+          USER_ALLOCATED_SPACE.put(userId, current + size);
+        } else {
+          USER_ALLOCATED_SPACE.put(userId, size);
+        }
       }
     }
     return result;
@@ -545,7 +546,9 @@ public class StorageDir {
    *          size to return
    */
   public void returnSpace(long size) {
-    SPACE_COUNTER.returnUsedBytes(size);
+    synchronized (SPACE_COUNTER) {
+      SPACE_COUNTER.returnUsedBytes(size);
+    }
   }
 
   /**
@@ -557,12 +560,14 @@ public class StorageDir {
    *          size to return
    */
   public void returnSpace(long userId, long size) {
-    SPACE_COUNTER.returnUsedBytes(size);
-    if (USER_ALLOCATED_SPACE.containsKey(userId)) {
-      long current = USER_ALLOCATED_SPACE.get(userId);
-      USER_ALLOCATED_SPACE.put(userId, current - size);
-    } else {
-      LOG.warn("Error during return space: unknown user ID");
+    returnSpace(size);
+    synchronized (USER_ALLOCATED_SPACE) {
+      if (USER_ALLOCATED_SPACE.containsKey(userId)) {
+        long current = USER_ALLOCATED_SPACE.get(userId);
+        USER_ALLOCATED_SPACE.put(userId, current - size);
+      } else {
+        LOG.warn("Error during return space: unknown user ID");
+      }
     }
   }
 
@@ -575,19 +580,14 @@ public class StorageDir {
    *          id of the user
    */
   public void unlockBlock(long blockId, long userId) {
-    if (!BLOCK_IDS.contains(blockId)) {
+    if (!containsBlock(blockId)) {
       return;
     }
     synchronized (USER_PER_LOCKED_BLOCK) {
-      if (USER_PER_LOCKED_BLOCK.containsKey(blockId)) {
-        USER_PER_LOCKED_BLOCK.get(blockId).remove(userId);
-        if (USER_PER_LOCKED_BLOCK.get(blockId).size() == 0) {
-          USER_PER_LOCKED_BLOCK.remove(blockId);
-        }
-      }
-      if (LOCKED_BLOCKS_PER_USER.containsKey(userId)) {
-        LOCKED_BLOCKS_PER_USER.get(userId).remove(blockId);
-      }
+      USER_PER_LOCKED_BLOCK.removeAll(blockId);
+    }
+    synchronized (LOCKED_BLOCKS_PER_USER) {
+      LOCKED_BLOCKS_PER_USER.remove(userId, blockId);
     }
   }
 }
