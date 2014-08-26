@@ -21,7 +21,11 @@ import java.util.Set;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * Interface used to determine which blocks will be evicted to get enough free space requested.
+ * Interface used to determine which blocks will be evicted to get enough free space requested. For
+ * efficiency considerations, resources will be locked only when they are accessed during candidate
+ * selection. when actually evict blocks, some blocks selected may be not allowed to evict, because
+ * pin file / locked blocks information may be updated after candidate selection. it may result in
+ * having to try more than one time to get enough space.
  */
 public interface EvictStrategy {
 

@@ -41,7 +41,7 @@ public class EvictPartialLRU extends EvictLRUBase {
       while (sizeToEvict + STORAGE_DIRS[dirIndex].getAvailable() < requestSize) {
         Pair<Long, Long> oldestAccess = getLRUBlock(STORAGE_DIRS[dirIndex], blockIdSet, pinList);
         if (oldestAccess.getFirst() != -1) {
-          long blockSize = STORAGE_DIRS[dirIndex].getBlockSizes().get(oldestAccess.getFirst());
+          long blockSize = STORAGE_DIRS[dirIndex].getBlockSize(oldestAccess.getFirst());
           sizeToEvict += blockSize;
           blockEvictionInfoList.add(new BlockEvictionInfo(dirIndex, oldestAccess.getFirst(),
               blockSize));

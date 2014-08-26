@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.google.common.collect.HashMultimap;
+
 import tachyon.Pair;
 import tachyon.master.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
@@ -68,16 +70,20 @@ public abstract class EvictLRUBase implements EvictStrategy {
     long blockId = -1;
     long oldestTime = Long.MAX_VALUE;
     Map<Long, Long> accessTimes = curDir.getLastBlockAccessTime();
-    Map<Long, Set<Long>> lockedBlocks = curDir.getUsersPerLockedBlock();
-    // no synchronized here
-    for (Entry<Long, Long> accessTime : accessTimes.entrySet()) {
-      if (toEvictBlockIds.contains(accessTime.getKey())) {
-        continue;
-      }
-      if (accessTime.getValue() < oldestTime && !lockedBlocks.containsKey(accessTime.getKey())) {
-        if (blockEvictable(accessTime.getKey(), pinList)) {
-          oldestTime = accessTime.getValue();
-          blockId = accessTime.getKey();
+    HashMultimap<Long, Long> lockedBlocks = curDir.getUsersPerLockedBlock();
+
+    synchronized (curDir) {
+      synchronized (lockedBlocks) {
+        for (Entry<Long, Long> accessTime : accessTimes.entrySet()) {
+          if (toEvictBlockIds.contains(accessTime.getKey())) {
+            continue;
+          }
+          if (accessTime.getValue() < oldestTime && !lockedBlocks.containsKey(accessTime.getKey())) {
+            if (blockEvictable(accessTime.getKey(), pinList)) {
+              oldestTime = accessTime.getValue();
+              blockId = accessTime.getKey();
+            }
+          }
         }
       }
     }
