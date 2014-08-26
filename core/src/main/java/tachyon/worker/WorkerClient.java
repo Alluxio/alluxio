@@ -14,6 +14,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 
 import tachyon.Constants;
+import tachyon.FqdnHost;
 import tachyon.HeartbeatThread;
 import tachyon.conf.UserConf;
 import tachyon.master.MasterClient;
@@ -201,8 +202,8 @@ public class WorkerClient implements Closeable {
       LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
 
       mProtocol =
-          new TBinaryProtocol(new TFramedTransport(new TSocket(mWorkerAddress.getAddress()
-              .getCanonicalHostName(), mWorkerAddress.getPort())));
+          new TBinaryProtocol(new TFramedTransport(new TSocket(
+              new FqdnHost(mWorkerAddress).getHost(), mWorkerAddress.getPort())));
       mClient = new WorkerService.Client(mProtocol);
 
       mHeartbeatThread =

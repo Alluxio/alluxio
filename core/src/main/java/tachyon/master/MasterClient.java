@@ -19,6 +19,7 @@ import org.apache.thrift.transport.TTransportException;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.FqdnHost;
 import tachyon.HeartbeatThread;
 import tachyon.LeaderInquireClient;
 import tachyon.Version;
@@ -145,8 +146,8 @@ public class MasterClient implements Closeable {
           + mMasterAddress);
 
       mProtocol =
-          new TBinaryProtocol(new TFramedTransport(new TSocket(mMasterAddress.getAddress()
-              .getCanonicalHostName(), mMasterAddress.getPort())));
+          new TBinaryProtocol(new TFramedTransport(new TSocket(
+              new FqdnHost(mMasterAddress).getHost(), mMasterAddress.getPort())));
       mClient = new MasterService.Client(mProtocol);
       mLastAccessedMs = System.currentTimeMillis();
       try {
