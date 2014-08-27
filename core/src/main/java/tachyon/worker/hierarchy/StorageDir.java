@@ -420,7 +420,7 @@ public final class StorageDir {
   }
 
   /**
-   * Get temp file path for block written by some user
+   * Get temp file path of block written by some user
    * 
    * @param userId
    *          id of the user
@@ -430,6 +430,17 @@ public final class StorageDir {
    */
   public String getUserTempFilePath(long userId, long blockId) {
     return CommonUtils.concat(USER_TEMP_PATH, userId, blockId);
+  }
+
+  /**
+   * Get temp folder path for some user
+   * 
+   * @param userId
+   *          id of the user
+   * @return path of the temp folder
+   */
+  public String getUserTempPath(long userId) {
+    return CommonUtils.concat(USER_TEMP_PATH, userId);
   }
 
   /**
