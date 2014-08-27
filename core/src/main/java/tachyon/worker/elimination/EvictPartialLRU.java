@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import tachyon.Pair;
+import tachyon.worker.hierarchy.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
@@ -31,48 +32,47 @@ public class EvictPartialLRU extends EvictLRUBase {
   }
 
   @Override
-  public StorageDir getDirCandidate(List<BlockEvictionInfo> blockEvictionInfoList,
-      Set<Integer> pinList, long requestSize) {
-    Set<Integer> ignoredDirs = new HashSet<Integer>();
-    int dirIndex = getDirWithMaxFreeSpace(requestSize, ignoredDirs);
-    while (dirIndex != -1) {
+  public StorageDir getDirCandidate(List<BlockInfo> blockEvictionInfoList, Set<Integer> pinList,
+      long requestSize) {
+    Set<StorageDir> ignoredDirs = new HashSet<StorageDir>();
+    StorageDir dirSelected = getDirWithMaxFreeSpace(requestSize, ignoredDirs);
+    while (dirSelected != null) {
       Set<Long> blockIdSet = new HashSet<Long>();
       long sizeToEvict = 0;
-      while (sizeToEvict + STORAGE_DIRS[dirIndex].getAvailable() < requestSize) {
-        Pair<Long, Long> oldestAccess = getLRUBlock(STORAGE_DIRS[dirIndex], blockIdSet, pinList);
+      while (sizeToEvict + dirSelected.getAvailable() < requestSize) {
+        Pair<Long, Long> oldestAccess = getLRUBlock(dirSelected, blockIdSet, pinList);
         if (oldestAccess.getFirst() != -1) {
-          long blockSize = STORAGE_DIRS[dirIndex].getBlockSize(oldestAccess.getFirst());
+          long blockSize = dirSelected.getBlockSize(oldestAccess.getFirst());
           sizeToEvict += blockSize;
-          blockEvictionInfoList.add(new BlockEvictionInfo(dirIndex, oldestAccess.getFirst(),
-              blockSize));
+          blockEvictionInfoList
+              .add(new BlockInfo(dirSelected, oldestAccess.getFirst(), blockSize));
           blockIdSet.add(oldestAccess.getFirst());
         } else {
           break;
         }
       }
-      if (sizeToEvict + STORAGE_DIRS[dirIndex].getAvailable() < requestSize) {
-        ignoredDirs.add(dirIndex);
+      if (sizeToEvict + dirSelected.getAvailable() < requestSize) {
+        ignoredDirs.add(dirSelected);
         blockEvictionInfoList.clear();
         blockIdSet.clear();
-        dirIndex = getDirWithMaxFreeSpace(requestSize, ignoredDirs);
+        dirSelected = getDirWithMaxFreeSpace(requestSize, ignoredDirs);
       } else {
-        return STORAGE_DIRS[dirIndex];
+        return dirSelected;
       }
     }
     return null;
   }
 
-  public int getDirWithMaxFreeSpace(long requestSize, Set<Integer> ignoredList) {
-    int dirSelected = -1;
+  public StorageDir getDirWithMaxFreeSpace(long requestSize, Set<StorageDir> ignoredList) {
+    StorageDir dirSelected = null;
     long maxAvailableSize = -1;
-    for (int index = 0; index < STORAGE_DIRS.length; index ++) {
-      if (ignoredList.contains(index)) {
+    for (StorageDir dir : STORAGE_DIRS) {
+      if (ignoredList.contains(dir)) {
         continue;
       }
-      if (STORAGE_DIRS[index].getCapacity() >= requestSize
-          && STORAGE_DIRS[index].getAvailable() > maxAvailableSize) {
-        dirSelected = index;
-        maxAvailableSize = STORAGE_DIRS[index].getAvailable();
+      if (dir.getCapacity() >= requestSize && dir.getAvailable() > maxAvailableSize) {
+        dirSelected = dir;
+        maxAvailableSize = dir.getAvailable();
       }
     }
     return dirSelected;
