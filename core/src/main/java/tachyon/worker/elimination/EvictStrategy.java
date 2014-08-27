@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import tachyon.worker.hierarchy.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
@@ -41,6 +42,6 @@ public interface EvictStrategy {
    * @return index of the storage dir allocated, toEvictedBlocks also returned as output
    * @throws IOException
    */
-  StorageDir getDirCandidate(List<BlockEvictionInfo> blockEvictionInfoList, Set<Integer> pinList,
+  StorageDir getDirCandidate(List<BlockInfo> blockEvictionInfoList, Set<Integer> pinList,
       long requestSize);
 }

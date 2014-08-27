@@ -22,6 +22,7 @@ import java.util.Set;
 import com.google.common.collect.HashMultimap;
 
 import tachyon.Pair;
+import tachyon.worker.hierarchy.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
@@ -34,34 +35,34 @@ public class EvictLRU extends EvictLRUBase {
   }
 
   @Override
-  public StorageDir getDirCandidate(List<BlockEvictionInfo> blockEvictInfoList,
-      Set<Integer> pinList, long requestSize) {
-    Map<Integer, Pair<Long, Long>> dir2LRUBlocks = new HashMap<Integer, Pair<Long, Long>>();
-    HashMultimap<Integer, Long> dir2BlocksToEvict = HashMultimap.create();
-    Map<Integer, Long> sizeToEvict = new HashMap<Integer, Long>();
+  public StorageDir getDirCandidate(List<BlockInfo> blockEvictInfoList, Set<Integer> pinList,
+      long requestSize) {
+    Map<StorageDir, Pair<Long, Long>> dir2LRUBlocks = new HashMap<StorageDir, Pair<Long, Long>>();
+    HashMultimap<StorageDir, Long> dir2BlocksToEvict = HashMultimap.create();
+    Map<StorageDir, Long> sizeToEvict = new HashMap<StorageDir, Long>();
     while (true) {
-      Pair<Integer, Long> candidate =
+      Pair<StorageDir, Long> candidate =
           getLRUBlockCandidate(dir2LRUBlocks, dir2BlocksToEvict, pinList);
-      int dirIndex = candidate.getFirst();
+      StorageDir dirCandidate = candidate.getFirst();
       long blockId = candidate.getSecond();
       long blockSize = 0;
-      if (dirIndex == -1) {
+      if (dirCandidate == null) {
         return null;
       } else {
-        blockSize = STORAGE_DIRS[dirIndex].getBlockSize(blockId);
+        blockSize = dirCandidate.getBlockSize(blockId);
       }
-      blockEvictInfoList.add(new BlockEvictionInfo(dirIndex, blockId, blockSize));
-      dir2BlocksToEvict.put(dirIndex, blockId);
-      dir2LRUBlocks.remove(dirIndex);
+      blockEvictInfoList.add(new BlockInfo(dirCandidate, blockId, blockSize));
+      dir2BlocksToEvict.put(dirCandidate, blockId);
+      dir2LRUBlocks.remove(dirCandidate);
       long evictionSize;
-      if (sizeToEvict.containsKey(dirIndex)) {
-        evictionSize = sizeToEvict.get(dirIndex) + blockSize;
+      if (sizeToEvict.containsKey(dirCandidate)) {
+        evictionSize = sizeToEvict.get(dirCandidate) + blockSize;
       } else {
         evictionSize = blockSize;
       }
-      sizeToEvict.put(dirIndex, evictionSize);
-      if (evictionSize + STORAGE_DIRS[dirIndex].getAvailable() >= requestSize) {
-        return STORAGE_DIRS[dirIndex];
+      sizeToEvict.put(dirCandidate, evictionSize);
+      if (evictionSize + dirCandidate.getAvailable() >= requestSize) {
+        return dirCandidate;
       }
     }
   }
@@ -77,30 +78,31 @@ public class EvictLRU extends EvictLRUBase {
    *          list of pinned files
    * @return block to be evicted
    */
-  public Pair<Integer, Long> getLRUBlockCandidate(Map<Integer, Pair<Long, Long>> dir2LRUBlocks,
-      HashMultimap<Integer, Long> dir2BlocksToEvict, Set<Integer> pinList) {
-    int dirIndex = -1;
+  public Pair<StorageDir, Long> getLRUBlockCandidate(
+      Map<StorageDir, Pair<Long, Long>> dir2LRUBlocks,
+      HashMultimap<StorageDir, Long> dir2BlocksToEvict, Set<Integer> pinList) {
+    StorageDir dirCandidate = null;
     long blockId = -1;
-    for (int index = 0; index < STORAGE_DIRS.length; index ++) {
+    for (StorageDir dir : STORAGE_DIRS) {
       Pair<Long, Long> lruBlock;
       long oldestTime = Long.MAX_VALUE;
-      if (!dir2LRUBlocks.containsKey(index)) {
-        Set<Long> blocksToEvict = dir2BlocksToEvict.get(index);
-        lruBlock = getLRUBlock(STORAGE_DIRS[index], blocksToEvict, pinList);
+      if (!dir2LRUBlocks.containsKey(dir)) {
+        Set<Long> blocksToEvict = dir2BlocksToEvict.get(dir);
+        lruBlock = getLRUBlock(dir, blocksToEvict, pinList);
         if (lruBlock.getFirst() != -1) {
-          dir2LRUBlocks.put(index, lruBlock);
+          dir2LRUBlocks.put(dir, lruBlock);
         } else {
           continue;
         }
       } else {
-        lruBlock = dir2LRUBlocks.get(index);
+        lruBlock = dir2LRUBlocks.get(dir);
       }
       if (lruBlock.getSecond() < oldestTime) {
         blockId = lruBlock.getFirst();
         oldestTime = lruBlock.getSecond();
-        dirIndex = index;
+        dirCandidate = dir;
       }
     }
-    return new Pair<Integer, Long>(dirIndex, blockId);
+    return new Pair<StorageDir, Long>(dirCandidate, blockId);
   }
 }
