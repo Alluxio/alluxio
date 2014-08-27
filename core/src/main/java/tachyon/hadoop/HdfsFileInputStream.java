@@ -26,9 +26,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   private TachyonFS mTFS;
   private int mFileId;
   private Path mHdfsPath;
-  private long mFileLength;
   private Configuration mHadoopConf;
   private int mHadoopBufferSize;
+  private TachyonFile tachyonFile = null;
 
   private FSDataInputStream mHdfsInputStream = null;
 
@@ -54,7 +54,6 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new FileNotFoundException("File " + hdfsPath + " with FID " + fileId
           + " is not found.");
     }
-    mFileLength = tachyonFile.length();
     tachyonFile.setUFSConf(mHadoopConf);
     try {
       mTachyonFileInputStream = tachyonFile.getInStream(ReadType.CACHE);
@@ -151,54 +150,39 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public int read(long position, byte[] buffer, int offset, int length) throws IOException {
-    synchronized (this) {
-      int ret = -1;
-      long oldPos = getPos();
-      if ((position < 0) || (position >= mFileLength)) {
-        return -1;
-      }
+    int ret = -1;
+    long oldPos = getPos();
+    if ((position < 0) || (position >= tachyonFile.length())) {
+      return ret;
+    }
 
-      if (mTachyonFileInputStream != null) {
-        try {
-          seek(position);
-          ret = mTachyonFileInputStream.read(buffer, offset, length);
-          mCurrentPosition += ret;
-          return ret;
-        } catch (IOException e) {
-          LOG.error(e.getMessage(), e);
-          mTachyonFileInputStream = null;
-        } finally {
-          seek(oldPos);
-        }
-      }
-
-      if (mHdfsInputStream != null) {
-        try {
-          mHdfsInputStream.seek(position);
-          ret = mHdfsInputStream.read(buffer, offset, length);
-          return ret;
-        } catch (IOException e) {
-          LOG.error(e.getMessage(), e);
-          mHdfsInputStream = null;
-        } finally {
-          mHdfsInputStream.seek(oldPos);
-        }
-      }
-
+    if (mTachyonFileInputStream != null) {
       try {
-        FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
-        mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
+        seek(position);
+        ret = mTachyonFileInputStream.read(buffer, offset, length);
+        mCurrentPosition += ret;
+        return ret;
+      } finally {
+        seek(oldPos);
+      }
+    }
+
+    if (mHdfsInputStream != null) {
+      try {
         mHdfsInputStream.seek(position);
         ret = mHdfsInputStream.read(buffer, offset, length);
         return ret;
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
       } finally {
         mHdfsInputStream.seek(oldPos);
       }
-
-      return -1;
     }
+
+    FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
+    mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
+    mHdfsInputStream.seek(position);
+    ret = mHdfsInputStream.read(buffer, offset, length);
+    mHdfsInputStream.seek(oldPos);
+    return ret;
   }
 
   private int readFromHdfsBuffer() throws IOException {
