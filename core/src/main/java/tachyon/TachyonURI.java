@@ -9,6 +9,7 @@ import java.net.URISyntaxException;
  * Does not support fragment or query in the URI.
  */
 public final class TachyonURI implements Comparable<TachyonURI> {
+  // TODO: Should we just use Constants.PATH_SEPARATOR?
   public static final String SEPARATOR = "/";
   public static final String CUR_DIR = ".";
 
@@ -22,6 +23,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * additional normalization.
    */
   public TachyonURI(String pathStr) {
+    // TODO: Why do we only check for null here but length 0 in the other constructor?
     if (pathStr == null) {
       throw new IllegalArgumentException("Can not create a Path from a null");
     }
