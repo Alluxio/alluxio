@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
 import tachyon.conf.CommonConf;
@@ -43,30 +44,33 @@ public class TachyonFS extends AbstractTachyonFS {
    *          tachyon://localhost:19998/ab/c.txt
    * @return the corresponding TachyonFS handler
    * @throws IOException
+   * @deprecated use {@link #get(TachyonURI)} instead.
    */
+  @Deprecated
   public static synchronized TachyonFS get(final String tachyonPath) throws IOException {
-    boolean zookeeperMode = false;
-    String tempAddress = tachyonPath;
-    if (tachyonPath.startsWith(Constants.HEADER)) {
-      tempAddress = tachyonPath.substring(Constants.HEADER.length());
-    } else if (tachyonPath.startsWith(Constants.HEADER_FT)) {
-      zookeeperMode = true;
-      tempAddress = tachyonPath.substring(Constants.HEADER_FT.length());
-    } else {
-      throw new IOException("Invalid Path: " + tachyonPath + ". Use " + Constants.HEADER
-          + "host:port/ ," + Constants.HEADER_FT + "host:port/");
-    }
-    String masterAddress = tempAddress;
-    if (tempAddress.contains(Constants.PATH_SEPARATOR)) {
-      masterAddress = tempAddress.substring(0, tempAddress.indexOf(Constants.PATH_SEPARATOR));
-    }
-    Preconditions.checkArgument(masterAddress.split(":").length == 2,
-        "Illegal Tachyon Master Address: " + tachyonPath);
-
-    String masterHost = masterAddress.split(":")[0];
-    int masterPort = Integer.parseInt(masterAddress.split(":")[1]);
-    return new TachyonFS(new InetSocketAddress(masterHost, masterPort), zookeeperMode);
+    return get(new TachyonURI(tachyonPath));
   }
+
+  /**
+   * Create a TachyonFS handler.
+   *
+   * @param tachyonURI
+   *          a Tachyon URI contains master address. e.g., tachyon://localhost:19998,
+   *          tachyon://localhost:19998/ab/c.txt
+   * @return the corresponding TachyonFS handler
+   * @throws IOException
+   */
+   // TODO: Do we need to check for tachyonURI != null?
+   public static synchronized TachyonFS get(final TachyonURI tachyonURI) throws IOException {
+     String scheme = tachyonURI.getScheme();
+     if (scheme == null || tachyonURI.getHost() == null || tachyonURI.getPort() == -1 ||
+         (!scheme.equals(Constants.SCHEME) && !scheme.equals(Constants.SCHEME_FT))) {
+       throw new IOException("Invalid Tachyon URI: " + tachyonURI + ". Use " + Constants.HEADER
+           + "host:port/ ," + Constants.HEADER_FT + "host:port/");
+     }
+     return new TachyonFS(new InetSocketAddress(tachyonURI.getHost(), tachyonURI.getPort()),
+         tachyonURI.getScheme().equals(Constants.SCHEME_FT));
+   }
 
   /**
    * Create a TachyonFS handler.
@@ -187,6 +191,18 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
+   * Validates the given path, throwing an IOException if the path is invalid.
+   *
+   * @param path
+   *          The path to validate
+   */
+  private synchronized void validatePath(TachyonURI path) throws IOException {
+    if (path == null || !path.isPathAbsolute()) {
+      throw new IOException("Path " + path + " is invalid");
+    }
+  }
+
+  /**
    * Close the client. Close the connections to both to master and worker
    * 
    * @throws IOException
@@ -294,6 +310,12 @@ public class TachyonFS extends AbstractTachyonFS {
     return mMasterClient.user_createFile(path, ufsPath, blockSizeByte, recursive);
   }
 
+  @Override
+  public synchronized int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte,
+      boolean recursive) throws IOException {
+    return mMasterClient.user_createFile(path.getPath(), ufsPath.getPath(), blockSizeByte, recursive);
+  }
+
   /**
    * Create a RawTable and return its id
    * 
@@ -303,8 +325,24 @@ public class TachyonFS extends AbstractTachyonFS {
    *          number of columns it has
    * @return the id if succeed, -1 otherwise
    * @throws IOException
+   * @deprecated use {@link #createRawTable(TachyonURI, int)} instead
    */
+  @Deprecated
   public synchronized int createRawTable(String path, int columns) throws IOException {
+    return createRawTable(new TachyonURI(path), columns);
+  }
+
+  /**
+   * Create a RawTable and return its id
+   *
+   * @param path
+   *          the RawTable's path
+   * @param columns
+   *          number of columns it has
+   * @return the id if succeed, -1 otherwise
+   * @throws IOException
+   */
+  public synchronized int createRawTable(TachyonURI path, int columns) throws IOException {
     return createRawTable(path, columns, ByteBuffer.allocate(0));
   }
 
@@ -319,23 +357,49 @@ public class TachyonFS extends AbstractTachyonFS {
    *          the meta data of the RawTable
    * @return the id if succeed, -1 otherwise
    * @throws IOException
+   * @deprecated use {@link #createRawTable(TachyonURI, int, java.nio.ByteBuffer)} instead
    */
+  @Deprecated
   public synchronized int createRawTable(String path, int columns, ByteBuffer metadata)
       throws IOException {
     String cleanedPath = cleanPathIOException(path);
+
+    return createRawTable(new TachyonURI(cleanedPath), columns, metadata);
+  }
+
+  /**
+   * Create a RawTable and return its id
+   *
+   * @param path
+   *          the RawTable's path
+   * @param columns
+   *          number of columns it has
+   * @param metadata
+   *          the meta data of the RawTable
+   * @return the id if succeed, -1 otherwise
+   * @throws IOException
+   */
+  public synchronized int createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
+      throws IOException {
+    validatePath(path);
     if (columns < 1 || columns > CommonConf.get().MAX_COLUMNS) {
       throw new IOException("Column count " + columns + " is smaller than 1 or " + "bigger than "
           + CommonConf.get().MAX_COLUMNS);
     }
 
-    return mMasterClient.user_createRawTable(cleanedPath, columns, metadata);
-
+    return mMasterClient.user_createRawTable(path.getPath(), columns, metadata);
   }
 
   @Override
   public synchronized boolean delete(int fileId, String path, boolean recursive)
       throws IOException {
     return mMasterClient.user_delete(fileId, path, recursive);
+  }
+
+  @Override
+  public synchronized boolean delete(int fileId, TachyonURI path, boolean recursive)
+      throws IOException {
+    return mMasterClient.user_delete(fileId, path.getPath(), recursive);
   }
 
   /**
@@ -345,8 +409,22 @@ public class TachyonFS extends AbstractTachyonFS {
    *          the file's path in Tachyon file system
    * @return true if it exists, false otherwise
    * @throws IOException
+   * @deprecated use {@link #exist(TachyonURI)} instead
    */
+  @Deprecated
   public synchronized boolean exist(String path) throws IOException {
+    return exist(new TachyonURI(path));
+  }
+
+  /**
+   * Return whether the file exists or not
+   *
+   * @param path
+   *          the file's path in Tachyon file system
+   * @return true if it exists, false otherwise
+   * @throws IOException
+   */
+  public synchronized boolean exist(TachyonURI path) throws IOException {
     return getFileStatus(-1, path, false) != null;
   }
 
@@ -446,19 +524,46 @@ public class TachyonFS extends AbstractTachyonFS {
    *          file path.
    * @return TachyonFile of the path, or null if the file does not exist.
    * @throws IOException
+   * @deprecated use {@link #getFile(TachyonURI)} instead
    */
+  @Deprecated
   public synchronized TachyonFile getFile(String path) throws IOException {
+    return getFile(new TachyonURI(path));
+  }
+
+  /**
+   * Get <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
+   *
+   * @param path
+   *          file path.
+   * @return TachyonFile of the path, or null if the file does not exist.
+   * @throws IOException
+   */
+  public synchronized TachyonFile getFile(TachyonURI path) throws IOException {
     return getFile(path, false);
   }
 
   /**
    * Get <code>TachyonFile</code> based on the path. If useCachedMetadata, this will not see
    * changes to the file's pin setting, or other dynamic properties.
+   *
+   * @deprecated use {@link #getFile(TachyonURI, boolean)} instead
    */
+  @Deprecated
   public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
       throws IOException {
     String cleanedPath = cleanPathIOException(path);
-    ClientFileInfo clientFileInfo = getFileStatus(-1, cleanedPath, useCachedMetadata);
+    return getFile(new TachyonURI(cleanedPath), useCachedMetadata);
+  }
+
+  /**
+   * Get <code>TachyonFile</code> based on the path. If useCachedMetadata, this will not see
+   * changes to the file's pin setting, or other dynamic properties.
+   */
+  public synchronized TachyonFile getFile(TachyonURI path, boolean useCachedMetadata)
+      throws IOException {
+    validatePath(path);
+    ClientFileInfo clientFileInfo = getFileStatus(-1, path.getPath(), useCachedMetadata);
     if (clientFileInfo == null) {
       return null;
     }
@@ -485,10 +590,29 @@ public class TachyonFS extends AbstractTachyonFS {
    *          the path in Tachyon file system
    * @return the file id if exists, -1 otherwise
    * @throws IOException
+   * @deprecated use {@link #getFileId(TachyonURI)} instead
    */
+  @Deprecated
   public synchronized int getFileId(String path) throws IOException {
     try {
       return getFileStatus(-1, cleanPathIOException(path), false).getId();
+    } catch (IOException e) {
+      return -1;
+    }
+  }
+
+  /**
+   * Get file id by the path. It will check if the path exists.
+   *
+   * @param path
+   *          the path in Tachyon file system
+   * @return the file id if exists, -1 otherwise
+   * @throws IOException
+   */
+  public synchronized int getFileId(TachyonURI path) throws IOException {
+    try {
+      validatePath(path);
+      return getFileStatus(-1, path.getPath(), false).getId();
     } catch (IOException e) {
       return -1;
     }
@@ -498,6 +622,31 @@ public class TachyonFS extends AbstractTachyonFS {
   public ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
     ClientFileInfo info = mMasterClient.getFileStatus(fileId, path);
     return info.getId() == -1 ? null : info;
+  }
+
+  @Override
+  public ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException {
+    ClientFileInfo info = mMasterClient.getFileStatus(fileId, path.getPath());
+    return info.getId() == -1 ? null : info;
+  }
+
+  /**
+   * Advanced API.
+   *
+   * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
+   *
+   * @param fileId
+   *          the file id of the file or folder.
+   * @param path
+   *          the path of the file or folder. valid iff fileId is -1.
+   * @param useCachedMetadata
+   *          if true use the local cached meta data
+   * @return the ClientFileInfo of the file. null if the file does not exist.
+   * @throws IOException
+   */
+  public synchronized ClientFileInfo getFileStatus(int fileId, String path,
+                                                   boolean useCachedMetadata) throws IOException {
+    return getFileStatus(fileId, new TachyonURI(path), useCachedMetadata);
   }
 
   /**
@@ -514,7 +663,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @return the ClientFileInfo of the file. null if the file does not exist.
    * @throws IOException
    */
-  public synchronized ClientFileInfo getFileStatus(int fileId, String path,
+  public synchronized ClientFileInfo getFileStatus(int fileId, TachyonURI path,
       boolean useCachedMetadata) throws IOException {
     ClientFileInfo info = null;
     boolean updated = false;
@@ -531,7 +680,7 @@ public class TachyonFS extends AbstractTachyonFS {
         return null;
       }
 
-      path = info.getPath();
+      path = new TachyonURI(info.getPath());
     } else {
       info = mPathToClientFileInfo.get(path);
       if (!useCachedMetadata || info == null) {
@@ -550,7 +699,7 @@ public class TachyonFS extends AbstractTachyonFS {
     if (updated) {
       // TODO LRU on this Map.
       mIdToClientFileInfo.put(fileId, info);
-      mPathToClientFileInfo.put(path, info);
+      mPathToClientFileInfo.put(path.getPath(), info);
     }
 
     return info;
@@ -576,10 +725,26 @@ public class TachyonFS extends AbstractTachyonFS {
    *          the path of the raw table
    * @return the RawTable
    * @throws IOException
+   * @deprecated use {@link #getRawTable(TachyonURI)} instead
    */
+  @Deprecated
   public synchronized RawTable getRawTable(String path) throws IOException {
+    String cleanedPath = cleanPathIOException(path);
+    return getRawTable(new TachyonURI(cleanedPath));
+  }
+
+  /**
+   * Get the RawTable by path
+   *
+   * @param path
+   *          the path of the raw table
+   * @return the RawTable
+   * @throws IOException
+   */
+  public synchronized RawTable getRawTable(TachyonURI path) throws IOException {
+    validatePath(path);
     ClientRawTableInfo clientRawTableInfo =
-        mMasterClient.user_getClientRawTableInfo(-1, cleanPathIOException(path));
+        mMasterClient.user_getClientRawTableInfo(-1, path.getPath());
     return new RawTable(this, clientRawTableInfo);
   }
 
@@ -597,6 +762,15 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized String getUfsAddress() throws IOException {
     return mMasterClient.user_getUfsAddress();
+  }
+
+  /**
+   * @return URI of the root of the filesystem
+   */
+  public synchronized TachyonURI getUri() {
+    String scheme = CommonConf.get().USE_ZOOKEEPER ? Constants.SCHEME_FT : Constants.SCHEME;
+    String authority = mMasterAddress.getHostName() + ":" + mMasterAddress.getPort();
+    return new TachyonURI(scheme, authority, Constants.PATH_SEPARATOR);
   }
 
   /**
@@ -636,6 +810,11 @@ public class TachyonFS extends AbstractTachyonFS {
     return mMasterClient.listStatus(path);
   }
 
+  @Override
+  public synchronized List<ClientFileInfo> listStatus(TachyonURI path) throws IOException {
+    return mMasterClient.listStatus(path.getPath());
+  }
+
   /**
    * Lock a block in the current TachyonFS.
    * 
@@ -671,6 +850,11 @@ public class TachyonFS extends AbstractTachyonFS {
     return mMasterClient.user_mkdirs(path, recursive);
   }
 
+  @Override
+  public synchronized boolean mkdirs(TachyonURI path, boolean recursive) throws IOException {
+    return mMasterClient.user_mkdirs(path.getPath(), recursive);
+  }
+
   /** Alias for setPinned(fid, true). */
   public synchronized void pinFile(int fid) throws IOException {
     setPinned(fid, true);
@@ -684,6 +868,12 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized boolean rename(int fileId, String srcPath, String dstPath)
       throws IOException {
     return mMasterClient.user_rename(fileId, srcPath, dstPath);
+  }
+
+  @Override
+  public synchronized boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath)
+      throws IOException {
+    return mMasterClient.user_rename(fileId, srcPath.getPath(), dstPath.getPath());
   }
 
   /**
