@@ -1886,53 +1886,53 @@ public class MasterInfo extends ImageWriter {
       }
 
       switch (ele.type) {
-      case Version: {
-        if (ele.getInt("version") != Constants.JOURNAL_VERSION) {
-          throw new IOException("Image " + path + " has journal version " + ele.getInt("version")
-              + " . The system has verion " + Constants.JOURNAL_VERSION);
+        case Version: {
+          if (ele.getInt("version") != Constants.JOURNAL_VERSION) {
+            throw new IOException("Image " + path + " has journal version " + ele.getInt("version")
+                + " . The system has verion " + Constants.JOURNAL_VERSION);
+          }
+          break;
         }
-        break;
-      }
-      case Checkpoint: {
-        mInodeCounter.set(ele.getInt("inodeCounter"));
-        mCheckpointInfo.updateEditTransactionCounter(ele.getLong("editTransactionCounter"));
-        mCheckpointInfo.updateDependencyCounter(ele.getInt("dependencyCounter"));
-        break;
-      }
-      case Dependency: {
-        Dependency dep = Dependency.loadImage(ele);
+        case Checkpoint: {
+          mInodeCounter.set(ele.getInt("inodeCounter"));
+          mCheckpointInfo.updateEditTransactionCounter(ele.getLong("editTransactionCounter"));
+          mCheckpointInfo.updateDependencyCounter(ele.getInt("dependencyCounter"));
+          break;
+        }
+        case Dependency: {
+          Dependency dep = Dependency.loadImage(ele);
 
-        mFileIdToDependency.put(dep.mId, dep);
-        if (!dep.hasCheckpointed()) {
-          mUncheckpointedDependencies.add(dep.mId);
+          mFileIdToDependency.put(dep.mId, dep);
+          if (!dep.hasCheckpointed()) {
+            mUncheckpointedDependencies.add(dep.mId);
+          }
+          for (int parentDependencyId : dep.mParentDependencies) {
+            mFileIdToDependency.get(parentDependencyId).addChildrenDependency(dep.mId);
+          }
+          break;
         }
-        for (int parentDependencyId : dep.mParentDependencies) {
-          mFileIdToDependency.get(parentDependencyId).addChildrenDependency(dep.mId);
-        }
-        break;
-      }
-      case InodeFile: {
-        // This element should not be loaded here. It should be loaded by InodeFolder.
-        throw new IOException("Invalid element type " + ele);
-      }
-      case InodeFolder: {
-        Inode inode = InodeFolder.loadImage(parser, ele);
-        addToInodeMap(inode, mFileIdToInodes);
-        recomputePinnedFiles(inode, Optional.<Boolean> absent());
-
-        if (inode.getId() != 1) {
+        case InodeFile: {
+          // This element should not be loaded here. It should be loaded by InodeFolder.
           throw new IOException("Invalid element type " + ele);
         }
-        mRoot = (InodeFolder) inode;
+        case InodeFolder: {
+          Inode inode = InodeFolder.loadImage(parser, ele);
+          addToInodeMap(inode, mFileIdToInodes);
+          recomputePinnedFiles(inode, Optional.<Boolean>absent());
 
-        break;
-      }
-      case RawTable: {
-        mRawTables.loadImage(ele);
-        break;
-      }
-      default:
-        throw new IOException("Invalid element type " + ele);
+          if (inode.getId() != 1) {
+            throw new IOException("Invalid element type " + ele);
+          }
+          mRoot = (InodeFolder) inode;
+
+          break;
+        }
+        case RawTable: {
+          mRawTables.loadImage(ele);
+          break;
+        }
+        default:
+          throw new IOException("Invalid element type " + ele);
       }
     }
   }
