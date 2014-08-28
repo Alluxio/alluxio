@@ -51,11 +51,14 @@ public class BlockHandlerLocalTest {
     TachyonFile file = mTfs.getFile(fileId);
     String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);
-    ByteBuffer buf = handler.read(0, 100);
-    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(100), buf);
-    buf = handler.read(0, -1);
-    Assert.assertEquals(TestUtils.getIncreasingByteBuffer(100), buf);
-    handler.close();
+    try {
+      ByteBuffer buf = handler.read(0, 100);
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(100), buf);
+      buf = handler.read(0, -1);
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(100), buf);
+    } finally {
+      handler.close();
+    }
     return;
   }
 
@@ -67,12 +70,37 @@ public class BlockHandlerLocalTest {
     String filename = CommonUtils.concat(localFolder, blockId);
     BlockHandler handler = BlockHandler.get(filename);
     byte[] buf = TestUtils.getIncreasingByteArray(100);
-    handler.append(0, ByteBuffer.wrap(buf));
-    handler.close();
-    mTfs.cacheBlock(blockId);
-    TachyonFile file = mTfs.getFile(fileId);
-    long fileLen = file.length();
-    Assert.assertEquals(100, fileLen);
+    try {
+      handler.append(0, ByteBuffer.wrap(buf));
+      mTfs.cacheBlock(blockId);
+      TachyonFile file = mTfs.getFile(fileId);
+      long fileLen = file.length();
+      Assert.assertEquals(100, fileLen);
+    } finally {
+      handler.close();
+    }
+    return;
+  }
+
+  @Test
+  public void writeTest1() throws IOException {
+    ByteBuffer buf = ByteBuffer.allocateDirect(100);
+    buf.put(TestUtils.getIncreasingByteArray(100));
+
+    int fileId = mTfs.createFile("/root/testFile");
+    long blockId = mTfs.getBlockId(fileId, 0);
+    String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
+    String filename = CommonUtils.concat(localFolder, blockId);
+    BlockHandler handler = BlockHandler.get(filename);
+    try {
+      handler.append(0, buf);
+      mTfs.cacheBlock(blockId);
+      TachyonFile file = mTfs.getFile(fileId);
+      long fileLen = file.length();
+      Assert.assertEquals(100, fileLen);
+    } finally {
+      handler.close();
+    }
     return;
   }
 }
