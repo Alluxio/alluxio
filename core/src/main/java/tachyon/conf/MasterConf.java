@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.conf;
 
 import java.util.ArrayList;
@@ -74,11 +60,14 @@ public class MasterConf extends Utils {
     WEB_PORT = getIntProperty("tachyon.master.web.port", Constants.DEFAULT_MASTER_WEB_PORT);
     TEMPORARY_FOLDER = getProperty("tachyon.master.temporary.folder", "/tmp");
 
-    HEARTBEAT_INTERVAL_MS = getIntProperty("tachyon.master.heartbeat.interval.ms", Constants.SECOND_MS);
+    HEARTBEAT_INTERVAL_MS =
+        getIntProperty("tachyon.master.heartbeat.interval.ms", Constants.SECOND_MS);
     SELECTOR_THREADS = getIntProperty("tachyon.master.selector.threads", 3);
     QUEUE_SIZE_PER_SELECTOR = getIntProperty("tachyon.master.queue.size.per.selector", 3000);
-    SERVER_THREADS = getIntProperty("tachyon.master.server.threads", 128);
-    WORKER_TIMEOUT_MS = getIntProperty("tachyon.master.worker.timeout.ms", 10 * Constants.SECOND_MS);
+    SERVER_THREADS = getIntProperty("tachyon.master.server.threads", 
+        2 * Runtime.getRuntime().availableProcessors());
+    WORKER_TIMEOUT_MS =
+        getIntProperty("tachyon.master.worker.timeout.ms", 10 * Constants.SECOND_MS);
 
     WHITELIST.addAll(Arrays.asList(getProperty("tachyon.master.whitelist",
         Constants.PATH_SEPARATOR).split(",")));

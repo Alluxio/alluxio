@@ -16,10 +16,10 @@ import tachyon.util.CommonUtils;
 public class EditLogProcessor implements Runnable {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private final Journal JOURNAL;
+  private final Journal mJournal;
+  private final String mPath;
+  private final MasterInfo mMasterInfo;
 
-  private String mPath;
-  private MasterInfo mMasterInfo;
   private int mCurrentLogFileNum = 0;
   private int mLastImageFileNum = 0;
   private long mLoadedImageModTime = 0L;
@@ -36,11 +36,11 @@ public class EditLogProcessor implements Runnable {
    *          The Master Info
    */
   public EditLogProcessor(Journal journal, String path, MasterInfo info) {
-    JOURNAL = journal;
+    mJournal = journal;
     mPath = path;
     mMasterInfo = info;
     try {
-      mLoadedImageModTime = JOURNAL.getImageModTimeMs();
+      mLoadedImageModTime = mJournal.getImageModTimeMs();
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
@@ -53,13 +53,13 @@ public class EditLogProcessor implements Runnable {
     UnderFileSystem ufs = UnderFileSystem.get(mPath);
     while (mIsStandby) {
       try {
-        synchronized (JOURNAL) {
-          long lastImageModTime = JOURNAL.getImageModTimeMs();
+        synchronized (mJournal) {
+          long lastImageModTime = mJournal.getImageModTimeMs();
           if (mLoadedImageModTime != lastImageModTime) {
             LOG.info("The last loaded image is out of date. Loading updated image.");
             LOG.info("Loaded image modification time was: " + mLoadedImageModTime);
             LOG.info("Last image mod time was: " + lastImageModTime);
-            JOURNAL.loadImage(mMasterInfo);
+            mJournal.loadImage(mMasterInfo);
             LOG.info("Finished loading new image.");
             mLoadedImageModTime = lastImageModTime;
             mCurrentLogFileNum = 0;
@@ -68,7 +68,7 @@ public class EditLogProcessor implements Runnable {
           String path = mPath + "completed/" + mCurrentLogFileNum + ".editLog";
           while (ufs.exists(path)) {
             LOG.info("Found completed log file " + path);
-            JOURNAL.loadSingleLogFile(mMasterInfo, path);
+            mJournal.loadSingleLogFile(mMasterInfo, path);
             LOG.info("Finished loading log file " + path);
             mCurrentLogFileNum ++;
             path = mPath + "completed/" + mCurrentLogFileNum + ".editLog";
@@ -77,8 +77,8 @@ public class EditLogProcessor implements Runnable {
           if (mLastImageFileNum != mCurrentLogFileNum) {
             LOG.info("Last image was updated with log number: " + mLastImageFileNum
                 + " writing new image up to log number " + mCurrentLogFileNum);
-            JOURNAL.createImage(mMasterInfo, mPath + mMasterInfo.getMasterAddress().getHostName()
-                    + mMasterInfo.getMasterAddress().getPort() + "/standby.image");
+            mJournal.createImage(mMasterInfo, mPath + mMasterInfo.getMasterAddress().getHostName()
+                + mMasterInfo.getMasterAddress().getPort() + "/standby.image");
             LOG.info("Finished creating image");
             mLastImageFileNum = mCurrentLogFileNum;
           }

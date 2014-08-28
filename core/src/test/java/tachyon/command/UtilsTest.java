@@ -1,10 +1,12 @@
 package tachyon.command;
 
-import junit.framework.Assert;
-import org.junit.Test;
-import tachyon.Constants;
-
 import java.io.IOException;
+
+import junit.framework.Assert;
+
+import org.junit.Test;
+
+import tachyon.Constants;
 
 /**
  * Unit tests on tachyon.command.Utils.

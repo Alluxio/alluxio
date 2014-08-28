@@ -69,20 +69,11 @@ public class MasterService {
 
     public void user_requestFilesInDependency(int depId) throws DependencyDoesNotExistException, org.apache.thrift.TException;
 
-    public int user_createFile(String path, long blockSizeByte) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException, org.apache.thrift.TException;
-
-    public int user_createFileOnCheckpoint(String path, String checkpointPath) throws FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException, BlockInfoException, TachyonException, org.apache.thrift.TException;
+    public int user_createFile(String path, String ufsPath, long blockSizeByte, boolean recursive) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException;
 
     public long user_createNewBlock(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
 
     public void user_completeFile(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
-
-    /**
-     * Return -1 if does not contain the file, return fileId if it exists.
-     * 
-     * @param path
-     */
-    public int user_getFileId(String path) throws InvalidPathException, org.apache.thrift.TException;
 
     public long user_getUserId() throws org.apache.thrift.TException;
 
@@ -96,9 +87,7 @@ public class MasterService {
      */
     public NetAddress user_getWorker(boolean random, String host) throws NoWorkerException, org.apache.thrift.TException;
 
-    public ClientFileInfo getClientFileInfoById(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
-
-    public ClientFileInfo user_getClientFileInfoByPath(String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public ClientFileInfo getFileStatus(int fileId, String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
     /**
      * Get block's ClientBlockInfo.
@@ -108,36 +97,20 @@ public class MasterService {
     public ClientBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException;
 
     /**
-     * Get file locations by file Id.
+     * Get file blocks info.
      * 
      * @param fileId
-     */
-    public List<ClientBlockInfo> user_getFileBlocksById(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException;
-
-    /**
-     * Get file locations by path
-     * 
      * @param path
      */
-    public List<ClientBlockInfo> user_getFileBlocksByPath(String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public List<ClientBlockInfo> user_getFileBlocks(int fileId, String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
-    public List<Integer> user_listFiles(String path, boolean recursive) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public boolean user_delete(int fileId, String path, boolean recursive) throws TachyonException, org.apache.thrift.TException;
 
-    public List<String> user_ls(String path, boolean recursive) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
-
-    public boolean user_deleteById(int fileId, boolean recursive) throws TachyonException, org.apache.thrift.TException;
-
-    public boolean user_deleteByPath(String path, boolean recursive) throws TachyonException, org.apache.thrift.TException;
-
-    public void user_outOfMemoryForPinFile(int fileId) throws org.apache.thrift.TException;
-
-    public boolean user_rename(String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
-
-    public void user_renameTo(int fileId, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public boolean user_rename(int fileId, String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
     public void user_setPinned(int fileId, boolean pinned) throws FileDoesNotExistException, org.apache.thrift.TException;
 
-    public boolean user_mkdir(String path) throws FileAlreadyExistException, InvalidPathException, TachyonException, org.apache.thrift.TException;
+    public boolean user_mkdirs(String path, boolean recursive) throws FileAlreadyExistException, InvalidPathException, TachyonException, org.apache.thrift.TException;
 
     public int user_createRawTable(String path, int columns, ByteBuffer metadata) throws FileAlreadyExistException, InvalidPathException, TableColumnException, TachyonException, org.apache.thrift.TException;
 
@@ -149,22 +122,15 @@ public class MasterService {
     public int user_getRawTableId(String path) throws InvalidPathException, org.apache.thrift.TException;
 
     /**
-     * Get Table info by Table Id.
+     * Get RawTable's info; Return a ClientRawTable instance with id 0 if the system does not contain
+     * the table.
      * 
-     * @param tableId
+     * @param id
+     * @param path
      */
-    public ClientRawTableInfo user_getClientRawTableInfoById(int tableId) throws TableDoesNotExistException, org.apache.thrift.TException;
-
-    /**
-     * Get Table info by path
-     * 
-     * @param tablePath
-     */
-    public ClientRawTableInfo user_getClientRawTableInfoByPath(String tablePath) throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
+    public ClientRawTableInfo user_getClientRawTableInfo(int id, String path) throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
     public void user_updateRawTableMetadata(int tableId, ByteBuffer metadata) throws TableDoesNotExistException, TachyonException, org.apache.thrift.TException;
-
-    public int user_getNumberOfFiles(String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException;
 
     public String user_getUfsAddress() throws org.apache.thrift.TException;
 
@@ -196,15 +162,11 @@ public class MasterService {
 
     public void user_requestFilesInDependency(int depId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void user_createFile(String path, long blockSizeByte, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void user_createFileOnCheckpoint(String path, String checkpointPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void user_createFile(String path, String ufsPath, long blockSizeByte, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void user_createNewBlock(int fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void user_completeFile(int fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void user_getFileId(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void user_getUserId(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -212,45 +174,27 @@ public class MasterService {
 
     public void user_getWorker(boolean random, String host, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void getClientFileInfoById(int fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void user_getClientFileInfoByPath(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getFileStatus(int fileId, String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void user_getClientBlockInfo(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void user_getFileBlocksById(int fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void user_getFileBlocks(int fileId, String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void user_getFileBlocksByPath(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void user_delete(int fileId, String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void user_listFiles(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void user_ls(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void user_deleteById(int fileId, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void user_deleteByPath(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void user_outOfMemoryForPinFile(int fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void user_rename(String srcPath, String dstPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void user_renameTo(int fileId, String dstPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void user_rename(int fileId, String srcPath, String dstPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void user_setPinned(int fileId, boolean pinned, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void user_mkdir(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void user_mkdirs(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void user_createRawTable(String path, int columns, ByteBuffer metadata, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void user_getRawTableId(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void user_getClientRawTableInfoById(int tableId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void user_getClientRawTableInfoByPath(String tablePath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void user_getClientRawTableInfo(int id, String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void user_updateRawTableMetadata(int tableId, ByteBuffer metadata, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void user_getNumberOfFiles(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void user_getUfsAddress(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -613,21 +557,23 @@ public class MasterService {
       return;
     }
 
-    public int user_createFile(String path, long blockSizeByte) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException, org.apache.thrift.TException
+    public int user_createFile(String path, String ufsPath, long blockSizeByte, boolean recursive) throws FileAlreadyExistException, InvalidPathException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
     {
-      send_user_createFile(path, blockSizeByte);
+      send_user_createFile(path, ufsPath, blockSizeByte, recursive);
       return recv_user_createFile();
     }
 
-    public void send_user_createFile(String path, long blockSizeByte) throws org.apache.thrift.TException
+    public void send_user_createFile(String path, String ufsPath, long blockSizeByte, boolean recursive) throws org.apache.thrift.TException
     {
       user_createFile_args args = new user_createFile_args();
       args.setPath(path);
+      args.setUfsPath(ufsPath);
       args.setBlockSizeByte(blockSizeByte);
+      args.setRecursive(recursive);
       sendBase("user_createFile", args);
     }
 
-    public int recv_user_createFile() throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException, org.apache.thrift.TException
+    public int recv_user_createFile() throws FileAlreadyExistException, InvalidPathException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException
     {
       user_createFile_result result = new user_createFile_result();
       receiveBase(result, "user_createFile");
@@ -643,49 +589,13 @@ public class MasterService {
       if (result.eB != null) {
         throw result.eB;
       }
+      if (result.eS != null) {
+        throw result.eS;
+      }
       if (result.eT != null) {
         throw result.eT;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_createFile failed: unknown result");
-    }
-
-    public int user_createFileOnCheckpoint(String path, String checkpointPath) throws FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException, BlockInfoException, TachyonException, org.apache.thrift.TException
-    {
-      send_user_createFileOnCheckpoint(path, checkpointPath);
-      return recv_user_createFileOnCheckpoint();
-    }
-
-    public void send_user_createFileOnCheckpoint(String path, String checkpointPath) throws org.apache.thrift.TException
-    {
-      user_createFileOnCheckpoint_args args = new user_createFileOnCheckpoint_args();
-      args.setPath(path);
-      args.setCheckpointPath(checkpointPath);
-      sendBase("user_createFileOnCheckpoint", args);
-    }
-
-    public int recv_user_createFileOnCheckpoint() throws FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException, BlockInfoException, TachyonException, org.apache.thrift.TException
-    {
-      user_createFileOnCheckpoint_result result = new user_createFileOnCheckpoint_result();
-      receiveBase(result, "user_createFileOnCheckpoint");
-      if (result.isSetSuccess()) {
-        return result.success;
-      }
-      if (result.eR != null) {
-        throw result.eR;
-      }
-      if (result.eI != null) {
-        throw result.eI;
-      }
-      if (result.eS != null) {
-        throw result.eS;
-      }
-      if (result.eB != null) {
-        throw result.eB;
-      }
-      if (result.eT != null) {
-        throw result.eT;
-      }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_createFileOnCheckpoint failed: unknown result");
     }
 
     public long user_createNewBlock(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException
@@ -735,32 +645,6 @@ public class MasterService {
         throw result.e;
       }
       return;
-    }
-
-    public int user_getFileId(String path) throws InvalidPathException, org.apache.thrift.TException
-    {
-      send_user_getFileId(path);
-      return recv_user_getFileId();
-    }
-
-    public void send_user_getFileId(String path) throws org.apache.thrift.TException
-    {
-      user_getFileId_args args = new user_getFileId_args();
-      args.setPath(path);
-      sendBase("user_getFileId", args);
-    }
-
-    public int recv_user_getFileId() throws InvalidPathException, org.apache.thrift.TException
-    {
-      user_getFileId_result result = new user_getFileId_result();
-      receiveBase(result, "user_getFileId");
-      if (result.isSetSuccess()) {
-        return result.success;
-      }
-      if (result.e != null) {
-        throw result.e;
-      }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getFileId failed: unknown result");
     }
 
     public long user_getUserId() throws org.apache.thrift.TException
@@ -839,49 +723,24 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getWorker failed: unknown result");
     }
 
-    public ClientFileInfo getClientFileInfoById(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException
+    public ClientFileInfo getFileStatus(int fileId, String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
-      send_getClientFileInfoById(fileId);
-      return recv_getClientFileInfoById();
+      send_getFileStatus(fileId, path);
+      return recv_getFileStatus();
     }
 
-    public void send_getClientFileInfoById(int fileId) throws org.apache.thrift.TException
+    public void send_getFileStatus(int fileId, String path) throws org.apache.thrift.TException
     {
-      getClientFileInfoById_args args = new getClientFileInfoById_args();
+      getFileStatus_args args = new getFileStatus_args();
       args.setFileId(fileId);
-      sendBase("getClientFileInfoById", args);
-    }
-
-    public ClientFileInfo recv_getClientFileInfoById() throws FileDoesNotExistException, org.apache.thrift.TException
-    {
-      getClientFileInfoById_result result = new getClientFileInfoById_result();
-      receiveBase(result, "getClientFileInfoById");
-      if (result.isSetSuccess()) {
-        return result.success;
-      }
-      if (result.e != null) {
-        throw result.e;
-      }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getClientFileInfoById failed: unknown result");
-    }
-
-    public ClientFileInfo user_getClientFileInfoByPath(String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
-    {
-      send_user_getClientFileInfoByPath(path);
-      return recv_user_getClientFileInfoByPath();
-    }
-
-    public void send_user_getClientFileInfoByPath(String path) throws org.apache.thrift.TException
-    {
-      user_getClientFileInfoByPath_args args = new user_getClientFileInfoByPath_args();
       args.setPath(path);
-      sendBase("user_getClientFileInfoByPath", args);
+      sendBase("getFileStatus", args);
     }
 
-    public ClientFileInfo recv_user_getClientFileInfoByPath() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public ClientFileInfo recv_getFileStatus() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
-      user_getClientFileInfoByPath_result result = new user_getClientFileInfoByPath_result();
-      receiveBase(result, "user_getClientFileInfoByPath");
+      getFileStatus_result result = new getFileStatus_result();
+      receiveBase(result, "getFileStatus");
       if (result.isSetSuccess()) {
         return result.success;
       }
@@ -891,7 +750,7 @@ public class MasterService {
       if (result.eI != null) {
         throw result.eI;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getClientFileInfoByPath failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getFileStatus failed: unknown result");
     }
 
     public ClientBlockInfo user_getClientBlockInfo(long blockId) throws FileDoesNotExistException, BlockInfoException, org.apache.thrift.TException
@@ -923,49 +782,24 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getClientBlockInfo failed: unknown result");
     }
 
-    public List<ClientBlockInfo> user_getFileBlocksById(int fileId) throws FileDoesNotExistException, org.apache.thrift.TException
+    public List<ClientBlockInfo> user_getFileBlocks(int fileId, String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
-      send_user_getFileBlocksById(fileId);
-      return recv_user_getFileBlocksById();
+      send_user_getFileBlocks(fileId, path);
+      return recv_user_getFileBlocks();
     }
 
-    public void send_user_getFileBlocksById(int fileId) throws org.apache.thrift.TException
+    public void send_user_getFileBlocks(int fileId, String path) throws org.apache.thrift.TException
     {
-      user_getFileBlocksById_args args = new user_getFileBlocksById_args();
+      user_getFileBlocks_args args = new user_getFileBlocks_args();
       args.setFileId(fileId);
-      sendBase("user_getFileBlocksById", args);
-    }
-
-    public List<ClientBlockInfo> recv_user_getFileBlocksById() throws FileDoesNotExistException, org.apache.thrift.TException
-    {
-      user_getFileBlocksById_result result = new user_getFileBlocksById_result();
-      receiveBase(result, "user_getFileBlocksById");
-      if (result.isSetSuccess()) {
-        return result.success;
-      }
-      if (result.e != null) {
-        throw result.e;
-      }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getFileBlocksById failed: unknown result");
-    }
-
-    public List<ClientBlockInfo> user_getFileBlocksByPath(String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
-    {
-      send_user_getFileBlocksByPath(path);
-      return recv_user_getFileBlocksByPath();
-    }
-
-    public void send_user_getFileBlocksByPath(String path) throws org.apache.thrift.TException
-    {
-      user_getFileBlocksByPath_args args = new user_getFileBlocksByPath_args();
       args.setPath(path);
-      sendBase("user_getFileBlocksByPath", args);
+      sendBase("user_getFileBlocks", args);
     }
 
-    public List<ClientBlockInfo> recv_user_getFileBlocksByPath() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public List<ClientBlockInfo> recv_user_getFileBlocks() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
-      user_getFileBlocksByPath_result result = new user_getFileBlocksByPath_result();
-      receiveBase(result, "user_getFileBlocksByPath");
+      user_getFileBlocks_result result = new user_getFileBlocks_result();
+      receiveBase(result, "user_getFileBlocks");
       if (result.isSetSuccess()) {
         return result.success;
       }
@@ -975,152 +809,47 @@ public class MasterService {
       if (result.eI != null) {
         throw result.eI;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getFileBlocksByPath failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getFileBlocks failed: unknown result");
     }
 
-    public List<Integer> user_listFiles(String path, boolean recursive) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
+    public boolean user_delete(int fileId, String path, boolean recursive) throws TachyonException, org.apache.thrift.TException
     {
-      send_user_listFiles(path, recursive);
-      return recv_user_listFiles();
+      send_user_delete(fileId, path, recursive);
+      return recv_user_delete();
     }
 
-    public void send_user_listFiles(String path, boolean recursive) throws org.apache.thrift.TException
+    public void send_user_delete(int fileId, String path, boolean recursive) throws org.apache.thrift.TException
     {
-      user_listFiles_args args = new user_listFiles_args();
-      args.setPath(path);
-      args.setRecursive(recursive);
-      sendBase("user_listFiles", args);
-    }
-
-    public List<Integer> recv_user_listFiles() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
-    {
-      user_listFiles_result result = new user_listFiles_result();
-      receiveBase(result, "user_listFiles");
-      if (result.isSetSuccess()) {
-        return result.success;
-      }
-      if (result.eF != null) {
-        throw result.eF;
-      }
-      if (result.eI != null) {
-        throw result.eI;
-      }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_listFiles failed: unknown result");
-    }
-
-    public List<String> user_ls(String path, boolean recursive) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
-    {
-      send_user_ls(path, recursive);
-      return recv_user_ls();
-    }
-
-    public void send_user_ls(String path, boolean recursive) throws org.apache.thrift.TException
-    {
-      user_ls_args args = new user_ls_args();
-      args.setPath(path);
-      args.setRecursive(recursive);
-      sendBase("user_ls", args);
-    }
-
-    public List<String> recv_user_ls() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
-    {
-      user_ls_result result = new user_ls_result();
-      receiveBase(result, "user_ls");
-      if (result.isSetSuccess()) {
-        return result.success;
-      }
-      if (result.eF != null) {
-        throw result.eF;
-      }
-      if (result.eI != null) {
-        throw result.eI;
-      }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_ls failed: unknown result");
-    }
-
-    public boolean user_deleteById(int fileId, boolean recursive) throws TachyonException, org.apache.thrift.TException
-    {
-      send_user_deleteById(fileId, recursive);
-      return recv_user_deleteById();
-    }
-
-    public void send_user_deleteById(int fileId, boolean recursive) throws org.apache.thrift.TException
-    {
-      user_deleteById_args args = new user_deleteById_args();
+      user_delete_args args = new user_delete_args();
       args.setFileId(fileId);
+      args.setPath(path);
       args.setRecursive(recursive);
-      sendBase("user_deleteById", args);
+      sendBase("user_delete", args);
     }
 
-    public boolean recv_user_deleteById() throws TachyonException, org.apache.thrift.TException
+    public boolean recv_user_delete() throws TachyonException, org.apache.thrift.TException
     {
-      user_deleteById_result result = new user_deleteById_result();
-      receiveBase(result, "user_deleteById");
+      user_delete_result result = new user_delete_result();
+      receiveBase(result, "user_delete");
       if (result.isSetSuccess()) {
         return result.success;
       }
       if (result.e != null) {
         throw result.e;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_deleteById failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_delete failed: unknown result");
     }
 
-    public boolean user_deleteByPath(String path, boolean recursive) throws TachyonException, org.apache.thrift.TException
+    public boolean user_rename(int fileId, String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
-      send_user_deleteByPath(path, recursive);
-      return recv_user_deleteByPath();
-    }
-
-    public void send_user_deleteByPath(String path, boolean recursive) throws org.apache.thrift.TException
-    {
-      user_deleteByPath_args args = new user_deleteByPath_args();
-      args.setPath(path);
-      args.setRecursive(recursive);
-      sendBase("user_deleteByPath", args);
-    }
-
-    public boolean recv_user_deleteByPath() throws TachyonException, org.apache.thrift.TException
-    {
-      user_deleteByPath_result result = new user_deleteByPath_result();
-      receiveBase(result, "user_deleteByPath");
-      if (result.isSetSuccess()) {
-        return result.success;
-      }
-      if (result.e != null) {
-        throw result.e;
-      }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_deleteByPath failed: unknown result");
-    }
-
-    public void user_outOfMemoryForPinFile(int fileId) throws org.apache.thrift.TException
-    {
-      send_user_outOfMemoryForPinFile(fileId);
-      recv_user_outOfMemoryForPinFile();
-    }
-
-    public void send_user_outOfMemoryForPinFile(int fileId) throws org.apache.thrift.TException
-    {
-      user_outOfMemoryForPinFile_args args = new user_outOfMemoryForPinFile_args();
-      args.setFileId(fileId);
-      sendBase("user_outOfMemoryForPinFile", args);
-    }
-
-    public void recv_user_outOfMemoryForPinFile() throws org.apache.thrift.TException
-    {
-      user_outOfMemoryForPinFile_result result = new user_outOfMemoryForPinFile_result();
-      receiveBase(result, "user_outOfMemoryForPinFile");
-      return;
-    }
-
-    public boolean user_rename(String srcPath, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
-    {
-      send_user_rename(srcPath, dstPath);
+      send_user_rename(fileId, srcPath, dstPath);
       return recv_user_rename();
     }
 
-    public void send_user_rename(String srcPath, String dstPath) throws org.apache.thrift.TException
+    public void send_user_rename(int fileId, String srcPath, String dstPath) throws org.apache.thrift.TException
     {
       user_rename_args args = new user_rename_args();
+      args.setFileId(fileId);
       args.setSrcPath(srcPath);
       args.setDstPath(dstPath);
       sendBase("user_rename", args);
@@ -1143,36 +872,6 @@ public class MasterService {
         throw result.eI;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_rename failed: unknown result");
-    }
-
-    public void user_renameTo(int fileId, String dstPath) throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
-    {
-      send_user_renameTo(fileId, dstPath);
-      recv_user_renameTo();
-    }
-
-    public void send_user_renameTo(int fileId, String dstPath) throws org.apache.thrift.TException
-    {
-      user_renameTo_args args = new user_renameTo_args();
-      args.setFileId(fileId);
-      args.setDstPath(dstPath);
-      sendBase("user_renameTo", args);
-    }
-
-    public void recv_user_renameTo() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
-    {
-      user_renameTo_result result = new user_renameTo_result();
-      receiveBase(result, "user_renameTo");
-      if (result.eA != null) {
-        throw result.eA;
-      }
-      if (result.eF != null) {
-        throw result.eF;
-      }
-      if (result.eI != null) {
-        throw result.eI;
-      }
-      return;
     }
 
     public void user_setPinned(int fileId, boolean pinned) throws FileDoesNotExistException, org.apache.thrift.TException
@@ -1199,23 +898,24 @@ public class MasterService {
       return;
     }
 
-    public boolean user_mkdir(String path) throws FileAlreadyExistException, InvalidPathException, TachyonException, org.apache.thrift.TException
+    public boolean user_mkdirs(String path, boolean recursive) throws FileAlreadyExistException, InvalidPathException, TachyonException, org.apache.thrift.TException
     {
-      send_user_mkdir(path);
-      return recv_user_mkdir();
+      send_user_mkdirs(path, recursive);
+      return recv_user_mkdirs();
     }
 
-    public void send_user_mkdir(String path) throws org.apache.thrift.TException
+    public void send_user_mkdirs(String path, boolean recursive) throws org.apache.thrift.TException
     {
-      user_mkdir_args args = new user_mkdir_args();
+      user_mkdirs_args args = new user_mkdirs_args();
       args.setPath(path);
-      sendBase("user_mkdir", args);
+      args.setRecursive(recursive);
+      sendBase("user_mkdirs", args);
     }
 
-    public boolean recv_user_mkdir() throws FileAlreadyExistException, InvalidPathException, TachyonException, org.apache.thrift.TException
+    public boolean recv_user_mkdirs() throws FileAlreadyExistException, InvalidPathException, TachyonException, org.apache.thrift.TException
     {
-      user_mkdir_result result = new user_mkdir_result();
-      receiveBase(result, "user_mkdir");
+      user_mkdirs_result result = new user_mkdirs_result();
+      receiveBase(result, "user_mkdirs");
       if (result.isSetSuccess()) {
         return result.success;
       }
@@ -1228,7 +928,7 @@ public class MasterService {
       if (result.eT != null) {
         throw result.eT;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_mkdir failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_mkdirs failed: unknown result");
     }
 
     public int user_createRawTable(String path, int columns, ByteBuffer metadata) throws FileAlreadyExistException, InvalidPathException, TableColumnException, TachyonException, org.apache.thrift.TException
@@ -1294,49 +994,24 @@ public class MasterService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getRawTableId failed: unknown result");
     }
 
-    public ClientRawTableInfo user_getClientRawTableInfoById(int tableId) throws TableDoesNotExistException, org.apache.thrift.TException
+    public ClientRawTableInfo user_getClientRawTableInfo(int id, String path) throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
-      send_user_getClientRawTableInfoById(tableId);
-      return recv_user_getClientRawTableInfoById();
+      send_user_getClientRawTableInfo(id, path);
+      return recv_user_getClientRawTableInfo();
     }
 
-    public void send_user_getClientRawTableInfoById(int tableId) throws org.apache.thrift.TException
+    public void send_user_getClientRawTableInfo(int id, String path) throws org.apache.thrift.TException
     {
-      user_getClientRawTableInfoById_args args = new user_getClientRawTableInfoById_args();
-      args.setTableId(tableId);
-      sendBase("user_getClientRawTableInfoById", args);
+      user_getClientRawTableInfo_args args = new user_getClientRawTableInfo_args();
+      args.setId(id);
+      args.setPath(path);
+      sendBase("user_getClientRawTableInfo", args);
     }
 
-    public ClientRawTableInfo recv_user_getClientRawTableInfoById() throws TableDoesNotExistException, org.apache.thrift.TException
+    public ClientRawTableInfo recv_user_getClientRawTableInfo() throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException
     {
-      user_getClientRawTableInfoById_result result = new user_getClientRawTableInfoById_result();
-      receiveBase(result, "user_getClientRawTableInfoById");
-      if (result.isSetSuccess()) {
-        return result.success;
-      }
-      if (result.e != null) {
-        throw result.e;
-      }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getClientRawTableInfoById failed: unknown result");
-    }
-
-    public ClientRawTableInfo user_getClientRawTableInfoByPath(String tablePath) throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException
-    {
-      send_user_getClientRawTableInfoByPath(tablePath);
-      return recv_user_getClientRawTableInfoByPath();
-    }
-
-    public void send_user_getClientRawTableInfoByPath(String tablePath) throws org.apache.thrift.TException
-    {
-      user_getClientRawTableInfoByPath_args args = new user_getClientRawTableInfoByPath_args();
-      args.setTablePath(tablePath);
-      sendBase("user_getClientRawTableInfoByPath", args);
-    }
-
-    public ClientRawTableInfo recv_user_getClientRawTableInfoByPath() throws TableDoesNotExistException, InvalidPathException, org.apache.thrift.TException
-    {
-      user_getClientRawTableInfoByPath_result result = new user_getClientRawTableInfoByPath_result();
-      receiveBase(result, "user_getClientRawTableInfoByPath");
+      user_getClientRawTableInfo_result result = new user_getClientRawTableInfo_result();
+      receiveBase(result, "user_getClientRawTableInfo");
       if (result.isSetSuccess()) {
         return result.success;
       }
@@ -1346,7 +1021,7 @@ public class MasterService {
       if (result.eI != null) {
         throw result.eI;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getClientRawTableInfoByPath failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getClientRawTableInfo failed: unknown result");
     }
 
     public void user_updateRawTableMetadata(int tableId, ByteBuffer metadata) throws TableDoesNotExistException, TachyonException, org.apache.thrift.TException
@@ -1374,35 +1049,6 @@ public class MasterService {
         throw result.eTa;
       }
       return;
-    }
-
-    public int user_getNumberOfFiles(String path) throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
-    {
-      send_user_getNumberOfFiles(path);
-      return recv_user_getNumberOfFiles();
-    }
-
-    public void send_user_getNumberOfFiles(String path) throws org.apache.thrift.TException
-    {
-      user_getNumberOfFiles_args args = new user_getNumberOfFiles_args();
-      args.setPath(path);
-      sendBase("user_getNumberOfFiles", args);
-    }
-
-    public int recv_user_getNumberOfFiles() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException
-    {
-      user_getNumberOfFiles_result result = new user_getNumberOfFiles_result();
-      receiveBase(result, "user_getNumberOfFiles");
-      if (result.isSetSuccess()) {
-        return result.success;
-      }
-      if (result.eR != null) {
-        throw result.eR;
-      }
-      if (result.eI != null) {
-        throw result.eI;
-      }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "user_getNumberOfFiles failed: unknown result");
     }
 
     public String user_getUfsAddress() throws org.apache.thrift.TException
@@ -1877,73 +1523,44 @@ public class MasterService {
       }
     }
 
-    public void user_createFile(String path, long blockSizeByte, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void user_createFile(String path, String ufsPath, long blockSizeByte, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_createFile_call method_call = new user_createFile_call(path, blockSizeByte, resultHandler, this, ___protocolFactory, ___transport);
+      user_createFile_call method_call = new user_createFile_call(path, ufsPath, blockSizeByte, recursive, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class user_createFile_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String path;
+      private String ufsPath;
       private long blockSizeByte;
-      public user_createFile_call(String path, long blockSizeByte, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private boolean recursive;
+      public user_createFile_call(String path, String ufsPath, long blockSizeByte, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
+        this.ufsPath = ufsPath;
         this.blockSizeByte = blockSizeByte;
+        this.recursive = recursive;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_createFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
         user_createFile_args args = new user_createFile_args();
         args.setPath(path);
+        args.setUfsPath(ufsPath);
         args.setBlockSizeByte(blockSizeByte);
+        args.setRecursive(recursive);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public int getResult() throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException, org.apache.thrift.TException {
+      public int getResult() throws FileAlreadyExistException, InvalidPathException, BlockInfoException, SuspectedFileSizeException, TachyonException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
         return (new Client(prot)).recv_user_createFile();
-      }
-    }
-
-    public void user_createFileOnCheckpoint(String path, String checkpointPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      user_createFileOnCheckpoint_call method_call = new user_createFileOnCheckpoint_call(path, checkpointPath, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class user_createFileOnCheckpoint_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String path;
-      private String checkpointPath;
-      public user_createFileOnCheckpoint_call(String path, String checkpointPath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
-        this.path = path;
-        this.checkpointPath = checkpointPath;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_createFileOnCheckpoint", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_createFileOnCheckpoint_args args = new user_createFileOnCheckpoint_args();
-        args.setPath(path);
-        args.setCheckpointPath(checkpointPath);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public int getResult() throws FileAlreadyExistException, InvalidPathException, SuspectedFileSizeException, BlockInfoException, TachyonException, org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_createFileOnCheckpoint();
       }
     }
 
@@ -2008,38 +1625,6 @@ public class MasterService {
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
         (new Client(prot)).recv_user_completeFile();
-      }
-    }
-
-    public void user_getFileId(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      user_getFileId_call method_call = new user_getFileId_call(path, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class user_getFileId_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String path;
-      public user_getFileId_call(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
-        this.path = path;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_getFileId", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_getFileId_args args = new user_getFileId_args();
-        args.setPath(path);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public int getResult() throws InvalidPathException, org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_getFileId();
       }
     }
 
@@ -2142,55 +1727,26 @@ public class MasterService {
       }
     }
 
-    public void getClientFileInfoById(int fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getFileStatus(int fileId, String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getClientFileInfoById_call method_call = new getClientFileInfoById_call(fileId, resultHandler, this, ___protocolFactory, ___transport);
+      getFileStatus_call method_call = new getFileStatus_call(fileId, path, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class getClientFileInfoById_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class getFileStatus_call extends org.apache.thrift.async.TAsyncMethodCall {
       private int fileId;
-      public getClientFileInfoById_call(int fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private String path;
+      public getFileStatus_call(int fileId, String path, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.fileId = fileId;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getClientFileInfoById", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        getClientFileInfoById_args args = new getClientFileInfoById_args();
-        args.setFileId(fileId);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public ClientFileInfo getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_getClientFileInfoById();
-      }
-    }
-
-    public void user_getClientFileInfoByPath(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      user_getClientFileInfoByPath_call method_call = new user_getClientFileInfoByPath_call(path, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class user_getClientFileInfoByPath_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String path;
-      public user_getClientFileInfoByPath_call(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_getClientFileInfoByPath", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_getClientFileInfoByPath_args args = new user_getClientFileInfoByPath_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getFileStatus", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getFileStatus_args args = new getFileStatus_args();
+        args.setFileId(fileId);
         args.setPath(path);
         args.write(prot);
         prot.writeMessageEnd();
@@ -2202,7 +1758,7 @@ public class MasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_getClientFileInfoByPath();
+        return (new Client(prot)).recv_getFileStatus();
       }
     }
 
@@ -2238,55 +1794,26 @@ public class MasterService {
       }
     }
 
-    public void user_getFileBlocksById(int fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void user_getFileBlocks(int fileId, String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_getFileBlocksById_call method_call = new user_getFileBlocksById_call(fileId, resultHandler, this, ___protocolFactory, ___transport);
+      user_getFileBlocks_call method_call = new user_getFileBlocks_call(fileId, path, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class user_getFileBlocksById_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class user_getFileBlocks_call extends org.apache.thrift.async.TAsyncMethodCall {
       private int fileId;
-      public user_getFileBlocksById_call(int fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private String path;
+      public user_getFileBlocks_call(int fileId, String path, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.fileId = fileId;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_getFileBlocksById", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_getFileBlocksById_args args = new user_getFileBlocksById_args();
-        args.setFileId(fileId);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public List<ClientBlockInfo> getResult() throws FileDoesNotExistException, org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_getFileBlocksById();
-      }
-    }
-
-    public void user_getFileBlocksByPath(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      user_getFileBlocksByPath_call method_call = new user_getFileBlocksByPath_call(path, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class user_getFileBlocksByPath_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String path;
-      public user_getFileBlocksByPath_call(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_getFileBlocksByPath", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_getFileBlocksByPath_args args = new user_getFileBlocksByPath_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_getFileBlocks", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        user_getFileBlocks_args args = new user_getFileBlocks_args();
+        args.setFileId(fileId);
         args.setPath(path);
         args.write(prot);
         prot.writeMessageEnd();
@@ -2298,134 +1825,32 @@ public class MasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_getFileBlocksByPath();
+        return (new Client(prot)).recv_user_getFileBlocks();
       }
     }
 
-    public void user_listFiles(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void user_delete(int fileId, String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_listFiles_call method_call = new user_listFiles_call(path, recursive, resultHandler, this, ___protocolFactory, ___transport);
+      user_delete_call method_call = new user_delete_call(fileId, path, recursive, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class user_listFiles_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String path;
-      private boolean recursive;
-      public user_listFiles_call(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
-        this.path = path;
-        this.recursive = recursive;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_listFiles", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_listFiles_args args = new user_listFiles_args();
-        args.setPath(path);
-        args.setRecursive(recursive);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public List<Integer> getResult() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_listFiles();
-      }
-    }
-
-    public void user_ls(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      user_ls_call method_call = new user_ls_call(path, recursive, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class user_ls_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String path;
-      private boolean recursive;
-      public user_ls_call(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
-        this.path = path;
-        this.recursive = recursive;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_ls", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_ls_args args = new user_ls_args();
-        args.setPath(path);
-        args.setRecursive(recursive);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public List<String> getResult() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_ls();
-      }
-    }
-
-    public void user_deleteById(int fileId, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      user_deleteById_call method_call = new user_deleteById_call(fileId, recursive, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class user_deleteById_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class user_delete_call extends org.apache.thrift.async.TAsyncMethodCall {
       private int fileId;
+      private String path;
       private boolean recursive;
-      public user_deleteById_call(int fileId, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public user_delete_call(int fileId, String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.fileId = fileId;
-        this.recursive = recursive;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_deleteById", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_deleteById_args args = new user_deleteById_args();
-        args.setFileId(fileId);
-        args.setRecursive(recursive);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public boolean getResult() throws TachyonException, org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_deleteById();
-      }
-    }
-
-    public void user_deleteByPath(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      user_deleteByPath_call method_call = new user_deleteByPath_call(path, recursive, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class user_deleteByPath_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String path;
-      private boolean recursive;
-      public user_deleteByPath_call(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
         this.recursive = recursive;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_deleteByPath", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_deleteByPath_args args = new user_deleteByPath_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_delete", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        user_delete_args args = new user_delete_args();
+        args.setFileId(fileId);
         args.setPath(path);
         args.setRecursive(recursive);
         args.write(prot);
@@ -2438,54 +1863,24 @@ public class MasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_deleteByPath();
+        return (new Client(prot)).recv_user_delete();
       }
     }
 
-    public void user_outOfMemoryForPinFile(int fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void user_rename(int fileId, String srcPath, String dstPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_outOfMemoryForPinFile_call method_call = new user_outOfMemoryForPinFile_call(fileId, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class user_outOfMemoryForPinFile_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private int fileId;
-      public user_outOfMemoryForPinFile_call(int fileId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
-        this.fileId = fileId;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_outOfMemoryForPinFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_outOfMemoryForPinFile_args args = new user_outOfMemoryForPinFile_args();
-        args.setFileId(fileId);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public void getResult() throws org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_user_outOfMemoryForPinFile();
-      }
-    }
-
-    public void user_rename(String srcPath, String dstPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      user_rename_call method_call = new user_rename_call(srcPath, dstPath, resultHandler, this, ___protocolFactory, ___transport);
+      user_rename_call method_call = new user_rename_call(fileId, srcPath, dstPath, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class user_rename_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private int fileId;
       private String srcPath;
       private String dstPath;
-      public user_rename_call(String srcPath, String dstPath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public user_rename_call(int fileId, String srcPath, String dstPath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.fileId = fileId;
         this.srcPath = srcPath;
         this.dstPath = dstPath;
       }
@@ -2493,6 +1888,7 @@ public class MasterService {
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_rename", org.apache.thrift.protocol.TMessageType.CALL, 0));
         user_rename_args args = new user_rename_args();
+        args.setFileId(fileId);
         args.setSrcPath(srcPath);
         args.setDstPath(dstPath);
         args.write(prot);
@@ -2506,41 +1902,6 @@ public class MasterService {
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
         return (new Client(prot)).recv_user_rename();
-      }
-    }
-
-    public void user_renameTo(int fileId, String dstPath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      user_renameTo_call method_call = new user_renameTo_call(fileId, dstPath, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class user_renameTo_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private int fileId;
-      private String dstPath;
-      public user_renameTo_call(int fileId, String dstPath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
-        this.fileId = fileId;
-        this.dstPath = dstPath;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_renameTo", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_renameTo_args args = new user_renameTo_args();
-        args.setFileId(fileId);
-        args.setDstPath(dstPath);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public void getResult() throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_user_renameTo();
       }
     }
 
@@ -2579,24 +1940,27 @@ public class MasterService {
       }
     }
 
-    public void user_mkdir(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void user_mkdirs(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_mkdir_call method_call = new user_mkdir_call(path, resultHandler, this, ___protocolFactory, ___transport);
+      user_mkdirs_call method_call = new user_mkdirs_call(path, recursive, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class user_mkdir_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class user_mkdirs_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String path;
-      public user_mkdir_call(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private boolean recursive;
+      public user_mkdirs_call(String path, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
+        this.recursive = recursive;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_mkdir", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_mkdir_args args = new user_mkdir_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_mkdirs", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        user_mkdirs_args args = new user_mkdirs_args();
         args.setPath(path);
+        args.setRecursive(recursive);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -2607,7 +1971,7 @@ public class MasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_mkdir();
+        return (new Client(prot)).recv_user_mkdirs();
       }
     }
 
@@ -2681,56 +2045,27 @@ public class MasterService {
       }
     }
 
-    public void user_getClientRawTableInfoById(int tableId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void user_getClientRawTableInfo(int id, String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      user_getClientRawTableInfoById_call method_call = new user_getClientRawTableInfoById_call(tableId, resultHandler, this, ___protocolFactory, ___transport);
+      user_getClientRawTableInfo_call method_call = new user_getClientRawTableInfo_call(id, path, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class user_getClientRawTableInfoById_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private int tableId;
-      public user_getClientRawTableInfoById_call(int tableId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class user_getClientRawTableInfo_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private int id;
+      private String path;
+      public user_getClientRawTableInfo_call(int id, String path, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
-        this.tableId = tableId;
+        this.id = id;
+        this.path = path;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_getClientRawTableInfoById", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_getClientRawTableInfoById_args args = new user_getClientRawTableInfoById_args();
-        args.setTableId(tableId);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public ClientRawTableInfo getResult() throws TableDoesNotExistException, org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_getClientRawTableInfoById();
-      }
-    }
-
-    public void user_getClientRawTableInfoByPath(String tablePath, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      user_getClientRawTableInfoByPath_call method_call = new user_getClientRawTableInfoByPath_call(tablePath, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class user_getClientRawTableInfoByPath_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String tablePath;
-      public user_getClientRawTableInfoByPath_call(String tablePath, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
-        this.tablePath = tablePath;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_getClientRawTableInfoByPath", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_getClientRawTableInfoByPath_args args = new user_getClientRawTableInfoByPath_args();
-        args.setTablePath(tablePath);
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_getClientRawTableInfo", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        user_getClientRawTableInfo_args args = new user_getClientRawTableInfo_args();
+        args.setId(id);
+        args.setPath(path);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -2741,7 +2076,7 @@ public class MasterService {
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_getClientRawTableInfoByPath();
+        return (new Client(prot)).recv_user_getClientRawTableInfo();
       }
     }
 
@@ -2777,38 +2112,6 @@ public class MasterService {
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
         (new Client(prot)).recv_user_updateRawTableMetadata();
-      }
-    }
-
-    public void user_getNumberOfFiles(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      user_getNumberOfFiles_call method_call = new user_getNumberOfFiles_call(path, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class user_getNumberOfFiles_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String path;
-      public user_getNumberOfFiles_call(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
-        this.path = path;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("user_getNumberOfFiles", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        user_getNumberOfFiles_args args = new user_getNumberOfFiles_args();
-        args.setPath(path);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public int getResult() throws FileDoesNotExistException, InvalidPathException, org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_user_getNumberOfFiles();
       }
     }
 
@@ -2867,33 +2170,22 @@ public class MasterService {
       processMap.put("user_reportLostFile", new user_reportLostFile());
       processMap.put("user_requestFilesInDependency", new user_requestFilesInDependency());
       processMap.put("user_createFile", new user_createFile());
-      processMap.put("user_createFileOnCheckpoint", new user_createFileOnCheckpoint());
       processMap.put("user_createNewBlock", new user_createNewBlock());
       processMap.put("user_completeFile", new user_completeFile());
-      processMap.put("user_getFileId", new user_getFileId());
       processMap.put("user_getUserId", new user_getUserId());
       processMap.put("user_getBlockId", new user_getBlockId());
       processMap.put("user_getWorker", new user_getWorker());
-      processMap.put("getClientFileInfoById", new getClientFileInfoById());
-      processMap.put("user_getClientFileInfoByPath", new user_getClientFileInfoByPath());
+      processMap.put("getFileStatus", new getFileStatus());
       processMap.put("user_getClientBlockInfo", new user_getClientBlockInfo());
-      processMap.put("user_getFileBlocksById", new user_getFileBlocksById());
-      processMap.put("user_getFileBlocksByPath", new user_getFileBlocksByPath());
-      processMap.put("user_listFiles", new user_listFiles());
-      processMap.put("user_ls", new user_ls());
-      processMap.put("user_deleteById", new user_deleteById());
-      processMap.put("user_deleteByPath", new user_deleteByPath());
-      processMap.put("user_outOfMemoryForPinFile", new user_outOfMemoryForPinFile());
+      processMap.put("user_getFileBlocks", new user_getFileBlocks());
+      processMap.put("user_delete", new user_delete());
       processMap.put("user_rename", new user_rename());
-      processMap.put("user_renameTo", new user_renameTo());
       processMap.put("user_setPinned", new user_setPinned());
-      processMap.put("user_mkdir", new user_mkdir());
+      processMap.put("user_mkdirs", new user_mkdirs());
       processMap.put("user_createRawTable", new user_createRawTable());
       processMap.put("user_getRawTableId", new user_getRawTableId());
-      processMap.put("user_getClientRawTableInfoById", new user_getClientRawTableInfoById());
-      processMap.put("user_getClientRawTableInfoByPath", new user_getClientRawTableInfoByPath());
+      processMap.put("user_getClientRawTableInfo", new user_getClientRawTableInfo());
       processMap.put("user_updateRawTableMetadata", new user_updateRawTableMetadata());
-      processMap.put("user_getNumberOfFiles", new user_getNumberOfFiles());
       processMap.put("user_getUfsAddress", new user_getUfsAddress());
       return processMap;
     }
@@ -3211,7 +2503,7 @@ public class MasterService {
       public user_createFile_result getResult(I iface, user_createFile_args args) throws org.apache.thrift.TException {
         user_createFile_result result = new user_createFile_result();
         try {
-          result.success = iface.user_createFile(args.path, args.blockSizeByte);
+          result.success = iface.user_createFile(args.path, args.ufsPath, args.blockSizeByte, args.recursive);
           result.setSuccessIsSet(true);
         } catch (FileAlreadyExistException eR) {
           result.eR = eR;
@@ -3219,39 +2511,8 @@ public class MasterService {
           result.eI = eI;
         } catch (BlockInfoException eB) {
           result.eB = eB;
-        } catch (TachyonException eT) {
-          result.eT = eT;
-        }
-        return result;
-      }
-    }
-
-    public static class user_createFileOnCheckpoint<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_createFileOnCheckpoint_args> {
-      public user_createFileOnCheckpoint() {
-        super("user_createFileOnCheckpoint");
-      }
-
-      public user_createFileOnCheckpoint_args getEmptyArgsInstance() {
-        return new user_createFileOnCheckpoint_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public user_createFileOnCheckpoint_result getResult(I iface, user_createFileOnCheckpoint_args args) throws org.apache.thrift.TException {
-        user_createFileOnCheckpoint_result result = new user_createFileOnCheckpoint_result();
-        try {
-          result.success = iface.user_createFileOnCheckpoint(args.path, args.checkpointPath);
-          result.setSuccessIsSet(true);
-        } catch (FileAlreadyExistException eR) {
-          result.eR = eR;
-        } catch (InvalidPathException eI) {
-          result.eI = eI;
         } catch (SuspectedFileSizeException eS) {
           result.eS = eS;
-        } catch (BlockInfoException eB) {
-          result.eB = eB;
         } catch (TachyonException eT) {
           result.eT = eT;
         }
@@ -3302,31 +2563,6 @@ public class MasterService {
         try {
           iface.user_completeFile(args.fileId);
         } catch (FileDoesNotExistException e) {
-          result.e = e;
-        }
-        return result;
-      }
-    }
-
-    public static class user_getFileId<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_getFileId_args> {
-      public user_getFileId() {
-        super("user_getFileId");
-      }
-
-      public user_getFileId_args getEmptyArgsInstance() {
-        return new user_getFileId_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public user_getFileId_result getResult(I iface, user_getFileId_args args) throws org.apache.thrift.TException {
-        user_getFileId_result result = new user_getFileId_result();
-        try {
-          result.success = iface.user_getFileId(args.path);
-          result.setSuccessIsSet(true);
-        } catch (InvalidPathException e) {
           result.e = e;
         }
         return result;
@@ -3403,47 +2639,23 @@ public class MasterService {
       }
     }
 
-    public static class getClientFileInfoById<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getClientFileInfoById_args> {
-      public getClientFileInfoById() {
-        super("getClientFileInfoById");
+    public static class getFileStatus<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getFileStatus_args> {
+      public getFileStatus() {
+        super("getFileStatus");
       }
 
-      public getClientFileInfoById_args getEmptyArgsInstance() {
-        return new getClientFileInfoById_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public getClientFileInfoById_result getResult(I iface, getClientFileInfoById_args args) throws org.apache.thrift.TException {
-        getClientFileInfoById_result result = new getClientFileInfoById_result();
-        try {
-          result.success = iface.getClientFileInfoById(args.fileId);
-        } catch (FileDoesNotExistException e) {
-          result.e = e;
-        }
-        return result;
-      }
-    }
-
-    public static class user_getClientFileInfoByPath<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_getClientFileInfoByPath_args> {
-      public user_getClientFileInfoByPath() {
-        super("user_getClientFileInfoByPath");
-      }
-
-      public user_getClientFileInfoByPath_args getEmptyArgsInstance() {
-        return new user_getClientFileInfoByPath_args();
+      public getFileStatus_args getEmptyArgsInstance() {
+        return new getFileStatus_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public user_getClientFileInfoByPath_result getResult(I iface, user_getClientFileInfoByPath_args args) throws org.apache.thrift.TException {
-        user_getClientFileInfoByPath_result result = new user_getClientFileInfoByPath_result();
+      public getFileStatus_result getResult(I iface, getFileStatus_args args) throws org.apache.thrift.TException {
+        getFileStatus_result result = new getFileStatus_result();
         try {
-          result.success = iface.user_getClientFileInfoByPath(args.path);
+          result.success = iface.getFileStatus(args.fileId, args.path);
         } catch (FileDoesNotExistException eF) {
           result.eF = eF;
         } catch (InvalidPathException eI) {
@@ -3479,47 +2691,23 @@ public class MasterService {
       }
     }
 
-    public static class user_getFileBlocksById<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_getFileBlocksById_args> {
-      public user_getFileBlocksById() {
-        super("user_getFileBlocksById");
+    public static class user_getFileBlocks<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_getFileBlocks_args> {
+      public user_getFileBlocks() {
+        super("user_getFileBlocks");
       }
 
-      public user_getFileBlocksById_args getEmptyArgsInstance() {
-        return new user_getFileBlocksById_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public user_getFileBlocksById_result getResult(I iface, user_getFileBlocksById_args args) throws org.apache.thrift.TException {
-        user_getFileBlocksById_result result = new user_getFileBlocksById_result();
-        try {
-          result.success = iface.user_getFileBlocksById(args.fileId);
-        } catch (FileDoesNotExistException e) {
-          result.e = e;
-        }
-        return result;
-      }
-    }
-
-    public static class user_getFileBlocksByPath<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_getFileBlocksByPath_args> {
-      public user_getFileBlocksByPath() {
-        super("user_getFileBlocksByPath");
-      }
-
-      public user_getFileBlocksByPath_args getEmptyArgsInstance() {
-        return new user_getFileBlocksByPath_args();
+      public user_getFileBlocks_args getEmptyArgsInstance() {
+        return new user_getFileBlocks_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public user_getFileBlocksByPath_result getResult(I iface, user_getFileBlocksByPath_args args) throws org.apache.thrift.TException {
-        user_getFileBlocksByPath_result result = new user_getFileBlocksByPath_result();
+      public user_getFileBlocks_result getResult(I iface, user_getFileBlocks_args args) throws org.apache.thrift.TException {
+        user_getFileBlocks_result result = new user_getFileBlocks_result();
         try {
-          result.success = iface.user_getFileBlocksByPath(args.path);
+          result.success = iface.user_getFileBlocks(args.fileId, args.path);
         } catch (FileDoesNotExistException eF) {
           result.eF = eF;
         } catch (InvalidPathException eI) {
@@ -3529,124 +2717,27 @@ public class MasterService {
       }
     }
 
-    public static class user_listFiles<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_listFiles_args> {
-      public user_listFiles() {
-        super("user_listFiles");
+    public static class user_delete<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_delete_args> {
+      public user_delete() {
+        super("user_delete");
       }
 
-      public user_listFiles_args getEmptyArgsInstance() {
-        return new user_listFiles_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public user_listFiles_result getResult(I iface, user_listFiles_args args) throws org.apache.thrift.TException {
-        user_listFiles_result result = new user_listFiles_result();
-        try {
-          result.success = iface.user_listFiles(args.path, args.recursive);
-        } catch (FileDoesNotExistException eF) {
-          result.eF = eF;
-        } catch (InvalidPathException eI) {
-          result.eI = eI;
-        }
-        return result;
-      }
-    }
-
-    public static class user_ls<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_ls_args> {
-      public user_ls() {
-        super("user_ls");
-      }
-
-      public user_ls_args getEmptyArgsInstance() {
-        return new user_ls_args();
+      public user_delete_args getEmptyArgsInstance() {
+        return new user_delete_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public user_ls_result getResult(I iface, user_ls_args args) throws org.apache.thrift.TException {
-        user_ls_result result = new user_ls_result();
+      public user_delete_result getResult(I iface, user_delete_args args) throws org.apache.thrift.TException {
+        user_delete_result result = new user_delete_result();
         try {
-          result.success = iface.user_ls(args.path, args.recursive);
-        } catch (FileDoesNotExistException eF) {
-          result.eF = eF;
-        } catch (InvalidPathException eI) {
-          result.eI = eI;
-        }
-        return result;
-      }
-    }
-
-    public static class user_deleteById<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_deleteById_args> {
-      public user_deleteById() {
-        super("user_deleteById");
-      }
-
-      public user_deleteById_args getEmptyArgsInstance() {
-        return new user_deleteById_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public user_deleteById_result getResult(I iface, user_deleteById_args args) throws org.apache.thrift.TException {
-        user_deleteById_result result = new user_deleteById_result();
-        try {
-          result.success = iface.user_deleteById(args.fileId, args.recursive);
+          result.success = iface.user_delete(args.fileId, args.path, args.recursive);
           result.setSuccessIsSet(true);
         } catch (TachyonException e) {
           result.e = e;
         }
-        return result;
-      }
-    }
-
-    public static class user_deleteByPath<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_deleteByPath_args> {
-      public user_deleteByPath() {
-        super("user_deleteByPath");
-      }
-
-      public user_deleteByPath_args getEmptyArgsInstance() {
-        return new user_deleteByPath_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public user_deleteByPath_result getResult(I iface, user_deleteByPath_args args) throws org.apache.thrift.TException {
-        user_deleteByPath_result result = new user_deleteByPath_result();
-        try {
-          result.success = iface.user_deleteByPath(args.path, args.recursive);
-          result.setSuccessIsSet(true);
-        } catch (TachyonException e) {
-          result.e = e;
-        }
-        return result;
-      }
-    }
-
-    public static class user_outOfMemoryForPinFile<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_outOfMemoryForPinFile_args> {
-      public user_outOfMemoryForPinFile() {
-        super("user_outOfMemoryForPinFile");
-      }
-
-      public user_outOfMemoryForPinFile_args getEmptyArgsInstance() {
-        return new user_outOfMemoryForPinFile_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public user_outOfMemoryForPinFile_result getResult(I iface, user_outOfMemoryForPinFile_args args) throws org.apache.thrift.TException {
-        user_outOfMemoryForPinFile_result result = new user_outOfMemoryForPinFile_result();
-        iface.user_outOfMemoryForPinFile(args.fileId);
         return result;
       }
     }
@@ -3667,36 +2758,8 @@ public class MasterService {
       public user_rename_result getResult(I iface, user_rename_args args) throws org.apache.thrift.TException {
         user_rename_result result = new user_rename_result();
         try {
-          result.success = iface.user_rename(args.srcPath, args.dstPath);
+          result.success = iface.user_rename(args.fileId, args.srcPath, args.dstPath);
           result.setSuccessIsSet(true);
-        } catch (FileAlreadyExistException eA) {
-          result.eA = eA;
-        } catch (FileDoesNotExistException eF) {
-          result.eF = eF;
-        } catch (InvalidPathException eI) {
-          result.eI = eI;
-        }
-        return result;
-      }
-    }
-
-    public static class user_renameTo<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_renameTo_args> {
-      public user_renameTo() {
-        super("user_renameTo");
-      }
-
-      public user_renameTo_args getEmptyArgsInstance() {
-        return new user_renameTo_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public user_renameTo_result getResult(I iface, user_renameTo_args args) throws org.apache.thrift.TException {
-        user_renameTo_result result = new user_renameTo_result();
-        try {
-          iface.user_renameTo(args.fileId, args.dstPath);
         } catch (FileAlreadyExistException eA) {
           result.eA = eA;
         } catch (FileDoesNotExistException eF) {
@@ -3732,23 +2795,23 @@ public class MasterService {
       }
     }
 
-    public static class user_mkdir<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_mkdir_args> {
-      public user_mkdir() {
-        super("user_mkdir");
+    public static class user_mkdirs<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_mkdirs_args> {
+      public user_mkdirs() {
+        super("user_mkdirs");
       }
 
-      public user_mkdir_args getEmptyArgsInstance() {
-        return new user_mkdir_args();
+      public user_mkdirs_args getEmptyArgsInstance() {
+        return new user_mkdirs_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public user_mkdir_result getResult(I iface, user_mkdir_args args) throws org.apache.thrift.TException {
-        user_mkdir_result result = new user_mkdir_result();
+      public user_mkdirs_result getResult(I iface, user_mkdirs_args args) throws org.apache.thrift.TException {
+        user_mkdirs_result result = new user_mkdirs_result();
         try {
-          result.success = iface.user_mkdir(args.path);
+          result.success = iface.user_mkdirs(args.path, args.recursive);
           result.setSuccessIsSet(true);
         } catch (FileAlreadyExistException eR) {
           result.eR = eR;
@@ -3817,47 +2880,23 @@ public class MasterService {
       }
     }
 
-    public static class user_getClientRawTableInfoById<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_getClientRawTableInfoById_args> {
-      public user_getClientRawTableInfoById() {
-        super("user_getClientRawTableInfoById");
+    public static class user_getClientRawTableInfo<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_getClientRawTableInfo_args> {
+      public user_getClientRawTableInfo() {
+        super("user_getClientRawTableInfo");
       }
 
-      public user_getClientRawTableInfoById_args getEmptyArgsInstance() {
-        return new user_getClientRawTableInfoById_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public user_getClientRawTableInfoById_result getResult(I iface, user_getClientRawTableInfoById_args args) throws org.apache.thrift.TException {
-        user_getClientRawTableInfoById_result result = new user_getClientRawTableInfoById_result();
-        try {
-          result.success = iface.user_getClientRawTableInfoById(args.tableId);
-        } catch (TableDoesNotExistException e) {
-          result.e = e;
-        }
-        return result;
-      }
-    }
-
-    public static class user_getClientRawTableInfoByPath<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_getClientRawTableInfoByPath_args> {
-      public user_getClientRawTableInfoByPath() {
-        super("user_getClientRawTableInfoByPath");
-      }
-
-      public user_getClientRawTableInfoByPath_args getEmptyArgsInstance() {
-        return new user_getClientRawTableInfoByPath_args();
+      public user_getClientRawTableInfo_args getEmptyArgsInstance() {
+        return new user_getClientRawTableInfo_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public user_getClientRawTableInfoByPath_result getResult(I iface, user_getClientRawTableInfoByPath_args args) throws org.apache.thrift.TException {
-        user_getClientRawTableInfoByPath_result result = new user_getClientRawTableInfoByPath_result();
+      public user_getClientRawTableInfo_result getResult(I iface, user_getClientRawTableInfo_args args) throws org.apache.thrift.TException {
+        user_getClientRawTableInfo_result result = new user_getClientRawTableInfo_result();
         try {
-          result.success = iface.user_getClientRawTableInfoByPath(args.tablePath);
+          result.success = iface.user_getClientRawTableInfo(args.id, args.path);
         } catch (TableDoesNotExistException eT) {
           result.eT = eT;
         } catch (InvalidPathException eI) {
@@ -3888,33 +2927,6 @@ public class MasterService {
           result.eT = eT;
         } catch (TachyonException eTa) {
           result.eTa = eTa;
-        }
-        return result;
-      }
-    }
-
-    public static class user_getNumberOfFiles<I extends Iface> extends org.apache.thrift.ProcessFunction<I, user_getNumberOfFiles_args> {
-      public user_getNumberOfFiles() {
-        super("user_getNumberOfFiles");
-      }
-
-      public user_getNumberOfFiles_args getEmptyArgsInstance() {
-        return new user_getNumberOfFiles_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public user_getNumberOfFiles_result getResult(I iface, user_getNumberOfFiles_args args) throws org.apache.thrift.TException {
-        user_getNumberOfFiles_result result = new user_getNumberOfFiles_result();
-        try {
-          result.success = iface.user_getNumberOfFiles(args.path);
-          result.setSuccessIsSet(true);
-        } catch (FileDoesNotExistException eR) {
-          result.eR = eR;
-        } catch (InvalidPathException eI) {
-          result.eI = eI;
         }
         return result;
       }
@@ -3966,33 +2978,22 @@ public class MasterService {
       processMap.put("user_reportLostFile", new user_reportLostFile());
       processMap.put("user_requestFilesInDependency", new user_requestFilesInDependency());
       processMap.put("user_createFile", new user_createFile());
-      processMap.put("user_createFileOnCheckpoint", new user_createFileOnCheckpoint());
       processMap.put("user_createNewBlock", new user_createNewBlock());
       processMap.put("user_completeFile", new user_completeFile());
-      processMap.put("user_getFileId", new user_getFileId());
       processMap.put("user_getUserId", new user_getUserId());
       processMap.put("user_getBlockId", new user_getBlockId());
       processMap.put("user_getWorker", new user_getWorker());
-      processMap.put("getClientFileInfoById", new getClientFileInfoById());
-      processMap.put("user_getClientFileInfoByPath", new user_getClientFileInfoByPath());
+      processMap.put("getFileStatus", new getFileStatus());
       processMap.put("user_getClientBlockInfo", new user_getClientBlockInfo());
-      processMap.put("user_getFileBlocksById", new user_getFileBlocksById());
-      processMap.put("user_getFileBlocksByPath", new user_getFileBlocksByPath());
-      processMap.put("user_listFiles", new user_listFiles());
-      processMap.put("user_ls", new user_ls());
-      processMap.put("user_deleteById", new user_deleteById());
-      processMap.put("user_deleteByPath", new user_deleteByPath());
-      processMap.put("user_outOfMemoryForPinFile", new user_outOfMemoryForPinFile());
+      processMap.put("user_getFileBlocks", new user_getFileBlocks());
+      processMap.put("user_delete", new user_delete());
       processMap.put("user_rename", new user_rename());
-      processMap.put("user_renameTo", new user_renameTo());
       processMap.put("user_setPinned", new user_setPinned());
-      processMap.put("user_mkdir", new user_mkdir());
+      processMap.put("user_mkdirs", new user_mkdirs());
       processMap.put("user_createRawTable", new user_createRawTable());
       processMap.put("user_getRawTableId", new user_getRawTableId());
-      processMap.put("user_getClientRawTableInfoById", new user_getClientRawTableInfoById());
-      processMap.put("user_getClientRawTableInfoByPath", new user_getClientRawTableInfoByPath());
+      processMap.put("user_getClientRawTableInfo", new user_getClientRawTableInfo());
       processMap.put("user_updateRawTableMetadata", new user_updateRawTableMetadata());
-      processMap.put("user_getNumberOfFiles", new user_getNumberOfFiles());
       processMap.put("user_getUfsAddress", new user_getUfsAddress());
       return processMap;
     }
@@ -4751,6 +3752,11 @@ public class MasterService {
                         result.setEBIsSet(true);
                         msg = result;
             }
+            else             if (e instanceof SuspectedFileSizeException) {
+                        result.eS = (SuspectedFileSizeException) e;
+                        result.setESIsSet(true);
+                        msg = result;
+            }
             else             if (e instanceof TachyonException) {
                         result.eT = (TachyonException) e;
                         result.setETIsSet(true);
@@ -4777,85 +3783,7 @@ public class MasterService {
       }
 
       public void start(I iface, user_createFile_args args, org.apache.thrift.async.AsyncMethodCallback<Integer> resultHandler) throws TException {
-        iface.user_createFile(args.path, args.blockSizeByte,resultHandler);
-      }
-    }
-
-    public static class user_createFileOnCheckpoint<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_createFileOnCheckpoint_args, Integer> {
-      public user_createFileOnCheckpoint() {
-        super("user_createFileOnCheckpoint");
-      }
-
-      public user_createFileOnCheckpoint_args getEmptyArgsInstance() {
-        return new user_createFileOnCheckpoint_args();
-      }
-
-      public AsyncMethodCallback<Integer> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Integer>() { 
-          public void onComplete(Integer o) {
-            user_createFileOnCheckpoint_result result = new user_createFileOnCheckpoint_result();
-            result.success = o;
-            result.setSuccessIsSet(true);
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            user_createFileOnCheckpoint_result result = new user_createFileOnCheckpoint_result();
-            if (e instanceof FileAlreadyExistException) {
-                        result.eR = (FileAlreadyExistException) e;
-                        result.setERIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof InvalidPathException) {
-                        result.eI = (InvalidPathException) e;
-                        result.setEIIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof SuspectedFileSizeException) {
-                        result.eS = (SuspectedFileSizeException) e;
-                        result.setESIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof BlockInfoException) {
-                        result.eB = (BlockInfoException) e;
-                        result.setEBIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof TachyonException) {
-                        result.eT = (TachyonException) e;
-                        result.setETIsSet(true);
-                        msg = result;
-            }
-             else 
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, user_createFileOnCheckpoint_args args, org.apache.thrift.async.AsyncMethodCallback<Integer> resultHandler) throws TException {
-        iface.user_createFileOnCheckpoint(args.path, args.checkpointPath,resultHandler);
+        iface.user_createFile(args.path, args.ufsPath, args.blockSizeByte, args.recursive,resultHandler);
       }
     }
 
@@ -4970,64 +3898,6 @@ public class MasterService {
 
       public void start(I iface, user_completeFile_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
         iface.user_completeFile(args.fileId,resultHandler);
-      }
-    }
-
-    public static class user_getFileId<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getFileId_args, Integer> {
-      public user_getFileId() {
-        super("user_getFileId");
-      }
-
-      public user_getFileId_args getEmptyArgsInstance() {
-        return new user_getFileId_args();
-      }
-
-      public AsyncMethodCallback<Integer> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Integer>() { 
-          public void onComplete(Integer o) {
-            user_getFileId_result result = new user_getFileId_result();
-            result.success = o;
-            result.setSuccessIsSet(true);
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            user_getFileId_result result = new user_getFileId_result();
-            if (e instanceof InvalidPathException) {
-                        result.e = (InvalidPathException) e;
-                        result.setEIsSet(true);
-                        msg = result;
-            }
-             else 
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, user_getFileId_args args, org.apache.thrift.async.AsyncMethodCallback<Integer> resultHandler) throws TException {
-        iface.user_getFileId(args.path,resultHandler);
       }
     }
 
@@ -5198,20 +4068,20 @@ public class MasterService {
       }
     }
 
-    public static class getClientFileInfoById<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getClientFileInfoById_args, ClientFileInfo> {
-      public getClientFileInfoById() {
-        super("getClientFileInfoById");
+    public static class getFileStatus<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getFileStatus_args, ClientFileInfo> {
+      public getFileStatus() {
+        super("getFileStatus");
       }
 
-      public getClientFileInfoById_args getEmptyArgsInstance() {
-        return new getClientFileInfoById_args();
+      public getFileStatus_args getEmptyArgsInstance() {
+        return new getFileStatus_args();
       }
 
       public AsyncMethodCallback<ClientFileInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<ClientFileInfo>() { 
           public void onComplete(ClientFileInfo o) {
-            getClientFileInfoById_result result = new getClientFileInfoById_result();
+            getFileStatus_result result = new getFileStatus_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -5224,64 +4094,7 @@ public class MasterService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            getClientFileInfoById_result result = new getClientFileInfoById_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.e = (FileDoesNotExistException) e;
-                        result.setEIsSet(true);
-                        msg = result;
-            }
-             else 
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, getClientFileInfoById_args args, org.apache.thrift.async.AsyncMethodCallback<ClientFileInfo> resultHandler) throws TException {
-        iface.getClientFileInfoById(args.fileId,resultHandler);
-      }
-    }
-
-    public static class user_getClientFileInfoByPath<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getClientFileInfoByPath_args, ClientFileInfo> {
-      public user_getClientFileInfoByPath() {
-        super("user_getClientFileInfoByPath");
-      }
-
-      public user_getClientFileInfoByPath_args getEmptyArgsInstance() {
-        return new user_getClientFileInfoByPath_args();
-      }
-
-      public AsyncMethodCallback<ClientFileInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<ClientFileInfo>() { 
-          public void onComplete(ClientFileInfo o) {
-            user_getClientFileInfoByPath_result result = new user_getClientFileInfoByPath_result();
-            result.success = o;
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            user_getClientFileInfoByPath_result result = new user_getClientFileInfoByPath_result();
+            getFileStatus_result result = new getFileStatus_result();
             if (e instanceof FileDoesNotExistException) {
                         result.eF = (FileDoesNotExistException) e;
                         result.setEFIsSet(true);
@@ -5312,8 +4125,8 @@ public class MasterService {
         return false;
       }
 
-      public void start(I iface, user_getClientFileInfoByPath_args args, org.apache.thrift.async.AsyncMethodCallback<ClientFileInfo> resultHandler) throws TException {
-        iface.user_getClientFileInfoByPath(args.path,resultHandler);
+      public void start(I iface, getFileStatus_args args, org.apache.thrift.async.AsyncMethodCallback<ClientFileInfo> resultHandler) throws TException {
+        iface.getFileStatus(args.fileId, args.path,resultHandler);
       }
     }
 
@@ -5379,77 +4192,20 @@ public class MasterService {
       }
     }
 
-    public static class user_getFileBlocksById<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getFileBlocksById_args, List<ClientBlockInfo>> {
-      public user_getFileBlocksById() {
-        super("user_getFileBlocksById");
+    public static class user_getFileBlocks<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getFileBlocks_args, List<ClientBlockInfo>> {
+      public user_getFileBlocks() {
+        super("user_getFileBlocks");
       }
 
-      public user_getFileBlocksById_args getEmptyArgsInstance() {
-        return new user_getFileBlocksById_args();
-      }
-
-      public AsyncMethodCallback<List<ClientBlockInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<List<ClientBlockInfo>>() { 
-          public void onComplete(List<ClientBlockInfo> o) {
-            user_getFileBlocksById_result result = new user_getFileBlocksById_result();
-            result.success = o;
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            user_getFileBlocksById_result result = new user_getFileBlocksById_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.e = (FileDoesNotExistException) e;
-                        result.setEIsSet(true);
-                        msg = result;
-            }
-             else 
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, user_getFileBlocksById_args args, org.apache.thrift.async.AsyncMethodCallback<List<ClientBlockInfo>> resultHandler) throws TException {
-        iface.user_getFileBlocksById(args.fileId,resultHandler);
-      }
-    }
-
-    public static class user_getFileBlocksByPath<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getFileBlocksByPath_args, List<ClientBlockInfo>> {
-      public user_getFileBlocksByPath() {
-        super("user_getFileBlocksByPath");
-      }
-
-      public user_getFileBlocksByPath_args getEmptyArgsInstance() {
-        return new user_getFileBlocksByPath_args();
+      public user_getFileBlocks_args getEmptyArgsInstance() {
+        return new user_getFileBlocks_args();
       }
 
       public AsyncMethodCallback<List<ClientBlockInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<List<ClientBlockInfo>>() { 
           public void onComplete(List<ClientBlockInfo> o) {
-            user_getFileBlocksByPath_result result = new user_getFileBlocksByPath_result();
+            user_getFileBlocks_result result = new user_getFileBlocks_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -5462,7 +4218,7 @@ public class MasterService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            user_getFileBlocksByPath_result result = new user_getFileBlocksByPath_result();
+            user_getFileBlocks_result result = new user_getFileBlocks_result();
             if (e instanceof FileDoesNotExistException) {
                         result.eF = (FileDoesNotExistException) e;
                         result.setEFIsSet(true);
@@ -5493,149 +4249,25 @@ public class MasterService {
         return false;
       }
 
-      public void start(I iface, user_getFileBlocksByPath_args args, org.apache.thrift.async.AsyncMethodCallback<List<ClientBlockInfo>> resultHandler) throws TException {
-        iface.user_getFileBlocksByPath(args.path,resultHandler);
+      public void start(I iface, user_getFileBlocks_args args, org.apache.thrift.async.AsyncMethodCallback<List<ClientBlockInfo>> resultHandler) throws TException {
+        iface.user_getFileBlocks(args.fileId, args.path,resultHandler);
       }
     }
 
-    public static class user_listFiles<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_listFiles_args, List<Integer>> {
-      public user_listFiles() {
-        super("user_listFiles");
+    public static class user_delete<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_delete_args, Boolean> {
+      public user_delete() {
+        super("user_delete");
       }
 
-      public user_listFiles_args getEmptyArgsInstance() {
-        return new user_listFiles_args();
-      }
-
-      public AsyncMethodCallback<List<Integer>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<List<Integer>>() { 
-          public void onComplete(List<Integer> o) {
-            user_listFiles_result result = new user_listFiles_result();
-            result.success = o;
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            user_listFiles_result result = new user_listFiles_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.eF = (FileDoesNotExistException) e;
-                        result.setEFIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof InvalidPathException) {
-                        result.eI = (InvalidPathException) e;
-                        result.setEIIsSet(true);
-                        msg = result;
-            }
-             else 
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, user_listFiles_args args, org.apache.thrift.async.AsyncMethodCallback<List<Integer>> resultHandler) throws TException {
-        iface.user_listFiles(args.path, args.recursive,resultHandler);
-      }
-    }
-
-    public static class user_ls<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_ls_args, List<String>> {
-      public user_ls() {
-        super("user_ls");
-      }
-
-      public user_ls_args getEmptyArgsInstance() {
-        return new user_ls_args();
-      }
-
-      public AsyncMethodCallback<List<String>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<List<String>>() { 
-          public void onComplete(List<String> o) {
-            user_ls_result result = new user_ls_result();
-            result.success = o;
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            user_ls_result result = new user_ls_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.eF = (FileDoesNotExistException) e;
-                        result.setEFIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof InvalidPathException) {
-                        result.eI = (InvalidPathException) e;
-                        result.setEIIsSet(true);
-                        msg = result;
-            }
-             else 
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, user_ls_args args, org.apache.thrift.async.AsyncMethodCallback<List<String>> resultHandler) throws TException {
-        iface.user_ls(args.path, args.recursive,resultHandler);
-      }
-    }
-
-    public static class user_deleteById<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_deleteById_args, Boolean> {
-      public user_deleteById() {
-        super("user_deleteById");
-      }
-
-      public user_deleteById_args getEmptyArgsInstance() {
-        return new user_deleteById_args();
+      public user_delete_args getEmptyArgsInstance() {
+        return new user_delete_args();
       }
 
       public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<Boolean>() { 
           public void onComplete(Boolean o) {
-            user_deleteById_result result = new user_deleteById_result();
+            user_delete_result result = new user_delete_result();
             result.success = o;
             result.setSuccessIsSet(true);
             try {
@@ -5649,7 +4281,7 @@ public class MasterService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            user_deleteById_result result = new user_deleteById_result();
+            user_delete_result result = new user_delete_result();
             if (e instanceof TachyonException) {
                         result.e = (TachyonException) e;
                         result.setEIsSet(true);
@@ -5675,116 +4307,8 @@ public class MasterService {
         return false;
       }
 
-      public void start(I iface, user_deleteById_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
-        iface.user_deleteById(args.fileId, args.recursive,resultHandler);
-      }
-    }
-
-    public static class user_deleteByPath<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_deleteByPath_args, Boolean> {
-      public user_deleteByPath() {
-        super("user_deleteByPath");
-      }
-
-      public user_deleteByPath_args getEmptyArgsInstance() {
-        return new user_deleteByPath_args();
-      }
-
-      public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Boolean>() { 
-          public void onComplete(Boolean o) {
-            user_deleteByPath_result result = new user_deleteByPath_result();
-            result.success = o;
-            result.setSuccessIsSet(true);
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            user_deleteByPath_result result = new user_deleteByPath_result();
-            if (e instanceof TachyonException) {
-                        result.e = (TachyonException) e;
-                        result.setEIsSet(true);
-                        msg = result;
-            }
-             else 
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, user_deleteByPath_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
-        iface.user_deleteByPath(args.path, args.recursive,resultHandler);
-      }
-    }
-
-    public static class user_outOfMemoryForPinFile<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_outOfMemoryForPinFile_args, Void> {
-      public user_outOfMemoryForPinFile() {
-        super("user_outOfMemoryForPinFile");
-      }
-
-      public user_outOfMemoryForPinFile_args getEmptyArgsInstance() {
-        return new user_outOfMemoryForPinFile_args();
-      }
-
-      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
-          public void onComplete(Void o) {
-            user_outOfMemoryForPinFile_result result = new user_outOfMemoryForPinFile_result();
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            user_outOfMemoryForPinFile_result result = new user_outOfMemoryForPinFile_result();
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, user_outOfMemoryForPinFile_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.user_outOfMemoryForPinFile(args.fileId,resultHandler);
+      public void start(I iface, user_delete_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
+        iface.user_delete(args.fileId, args.path, args.recursive,resultHandler);
       }
     }
 
@@ -5852,73 +4376,7 @@ public class MasterService {
       }
 
       public void start(I iface, user_rename_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
-        iface.user_rename(args.srcPath, args.dstPath,resultHandler);
-      }
-    }
-
-    public static class user_renameTo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_renameTo_args, Void> {
-      public user_renameTo() {
-        super("user_renameTo");
-      }
-
-      public user_renameTo_args getEmptyArgsInstance() {
-        return new user_renameTo_args();
-      }
-
-      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
-          public void onComplete(Void o) {
-            user_renameTo_result result = new user_renameTo_result();
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            user_renameTo_result result = new user_renameTo_result();
-            if (e instanceof FileAlreadyExistException) {
-                        result.eA = (FileAlreadyExistException) e;
-                        result.setEAIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof FileDoesNotExistException) {
-                        result.eF = (FileDoesNotExistException) e;
-                        result.setEFIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof InvalidPathException) {
-                        result.eI = (InvalidPathException) e;
-                        result.setEIIsSet(true);
-                        msg = result;
-            }
-             else 
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, user_renameTo_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.user_renameTo(args.fileId, args.dstPath,resultHandler);
+        iface.user_rename(args.fileId, args.srcPath, args.dstPath,resultHandler);
       }
     }
 
@@ -5978,20 +4436,20 @@ public class MasterService {
       }
     }
 
-    public static class user_mkdir<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_mkdir_args, Boolean> {
-      public user_mkdir() {
-        super("user_mkdir");
+    public static class user_mkdirs<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_mkdirs_args, Boolean> {
+      public user_mkdirs() {
+        super("user_mkdirs");
       }
 
-      public user_mkdir_args getEmptyArgsInstance() {
-        return new user_mkdir_args();
+      public user_mkdirs_args getEmptyArgsInstance() {
+        return new user_mkdirs_args();
       }
 
       public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<Boolean>() { 
           public void onComplete(Boolean o) {
-            user_mkdir_result result = new user_mkdir_result();
+            user_mkdirs_result result = new user_mkdirs_result();
             result.success = o;
             result.setSuccessIsSet(true);
             try {
@@ -6005,7 +4463,7 @@ public class MasterService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            user_mkdir_result result = new user_mkdir_result();
+            user_mkdirs_result result = new user_mkdirs_result();
             if (e instanceof FileAlreadyExistException) {
                         result.eR = (FileAlreadyExistException) e;
                         result.setERIsSet(true);
@@ -6041,8 +4499,8 @@ public class MasterService {
         return false;
       }
 
-      public void start(I iface, user_mkdir_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
-        iface.user_mkdir(args.path,resultHandler);
+      public void start(I iface, user_mkdirs_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
+        iface.user_mkdirs(args.path, args.recursive,resultHandler);
       }
     }
 
@@ -6177,20 +4635,20 @@ public class MasterService {
       }
     }
 
-    public static class user_getClientRawTableInfoById<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getClientRawTableInfoById_args, ClientRawTableInfo> {
-      public user_getClientRawTableInfoById() {
-        super("user_getClientRawTableInfoById");
+    public static class user_getClientRawTableInfo<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getClientRawTableInfo_args, ClientRawTableInfo> {
+      public user_getClientRawTableInfo() {
+        super("user_getClientRawTableInfo");
       }
 
-      public user_getClientRawTableInfoById_args getEmptyArgsInstance() {
-        return new user_getClientRawTableInfoById_args();
+      public user_getClientRawTableInfo_args getEmptyArgsInstance() {
+        return new user_getClientRawTableInfo_args();
       }
 
       public AsyncMethodCallback<ClientRawTableInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
         return new AsyncMethodCallback<ClientRawTableInfo>() { 
           public void onComplete(ClientRawTableInfo o) {
-            user_getClientRawTableInfoById_result result = new user_getClientRawTableInfoById_result();
+            user_getClientRawTableInfo_result result = new user_getClientRawTableInfo_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -6203,64 +4661,7 @@ public class MasterService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            user_getClientRawTableInfoById_result result = new user_getClientRawTableInfoById_result();
-            if (e instanceof TableDoesNotExistException) {
-                        result.e = (TableDoesNotExistException) e;
-                        result.setEIsSet(true);
-                        msg = result;
-            }
-             else 
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, user_getClientRawTableInfoById_args args, org.apache.thrift.async.AsyncMethodCallback<ClientRawTableInfo> resultHandler) throws TException {
-        iface.user_getClientRawTableInfoById(args.tableId,resultHandler);
-      }
-    }
-
-    public static class user_getClientRawTableInfoByPath<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getClientRawTableInfoByPath_args, ClientRawTableInfo> {
-      public user_getClientRawTableInfoByPath() {
-        super("user_getClientRawTableInfoByPath");
-      }
-
-      public user_getClientRawTableInfoByPath_args getEmptyArgsInstance() {
-        return new user_getClientRawTableInfoByPath_args();
-      }
-
-      public AsyncMethodCallback<ClientRawTableInfo> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<ClientRawTableInfo>() { 
-          public void onComplete(ClientRawTableInfo o) {
-            user_getClientRawTableInfoByPath_result result = new user_getClientRawTableInfoByPath_result();
-            result.success = o;
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            user_getClientRawTableInfoByPath_result result = new user_getClientRawTableInfoByPath_result();
+            user_getClientRawTableInfo_result result = new user_getClientRawTableInfo_result();
             if (e instanceof TableDoesNotExistException) {
                         result.eT = (TableDoesNotExistException) e;
                         result.setETIsSet(true);
@@ -6291,8 +4692,8 @@ public class MasterService {
         return false;
       }
 
-      public void start(I iface, user_getClientRawTableInfoByPath_args args, org.apache.thrift.async.AsyncMethodCallback<ClientRawTableInfo> resultHandler) throws TException {
-        iface.user_getClientRawTableInfoByPath(args.tablePath,resultHandler);
+      public void start(I iface, user_getClientRawTableInfo_args args, org.apache.thrift.async.AsyncMethodCallback<ClientRawTableInfo> resultHandler) throws TException {
+        iface.user_getClientRawTableInfo(args.id, args.path,resultHandler);
       }
     }
 
@@ -6354,69 +4755,6 @@ public class MasterService {
 
       public void start(I iface, user_updateRawTableMetadata_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
         iface.user_updateRawTableMetadata(args.tableId, args.metadata,resultHandler);
-      }
-    }
-
-    public static class user_getNumberOfFiles<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, user_getNumberOfFiles_args, Integer> {
-      public user_getNumberOfFiles() {
-        super("user_getNumberOfFiles");
-      }
-
-      public user_getNumberOfFiles_args getEmptyArgsInstance() {
-        return new user_getNumberOfFiles_args();
-      }
-
-      public AsyncMethodCallback<Integer> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Integer>() { 
-          public void onComplete(Integer o) {
-            user_getNumberOfFiles_result result = new user_getNumberOfFiles_result();
-            result.success = o;
-            result.setSuccessIsSet(true);
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            user_getNumberOfFiles_result result = new user_getNumberOfFiles_result();
-            if (e instanceof FileDoesNotExistException) {
-                        result.eR = (FileDoesNotExistException) e;
-                        result.setERIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof InvalidPathException) {
-                        result.eI = (InvalidPathException) e;
-                        result.setEIIsSet(true);
-                        msg = result;
-            }
-             else 
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, user_getNumberOfFiles_args args, org.apache.thrift.async.AsyncMethodCallback<Integer> resultHandler) throws TException {
-        iface.user_getNumberOfFiles(args.path,resultHandler);
       }
     }
 
@@ -18487,7 +16825,9 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_createFile_args");
 
     private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField BLOCK_SIZE_BYTE_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSizeByte", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField UFS_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsPath", org.apache.thrift.protocol.TType.STRING, (short)2);
+    private static final org.apache.thrift.protocol.TField BLOCK_SIZE_BYTE_FIELD_DESC = new org.apache.thrift.protocol.TField("blockSizeByte", org.apache.thrift.protocol.TType.I64, (short)3);
+    private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -18496,12 +16836,16 @@ public class MasterService {
     }
 
     public String path; // required
+    public String ufsPath; // required
     public long blockSizeByte; // required
+    public boolean recursive; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       PATH((short)1, "path"),
-      BLOCK_SIZE_BYTE((short)2, "blockSizeByte");
+      UFS_PATH((short)2, "ufsPath"),
+      BLOCK_SIZE_BYTE((short)3, "blockSizeByte"),
+      RECURSIVE((short)4, "recursive");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -18518,8 +16862,12 @@ public class MasterService {
         switch(fieldId) {
           case 1: // PATH
             return PATH;
-          case 2: // BLOCK_SIZE_BYTE
+          case 2: // UFS_PATH
+            return UFS_PATH;
+          case 3: // BLOCK_SIZE_BYTE
             return BLOCK_SIZE_BYTE;
+          case 4: // RECURSIVE
+            return RECURSIVE;
           default:
             return null;
         }
@@ -18561,14 +16909,19 @@ public class MasterService {
 
     // isset id assignments
     private static final int __BLOCKSIZEBYTE_ISSET_ID = 0;
+    private static final int __RECURSIVE_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.BLOCK_SIZE_BYTE, new org.apache.thrift.meta_data.FieldMetaData("blockSizeByte", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_createFile_args.class, metaDataMap);
     }
@@ -18578,12 +16931,17 @@ public class MasterService {
 
     public user_createFile_args(
       String path,
-      long blockSizeByte)
+      String ufsPath,
+      long blockSizeByte,
+      boolean recursive)
     {
       this();
       this.path = path;
+      this.ufsPath = ufsPath;
       this.blockSizeByte = blockSizeByte;
       setBlockSizeByteIsSet(true);
+      this.recursive = recursive;
+      setRecursiveIsSet(true);
     }
 
     /**
@@ -18594,7 +16952,11 @@ public class MasterService {
       if (other.isSetPath()) {
         this.path = other.path;
       }
+      if (other.isSetUfsPath()) {
+        this.ufsPath = other.ufsPath;
+      }
       this.blockSizeByte = other.blockSizeByte;
+      this.recursive = other.recursive;
     }
 
     public user_createFile_args deepCopy() {
@@ -18604,8 +16966,11 @@ public class MasterService {
     @Override
     public void clear() {
       this.path = null;
+      this.ufsPath = null;
       setBlockSizeByteIsSet(false);
       this.blockSizeByte = 0;
+      setRecursiveIsSet(false);
+      this.recursive = false;
     }
 
     public String getPath() {
@@ -18632,6 +16997,30 @@ public class MasterService {
       }
     }
 
+    public String getUfsPath() {
+      return this.ufsPath;
+    }
+
+    public user_createFile_args setUfsPath(String ufsPath) {
+      this.ufsPath = ufsPath;
+      return this;
+    }
+
+    public void unsetUfsPath() {
+      this.ufsPath = null;
+    }
+
+    /** Returns true if field ufsPath is set (has been assigned a value) and false otherwise */
+    public boolean isSetUfsPath() {
+      return this.ufsPath != null;
+    }
+
+    public void setUfsPathIsSet(boolean value) {
+      if (!value) {
+        this.ufsPath = null;
+      }
+    }
+
     public long getBlockSizeByte() {
       return this.blockSizeByte;
     }
@@ -18655,6 +17044,29 @@ public class MasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKSIZEBYTE_ISSET_ID, value);
     }
 
+    public boolean isRecursive() {
+      return this.recursive;
+    }
+
+    public user_createFile_args setRecursive(boolean recursive) {
+      this.recursive = recursive;
+      setRecursiveIsSet(true);
+      return this;
+    }
+
+    public void unsetRecursive() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
+    }
+
+    /** Returns true if field recursive is set (has been assigned a value) and false otherwise */
+    public boolean isSetRecursive() {
+      return EncodingUtils.testBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
+    }
+
+    public void setRecursiveIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RECURSIVE_ISSET_ID, value);
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case PATH:
@@ -18662,6 +17074,14 @@ public class MasterService {
           unsetPath();
         } else {
           setPath((String)value);
+        }
+        break;
+
+      case UFS_PATH:
+        if (value == null) {
+          unsetUfsPath();
+        } else {
+          setUfsPath((String)value);
         }
         break;
 
@@ -18673,6 +17093,14 @@ public class MasterService {
         }
         break;
 
+      case RECURSIVE:
+        if (value == null) {
+          unsetRecursive();
+        } else {
+          setRecursive((Boolean)value);
+        }
+        break;
+
       }
     }
 
@@ -18681,8 +17109,14 @@ public class MasterService {
       case PATH:
         return getPath();
 
+      case UFS_PATH:
+        return getUfsPath();
+
       case BLOCK_SIZE_BYTE:
         return Long.valueOf(getBlockSizeByte());
+
+      case RECURSIVE:
+        return Boolean.valueOf(isRecursive());
 
       }
       throw new IllegalStateException();
@@ -18697,8 +17131,12 @@ public class MasterService {
       switch (field) {
       case PATH:
         return isSetPath();
+      case UFS_PATH:
+        return isSetUfsPath();
       case BLOCK_SIZE_BYTE:
         return isSetBlockSizeByte();
+      case RECURSIVE:
+        return isSetRecursive();
       }
       throw new IllegalStateException();
     }
@@ -18725,12 +17163,30 @@ public class MasterService {
           return false;
       }
 
+      boolean this_present_ufsPath = true && this.isSetUfsPath();
+      boolean that_present_ufsPath = true && that.isSetUfsPath();
+      if (this_present_ufsPath || that_present_ufsPath) {
+        if (!(this_present_ufsPath && that_present_ufsPath))
+          return false;
+        if (!this.ufsPath.equals(that.ufsPath))
+          return false;
+      }
+
       boolean this_present_blockSizeByte = true;
       boolean that_present_blockSizeByte = true;
       if (this_present_blockSizeByte || that_present_blockSizeByte) {
         if (!(this_present_blockSizeByte && that_present_blockSizeByte))
           return false;
         if (this.blockSizeByte != that.blockSizeByte)
+          return false;
+      }
+
+      boolean this_present_recursive = true;
+      boolean that_present_recursive = true;
+      if (this_present_recursive || that_present_recursive) {
+        if (!(this_present_recursive && that_present_recursive))
+          return false;
+        if (this.recursive != that.recursive)
           return false;
       }
 
@@ -18760,12 +17216,32 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetUfsPath()).compareTo(other.isSetUfsPath());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetUfsPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ufsPath, other.ufsPath);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetBlockSizeByte()).compareTo(other.isSetBlockSizeByte());
       if (lastComparison != 0) {
         return lastComparison;
       }
       if (isSetBlockSizeByte()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockSizeByte, other.blockSizeByte);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetRecursive()).compareTo(other.isSetRecursive());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetRecursive()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.recursive, other.recursive);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -18798,8 +17274,20 @@ public class MasterService {
       }
       first = false;
       if (!first) sb.append(", ");
+      sb.append("ufsPath:");
+      if (this.ufsPath == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ufsPath);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("blockSizeByte:");
       sb.append(this.blockSizeByte);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("recursive:");
+      sb.append(this.recursive);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -18854,10 +17342,26 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // BLOCK_SIZE_BYTE
+            case 2: // UFS_PATH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.ufsPath = iprot.readString();
+                struct.setUfsPathIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 3: // BLOCK_SIZE_BYTE
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.blockSizeByte = iprot.readI64();
                 struct.setBlockSizeByteIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 4: // RECURSIVE
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.recursive = iprot.readBool();
+                struct.setRecursiveIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -18882,8 +17386,16 @@ public class MasterService {
           oprot.writeString(struct.path);
           oprot.writeFieldEnd();
         }
+        if (struct.ufsPath != null) {
+          oprot.writeFieldBegin(UFS_PATH_FIELD_DESC);
+          oprot.writeString(struct.ufsPath);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldBegin(BLOCK_SIZE_BYTE_FIELD_DESC);
         oprot.writeI64(struct.blockSizeByte);
+        oprot.writeFieldEnd();
+        oprot.writeFieldBegin(RECURSIVE_FIELD_DESC);
+        oprot.writeBool(struct.recursive);
         oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
@@ -18906,29 +17418,49 @@ public class MasterService {
         if (struct.isSetPath()) {
           optionals.set(0);
         }
-        if (struct.isSetBlockSizeByte()) {
+        if (struct.isSetUfsPath()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetBlockSizeByte()) {
+          optionals.set(2);
+        }
+        if (struct.isSetRecursive()) {
+          optionals.set(3);
+        }
+        oprot.writeBitSet(optionals, 4);
         if (struct.isSetPath()) {
           oprot.writeString(struct.path);
         }
+        if (struct.isSetUfsPath()) {
+          oprot.writeString(struct.ufsPath);
+        }
         if (struct.isSetBlockSizeByte()) {
           oprot.writeI64(struct.blockSizeByte);
+        }
+        if (struct.isSetRecursive()) {
+          oprot.writeBool(struct.recursive);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, user_createFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(4);
         if (incoming.get(0)) {
           struct.path = iprot.readString();
           struct.setPathIsSet(true);
         }
         if (incoming.get(1)) {
+          struct.ufsPath = iprot.readString();
+          struct.setUfsPathIsSet(true);
+        }
+        if (incoming.get(2)) {
           struct.blockSizeByte = iprot.readI64();
           struct.setBlockSizeByteIsSet(true);
+        }
+        if (incoming.get(3)) {
+          struct.recursive = iprot.readBool();
+          struct.setRecursiveIsSet(true);
         }
       }
     }
@@ -18942,7 +17474,8 @@ public class MasterService {
     private static final org.apache.thrift.protocol.TField E_R_FIELD_DESC = new org.apache.thrift.protocol.TField("eR", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)2);
     private static final org.apache.thrift.protocol.TField E_B_FIELD_DESC = new org.apache.thrift.protocol.TField("eB", org.apache.thrift.protocol.TType.STRUCT, (short)3);
-    private static final org.apache.thrift.protocol.TField E_T_FIELD_DESC = new org.apache.thrift.protocol.TField("eT", org.apache.thrift.protocol.TType.STRUCT, (short)4);
+    private static final org.apache.thrift.protocol.TField E_S_FIELD_DESC = new org.apache.thrift.protocol.TField("eS", org.apache.thrift.protocol.TType.STRUCT, (short)4);
+    private static final org.apache.thrift.protocol.TField E_T_FIELD_DESC = new org.apache.thrift.protocol.TField("eT", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -18954,6 +17487,7 @@ public class MasterService {
     public FileAlreadyExistException eR; // required
     public InvalidPathException eI; // required
     public BlockInfoException eB; // required
+    public SuspectedFileSizeException eS; // required
     public TachyonException eT; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -18962,7 +17496,8 @@ public class MasterService {
       E_R((short)1, "eR"),
       E_I((short)2, "eI"),
       E_B((short)3, "eB"),
-      E_T((short)4, "eT");
+      E_S((short)4, "eS"),
+      E_T((short)5, "eT");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -18985,7 +17520,9 @@ public class MasterService {
             return E_I;
           case 3: // E_B
             return E_B;
-          case 4: // E_T
+          case 4: // E_S
+            return E_S;
+          case 5: // E_T
             return E_T;
           default:
             return null;
@@ -19040,6 +17577,8 @@ public class MasterService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_B, new org.apache.thrift.meta_data.FieldMetaData("eB", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_S, new org.apache.thrift.meta_data.FieldMetaData("eS", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.E_T, new org.apache.thrift.meta_data.FieldMetaData("eT", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -19054,6 +17593,7 @@ public class MasterService {
       FileAlreadyExistException eR,
       InvalidPathException eI,
       BlockInfoException eB,
+      SuspectedFileSizeException eS,
       TachyonException eT)
     {
       this();
@@ -19062,6 +17602,7 @@ public class MasterService {
       this.eR = eR;
       this.eI = eI;
       this.eB = eB;
+      this.eS = eS;
       this.eT = eT;
     }
 
@@ -19080,6 +17621,9 @@ public class MasterService {
       if (other.isSetEB()) {
         this.eB = new BlockInfoException(other.eB);
       }
+      if (other.isSetES()) {
+        this.eS = new SuspectedFileSizeException(other.eS);
+      }
       if (other.isSetET()) {
         this.eT = new TachyonException(other.eT);
       }
@@ -19096,6 +17640,7 @@ public class MasterService {
       this.eR = null;
       this.eI = null;
       this.eB = null;
+      this.eS = null;
       this.eT = null;
     }
 
@@ -19194,6 +17739,30 @@ public class MasterService {
       }
     }
 
+    public SuspectedFileSizeException getES() {
+      return this.eS;
+    }
+
+    public user_createFile_result setES(SuspectedFileSizeException eS) {
+      this.eS = eS;
+      return this;
+    }
+
+    public void unsetES() {
+      this.eS = null;
+    }
+
+    /** Returns true if field eS is set (has been assigned a value) and false otherwise */
+    public boolean isSetES() {
+      return this.eS != null;
+    }
+
+    public void setESIsSet(boolean value) {
+      if (!value) {
+        this.eS = null;
+      }
+    }
+
     public TachyonException getET() {
       return this.eT;
     }
@@ -19252,6 +17821,14 @@ public class MasterService {
         }
         break;
 
+      case E_S:
+        if (value == null) {
+          unsetES();
+        } else {
+          setES((SuspectedFileSizeException)value);
+        }
+        break;
+
       case E_T:
         if (value == null) {
           unsetET();
@@ -19277,6 +17854,9 @@ public class MasterService {
       case E_B:
         return getEB();
 
+      case E_S:
+        return getES();
+
       case E_T:
         return getET();
 
@@ -19299,6 +17879,8 @@ public class MasterService {
         return isSetEI();
       case E_B:
         return isSetEB();
+      case E_S:
+        return isSetES();
       case E_T:
         return isSetET();
       }
@@ -19351,6 +17933,15 @@ public class MasterService {
         if (!(this_present_eB && that_present_eB))
           return false;
         if (!this.eB.equals(that.eB))
+          return false;
+      }
+
+      boolean this_present_eS = true && this.isSetES();
+      boolean that_present_eS = true && that.isSetES();
+      if (this_present_eS || that_present_eS) {
+        if (!(this_present_eS && that_present_eS))
+          return false;
+        if (!this.eS.equals(that.eS))
           return false;
       }
 
@@ -19419,6 +18010,16 @@ public class MasterService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetES()).compareTo(other.isSetES());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetES()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eS, other.eS);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetET()).compareTo(other.isSetET());
       if (lastComparison != 0) {
         return lastComparison;
@@ -19474,6 +18075,14 @@ public class MasterService {
         sb.append("null");
       } else {
         sb.append(this.eB);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eS:");
+      if (this.eS == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eS);
       }
       first = false;
       if (!first) sb.append(", ");
@@ -19564,7 +18173,16 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 4: // E_T
+            case 4: // E_S
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eS = new SuspectedFileSizeException();
+                struct.eS.read(iprot);
+                struct.setESIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 5: // E_T
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.eT = new TachyonException();
                 struct.eT.read(iprot);
@@ -19608,6 +18226,11 @@ public class MasterService {
           struct.eB.write(oprot);
           oprot.writeFieldEnd();
         }
+        if (struct.eS != null) {
+          oprot.writeFieldBegin(E_S_FIELD_DESC);
+          struct.eS.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.eT != null) {
           oprot.writeFieldBegin(E_T_FIELD_DESC);
           struct.eT.write(oprot);
@@ -19643,1314 +18266,7 @@ public class MasterService {
         if (struct.isSetEB()) {
           optionals.set(3);
         }
-        if (struct.isSetET()) {
-          optionals.set(4);
-        }
-        oprot.writeBitSet(optionals, 5);
-        if (struct.isSetSuccess()) {
-          oprot.writeI32(struct.success);
-        }
-        if (struct.isSetER()) {
-          struct.eR.write(oprot);
-        }
-        if (struct.isSetEI()) {
-          struct.eI.write(oprot);
-        }
-        if (struct.isSetEB()) {
-          struct.eB.write(oprot);
-        }
-        if (struct.isSetET()) {
-          struct.eT.write(oprot);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_createFile_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(5);
-        if (incoming.get(0)) {
-          struct.success = iprot.readI32();
-          struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.eR = new FileAlreadyExistException();
-          struct.eR.read(iprot);
-          struct.setERIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.eI = new InvalidPathException();
-          struct.eI.read(iprot);
-          struct.setEIIsSet(true);
-        }
-        if (incoming.get(3)) {
-          struct.eB = new BlockInfoException();
-          struct.eB.read(iprot);
-          struct.setEBIsSet(true);
-        }
-        if (incoming.get(4)) {
-          struct.eT = new TachyonException();
-          struct.eT.read(iprot);
-          struct.setETIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_createFileOnCheckpoint_args implements org.apache.thrift.TBase<user_createFileOnCheckpoint_args, user_createFileOnCheckpoint_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_createFileOnCheckpoint_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_createFileOnCheckpoint_args");
-
-    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField CHECKPOINT_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("checkpointPath", org.apache.thrift.protocol.TType.STRING, (short)2);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_createFileOnCheckpoint_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_createFileOnCheckpoint_argsTupleSchemeFactory());
-    }
-
-    public String path; // required
-    public String checkpointPath; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      PATH((short)1, "path"),
-      CHECKPOINT_PATH((short)2, "checkpointPath");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // PATH
-            return PATH;
-          case 2: // CHECKPOINT_PATH
-            return CHECKPOINT_PATH;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.CHECKPOINT_PATH, new org.apache.thrift.meta_data.FieldMetaData("checkpointPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_createFileOnCheckpoint_args.class, metaDataMap);
-    }
-
-    public user_createFileOnCheckpoint_args() {
-    }
-
-    public user_createFileOnCheckpoint_args(
-      String path,
-      String checkpointPath)
-    {
-      this();
-      this.path = path;
-      this.checkpointPath = checkpointPath;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_createFileOnCheckpoint_args(user_createFileOnCheckpoint_args other) {
-      if (other.isSetPath()) {
-        this.path = other.path;
-      }
-      if (other.isSetCheckpointPath()) {
-        this.checkpointPath = other.checkpointPath;
-      }
-    }
-
-    public user_createFileOnCheckpoint_args deepCopy() {
-      return new user_createFileOnCheckpoint_args(this);
-    }
-
-    @Override
-    public void clear() {
-      this.path = null;
-      this.checkpointPath = null;
-    }
-
-    public String getPath() {
-      return this.path;
-    }
-
-    public user_createFileOnCheckpoint_args setPath(String path) {
-      this.path = path;
-      return this;
-    }
-
-    public void unsetPath() {
-      this.path = null;
-    }
-
-    /** Returns true if field path is set (has been assigned a value) and false otherwise */
-    public boolean isSetPath() {
-      return this.path != null;
-    }
-
-    public void setPathIsSet(boolean value) {
-      if (!value) {
-        this.path = null;
-      }
-    }
-
-    public String getCheckpointPath() {
-      return this.checkpointPath;
-    }
-
-    public user_createFileOnCheckpoint_args setCheckpointPath(String checkpointPath) {
-      this.checkpointPath = checkpointPath;
-      return this;
-    }
-
-    public void unsetCheckpointPath() {
-      this.checkpointPath = null;
-    }
-
-    /** Returns true if field checkpointPath is set (has been assigned a value) and false otherwise */
-    public boolean isSetCheckpointPath() {
-      return this.checkpointPath != null;
-    }
-
-    public void setCheckpointPathIsSet(boolean value) {
-      if (!value) {
-        this.checkpointPath = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case PATH:
-        if (value == null) {
-          unsetPath();
-        } else {
-          setPath((String)value);
-        }
-        break;
-
-      case CHECKPOINT_PATH:
-        if (value == null) {
-          unsetCheckpointPath();
-        } else {
-          setCheckpointPath((String)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case PATH:
-        return getPath();
-
-      case CHECKPOINT_PATH:
-        return getCheckpointPath();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case PATH:
-        return isSetPath();
-      case CHECKPOINT_PATH:
-        return isSetCheckpointPath();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_createFileOnCheckpoint_args)
-        return this.equals((user_createFileOnCheckpoint_args)that);
-      return false;
-    }
-
-    public boolean equals(user_createFileOnCheckpoint_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_path = true && this.isSetPath();
-      boolean that_present_path = true && that.isSetPath();
-      if (this_present_path || that_present_path) {
-        if (!(this_present_path && that_present_path))
-          return false;
-        if (!this.path.equals(that.path))
-          return false;
-      }
-
-      boolean this_present_checkpointPath = true && this.isSetCheckpointPath();
-      boolean that_present_checkpointPath = true && that.isSetCheckpointPath();
-      if (this_present_checkpointPath || that_present_checkpointPath) {
-        if (!(this_present_checkpointPath && that_present_checkpointPath))
-          return false;
-        if (!this.checkpointPath.equals(that.checkpointPath))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_createFileOnCheckpoint_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetPath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetCheckpointPath()).compareTo(other.isSetCheckpointPath());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetCheckpointPath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.checkpointPath, other.checkpointPath);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_createFileOnCheckpoint_args(");
-      boolean first = true;
-
-      sb.append("path:");
-      if (this.path == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.path);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("checkpointPath:");
-      if (this.checkpointPath == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.checkpointPath);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_createFileOnCheckpoint_argsStandardSchemeFactory implements SchemeFactory {
-      public user_createFileOnCheckpoint_argsStandardScheme getScheme() {
-        return new user_createFileOnCheckpoint_argsStandardScheme();
-      }
-    }
-
-    private static class user_createFileOnCheckpoint_argsStandardScheme extends StandardScheme<user_createFileOnCheckpoint_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_createFileOnCheckpoint_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // PATH
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.path = iprot.readString();
-                struct.setPathIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // CHECKPOINT_PATH
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.checkpointPath = iprot.readString();
-                struct.setCheckpointPathIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_createFileOnCheckpoint_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.path != null) {
-          oprot.writeFieldBegin(PATH_FIELD_DESC);
-          oprot.writeString(struct.path);
-          oprot.writeFieldEnd();
-        }
-        if (struct.checkpointPath != null) {
-          oprot.writeFieldBegin(CHECKPOINT_PATH_FIELD_DESC);
-          oprot.writeString(struct.checkpointPath);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_createFileOnCheckpoint_argsTupleSchemeFactory implements SchemeFactory {
-      public user_createFileOnCheckpoint_argsTupleScheme getScheme() {
-        return new user_createFileOnCheckpoint_argsTupleScheme();
-      }
-    }
-
-    private static class user_createFileOnCheckpoint_argsTupleScheme extends TupleScheme<user_createFileOnCheckpoint_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_createFileOnCheckpoint_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetPath()) {
-          optionals.set(0);
-        }
-        if (struct.isSetCheckpointPath()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetPath()) {
-          oprot.writeString(struct.path);
-        }
-        if (struct.isSetCheckpointPath()) {
-          oprot.writeString(struct.checkpointPath);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_createFileOnCheckpoint_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          struct.path = iprot.readString();
-          struct.setPathIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.checkpointPath = iprot.readString();
-          struct.setCheckpointPathIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_createFileOnCheckpoint_result implements org.apache.thrift.TBase<user_createFileOnCheckpoint_result, user_createFileOnCheckpoint_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_createFileOnCheckpoint_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_createFileOnCheckpoint_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I32, (short)0);
-    private static final org.apache.thrift.protocol.TField E_R_FIELD_DESC = new org.apache.thrift.protocol.TField("eR", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-    private static final org.apache.thrift.protocol.TField E_S_FIELD_DESC = new org.apache.thrift.protocol.TField("eS", org.apache.thrift.protocol.TType.STRUCT, (short)3);
-    private static final org.apache.thrift.protocol.TField E_B_FIELD_DESC = new org.apache.thrift.protocol.TField("eB", org.apache.thrift.protocol.TType.STRUCT, (short)4);
-    private static final org.apache.thrift.protocol.TField E_T_FIELD_DESC = new org.apache.thrift.protocol.TField("eT", org.apache.thrift.protocol.TType.STRUCT, (short)5);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_createFileOnCheckpoint_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_createFileOnCheckpoint_resultTupleSchemeFactory());
-    }
-
-    public int success; // required
-    public FileAlreadyExistException eR; // required
-    public InvalidPathException eI; // required
-    public SuspectedFileSizeException eS; // required
-    public BlockInfoException eB; // required
-    public TachyonException eT; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E_R((short)1, "eR"),
-      E_I((short)2, "eI"),
-      E_S((short)3, "eS"),
-      E_B((short)4, "eB"),
-      E_T((short)5, "eT");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
-          case 1: // E_R
-            return E_R;
-          case 2: // E_I
-            return E_I;
-          case 3: // E_S
-            return E_S;
-          case 4: // E_B
-            return E_B;
-          case 5: // E_T
-            return E_T;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-      tmpMap.put(_Fields.E_R, new org.apache.thrift.meta_data.FieldMetaData("eR", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_S, new org.apache.thrift.meta_data.FieldMetaData("eS", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_B, new org.apache.thrift.meta_data.FieldMetaData("eB", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_T, new org.apache.thrift.meta_data.FieldMetaData("eT", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_createFileOnCheckpoint_result.class, metaDataMap);
-    }
-
-    public user_createFileOnCheckpoint_result() {
-    }
-
-    public user_createFileOnCheckpoint_result(
-      int success,
-      FileAlreadyExistException eR,
-      InvalidPathException eI,
-      SuspectedFileSizeException eS,
-      BlockInfoException eB,
-      TachyonException eT)
-    {
-      this();
-      this.success = success;
-      setSuccessIsSet(true);
-      this.eR = eR;
-      this.eI = eI;
-      this.eS = eS;
-      this.eB = eB;
-      this.eT = eT;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_createFileOnCheckpoint_result(user_createFileOnCheckpoint_result other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.success = other.success;
-      if (other.isSetER()) {
-        this.eR = new FileAlreadyExistException(other.eR);
-      }
-      if (other.isSetEI()) {
-        this.eI = new InvalidPathException(other.eI);
-      }
-      if (other.isSetES()) {
-        this.eS = new SuspectedFileSizeException(other.eS);
-      }
-      if (other.isSetEB()) {
-        this.eB = new BlockInfoException(other.eB);
-      }
-      if (other.isSetET()) {
-        this.eT = new TachyonException(other.eT);
-      }
-    }
-
-    public user_createFileOnCheckpoint_result deepCopy() {
-      return new user_createFileOnCheckpoint_result(this);
-    }
-
-    @Override
-    public void clear() {
-      setSuccessIsSet(false);
-      this.success = 0;
-      this.eR = null;
-      this.eI = null;
-      this.eS = null;
-      this.eB = null;
-      this.eT = null;
-    }
-
-    public int getSuccess() {
-      return this.success;
-    }
-
-    public user_createFileOnCheckpoint_result setSuccess(int success) {
-      this.success = success;
-      setSuccessIsSet(true);
-      return this;
-    }
-
-    public void unsetSuccess() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
-    }
-
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
-    }
-
-    public void setSuccessIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
-    }
-
-    public FileAlreadyExistException getER() {
-      return this.eR;
-    }
-
-    public user_createFileOnCheckpoint_result setER(FileAlreadyExistException eR) {
-      this.eR = eR;
-      return this;
-    }
-
-    public void unsetER() {
-      this.eR = null;
-    }
-
-    /** Returns true if field eR is set (has been assigned a value) and false otherwise */
-    public boolean isSetER() {
-      return this.eR != null;
-    }
-
-    public void setERIsSet(boolean value) {
-      if (!value) {
-        this.eR = null;
-      }
-    }
-
-    public InvalidPathException getEI() {
-      return this.eI;
-    }
-
-    public user_createFileOnCheckpoint_result setEI(InvalidPathException eI) {
-      this.eI = eI;
-      return this;
-    }
-
-    public void unsetEI() {
-      this.eI = null;
-    }
-
-    /** Returns true if field eI is set (has been assigned a value) and false otherwise */
-    public boolean isSetEI() {
-      return this.eI != null;
-    }
-
-    public void setEIIsSet(boolean value) {
-      if (!value) {
-        this.eI = null;
-      }
-    }
-
-    public SuspectedFileSizeException getES() {
-      return this.eS;
-    }
-
-    public user_createFileOnCheckpoint_result setES(SuspectedFileSizeException eS) {
-      this.eS = eS;
-      return this;
-    }
-
-    public void unsetES() {
-      this.eS = null;
-    }
-
-    /** Returns true if field eS is set (has been assigned a value) and false otherwise */
-    public boolean isSetES() {
-      return this.eS != null;
-    }
-
-    public void setESIsSet(boolean value) {
-      if (!value) {
-        this.eS = null;
-      }
-    }
-
-    public BlockInfoException getEB() {
-      return this.eB;
-    }
-
-    public user_createFileOnCheckpoint_result setEB(BlockInfoException eB) {
-      this.eB = eB;
-      return this;
-    }
-
-    public void unsetEB() {
-      this.eB = null;
-    }
-
-    /** Returns true if field eB is set (has been assigned a value) and false otherwise */
-    public boolean isSetEB() {
-      return this.eB != null;
-    }
-
-    public void setEBIsSet(boolean value) {
-      if (!value) {
-        this.eB = null;
-      }
-    }
-
-    public TachyonException getET() {
-      return this.eT;
-    }
-
-    public user_createFileOnCheckpoint_result setET(TachyonException eT) {
-      this.eT = eT;
-      return this;
-    }
-
-    public void unsetET() {
-      this.eT = null;
-    }
-
-    /** Returns true if field eT is set (has been assigned a value) and false otherwise */
-    public boolean isSetET() {
-      return this.eT != null;
-    }
-
-    public void setETIsSet(boolean value) {
-      if (!value) {
-        this.eT = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((Integer)value);
-        }
-        break;
-
-      case E_R:
-        if (value == null) {
-          unsetER();
-        } else {
-          setER((FileAlreadyExistException)value);
-        }
-        break;
-
-      case E_I:
-        if (value == null) {
-          unsetEI();
-        } else {
-          setEI((InvalidPathException)value);
-        }
-        break;
-
-      case E_S:
-        if (value == null) {
-          unsetES();
-        } else {
-          setES((SuspectedFileSizeException)value);
-        }
-        break;
-
-      case E_B:
-        if (value == null) {
-          unsetEB();
-        } else {
-          setEB((BlockInfoException)value);
-        }
-        break;
-
-      case E_T:
-        if (value == null) {
-          unsetET();
-        } else {
-          setET((TachyonException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case SUCCESS:
-        return Integer.valueOf(getSuccess());
-
-      case E_R:
-        return getER();
-
-      case E_I:
-        return getEI();
-
-      case E_S:
-        return getES();
-
-      case E_B:
-        return getEB();
-
-      case E_T:
-        return getET();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      case E_R:
-        return isSetER();
-      case E_I:
-        return isSetEI();
-      case E_S:
-        return isSetES();
-      case E_B:
-        return isSetEB();
-      case E_T:
-        return isSetET();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_createFileOnCheckpoint_result)
-        return this.equals((user_createFileOnCheckpoint_result)that);
-      return false;
-    }
-
-    public boolean equals(user_createFileOnCheckpoint_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_success = true;
-      boolean that_present_success = true;
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
-          return false;
-        if (this.success != that.success)
-          return false;
-      }
-
-      boolean this_present_eR = true && this.isSetER();
-      boolean that_present_eR = true && that.isSetER();
-      if (this_present_eR || that_present_eR) {
-        if (!(this_present_eR && that_present_eR))
-          return false;
-        if (!this.eR.equals(that.eR))
-          return false;
-      }
-
-      boolean this_present_eI = true && this.isSetEI();
-      boolean that_present_eI = true && that.isSetEI();
-      if (this_present_eI || that_present_eI) {
-        if (!(this_present_eI && that_present_eI))
-          return false;
-        if (!this.eI.equals(that.eI))
-          return false;
-      }
-
-      boolean this_present_eS = true && this.isSetES();
-      boolean that_present_eS = true && that.isSetES();
-      if (this_present_eS || that_present_eS) {
-        if (!(this_present_eS && that_present_eS))
-          return false;
-        if (!this.eS.equals(that.eS))
-          return false;
-      }
-
-      boolean this_present_eB = true && this.isSetEB();
-      boolean that_present_eB = true && that.isSetEB();
-      if (this_present_eB || that_present_eB) {
-        if (!(this_present_eB && that_present_eB))
-          return false;
-        if (!this.eB.equals(that.eB))
-          return false;
-      }
-
-      boolean this_present_eT = true && this.isSetET();
-      boolean that_present_eT = true && that.isSetET();
-      if (this_present_eT || that_present_eT) {
-        if (!(this_present_eT && that_present_eT))
-          return false;
-        if (!this.eT.equals(that.eT))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_createFileOnCheckpoint_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetER()).compareTo(other.isSetER());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetER()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eR, other.eR);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEI()).compareTo(other.isSetEI());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEI()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eI, other.eI);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetES()).compareTo(other.isSetES());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetES()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eS, other.eS);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEB()).compareTo(other.isSetEB());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEB()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eB, other.eB);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetET()).compareTo(other.isSetET());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetET()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eT, other.eT);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_createFileOnCheckpoint_result(");
-      boolean first = true;
-
-      sb.append("success:");
-      sb.append(this.success);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eR:");
-      if (this.eR == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eR);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eI:");
-      if (this.eI == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eI);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eS:");
-      if (this.eS == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eS);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eB:");
-      if (this.eB == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eB);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eT:");
-      if (this.eT == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eT);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_createFileOnCheckpoint_resultStandardSchemeFactory implements SchemeFactory {
-      public user_createFileOnCheckpoint_resultStandardScheme getScheme() {
-        return new user_createFileOnCheckpoint_resultStandardScheme();
-      }
-    }
-
-    private static class user_createFileOnCheckpoint_resultStandardScheme extends StandardScheme<user_createFileOnCheckpoint_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_createFileOnCheckpoint_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.success = iprot.readI32();
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 1: // E_R
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eR = new FileAlreadyExistException();
-                struct.eR.read(iprot);
-                struct.setERIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // E_I
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eI = new InvalidPathException();
-                struct.eI.read(iprot);
-                struct.setEIIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 3: // E_S
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eS = new SuspectedFileSizeException();
-                struct.eS.read(iprot);
-                struct.setESIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 4: // E_B
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eB = new BlockInfoException();
-                struct.eB.read(iprot);
-                struct.setEBIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 5: // E_T
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eT = new TachyonException();
-                struct.eT.read(iprot);
-                struct.setETIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_createFileOnCheckpoint_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.isSetSuccess()) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeI32(struct.success);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eR != null) {
-          oprot.writeFieldBegin(E_R_FIELD_DESC);
-          struct.eR.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eI != null) {
-          oprot.writeFieldBegin(E_I_FIELD_DESC);
-          struct.eI.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eS != null) {
-          oprot.writeFieldBegin(E_S_FIELD_DESC);
-          struct.eS.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eB != null) {
-          oprot.writeFieldBegin(E_B_FIELD_DESC);
-          struct.eB.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eT != null) {
-          oprot.writeFieldBegin(E_T_FIELD_DESC);
-          struct.eT.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_createFileOnCheckpoint_resultTupleSchemeFactory implements SchemeFactory {
-      public user_createFileOnCheckpoint_resultTupleScheme getScheme() {
-        return new user_createFileOnCheckpoint_resultTupleScheme();
-      }
-    }
-
-    private static class user_createFileOnCheckpoint_resultTupleScheme extends TupleScheme<user_createFileOnCheckpoint_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_createFileOnCheckpoint_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
-          optionals.set(0);
-        }
-        if (struct.isSetER()) {
-          optionals.set(1);
-        }
-        if (struct.isSetEI()) {
-          optionals.set(2);
-        }
         if (struct.isSetES()) {
-          optionals.set(3);
-        }
-        if (struct.isSetEB()) {
           optionals.set(4);
         }
         if (struct.isSetET()) {
@@ -20966,11 +18282,11 @@ public class MasterService {
         if (struct.isSetEI()) {
           struct.eI.write(oprot);
         }
-        if (struct.isSetES()) {
-          struct.eS.write(oprot);
-        }
         if (struct.isSetEB()) {
           struct.eB.write(oprot);
+        }
+        if (struct.isSetES()) {
+          struct.eS.write(oprot);
         }
         if (struct.isSetET()) {
           struct.eT.write(oprot);
@@ -20978,7 +18294,7 @@ public class MasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_createFileOnCheckpoint_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_createFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(6);
         if (incoming.get(0)) {
@@ -20996,14 +18312,14 @@ public class MasterService {
           struct.setEIIsSet(true);
         }
         if (incoming.get(3)) {
-          struct.eS = new SuspectedFileSizeException();
-          struct.eS.read(iprot);
-          struct.setESIsSet(true);
-        }
-        if (incoming.get(4)) {
           struct.eB = new BlockInfoException();
           struct.eB.read(iprot);
           struct.setEBIsSet(true);
+        }
+        if (incoming.get(4)) {
+          struct.eS = new SuspectedFileSizeException();
+          struct.eS.read(iprot);
+          struct.setESIsSet(true);
         }
         if (incoming.get(5)) {
           struct.eT = new TachyonException();
@@ -22523,816 +19839,6 @@ public class MasterService {
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
           struct.e = new FileDoesNotExistException();
-          struct.e.read(iprot);
-          struct.setEIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_getFileId_args implements org.apache.thrift.TBase<user_getFileId_args, user_getFileId_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_getFileId_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getFileId_args");
-
-    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_getFileId_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getFileId_argsTupleSchemeFactory());
-    }
-
-    public String path; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      PATH((short)1, "path");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // PATH
-            return PATH;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getFileId_args.class, metaDataMap);
-    }
-
-    public user_getFileId_args() {
-    }
-
-    public user_getFileId_args(
-      String path)
-    {
-      this();
-      this.path = path;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_getFileId_args(user_getFileId_args other) {
-      if (other.isSetPath()) {
-        this.path = other.path;
-      }
-    }
-
-    public user_getFileId_args deepCopy() {
-      return new user_getFileId_args(this);
-    }
-
-    @Override
-    public void clear() {
-      this.path = null;
-    }
-
-    public String getPath() {
-      return this.path;
-    }
-
-    public user_getFileId_args setPath(String path) {
-      this.path = path;
-      return this;
-    }
-
-    public void unsetPath() {
-      this.path = null;
-    }
-
-    /** Returns true if field path is set (has been assigned a value) and false otherwise */
-    public boolean isSetPath() {
-      return this.path != null;
-    }
-
-    public void setPathIsSet(boolean value) {
-      if (!value) {
-        this.path = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case PATH:
-        if (value == null) {
-          unsetPath();
-        } else {
-          setPath((String)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case PATH:
-        return getPath();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case PATH:
-        return isSetPath();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_getFileId_args)
-        return this.equals((user_getFileId_args)that);
-      return false;
-    }
-
-    public boolean equals(user_getFileId_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_path = true && this.isSetPath();
-      boolean that_present_path = true && that.isSetPath();
-      if (this_present_path || that_present_path) {
-        if (!(this_present_path && that_present_path))
-          return false;
-        if (!this.path.equals(that.path))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_getFileId_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetPath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_getFileId_args(");
-      boolean first = true;
-
-      sb.append("path:");
-      if (this.path == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.path);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_getFileId_argsStandardSchemeFactory implements SchemeFactory {
-      public user_getFileId_argsStandardScheme getScheme() {
-        return new user_getFileId_argsStandardScheme();
-      }
-    }
-
-    private static class user_getFileId_argsStandardScheme extends StandardScheme<user_getFileId_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getFileId_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // PATH
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.path = iprot.readString();
-                struct.setPathIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getFileId_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.path != null) {
-          oprot.writeFieldBegin(PATH_FIELD_DESC);
-          oprot.writeString(struct.path);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_getFileId_argsTupleSchemeFactory implements SchemeFactory {
-      public user_getFileId_argsTupleScheme getScheme() {
-        return new user_getFileId_argsTupleScheme();
-      }
-    }
-
-    private static class user_getFileId_argsTupleScheme extends TupleScheme<user_getFileId_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getFileId_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetPath()) {
-          optionals.set(0);
-        }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetPath()) {
-          oprot.writeString(struct.path);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getFileId_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
-        if (incoming.get(0)) {
-          struct.path = iprot.readString();
-          struct.setPathIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_getFileId_result implements org.apache.thrift.TBase<user_getFileId_result, user_getFileId_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_getFileId_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getFileId_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I32, (short)0);
-    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_getFileId_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getFileId_resultTupleSchemeFactory());
-    }
-
-    public int success; // required
-    public InvalidPathException e; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E((short)1, "e");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
-          case 1: // E
-            return E;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getFileId_result.class, metaDataMap);
-    }
-
-    public user_getFileId_result() {
-    }
-
-    public user_getFileId_result(
-      int success,
-      InvalidPathException e)
-    {
-      this();
-      this.success = success;
-      setSuccessIsSet(true);
-      this.e = e;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_getFileId_result(user_getFileId_result other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.success = other.success;
-      if (other.isSetE()) {
-        this.e = new InvalidPathException(other.e);
-      }
-    }
-
-    public user_getFileId_result deepCopy() {
-      return new user_getFileId_result(this);
-    }
-
-    @Override
-    public void clear() {
-      setSuccessIsSet(false);
-      this.success = 0;
-      this.e = null;
-    }
-
-    public int getSuccess() {
-      return this.success;
-    }
-
-    public user_getFileId_result setSuccess(int success) {
-      this.success = success;
-      setSuccessIsSet(true);
-      return this;
-    }
-
-    public void unsetSuccess() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
-    }
-
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
-    }
-
-    public void setSuccessIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
-    }
-
-    public InvalidPathException getE() {
-      return this.e;
-    }
-
-    public user_getFileId_result setE(InvalidPathException e) {
-      this.e = e;
-      return this;
-    }
-
-    public void unsetE() {
-      this.e = null;
-    }
-
-    /** Returns true if field e is set (has been assigned a value) and false otherwise */
-    public boolean isSetE() {
-      return this.e != null;
-    }
-
-    public void setEIsSet(boolean value) {
-      if (!value) {
-        this.e = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((Integer)value);
-        }
-        break;
-
-      case E:
-        if (value == null) {
-          unsetE();
-        } else {
-          setE((InvalidPathException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case SUCCESS:
-        return Integer.valueOf(getSuccess());
-
-      case E:
-        return getE();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      case E:
-        return isSetE();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_getFileId_result)
-        return this.equals((user_getFileId_result)that);
-      return false;
-    }
-
-    public boolean equals(user_getFileId_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_success = true;
-      boolean that_present_success = true;
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
-          return false;
-        if (this.success != that.success)
-          return false;
-      }
-
-      boolean this_present_e = true && this.isSetE();
-      boolean that_present_e = true && that.isSetE();
-      if (this_present_e || that_present_e) {
-        if (!(this_present_e && that_present_e))
-          return false;
-        if (!this.e.equals(that.e))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_getFileId_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetE()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_getFileId_result(");
-      boolean first = true;
-
-      sb.append("success:");
-      sb.append(this.success);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("e:");
-      if (this.e == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.e);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_getFileId_resultStandardSchemeFactory implements SchemeFactory {
-      public user_getFileId_resultStandardScheme getScheme() {
-        return new user_getFileId_resultStandardScheme();
-      }
-    }
-
-    private static class user_getFileId_resultStandardScheme extends StandardScheme<user_getFileId_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getFileId_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.success = iprot.readI32();
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 1: // E
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new InvalidPathException();
-                struct.e.read(iprot);
-                struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getFileId_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.isSetSuccess()) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeI32(struct.success);
-          oprot.writeFieldEnd();
-        }
-        if (struct.e != null) {
-          oprot.writeFieldBegin(E_FIELD_DESC);
-          struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_getFileId_resultTupleSchemeFactory implements SchemeFactory {
-      public user_getFileId_resultTupleScheme getScheme() {
-        return new user_getFileId_resultTupleScheme();
-      }
-    }
-
-    private static class user_getFileId_resultTupleScheme extends TupleScheme<user_getFileId_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getFileId_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
-          optionals.set(0);
-        }
-        if (struct.isSetE()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetSuccess()) {
-          oprot.writeI32(struct.success);
-        }
-        if (struct.isSetE()) {
-          struct.e.write(oprot);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getFileId_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          struct.success = iprot.readI32();
-          struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.e = new InvalidPathException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
@@ -25756,22 +22262,25 @@ public class MasterService {
 
   }
 
-  public static class getClientFileInfoById_args implements org.apache.thrift.TBase<getClientFileInfoById_args, getClientFileInfoById_args._Fields>, java.io.Serializable, Cloneable, Comparable<getClientFileInfoById_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getClientFileInfoById_args");
+  public static class getFileStatus_args implements org.apache.thrift.TBase<getFileStatus_args, getFileStatus_args._Fields>, java.io.Serializable, Cloneable, Comparable<getFileStatus_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileStatus_args");
 
     private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I32, (short)1);
+    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getClientFileInfoById_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getClientFileInfoById_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getFileStatus_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getFileStatus_argsTupleSchemeFactory());
     }
 
     public int fileId; // required
+    public String path; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      FILE_ID((short)1, "fileId");
+      FILE_ID((short)1, "fileId"),
+      PATH((short)2, "path");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -25788,6 +22297,8 @@ public class MasterService {
         switch(fieldId) {
           case 1: // FILE_ID
             return FILE_ID;
+          case 2: // PATH
+            return PATH;
           default:
             return null;
         }
@@ -25835,44 +22346,52 @@ public class MasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getClientFileInfoById_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileStatus_args.class, metaDataMap);
     }
 
-    public getClientFileInfoById_args() {
+    public getFileStatus_args() {
     }
 
-    public getClientFileInfoById_args(
-      int fileId)
+    public getFileStatus_args(
+      int fileId,
+      String path)
     {
       this();
       this.fileId = fileId;
       setFileIdIsSet(true);
+      this.path = path;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getClientFileInfoById_args(getClientFileInfoById_args other) {
+    public getFileStatus_args(getFileStatus_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.fileId = other.fileId;
+      if (other.isSetPath()) {
+        this.path = other.path;
+      }
     }
 
-    public getClientFileInfoById_args deepCopy() {
-      return new getClientFileInfoById_args(this);
+    public getFileStatus_args deepCopy() {
+      return new getFileStatus_args(this);
     }
 
     @Override
     public void clear() {
       setFileIdIsSet(false);
       this.fileId = 0;
+      this.path = null;
     }
 
     public int getFileId() {
       return this.fileId;
     }
 
-    public getClientFileInfoById_args setFileId(int fileId) {
+    public getFileStatus_args setFileId(int fileId) {
       this.fileId = fileId;
       setFileIdIsSet(true);
       return this;
@@ -25891,6 +22410,30 @@ public class MasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
     }
 
+    public String getPath() {
+      return this.path;
+    }
+
+    public getFileStatus_args setPath(String path) {
+      this.path = path;
+      return this;
+    }
+
+    public void unsetPath() {
+      this.path = null;
+    }
+
+    /** Returns true if field path is set (has been assigned a value) and false otherwise */
+    public boolean isSetPath() {
+      return this.path != null;
+    }
+
+    public void setPathIsSet(boolean value) {
+      if (!value) {
+        this.path = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case FILE_ID:
@@ -25901,6 +22444,14 @@ public class MasterService {
         }
         break;
 
+      case PATH:
+        if (value == null) {
+          unsetPath();
+        } else {
+          setPath((String)value);
+        }
+        break;
+
       }
     }
 
@@ -25908,6 +22459,9 @@ public class MasterService {
       switch (field) {
       case FILE_ID:
         return Integer.valueOf(getFileId());
+
+      case PATH:
+        return getPath();
 
       }
       throw new IllegalStateException();
@@ -25922,6 +22476,8 @@ public class MasterService {
       switch (field) {
       case FILE_ID:
         return isSetFileId();
+      case PATH:
+        return isSetPath();
       }
       throw new IllegalStateException();
     }
@@ -25930,12 +22486,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getClientFileInfoById_args)
-        return this.equals((getClientFileInfoById_args)that);
+      if (that instanceof getFileStatus_args)
+        return this.equals((getFileStatus_args)that);
       return false;
     }
 
-    public boolean equals(getClientFileInfoById_args that) {
+    public boolean equals(getFileStatus_args that) {
       if (that == null)
         return false;
 
@@ -25948,6 +22504,15 @@ public class MasterService {
           return false;
       }
 
+      boolean this_present_path = true && this.isSetPath();
+      boolean that_present_path = true && that.isSetPath();
+      if (this_present_path || that_present_path) {
+        if (!(this_present_path && that_present_path))
+          return false;
+        if (!this.path.equals(that.path))
+          return false;
+      }
+
       return true;
     }
 
@@ -25957,7 +22522,7 @@ public class MasterService {
     }
 
     @Override
-    public int compareTo(getClientFileInfoById_args other) {
+    public int compareTo(getFileStatus_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -25970,6 +22535,16 @@ public class MasterService {
       }
       if (isSetFileId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -25991,11 +22566,19 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getClientFileInfoById_args(");
+      StringBuilder sb = new StringBuilder("getFileStatus_args(");
       boolean first = true;
 
       sb.append("fileId:");
       sb.append(this.fileId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("path:");
+      if (this.path == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.path);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -26024,15 +22607,15 @@ public class MasterService {
       }
     }
 
-    private static class getClientFileInfoById_argsStandardSchemeFactory implements SchemeFactory {
-      public getClientFileInfoById_argsStandardScheme getScheme() {
-        return new getClientFileInfoById_argsStandardScheme();
+    private static class getFileStatus_argsStandardSchemeFactory implements SchemeFactory {
+      public getFileStatus_argsStandardScheme getScheme() {
+        return new getFileStatus_argsStandardScheme();
       }
     }
 
-    private static class getClientFileInfoById_argsStandardScheme extends StandardScheme<getClientFileInfoById_args> {
+    private static class getFileStatus_argsStandardScheme extends StandardScheme<getFileStatus_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getClientFileInfoById_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getFileStatus_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -26050,812 +22633,7 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getClientFileInfoById_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
-        oprot.writeI32(struct.fileId);
-        oprot.writeFieldEnd();
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class getClientFileInfoById_argsTupleSchemeFactory implements SchemeFactory {
-      public getClientFileInfoById_argsTupleScheme getScheme() {
-        return new getClientFileInfoById_argsTupleScheme();
-      }
-    }
-
-    private static class getClientFileInfoById_argsTupleScheme extends TupleScheme<getClientFileInfoById_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getClientFileInfoById_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetFileId()) {
-          optionals.set(0);
-        }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetFileId()) {
-          oprot.writeI32(struct.fileId);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getClientFileInfoById_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
-        if (incoming.get(0)) {
-          struct.fileId = iprot.readI32();
-          struct.setFileIdIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class getClientFileInfoById_result implements org.apache.thrift.TBase<getClientFileInfoById_result, getClientFileInfoById_result._Fields>, java.io.Serializable, Cloneable, Comparable<getClientFileInfoById_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getClientFileInfoById_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
-    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new getClientFileInfoById_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getClientFileInfoById_resultTupleSchemeFactory());
-    }
-
-    public ClientFileInfo success; // required
-    public FileDoesNotExistException e; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E((short)1, "e");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
-          case 1: // E
-            return E;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientFileInfo.class)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getClientFileInfoById_result.class, metaDataMap);
-    }
-
-    public getClientFileInfoById_result() {
-    }
-
-    public getClientFileInfoById_result(
-      ClientFileInfo success,
-      FileDoesNotExistException e)
-    {
-      this();
-      this.success = success;
-      this.e = e;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public getClientFileInfoById_result(getClientFileInfoById_result other) {
-      if (other.isSetSuccess()) {
-        this.success = new ClientFileInfo(other.success);
-      }
-      if (other.isSetE()) {
-        this.e = new FileDoesNotExistException(other.e);
-      }
-    }
-
-    public getClientFileInfoById_result deepCopy() {
-      return new getClientFileInfoById_result(this);
-    }
-
-    @Override
-    public void clear() {
-      this.success = null;
-      this.e = null;
-    }
-
-    public ClientFileInfo getSuccess() {
-      return this.success;
-    }
-
-    public getClientFileInfoById_result setSuccess(ClientFileInfo success) {
-      this.success = success;
-      return this;
-    }
-
-    public void unsetSuccess() {
-      this.success = null;
-    }
-
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return this.success != null;
-    }
-
-    public void setSuccessIsSet(boolean value) {
-      if (!value) {
-        this.success = null;
-      }
-    }
-
-    public FileDoesNotExistException getE() {
-      return this.e;
-    }
-
-    public getClientFileInfoById_result setE(FileDoesNotExistException e) {
-      this.e = e;
-      return this;
-    }
-
-    public void unsetE() {
-      this.e = null;
-    }
-
-    /** Returns true if field e is set (has been assigned a value) and false otherwise */
-    public boolean isSetE() {
-      return this.e != null;
-    }
-
-    public void setEIsSet(boolean value) {
-      if (!value) {
-        this.e = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((ClientFileInfo)value);
-        }
-        break;
-
-      case E:
-        if (value == null) {
-          unsetE();
-        } else {
-          setE((FileDoesNotExistException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case SUCCESS:
-        return getSuccess();
-
-      case E:
-        return getE();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      case E:
-        return isSetE();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof getClientFileInfoById_result)
-        return this.equals((getClientFileInfoById_result)that);
-      return false;
-    }
-
-    public boolean equals(getClientFileInfoById_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
-          return false;
-        if (!this.success.equals(that.success))
-          return false;
-      }
-
-      boolean this_present_e = true && this.isSetE();
-      boolean that_present_e = true && that.isSetE();
-      if (this_present_e || that_present_e) {
-        if (!(this_present_e && that_present_e))
-          return false;
-        if (!this.e.equals(that.e))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(getClientFileInfoById_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetE()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("getClientFileInfoById_result(");
-      boolean first = true;
-
-      sb.append("success:");
-      if (this.success == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.success);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("e:");
-      if (this.e == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.e);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-      if (success != null) {
-        success.validate();
-      }
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class getClientFileInfoById_resultStandardSchemeFactory implements SchemeFactory {
-      public getClientFileInfoById_resultStandardScheme getScheme() {
-        return new getClientFileInfoById_resultStandardScheme();
-      }
-    }
-
-    private static class getClientFileInfoById_resultStandardScheme extends StandardScheme<getClientFileInfoById_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getClientFileInfoById_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new ClientFileInfo();
-                struct.success.read(iprot);
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 1: // E
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new FileDoesNotExistException();
-                struct.e.read(iprot);
-                struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getClientFileInfoById_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          struct.success.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.e != null) {
-          oprot.writeFieldBegin(E_FIELD_DESC);
-          struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class getClientFileInfoById_resultTupleSchemeFactory implements SchemeFactory {
-      public getClientFileInfoById_resultTupleScheme getScheme() {
-        return new getClientFileInfoById_resultTupleScheme();
-      }
-    }
-
-    private static class getClientFileInfoById_resultTupleScheme extends TupleScheme<getClientFileInfoById_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getClientFileInfoById_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
-          optionals.set(0);
-        }
-        if (struct.isSetE()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetSuccess()) {
-          struct.success.write(oprot);
-        }
-        if (struct.isSetE()) {
-          struct.e.write(oprot);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getClientFileInfoById_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          struct.success = new ClientFileInfo();
-          struct.success.read(iprot);
-          struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.e = new FileDoesNotExistException();
-          struct.e.read(iprot);
-          struct.setEIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_getClientFileInfoByPath_args implements org.apache.thrift.TBase<user_getClientFileInfoByPath_args, user_getClientFileInfoByPath_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_getClientFileInfoByPath_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getClientFileInfoByPath_args");
-
-    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_getClientFileInfoByPath_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getClientFileInfoByPath_argsTupleSchemeFactory());
-    }
-
-    public String path; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      PATH((short)1, "path");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // PATH
-            return PATH;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getClientFileInfoByPath_args.class, metaDataMap);
-    }
-
-    public user_getClientFileInfoByPath_args() {
-    }
-
-    public user_getClientFileInfoByPath_args(
-      String path)
-    {
-      this();
-      this.path = path;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_getClientFileInfoByPath_args(user_getClientFileInfoByPath_args other) {
-      if (other.isSetPath()) {
-        this.path = other.path;
-      }
-    }
-
-    public user_getClientFileInfoByPath_args deepCopy() {
-      return new user_getClientFileInfoByPath_args(this);
-    }
-
-    @Override
-    public void clear() {
-      this.path = null;
-    }
-
-    public String getPath() {
-      return this.path;
-    }
-
-    public user_getClientFileInfoByPath_args setPath(String path) {
-      this.path = path;
-      return this;
-    }
-
-    public void unsetPath() {
-      this.path = null;
-    }
-
-    /** Returns true if field path is set (has been assigned a value) and false otherwise */
-    public boolean isSetPath() {
-      return this.path != null;
-    }
-
-    public void setPathIsSet(boolean value) {
-      if (!value) {
-        this.path = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case PATH:
-        if (value == null) {
-          unsetPath();
-        } else {
-          setPath((String)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case PATH:
-        return getPath();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case PATH:
-        return isSetPath();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_getClientFileInfoByPath_args)
-        return this.equals((user_getClientFileInfoByPath_args)that);
-      return false;
-    }
-
-    public boolean equals(user_getClientFileInfoByPath_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_path = true && this.isSetPath();
-      boolean that_present_path = true && that.isSetPath();
-      if (this_present_path || that_present_path) {
-        if (!(this_present_path && that_present_path))
-          return false;
-        if (!this.path.equals(that.path))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_getClientFileInfoByPath_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetPath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_getClientFileInfoByPath_args(");
-      boolean first = true;
-
-      sb.append("path:");
-      if (this.path == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.path);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_getClientFileInfoByPath_argsStandardSchemeFactory implements SchemeFactory {
-      public user_getClientFileInfoByPath_argsStandardScheme getScheme() {
-        return new user_getClientFileInfoByPath_argsStandardScheme();
-      }
-    }
-
-    private static class user_getClientFileInfoByPath_argsStandardScheme extends StandardScheme<user_getClientFileInfoByPath_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getClientFileInfoByPath_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // PATH
+            case 2: // PATH
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
@@ -26874,10 +22652,13 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getClientFileInfoByPath_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getFileStatus_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
+        oprot.writeI32(struct.fileId);
+        oprot.writeFieldEnd();
         if (struct.path != null) {
           oprot.writeFieldBegin(PATH_FIELD_DESC);
           oprot.writeString(struct.path);
@@ -26889,32 +22670,42 @@ public class MasterService {
 
     }
 
-    private static class user_getClientFileInfoByPath_argsTupleSchemeFactory implements SchemeFactory {
-      public user_getClientFileInfoByPath_argsTupleScheme getScheme() {
-        return new user_getClientFileInfoByPath_argsTupleScheme();
+    private static class getFileStatus_argsTupleSchemeFactory implements SchemeFactory {
+      public getFileStatus_argsTupleScheme getScheme() {
+        return new getFileStatus_argsTupleScheme();
       }
     }
 
-    private static class user_getClientFileInfoByPath_argsTupleScheme extends TupleScheme<user_getClientFileInfoByPath_args> {
+    private static class getFileStatus_argsTupleScheme extends TupleScheme<getFileStatus_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getClientFileInfoByPath_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getFileStatus_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetPath()) {
+        if (struct.isSetFileId()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetPath()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetFileId()) {
+          oprot.writeI32(struct.fileId);
+        }
         if (struct.isSetPath()) {
           oprot.writeString(struct.path);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getClientFileInfoByPath_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getFileStatus_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
+          struct.fileId = iprot.readI32();
+          struct.setFileIdIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.path = iprot.readString();
           struct.setPathIsSet(true);
         }
@@ -26923,8 +22714,8 @@ public class MasterService {
 
   }
 
-  public static class user_getClientFileInfoByPath_result implements org.apache.thrift.TBase<user_getClientFileInfoByPath_result, user_getClientFileInfoByPath_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_getClientFileInfoByPath_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getClientFileInfoByPath_result");
+  public static class getFileStatus_result implements org.apache.thrift.TBase<getFileStatus_result, getFileStatus_result._Fields>, java.io.Serializable, Cloneable, Comparable<getFileStatus_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getFileStatus_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)1);
@@ -26932,8 +22723,8 @@ public class MasterService {
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_getClientFileInfoByPath_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getClientFileInfoByPath_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getFileStatus_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getFileStatus_resultTupleSchemeFactory());
     }
 
     public ClientFileInfo success; // required
@@ -27015,13 +22806,13 @@ public class MasterService {
       tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getClientFileInfoByPath_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getFileStatus_result.class, metaDataMap);
     }
 
-    public user_getClientFileInfoByPath_result() {
+    public getFileStatus_result() {
     }
 
-    public user_getClientFileInfoByPath_result(
+    public getFileStatus_result(
       ClientFileInfo success,
       FileDoesNotExistException eF,
       InvalidPathException eI)
@@ -27035,7 +22826,7 @@ public class MasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_getClientFileInfoByPath_result(user_getClientFileInfoByPath_result other) {
+    public getFileStatus_result(getFileStatus_result other) {
       if (other.isSetSuccess()) {
         this.success = new ClientFileInfo(other.success);
       }
@@ -27047,8 +22838,8 @@ public class MasterService {
       }
     }
 
-    public user_getClientFileInfoByPath_result deepCopy() {
-      return new user_getClientFileInfoByPath_result(this);
+    public getFileStatus_result deepCopy() {
+      return new getFileStatus_result(this);
     }
 
     @Override
@@ -27062,7 +22853,7 @@ public class MasterService {
       return this.success;
     }
 
-    public user_getClientFileInfoByPath_result setSuccess(ClientFileInfo success) {
+    public getFileStatus_result setSuccess(ClientFileInfo success) {
       this.success = success;
       return this;
     }
@@ -27086,7 +22877,7 @@ public class MasterService {
       return this.eF;
     }
 
-    public user_getClientFileInfoByPath_result setEF(FileDoesNotExistException eF) {
+    public getFileStatus_result setEF(FileDoesNotExistException eF) {
       this.eF = eF;
       return this;
     }
@@ -27110,7 +22901,7 @@ public class MasterService {
       return this.eI;
     }
 
-    public user_getClientFileInfoByPath_result setEI(InvalidPathException eI) {
+    public getFileStatus_result setEI(InvalidPathException eI) {
       this.eI = eI;
       return this;
     }
@@ -27195,12 +22986,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_getClientFileInfoByPath_result)
-        return this.equals((user_getClientFileInfoByPath_result)that);
+      if (that instanceof getFileStatus_result)
+        return this.equals((getFileStatus_result)that);
       return false;
     }
 
-    public boolean equals(user_getClientFileInfoByPath_result that) {
+    public boolean equals(getFileStatus_result that) {
       if (that == null)
         return false;
 
@@ -27240,7 +23031,7 @@ public class MasterService {
     }
 
     @Override
-    public int compareTo(user_getClientFileInfoByPath_result other) {
+    public int compareTo(getFileStatus_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -27294,7 +23085,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_getClientFileInfoByPath_result(");
+      StringBuilder sb = new StringBuilder("getFileStatus_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -27348,15 +23139,15 @@ public class MasterService {
       }
     }
 
-    private static class user_getClientFileInfoByPath_resultStandardSchemeFactory implements SchemeFactory {
-      public user_getClientFileInfoByPath_resultStandardScheme getScheme() {
-        return new user_getClientFileInfoByPath_resultStandardScheme();
+    private static class getFileStatus_resultStandardSchemeFactory implements SchemeFactory {
+      public getFileStatus_resultStandardScheme getScheme() {
+        return new getFileStatus_resultStandardScheme();
       }
     }
 
-    private static class user_getClientFileInfoByPath_resultStandardScheme extends StandardScheme<user_getClientFileInfoByPath_result> {
+    private static class getFileStatus_resultStandardScheme extends StandardScheme<getFileStatus_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getClientFileInfoByPath_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getFileStatus_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -27404,7 +23195,7 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getClientFileInfoByPath_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getFileStatus_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -27429,16 +23220,16 @@ public class MasterService {
 
     }
 
-    private static class user_getClientFileInfoByPath_resultTupleSchemeFactory implements SchemeFactory {
-      public user_getClientFileInfoByPath_resultTupleScheme getScheme() {
-        return new user_getClientFileInfoByPath_resultTupleScheme();
+    private static class getFileStatus_resultTupleSchemeFactory implements SchemeFactory {
+      public getFileStatus_resultTupleScheme getScheme() {
+        return new getFileStatus_resultTupleScheme();
       }
     }
 
-    private static class user_getClientFileInfoByPath_resultTupleScheme extends TupleScheme<user_getClientFileInfoByPath_result> {
+    private static class getFileStatus_resultTupleScheme extends TupleScheme<getFileStatus_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getClientFileInfoByPath_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getFileStatus_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -27463,7 +23254,7 @@ public class MasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getClientFileInfoByPath_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getFileStatus_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
@@ -28401,22 +24192,25 @@ public class MasterService {
 
   }
 
-  public static class user_getFileBlocksById_args implements org.apache.thrift.TBase<user_getFileBlocksById_args, user_getFileBlocksById_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_getFileBlocksById_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getFileBlocksById_args");
+  public static class user_getFileBlocks_args implements org.apache.thrift.TBase<user_getFileBlocks_args, user_getFileBlocks_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_getFileBlocks_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getFileBlocks_args");
 
     private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I32, (short)1);
+    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_getFileBlocksById_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getFileBlocksById_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_getFileBlocks_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_getFileBlocks_argsTupleSchemeFactory());
     }
 
     public int fileId; // required
+    public String path; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      FILE_ID((short)1, "fileId");
+      FILE_ID((short)1, "fileId"),
+      PATH((short)2, "path");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -28433,6 +24227,8 @@ public class MasterService {
         switch(fieldId) {
           case 1: // FILE_ID
             return FILE_ID;
+          case 2: // PATH
+            return PATH;
           default:
             return null;
         }
@@ -28480,44 +24276,52 @@ public class MasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getFileBlocksById_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getFileBlocks_args.class, metaDataMap);
     }
 
-    public user_getFileBlocksById_args() {
+    public user_getFileBlocks_args() {
     }
 
-    public user_getFileBlocksById_args(
-      int fileId)
+    public user_getFileBlocks_args(
+      int fileId,
+      String path)
     {
       this();
       this.fileId = fileId;
       setFileIdIsSet(true);
+      this.path = path;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_getFileBlocksById_args(user_getFileBlocksById_args other) {
+    public user_getFileBlocks_args(user_getFileBlocks_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.fileId = other.fileId;
+      if (other.isSetPath()) {
+        this.path = other.path;
+      }
     }
 
-    public user_getFileBlocksById_args deepCopy() {
-      return new user_getFileBlocksById_args(this);
+    public user_getFileBlocks_args deepCopy() {
+      return new user_getFileBlocks_args(this);
     }
 
     @Override
     public void clear() {
       setFileIdIsSet(false);
       this.fileId = 0;
+      this.path = null;
     }
 
     public int getFileId() {
       return this.fileId;
     }
 
-    public user_getFileBlocksById_args setFileId(int fileId) {
+    public user_getFileBlocks_args setFileId(int fileId) {
       this.fileId = fileId;
       setFileIdIsSet(true);
       return this;
@@ -28536,6 +24340,30 @@ public class MasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
     }
 
+    public String getPath() {
+      return this.path;
+    }
+
+    public user_getFileBlocks_args setPath(String path) {
+      this.path = path;
+      return this;
+    }
+
+    public void unsetPath() {
+      this.path = null;
+    }
+
+    /** Returns true if field path is set (has been assigned a value) and false otherwise */
+    public boolean isSetPath() {
+      return this.path != null;
+    }
+
+    public void setPathIsSet(boolean value) {
+      if (!value) {
+        this.path = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case FILE_ID:
@@ -28546,6 +24374,14 @@ public class MasterService {
         }
         break;
 
+      case PATH:
+        if (value == null) {
+          unsetPath();
+        } else {
+          setPath((String)value);
+        }
+        break;
+
       }
     }
 
@@ -28553,6 +24389,9 @@ public class MasterService {
       switch (field) {
       case FILE_ID:
         return Integer.valueOf(getFileId());
+
+      case PATH:
+        return getPath();
 
       }
       throw new IllegalStateException();
@@ -28567,6 +24406,8 @@ public class MasterService {
       switch (field) {
       case FILE_ID:
         return isSetFileId();
+      case PATH:
+        return isSetPath();
       }
       throw new IllegalStateException();
     }
@@ -28575,12 +24416,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_getFileBlocksById_args)
-        return this.equals((user_getFileBlocksById_args)that);
+      if (that instanceof user_getFileBlocks_args)
+        return this.equals((user_getFileBlocks_args)that);
       return false;
     }
 
-    public boolean equals(user_getFileBlocksById_args that) {
+    public boolean equals(user_getFileBlocks_args that) {
       if (that == null)
         return false;
 
@@ -28593,6 +24434,15 @@ public class MasterService {
           return false;
       }
 
+      boolean this_present_path = true && this.isSetPath();
+      boolean that_present_path = true && that.isSetPath();
+      if (this_present_path || that_present_path) {
+        if (!(this_present_path && that_present_path))
+          return false;
+        if (!this.path.equals(that.path))
+          return false;
+      }
+
       return true;
     }
 
@@ -28602,7 +24452,7 @@ public class MasterService {
     }
 
     @Override
-    public int compareTo(user_getFileBlocksById_args other) {
+    public int compareTo(user_getFileBlocks_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -28615,6 +24465,16 @@ public class MasterService {
       }
       if (isSetFileId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -28636,11 +24496,19 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_getFileBlocksById_args(");
+      StringBuilder sb = new StringBuilder("user_getFileBlocks_args(");
       boolean first = true;
 
       sb.append("fileId:");
       sb.append(this.fileId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("path:");
+      if (this.path == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.path);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -28669,15 +24537,15 @@ public class MasterService {
       }
     }
 
-    private static class user_getFileBlocksById_argsStandardSchemeFactory implements SchemeFactory {
-      public user_getFileBlocksById_argsStandardScheme getScheme() {
-        return new user_getFileBlocksById_argsStandardScheme();
+    private static class user_getFileBlocks_argsStandardSchemeFactory implements SchemeFactory {
+      public user_getFileBlocks_argsStandardScheme getScheme() {
+        return new user_getFileBlocks_argsStandardScheme();
       }
     }
 
-    private static class user_getFileBlocksById_argsStandardScheme extends StandardScheme<user_getFileBlocksById_args> {
+    private static class user_getFileBlocks_argsStandardScheme extends StandardScheme<user_getFileBlocks_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getFileBlocksById_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getFileBlocks_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -28695,6 +24563,14 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // PATH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.path = iprot.readString();
+                struct.setPathIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -28706,72 +24582,90 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getFileBlocksById_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getFileBlocks_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
         oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
         oprot.writeI32(struct.fileId);
         oprot.writeFieldEnd();
+        if (struct.path != null) {
+          oprot.writeFieldBegin(PATH_FIELD_DESC);
+          oprot.writeString(struct.path);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class user_getFileBlocksById_argsTupleSchemeFactory implements SchemeFactory {
-      public user_getFileBlocksById_argsTupleScheme getScheme() {
-        return new user_getFileBlocksById_argsTupleScheme();
+    private static class user_getFileBlocks_argsTupleSchemeFactory implements SchemeFactory {
+      public user_getFileBlocks_argsTupleScheme getScheme() {
+        return new user_getFileBlocks_argsTupleScheme();
       }
     }
 
-    private static class user_getFileBlocksById_argsTupleScheme extends TupleScheme<user_getFileBlocksById_args> {
+    private static class user_getFileBlocks_argsTupleScheme extends TupleScheme<user_getFileBlocks_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getFileBlocksById_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_getFileBlocks_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetFileId()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetPath()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetFileId()) {
           oprot.writeI32(struct.fileId);
+        }
+        if (struct.isSetPath()) {
+          oprot.writeString(struct.path);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getFileBlocksById_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_getFileBlocks_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.fileId = iprot.readI32();
           struct.setFileIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.path = iprot.readString();
+          struct.setPathIsSet(true);
         }
       }
     }
 
   }
 
-  public static class user_getFileBlocksById_result implements org.apache.thrift.TBase<user_getFileBlocksById_result, user_getFileBlocksById_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_getFileBlocksById_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getFileBlocksById_result");
+  public static class user_getFileBlocks_result implements org.apache.thrift.TBase<user_getFileBlocks_result, user_getFileBlocks_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_getFileBlocks_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getFileBlocks_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
-    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)1);
+    private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_getFileBlocksById_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getFileBlocksById_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_getFileBlocks_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_getFileBlocks_resultTupleSchemeFactory());
     }
 
     public List<ClientBlockInfo> success; // required
-    public FileDoesNotExistException e; // required
+    public FileDoesNotExistException eF; // required
+    public InvalidPathException eI; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E((short)1, "e");
+      E_F((short)1, "eF"),
+      E_I((short)2, "eI");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -28788,8 +24682,10 @@ public class MasterService {
         switch(fieldId) {
           case 0: // SUCCESS
             return SUCCESS;
-          case 1: // E
-            return E;
+          case 1: // E_F
+            return E_F;
+          case 2: // E_I
+            return E_I;
           default:
             return null;
         }
@@ -28836,28 +24732,32 @@ public class MasterService {
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientBlockInfo.class))));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
+      tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getFileBlocksById_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getFileBlocks_result.class, metaDataMap);
     }
 
-    public user_getFileBlocksById_result() {
+    public user_getFileBlocks_result() {
     }
 
-    public user_getFileBlocksById_result(
+    public user_getFileBlocks_result(
       List<ClientBlockInfo> success,
-      FileDoesNotExistException e)
+      FileDoesNotExistException eF,
+      InvalidPathException eI)
     {
       this();
       this.success = success;
-      this.e = e;
+      this.eF = eF;
+      this.eI = eI;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_getFileBlocksById_result(user_getFileBlocksById_result other) {
+    public user_getFileBlocks_result(user_getFileBlocks_result other) {
       if (other.isSetSuccess()) {
         List<ClientBlockInfo> __this__success = new ArrayList<ClientBlockInfo>(other.success.size());
         for (ClientBlockInfo other_element : other.success) {
@@ -28865,19 +24765,23 @@ public class MasterService {
         }
         this.success = __this__success;
       }
-      if (other.isSetE()) {
-        this.e = new FileDoesNotExistException(other.e);
+      if (other.isSetEF()) {
+        this.eF = new FileDoesNotExistException(other.eF);
+      }
+      if (other.isSetEI()) {
+        this.eI = new InvalidPathException(other.eI);
       }
     }
 
-    public user_getFileBlocksById_result deepCopy() {
-      return new user_getFileBlocksById_result(this);
+    public user_getFileBlocks_result deepCopy() {
+      return new user_getFileBlocks_result(this);
     }
 
     @Override
     public void clear() {
       this.success = null;
-      this.e = null;
+      this.eF = null;
+      this.eI = null;
     }
 
     public int getSuccessSize() {
@@ -28899,7 +24803,7 @@ public class MasterService {
       return this.success;
     }
 
-    public user_getFileBlocksById_result setSuccess(List<ClientBlockInfo> success) {
+    public user_getFileBlocks_result setSuccess(List<ClientBlockInfo> success) {
       this.success = success;
       return this;
     }
@@ -28919,27 +24823,51 @@ public class MasterService {
       }
     }
 
-    public FileDoesNotExistException getE() {
-      return this.e;
+    public FileDoesNotExistException getEF() {
+      return this.eF;
     }
 
-    public user_getFileBlocksById_result setE(FileDoesNotExistException e) {
-      this.e = e;
+    public user_getFileBlocks_result setEF(FileDoesNotExistException eF) {
+      this.eF = eF;
       return this;
     }
 
-    public void unsetE() {
-      this.e = null;
+    public void unsetEF() {
+      this.eF = null;
     }
 
-    /** Returns true if field e is set (has been assigned a value) and false otherwise */
-    public boolean isSetE() {
-      return this.e != null;
+    /** Returns true if field eF is set (has been assigned a value) and false otherwise */
+    public boolean isSetEF() {
+      return this.eF != null;
     }
 
-    public void setEIsSet(boolean value) {
+    public void setEFIsSet(boolean value) {
       if (!value) {
-        this.e = null;
+        this.eF = null;
+      }
+    }
+
+    public InvalidPathException getEI() {
+      return this.eI;
+    }
+
+    public user_getFileBlocks_result setEI(InvalidPathException eI) {
+      this.eI = eI;
+      return this;
+    }
+
+    public void unsetEI() {
+      this.eI = null;
+    }
+
+    /** Returns true if field eI is set (has been assigned a value) and false otherwise */
+    public boolean isSetEI() {
+      return this.eI != null;
+    }
+
+    public void setEIIsSet(boolean value) {
+      if (!value) {
+        this.eI = null;
       }
     }
 
@@ -28953,11 +24881,19 @@ public class MasterService {
         }
         break;
 
-      case E:
+      case E_F:
         if (value == null) {
-          unsetE();
+          unsetEF();
         } else {
-          setE((FileDoesNotExistException)value);
+          setEF((FileDoesNotExistException)value);
+        }
+        break;
+
+      case E_I:
+        if (value == null) {
+          unsetEI();
+        } else {
+          setEI((InvalidPathException)value);
         }
         break;
 
@@ -28969,8 +24905,11 @@ public class MasterService {
       case SUCCESS:
         return getSuccess();
 
-      case E:
-        return getE();
+      case E_F:
+        return getEF();
+
+      case E_I:
+        return getEI();
 
       }
       throw new IllegalStateException();
@@ -28985,8 +24924,10 @@ public class MasterService {
       switch (field) {
       case SUCCESS:
         return isSetSuccess();
-      case E:
-        return isSetE();
+      case E_F:
+        return isSetEF();
+      case E_I:
+        return isSetEI();
       }
       throw new IllegalStateException();
     }
@@ -28995,12 +24936,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_getFileBlocksById_result)
-        return this.equals((user_getFileBlocksById_result)that);
+      if (that instanceof user_getFileBlocks_result)
+        return this.equals((user_getFileBlocks_result)that);
       return false;
     }
 
-    public boolean equals(user_getFileBlocksById_result that) {
+    public boolean equals(user_getFileBlocks_result that) {
       if (that == null)
         return false;
 
@@ -29013,12 +24954,21 @@ public class MasterService {
           return false;
       }
 
-      boolean this_present_e = true && this.isSetE();
-      boolean that_present_e = true && that.isSetE();
-      if (this_present_e || that_present_e) {
-        if (!(this_present_e && that_present_e))
+      boolean this_present_eF = true && this.isSetEF();
+      boolean that_present_eF = true && that.isSetEF();
+      if (this_present_eF || that_present_eF) {
+        if (!(this_present_eF && that_present_eF))
           return false;
-        if (!this.e.equals(that.e))
+        if (!this.eF.equals(that.eF))
+          return false;
+      }
+
+      boolean this_present_eI = true && this.isSetEI();
+      boolean that_present_eI = true && that.isSetEI();
+      if (this_present_eI || that_present_eI) {
+        if (!(this_present_eI && that_present_eI))
+          return false;
+        if (!this.eI.equals(that.eI))
           return false;
       }
 
@@ -29031,7 +24981,7 @@ public class MasterService {
     }
 
     @Override
-    public int compareTo(user_getFileBlocksById_result other) {
+    public int compareTo(user_getFileBlocks_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -29048,12 +24998,22 @@ public class MasterService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
+      lastComparison = Boolean.valueOf(isSetEF()).compareTo(other.isSetEF());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetE()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
+      if (isSetEF()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eF, other.eF);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetEI()).compareTo(other.isSetEI());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetEI()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eI, other.eI);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -29075,7 +25035,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_getFileBlocksById_result(");
+      StringBuilder sb = new StringBuilder("user_getFileBlocks_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -29086,11 +25046,19 @@ public class MasterService {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("e:");
-      if (this.e == null) {
+      sb.append("eF:");
+      if (this.eF == null) {
         sb.append("null");
       } else {
-        sb.append(this.e);
+        sb.append(this.eF);
+      }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("eI:");
+      if (this.eI == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.eI);
       }
       first = false;
       sb.append(")");
@@ -29118,15 +25086,15 @@ public class MasterService {
       }
     }
 
-    private static class user_getFileBlocksById_resultStandardSchemeFactory implements SchemeFactory {
-      public user_getFileBlocksById_resultStandardScheme getScheme() {
-        return new user_getFileBlocksById_resultStandardScheme();
+    private static class user_getFileBlocks_resultStandardSchemeFactory implements SchemeFactory {
+      public user_getFileBlocks_resultStandardScheme getScheme() {
+        return new user_getFileBlocks_resultStandardScheme();
       }
     }
 
-    private static class user_getFileBlocksById_resultStandardScheme extends StandardScheme<user_getFileBlocksById_result> {
+    private static class user_getFileBlocks_resultStandardScheme extends StandardScheme<user_getFileBlocks_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getFileBlocksById_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getFileBlocks_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -29155,11 +25123,20 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 1: // E
+            case 1: // E_F
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new FileDoesNotExistException();
-                struct.e.read(iprot);
-                struct.setEIsSet(true);
+                struct.eF = new FileDoesNotExistException();
+                struct.eF.read(iprot);
+                struct.setEFIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // E_I
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.eI = new InvalidPathException();
+                struct.eI.read(iprot);
+                struct.setEIIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -29175,7 +25152,7 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getFileBlocksById_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getFileBlocks_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -29191,9 +25168,14 @@ public class MasterService {
           }
           oprot.writeFieldEnd();
         }
-        if (struct.e != null) {
-          oprot.writeFieldBegin(E_FIELD_DESC);
-          struct.e.write(oprot);
+        if (struct.eF != null) {
+          oprot.writeFieldBegin(E_F_FIELD_DESC);
+          struct.eF.write(oprot);
+          oprot.writeFieldEnd();
+        }
+        if (struct.eI != null) {
+          oprot.writeFieldBegin(E_I_FIELD_DESC);
+          struct.eI.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -29202,25 +25184,28 @@ public class MasterService {
 
     }
 
-    private static class user_getFileBlocksById_resultTupleSchemeFactory implements SchemeFactory {
-      public user_getFileBlocksById_resultTupleScheme getScheme() {
-        return new user_getFileBlocksById_resultTupleScheme();
+    private static class user_getFileBlocks_resultTupleSchemeFactory implements SchemeFactory {
+      public user_getFileBlocks_resultTupleScheme getScheme() {
+        return new user_getFileBlocks_resultTupleScheme();
       }
     }
 
-    private static class user_getFileBlocksById_resultTupleScheme extends TupleScheme<user_getFileBlocksById_result> {
+    private static class user_getFileBlocks_resultTupleScheme extends TupleScheme<user_getFileBlocks_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getFileBlocksById_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_getFileBlocks_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetE()) {
+        if (struct.isSetEF()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetEI()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
@@ -29230,15 +25215,18 @@ public class MasterService {
             }
           }
         }
-        if (struct.isSetE()) {
-          struct.e.write(oprot);
+        if (struct.isSetEF()) {
+          struct.eF.write(oprot);
+        }
+        if (struct.isSetEI()) {
+          struct.eI.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getFileBlocksById_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_getFileBlocks_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TList _list125 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
@@ -29254,967 +25242,6 @@ public class MasterService {
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.e = new FileDoesNotExistException();
-          struct.e.read(iprot);
-          struct.setEIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_getFileBlocksByPath_args implements org.apache.thrift.TBase<user_getFileBlocksByPath_args, user_getFileBlocksByPath_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_getFileBlocksByPath_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getFileBlocksByPath_args");
-
-    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_getFileBlocksByPath_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getFileBlocksByPath_argsTupleSchemeFactory());
-    }
-
-    public String path; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      PATH((short)1, "path");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // PATH
-            return PATH;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getFileBlocksByPath_args.class, metaDataMap);
-    }
-
-    public user_getFileBlocksByPath_args() {
-    }
-
-    public user_getFileBlocksByPath_args(
-      String path)
-    {
-      this();
-      this.path = path;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_getFileBlocksByPath_args(user_getFileBlocksByPath_args other) {
-      if (other.isSetPath()) {
-        this.path = other.path;
-      }
-    }
-
-    public user_getFileBlocksByPath_args deepCopy() {
-      return new user_getFileBlocksByPath_args(this);
-    }
-
-    @Override
-    public void clear() {
-      this.path = null;
-    }
-
-    public String getPath() {
-      return this.path;
-    }
-
-    public user_getFileBlocksByPath_args setPath(String path) {
-      this.path = path;
-      return this;
-    }
-
-    public void unsetPath() {
-      this.path = null;
-    }
-
-    /** Returns true if field path is set (has been assigned a value) and false otherwise */
-    public boolean isSetPath() {
-      return this.path != null;
-    }
-
-    public void setPathIsSet(boolean value) {
-      if (!value) {
-        this.path = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case PATH:
-        if (value == null) {
-          unsetPath();
-        } else {
-          setPath((String)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case PATH:
-        return getPath();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case PATH:
-        return isSetPath();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_getFileBlocksByPath_args)
-        return this.equals((user_getFileBlocksByPath_args)that);
-      return false;
-    }
-
-    public boolean equals(user_getFileBlocksByPath_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_path = true && this.isSetPath();
-      boolean that_present_path = true && that.isSetPath();
-      if (this_present_path || that_present_path) {
-        if (!(this_present_path && that_present_path))
-          return false;
-        if (!this.path.equals(that.path))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_getFileBlocksByPath_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetPath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_getFileBlocksByPath_args(");
-      boolean first = true;
-
-      sb.append("path:");
-      if (this.path == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.path);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_getFileBlocksByPath_argsStandardSchemeFactory implements SchemeFactory {
-      public user_getFileBlocksByPath_argsStandardScheme getScheme() {
-        return new user_getFileBlocksByPath_argsStandardScheme();
-      }
-    }
-
-    private static class user_getFileBlocksByPath_argsStandardScheme extends StandardScheme<user_getFileBlocksByPath_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getFileBlocksByPath_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // PATH
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.path = iprot.readString();
-                struct.setPathIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getFileBlocksByPath_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.path != null) {
-          oprot.writeFieldBegin(PATH_FIELD_DESC);
-          oprot.writeString(struct.path);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_getFileBlocksByPath_argsTupleSchemeFactory implements SchemeFactory {
-      public user_getFileBlocksByPath_argsTupleScheme getScheme() {
-        return new user_getFileBlocksByPath_argsTupleScheme();
-      }
-    }
-
-    private static class user_getFileBlocksByPath_argsTupleScheme extends TupleScheme<user_getFileBlocksByPath_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getFileBlocksByPath_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetPath()) {
-          optionals.set(0);
-        }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetPath()) {
-          oprot.writeString(struct.path);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getFileBlocksByPath_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
-        if (incoming.get(0)) {
-          struct.path = iprot.readString();
-          struct.setPathIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_getFileBlocksByPath_result implements org.apache.thrift.TBase<user_getFileBlocksByPath_result, user_getFileBlocksByPath_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_getFileBlocksByPath_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getFileBlocksByPath_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
-    private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_getFileBlocksByPath_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getFileBlocksByPath_resultTupleSchemeFactory());
-    }
-
-    public List<ClientBlockInfo> success; // required
-    public FileDoesNotExistException eF; // required
-    public InvalidPathException eI; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E_F((short)1, "eF"),
-      E_I((short)2, "eI");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
-          case 1: // E_F
-            return E_F;
-          case 2: // E_I
-            return E_I;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientBlockInfo.class))));
-      tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getFileBlocksByPath_result.class, metaDataMap);
-    }
-
-    public user_getFileBlocksByPath_result() {
-    }
-
-    public user_getFileBlocksByPath_result(
-      List<ClientBlockInfo> success,
-      FileDoesNotExistException eF,
-      InvalidPathException eI)
-    {
-      this();
-      this.success = success;
-      this.eF = eF;
-      this.eI = eI;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_getFileBlocksByPath_result(user_getFileBlocksByPath_result other) {
-      if (other.isSetSuccess()) {
-        List<ClientBlockInfo> __this__success = new ArrayList<ClientBlockInfo>(other.success.size());
-        for (ClientBlockInfo other_element : other.success) {
-          __this__success.add(new ClientBlockInfo(other_element));
-        }
-        this.success = __this__success;
-      }
-      if (other.isSetEF()) {
-        this.eF = new FileDoesNotExistException(other.eF);
-      }
-      if (other.isSetEI()) {
-        this.eI = new InvalidPathException(other.eI);
-      }
-    }
-
-    public user_getFileBlocksByPath_result deepCopy() {
-      return new user_getFileBlocksByPath_result(this);
-    }
-
-    @Override
-    public void clear() {
-      this.success = null;
-      this.eF = null;
-      this.eI = null;
-    }
-
-    public int getSuccessSize() {
-      return (this.success == null) ? 0 : this.success.size();
-    }
-
-    public java.util.Iterator<ClientBlockInfo> getSuccessIterator() {
-      return (this.success == null) ? null : this.success.iterator();
-    }
-
-    public void addToSuccess(ClientBlockInfo elem) {
-      if (this.success == null) {
-        this.success = new ArrayList<ClientBlockInfo>();
-      }
-      this.success.add(elem);
-    }
-
-    public List<ClientBlockInfo> getSuccess() {
-      return this.success;
-    }
-
-    public user_getFileBlocksByPath_result setSuccess(List<ClientBlockInfo> success) {
-      this.success = success;
-      return this;
-    }
-
-    public void unsetSuccess() {
-      this.success = null;
-    }
-
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return this.success != null;
-    }
-
-    public void setSuccessIsSet(boolean value) {
-      if (!value) {
-        this.success = null;
-      }
-    }
-
-    public FileDoesNotExistException getEF() {
-      return this.eF;
-    }
-
-    public user_getFileBlocksByPath_result setEF(FileDoesNotExistException eF) {
-      this.eF = eF;
-      return this;
-    }
-
-    public void unsetEF() {
-      this.eF = null;
-    }
-
-    /** Returns true if field eF is set (has been assigned a value) and false otherwise */
-    public boolean isSetEF() {
-      return this.eF != null;
-    }
-
-    public void setEFIsSet(boolean value) {
-      if (!value) {
-        this.eF = null;
-      }
-    }
-
-    public InvalidPathException getEI() {
-      return this.eI;
-    }
-
-    public user_getFileBlocksByPath_result setEI(InvalidPathException eI) {
-      this.eI = eI;
-      return this;
-    }
-
-    public void unsetEI() {
-      this.eI = null;
-    }
-
-    /** Returns true if field eI is set (has been assigned a value) and false otherwise */
-    public boolean isSetEI() {
-      return this.eI != null;
-    }
-
-    public void setEIIsSet(boolean value) {
-      if (!value) {
-        this.eI = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((List<ClientBlockInfo>)value);
-        }
-        break;
-
-      case E_F:
-        if (value == null) {
-          unsetEF();
-        } else {
-          setEF((FileDoesNotExistException)value);
-        }
-        break;
-
-      case E_I:
-        if (value == null) {
-          unsetEI();
-        } else {
-          setEI((InvalidPathException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case SUCCESS:
-        return getSuccess();
-
-      case E_F:
-        return getEF();
-
-      case E_I:
-        return getEI();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      case E_F:
-        return isSetEF();
-      case E_I:
-        return isSetEI();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_getFileBlocksByPath_result)
-        return this.equals((user_getFileBlocksByPath_result)that);
-      return false;
-    }
-
-    public boolean equals(user_getFileBlocksByPath_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
-          return false;
-        if (!this.success.equals(that.success))
-          return false;
-      }
-
-      boolean this_present_eF = true && this.isSetEF();
-      boolean that_present_eF = true && that.isSetEF();
-      if (this_present_eF || that_present_eF) {
-        if (!(this_present_eF && that_present_eF))
-          return false;
-        if (!this.eF.equals(that.eF))
-          return false;
-      }
-
-      boolean this_present_eI = true && this.isSetEI();
-      boolean that_present_eI = true && that.isSetEI();
-      if (this_present_eI || that_present_eI) {
-        if (!(this_present_eI && that_present_eI))
-          return false;
-        if (!this.eI.equals(that.eI))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_getFileBlocksByPath_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEF()).compareTo(other.isSetEF());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEF()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eF, other.eF);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEI()).compareTo(other.isSetEI());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEI()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eI, other.eI);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_getFileBlocksByPath_result(");
-      boolean first = true;
-
-      sb.append("success:");
-      if (this.success == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.success);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eF:");
-      if (this.eF == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eF);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eI:");
-      if (this.eI == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eI);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_getFileBlocksByPath_resultStandardSchemeFactory implements SchemeFactory {
-      public user_getFileBlocksByPath_resultStandardScheme getScheme() {
-        return new user_getFileBlocksByPath_resultStandardScheme();
-      }
-    }
-
-    private static class user_getFileBlocksByPath_resultStandardScheme extends StandardScheme<user_getFileBlocksByPath_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getFileBlocksByPath_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
-                {
-                  org.apache.thrift.protocol.TList _list128 = iprot.readListBegin();
-                  struct.success = new ArrayList<ClientBlockInfo>(_list128.size);
-                  for (int _i129 = 0; _i129 < _list128.size; ++_i129)
-                  {
-                    ClientBlockInfo _elem130;
-                    _elem130 = new ClientBlockInfo();
-                    _elem130.read(iprot);
-                    struct.success.add(_elem130);
-                  }
-                  iprot.readListEnd();
-                }
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 1: // E_F
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eF = new FileDoesNotExistException();
-                struct.eF.read(iprot);
-                struct.setEFIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // E_I
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eI = new InvalidPathException();
-                struct.eI.read(iprot);
-                struct.setEIIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getFileBlocksByPath_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (ClientBlockInfo _iter131 : struct.success)
-            {
-              _iter131.write(oprot);
-            }
-            oprot.writeListEnd();
-          }
-          oprot.writeFieldEnd();
-        }
-        if (struct.eF != null) {
-          oprot.writeFieldBegin(E_F_FIELD_DESC);
-          struct.eF.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eI != null) {
-          oprot.writeFieldBegin(E_I_FIELD_DESC);
-          struct.eI.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_getFileBlocksByPath_resultTupleSchemeFactory implements SchemeFactory {
-      public user_getFileBlocksByPath_resultTupleScheme getScheme() {
-        return new user_getFileBlocksByPath_resultTupleScheme();
-      }
-    }
-
-    private static class user_getFileBlocksByPath_resultTupleScheme extends TupleScheme<user_getFileBlocksByPath_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getFileBlocksByPath_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
-          optionals.set(0);
-        }
-        if (struct.isSetEF()) {
-          optionals.set(1);
-        }
-        if (struct.isSetEI()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
-        if (struct.isSetSuccess()) {
-          {
-            oprot.writeI32(struct.success.size());
-            for (ClientBlockInfo _iter132 : struct.success)
-            {
-              _iter132.write(oprot);
-            }
-          }
-        }
-        if (struct.isSetEF()) {
-          struct.eF.write(oprot);
-        }
-        if (struct.isSetEI()) {
-          struct.eI.write(oprot);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getFileBlocksByPath_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
-        if (incoming.get(0)) {
-          {
-            org.apache.thrift.protocol.TList _list133 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<ClientBlockInfo>(_list133.size);
-            for (int _i134 = 0; _i134 < _list133.size; ++_i134)
-            {
-              ClientBlockInfo _elem135;
-              _elem135 = new ClientBlockInfo();
-              _elem135.read(iprot);
-              struct.success.add(_elem135);
-            }
-          }
-          struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
           struct.eF = new FileDoesNotExistException();
           struct.eF.read(iprot);
           struct.setEFIsSet(true);
@@ -30229,2143 +25256,28 @@ public class MasterService {
 
   }
 
-  public static class user_listFiles_args implements org.apache.thrift.TBase<user_listFiles_args, user_listFiles_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_listFiles_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_listFiles_args");
-
-    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)2);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_listFiles_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_listFiles_argsTupleSchemeFactory());
-    }
-
-    public String path; // required
-    public boolean recursive; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      PATH((short)1, "path"),
-      RECURSIVE((short)2, "recursive");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // PATH
-            return PATH;
-          case 2: // RECURSIVE
-            return RECURSIVE;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    private static final int __RECURSIVE_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_listFiles_args.class, metaDataMap);
-    }
-
-    public user_listFiles_args() {
-    }
-
-    public user_listFiles_args(
-      String path,
-      boolean recursive)
-    {
-      this();
-      this.path = path;
-      this.recursive = recursive;
-      setRecursiveIsSet(true);
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_listFiles_args(user_listFiles_args other) {
-      __isset_bitfield = other.__isset_bitfield;
-      if (other.isSetPath()) {
-        this.path = other.path;
-      }
-      this.recursive = other.recursive;
-    }
-
-    public user_listFiles_args deepCopy() {
-      return new user_listFiles_args(this);
-    }
-
-    @Override
-    public void clear() {
-      this.path = null;
-      setRecursiveIsSet(false);
-      this.recursive = false;
-    }
-
-    public String getPath() {
-      return this.path;
-    }
-
-    public user_listFiles_args setPath(String path) {
-      this.path = path;
-      return this;
-    }
-
-    public void unsetPath() {
-      this.path = null;
-    }
-
-    /** Returns true if field path is set (has been assigned a value) and false otherwise */
-    public boolean isSetPath() {
-      return this.path != null;
-    }
-
-    public void setPathIsSet(boolean value) {
-      if (!value) {
-        this.path = null;
-      }
-    }
-
-    public boolean isRecursive() {
-      return this.recursive;
-    }
-
-    public user_listFiles_args setRecursive(boolean recursive) {
-      this.recursive = recursive;
-      setRecursiveIsSet(true);
-      return this;
-    }
-
-    public void unsetRecursive() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
-    }
-
-    /** Returns true if field recursive is set (has been assigned a value) and false otherwise */
-    public boolean isSetRecursive() {
-      return EncodingUtils.testBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
-    }
-
-    public void setRecursiveIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RECURSIVE_ISSET_ID, value);
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case PATH:
-        if (value == null) {
-          unsetPath();
-        } else {
-          setPath((String)value);
-        }
-        break;
-
-      case RECURSIVE:
-        if (value == null) {
-          unsetRecursive();
-        } else {
-          setRecursive((Boolean)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case PATH:
-        return getPath();
-
-      case RECURSIVE:
-        return Boolean.valueOf(isRecursive());
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case PATH:
-        return isSetPath();
-      case RECURSIVE:
-        return isSetRecursive();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_listFiles_args)
-        return this.equals((user_listFiles_args)that);
-      return false;
-    }
-
-    public boolean equals(user_listFiles_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_path = true && this.isSetPath();
-      boolean that_present_path = true && that.isSetPath();
-      if (this_present_path || that_present_path) {
-        if (!(this_present_path && that_present_path))
-          return false;
-        if (!this.path.equals(that.path))
-          return false;
-      }
-
-      boolean this_present_recursive = true;
-      boolean that_present_recursive = true;
-      if (this_present_recursive || that_present_recursive) {
-        if (!(this_present_recursive && that_present_recursive))
-          return false;
-        if (this.recursive != that.recursive)
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_listFiles_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetPath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetRecursive()).compareTo(other.isSetRecursive());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetRecursive()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.recursive, other.recursive);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_listFiles_args(");
-      boolean first = true;
-
-      sb.append("path:");
-      if (this.path == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.path);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("recursive:");
-      sb.append(this.recursive);
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_listFiles_argsStandardSchemeFactory implements SchemeFactory {
-      public user_listFiles_argsStandardScheme getScheme() {
-        return new user_listFiles_argsStandardScheme();
-      }
-    }
-
-    private static class user_listFiles_argsStandardScheme extends StandardScheme<user_listFiles_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_listFiles_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // PATH
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.path = iprot.readString();
-                struct.setPathIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // RECURSIVE
-              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                struct.recursive = iprot.readBool();
-                struct.setRecursiveIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_listFiles_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.path != null) {
-          oprot.writeFieldBegin(PATH_FIELD_DESC);
-          oprot.writeString(struct.path);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldBegin(RECURSIVE_FIELD_DESC);
-        oprot.writeBool(struct.recursive);
-        oprot.writeFieldEnd();
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_listFiles_argsTupleSchemeFactory implements SchemeFactory {
-      public user_listFiles_argsTupleScheme getScheme() {
-        return new user_listFiles_argsTupleScheme();
-      }
-    }
-
-    private static class user_listFiles_argsTupleScheme extends TupleScheme<user_listFiles_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_listFiles_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetPath()) {
-          optionals.set(0);
-        }
-        if (struct.isSetRecursive()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetPath()) {
-          oprot.writeString(struct.path);
-        }
-        if (struct.isSetRecursive()) {
-          oprot.writeBool(struct.recursive);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_listFiles_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          struct.path = iprot.readString();
-          struct.setPathIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.recursive = iprot.readBool();
-          struct.setRecursiveIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_listFiles_result implements org.apache.thrift.TBase<user_listFiles_result, user_listFiles_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_listFiles_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_listFiles_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
-    private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_listFiles_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_listFiles_resultTupleSchemeFactory());
-    }
-
-    public List<Integer> success; // required
-    public FileDoesNotExistException eF; // required
-    public InvalidPathException eI; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E_F((short)1, "eF"),
-      E_I((short)2, "eI");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
-          case 1: // E_F
-            return E_F;
-          case 2: // E_I
-            return E_I;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32))));
-      tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_listFiles_result.class, metaDataMap);
-    }
-
-    public user_listFiles_result() {
-    }
-
-    public user_listFiles_result(
-      List<Integer> success,
-      FileDoesNotExistException eF,
-      InvalidPathException eI)
-    {
-      this();
-      this.success = success;
-      this.eF = eF;
-      this.eI = eI;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_listFiles_result(user_listFiles_result other) {
-      if (other.isSetSuccess()) {
-        List<Integer> __this__success = new ArrayList<Integer>(other.success);
-        this.success = __this__success;
-      }
-      if (other.isSetEF()) {
-        this.eF = new FileDoesNotExistException(other.eF);
-      }
-      if (other.isSetEI()) {
-        this.eI = new InvalidPathException(other.eI);
-      }
-    }
-
-    public user_listFiles_result deepCopy() {
-      return new user_listFiles_result(this);
-    }
-
-    @Override
-    public void clear() {
-      this.success = null;
-      this.eF = null;
-      this.eI = null;
-    }
-
-    public int getSuccessSize() {
-      return (this.success == null) ? 0 : this.success.size();
-    }
-
-    public java.util.Iterator<Integer> getSuccessIterator() {
-      return (this.success == null) ? null : this.success.iterator();
-    }
-
-    public void addToSuccess(int elem) {
-      if (this.success == null) {
-        this.success = new ArrayList<Integer>();
-      }
-      this.success.add(elem);
-    }
-
-    public List<Integer> getSuccess() {
-      return this.success;
-    }
-
-    public user_listFiles_result setSuccess(List<Integer> success) {
-      this.success = success;
-      return this;
-    }
-
-    public void unsetSuccess() {
-      this.success = null;
-    }
-
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return this.success != null;
-    }
-
-    public void setSuccessIsSet(boolean value) {
-      if (!value) {
-        this.success = null;
-      }
-    }
-
-    public FileDoesNotExistException getEF() {
-      return this.eF;
-    }
-
-    public user_listFiles_result setEF(FileDoesNotExistException eF) {
-      this.eF = eF;
-      return this;
-    }
-
-    public void unsetEF() {
-      this.eF = null;
-    }
-
-    /** Returns true if field eF is set (has been assigned a value) and false otherwise */
-    public boolean isSetEF() {
-      return this.eF != null;
-    }
-
-    public void setEFIsSet(boolean value) {
-      if (!value) {
-        this.eF = null;
-      }
-    }
-
-    public InvalidPathException getEI() {
-      return this.eI;
-    }
-
-    public user_listFiles_result setEI(InvalidPathException eI) {
-      this.eI = eI;
-      return this;
-    }
-
-    public void unsetEI() {
-      this.eI = null;
-    }
-
-    /** Returns true if field eI is set (has been assigned a value) and false otherwise */
-    public boolean isSetEI() {
-      return this.eI != null;
-    }
-
-    public void setEIIsSet(boolean value) {
-      if (!value) {
-        this.eI = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((List<Integer>)value);
-        }
-        break;
-
-      case E_F:
-        if (value == null) {
-          unsetEF();
-        } else {
-          setEF((FileDoesNotExistException)value);
-        }
-        break;
-
-      case E_I:
-        if (value == null) {
-          unsetEI();
-        } else {
-          setEI((InvalidPathException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case SUCCESS:
-        return getSuccess();
-
-      case E_F:
-        return getEF();
-
-      case E_I:
-        return getEI();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      case E_F:
-        return isSetEF();
-      case E_I:
-        return isSetEI();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_listFiles_result)
-        return this.equals((user_listFiles_result)that);
-      return false;
-    }
-
-    public boolean equals(user_listFiles_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
-          return false;
-        if (!this.success.equals(that.success))
-          return false;
-      }
-
-      boolean this_present_eF = true && this.isSetEF();
-      boolean that_present_eF = true && that.isSetEF();
-      if (this_present_eF || that_present_eF) {
-        if (!(this_present_eF && that_present_eF))
-          return false;
-        if (!this.eF.equals(that.eF))
-          return false;
-      }
-
-      boolean this_present_eI = true && this.isSetEI();
-      boolean that_present_eI = true && that.isSetEI();
-      if (this_present_eI || that_present_eI) {
-        if (!(this_present_eI && that_present_eI))
-          return false;
-        if (!this.eI.equals(that.eI))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_listFiles_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEF()).compareTo(other.isSetEF());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEF()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eF, other.eF);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEI()).compareTo(other.isSetEI());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEI()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eI, other.eI);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_listFiles_result(");
-      boolean first = true;
-
-      sb.append("success:");
-      if (this.success == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.success);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eF:");
-      if (this.eF == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eF);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eI:");
-      if (this.eI == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eI);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_listFiles_resultStandardSchemeFactory implements SchemeFactory {
-      public user_listFiles_resultStandardScheme getScheme() {
-        return new user_listFiles_resultStandardScheme();
-      }
-    }
-
-    private static class user_listFiles_resultStandardScheme extends StandardScheme<user_listFiles_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_listFiles_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
-                {
-                  org.apache.thrift.protocol.TList _list136 = iprot.readListBegin();
-                  struct.success = new ArrayList<Integer>(_list136.size);
-                  for (int _i137 = 0; _i137 < _list136.size; ++_i137)
-                  {
-                    int _elem138;
-                    _elem138 = iprot.readI32();
-                    struct.success.add(_elem138);
-                  }
-                  iprot.readListEnd();
-                }
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 1: // E_F
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eF = new FileDoesNotExistException();
-                struct.eF.read(iprot);
-                struct.setEFIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // E_I
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eI = new InvalidPathException();
-                struct.eI.read(iprot);
-                struct.setEIIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_listFiles_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, struct.success.size()));
-            for (int _iter139 : struct.success)
-            {
-              oprot.writeI32(_iter139);
-            }
-            oprot.writeListEnd();
-          }
-          oprot.writeFieldEnd();
-        }
-        if (struct.eF != null) {
-          oprot.writeFieldBegin(E_F_FIELD_DESC);
-          struct.eF.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eI != null) {
-          oprot.writeFieldBegin(E_I_FIELD_DESC);
-          struct.eI.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_listFiles_resultTupleSchemeFactory implements SchemeFactory {
-      public user_listFiles_resultTupleScheme getScheme() {
-        return new user_listFiles_resultTupleScheme();
-      }
-    }
-
-    private static class user_listFiles_resultTupleScheme extends TupleScheme<user_listFiles_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_listFiles_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
-          optionals.set(0);
-        }
-        if (struct.isSetEF()) {
-          optionals.set(1);
-        }
-        if (struct.isSetEI()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
-        if (struct.isSetSuccess()) {
-          {
-            oprot.writeI32(struct.success.size());
-            for (int _iter140 : struct.success)
-            {
-              oprot.writeI32(_iter140);
-            }
-          }
-        }
-        if (struct.isSetEF()) {
-          struct.eF.write(oprot);
-        }
-        if (struct.isSetEI()) {
-          struct.eI.write(oprot);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_listFiles_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
-        if (incoming.get(0)) {
-          {
-            org.apache.thrift.protocol.TList _list141 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I32, iprot.readI32());
-            struct.success = new ArrayList<Integer>(_list141.size);
-            for (int _i142 = 0; _i142 < _list141.size; ++_i142)
-            {
-              int _elem143;
-              _elem143 = iprot.readI32();
-              struct.success.add(_elem143);
-            }
-          }
-          struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.eF = new FileDoesNotExistException();
-          struct.eF.read(iprot);
-          struct.setEFIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.eI = new InvalidPathException();
-          struct.eI.read(iprot);
-          struct.setEIIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_ls_args implements org.apache.thrift.TBase<user_ls_args, user_ls_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_ls_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_ls_args");
-
-    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)2);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_ls_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_ls_argsTupleSchemeFactory());
-    }
-
-    public String path; // required
-    public boolean recursive; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      PATH((short)1, "path"),
-      RECURSIVE((short)2, "recursive");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // PATH
-            return PATH;
-          case 2: // RECURSIVE
-            return RECURSIVE;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    private static final int __RECURSIVE_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_ls_args.class, metaDataMap);
-    }
-
-    public user_ls_args() {
-    }
-
-    public user_ls_args(
-      String path,
-      boolean recursive)
-    {
-      this();
-      this.path = path;
-      this.recursive = recursive;
-      setRecursiveIsSet(true);
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_ls_args(user_ls_args other) {
-      __isset_bitfield = other.__isset_bitfield;
-      if (other.isSetPath()) {
-        this.path = other.path;
-      }
-      this.recursive = other.recursive;
-    }
-
-    public user_ls_args deepCopy() {
-      return new user_ls_args(this);
-    }
-
-    @Override
-    public void clear() {
-      this.path = null;
-      setRecursiveIsSet(false);
-      this.recursive = false;
-    }
-
-    public String getPath() {
-      return this.path;
-    }
-
-    public user_ls_args setPath(String path) {
-      this.path = path;
-      return this;
-    }
-
-    public void unsetPath() {
-      this.path = null;
-    }
-
-    /** Returns true if field path is set (has been assigned a value) and false otherwise */
-    public boolean isSetPath() {
-      return this.path != null;
-    }
-
-    public void setPathIsSet(boolean value) {
-      if (!value) {
-        this.path = null;
-      }
-    }
-
-    public boolean isRecursive() {
-      return this.recursive;
-    }
-
-    public user_ls_args setRecursive(boolean recursive) {
-      this.recursive = recursive;
-      setRecursiveIsSet(true);
-      return this;
-    }
-
-    public void unsetRecursive() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
-    }
-
-    /** Returns true if field recursive is set (has been assigned a value) and false otherwise */
-    public boolean isSetRecursive() {
-      return EncodingUtils.testBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
-    }
-
-    public void setRecursiveIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RECURSIVE_ISSET_ID, value);
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case PATH:
-        if (value == null) {
-          unsetPath();
-        } else {
-          setPath((String)value);
-        }
-        break;
-
-      case RECURSIVE:
-        if (value == null) {
-          unsetRecursive();
-        } else {
-          setRecursive((Boolean)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case PATH:
-        return getPath();
-
-      case RECURSIVE:
-        return Boolean.valueOf(isRecursive());
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case PATH:
-        return isSetPath();
-      case RECURSIVE:
-        return isSetRecursive();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_ls_args)
-        return this.equals((user_ls_args)that);
-      return false;
-    }
-
-    public boolean equals(user_ls_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_path = true && this.isSetPath();
-      boolean that_present_path = true && that.isSetPath();
-      if (this_present_path || that_present_path) {
-        if (!(this_present_path && that_present_path))
-          return false;
-        if (!this.path.equals(that.path))
-          return false;
-      }
-
-      boolean this_present_recursive = true;
-      boolean that_present_recursive = true;
-      if (this_present_recursive || that_present_recursive) {
-        if (!(this_present_recursive && that_present_recursive))
-          return false;
-        if (this.recursive != that.recursive)
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_ls_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetPath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetRecursive()).compareTo(other.isSetRecursive());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetRecursive()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.recursive, other.recursive);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_ls_args(");
-      boolean first = true;
-
-      sb.append("path:");
-      if (this.path == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.path);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("recursive:");
-      sb.append(this.recursive);
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_ls_argsStandardSchemeFactory implements SchemeFactory {
-      public user_ls_argsStandardScheme getScheme() {
-        return new user_ls_argsStandardScheme();
-      }
-    }
-
-    private static class user_ls_argsStandardScheme extends StandardScheme<user_ls_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_ls_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // PATH
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.path = iprot.readString();
-                struct.setPathIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // RECURSIVE
-              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                struct.recursive = iprot.readBool();
-                struct.setRecursiveIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_ls_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.path != null) {
-          oprot.writeFieldBegin(PATH_FIELD_DESC);
-          oprot.writeString(struct.path);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldBegin(RECURSIVE_FIELD_DESC);
-        oprot.writeBool(struct.recursive);
-        oprot.writeFieldEnd();
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_ls_argsTupleSchemeFactory implements SchemeFactory {
-      public user_ls_argsTupleScheme getScheme() {
-        return new user_ls_argsTupleScheme();
-      }
-    }
-
-    private static class user_ls_argsTupleScheme extends TupleScheme<user_ls_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_ls_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetPath()) {
-          optionals.set(0);
-        }
-        if (struct.isSetRecursive()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetPath()) {
-          oprot.writeString(struct.path);
-        }
-        if (struct.isSetRecursive()) {
-          oprot.writeBool(struct.recursive);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_ls_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          struct.path = iprot.readString();
-          struct.setPathIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.recursive = iprot.readBool();
-          struct.setRecursiveIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_ls_result implements org.apache.thrift.TBase<user_ls_result, user_ls_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_ls_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_ls_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
-    private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_ls_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_ls_resultTupleSchemeFactory());
-    }
-
-    public List<String> success; // required
-    public FileDoesNotExistException eF; // required
-    public InvalidPathException eI; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E_F((short)1, "eF"),
-      E_I((short)2, "eI");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
-          case 1: // E_F
-            return E_F;
-          case 2: // E_I
-            return E_I;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
-      tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_ls_result.class, metaDataMap);
-    }
-
-    public user_ls_result() {
-    }
-
-    public user_ls_result(
-      List<String> success,
-      FileDoesNotExistException eF,
-      InvalidPathException eI)
-    {
-      this();
-      this.success = success;
-      this.eF = eF;
-      this.eI = eI;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_ls_result(user_ls_result other) {
-      if (other.isSetSuccess()) {
-        List<String> __this__success = new ArrayList<String>(other.success);
-        this.success = __this__success;
-      }
-      if (other.isSetEF()) {
-        this.eF = new FileDoesNotExistException(other.eF);
-      }
-      if (other.isSetEI()) {
-        this.eI = new InvalidPathException(other.eI);
-      }
-    }
-
-    public user_ls_result deepCopy() {
-      return new user_ls_result(this);
-    }
-
-    @Override
-    public void clear() {
-      this.success = null;
-      this.eF = null;
-      this.eI = null;
-    }
-
-    public int getSuccessSize() {
-      return (this.success == null) ? 0 : this.success.size();
-    }
-
-    public java.util.Iterator<String> getSuccessIterator() {
-      return (this.success == null) ? null : this.success.iterator();
-    }
-
-    public void addToSuccess(String elem) {
-      if (this.success == null) {
-        this.success = new ArrayList<String>();
-      }
-      this.success.add(elem);
-    }
-
-    public List<String> getSuccess() {
-      return this.success;
-    }
-
-    public user_ls_result setSuccess(List<String> success) {
-      this.success = success;
-      return this;
-    }
-
-    public void unsetSuccess() {
-      this.success = null;
-    }
-
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return this.success != null;
-    }
-
-    public void setSuccessIsSet(boolean value) {
-      if (!value) {
-        this.success = null;
-      }
-    }
-
-    public FileDoesNotExistException getEF() {
-      return this.eF;
-    }
-
-    public user_ls_result setEF(FileDoesNotExistException eF) {
-      this.eF = eF;
-      return this;
-    }
-
-    public void unsetEF() {
-      this.eF = null;
-    }
-
-    /** Returns true if field eF is set (has been assigned a value) and false otherwise */
-    public boolean isSetEF() {
-      return this.eF != null;
-    }
-
-    public void setEFIsSet(boolean value) {
-      if (!value) {
-        this.eF = null;
-      }
-    }
-
-    public InvalidPathException getEI() {
-      return this.eI;
-    }
-
-    public user_ls_result setEI(InvalidPathException eI) {
-      this.eI = eI;
-      return this;
-    }
-
-    public void unsetEI() {
-      this.eI = null;
-    }
-
-    /** Returns true if field eI is set (has been assigned a value) and false otherwise */
-    public boolean isSetEI() {
-      return this.eI != null;
-    }
-
-    public void setEIIsSet(boolean value) {
-      if (!value) {
-        this.eI = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((List<String>)value);
-        }
-        break;
-
-      case E_F:
-        if (value == null) {
-          unsetEF();
-        } else {
-          setEF((FileDoesNotExistException)value);
-        }
-        break;
-
-      case E_I:
-        if (value == null) {
-          unsetEI();
-        } else {
-          setEI((InvalidPathException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case SUCCESS:
-        return getSuccess();
-
-      case E_F:
-        return getEF();
-
-      case E_I:
-        return getEI();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      case E_F:
-        return isSetEF();
-      case E_I:
-        return isSetEI();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_ls_result)
-        return this.equals((user_ls_result)that);
-      return false;
-    }
-
-    public boolean equals(user_ls_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
-          return false;
-        if (!this.success.equals(that.success))
-          return false;
-      }
-
-      boolean this_present_eF = true && this.isSetEF();
-      boolean that_present_eF = true && that.isSetEF();
-      if (this_present_eF || that_present_eF) {
-        if (!(this_present_eF && that_present_eF))
-          return false;
-        if (!this.eF.equals(that.eF))
-          return false;
-      }
-
-      boolean this_present_eI = true && this.isSetEI();
-      boolean that_present_eI = true && that.isSetEI();
-      if (this_present_eI || that_present_eI) {
-        if (!(this_present_eI && that_present_eI))
-          return false;
-        if (!this.eI.equals(that.eI))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_ls_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEF()).compareTo(other.isSetEF());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEF()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eF, other.eF);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEI()).compareTo(other.isSetEI());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEI()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eI, other.eI);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_ls_result(");
-      boolean first = true;
-
-      sb.append("success:");
-      if (this.success == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.success);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eF:");
-      if (this.eF == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eF);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eI:");
-      if (this.eI == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eI);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_ls_resultStandardSchemeFactory implements SchemeFactory {
-      public user_ls_resultStandardScheme getScheme() {
-        return new user_ls_resultStandardScheme();
-      }
-    }
-
-    private static class user_ls_resultStandardScheme extends StandardScheme<user_ls_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_ls_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
-                {
-                  org.apache.thrift.protocol.TList _list144 = iprot.readListBegin();
-                  struct.success = new ArrayList<String>(_list144.size);
-                  for (int _i145 = 0; _i145 < _list144.size; ++_i145)
-                  {
-                    String _elem146;
-                    _elem146 = iprot.readString();
-                    struct.success.add(_elem146);
-                  }
-                  iprot.readListEnd();
-                }
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 1: // E_F
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eF = new FileDoesNotExistException();
-                struct.eF.read(iprot);
-                struct.setEFIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // E_I
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eI = new InvalidPathException();
-                struct.eI.read(iprot);
-                struct.setEIIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_ls_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.success.size()));
-            for (String _iter147 : struct.success)
-            {
-              oprot.writeString(_iter147);
-            }
-            oprot.writeListEnd();
-          }
-          oprot.writeFieldEnd();
-        }
-        if (struct.eF != null) {
-          oprot.writeFieldBegin(E_F_FIELD_DESC);
-          struct.eF.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eI != null) {
-          oprot.writeFieldBegin(E_I_FIELD_DESC);
-          struct.eI.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_ls_resultTupleSchemeFactory implements SchemeFactory {
-      public user_ls_resultTupleScheme getScheme() {
-        return new user_ls_resultTupleScheme();
-      }
-    }
-
-    private static class user_ls_resultTupleScheme extends TupleScheme<user_ls_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_ls_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
-          optionals.set(0);
-        }
-        if (struct.isSetEF()) {
-          optionals.set(1);
-        }
-        if (struct.isSetEI()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
-        if (struct.isSetSuccess()) {
-          {
-            oprot.writeI32(struct.success.size());
-            for (String _iter148 : struct.success)
-            {
-              oprot.writeString(_iter148);
-            }
-          }
-        }
-        if (struct.isSetEF()) {
-          struct.eF.write(oprot);
-        }
-        if (struct.isSetEI()) {
-          struct.eI.write(oprot);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_ls_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
-        if (incoming.get(0)) {
-          {
-            org.apache.thrift.protocol.TList _list149 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.success = new ArrayList<String>(_list149.size);
-            for (int _i150 = 0; _i150 < _list149.size; ++_i150)
-            {
-              String _elem151;
-              _elem151 = iprot.readString();
-              struct.success.add(_elem151);
-            }
-          }
-          struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.eF = new FileDoesNotExistException();
-          struct.eF.read(iprot);
-          struct.setEFIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.eI = new InvalidPathException();
-          struct.eI.read(iprot);
-          struct.setEIIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_deleteById_args implements org.apache.thrift.TBase<user_deleteById_args, user_deleteById_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_deleteById_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_deleteById_args");
+  public static class user_delete_args implements org.apache.thrift.TBase<user_delete_args, user_delete_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_delete_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_delete_args");
 
     private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I32, (short)1);
-    private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)2);
+    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)2);
+    private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_deleteById_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_deleteById_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_delete_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_delete_argsTupleSchemeFactory());
     }
 
     public int fileId; // required
+    public String path; // required
     public boolean recursive; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       FILE_ID((short)1, "fileId"),
-      RECURSIVE((short)2, "recursive");
+      PATH((short)2, "path"),
+      RECURSIVE((short)3, "recursive");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -32382,7 +25294,9 @@ public class MasterService {
         switch(fieldId) {
           case 1: // FILE_ID
             return FILE_ID;
-          case 2: // RECURSIVE
+          case 2: // PATH
+            return PATH;
+          case 3: // RECURSIVE
             return RECURSIVE;
           default:
             return null;
@@ -32432,22 +25346,26 @@ public class MasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_deleteById_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_delete_args.class, metaDataMap);
     }
 
-    public user_deleteById_args() {
+    public user_delete_args() {
     }
 
-    public user_deleteById_args(
+    public user_delete_args(
       int fileId,
+      String path,
       boolean recursive)
     {
       this();
       this.fileId = fileId;
       setFileIdIsSet(true);
+      this.path = path;
       this.recursive = recursive;
       setRecursiveIsSet(true);
     }
@@ -32455,20 +25373,24 @@ public class MasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_deleteById_args(user_deleteById_args other) {
+    public user_delete_args(user_delete_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.fileId = other.fileId;
+      if (other.isSetPath()) {
+        this.path = other.path;
+      }
       this.recursive = other.recursive;
     }
 
-    public user_deleteById_args deepCopy() {
-      return new user_deleteById_args(this);
+    public user_delete_args deepCopy() {
+      return new user_delete_args(this);
     }
 
     @Override
     public void clear() {
       setFileIdIsSet(false);
       this.fileId = 0;
+      this.path = null;
       setRecursiveIsSet(false);
       this.recursive = false;
     }
@@ -32477,7 +25399,7 @@ public class MasterService {
       return this.fileId;
     }
 
-    public user_deleteById_args setFileId(int fileId) {
+    public user_delete_args setFileId(int fileId) {
       this.fileId = fileId;
       setFileIdIsSet(true);
       return this;
@@ -32496,11 +25418,35 @@ public class MasterService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
     }
 
+    public String getPath() {
+      return this.path;
+    }
+
+    public user_delete_args setPath(String path) {
+      this.path = path;
+      return this;
+    }
+
+    public void unsetPath() {
+      this.path = null;
+    }
+
+    /** Returns true if field path is set (has been assigned a value) and false otherwise */
+    public boolean isSetPath() {
+      return this.path != null;
+    }
+
+    public void setPathIsSet(boolean value) {
+      if (!value) {
+        this.path = null;
+      }
+    }
+
     public boolean isRecursive() {
       return this.recursive;
     }
 
-    public user_deleteById_args setRecursive(boolean recursive) {
+    public user_delete_args setRecursive(boolean recursive) {
       this.recursive = recursive;
       setRecursiveIsSet(true);
       return this;
@@ -32529,900 +25475,6 @@ public class MasterService {
         }
         break;
 
-      case RECURSIVE:
-        if (value == null) {
-          unsetRecursive();
-        } else {
-          setRecursive((Boolean)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case FILE_ID:
-        return Integer.valueOf(getFileId());
-
-      case RECURSIVE:
-        return Boolean.valueOf(isRecursive());
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case FILE_ID:
-        return isSetFileId();
-      case RECURSIVE:
-        return isSetRecursive();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_deleteById_args)
-        return this.equals((user_deleteById_args)that);
-      return false;
-    }
-
-    public boolean equals(user_deleteById_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_fileId = true;
-      boolean that_present_fileId = true;
-      if (this_present_fileId || that_present_fileId) {
-        if (!(this_present_fileId && that_present_fileId))
-          return false;
-        if (this.fileId != that.fileId)
-          return false;
-      }
-
-      boolean this_present_recursive = true;
-      boolean that_present_recursive = true;
-      if (this_present_recursive || that_present_recursive) {
-        if (!(this_present_recursive && that_present_recursive))
-          return false;
-        if (this.recursive != that.recursive)
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_deleteById_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetFileId()).compareTo(other.isSetFileId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetFileId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetRecursive()).compareTo(other.isSetRecursive());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetRecursive()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.recursive, other.recursive);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_deleteById_args(");
-      boolean first = true;
-
-      sb.append("fileId:");
-      sb.append(this.fileId);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("recursive:");
-      sb.append(this.recursive);
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_deleteById_argsStandardSchemeFactory implements SchemeFactory {
-      public user_deleteById_argsStandardScheme getScheme() {
-        return new user_deleteById_argsStandardScheme();
-      }
-    }
-
-    private static class user_deleteById_argsStandardScheme extends StandardScheme<user_deleteById_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_deleteById_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // FILE_ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.fileId = iprot.readI32();
-                struct.setFileIdIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // RECURSIVE
-              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                struct.recursive = iprot.readBool();
-                struct.setRecursiveIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_deleteById_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
-        oprot.writeI32(struct.fileId);
-        oprot.writeFieldEnd();
-        oprot.writeFieldBegin(RECURSIVE_FIELD_DESC);
-        oprot.writeBool(struct.recursive);
-        oprot.writeFieldEnd();
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_deleteById_argsTupleSchemeFactory implements SchemeFactory {
-      public user_deleteById_argsTupleScheme getScheme() {
-        return new user_deleteById_argsTupleScheme();
-      }
-    }
-
-    private static class user_deleteById_argsTupleScheme extends TupleScheme<user_deleteById_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_deleteById_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetFileId()) {
-          optionals.set(0);
-        }
-        if (struct.isSetRecursive()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetFileId()) {
-          oprot.writeI32(struct.fileId);
-        }
-        if (struct.isSetRecursive()) {
-          oprot.writeBool(struct.recursive);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_deleteById_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          struct.fileId = iprot.readI32();
-          struct.setFileIdIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.recursive = iprot.readBool();
-          struct.setRecursiveIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_deleteById_result implements org.apache.thrift.TBase<user_deleteById_result, user_deleteById_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_deleteById_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_deleteById_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
-    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_deleteById_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_deleteById_resultTupleSchemeFactory());
-    }
-
-    public boolean success; // required
-    public TachyonException e; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E((short)1, "e");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
-          case 1: // E
-            return E;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_deleteById_result.class, metaDataMap);
-    }
-
-    public user_deleteById_result() {
-    }
-
-    public user_deleteById_result(
-      boolean success,
-      TachyonException e)
-    {
-      this();
-      this.success = success;
-      setSuccessIsSet(true);
-      this.e = e;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_deleteById_result(user_deleteById_result other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.success = other.success;
-      if (other.isSetE()) {
-        this.e = new TachyonException(other.e);
-      }
-    }
-
-    public user_deleteById_result deepCopy() {
-      return new user_deleteById_result(this);
-    }
-
-    @Override
-    public void clear() {
-      setSuccessIsSet(false);
-      this.success = false;
-      this.e = null;
-    }
-
-    public boolean isSuccess() {
-      return this.success;
-    }
-
-    public user_deleteById_result setSuccess(boolean success) {
-      this.success = success;
-      setSuccessIsSet(true);
-      return this;
-    }
-
-    public void unsetSuccess() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
-    }
-
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
-    }
-
-    public void setSuccessIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
-    }
-
-    public TachyonException getE() {
-      return this.e;
-    }
-
-    public user_deleteById_result setE(TachyonException e) {
-      this.e = e;
-      return this;
-    }
-
-    public void unsetE() {
-      this.e = null;
-    }
-
-    /** Returns true if field e is set (has been assigned a value) and false otherwise */
-    public boolean isSetE() {
-      return this.e != null;
-    }
-
-    public void setEIsSet(boolean value) {
-      if (!value) {
-        this.e = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((Boolean)value);
-        }
-        break;
-
-      case E:
-        if (value == null) {
-          unsetE();
-        } else {
-          setE((TachyonException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case SUCCESS:
-        return Boolean.valueOf(isSuccess());
-
-      case E:
-        return getE();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      case E:
-        return isSetE();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_deleteById_result)
-        return this.equals((user_deleteById_result)that);
-      return false;
-    }
-
-    public boolean equals(user_deleteById_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_success = true;
-      boolean that_present_success = true;
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
-          return false;
-        if (this.success != that.success)
-          return false;
-      }
-
-      boolean this_present_e = true && this.isSetE();
-      boolean that_present_e = true && that.isSetE();
-      if (this_present_e || that_present_e) {
-        if (!(this_present_e && that_present_e))
-          return false;
-        if (!this.e.equals(that.e))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_deleteById_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetE()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_deleteById_result(");
-      boolean first = true;
-
-      sb.append("success:");
-      sb.append(this.success);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("e:");
-      if (this.e == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.e);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_deleteById_resultStandardSchemeFactory implements SchemeFactory {
-      public user_deleteById_resultStandardScheme getScheme() {
-        return new user_deleteById_resultStandardScheme();
-      }
-    }
-
-    private static class user_deleteById_resultStandardScheme extends StandardScheme<user_deleteById_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_deleteById_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                struct.success = iprot.readBool();
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 1: // E
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new TachyonException();
-                struct.e.read(iprot);
-                struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_deleteById_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.isSetSuccess()) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeBool(struct.success);
-          oprot.writeFieldEnd();
-        }
-        if (struct.e != null) {
-          oprot.writeFieldBegin(E_FIELD_DESC);
-          struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_deleteById_resultTupleSchemeFactory implements SchemeFactory {
-      public user_deleteById_resultTupleScheme getScheme() {
-        return new user_deleteById_resultTupleScheme();
-      }
-    }
-
-    private static class user_deleteById_resultTupleScheme extends TupleScheme<user_deleteById_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_deleteById_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
-          optionals.set(0);
-        }
-        if (struct.isSetE()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetSuccess()) {
-          oprot.writeBool(struct.success);
-        }
-        if (struct.isSetE()) {
-          struct.e.write(oprot);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_deleteById_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          struct.success = iprot.readBool();
-          struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.e = new TachyonException();
-          struct.e.read(iprot);
-          struct.setEIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_deleteByPath_args implements org.apache.thrift.TBase<user_deleteByPath_args, user_deleteByPath_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_deleteByPath_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_deleteByPath_args");
-
-    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)2);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_deleteByPath_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_deleteByPath_argsTupleSchemeFactory());
-    }
-
-    public String path; // required
-    public boolean recursive; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      PATH((short)1, "path"),
-      RECURSIVE((short)2, "recursive");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // PATH
-            return PATH;
-          case 2: // RECURSIVE
-            return RECURSIVE;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    private static final int __RECURSIVE_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_deleteByPath_args.class, metaDataMap);
-    }
-
-    public user_deleteByPath_args() {
-    }
-
-    public user_deleteByPath_args(
-      String path,
-      boolean recursive)
-    {
-      this();
-      this.path = path;
-      this.recursive = recursive;
-      setRecursiveIsSet(true);
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_deleteByPath_args(user_deleteByPath_args other) {
-      __isset_bitfield = other.__isset_bitfield;
-      if (other.isSetPath()) {
-        this.path = other.path;
-      }
-      this.recursive = other.recursive;
-    }
-
-    public user_deleteByPath_args deepCopy() {
-      return new user_deleteByPath_args(this);
-    }
-
-    @Override
-    public void clear() {
-      this.path = null;
-      setRecursiveIsSet(false);
-      this.recursive = false;
-    }
-
-    public String getPath() {
-      return this.path;
-    }
-
-    public user_deleteByPath_args setPath(String path) {
-      this.path = path;
-      return this;
-    }
-
-    public void unsetPath() {
-      this.path = null;
-    }
-
-    /** Returns true if field path is set (has been assigned a value) and false otherwise */
-    public boolean isSetPath() {
-      return this.path != null;
-    }
-
-    public void setPathIsSet(boolean value) {
-      if (!value) {
-        this.path = null;
-      }
-    }
-
-    public boolean isRecursive() {
-      return this.recursive;
-    }
-
-    public user_deleteByPath_args setRecursive(boolean recursive) {
-      this.recursive = recursive;
-      setRecursiveIsSet(true);
-      return this;
-    }
-
-    public void unsetRecursive() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
-    }
-
-    /** Returns true if field recursive is set (has been assigned a value) and false otherwise */
-    public boolean isSetRecursive() {
-      return EncodingUtils.testBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
-    }
-
-    public void setRecursiveIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RECURSIVE_ISSET_ID, value);
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
       case PATH:
         if (value == null) {
           unsetPath();
@@ -33444,6 +25496,9 @@ public class MasterService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case FILE_ID:
+        return Integer.valueOf(getFileId());
+
       case PATH:
         return getPath();
 
@@ -33461,6 +25516,8 @@ public class MasterService {
       }
 
       switch (field) {
+      case FILE_ID:
+        return isSetFileId();
       case PATH:
         return isSetPath();
       case RECURSIVE:
@@ -33473,14 +25530,23 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_deleteByPath_args)
-        return this.equals((user_deleteByPath_args)that);
+      if (that instanceof user_delete_args)
+        return this.equals((user_delete_args)that);
       return false;
     }
 
-    public boolean equals(user_deleteByPath_args that) {
+    public boolean equals(user_delete_args that) {
       if (that == null)
         return false;
+
+      boolean this_present_fileId = true;
+      boolean that_present_fileId = true;
+      if (this_present_fileId || that_present_fileId) {
+        if (!(this_present_fileId && that_present_fileId))
+          return false;
+        if (this.fileId != that.fileId)
+          return false;
+      }
 
       boolean this_present_path = true && this.isSetPath();
       boolean that_present_path = true && that.isSetPath();
@@ -33509,13 +25575,23 @@ public class MasterService {
     }
 
     @Override
-    public int compareTo(user_deleteByPath_args other) {
+    public int compareTo(user_delete_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetFileId()).compareTo(other.isSetFileId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetFileId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
       if (lastComparison != 0) {
         return lastComparison;
@@ -33553,9 +25629,13 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_deleteByPath_args(");
+      StringBuilder sb = new StringBuilder("user_delete_args(");
       boolean first = true;
 
+      sb.append("fileId:");
+      sb.append(this.fileId);
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("path:");
       if (this.path == null) {
         sb.append("null");
@@ -33594,15 +25674,15 @@ public class MasterService {
       }
     }
 
-    private static class user_deleteByPath_argsStandardSchemeFactory implements SchemeFactory {
-      public user_deleteByPath_argsStandardScheme getScheme() {
-        return new user_deleteByPath_argsStandardScheme();
+    private static class user_delete_argsStandardSchemeFactory implements SchemeFactory {
+      public user_delete_argsStandardScheme getScheme() {
+        return new user_delete_argsStandardScheme();
       }
     }
 
-    private static class user_deleteByPath_argsStandardScheme extends StandardScheme<user_deleteByPath_args> {
+    private static class user_delete_argsStandardScheme extends StandardScheme<user_delete_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_deleteByPath_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_delete_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -33612,7 +25692,15 @@ public class MasterService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // PATH
+            case 1: // FILE_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+                struct.fileId = iprot.readI32();
+                struct.setFileIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // PATH
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.path = iprot.readString();
                 struct.setPathIsSet(true);
@@ -33620,7 +25708,7 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // RECURSIVE
+            case 3: // RECURSIVE
               if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
                 struct.recursive = iprot.readBool();
                 struct.setRecursiveIsSet(true);
@@ -33639,10 +25727,13 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_deleteByPath_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_delete_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
+        oprot.writeI32(struct.fileId);
+        oprot.writeFieldEnd();
         if (struct.path != null) {
           oprot.writeFieldBegin(PATH_FIELD_DESC);
           oprot.writeString(struct.path);
@@ -33657,25 +25748,31 @@ public class MasterService {
 
     }
 
-    private static class user_deleteByPath_argsTupleSchemeFactory implements SchemeFactory {
-      public user_deleteByPath_argsTupleScheme getScheme() {
-        return new user_deleteByPath_argsTupleScheme();
+    private static class user_delete_argsTupleSchemeFactory implements SchemeFactory {
+      public user_delete_argsTupleScheme getScheme() {
+        return new user_delete_argsTupleScheme();
       }
     }
 
-    private static class user_deleteByPath_argsTupleScheme extends TupleScheme<user_deleteByPath_args> {
+    private static class user_delete_argsTupleScheme extends TupleScheme<user_delete_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_deleteByPath_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_delete_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetPath()) {
+        if (struct.isSetFileId()) {
           optionals.set(0);
         }
-        if (struct.isSetRecursive()) {
+        if (struct.isSetPath()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetRecursive()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetFileId()) {
+          oprot.writeI32(struct.fileId);
+        }
         if (struct.isSetPath()) {
           oprot.writeString(struct.path);
         }
@@ -33685,14 +25782,18 @@ public class MasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_deleteByPath_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_delete_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
+          struct.fileId = iprot.readI32();
+          struct.setFileIdIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.path = iprot.readString();
           struct.setPathIsSet(true);
         }
-        if (incoming.get(1)) {
+        if (incoming.get(2)) {
           struct.recursive = iprot.readBool();
           struct.setRecursiveIsSet(true);
         }
@@ -33701,16 +25802,16 @@ public class MasterService {
 
   }
 
-  public static class user_deleteByPath_result implements org.apache.thrift.TBase<user_deleteByPath_result, user_deleteByPath_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_deleteByPath_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_deleteByPath_result");
+  public static class user_delete_result implements org.apache.thrift.TBase<user_delete_result, user_delete_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_delete_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_delete_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_deleteByPath_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_deleteByPath_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_delete_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_delete_resultTupleSchemeFactory());
     }
 
     public boolean success; // required
@@ -33788,13 +25889,13 @@ public class MasterService {
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_deleteByPath_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_delete_result.class, metaDataMap);
     }
 
-    public user_deleteByPath_result() {
+    public user_delete_result() {
     }
 
-    public user_deleteByPath_result(
+    public user_delete_result(
       boolean success,
       TachyonException e)
     {
@@ -33807,7 +25908,7 @@ public class MasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_deleteByPath_result(user_deleteByPath_result other) {
+    public user_delete_result(user_delete_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
       if (other.isSetE()) {
@@ -33815,8 +25916,8 @@ public class MasterService {
       }
     }
 
-    public user_deleteByPath_result deepCopy() {
-      return new user_deleteByPath_result(this);
+    public user_delete_result deepCopy() {
+      return new user_delete_result(this);
     }
 
     @Override
@@ -33830,7 +25931,7 @@ public class MasterService {
       return this.success;
     }
 
-    public user_deleteByPath_result setSuccess(boolean success) {
+    public user_delete_result setSuccess(boolean success) {
       this.success = success;
       setSuccessIsSet(true);
       return this;
@@ -33853,7 +25954,7 @@ public class MasterService {
       return this.e;
     }
 
-    public user_deleteByPath_result setE(TachyonException e) {
+    public user_delete_result setE(TachyonException e) {
       this.e = e;
       return this;
     }
@@ -33925,12 +26026,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_deleteByPath_result)
-        return this.equals((user_deleteByPath_result)that);
+      if (that instanceof user_delete_result)
+        return this.equals((user_delete_result)that);
       return false;
     }
 
-    public boolean equals(user_deleteByPath_result that) {
+    public boolean equals(user_delete_result that) {
       if (that == null)
         return false;
 
@@ -33961,7 +26062,7 @@ public class MasterService {
     }
 
     @Override
-    public int compareTo(user_deleteByPath_result other) {
+    public int compareTo(user_delete_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -34005,7 +26106,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_deleteByPath_result(");
+      StringBuilder sb = new StringBuilder("user_delete_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -34046,15 +26147,15 @@ public class MasterService {
       }
     }
 
-    private static class user_deleteByPath_resultStandardSchemeFactory implements SchemeFactory {
-      public user_deleteByPath_resultStandardScheme getScheme() {
-        return new user_deleteByPath_resultStandardScheme();
+    private static class user_delete_resultStandardSchemeFactory implements SchemeFactory {
+      public user_delete_resultStandardScheme getScheme() {
+        return new user_delete_resultStandardScheme();
       }
     }
 
-    private static class user_deleteByPath_resultStandardScheme extends StandardScheme<user_deleteByPath_result> {
+    private static class user_delete_resultStandardScheme extends StandardScheme<user_delete_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_deleteByPath_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_delete_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -34092,7 +26193,7 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_deleteByPath_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_delete_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -34112,16 +26213,16 @@ public class MasterService {
 
     }
 
-    private static class user_deleteByPath_resultTupleSchemeFactory implements SchemeFactory {
-      public user_deleteByPath_resultTupleScheme getScheme() {
-        return new user_deleteByPath_resultTupleScheme();
+    private static class user_delete_resultTupleSchemeFactory implements SchemeFactory {
+      public user_delete_resultTupleScheme getScheme() {
+        return new user_delete_resultTupleScheme();
       }
     }
 
-    private static class user_deleteByPath_resultTupleScheme extends TupleScheme<user_deleteByPath_result> {
+    private static class user_delete_resultTupleScheme extends TupleScheme<user_delete_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_deleteByPath_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_delete_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -34140,7 +26241,7 @@ public class MasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_deleteByPath_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_delete_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
@@ -34157,22 +26258,28 @@ public class MasterService {
 
   }
 
-  public static class user_outOfMemoryForPinFile_args implements org.apache.thrift.TBase<user_outOfMemoryForPinFile_args, user_outOfMemoryForPinFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_outOfMemoryForPinFile_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_outOfMemoryForPinFile_args");
+  public static class user_rename_args implements org.apache.thrift.TBase<user_rename_args, user_rename_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_rename_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_rename_args");
 
     private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I32, (short)1);
+    private static final org.apache.thrift.protocol.TField SRC_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("srcPath", org.apache.thrift.protocol.TType.STRING, (short)2);
+    private static final org.apache.thrift.protocol.TField DST_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("dstPath", org.apache.thrift.protocol.TType.STRING, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_outOfMemoryForPinFile_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_outOfMemoryForPinFile_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_rename_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_rename_argsTupleSchemeFactory());
     }
 
     public int fileId; // required
+    public String srcPath; // required
+    public String dstPath; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      FILE_ID((short)1, "fileId");
+      FILE_ID((short)1, "fileId"),
+      SRC_PATH((short)2, "srcPath"),
+      DST_PATH((short)3, "dstPath");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -34189,6 +26296,10 @@ public class MasterService {
         switch(fieldId) {
           case 1: // FILE_ID
             return FILE_ID;
+          case 2: // SRC_PATH
+            return SRC_PATH;
+          case 3: // DST_PATH
+            return DST_PATH;
           default:
             return null;
         }
@@ -34236,44 +26347,60 @@ public class MasterService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.SRC_PATH, new org.apache.thrift.meta_data.FieldMetaData("srcPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.DST_PATH, new org.apache.thrift.meta_data.FieldMetaData("dstPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_outOfMemoryForPinFile_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_rename_args.class, metaDataMap);
     }
 
-    public user_outOfMemoryForPinFile_args() {
+    public user_rename_args() {
     }
 
-    public user_outOfMemoryForPinFile_args(
-      int fileId)
+    public user_rename_args(
+      int fileId,
+      String srcPath,
+      String dstPath)
     {
       this();
       this.fileId = fileId;
       setFileIdIsSet(true);
+      this.srcPath = srcPath;
+      this.dstPath = dstPath;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_outOfMemoryForPinFile_args(user_outOfMemoryForPinFile_args other) {
+    public user_rename_args(user_rename_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.fileId = other.fileId;
+      if (other.isSetSrcPath()) {
+        this.srcPath = other.srcPath;
+      }
+      if (other.isSetDstPath()) {
+        this.dstPath = other.dstPath;
+      }
     }
 
-    public user_outOfMemoryForPinFile_args deepCopy() {
-      return new user_outOfMemoryForPinFile_args(this);
+    public user_rename_args deepCopy() {
+      return new user_rename_args(this);
     }
 
     @Override
     public void clear() {
       setFileIdIsSet(false);
       this.fileId = 0;
+      this.srcPath = null;
+      this.dstPath = null;
     }
 
     public int getFileId() {
       return this.fileId;
     }
 
-    public user_outOfMemoryForPinFile_args setFileId(int fileId) {
+    public user_rename_args setFileId(int fileId) {
       this.fileId = fileId;
       setFileIdIsSet(true);
       return this;
@@ -34290,591 +26417,6 @@ public class MasterService {
 
     public void setFileIdIsSet(boolean value) {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case FILE_ID:
-        if (value == null) {
-          unsetFileId();
-        } else {
-          setFileId((Integer)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case FILE_ID:
-        return Integer.valueOf(getFileId());
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case FILE_ID:
-        return isSetFileId();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_outOfMemoryForPinFile_args)
-        return this.equals((user_outOfMemoryForPinFile_args)that);
-      return false;
-    }
-
-    public boolean equals(user_outOfMemoryForPinFile_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_fileId = true;
-      boolean that_present_fileId = true;
-      if (this_present_fileId || that_present_fileId) {
-        if (!(this_present_fileId && that_present_fileId))
-          return false;
-        if (this.fileId != that.fileId)
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_outOfMemoryForPinFile_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetFileId()).compareTo(other.isSetFileId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetFileId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_outOfMemoryForPinFile_args(");
-      boolean first = true;
-
-      sb.append("fileId:");
-      sb.append(this.fileId);
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_outOfMemoryForPinFile_argsStandardSchemeFactory implements SchemeFactory {
-      public user_outOfMemoryForPinFile_argsStandardScheme getScheme() {
-        return new user_outOfMemoryForPinFile_argsStandardScheme();
-      }
-    }
-
-    private static class user_outOfMemoryForPinFile_argsStandardScheme extends StandardScheme<user_outOfMemoryForPinFile_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_outOfMemoryForPinFile_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // FILE_ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.fileId = iprot.readI32();
-                struct.setFileIdIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_outOfMemoryForPinFile_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
-        oprot.writeI32(struct.fileId);
-        oprot.writeFieldEnd();
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_outOfMemoryForPinFile_argsTupleSchemeFactory implements SchemeFactory {
-      public user_outOfMemoryForPinFile_argsTupleScheme getScheme() {
-        return new user_outOfMemoryForPinFile_argsTupleScheme();
-      }
-    }
-
-    private static class user_outOfMemoryForPinFile_argsTupleScheme extends TupleScheme<user_outOfMemoryForPinFile_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_outOfMemoryForPinFile_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetFileId()) {
-          optionals.set(0);
-        }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetFileId()) {
-          oprot.writeI32(struct.fileId);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_outOfMemoryForPinFile_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
-        if (incoming.get(0)) {
-          struct.fileId = iprot.readI32();
-          struct.setFileIdIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_outOfMemoryForPinFile_result implements org.apache.thrift.TBase<user_outOfMemoryForPinFile_result, user_outOfMemoryForPinFile_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_outOfMemoryForPinFile_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_outOfMemoryForPinFile_result");
-
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_outOfMemoryForPinFile_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_outOfMemoryForPinFile_resultTupleSchemeFactory());
-    }
-
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_outOfMemoryForPinFile_result.class, metaDataMap);
-    }
-
-    public user_outOfMemoryForPinFile_result() {
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_outOfMemoryForPinFile_result(user_outOfMemoryForPinFile_result other) {
-    }
-
-    public user_outOfMemoryForPinFile_result deepCopy() {
-      return new user_outOfMemoryForPinFile_result(this);
-    }
-
-    @Override
-    public void clear() {
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_outOfMemoryForPinFile_result)
-        return this.equals((user_outOfMemoryForPinFile_result)that);
-      return false;
-    }
-
-    public boolean equals(user_outOfMemoryForPinFile_result that) {
-      if (that == null)
-        return false;
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_outOfMemoryForPinFile_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_outOfMemoryForPinFile_result(");
-      boolean first = true;
-
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_outOfMemoryForPinFile_resultStandardSchemeFactory implements SchemeFactory {
-      public user_outOfMemoryForPinFile_resultStandardScheme getScheme() {
-        return new user_outOfMemoryForPinFile_resultStandardScheme();
-      }
-    }
-
-    private static class user_outOfMemoryForPinFile_resultStandardScheme extends StandardScheme<user_outOfMemoryForPinFile_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_outOfMemoryForPinFile_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_outOfMemoryForPinFile_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_outOfMemoryForPinFile_resultTupleSchemeFactory implements SchemeFactory {
-      public user_outOfMemoryForPinFile_resultTupleScheme getScheme() {
-        return new user_outOfMemoryForPinFile_resultTupleScheme();
-      }
-    }
-
-    private static class user_outOfMemoryForPinFile_resultTupleScheme extends TupleScheme<user_outOfMemoryForPinFile_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_outOfMemoryForPinFile_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_outOfMemoryForPinFile_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-      }
-    }
-
-  }
-
-  public static class user_rename_args implements org.apache.thrift.TBase<user_rename_args, user_rename_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_rename_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_rename_args");
-
-    private static final org.apache.thrift.protocol.TField SRC_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("srcPath", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField DST_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("dstPath", org.apache.thrift.protocol.TType.STRING, (short)2);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_rename_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_rename_argsTupleSchemeFactory());
-    }
-
-    public String srcPath; // required
-    public String dstPath; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SRC_PATH((short)1, "srcPath"),
-      DST_PATH((short)2, "dstPath");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // SRC_PATH
-            return SRC_PATH;
-          case 2: // DST_PATH
-            return DST_PATH;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SRC_PATH, new org.apache.thrift.meta_data.FieldMetaData("srcPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.DST_PATH, new org.apache.thrift.meta_data.FieldMetaData("dstPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_rename_args.class, metaDataMap);
-    }
-
-    public user_rename_args() {
-    }
-
-    public user_rename_args(
-      String srcPath,
-      String dstPath)
-    {
-      this();
-      this.srcPath = srcPath;
-      this.dstPath = dstPath;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_rename_args(user_rename_args other) {
-      if (other.isSetSrcPath()) {
-        this.srcPath = other.srcPath;
-      }
-      if (other.isSetDstPath()) {
-        this.dstPath = other.dstPath;
-      }
-    }
-
-    public user_rename_args deepCopy() {
-      return new user_rename_args(this);
-    }
-
-    @Override
-    public void clear() {
-      this.srcPath = null;
-      this.dstPath = null;
     }
 
     public String getSrcPath() {
@@ -34927,6 +26469,14 @@ public class MasterService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case FILE_ID:
+        if (value == null) {
+          unsetFileId();
+        } else {
+          setFileId((Integer)value);
+        }
+        break;
+
       case SRC_PATH:
         if (value == null) {
           unsetSrcPath();
@@ -34948,6 +26498,9 @@ public class MasterService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case FILE_ID:
+        return Integer.valueOf(getFileId());
+
       case SRC_PATH:
         return getSrcPath();
 
@@ -34965,6 +26518,8 @@ public class MasterService {
       }
 
       switch (field) {
+      case FILE_ID:
+        return isSetFileId();
       case SRC_PATH:
         return isSetSrcPath();
       case DST_PATH:
@@ -34985,6 +26540,15 @@ public class MasterService {
     public boolean equals(user_rename_args that) {
       if (that == null)
         return false;
+
+      boolean this_present_fileId = true;
+      boolean that_present_fileId = true;
+      if (this_present_fileId || that_present_fileId) {
+        if (!(this_present_fileId && that_present_fileId))
+          return false;
+        if (this.fileId != that.fileId)
+          return false;
+      }
 
       boolean this_present_srcPath = true && this.isSetSrcPath();
       boolean that_present_srcPath = true && that.isSetSrcPath();
@@ -35020,6 +26584,16 @@ public class MasterService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetFileId()).compareTo(other.isSetFileId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetFileId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetSrcPath()).compareTo(other.isSetSrcPath());
       if (lastComparison != 0) {
         return lastComparison;
@@ -35060,6 +26634,10 @@ public class MasterService {
       StringBuilder sb = new StringBuilder("user_rename_args(");
       boolean first = true;
 
+      sb.append("fileId:");
+      sb.append(this.fileId);
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("srcPath:");
       if (this.srcPath == null) {
         sb.append("null");
@@ -35094,6 +26672,8 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -35118,7 +26698,15 @@ public class MasterService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // SRC_PATH
+            case 1: // FILE_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+                struct.fileId = iprot.readI32();
+                struct.setFileIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // SRC_PATH
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.srcPath = iprot.readString();
                 struct.setSrcPathIsSet(true);
@@ -35126,7 +26714,7 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // DST_PATH
+            case 3: // DST_PATH
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.dstPath = iprot.readString();
                 struct.setDstPathIsSet(true);
@@ -35149,6 +26737,9 @@ public class MasterService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
+        oprot.writeI32(struct.fileId);
+        oprot.writeFieldEnd();
         if (struct.srcPath != null) {
           oprot.writeFieldBegin(SRC_PATH_FIELD_DESC);
           oprot.writeString(struct.srcPath);
@@ -35177,13 +26768,19 @@ public class MasterService {
       public void write(org.apache.thrift.protocol.TProtocol prot, user_rename_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetSrcPath()) {
+        if (struct.isSetFileId()) {
           optionals.set(0);
         }
-        if (struct.isSetDstPath()) {
+        if (struct.isSetSrcPath()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetDstPath()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetFileId()) {
+          oprot.writeI32(struct.fileId);
+        }
         if (struct.isSetSrcPath()) {
           oprot.writeString(struct.srcPath);
         }
@@ -35195,12 +26792,16 @@ public class MasterService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, user_rename_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
+          struct.fileId = iprot.readI32();
+          struct.setFileIdIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.srcPath = iprot.readString();
           struct.setSrcPathIsSet(true);
         }
-        if (incoming.get(1)) {
+        if (incoming.get(2)) {
           struct.dstPath = iprot.readString();
           struct.setDstPathIsSet(true);
         }
@@ -35860,1018 +27461,6 @@ public class MasterService {
           struct.setEFIsSet(true);
         }
         if (incoming.get(3)) {
-          struct.eI = new InvalidPathException();
-          struct.eI.read(iprot);
-          struct.setEIIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_renameTo_args implements org.apache.thrift.TBase<user_renameTo_args, user_renameTo_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_renameTo_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_renameTo_args");
-
-    private static final org.apache.thrift.protocol.TField FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("fileId", org.apache.thrift.protocol.TType.I32, (short)1);
-    private static final org.apache.thrift.protocol.TField DST_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("dstPath", org.apache.thrift.protocol.TType.STRING, (short)2);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_renameTo_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_renameTo_argsTupleSchemeFactory());
-    }
-
-    public int fileId; // required
-    public String dstPath; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      FILE_ID((short)1, "fileId"),
-      DST_PATH((short)2, "dstPath");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // FILE_ID
-            return FILE_ID;
-          case 2: // DST_PATH
-            return DST_PATH;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    private static final int __FILEID_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("fileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-      tmpMap.put(_Fields.DST_PATH, new org.apache.thrift.meta_data.FieldMetaData("dstPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_renameTo_args.class, metaDataMap);
-    }
-
-    public user_renameTo_args() {
-    }
-
-    public user_renameTo_args(
-      int fileId,
-      String dstPath)
-    {
-      this();
-      this.fileId = fileId;
-      setFileIdIsSet(true);
-      this.dstPath = dstPath;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_renameTo_args(user_renameTo_args other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.fileId = other.fileId;
-      if (other.isSetDstPath()) {
-        this.dstPath = other.dstPath;
-      }
-    }
-
-    public user_renameTo_args deepCopy() {
-      return new user_renameTo_args(this);
-    }
-
-    @Override
-    public void clear() {
-      setFileIdIsSet(false);
-      this.fileId = 0;
-      this.dstPath = null;
-    }
-
-    public int getFileId() {
-      return this.fileId;
-    }
-
-    public user_renameTo_args setFileId(int fileId) {
-      this.fileId = fileId;
-      setFileIdIsSet(true);
-      return this;
-    }
-
-    public void unsetFileId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __FILEID_ISSET_ID);
-    }
-
-    /** Returns true if field fileId is set (has been assigned a value) and false otherwise */
-    public boolean isSetFileId() {
-      return EncodingUtils.testBit(__isset_bitfield, __FILEID_ISSET_ID);
-    }
-
-    public void setFileIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FILEID_ISSET_ID, value);
-    }
-
-    public String getDstPath() {
-      return this.dstPath;
-    }
-
-    public user_renameTo_args setDstPath(String dstPath) {
-      this.dstPath = dstPath;
-      return this;
-    }
-
-    public void unsetDstPath() {
-      this.dstPath = null;
-    }
-
-    /** Returns true if field dstPath is set (has been assigned a value) and false otherwise */
-    public boolean isSetDstPath() {
-      return this.dstPath != null;
-    }
-
-    public void setDstPathIsSet(boolean value) {
-      if (!value) {
-        this.dstPath = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case FILE_ID:
-        if (value == null) {
-          unsetFileId();
-        } else {
-          setFileId((Integer)value);
-        }
-        break;
-
-      case DST_PATH:
-        if (value == null) {
-          unsetDstPath();
-        } else {
-          setDstPath((String)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case FILE_ID:
-        return Integer.valueOf(getFileId());
-
-      case DST_PATH:
-        return getDstPath();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case FILE_ID:
-        return isSetFileId();
-      case DST_PATH:
-        return isSetDstPath();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_renameTo_args)
-        return this.equals((user_renameTo_args)that);
-      return false;
-    }
-
-    public boolean equals(user_renameTo_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_fileId = true;
-      boolean that_present_fileId = true;
-      if (this_present_fileId || that_present_fileId) {
-        if (!(this_present_fileId && that_present_fileId))
-          return false;
-        if (this.fileId != that.fileId)
-          return false;
-      }
-
-      boolean this_present_dstPath = true && this.isSetDstPath();
-      boolean that_present_dstPath = true && that.isSetDstPath();
-      if (this_present_dstPath || that_present_dstPath) {
-        if (!(this_present_dstPath && that_present_dstPath))
-          return false;
-        if (!this.dstPath.equals(that.dstPath))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_renameTo_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetFileId()).compareTo(other.isSetFileId());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetFileId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fileId, other.fileId);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetDstPath()).compareTo(other.isSetDstPath());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetDstPath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.dstPath, other.dstPath);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_renameTo_args(");
-      boolean first = true;
-
-      sb.append("fileId:");
-      sb.append(this.fileId);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("dstPath:");
-      if (this.dstPath == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.dstPath);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_renameTo_argsStandardSchemeFactory implements SchemeFactory {
-      public user_renameTo_argsStandardScheme getScheme() {
-        return new user_renameTo_argsStandardScheme();
-      }
-    }
-
-    private static class user_renameTo_argsStandardScheme extends StandardScheme<user_renameTo_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_renameTo_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // FILE_ID
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.fileId = iprot.readI32();
-                struct.setFileIdIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // DST_PATH
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.dstPath = iprot.readString();
-                struct.setDstPathIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_renameTo_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(FILE_ID_FIELD_DESC);
-        oprot.writeI32(struct.fileId);
-        oprot.writeFieldEnd();
-        if (struct.dstPath != null) {
-          oprot.writeFieldBegin(DST_PATH_FIELD_DESC);
-          oprot.writeString(struct.dstPath);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_renameTo_argsTupleSchemeFactory implements SchemeFactory {
-      public user_renameTo_argsTupleScheme getScheme() {
-        return new user_renameTo_argsTupleScheme();
-      }
-    }
-
-    private static class user_renameTo_argsTupleScheme extends TupleScheme<user_renameTo_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_renameTo_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetFileId()) {
-          optionals.set(0);
-        }
-        if (struct.isSetDstPath()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetFileId()) {
-          oprot.writeI32(struct.fileId);
-        }
-        if (struct.isSetDstPath()) {
-          oprot.writeString(struct.dstPath);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_renameTo_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          struct.fileId = iprot.readI32();
-          struct.setFileIdIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.dstPath = iprot.readString();
-          struct.setDstPathIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_renameTo_result implements org.apache.thrift.TBase<user_renameTo_result, user_renameTo_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_renameTo_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_renameTo_result");
-
-    private static final org.apache.thrift.protocol.TField E_A_FIELD_DESC = new org.apache.thrift.protocol.TField("eA", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField E_F_FIELD_DESC = new org.apache.thrift.protocol.TField("eF", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-    private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)3);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_renameTo_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_renameTo_resultTupleSchemeFactory());
-    }
-
-    public FileAlreadyExistException eA; // required
-    public FileDoesNotExistException eF; // required
-    public InvalidPathException eI; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      E_A((short)1, "eA"),
-      E_F((short)2, "eF"),
-      E_I((short)3, "eI");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // E_A
-            return E_A;
-          case 2: // E_F
-            return E_F;
-          case 3: // E_I
-            return E_I;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.E_A, new org.apache.thrift.meta_data.FieldMetaData("eA", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_F, new org.apache.thrift.meta_data.FieldMetaData("eF", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_renameTo_result.class, metaDataMap);
-    }
-
-    public user_renameTo_result() {
-    }
-
-    public user_renameTo_result(
-      FileAlreadyExistException eA,
-      FileDoesNotExistException eF,
-      InvalidPathException eI)
-    {
-      this();
-      this.eA = eA;
-      this.eF = eF;
-      this.eI = eI;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_renameTo_result(user_renameTo_result other) {
-      if (other.isSetEA()) {
-        this.eA = new FileAlreadyExistException(other.eA);
-      }
-      if (other.isSetEF()) {
-        this.eF = new FileDoesNotExistException(other.eF);
-      }
-      if (other.isSetEI()) {
-        this.eI = new InvalidPathException(other.eI);
-      }
-    }
-
-    public user_renameTo_result deepCopy() {
-      return new user_renameTo_result(this);
-    }
-
-    @Override
-    public void clear() {
-      this.eA = null;
-      this.eF = null;
-      this.eI = null;
-    }
-
-    public FileAlreadyExistException getEA() {
-      return this.eA;
-    }
-
-    public user_renameTo_result setEA(FileAlreadyExistException eA) {
-      this.eA = eA;
-      return this;
-    }
-
-    public void unsetEA() {
-      this.eA = null;
-    }
-
-    /** Returns true if field eA is set (has been assigned a value) and false otherwise */
-    public boolean isSetEA() {
-      return this.eA != null;
-    }
-
-    public void setEAIsSet(boolean value) {
-      if (!value) {
-        this.eA = null;
-      }
-    }
-
-    public FileDoesNotExistException getEF() {
-      return this.eF;
-    }
-
-    public user_renameTo_result setEF(FileDoesNotExistException eF) {
-      this.eF = eF;
-      return this;
-    }
-
-    public void unsetEF() {
-      this.eF = null;
-    }
-
-    /** Returns true if field eF is set (has been assigned a value) and false otherwise */
-    public boolean isSetEF() {
-      return this.eF != null;
-    }
-
-    public void setEFIsSet(boolean value) {
-      if (!value) {
-        this.eF = null;
-      }
-    }
-
-    public InvalidPathException getEI() {
-      return this.eI;
-    }
-
-    public user_renameTo_result setEI(InvalidPathException eI) {
-      this.eI = eI;
-      return this;
-    }
-
-    public void unsetEI() {
-      this.eI = null;
-    }
-
-    /** Returns true if field eI is set (has been assigned a value) and false otherwise */
-    public boolean isSetEI() {
-      return this.eI != null;
-    }
-
-    public void setEIIsSet(boolean value) {
-      if (!value) {
-        this.eI = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case E_A:
-        if (value == null) {
-          unsetEA();
-        } else {
-          setEA((FileAlreadyExistException)value);
-        }
-        break;
-
-      case E_F:
-        if (value == null) {
-          unsetEF();
-        } else {
-          setEF((FileDoesNotExistException)value);
-        }
-        break;
-
-      case E_I:
-        if (value == null) {
-          unsetEI();
-        } else {
-          setEI((InvalidPathException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case E_A:
-        return getEA();
-
-      case E_F:
-        return getEF();
-
-      case E_I:
-        return getEI();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case E_A:
-        return isSetEA();
-      case E_F:
-        return isSetEF();
-      case E_I:
-        return isSetEI();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_renameTo_result)
-        return this.equals((user_renameTo_result)that);
-      return false;
-    }
-
-    public boolean equals(user_renameTo_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_eA = true && this.isSetEA();
-      boolean that_present_eA = true && that.isSetEA();
-      if (this_present_eA || that_present_eA) {
-        if (!(this_present_eA && that_present_eA))
-          return false;
-        if (!this.eA.equals(that.eA))
-          return false;
-      }
-
-      boolean this_present_eF = true && this.isSetEF();
-      boolean that_present_eF = true && that.isSetEF();
-      if (this_present_eF || that_present_eF) {
-        if (!(this_present_eF && that_present_eF))
-          return false;
-        if (!this.eF.equals(that.eF))
-          return false;
-      }
-
-      boolean this_present_eI = true && this.isSetEI();
-      boolean that_present_eI = true && that.isSetEI();
-      if (this_present_eI || that_present_eI) {
-        if (!(this_present_eI && that_present_eI))
-          return false;
-        if (!this.eI.equals(that.eI))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_renameTo_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetEA()).compareTo(other.isSetEA());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEA()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eA, other.eA);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEF()).compareTo(other.isSetEF());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEF()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eF, other.eF);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEI()).compareTo(other.isSetEI());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEI()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eI, other.eI);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_renameTo_result(");
-      boolean first = true;
-
-      sb.append("eA:");
-      if (this.eA == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eA);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eF:");
-      if (this.eF == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eF);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eI:");
-      if (this.eI == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eI);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_renameTo_resultStandardSchemeFactory implements SchemeFactory {
-      public user_renameTo_resultStandardScheme getScheme() {
-        return new user_renameTo_resultStandardScheme();
-      }
-    }
-
-    private static class user_renameTo_resultStandardScheme extends StandardScheme<user_renameTo_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_renameTo_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // E_A
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eA = new FileAlreadyExistException();
-                struct.eA.read(iprot);
-                struct.setEAIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // E_F
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eF = new FileDoesNotExistException();
-                struct.eF.read(iprot);
-                struct.setEFIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 3: // E_I
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eI = new InvalidPathException();
-                struct.eI.read(iprot);
-                struct.setEIIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_renameTo_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.eA != null) {
-          oprot.writeFieldBegin(E_A_FIELD_DESC);
-          struct.eA.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eF != null) {
-          oprot.writeFieldBegin(E_F_FIELD_DESC);
-          struct.eF.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eI != null) {
-          oprot.writeFieldBegin(E_I_FIELD_DESC);
-          struct.eI.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_renameTo_resultTupleSchemeFactory implements SchemeFactory {
-      public user_renameTo_resultTupleScheme getScheme() {
-        return new user_renameTo_resultTupleScheme();
-      }
-    }
-
-    private static class user_renameTo_resultTupleScheme extends TupleScheme<user_renameTo_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_renameTo_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetEA()) {
-          optionals.set(0);
-        }
-        if (struct.isSetEF()) {
-          optionals.set(1);
-        }
-        if (struct.isSetEI()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
-        if (struct.isSetEA()) {
-          struct.eA.write(oprot);
-        }
-        if (struct.isSetEF()) {
-          struct.eF.write(oprot);
-        }
-        if (struct.isSetEI()) {
-          struct.eI.write(oprot);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_renameTo_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
-        if (incoming.get(0)) {
-          struct.eA = new FileAlreadyExistException();
-          struct.eA.read(iprot);
-          struct.setEAIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.eF = new FileDoesNotExistException();
-          struct.eF.read(iprot);
-          struct.setEFIsSet(true);
-        }
-        if (incoming.get(2)) {
           struct.eI = new InvalidPathException();
           struct.eI.read(iprot);
           struct.setEIIsSet(true);
@@ -37683,22 +28272,25 @@ public class MasterService {
 
   }
 
-  public static class user_mkdir_args implements org.apache.thrift.TBase<user_mkdir_args, user_mkdir_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_mkdir_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_mkdir_args");
+  public static class user_mkdirs_args implements org.apache.thrift.TBase<user_mkdirs_args, user_mkdirs_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_mkdirs_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_mkdirs_args");
 
     private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_mkdir_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_mkdir_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_mkdirs_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_mkdirs_argsTupleSchemeFactory());
     }
 
     public String path; // required
+    public boolean recursive; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      PATH((short)1, "path");
+      PATH((short)1, "path"),
+      RECURSIVE((short)2, "recursive");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -37715,6 +28307,8 @@ public class MasterService {
         switch(fieldId) {
           case 1: // PATH
             return PATH;
+          case 2: // RECURSIVE
+            return RECURSIVE;
           default:
             return null;
         }
@@ -37755,48 +28349,59 @@ public class MasterService {
     }
 
     // isset id assignments
+    private static final int __RECURSIVE_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_mkdir_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_mkdirs_args.class, metaDataMap);
     }
 
-    public user_mkdir_args() {
+    public user_mkdirs_args() {
     }
 
-    public user_mkdir_args(
-      String path)
+    public user_mkdirs_args(
+      String path,
+      boolean recursive)
     {
       this();
       this.path = path;
+      this.recursive = recursive;
+      setRecursiveIsSet(true);
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_mkdir_args(user_mkdir_args other) {
+    public user_mkdirs_args(user_mkdirs_args other) {
+      __isset_bitfield = other.__isset_bitfield;
       if (other.isSetPath()) {
         this.path = other.path;
       }
+      this.recursive = other.recursive;
     }
 
-    public user_mkdir_args deepCopy() {
-      return new user_mkdir_args(this);
+    public user_mkdirs_args deepCopy() {
+      return new user_mkdirs_args(this);
     }
 
     @Override
     public void clear() {
       this.path = null;
+      setRecursiveIsSet(false);
+      this.recursive = false;
     }
 
     public String getPath() {
       return this.path;
     }
 
-    public user_mkdir_args setPath(String path) {
+    public user_mkdirs_args setPath(String path) {
       this.path = path;
       return this;
     }
@@ -37816,6 +28421,29 @@ public class MasterService {
       }
     }
 
+    public boolean isRecursive() {
+      return this.recursive;
+    }
+
+    public user_mkdirs_args setRecursive(boolean recursive) {
+      this.recursive = recursive;
+      setRecursiveIsSet(true);
+      return this;
+    }
+
+    public void unsetRecursive() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
+    }
+
+    /** Returns true if field recursive is set (has been assigned a value) and false otherwise */
+    public boolean isSetRecursive() {
+      return EncodingUtils.testBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
+    }
+
+    public void setRecursiveIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RECURSIVE_ISSET_ID, value);
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case PATH:
@@ -37826,6 +28454,14 @@ public class MasterService {
         }
         break;
 
+      case RECURSIVE:
+        if (value == null) {
+          unsetRecursive();
+        } else {
+          setRecursive((Boolean)value);
+        }
+        break;
+
       }
     }
 
@@ -37833,6 +28469,9 @@ public class MasterService {
       switch (field) {
       case PATH:
         return getPath();
+
+      case RECURSIVE:
+        return Boolean.valueOf(isRecursive());
 
       }
       throw new IllegalStateException();
@@ -37847,6 +28486,8 @@ public class MasterService {
       switch (field) {
       case PATH:
         return isSetPath();
+      case RECURSIVE:
+        return isSetRecursive();
       }
       throw new IllegalStateException();
     }
@@ -37855,12 +28496,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_mkdir_args)
-        return this.equals((user_mkdir_args)that);
+      if (that instanceof user_mkdirs_args)
+        return this.equals((user_mkdirs_args)that);
       return false;
     }
 
-    public boolean equals(user_mkdir_args that) {
+    public boolean equals(user_mkdirs_args that) {
       if (that == null)
         return false;
 
@@ -37873,6 +28514,15 @@ public class MasterService {
           return false;
       }
 
+      boolean this_present_recursive = true;
+      boolean that_present_recursive = true;
+      if (this_present_recursive || that_present_recursive) {
+        if (!(this_present_recursive && that_present_recursive))
+          return false;
+        if (this.recursive != that.recursive)
+          return false;
+      }
+
       return true;
     }
 
@@ -37882,7 +28532,7 @@ public class MasterService {
     }
 
     @Override
-    public int compareTo(user_mkdir_args other) {
+    public int compareTo(user_mkdirs_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -37895,6 +28545,16 @@ public class MasterService {
       }
       if (isSetPath()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetRecursive()).compareTo(other.isSetRecursive());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetRecursive()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.recursive, other.recursive);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -37916,7 +28576,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_mkdir_args(");
+      StringBuilder sb = new StringBuilder("user_mkdirs_args(");
       boolean first = true;
 
       sb.append("path:");
@@ -37925,6 +28585,10 @@ public class MasterService {
       } else {
         sb.append(this.path);
       }
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("recursive:");
+      sb.append(this.recursive);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -37945,21 +28609,23 @@ public class MasterService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
       }
     }
 
-    private static class user_mkdir_argsStandardSchemeFactory implements SchemeFactory {
-      public user_mkdir_argsStandardScheme getScheme() {
-        return new user_mkdir_argsStandardScheme();
+    private static class user_mkdirs_argsStandardSchemeFactory implements SchemeFactory {
+      public user_mkdirs_argsStandardScheme getScheme() {
+        return new user_mkdirs_argsStandardScheme();
       }
     }
 
-    private static class user_mkdir_argsStandardScheme extends StandardScheme<user_mkdir_args> {
+    private static class user_mkdirs_argsStandardScheme extends StandardScheme<user_mkdirs_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_mkdir_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_mkdirs_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -37977,6 +28643,14 @@ public class MasterService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // RECURSIVE
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.recursive = iprot.readBool();
+                struct.setRecursiveIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -37988,7 +28662,7 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_mkdir_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_mkdirs_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -37997,48 +28671,61 @@ public class MasterService {
           oprot.writeString(struct.path);
           oprot.writeFieldEnd();
         }
+        oprot.writeFieldBegin(RECURSIVE_FIELD_DESC);
+        oprot.writeBool(struct.recursive);
+        oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class user_mkdir_argsTupleSchemeFactory implements SchemeFactory {
-      public user_mkdir_argsTupleScheme getScheme() {
-        return new user_mkdir_argsTupleScheme();
+    private static class user_mkdirs_argsTupleSchemeFactory implements SchemeFactory {
+      public user_mkdirs_argsTupleScheme getScheme() {
+        return new user_mkdirs_argsTupleScheme();
       }
     }
 
-    private static class user_mkdir_argsTupleScheme extends TupleScheme<user_mkdir_args> {
+    private static class user_mkdirs_argsTupleScheme extends TupleScheme<user_mkdirs_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_mkdir_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_mkdirs_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetPath()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetRecursive()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetPath()) {
           oprot.writeString(struct.path);
+        }
+        if (struct.isSetRecursive()) {
+          oprot.writeBool(struct.recursive);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_mkdir_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_mkdirs_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.path = iprot.readString();
           struct.setPathIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.recursive = iprot.readBool();
+          struct.setRecursiveIsSet(true);
         }
       }
     }
 
   }
 
-  public static class user_mkdir_result implements org.apache.thrift.TBase<user_mkdir_result, user_mkdir_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_mkdir_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_mkdir_result");
+  public static class user_mkdirs_result implements org.apache.thrift.TBase<user_mkdirs_result, user_mkdirs_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_mkdirs_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_mkdirs_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
     private static final org.apache.thrift.protocol.TField E_R_FIELD_DESC = new org.apache.thrift.protocol.TField("eR", org.apache.thrift.protocol.TType.STRUCT, (short)1);
@@ -38047,8 +28734,8 @@ public class MasterService {
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_mkdir_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_mkdir_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_mkdirs_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_mkdirs_resultTupleSchemeFactory());
     }
 
     public boolean success; // required
@@ -38138,13 +28825,13 @@ public class MasterService {
       tmpMap.put(_Fields.E_T, new org.apache.thrift.meta_data.FieldMetaData("eT", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_mkdir_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_mkdirs_result.class, metaDataMap);
     }
 
-    public user_mkdir_result() {
+    public user_mkdirs_result() {
     }
 
-    public user_mkdir_result(
+    public user_mkdirs_result(
       boolean success,
       FileAlreadyExistException eR,
       InvalidPathException eI,
@@ -38161,7 +28848,7 @@ public class MasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_mkdir_result(user_mkdir_result other) {
+    public user_mkdirs_result(user_mkdirs_result other) {
       __isset_bitfield = other.__isset_bitfield;
       this.success = other.success;
       if (other.isSetER()) {
@@ -38175,8 +28862,8 @@ public class MasterService {
       }
     }
 
-    public user_mkdir_result deepCopy() {
-      return new user_mkdir_result(this);
+    public user_mkdirs_result deepCopy() {
+      return new user_mkdirs_result(this);
     }
 
     @Override
@@ -38192,7 +28879,7 @@ public class MasterService {
       return this.success;
     }
 
-    public user_mkdir_result setSuccess(boolean success) {
+    public user_mkdirs_result setSuccess(boolean success) {
       this.success = success;
       setSuccessIsSet(true);
       return this;
@@ -38215,7 +28902,7 @@ public class MasterService {
       return this.eR;
     }
 
-    public user_mkdir_result setER(FileAlreadyExistException eR) {
+    public user_mkdirs_result setER(FileAlreadyExistException eR) {
       this.eR = eR;
       return this;
     }
@@ -38239,7 +28926,7 @@ public class MasterService {
       return this.eI;
     }
 
-    public user_mkdir_result setEI(InvalidPathException eI) {
+    public user_mkdirs_result setEI(InvalidPathException eI) {
       this.eI = eI;
       return this;
     }
@@ -38263,7 +28950,7 @@ public class MasterService {
       return this.eT;
     }
 
-    public user_mkdir_result setET(TachyonException eT) {
+    public user_mkdirs_result setET(TachyonException eT) {
       this.eT = eT;
       return this;
     }
@@ -38361,12 +29048,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_mkdir_result)
-        return this.equals((user_mkdir_result)that);
+      if (that instanceof user_mkdirs_result)
+        return this.equals((user_mkdirs_result)that);
       return false;
     }
 
-    public boolean equals(user_mkdir_result that) {
+    public boolean equals(user_mkdirs_result that) {
       if (that == null)
         return false;
 
@@ -38415,7 +29102,7 @@ public class MasterService {
     }
 
     @Override
-    public int compareTo(user_mkdir_result other) {
+    public int compareTo(user_mkdirs_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -38479,7 +29166,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_mkdir_result(");
+      StringBuilder sb = new StringBuilder("user_mkdirs_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -38536,15 +29223,15 @@ public class MasterService {
       }
     }
 
-    private static class user_mkdir_resultStandardSchemeFactory implements SchemeFactory {
-      public user_mkdir_resultStandardScheme getScheme() {
-        return new user_mkdir_resultStandardScheme();
+    private static class user_mkdirs_resultStandardSchemeFactory implements SchemeFactory {
+      public user_mkdirs_resultStandardScheme getScheme() {
+        return new user_mkdirs_resultStandardScheme();
       }
     }
 
-    private static class user_mkdir_resultStandardScheme extends StandardScheme<user_mkdir_result> {
+    private static class user_mkdirs_resultStandardScheme extends StandardScheme<user_mkdirs_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_mkdir_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_mkdirs_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -38600,7 +29287,7 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_mkdir_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_mkdirs_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -38630,16 +29317,16 @@ public class MasterService {
 
     }
 
-    private static class user_mkdir_resultTupleSchemeFactory implements SchemeFactory {
-      public user_mkdir_resultTupleScheme getScheme() {
-        return new user_mkdir_resultTupleScheme();
+    private static class user_mkdirs_resultTupleSchemeFactory implements SchemeFactory {
+      public user_mkdirs_resultTupleScheme getScheme() {
+        return new user_mkdirs_resultTupleScheme();
       }
     }
 
-    private static class user_mkdir_resultTupleScheme extends TupleScheme<user_mkdir_result> {
+    private static class user_mkdirs_resultTupleScheme extends TupleScheme<user_mkdirs_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_mkdir_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_mkdirs_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -38670,7 +29357,7 @@ public class MasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_mkdir_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_mkdirs_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(4);
         if (incoming.get(0)) {
@@ -40832,22 +31519,25 @@ public class MasterService {
 
   }
 
-  public static class user_getClientRawTableInfoById_args implements org.apache.thrift.TBase<user_getClientRawTableInfoById_args, user_getClientRawTableInfoById_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_getClientRawTableInfoById_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getClientRawTableInfoById_args");
+  public static class user_getClientRawTableInfo_args implements org.apache.thrift.TBase<user_getClientRawTableInfo_args, user_getClientRawTableInfo_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_getClientRawTableInfo_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getClientRawTableInfo_args");
 
-    private static final org.apache.thrift.protocol.TField TABLE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("tableId", org.apache.thrift.protocol.TType.I32, (short)1);
+    private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.I32, (short)1);
+    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_getClientRawTableInfoById_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getClientRawTableInfoById_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_getClientRawTableInfo_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_getClientRawTableInfo_argsTupleSchemeFactory());
     }
 
-    public int tableId; // required
+    public int id; // required
+    public String path; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      TABLE_ID((short)1, "tableId");
+      ID((short)1, "id"),
+      PATH((short)2, "path");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -40862,8 +31552,10 @@ public class MasterService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // TABLE_ID
-            return TABLE_ID;
+          case 1: // ID
+            return ID;
+          case 2: // PATH
+            return PATH;
           default:
             return null;
         }
@@ -40904,76 +31596,116 @@ public class MasterService {
     }
 
     // isset id assignments
-    private static final int __TABLEID_ISSET_ID = 0;
+    private static final int __ID_ISSET_ID = 0;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.TABLE_ID, new org.apache.thrift.meta_data.FieldMetaData("tableId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+      tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getClientRawTableInfoById_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getClientRawTableInfo_args.class, metaDataMap);
     }
 
-    public user_getClientRawTableInfoById_args() {
+    public user_getClientRawTableInfo_args() {
     }
 
-    public user_getClientRawTableInfoById_args(
-      int tableId)
+    public user_getClientRawTableInfo_args(
+      int id,
+      String path)
     {
       this();
-      this.tableId = tableId;
-      setTableIdIsSet(true);
+      this.id = id;
+      setIdIsSet(true);
+      this.path = path;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_getClientRawTableInfoById_args(user_getClientRawTableInfoById_args other) {
+    public user_getClientRawTableInfo_args(user_getClientRawTableInfo_args other) {
       __isset_bitfield = other.__isset_bitfield;
-      this.tableId = other.tableId;
+      this.id = other.id;
+      if (other.isSetPath()) {
+        this.path = other.path;
+      }
     }
 
-    public user_getClientRawTableInfoById_args deepCopy() {
-      return new user_getClientRawTableInfoById_args(this);
+    public user_getClientRawTableInfo_args deepCopy() {
+      return new user_getClientRawTableInfo_args(this);
     }
 
     @Override
     public void clear() {
-      setTableIdIsSet(false);
-      this.tableId = 0;
+      setIdIsSet(false);
+      this.id = 0;
+      this.path = null;
     }
 
-    public int getTableId() {
-      return this.tableId;
+    public int getId() {
+      return this.id;
     }
 
-    public user_getClientRawTableInfoById_args setTableId(int tableId) {
-      this.tableId = tableId;
-      setTableIdIsSet(true);
+    public user_getClientRawTableInfo_args setId(int id) {
+      this.id = id;
+      setIdIsSet(true);
       return this;
     }
 
-    public void unsetTableId() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __TABLEID_ISSET_ID);
+    public void unsetId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ID_ISSET_ID);
     }
 
-    /** Returns true if field tableId is set (has been assigned a value) and false otherwise */
-    public boolean isSetTableId() {
-      return EncodingUtils.testBit(__isset_bitfield, __TABLEID_ISSET_ID);
+    /** Returns true if field id is set (has been assigned a value) and false otherwise */
+    public boolean isSetId() {
+      return EncodingUtils.testBit(__isset_bitfield, __ID_ISSET_ID);
     }
 
-    public void setTableIdIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __TABLEID_ISSET_ID, value);
+    public void setIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ID_ISSET_ID, value);
+    }
+
+    public String getPath() {
+      return this.path;
+    }
+
+    public user_getClientRawTableInfo_args setPath(String path) {
+      this.path = path;
+      return this;
+    }
+
+    public void unsetPath() {
+      this.path = null;
+    }
+
+    /** Returns true if field path is set (has been assigned a value) and false otherwise */
+    public boolean isSetPath() {
+      return this.path != null;
+    }
+
+    public void setPathIsSet(boolean value) {
+      if (!value) {
+        this.path = null;
+      }
     }
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
-      case TABLE_ID:
+      case ID:
         if (value == null) {
-          unsetTableId();
+          unsetId();
         } else {
-          setTableId((Integer)value);
+          setId((Integer)value);
+        }
+        break;
+
+      case PATH:
+        if (value == null) {
+          unsetPath();
+        } else {
+          setPath((String)value);
         }
         break;
 
@@ -40982,8 +31714,11 @@ public class MasterService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
-      case TABLE_ID:
-        return Integer.valueOf(getTableId());
+      case ID:
+        return Integer.valueOf(getId());
+
+      case PATH:
+        return getPath();
 
       }
       throw new IllegalStateException();
@@ -40996,8 +31731,10 @@ public class MasterService {
       }
 
       switch (field) {
-      case TABLE_ID:
-        return isSetTableId();
+      case ID:
+        return isSetId();
+      case PATH:
+        return isSetPath();
       }
       throw new IllegalStateException();
     }
@@ -41006,21 +31743,30 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_getClientRawTableInfoById_args)
-        return this.equals((user_getClientRawTableInfoById_args)that);
+      if (that instanceof user_getClientRawTableInfo_args)
+        return this.equals((user_getClientRawTableInfo_args)that);
       return false;
     }
 
-    public boolean equals(user_getClientRawTableInfoById_args that) {
+    public boolean equals(user_getClientRawTableInfo_args that) {
       if (that == null)
         return false;
 
-      boolean this_present_tableId = true;
-      boolean that_present_tableId = true;
-      if (this_present_tableId || that_present_tableId) {
-        if (!(this_present_tableId && that_present_tableId))
+      boolean this_present_id = true;
+      boolean that_present_id = true;
+      if (this_present_id || that_present_id) {
+        if (!(this_present_id && that_present_id))
           return false;
-        if (this.tableId != that.tableId)
+        if (this.id != that.id)
+          return false;
+      }
+
+      boolean this_present_path = true && this.isSetPath();
+      boolean that_present_path = true && that.isSetPath();
+      if (this_present_path || that_present_path) {
+        if (!(this_present_path && that_present_path))
+          return false;
+        if (!this.path.equals(that.path))
           return false;
       }
 
@@ -41033,19 +31779,29 @@ public class MasterService {
     }
 
     @Override
-    public int compareTo(user_getClientRawTableInfoById_args other) {
+    public int compareTo(user_getClientRawTableInfo_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
 
-      lastComparison = Boolean.valueOf(isSetTableId()).compareTo(other.isSetTableId());
+      lastComparison = Boolean.valueOf(isSetId()).compareTo(other.isSetId());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetTableId()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.tableId, other.tableId);
+      if (isSetId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.id, other.id);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetPath()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -41067,11 +31823,19 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_getClientRawTableInfoById_args(");
+      StringBuilder sb = new StringBuilder("user_getClientRawTableInfo_args(");
       boolean first = true;
 
-      sb.append("tableId:");
-      sb.append(this.tableId);
+      sb.append("id:");
+      sb.append(this.id);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("path:");
+      if (this.path == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.path);
+      }
       first = false;
       sb.append(")");
       return sb.toString();
@@ -41100,15 +31864,15 @@ public class MasterService {
       }
     }
 
-    private static class user_getClientRawTableInfoById_argsStandardSchemeFactory implements SchemeFactory {
-      public user_getClientRawTableInfoById_argsStandardScheme getScheme() {
-        return new user_getClientRawTableInfoById_argsStandardScheme();
+    private static class user_getClientRawTableInfo_argsStandardSchemeFactory implements SchemeFactory {
+      public user_getClientRawTableInfo_argsStandardScheme getScheme() {
+        return new user_getClientRawTableInfo_argsStandardScheme();
       }
     }
 
-    private static class user_getClientRawTableInfoById_argsStandardScheme extends StandardScheme<user_getClientRawTableInfoById_args> {
+    private static class user_getClientRawTableInfo_argsStandardScheme extends StandardScheme<user_getClientRawTableInfo_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getClientRawTableInfoById_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getClientRawTableInfo_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -41118,10 +31882,18 @@ public class MasterService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // TABLE_ID
+            case 1: // ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.tableId = iprot.readI32();
-                struct.setTableIdIsSet(true);
+                struct.id = iprot.readI32();
+                struct.setIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // PATH
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+                struct.path = iprot.readString();
+                struct.setPathIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -41137,460 +31909,16 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getClientRawTableInfoById_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getClientRawTableInfo_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        oprot.writeFieldBegin(TABLE_ID_FIELD_DESC);
-        oprot.writeI32(struct.tableId);
+        oprot.writeFieldBegin(ID_FIELD_DESC);
+        oprot.writeI32(struct.id);
         oprot.writeFieldEnd();
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_getClientRawTableInfoById_argsTupleSchemeFactory implements SchemeFactory {
-      public user_getClientRawTableInfoById_argsTupleScheme getScheme() {
-        return new user_getClientRawTableInfoById_argsTupleScheme();
-      }
-    }
-
-    private static class user_getClientRawTableInfoById_argsTupleScheme extends TupleScheme<user_getClientRawTableInfoById_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getClientRawTableInfoById_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetTableId()) {
-          optionals.set(0);
-        }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetTableId()) {
-          oprot.writeI32(struct.tableId);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getClientRawTableInfoById_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
-        if (incoming.get(0)) {
-          struct.tableId = iprot.readI32();
-          struct.setTableIdIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_getClientRawTableInfoById_result implements org.apache.thrift.TBase<user_getClientRawTableInfoById_result, user_getClientRawTableInfoById_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_getClientRawTableInfoById_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getClientRawTableInfoById_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
-    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_getClientRawTableInfoById_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getClientRawTableInfoById_resultTupleSchemeFactory());
-    }
-
-    public ClientRawTableInfo success; // required
-    public TableDoesNotExistException e; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E((short)1, "e");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
-          case 1: // E
-            return E;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ClientRawTableInfo.class)));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getClientRawTableInfoById_result.class, metaDataMap);
-    }
-
-    public user_getClientRawTableInfoById_result() {
-    }
-
-    public user_getClientRawTableInfoById_result(
-      ClientRawTableInfo success,
-      TableDoesNotExistException e)
-    {
-      this();
-      this.success = success;
-      this.e = e;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_getClientRawTableInfoById_result(user_getClientRawTableInfoById_result other) {
-      if (other.isSetSuccess()) {
-        this.success = new ClientRawTableInfo(other.success);
-      }
-      if (other.isSetE()) {
-        this.e = new TableDoesNotExistException(other.e);
-      }
-    }
-
-    public user_getClientRawTableInfoById_result deepCopy() {
-      return new user_getClientRawTableInfoById_result(this);
-    }
-
-    @Override
-    public void clear() {
-      this.success = null;
-      this.e = null;
-    }
-
-    public ClientRawTableInfo getSuccess() {
-      return this.success;
-    }
-
-    public user_getClientRawTableInfoById_result setSuccess(ClientRawTableInfo success) {
-      this.success = success;
-      return this;
-    }
-
-    public void unsetSuccess() {
-      this.success = null;
-    }
-
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return this.success != null;
-    }
-
-    public void setSuccessIsSet(boolean value) {
-      if (!value) {
-        this.success = null;
-      }
-    }
-
-    public TableDoesNotExistException getE() {
-      return this.e;
-    }
-
-    public user_getClientRawTableInfoById_result setE(TableDoesNotExistException e) {
-      this.e = e;
-      return this;
-    }
-
-    public void unsetE() {
-      this.e = null;
-    }
-
-    /** Returns true if field e is set (has been assigned a value) and false otherwise */
-    public boolean isSetE() {
-      return this.e != null;
-    }
-
-    public void setEIsSet(boolean value) {
-      if (!value) {
-        this.e = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((ClientRawTableInfo)value);
-        }
-        break;
-
-      case E:
-        if (value == null) {
-          unsetE();
-        } else {
-          setE((TableDoesNotExistException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case SUCCESS:
-        return getSuccess();
-
-      case E:
-        return getE();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      case E:
-        return isSetE();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_getClientRawTableInfoById_result)
-        return this.equals((user_getClientRawTableInfoById_result)that);
-      return false;
-    }
-
-    public boolean equals(user_getClientRawTableInfoById_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
-          return false;
-        if (!this.success.equals(that.success))
-          return false;
-      }
-
-      boolean this_present_e = true && this.isSetE();
-      boolean that_present_e = true && that.isSetE();
-      if (this_present_e || that_present_e) {
-        if (!(this_present_e && that_present_e))
-          return false;
-        if (!this.e.equals(that.e))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_getClientRawTableInfoById_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetE()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_getClientRawTableInfoById_result(");
-      boolean first = true;
-
-      sb.append("success:");
-      if (this.success == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.success);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("e:");
-      if (this.e == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.e);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-      if (success != null) {
-        success.validate();
-      }
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_getClientRawTableInfoById_resultStandardSchemeFactory implements SchemeFactory {
-      public user_getClientRawTableInfoById_resultStandardScheme getScheme() {
-        return new user_getClientRawTableInfoById_resultStandardScheme();
-      }
-    }
-
-    private static class user_getClientRawTableInfoById_resultStandardScheme extends StandardScheme<user_getClientRawTableInfoById_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getClientRawTableInfoById_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new ClientRawTableInfo();
-                struct.success.read(iprot);
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 1: // E
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new TableDoesNotExistException();
-                struct.e.read(iprot);
-                struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getClientRawTableInfoById_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          struct.success.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.e != null) {
-          oprot.writeFieldBegin(E_FIELD_DESC);
-          struct.e.write(oprot);
+        if (struct.path != null) {
+          oprot.writeFieldBegin(PATH_FIELD_DESC);
+          oprot.writeString(struct.path);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -41599,408 +31927,52 @@ public class MasterService {
 
     }
 
-    private static class user_getClientRawTableInfoById_resultTupleSchemeFactory implements SchemeFactory {
-      public user_getClientRawTableInfoById_resultTupleScheme getScheme() {
-        return new user_getClientRawTableInfoById_resultTupleScheme();
+    private static class user_getClientRawTableInfo_argsTupleSchemeFactory implements SchemeFactory {
+      public user_getClientRawTableInfo_argsTupleScheme getScheme() {
+        return new user_getClientRawTableInfo_argsTupleScheme();
       }
     }
 
-    private static class user_getClientRawTableInfoById_resultTupleScheme extends TupleScheme<user_getClientRawTableInfoById_result> {
+    private static class user_getClientRawTableInfo_argsTupleScheme extends TupleScheme<user_getClientRawTableInfo_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getClientRawTableInfoById_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_getClientRawTableInfo_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
+        if (struct.isSetId()) {
           optionals.set(0);
         }
-        if (struct.isSetE()) {
+        if (struct.isSetPath()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
-        if (struct.isSetSuccess()) {
-          struct.success.write(oprot);
+        if (struct.isSetId()) {
+          oprot.writeI32(struct.id);
         }
-        if (struct.isSetE()) {
-          struct.e.write(oprot);
+        if (struct.isSetPath()) {
+          oprot.writeString(struct.path);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getClientRawTableInfoById_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_getClientRawTableInfo_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = new ClientRawTableInfo();
-          struct.success.read(iprot);
-          struct.setSuccessIsSet(true);
+          struct.id = iprot.readI32();
+          struct.setIdIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.e = new TableDoesNotExistException();
-          struct.e.read(iprot);
-          struct.setEIsSet(true);
+          struct.path = iprot.readString();
+          struct.setPathIsSet(true);
         }
       }
     }
 
   }
 
-  public static class user_getClientRawTableInfoByPath_args implements org.apache.thrift.TBase<user_getClientRawTableInfoByPath_args, user_getClientRawTableInfoByPath_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_getClientRawTableInfoByPath_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getClientRawTableInfoByPath_args");
-
-    private static final org.apache.thrift.protocol.TField TABLE_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("tablePath", org.apache.thrift.protocol.TType.STRING, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_getClientRawTableInfoByPath_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getClientRawTableInfoByPath_argsTupleSchemeFactory());
-    }
-
-    public String tablePath; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      TABLE_PATH((short)1, "tablePath");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // TABLE_PATH
-            return TABLE_PATH;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.TABLE_PATH, new org.apache.thrift.meta_data.FieldMetaData("tablePath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getClientRawTableInfoByPath_args.class, metaDataMap);
-    }
-
-    public user_getClientRawTableInfoByPath_args() {
-    }
-
-    public user_getClientRawTableInfoByPath_args(
-      String tablePath)
-    {
-      this();
-      this.tablePath = tablePath;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_getClientRawTableInfoByPath_args(user_getClientRawTableInfoByPath_args other) {
-      if (other.isSetTablePath()) {
-        this.tablePath = other.tablePath;
-      }
-    }
-
-    public user_getClientRawTableInfoByPath_args deepCopy() {
-      return new user_getClientRawTableInfoByPath_args(this);
-    }
-
-    @Override
-    public void clear() {
-      this.tablePath = null;
-    }
-
-    public String getTablePath() {
-      return this.tablePath;
-    }
-
-    public user_getClientRawTableInfoByPath_args setTablePath(String tablePath) {
-      this.tablePath = tablePath;
-      return this;
-    }
-
-    public void unsetTablePath() {
-      this.tablePath = null;
-    }
-
-    /** Returns true if field tablePath is set (has been assigned a value) and false otherwise */
-    public boolean isSetTablePath() {
-      return this.tablePath != null;
-    }
-
-    public void setTablePathIsSet(boolean value) {
-      if (!value) {
-        this.tablePath = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case TABLE_PATH:
-        if (value == null) {
-          unsetTablePath();
-        } else {
-          setTablePath((String)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case TABLE_PATH:
-        return getTablePath();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case TABLE_PATH:
-        return isSetTablePath();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_getClientRawTableInfoByPath_args)
-        return this.equals((user_getClientRawTableInfoByPath_args)that);
-      return false;
-    }
-
-    public boolean equals(user_getClientRawTableInfoByPath_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_tablePath = true && this.isSetTablePath();
-      boolean that_present_tablePath = true && that.isSetTablePath();
-      if (this_present_tablePath || that_present_tablePath) {
-        if (!(this_present_tablePath && that_present_tablePath))
-          return false;
-        if (!this.tablePath.equals(that.tablePath))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_getClientRawTableInfoByPath_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetTablePath()).compareTo(other.isSetTablePath());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetTablePath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.tablePath, other.tablePath);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_getClientRawTableInfoByPath_args(");
-      boolean first = true;
-
-      sb.append("tablePath:");
-      if (this.tablePath == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.tablePath);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_getClientRawTableInfoByPath_argsStandardSchemeFactory implements SchemeFactory {
-      public user_getClientRawTableInfoByPath_argsStandardScheme getScheme() {
-        return new user_getClientRawTableInfoByPath_argsStandardScheme();
-      }
-    }
-
-    private static class user_getClientRawTableInfoByPath_argsStandardScheme extends StandardScheme<user_getClientRawTableInfoByPath_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getClientRawTableInfoByPath_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // TABLE_PATH
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.tablePath = iprot.readString();
-                struct.setTablePathIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getClientRawTableInfoByPath_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.tablePath != null) {
-          oprot.writeFieldBegin(TABLE_PATH_FIELD_DESC);
-          oprot.writeString(struct.tablePath);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_getClientRawTableInfoByPath_argsTupleSchemeFactory implements SchemeFactory {
-      public user_getClientRawTableInfoByPath_argsTupleScheme getScheme() {
-        return new user_getClientRawTableInfoByPath_argsTupleScheme();
-      }
-    }
-
-    private static class user_getClientRawTableInfoByPath_argsTupleScheme extends TupleScheme<user_getClientRawTableInfoByPath_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getClientRawTableInfoByPath_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetTablePath()) {
-          optionals.set(0);
-        }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetTablePath()) {
-          oprot.writeString(struct.tablePath);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getClientRawTableInfoByPath_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
-        if (incoming.get(0)) {
-          struct.tablePath = iprot.readString();
-          struct.setTablePathIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_getClientRawTableInfoByPath_result implements org.apache.thrift.TBase<user_getClientRawTableInfoByPath_result, user_getClientRawTableInfoByPath_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_getClientRawTableInfoByPath_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getClientRawTableInfoByPath_result");
+  public static class user_getClientRawTableInfo_result implements org.apache.thrift.TBase<user_getClientRawTableInfo_result, user_getClientRawTableInfo_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_getClientRawTableInfo_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getClientRawTableInfo_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_T_FIELD_DESC = new org.apache.thrift.protocol.TField("eT", org.apache.thrift.protocol.TType.STRUCT, (short)1);
@@ -42008,8 +31980,8 @@ public class MasterService {
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new user_getClientRawTableInfoByPath_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getClientRawTableInfoByPath_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new user_getClientRawTableInfo_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new user_getClientRawTableInfo_resultTupleSchemeFactory());
     }
 
     public ClientRawTableInfo success; // required
@@ -42091,13 +32063,13 @@ public class MasterService {
       tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getClientRawTableInfoByPath_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getClientRawTableInfo_result.class, metaDataMap);
     }
 
-    public user_getClientRawTableInfoByPath_result() {
+    public user_getClientRawTableInfo_result() {
     }
 
-    public user_getClientRawTableInfoByPath_result(
+    public user_getClientRawTableInfo_result(
       ClientRawTableInfo success,
       TableDoesNotExistException eT,
       InvalidPathException eI)
@@ -42111,7 +32083,7 @@ public class MasterService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public user_getClientRawTableInfoByPath_result(user_getClientRawTableInfoByPath_result other) {
+    public user_getClientRawTableInfo_result(user_getClientRawTableInfo_result other) {
       if (other.isSetSuccess()) {
         this.success = new ClientRawTableInfo(other.success);
       }
@@ -42123,8 +32095,8 @@ public class MasterService {
       }
     }
 
-    public user_getClientRawTableInfoByPath_result deepCopy() {
-      return new user_getClientRawTableInfoByPath_result(this);
+    public user_getClientRawTableInfo_result deepCopy() {
+      return new user_getClientRawTableInfo_result(this);
     }
 
     @Override
@@ -42138,7 +32110,7 @@ public class MasterService {
       return this.success;
     }
 
-    public user_getClientRawTableInfoByPath_result setSuccess(ClientRawTableInfo success) {
+    public user_getClientRawTableInfo_result setSuccess(ClientRawTableInfo success) {
       this.success = success;
       return this;
     }
@@ -42162,7 +32134,7 @@ public class MasterService {
       return this.eT;
     }
 
-    public user_getClientRawTableInfoByPath_result setET(TableDoesNotExistException eT) {
+    public user_getClientRawTableInfo_result setET(TableDoesNotExistException eT) {
       this.eT = eT;
       return this;
     }
@@ -42186,7 +32158,7 @@ public class MasterService {
       return this.eI;
     }
 
-    public user_getClientRawTableInfoByPath_result setEI(InvalidPathException eI) {
+    public user_getClientRawTableInfo_result setEI(InvalidPathException eI) {
       this.eI = eI;
       return this;
     }
@@ -42271,12 +32243,12 @@ public class MasterService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof user_getClientRawTableInfoByPath_result)
-        return this.equals((user_getClientRawTableInfoByPath_result)that);
+      if (that instanceof user_getClientRawTableInfo_result)
+        return this.equals((user_getClientRawTableInfo_result)that);
       return false;
     }
 
-    public boolean equals(user_getClientRawTableInfoByPath_result that) {
+    public boolean equals(user_getClientRawTableInfo_result that) {
       if (that == null)
         return false;
 
@@ -42316,7 +32288,7 @@ public class MasterService {
     }
 
     @Override
-    public int compareTo(user_getClientRawTableInfoByPath_result other) {
+    public int compareTo(user_getClientRawTableInfo_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -42370,7 +32342,7 @@ public class MasterService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("user_getClientRawTableInfoByPath_result(");
+      StringBuilder sb = new StringBuilder("user_getClientRawTableInfo_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -42424,15 +32396,15 @@ public class MasterService {
       }
     }
 
-    private static class user_getClientRawTableInfoByPath_resultStandardSchemeFactory implements SchemeFactory {
-      public user_getClientRawTableInfoByPath_resultStandardScheme getScheme() {
-        return new user_getClientRawTableInfoByPath_resultStandardScheme();
+    private static class user_getClientRawTableInfo_resultStandardSchemeFactory implements SchemeFactory {
+      public user_getClientRawTableInfo_resultStandardScheme getScheme() {
+        return new user_getClientRawTableInfo_resultStandardScheme();
       }
     }
 
-    private static class user_getClientRawTableInfoByPath_resultStandardScheme extends StandardScheme<user_getClientRawTableInfoByPath_result> {
+    private static class user_getClientRawTableInfo_resultStandardScheme extends StandardScheme<user_getClientRawTableInfo_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getClientRawTableInfoByPath_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getClientRawTableInfo_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -42480,7 +32452,7 @@ public class MasterService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getClientRawTableInfoByPath_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getClientRawTableInfo_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -42505,16 +32477,16 @@ public class MasterService {
 
     }
 
-    private static class user_getClientRawTableInfoByPath_resultTupleSchemeFactory implements SchemeFactory {
-      public user_getClientRawTableInfoByPath_resultTupleScheme getScheme() {
-        return new user_getClientRawTableInfoByPath_resultTupleScheme();
+    private static class user_getClientRawTableInfo_resultTupleSchemeFactory implements SchemeFactory {
+      public user_getClientRawTableInfo_resultTupleScheme getScheme() {
+        return new user_getClientRawTableInfo_resultTupleScheme();
       }
     }
 
-    private static class user_getClientRawTableInfoByPath_resultTupleScheme extends TupleScheme<user_getClientRawTableInfoByPath_result> {
+    private static class user_getClientRawTableInfo_resultTupleScheme extends TupleScheme<user_getClientRawTableInfo_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getClientRawTableInfoByPath_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, user_getClientRawTableInfo_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -42539,7 +32511,7 @@ public class MasterService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getClientRawTableInfoByPath_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, user_getClientRawTableInfo_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
@@ -43477,918 +33449,6 @@ public class MasterService {
           struct.eTa = new TachyonException();
           struct.eTa.read(iprot);
           struct.setETaIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_getNumberOfFiles_args implements org.apache.thrift.TBase<user_getNumberOfFiles_args, user_getNumberOfFiles_args._Fields>, java.io.Serializable, Cloneable, Comparable<user_getNumberOfFiles_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getNumberOfFiles_args");
-
-    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_getNumberOfFiles_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getNumberOfFiles_argsTupleSchemeFactory());
-    }
-
-    public String path; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      PATH((short)1, "path");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // PATH
-            return PATH;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getNumberOfFiles_args.class, metaDataMap);
-    }
-
-    public user_getNumberOfFiles_args() {
-    }
-
-    public user_getNumberOfFiles_args(
-      String path)
-    {
-      this();
-      this.path = path;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_getNumberOfFiles_args(user_getNumberOfFiles_args other) {
-      if (other.isSetPath()) {
-        this.path = other.path;
-      }
-    }
-
-    public user_getNumberOfFiles_args deepCopy() {
-      return new user_getNumberOfFiles_args(this);
-    }
-
-    @Override
-    public void clear() {
-      this.path = null;
-    }
-
-    public String getPath() {
-      return this.path;
-    }
-
-    public user_getNumberOfFiles_args setPath(String path) {
-      this.path = path;
-      return this;
-    }
-
-    public void unsetPath() {
-      this.path = null;
-    }
-
-    /** Returns true if field path is set (has been assigned a value) and false otherwise */
-    public boolean isSetPath() {
-      return this.path != null;
-    }
-
-    public void setPathIsSet(boolean value) {
-      if (!value) {
-        this.path = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case PATH:
-        if (value == null) {
-          unsetPath();
-        } else {
-          setPath((String)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case PATH:
-        return getPath();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case PATH:
-        return isSetPath();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_getNumberOfFiles_args)
-        return this.equals((user_getNumberOfFiles_args)that);
-      return false;
-    }
-
-    public boolean equals(user_getNumberOfFiles_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_path = true && this.isSetPath();
-      boolean that_present_path = true && that.isSetPath();
-      if (this_present_path || that_present_path) {
-        if (!(this_present_path && that_present_path))
-          return false;
-        if (!this.path.equals(that.path))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_getNumberOfFiles_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetPath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_getNumberOfFiles_args(");
-      boolean first = true;
-
-      sb.append("path:");
-      if (this.path == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.path);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_getNumberOfFiles_argsStandardSchemeFactory implements SchemeFactory {
-      public user_getNumberOfFiles_argsStandardScheme getScheme() {
-        return new user_getNumberOfFiles_argsStandardScheme();
-      }
-    }
-
-    private static class user_getNumberOfFiles_argsStandardScheme extends StandardScheme<user_getNumberOfFiles_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getNumberOfFiles_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // PATH
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.path = iprot.readString();
-                struct.setPathIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getNumberOfFiles_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.path != null) {
-          oprot.writeFieldBegin(PATH_FIELD_DESC);
-          oprot.writeString(struct.path);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_getNumberOfFiles_argsTupleSchemeFactory implements SchemeFactory {
-      public user_getNumberOfFiles_argsTupleScheme getScheme() {
-        return new user_getNumberOfFiles_argsTupleScheme();
-      }
-    }
-
-    private static class user_getNumberOfFiles_argsTupleScheme extends TupleScheme<user_getNumberOfFiles_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getNumberOfFiles_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetPath()) {
-          optionals.set(0);
-        }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetPath()) {
-          oprot.writeString(struct.path);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getNumberOfFiles_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
-        if (incoming.get(0)) {
-          struct.path = iprot.readString();
-          struct.setPathIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class user_getNumberOfFiles_result implements org.apache.thrift.TBase<user_getNumberOfFiles_result, user_getNumberOfFiles_result._Fields>, java.io.Serializable, Cloneable, Comparable<user_getNumberOfFiles_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("user_getNumberOfFiles_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I32, (short)0);
-    private static final org.apache.thrift.protocol.TField E_R_FIELD_DESC = new org.apache.thrift.protocol.TField("eR", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField E_I_FIELD_DESC = new org.apache.thrift.protocol.TField("eI", org.apache.thrift.protocol.TType.STRUCT, (short)2);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new user_getNumberOfFiles_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new user_getNumberOfFiles_resultTupleSchemeFactory());
-    }
-
-    public int success; // required
-    public FileDoesNotExistException eR; // required
-    public InvalidPathException eI; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E_R((short)1, "eR"),
-      E_I((short)2, "eI");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
-          case 1: // E_R
-            return E_R;
-          case 2: // E_I
-            return E_I;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-      tmpMap.put(_Fields.E_R, new org.apache.thrift.meta_data.FieldMetaData("eR", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.E_I, new org.apache.thrift.meta_data.FieldMetaData("eI", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(user_getNumberOfFiles_result.class, metaDataMap);
-    }
-
-    public user_getNumberOfFiles_result() {
-    }
-
-    public user_getNumberOfFiles_result(
-      int success,
-      FileDoesNotExistException eR,
-      InvalidPathException eI)
-    {
-      this();
-      this.success = success;
-      setSuccessIsSet(true);
-      this.eR = eR;
-      this.eI = eI;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public user_getNumberOfFiles_result(user_getNumberOfFiles_result other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.success = other.success;
-      if (other.isSetER()) {
-        this.eR = new FileDoesNotExistException(other.eR);
-      }
-      if (other.isSetEI()) {
-        this.eI = new InvalidPathException(other.eI);
-      }
-    }
-
-    public user_getNumberOfFiles_result deepCopy() {
-      return new user_getNumberOfFiles_result(this);
-    }
-
-    @Override
-    public void clear() {
-      setSuccessIsSet(false);
-      this.success = 0;
-      this.eR = null;
-      this.eI = null;
-    }
-
-    public int getSuccess() {
-      return this.success;
-    }
-
-    public user_getNumberOfFiles_result setSuccess(int success) {
-      this.success = success;
-      setSuccessIsSet(true);
-      return this;
-    }
-
-    public void unsetSuccess() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
-    }
-
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
-    }
-
-    public void setSuccessIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
-    }
-
-    public FileDoesNotExistException getER() {
-      return this.eR;
-    }
-
-    public user_getNumberOfFiles_result setER(FileDoesNotExistException eR) {
-      this.eR = eR;
-      return this;
-    }
-
-    public void unsetER() {
-      this.eR = null;
-    }
-
-    /** Returns true if field eR is set (has been assigned a value) and false otherwise */
-    public boolean isSetER() {
-      return this.eR != null;
-    }
-
-    public void setERIsSet(boolean value) {
-      if (!value) {
-        this.eR = null;
-      }
-    }
-
-    public InvalidPathException getEI() {
-      return this.eI;
-    }
-
-    public user_getNumberOfFiles_result setEI(InvalidPathException eI) {
-      this.eI = eI;
-      return this;
-    }
-
-    public void unsetEI() {
-      this.eI = null;
-    }
-
-    /** Returns true if field eI is set (has been assigned a value) and false otherwise */
-    public boolean isSetEI() {
-      return this.eI != null;
-    }
-
-    public void setEIIsSet(boolean value) {
-      if (!value) {
-        this.eI = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((Integer)value);
-        }
-        break;
-
-      case E_R:
-        if (value == null) {
-          unsetER();
-        } else {
-          setER((FileDoesNotExistException)value);
-        }
-        break;
-
-      case E_I:
-        if (value == null) {
-          unsetEI();
-        } else {
-          setEI((InvalidPathException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case SUCCESS:
-        return Integer.valueOf(getSuccess());
-
-      case E_R:
-        return getER();
-
-      case E_I:
-        return getEI();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      case E_R:
-        return isSetER();
-      case E_I:
-        return isSetEI();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof user_getNumberOfFiles_result)
-        return this.equals((user_getNumberOfFiles_result)that);
-      return false;
-    }
-
-    public boolean equals(user_getNumberOfFiles_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_success = true;
-      boolean that_present_success = true;
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
-          return false;
-        if (this.success != that.success)
-          return false;
-      }
-
-      boolean this_present_eR = true && this.isSetER();
-      boolean that_present_eR = true && that.isSetER();
-      if (this_present_eR || that_present_eR) {
-        if (!(this_present_eR && that_present_eR))
-          return false;
-        if (!this.eR.equals(that.eR))
-          return false;
-      }
-
-      boolean this_present_eI = true && this.isSetEI();
-      boolean that_present_eI = true && that.isSetEI();
-      if (this_present_eI || that_present_eI) {
-        if (!(this_present_eI && that_present_eI))
-          return false;
-        if (!this.eI.equals(that.eI))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-
-    @Override
-    public int compareTo(user_getNumberOfFiles_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetER()).compareTo(other.isSetER());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetER()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eR, other.eR);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetEI()).compareTo(other.isSetEI());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetEI()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.eI, other.eI);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("user_getNumberOfFiles_result(");
-      boolean first = true;
-
-      sb.append("success:");
-      sb.append(this.success);
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eR:");
-      if (this.eR == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eR);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("eI:");
-      if (this.eI == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.eI);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class user_getNumberOfFiles_resultStandardSchemeFactory implements SchemeFactory {
-      public user_getNumberOfFiles_resultStandardScheme getScheme() {
-        return new user_getNumberOfFiles_resultStandardScheme();
-      }
-    }
-
-    private static class user_getNumberOfFiles_resultStandardScheme extends StandardScheme<user_getNumberOfFiles_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, user_getNumberOfFiles_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-                struct.success = iprot.readI32();
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 1: // E_R
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eR = new FileDoesNotExistException();
-                struct.eR.read(iprot);
-                struct.setERIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // E_I
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.eI = new InvalidPathException();
-                struct.eI.read(iprot);
-                struct.setEIIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, user_getNumberOfFiles_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.isSetSuccess()) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeI32(struct.success);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eR != null) {
-          oprot.writeFieldBegin(E_R_FIELD_DESC);
-          struct.eR.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.eI != null) {
-          oprot.writeFieldBegin(E_I_FIELD_DESC);
-          struct.eI.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class user_getNumberOfFiles_resultTupleSchemeFactory implements SchemeFactory {
-      public user_getNumberOfFiles_resultTupleScheme getScheme() {
-        return new user_getNumberOfFiles_resultTupleScheme();
-      }
-    }
-
-    private static class user_getNumberOfFiles_resultTupleScheme extends TupleScheme<user_getNumberOfFiles_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, user_getNumberOfFiles_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
-          optionals.set(0);
-        }
-        if (struct.isSetER()) {
-          optionals.set(1);
-        }
-        if (struct.isSetEI()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
-        if (struct.isSetSuccess()) {
-          oprot.writeI32(struct.success);
-        }
-        if (struct.isSetER()) {
-          struct.eR.write(oprot);
-        }
-        if (struct.isSetEI()) {
-          struct.eI.write(oprot);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, user_getNumberOfFiles_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
-        if (incoming.get(0)) {
-          struct.success = iprot.readI32();
-          struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.eR = new FileDoesNotExistException();
-          struct.eR.read(iprot);
-          struct.setERIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.eI = new InvalidPathException();
-          struct.eI.read(iprot);
-          struct.setEIIsSet(true);
         }
       }
     }

@@ -27,7 +27,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Create a new dependency from a JSON Element.
-   * 
+   *
    * @param ele
    *          the JSON element
    * @return the loaded dependency
@@ -45,29 +45,29 @@ public class Dependency extends ImageWriter {
     return dep;
   }
 
-  public final int ID;
+  public final int mId;
 
-  public final long CREATION_TIME_MS;
-  public final List<Integer> PARENT_FILES;
-  public final List<Integer> CHILDREN_FILES;
-  private final Set<Integer> UNCHECKPOINTED_CHILDREN_FILES;
-  public final String COMMAND_PREFIX;
+  public final long mCreationTimeMs;
+  public final List<Integer> mParentFiles;
+  public final List<Integer> mChildrenFiles;
+  private final Set<Integer> mUncheckpointedChildrenFiles;
+  public final String mCommandPrefix;
 
-  public final List<ByteBuffer> DATA;
-  public final String COMMENT;
-  public final String FRAMEWORK;
+  public final List<ByteBuffer> mData;
+  public final String mComment;
+  public final String mFramework;
 
-  public final String FRAMEWORK_VERSION;
+  public final String mFrameworkVersion;
 
-  public final DependencyType TYPE;
-  public final List<Integer> PARENT_DEPENDENCIES;
-  private List<Integer> mChildrenDependencies;
+  public final DependencyType mDependencyType;
+  public final List<Integer> mParentDependencies;
+  private final List<Integer> mChildrenDependencies;
 
-  private Set<Integer> mLostFileIds;
+  private final Set<Integer> mLostFileIds;
 
   /**
    * Create a new dependency
-   * 
+   *
    * @param id
    *          The id of the dependency
    * @param parents
@@ -94,26 +94,26 @@ public class Dependency extends ImageWriter {
   public Dependency(int id, List<Integer> parents, List<Integer> children, String commandPrefix,
       List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
       DependencyType type, Collection<Integer> parentDependencies, long creationTimeMs) {
-    ID = id;
-    CREATION_TIME_MS = creationTimeMs;
+    mId = id;
+    mCreationTimeMs = creationTimeMs;
 
-    PARENT_FILES = new ArrayList<Integer>(parents.size());
-    PARENT_FILES.addAll(parents);
-    CHILDREN_FILES = new ArrayList<Integer>(children.size());
-    CHILDREN_FILES.addAll(children);
-    UNCHECKPOINTED_CHILDREN_FILES = new HashSet<Integer>();
-    UNCHECKPOINTED_CHILDREN_FILES.addAll(CHILDREN_FILES);
-    COMMAND_PREFIX = commandPrefix;
-    DATA = CommonUtils.cloneByteBufferList(data);
+    mParentFiles = new ArrayList<Integer>(parents.size());
+    mParentFiles.addAll(parents);
+    mChildrenFiles = new ArrayList<Integer>(children.size());
+    mChildrenFiles.addAll(children);
+    mUncheckpointedChildrenFiles = new HashSet<Integer>();
+    mUncheckpointedChildrenFiles.addAll(mChildrenFiles);
+    mCommandPrefix = commandPrefix;
+    mData = CommonUtils.cloneByteBufferList(data);
 
-    COMMENT = comment;
-    FRAMEWORK = framework;
-    FRAMEWORK_VERSION = frameworkVersion;
+    mComment = comment;
+    mFramework = framework;
+    mFrameworkVersion = frameworkVersion;
 
-    TYPE = type;
+    mDependencyType = type;
 
-    PARENT_DEPENDENCIES = new ArrayList<Integer>(parentDependencies.size());
-    PARENT_DEPENDENCIES.addAll(parentDependencies);
+    mParentDependencies = new ArrayList<Integer>(parentDependencies.size());
+    mParentDependencies.addAll(parentDependencies);
     mChildrenDependencies = new ArrayList<Integer>(0);
     mLostFileIds = new HashSet<Integer>(0);
   }
@@ -121,7 +121,7 @@ public class Dependency extends ImageWriter {
   /**
    * Add a child dependency, which means one of the children of the current dependency is a parent
    * of the added dependency.
-   * 
+   *
    * @param childDependencyId
    *          The id of the child dependency to be added
    */
@@ -136,7 +136,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * A file lost. Add it to the dependency.
-   * 
+   *
    * @param fileId
    *          The id of the lost file
    */
@@ -146,34 +146,34 @@ public class Dependency extends ImageWriter {
 
   /**
    * A child file has been checkpointed. Remove it from the uncheckpointed children list.
-   * 
+   *
    * @param childFileId
    *          The id of the checkpointed child file
    */
   public synchronized void childCheckpointed(int childFileId) {
-    UNCHECKPOINTED_CHILDREN_FILES.remove(childFileId);
+    mUncheckpointedChildrenFiles.remove(childFileId);
     LOG.debug("Child got checkpointed " + childFileId + " : " + toString());
   }
 
   /**
    * Generate a ClientDependencyInfo, which is used for the thrift server.
-   * 
+   *
    * @return the generated ClientDependencyInfo
    */
   public ClientDependencyInfo generateClientDependencyInfo() {
     ClientDependencyInfo ret = new ClientDependencyInfo();
-    ret.id = ID;
-    ret.parents = new ArrayList<Integer>(PARENT_FILES.size());
-    ret.parents.addAll(PARENT_FILES);
-    ret.children = new ArrayList<Integer>(CHILDREN_FILES.size());
-    ret.children.addAll(CHILDREN_FILES);
-    ret.data = CommonUtils.cloneByteBufferList(DATA);
+    ret.id = mId;
+    ret.parents = new ArrayList<Integer>(mParentFiles.size());
+    ret.parents.addAll(mParentFiles);
+    ret.children = new ArrayList<Integer>(mChildrenFiles.size());
+    ret.children.addAll(mChildrenFiles);
+    ret.data = CommonUtils.cloneByteBufferList(mData);
     return ret;
   }
 
   /**
    * Get the children dependencies of this dependency. It will return a duplication.
-   * 
+   *
    * @return the duplication of the children dependencies
    */
   public synchronized List<Integer> getChildrenDependency() {
@@ -184,7 +184,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Get the command used for the recomputation. Note that it will clear the set of lost files' id.
-   * 
+   *
    * @return the command used for the recomputation
    */
   public synchronized String getCommand() {
@@ -192,9 +192,9 @@ public class Dependency extends ImageWriter {
     // For now, assume there is only one command model.
     StringBuilder sb = new StringBuilder(parseCommandPrefix());
     sb.append(" ").append(MasterConf.get().MASTER_ADDRESS);
-    sb.append(" ").append(ID);
-    for (int k = 0; k < CHILDREN_FILES.size(); k ++) {
-      int id = CHILDREN_FILES.get(k);
+    sb.append(" ").append(mId);
+    for (int k = 0; k < mChildrenFiles.size(); k ++) {
+      int id = mChildrenFiles.get(k);
       if (mLostFileIds.contains(id)) {
         sb.append(" ").append(k);
       }
@@ -205,7 +205,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Get the lost files of the dependency. It will return a duplication.
-   * 
+   *
    * @return the duplication of the lost files' id
    */
   public synchronized List<Integer> getLostFiles() {
@@ -216,28 +216,28 @@ public class Dependency extends ImageWriter {
 
   /**
    * Get the uncheckpointed children files. It will return a duplication.
-   * 
+   *
    * @return the duplication of the uncheckpointed children files' id
    */
   synchronized List<Integer> getUncheckpointedChildrenFiles() {
-    List<Integer> ret = new ArrayList<Integer>(UNCHECKPOINTED_CHILDREN_FILES.size());
-    ret.addAll(UNCHECKPOINTED_CHILDREN_FILES);
+    List<Integer> ret = new ArrayList<Integer>(mUncheckpointedChildrenFiles.size());
+    ret.addAll(mUncheckpointedChildrenFiles);
     return ret;
   }
 
   /**
    * Return true if the dependency has checkpointed, which means all the children files are
    * checkpointed.
-   * 
+   *
    * @return true if all the children files are checkpointed, false otherwise
    */
   public synchronized boolean hasCheckpointed() {
-    return UNCHECKPOINTED_CHILDREN_FILES.size() == 0;
+    return mUncheckpointedChildrenFiles.size() == 0;
   }
 
   /**
    * Return true if it has children dependency.
-   * 
+   *
    * @return true if it has children dependency, false otherwise
    */
   public synchronized boolean hasChildrenDependency() {
@@ -246,7 +246,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Return true if there exists lost file of the dependency.
-   * 
+   *
    * @return true if the dependency has lost file, false otherwise
    */
   public synchronized boolean hasLostFile() {
@@ -255,11 +255,11 @@ public class Dependency extends ImageWriter {
 
   /**
    * Replace the prefix with the specified variable in DependencyVariables.
-   * 
+   *
    * @return the replaced command
    */
   String parseCommandPrefix() {
-    String rtn = COMMAND_PREFIX;
+    String rtn = mCommandPrefix;
     for (String s : DependencyVariables.VARIABLES.keySet()) {
       rtn = rtn.replace("$" + s, DependencyVariables.VARIABLES.get(s));
     }
@@ -268,29 +268,29 @@ public class Dependency extends ImageWriter {
 
   /**
    * Reset the uncheckpointed children files with the specified input
-   * 
+   *
    * @param uncheckpointedChildrenFiles
    *          The new uncheckpointed children files' id
    */
   synchronized void resetUncheckpointedChildrenFiles(
       Collection<Integer> uncheckpointedChildrenFiles) {
-    UNCHECKPOINTED_CHILDREN_FILES.clear();
-    UNCHECKPOINTED_CHILDREN_FILES.addAll(uncheckpointedChildrenFiles);
+    mUncheckpointedChildrenFiles.clear();
+    mUncheckpointedChildrenFiles.addAll(uncheckpointedChildrenFiles);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("Dependency[");
-    sb.append("ID:").append(ID).append(", CREATION_TIME_MS:").append(CREATION_TIME_MS);
-    sb.append(", Parents:").append(PARENT_FILES).append(", Children:").append(CHILDREN_FILES);
-    sb.append(", COMMAND_PREFIX:").append(COMMAND_PREFIX);
-    sb.append(", PARSED_COMMAND_PREFIX:").append(parseCommandPrefix());
-    sb.append(", COMMENT:").append(COMMENT);
-    sb.append(", FRAMEWORK:").append(FRAMEWORK);
-    sb.append(", FRAMEWORK_VERSION:").append(FRAMEWORK_VERSION);
-    sb.append(", PARENT_DEPENDENCIES:").append(PARENT_DEPENDENCIES);
+    sb.append("Id:").append(mId).append(", CreationTimeMs:").append(mCreationTimeMs);
+    sb.append(", Parents:").append(mParentFiles).append(", Children:").append(mChildrenFiles);
+    sb.append(", CommandPrefix:").append(mCommandPrefix);
+    sb.append(", ParsedCommandPrefix:").append(parseCommandPrefix());
+    sb.append(", Comment:").append(mComment);
+    sb.append(", Framework:").append(mFramework);
+    sb.append(", FrameworkVersion:").append(mFrameworkVersion);
+    sb.append(", ParentDependencies:").append(mParentDependencies);
     sb.append(", ChildrenDependencies:").append(mChildrenDependencies);
-    sb.append(", UncheckpointedChildrenFiles:").append(UNCHECKPOINTED_CHILDREN_FILES);
+    sb.append(", UncheckpointedChildrenFiles:").append(mUncheckpointedChildrenFiles);
     sb.append("]");
     return sb.toString();
   }
@@ -299,15 +299,15 @@ public class Dependency extends ImageWriter {
   public synchronized void writeImage(ObjectWriter objWriter, DataOutputStream dos)
       throws IOException {
     ImageElement ele =
-        new ImageElement(ImageElementType.Dependency).withParameter("depID", ID)
-            .withParameter("parentFiles", PARENT_FILES)
-            .withParameter("childrenFiles", CHILDREN_FILES)
-            .withParameter("commandPrefix", COMMAND_PREFIX)
-            .withParameter("data", Utils.byteBufferListToBase64(DATA))
-            .withParameter("comment", COMMENT).withParameter("framework", FRAMEWORK)
-            .withParameter("frameworkVersion", FRAMEWORK_VERSION).withParameter("depType", TYPE)
-            .withParameter("parentDeps", PARENT_DEPENDENCIES)
-            .withParameter("creationTimeMs", CREATION_TIME_MS)
+        new ImageElement(ImageElementType.Dependency).withParameter("depID", mId)
+            .withParameter("parentFiles", mParentFiles)
+            .withParameter("childrenFiles", mChildrenFiles)
+            .withParameter("commandPrefix", mCommandPrefix)
+            .withParameter("data", Utils.byteBufferListToBase64(mData))
+            .withParameter("comment", mComment).withParameter("framework", mFramework)
+            .withParameter("frameworkVersion", mFrameworkVersion).withParameter("depType", mDependencyType)
+            .withParameter("parentDeps", mParentDependencies)
+            .withParameter("creationTimeMs", mCreationTimeMs)
             .withParameter("unCheckpointedChildrenFiles", getUncheckpointedChildrenFiles());
     writeElement(objWriter, dos, ele);
   }

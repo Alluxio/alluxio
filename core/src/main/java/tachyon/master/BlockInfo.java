@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
 import java.io.IOException;
@@ -34,7 +20,7 @@ public class BlockInfo {
   /**
    * Compute the block's id with the inode's id and the block's index in the inode. In Tachyon, the
    * blockId is equal to ((inodeId << 30) + blockIndex).
-   * 
+   *
    * @param inodeId
    *          The inode's id of the block
    * @param blockIndex
@@ -48,7 +34,7 @@ public class BlockInfo {
   /**
    * Compute the block's index in the inode with the block's id. The blockIndex is the last 30 bits
    * of the blockId.
-   * 
+   *
    * @param blockId
    *          The id of the block
    * @return the block's index in the inode
@@ -59,7 +45,7 @@ public class BlockInfo {
 
   /**
    * Compute the inode's id of the block. The inodeId is the first 34 bits of the blockId.
-   * 
+   *
    * @param blockId
    *          The id of the block
    * @return the inode's id of the block
@@ -68,15 +54,12 @@ public class BlockInfo {
     return (int) (blockId >> 30);
   }
 
-  private final InodeFile INODE_FILE;
+  private final InodeFile mInodeFile;
 
-  public final int BLOCK_INDEX;
-
-  public final long BLOCK_ID;
-
-  public final long OFFSET;
-
-  public final long LENGTH;
+  public final int mBlockIndex;
+  public final long mBlockId;
+  public final long mOffset;
+  public final long mLength;
 
   private Map<Long, NetAddress> mLocations = new HashMap<Long, NetAddress>(5);
 
@@ -87,16 +70,16 @@ public class BlockInfo {
    *          Can not be no bigger than 2^31 - 1
    */
   BlockInfo(InodeFile inodeFile, int blockIndex, long length) {
-    INODE_FILE = inodeFile;
-    BLOCK_INDEX = blockIndex;
-    BLOCK_ID = computeBlockId(INODE_FILE.getId(), BLOCK_INDEX);
-    OFFSET = inodeFile.getBlockSizeByte() * blockIndex;
-    LENGTH = length;
+    mInodeFile = inodeFile;
+    mBlockIndex = blockIndex;
+    mBlockId = computeBlockId(mInodeFile.getId(), mBlockIndex);
+    mOffset = inodeFile.getBlockSizeByte() * blockIndex;
+    mLength = length;
   }
 
   /**
    * Add a location of the block. It means that the worker has the data of the block in memory.
-   * 
+   *
    * @param workerId
    *          The id of the worker
    * @param workerAddress
@@ -108,15 +91,15 @@ public class BlockInfo {
 
   /**
    * Generate a ClientBlockInfo of the block, which is used for the thrift server.
-   * 
+   *
    * @return the generated ClientBlockInfo
    */
   public synchronized ClientBlockInfo generateClientBlockInfo() {
     ClientBlockInfo ret = new ClientBlockInfo();
 
-    ret.blockId = BLOCK_ID;
-    ret.offset = OFFSET;
-    ret.length = LENGTH;
+    ret.blockId = mBlockId;
+    ret.offset = mOffset;
+    ret.length = mLength;
     ret.locations = getLocations();
 
     return ret;
@@ -125,40 +108,40 @@ public class BlockInfo {
   /**
    * Get the list of pairs "blockId, workerId", where the blockId is the id of this block, and the
    * workerId is the id of the worker who has the block's data in memory.
-   * 
+   *
    * @return the list of those pairs
    */
   public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
     List<Pair<Long, Long>> ret = new ArrayList<Pair<Long, Long>>(mLocations.size());
     for (long workerId : mLocations.keySet()) {
-      ret.add(new Pair<Long, Long>(BLOCK_ID, workerId));
+      ret.add(new Pair<Long, Long>(mBlockId, workerId));
     }
     return ret;
   }
 
   /**
    * Get the InodeFile of the block
-   * 
+   *
    * @return the InodeFile of the block
    */
   public synchronized InodeFile getInodeFile() {
-    return INODE_FILE;
+    return mInodeFile;
   }
 
   /**
    * Get the locations of the block, which are the workers' net address who has the data of the
    * block in memory.
-   * 
+   *
    * @return the net addresses of the locations
    */
   public synchronized List<NetAddress> getLocations() {
     List<NetAddress> ret = new ArrayList<NetAddress>(mLocations.size());
     ret.addAll(mLocations.values());
-    if (ret.isEmpty() && INODE_FILE.hasCheckpointed()) {
-      UnderFileSystem ufs = UnderFileSystem.get(INODE_FILE.getUfsPath());
+    if (ret.isEmpty() && mInodeFile.hasCheckpointed()) {
+      UnderFileSystem ufs = UnderFileSystem.get(mInodeFile.getUfsPath());
       List<String> locs = null;
       try {
-        locs = ufs.getFileLocations(INODE_FILE.getUfsPath(), OFFSET);
+        locs = ufs.getFileLocations(mInodeFile.getUfsPath(), mOffset);
       } catch (IOException e) {
         return ret;
       }
@@ -186,7 +169,7 @@ public class BlockInfo {
 
   /**
    * Remove the worker from the block's locations
-   * 
+   *
    * @param workerId
    *          The id of the removed worker
    */
@@ -196,11 +179,11 @@ public class BlockInfo {
 
   @Override
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("BlockInfo(BLOCK_INDEX: ");
-    sb.append(BLOCK_INDEX);
-    sb.append(", BLOCK_ID: ").append(BLOCK_ID);
-    sb.append(", OFFSET: ").append(OFFSET);
-    sb.append(", LENGTH: ").append(LENGTH);
+    StringBuilder sb = new StringBuilder("BlockInfo(mBlockIndex: ");
+    sb.append(mBlockIndex);
+    sb.append(", mBlockId: ").append(mBlockId);
+    sb.append(", mOffset: ").append(mOffset);
+    sb.append(", mLength: ").append(mLength);
     sb.append(", mLocations: ").append(mLocations).append(")");
     return sb.toString();
   }

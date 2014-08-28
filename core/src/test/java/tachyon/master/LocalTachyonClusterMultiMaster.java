@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
 import java.io.File;
@@ -69,15 +55,15 @@ public class LocalTachyonClusterMultiMaster {
 
   private String mLocalhostName = null;
 
-  private final List<LocalTachyonMaster> MASTERS = new ArrayList<LocalTachyonMaster>();
+  private final List<LocalTachyonMaster> mMasters = new ArrayList<LocalTachyonMaster>();
 
-  private final Supplier<String> CLIENT_SUPPLIER = new Supplier<String>() {
+  private final Supplier<String> mClientSuppliers = new Supplier<String>() {
     @Override
     public String get() {
       return getUri();
     }
   };
-  private final ClientPool CLIENT_POOL = new ClientPool(CLIENT_SUPPLIER);
+  private final ClientPool mClientPool = new ClientPool(mClientSuppliers);
 
   public LocalTachyonClusterMultiMaster(long workerCapacityBytes, int masters) {
     mNumOfMasters = masters;
@@ -91,7 +77,7 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public synchronized TachyonFS getClient() throws IOException {
-    return CLIENT_POOL.getClient();
+    return mClientPool.getClient();
   }
 
   public String getUri() {
@@ -100,9 +86,9 @@ public class LocalTachyonClusterMultiMaster {
 
   public boolean killLeader() {
     for (int k = 0; k < mNumOfMasters; k ++) {
-      if (MASTERS.get(k).isStarted()) {
+      if (mMasters.get(k).isStarted()) {
         try {
-          MASTERS.get(k).stop();
+          mMasters.get(k).stop();
         } catch (Exception e) {
           LOG.error(e.getMessage(), e);
           return false;
@@ -167,7 +153,7 @@ public class LocalTachyonClusterMultiMaster {
     for (int k = 0; k < mNumOfMasters; k ++) {
       final LocalTachyonMaster master = LocalTachyonMaster.create(mTachyonHome);
       master.start();
-      MASTERS.add(master);
+      mMasters.add(master);
     }
 
     CommonUtils.sleepMs(null, 10);
@@ -199,11 +185,11 @@ public class LocalTachyonClusterMultiMaster {
   }
 
   public void stopTFS() throws Exception {
-    CLIENT_POOL.close();
+    mClientPool.close();
 
     mWorker.stop();
     for (int k = 0; k < mNumOfMasters; k ++) {
-      MASTERS.get(k).stop();
+      mMasters.get(k).stop();
     }
     mCuratorServer.stop();
 
@@ -224,6 +210,6 @@ public class LocalTachyonClusterMultiMaster {
 
   public void stopUFS() throws Exception {
     // masters share underfs, so only need to call on the first master
-    MASTERS.get(0).cleanupUnderfs();
+    mMasters.get(0).cleanupUnderfs();
   }
 }

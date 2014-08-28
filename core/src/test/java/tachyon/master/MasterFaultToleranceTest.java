@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
 import java.io.IOException;
@@ -26,6 +12,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.Pair;
+import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.util.CommonUtils;
 
@@ -33,8 +20,8 @@ import tachyon.util.CommonUtils;
  * Local Tachyon cluster with multiple master for unit tests.
  */
 public class MasterFaultToleranceTest {
-  private final int BLOCK_SIZE = 30;
-  private final int MASTERS = 5;
+  private static final int BLOCK_SIZE = 30;
+  private static final int MASTERS = 5;
 
   private LocalTachyonClusterMultiMaster mLocalTachyonClusterMultiMaster = null;
   private TachyonFS mTfs = null;
@@ -60,7 +47,7 @@ public class MasterFaultToleranceTest {
   /**
    * Create 10 files in the folder
    * 
-   * @param foldername
+   * @param folderName
    *          the folder name to create
    * @param answer
    *          the results, the mapping from file id to file path
@@ -89,7 +76,7 @@ public class MasterFaultToleranceTest {
    */
   private void faultTestDataCheck(List<Pair<Integer, String>> answer) throws IOException {
     TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
-    List<String> files = tfs.ls(Constants.PATH_SEPARATOR, true);
+    List<String> files = TestUtils.listFiles(tfs, Constants.PATH_SEPARATOR);
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
       Assert.assertEquals(answer.get(k).getSecond(), tfs.getFile(answer.get(k).getFirst())
@@ -103,8 +90,6 @@ public class MasterFaultToleranceTest {
   public void faultTest() throws IOException {
     int clients = 10;
     List<Pair<Integer, String>> answer = new ArrayList<Pair<Integer, String>>();
-    answer.add(new Pair<Integer, String>(1, Constants.PATH_SEPARATOR));
-    // faultTestDataCreation("/", answer);
     for (int k = 0; k < clients; k ++) {
       faultTestDataCreation("/data" + k, answer);
     }
@@ -134,11 +119,10 @@ public class MasterFaultToleranceTest {
       TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
       tfs.createFile(Constants.PATH_SEPARATOR + k, 1024);
     }
-    List<String> files = mTfs.ls(Constants.PATH_SEPARATOR, true);
-    Assert.assertEquals(clients + 1, files.size());
-    Assert.assertEquals(Constants.PATH_SEPARATOR, files.get(0));
+    List<String> files = TestUtils.listFiles(mTfs, Constants.PATH_SEPARATOR);
+    Assert.assertEquals(clients, files.size());
     for (int k = 0; k < clients; k ++) {
-      Assert.assertEquals(Constants.PATH_SEPARATOR + k, files.get(k + 1));
+      Assert.assertEquals(Constants.PATH_SEPARATOR + k, files.get(k));
     }
   }
 }

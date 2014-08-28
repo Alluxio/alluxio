@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.client;
 
 import java.io.IOException;
@@ -38,9 +24,9 @@ import tachyon.util.CommonUtils;
  * Unit tests on TachyonClient.
  */
 public class TachyonFSTest {
-  private final int WORKER_CAPACITY_BYTES = 20000;
-  private final int USER_QUOTA_UNIT_BYTES = 1000;
-  private final int SLEEP_MS = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
+  private static final int WORKER_CAPACITY_BYTES = 20000;
+  private static final int USER_QUOTA_UNIT_BYTES = 1000;
+  private static final int SLEEP_MS = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
@@ -93,7 +79,7 @@ public class TachyonFSTest {
     os.close();
     mTfs.createFile("/abc", tempFolder + "/temp");
     Assert.assertTrue(mTfs.exist("/abc"));
-    Assert.assertEquals(tempFolder + "/temp", mTfs.getUfsPath(mTfs.getFileId("/abc")));
+    Assert.assertEquals(tempFolder + "/temp", mTfs.getFile("/abc").getUfsPath());
   }
 
   @Test(expected = IOException.class)

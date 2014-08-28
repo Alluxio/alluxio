@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.worker;
 
 import java.io.Closeable;
@@ -48,9 +34,9 @@ import tachyon.util.NetworkUtils;
  * Since WorkerService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class WorkerClient implements Closeable {
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private final MasterClient MASTER_CLIENT;
-  private final int CONNECTION_RETRY_TIMES = 5;
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private final MasterClient mMasterClient;
+  private static final int CONNECTION_RETRY_TIMES = 5;
 
   private WorkerService.Client mClient;
   private TProtocol mProtocol;
@@ -68,7 +54,7 @@ public class WorkerClient implements Closeable {
    * @throws IOException
    */
   public WorkerClient(MasterClient masterClient) throws IOException {
-    MASTER_CLIENT = masterClient;
+    mMasterClient = masterClient;
   }
 
   /**
@@ -142,17 +128,15 @@ public class WorkerClient implements Closeable {
   /**
    * Notify the worker the block is cached.
    * 
-   * @param userId
-   *          The user id of the client who send the notification
    * @param blockId
    *          The id of the block
    * @throws IOException
    */
-  public synchronized void cacheBlock(long userId, long blockId) throws IOException {
+  public synchronized void cacheBlock(long blockId) throws IOException {
     mustConnect();
 
     try {
-      mClient.cacheBlock(userId, blockId);
+      mClient.cacheBlock(mMasterClient.getUserId(), blockId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (BlockInfoException e) {
@@ -195,7 +179,7 @@ public class WorkerClient implements Closeable {
           localHostName = InetAddress.getLocalHost().getCanonicalHostName();
         }
         LOG.info("Trying to get local worker host : " + localHostName);
-        workerNetAddress = MASTER_CLIENT.user_getWorker(false, localHostName);
+        workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
         mIsLocal = true;
       } catch (NoWorkerException e) {
         LOG.info(e.getMessage());
@@ -207,7 +191,7 @@ public class WorkerClient implements Closeable {
 
       if (workerNetAddress == null) {
         try {
-          workerNetAddress = MASTER_CLIENT.user_getWorker(true, "");
+          workerNetAddress = mMasterClient.user_getWorker(true, "");
         } catch (NoWorkerException e) {
           LOG.info(e.getMessage());
           workerNetAddress = null;
@@ -230,7 +214,7 @@ public class WorkerClient implements Closeable {
 
       mHeartbeatThread =
           new HeartbeatThread("WorkerClientToWorkerHeartbeat", new WorkerClientHeartbeatExecutor(
-              this, MASTER_CLIENT.getUserId()), UserConf.get().HEARTBEAT_INTERVAL_MS);
+              this, mMasterClient.getUserId()), UserConf.get().HEARTBEAT_INTERVAL_MS);
 
       try {
         mProtocol.getTransport().open();
@@ -281,7 +265,7 @@ public class WorkerClient implements Closeable {
     mustConnect();
 
     try {
-      return mClient.getUserTempFolder(MASTER_CLIENT.getUserId());
+      return mClient.getUserTempFolder(mMasterClient.getUserId());
     } catch (TException e) {
       throw new IOException(e);
     }
@@ -297,7 +281,7 @@ public class WorkerClient implements Closeable {
     mustConnect();
 
     try {
-      return mClient.getUserUfsTempFolder(MASTER_CLIENT.getUserId());
+      return mClient.getUserUfsTempFolder(mMasterClient.getUserId());
     } catch (TException e) {
       mConnected = false;
       throw new IOException(e);

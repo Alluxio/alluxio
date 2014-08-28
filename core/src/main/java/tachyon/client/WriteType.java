@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.client;
 
 import java.io.IOException;
@@ -65,10 +51,10 @@ public enum WriteType {
     throw new IOException("Unknown WriteType : " + op);
   }
 
-  private final int VALUE;
+  private final int mValue;
 
   private WriteType(int value) {
-    VALUE = value;
+    mValue = value;
   }
 
   /**
@@ -77,14 +63,14 @@ public enum WriteType {
    * @return the value of the write type
    */
   public int getValue() {
-    return VALUE;
+    return mValue;
   }
 
   /**
    * @return true if the write type is ASYNC_THROUGH, false otherwise
    */
   public boolean isAsync() {
-    return VALUE == ASYNC_THROUGH.VALUE;
+    return mValue == ASYNC_THROUGH.mValue;
   }
 
   /**
@@ -92,21 +78,21 @@ public enum WriteType {
    *         TRY_CACHE, or ASYNC_THROUGH
    */
   public boolean isCache() {
-    return (VALUE == MUST_CACHE.VALUE) || (VALUE == CACHE_THROUGH.VALUE)
-        || (VALUE == TRY_CACHE.VALUE) || (VALUE == ASYNC_THROUGH.VALUE);
+    return (mValue == MUST_CACHE.mValue) || (mValue == CACHE_THROUGH.mValue)
+        || (mValue == TRY_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
   }
 
   /**
    * @return true if the write type is MUST_CACHE or ASYNC_THROUGH
    */
   public boolean isMustCache() {
-    return (VALUE == MUST_CACHE.VALUE) || (VALUE == ASYNC_THROUGH.VALUE);
+    return (mValue == MUST_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
   }
 
   /**
    * @return true if the write type is CACHE_THROUGH or THROUGH
    */
   public boolean isThrough() {
-    return (VALUE == CACHE_THROUGH.VALUE) || (VALUE == THROUGH.VALUE);
+    return (mValue == CACHE_THROUGH.mValue) || (mValue == THROUGH.mValue);
   }
 }

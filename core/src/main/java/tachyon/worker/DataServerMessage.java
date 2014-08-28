@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.worker;
 
 import java.io.IOException;
@@ -186,9 +172,9 @@ public class DataServerMessage {
     return ret;
   }
 
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private final boolean IS_TO_SEND_DATA;
-  private final short MSG_TYPE;
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private final boolean mToSendData;
+  private final short mMessageType;
   private boolean mIsMessageReady;
   private ByteBuffer mHeader;
 
@@ -214,8 +200,8 @@ public class DataServerMessage {
    *          The message type
    */
   private DataServerMessage(boolean isToSendData, short msgType) {
-    IS_TO_SEND_DATA = isToSendData;
-    MSG_TYPE = msgType;
+    mToSendData = isToSendData;
+    mMessageType = msgType;
     mIsMessageReady = false;
   }
 
@@ -230,7 +216,7 @@ public class DataServerMessage {
    * Close the message.
    */
   public void close() {
-    if (MSG_TYPE == DATA_SERVER_RESPONSE_MESSAGE) {
+    if (mMessageType == DATA_SERVER_RESPONSE_MESSAGE) {
       try {
         if (mTachyonData != null) {
           mTachyonData.close();
@@ -255,7 +241,7 @@ public class DataServerMessage {
 
   private void generateHeader() {
     mHeader.clear();
-    mHeader.putShort(MSG_TYPE);
+    mHeader.putShort(mMessageType);
     mHeader.putLong(mBlockId);
     mHeader.putLong(mOffset);
     mHeader.putLong(mLength);
@@ -324,8 +310,8 @@ public class DataServerMessage {
   }
 
   private void isSend(boolean isSend) {
-    if (IS_TO_SEND_DATA != isSend) {
-      if (IS_TO_SEND_DATA) {
+    if (mToSendData != isSend) {
+      if (mToSendData) {
         throw new RuntimeException("Try to recv on send message");
       } else {
         throw new RuntimeException("Try to send on recv message");
@@ -351,13 +337,13 @@ public class DataServerMessage {
       if (mHeader.remaining() == 0) {
         mHeader.flip();
         short msgType = mHeader.getShort();
-        assert (MSG_TYPE == msgType);
+        assert (mMessageType == msgType);
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();
         mLength = mHeader.getLong();
         // TODO make this better to truncate the file.
         assert mLength < Integer.MAX_VALUE;
-        if (MSG_TYPE == DATA_SERVER_RESPONSE_MESSAGE) {
+        if (mMessageType == DATA_SERVER_RESPONSE_MESSAGE) {
           if (mLength == -1) {
             mData = ByteBuffer.allocate(0);
           } else {
@@ -366,7 +352,7 @@ public class DataServerMessage {
         }
         LOG.info(String.format("data" + mData + ", blockId(%d), offset(%d), dataLength(%d)",
             mBlockId, mOffset, mLength));
-        if (MSG_TYPE == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
+        if (mMessageType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
           mIsMessageReady = true;
         }
       }

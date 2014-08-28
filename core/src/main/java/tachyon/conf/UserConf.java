@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.conf;
 
 import tachyon.Constants;
@@ -48,8 +34,10 @@ public class UserConf extends Utils {
     FAILED_SPACE_REQUEST_LIMITS = getIntProperty("tachyon.user.failed.space.request.limits", 3);
     QUOTA_UNIT_BYTES = getLongProperty("tachyon.user.quota.unit.bytes", 8 * Constants.MB);
     FILE_BUFFER_BYTES = getIntProperty("tachyon.user.file.buffer.bytes", Constants.MB);
-    HEARTBEAT_INTERVAL_MS = getLongProperty("tachyon.user.heartbeat.interval.ms", Constants.SECOND_MS);
-    MASTER_CLIENT_TIMEOUT_MS = getLongProperty("tachyon.user.master.client.timeout.ms", 10 * Constants.SECOND_MS);
+    HEARTBEAT_INTERVAL_MS =
+        getLongProperty("tachyon.user.heartbeat.interval.ms", Constants.SECOND_MS);
+    MASTER_CLIENT_TIMEOUT_MS =
+        getLongProperty("tachyon.user.master.client.timeout.ms", 10 * Constants.SECOND_MS);
     DEFAULT_BLOCK_SIZE_BYTE =
         getLongProperty("tachyon.user.default.block.size.byte", Constants.GB);
     REMOTE_READ_BUFFER_SIZE_BYTE =

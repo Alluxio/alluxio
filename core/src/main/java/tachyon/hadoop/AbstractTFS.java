@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.hadoop;
 
 import java.io.FileNotFoundException;
@@ -47,7 +33,7 @@ import tachyon.util.UfsUtils;
 /**
  * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
  * to {@link tachyon.client.TachyonFS} for most operations.
- * 
+ *
  * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant
  * is used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
@@ -55,11 +41,9 @@ abstract class AbstractTFS extends FileSystem {
   public static final String FIRST_COM_PATH = "tachyon_dep/";
   public static final String RECOMPUTE_PATH = "tachyon_recompute/";
 
-  public static String UNDERFS_ADDRESS;
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  public static boolean USE_HDFS = true;
-
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  public static String mUnderFSAddress;
 
   private URI mUri = null;
   private Path mWorkingDir = new Path(Constants.PATH_SEPARATOR);
@@ -171,7 +155,7 @@ abstract class AbstractTFS extends FileSystem {
    * <p>
    * Opens an FSDataOutputStream at the indicated Path with write-progress reporting. Same as
    * create(), except fails if parent directory doesn't already exist.
-   * 
+   *
    * @param cPath
    *          the file name to open
    * @param overwrite
@@ -219,7 +203,7 @@ abstract class AbstractTFS extends FileSystem {
       Path hdfsPath = Utils.getHDFSPath(path);
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       if (fs.exists(hdfsPath)) {
-        String ufsAddrPath = CommonUtils.concat(UNDERFS_ADDRESS, path);
+        String ufsAddrPath = CommonUtils.concat(mUnderFSAddress, path);
         // Set the path as the TFS root path.
         UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null));
       }
@@ -276,7 +260,7 @@ abstract class AbstractTFS extends FileSystem {
 
     LOG.info("getFileStatus(" + path + "): HDFS Path: " + hdfsPath + " TPath: " + mTachyonHeader
         + tPath);
-    if (USE_HDFS) {
+    if (useHdfs()) {
       fromHdfsToTachyon(tPath);
     }
     TachyonFile file = mTFS.getFile(tPath);
@@ -293,8 +277,21 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
+   * Get the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means
+   * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so can not put
+   *
+   * @Override on this method.
+   *
+   * @return schema hadoop should map to.
+   *
+   * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
+   *      org.apache.hadoop.conf.Configuration)
+   */
+  public abstract String getScheme();
+
+  /**
    * Returns an object implementing the Tachyon-specific client API.
-   * 
+   *
    * @return null if initialize() hasn't been called.
    */
   public TachyonFS getTachyonFS() {
@@ -312,16 +309,6 @@ abstract class AbstractTFS extends FileSystem {
     return mWorkingDir;
   }
 
-  @Override
-  public void setWorkingDirectory(Path path) {
-    LOG.info("setWorkingDirectory(" + path + ")");
-    if (path.isAbsolute()) {
-      mWorkingDir = path;
-    } else {
-      mWorkingDir = new Path(mWorkingDir, path);
-    }
-  }
-
   /**
    * Initialize the class, have a lazy connection with Tachyon through mTFS.
    */
@@ -334,11 +321,17 @@ abstract class AbstractTFS extends FileSystem {
     mTachyonHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
     mTFS = TachyonFS.get(uri.getHost(), uri.getPort(), isZookeeperMode());
     mUri = URI.create(mTachyonHeader);
-    if (UNDERFS_ADDRESS == null || URI.create(UNDERFS_ADDRESS).getScheme() == null) {
-      USE_HDFS = false;
-    }
-    LOG.info(mTachyonHeader + " " + mUri + " " + UNDERFS_ADDRESS);
+    mUnderFSAddress = mTFS.getUfsAddress();
+    LOG.info(mTachyonHeader + " " + mUri + " " + mUnderFSAddress);
   }
+
+  /**
+   * Determines if zookeeper should be used for the FileSystem. This method should only be used for
+   * {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
+   *
+   * @return true if zookeeper should be used
+   */
+  protected abstract boolean isZookeeperMode();
 
   @Override
   public FileStatus[] listStatus(Path path) throws IOException {
@@ -391,24 +384,27 @@ abstract class AbstractTFS extends FileSystem {
     return mTFS.rename(hSrc, hDst);
   }
 
-  /**
-   * Get the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means
-   * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so can not put
-   * 
-   * @Override on this method.
-   * 
-   * @return schema hadoop should map to.
-   * 
-   * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
-   *      org.apache.hadoop.conf.Configuration)
-   */
-  public abstract String getScheme();
+  @Override
+  public void setWorkingDirectory(Path path) {
+    LOG.info("setWorkingDirectory(" + path + ")");
+    if (path.isAbsolute()) {
+      mWorkingDir = path;
+    } else {
+      mWorkingDir = new Path(mWorkingDir, path);
+    }
+  }
 
   /**
-   * Determines if zookeeper should be used for the FileSystem. This method should only be used for
-   * {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
-   * 
-   * @return true if zookeeper should be used
+   * When underfs has a schema, then we can use the hdfs underfs code base.
+   * <p />
+   * When this check is not done, {@link #fromHdfsToTachyon(String)} is called, which loads
+   * the default filesystem (hadoop's).  When there is no schema, then it may default to tachyon
+   * which causes a recursive loop.
+   *
+   * @see <a href="https://tachyon.atlassian.net/browse/TACHYON-54">TACHYON-54</a>
    */
-  protected abstract boolean isZookeeperMode();
+  @Deprecated
+  private boolean useHdfs() {
+    return mUnderFSAddress != null && URI.create(mUnderFSAddress).getScheme() != null;
+  }
 }

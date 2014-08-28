@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.client;
 
 import java.io.IOException;
@@ -20,8 +6,8 @@ import java.io.IOException;
  * FileInStream implementation of TachyonFile.
  */
 public class FileInStream extends InStream {
-  private final long FILE_LENGTH;
-  private final long BLOCK_CAPACITY;
+  private final long mFileLength;
+  private final long mBlockCapacity;
 
   private long mCurrentPosition;
   private int mCurrentBlockIndex;
@@ -55,8 +41,8 @@ public class FileInStream extends InStream {
   public FileInStream(TachyonFile file, ReadType opType, Object ufsConf) throws IOException {
     super(file, opType);
 
-    FILE_LENGTH = file.length();
-    BLOCK_CAPACITY = file.getBlockSizeByte();
+    mFileLength = file.length();
+    mBlockCapacity = file.getBlockSizeByte();
 
     mCurrentPosition = 0;
     mCurrentBlockIndex = -1;
@@ -73,8 +59,8 @@ public class FileInStream extends InStream {
       }
 
       mCurrentBlockIndex = getCurrentBlockIndex();
-      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex, mUFSConf);
-      mCurrentBlockLeft = BLOCK_CAPACITY;
+      mCurrentBlockInStream = BlockInStream.get(mFile, mReadType, mCurrentBlockIndex, mUFSConf);
+      mCurrentBlockLeft = mBlockCapacity;
     }
   }
 
@@ -88,12 +74,12 @@ public class FileInStream extends InStream {
   }
 
   private int getCurrentBlockIndex() {
-    return (int) (mCurrentPosition / BLOCK_CAPACITY);
+    return (int) (mCurrentPosition / mBlockCapacity);
   }
 
   @Override
   public int read() throws IOException {
-    if (mCurrentPosition >= FILE_LENGTH) {
+    if (mCurrentPosition >= mFileLength) {
       return -1;
     }
 
@@ -122,7 +108,7 @@ public class FileInStream extends InStream {
     int tOff = off;
     int tLen = len;
 
-    while (tLen > 0 && mCurrentPosition < FILE_LENGTH) {
+    while (tLen > 0 && mCurrentPosition < mFileLength) {
       checkAndAdvanceBlockInStream();
 
       int tRead = mCurrentBlockInStream.read(b, tOff, tLen);
@@ -149,16 +135,16 @@ public class FileInStream extends InStream {
       throw new IOException("pos is negative: " + pos);
     }
 
-    if ((int) (pos / BLOCK_CAPACITY) != mCurrentBlockIndex) {
-      mCurrentBlockIndex = (int) (pos / BLOCK_CAPACITY);
+    if ((int) (pos / mBlockCapacity) != mCurrentBlockIndex) {
+      mCurrentBlockIndex = (int) (pos / mBlockCapacity);
       if (mCurrentBlockInStream != null) {
         mCurrentBlockInStream.close();
       }
-      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex, mUFSConf);
+      mCurrentBlockInStream = BlockInStream.get(mFile, mReadType, mCurrentBlockIndex, mUFSConf);
     }
-    mCurrentBlockInStream.seek(pos % BLOCK_CAPACITY);
+    mCurrentBlockInStream.seek(pos % mBlockCapacity);
     mCurrentPosition = pos;
-    mCurrentBlockLeft = BLOCK_CAPACITY - (pos % BLOCK_CAPACITY);
+    mCurrentBlockLeft = mBlockCapacity - (pos % mBlockCapacity);
   }
 
   @Override
@@ -168,24 +154,24 @@ public class FileInStream extends InStream {
     }
 
     long ret = n;
-    if (mCurrentPosition + n >= FILE.length()) {
-      ret = FILE.length() - mCurrentPosition;
+    if (mCurrentPosition + n >= mFile.length()) {
+      ret = mFile.length() - mCurrentPosition;
       mCurrentPosition += ret;
     } else {
       mCurrentPosition += n;
     }
 
-    int tBlockIndex = (int) (mCurrentPosition / BLOCK_CAPACITY);
+    int tBlockIndex = (int) (mCurrentPosition / mBlockCapacity);
     if (tBlockIndex != mCurrentBlockIndex) {
       if (mCurrentBlockInStream != null) {
         mCurrentBlockInStream.close();
       }
 
       mCurrentBlockIndex = tBlockIndex;
-      mCurrentBlockInStream = BlockInStream.get(FILE, READ_TYPE, mCurrentBlockIndex, mUFSConf);
-      long shouldSkip = mCurrentPosition % BLOCK_CAPACITY;
+      mCurrentBlockInStream = BlockInStream.get(mFile, mReadType, mCurrentBlockIndex, mUFSConf);
+      long shouldSkip = mCurrentPosition % mBlockCapacity;
       long skip = mCurrentBlockInStream.skip(shouldSkip);
-      mCurrentBlockLeft = BLOCK_CAPACITY - skip;
+      mCurrentBlockLeft = mBlockCapacity - skip;
       if (skip != shouldSkip) {
         throw new IOException("The underlayer BlockInStream only skip " + skip + " instead of "
             + shouldSkip);

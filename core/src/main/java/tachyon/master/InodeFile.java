@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
 import java.io.DataOutputStream;
@@ -71,7 +57,7 @@ public class InodeFile extends Inode {
     return inode;
   }
 
-  private final long BLOCK_SIZE_BYTE;
+  private final long mBlockSizeByte;
   private long mLength = 0;
   private boolean mIsComplete = false;
   private boolean mCache = false;
@@ -97,7 +83,7 @@ public class InodeFile extends Inode {
    */
   public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs) {
     super(name, id, parentId, false, creationTimeMs);
-    BLOCK_SIZE_BYTE = blockSizeByte;
+    mBlockSizeByte = blockSizeByte;
     mDependencyId = -1;
   }
 
@@ -113,24 +99,24 @@ public class InodeFile extends Inode {
     if (mIsComplete) {
       throw new BlockInfoException("The file is complete: " + this);
     }
-    if (mBlocks.size() > 0 && mBlocks.get(mBlocks.size() - 1).LENGTH != BLOCK_SIZE_BYTE) {
-      throw new BlockInfoException("BLOCK_SIZE_BYTE is " + BLOCK_SIZE_BYTE + ", but the "
-          + "previous block size is " + mBlocks.get(mBlocks.size() - 1).LENGTH);
+    if (mBlocks.size() > 0 && mBlocks.get(mBlocks.size() - 1).mLength != mBlockSizeByte) {
+      throw new BlockInfoException("mBlockSizeByte is " + mBlockSizeByte + ", but the "
+          + "previous block size is " + mBlocks.get(mBlocks.size() - 1).mLength);
     }
     if (blockInfo.getInodeFile() != this) {
       throw new BlockInfoException("InodeFile unmatch: " + this + " != " + blockInfo);
     }
-    if (blockInfo.BLOCK_INDEX != mBlocks.size()) {
+    if (blockInfo.mBlockIndex != mBlocks.size()) {
       throw new BlockInfoException("BLOCK_INDEX unmatch: " + mBlocks.size() + " != " + blockInfo);
     }
-    if (blockInfo.OFFSET != mBlocks.size() * BLOCK_SIZE_BYTE) {
-      throw new BlockInfoException("OFFSET unmatch: " + mBlocks.size() * BLOCK_SIZE_BYTE + " != "
+    if (blockInfo.mOffset != mBlocks.size() * mBlockSizeByte) {
+      throw new BlockInfoException("OFFSET unmatch: " + mBlocks.size() * mBlockSizeByte + " != "
           + blockInfo);
     }
-    if (blockInfo.LENGTH > BLOCK_SIZE_BYTE) {
-      throw new BlockInfoException("LENGTH too big: " + BLOCK_SIZE_BYTE + " " + blockInfo);
+    if (blockInfo.mLength > mBlockSizeByte) {
+      throw new BlockInfoException("LENGTH too big: " + mBlockSizeByte + " " + blockInfo);
     }
-    mLength += blockInfo.LENGTH;
+    mLength += blockInfo.mLength;
     mBlocks.add(blockInfo);
   }
 
@@ -162,7 +148,7 @@ public class InodeFile extends Inode {
     ret.path = path;
     ret.ufsPath = mUfsPath;
     ret.length = mLength;
-    ret.blockSizeByte = BLOCK_SIZE_BYTE;
+    ret.blockSizeByte = mBlockSizeByte;
     ret.creationTimeMs = getCreationTimeMs();
     ret.isComplete = isComplete();
     ret.isFolder = false;
@@ -184,7 +170,7 @@ public class InodeFile extends Inode {
    * @return the id of the specified block
    */
   public long getBlockIdBasedOnOffset(long offset) {
-    int index = (int) (offset / BLOCK_SIZE_BYTE);
+    int index = (int) (offset / mBlockSizeByte);
     return BlockInfo.computeBlockId(getId(), index);
   }
 
@@ -196,7 +182,7 @@ public class InodeFile extends Inode {
   public synchronized List<Long> getBlockIds() {
     List<Long> ret = new ArrayList<Long>(mBlocks.size());
     for (int k = 0; k < mBlocks.size(); k ++) {
-      ret.add(mBlocks.get(k).BLOCK_ID);
+      ret.add(mBlocks.get(k).mBlockId);
     }
     return ret;
   }
@@ -246,7 +232,7 @@ public class InodeFile extends Inode {
    * @return the block size in bytes
    */
   public long getBlockSizeByte() {
-    return BLOCK_SIZE_BYTE;
+    return mBlockSizeByte;
   }
 
   /**
@@ -309,7 +295,7 @@ public class InodeFile extends Inode {
     long inMemoryLength = 0;
     for (BlockInfo info : mBlocks) {
       if (info.isInMemory()) {
-        inMemoryLength += info.LENGTH;
+        inMemoryLength += info.mLength;
       }
     }
     return (int) (inMemoryLength * 100 / mLength);
@@ -462,9 +448,9 @@ public class InodeFile extends Inode {
       throw new SuspectedFileSizeException("InodeFile new length " + length + " is illegal.");
     }
     mLength = 0;
-    while (length >= BLOCK_SIZE_BYTE) {
-      addBlock(new BlockInfo(this, mBlocks.size(), BLOCK_SIZE_BYTE));
-      length -= BLOCK_SIZE_BYTE;
+    while (length >= mBlockSizeByte) {
+      addBlock(new BlockInfo(this, mBlocks.size(), mBlockSizeByte));
+      length -= mBlockSizeByte;
     }
     if (length > 0) {
       addBlock(new BlockInfo(this, mBlocks.size(), (int) length));

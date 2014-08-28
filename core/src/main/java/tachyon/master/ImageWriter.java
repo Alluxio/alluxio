@@ -3,10 +3,8 @@ package tachyon.master;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import com.google.common.base.Throwables;
-import tachyon.util.CommonUtils;
-
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.common.base.Throwables;
 
 /**
  * Class implemented this interface will be able to write image file.

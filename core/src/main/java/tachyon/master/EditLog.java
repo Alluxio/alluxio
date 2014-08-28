@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
 import java.io.DataInputStream;
@@ -45,10 +31,9 @@ import tachyon.util.CommonUtils;
  * Master operation journal.
  */
 public class EditLog {
-  private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private static int mBackUpLogStartNum = -1;
-
   private static long mCurrentTId = 0;
 
   /**
@@ -131,57 +116,57 @@ public class EditLog {
       mCurrentTId = op.transId;
       try {
         switch (op.type) {
-        case ADD_BLOCK: {
-          info.opAddBlock(op.getInt("fileId"), op.getInt("blockIndex"), op.getLong("blockLength"),
-              op.getLong("opTimeMs"));
-          break;
-        }
-        case ADD_CHECKPOINT: {
-          info._addCheckpoint(-1, op.getInt("fileId"), op.getLong("length"), op.getString("path"),
-              op.getLong("opTimeMs"));
-          break;
-        }
-        case CREATE_FILE: {
-          info._createFile(op.getBoolean("recursive"), op.getString("path"),
-              op.getBoolean("directory"), op.getLong("blockSizeByte"),
-              op.getLong("creationTimeMs"));
-          break;
-        }
-        case COMPLETE_FILE: {
-          info._completeFile(op.<Integer> get("fileId"), op.getLong("opTimeMs"));
-          break;
-        }
-        case SET_PINNED: {
-          info._setPinned(op.getInt("fileId"), op.getBoolean("pinned"), op.getLong("opTimeMs"));
-          break;
-        }
-        case RENAME: {
-          info._rename(op.getInt("fileId"), op.getString("dstPath"), op.getLong("opTimeMs"));
-          break;
-        }
-        case DELETE: {
-          info._delete(op.getInt("fileId"), op.getBoolean("recursive"), op.getLong("opTimeMs"));
-          break;
-        }
-        case CREATE_RAW_TABLE: {
-          info._createRawTable(op.getInt("tableId"), op.getInt("columns"),
-              op.getByteBuffer("metadata"));
-          break;
-        }
-        case UPDATE_RAW_TABLE_METADATA: {
-          info.updateRawTableMetadata(op.getInt("tableId"), op.getByteBuffer("metadata"));
-          break;
-        }
-        case CREATE_DEPENDENCY: {
-          info._createDependency(op.<List<Integer>> get("parents"),
-              op.<List<Integer>> get("children"), op.getString("commandPrefix"),
-              op.getByteBufferList("data"), op.getString("comment"), op.getString("framework"),
-              op.getString("frameworkVersion"), op.<DependencyType> get("dependencyType"),
-              op.getInt("dependencyId"), op.getLong("creationTimeMs"));
-          break;
-        }
-        default:
-          throw new IOException("Invalid op type " + op);
+          case ADD_BLOCK: {
+            info.opAddBlock(op.getInt("fileId"), op.getInt("blockIndex"),
+                op.getLong("blockLength"), op.getLong("opTimeMs"));
+            break;
+          }
+          case ADD_CHECKPOINT: {
+            info._addCheckpoint(-1, op.getInt("fileId"), op.getLong("length"),
+                op.getString("path"), op.getLong("opTimeMs"));
+            break;
+          }
+          case CREATE_FILE: {
+            info._createFile(op.getBoolean("recursive"), op.getString("path"),
+                op.getBoolean("directory"), op.getLong("blockSizeByte"),
+                op.getLong("creationTimeMs"));
+            break;
+          }
+          case COMPLETE_FILE: {
+            info._completeFile(op.<Integer>get("fileId"), op.getLong("opTimeMs"));
+            break;
+          }
+          case SET_PINNED: {
+            info._setPinned(op.getInt("fileId"), op.getBoolean("pinned"), op.getLong("opTimeMs"));
+            break;
+          }
+          case RENAME: {
+            info._rename(op.getInt("fileId"), op.getString("dstPath"), op.getLong("opTimeMs"));
+            break;
+          }
+          case DELETE: {
+            info._delete(op.getInt("fileId"), op.getBoolean("recursive"), op.getLong("opTimeMs"));
+            break;
+          }
+          case CREATE_RAW_TABLE: {
+            info._createRawTable(op.getInt("tableId"), op.getInt("columns"),
+                op.getByteBuffer("metadata"));
+            break;
+          }
+          case UPDATE_RAW_TABLE_METADATA: {
+            info.updateRawTableMetadata(op.getInt("tableId"), op.getByteBuffer("metadata"));
+            break;
+          }
+          case CREATE_DEPENDENCY: {
+            info._createDependency(op.<List<Integer>>get("parents"),
+                op.<List<Integer>>get("children"), op.getString("commandPrefix"),
+                op.getByteBufferList("data"), op.getString("comment"), op.getString("framework"),
+                op.getString("frameworkVersion"), op.<DependencyType>get("dependencyType"),
+                op.getInt("dependencyId"), op.getLong("creationTimeMs"));
+            break;
+          }
+          default:
+            throw new IOException("Invalid op type " + op);
         }
       } catch (SuspectedFileSizeException e) {
         throw new IOException(e);

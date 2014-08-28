@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.worker;
 
 import java.io.IOException;
@@ -56,7 +42,7 @@ public class DataServer implements Runnable {
       .synchronizedMap(new HashMap<SocketChannel, DataServerMessage>());
 
   // The blocks locker manager.
-  private final BlocksLocker BLOCKS_LOCKER;
+  private final BlocksLocker mBlocksLocker;
 
   private volatile boolean mShutdown = false;
   private volatile boolean mShutdowned = false;
@@ -73,7 +59,7 @@ public class DataServer implements Runnable {
     LOG.info("Starting DataServer @ " + address);
     CommonConf.assertValidPort(address);
     mAddress = address;
-    BLOCKS_LOCKER = new BlocksLocker(workerStorage, Users.sDATASERVER_USER_ID);
+    mBlocksLocker = new BlocksLocker(workerStorage, Users.sDATASERVER_USER_ID);
     try {
       mSelector = initSelector();
     } catch (IOException e) {
@@ -179,7 +165,7 @@ public class DataServer implements Runnable {
 
       key.interestOps(SelectionKey.OP_WRITE);
       LOG.info("Get request for " + tMessage.getBlockId());
-      int lockId = BLOCKS_LOCKER.lock(tMessage.getBlockId());
+      int lockId = mBlocksLocker.lock(tMessage.getBlockId());
       DataServerMessage tResponseMessage =
           DataServerMessage.createBlockResponseMessage(true, tMessage.getBlockId(),
               tMessage.getOffset(), tMessage.getLength());
@@ -252,7 +238,7 @@ public class DataServer implements Runnable {
       mReceivingData.remove(socketChannel);
       mSendingData.remove(socketChannel);
       sendMessage.close();
-      BLOCKS_LOCKER.unlock(Math.abs(sendMessage.getBlockId()), sendMessage.getLockId());
+      mBlocksLocker.unlock(Math.abs(sendMessage.getBlockId()), sendMessage.getLockId());
     }
   }
 }

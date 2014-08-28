@@ -1,5 +1,6 @@
 namespace java tachyon.thrift
 
+// Version 3: 0.6.0
 // Version 2: 0.5.0
 // Version 1: before 0.5.0
 
@@ -130,7 +131,6 @@ service MasterService {
   list<ClientFileInfo> liststatus(1: string path)
     throws (1: InvalidPathException eI, 2: FileDoesNotExistException eF)
 
-
   // Services to Workers
   /**
    * Worker register.
@@ -150,7 +150,6 @@ service MasterService {
 
   list<i32> worker_getPriorityDependencyList()
 
-
   // Services to Users
   i32 user_createDependency(1: list<string> parents, 2: list<string> children,
       3: string commandPrefix, 4: list<binary> data, 5: string comment, 6: string framework,
@@ -167,25 +166,15 @@ service MasterService {
   void user_requestFilesInDependency(1: i32 depId)
     throws (1: DependencyDoesNotExistException e)
 
-  i32 user_createFile(1: string path, 2: i64 blockSizeByte)
+  i32 user_createFile(1: string path, 2: string ufsPath, 3: i64 blockSizeByte, 4: bool recursive)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: BlockInfoException eB,
-      4: TachyonException eT)
-
-  i32 user_createFileOnCheckpoint(1: string path, 2: string checkpointPath)
-    throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI,
-      3: SuspectedFileSizeException eS, 4: BlockInfoException eB, 5: TachyonException eT)
+      4: SuspectedFileSizeException eS, 5: TachyonException eT)
 
   i64 user_createNewBlock(1: i32 fileId)
     throws (1: FileDoesNotExistException e)
 
   void user_completeFile(1: i32 fileId)
     throws (1: FileDoesNotExistException e)
-
-  /**
-   * Return -1 if does not contain the file, return fileId if it exists.
-   */
-  i32 user_getFileId(1: string path)
-    throws (1: InvalidPathException e)
 
   i64 user_getUserId()
 
@@ -198,10 +187,7 @@ service MasterService {
   NetAddress user_getWorker(1: bool random, 2: string host)
     throws (1: NoWorkerException e)
 
-  ClientFileInfo getClientFileInfoById(1: i32 fileId)
-    throws (1: FileDoesNotExistException e)
-
-  ClientFileInfo user_getClientFileInfoByPath(1: string path)
+  ClientFileInfo getFileStatus(1: i32 fileId, 2: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
 
   /**
@@ -211,43 +197,22 @@ service MasterService {
     throws (1: FileDoesNotExistException eF, 2: BlockInfoException eB)
 
   /**
-   * Get file locations by file Id.
+   * Get file blocks info.
    */
-  list<ClientBlockInfo> user_getFileBlocksById(1: i32 fileId)
-    throws (1: FileDoesNotExistException e)
-
-  /**
-   * Get file locations by path
-   */
-  list<ClientBlockInfo> user_getFileBlocksByPath(1: string path)
+  list<ClientBlockInfo> user_getFileBlocks(1: i32 fileId, 2: string path)
     throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
 
-  list<i32> user_listFiles(1: string path, 2: bool recursive)
-    throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
-
-  list<string> user_ls(1: string path, 2: bool recursive)
-    throws (1: FileDoesNotExistException eF, 2: InvalidPathException eI)
-
-  bool user_deleteById(1: i32 fileId, 2: bool recursive) // Delete file
+  bool user_delete(1: i32 fileId, 2: string path, 3: bool recursive) // Delete file
     throws (1: TachyonException e)
 
-  bool user_deleteByPath(1: string path, 2: bool recursive) // Delete file
-    throws (1: TachyonException e)
-
-  void user_outOfMemoryForPinFile(1: i32 fileId)
-
-  bool user_rename(1: string srcPath, 2: string dstPath)
-    throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF,
-      3: InvalidPathException eI)
-
-  void user_renameTo(1: i32 fileId, 2: string dstPath)
+  bool user_rename(1: i32 fileId, 2: string srcPath, 3: string dstPath)
     throws (1:FileAlreadyExistException eA, 2: FileDoesNotExistException eF,
       3: InvalidPathException eI)
 
   void user_setPinned(1: i32 fileId, 2: bool pinned)
     throws (1: FileDoesNotExistException e)
 
-  bool user_mkdir(1: string path)
+  bool user_mkdirs(1: string path, 2: bool recursive)
     throws (1: FileAlreadyExistException eR, 2: InvalidPathException eI, 3: TachyonException eT)
 
   i32 user_createRawTable(1: string path, 2: i32 columns, 3: binary metadata)
@@ -259,24 +224,16 @@ service MasterService {
    */
   i32 user_getRawTableId(1: string path)
     throws (1: InvalidPathException e)
-
+     
   /**
-   * Get Table info by Table Id.
+   * Get RawTable's info; Return a ClientRawTable instance with id 0 if the system does not contain
+   * the table. path if valid iff id is -1.
    */
-  ClientRawTableInfo user_getClientRawTableInfoById(1: i32 tableId)
-    throws (1: TableDoesNotExistException e)
-
-  /**
-   * Get Table info by path
-   */
-  ClientRawTableInfo user_getClientRawTableInfoByPath(1: string tablePath)
+  ClientRawTableInfo user_getClientRawTableInfo(1: i32 id, 2: string path)
     throws (1: TableDoesNotExistException eT, 2: InvalidPathException eI)
 
   void user_updateRawTableMetadata(1: i32 tableId, 2: binary metadata)
     throws (1: TableDoesNotExistException eT, 2: TachyonException eTa)
-
-  i32 user_getNumberOfFiles(1:string path)
-    throws (1: FileDoesNotExistException eR, 2: InvalidPathException eI)
 
   string user_getUfsAddress()
 }

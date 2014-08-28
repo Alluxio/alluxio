@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.client;
 
 import java.io.File;
@@ -31,13 +17,13 @@ import tachyon.util.CommonUtils;
  * <code>BlockOutStream</code> implementation of TachyonFile. This class is not client facing.
  */
 public class BlockOutStream extends OutStream {
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private final int BLOCK_INDEX;
-  private final long BLOCK_CAPACITY_BYTE;
-  private final long BLOCK_ID;
-  private final long BLOCK_OFFSET;
-  private final boolean PIN;
+  private final int mBlockIndex;
+  private final long mBlockCapacityByte;
+  private final long mBlockId;
+  private final long mBlockOffset;
+  private final boolean mPin;
 
   private long mInFileBytes = 0;
   private long mWrittenBytes = 0;
@@ -68,28 +54,28 @@ public class BlockOutStream extends OutStream {
       throw new IOException("BlockOutStream only support WriteType.CACHE");
     }
 
-    BLOCK_INDEX = blockIndex;
-    BLOCK_CAPACITY_BYTE = FILE.getBlockSizeByte();
-    BLOCK_ID = FILE.getBlockId(BLOCK_INDEX);
-    BLOCK_OFFSET = BLOCK_CAPACITY_BYTE * blockIndex;
-    PIN = FILE.needPin();
+    mBlockIndex = blockIndex;
+    mBlockCapacityByte = mFile.getBlockSizeByte();
+    mBlockId = mFile.getBlockId(mBlockIndex);
+    mBlockOffset = mBlockCapacityByte * blockIndex;
+    mPin = mFile.needPin();
 
     mCanWrite = true;
 
-    if (!TFS.hasLocalWorker()) {
+    if (!mTachyonFS.hasLocalWorker()) {
       mCanWrite = false;
       String msg = "The machine does not have any local worker.";
       throw new IOException(msg);
     }
 
-    File localFolder = TFS.createAndGetUserLocalTempFolder();
+    File localFolder = mTachyonFS.createAndGetUserLocalTempFolder();
     if (localFolder == null) {
       mCanWrite = false;
       String msg = "Failed to create temp user folder for tachyon client.";
       throw new IOException(msg);
     }
 
-    mLocalFilePath = CommonUtils.concat(localFolder.getPath(), BLOCK_ID);
+    mLocalFilePath = CommonUtils.concat(localFolder.getPath(), mBlockId);
     mLocalFile = new RandomAccessFile(mLocalFilePath, "rw");
     mLocalFileChannel = mLocalFile.getChannel();
     // change the permission of the temporary file in order that the worker can move it.
@@ -98,20 +84,17 @@ public class BlockOutStream extends OutStream {
     CommonUtils.setLocalFileStickyBit(mLocalFilePath);
     LOG.info(mLocalFilePath + " was created!");
 
-    mBuffer = ByteBuffer.allocate(USER_CONF.FILE_BUFFER_BYTES + 4);
+    mBuffer = ByteBuffer.allocate(mUserConf.FILE_BUFFER_BYTES + 4);
   }
 
   private synchronized void appendCurrentBuffer(byte[] buf, int offset, int length)
       throws IOException {
-    if (!TFS.requestSpace(length)) {
+    if (!mTachyonFS.requestSpace(length)) {
       mCanWrite = false;
 
       String msg =
           "Local tachyon worker does not have enough " + "space (" + length
-              + ") or no worker for " + FILE.FID + " " + BLOCK_ID;
-      if (PIN) {
-        TFS.outOfMemoryForPinFile(FILE.FID);
-      }
+              + ") or no worker for " + mFile.mFileId + " " + mBlockId;
 
       throw new IOException(msg);
     }
@@ -147,11 +130,11 @@ public class BlockOutStream extends OutStream {
       }
 
       if (mCancel) {
-        TFS.releaseSpace(mWrittenBytes - mBuffer.position());
+        mTachyonFS.releaseSpace(mWrittenBytes - mBuffer.position());
         new File(mLocalFilePath).delete();
-        LOG.info("Canceled output of block " + BLOCK_ID + ", deleted local file " + mLocalFilePath);
+        LOG.info("Canceled output of block " + mBlockId + ", deleted local file " + mLocalFilePath);
       } else {
-        TFS.cacheBlock(BLOCK_ID);
+        mTachyonFS.cacheBlock(mBlockId);
       }
     }
     mClosed = true;
@@ -166,21 +149,21 @@ public class BlockOutStream extends OutStream {
    * @return the block id of the block
    */
   public long getBlockId() {
-    return BLOCK_ID;
+    return mBlockId;
   }
 
   /**
    * @return the block offset in the file.
    */
   public long getBlockOffset() {
-    return BLOCK_OFFSET;
+    return mBlockOffset;
   }
 
   /**
    * @return the remaining space of the block, in bytes
    */
   public long getRemainingSpaceByte() {
-    return BLOCK_CAPACITY_BYTE - mWrittenBytes;
+    return mBlockCapacityByte - mWrittenBytes;
   }
 
   @Override
@@ -201,11 +184,11 @@ public class BlockOutStream extends OutStream {
     if (!mCanWrite) {
       throw new IOException("Can not write cache.");
     }
-    if (mWrittenBytes + len > BLOCK_CAPACITY_BYTE) {
+    if (mWrittenBytes + len > mBlockCapacityByte) {
       throw new IOException("Out of capacity.");
     }
 
-    if (mBuffer.position() + len >= USER_CONF.FILE_BUFFER_BYTES) {
+    if (mBuffer.position() + len >= mUserConf.FILE_BUFFER_BYTES) {
       if (mBuffer.position() > 0) {
         appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
         mBuffer.clear();
@@ -226,11 +209,11 @@ public class BlockOutStream extends OutStream {
     if (!mCanWrite) {
       throw new IOException("Can not write cache.");
     }
-    if (mWrittenBytes + 1 > BLOCK_CAPACITY_BYTE) {
+    if (mWrittenBytes + 1 > mBlockCapacityByte) {
       throw new IOException("Out of capacity.");
     }
 
-    if (mBuffer.position() >= USER_CONF.FILE_BUFFER_BYTES) {
+    if (mBuffer.position() >= mUserConf.FILE_BUFFER_BYTES) {
       appendCurrentBuffer(mBuffer.array(), 0, mBuffer.position());
       mBuffer.clear();
     }

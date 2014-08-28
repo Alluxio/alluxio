@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.web;
 
 import java.io.IOException;
@@ -39,47 +25,47 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
    * by array indexes.
    */
   public static class NodeInfo {
-    private final String NAME;
-    private final String LAST_CONTACT_SEC;
-    private final String STATE;
-    private final int FREE_SPACE_PERCENT;
-    private final int USED_SPACE_PERCENT;
-    private final String UPTIME_CLOCK_TIME;
+    private final String mName;
+    private final String mLastContactSec;
+    private final String mWorkerState;
+    private final int mFreePercent;
+    private final int mUsedPercent;
+    private final String mUptimeClockTime;
 
     private NodeInfo(ClientWorkerInfo workerInfo) {
-      NAME = workerInfo.getAddress().getMHost();
-      LAST_CONTACT_SEC = Integer.toString(workerInfo.getLastContactSec());
-      STATE = workerInfo.getState();
-      USED_SPACE_PERCENT =
+      mName = workerInfo.getAddress().getMHost();
+      mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
+      mWorkerState = workerInfo.getState();
+      mUsedPercent =
           (int) (100L * workerInfo.getUsedBytes() / workerInfo.getCapacityBytes());
-      FREE_SPACE_PERCENT = 100 - USED_SPACE_PERCENT;
-      UPTIME_CLOCK_TIME =
+      mFreePercent = 100 - mUsedPercent;
+      mUptimeClockTime =
           CommonUtils.convertMsToShortClockTime(System.currentTimeMillis()
               - workerInfo.getStarttimeMs());
     }
 
     public int getFreeSpacePercent() {
-      return FREE_SPACE_PERCENT;
+      return mFreePercent;
     }
 
     public String getLastHeartbeat() {
-      return LAST_CONTACT_SEC;
+      return mLastContactSec;
     }
 
     public String getName() {
-      return NAME;
+      return mName;
     }
 
     public String getState() {
-      return STATE;
+      return mWorkerState;
     }
 
     public String getUptimeClockTime() {
-      return UPTIME_CLOCK_TIME;
+      return mUptimeClockTime;
     }
 
     public int getUsedSpacePercent() {
-      return USED_SPACE_PERCENT;
+      return mUsedPercent;
     }
   }
 

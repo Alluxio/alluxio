@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.client;
 
 import java.io.IOException;
@@ -37,7 +23,7 @@ import tachyon.worker.DataServerMessage;
  */
 public class RemoteBlockInStream extends BlockInStream {
   private static final int BUFFER_SIZE = UserConf.get().REMOTE_READ_BUFFER_SIZE_BYTE;
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private ClientBlockInfo mBlockInfo;
   private InputStream mCheckpointInputStream = null;
@@ -78,12 +64,12 @@ public class RemoteBlockInStream extends BlockInStream {
       throws IOException {
     super(file, readType, blockIndex);
 
-    mBlockInfo = TFS.getClientBlockInfo(FILE.FID, BLOCK_INDEX);
+    mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
     mReadByte = 0;
     mBufferStartPosition = 0;
 
-    if (!FILE.isComplete()) {
-      throw new IOException("File " + FILE.getPath() + " is not ready to read");
+    if (!mFile.isComplete()) {
+      throw new IOException("File " + mFile.getPath() + " is not ready to read");
     }
 
     mRecache = readType.isCache();
@@ -98,9 +84,9 @@ public class RemoteBlockInStream extends BlockInStream {
       setupStreamFromUnderFs(mBlockInfo.offset, mUFSConf);
 
       if (mCheckpointInputStream == null) {
-        TFS.reportLostFile(FILE.FID);
+        mTachyonFS.reportLostFile(mFile.mFileId);
 
-        throw new IOException("Can not find the block " + FILE + " " + BLOCK_INDEX);
+        throw new IOException("Can not find the block " + mFile + " " + mBlockIndex);
       }
     }
   }
@@ -228,7 +214,8 @@ public class RemoteBlockInStream extends BlockInStream {
         }
         if (host.equals(InetAddress.getLocalHost().getHostName())
             || host.equals(InetAddress.getLocalHost().getHostAddress())) {
-          String localFileName = CommonUtils.concat(TFS.getRootFolder(), blockInfo.blockId);
+          String localFileName =
+              CommonUtils.concat(mTachyonFS.getLocalDataFolder(), blockInfo.blockId);
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         }
         LOG.info(host + ":" + port + " current host is "
@@ -318,7 +305,7 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   private void setupStreamFromUnderFs(long offset, Object conf) throws IOException {
-    String checkpointPath = TFS.getUfsPath(FILE.FID);
+    String checkpointPath = mFile.getUfsPath();
     if (!checkpointPath.equals("")) {
       LOG.info("May stream from underlayer fs: " + checkpointPath);
       UnderFileSystem underfsClient = UnderFileSystem.get(checkpointPath, conf);
@@ -333,7 +320,8 @@ public class RemoteBlockInStream extends BlockInStream {
           }
         }
       } catch (IOException e) {
-        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File " + FILE.FID, e);
+        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File "
+            + mFile.mFileId, e);
         mCheckpointInputStream = null;
       }
     }
@@ -392,7 +380,7 @@ public class RemoteBlockInStream extends BlockInStream {
     mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
 
     if (mCurrentBuffer == null) {
-      mBlockInfo = TFS.getClientBlockInfo(FILE.FID, BLOCK_INDEX);
+      mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
       mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
     }
   }
