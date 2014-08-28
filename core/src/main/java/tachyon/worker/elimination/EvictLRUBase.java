@@ -26,14 +26,14 @@ import tachyon.master.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * It is the base class which is used to evict blocks by LRU strategy.
+ * Base class for evicting blocks by LRU strategy.
  */
 public abstract class EvictLRUBase implements EvictStrategy {
 
-  private final boolean LAST_TIER;
+  private final boolean mLastTier;
 
   EvictLRUBase(boolean lastTier) {
-    LAST_TIER = lastTier;
+    mLastTier = lastTier;
   }
 
   /**
@@ -43,25 +43,25 @@ public abstract class EvictLRUBase implements EvictStrategy {
    *          id of the block
    * @param pinList
    *          list of pinned files
-   * @return true if can be evicted, false otherwise
+   * @return true if the block can be evicted, false otherwise
    */
   boolean blockEvictable(long blockId, Set<Integer> pinList) {
-    if (LAST_TIER && pinList.contains(BlockInfo.computeInodeId(blockId))) {
+    if (mLastTier && pinList.contains(BlockInfo.computeInodeId(blockId))) {
       return false;
     }
     return true;
   }
 
   /**
-   * Get oldest block access information
+   * Get the oldest block access information in certain StorageDir
    * 
    * @param curDir
-   *          current storage dir
+   *          current StorageDir
    * @param toEvictBlockIds
-   *          block ids that already selected to be evicted
+   *          block ids that have been selected to be evicted
    * @param pinList
    *          list of pinned files
-   * @return oldest access information of current storage dir
+   * @return oldest access information of current StorageDir
    */
   Pair<Long, Long> getLRUBlock(StorageDir curDir, Collection<Long> toEvictBlockIds,
       Set<Integer> pinList) {

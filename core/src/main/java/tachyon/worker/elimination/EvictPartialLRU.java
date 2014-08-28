@@ -23,7 +23,7 @@ import tachyon.worker.hierarchy.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * It is used to evict blocks in certain storage dir by LRU strategy.
+ * Used to evict blocks in certain StorageDir by LRU strategy.
  */
 public class EvictPartialLRU extends EvictLRUBase {
 
@@ -32,8 +32,8 @@ public class EvictPartialLRU extends EvictLRUBase {
   }
 
   @Override
-  public StorageDir getDirCandidate(List<BlockInfo> blockEvictionInfoList,
-      StorageDir[] storageDirs, Set<Integer> pinList, long requestSize) {
+  public StorageDir getDirCandidate(List<BlockInfo> blockInfoList, StorageDir[] storageDirs,
+      Set<Integer> pinList, long requestSize) {
     Set<StorageDir> ignoredDirs = new HashSet<StorageDir>();
     StorageDir dirSelected = getDirWithMaxFreeSpace(requestSize, storageDirs, ignoredDirs);
     while (dirSelected != null) {
@@ -44,8 +44,7 @@ public class EvictPartialLRU extends EvictLRUBase {
         if (oldestAccess.getFirst() != -1) {
           long blockSize = dirSelected.getBlockSize(oldestAccess.getFirst());
           sizeToEvict += blockSize;
-          blockEvictionInfoList
-              .add(new BlockInfo(dirSelected, oldestAccess.getFirst(), blockSize));
+          blockInfoList.add(new BlockInfo(dirSelected, oldestAccess.getFirst(), blockSize));
           blockIdSet.add(oldestAccess.getFirst());
         } else {
           break;
@@ -53,7 +52,7 @@ public class EvictPartialLRU extends EvictLRUBase {
       }
       if (sizeToEvict + dirSelected.getAvailable() < requestSize) {
         ignoredDirs.add(dirSelected);
-        blockEvictionInfoList.clear();
+        blockInfoList.clear();
         blockIdSet.clear();
         dirSelected = getDirWithMaxFreeSpace(requestSize, storageDirs, ignoredDirs);
       } else {
@@ -64,15 +63,15 @@ public class EvictPartialLRU extends EvictLRUBase {
   }
 
   /**
-   * Get the storage dir which has max free space
+   * Get the StorageDir which has max free space
    * 
    * @param requestSize
-   *          the space size to request
+   *          space size to request
    * @param storageDirs
-   *          storage dirs that the space is allocated in
+   *          StorageDir candidates that the space will be allocated in
    * @param ignoredList
-   *          storage dirs that has ignored
-   * @return the storage dir selected
+   *          StorageDirs that have been ignored
+   * @return the StorageDir selected
    */
   public StorageDir getDirWithMaxFreeSpace(long requestSize, StorageDir[] storageDirs,
       Set<StorageDir> ignoredList) {

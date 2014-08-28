@@ -26,7 +26,7 @@ import tachyon.worker.hierarchy.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * It is used to evict old blocks among several storage dirs by LRU.
+ * Used to evict old blocks among several StorageDirs by LRU strategy.
  */
 public class EvictLRU extends EvictLRUBase {
 
@@ -35,7 +35,7 @@ public class EvictLRU extends EvictLRUBase {
   }
 
   @Override
-  public StorageDir getDirCandidate(List<BlockInfo> blockEvictInfoList, StorageDir[] storageDirs,
+  public StorageDir getDirCandidate(List<BlockInfo> blockInfoList, StorageDir[] storageDirs,
       Set<Integer> pinList, long requestSize) {
     Map<StorageDir, Pair<Long, Long>> dir2LRUBlocks = new HashMap<StorageDir, Pair<Long, Long>>();
     HashMultimap<StorageDir, Long> dir2BlocksToEvict = HashMultimap.create();
@@ -51,7 +51,7 @@ public class EvictLRU extends EvictLRUBase {
       } else {
         blockSize = dirCandidate.getBlockSize(blockId);
       }
-      blockEvictInfoList.add(new BlockInfo(dirCandidate, blockId, blockSize));
+      blockInfoList.add(new BlockInfo(dirCandidate, blockId, blockSize));
       dir2BlocksToEvict.put(dirCandidate, blockId);
       dir2LRUBlocks.remove(dirCandidate);
       long evictionSize;
@@ -68,14 +68,14 @@ public class EvictLRU extends EvictLRUBase {
   }
 
   /**
-   * Get block to be evicted by choosing the oldest block in current StorageDirs
+   * Get block to be evicted by choosing the oldest block in StorageDir candidates
    * 
    * @param storageDirs
-   *          storage dirs that the space is allocated in
+   *          StorageDir candidates that the space will be allocated in
    * @param dir2LRUBlocks
-   *          oldest access information for each storage dir
+   *          oldest access information for each StorageDir
    * @param dir2BlocksToEvict
-   *          block ids that already selected to be evicted
+   *          block ids that have been selected to be evicted
    * @param pinList
    *          list of pinned files
    * @return block to be evicted

@@ -14,19 +14,18 @@
  */
 package tachyon.worker.hierarchy;
 
-
 /**
- * It is used for recording block information that will be used in block eviction.
+ * Used for recording block information that will be used in block eviction.
  */
 public class BlockInfo {
-  private final StorageDir DIR;
-  private final long BLOCK_ID;
-  private final long BLOCK_SIZE;
+  private final StorageDir mDir;
+  private final long mBlockId;
+  private final long mBlockSize;
 
   public BlockInfo(StorageDir storageDir, long blockId, long blockSize) {
-    DIR = storageDir;
-    BLOCK_ID = blockId;
-    BLOCK_SIZE = blockSize;
+    mDir = storageDir;
+    mBlockId = blockId;
+    mBlockSize = blockSize;
   }
 
   /**
@@ -35,7 +34,7 @@ public class BlockInfo {
    * @return id of the block
    */
   public long getBlockId() {
-    return BLOCK_ID;
+    return mBlockId;
   }
 
   /**
@@ -44,7 +43,7 @@ public class BlockInfo {
    * @return size of the block
    */
   public long getBlockSize() {
-    return BLOCK_SIZE;
+    return mBlockSize;
   }
 
   /**
@@ -53,6 +52,6 @@ public class BlockInfo {
    * @return index of the storage dir
    */
   public StorageDir getStorageDir() {
-    return DIR;
+    return mDir;
   }
 }

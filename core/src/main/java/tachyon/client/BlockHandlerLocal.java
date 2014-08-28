@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.client;
 
 import java.io.File;
@@ -24,6 +10,7 @@ import java.nio.channels.FileChannel.MapMode;
 import org.apache.log4j.Logger;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
@@ -34,70 +21,53 @@ import tachyon.util.CommonUtils;
 public final class BlockHandlerLocal extends BlockHandler {
 
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private final RandomAccessFile LOCAL_FILE;
-  private final FileChannel LOCAL_FILE_CHANNEL;
+  private final RandomAccessFile mLocalFile;
+  private final FileChannel mLocalFileChannel;
   private boolean mPermission = false;
-  protected final String FILE_PATH;
+  private final String mFilePath;
+  private final Closer mCloser = Closer.create();
 
   BlockHandlerLocal(String filePath) throws IOException {
-    FILE_PATH = Preconditions.checkNotNull(filePath);
-    LOG.debug(FILE_PATH + " is created");
-    LOCAL_FILE = new RandomAccessFile(FILE_PATH, "rw");
-    LOCAL_FILE_CHANNEL = LOCAL_FILE.getChannel();
+    mFilePath = Preconditions.checkNotNull(filePath);
+    LOG.debug(mFilePath + " is created");
+    mLocalFile = new RandomAccessFile(mFilePath, "rw");
+    mLocalFileChannel = mLocalFile.getChannel();
+    mCloser.register(mLocalFile);
+    mCloser.register(mLocalFileChannel);
   }
 
   @Override
-  protected int append_(long blockOffset, ByteBuffer srcBuf) throws IOException {
-    ByteBuffer out = LOCAL_FILE_CHANNEL.map(MapMode.READ_WRITE, blockOffset, srcBuf.limit());
+  public int append(long blockOffset, ByteBuffer srcBuf) throws IOException {
+    checkPermission();
+    ByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, blockOffset, srcBuf.limit());
     out.put(srcBuf);
 
     return srcBuf.limit();
   }
 
-  @Override
-  protected void checkPermission() throws IOException {
+  private void checkPermission() throws IOException {
     if (!mPermission) {
       // change the permission of the file and use the sticky bit
-      CommonUtils.changeLocalFileToFullPermission(FILE_PATH);
-      CommonUtils.setLocalFileStickyBit(FILE_PATH);
+      CommonUtils.changeLocalFileToFullPermission(mFilePath);
+      CommonUtils.setLocalFileStickyBit(mFilePath);
       mPermission = true;
     }
   }
 
   @Override
   public void close() throws IOException {
-    IOException exception = null;
-    if (LOCAL_FILE_CHANNEL != null) {
-      try {
-        LOCAL_FILE_CHANNEL.close();
-      } catch (IOException e) {
-        exception = e;
-      }
-    }
-    if (LOCAL_FILE != null) {
-      try {
-        LOCAL_FILE.close();
-      } catch (IOException e) {
-        if (exception == null) {
-          exception = e;
-        } else {
-          LOG.warn("Error during close file:" + FILE_PATH, e);
-        }
-      }
-    }
-    if (exception != null) {
-      throw exception;
-    }
+    mCloser.close();
   }
 
   @Override
-  protected boolean delete_() throws IOException {
-    return new File(FILE_PATH).delete();
+  public boolean delete() throws IOException {
+    checkPermission();
+    return new File(mFilePath).delete();
   }
 
   @Override
   public ByteBuffer read(long blockOffset, int length) throws IOException {
-    long fileLength = LOCAL_FILE.length();
+    long fileLength = mLocalFile.length();
     String error = null;
     if (blockOffset > fileLength) {
       error =
@@ -114,16 +84,7 @@ public final class BlockHandlerLocal extends BlockHandler {
     if (length == -1) {
       length = (int) (fileLength - blockOffset);
     }
-    ByteBuffer buf = LOCAL_FILE_CHANNEL.map(FileChannel.MapMode.READ_ONLY, blockOffset, length);
+    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, blockOffset, length);
     return buf;
-  }
-
-  public FileChannel readChannel() {
-    return LOCAL_FILE_CHANNEL;
-  }
-
-  public FileChannel writeChannel() throws IOException {
-    checkPermission();
-    return LOCAL_FILE_CHANNEL;
   }
 }
