@@ -30,19 +30,19 @@ import tachyon.worker.hierarchy.StorageDir;
  */
 public class EvictLRU extends EvictLRUBase {
 
-  public EvictLRU(StorageDir[] storageDirs, boolean lastTier) {
-    super(storageDirs, lastTier);
+  public EvictLRU(boolean lastTier) {
+    super(lastTier);
   }
 
   @Override
-  public StorageDir getDirCandidate(List<BlockInfo> blockEvictInfoList, Set<Integer> pinList,
-      long requestSize) {
+  public StorageDir getDirCandidate(List<BlockInfo> blockEvictInfoList, StorageDir[] storageDirs,
+      Set<Integer> pinList, long requestSize) {
     Map<StorageDir, Pair<Long, Long>> dir2LRUBlocks = new HashMap<StorageDir, Pair<Long, Long>>();
     HashMultimap<StorageDir, Long> dir2BlocksToEvict = HashMultimap.create();
     Map<StorageDir, Long> sizeToEvict = new HashMap<StorageDir, Long>();
     while (true) {
       Pair<StorageDir, Long> candidate =
-          getLRUBlockCandidate(dir2LRUBlocks, dir2BlocksToEvict, pinList);
+          getLRUBlockCandidate(storageDirs, dir2LRUBlocks, dir2BlocksToEvict, pinList);
       StorageDir dirCandidate = candidate.getFirst();
       long blockId = candidate.getSecond();
       long blockSize = 0;
@@ -70,6 +70,8 @@ public class EvictLRU extends EvictLRUBase {
   /**
    * Get block to be evicted by choosing the oldest block in current StorageDirs
    * 
+   * @param storageDirs
+   *          storage dirs that the space is allocated in
    * @param dir2LRUBlocks
    *          oldest access information for each storage dir
    * @param dir2BlocksToEvict
@@ -78,12 +80,12 @@ public class EvictLRU extends EvictLRUBase {
    *          list of pinned files
    * @return block to be evicted
    */
-  public Pair<StorageDir, Long> getLRUBlockCandidate(
+  public Pair<StorageDir, Long> getLRUBlockCandidate(StorageDir[] storageDirs,
       Map<StorageDir, Pair<Long, Long>> dir2LRUBlocks,
       HashMultimap<StorageDir, Long> dir2BlocksToEvict, Set<Integer> pinList) {
     StorageDir dirCandidate = null;
     long blockId = -1;
-    for (StorageDir dir : STORAGE_DIRS) {
+    for (StorageDir dir : storageDirs) {
       Pair<Long, Long> lruBlock;
       long oldestTime = Long.MAX_VALUE;
       if (!dir2LRUBlocks.containsKey(dir)) {
