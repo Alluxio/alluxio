@@ -27,15 +27,15 @@ import tachyon.worker.hierarchy.StorageDir;
  */
 public class EvictPartialLRU extends EvictLRUBase {
 
-  public EvictPartialLRU(StorageDir[] storageDirs, boolean lastTier) {
-    super(storageDirs, lastTier);
+  public EvictPartialLRU(boolean lastTier) {
+    super(lastTier);
   }
 
   @Override
-  public StorageDir getDirCandidate(List<BlockInfo> blockEvictionInfoList, Set<Integer> pinList,
-      long requestSize) {
+  public StorageDir getDirCandidate(List<BlockInfo> blockEvictionInfoList,
+      StorageDir[] storageDirs, Set<Integer> pinList, long requestSize) {
     Set<StorageDir> ignoredDirs = new HashSet<StorageDir>();
-    StorageDir dirSelected = getDirWithMaxFreeSpace(requestSize, ignoredDirs);
+    StorageDir dirSelected = getDirWithMaxFreeSpace(requestSize, storageDirs, ignoredDirs);
     while (dirSelected != null) {
       Set<Long> blockIdSet = new HashSet<Long>();
       long sizeToEvict = 0;
@@ -55,7 +55,7 @@ public class EvictPartialLRU extends EvictLRUBase {
         ignoredDirs.add(dirSelected);
         blockEvictionInfoList.clear();
         blockIdSet.clear();
-        dirSelected = getDirWithMaxFreeSpace(requestSize, ignoredDirs);
+        dirSelected = getDirWithMaxFreeSpace(requestSize, storageDirs, ignoredDirs);
       } else {
         return dirSelected;
       }
@@ -63,10 +63,22 @@ public class EvictPartialLRU extends EvictLRUBase {
     return null;
   }
 
-  public StorageDir getDirWithMaxFreeSpace(long requestSize, Set<StorageDir> ignoredList) {
+  /**
+   * Get the storage dir which has max free space
+   * 
+   * @param requestSize
+   *          the space size to request
+   * @param storageDirs
+   *          storage dirs that the space is allocated in
+   * @param ignoredList
+   *          storage dirs that has ignored
+   * @return the storage dir selected
+   */
+  public StorageDir getDirWithMaxFreeSpace(long requestSize, StorageDir[] storageDirs,
+      Set<StorageDir> ignoredList) {
     StorageDir dirSelected = null;
     long maxAvailableSize = -1;
-    for (StorageDir dir : STORAGE_DIRS) {
+    for (StorageDir dir : storageDirs) {
       if (ignoredList.contains(dir)) {
         continue;
       }

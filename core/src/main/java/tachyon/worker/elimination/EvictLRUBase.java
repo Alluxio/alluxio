@@ -30,11 +30,9 @@ import tachyon.worker.hierarchy.StorageDir;
  */
 public abstract class EvictLRUBase implements EvictStrategy {
 
-  protected final StorageDir[] STORAGE_DIRS;
   private final boolean LAST_TIER;
 
-  EvictLRUBase(StorageDir[] storageDirs, boolean lastTier) {
-    STORAGE_DIRS = storageDirs;
+  EvictLRUBase(boolean lastTier) {
     LAST_TIER = lastTier;
   }
 
