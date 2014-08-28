@@ -30,10 +30,10 @@ import tachyon.worker.hierarchy.StorageDir;
  */
 public abstract class EvictLRUBase implements EvictStrategy {
 
-  private final boolean LAST_TIER;
+  private final boolean mLastTier;
 
   EvictLRUBase(boolean lastTier) {
-    LAST_TIER = lastTier;
+    mLastTier = lastTier;
   }
 
   /**
@@ -46,7 +46,7 @@ public abstract class EvictLRUBase implements EvictStrategy {
    * @return true if can be evicted, false otherwise
    */
   boolean blockEvictable(long blockId, Set<Integer> pinList) {
-    if (LAST_TIER && pinList.contains(BlockInfo.computeInodeId(blockId))) {
+    if (mLastTier && pinList.contains(BlockInfo.computeInodeId(blockId))) {
       return false;
     }
     return true;
