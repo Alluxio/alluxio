@@ -1,32 +1,17 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.worker.hierarchy;
 
-
 /**
- * It is used for recording block information that will be used in block eviction.
+ * Used for recording block information that will be used in block eviction.
  */
-public class BlockInfo {
-  private final StorageDir DIR;
-  private final long BLOCK_ID;
-  private final long BLOCK_SIZE;
+public final class BlockInfo {
+  private final StorageDir mDir;
+  private final long mBlockId;
+  private final long mBlockSize;
 
   public BlockInfo(StorageDir storageDir, long blockId, long blockSize) {
-    DIR = storageDir;
-    BLOCK_ID = blockId;
-    BLOCK_SIZE = blockSize;
+    mDir = storageDir;
+    mBlockId = blockId;
+    mBlockSize = blockSize;
   }
 
   /**
@@ -35,7 +20,7 @@ public class BlockInfo {
    * @return id of the block
    */
   public long getBlockId() {
-    return BLOCK_ID;
+    return mBlockId;
   }
 
   /**
@@ -44,7 +29,7 @@ public class BlockInfo {
    * @return size of the block
    */
   public long getBlockSize() {
-    return BLOCK_SIZE;
+    return mBlockSize;
   }
 
   /**
@@ -53,6 +38,6 @@ public class BlockInfo {
    * @return index of the storage dir
    */
   public StorageDir getStorageDir() {
-    return DIR;
+    return mDir;
   }
 }

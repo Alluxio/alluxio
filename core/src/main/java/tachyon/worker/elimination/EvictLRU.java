@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.worker.elimination;
 
 import java.util.HashMap;
@@ -26,16 +12,16 @@ import tachyon.worker.hierarchy.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * It is used to evict old blocks among several storage dirs by LRU.
+ * Used to evict old blocks among several StorageDirs by LRU strategy.
  */
-public class EvictLRU extends EvictLRUBase {
+public final class EvictLRU extends EvictLRUBase {
 
   public EvictLRU(boolean lastTier) {
     super(lastTier);
   }
 
   @Override
-  public StorageDir getDirCandidate(List<BlockInfo> blockEvictInfoList, StorageDir[] storageDirs,
+  public StorageDir getDirCandidate(List<BlockInfo> blockInfoList, StorageDir[] storageDirs,
       Set<Integer> pinList, long requestSize) {
     Map<StorageDir, Pair<Long, Long>> dir2LRUBlocks = new HashMap<StorageDir, Pair<Long, Long>>();
     HashMultimap<StorageDir, Long> dir2BlocksToEvict = HashMultimap.create();
@@ -51,7 +37,7 @@ public class EvictLRU extends EvictLRUBase {
       } else {
         blockSize = dirCandidate.getBlockSize(blockId);
       }
-      blockEvictInfoList.add(new BlockInfo(dirCandidate, blockId, blockSize));
+      blockInfoList.add(new BlockInfo(dirCandidate, blockId, blockSize));
       dir2BlocksToEvict.put(dirCandidate, blockId);
       dir2LRUBlocks.remove(dirCandidate);
       long evictionSize;
@@ -68,19 +54,19 @@ public class EvictLRU extends EvictLRUBase {
   }
 
   /**
-   * Get block to be evicted by choosing the oldest block in current StorageDirs
+   * Get block to be evicted by choosing the oldest block in StorageDir candidates
    * 
    * @param storageDirs
-   *          storage dirs that the space is allocated in
+   *          StorageDir candidates that the space will be allocated in
    * @param dir2LRUBlocks
-   *          oldest access information for each storage dir
+   *          oldest access information for each StorageDir
    * @param dir2BlocksToEvict
-   *          block ids that already selected to be evicted
+   *          block ids that have been selected to be evicted
    * @param pinList
    *          list of pinned files
    * @return block to be evicted
    */
-  public Pair<StorageDir, Long> getLRUBlockCandidate(StorageDir[] storageDirs,
+  private Pair<StorageDir, Long> getLRUBlockCandidate(StorageDir[] storageDirs,
       Map<StorageDir, Pair<Long, Long>> dir2LRUBlocks,
       HashMultimap<StorageDir, Long> dir2BlocksToEvict, Set<Integer> pinList) {
     StorageDir dirCandidate = null;
