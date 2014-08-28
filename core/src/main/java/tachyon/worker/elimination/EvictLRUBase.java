@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.worker.elimination;
 
 import java.util.Collection;
@@ -26,14 +12,14 @@ import tachyon.master.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * It is the base class which is used to evict blocks by LRU strategy.
+ * Base class for evicting blocks by LRU strategy.
  */
 public abstract class EvictLRUBase implements EvictStrategy {
 
-  private final boolean LAST_TIER;
+  private final boolean mLastTier;
 
   EvictLRUBase(boolean lastTier) {
-    LAST_TIER = lastTier;
+    mLastTier = lastTier;
   }
 
   /**
@@ -43,25 +29,25 @@ public abstract class EvictLRUBase implements EvictStrategy {
    *          id of the block
    * @param pinList
    *          list of pinned files
-   * @return true if can be evicted, false otherwise
+   * @return true if the block can be evicted, false otherwise
    */
   boolean blockEvictable(long blockId, Set<Integer> pinList) {
-    if (LAST_TIER && pinList.contains(BlockInfo.computeInodeId(blockId))) {
+    if (mLastTier && pinList.contains(BlockInfo.computeInodeId(blockId))) {
       return false;
     }
     return true;
   }
 
   /**
-   * Get oldest block access information
+   * Get the oldest block access information in certain StorageDir
    * 
    * @param curDir
-   *          current storage dir
+   *          current StorageDir
    * @param toEvictBlockIds
-   *          block ids that already selected to be evicted
+   *          block ids that have been selected to be evicted
    * @param pinList
    *          list of pinned files
-   * @return oldest access information of current storage dir
+   * @return oldest access information of current StorageDir
    */
   Pair<Long, Long> getLRUBlock(StorageDir curDir, Collection<Long> toEvictBlockIds,
       Set<Integer> pinList) {

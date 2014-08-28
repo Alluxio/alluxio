@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.worker.elimination;
 
 import java.util.HashSet;
@@ -23,17 +9,17 @@ import tachyon.worker.hierarchy.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
 
 /**
- * It is used to evict blocks in certain storage dir by LRU strategy.
+ * Used to evict blocks in certain StorageDir by LRU strategy.
  */
-public class EvictPartialLRU extends EvictLRUBase {
+public final class EvictPartialLRU extends EvictLRUBase {
 
   public EvictPartialLRU(boolean lastTier) {
     super(lastTier);
   }
 
   @Override
-  public StorageDir getDirCandidate(List<BlockInfo> blockEvictionInfoList,
-      StorageDir[] storageDirs, Set<Integer> pinList, long requestSize) {
+  public StorageDir getDirCandidate(List<BlockInfo> blockInfoList, StorageDir[] storageDirs,
+      Set<Integer> pinList, long requestSize) {
     Set<StorageDir> ignoredDirs = new HashSet<StorageDir>();
     StorageDir dirSelected = getDirWithMaxFreeSpace(requestSize, storageDirs, ignoredDirs);
     while (dirSelected != null) {
@@ -44,8 +30,7 @@ public class EvictPartialLRU extends EvictLRUBase {
         if (oldestAccess.getFirst() != -1) {
           long blockSize = dirSelected.getBlockSize(oldestAccess.getFirst());
           sizeToEvict += blockSize;
-          blockEvictionInfoList
-              .add(new BlockInfo(dirSelected, oldestAccess.getFirst(), blockSize));
+          blockInfoList.add(new BlockInfo(dirSelected, oldestAccess.getFirst(), blockSize));
           blockIdSet.add(oldestAccess.getFirst());
         } else {
           break;
@@ -53,7 +38,7 @@ public class EvictPartialLRU extends EvictLRUBase {
       }
       if (sizeToEvict + dirSelected.getAvailable() < requestSize) {
         ignoredDirs.add(dirSelected);
-        blockEvictionInfoList.clear();
+        blockInfoList.clear();
         blockIdSet.clear();
         dirSelected = getDirWithMaxFreeSpace(requestSize, storageDirs, ignoredDirs);
       } else {
@@ -64,17 +49,17 @@ public class EvictPartialLRU extends EvictLRUBase {
   }
 
   /**
-   * Get the storage dir which has max free space
+   * Get the StorageDir which has max free space
    * 
    * @param requestSize
-   *          the space size to request
+   *          space size to request
    * @param storageDirs
-   *          storage dirs that the space is allocated in
+   *          StorageDir candidates that the space will be allocated in
    * @param ignoredList
-   *          storage dirs that has ignored
-   * @return the storage dir selected
+   *          StorageDirs that have been ignored
+   * @return the StorageDir selected
    */
-  public StorageDir getDirWithMaxFreeSpace(long requestSize, StorageDir[] storageDirs,
+  private StorageDir getDirWithMaxFreeSpace(long requestSize, StorageDir[] storageDirs,
       Set<StorageDir> ignoredList) {
     StorageDir dirSelected = null;
     long maxAvailableSize = -1;
