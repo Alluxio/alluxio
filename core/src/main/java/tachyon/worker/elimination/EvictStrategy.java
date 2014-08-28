@@ -35,6 +35,8 @@ public interface EvictStrategy {
    * 
    * @param blockEvictionInfoList
    *          blocks to be evicted
+   * @param storageDirs
+   *          storage dirs that the space is allocated in
    * @param pinList
    *          list of pinned file
    * @param requestSize
@@ -42,6 +44,6 @@ public interface EvictStrategy {
    * @return index of the storage dir allocated, toEvictedBlocks also returned as output
    * @throws IOException
    */
-  StorageDir getDirCandidate(List<BlockInfo> blockEvictionInfoList, Set<Integer> pinList,
-      long requestSize);
+  StorageDir getDirCandidate(List<BlockInfo> blockEvictionInfoList, StorageDir[] storageDirs,
+      Set<Integer> pinList, long requestSize);
 }
