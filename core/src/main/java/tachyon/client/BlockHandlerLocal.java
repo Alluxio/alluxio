@@ -14,12 +14,15 @@
  */
 package tachyon.client;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import org.apache.log4j.Logger;
 
@@ -37,13 +40,16 @@ public final class BlockHandlerLocal extends BlockHandler {
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
   private boolean mPermission = false;
-  protected final String mFilePath;
+  private final String mFilePath;
+  private final Deque<Closeable> mStack = new ArrayDeque<Closeable>(2);
 
   BlockHandlerLocal(String filePath) throws IOException {
     mFilePath = Preconditions.checkNotNull(filePath);
     mLog.debug(mFilePath + " is created");
     mLocalFile = new RandomAccessFile(mFilePath, "rw");
     mLocalFileChannel = mLocalFile.getChannel();
+    mStack.push(mLocalFile);
+    mStack.push(mLocalFileChannel);
   }
 
   @Override
@@ -67,21 +73,14 @@ public final class BlockHandlerLocal extends BlockHandler {
   @Override
   public void close() throws IOException {
     IOException exception = null;
-    if (mLocalFileChannel != null) {
+    while (!mStack.isEmpty()) {
       try {
-        mLocalFileChannel.close();
-      } catch (IOException e) {
-        exception = e;
-      }
-    }
-    if (mLocalFile != null) {
-      try {
-        mLocalFile.close();
+        mStack.pop().close();
       } catch (IOException e) {
         if (exception == null) {
           exception = e;
         } else {
-          mLog.error("Error during close file:" + mFilePath, e);
+          mLog.error(e.getMessage(), e);
         }
       }
     }
