@@ -63,6 +63,35 @@ public class BlockHandlerLocalTest {
   }
 
   @Test
+  public void readTest1() throws IOException {
+    int fileId = TestUtils.createByteFile(mTfs, "/root/testFile", WriteType.MUST_CACHE, 100);
+    TachyonFile file = mTfs.getFile(fileId);
+    String filename = file.getLocalFilename(0);
+    BlockHandler handler = BlockHandler.get(filename);
+    try {
+      IllegalArgumentException exception = null;
+      ByteBuffer buf = null;
+      try {
+        buf = handler.read(101, 10);
+      } catch (IllegalArgumentException e) {
+        exception = e;
+      }
+      Assert.assertEquals("blockOffset(101) is larger than file length(100)",
+          exception.getMessage());
+      try {
+        buf = handler.read(10, 100);
+      } catch (IllegalArgumentException e) {
+        exception = e;
+      }
+      Assert.assertEquals("blockOffset(10) plus length(100) is larger than file length(100)",
+          exception.getMessage());
+    } finally {
+      handler.close();
+    }
+    return;
+  }
+
+  @Test
   public void writeTest() throws IOException {
     int fileId = mTfs.createFile("/root/testFile");
     long blockId = mTfs.getBlockId(fileId, 0);
