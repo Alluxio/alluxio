@@ -36,7 +36,7 @@ import tachyon.util.CommonUtils;
  */
 public final class BlockHandlerLocal extends BlockHandler {
 
-  private final Logger mLog = Logger.getLogger(Constants.LOGGER_TYPE);
+  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
   private boolean mPermission = false;
@@ -45,7 +45,7 @@ public final class BlockHandlerLocal extends BlockHandler {
 
   BlockHandlerLocal(String filePath) throws IOException {
     mFilePath = Preconditions.checkNotNull(filePath);
-    mLog.debug(mFilePath + " is created");
+    LOG.debug(mFilePath + " is created");
     mLocalFile = new RandomAccessFile(mFilePath, "rw");
     mLocalFileChannel = mLocalFile.getChannel();
     mStack.push(mLocalFile);
@@ -80,7 +80,7 @@ public final class BlockHandlerLocal extends BlockHandler {
         if (exception == null) {
           exception = e;
         } else {
-          mLog.error(e.getMessage(), e);
+          LOG.error(e.getMessage(), e);
         }
       }
     }
