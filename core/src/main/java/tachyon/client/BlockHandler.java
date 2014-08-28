@@ -22,7 +22,8 @@ import tachyon.Constants;
 
 /**
  * Base class for handling block files. Block handlers for different under file systems can be
- * implemented by extending this class.
+ * implemented by extending this class. It is not thread safe, the caller must guarantee thread
+ * safe. This class is internal and subject to changes.
  */
 abstract class BlockHandler implements Closeable {
 
@@ -70,29 +71,7 @@ abstract class BlockHandler implements Closeable {
    * @return size of data that is written
    * @throws IOException
    */
-  public int append(long blockOffset, ByteBuffer srcBuf) throws IOException {
-    checkPermission();
-    return append_(blockOffset, srcBuf);
-  }
-
-  /**
-   * Append data from ByteBuffer, internal API, implemented by child class
-   * 
-   * @param blockOffset
-   *          starting position of the block file
-   * @param srcBuf
-   *          ByteBuffer that data is stored in
-   * @return size of data that is written
-   * @throws IOException
-   */
-  protected abstract int append_(long blockOffset, ByteBuffer srcBuf) throws IOException;
-
-  /**
-   * Check to get permission to modify or delete the block file.
-   * 
-   * @throws IOException
-   */
-  protected abstract void checkPermission() throws IOException;
+  public abstract int append(long blockOffset, ByteBuffer srcBuf) throws IOException;
 
   /**
    * Delete block file
@@ -100,18 +79,7 @@ abstract class BlockHandler implements Closeable {
    * @return true if success, otherwise false
    * @throws IOException
    */
-  public boolean delete() throws IOException {
-    checkPermission();
-    return delete_();
-  };
-
-  /**
-   * Delete block file, internal API, implemented by child class
-   * 
-   * @return true if success, otherwise false
-   * @throws IOException
-   */
-  protected abstract boolean delete_() throws IOException;
+  public abstract boolean delete() throws IOException;
 
   /**
    * Read data from block file

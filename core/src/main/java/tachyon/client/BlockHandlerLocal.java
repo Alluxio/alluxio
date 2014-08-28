@@ -33,33 +33,33 @@ import tachyon.util.CommonUtils;
  */
 public final class BlockHandlerLocal extends BlockHandler {
 
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private final RandomAccessFile LOCAL_FILE;
-  private final FileChannel LOCAL_FILE_CHANNEL;
+  private final Logger mLog = Logger.getLogger(Constants.LOGGER_TYPE);
+  private final RandomAccessFile mLocalFile;
+  private final FileChannel mLocalFileChannel;
   private boolean mPermission = false;
-  protected final String FILE_PATH;
+  protected final String mFilePath;
 
   BlockHandlerLocal(String filePath) throws IOException {
-    FILE_PATH = Preconditions.checkNotNull(filePath);
-    LOG.debug(FILE_PATH + " is created");
-    LOCAL_FILE = new RandomAccessFile(FILE_PATH, "rw");
-    LOCAL_FILE_CHANNEL = LOCAL_FILE.getChannel();
+    mFilePath = Preconditions.checkNotNull(filePath);
+    mLog.debug(mFilePath + " is created");
+    mLocalFile = new RandomAccessFile(mFilePath, "rw");
+    mLocalFileChannel = mLocalFile.getChannel();
   }
 
   @Override
-  protected int append_(long blockOffset, ByteBuffer srcBuf) throws IOException {
-    ByteBuffer out = LOCAL_FILE_CHANNEL.map(MapMode.READ_WRITE, blockOffset, srcBuf.limit());
+  public int append(long blockOffset, ByteBuffer srcBuf) throws IOException {
+    checkPermission();
+    ByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, blockOffset, srcBuf.limit());
     out.put(srcBuf);
 
     return srcBuf.limit();
   }
 
-  @Override
-  protected void checkPermission() throws IOException {
+  private void checkPermission() throws IOException {
     if (!mPermission) {
       // change the permission of the file and use the sticky bit
-      CommonUtils.changeLocalFileToFullPermission(FILE_PATH);
-      CommonUtils.setLocalFileStickyBit(FILE_PATH);
+      CommonUtils.changeLocalFileToFullPermission(mFilePath);
+      CommonUtils.setLocalFileStickyBit(mFilePath);
       mPermission = true;
     }
   }
@@ -67,21 +67,21 @@ public final class BlockHandlerLocal extends BlockHandler {
   @Override
   public void close() throws IOException {
     IOException exception = null;
-    if (LOCAL_FILE_CHANNEL != null) {
+    if (mLocalFileChannel != null) {
       try {
-        LOCAL_FILE_CHANNEL.close();
+        mLocalFileChannel.close();
       } catch (IOException e) {
         exception = e;
       }
     }
-    if (LOCAL_FILE != null) {
+    if (mLocalFile != null) {
       try {
-        LOCAL_FILE.close();
+        mLocalFile.close();
       } catch (IOException e) {
         if (exception == null) {
           exception = e;
         } else {
-          LOG.error("Error during close file:" + FILE_PATH, e);
+          mLog.error("Error during close file:" + mFilePath, e);
         }
       }
     }
@@ -91,13 +91,14 @@ public final class BlockHandlerLocal extends BlockHandler {
   }
 
   @Override
-  protected boolean delete_() throws IOException {
-    return new File(FILE_PATH).delete();
+  public boolean delete() throws IOException {
+    checkPermission();
+    return new File(mFilePath).delete();
   }
 
   @Override
   public ByteBuffer read(long blockOffset, int length) throws IOException {
-    long fileLength = LOCAL_FILE.length();
+    long fileLength = mLocalFile.length();
     String error = null;
     if (blockOffset > fileLength) {
       error =
@@ -114,7 +115,7 @@ public final class BlockHandlerLocal extends BlockHandler {
     if (length == -1) {
       length = (int) (fileLength - blockOffset);
     }
-    ByteBuffer buf = LOCAL_FILE_CHANNEL.map(FileChannel.MapMode.READ_ONLY, blockOffset, length);
+    ByteBuffer buf = mLocalFileChannel.map(FileChannel.MapMode.READ_ONLY, blockOffset, length);
     return buf;
   }
 }
