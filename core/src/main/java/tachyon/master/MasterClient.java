@@ -27,6 +27,8 @@ import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
+import tachyon.retry.ExponentialBackoffRetry;
+import tachyon.retry.RetryPolicy;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
@@ -142,9 +144,10 @@ public final class MasterClient implements Closeable {
       throw new IOException("Client is shutdown, will not try to connect");
     }
 
-    int tries = 0;
+//    int tries = 0;
     Exception lastException = null;
-    while (tries ++ < MAX_CONNECT_TRY && !mIsShutdown) {
+    RetryPolicy retry = new ExponentialBackoffRetry(50, 500, MAX_CONNECT_TRY);
+    do {
       mMasterAddress = getMasterAddress();
 
       LOG.info("Tachyon client (version " + Version.VERSION + ") is trying to connect master @ "
@@ -165,12 +168,12 @@ public final class MasterClient implements Closeable {
         mHeartbeatThread.start();
       } catch (TTransportException e) {
         lastException = e;
-        LOG.error("Failed to connect (" + tries + ") to master " + mMasterAddress + " : "
+        LOG.error("Failed to connect (" + retry.getRetryCount() + ") to master " + mMasterAddress + " : "
             + e.getMessage());
         if (mHeartbeatThread != null) {
           mHeartbeatThread.shutdown();
         }
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
+//        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         continue;
       }
 
@@ -185,11 +188,12 @@ public final class MasterClient implements Closeable {
 
       mConnected = true;
       return;
-    }
+//    } while (tries ++ < MAX_CONNECT_TRY && !mIsShutdown);
+    } while (retry.attemptRetry() && !mIsShutdown);
 
     // Reaching here indicates that we did not successfully connect.
-    throw new IOException("Failed to connect to master " + mMasterAddress + " after " + (tries - 1)
-        + " attempts", lastException);
+    throw new IOException("Failed to connect to master " + mMasterAddress + " after "
+        + (retry.getRetryCount() - 1) + " attempts", lastException);
   }
 
   public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
