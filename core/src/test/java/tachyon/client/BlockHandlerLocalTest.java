@@ -46,16 +46,21 @@ public class BlockHandlerLocalTest {
   }
 
   @Test
-  public void readTest() throws IOException {
-    int fileId = TestUtils.createByteFile(mTfs, "/root/testFile", WriteType.MUST_CACHE, 100);
-    TachyonFile file = mTfs.getFile(fileId);
-    String filename = file.getLocalFilename(0);
+  public void directByteBufferWriteTest() throws IOException {
+    ByteBuffer buf = ByteBuffer.allocateDirect(100);
+    buf.put(TestUtils.getIncreasingByteArray(100));
+
+    int fileId = mTfs.createFile("/root/testFile");
+    long blockId = mTfs.getBlockId(fileId, 0);
+    String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
+    String filename = CommonUtils.concat(localFolder, blockId);
     BlockHandler handler = BlockHandler.get(filename);
     try {
-      ByteBuffer buf = handler.read(0, 100);
-      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(100), buf);
-      buf = handler.read(0, -1);
-      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(100), buf);
+      handler.append(0, buf);
+      mTfs.cacheBlock(blockId);
+      TachyonFile file = mTfs.getFile(fileId);
+      long fileLen = file.length();
+      Assert.assertEquals(100, fileLen);
     } finally {
       handler.close();
     }
@@ -63,7 +68,27 @@ public class BlockHandlerLocalTest {
   }
 
   @Test
-  public void readTest1() throws IOException {
+  public void heapByteBufferwriteTest() throws IOException {
+    int fileId = mTfs.createFile("/root/testFile");
+    long blockId = mTfs.getBlockId(fileId, 0);
+    String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
+    String filename = CommonUtils.concat(localFolder, blockId);
+    BlockHandler handler = BlockHandler.get(filename);
+    byte[] buf = TestUtils.getIncreasingByteArray(100);
+    try {
+      handler.append(0, ByteBuffer.wrap(buf));
+      mTfs.cacheBlock(blockId);
+      TachyonFile file = mTfs.getFile(fileId);
+      long fileLen = file.length();
+      Assert.assertEquals(100, fileLen);
+    } finally {
+      handler.close();
+    }
+    return;
+  }
+
+  @Test
+  public void readExceptionTest() throws IOException {
     int fileId = TestUtils.createByteFile(mTfs, "/root/testFile", WriteType.MUST_CACHE, 100);
     TachyonFile file = mTfs.getFile(fileId);
     String filename = file.getLocalFilename(0);
@@ -92,41 +117,16 @@ public class BlockHandlerLocalTest {
   }
 
   @Test
-  public void writeTest() throws IOException {
-    int fileId = mTfs.createFile("/root/testFile");
-    long blockId = mTfs.getBlockId(fileId, 0);
-    String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
-    String filename = CommonUtils.concat(localFolder, blockId);
-    BlockHandler handler = BlockHandler.get(filename);
-    byte[] buf = TestUtils.getIncreasingByteArray(100);
-    try {
-      handler.append(0, ByteBuffer.wrap(buf));
-      mTfs.cacheBlock(blockId);
-      TachyonFile file = mTfs.getFile(fileId);
-      long fileLen = file.length();
-      Assert.assertEquals(100, fileLen);
-    } finally {
-      handler.close();
-    }
-    return;
-  }
-
-  @Test
-  public void writeTest1() throws IOException {
-    ByteBuffer buf = ByteBuffer.allocateDirect(100);
-    buf.put(TestUtils.getIncreasingByteArray(100));
-
-    int fileId = mTfs.createFile("/root/testFile");
-    long blockId = mTfs.getBlockId(fileId, 0);
-    String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
-    String filename = CommonUtils.concat(localFolder, blockId);
+  public void readTest() throws IOException {
+    int fileId = TestUtils.createByteFile(mTfs, "/root/testFile", WriteType.MUST_CACHE, 100);
+    TachyonFile file = mTfs.getFile(fileId);
+    String filename = file.getLocalFilename(0);
     BlockHandler handler = BlockHandler.get(filename);
     try {
-      handler.append(0, buf);
-      mTfs.cacheBlock(blockId);
-      TachyonFile file = mTfs.getFile(fileId);
-      long fileLen = file.length();
-      Assert.assertEquals(100, fileLen);
+      ByteBuffer buf = handler.read(0, 100);
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(100), buf);
+      buf = handler.read(0, -1);
+      Assert.assertEquals(TestUtils.getIncreasingByteBuffer(100), buf);
     } finally {
       handler.close();
     }
