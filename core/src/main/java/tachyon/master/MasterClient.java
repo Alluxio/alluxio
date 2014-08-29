@@ -1,6 +1,7 @@
 package tachyon.master;
 
 import java.io.Closeable;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -465,6 +466,10 @@ public class MasterClient implements Closeable {
 
       try {
         return mClient.user_getClientBlockInfo(blockId);
+      } catch (FileDoesNotExistException e) {
+        throw new FileNotFoundException(e.getMessage());
+      } catch (BlockInfoException e) {
+        throw new IOException(e.getMessage(), e);
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
