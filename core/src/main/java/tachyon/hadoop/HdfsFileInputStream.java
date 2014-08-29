@@ -28,7 +28,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   private Path mHdfsPath;
   private Configuration mHadoopConf;
   private int mHadoopBufferSize;
-  private TachyonFile tachyonFile = null;
+  private TachyonFile mTachyonFile = null;
 
   private FSDataInputStream mHdfsInputStream = null;
 
@@ -49,14 +49,14 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;
 
-    TachyonFile tachyonFile = mTFS.getFile(mFileId);
-    if (tachyonFile == null) {
+    TachyonFile mTachyonFile = mTFS.getFile(mFileId);
+    if (mTachyonFile == null) {
       throw new FileNotFoundException("File " + hdfsPath + " with FID " + fileId
           + " is not found.");
     }
-    tachyonFile.setUFSConf(mHadoopConf);
+    mTachyonFile.setUFSConf(mHadoopConf);
     try {
-      mTachyonFileInputStream = tachyonFile.getInStream(ReadType.CACHE);
+      mTachyonFileInputStream = mTachyonFile.getInStream(ReadType.CACHE);
     } catch (IOException e) {
       LOG.error(e.getMessage());
     }
@@ -152,7 +152,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   public int read(long position, byte[] buffer, int offset, int length) throws IOException {
     int ret = -1;
     long oldPos = getPos();
-    if ((position < 0) || (position >= tachyonFile.length())) {
+    if ((position < 0) || (position >= mTachyonFile.length())) {
       return ret;
     }
 
@@ -177,11 +177,15 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       }
     }
 
-    FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
-    mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
-    mHdfsInputStream.seek(position);
-    ret = mHdfsInputStream.read(buffer, offset, length);
-    mHdfsInputStream.seek(oldPos);
+    try {
+      FileSystem fs = mHdfsPath.getFileSystem(mHadoopConf);
+      mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
+      mHdfsInputStream.seek(position);
+      ret = mHdfsInputStream.read(buffer, offset, length);
+    } finally {
+      mHdfsInputStream.seek(oldPos);
+    }
+
     return ret;
   }
 
