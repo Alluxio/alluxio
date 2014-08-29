@@ -6,7 +6,10 @@ import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.UserConf;
 
-abstract class AbstractTachyonFS extends AbstractTachyonFSCore {
+/**
+ * Abstract implementation of {@code TachyonFSCore} APIs.
+ */
+abstract class AbstractTachyonFS implements TachyonFSCore {
   /**
    * Creates a file with the default block size (1GB) in the system. It also creates necessary
    * folders along the path. // TODO It should not create necessary path.
@@ -190,8 +193,8 @@ abstract class AbstractTachyonFS extends AbstractTachyonFSCore {
 
   /**
    * Renames the file
-   *
-   * @param fid
+   * 
+   * @param fileId
    *          the file id
    * @param dstPath
    *          the new path of the file in the file system.
@@ -200,22 +203,22 @@ abstract class AbstractTachyonFS extends AbstractTachyonFSCore {
    * @deprecated use {@link #rename(int, TachyonURI)} instead
    */
   @Deprecated
-  public synchronized boolean rename(int fid, String dstPath) throws IOException {
-    return rename(fid, new TachyonURI(dstPath));
+  public synchronized boolean rename(int fileId, String dstPath) throws IOException {
+    return rename(fileId, new TachyonURI(dstPath));
   }
 
   /**
    * Renames the file
    *
-   * @param fid
+   * @param fileId
    *          the file id
    * @param dstPath
    *          the new path of the file in the file system.
    * @return true if succeed, false otherwise
    * @throws IOException
    */
-  public synchronized boolean rename(int fid, TachyonURI dstPath) throws IOException {
-    return rename(fid, new TachyonURI(""), dstPath);
+  public synchronized boolean rename(int fileId, TachyonURI dstPath) throws IOException {
+    return rename(fileId, new TachyonURI(""), dstPath);
   }
 
   /**

@@ -118,6 +118,12 @@
       <artifactId>curator-test</artifactId>
       <version>${apache.curator.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.javassist</groupId>
+          <artifactId>javassist</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
