@@ -10,7 +10,7 @@ abstract class AbstractTachyonFS extends AbstractTachyonFSCore {
   /**
    * Creates a file with the default block size (1GB) in the system. It also creates necessary
    * folders along the path. // TODO It should not create necessary path.
-   * 
+   *
    * @param path
    *          the path of the file
    * @return The unique file id. It returns -1 if the creation failed.
@@ -40,7 +40,7 @@ abstract class AbstractTachyonFS extends AbstractTachyonFSCore {
   /**
    * Creates a file in the system. It also creates necessary folders along the path.
    * // TODO It should not create necessary path.
-   * 
+   *
    * @param path
    *          the path of the file
    * @param blockSizeByte
@@ -82,7 +82,7 @@ abstract class AbstractTachyonFS extends AbstractTachyonFSCore {
   /**
    * Creates a file in the system with a pre-defined underfsPath. It also creates necessary
    * folders along the path. // TODO It should not create necessary path.
-   * 
+   *
    * @param path
    *          the path of the file in Tachyon
    * @param ufsPath
@@ -130,7 +130,7 @@ abstract class AbstractTachyonFS extends AbstractTachyonFSCore {
 
   /**
    * Deletes the file denoted by the path.
-   * 
+   *
    * @param path
    *          the file path
    * @param recursive
@@ -163,7 +163,7 @@ abstract class AbstractTachyonFS extends AbstractTachyonFSCore {
   /**
    * Create a directory if it does not exist. The method also creates necessary non-existing
    * parent folders.
-   * 
+   *
    * @param path
    *          Directory path.
    * @return true if the folder is created successfully or already existing. false otherwise.

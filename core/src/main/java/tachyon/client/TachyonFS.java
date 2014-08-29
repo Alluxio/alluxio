@@ -35,6 +35,8 @@ import tachyon.worker.WorkerClient;
  * Tachyon's user client API. It contains a MasterClient and several WorkerClients
  * depending on how many workers the client program is interacting with.
  */
+// TODO: Should we check TachyonURIs to have the correct scheme/authority?
+// TODO: Should we assume no scheme/authority = this fs? Or do we enforce scheme + authority?
 public class TachyonFS extends AbstractTachyonFS {
   /**
    * Create a TachyonFS handler.

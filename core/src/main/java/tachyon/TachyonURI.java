@@ -345,7 +345,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Add a suffix to the end of the Tachyon URI.
    *
-   * @param TachyonURI
+   * @param suffix
    *          the suffix to add
    * @return the new TachyonURI
    */
