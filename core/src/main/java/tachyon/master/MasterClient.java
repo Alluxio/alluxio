@@ -144,7 +144,6 @@ public final class MasterClient implements Closeable {
       throw new IOException("Client is shutdown, will not try to connect");
     }
 
-//    int tries = 0;
     Exception lastException = null;
     RetryPolicy retry = new ExponentialBackoffRetry(50, 500, MAX_CONNECT_TRY);
     do {
@@ -173,7 +172,6 @@ public final class MasterClient implements Closeable {
         if (mHeartbeatThread != null) {
           mHeartbeatThread.shutdown();
         }
-//        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         continue;
       }
 
@@ -188,12 +186,11 @@ public final class MasterClient implements Closeable {
 
       mConnected = true;
       return;
-//    } while (tries ++ < MAX_CONNECT_TRY && !mIsShutdown);
     } while (retry.attemptRetry() && !mIsShutdown);
 
     // Reaching here indicates that we did not successfully connect.
     throw new IOException("Failed to connect to master " + mMasterAddress + " after "
-        + (retry.getRetryCount() - 1) + " attempts", lastException);
+        + (retry.getRetryCount()) + " attempts", lastException);
   }
 
   public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
