@@ -32,13 +32,14 @@ public class InodeFolder extends Inode {
    * @return the constructed InodeFolder.
    * @throws IOException
    */
+  @SuppressWarnings("unchecked")
   static InodeFolder loadImage(JsonParser parser, ImageElement ele) throws IOException {
     long creationTimeMs = ele.getLong("creationTimeMs");
     int fileId = ele.getInt("id");
     String fileName = ele.getString("name");
     int parentId = ele.getInt("parentId");
     boolean isPinned = ele.getBoolean("pinned");
-    List<Integer> childrenIds = ele.<List<Integer>> get("childrenIds");
+    List<Integer> childrenIds = ele.get("childrenIds", List.class);
     long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
 
     int numberOfChildren = childrenIds.size();

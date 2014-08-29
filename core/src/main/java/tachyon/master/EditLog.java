@@ -93,6 +93,7 @@ public class EditLog {
    *          The path of the edit log
    * @throws IOException
    */
+  @SuppressWarnings("unchecked")
   public static void loadSingleLog(MasterInfo info, String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
@@ -133,7 +134,7 @@ public class EditLog {
             break;
           }
           case COMPLETE_FILE: {
-            info._completeFile(op.<Integer>get("fileId"), op.getLong("opTimeMs"));
+            info._completeFile(op.get("fileId", Integer.class), op.getLong("opTimeMs"));
             break;
           }
           case SET_PINNED: {
@@ -158,10 +159,10 @@ public class EditLog {
             break;
           }
           case CREATE_DEPENDENCY: {
-            info._createDependency(op.<List<Integer>>get("parents"),
-                op.<List<Integer>>get("children"), op.getString("commandPrefix"),
+            info._createDependency(op.get("parents", List.class),
+                op.get("children", List.class), op.getString("commandPrefix"),
                 op.getByteBufferList("data"), op.getString("comment"), op.getString("framework"),
-                op.getString("frameworkVersion"), op.<DependencyType>get("dependencyType"),
+                op.getString("frameworkVersion"), op.get("dependencyType", DependencyType.class),
                 op.getInt("dependencyId"), op.getLong("creationTimeMs"));
             break;
           }

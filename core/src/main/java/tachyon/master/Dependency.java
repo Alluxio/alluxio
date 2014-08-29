@@ -33,14 +33,15 @@ public class Dependency extends ImageWriter {
    * @return the loaded dependency
    * @throws IOException
    */
+  @SuppressWarnings("unchecked")
   static Dependency loadImage(ImageElement ele) throws IOException {
     Dependency dep =
-        new Dependency(ele.getInt("depID"), ele.<List<Integer>> get("parentFiles"),
-            ele.<List<Integer>> get("childrenFiles"), ele.getString("commandPrefix"),
+        new Dependency(ele.getInt("depID"), ele.get("parentFiles", List.class),
+            ele.get("childrenFiles", List.class), ele.getString("commandPrefix"),
             ele.getByteBufferList("data"), ele.getString("comment"), ele.getString("framework"),
-            ele.getString("frameworkVersion"), ele.<DependencyType> get("dependencyType"),
-            ele.<List<Integer>> get("parentDeps"), ele.getLong("creationTimeMs"));
-    dep.resetUncheckpointedChildrenFiles(ele.<List<Integer>> get("unCheckpointedChildrenFiles"));
+            ele.getString("frameworkVersion"), ele.get("dependencyType", DependencyType.class),
+            ele.get("parentDeps", List.class), ele.getLong("creationTimeMs"));
+    dep.resetUncheckpointedChildrenFiles(ele.get("unCheckpointedChildrenFiles", List.class));
 
     return dep;
   }

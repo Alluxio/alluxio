@@ -26,22 +26,31 @@ abstract class JsonObject {
 
   public Map<String, Object> parameters = Maps.newHashMap();
 
+  private final ObjectMapper objectMapper = createObjectMapper();
+
   /**
    * Generic parameter getter, useful for custom classes or enums.
    * Use a more specific getter, like getLong(), when available.
    */
   @SuppressWarnings("unchecked")
-  public <T> T get(String name) {
-    return (T) parameters.get(name);
+  public <T> T get(String name, Class<T> clazz) {
+    Object value = parameters.get(name);
+    try {
+      String stringValue = objectMapper.writeValueAsString(value);
+      return objectMapper.readValue(stringValue.getBytes(), clazz);
+    } catch (Exception e) {
+      // fail, lets try cast it
+      return (T) value;
+    }
   }
 
   public Boolean getBoolean(String name) {
-    return this.get(name);
+    return this.get(name, Boolean.class);
   }
 
   /** Deserializes a base64-encoded String as a ByteBuffer. */
   public ByteBuffer getByteBuffer(String name) {
-    String byteString = get(name);
+    String byteString = get(name, String.class);
     if (byteString == null) {
       return null;
     }
@@ -50,8 +59,9 @@ abstract class JsonObject {
   }
 
   /** Deserializes a list of base64-encoded Strings as a list of ByteBuffers. */
+  @SuppressWarnings("unchecked")
   public List<ByteBuffer> getByteBufferList(String name) {
-    List<String> byteStrings = get(name);
+    List<String> byteStrings = (List<String>) get(name, List.class);
     if (byteStrings == null) {
       return null;
     }
@@ -64,7 +74,7 @@ abstract class JsonObject {
   }
 
   public Integer getInt(String name) {
-    return this.<Number> get(name).intValue();
+    return this.get(name, Number.class).intValue();
   }
 
   /**
@@ -73,11 +83,11 @@ abstract class JsonObject {
    * have been deserialized as integers if they were sufficiently small.
    */
   public Long getLong(String name) {
-    return this.<Number> get(name).longValue();
+    return this.get(name, Number.class).longValue();
   }
 
   public String getString(String name) {
-    return this.get(name);
+    return this.get(name, String.class);
   }
 
   /** Adds the given named parameter to the Json object. Value must be JSON-serializable. */
