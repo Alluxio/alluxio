@@ -24,9 +24,9 @@ abstract class JsonObject {
         SerializationFeature.CLOSE_CLOSEABLE, false);
   }
 
-  public Map<String, Object> parameters = Maps.newHashMap();
+  private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
 
-  private final ObjectMapper objectMapper = createObjectMapper();
+  public Map<String, Object> parameters = Maps.newHashMap();
 
   /**
    * Generic parameter getter, useful for custom classes or enums.
@@ -36,8 +36,8 @@ abstract class JsonObject {
   public <T> T get(String name, Class<T> clazz) {
     Object value = parameters.get(name);
     try {
-      String stringValue = objectMapper.writeValueAsString(value);
-      return objectMapper.readValue(stringValue.getBytes(), clazz);
+      String stringValue = OBJECT_MAPPER.writeValueAsString(value);
+      return OBJECT_MAPPER.readValue(stringValue.getBytes(), clazz);
     } catch (Exception e) {
       // fail, lets try cast it
       return (T) value;
