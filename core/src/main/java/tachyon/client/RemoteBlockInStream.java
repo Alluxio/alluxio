@@ -65,6 +65,10 @@ public class RemoteBlockInStream extends BlockInStream {
     super(file, readType, blockIndex);
 
     mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
+    if (mBlockInfo == null) {
+      throw new IOException("Unable to find block information for file " + file.getPath()
+          + " at block index " + blockIndex);
+    }
     mReadByte = 0;
     mBufferStartPosition = 0;
 
@@ -381,6 +385,10 @@ public class RemoteBlockInStream extends BlockInStream {
 
     if (mCurrentBuffer == null) {
       mBlockInfo = mFile.getClientBlockInfo(mBlockIndex);
+      if (mBlockInfo == null) {
+        throw new IOException("Unable to find block information for file " + mFile.getPath()
+            + " at block index " + mBlockIndex);
+      }
       mCurrentBuffer = readRemoteByteBuffer(mBlockInfo, mBufferStartPosition, length);
     }
   }
