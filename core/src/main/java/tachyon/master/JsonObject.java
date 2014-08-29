@@ -32,7 +32,6 @@ abstract class JsonObject {
    * Generic parameter getter, useful for custom classes or enums.
    * Use a more specific getter, like getLong(), when available.
    */
-  @SuppressWarnings("unchecked")
   public <T> T get(String name, Class<T> clazz) {
     Object value = parameters.get(name);
     try {
