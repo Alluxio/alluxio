@@ -124,9 +124,10 @@ public class RawTables extends ImageWriter {
    * @throws IOException
    * @throws TachyonException
    */
+  @SuppressWarnings("unchecked")
   void loadImage(ImageElement ele) throws IOException {
-    List<Integer> ids = ele.<List<Integer>> get("ids");
-    List<Integer> columns = ele.<List<Integer>> get("columns");
+    List<Integer> ids = ele.get("ids", List.class);
+    List<Integer> columns = ele.get("columns", List.class);
     List<ByteBuffer> data = ele.getByteBufferList("data");
 
     for (int k = 0; k < ids.size(); k ++) {
