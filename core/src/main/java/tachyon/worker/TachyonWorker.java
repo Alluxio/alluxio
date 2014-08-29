@@ -18,6 +18,8 @@ package tachyon.worker;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
@@ -39,6 +41,7 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.netty.NettyDataServer;
 import tachyon.worker.nio.NIODataServer;
 
@@ -152,6 +155,8 @@ public class TachyonWorker implements Runnable {
 
   private final int mPort;
   private final int mDataPort;
+  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(1,
+      ThreadFactoryUtils.daemon("heartbeat-worker-%d"));
 
   /**
    * @param masterAddress The TachyonMaster's address.
@@ -172,7 +177,8 @@ public class TachyonWorker implements Runnable {
 
     mMasterAddress = masterAddress;
 
-    mWorkerStorage = new WorkerStorage(mMasterAddress, dataFolder, memoryCapacityBytes);
+    mWorkerStorage =
+        new WorkerStorage(mMasterAddress, dataFolder, memoryCapacityBytes, mExecutorService);
 
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
@@ -324,6 +330,7 @@ public class TachyonWorker implements Runnable {
     mDataServer.close();
     mServer.stop();
     mServerTNonblockingServerSocket.close();
+    mExecutorService.shutdown();
     while (!mDataServer.isClosed() || mServer.isServing() || mHeartbeatThread.isAlive()) {
       // TODO The reason to stop and close again is due to some issues in Thrift.
       mServer.stop();

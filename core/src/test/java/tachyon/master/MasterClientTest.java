@@ -16,6 +16,8 @@ package tachyon.master;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import junit.framework.Assert;
 
@@ -35,10 +37,12 @@ import tachyon.thrift.NoWorkerException;
 public class MasterClientTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private MasterInfo mMasterInfo = null;
+  private final ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
 
   @After
   public final void after() throws Exception {
     mLocalTachyonCluster.stop();
+    mExecutorService.shutdown();
     System.clearProperty("tachyon.user.quota.unit.bytes");
   }
 
@@ -53,7 +57,7 @@ public class MasterClientTest {
   @Test
   public void openCloseTest() throws FileAlreadyExistException, InvalidPathException, TException,
       IOException {
-    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress());
+    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService);
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
@@ -71,7 +75,7 @@ public class MasterClientTest {
     // this test was created to show that a infi loop happens
     // the timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
-    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress());
+    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService);
     masterClient.user_getClientBlockInfo(Long.MAX_VALUE);
     masterClient.close();
   }
@@ -81,7 +85,7 @@ public class MasterClientTest {
     // this test was created to show that a infi loop happens
     // the timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master
-    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress());
+    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress(), mExecutorService);
     masterClient.user_getWorker(false, "host.doesnotexist.fail");
     masterClient.close();
   }
