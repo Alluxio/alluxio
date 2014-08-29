@@ -434,7 +434,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * Get the block id by the file id and block index. it will check whether the file and the block
    * exist.
    * 
-   * @param fid
+   * @param fileId
    *          the file id
    * @param blockIndex
    *          The index of the block in the file.
@@ -442,18 +442,18 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    *           if the file does not exist, or connection issue.
    */
-  public synchronized long getBlockId(int fid, int blockIndex) throws IOException {
-    ClientFileInfo info = getFileStatus(fid, "", true);
+  public synchronized long getBlockId(int fileId, int blockIndex) throws IOException {
+    ClientFileInfo info = getFileStatus(fileId, "", true);
 
     if (info == null) {
-      throw new IOException("File " + fid + " does not exist.");
+      throw new IOException("File " + fileId + " does not exist.");
     }
 
     if (info.blockIds.size() > blockIndex) {
       return info.blockIds.get(blockIndex);
     }
 
-    return mMasterClient.user_getBlockId(fid, blockIndex);
+    return mMasterClient.user_getBlockId(fileId, blockIndex);
   }
 
   /**

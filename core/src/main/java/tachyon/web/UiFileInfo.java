@@ -99,7 +99,7 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
   }
 
   public String getName() {
-    if (mAbsolutePath.equals(Constants.PATH_SEPARATOR)) {
+    if (Constants.PATH_SEPARATOR.equals(mAbsolutePath)) {
       return "root";
     } else {
       return mName;

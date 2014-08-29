@@ -7,15 +7,18 @@ import java.util.List;
 import tachyon.TachyonURI;
 import tachyon.thrift.ClientFileInfo;
 
-abstract class AbstractTachyonFSCore implements Closeable {
+/**
+ * Interface for Tachyon client APIs
+ */
+interface TachyonFSCore extends Closeable {
   /**
    * Creates a new file in the file system.
-   * 
+   *
    * @param path
    *          The path of the file
    * @param ufsPath
-   *          The path of the file in the under file system. If this is empty, the file
-   *          does not exist in the under file system yet.
+   *          The path of the file in the under file system. If this is empty, the file does
+   *          not exist in the under file system yet.
    * @param blockSizeByte
    *          The size of the block in bytes. It is -1 iff ufsPath is non-empty.
    * @param recursive
@@ -24,9 +27,8 @@ abstract class AbstractTachyonFSCore implements Closeable {
    * @deprecated use {@link #createFile(TachyonURI, TachyonURI, long, boolean)} instead.
    */
   @Deprecated
-  public abstract int
-      createFile(String path, String ufsPath, long blockSizeByte, boolean recursive)
-          throws IOException;
+  public int createFile(String path, String ufsPath, long blockSizeByte, boolean recursive)
+      throws IOException;
 
   /**
    * Creates a new file in the file system.
@@ -42,26 +44,26 @@ abstract class AbstractTachyonFSCore implements Closeable {
    *          Creates necessary parent folders if true, not otherwise.
    * @return The file id, which is globally unique.
    */
-  public abstract int
-  createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte, boolean recursive)
+  public int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte, boolean recursive)
       throws IOException;
 
   /**
    * Deletes a file or folder
-   * 
+   *
    * @param fileId
-   *          The id of the file / folder. If it is not -1, path parameter is ignored. Otherwise,
-   *          the method uses the path parameter.
+   *          The id of the file / folder. If it is not -1, path parameter is ignored.
+   *          Otherwise, the method uses the path parameter.
    * @param path
    *          The path of the file / folder. It could be empty iff id is not -1.
    * @param recursive
-   *          If fileId or path represents a non-empty folder, delete the folder recursively or not
+   *          If fileId or path represents a non-empty folder, delete the folder recursively
+   *          or not
    * @return true if deletes successfully, false otherwise.
    * @throws IOException
    * @deprecated use {@link #delete(int, TachyonURI, boolean)} instead
    */
   @Deprecated
-  public abstract boolean delete(int fileId, String path, boolean recursive) throws IOException;
+  public boolean delete(int fileId, String path, boolean recursive) throws IOException;
 
   /**
    * Deletes a file or folder
@@ -76,11 +78,11 @@ abstract class AbstractTachyonFSCore implements Closeable {
    * @return true if deletes successfully, false otherwise.
    * @throws IOException
    */
-  public abstract boolean delete(int fileId, TachyonURI path, boolean recursive) throws IOException;
+  public boolean delete(int fileId, TachyonURI path, boolean recursive) throws IOException;
 
   /**
    * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
-   * 
+   *
    * @param fileId
    *          the file id of the file or folder.
    * @param path
@@ -90,7 +92,7 @@ abstract class AbstractTachyonFSCore implements Closeable {
    * @deprecated use {@link #getFileStatus(int, TachyonURI)} instead
    */
   @Deprecated
-  public abstract ClientFileInfo getFileStatus(int fileId, String path) throws IOException;
+  public ClientFileInfo getFileStatus(int fileId, String path) throws IOException;
 
   /**
    * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
@@ -102,10 +104,10 @@ abstract class AbstractTachyonFSCore implements Closeable {
    * @return the ClientFileInfo of the file or folder, null if the file or folder does not exist.
    * @throws IOException
    */
-  public abstract ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException;
+  public ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException;
 
   /** Returns a URI whose scheme and authority identify this FileSystem. */
-  public abstract TachyonURI getUri();
+  public TachyonURI getUri();
 
   /**
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
@@ -118,7 +120,7 @@ abstract class AbstractTachyonFSCore implements Closeable {
    * @deprecated use {@link #listStatus(TachyonURI)} instead
    */
   @Deprecated
-  public abstract List<ClientFileInfo> listStatus(String path) throws IOException;
+  public List<ClientFileInfo> listStatus(String path) throws IOException;
 
   /**
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
@@ -129,11 +131,11 @@ abstract class AbstractTachyonFSCore implements Closeable {
    * @return A list of ClientFileInfo, null if the file or folder does not exist.
    * @throws IOException
    */
-  public abstract List<ClientFileInfo> listStatus(TachyonURI path) throws IOException;
+  public List<ClientFileInfo> listStatus(TachyonURI path) throws IOException;
 
   /**
    * Creates a folder.
-   * 
+   *
    * @param path
    *          the path of the folder to be created
    * @param recursive
@@ -143,7 +145,7 @@ abstract class AbstractTachyonFSCore implements Closeable {
    * @deprecated use {@link #mkdirs(TachyonURI, boolean)} instead
    */
   @Deprecated
-  public abstract boolean mkdirs(String path, boolean recursive) throws IOException;
+  public boolean mkdirs(String path, boolean recursive) throws IOException;
 
   /**
    * Creates a folder.
@@ -155,11 +157,11 @@ abstract class AbstractTachyonFSCore implements Closeable {
    * @return true if the folder is created successfully or already existing. false otherwise.
    * @throws IOException
    */
-  public abstract boolean mkdirs(TachyonURI path, boolean recursive) throws IOException;
+  public boolean mkdirs(TachyonURI path, boolean recursive) throws IOException;
 
   /**
    * Renames a file or folder to another path.
-   * 
+   *
    * @param fileId
    *          The id of the source file / folder. If it is not -1, path parameter is ignored.
    *          Otherwise, the method uses the srcPath parameter.
@@ -172,7 +174,7 @@ abstract class AbstractTachyonFSCore implements Closeable {
    * @deprecated use {@link #rename(int, TachyonURI, TachyonURI)} instead
    */
   @Deprecated
-  public abstract boolean rename(int fileId, String srcPath, String dstPath) throws IOException;
+  public boolean rename(int fileId, String srcPath, String dstPath) throws IOException;
 
   /**
    * Renames a file or folder to another path.
@@ -187,6 +189,5 @@ abstract class AbstractTachyonFSCore implements Closeable {
    * @return true if renames successfully, false otherwise.
    * @throws IOException
    */
-  public abstract boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath)
-      throws IOException;
+  public boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException;
 }

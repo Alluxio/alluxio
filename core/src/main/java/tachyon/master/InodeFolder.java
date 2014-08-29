@@ -52,16 +52,16 @@ public class InodeFolder extends Inode {
       }
 
       switch (ele.type) {
-      case InodeFile: {
-        children[k] = InodeFile.loadImage(ele);
-        break;
-      }
-      case InodeFolder: {
-        children[k] = InodeFolder.loadImage(parser, ele);
-        break;
-      }
-      default:
-        throw new IOException("Invalid element type " + ele);
+        case InodeFile: {
+          children[k] = InodeFile.loadImage(ele);
+          break;
+        }
+        case InodeFolder: {
+          children[k] = InodeFolder.loadImage(parser, ele);
+          break;
+        }
+        default:
+          throw new IOException("Invalid element type " + ele);
       }
     }
 
