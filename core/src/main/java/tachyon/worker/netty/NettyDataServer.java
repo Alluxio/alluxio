@@ -31,9 +31,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import com.google.common.base.Throwables;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import tachyon.conf.WorkerConf;
+import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
 
@@ -89,10 +89,6 @@ public final class NettyDataServer implements DataServer {
     return boot;
   }
 
-  private ThreadFactory createThreadFactory(final String nameFormat) {
-    return new ThreadFactoryBuilder().setNameFormat(nameFormat).build();
-  }
-
   /**
    * Gets the port listening on.
    */
@@ -112,8 +108,8 @@ public final class NettyDataServer implements DataServer {
    * preset. Current channel type supported are nio and epoll.
    */
   private ServerBootstrap setupGroups(final ServerBootstrap boot, final ChannelType type) {
-    ThreadFactory bossThreadFactory = createThreadFactory("data-server-boss-%d");
-    ThreadFactory workerThreadFactory = createThreadFactory("data-server-worker-%d");
+    ThreadFactory bossThreadFactory = ThreadFactoryUtils.build("data-server-boss-%d");
+    ThreadFactory workerThreadFactory = ThreadFactoryUtils.build("data-server-worker-%d");
     EventLoopGroup bossGroup;
     EventLoopGroup workerGroup;
     int bossThreadCount = WorkerConf.get().NETTY_BOSS_THREADS;
