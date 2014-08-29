@@ -11,6 +11,8 @@ import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
@@ -32,14 +34,13 @@ public class InodeFolder extends Inode {
    * @return the constructed InodeFolder.
    * @throws IOException
    */
-  @SuppressWarnings("unchecked")
   static InodeFolder loadImage(JsonParser parser, ImageElement ele) throws IOException {
     long creationTimeMs = ele.getLong("creationTimeMs");
     int fileId = ele.getInt("id");
     String fileName = ele.getString("name");
     int parentId = ele.getInt("parentId");
     boolean isPinned = ele.getBoolean("pinned");
-    List<Integer> childrenIds = ele.get("childrenIds", List.class);
+    List<Integer> childrenIds = ele.get("childrenIds", new TypeReference<List<Integer>>() {});
     long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
 
     int numberOfChildren = childrenIds.size();

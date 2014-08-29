@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import tachyon.Pair;
@@ -108,7 +109,7 @@ public class RawTables extends ImageWriter {
   /**
    * Get the raw table info.
    * 
-   * @param inodeId
+   * @param tableId
    *          the raw table id.
    * @return <columns, metadata> if the table exist, null otherwise.
    */
@@ -122,12 +123,10 @@ public class RawTables extends ImageWriter {
    * @param ele
    *          the json element to load
    * @throws IOException
-   * @throws TachyonException
    */
-  @SuppressWarnings("unchecked")
   void loadImage(ImageElement ele) throws IOException {
-    List<Integer> ids = ele.get("ids", List.class);
-    List<Integer> columns = ele.get("columns", List.class);
+    List<Integer> ids = ele.get("ids", new TypeReference<List<Integer>>() {});
+    List<Integer> columns = ele.get("columns", new TypeReference<List<Integer>>() {});
     List<ByteBuffer> data = ele.getByteBufferList("data");
 
     for (int k = 0; k < ids.size(); k ++) {

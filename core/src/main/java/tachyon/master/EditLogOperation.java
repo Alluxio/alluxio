@@ -3,6 +3,7 @@ package tachyon.master;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
@@ -24,7 +25,7 @@ class EditLogOperation extends JsonObject {
   @JsonCreator
   public EditLogOperation(@JsonProperty("type") EditLogOperationType type,
       @JsonProperty("transId") long transId,
-      @JsonProperty("parameters") Map<String, Object> parameters) {
+      @JsonProperty("parameters") Map<String, JsonNode> parameters) {
     this.type = type;
     this.transId = transId;
     this.parameters = parameters;

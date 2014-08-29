@@ -4,11 +4,14 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.codec.binary.Base64;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -26,22 +29,22 @@ abstract class JsonObject {
 
   private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
 
-  public Map<String, Object> parameters = Maps.newHashMap();
+  public Map<String, JsonNode> parameters = Maps.newHashMap();
 
   /**
    * Generic parameter getter, useful for custom classes or enums.
    * Use a more specific getter, like getLong(), when available.
    */
-  @SuppressWarnings("unchecked")
   public <T> T get(String name, Class<T> clazz) {
-    Object value = parameters.get(name);
-    try {
-      String stringValue = OBJECT_MAPPER.writeValueAsString(value);
-      return OBJECT_MAPPER.readValue(stringValue.getBytes(), clazz);
-    } catch (Exception e) {
-      // fail, lets try cast it
-      return (T) value;
-    }
+    return OBJECT_MAPPER.convertValue(parameters.get(name), clazz);
+  }
+
+  /**
+   * Get the value for parameterized type class such as <code>List<Integer>/code>
+   * using the help of <code>TypeReference</code>
+   */
+  public <T> T get(String name, TypeReference<T> typeReference) {
+    return OBJECT_MAPPER.convertValue(parameters.get(name), typeReference);
   }
 
   public Boolean getBoolean(String name) {
@@ -59,9 +62,8 @@ abstract class JsonObject {
   }
 
   /** Deserializes a list of base64-encoded Strings as a list of ByteBuffers. */
-  @SuppressWarnings("unchecked")
   public List<ByteBuffer> getByteBufferList(String name) {
-    List<String> byteStrings = (List<String>) get(name, List.class);
+    List<String> byteStrings = get(name, new TypeReference<List<String>>() {});
     if (byteStrings == null) {
       return null;
     }
@@ -92,7 +94,7 @@ abstract class JsonObject {
 
   /** Adds the given named parameter to the Json object. Value must be JSON-serializable. */
   public JsonObject withParameter(String name, Object value) {
-    parameters.put(name, value);
+    parameters.put(name, OBJECT_MAPPER.convertValue(value, JsonNode.class));
     return this;
   }
 }

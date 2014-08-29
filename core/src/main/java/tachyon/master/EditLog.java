@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -93,7 +94,6 @@ public class EditLog {
    *          The path of the edit log
    * @throws IOException
    */
-  @SuppressWarnings("unchecked")
   public static void loadSingleLog(MasterInfo info, String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
@@ -159,9 +159,10 @@ public class EditLog {
             break;
           }
           case CREATE_DEPENDENCY: {
-            info._createDependency(op.get("parents", List.class),
-                op.get("children", List.class), op.getString("commandPrefix"),
-                op.getByteBufferList("data"), op.getString("comment"), op.getString("framework"),
+            info._createDependency(op.get("parents", new TypeReference<List<Integer>>() {}),
+                op.get("children", new TypeReference<List<Integer>>() {}),
+                op.getString("commandPrefix"), op.getByteBufferList("data"),
+                op.getString("comment"), op.getString("framework"),
                 op.getString("frameworkVersion"), op.get("dependencyType", DependencyType.class),
                 op.getInt("dependencyId"), op.getLong("creationTimeMs"));
             break;
