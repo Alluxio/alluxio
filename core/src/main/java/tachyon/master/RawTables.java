@@ -35,8 +35,8 @@ import tachyon.thrift.TachyonException;
  */
 public class RawTables extends ImageWriter {
   // Mapping from table id to <Columns, Metadata>
-  private Map<Integer, Pair<Integer, ByteBuffer>> mData =
-      new HashMap<Integer, Pair<Integer, ByteBuffer>>();
+  private Map<Integer, Pair<Integer, byte[]>> mData =
+      new HashMap<Integer, Pair<Integer, byte[]>>();
 
   /**
    * Add a raw table. It will check if the raw table is already added.
@@ -56,7 +56,7 @@ public class RawTables extends ImageWriter {
       return false;
     }
 
-    mData.put(tableId, new Pair<Integer, ByteBuffer>(columns, null));
+    mData.put(tableId, new Pair<Integer, byte[]>(columns, null));
     updateMetadata(tableId, metadata);
 
     return true;
@@ -93,7 +93,7 @@ public class RawTables extends ImageWriter {
    * @return the number of the columns, -1 if the table does not exist.
    */
   public synchronized int getColumns(int tableId) {
-    Pair<Integer, ByteBuffer> data = mData.get(tableId);
+    Pair<Integer, byte[]> data = mData.get(tableId);
 
     return null == data ? -1 : data.getFirst();
   }
@@ -106,16 +106,14 @@ public class RawTables extends ImageWriter {
    * @return null if it has no metadata, or a duplication of the metadata
    */
   public synchronized ByteBuffer getMetadata(int tableId) {
-    Pair<Integer, ByteBuffer> data = mData.get(tableId);
+    Pair<Integer, byte[]> data = mData.get(tableId);
 
     if (null == data) {
       return null;
     }
-
-    ByteBuffer ret = ByteBuffer.allocate(data.getSecond().capacity());
-    ret.put(data.getSecond().array());
+    ByteBuffer ret = ByteBuffer.allocate(data.getSecond().length);
+    ret.put(data.getSecond());
     ret.flip();
-
     return ret;
   }
 
@@ -127,7 +125,9 @@ public class RawTables extends ImageWriter {
    * @return <columns, metadata> if the table exist, null otherwise.
    */
   public synchronized Pair<Integer, ByteBuffer> getTableInfo(int tableId) {
-    return mData.get(tableId);
+    Pair<Integer, byte[]> retVal = mData.get(tableId);
+    Pair<Integer, ByteBuffer> ret = new Pair<Integer, ByteBuffer>(retVal.getFirst(), ByteBuffer.wrap(retVal.getSecond()));
+    return ret;
   }
 
   /**
@@ -164,24 +164,29 @@ public class RawTables extends ImageWriter {
    * @throws TachyonException
    */
   // TODO add version number.
+  //XXX: needs to update dataBytes
   public synchronized void updateMetadata(int tableId, ByteBuffer metadata)
       throws TachyonException {
-    Pair<Integer, ByteBuffer> data = mData.get(tableId);
-
-    if (null == data) {
+    Pair<Integer, byte[]> dataBytes = mData.get(tableId);
+    if (null == dataBytes) {
       throw new TachyonException("The raw table " + tableId + " does not exist.");
     }
-
+    Pair<Integer, ByteBuffer> data = new Pair<Integer, ByteBuffer>(dataBytes.getFirst(), null);
+    /*if (null == oldMetadata) {
+      data = new Pair<Integer, ByteBuffer>(dataBytes.getFirst(), ByteBuffer.allocate(0));
+    } else {
+      data = new Pair<Integer, ByteBuffer>(dataBytes.getFirst(), ByteBuffer.wrap(oldMetadata.clone()));
+    }*/
     if (metadata == null) {
-      data.setSecond(ByteBuffer.allocate(0));
+      dataBytes.setSecond(new byte[]{});
     } else {
       if (metadata.limit() - metadata.position() >= CommonConf.get().MAX_TABLE_METADATA_BYTE) {
         throw new TachyonException("Too big table metadata: " + metadata.toString());
       }
-      ByteBuffer tMetadata = ByteBuffer.allocate(metadata.limit() - metadata.position());
-      tMetadata.put(metadata.array(), metadata.position(), metadata.limit() - metadata.position());
-      tMetadata.flip();
-      data.setSecond(tMetadata);
+      byte[] metaBytes = new byte[metadata.limit() - metadata.position()];
+      metadata.get(metaBytes);
+      metadata.rewind();
+      dataBytes.setSecond(metaBytes);
     }
   }
 
@@ -191,10 +196,14 @@ public class RawTables extends ImageWriter {
     List<Integer> ids = new ArrayList<Integer>();
     List<Integer> columns = new ArrayList<Integer>();
     List<ByteBuffer> data = new ArrayList<ByteBuffer>();
-    for (Entry<Integer, Pair<Integer, ByteBuffer>> entry : mData.entrySet()) {
+    for (Entry<Integer, Pair<Integer, byte[]>> entry : mData.entrySet()) {
       ids.add(entry.getKey());
       columns.add(entry.getValue().getFirst());
-      data.add(entry.getValue().getSecond());
+      if(null == entry.getValue().getSecond()) {
+        data.add(null);
+      } else {
+        data.add(ByteBuffer.wrap(entry.getValue().getSecond().clone()));
+      }
     }
 
     ImageElement ele =
