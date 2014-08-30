@@ -4,7 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import tachyon.Constants;
+import tachyon.TachyonURI;
 
 /**
  * Base class for handling block files. Block handlers for different under file systems can be
@@ -23,7 +23,7 @@ abstract class BlockHandler implements Closeable {
    * @throws IllegalArgumentException
    */
   public static BlockHandler get(String path) throws IOException, IllegalArgumentException {
-    if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
+    if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
       return new BlockHandlerLocal(path);
     }
     throw new IllegalArgumentException("Unsupported block file path: " + path);

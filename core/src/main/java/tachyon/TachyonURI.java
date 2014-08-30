@@ -9,7 +9,6 @@ import java.net.URISyntaxException;
  * Does not support fragment or query in the URI.
  */
 public final class TachyonURI implements Comparable<TachyonURI> {
-  // TODO: Should we just use Constants.PATH_SEPARATOR?
   public static final String SEPARATOR = "/";
   public static final String CUR_DIR = ".";
 
@@ -23,9 +22,8 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * additional normalization.
    */
   public TachyonURI(String pathStr) {
-    // TODO: Why do we only check for null here but length 0 in the other constructor?
     if (pathStr == null) {
-      throw new IllegalArgumentException("Can not create a Path from a null");
+      throw new IllegalArgumentException("Can not create a uri with a null path.");
     }
 
     // add a slash in front of paths with Windows drive letters
@@ -73,8 +71,8 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    *          the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    */
   public TachyonURI(String scheme, String authority, String path) {
-    if (path == null || path.length() == 0) {
-      throw new IllegalArgumentException("Can not create a Path from a null or empty string");
+    if (path == null) {
+      throw new IllegalArgumentException("Can not create a uri with a null path.");
     }
     mUri = createURI(scheme, authority, path);
   }
