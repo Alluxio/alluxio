@@ -10,15 +10,18 @@
  */
 package tachyon.worker.netty;
 
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.List;
 
+import tachyon.conf.WorkerConf;
 import tachyon.worker.nio.DataServerMessage;
 
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.MessageToMessageEncoder;
@@ -76,7 +79,20 @@ public final class BlockResponse {
         final List<Object> out) throws Exception {
       out.add(createHeader(ctx, msg));
       if (msg.getChannel() != null) {
-        out.add(new DefaultFileRegion(msg.getChannel(), msg.getOffset(), msg.getLength()));
+        switch (WorkerConf.get().NETTY_FILE_TRANSFER_TYPE) {
+          case MAPPED:
+            MappedByteBuffer data =
+                msg.getChannel().map(FileChannel.MapMode.READ_ONLY, msg.getOffset(),
+                    msg.getLength());
+            out.add(Unpooled.wrappedBuffer(data));
+            break;
+          case TRANSFER:
+            out.add(new DefaultFileRegion(msg.getChannel(), msg.getOffset(), msg.getLength()));
+            break;
+          default:
+            throw new AssertionError("Unknown file transfer type: "
+                + WorkerConf.get().NETTY_FILE_TRANSFER_TYPE);
+        }
       }
     }
 

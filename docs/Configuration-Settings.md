@@ -181,6 +181,37 @@ number.
   <td>EPOLL</td>
   <td>Selects netty's channel implementation.  On linux, epoll is used; valid options are NIO and EPOLL.</td>
 </tr>
+<tr>
+  <td>tachyon.worker.network.netty.file.transfer</td>
+  <td>MAPPED</td>
+  <td>When returning files to the user, select how the data is transferred; valid options are MAPPED (uses java MappedByteBuffer) and TRANSFER (uses Java FileChannel.transferTo).</td>
+</tr>
+
+<tr>
+  <td>tachyon.worker.network.netty.watermark.high</td>
+  <td>32768</td>
+  <td>Determines how many bytes can be in the write queue before channels isWritable is set to false.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.watermark.low</td>
+  <td>8192</td>
+  <td>Once the high watermark limit is reached, the queue must be flushed down to the low watermark before switching back to writable.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.backlog</td>
+  <td>128 on linux</td>
+  <td>How many requests can be queued up before new requests are rejected; this value is platform dependent.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.buffer.send</td>
+  <td>platform specific</td>
+  <td>Sets SO_SNDBUF for the socket; more details can be found in the socket man page.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.buffer.recieve</td>
+  <td>platform specific</td>
+  <td>Sets SO_RCVBUF for the socket; more details can be found in the socket man page.</td>
+</tr>
 </table>
 
 # User Configuration

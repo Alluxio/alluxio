@@ -5,9 +5,8 @@ import tachyon.Constants;
 import tachyon.util.CommonUtils;
 import tachyon.worker.NetworkType;
 import tachyon.worker.netty.ChannelType;
+import tachyon.worker.netty.FileTransferType;
 import tachyon.util.NetworkUtils;
-
-import javax.swing.text.html.Option;
 
 public class WorkerConf extends Utils {
   private static WorkerConf WORKER_CONF = null;
@@ -48,7 +47,7 @@ public class WorkerConf extends Utils {
 
   public final NetworkType NETWORK_TYPE;
   public final ChannelType NETTY_CHANNEL_TYPE;
-  public final int NETTY_DATA_PROCESS_THREADS;
+  public final FileTransferType NETTY_FILE_TRANSFER_TYPE;
 
   public final int NETTY_HIGH_WATER_MARK;
   public final int NETTY_LOW_WATER_MARK;
@@ -85,10 +84,8 @@ public class WorkerConf extends Utils {
     NETWORK_TYPE = getEnumProperty("tachyon.worker.network.type", NetworkType.NETTY);
     NETTY_CHANNEL_TYPE =
         getEnumProperty("tachyon.worker.network.netty.channel", ChannelType.defaultType());
-
-    NETTY_DATA_PROCESS_THREADS =
-        getIntProperty("tachyon.worker.network.netty.process.threads", Runtime.getRuntime()
-            .availableProcessors());
+    NETTY_FILE_TRANSFER_TYPE =
+        getEnumProperty("tachyon.worker.network.netty.file.transfer", FileTransferType.MAPPED);
 
     NETTY_HIGH_WATER_MARK =
         getIntProperty("tachyon.worker.network.netty.watermark.high", 32 * 1024);

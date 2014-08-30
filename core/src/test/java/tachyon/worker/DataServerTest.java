@@ -32,12 +32,12 @@ public class DataServerTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
-  private final NetworkType type;
+  private final NetworkType mType;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTFS = null;
 
   public DataServerTest(NetworkType type) {
-    this.type = type;
+    this.mType = type;
   }
 
   @After
@@ -50,7 +50,7 @@ public class DataServerTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
-    System.setProperty("tachyon.worker.network.type", type.toString());
+    System.setProperty("tachyon.worker.network.type", mType.toString());
     mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
     mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();

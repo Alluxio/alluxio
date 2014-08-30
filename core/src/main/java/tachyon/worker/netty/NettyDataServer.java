@@ -15,11 +15,11 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.ThreadFactory;
 
-import com.google.common.base.Throwables;
 import tachyon.conf.WorkerConf;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
 
+import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -103,14 +103,17 @@ public final class NettyDataServer implements DataServer {
    */
   private static ServerBootstrap setupGroups(final ServerBootstrap boot, final ChannelType type) {
     ThreadFactory workerFactory = createThreadFactory("data-server-%d");
-    EventLoopGroup bossGroup, workerGroup;
+    EventLoopGroup bossGroup;
+    EventLoopGroup workerGroup;
     switch (type) {
       case EPOLL:
-        bossGroup = workerGroup = new EpollEventLoopGroup(0, workerFactory);
+        bossGroup = new EpollEventLoopGroup(0, workerFactory);
+        workerGroup = bossGroup;
         boot.channel(EpollServerSocketChannel.class);
         break;
       default:
-        bossGroup = workerGroup = new NioEventLoopGroup(0, workerFactory);
+        bossGroup = new NioEventLoopGroup(0, workerFactory);
+        workerGroup = bossGroup;
         boot.channel(NioServerSocketChannel.class);
     }
     boot.group(bossGroup, workerGroup);
