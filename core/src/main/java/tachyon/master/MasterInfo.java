@@ -550,8 +550,10 @@ public class MasterInfo extends ImageWriter {
       currentInodeFolder.addChild(ret);
       currentInodeFolder.setLastModificationTimeMs(creationTimeMs);
 
-      LOG.debug("createFile: File Created: " + ret.toString() + " parent: "
-          + currentInodeFolder.toString());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("createFile: File Created: " + ret.toString() + " parent: "
+            + currentInodeFolder.toString());
+      }
       return ret.getId();
     }
   }
