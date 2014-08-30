@@ -15,6 +15,7 @@ import java.nio.channels.FileChannel;
 
 import org.apache.log4j.Logger;
 
+import tachyon.Constants;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.BlocksLocker;
@@ -33,7 +34,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  */
 @ChannelHandler.Sharable
 public final class DataServerHandler extends ChannelInboundHandlerAdapter {
-  private static final Logger LOG = Logger.getLogger(DataServerHandler.class);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final BlocksLocker mLocker;
 
@@ -81,7 +82,7 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
         Closeables.closeQuietly(file);
       }
     } finally {
-      mLocker.unlock(Math.abs(blockId), lockId);
+      mLocker.unlock(blockId, lockId);
     }
   }
 

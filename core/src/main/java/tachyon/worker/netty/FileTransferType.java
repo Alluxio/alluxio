@@ -10,29 +10,21 @@
  */
 package tachyon.worker.netty;
 
-import io.netty.channel.epoll.Epoll;
-
 /**
- * What type of netty channel to use.
+ * How a read response will transfer block data over the network. There is a difference in speed and
+ * memory consumption between the two. {@link #MAPPED} is the default since at larger sizes it out
+ * performs {@link #TRANSFER}
  */
-public enum ChannelType {
-  NIO,
+public enum FileTransferType {
   /**
-   * Use Linux's epoll for channel api. Only works on linux
+   * Uses a {@link java.nio.MappedByteBuffer} to transfer data over the network
    */
-  EPOLL;
+  MAPPED,
 
   /**
-   * Determines the default type to use based off the system.
-   * <p />
-   * On linux based systems, epoll will be selected for more consistent performance, for everything
-   * else nio is returned.
+   * Uses
+   * {@link java.nio.channels.FileChannel#transferTo(long, long, java.nio.channels.WritableByteChannel)}
+   * to transfer data over the network
    */
-  public static ChannelType defaultType() {
-    if (Epoll.isAvailable()) {
-      return ChannelType.EPOLL;
-    } else {
-      return ChannelType.NIO;
-    }
-  }
+  TRANSFER
 }

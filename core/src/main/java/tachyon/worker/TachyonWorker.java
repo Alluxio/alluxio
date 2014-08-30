@@ -217,7 +217,7 @@ public class TachyonWorker implements Runnable {
   }
 
   private DataServer createDataServer(final InetSocketAddress dataAddress,
-                                      final BlocksLocker blockLocker) {
+      final BlocksLocker blockLocker) {
     switch (WorkerConf.get().NETWORK_TYPE) {
       case NIO:
         return new NIODataServer(dataAddress, blockLocker);
