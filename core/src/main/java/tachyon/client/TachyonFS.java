@@ -363,7 +363,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {
     validateUri(path);
-    return mMasterClient.user_createFile(path.getPath(), ufsPath.getPath(), blockSizeByte, recursive);
+    return mMasterClient.user_createFile(path.getPath(), ufsPath.toString(), blockSizeByte, recursive);
   }
 
   /**
