@@ -41,7 +41,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
       throw new IOException("Block size must be less than 2GB: " + blockSizeByte);
     }
 
-    return createFile(path, new TachyonURI(""), blockSizeByte, true);
+    return createFile(path, TachyonURI.EMPTY_URI, blockSizeByte, true);
   }
 
   /**
@@ -72,7 +72,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @throws IOException
    */
   public synchronized boolean delete(int fid, boolean recursive) throws IOException {
-    return delete(fid, new TachyonURI(""), recursive);
+    return delete(fid, TachyonURI.EMPTY_URI, recursive);
   }
 
   /**
@@ -114,7 +114,7 @@ abstract class AbstractTachyonFS implements TachyonFSCore {
    * @throws IOException
    */
   public synchronized boolean rename(int fileId, TachyonURI dstPath) throws IOException {
-    return rename(fileId, new TachyonURI(""), dstPath);
+    return rename(fileId, TachyonURI.EMPTY_URI, dstPath);
   }
 
   /**
