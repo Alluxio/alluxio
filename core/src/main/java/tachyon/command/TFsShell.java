@@ -1,5 +1,6 @@
 package tachyon.command;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -10,6 +11,7 @@ import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.io.Closer;
 import org.apache.commons.io.FilenameUtils;
 
 import tachyon.Constants;
@@ -26,16 +28,29 @@ import tachyon.util.CommonUtils;
 /**
  * Class for handling command line inputs.
  */
-public class TFsShell {
+public class TFsShell implements Closeable {
   /**
    * Main method, starts a new TFsShell
    * 
    * @param argv
    *          [] Array of arguments given by the user's input from the terminal
    */
-  public static void main(String argv[]) {
+  public static void main(String argv[]) throws IOException {
     TFsShell shell = new TFsShell();
-    System.exit(shell.run(argv));
+    int ret;
+    try {
+      ret = shell.run(argv);
+    } finally {
+      shell.close();
+    }
+    System.exit(ret);
+  }
+
+  private final Closer CLOSER = Closer.create();
+
+  @Override
+  public void close() throws IOException {
+    CLOSER.close();
   }
 
   /**
@@ -52,7 +67,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     TachyonFile tFile = tachyonClient.getFile(file);
 
     if (tFile == null) {
@@ -61,11 +76,15 @@ public class TFsShell {
     }
     if (tFile.isFile()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
-      byte[] buf = new byte[512];
-      int read = is.read(buf);
-      while (read != -1) {
-        System.out.write(buf, 0, read);
-        read = is.read(buf);
+      try {
+        byte[] buf = new byte[512];
+        int read = is.read(buf);
+        while (read != -1) {
+          System.out.write(buf, 0, read);
+          read = is.read(buf);
+        }
+      } finally {
+        is.close();
       }
       return 0;
     } else {
@@ -96,7 +115,7 @@ public class TFsShell {
       System.out.println("Local path " + srcPath + " does not exist.");
       return -1;
     }
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(dstPath));
+    TachyonFS tachyonClient = createFS(dstPath);
     String file = Utils.getFilePath(dstPath);
     int ret = copyPath(src, tachyonClient, file);
     if (ret == 0) {
@@ -112,17 +131,19 @@ public class TFsShell {
         return -1;
       }
       TachyonFile tFile = tachyonClient.getFile(fileId);
-      OutStream os = tFile.getOutStream(WriteType.CACHE_THROUGH);
-      FileInputStream in = new FileInputStream(src);
-      FileChannel channel = in.getChannel();
-      ByteBuffer buf = ByteBuffer.allocate(Constants.KB);
-      while (channel.read(buf) != -1) {
-        buf.flip();
-        os.write(buf.array(), 0, buf.limit());
+      Closer closer = Closer.create();
+      try {
+        OutStream os = closer.register(tFile.getOutStream(WriteType.CACHE_THROUGH));
+        FileInputStream in = closer.register(new FileInputStream(src));
+        FileChannel channel = closer.register(in.getChannel());
+        ByteBuffer buf = ByteBuffer.allocate(Constants.KB);
+        while (channel.read(buf) != -1) {
+          buf.flip();
+          os.write(buf.array(), 0, buf.limit());
+        }
+      } finally {
+        closer.close();
       }
-      os.close();
-      channel.close();
-      in.close();
       return 0;
     } else {
       tachyonClient.mkdir(dstPath);
@@ -155,7 +176,7 @@ public class TFsShell {
     String dstPath = argv[2];
     String folder = Utils.getFilePath(srcPath);
     File dst = new File(dstPath);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(srcPath));
+    TachyonFS tachyonClient = createFS(srcPath);
     TachyonFile tFile = tachyonClient.getFile(folder);
 
     // tachyonClient.getFile() catches FileDoesNotExist exceptions and returns null
@@ -163,17 +184,21 @@ public class TFsShell {
       throw new IOException(folder);
     }
 
-    InStream is = tFile.getInStream(ReadType.NO_CACHE);
-    FileOutputStream out = new FileOutputStream(dst);
-    byte[] buf = new byte[512];
-    int t = is.read(buf);
-    while (t != -1) {
-      out.write(buf, 0, t);
-      t = is.read(buf);
+    Closer closer = Closer.create();
+    try {
+      InStream is = closer.register(tFile.getInStream(ReadType.NO_CACHE));
+      FileOutputStream out = closer.register(new FileOutputStream(dst));
+      byte[] buf = new byte[512];
+      int t = is.read(buf);
+      while (t != -1) {
+        out.write(buf, 0, t);
+        t = is.read(buf);
+      }
+      System.out.println("Copied " + srcPath + " to " + dstPath);
+      return 0;
+    } finally {
+      closer.close();
     }
-    out.close();
-    System.out.println("Copied " + srcPath + " to " + dstPath);
-    return 0;
   }
 
   /**
@@ -198,7 +223,7 @@ public class TFsShell {
   }
 
   private long[] countHelper(String path) throws IOException {
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     String folder = Utils.getFilePath(path);
     TachyonFile tFile = tachyonClient.getFile(folder);
 
@@ -234,7 +259,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(file);
     List<ClientBlockInfo> blocks = tachyonClient.getFileBlocks(fileId);
     System.out.println(file + " with file id " + fileId + " have following blocks: ");
@@ -259,7 +284,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(file);
     List<String> hosts = tachyonClient.getFile(fileId).getLocationHosts();
     System.out.println(file + " with file id " + fileId + " are on nodes: ");
@@ -284,7 +309,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String folder = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     List<ClientFileInfo> files = tachyonClient.listStatus(folder);
     Collections.sort(files);
     String format = "%-10s%-25s%-15s%-5s%n";
@@ -319,7 +344,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String folder = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     List<ClientFileInfo> files = tachyonClient.listStatus(folder);
     Collections.sort(files);
     String format = "%-10s%-25s%-15s%-5s%n";
@@ -357,7 +382,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String folder = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     if (tachyonClient.mkdir(folder)) {
       System.out.println("Successfully created directory " + folder);
       return 0;
@@ -382,7 +407,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(file);
     tachyonClient.pinFile(fileId);
     try {
@@ -443,7 +468,7 @@ public class TFsShell {
     }
     String srcFile = Utils.getFilePath(srcPath);
     String dstFile = Utils.getFilePath(dstPath);
-    TachyonFS tachyonClient = TachyonFS.get(srcMasterAddr);
+    TachyonFS tachyonClient = createFS(srcPath);
     if (tachyonClient.rename(srcFile, dstFile)) {
       System.out.println("Renamed " + srcFile + " to " + dstFile);
       return 0;
@@ -459,7 +484,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(file);
     tachyonClient.reportLostFile(fileId);
     System.out.println(file + " with file id " + fileId + " has reported been report lost.");
@@ -473,7 +498,7 @@ public class TFsShell {
     }
     String path = argv[1];
     int depId = Integer.parseInt(argv[2]);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     tachyonClient.requestFilesInDependency(depId);
     System.out.println("Dependency with ID " + depId + " has been requested.");
     return 0;
@@ -495,7 +520,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     if (tachyonClient.delete(file, true)) {
       System.out.println(file + " has been removed");
       return 0;
@@ -580,7 +605,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     TachyonFile tFile = tachyonClient.getFile(file);
 
     if (tFile == null) {
@@ -589,17 +614,21 @@ public class TFsShell {
     }
     if (tFile.isFile()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
-      byte[] buf = new byte[Constants.KB];
-      long bytesToRead = 0L;
-      if (tFile.length() > Constants.KB) {
-        bytesToRead = Constants.KB;
-      } else {
-        bytesToRead = tFile.length();
+      try {
+        byte[] buf = new byte[Constants.KB];
+        long bytesToRead = 0L;
+        if (tFile.length() > Constants.KB) {
+          bytesToRead = Constants.KB;
+        } else {
+          bytesToRead = tFile.length();
+        }
+        is.skip(tFile.length() - bytesToRead);
+        int read = is.read(buf);
+        System.out.write(buf, 0, read);
+        return 0;
+      } finally {
+        is.close();
       }
-      is.skip(tFile.length() - bytesToRead);
-      int read = is.read(buf);
-      System.out.write(buf, 0, read);
-      return 0;
     } else {
       System.out.println(file + " is not a file.");
       return -1;
@@ -621,7 +650,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     TachyonFile tFile = tachyonClient.getFile(tachyonClient.createFile(file));
     OutputStream out = tFile.getOutStream(WriteType.THROUGH);
     out.close();
@@ -645,7 +674,7 @@ public class TFsShell {
     }
     String path = argv[1];
     String file = Utils.getFilePath(path);
-    TachyonFS tachyonClient = TachyonFS.get(Utils.validatePath(path));
+    TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(file);
     try {
       tachyonClient.unpinFile(fileId);
@@ -656,5 +685,12 @@ public class TFsShell {
       System.out.println("File '" + file + "' could not be unpinned.");
       return -1;
     }
+  }
+
+  /**
+   * Creates a new TachyonFS and registers it with {@link #CLOSER}
+   */
+  private TachyonFS createFS(final String path) throws IOException {
+    return CLOSER.register(TachyonFS.get(Utils.validatePath(path)));
   }
 }
