@@ -1,5 +1,6 @@
 package tachyon.master;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import junit.framework.Assert;
@@ -48,5 +49,14 @@ public class MasterClientTest {
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
     Assert.assertTrue(masterClient.getFileStatus(-1, "/file") != null);
+  }
+
+  @Test(timeout = 3000, expected = FileNotFoundException.class)
+  public void user_getClientBlockInfoReturnsOnError() throws TException, IOException {
+    // this test was created to show that a infi loop happens
+    // the timeout will protect against this, and the change was to throw a IOException
+    // in the cases we don't want to disconnect from master
+    MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress());
+    masterClient.user_getClientBlockInfo(Long.MAX_VALUE);
   }
 }
