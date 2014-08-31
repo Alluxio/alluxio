@@ -38,6 +38,8 @@ public class Constants {
 
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
 
+  /** @deprecated use {@link tachyon.TachyonURI#SEPARATOR} instead **/
+  @Deprecated
   public static final String PATH_SEPARATOR = "/";
 
   public static final int WORKER_BLOCKS_QUEUE_SIZE = 10000;
