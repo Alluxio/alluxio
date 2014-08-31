@@ -12,6 +12,8 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   public static final String SEPARATOR = "/";
   public static final String CUR_DIR = ".";
 
+  public static final TachyonURI EMPTY_URI = new TachyonURI("");
+
   private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
   // a hierarchical uri
