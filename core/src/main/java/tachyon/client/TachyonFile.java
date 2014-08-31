@@ -16,6 +16,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
@@ -134,9 +135,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Get a ClientBlockInfo by the file id and block index
-   * 
-   * @param fid
-   *          the file id
+   *
    * @param blockIndex
    *          The index of the block in the file.
    * @return the ClientBlockInfo of the specified block
@@ -257,9 +256,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   /**
    * Get the block id by the file id and offset. it will check whether the file and the block exist.
-   * 
-   * @param fid
-   *          the file id
+   *
    * @param offset
    *          The offset of the file.
    * @return the block id if exists
@@ -370,7 +367,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
   /**
    * Read local block return a TachyonByteBuffer
    * 
-   * @param blockId
+   * @param blockIndex
    *          The id of the block.
    * @param offset
    *          The start position to read.
@@ -564,8 +561,22 @@ public class TachyonFile implements Comparable<TachyonFile> {
    *          the new name
    * @return true if succeed, false otherwise
    * @throws IOException
+   * @deprecated use {@link #rename(TachyonURI)} instead
    */
+  @Deprecated
   public boolean rename(String path) throws IOException {
+    return rename(new TachyonURI(path));
+  }
+
+  /**
+   * Rename this file
+   *
+   * @param path
+   *          the new name
+   * @return true if succeed, false otherwise
+   * @throws IOException
+   */
+  public boolean rename(TachyonURI path) throws IOException {
     return mTachyonFS.rename(mFileId, path);
   }
 
