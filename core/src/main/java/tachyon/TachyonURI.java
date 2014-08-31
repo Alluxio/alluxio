@@ -12,8 +12,6 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   public static final String SEPARATOR = "/";
   public static final String CUR_DIR = ".";
 
-  public static final TachyonURI EMPTY_URI = new TachyonURI("");
-
   private static final boolean WINDOWS = System.getProperty("os.name").startsWith("Windows");
 
   // a hierarchical uri
@@ -25,7 +23,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    */
   public TachyonURI(String pathStr) {
     if (pathStr == null) {
-      throw new IllegalArgumentException("Can not create a uri with a null path.");
+      throw new IllegalArgumentException("Can not create a Path from a null");
     }
 
     // add a slash in front of paths with Windows drive letters
@@ -73,8 +71,8 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    *          the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    */
   public TachyonURI(String scheme, String authority, String path) {
-    if (path == null) {
-      throw new IllegalArgumentException("Can not create a uri with a null path.");
+    if (path == null || path.length() == 0) {
+      throw new IllegalArgumentException("Can not create a Path from a null or empty string");
     }
     mUri = createURI(scheme, authority, path);
   }
@@ -345,7 +343,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   /**
    * Add a suffix to the end of the Tachyon URI.
    *
-   * @param suffix
+   * @param TachyonURI
    *          the suffix to add
    * @return the new TachyonURI
    */
