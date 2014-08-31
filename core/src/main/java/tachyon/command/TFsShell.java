@@ -11,8 +11,9 @@ import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.List;
 
-import com.google.common.io.Closer;
 import org.apache.commons.io.FilenameUtils;
+
+import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.client.InStream;
@@ -46,11 +47,11 @@ public class TFsShell implements Closeable {
     System.exit(ret);
   }
 
-  private final Closer CLOSER = Closer.create();
+  private final Closer mCloser = Closer.create();
 
   @Override
   public void close() throws IOException {
-    CLOSER.close();
+    mCloser.close();
   }
 
   /**
@@ -76,8 +77,8 @@ public class TFsShell implements Closeable {
     }
     if (tFile.isFile()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
+      byte[] buf = new byte[512];
       try {
-        byte[] buf = new byte[512];
         int read = is.read(buf);
         while (read != -1) {
           System.out.write(buf, 0, read);
@@ -688,9 +689,9 @@ public class TFsShell implements Closeable {
   }
 
   /**
-   * Creates a new TachyonFS and registers it with {@link #CLOSER}
+   * Creates a new TachyonFS and registers it with {@link #mCloser}
    */
   private TachyonFS createFS(final String path) throws IOException {
-    return CLOSER.register(TachyonFS.get(Utils.validatePath(path)));
+    return mCloser.register(TachyonFS.get(Utils.validatePath(path)));
   }
 }
