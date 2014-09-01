@@ -2,7 +2,6 @@ package tachyon.worker;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
@@ -171,13 +170,7 @@ public class WorkerClient implements Closeable {
     if (!mConnected) {
       NetAddress workerNetAddress = null;
       try {
-        String localHostName;
-        try {
-          localHostName =
-              NetworkUtils.resolveHostName(InetAddress.getLocalHost().getCanonicalHostName());
-        } catch (UnknownHostException e) {
-          localHostName = InetAddress.getLocalHost().getCanonicalHostName();
-        }
+        String localHostName = NetworkUtils.getLocalHostName();
         LOG.info("Trying to get local worker host : " + localHostName);
         workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
         mIsLocal = true;
