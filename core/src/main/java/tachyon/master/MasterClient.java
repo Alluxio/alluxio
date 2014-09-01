@@ -43,6 +43,7 @@ import tachyon.thrift.TableColumnException;
 import tachyon.thrift.TableDoesNotExistException;
 import tachyon.thrift.TachyonException;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 
 /**
  * The master server client side.
@@ -145,8 +146,8 @@ public class MasterClient implements Closeable {
           + mMasterAddress);
 
       mProtocol =
-          new TBinaryProtocol(new TFramedTransport(new TSocket(mMasterAddress.getHostName(),
-              mMasterAddress.getPort())));
+          new TBinaryProtocol(new TFramedTransport(new TSocket(
+              NetworkUtils.getFqdnHost(mMasterAddress), mMasterAddress.getPort())));
       mClient = new MasterService.Client(mProtocol);
       mLastAccessedMs = System.currentTimeMillis();
       try {
