@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -22,6 +21,7 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 import tachyon.worker.DataServerMessage;
 
 /**
@@ -459,8 +459,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
         if (port == -1) {
           continue;
         }
-        final String hostname = InetAddress.getLocalHost().getHostName();
-        final String hostaddress = InetAddress.getLocalHost().getHostAddress();
+        final String hostname = NetworkUtils.getLocalHostName();
+        final String hostaddress = NetworkUtils.getLocalIpAddress();
         if (host.equals(hostname) || host.equals(hostaddress)) {
           String localFileName =
               CommonUtils.concat(mTachyonFS.getLocalDataFolder(), blockInfo.blockId);
