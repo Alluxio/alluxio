@@ -126,7 +126,8 @@ public class RawTables extends ImageWriter {
    */
   public synchronized Pair<Integer, ByteBuffer> getTableInfo(int tableId) {
     Pair<Integer, byte[]> retVal = mData.get(tableId);
-    Pair<Integer, ByteBuffer> ret = new Pair<Integer, ByteBuffer>(retVal.getFirst(), ByteBuffer.wrap(retVal.getSecond()));
+    Pair<Integer, ByteBuffer> ret = new Pair<Integer, ByteBuffer>(retVal.getFirst(), 
+        ByteBuffer.wrap(retVal.getSecond()));
     return ret;
   }
 
@@ -172,11 +173,6 @@ public class RawTables extends ImageWriter {
       throw new TachyonException("The raw table " + tableId + " does not exist.");
     }
     Pair<Integer, ByteBuffer> data = new Pair<Integer, ByteBuffer>(dataBytes.getFirst(), null);
-    /*if (null == oldMetadata) {
-      data = new Pair<Integer, ByteBuffer>(dataBytes.getFirst(), ByteBuffer.allocate(0));
-    } else {
-      data = new Pair<Integer, ByteBuffer>(dataBytes.getFirst(), ByteBuffer.wrap(oldMetadata.clone()));
-    }*/
     if (metadata == null) {
       dataBytes.setSecond(new byte[]{});
     } else {
