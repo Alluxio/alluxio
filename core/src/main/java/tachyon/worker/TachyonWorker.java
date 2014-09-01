@@ -13,6 +13,7 @@ import org.apache.thrift.transport.TTransportException;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.FqdnHost;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
@@ -193,7 +194,7 @@ public class TachyonWorker implements Runnable {
     // In a production or any real deployment setup, port '0' should not be used as it will make
     // deployment more complicated.
     mDataServer =
-        new DataServer(new InetSocketAddress(workerAddress.getHostName(), dataPort),
+        new DataServer(new InetSocketAddress(new FqdnHost(workerAddress).getHost(), dataPort),
             mWorkerStorage);
     mDataServerThread = new Thread(mDataServer);
     mDataPort = mDataServer.getPort();

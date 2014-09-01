@@ -2,7 +2,6 @@ package tachyon.worker;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
@@ -15,6 +14,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 
 import tachyon.Constants;
+import tachyon.FqdnHost;
 import tachyon.HeartbeatThread;
 import tachyon.conf.UserConf;
 import tachyon.master.MasterClient;
@@ -171,13 +171,7 @@ public class WorkerClient implements Closeable {
     if (!mConnected) {
       NetAddress workerNetAddress = null;
       try {
-        String localHostName;
-        try {
-          localHostName =
-              NetworkUtils.resolveHostName(InetAddress.getLocalHost().getCanonicalHostName());
-        } catch (UnknownHostException e) {
-          localHostName = InetAddress.getLocalHost().getCanonicalHostName();
-        }
+        String localHostName = NetworkUtils.getLocalHostName();
         LOG.info("Trying to get local worker host : " + localHostName);
         workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
         mIsLocal = true;
@@ -208,8 +202,8 @@ public class WorkerClient implements Closeable {
       LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
 
       mProtocol =
-          new TBinaryProtocol(new TFramedTransport(new TSocket(mWorkerAddress.getHostName(),
-              mWorkerAddress.getPort())));
+          new TBinaryProtocol(new TFramedTransport(new TSocket(
+              new FqdnHost(mWorkerAddress).getHost(), mWorkerAddress.getPort())));
       mClient = new WorkerService.Client(mProtocol);
 
       mHeartbeatThread =
