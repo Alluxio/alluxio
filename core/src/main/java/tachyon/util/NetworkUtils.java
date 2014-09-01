@@ -45,7 +45,7 @@ public final class NetworkUtils {
   public static String getLocalIpAddress() {
     try {
       InetAddress address = InetAddress.getLocalHost();
-      System.out.println("address " + address.toString() + " " + address.isLoopbackAddress() + " "
+      LOG.debug("address " + address.toString() + " " + address.isLoopbackAddress() + " "
           + address.getHostAddress() + " " + address.getHostName());
       if (address.isLoopbackAddress()) {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
