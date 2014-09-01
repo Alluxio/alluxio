@@ -204,12 +204,13 @@ public class WorkerClient implements Closeable {
         return false;
       }
 
-      mWorkerAddress = new InetSocketAddress(workerNetAddress.mHost, workerNetAddress.mPort);
+      mWorkerAddress =
+          new InetSocketAddress(NetworkUtils.getFqdnHost(workerNetAddress), workerNetAddress.mPort);
       LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
 
       mProtocol =
-          new TBinaryProtocol(new TFramedTransport(new TSocket(mWorkerAddress.getHostName(),
-              mWorkerAddress.getPort())));
+          new TBinaryProtocol(new TFramedTransport(new TSocket(
+              NetworkUtils.getFqdnHost(mWorkerAddress), mWorkerAddress.getPort())));
       mClient = new WorkerService.Client(mProtocol);
 
       mHeartbeatThread =
