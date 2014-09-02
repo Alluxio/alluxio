@@ -7,6 +7,13 @@
     <name>fs.glusterfs.impl</name>
     <value>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</value>
   </property>
+  <!--  this is an optional hadoop 1.x glusterfs which does extra integrity checks on files. -->
+  <!-- 
+  <property>
+    <name>fs.glusterfs.impl</name>
+    <value>org.apache.hadoop.fs.glusterfs.GlusterFileSystemCRC</value>
+  </property>
+  -->  
   <property>
     <name>fs.default.name</name>
     <value>glusterfs:///</value>
