@@ -3,9 +3,9 @@ package tachyon;
 import java.io.IOException;
 
 public class HcfsCluster extends UnderFileSystemCluster {
-  private static final String HCFS_URI_KEY = "uri";
-  private static String mUri = null;
-  
+  private final String HCFS_URI_KEY = "uri";
+  private String mUri = null;
+
   public HcfsCluster(String baseDir) {
     super(baseDir);
     String uri = System.getProperty(HCFS_URI_KEY);
