@@ -18,7 +18,7 @@ Install Tachyon with CephFS: `mvn clean install -Dtest.profile=cephfs -Dhadoop.v
 
 # Test
 
-Test Tachyon with CephFS under filesystem: `mvn test -Dtest.profile=cephfs -Dhadoop.version=2.3.0`. Note `core/src/test/resources/ceph/core-site.xml` provides a basic CephFS configuration that uses local host as MDS and `data` as pool name.
+Test Tachyon with CephFS under filesystem: `mvn test -Dtest.profile=cephfs -Dhadoop.version=2.3.0`. Note `resources/ceph/core-site.xml` provides a basic CephFS configuration that uses local host as MDS and `data` as pool name.
 
 # Format the filesystem
 
