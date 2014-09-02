@@ -554,6 +554,8 @@ public class MasterClient implements Closeable {
 
       try {
         return mClient.user_getWorker(random, hostname);
+      } catch (NoWorkerException e) {
+        throw e;
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
