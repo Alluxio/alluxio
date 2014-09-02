@@ -1,4 +1,4 @@
-package tachyon.worker.elimination;
+package tachyon.worker.eviction;
 
 import java.util.Collection;
 import java.util.Map;
