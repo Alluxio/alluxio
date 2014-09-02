@@ -302,6 +302,9 @@
                   <value>glusterfs:///</value>
                 </property>
               </systemProperties>
+              <additionalClasspathElements>
+                <additionalClasspathElement>resources/glusterfs</additionalClasspathElement>
+              </additionalClasspathElements>
             </configuration>
           </plugin>
         </plugins>
@@ -326,19 +329,13 @@
           <version>${cephfs-hadoop.version}</version>
           <type>jar</type>
           <scope>compile</scope>
-          <exclusions>
-            <exclusion>
-              <groupId>*</groupId>
-              <artifactId>*</artifactId>
-            </exclusion>
-          </exclusions>
         </dependency>
         <dependency>
-          <groupId>com.ceph.fs</groupId>
-          <artifactId>cephfs</artifactId>
-          <version>0.80.4</version>
-          <scope>system</scope>
-          <systemPath>${libcephfs.path}</systemPath>
+          <groupId>com.ceph</groupId>
+          <artifactId>libcephfs</artifactId>
+          <version>${libcephfs.version}</version>
+          <type>jar</type>
+          <scope>compile</scope>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
@@ -378,7 +375,7 @@
                 </property>
               </systemProperties>
               <additionalClasspathElements>
-                <additionalClasspathElement>core/src/test/resources/ceph</additionalClasspathElement>
+                <additionalClasspathElement>resources/ceph</additionalClasspathElement>
               </additionalClasspathElements>
             </configuration>
           </plugin>
