@@ -89,6 +89,10 @@ You can generate an Eclipse configuration file by running:
 
 Then import the folder into Eclipse.
 
+You may also have to add the classpath variable M2_REPO by running:
+
+    mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
+
 ### Submitting Code
 
 -   We encourage you to break your work into small, single-purpose patches if possible. It’s much
