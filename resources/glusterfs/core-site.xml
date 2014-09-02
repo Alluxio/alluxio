@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!-- Put site-specific property overrides in this file. -->
+<configuration>
+  <!--  default hadoop 1.x glusterfs with no additional integrity checking on files -->
+  <property>
+    <name>fs.glusterfs.impl</name>
+    <value>org.apache.hadoop.fs.glusterfs.GlusterFileSystem</value>
+  </property>
+  <!--  this is an optional hadoop 1.x glusterfs which does extra integrity checks on files. -->
+  <!-- 
+  <property>
+    <name>fs.glusterfs.impl</name>
+    <value>org.apache.hadoop.fs.glusterfs.GlusterFileSystemCRC</value>
+  </property>
+  -->  
+  <property>
+    <name>fs.default.name</name>
+    <value>glusterfs:///</value>
+  </property>
+  <!--  this is the default glusterfs hook with no additional integrity checking on files -->
+  <property>
+    <name>fs.AbstractFileSystem.glusterfs.impl</name>
+    <value>org.apache.hadoop.fs.local.GlusterFs</value> 
+  </property>
+  <!--  this is an optional glusterfs which does extra integrity checks on files. -->
+  <!-- 
+  <property>
+    <name>fs.AbstractFileSystem.glusterfs.impl</name>
+    <value>org.apache.hadoop.fs.local.GlusterFsCRC</value> 
+  </property>
+  -->
+	<property>
+		<name>fs.glusterfs.volumes</name>
+		<value>testvol</value>
+	</property>
+	<property>
+		<name>fs.glusterfs.volume.fuse.testvol</name>
+		<value>/tmp</value>
+	</property>
+    <property>
+      <name>mapred.system.dir</name>
+      <value>glusterfs:///mapred/system</value>
+    </property>
+</configuration>
