@@ -145,7 +145,7 @@ public final class MasterClient implements Closeable {
     }
 
     Exception lastException = null;
-    RetryPolicy retry = new ExponentialBackoffRetry(50, 500, MAX_CONNECT_TRY);
+    RetryPolicy retry = new ExponentialBackoffRetry(50, Constants.SECOND_MS, MAX_CONNECT_TRY);
     do {
       mMasterAddress = getMasterAddress();
 
