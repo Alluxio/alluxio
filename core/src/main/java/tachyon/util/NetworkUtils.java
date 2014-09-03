@@ -45,8 +45,10 @@ public final class NetworkUtils {
   public static String getLocalIpAddress() {
     try {
       InetAddress address = InetAddress.getLocalHost();
-      LOG.debug("address " + address.toString() + " " + address.isLoopbackAddress() + " "
-          + address.getHostAddress() + " " + address.getHostName());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("address " + address.toString() + " " + address.isLoopbackAddress() + " "
+            + address.getHostAddress() + " " + address.getHostName());
+      }
       if (address.isLoopbackAddress()) {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
         while (networkInterfaces.hasMoreElements()) {
