@@ -7,7 +7,7 @@ import tachyon.TachyonURI;
 import tachyon.conf.UserConf;
 
 /**
- * Abstract implementation of {@code TachyonFSCore} APIs.
+ * Abstract implementation of {@link tachyon.client.TachyonFSCore} APIs.
  */
 abstract class AbstractTachyonFS implements TachyonFSCore {
   /**
