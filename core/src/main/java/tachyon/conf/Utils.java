@@ -14,12 +14,8 @@
  */
 package tachyon.conf;
 
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
-
-import tachyon.util.CommonUtils;
 
 /**
  * Utils for tachyon.conf package.
@@ -27,27 +23,8 @@ import tachyon.util.CommonUtils;
 class Utils {
   private static final Logger LOG = Logger.getLogger("");
 
-  protected static Configuration hadoopConf;
+ 
   protected static PropertiesConfiguration commonConf;
-
-  static {
-    commonConf = new PropertiesConfiguration();
-    Configuration.addDefaultResource("tachyon-default.xml");
-    try {
-      /* add tachyon.properties. if not over-ridden then loaded from JAR */
-      commonConf.load(Configuration.class.getClassLoader().getResourceAsStream(
-          "tachyon.properties"));
-    } catch (ConfigurationException e) {
-      LOG.error("Fatal error loading tachyon.properties:" + e);
-    }
-    setConf(new Configuration(false));
-  }
-
-  public static void setConf(Configuration conf) {
-    hadoopConf = conf;
-    hadoopConf.addResource("tachyon-site.xml");
-    hadoopConf.reloadConfiguration();
-  }
 
   public static boolean getBooleanProperty(String property) {
     return Boolean.valueOf(getProperty(property));
@@ -83,9 +60,7 @@ class Utils {
     if (ret == null) {
       ret = commonConf.getString(property);
     }
-    if (ret == null)
-      ret = hadoopConf.get(property);
-
+    
     LOG.debug(property + " : " + ret);
     return ret;
   }
@@ -114,16 +89,6 @@ class Utils {
 
     if (ret != null) {
       commonConf.setProperty(key, value);
-    } else {
-      ret = hadoopConf.get(key);
-    }
-
-    if (ret != null) {
-      hadoopConf.set(key, value);
-    } else {
-      // default spot for unset properties. can be changed later.
-      System.setProperty(key, value);
-    }
-
+    } 
   }
 }
