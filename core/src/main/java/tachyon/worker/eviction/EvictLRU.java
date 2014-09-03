@@ -27,26 +27,31 @@ public final class EvictLRU extends EvictLRUBase {
     HashMultimap<StorageDir, Long> dir2BlocksToEvict = HashMultimap.create();
     Map<StorageDir, Long> sizeToEvict = new HashMap<StorageDir, Long>();
     while (true) {
+      // Get oldest block in StorageDir candidates
       Pair<StorageDir, Long> candidate =
           getLRUBlockCandidate(storageDirs, dir2LRUBlocks, dir2BlocksToEvict, pinList);
       StorageDir dirCandidate = candidate.getFirst();
       long blockId = candidate.getSecond();
       long blockSize = 0;
       if (dirCandidate == null) {
+        // If there is no more block to evict, return null
         return null;
       } else {
         blockSize = dirCandidate.getBlockSize(blockId);
       }
+      // Add info of the block to the list
       blockInfoList.add(new BlockInfo(dirCandidate, blockId, blockSize));
       dir2BlocksToEvict.put(dirCandidate, blockId);
       dir2LRUBlocks.remove(dirCandidate);
       long evictionSize;
+      // Update eviction size for this StorageDir
       if (sizeToEvict.containsKey(dirCandidate)) {
         evictionSize = sizeToEvict.get(dirCandidate) + blockSize;
       } else {
         evictionSize = blockSize;
       }
       sizeToEvict.put(dirCandidate, evictionSize);
+      // Return if eviction size plus free space is larger than request size
       if (evictionSize + dirCandidate.getAvailable() >= requestSize) {
         return dirCandidate;
       }
