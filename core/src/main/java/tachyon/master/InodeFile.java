@@ -253,7 +253,7 @@ public class InodeFile extends Inode {
    * @throws BlockInfoException
    */
   public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws BlockInfoException {
-    if (blockIndex < 0 || blockIndex > mBlocks.size()) {
+    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
     }
 
