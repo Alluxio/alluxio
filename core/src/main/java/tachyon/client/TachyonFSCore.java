@@ -25,7 +25,7 @@ interface TachyonFSCore extends Closeable {
    *          Creates necessary parent folders if true, not otherwise.
    * @return The file id, which is globally unique.
    */
-  public int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte, boolean recursive)
+  int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte, boolean recursive)
       throws IOException;
 
   /**
@@ -41,7 +41,7 @@ interface TachyonFSCore extends Closeable {
    * @return true if deletes successfully, false otherwise.
    * @throws IOException
    */
-  public boolean delete(int fileId, TachyonURI path, boolean recursive) throws IOException;
+  boolean delete(int fileId, TachyonURI path, boolean recursive) throws IOException;
 
   /**
    * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
@@ -53,10 +53,10 @@ interface TachyonFSCore extends Closeable {
    * @return the ClientFileInfo of the file or folder, null if the file or folder does not exist.
    * @throws IOException
    */
-  public ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException;
+  ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException;
 
   /** Returns a URI whose scheme and authority identify this FileSystem. */
-  public TachyonURI getUri();
+  TachyonURI getUri();
 
   /**
    * If the <code>path</code> is a directory, return all the direct entries in it. If the
@@ -67,7 +67,7 @@ interface TachyonFSCore extends Closeable {
    * @return A list of ClientFileInfo, null if the file or folder does not exist.
    * @throws IOException
    */
-  public List<ClientFileInfo> listStatus(TachyonURI path) throws IOException;
+  List<ClientFileInfo> listStatus(TachyonURI path) throws IOException;
 
   /**
    * Creates a folder.
@@ -79,7 +79,7 @@ interface TachyonFSCore extends Closeable {
    * @return true if the folder is created successfully or already existing. false otherwise.
    * @throws IOException
    */
-  public boolean mkdirs(TachyonURI path, boolean recursive) throws IOException;
+  boolean mkdirs(TachyonURI path, boolean recursive) throws IOException;
 
   /**
    * Renames a file or folder to another path.
@@ -94,5 +94,5 @@ interface TachyonFSCore extends Closeable {
    * @return true if renames successfully, false otherwise.
    * @throws IOException
    */
-  public boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException;
+  boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath) throws IOException;
 }
