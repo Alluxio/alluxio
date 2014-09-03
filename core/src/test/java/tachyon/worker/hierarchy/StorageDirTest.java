@@ -44,7 +44,7 @@ public class StorageDirTest {
   @Test
   public void copyBlockTest() throws IOException {
     long blockId = 100;
-    long blockSize = 500;
+    int blockSize = 500;
 
     createBlockFile(mSrcDir, blockId, blockSize);
     Assert.assertTrue(mSrcDir.containsBlock(blockId));
@@ -61,12 +61,15 @@ public class StorageDirTest {
     Assert.assertEquals(mCapacity, mSrcDir.getAvailable());
   }
 
-  private void createBlockFile(StorageDir dir, long blockId, long blockSize) throws IOException {
-    byte[] buf = TestUtils.getIncreasingByteArray((int) blockSize);
+  private void createBlockFile(StorageDir dir, long blockId, int blockSize) throws IOException {
+    byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
     BlockHandler bhSrc =
         BlockHandler.get(CommonUtils.concat(mSrcDir.getUserTempFilePath(mUserId, blockId)));
-    bhSrc.append(0, ByteBuffer.wrap(buf));
-    bhSrc.close();
+    try {
+      bhSrc.append(0, ByteBuffer.wrap(buf));
+    } finally {
+      bhSrc.close();
+    }
     dir.requestSpace(mUserId, blockSize);
     dir.cacheBlock(mUserId, blockId);
   }
@@ -74,11 +77,11 @@ public class StorageDirTest {
   @Test
   public void getBlockDataTest() throws IOException {
     long blockId = 100;
-    long blockSize = 500;
+    int blockSize = 500;
     createBlockFile(mSrcDir, blockId, blockSize);
-    byte[] buf = TestUtils.getIncreasingByteArray((int) blockSize);
+    byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
     ByteBuffer dataBuf = mSrcDir.getBlockData(blockId, blockSize / 2, blockSize / 2);
-    Assert.assertEquals(ByteBuffer.wrap(buf, (int) blockSize / 2, (int) blockSize / 2), dataBuf);
+    Assert.assertEquals(ByteBuffer.wrap(buf, blockSize / 2, blockSize / 2), dataBuf);
     dataBuf = mSrcDir.getBlockData(blockId, 0, -1);
     Assert.assertEquals(ByteBuffer.wrap(buf), dataBuf);
   }
@@ -88,9 +91,9 @@ public class StorageDirTest {
     long blockId = 100;
     createBlockFile(mSrcDir, blockId, 500);
     mSrcDir.lockBlock(blockId, mUserId);
-    Assert.assertTrue(mSrcDir.getUsersPerLockedBlock().containsKey(blockId));
+    Assert.assertTrue(mSrcDir.isBlockLocked(blockId));
     mSrcDir.unlockBlock(blockId, mUserId);
-    Assert.assertFalse(mSrcDir.getUsersPerLockedBlock().containsKey(blockId));
+    Assert.assertFalse(mSrcDir.isBlockLocked(blockId));
   }
 
   @Test
