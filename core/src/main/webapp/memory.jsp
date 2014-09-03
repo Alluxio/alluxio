@@ -16,7 +16,10 @@
   <div class="container-fluid">
     <div class="row-fluid">
       <div class="span12 well">
-        <table class="table table-hover">
+          <h1 class="text-error">
+            <%= request.getAttribute("fatalError") %>
+          </h1>
+          <table class="table table-hover">
           <caption>Files Currently In Memory</caption>
           <thead>
             <th>File Name</th>
@@ -41,10 +44,30 @@
             <% } %>
           </tbody>
         </table>
+
+        <!-- pagination component -->
+        <div class="pagination pagination-centered">
+          <ul id="paginationUl">
+          </ul>
+        </div>
+
+        <!-- view setting panel -->
+        <form>
+          <fieldset>
+            <legend>View Settings</legend>
+            <label>number of items on each page:</label>
+            <input id="nFilePerPage" type="text" placeholder="default = 20">
+            <label>maximum number of pages to show in pagination component:</label>
+            <input id="nMaxPageShown" type="text" placeholder="default = 10">
+          </fieldset>
+        </form>
+        <button class="btn" id="updateView">Update</button>
       </div>
     </div>
   </div>
   <%@ include file="footer.jsp" %>
 </div>
+<!-- where the magic behind dynamic pagination happens -->
+<jsp:include page="memory-pagination.jsp" />
 </body>
 </html>
