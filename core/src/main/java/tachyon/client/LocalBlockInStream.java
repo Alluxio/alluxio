@@ -75,6 +75,9 @@ public class LocalBlockInStream extends BlockInStream {
     if (pos < 0) {
       throw new IOException("pos is negative: " + pos);
     }
+    if (pos > mBuffer.limit()) {
+      throw new IOException("pos is past buffer limit: " + pos + ", Buffer Size = " + mBuffer.limit());
+    }
     mBuffer.position((int) pos);
   }
 
