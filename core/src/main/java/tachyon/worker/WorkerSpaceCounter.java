@@ -1,11 +1,41 @@
 package tachyon.worker;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
+
+import static tachyon.metrics.Metrics.metrics;
+import static tachyon.metrics.Metrics.name;
+
 /**
  * The worker space counter, in charge of counting and granting spaces in a worker daemon.
  */
 public class WorkerSpaceCounter {
   private final long mCapacityBytes;
   private long mUsedBytes;
+
+  {
+    metrics().register(name("capacity", "max"), new Gauge<Long>() {
+      @Override
+      public Long getValue() {
+        return getCapacityBytes();
+      }
+    });
+    metrics().register(name("capacity", "used"), new Gauge<Long>() {
+      @Override
+      public Long getValue() {
+        return getUsedBytes();
+      }
+    });
+    metrics().register(name("capacity", "free"), new Gauge<Long>() {
+      @Override
+      public Long getValue() {
+        return getAvailableBytes();
+      }
+    });
+  }
+  private final Histogram RETURN_FAILURE_HISTO = metrics().histogram(name("request", "failure", "size"));
+  private final Histogram RETURN_SUCCESS_HISTO = metrics().histogram(name("request", "success", "size"));
+  private final Histogram RETURN_HISTO = metrics().histogram(name("return", "size"));
 
   /**
    * @param capacityBytes
@@ -46,10 +76,12 @@ public class WorkerSpaceCounter {
    */
   public synchronized boolean requestSpaceBytes(long requestSpaceBytes) {
     if (getAvailableBytes() < requestSpaceBytes) {
+      RETURN_FAILURE_HISTO.update(requestSpaceBytes);
       return false;
     }
 
     mUsedBytes += requestSpaceBytes;
+    RETURN_SUCCESS_HISTO.update(requestSpaceBytes);
     return true;
   }
 
@@ -61,6 +93,7 @@ public class WorkerSpaceCounter {
    */
   public synchronized void returnUsedBytes(long returnUsedBytes) {
     mUsedBytes -= returnUsedBytes;
+    RETURN_HISTO.update(returnUsedBytes);
   }
 
   @Override

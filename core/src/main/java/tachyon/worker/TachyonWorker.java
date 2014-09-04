@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
+import com.codahale.metrics.JmxReporter;
 import org.apache.log4j.Logger;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
@@ -16,6 +17,7 @@ import tachyon.Constants;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
+import tachyon.metrics.Metrics;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.Command;
 import tachyon.thrift.NetAddress;
@@ -155,6 +157,9 @@ public class TachyonWorker implements Runnable {
 
   private final int mPort;
   private final int mDataPort;
+
+  private final JmxReporter jmxReporter =
+      JmxReporter.forRegistry(Metrics.metrics()).inDomain("tachyon").build();
 
   /**
    * @param masterAddress
@@ -311,6 +316,7 @@ public class TachyonWorker implements Runnable {
   public void start() {
     mDataServerThread.start();
     mHeartbeatThread.start();
+    jmxReporter.start();
 
     LOG.info("The worker server started @ " + mWorkerAddress);
     mServer.serve();
@@ -328,6 +334,7 @@ public class TachyonWorker implements Runnable {
     mWorkerStorage.stop();
     mDataServer.close();
     mServer.stop();
+    jmxReporter.stop();
     mServerTNonblockingServerSocket.close();
     while (!mDataServer.isClosed() || mServer.isServing() || mHeartbeatThread.isAlive()) {
       // TODO The reason to stop and close again is due to some issues in Thrift.
