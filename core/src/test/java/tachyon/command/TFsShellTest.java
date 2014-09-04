@@ -249,14 +249,14 @@ public class TFsShellTest {
     } else if (command.length > 3) {
       if (cmd.equals("location")) {
         StringBuilder ret = new StringBuilder();
-        ret.append(command[1] + " with file id " + command[2] + " are on nodes: \n");
+        ret.append(command[1] + " with file id " + command[2] + " is on nodes: \n");
         for (int i = 3; i < command.length; i ++) {
           ret.append(command[i] + "\n");
         }
         return ret.toString();
       } else if (cmd.equals("fileinfo")) {
         StringBuilder ret = new StringBuilder();
-        ret.append(command[1] + " with file id " + command[2] + " have following blocks: \n");
+        ret.append(command[1] + " with file id " + command[2] + " has the following blocks: \n");
         for (int i = 3; i < command.length; i ++) {
           ret.append(command[i] + "\n");
         }
