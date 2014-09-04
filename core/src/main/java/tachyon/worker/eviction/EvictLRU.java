@@ -1,5 +1,6 @@
 package tachyon.worker.eviction;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,11 +22,15 @@ public final class EvictLRU extends EvictLRUBase {
   }
 
   @Override
-  public StorageDir getDirCandidate(List<BlockInfo> blockInfoList, StorageDir[] storageDirs,
+  public Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
       Set<Integer> pinList, long requestSize) {
+    List<BlockInfo> blockInfoList = new ArrayList<BlockInfo>();
     Map<StorageDir, Pair<Long, Long>> dir2LRUBlocks = new HashMap<StorageDir, Pair<Long, Long>>();
     HashMultimap<StorageDir, Long> dir2BlocksToEvict = HashMultimap.create();
     Map<StorageDir, Long> sizeToEvict = new HashMap<StorageDir, Long>();
+    // If no StorageDir has enough space for the request size, continue; if no block can be evicted,
+    // return null; and if eviction size plus free space of some StorageDir is larger than request
+    // size, return the Pair of StorageDir and blockInfoList
     while (true) {
       // Get oldest block in StorageDir candidates
       Pair<StorageDir, Long> candidate =
@@ -34,7 +39,6 @@ public final class EvictLRU extends EvictLRUBase {
       long blockId = candidate.getSecond();
       long blockSize = 0;
       if (dirCandidate == null) {
-        // If there is no more block to evict, return null
         return null;
       } else {
         blockSize = dirCandidate.getBlockSize(blockId);
@@ -51,9 +55,8 @@ public final class EvictLRU extends EvictLRUBase {
         evictionSize = blockSize;
       }
       sizeToEvict.put(dirCandidate, evictionSize);
-      // Return if eviction size plus free space is larger than request size
       if (evictionSize + dirCandidate.getAvailable() >= requestSize) {
-        return dirCandidate;
+        return new Pair<StorageDir, List<BlockInfo>>(dirCandidate, blockInfoList);
       }
     }
   }

@@ -3,6 +3,7 @@ package tachyon.worker.eviction;
 import java.util.List;
 import java.util.Set;
 
+import tachyon.Pair;
 import tachyon.worker.hierarchy.BlockInfo;
 import tachyon.worker.hierarchy.StorageDir;
 
@@ -17,16 +18,15 @@ public interface EvictStrategy {
   /**
    * Get StorageDir allocated and also get blocks to be evicted among StorageDir candidates
    * 
-   * @param blockInfoList
-   *          information of blocks to be evicted
    * @param storageDirs
    *          StorageDir candidates that the space will be allocated in
    * @param pinList
    *          list of pinned file
    * @param requestSize
    *          size to request
-   * @return StorageDir allocated, blockInfoList is also returned as output
+   * @return Pair of StorageDir allocated and blockInfoList which contains information of blocks to
+   *         be evicted, null if no allocated directory is found
    */
-  StorageDir getDirCandidate(List<BlockInfo> blockInfoList, StorageDir[] storageDirs,
+  public Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
       Set<Integer> pinList, long requestSize);
 }

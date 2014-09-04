@@ -1,9 +1,9 @@
 package tachyon.worker.eviction;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 
 import tachyon.Pair;
 import tachyon.master.BlockInfo;
@@ -51,7 +51,7 @@ public abstract class EvictLRUBase implements EvictStrategy {
       Set<Integer> pinList) {
     long blockId = -1;
     long oldestTime = Long.MAX_VALUE;
-    Map<Long, Long> accessTimes = curDir.getLastBlockAccessTime();
+    ConcurrentMap<Long, Long> accessTimes = curDir.getLastBlockAccessTime();
 
     for (Entry<Long, Long> accessTime : accessTimes.entrySet()) {
       if (toEvictBlockIds.contains(accessTime.getKey())) {
