@@ -152,13 +152,17 @@ public class FileInStreamTest {
         InStream is =
             (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
         Assert.assertTrue(is instanceof FileInStream);
-        byte[] ret = new byte[k / 2];
-        int readBytes = is.read(ret, 0, k / 2);
-        while (readBytes != -1) {
-          readBytes = is.read(ret);
+        try {
+          byte[] ret = new byte[k / 2];
+          int readBytes = is.read(ret, 0, k / 2);
+          while (readBytes != -1) {
+            readBytes = is.read(ret);
+            Assert.assertTrue(0 != readBytes);
+          }
+          Assert.assertEquals(-1, readBytes);
+        } finally {
+          is.close();
         }
-        Assert.assertEquals(-1, readBytes);
-        is.close();
       }
     }
   }
