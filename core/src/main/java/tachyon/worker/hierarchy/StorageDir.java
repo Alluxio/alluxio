@@ -2,18 +2,19 @@ package tachyon.worker.hierarchy;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.log4j.Logger;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
@@ -27,8 +28,9 @@ import tachyon.worker.WorkerSpaceCounter;
  */
 public final class StorageDir {
   private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private final Map<Long, Long> mBlockSizes = new ConcurrentHashMap<Long, Long>();
-  private final Map<Long, Long> mLastBlockAccessTimeMS = new ConcurrentHashMap<Long, Long>();
+  private final ConcurrentMap<Long, Long> mBlockSizes = new ConcurrentHashMap<Long, Long>();
+  private final ConcurrentMap<Long, Long> mLastBlockAccessTimeMS =
+      new ConcurrentHashMap<Long, Long>();
   private final BlockingQueue<Long> mRemovedBlockList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
   private final WorkerSpaceCounter mSpaceCounter;
@@ -38,12 +40,12 @@ public final class StorageDir {
   private final String mUserTempPath;
   private final UnderFileSystem mUfs;
   private final Object mUfsConf;
-  // Synchronized by itself
-  private final Map<Long, Long> mUserAllocatedSpace = new HashMap<Long, Long>();
-  // Synchronized by itself
-  private final HashMultimap<Long, Long> mLockedBlocksPerUser = HashMultimap.create();
-  // Synchronized by itself
-  private final HashMultimap<Long, Long> mUserPerLockedBlock = HashMultimap.create();
+  private final ConcurrentMap<Long, Long> mUserAllocatedSpace =
+      new ConcurrentHashMap<Long, Long>();
+  private final Multimap<Long, Long> mLockedBlocksPerUser = Multimaps
+      .synchronizedMultimap(HashMultimap.<Long, Long> create());
+  private final Multimap<Long, Long> mUserPerLockedBlock = Multimaps
+      .synchronizedMultimap(HashMultimap.<Long, Long> create());
 
   StorageDir(long storageId, String dirPath, long capacity, String dataFolder,
       String userTempFolder, Object conf) {
@@ -75,7 +77,7 @@ public final class StorageDir {
    *          size of the block file
    */
   private void addBlockId(long blockId, long size) {
-    mLastBlockAccessTimeMS.put(blockId, System.currentTimeMillis());
+    accessBlock(blockId);
     mBlockSizes.put(blockId, size);
   }
 
@@ -91,10 +93,11 @@ public final class StorageDir {
    */
   public boolean cacheBlock(long userId, long blockId) throws IOException {
     String srcPath = getUserTempFilePath(userId, blockId);
-    String destPath = getBlockFilePath(blockId);
-    boolean result = mUfs.rename(srcPath, destPath);
+    String dstPath = getBlockFilePath(blockId);
+    long blockSize = mUfs.getFileSize(srcPath);
+    boolean result = mUfs.rename(srcPath, dstPath);
     if (result) {
-      addBlockId(blockId, getFileSize(blockId));
+      addBlockId(blockId, blockSize);
     }
     return result;
   }
@@ -108,18 +111,11 @@ public final class StorageDir {
    */
   public void checkStatus(List<Long> removedUsers) {
     for (long userId : removedUsers) {
-      synchronized (mUserPerLockedBlock) {
-        Set<Long> blockIds = mLockedBlocksPerUser.get(userId);
-        mLockedBlocksPerUser.removeAll(userId);
-        if (blockIds != null) {
-          for (long blockId : blockIds) {
-            unlockBlock(blockId, userId);
-          }
-        }
+      Collection<Long> blockIds = mLockedBlocksPerUser.removeAll(userId);
+      for (long blockId : blockIds) {
+        mUserPerLockedBlock.remove(blockId, userId);
       }
-      synchronized (mUserAllocatedSpace) {
-        mUserAllocatedSpace.remove(userId);
-      }
+      mUserAllocatedSpace.remove(userId);
     }
   }
 
@@ -131,7 +127,7 @@ public final class StorageDir {
    * @return true if StorageDir contains the block, false otherwise
    */
   public boolean containsBlock(long blockId) {
-    return mBlockSizes.containsKey(blockId);
+    return mLastBlockAccessTimeMS.containsKey(blockId);
   }
 
   /**
@@ -145,19 +141,23 @@ public final class StorageDir {
    * @throws IOException
    */
   public boolean copyBlock(long blockId, StorageDir dstDir) throws IOException {
-    int len = (int) getBlockSize(blockId);
+    long size = getBlockSize(blockId);
+    if (size == -1) {
+      LOG.error("Block file doesn't exist! blockId:" + blockId);
+      return false;
+    }
     boolean copySuccess = false;
     Closer closer = Closer.create();
     try {
       BlockHandler bhSrc = closer.register(getBlockHandler(blockId));
       BlockHandler bhDst = closer.register(dstDir.getBlockHandler(blockId));
-      ByteBuffer srcBuf = bhSrc.read(0, len);
+      ByteBuffer srcBuf = bhSrc.read(0, (int) size);
       copySuccess = bhDst.append(0, srcBuf) > 0;
     } finally {
       closer.close();
     }
     if (copySuccess) {
-      dstDir.addBlockId(blockId, len);
+      dstDir.addBlockId(blockId, size);
     }
     return copySuccess;
   }
@@ -171,14 +171,20 @@ public final class StorageDir {
    * @throws IOException
    */
   public boolean deleteBlock(long blockId) throws IOException {
-    if (mBlockSizes.containsKey(blockId)) {
+    Long accessTime = mLastBlockAccessTimeMS.remove(blockId);
+    if (accessTime != null) {
       String blockfile = getBlockFilePath(blockId);
-      boolean result = mUfs.delete(blockfile, true);
-      if (result) {
-        deleteBlockId(blockId);
-        LOG.debug("Removed block file:" + blockfile);
-      } else {
-        LOG.error("Error during delete block! blockfile:" + blockfile);
+      boolean result = false;
+      try {
+        result = mUfs.delete(blockfile, true);
+      } finally {
+        if (result) {
+          deleteBlockId(blockId);
+          LOG.debug("Removed block file:" + blockfile);
+        } else {
+          mLastBlockAccessTimeMS.put(blockId, accessTime);
+          LOG.error("Error during delete block! blockfile:" + blockfile);
+        }
       }
       return result;
     } else {
@@ -263,7 +269,7 @@ public final class StorageDir {
    * @return ids of the blocks
    */
   public Set<Long> getBlockIds() {
-    return mBlockSizes.keySet();
+    return mLastBlockAccessTimeMS.keySet();
   }
 
   /**
@@ -274,10 +280,11 @@ public final class StorageDir {
    * @return size of the block, -1 if block doesn't exist
    */
   public long getBlockSize(long blockId) {
-    if (mBlockSizes.containsKey(blockId)) {
-      return mBlockSizes.get(blockId);
-    } else {
+    Long size = mBlockSizes.get(blockId);
+    if (size == null) {
       return -1;
+    } else {
+      return size;
     }
   }
 
@@ -287,7 +294,7 @@ public final class StorageDir {
    * @return sizes of the blocks
    * @throws IOException
    */
-  public Map<Long, Long> getBlockSizes() {
+  public ConcurrentMap<Long, Long> getBlockSizes() {
     return mBlockSizes;
   }
 
@@ -319,36 +326,21 @@ public final class StorageDir {
   }
 
   /**
-   * Get size of the block file on current StorageDir, used to initialize StorageDir
-   * 
-   * @param blockId
-   *          id of the block
-   * @return file size of the block
-   * @throws IOException
-   */
-  private long getFileSize(long blockId) throws IOException {
-    String blockfile = getBlockFilePath(blockId);
-    return mUfs.getFileSize(blockfile);
-  }
-
-  /**
    * Get access time of blocks
    * 
    * @return access time of blocks
    */
-  public Map<Long, Long> getLastBlockAccessTime() {
+  public ConcurrentMap<Long, Long> getLastBlockAccessTime() {
     return mLastBlockAccessTimeMS;
   }
 
   /**
    * Get list of removed block ids
    * 
-   * @return list of removed block ids
+   * @return queue of removed block ids
    */
-  public List<Long> getRemovedBlockList() {
-    List<Long> removedBlockList = new ArrayList<Long>();
-    mRemovedBlockList.drainTo(removedBlockList);
-    return removedBlockList;
+  public BlockingQueue<Long> getRemovedBlockList() {
+    return mRemovedBlockList;
   }
 
   /**
@@ -425,19 +417,17 @@ public final class StorageDir {
       mUfs.setPermission(mUserTempPath, "775");
       return;
     }
-
     if (mUfs.isFile(mDataPath)) {
       String msg = "Data folder " + mDataPath + " is not a folder!";
       throw new IllegalArgumentException(msg);
     }
-
     int cnt = 0;
     for (String name : mUfs.list(mDataPath)) {
       String path = CommonUtils.concat(mDataPath, name);
       if (mUfs.isFile(path)) {
         cnt ++;
         long fileSize = mUfs.getFileSize(path);
-        LOG.info("File " + cnt + ": " + path + " with size " + fileSize + " Bs.");
+        LOG.debug("File " + cnt + ": " + path + " with size " + fileSize + " Bs.");
         long blockId = CommonUtils.getBlockIdFromFileName(name);
         boolean success = requestSpace(fileSize);
         if (success) {
@@ -459,12 +449,10 @@ public final class StorageDir {
    * @return true if block is locked, false otherwise
    */
   public boolean isBlockLocked(long blockId) {
-    synchronized (mUserPerLockedBlock) {
-      if (mUserPerLockedBlock.containsKey(blockId)) {
-        return true;
-      } else {
-        return false;
-      }
+    if (mUserPerLockedBlock.containsKey(blockId)) {
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -480,12 +468,8 @@ public final class StorageDir {
     if (!containsBlock(blockId)) {
       return;
     }
-    synchronized (mUserPerLockedBlock) {
-      mUserPerLockedBlock.put(blockId, userId);
-    }
-    synchronized (mLockedBlocksPerUser) {
-      mLockedBlocksPerUser.put(userId, blockId);
-    }
+    mUserPerLockedBlock.put(blockId, userId);
+    mLockedBlocksPerUser.put(userId, blockId);
   }
 
   /**
@@ -530,12 +514,14 @@ public final class StorageDir {
   public boolean requestSpace(long userId, long size) {
     boolean result = requestSpace(size);
     if (result) {
-      synchronized (mUserAllocatedSpace) {
-        if (mUserAllocatedSpace.containsKey(userId)) {
-          long current = mUserAllocatedSpace.get(userId);
-          mUserAllocatedSpace.put(userId, current + size);
-        } else {
-          mUserAllocatedSpace.put(userId, size);
+      Long used = mUserAllocatedSpace.putIfAbsent(userId, size);
+      if (used != null) {
+        while (!mUserAllocatedSpace.replace(userId, used, used + size)) {
+          used = mUserAllocatedSpace.get(userId);
+          if (used == null) {
+            LOG.error("Error during requesting space! unknown user id:" + userId);
+            break;
+          }
         }
       }
     }
@@ -562,14 +548,14 @@ public final class StorageDir {
    */
   public void returnSpace(long userId, long size) {
     returnSpace(size);
-    synchronized (mUserAllocatedSpace) {
-      if (mUserAllocatedSpace.containsKey(userId)) {
-        long current = mUserAllocatedSpace.get(userId);
-        mUserAllocatedSpace.put(userId, current - size);
-      } else {
-        LOG.warn("Error during returning space: unknown user ID.");
+    Long used;
+    do {
+      used = mUserAllocatedSpace.get(userId);
+      if (used == null) {
+        LOG.error("Error during returning space! unknown user id:" + userId);
+        break;
       }
-    }
+    } while (!mUserAllocatedSpace.replace(userId, used, used - size));
   }
 
   /**
@@ -584,11 +570,7 @@ public final class StorageDir {
     if (!containsBlock(blockId)) {
       return;
     }
-    synchronized (mUserPerLockedBlock) {
-      mUserPerLockedBlock.removeAll(blockId);
-    }
-    synchronized (mLockedBlocksPerUser) {
-      mLockedBlocksPerUser.remove(userId, blockId);
-    }
+    mUserPerLockedBlock.remove(blockId, userId);
+    mLockedBlocksPerUser.remove(userId, blockId);
   }
 }

@@ -1,5 +1,6 @@
 package tachyon.worker.eviction;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,8 +19,9 @@ public final class EvictPartialLRU extends EvictLRUBase {
   }
 
   @Override
-  public StorageDir getDirCandidate(List<BlockInfo> blockInfoList, StorageDir[] storageDirs,
+  public Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
       Set<Integer> pinList, long requestSize) {
+    List<BlockInfo> blockInfoList = new ArrayList<BlockInfo>();
     Set<StorageDir> ignoredDirs = new HashSet<StorageDir>();
     StorageDir dirSelected = getDirWithMaxFreeSpace(requestSize, storageDirs, ignoredDirs);
     while (dirSelected != null) {
@@ -42,7 +44,7 @@ public final class EvictPartialLRU extends EvictLRUBase {
         blockIdSet.clear();
         dirSelected = getDirWithMaxFreeSpace(requestSize, storageDirs, ignoredDirs);
       } else {
-        return dirSelected;
+        return new Pair<StorageDir, List<BlockInfo>>(dirSelected, blockInfoList);
       }
     }
     return null;

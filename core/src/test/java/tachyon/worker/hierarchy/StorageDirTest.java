@@ -28,17 +28,8 @@ public class StorageDirTest {
     mSrcDir = new StorageDir(1, workerDirFolder + "/src", mCapacity, "/data", "/user", null);
     mDstDir = new StorageDir(2, workerDirFolder + "/dst", mCapacity, "/data", "/user", null);
 
-    UnderFileSystem srcUfs = mSrcDir.getUfs();
-    srcUfs.mkdirs(mSrcDir.getDirDataPath(), true);
-    srcUfs.mkdirs(mSrcDir.getUserTempPath(mUserId), true);
-    CommonUtils.changeLocalFileToFullPermission(mSrcDir.getDirDataPath());
-    CommonUtils.changeLocalFileToFullPermission(mSrcDir.getUserTempPath(mUserId));
-
-    UnderFileSystem dstUfs = mDstDir.getUfs();
-    dstUfs.mkdirs(mDstDir.getDirDataPath(), true);
-    dstUfs.mkdirs(mDstDir.getUserTempPath(mUserId), true);
-    CommonUtils.changeLocalFileToFullPermission(mDstDir.getDirDataPath());
-    CommonUtils.changeLocalFileToFullPermission(mDstDir.getUserTempPath(mUserId));
+    initializeStorageDir(mSrcDir, mUserId);
+    initializeStorageDir(mDstDir, mUserId);
   }
 
   @Test
@@ -63,8 +54,9 @@ public class StorageDirTest {
 
   private void createBlockFile(StorageDir dir, long blockId, int blockSize) throws IOException {
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
+
     BlockHandler bhSrc =
-        BlockHandler.get(CommonUtils.concat(mSrcDir.getUserTempFilePath(mUserId, blockId)));
+        BlockHandler.get(CommonUtils.concat(dir.getUserTempFilePath(mUserId, blockId)));
     try {
       bhSrc.append(0, ByteBuffer.wrap(buf));
     } finally {
@@ -78,6 +70,7 @@ public class StorageDirTest {
   public void getBlockDataTest() throws IOException {
     long blockId = 100;
     int blockSize = 500;
+
     createBlockFile(mSrcDir, blockId, blockSize);
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
     ByteBuffer dataBuf = mSrcDir.getBlockData(blockId, blockSize / 2, blockSize / 2);
@@ -86,9 +79,17 @@ public class StorageDirTest {
     Assert.assertEquals(ByteBuffer.wrap(buf), dataBuf);
   }
 
+  private void initializeStorageDir(StorageDir dir, long userId) throws IOException {
+    dir.initailize();
+    UnderFileSystem ufs = dir.getUfs();
+    ufs.mkdirs(dir.getUserTempPath(userId), true);
+    CommonUtils.changeLocalFileToFullPermission(dir.getUserTempPath(userId));
+  }
+
   @Test
   public void lockBlockTest() throws IOException {
     long blockId = 100;
+
     createBlockFile(mSrcDir, blockId, 500);
     mSrcDir.lockBlock(blockId, mUserId);
     Assert.assertTrue(mSrcDir.isBlockLocked(blockId));
@@ -100,6 +101,7 @@ public class StorageDirTest {
   public void moveBlockTest() throws IOException {
     long blockId = 100;
     int blockSize = 500;
+
     createBlockFile(mSrcDir, blockId, blockSize);
     mDstDir.requestSpace(mUserId, blockSize);
     mSrcDir.moveBlock(blockId, mDstDir);
