@@ -140,6 +140,30 @@ public class FileInStreamTest {
   }
 
   /**
+   * Test <code>void read(byte[] b, int off, int len)</code> for end of file.
+   */
+  @Test
+  public void readEndOfFileTest() throws IOException {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+      for (WriteType op : WriteType.values()) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+
+        TachyonFile file = mTfs.getFile(fileId);
+        InStream is =
+            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        Assert.assertTrue(is instanceof FileInStream);
+        byte[] ret = new byte[k / 2];
+        int readBytes = is.read(ret, 0, k / 2);
+        while (readBytes != -1) {
+          readBytes = is.read(ret);
+        }
+        Assert.assertEquals(-1, readBytes);
+        is.close();
+      }
+    }
+  }
+
+  /**
    * Test <code>void seek(long pos)</code>.
    * 
    * @throws IOException
