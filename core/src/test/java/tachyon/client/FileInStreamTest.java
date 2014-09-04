@@ -5,7 +5,9 @@ import java.io.IOException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import tachyon.TestUtils;
 import tachyon.master.LocalTachyonCluster;
@@ -22,6 +24,9 @@ public class FileInStreamTest {
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
 
   @After
   public final void after() throws Exception {
@@ -145,7 +150,7 @@ public class FileInStreamTest {
    * @throws IOException
    */
   @Test
-  public void seekExceptionTest() throws IOException {
+  public void seekExceptionTest1() throws IOException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
@@ -162,6 +167,31 @@ public class FileInStreamTest {
         }
         is.close();
         throw new IOException("Except seek IOException");
+      }
+    }
+  }
+
+  /**
+   * Test <code>void seek(long pos)</code>.
+   *
+   * @throws IOException
+   */
+  @Test
+  public void seekExceptionTest2() throws IOException {
+
+    thrown.expect(IOException.class);
+    thrown.expectMessage("pos is past EOF");
+
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+      for (WriteType op : WriteType.values()) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+
+        TachyonFile file = mTfs.getFile(fileId);
+        InStream is =
+            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+
+        is.seek(k + 1);
+        is.close();
       }
     }
   }

@@ -286,6 +286,9 @@ public class RemoteBlockInStream extends BlockInStream {
     if (pos < 0) {
       throw new IOException("pos is negative: " + pos);
     }
+    if (pos > mBlockInfo.length) {
+      throw new IOException("pos is past block size: " + pos + ", Block Size = " + mBlockInfo.length);
+    }
     mRecache = false;
     if (mCurrentBuffer != null) {
       mReadByte = pos;

@@ -46,6 +46,8 @@ public abstract class InStream extends InputStream {
    *          to set the stream pointer.
    * @throws IOException
    *           if pos is less than 0 or if an I/O error occurs.
+   * @throws IOException
+   *           if pos is past the end of the file
    */
   public abstract void seek(long pos) throws IOException;
 

@@ -5,7 +5,9 @@ import java.io.IOException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import tachyon.TestUtils;
 import tachyon.master.LocalTachyonCluster;
@@ -20,6 +22,9 @@ public class RemoteBlockInStreamTest {
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
 
   @After
   public final void after() throws Exception {
@@ -324,7 +329,7 @@ public class RemoteBlockInStreamTest {
    * @throws IOException
    */
   @Test
-  public void seekExceptionTest() throws IOException {
+  public void seekExceptionTest1() throws IOException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
       int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
@@ -345,6 +350,34 @@ public class RemoteBlockInStreamTest {
       }
       is.close();
       throw new IOException("Except seek IOException");
+    }
+  }
+
+  /**
+   * Test <code>void seek(long pos)</code>.
+   *
+   * @throws IOException
+   */
+  @Test
+  public void seekExceptionTest2() throws IOException {
+
+    thrown.expect(IOException.class);
+    thrown.expectMessage("pos is past block size");
+
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+      WriteType op = WriteType.THROUGH;
+      int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+
+      TachyonFile file = mTfs.getFile(fileId);
+      InStream is = file.getInStream(ReadType.NO_CACHE);
+      if (k == 0) {
+        Assert.assertTrue(is instanceof EmptyBlockInStream);
+      } else {
+        Assert.assertTrue(is instanceof RemoteBlockInStream);
+      }
+
+      is.seek(k + 1);
+      is.close();
     }
   }
 
