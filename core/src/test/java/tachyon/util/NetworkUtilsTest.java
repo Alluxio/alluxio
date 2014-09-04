@@ -1,9 +1,12 @@
 package tachyon.util;
 
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import tachyon.thrift.NetAddress;
 
 public class NetworkUtilsTest {
 
@@ -26,5 +29,12 @@ public class NetworkUtilsTest {
     Assert.assertEquals(NetworkUtils.resolveHostName(""), null);
     Assert.assertEquals(NetworkUtils.resolveHostName(null), null);
     Assert.assertEquals(NetworkUtils.resolveHostName("localhost"), "localhost");
+  }
+
+  @Test
+  public void getFqdnHostTest() throws UnknownHostException {
+    Assert.assertEquals(NetworkUtils.getFqdnHost(new InetSocketAddress("localhost", 0)),
+        "localhost");
+    Assert.assertEquals(NetworkUtils.getFqdnHost(new NetAddress("localhost", 0, 0)), "localhost");
   }
 }

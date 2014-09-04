@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
@@ -15,6 +16,7 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.thrift.NetAddress;
 
 /**
  * Common network utilities shared by all components in Tachyon.
@@ -43,8 +45,10 @@ public final class NetworkUtils {
   public static String getLocalIpAddress() {
     try {
       InetAddress address = InetAddress.getLocalHost();
-      System.out.println("address " + address.toString() + " " + address.isLoopbackAddress() + " "
-          + address.getHostAddress() + " " + address.getHostName());
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("address " + address.toString() + " " + address.isLoopbackAddress() + " "
+            + address.getHostAddress() + " " + address.getHostName());
+      }
       if (address.isLoopbackAddress()) {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
         while (networkInterfaces.hasMoreElements()) {
@@ -133,6 +137,23 @@ public final class NetworkUtils {
     }
 
     return InetAddress.getByName(hostname).getCanonicalHostName();
+  }
+
+  /**
+   * Get FQDN(Full Qualified Domain Name) from representations of network address in Tachyon, except
+   * String representation which should be handled by #resolveHostName(String hostname) which will
+   * handle the situation where hostname is null.
+   * 
+   * @param addr
+   *          the input network address representation, can not be null
+   * @return the resolved FQDN host name
+   */
+  public static String getFqdnHost(InetSocketAddress addr) {
+    return addr.getAddress().getCanonicalHostName();
+  }
+
+  public static String getFqdnHost(NetAddress addr) throws UnknownHostException {
+    return resolveHostName(addr.getMHost());
   }
 
   /**
