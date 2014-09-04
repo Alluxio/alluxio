@@ -103,6 +103,8 @@ public class FileInStream extends InStream {
       throw new IndexOutOfBoundsException();
     } else if (len == 0) {
       return 0;
+    } else if (mCurrentPosition >= mFileLength) {
+      return -1;
     }
 
     int tOff = off;
