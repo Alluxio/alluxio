@@ -371,13 +371,12 @@ public class TFsShellTest {
 
   @Test
   public void mkdirTest() throws IOException {
-    mFsShell.mkdir(new String[] {
-        "mkdir",
-        "tachyon://" + InetAddress.getLocalHost().getCanonicalHostName() + ":"
-            + mLocalTachyonCluster.getMasterPort() + "/root/testFile1" });
+    String qualifiedPath = "tachyon://" + InetAddress.getLocalHost().getCanonicalHostName() + ":"
+        + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
+    mFsShell.mkdir(new String[] { "mkdir", qualifiedPath });
     TachyonFile tFile = mTfs.getFile("/root/testFile1");
     Assert.assertNotNull(tFile);
-    Assert.assertEquals(getCommandOutput(new String[] { "mkdir", "/root/testFile1" }),
+    Assert.assertEquals(getCommandOutput(new String[] { "mkdir", qualifiedPath }),
         mOutput.toString());
     Assert.assertTrue(tFile.isDirectory());
   }
