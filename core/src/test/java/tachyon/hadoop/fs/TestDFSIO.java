@@ -40,7 +40,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
@@ -201,7 +200,6 @@ public class TestDFSIO implements Tool {
     return new Path(getBaseDir(conf), "io_data");
   }
 
-  //private static MiniDFSCluster cluster;
   private static LocalMiniDFSCluster cluster;
   private static TestDFSIO bench;
 
