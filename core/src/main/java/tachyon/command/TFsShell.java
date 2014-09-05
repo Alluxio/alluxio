@@ -16,6 +16,7 @@ import org.apache.commons.io.FilenameUtils;
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.client.InStream;
 import tachyon.client.OutStream;
 import tachyon.client.ReadType;
@@ -66,13 +67,12 @@ public class TFsShell implements Closeable {
     if (argv.length != 2) {
       System.out.println("Usage: tfs cat <path>");
     }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
+    TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    TachyonFile tFile = tachyonClient.getFile(file);
+    TachyonFile tFile = tachyonClient.getFile(path);
 
     if (tFile == null) {
-      System.out.println(file + " does not exist.");
+      System.out.println(path + " does not exist.");
       return -1;
     }
     if (tFile.isFile()) {
@@ -89,7 +89,7 @@ public class TFsShell implements Closeable {
       }
       return 0;
     } else {
-      System.out.println(file + " is not a file.");
+      System.out.println(path + " is not a file.");
       return -1;
     }
   }
@@ -110,22 +110,21 @@ public class TFsShell implements Closeable {
     }
 
     String srcPath = argv[1];
-    String dstPath = argv[2];
+    TachyonURI dstPath = new TachyonURI(argv[2]);
     File src = new File(srcPath);
     if (!src.exists()) {
       System.out.println("Local path " + srcPath + " does not exist.");
       return -1;
     }
     TachyonFS tachyonClient = createFS(dstPath);
-    String file = Utils.getFilePath(dstPath);
-    int ret = copyPath(src, tachyonClient, file);
+    int ret = copyPath(src, tachyonClient, dstPath);
     if (ret == 0) {
-      System.out.println("Copied " + src.getPath() + " to " + dstPath);
+      System.out.println("Copied " + srcPath + " to " + dstPath);
     }
     return ret;
   }
 
-  private int copyPath(File src, TachyonFS tachyonClient, String dstPath) throws IOException {
+  private int copyPath(File src, TachyonFS tachyonClient, TachyonURI dstPath) throws IOException {
     if (!src.isDirectory()) {
       int fileId = tachyonClient.createFile(dstPath);
       if (fileId == -1) {
@@ -149,7 +148,7 @@ public class TFsShell implements Closeable {
     } else {
       tachyonClient.mkdir(dstPath);
       for (String file : src.list()) {
-        String newPath = FilenameUtils.concat(dstPath, file);
+        TachyonURI newPath = new TachyonURI(dstPath, new TachyonURI(file));
         File srcFile = new File(src, file);
         if (copyPath(srcFile, tachyonClient, newPath) == -1) {
           return -1;
@@ -173,16 +172,15 @@ public class TFsShell implements Closeable {
       return -1;
     }
 
-    String srcPath = argv[1];
+    TachyonURI srcPath = new TachyonURI(argv[1]);
     String dstPath = argv[2];
-    String folder = Utils.getFilePath(srcPath);
     File dst = new File(dstPath);
     TachyonFS tachyonClient = createFS(srcPath);
-    TachyonFile tFile = tachyonClient.getFile(folder);
+    TachyonFile tFile = tachyonClient.getFile(srcPath);
 
     // tachyonClient.getFile() catches FileDoesNotExist exceptions and returns null
     if (tFile == null) {
-      throw new IOException(folder);
+      throw new IOException(srcPath.toString());
     }
 
     Closer closer = Closer.create();
@@ -215,7 +213,7 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs count <path>");
       return -1;
     }
-    String path = argv[1];
+    TachyonURI path = new TachyonURI(argv[1]);
     long[] values = countHelper(path);
     String format = "%-25s%-25s%-15s%n";
     System.out.format(format, "File Count", "Folder Count", "Total Bytes");
@@ -223,10 +221,9 @@ public class TFsShell implements Closeable {
     return 0;
   }
 
-  private long[] countHelper(String path) throws IOException {
+  private long[] countHelper(TachyonURI path) throws IOException {
     TachyonFS tachyonClient = createFS(path);
-    String folder = Utils.getFilePath(path);
-    TachyonFile tFile = tachyonClient.getFile(folder);
+    TachyonFile tFile = tachyonClient.getFile(path);
 
     if (tFile.isFile()) {
       return new long[] { 1L, 0L, tFile.length() };
@@ -234,10 +231,10 @@ public class TFsShell implements Closeable {
 
     long[] rtn = new long[] { 0L, 1L, 0L };
 
-    List<ClientFileInfo> files = tachyonClient.listStatus(folder);
+    List<ClientFileInfo> files = tachyonClient.listStatus(path);
     Collections.sort(files);
     for (ClientFileInfo file : files) {
-      long[] toAdd = countHelper(file.getPath());
+      long[] toAdd = countHelper(new TachyonURI(file.getPath()));
       rtn[0] += toAdd[0];
       rtn[1] += toAdd[1];
       rtn[2] += toAdd[2];
@@ -258,12 +255,11 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs fileinfo <path>");
       return -1;
     }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
+    TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    int fileId = tachyonClient.getFileId(file);
+    int fileId = tachyonClient.getFileId(path);
     List<ClientBlockInfo> blocks = tachyonClient.getFileBlocks(fileId);
-    System.out.println(file + " with file id " + fileId + " have following blocks: ");
+    System.out.println(path + " with file id " + fileId + " has the following blocks: ");
     for (ClientBlockInfo block : blocks) {
       System.out.println(block);
     }
@@ -283,12 +279,11 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs location <path>");
       return -1;
     }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
+    TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    int fileId = tachyonClient.getFileId(file);
+    int fileId = tachyonClient.getFileId(path);
     List<String> hosts = tachyonClient.getFile(fileId).getLocationHosts();
-    System.out.println(file + " with file id " + fileId + " are on nodes: ");
+    System.out.println(path + " with file id " + fileId + " is on nodes: ");
     for (String host : hosts) {
       System.out.println(host);
     }
@@ -308,10 +303,9 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs ls <path>");
       return -1;
     }
-    String path = argv[1];
-    String folder = Utils.getFilePath(path);
+    TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    List<ClientFileInfo> files = tachyonClient.listStatus(folder);
+    List<ClientFileInfo> files = tachyonClient.listStatus(path);
     Collections.sort(files);
     String format = "%-10s%-25s%-15s%-5s%n";
     for (ClientFileInfo file : files) {
@@ -343,10 +337,9 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs lsr <path>");
       return -1;
     }
-    String path = argv[1];
-    String folder = Utils.getFilePath(path);
+    TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    List<ClientFileInfo> files = tachyonClient.listStatus(folder);
+    List<ClientFileInfo> files = tachyonClient.listStatus(path);
     Collections.sort(files);
     String format = "%-10s%-25s%-15s%-5s%n";
     for (ClientFileInfo file : files) {
@@ -381,11 +374,10 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs mkdir <path>");
       return -1;
     }
-    String path = argv[1];
-    String folder = Utils.getFilePath(path);
+    TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    if (tachyonClient.mkdir(folder)) {
-      System.out.println("Successfully created directory " + folder);
+    if (tachyonClient.mkdir(path)) {
+      System.out.println("Successfully created directory " + path);
       return 0;
     } else {
       return -1;
@@ -406,18 +398,17 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs pin <path>");
       return -1;
     }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
+    TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    int fileId = tachyonClient.getFileId(file);
+    int fileId = tachyonClient.getFileId(path);
     tachyonClient.pinFile(fileId);
     try {
       tachyonClient.pinFile(fileId);
-      System.out.println("File '" + file + "' was successfully pinned.");
+      System.out.println("File '" + path + "' was successfully pinned.");
       return 0;
     } catch (Exception e) {
       e.printStackTrace();
-      System.out.println("File '" + file + "' could not be pinned.");
+      System.out.println("File '" + path + "' could not be pinned.");
       return -1;
     }
   }
@@ -460,18 +451,11 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs mv <src> <dst>");
       return -1;
     }
-    String srcPath = argv[1];
-    String dstPath = argv[2];
-    String srcMasterAddr = Utils.validatePath(srcPath);
-    String dstMasterAddr = Utils.validatePath(dstPath);
-    if (!srcMasterAddr.startsWith(dstMasterAddr.substring(0, Constants.HEADER.length()))) {
-      throw new IOException("The file system of source and destination must be the same");
-    }
-    String srcFile = Utils.getFilePath(srcPath);
-    String dstFile = Utils.getFilePath(dstPath);
+    TachyonURI srcPath = new TachyonURI(argv[1]);
+    TachyonURI dstPath = new TachyonURI(argv[2]);
     TachyonFS tachyonClient = createFS(srcPath);
-    if (tachyonClient.rename(srcFile, dstFile)) {
-      System.out.println("Renamed " + srcFile + " to " + dstFile);
+    if (tachyonClient.rename(srcPath, dstPath)) {
+      System.out.println("Renamed " + srcPath + " to " + dstPath);
       return 0;
     } else {
       return -1;
@@ -483,12 +467,11 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs report <path>");
       return -1;
     }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
+    TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    int fileId = tachyonClient.getFileId(file);
+    int fileId = tachyonClient.getFileId(path);
     tachyonClient.reportLostFile(fileId);
-    System.out.println(file + " with file id " + fileId + " has reported been report lost.");
+    System.out.println(path + " with file id " + fileId + " has reported been report lost.");
     return 0;
   }
 
@@ -497,7 +480,7 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs request <tachyonaddress> <dependencyId>");
       return -1;
     }
-    String path = argv[1];
+    TachyonURI path = new TachyonURI(argv[1]);
     int depId = Integer.parseInt(argv[2]);
     TachyonFS tachyonClient = createFS(path);
     tachyonClient.requestFilesInDependency(depId);
@@ -519,11 +502,10 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs rm <path>");
       return -1;
     }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
+    TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    if (tachyonClient.delete(file, true)) {
-      System.out.println(file + " has been removed");
+    if (tachyonClient.delete(path, true)) {
+      System.out.println(path + " has been removed");
       return 0;
     } else {
       return -1;
@@ -604,13 +586,12 @@ public class TFsShell implements Closeable {
     if (argv.length != 2) {
       System.out.println("Usage: tfs tail <path>");
     }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
+    TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    TachyonFile tFile = tachyonClient.getFile(file);
+    TachyonFile tFile = tachyonClient.getFile(path);
 
     if (tFile == null) {
-      System.out.println(file + " does not exist.");
+      System.out.println(path + " does not exist.");
       return -1;
     }
     if (tFile.isFile()) {
@@ -631,7 +612,7 @@ public class TFsShell implements Closeable {
         is.close();
       }
     } else {
-      System.out.println(file + " is not a file.");
+      System.out.println(path + " is not a file.");
       return -1;
     }
   }
@@ -649,10 +630,9 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs touch <path>");
       return -1;
     }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
+    TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    TachyonFile tFile = tachyonClient.getFile(tachyonClient.createFile(file));
+    TachyonFile tFile = tachyonClient.getFile(tachyonClient.createFile(path));
     OutputStream out = tFile.getOutStream(WriteType.THROUGH);
     out.close();
     System.out.println(path + " has been created");
@@ -673,17 +653,16 @@ public class TFsShell implements Closeable {
       System.out.println("Usage: tfs unpin <path>");
       return -1;
     }
-    String path = argv[1];
-    String file = Utils.getFilePath(path);
+    TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
-    int fileId = tachyonClient.getFileId(file);
+    int fileId = tachyonClient.getFileId(path);
     try {
       tachyonClient.unpinFile(fileId);
-      System.out.println("File '" + file + "' was successfully unpinned.");
+      System.out.println("File '" + path + "' was successfully unpinned.");
       return 0;
     } catch (Exception e) {
       e.printStackTrace();
-      System.out.println("File '" + file + "' could not be unpinned.");
+      System.out.println("File '" + path + "' could not be unpinned.");
       return -1;
     }
   }
@@ -691,7 +670,8 @@ public class TFsShell implements Closeable {
   /**
    * Creates a new TachyonFS and registers it with {@link #mCloser}
    */
-  private TachyonFS createFS(final String path) throws IOException {
-    return mCloser.register(TachyonFS.get(Utils.validatePath(path)));
+  private TachyonFS createFS(final TachyonURI path) throws IOException {
+    String qualifiedPath = Utils.validatePath(path.toString());
+    return mCloser.register(TachyonFS.get(new TachyonURI(qualifiedPath)));
   }
 }
