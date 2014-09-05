@@ -3,6 +3,7 @@ package tachyon.master;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
@@ -21,7 +22,7 @@ class ImageElement extends JsonObject {
   /** Constructor used for deserializing Elements. */
   @JsonCreator
   public ImageElement(@JsonProperty("type") ImageElementType type,
-      @JsonProperty("parameters") Map<String, Object> parameters) {
+      @JsonProperty("parameters") Map<String, JsonNode> parameters) {
     this.type = type;
     this.parameters = parameters;
   }
