@@ -1,4 +1,4 @@
-<script src="js/cookies.js" type="text/javascript"></script>
+<script src="js/cookies.min.js" type="text/javascript"></script>
 <script type="text/javascript">
   var nTotalFile = <%= request.getAttribute("inMemoryFileNum") %>;
 
@@ -92,23 +92,23 @@
     currentPage = Math.floor(currentOffset / nFilePerPage) + 1;
   }
   function updateViewSettings() {
-    if (docCookies.hasItem("nFilePerPage")) {
-      nFilePerPage = docCookies.getItem("nFilePerPage");
+    if (Cookies.get("nFilePerPage") != undefined) {
+      nFilePerPage = Cookies.get("nFilePerPage");
     }
-    if (docCookies.hasItem("nMaxPageShown")) {
-      nMaxPageShown = docCookies.getItem("nMaxPageShown");
+    if (Cookies.get("nMaxPageShown") != undefined) {
+      nMaxPageShown = Cookies.get("nMaxPageShown");
     }
   }
   function saveNewViewSettings() {
     var updated = false;
     var nfpg = parseInt($("#nFilePerPage").val());
     if (!isNaN(nfpg)) {
-      docCookies.setItem("nFilePerPage", nfpg);
+      Cookies.set("nFilePerPage", nfpg);
       updated = true;
     }
     var nmps = parseInt($("#nMaxPageShown").val());
     if (!isNaN(nmps)) {
-      docCookies.setItem("nMaxPageShown", nmps);
+      Cookies.set("nMaxPageShown", nmps);
       updated = true;
     }
     return updated;
