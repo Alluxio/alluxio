@@ -35,13 +35,9 @@
     var firstPage = Math.floor((currentPage - 1) / nMaxPageShown) * nMaxPageShown + 1;
     var nPageShown = Math.min(nMaxPageShown, nTotalPage - firstPage + 1);
 
-    // first
-    addPage("", 0, nFilePerPage, "First");
-
-    // prev
-    if (currentPage == 1) {
-      addPage("disabled", 0, 0, "Prev");
-    } else {
+    // first && prev
+    if (currentPage > 1) {
+      addPage("", 0, nFilePerPage, "First");
       addPage("", currentOffset - nFilePerPage, nFilePerPage, "Prev");
     }
 
@@ -60,18 +56,13 @@
       }
     }
 
-    // next
-    if (currentPage == nTotalPage) {
-      addPage("disabled", 0, 0, "Next");
-    } else {
+    // next && last
+    if (currentPage < nTotalPage) {
       addPage("", currentOffset + currentLimit, 
         Math.min(nFilePerPage, nTotalFile - currentOffset - currentLimit), "Next");
+      var off = (nTotalPage - 1) * nFilePerPage;
+      addPage("", off, nTotalFile - off, "Last");
     }
-
-    // last
-    var off = (nTotalPage - 1) * nFilePerPage;
-    addPage("", off, nTotalFile - off, "Last");
-
   }
 
   function getOffsetFromUrl() {
