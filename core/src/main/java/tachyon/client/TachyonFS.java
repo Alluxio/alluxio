@@ -35,7 +35,7 @@ import tachyon.worker.WorkerClient;
 public class TachyonFS extends AbstractTachyonFS {
   /**
    * Create a TachyonFS handler.
-   *
+   * 
    * @param tachyonPath
    *          a Tachyon path contains master address. e.g., tachyon://localhost:19998,
    *          tachyon://localhost:19998/ab/c.txt

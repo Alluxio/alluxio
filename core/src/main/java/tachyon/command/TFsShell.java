@@ -72,7 +72,7 @@ public class TFsShell implements Closeable {
     TachyonFile tFile = tachyonClient.getFile(path);
 
     if (tFile == null) {
-      System.out.println(path.toString() + " does not exist.");
+      System.out.println(path + " does not exist.");
       return -1;
     }
     if (tFile.isFile()) {
@@ -89,7 +89,7 @@ public class TFsShell implements Closeable {
       }
       return 0;
     } else {
-      System.out.println(path.toString() + " is not a file.");
+      System.out.println(path + " is not a file.");
       return -1;
     }
   }
@@ -119,7 +119,7 @@ public class TFsShell implements Closeable {
     TachyonFS tachyonClient = createFS(dstPath);
     int ret = copyPath(src, tachyonClient, dstPath);
     if (ret == 0) {
-      System.out.println("Copied " + src.toString() + " to " + dstPath);
+      System.out.println("Copied " + src + " to " + dstPath);
     }
     return ret;
   }
@@ -193,7 +193,7 @@ public class TFsShell implements Closeable {
         out.write(buf, 0, t);
         t = is.read(buf);
       }
-      System.out.println("Copied " + srcPath.toString() + " to " + dstPath);
+      System.out.println("Copied " + srcPath + " to " + dstPath);
       return 0;
     } finally {
       closer.close();
@@ -259,8 +259,7 @@ public class TFsShell implements Closeable {
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
     List<ClientBlockInfo> blocks = tachyonClient.getFileBlocks(fileId);
-    System.out.println(
-        path.toString() + " with file id " + fileId + " has the following blocks: ");
+    System.out.println(path + " with file id " + fileId + " has the following blocks: ");
     for (ClientBlockInfo block : blocks) {
       System.out.println(block);
     }
@@ -284,7 +283,7 @@ public class TFsShell implements Closeable {
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
     List<String> hosts = tachyonClient.getFile(fileId).getLocationHosts();
-    System.out.println(path.toString() + " with file id " + fileId + " is on nodes: ");
+    System.out.println(path + " with file id " + fileId + " is on nodes: ");
     for (String host : hosts) {
       System.out.println(host);
     }
@@ -378,7 +377,7 @@ public class TFsShell implements Closeable {
     TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
     if (tachyonClient.mkdir(path)) {
-      System.out.println("Successfully created directory " + path.toString());
+      System.out.println("Successfully created directory " + path);
       return 0;
     } else {
       return -1;
@@ -405,11 +404,11 @@ public class TFsShell implements Closeable {
     tachyonClient.pinFile(fileId);
     try {
       tachyonClient.pinFile(fileId);
-      System.out.println("File '" + path.toString() + "' was successfully pinned.");
+      System.out.println("File '" + path + "' was successfully pinned.");
       return 0;
     } catch (Exception e) {
       e.printStackTrace();
-      System.out.println("File '" + path.toString() + "' could not be pinned.");
+      System.out.println("File '" + path + "' could not be pinned.");
       return -1;
     }
   }
@@ -456,7 +455,7 @@ public class TFsShell implements Closeable {
     TachyonURI dstPath = new TachyonURI(argv[2]);
     TachyonFS tachyonClient = createFS(srcPath);
     if (tachyonClient.rename(srcPath, dstPath)) {
-      System.out.println("Renamed " + srcPath.toString() + " to " + dstPath.toString());
+      System.out.println("Renamed " + srcPath + " to " + dstPath);
       return 0;
     } else {
       return -1;
@@ -472,8 +471,7 @@ public class TFsShell implements Closeable {
     TachyonFS tachyonClient = createFS(path);
     int fileId = tachyonClient.getFileId(path);
     tachyonClient.reportLostFile(fileId);
-    System.out.println(
-        path.toString() + " with file id " + fileId + " has reported been report lost.");
+    System.out.println(path + " with file id " + fileId + " has reported been report lost.");
     return 0;
   }
 
@@ -593,7 +591,7 @@ public class TFsShell implements Closeable {
     TachyonFile tFile = tachyonClient.getFile(path);
 
     if (tFile == null) {
-      System.out.println(path.toString() + " does not exist.");
+      System.out.println(path + " does not exist.");
       return -1;
     }
     if (tFile.isFile()) {
@@ -614,7 +612,7 @@ public class TFsShell implements Closeable {
         is.close();
       }
     } else {
-      System.out.println(path.toString() + " is not a file.");
+      System.out.println(path + " is not a file.");
       return -1;
     }
   }
@@ -637,7 +635,7 @@ public class TFsShell implements Closeable {
     TachyonFile tFile = tachyonClient.getFile(tachyonClient.createFile(path));
     OutputStream out = tFile.getOutStream(WriteType.THROUGH);
     out.close();
-    System.out.println(path.toString() + " has been created");
+    System.out.println(path + " has been created");
     return 0;
   }
 
@@ -660,11 +658,11 @@ public class TFsShell implements Closeable {
     int fileId = tachyonClient.getFileId(path);
     try {
       tachyonClient.unpinFile(fileId);
-      System.out.println("File '" + path.toString() + "' was successfully unpinned.");
+      System.out.println("File '" + path + "' was successfully unpinned.");
       return 0;
     } catch (Exception e) {
       e.printStackTrace();
-      System.out.println("File '" + path.toString() + "' could not be unpinned.");
+      System.out.println("File '" + path + "' could not be unpinned.");
       return -1;
     }
   }
