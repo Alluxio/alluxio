@@ -119,7 +119,7 @@ public class TFsShell implements Closeable {
     TachyonFS tachyonClient = createFS(dstPath);
     int ret = copyPath(src, tachyonClient, dstPath);
     if (ret == 0) {
-      System.out.println("Copied " + src + " to " + dstPath);
+      System.out.println("Copied " + srcPath + " to " + dstPath);
     }
     return ret;
   }
