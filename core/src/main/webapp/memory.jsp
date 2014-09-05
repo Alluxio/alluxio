@@ -51,22 +51,41 @@
           </ul>
         </div>
 
-        <!-- view setting panel -->
-        <form>
-          <fieldset>
-            <legend>View Settings</legend>
-            <label>number of items on each page:</label>
-            <input id="nFilePerPage" type="text" placeholder="default = 20">
-            <label>maximum number of pages to show in pagination component:</label>
-            <input id="nMaxPageShown" type="text" placeholder="default = 10">
-          </fieldset>
-        </form>
-        <button class="btn" id="updateView">Update</button>
       </div>
     </div>
   </div>
+
+  <!-- view setting panel -->
+  <div class="accordion">
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" href="#viewSettings">
+          <h4>View Settings</h4>
+        </a>
+        <div id="viewSettings" class="accordion-body collapse">
+          <div class="accordion-inner">
+            <table class="table">
+              <tbody>
+                <tr>
+                  <th>number of items on each page:</th>
+                  <th><input id="nFilePerPage" type="text" placeholder="default = 20"></th>
+                </tr>
+                <tr>
+                  <th>maximum number of pages to show in pagination component:</th>
+                  <th><input id="nMaxPageShown" type="text" placeholder="default = 10"></th>
+                </tr>
+              </tbody>
+            </table>
+            <button class="btn" id="updateView">Update</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <%@ include file="footer.jsp" %>
 </div>
+
 <!-- where the magic behind dynamic pagination happens -->
 <jsp:include page="memory-pagination.jsp" />
 </body>
