@@ -453,7 +453,7 @@ public final class CommonUtils {
     }
   }
 
-  public static void tempoaryLog(String msg) {
+  public static void temporaryLog(String msg) {
     LOG.info("Temporary Log ============================== " + msg);
   }
 
