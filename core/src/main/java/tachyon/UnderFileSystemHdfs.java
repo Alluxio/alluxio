@@ -15,7 +15,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
@@ -26,7 +27,7 @@ import tachyon.hadoop.Utils;
  * HDFS UnderFilesystem implementation.
  */
 public class UnderFileSystemHdfs extends UnderFileSystem {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_TRY = 5;
 
   private FileSystem mFs = null;
@@ -198,7 +199,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         Collections.addAll(ret, hosts);
       }
     } catch (IOException e) {
-      LOG.error(e);
+      LOG.error("Unable to get file location for " + path, e);
     }
     return ret;
   }
@@ -342,7 +343,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       FsPermission perm = new FsPermission(Short.parseShort(posixPerm));
       mFs.setPermission(fileStatus.getPath(), perm);
     } catch (IOException e) {
-      LOG.error(e);
+      LOG.error("Fail to set permission for " + path + " with perm " + posixPerm, e);
       throw e;
     }
   }

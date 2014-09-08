@@ -12,7 +12,8 @@ import java.nio.channels.FileChannel.MapMode;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -29,7 +30,7 @@ import tachyon.conf.UserConf;
 import tachyon.util.CommonUtils;
 
 public class Performance {
-  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final int RESULT_ARRAY_SIZE = 64;
   private static final String FOLDER = "/mnt/ramdisk/";

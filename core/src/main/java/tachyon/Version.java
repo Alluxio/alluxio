@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The version of the current build.
@@ -12,7 +13,7 @@ import org.apache.log4j.Logger;
 public class Version {
   public static final String VERSION;
 
-  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   static {
     InputStream in = null;

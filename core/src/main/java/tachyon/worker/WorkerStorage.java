@@ -20,7 +20,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.thrift.TException;
 
 import com.google.common.base.Throwables;
@@ -217,21 +218,21 @@ public class WorkerStorage {
             CommonUtils.sleepMs(LOG, shouldSleepMs);
           }
         } catch (FileDoesNotExistException e) {
-          LOG.warn(e);
+          LOG.warn(e.getMessage(), e);
         } catch (SuspectedFileSizeException e) {
-          LOG.error(e);
+          LOG.error(e.getMessage(), e);
         } catch (BlockInfoException e) {
-          LOG.error(e);
+          LOG.error(e.getMessage(), e);
         } catch (IOException e) {
-          LOG.error(e);
+          LOG.error(e.getMessage(), e);
         } catch (TException e) {
-          LOG.warn(e);
+          LOG.warn(e.getMessage(), e);
         }
       }
     }
   }
 
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final CommonConf mCommonConf;
   private volatile MasterClient mMasterClient;

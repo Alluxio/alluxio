@@ -12,7 +12,8 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -29,7 +30,7 @@ import tachyon.worker.nio.DataServerMessage;
  * Tachyon File.
  */
 public class TachyonFile implements Comparable<TachyonFile> {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   final TachyonFS mTachyonFS;
   final int mFileId;
@@ -457,7 +458,8 @@ public class TachyonFile implements Comparable<TachyonFile> {
             break;
           }
         } catch (IOException e) {
-          LOG.error(e);
+          LOG.error("Fail to retrieve byte buffer for block " + blockInfo.blockId + " from remote "
+              + host + ":" + port, e);
           buf = null;
         }
       }
@@ -518,7 +520,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
                 length = 0;
               }
             } catch (IOException e) {
-              LOG.warn(e);
+              LOG.warn(e.getMessage(), e);
               succeed = false;
               break;
             }
@@ -532,7 +534,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
         }
       }
     } catch (IOException e) {
-      LOG.warn(e);
+      LOG.warn(e.getMessage(), e);
       return false;
     }
 

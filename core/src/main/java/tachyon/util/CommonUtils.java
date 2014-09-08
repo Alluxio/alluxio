@@ -16,7 +16,8 @@ import java.util.List;
 import java.util.Scanner;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -28,7 +29,7 @@ import tachyon.thrift.InvalidPathException;
  * Common utilities shared by all components in Tachyon.
  */
 public final class CommonUtils {
-  private static final Logger LOG = Logger.getLogger("");
+  private static final Logger LOG = LoggerFactory.getLogger("");
 
   /**
    * Change local file's permission.

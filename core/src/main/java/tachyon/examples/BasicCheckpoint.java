@@ -7,7 +7,8 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.thrift.TException;
 
 import tachyon.Constants;
@@ -23,7 +24,7 @@ import tachyon.util.CommonUtils;
  * An example to show to how use Tachyon's API
  */
 public class BasicCheckpoint {
-  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static TachyonFS sTachyonClient;
   private static String sFileFolder = null;
