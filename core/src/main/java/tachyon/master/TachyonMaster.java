@@ -182,7 +182,7 @@ public class TachyonMaster {
             .selectorThreads(mSelectorThreads).acceptQueueSizePerThread(mAcceptQueueSizePerThread)
             .workerThreads(mWorkerThreads));
 
-    mIsStarted = true;
+    //mIsStarted = true;
   }
 
   public void start() {
@@ -213,6 +213,7 @@ public class TachyonMaster {
             mWebServer.startWebServer();
             LOG.info("The master (leader) server started @ " + mMasterAddress);
             mMasterServiceServer.serve();
+            mIsStarted = true;
             LOG.info("The master (previous leader) server ended @ " + mMasterAddress);
             mJournal.close();
           }
