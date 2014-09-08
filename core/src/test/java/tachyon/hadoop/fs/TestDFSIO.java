@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.URI;
 import java.util.Date;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -60,7 +61,10 @@ import org.apache.hadoop.util.ToolRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import tachyon.LocalMiniDFSCluster;
+
+import tachyon.Constants;
+import tachyon.hadoop.TFS;
+import tachyon.master.LocalTachyonCluster;
 
 /**
  * Distributed i/o benchmark.
@@ -90,14 +94,15 @@ import tachyon.LocalMiniDFSCluster;
  * </ul>
  */
 public class TestDFSIO implements Tool {
-  // Constants
+  // Constants for TestDFSIO
   private static final Log LOG = LogFactory.getLog(TestDFSIO.class);
-  private static final int DEFAULT_BUFFER_SIZE = 1000000;
+  private static final int DEFAULT_BUFFER_SIZE = 4096;
   private static final String BASE_FILE_NAME = "test_io_";
   private static final String DEFAULT_RES_FILE_NAME = "TestDFSIO_results.log";
   private static final long MEGA = ByteMultiple.MB.value();
-  private static final int DEFAULT_NR_BYTES = 1;
+  private static final int DEFAULT_NR_BYTES = 16384;
   private static final int DEFAULT_NR_FILES = 4;
+  private static boolean generateReportFile = false;
   private static final String USAGE =
                     "Usage: " + TestDFSIO.class.getSimpleName() +
                     " [genericOptions]" +
@@ -109,7 +114,11 @@ public class TestDFSIO implements Tool {
                     " [-resFile resultFileName] [-bufferSize Bytes]" +
                     " [-rootDir]";
 
+  // Constants for Tachyon
+  private static final int BLOCK_SIZE = 30;
   private Configuration config;
+  private static LocalTachyonCluster mLocalTachyonCluster = null;
+  private static URI mLocalTachyonClusterUri = null;
 
   static{
     Configuration.addDefaultResource("hdfs-default.xml");
@@ -200,16 +209,25 @@ public class TestDFSIO implements Tool {
     return new Path(getBaseDir(conf), "io_data");
   }
 
-  private static LocalMiniDFSCluster cluster;
   private static TestDFSIO bench;
 
   @BeforeClass
   public static void beforeClass() throws Exception {
+    // Init TestDFSIO
     bench = new TestDFSIO();
     bench.getConf().setBoolean(DFSConfigKeys.DFS_SUPPORT_APPEND_KEY, true);
-    cluster = new LocalMiniDFSCluster(bench.getConf(), "/tmp/dfs", 2, 54321);
-    cluster.start();
-    FileSystem fs = cluster.getDFSClient();
+
+    // Start local Tachyon cluster
+    System.setProperty("tachyon.user.quota.unit.bytes", "100000");
+    System.setProperty("tachyon.user.default.block.size.byte", String.valueOf(BLOCK_SIZE));
+    mLocalTachyonCluster = new LocalTachyonCluster(500000);
+    mLocalTachyonCluster.start();
+
+    mLocalTachyonClusterUri = URI.create(mLocalTachyonCluster.getMasterUri());
+    bench.getConf().set("fs.defaultFS", mLocalTachyonClusterUri.toString());
+    bench.getConf().set("fs.default.name", mLocalTachyonClusterUri.toString());
+    bench.getConf().set("fs." + Constants.SCHEME + ".impl", TFS.class.getName());
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     bench.createControlFile(fs, DEFAULT_NR_BYTES, DEFAULT_NR_FILES);
 
     /** Check write here, as it is required for other tests */
@@ -218,15 +236,21 @@ public class TestDFSIO implements Tool {
 
   @AfterClass
   public static void afterClass() throws Exception {
-    if(cluster == null)
+    if (mLocalTachyonCluster == null)
       return;
-    FileSystem fs = cluster.getDFSClient();
+
+    // Clear TestDFSIO
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     bench.cleanup(fs);
-    cluster.shutdown();
+
+    // Stop local Tachyon cluster
+    mLocalTachyonCluster.stop();
+    System.clearProperty("tachyon.user.quota.unit.bytes");
+    System.clearProperty("tachyon.user.default.block.size.byte");
   }
 
   public static void testWrite() throws Exception {
-    FileSystem fs = cluster.getDFSClient();
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.writeTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
@@ -235,7 +259,7 @@ public class TestDFSIO implements Tool {
 
   @Test (timeout = 3000)
   public void testRead() throws Exception {
-    FileSystem fs = cluster.getDFSClient();
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.readTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
@@ -244,7 +268,7 @@ public class TestDFSIO implements Tool {
 
   @Test (timeout = 3000)
   public void testReadRandom() throws Exception {
-    FileSystem fs = cluster.getDFSClient();
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.getConf().setLong("test.io.skip.size", 0);
     bench.randomReadTest(fs);
@@ -254,7 +278,7 @@ public class TestDFSIO implements Tool {
 
   @Test (timeout = 3000)
   public void testReadBackward() throws Exception {
-    FileSystem fs = cluster.getDFSClient();
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.getConf().setLong("test.io.skip.size", -DEFAULT_BUFFER_SIZE);
     bench.randomReadTest(fs);
@@ -264,7 +288,7 @@ public class TestDFSIO implements Tool {
 
   @Test (timeout = 3000)
   public void testReadSkip() throws Exception {
-    FileSystem fs = cluster.getDFSClient();
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.getConf().setLong("test.io.skip.size", 1);
     bench.randomReadTest(fs);
@@ -274,17 +298,18 @@ public class TestDFSIO implements Tool {
 
   @Test (timeout = 3000)
   public void testReadLargeSkip() throws Exception {
-    FileSystem fs = cluster.getDFSClient();
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
-    bench.getConf().setLong("test.io.skip.size", 10);
+    bench.getConf().setLong("test.io.skip.size", 5000);
     bench.randomReadTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
     bench.analyzeResult(fs, TestType.TEST_TYPE_READ_SKIP, execTime);
   }
 
-  @Test (timeout = 6000)
+  // TODO: Should active this unit test after TACHYON-25 has been solved
+  //@Test (timeout = 6000)
   public void testAppend() throws Exception {
-    FileSystem fs = cluster.getDFSClient();
+    FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
     bench.appendTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
@@ -685,6 +710,7 @@ public class TestDFSIO implements Tool {
     String compressionClass = null;
     boolean isSequential = false;
     String version = TestDFSIO.class.getSimpleName() + ".1.7";
+    generateReportFile = true;
 
     LOG.info(version);
     if (args.length == 0) {
@@ -867,10 +893,14 @@ public class TestDFSIO implements Tool {
 
     PrintStream res = null;
     try {
-      res = new PrintStream(new FileOutputStream(new File(resFileName), true));
+      if (generateReportFile)
+        res = new PrintStream(new FileOutputStream(new File(resFileName), true));
       for(int i = 0; i < resultLines.length; i++) {
         LOG.info(resultLines[i]);
-        res.println(resultLines[i]);
+        if (generateReportFile)
+          res.println(resultLines[i]);
+        else
+          System.out.println(resultLines[i]);
       }
     } finally {
       if(res != null) res.close();
