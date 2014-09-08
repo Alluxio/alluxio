@@ -28,7 +28,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   private Path mHdfsPath;
   private Configuration mHadoopConf;
   private int mHadoopBufferSize;
-  private TachyonFile mTachyonFile = null;
+  private TachyonFile mTachyonFile;
 
   private FSDataInputStream mHdfsInputStream = null;
 
@@ -48,8 +48,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mHdfsPath = hdfsPath;
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;
-
-    TachyonFile mTachyonFile = mTFS.getFile(mFileId);
+    mTachyonFile = mTFS.getFile(mFileId);
     if (mTachyonFile == null) {
       throw new FileNotFoundException("File " + hdfsPath + " with FID " + fileId
           + " is not found.");

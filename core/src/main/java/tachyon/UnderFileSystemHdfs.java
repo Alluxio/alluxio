@@ -51,7 +51,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     } else {
       tConf = new Configuration();
     }
-    tConf.set("fs.defaultFS", fsDefaultName);
     String glusterfsPrefix = "glusterfs:///";
     if (fsDefaultName.startsWith(glusterfsPrefix)) {
       tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
