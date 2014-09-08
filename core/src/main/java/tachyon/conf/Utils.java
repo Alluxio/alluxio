@@ -1,6 +1,7 @@
 package tachyon.conf;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
@@ -11,7 +12,7 @@ import com.google.common.collect.ImmutableList;
  * Utils for tachyon.conf package.
  */
 class Utils {
-  private static final Logger LOG = Logger.getLogger("");
+  private static final Logger LOG = LoggerFactory.getLogger("");
   private static final CharMatcher LIST_SPLITTER_MATCHER = CharMatcher.is(',').or(
       CharMatcher.WHITESPACE);
   private static final Splitter LIST_SPLITTER = Splitter.on(LIST_SPLITTER_MATCHER)

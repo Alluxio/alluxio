@@ -22,7 +22,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -124,7 +125,7 @@ public class MasterInfo extends ImageWriter {
                 }
               }
             } catch (BlockInfoException e) {
-              LOG.error(e);
+              LOG.error(e.getMessage(), e);
             }
           }
         }
@@ -209,7 +210,7 @@ public class MasterInfo extends ImageWriter {
 
   public static final String COL = "COL_";
 
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final InetSocketAddress mMasterAddress;
   private final long mStartTimeNSPrefix;

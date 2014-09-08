@@ -1,6 +1,7 @@
 package tachyon.master;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.HeartbeatExecutor;
@@ -9,7 +10,7 @@ import tachyon.HeartbeatExecutor;
  * Heartbeat executor for master client.
  */
 class MasterClientHeartbeatExecutor implements HeartbeatExecutor {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final MasterClient mClient;
   private final long mMaxNoneAccessIntervalMs;
 

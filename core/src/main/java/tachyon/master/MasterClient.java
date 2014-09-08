@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -52,7 +53,7 @@ import tachyon.util.NetworkUtils;
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class MasterClient implements Closeable {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_CONNECT_TRY = 5;
 
   private boolean mUseZookeeper;

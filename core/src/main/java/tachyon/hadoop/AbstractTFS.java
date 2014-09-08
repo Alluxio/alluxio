@@ -15,7 +15,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.PrefixList;
@@ -42,7 +43,7 @@ abstract class AbstractTFS extends FileSystem {
   public static final String FIRST_COM_PATH = "tachyon_dep/";
   public static final String RECOMPUTE_PATH = "tachyon_recompute/";
 
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public static String mUnderFSAddress;
 

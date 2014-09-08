@@ -5,7 +5,8 @@ import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Pair;
@@ -18,7 +19,7 @@ import tachyon.client.TachyonFS;
  * Utilities related to under filesystem
  */
 public class UfsUtils {
-  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Build a new path relative to a given mTachyonFS root by retrieving the given path relative to
