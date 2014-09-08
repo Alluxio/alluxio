@@ -21,7 +21,7 @@ If you are running a Spark version less than 1.0.0, please add the following lin
 
     export SPARK_CLASSPATH=/pathToTachyon/client/target/tachyon-client-{{site.TACHYON_RELEASED_VERSION}}-jar-with-dependencies.jar:$SPARK_CLASSPATH
 
-Create a new file `spark/conf/core-site.xml` and add the following to it:
+If running a hadoop 1.x cluster, create a new file `spark/conf/core-site.xml` Add the following to it:
 
     <configuration>
       <property>
@@ -39,9 +39,17 @@ Put a file X into HDFS and run the Spark shell:
 
 Take a look at [http://localhost:19999](http://localhost:19999). There should be an output file
 `Y` which contains the number of words in the file `X`.
+Put a file X into HDFS and run the Spark shell:
 
-If you are running tachyon in fault tolerant mode along with ZooKeeper, add a new entry in the
-previously created `spark/conf/core-site.xml`:
+If you are invoking spark job using sbt or from other frameworks like play using sbt:
+
+    val conf = new SparkConf()
+    val sc = new SparkContext(conf)
+    sc.hadoopConfiguration.set("fs.tachyon.impl", "tachyon.hadoop.TFS")
+    
+
+If you are running tachyon in fault tolerant mode with zookeeper and the hadoop cluster is a 1.x cluster, 
+additionally add new entry in previously created `spark/conf/core-site.xml`:
 
     <property>
         <name>fs.tachyon-ft.impl</name>

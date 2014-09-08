@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
 import java.io.BufferedReader;
@@ -25,26 +11,37 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 
+/**
+ * The recompute command class. Used to execute the recomputation.
+ */
 public class RecomputeCommand implements Runnable {
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private final String CMD;
-  private final String FILE_PATH;
+  private final String mCommand;
+  private final String mFilePath;
 
+  /**
+   * Create a new RecomputeCommand.
+   *
+   * @param cmd
+   *          The command to execute
+   * @param filePath
+   *          The path of the output file, which records the output of the recompute process.
+   */
   public RecomputeCommand(String cmd, String filePath) {
-    CMD = cmd;
-    FILE_PATH = filePath;
+    mCommand = cmd;
+    mFilePath = filePath;
   }
 
   @Override
   public void run() {
     try {
-      LOG.info("Exec " + CMD + " output to " + FILE_PATH);
-      Process p = java.lang.Runtime.getRuntime().exec(CMD);
+      LOG.info("Exec " + mCommand + " output to " + mFilePath);
+      Process p = java.lang.Runtime.getRuntime().exec(mCommand);
       String line;
       BufferedReader bri = new BufferedReader(new InputStreamReader(p.getInputStream()));
       BufferedReader bre = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-      File file = new File(FILE_PATH);
+      File file = new File(mFilePath);
       FileWriter fw = new FileWriter(file.getAbsoluteFile());
       BufferedWriter bw = new BufferedWriter(fw);
       while ((line = bri.readLine()) != null) {
@@ -58,7 +55,7 @@ public class RecomputeCommand implements Runnable {
       bw.flush();
       bw.close();
       p.waitFor();
-      LOG.info("Exec " + CMD + " output to " + FILE_PATH + " done.");
+      LOG.info("Exec " + mCommand + " output to " + mFilePath + " done.");
     } catch (IOException e) {
       LOG.error(e.getMessage());
     } catch (InterruptedException e) {

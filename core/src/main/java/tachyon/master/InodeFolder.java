@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
 import java.io.DataOutputStream;
@@ -20,12 +6,14 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Collections;
 
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
 import tachyon.thrift.ClientFileInfo;
@@ -52,7 +40,7 @@ public class InodeFolder extends Inode {
     String fileName = ele.getString("name");
     int parentId = ele.getInt("parentId");
     boolean isPinned = ele.getBoolean("pinned");
-    List<Integer> childrenIds = ele.<List<Integer>> get("childrenIds");
+    List<Integer> childrenIds = ele.get("childrenIds", new TypeReference<List<Integer>>() {});
     long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
 
     int numberOfChildren = childrenIds.size();
@@ -66,16 +54,16 @@ public class InodeFolder extends Inode {
       }
 
       switch (ele.type) {
-      case InodeFile: {
-        children[k] = InodeFile.loadImage(ele);
-        break;
-      }
-      case InodeFolder: {
-        children[k] = InodeFolder.loadImage(parser, ele);
-        break;
-      }
-      default:
-        throw new IOException("Invalid element type " + ele);
+        case InodeFile: {
+          children[k] = InodeFile.loadImage(ele);
+          break;
+        }
+        case InodeFolder: {
+          children[k] = InodeFolder.loadImage(parser, ele);
+          break;
+        }
+        default:
+          throw new IOException("Invalid element type " + ele);
       }
     }
 
@@ -88,6 +76,18 @@ public class InodeFolder extends Inode {
 
   private Set<Inode> mChildren = new HashSet<Inode>();
 
+  /**
+   * Create a new InodeFolder.
+   * 
+   * @param name
+   *          The name of the folder
+   * @param id
+   *          The id of the folder
+   * @param parentId
+   *          The id of the parent of the folder
+   * @param creationTimeMs
+   *          The creation time of the folder, in milliseconds
+   */
   public InodeFolder(String name, int id, int parentId, long creationTimeMs) {
     super(name, id, parentId, true, creationTimeMs);
   }
@@ -181,7 +181,7 @@ public class InodeFolder extends Inode {
    * @return an unmodifiable set of the children inodes.
    */
   public synchronized Set<Inode> getChildren() {
-    return Collections.unmodifiableSet(mChildren);
+    return ImmutableSet.copyOf(mChildren);
   }
 
   /**

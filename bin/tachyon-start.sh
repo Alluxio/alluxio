@@ -1,22 +1,5 @@
 #!/usr/bin/env bash
 
-#
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
 #start up tachyon
 
 Usage="Usage: tachyon-start.sh [-h] WHAT [MOPT]
@@ -100,8 +83,12 @@ start_master() {
     MASTER_ADDRESS=localhost
   fi
 
+  if [[ -z $TACHYON_MASTER_JAVA_OPTS ]] ; then
+    TACHYON_MASTER_JAVA_OPTS=$TACHYON_JAVA_OPTS
+  fi
+
   echo "Starting master @ $MASTER_ADDRESS"
-  (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="MASTER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_MASTER_JAVA_OPTS tachyon.master.TachyonMaster > /dev/null 2>&1) &
+  (nohup $JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="MASTER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_MASTER_JAVA_OPTS tachyon.master.TachyonMaster > $TACHYON_LOGS_DIR/master.out 2>&1) &
 }
 
 start_worker() {
@@ -111,15 +98,23 @@ start_worker() {
     exit 1
   fi
 
+  if [[ -z $TACHYON_WORKER_JAVA_OPTS ]] ; then
+    TACHYON_WORKER_JAVA_OPTS=$TACHYON_JAVA_OPTS
+  fi
+
   echo "Starting worker @ `hostname -f`"
-  (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="WORKER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS tachyon.worker.TachyonWorker `hostname -f` > /dev/null 2>&1 ) &
+  (nohup $JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="WORKER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS tachyon.worker.TachyonWorker `hostname -f` > $TACHYON_LOGS_DIR/worker.out 2>&1 ) &
 }
 
 restart_worker() {
+  if [[ -z $TACHYON_WORKER_JAVA_OPTS ]] ; then
+    TACHYON_WORKER_JAVA_OPTS=$TACHYON_JAVA_OPTS
+  fi
+
   RUN=`ps -ef | grep "tachyon.worker.TachyonWorker" | grep "java" | wc | cut -d" " -f7`
   if [[ $RUN -eq 0 ]] ; then
     echo "Restarting worker @ `hostname -f`"
-    (nohup $JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="WORKER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS tachyon.worker.TachyonWorker `hostname -f` > /dev/null 2>&1) &
+    (nohup $JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.logger.type="WORKER_LOGGER" -Dlog4j.configuration=file:$TACHYON_CONF_DIR/log4j.properties $TACHYON_WORKER_JAVA_OPTS tachyon.worker.TachyonWorker `hostname -f` > $TACHYON_LOGS_DIR/worker.out 2>&1) &
   fi
 }
 

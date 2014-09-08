@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.worker;
 
 import java.io.File;
@@ -63,12 +49,11 @@ public class WorkerStorage {
    * The CheckpointThread, used to checkpoint the files belong to the worker.
    */
   public class CheckpointThread implements Runnable {
-    private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-    private final int ID;
-    private UnderFileSystem mCheckpointUnderFs = null;
+    private final int mId;
+    private UnderFileSystem mCheckpointUfs = null;
 
     public CheckpointThread(int id) {
-      ID = id;
+      mId = id;
     }
 
     // This method assumes the mDependencyLock has been acquired.
@@ -114,7 +99,7 @@ public class WorkerStorage {
       return -1;
     }
 
-    private List<Integer> getSortedPriorityDependencyList() throws TException {
+    private List<Integer> getSortedPriorityDependencyList() throws IOException {
       List<Integer> ret = mMasterClient.worker_getPriorityDependencyList();
       for (int i = 0; i < ret.size(); i ++) {
         for (int j = i + 1; j < ret.size(); j ++) {
@@ -172,24 +157,24 @@ public class WorkerStorage {
           }
 
           if (fileId == -1) {
-            LOG.debug("Thread " + ID + " has nothing to checkpoint. Sleep for 1 sec.");
+            LOG.debug("Thread " + mId + " has nothing to checkpoint. Sleep for 1 sec.");
             CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
             continue;
           }
 
           // TODO checkpoint process. In future, move from midPath to dstPath should be done by
           // master
-          String midPath = CommonUtils.concat(mUnderfsWorkerDataFolder, fileId);
+          String midPath = CommonUtils.concat(mUfsWorkerDataFolder, fileId);
           String dstPath = CommonUtils.concat(CommonConf.get().UNDERFS_DATA_FOLDER, fileId);
-          LOG.info("Thread " + ID + " is checkpointing file " + fileId + " from "
+          LOG.info("Thread " + mId + " is checkpointing file " + fileId + " from "
               + mLocalDataFolder.toString() + " to " + midPath + " to " + dstPath);
 
-          if (mCheckpointUnderFs == null) {
-            mCheckpointUnderFs = UnderFileSystem.get(midPath);
+          if (mCheckpointUfs == null) {
+            mCheckpointUfs = UnderFileSystem.get(midPath);
           }
 
           long startCopyTimeMs = System.currentTimeMillis();
-          ClientFileInfo fileInfo = mMasterClient.getClientFileInfoById(fileId);
+          ClientFileInfo fileInfo = mMasterClient.getFileStatus(fileId, "");
           if (!fileInfo.isComplete) {
             LOG.error("File " + fileInfo + " is not complete!");
             continue;
@@ -197,7 +182,7 @@ public class WorkerStorage {
           for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
             lockBlock(fileInfo.blockIds.get(k), Users.sCHECKPOINT_USER_ID);
           }
-          OutputStream os = mCheckpointUnderFs.create(midPath, (int) fileInfo.getBlockSizeByte());
+          OutputStream os = mCheckpointUfs.create(midPath, (int) fileInfo.getBlockSizeByte());
           long fileSizeByte = 0;
           for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
             File tempFile =
@@ -213,7 +198,7 @@ public class WorkerStorage {
             is.close();
           }
           os.close();
-          if (!mCheckpointUnderFs.rename(midPath, dstPath)) {
+          if (!mCheckpointUfs.rename(midPath, dstPath)) {
             LOG.error("Failed to rename from " + midPath + " to " + dstPath);
           }
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
@@ -246,20 +231,20 @@ public class WorkerStorage {
     }
   }
 
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private final CommonConf COMMON_CONF;
+  private final CommonConf mCommonConf;
   private volatile MasterClient mMasterClient;
   private InetSocketAddress mMasterAddress;
-  private InetSocketAddress mWorkerAddress;
+  private NetAddress mWorkerAddress;
   private WorkerSpaceCounter mWorkerSpaceCounter;
 
   private long mWorkerId;
   private Set<Long> mMemoryData = new HashSet<Long>();
   private Map<Long, Long> mBlockSizes = new HashMap<Long, Long>();
 
-  private Map<Long, Long> mLatestBlockAccessTimeMs = new HashMap<Long, Long>();
-  private Map<Long, Set<Long>> mUsersPerLockedBlock = new HashMap<Long, Set<Long>>();
+  private final Map<Long, Long> mBlockIdToLatestAccessTimeMs = new HashMap<Long, Long>();
+  private final Map<Long, Set<Long>> mLockedBlockIdToUserId = new HashMap<Long, Set<Long>>();
 
   private Map<Long, Set<Long>> mLockedBlocksPerUser = new HashMap<Long, Set<Long>>();
   private BlockingQueue<Long> mRemovedBlockList = new ArrayBlockingQueue<Long>(
@@ -269,15 +254,15 @@ public class WorkerStorage {
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
   private File mLocalDataFolder;
   private File mLocalUserFolder;
-  private String mUnderfsWorkerFolder;
-  private String mUnderfsWorkerDataFolder;
-  private String mUnderfsOrphansFolder;
+  private String mUfsWorkerFolder;
+  private String mUfsWorkerDataFolder;
+  private String mUfsOrphansFolder;
 
-  private UnderFileSystem mUnderFs;
+  private UnderFileSystem mUfs;
 
   private Users mUsers;
   // Dependency related lock
-  private Object mDependencyLock = new Object();
+  private final Object mDependencyLock = new Object();
   private Set<Integer> mUncheckpointFiles = new HashSet<Integer>();
   // From dependencyId to files in that set.
   private Map<Integer, Set<Integer>> mDepIdToFiles = new HashMap<Integer, Set<Integer>>();
@@ -288,52 +273,38 @@ public class WorkerStorage {
       WorkerConf.get().WORKER_CHECKPOINT_THREADS);
 
   /**
+   * Main logic behind the worker process.
+   * 
+   * This object is lazily initialized. Before an object of this call should be used,
+   * {@link #initialize} must be called.
+   * 
    * @param masterAddress
    *          The TachyonMaster's address
-   * @param workerAddress
-   *          This TachyonWorker's address
    * @param dataFolder
    *          This TachyonWorker's local folder's path
    * @param memoryCapacityBytes
    *          The maximum memory space this TachyonWorker can use, in bytes
    */
-  public WorkerStorage(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
-      String dataFolder, long memoryCapacityBytes) {
-    COMMON_CONF = CommonConf.get();
+  public WorkerStorage(InetSocketAddress masterAddress, String dataFolder, long memoryCapacityBytes) {
+    mCommonConf = CommonConf.get();
 
     mMasterAddress = masterAddress;
     mMasterClient = new MasterClient(mMasterAddress);
-
-    mWorkerAddress = workerAddress;
-    mWorkerSpaceCounter = new WorkerSpaceCounter(memoryCapacityBytes);
-    mWorkerId = 0;
-    while (mWorkerId == 0) {
-      try {
-        mMasterClient.connect();
-        NetAddress canonicalAddress =
-            new NetAddress(mWorkerAddress.getAddress().getCanonicalHostName(),
-                mWorkerAddress.getPort());
-        mWorkerId =
-            mMasterClient.worker_register(canonicalAddress,
-                mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Long>());
-      } catch (BlockInfoException e) {
-        LOG.error(e.getMessage(), e);
-        mWorkerId = 0;
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-      } catch (TException e) {
-        LOG.error(e.getMessage(), e);
-        mWorkerId = 0;
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-      }
-    }
-
     mLocalDataFolder = new File(dataFolder);
-    mLocalUserFolder =
-        new File(mLocalDataFolder.toString(), WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
-    mUnderfsWorkerFolder = CommonUtils.concat(COMMON_CONF.UNDERFS_WORKERS_FOLDER, mWorkerId);
-    mUnderfsWorkerDataFolder = mUnderfsWorkerFolder + "/data";
-    mUnderFs = UnderFileSystem.get(COMMON_CONF.UNDERFS_ADDRESS);
-    mUsers = new Users(mLocalUserFolder.toString(), mUnderfsWorkerFolder);
+
+    mWorkerSpaceCounter = new WorkerSpaceCounter(memoryCapacityBytes);
+    mLocalUserFolder = new File(mLocalDataFolder, WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
+  }
+
+  public void initialize(final NetAddress address) {
+    mWorkerAddress = address;
+
+    register();
+
+    mUfsWorkerFolder = CommonUtils.concat(mCommonConf.UNDERFS_WORKERS_FOLDER, mWorkerId);
+    mUfsWorkerDataFolder = mUfsWorkerFolder + "/data";
+    mUfs = UnderFileSystem.get(mCommonConf.UNDERFS_ADDRESS);
+    mUsers = new Users(mLocalUserFolder.toString(), mUfsWorkerFolder);
 
     for (int k = 0; k < WorkerConf.get().WORKER_CHECKPOINT_THREADS; k ++) {
       Thread thread = new Thread(new CheckpointThread(k));
@@ -351,11 +322,9 @@ public class WorkerStorage {
       throw Throwables.propagate(e);
     } catch (BlockInfoException e) {
       throw Throwables.propagate(e);
-    } catch (TException e) {
-      throw Throwables.propagate(e);
     }
 
-    LOG.info("Current Worker Info: ID " + mWorkerId + ", ADDRESS: " + mWorkerAddress
+    LOG.info("Current Worker Info: ID " + mWorkerId + ", mWorkerAddress: " + mWorkerAddress
         + ", MemoryCapacityBytes: " + mWorkerSpaceCounter.getCapacityBytes());
   }
 
@@ -366,14 +335,14 @@ public class WorkerStorage {
    *          The id of the block
    */
   void accessBlock(long blockId) {
-    synchronized (mLatestBlockAccessTimeMs) {
-      mLatestBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
+    synchronized (mBlockIdToLatestAccessTimeMs) {
+      mBlockIdToLatestAccessTimeMs.put(blockId, System.currentTimeMillis());
     }
   }
 
   private void addBlockId(long blockId, long fileSizeBytes) {
-    synchronized (mLatestBlockAccessTimeMs) {
-      mLatestBlockAccessTimeMs.put(blockId, System.currentTimeMillis());
+    synchronized (mBlockIdToLatestAccessTimeMs) {
+      mBlockIdToLatestAccessTimeMs.put(blockId, System.currentTimeMillis());
       mBlockSizes.put(blockId, fileSizeBytes);
       mMemoryData.add(blockId);
     }
@@ -381,12 +350,12 @@ public class WorkerStorage {
 
   /**
    * Add the checkpoint information of a file. The information is from the user <code>userId</code>.
-   *
+   * 
    * This method is normally triggered from {@link tachyon.client.FileOutStream#close()} if and
-   * only if {@link tachyon.client.WriteType#isThrough()} is true.  The current implementation
+   * only if {@link tachyon.client.WriteType#isThrough()} is true. The current implementation
    * of checkpointing is that through {@link tachyon.client.WriteType} operations write to
    * {@link tachyon.UnderFileSystem} on the client's write path, but under a user temp directory
-   * (temp directory is defined in the worker as {@link #getUserUnderfsTempFolder(long)}).
+   * (temp directory is defined in the worker as {@link #getUserUfsTempFolder(long)}).
    * 
    * @param userId
    *          The user id of the client who send the notification
@@ -396,15 +365,14 @@ public class WorkerStorage {
    * @throws SuspectedFileSizeException
    * @throws FailedToCheckpointException
    * @throws BlockInfoException
-   * @throws TException
    */
   public void addCheckpoint(long userId, int fileId) throws FileDoesNotExistException,
-      SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, TException {
+      SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, IOException {
     // TODO This part need to be changed.
-    String srcPath = CommonUtils.concat(getUserUnderfsTempFolder(userId), fileId);
-    String dstPath = CommonUtils.concat(COMMON_CONF.UNDERFS_DATA_FOLDER, fileId);
+    String srcPath = CommonUtils.concat(getUserUfsTempFolder(userId), fileId);
+    String dstPath = CommonUtils.concat(mCommonConf.UNDERFS_DATA_FOLDER, fileId);
     try {
-      if (!mUnderFs.rename(srcPath, dstPath)) {
+      if (!mUfs.rename(srcPath, dstPath)) {
         throw new FailedToCheckpointException("Failed to rename " + srcPath + " to " + dstPath);
       }
     } catch (IOException e) {
@@ -412,7 +380,7 @@ public class WorkerStorage {
     }
     long fileSize;
     try {
-      fileSize = mUnderFs.getFileSize(dstPath);
+      fileSize = mUfs.getFileSize(dstPath);
     } catch (IOException e) {
       throw new FailedToCheckpointException("Failed to getFileSize " + dstPath);
     }
@@ -420,7 +388,7 @@ public class WorkerStorage {
   }
 
   private void addFoundBlock(long blockId, long length) throws FileDoesNotExistException,
-      SuspectedFileSizeException, BlockInfoException, TException {
+      SuspectedFileSizeException, BlockInfoException, IOException {
     addBlockId(blockId, length);
     mMasterClient
         .worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId, length);
@@ -436,7 +404,7 @@ public class WorkerStorage {
    * @throws TException
    */
   public boolean asyncCheckpoint(int fileId) throws IOException, TException {
-    ClientFileInfo fileInfo = mMasterClient.getClientFileInfoById(fileId);
+    ClientFileInfo fileInfo = mMasterClient.getFileStatus(fileId, "");
 
     if (fileInfo.getDependencyId() != -1) {
       synchronized (mDependencyLock) {
@@ -454,15 +422,15 @@ public class WorkerStorage {
 
   /**
    * Notify the worker the block is cached.
-   *
+   * 
    * This call is called remotely from {@link tachyon.client.TachyonFS#cacheBlock(long)} which is
    * only ever called from {@link tachyon.client.BlockOutStream#close()} (though its a public api
-   * so anyone could call it).  There are a few interesting preconditions for this to work.
-   *
+   * so anyone could call it). There are a few interesting preconditions for this to work.
+   * 
    * 1) Client process writes to files locally under a tachyon defined temp directory.
    * 2) Worker process is on the same node as the client
    * 3) Client is talking to the local worker directly
-   *
+   * 
    * If all conditions are true, then and only then can this method ever be called; all operations
    * work on local files.
    * 
@@ -473,24 +441,29 @@ public class WorkerStorage {
    * @throws FileDoesNotExistException
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
-   * @throws TException
+   * @throws IOException
    */
   public void cacheBlock(long userId, long blockId) throws FileDoesNotExistException,
-      SuspectedFileSizeException, BlockInfoException, TException {
-    File srcFile = new File(CommonUtils.concat(getUserTempFolder(userId), blockId));
+      SuspectedFileSizeException, BlockInfoException, IOException {
+    File srcFile = new File(CommonUtils.concat(getUserLocalTempFolder(userId), blockId));
     File dstFile = new File(CommonUtils.concat(mLocalDataFolder, blockId));
     long fileSizeBytes = srcFile.length();
     if (!srcFile.exists()) {
       throw new FileDoesNotExistException("File " + srcFile + " does not exist.");
     }
-    if (!srcFile.renameTo(dstFile)) {
-      throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath()
-          + " to " + dstFile.getPath());
+    synchronized (mBlockIdToLatestAccessTimeMs) {
+      if (!srcFile.renameTo(dstFile)) {
+        throw new FileDoesNotExistException("Failed to rename file from " + srcFile.getPath()
+            + " to " + dstFile.getPath());
+      }
+      if (mBlockSizes.containsKey(blockId)) {
+        mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
+      }
+      addBlockId(blockId, fileSizeBytes);
+      mUsers.addOwnBytes(userId, -fileSizeBytes);
+      mMasterClient.worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId,
+          fileSizeBytes);
     }
-    addBlockId(blockId, fileSizeBytes);
-    mUsers.addOwnBytes(userId, -fileSizeBytes);
-    mMasterClient.worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId,
-        fileSizeBytes);
     LOG.info(userId + " " + dstFile);
   }
 
@@ -504,7 +477,7 @@ public class WorkerStorage {
 
     for (long userId : removedUsers) {
       mWorkerSpaceCounter.returnUsedBytes(mUsers.removeUser(userId));
-      synchronized (mUsersPerLockedBlock) {
+      synchronized (mLockedBlockIdToUserId) {
         Set<Long> blockds = mLockedBlocksPerUser.get(userId);
         mLockedBlocksPerUser.remove(userId);
         if (blockds != null) {
@@ -529,12 +502,12 @@ public class WorkerStorage {
    */
   private long freeBlock(long blockId) {
     long freedFileBytes = 0;
-    synchronized (mLatestBlockAccessTimeMs) {
+    synchronized (mBlockIdToLatestAccessTimeMs) {
       if (mBlockSizes.containsKey(blockId)) {
         mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
         File srcFile = new File(CommonUtils.concat(mLocalDataFolder, blockId));
         srcFile.delete();
-        mLatestBlockAccessTimeMs.remove(blockId);
+        mBlockIdToLatestAccessTimeMs.remove(blockId);
         freedFileBytes = mBlockSizes.remove(blockId);
         mRemovedBlockList.add(blockId);
         mMemoryData.remove(blockId);
@@ -549,6 +522,9 @@ public class WorkerStorage {
 
   /**
    * Remove blocks from the memory.
+   * 
+   * This is triggered when the worker heartbeats to the master, which sends a
+   * {@link tachyon.thrift.Command} with type {@link tachyon.thrift.CommandType#Free}
    * 
    * @param blocks
    *          The list of blocks to be removed.
@@ -570,30 +546,30 @@ public class WorkerStorage {
   /**
    * @return The orphans' folder in the under file system
    */
-  public String getUnderfsOrphansFolder() {
-    return mUnderfsOrphansFolder;
+  public String getUfsOrphansFolder() {
+    return mUfsOrphansFolder;
   }
 
   /**
    * Get the local user temporary folder of the specified user.
-   *
+   * 
    * This method is a wrapper around {@link tachyon.Users#getUserTempFolder(long)}, and as
    * such should be referentially transparent with {@link tachyon.Users#getUserTempFolder(long)}.
    * In the context of {@code this}, this call will output the result of path concat of
    * {@link #mLocalUserFolder} with the provided {@literal userId}.
-   *
-   * This method differs from {@link #getUserUnderfsTempFolder(long)} in the context of where write
-   * operations end up.  This temp folder generated lives inside the tachyon file system, and as
+   * 
+   * This method differs from {@link #getUserUfsTempFolder(long)} in the context of where write
+   * operations end up. This temp folder generated lives inside the tachyon file system, and as
    * such, will be stored in memory.
-   *
+   * 
    * @see tachyon.Users#getUserTempFolder(long)
    * 
    * @param userId
    *          The id of the user
    * @return The local user temporary folder of the specified user
-   * @throws TException
+   * @throws IOException
    */
-  public String getUserTempFolder(long userId) throws TException {
+  public String getUserLocalTempFolder(long userId) throws IOException {
     String ret = mUsers.getUserTempFolder(userId);
     LOG.info("Return UserTempFolder for " + userId + " : " + ret);
     return ret;
@@ -601,23 +577,23 @@ public class WorkerStorage {
 
   /**
    * Get the user temporary folder in the under file system of the specified user.
-   *
-   * This method is a wrapper around {@link tachyon.Users#getUserUnderfsTempFolder(long)}, and as
-   * such should be referentially transparent with {@link Users#getUserUnderfsTempFolder(long)}.  In
+   * 
+   * This method is a wrapper around {@link tachyon.Users#getUserUfsTempFolder(long)}, and as
+   * such should be referentially transparent with {@link Users#getUserUfsTempFolder(long)}. In
    * the context of {@code this}, this call will output the result of path concat of
-   * {@link #mUnderfsWorkerFolder} with the provided {@literal userId}.
-   *
-   * This method differs from {@link #getUserTempFolder(long)} in the context of where write
-   * operations end up.  This temp folder generated lives inside the
-   * {@link tachyon.UnderFileSystem}, and as such, will be stored remotely, most likely on disk.
+   * {@link #mUfsWorkerFolder} with the provided {@literal userId}.
+   * 
+   * This method differs from {@link #getUserLocalTempFolder(long)} in the context of where write
+   * operations end up. This temp folder generated lives inside the {@link tachyon.UnderFileSystem},
+   * and as such, will be stored remotely, most likely on disk.
    * 
    * @param userId
    *          The id of the user
    * @return The user temporary folder in the under file system
-   * @throws TException
+   * @throws IOException
    */
-  public String getUserUnderfsTempFolder(long userId) throws TException {
-    String ret = mUsers.getUserUnderfsTempFolder(userId);
+  public String getUserUfsTempFolder(long userId) throws IOException {
+    String ret = mUsers.getUserUfsTempFolder(userId);
     LOG.info("Return UserHdfsTempFolder for " + userId + " : " + ret);
     return ret;
   }
@@ -627,9 +603,9 @@ public class WorkerStorage {
    * 
    * @return The Command received from the Master
    * @throws BlockInfoException
-   * @throws TException
+   * @throws IOException
    */
-  public Command heartbeat() throws BlockInfoException, TException {
+  public Command heartbeat() throws BlockInfoException, IOException {
     ArrayList<Long> sendRemovedPartitionList = new ArrayList<Long>();
     while (mRemovedBlockList.size() > 0) {
       sendRemovedPartitionList.add(mRemovedBlockList.poll());
@@ -639,7 +615,7 @@ public class WorkerStorage {
   }
 
   private void initializeWorkerStorage() throws IOException, FileDoesNotExistException,
-      SuspectedFileSizeException, BlockInfoException, TException {
+      SuspectedFileSizeException, BlockInfoException {
     LOG.info("Initializing the worker storage.");
     if (!mLocalDataFolder.exists()) {
       LOG.info("Local folder " + mLocalDataFolder + " does not exist. Creating a new one.");
@@ -667,9 +643,9 @@ public class WorkerStorage {
     mLocalUserFolder.mkdir();
     CommonUtils.changeLocalFilePermission(mLocalUserFolder.getPath(), "775");
 
-    mUnderfsOrphansFolder = mUnderfsWorkerFolder + "/orphans";
-    if (!mUnderFs.exists(mUnderfsOrphansFolder)) {
-      mUnderFs.mkdirs(mUnderfsOrphansFolder, true);
+    mUfsOrphansFolder = mUfsWorkerFolder + "/orphans";
+    if (!mUfs.exists(mUfsOrphansFolder)) {
+      mUfs.mkdirs(mUfsOrphansFolder, true);
     }
 
     int cnt = 0;
@@ -684,8 +660,7 @@ public class WorkerStorage {
           addFoundBlock(blockId, tFile.length());
         } catch (FileDoesNotExistException e) {
           LOG.error("BlockId: " + blockId + " becomes orphan for: \"" + e.message + "\"");
-          LOG.info("Swapout File " + cnt + ": blockId: " + blockId + " to "
-              + mUnderfsOrphansFolder);
+          LOG.info("Swapout File " + cnt + ": blockId: " + blockId + " to " + mUfsOrphansFolder);
           swapoutOrphanBlocks(blockId, tFile);
           freeBlock(blockId);
           continue;
@@ -701,6 +676,13 @@ public class WorkerStorage {
   /**
    * Lock the block
    * 
+   * Used internally to make sure blocks are unmodified, but also used in
+   * {@link tachyon.client.TachyonFS} for caching blocks locally for users. When a user tries
+   * to read a block ({@link tachyon.client.TachyonFile#readByteBuffer(int)} ()}), the client will
+   * attempt
+   * to cache the block on the local users's node, while the user is reading from the local block,
+   * the given block is locked and unlocked once read.
+   * 
    * @param blockId
    *          The id of the block
    * @param userId
@@ -708,11 +690,11 @@ public class WorkerStorage {
    * @throws TException
    */
   public void lockBlock(long blockId, long userId) throws TException {
-    synchronized (mUsersPerLockedBlock) {
-      if (!mUsersPerLockedBlock.containsKey(blockId)) {
-        mUsersPerLockedBlock.put(blockId, new HashSet<Long>());
+    synchronized (mLockedBlockIdToUserId) {
+      if (!mLockedBlockIdToUserId.containsKey(blockId)) {
+        mLockedBlockIdToUserId.put(blockId, new HashSet<Long>());
       }
-      mUsersPerLockedBlock.get(blockId).add(userId);
+      mLockedBlockIdToUserId.get(blockId).add(userId);
 
       if (!mLockedBlocksPerUser.containsKey(userId)) {
         mLockedBlocksPerUser.put(userId, new HashSet<Long>());
@@ -729,24 +711,24 @@ public class WorkerStorage {
    * @return <code> true </code> if the space is granted, <code> false </code> if not.
    */
   private boolean memoryEvictionLRU(long requestBytes) {
-    Set<Integer> pinList = new HashSet<Integer>();
+    Set<Integer> pinList;
 
     try {
       pinList = mMasterClient.worker_getPinIdList();
-    } catch (TException e) {
-      LOG.error(e.getMessage());
+    } catch (IOException e) {
+      LOG.error(e.getMessage(), e);
       pinList = new HashSet<Integer>();
     }
 
-    synchronized (mLatestBlockAccessTimeMs) {
-      synchronized (mUsersPerLockedBlock) {
+    synchronized (mBlockIdToLatestAccessTimeMs) {
+      synchronized (mLockedBlockIdToUserId) {
         while (mWorkerSpaceCounter.getAvailableBytes() < requestBytes) {
           long blockId = -1;
           long latestTimeMs = Long.MAX_VALUE;
-          for (Entry<Long, Long> entry : mLatestBlockAccessTimeMs.entrySet()) {
+          for (Entry<Long, Long> entry : mBlockIdToLatestAccessTimeMs.entrySet()) {
             if (entry.getValue() < latestTimeMs
                 && !pinList.contains(BlockInfo.computeInodeId(entry.getKey()))) {
-              if (!mUsersPerLockedBlock.containsKey(entry.getKey())) {
+              if (!mLockedBlockIdToUserId.containsKey(entry.getKey())) {
                 blockId = entry.getKey();
                 latestTimeMs = entry.getValue();
               }
@@ -771,18 +753,14 @@ public class WorkerStorage {
     long id = 0;
     while (id == 0) {
       try {
-        mMasterClient.connect();
-        NetAddress canonicalAddress =
-            new NetAddress(mWorkerAddress.getAddress().getCanonicalHostName(),
-                mWorkerAddress.getPort());
         id =
-            mMasterClient.worker_register(canonicalAddress,
-                mWorkerSpaceCounter.getCapacityBytes(), 0, new ArrayList<Long>(mMemoryData));
+            mMasterClient.worker_register(mWorkerAddress, mWorkerSpaceCounter.getCapacityBytes(),
+                mWorkerSpaceCounter.getUsedBytes(), new ArrayList<Long>(mMemoryData));
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-      } catch (TException e) {
+      } catch (IOException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
@@ -826,9 +804,8 @@ public class WorkerStorage {
    * 
    * @throws TException
    */
-  public void resetMasterClient() throws TException {
+  public void resetMasterClient() throws IOException {
     MasterClient tMasterClient = new MasterClient(mMasterAddress);
-    tMasterClient.connect();
     mMasterClient = tMasterClient;
   }
 
@@ -864,14 +841,14 @@ public class WorkerStorage {
 
   /**
    * Swap out those blocks missing INode information onto underFS which can be
-   * retrieved by user later. Its cleanup only happens while formating the TFS.
+   * retrieved by user later. Its cleanup only happens while formating the mTachyonFS.
    */
   private void swapoutOrphanBlocks(long blockId, File file) throws IOException {
     RandomAccessFile localFile = new RandomAccessFile(file, "r");
     ByteBuffer buf = localFile.getChannel().map(MapMode.READ_ONLY, 0, file.length());
 
-    String ufsOrphanBlock = CommonUtils.concat(mUnderfsOrphansFolder, blockId);
-    OutputStream os = mUnderFs.create(ufsOrphanBlock);
+    String ufsOrphanBlock = CommonUtils.concat(mUfsOrphansFolder, blockId);
+    OutputStream os = mUfs.create(ufsOrphanBlock);
     int BULKSIZE = Constants.KB * 64;
     byte[] bulk = new byte[BULKSIZE];
     for (int k = 0; k < (buf.limit() + BULKSIZE - 1) / BULKSIZE; k ++) {
@@ -887,6 +864,13 @@ public class WorkerStorage {
   /**
    * Unlock the block
    * 
+   * Used internally to make sure blocks are unmodified, but also used in
+   * {@link tachyon.client.TachyonFS} for cacheing blocks locally for users. When a user tries
+   * to read a block ({@link tachyon.client.TachyonFile#readByteBuffer(int)}), the client will
+   * attempt
+   * to cache the block on the local users's node, while the user is reading from the local block,
+   * the given block is locked and unlocked once read.
+   * 
    * @param blockId
    *          The id of the block
    * @param userId
@@ -894,11 +878,11 @@ public class WorkerStorage {
    * @throws TException
    */
   public void unlockBlock(long blockId, long userId) throws TException {
-    synchronized (mUsersPerLockedBlock) {
-      if (mUsersPerLockedBlock.containsKey(blockId)) {
-        mUsersPerLockedBlock.get(blockId).remove(userId);
-        if (mUsersPerLockedBlock.get(blockId).size() == 0) {
-          mUsersPerLockedBlock.remove(blockId);
+    synchronized (mLockedBlockIdToUserId) {
+      if (mLockedBlockIdToUserId.containsKey(blockId)) {
+        mLockedBlockIdToUserId.get(blockId).remove(userId);
+        if (mLockedBlockIdToUserId.get(blockId).size() == 0) {
+          mLockedBlockIdToUserId.remove(blockId);
         }
       }
 

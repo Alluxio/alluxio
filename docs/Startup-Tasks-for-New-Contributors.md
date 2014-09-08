@@ -21,23 +21,14 @@ few things that everyone should do before developing on Tachyon.
 
 5.  [Building Tachyon Master Branch](Building-Tachyon-Master-Branch.html).
 
-6.  Fork the repository, add unit tests or javadoc for one or two files in the following list,
-and then submit a pull request. You are also welcome to address issues in our
-[JIRA](https://spark-project.atlassian.net/browse/TACHYON). For a tutorial, see the GitHub guides on
+6.  Fork the repository, add unit tests or javadoc for one or two files in the
+following list, and then submit a pull request. You are also welcome to address
+issues in our [JIRA](https://spark-project.atlassian.net/browse/TACHYON).
+Here are a list of
+[tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner)
+for beginners. For a tutorial, see the GitHub guides on
 [forking a repo](https://help.github.com/articles/fork-a-repo) and
 [sending a pull request](https://help.github.com/articles/using-pull-requests).
-
-* * * * *
-
-    core/src/main/java/tachyon/Users.java
-
-    core/src/main/java/tachyon/master/MasterWorkerInfo.java
-
-    core/src/main/java/tachyon/worker/Worker.java
-
-    core/src/main/java/tachyon/worker/WorkerClient.java
-
-    core/src/main/java/tachyon/worker/DataServerMessage.java
 
 ### Testing
 
@@ -65,27 +56,45 @@ leverage the Scala shell, as discussed in this
 ### Coding Style
 
 -   Please follow the style of the existing codebase. Specifically, we use
-    [Sun's conventions](http://www.oracle.com/technetwork/java/codeconvtoc-136057.html),
-    with the following changes:
-    -  Indent **2** spaces per level, not **4**.
+    [Google Java style](http://google-styleguide.googlecode.com/svn/trunk/javaguide.html),
+    with the following changes or deviations:
     -  Maximum line length of **100** characters.
     -  Imported packages should be in [this order](resources/order.importorder), then in
-    **alphabetical order**.
+    **alphabetical order** in each group.
     -  `i ++` instead of `i++`
     -  `i + j` instead of `i+j`
     -  Class and member modifiers, when present, appear in the order recommended by the Java
     Language Specification: **public protected private abstract static final transient volatile
     synchronized native strictfp**, then as **alphabetical order**.
--   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml).
-    -  If you use IntelliJ: you can either use our formatter with the help from [EclipseCodeFormatter](https://github.com/krasa/EclipseCodeFormatter#instructions) or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in IntelliJ
+    -  Class member variable names should be prefixed with `m`, for example `private WorkerClient mWorkerClient;`
+    -  Static variable names should be prefixed with `s`, for example `public static String sUnderFSAddress;`
+    -  Do not add `public` or `abstract` modifier to methods defined in an Java interface because
+       method declaration in the body of an interface is implicitly public and abstract.
+       (http://docs.oracle.com/javase/specs/jls/se7/html/jls-9.html#jls-9.4)  
+-   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml)
+    -  If you use IntelliJ IDEA: you can either use our formatter with the help from
+       [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
+       or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in IntelliJ
+       IDEA
+
+### FindBugs
+
+Before submitting the pull-request, run the latest code against
+[FindBugs](http://findbugs.sourceforge.net/) to verify no new warnings are introduced.
+
+    mvn compile findbugs:findbugs findbugs:gui
 
 ### IDE
 
 You can generate an Eclipse configuration file by running:
 
-    mvn install -Dintegration -DskipTests eclipse:eclipse
+    mvn clean test -Dtest.profile=hdfs -DskipTests eclipse:eclipse
 
 Then import the folder into Eclipse.
+
+You may also have to add the classpath variable M2_REPO by running:
+
+    mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
 
 ### Submitting Code
 
@@ -100,7 +109,14 @@ Then import the folder into Eclipse.
 
 -   Make sure that your code passes all unit tests: ``mvn test`` and ``mvn -Dintegration test``
 
+### Presentations:
+
+-   Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
+-   Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
+
 ### Readings
 
+-   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_tachyon.pdf)
+Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *UC Berkeley EECS 2014*.
 -   [Tachyon: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)
-Haoyuan Li, Ali Ghodsi, Matei Zaharia, Eric Baldeschwieler, Scott Shenker, Ion Stoica, *LADIS 2013*, November 2013.
+Haoyuan Li, Ali Ghodsi, Matei Zaharia, Eric Baldeschwieler, Scott Shenker, Ion Stoica, *LADIS 2013*.

@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
 import java.io.DataOutputStream;
@@ -71,7 +57,7 @@ public class InodeFile extends Inode {
     return inode;
   }
 
-  private final long BLOCK_SIZE_BYTE;
+  private final long mBlockSizeByte;
   private long mLength = 0;
   private boolean mIsComplete = false;
   private boolean mCache = false;
@@ -81,37 +67,70 @@ public class InodeFile extends Inode {
 
   private int mDependencyId;
 
+  /**
+   * Create a new InodeFile.
+   * 
+   * @param name
+   *          The name of the file
+   * @param id
+   *          The id of the file
+   * @param parentId
+   *          The id of the parent of the file
+   * @param blockSizeByte
+   *          The block size of the file, in bytes
+   * @param creationTimeMs
+   *          The creation time of the file, in milliseconds
+   */
   public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs) {
     super(name, id, parentId, false, creationTimeMs);
-    BLOCK_SIZE_BYTE = blockSizeByte;
+    mBlockSizeByte = blockSizeByte;
     mDependencyId = -1;
   }
 
+  /**
+   * Add a block to the file.It will check the legality. Cannot add the block if the file is
+   * complete or the block's information doesn't match the file's information.
+   * 
+   * @param blockInfo
+   *          The block to be added
+   * @throws BlockInfoException
+   */
   public synchronized void addBlock(BlockInfo blockInfo) throws BlockInfoException {
     if (mIsComplete) {
       throw new BlockInfoException("The file is complete: " + this);
     }
-    if (mBlocks.size() > 0 && mBlocks.get(mBlocks.size() - 1).LENGTH != BLOCK_SIZE_BYTE) {
-      throw new BlockInfoException("BLOCK_SIZE_BYTE is " + BLOCK_SIZE_BYTE + ", but the "
-          + "previous block size is " + mBlocks.get(mBlocks.size() - 1).LENGTH);
+    if (mBlocks.size() > 0 && mBlocks.get(mBlocks.size() - 1).mLength != mBlockSizeByte) {
+      throw new BlockInfoException("mBlockSizeByte is " + mBlockSizeByte + ", but the "
+          + "previous block size is " + mBlocks.get(mBlocks.size() - 1).mLength);
     }
     if (blockInfo.getInodeFile() != this) {
       throw new BlockInfoException("InodeFile unmatch: " + this + " != " + blockInfo);
     }
-    if (blockInfo.BLOCK_INDEX != mBlocks.size()) {
+    if (blockInfo.mBlockIndex != mBlocks.size()) {
       throw new BlockInfoException("BLOCK_INDEX unmatch: " + mBlocks.size() + " != " + blockInfo);
     }
-    if (blockInfo.OFFSET != mBlocks.size() * BLOCK_SIZE_BYTE) {
-      throw new BlockInfoException("OFFSET unmatch: " + mBlocks.size() * BLOCK_SIZE_BYTE + " != "
+    if (blockInfo.mOffset != mBlocks.size() * mBlockSizeByte) {
+      throw new BlockInfoException("OFFSET unmatch: " + mBlocks.size() * mBlockSizeByte + " != "
           + blockInfo);
     }
-    if (blockInfo.LENGTH > BLOCK_SIZE_BYTE) {
-      throw new BlockInfoException("LENGTH too big: " + BLOCK_SIZE_BYTE + " " + blockInfo);
+    if (blockInfo.mLength > mBlockSizeByte) {
+      throw new BlockInfoException("LENGTH too big: " + mBlockSizeByte + " " + blockInfo);
     }
-    mLength += blockInfo.LENGTH;
+    mLength += blockInfo.mLength;
     mBlocks.add(blockInfo);
   }
 
+  /**
+   * Add a location information of the file. A worker caches a block of the file.
+   * 
+   * @param blockIndex
+   *          The index of the block in the file
+   * @param workerId
+   *          The id of the worker
+   * @param workerAddress
+   *          The net address of the worker
+   * @throws BlockInfoException
+   */
   public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress)
       throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
@@ -129,7 +148,7 @@ public class InodeFile extends Inode {
     ret.path = path;
     ret.ufsPath = mUfsPath;
     ret.length = mLength;
-    ret.blockSizeByte = BLOCK_SIZE_BYTE;
+    ret.blockSizeByte = mBlockSizeByte;
     ret.creationTimeMs = getCreationTimeMs();
     ret.isComplete = isComplete();
     ret.isFolder = false;
@@ -143,19 +162,37 @@ public class InodeFile extends Inode {
     return ret;
   }
 
+  /**
+   * Get the id of the specified block by the offset of the file.
+   * 
+   * @param offset
+   *          The offset of the file
+   * @return the id of the specified block
+   */
   public long getBlockIdBasedOnOffset(long offset) {
-    int index = (int) (offset / BLOCK_SIZE_BYTE);
+    int index = (int) (offset / mBlockSizeByte);
     return BlockInfo.computeBlockId(getId(), index);
   }
 
+  /**
+   * Get all the blocks of the file. It will return a duplication.
+   * 
+   * @return a duplication of all the blocks' ids of the file
+   */
   public synchronized List<Long> getBlockIds() {
     List<Long> ret = new ArrayList<Long>(mBlocks.size());
     for (int k = 0; k < mBlocks.size(); k ++) {
-      ret.add(mBlocks.get(k).BLOCK_ID);
+      ret.add(mBlocks.get(k).mBlockId);
     }
     return ret;
   }
 
+  /**
+   * The pairs of the blocks and workers. Each pair contains a block's id and the id of the worker
+   * who caches it.
+   * 
+   * @return all the pairs of the blocks and the workers
+   */
   public synchronized List<Pair<Long, Long>> getBlockIdWorkerIdPairs() {
     List<Pair<Long, Long>> ret = new ArrayList<Pair<Long, Long>>();
     for (BlockInfo info : mBlocks) {
@@ -164,10 +201,23 @@ public class InodeFile extends Inode {
     return ret;
   }
 
+  /**
+   * Get the block list of the file, which is not a duplication.
+   * 
+   * @return the block list of the file
+   */
   public List<BlockInfo> getBlockList() {
     return mBlocks;
   }
 
+  /**
+   * Get the locations of the specified block.
+   * 
+   * @param blockIndex
+   *          The index of the block in the file
+   * @return a list of the worker's net address who caches the block
+   * @throws BlockInfoException
+   */
   public synchronized List<NetAddress> getBlockLocations(int blockIndex) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex > mBlocks.size()) {
       throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
@@ -176,16 +226,34 @@ public class InodeFile extends Inode {
     return mBlocks.get(blockIndex).getLocations();
   }
 
+  /**
+   * Get the block size of the file
+   * 
+   * @return the block size in bytes
+   */
   public long getBlockSizeByte() {
-    return BLOCK_SIZE_BYTE;
+    return mBlockSizeByte;
   }
 
+  /**
+   * Get the path of the file in under file system
+   * 
+   * @return the path of the file in under file system
+   */
   public synchronized String getUfsPath() {
     return mUfsPath;
   }
 
+  /**
+   * Get a ClientBlockInfo of the specified block.
+   * 
+   * @param blockIndex
+   *          The index of the block in the file
+   * @return the generated ClientBlockInfo
+   * @throws BlockInfoException
+   */
   public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws BlockInfoException {
-    if (blockIndex < 0 || blockIndex > mBlocks.size()) {
+    if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex is out of the boundry: " + blockIndex);
     }
 
@@ -205,10 +273,20 @@ public class InodeFile extends Inode {
     return ret;
   }
 
+  /**
+   * Get the dependency id of the file
+   * 
+   * @return the dependency id of the file
+   */
   public synchronized int getDependencyId() {
     return mDependencyId;
   }
 
+  /**
+   * Get the percentage that how many of the file is in memory.
+   * 
+   * @return the in memory percentage
+   */
   private synchronized int getInMemoryPercentage() {
     if (mLength == 0) {
       return 100;
@@ -217,40 +295,86 @@ public class InodeFile extends Inode {
     long inMemoryLength = 0;
     for (BlockInfo info : mBlocks) {
       if (info.isInMemory()) {
-        inMemoryLength += info.LENGTH;
+        inMemoryLength += info.mLength;
       }
     }
     return (int) (inMemoryLength * 100 / mLength);
   }
 
+  /**
+   * Get the length of the file
+   * 
+   * @return the length of the file
+   */
   public synchronized long getLength() {
     return mLength;
   }
 
+  /**
+   * Get the id of a new block of the file. Also the id of the next block added into the file.
+   * 
+   * @return the id of a new block of the file
+   */
   public synchronized long getNewBlockId() {
     return BlockInfo.computeBlockId(getId(), mBlocks.size());
   }
 
+  /**
+   * Get the number of the blocks of the file
+   * 
+   * @return the number of the blocks
+   */
   public synchronized int getNumberOfBlocks() {
     return mBlocks.size();
   }
 
+  /**
+   * Return whether the file has checkpointed or not. Note that the file has checkpointed only if
+   * the under file system path is not empty.
+   * 
+   * @return true if the file has checkpointed, false otherwise
+   */
   public synchronized boolean hasCheckpointed() {
     return !mUfsPath.equals("");
   }
 
+  /**
+   * Return whether the file is cacheable or not.
+   * 
+   * @return true if the file is cacheable, false otherwise
+   */
   public synchronized boolean isCache() {
     return mCache;
   }
 
+  /**
+   * Return whether the file is complete or not.
+   * 
+   * @return true if the file is complete, false otherwise
+   */
   public synchronized boolean isComplete() {
     return mIsComplete;
   }
 
+  /**
+   * Return whether the file is fully in memory or not. The file is fully in memory only if all the
+   * blocks of the file are in memory, in other words, the in memory percentage is 100.
+   * 
+   * @return true if the file is fully in memory, false otherwise
+   */
   public synchronized boolean isFullyInMemory() {
     return getInMemoryPercentage() == 100;
   }
 
+  /**
+   * Remove a location of a block.
+   * 
+   * @param blockIndex
+   *          The index of the block in the file
+   * @param workerId
+   *          The id of the removed location worker
+   * @throws BlockInfoException
+   */
   public synchronized void removeLocation(int blockIndex, long workerId) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException("BlockIndex " + blockIndex + " out of bounds." + toString());
@@ -258,27 +382,63 @@ public class InodeFile extends Inode {
     mBlocks.get(blockIndex).removeLocation(workerId);
   }
 
+  /**
+   * Set whether the file is cacheable or not.
+   * 
+   * @param cache
+   *          If true, the file is cacheable
+   */
   public synchronized void setCache(boolean cache) {
     // TODO this related logic is not complete right. fix this.
     mCache = cache;
   }
 
+  /**
+   * Set the path of the file in under file system.
+   * 
+   * @param ufsPath
+   *          The new path of the file in under file system
+   */
   public synchronized void setUfsPath(String ufsPath) {
     mUfsPath = ufsPath;
   }
 
+  /**
+   * The file is complete. Set the complete flag true.
+   */
   public synchronized void setComplete() {
     mIsComplete = true;
   }
 
+  /**
+   * Set the complete flag of the file
+   * 
+   * @param complete
+   *          If true, the file is complete
+   */
   public synchronized void setComplete(boolean complete) {
     mIsComplete = complete;
   }
 
+  /**
+   * Set the dependency id of the file
+   * 
+   * @param dependencyId
+   *          The new dependency id of the file
+   */
   public synchronized void setDependencyId(int dependencyId) {
     mDependencyId = dependencyId;
   }
 
+  /**
+   * Set the length of the file. Cannot set the length if the file is complete or the length is
+   * negative.
+   * 
+   * @param length
+   *          The new length of the file, cannot be negative
+   * @throws SuspectedFileSizeException
+   * @throws BlockInfoException
+   */
   public synchronized void setLength(long length) throws SuspectedFileSizeException,
       BlockInfoException {
     if (isComplete()) {
@@ -288,9 +448,9 @@ public class InodeFile extends Inode {
       throw new SuspectedFileSizeException("InodeFile new length " + length + " is illegal.");
     }
     mLength = 0;
-    while (length >= BLOCK_SIZE_BYTE) {
-      addBlock(new BlockInfo(this, mBlocks.size(), BLOCK_SIZE_BYTE));
-      length -= BLOCK_SIZE_BYTE;
+    while (length >= mBlockSizeByte) {
+      addBlock(new BlockInfo(this, mBlocks.size(), mBlockSizeByte));
+      length -= mBlockSizeByte;
     }
     if (length > 0) {
       addBlock(new BlockInfo(this, mBlocks.size(), (int) length));

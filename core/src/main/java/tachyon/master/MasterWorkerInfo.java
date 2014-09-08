@@ -1,20 +1,5 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -30,13 +15,12 @@ import tachyon.util.CommonUtils;
  * The structure to store a worker's information in master node.
  */
 public class MasterWorkerInfo {
-
   /** Worker's address **/
-  public final InetSocketAddress ADDRESS;
+  public final NetAddress mWorkerAddress;
   /** Capacity of worker in bytes **/
-  private final long CAPACITY_BYTES;
+  private final long mCapacityBytes;
   /** Start time of the worker in ms **/
-  private final long START_TIME_MS;
+  private final long mStartTimeMs;
   /** The id of the worker **/
   private long mId;
   /** Worker's used bytes **/
@@ -48,11 +32,11 @@ public class MasterWorkerInfo {
   /** IDs of blocks the worker should remove **/
   private Set<Long> mToRemoveBlocks;
 
-  public MasterWorkerInfo(long id, InetSocketAddress address, long capacityBytes) {
+  public MasterWorkerInfo(long id, NetAddress address, long capacityBytes) {
     mId = id;
-    ADDRESS = address;
-    CAPACITY_BYTES = capacityBytes;
-    START_TIME_MS = System.currentTimeMillis();
+    mWorkerAddress = address;
+    mCapacityBytes = capacityBytes;
+    mStartTimeMs = System.currentTimeMillis();
 
     mUsedBytes = 0;
     mBlocks = new HashSet<Long>();
@@ -66,28 +50,28 @@ public class MasterWorkerInfo {
   public synchronized ClientWorkerInfo generateClientWorkerInfo() {
     ClientWorkerInfo ret = new ClientWorkerInfo();
     ret.id = mId;
-    ret.address = new NetAddress(ADDRESS.getAddress().getCanonicalHostName(), ADDRESS.getPort());
+    ret.address = mWorkerAddress;
     ret.lastContactSec =
         (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS);
     ret.state = "In Service";
-    ret.capacityBytes = CAPACITY_BYTES;
+    ret.capacityBytes = mCapacityBytes;
     ret.usedBytes = mUsedBytes;
-    ret.starttimeMs = START_TIME_MS;
+    ret.starttimeMs = mStartTimeMs;
     return ret;
   }
 
   /**
    * @return the worker's address.
    */
-  public InetSocketAddress getAddress() {
-    return ADDRESS;
+  public NetAddress getAddress() {
+    return mWorkerAddress;
   }
 
   /**
    * @return the available space of the worker in bytes
    */
   public synchronized long getAvailableBytes() {
-    return CAPACITY_BYTES - mUsedBytes;
+    return mCapacityBytes - mUsedBytes;
   }
 
   /**
@@ -101,7 +85,7 @@ public class MasterWorkerInfo {
    * @return the capacity of the worker in bytes
    */
   public long getCapacityBytes() {
-    return CAPACITY_BYTES;
+    return mCapacityBytes;
   }
 
   /**
@@ -136,10 +120,10 @@ public class MasterWorkerInfo {
   public synchronized String toString() {
     StringBuilder sb = new StringBuilder("MasterWorkerInfo(");
     sb.append(" ID: ").append(mId);
-    sb.append(", ADDRESS: ").append(ADDRESS);
-    sb.append(", TOTAL_BYTES: ").append(CAPACITY_BYTES);
+    sb.append(", mWorkerAddress: ").append(mWorkerAddress);
+    sb.append(", TOTAL_BYTES: ").append(mCapacityBytes);
     sb.append(", mUsedBytes: ").append(mUsedBytes);
-    sb.append(", mAvailableBytes: ").append(CAPACITY_BYTES - mUsedBytes);
+    sb.append(", mAvailableBytes: ").append(mCapacityBytes - mUsedBytes);
     sb.append(", mLastUpdatedTimeMs: ").append(mLastUpdatedTimeMs);
     sb.append(", mBlocks: [ ");
     for (long blockId : mBlocks) {
@@ -151,7 +135,7 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes a block from the worker
-   * 
+   *
    * @param add
    *          true if to add, to remove otherwise.
    * @param blockId
@@ -167,7 +151,7 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes blocks from the worker
-   * 
+   *
    * @param add
    *          true if to add, to remove otherwise.
    * @param blockIds
@@ -190,7 +174,7 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes a block from the to-be-removed blocks set of the worker.
-   * 
+   *
    * @param add
    *          true if to add, to remove otherwise.
    * @param blockId
@@ -208,7 +192,7 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes blocks from the to-be-removed blocks set of the worker.
-   * 
+   *
    * @param add
    *          true if to add, to remove otherwise.
    * @param blockIds
@@ -222,7 +206,7 @@ public class MasterWorkerInfo {
 
   /**
    * Set the used space of the worker in bytes.
-   * 
+   *
    * @param usedBytes
    *          the used space in bytes
    */

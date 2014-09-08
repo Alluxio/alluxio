@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon;
 
 /**
@@ -39,8 +25,11 @@ public class Constants {
   public static final int HOUR_MS = MINUTE_MS * 60;
   public static final int DAY_MS = HOUR_MS * 24;
 
-  public static final String HEADER = "tachyon://";
-  public static final String HEADER_FT = "tachyon-ft://";
+  public static final String SCHEME = "tachyon";
+  public static final String HEADER = SCHEME + "://";
+
+  public static final String SCHEME_FT = "tachyon-ft";
+  public static final String HEADER_FT = SCHEME_FT + "://";
 
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
@@ -49,6 +38,8 @@ public class Constants {
 
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
 
+  /** @deprecated use {@link tachyon.TachyonURI#SEPARATOR} instead **/
+  @Deprecated
   public static final String PATH_SEPARATOR = "/";
 
   public static final int WORKER_BLOCKS_QUEUE_SIZE = 10000;
@@ -57,7 +48,10 @@ public class Constants {
   public static final boolean DEBUG = Boolean
       .valueOf(System.getProperty("tachyon.debug", "false"));
 
-  // Version 1 [Before 0.5.0] is customized ser/de based.
-  // Version 2 [From 0.5.0] starts to use JSON.
-  public static final int JOURNAL_VERSION = 2; // The version keeps increasing.
+  /**
+   * Version 1 [Before 0.5.0] Customized ser/de based.
+   * Version 2 [0.5.0] Starts to use JSON.
+   * Version 3 [0.6.0] Add lastModificationTimeMs to inode.
+   */
+  public static final int JOURNAL_VERSION = 2;
 }

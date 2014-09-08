@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
 import java.io.DataInputStream;
@@ -26,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
@@ -45,10 +32,9 @@ import tachyon.util.CommonUtils;
  * Master operation journal.
  */
 public class EditLog {
-  private final static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private static int mBackUpLogStartNum = -1;
-
   private static long mCurrentTId = 0;
 
   /**
@@ -99,11 +85,20 @@ public class EditLog {
     return mCurrentTId;
   }
 
+  /**
+   * Load one edit log.
+   * 
+   * @param info
+   *          The Master Info
+   * @param path
+   *          The path of the edit log
+   * @throws IOException
+   */
   public static void loadSingleLog(MasterInfo info, String path) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(path);
 
     DataInputStream is = new DataInputStream(ufs.open(path));
-    JsonParser parser = JsonObject.createObjectMapper().getJsonFactory().createJsonParser(is);
+    JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(is);
 
     while (true) {
       EditLogOperation op;
@@ -122,57 +117,58 @@ public class EditLog {
       mCurrentTId = op.transId;
       try {
         switch (op.type) {
-        case ADD_BLOCK: {
-          info.opAddBlock(op.getInt("fileId"), op.getInt("blockIndex"), op.getLong("blockLength"),
-              op.getLong("opTimeMs"));
-          break;
-        }
-        case ADD_CHECKPOINT: {
-          info._addCheckpoint(-1, op.getInt("fileId"), op.getLong("length"), op.getString("path"),
-              op.getLong("opTimeMs"));
-          break;
-        }
-        case CREATE_FILE: {
-          info._createFile(op.getBoolean("recursive"), op.getString("path"),
-              op.getBoolean("directory"), op.getLong("blockSizeByte"),
-              op.getLong("creationTimeMs"));
-          break;
-        }
-        case COMPLETE_FILE: {
-          info._completeFile(op.<Integer> get("fileId"), op.getLong("opTimeMs"));
-          break;
-        }
-        case SET_PINNED: {
-          info._setPinned(op.getInt("fileId"), op.getBoolean("pinned"), op.getLong("opTimeMs"));
-          break;
-        }
-        case RENAME: {
-          info._rename(op.getInt("fileId"), op.getString("dstPath"), op.getLong("opTimeMs"));
-          break;
-        }
-        case DELETE: {
-          info._delete(op.getInt("fileId"), op.getBoolean("recursive"), op.getLong("opTimeMs"));
-          break;
-        }
-        case CREATE_RAW_TABLE: {
-          info._createRawTable(op.getInt("tableId"), op.getInt("columns"),
-              op.getByteBuffer("metadata"));
-          break;
-        }
-        case UPDATE_RAW_TABLE_METADATA: {
-          info.updateRawTableMetadata(op.getInt("tableId"), op.getByteBuffer("metadata"));
-          break;
-        }
-        case CREATE_DEPENDENCY: {
-          info._createDependency(op.<List<Integer>> get("parents"),
-              op.<List<Integer>> get("children"), op.getString("commandPrefix"),
-              op.getByteBufferList("data"), op.getString("comment"), op.getString("framework"),
-              op.getString("frameworkVersion"), op.<DependencyType> get("dependencyType"),
-              op.getInt("dependencyId"), op.getLong("creationTimeMs"));
-          break;
-        }
-        default:
-          throw new IOException("Invalid op type " + op);
+          case ADD_BLOCK: {
+            info.opAddBlock(op.getInt("fileId"), op.getInt("blockIndex"),
+                op.getLong("blockLength"), op.getLong("opTimeMs"));
+            break;
+          }
+          case ADD_CHECKPOINT: {
+            info._addCheckpoint(-1, op.getInt("fileId"), op.getLong("length"),
+                op.getString("path"), op.getLong("opTimeMs"));
+            break;
+          }
+          case CREATE_FILE: {
+            info._createFile(op.getBoolean("recursive"), op.getString("path"),
+                op.getBoolean("directory"), op.getLong("blockSizeByte"),
+                op.getLong("creationTimeMs"));
+            break;
+          }
+          case COMPLETE_FILE: {
+            info._completeFile(op.get("fileId", Integer.class), op.getLong("opTimeMs"));
+            break;
+          }
+          case SET_PINNED: {
+            info._setPinned(op.getInt("fileId"), op.getBoolean("pinned"), op.getLong("opTimeMs"));
+            break;
+          }
+          case RENAME: {
+            info._rename(op.getInt("fileId"), op.getString("dstPath"), op.getLong("opTimeMs"));
+            break;
+          }
+          case DELETE: {
+            info._delete(op.getInt("fileId"), op.getBoolean("recursive"), op.getLong("opTimeMs"));
+            break;
+          }
+          case CREATE_RAW_TABLE: {
+            info._createRawTable(op.getInt("tableId"), op.getInt("columns"),
+                op.getByteBuffer("metadata"));
+            break;
+          }
+          case UPDATE_RAW_TABLE_METADATA: {
+            info.updateRawTableMetadata(op.getInt("tableId"), op.getByteBuffer("metadata"));
+            break;
+          }
+          case CREATE_DEPENDENCY: {
+            info._createDependency(op.get("parents", new TypeReference<List<Integer>>() {}),
+                op.get("children", new TypeReference<List<Integer>>() {}),
+                op.getString("commandPrefix"), op.getByteBufferList("data"),
+                op.getString("comment"), op.getString("framework"),
+                op.getString("frameworkVersion"), op.get("dependencyType", DependencyType.class),
+                op.getInt("dependencyId"), op.getLong("creationTimeMs"));
+            break;
+          }
+          default:
+            throw new IOException("Invalid op type " + op);
         }
       } catch (SuspectedFileSizeException e) {
         throw new IOException(e);
@@ -195,6 +191,12 @@ public class EditLog {
     ufs.close();
   }
 
+  /**
+   * Make the edit log up-to-date, It will delete all editlogs since mBackUpLogStartNum.
+   * 
+   * @param path
+   *          The path of the edit logs
+   */
   public static void markUpToDate(String path) {
     UnderFileSystem ufs = UnderFileSystem.get(path);
     String folder =
@@ -214,7 +216,7 @@ public class EditLog {
     mBackUpLogStartNum = -1;
   }
 
-  // When a master is replaying an edit log, mark the current edit log as an INACTIVE one.
+  /** When a master is replaying an edit log, mark the current edit log as an INACTIVE one. */
   private final boolean INACTIVE;
 
   private final String PATH;
@@ -224,10 +226,10 @@ public class EditLog {
 
   private UnderFileSystem mUfs;
 
-  // Raw output stream to the UnderFS
+  /** Raw output stream to the UnderFS */
   private OutputStream mOs;
 
-  // Wraps the raw output stream.
+  /** Wraps the raw output stream. */
   private DataOutputStream mDos;
 
   // Starting from 1.
@@ -239,6 +241,17 @@ public class EditLog {
 
   private int mMaxLogSize = 5 * Constants.MB;
 
+  /**
+   * Create a new EditLog
+   * 
+   * @param path
+   *          The path of the edit logs.
+   * @param inactive
+   *          If a master is replaying an edit log, the current edit log is inactive.
+   * @param transactionId
+   *          The beginning transactionId of the edit log
+   * @throws IOException
+   */
   public EditLog(String path, boolean inactive, long transactionId) throws IOException {
     INACTIVE = inactive;
 
@@ -307,6 +320,18 @@ public class EditLog {
     }
   }
 
+  /**
+   * Log an addBlock operation. Do nothing if the edit log is inactive.
+   * 
+   * @param fileId
+   *          The id of the file
+   * @param blockIndex
+   *          The index of the block to be added
+   * @param blockLength
+   *          The length of the block to be added
+   * @param opTimeMs
+   *          The time of the addBlock operation, in milliseconds
+   */
   public synchronized void addBlock(int fileId, int blockIndex, long blockLength, long opTimeMs) {
     if (INACTIVE) {
       return;
@@ -319,6 +344,18 @@ public class EditLog {
     writeOperation(operation);
   }
 
+  /**
+   * Log an addCheckpoint operation. Do nothing if the edit log is inactive.
+   * 
+   * @param fileId
+   *          The file to add the checkpoint
+   * @param length
+   *          The length of the checkpoint
+   * @param checkpointPath
+   *          The path of the checkpoint
+   * @param opTimeMs
+   *          The time of the addCheckpoint operation, in milliseconds
+   */
   public synchronized void addCheckpoint(int fileId, long length, String checkpointPath,
       long opTimeMs) {
     if (INACTIVE) {
@@ -348,6 +385,14 @@ public class EditLog {
     }
   }
 
+  /**
+   * Log a completeFile operation. Do nothing if the edit log is inactive.
+   * 
+   * @param fileId
+   *          The id of the file
+   * @param opTimeMs
+   *          The time of the completeFile operation, in milliseconds
+   */
   public synchronized void completeFile(int fileId, long opTimeMs) {
     if (INACTIVE) {
       return;
@@ -359,6 +404,31 @@ public class EditLog {
     writeOperation(operation);
   }
 
+  /**
+   * Log a createDependency operation. The parameters are like creating a new Dependency. Do nothing
+   * if the edit log is inactive.
+   * 
+   * @param parents
+   *          The input files' id of the dependency
+   * @param children
+   *          The output files' id of the dependency
+   * @param commandPrefix
+   *          The prefix of the command used for recomputation
+   * @param data
+   *          The list of the data used for recomputation
+   * @param comment
+   *          The comment of the dependency
+   * @param framework
+   *          The framework of the dependency, used for recomputation
+   * @param frameworkVersion
+   *          The version of the framework
+   * @param dependencyType
+   *          The type of the dependency, DependencyType.Wide or DependencyType.Narrow
+   * @param depId
+   *          The id of the dependency
+   * @param creationTimeMs
+   *          The create time of the dependency, in milliseconds
+   */
   public synchronized void createDependency(List<Integer> parents, List<Integer> children,
       String commandPrefix, List<ByteBuffer> data, String comment, String framework,
       String frameworkVersion, DependencyType dependencyType, int depId, long creationTimeMs) {
@@ -378,6 +448,21 @@ public class EditLog {
     writeOperation(operation);
   }
 
+  /**
+   * Log a createFile operation. Do nothing if the edit log is inactive.
+   * 
+   * @param recursive
+   *          If recursive is true and the filesystem tree is not filled in all the way to path yet,
+   *          it fills in the missing components.
+   * @param path
+   *          The path to create
+   * @param directory
+   *          If true, creates an InodeFolder instead of an Inode
+   * @param blockSizeByte
+   *          If it's a file, the block size for the Inode
+   * @param creationTimeMs
+   *          The time the file was created
+   */
   public synchronized void createFile(boolean recursive, String path, boolean directory,
       long blockSizeByte, long creationTimeMs) {
     if (INACTIVE) {
@@ -392,6 +477,16 @@ public class EditLog {
     writeOperation(operation);
   }
 
+  /**
+   * Log a createRawTable operation. Do nothing if the edit log is inactive.
+   * 
+   * @param tableId
+   *          The id of the raw table
+   * @param columns
+   *          The number of columns in the table
+   * @param metadata
+   *          Additional metadata about the table
+   */
   public synchronized void createRawTable(int tableId, int columns, ByteBuffer metadata) {
     if (INACTIVE) {
       return;
@@ -404,6 +499,16 @@ public class EditLog {
     writeOperation(operation);
   }
 
+  /**
+   * Log a delete operation. Do nothing if the edit log is inactive.
+   * 
+   * @param fileId
+   *          the file to be deleted.
+   * @param recursive
+   *          whether delete the file recursively or not.
+   * @param opTimeMs
+   *          The time of the delete operation, in milliseconds
+   */
   public synchronized void delete(int fileId, boolean recursive, long opTimeMs) {
     if (INACTIVE) {
       return;
@@ -416,6 +521,14 @@ public class EditLog {
     writeOperation(operation);
   }
 
+  /**
+   * Delete the completed logs.
+   * 
+   * @param path
+   *          The path of the logs
+   * @param upTo
+   *          The logs in the path from 0 to upTo-1 are completed and to be deleted
+   */
   public void deleteCompletedLogs(String path, int upTo) {
     UnderFileSystem ufs = UnderFileSystem.get(path);
     String folder =
@@ -463,6 +576,16 @@ public class EditLog {
     return new Pair<Long, Long>(mTransactionId, mFlushedTransactionId);
   }
 
+  /**
+   * Log a rename operation. Do nothing if the edit log is inactive.
+   * 
+   * @param fileId
+   *          The id of the file to rename
+   * @param dstPath
+   *          The new path of the file
+   * @param opTimeMs
+   *          The time of the rename operation, in milliseconds
+   */
   public synchronized void rename(int fileId, String dstPath, long opTimeMs) {
     if (INACTIVE) {
       return;
@@ -475,6 +598,12 @@ public class EditLog {
     writeOperation(operation);
   }
 
+  /**
+   * The edit log reaches the max log size and needs rotate. Do nothing if the edit log is inactive.
+   * 
+   * @param path
+   *          The path of the edit log
+   */
   public void rotateEditLog(String path) {
     if (INACTIVE) {
       return;
@@ -509,6 +638,16 @@ public class EditLog {
     mMaxLogSize = size;
   }
 
+  /**
+   * Log a setPinned operation. Do nothing if the edit log is inactive.
+   * 
+   * @param fileId
+   *          The id of the file
+   * @param pinned
+   *          If true, the file is never evicted from memory
+   * @param opTimeMs
+   *          The time of the setPinned operation, in milliseconds
+   */
   public synchronized void setPinned(int fileId, boolean pinned, long opTimeMs) {
     if (INACTIVE) {
       return;
@@ -521,6 +660,14 @@ public class EditLog {
     writeOperation(operation);
   }
 
+  /**
+   * Log an updateRawTableMetadata operation. Do nothing if the edit log is inactive.
+   * 
+   * @param tableId
+   *          The id of the raw table
+   * @param metadata
+   *          The new metadata of the raw table
+   */
   public synchronized void updateRawTableMetadata(int tableId, ByteBuffer metadata) {
     if (INACTIVE) {
       return;

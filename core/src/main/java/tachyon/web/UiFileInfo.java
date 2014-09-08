@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.web;
 
 import tachyon.Constants;
@@ -23,69 +9,69 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UiFileInfo implements Comparable<UiFileInfo> {
-  private final int ID;
-  private final int DEPENDENCY_ID;
-  private final String NAME;
-  private final String ABSOLUATE_PATH;
-  private final String CHECKPOINT_PATH;
-  private final long BLOCK_SIZE_BYTES;
-  private final long SIZE;
-  private final long CREATION_TIME_MS;
-  private final long MODIFICATION_TIME_MS;
-  private final boolean IN_MEMORY;
-  private final int IN_MEMORY_PERCENTAGE;
-  private final boolean IS_DIRECTORY;
-  private final boolean NEED_PIN;
+  private final int mId;
+  private final int mDependencyId;
+  private final String mName;
+  private final String mAbsolutePath;
+  private final String mCheckpointPath;
+  private final long mBlockSizeBytes;
+  private final long mSize;
+  private final long mCreationTimeMs;
+  private final long mLastModificationTimeMs;
+  private final boolean mInMemory;
+  private final int mInMemoryPercent;
+  private final boolean mIsDirectory;
+  private final boolean mIsPinned;
   private List<String> mFileLocations;
 
   public UiFileInfo(ClientFileInfo fileInfo) {
-    ID = fileInfo.getId();
-    DEPENDENCY_ID = fileInfo.getDependencyId();
-    NAME = fileInfo.getName();
-    ABSOLUATE_PATH = fileInfo.getPath();
-    CHECKPOINT_PATH = fileInfo.getUfsPath();
-    BLOCK_SIZE_BYTES = fileInfo.getBlockSizeByte();
-    SIZE = fileInfo.getLength();
-    CREATION_TIME_MS = fileInfo.getCreationTimeMs();
-    MODIFICATION_TIME_MS = fileInfo.getLastModificationTimeMs();
-    IN_MEMORY = (100 == fileInfo.inMemoryPercentage);
-    IN_MEMORY_PERCENTAGE = fileInfo.getInMemoryPercentage();
-    IS_DIRECTORY = fileInfo.isFolder;
-    NEED_PIN = fileInfo.isPinned;
+    mId = fileInfo.getId();
+    mDependencyId = fileInfo.getDependencyId();
+    mName = fileInfo.getName();
+    mAbsolutePath = fileInfo.getPath();
+    mCheckpointPath = fileInfo.getUfsPath();
+    mBlockSizeBytes = fileInfo.getBlockSizeByte();
+    mSize = fileInfo.getLength();
+    mCreationTimeMs = fileInfo.getCreationTimeMs();
+    mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
+    mInMemory = (100 == fileInfo.inMemoryPercentage);
+    mInMemoryPercent = fileInfo.getInMemoryPercentage();
+    mIsDirectory = fileInfo.isFolder;
+    mIsPinned = fileInfo.isPinned;
     mFileLocations = new ArrayList<String>();
   }
 
   @Override
   public int compareTo(UiFileInfo o) {
-    return ABSOLUATE_PATH.compareTo(o.getAbsolutePath());
+    return mAbsolutePath.compareTo(o.getAbsolutePath());
   }
 
   public String getAbsolutePath() {
-    return ABSOLUATE_PATH;
+    return mAbsolutePath;
   }
 
   public String getBlockSizeBytes() {
-    if (IS_DIRECTORY) {
+    if (mIsDirectory) {
       return " ";
     } else {
-      return CommonUtils.getSizeFromBytes(BLOCK_SIZE_BYTES);
+      return CommonUtils.getSizeFromBytes(mBlockSizeBytes);
     }
   }
 
   public String getCheckpointPath() {
-    return CHECKPOINT_PATH;
+    return mCheckpointPath;
   }
 
   public String getCreationTime() {
-    return CommonUtils.convertMsToDate(CREATION_TIME_MS);
+    return CommonUtils.convertMsToDate(mCreationTimeMs);
   }
 
   public String getModificationTime() {
-    return CommonUtils.convertMsToDate(MODIFICATION_TIME_MS);
+    return CommonUtils.convertMsToDate(mLastModificationTimeMs);
   }
 
   public int getDependencyId() {
-    return DEPENDENCY_ID;
+    return mDependencyId;
   }
 
   public List<String> getFileLocations() {
@@ -93,44 +79,44 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
   }
 
   public int getId() {
-    return ID;
+    return mId;
   }
 
   public boolean getInMemory() {
-    return IN_MEMORY;
+    return mInMemory;
   }
 
   public int getInMemoryPercentage() {
-    return IN_MEMORY_PERCENTAGE;
+    return mInMemoryPercent;
   }
 
   public boolean getIsDirectory() {
-    return IS_DIRECTORY;
+    return mIsDirectory;
   }
 
   public boolean getNeedPin() {
-    return NEED_PIN;
+    return mIsPinned;
   }
 
   public String getName() {
-    if (ABSOLUATE_PATH.equals(Constants.PATH_SEPARATOR)) {
+    if (Constants.PATH_SEPARATOR.equals(mAbsolutePath)) {
       return "root";
     } else {
-      return NAME;
+      return mName;
     }
   }
 
   public String getSize() {
-    if (IS_DIRECTORY) {
+    if (mIsDirectory) {
       return " ";
     } else {
-      return CommonUtils.getSizeFromBytes(SIZE);
+      return CommonUtils.getSizeFromBytes(mSize);
     }
   }
 
   public void setFileLocations(List<NetAddress> fileLocations) {
     for (NetAddress addr : fileLocations) {
-      mFileLocations.add(new String(addr.getMHost() + ":" + addr.getMPort()));
+      mFileLocations.add(addr.getMHost() + ":" + addr.getMPort());
     }
   }
 }

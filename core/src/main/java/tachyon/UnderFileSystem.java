@@ -1,23 +1,11 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+
+import tachyon.conf.CommonConf;
 
 /**
  * Tachyon stores data into an under layer file system. Any file system implementing this interface
@@ -27,17 +15,17 @@ public abstract class UnderFileSystem {
   public enum SpaceType {
     SPACE_TOTAL(0), SPACE_FREE(1), SPACE_USED(2);
 
-    private final int value;
+    private final int mValue;
 
     private SpaceType(int value) {
-      this.value = value;
+      mValue = value;
     }
 
     /**
      * Get the integer value of this enum value.
      */
     public int getValue() {
-      return value;
+      return mValue;
     }
   }
 
@@ -62,13 +50,27 @@ public abstract class UnderFileSystem {
    * @return null for any unknown scheme.
    */
   public static UnderFileSystem get(String path, Object conf) {
-    if (path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")
-        || path.startsWith("glusterfs:///")) {
+    if (isHadoopUnderFS(path)) {
       return UnderFileSystemHdfs.getClient(path, conf);
     } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
       return UnderFileSystemSingleLocal.getClient();
     }
     throw new IllegalArgumentException("Unknown under file system scheme " + path);
+  }
+
+  /**
+   * Determines if the Hadoop implementation of {@link tachyon.UnderFileSystem} should be used.
+   * 
+   * The logic to say if a path should use the hadoop implementation is by checking if
+   * {@link String#startsWith(String)} to see if the configured schemas are found.
+   */
+  private static boolean isHadoopUnderFS(final String path) {
+    for (final String prefix : CommonConf.get().HADOOP_UFS_PREFIXES) {
+      if (path.startsWith(prefix)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -87,8 +89,7 @@ public abstract class UnderFileSystem {
     if (path == null) {
       return null;
     } else if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)
-        || path.startsWith("hdfs://") || path.startsWith("s3://") || path.startsWith("s3n://")
-        || path.startsWith("glusterfs:///")) {
+        || isHadoopUnderFS(path)) {
       String prefix = path.substring(0, path.indexOf("://") + 3);
       String body = path.substring(prefix.length());
       if (body.contains(Constants.PATH_SEPARATOR)) {

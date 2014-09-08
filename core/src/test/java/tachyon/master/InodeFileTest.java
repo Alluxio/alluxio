@@ -1,28 +1,12 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import tachyon.master.BlockInfo;
-import tachyon.master.InodeFile;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.NetAddress;
 import tachyon.thrift.SuspectedFileSizeException;
@@ -59,9 +43,9 @@ public class InodeFileTest {
   public void inMemoryLocationsTest() throws IOException, BlockInfoException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
     List<NetAddress> testAddresses = new ArrayList<NetAddress>(3);
-    testAddresses.add(new NetAddress("testhost1", 1000));
-    testAddresses.add(new NetAddress("testhost2", 2000));
-    testAddresses.add(new NetAddress("testhost3", 3000));
+    testAddresses.add(new NetAddress("testhost1", 1000, 1001));
+    testAddresses.add(new NetAddress("testhost2", 2000, 2001));
+    testAddresses.add(new NetAddress("testhost3", 3000, 3001));
     inodeFile.addBlock(new BlockInfo(inodeFile, 0, 5));
     inodeFile.addLocation(0, 1, testAddresses.get(0));
     Assert.assertEquals(1, inodeFile.getBlockLocations(0).size());
@@ -75,7 +59,7 @@ public class InodeFileTest {
   @Test(expected = BlockInfoException.class)
   public void inMemoryLocationsTestWithBlockInfoException() throws IOException, BlockInfoException {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
   }
 
   @Test
@@ -83,17 +67,17 @@ public class InodeFileTest {
     InodeFile inodeFile = new InodeFile("testFile1", 1, 0, 1000, System.currentTimeMillis());
     inodeFile.addBlock(new BlockInfo(inodeFile, 0, 5));
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
     Assert.assertTrue(inodeFile.isFullyInMemory());
     inodeFile.removeLocation(0, 1);
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
     Assert.assertTrue(inodeFile.isFullyInMemory());
     inodeFile.removeLocation(0, 1);
     Assert.assertFalse(inodeFile.isFullyInMemory());
-    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000));
-    inodeFile.addLocation(0, 2, new NetAddress("testhost1", 1000));
+    inodeFile.addLocation(0, 1, new NetAddress("testhost1", 1000, 1001));
+    inodeFile.addLocation(0, 2, new NetAddress("testhost1", 1000, 1001));
     Assert.assertTrue(inodeFile.isFullyInMemory());
     inodeFile.removeLocation(0, 1);
     Assert.assertTrue(inodeFile.isFullyInMemory());
@@ -200,5 +184,28 @@ public class InodeFileTest {
     Assert.assertTrue(inodeFile.isPinned());
     inodeFile.setPinned(false);
     Assert.assertFalse(inodeFile.isPinned());
+  }
+
+  @Test(expected = BlockInfoException.class)
+  public void emeptyInodeGetBlock() throws BlockInfoException {
+    InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
+    Assert.assertEquals(0, inode1.getBlockIds().size());
+    // cant get a block that is missing
+    inode1.getClientBlockInfo(0);
+  }
+
+  @Test(expected = BlockInfoException.class)
+  public void emeptyInodeGetBlockLarger() throws BlockInfoException {
+    InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
+    Assert.assertEquals(0, inode1.getBlockIds().size());
+    // cant get a block that is missing
+    inode1.getClientBlockInfo(1);
+  }
+
+  @Test(expected = BlockInfoException.class)
+  public void negativeBlockGetBlock() throws BlockInfoException {
+    InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
+    // cant get a block that is missing
+    inode1.getClientBlockInfo(-1);
   }
 }

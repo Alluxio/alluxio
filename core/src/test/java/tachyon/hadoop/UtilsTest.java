@@ -1,10 +1,10 @@
 package tachyon.hadoop;
 
+import java.net.URI;
+
 import org.apache.hadoop.fs.Path;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.net.URI;
 
 public final class UtilsTest {
 
@@ -42,7 +42,8 @@ public final class UtilsTest {
 
   @Test
   public void testGetPathWithoutSchemaFromHDFSURI() {
-    final Path path = new Path(URI.create("hdfs://localhost:1234/foo/bar/baz?please=dont&show=up"));
+    final Path path =
+        new Path(URI.create("hdfs://localhost:1234/foo/bar/baz?please=dont&show=up"));
 
     final String output = Utils.getPathWithoutScheme(path);
     Assert.assertEquals("/foo/bar/baz", output);

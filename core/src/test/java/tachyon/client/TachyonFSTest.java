@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.client;
 
 import java.io.IOException;
@@ -38,9 +24,9 @@ import tachyon.util.CommonUtils;
  * Unit tests on TachyonClient.
  */
 public class TachyonFSTest {
-  private final int WORKER_CAPACITY_BYTES = 20000;
-  private final int USER_QUOTA_UNIT_BYTES = 1000;
-  private final int SLEEP_MS = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
+  private static final int WORKER_CAPACITY_BYTES = 20000;
+  private static final int USER_QUOTA_UNIT_BYTES = 1000;
+  private static final int SLEEP_MS = WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS * 2 + 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
@@ -59,14 +45,14 @@ public class TachyonFSTest {
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
   }
-  
+
   @Test
   public void getRootTest() throws IOException {
     Assert.assertEquals(1, mTfs.getFileId("/"));
   }
 
   @Test
-  public void createFileTest() throws IOException  {
+  public void createFileTest() throws IOException {
     int fileId = mTfs.createFile("/root/testFile1");
     Assert.assertEquals(3, fileId);
     fileId = mTfs.createFile("/root/testFile2");
@@ -93,7 +79,7 @@ public class TachyonFSTest {
     os.close();
     mTfs.createFile("/abc", tempFolder + "/temp");
     Assert.assertTrue(mTfs.exist("/abc"));
-    Assert.assertEquals(tempFolder + "/temp", mTfs.getUfsPath(mTfs.getFileId("/abc")));
+    Assert.assertEquals(tempFolder + "/temp", mTfs.getFile("/abc").getUfsPath());
   }
 
   @Test(expected = IOException.class)
@@ -308,7 +294,7 @@ public class TachyonFSTest {
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
-      Assert.assertNotNull(tFile.readByteBuffer());
+      Assert.assertNotNull(tFile.readByteBuffer(0));
     }
     fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH,
         fileSize));
@@ -335,7 +321,7 @@ public class TachyonFSTest {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
       if (k < numOfFiles - 1) {
-        Assert.assertNotNull(tFile.readByteBuffer());
+        Assert.assertNotNull(tFile.readByteBuffer(0));
       }
     }
     fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH,
@@ -366,13 +352,13 @@ public class TachyonFSTest {
       CommonUtils.sleepMs(null, SLEEP_MS);
       Assert.assertFalse(tFile.isInMemory());
       if (k < numOfFiles) {
-        Assert.assertNull(tFile.readByteBuffer());
+        Assert.assertNull(tFile.readByteBuffer(0));
         Assert.assertTrue(tFile.recache());
-        Assert.assertNotNull(tFile.readByteBuffer());
+        Assert.assertNotNull(tFile.readByteBuffer(0));
       } else {
-        Assert.assertNull(tFile.readByteBuffer());
+        Assert.assertNull(tFile.readByteBuffer(0));
         Assert.assertFalse(tFile.recache());
-        Assert.assertNull(tFile.readByteBuffer());
+        Assert.assertNull(tFile.readByteBuffer(0));
       }
     }
   }
@@ -416,9 +402,9 @@ public class TachyonFSTest {
 
   @Test
   public void toStringTest() throws IOException {
-    String tfsAddress = "tachyon://localhost:19998";
+    String tfsAddress = "tachyon://127.0.0.1:19998";
     TachyonFS tfs = TachyonFS.get(tfsAddress);
-    Assert.assertEquals(tfs.toString(), "tachyon://localhost/127.0.0.1:19998");
+    Assert.assertEquals(tfs.toString(), "tachyon:///127.0.0.1:19998");
   }
 
   @Test
@@ -433,7 +419,7 @@ public class TachyonFSTest {
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
-      TachyonByteBuffer tBuf = tFile.readByteBuffer();
+      TachyonByteBuffer tBuf = tFile.readByteBuffer(0);
       Assert.assertNotNull(tBuf);
       tBuf.close();
     }
@@ -461,9 +447,9 @@ public class TachyonFSTest {
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
-      TachyonByteBuffer tBuf = tFile.readByteBuffer();
+      TachyonByteBuffer tBuf = tFile.readByteBuffer(0);
       Assert.assertNotNull(tBuf);
-      tBuf = tFile.readByteBuffer();
+      tBuf = tFile.readByteBuffer(0);
       Assert.assertNotNull(tBuf);
       tBuf.close();
     }
@@ -491,9 +477,9 @@ public class TachyonFSTest {
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
-      TachyonByteBuffer tBuf1 = tFile.readByteBuffer();
+      TachyonByteBuffer tBuf1 = tFile.readByteBuffer(0);
       Assert.assertNotNull(tBuf1);
-      TachyonByteBuffer tBuf2 = tFile.readByteBuffer();
+      TachyonByteBuffer tBuf2 = tFile.readByteBuffer(0);
       Assert.assertNotNull(tBuf2);
       tBuf1.close();
       tBuf2.close();

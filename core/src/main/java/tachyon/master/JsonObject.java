@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
 import java.nio.ByteBuffer;
@@ -21,8 +7,11 @@ import java.util.Map;
 import org.apache.commons.codec.binary.Base64;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -38,24 +27,33 @@ abstract class JsonObject {
         SerializationFeature.CLOSE_CLOSEABLE, false);
   }
 
-  public Map<String, Object> parameters = Maps.newHashMap();
+  private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
+
+  public Map<String, JsonNode> parameters = Maps.newHashMap();
 
   /**
    * Generic parameter getter, useful for custom classes or enums.
    * Use a more specific getter, like getLong(), when available.
    */
-  @SuppressWarnings("unchecked")
-  public <T> T get(String name) {
-    return (T) parameters.get(name);
+  public <T> T get(String name, Class<T> clazz) {
+    return OBJECT_MAPPER.convertValue(parameters.get(name), clazz);
+  }
+
+  /**
+   * Get the value for parameterized type class such as <code>List<Integer>/code>
+   * using the help of <code>TypeReference</code>
+   */
+  public <T> T get(String name, TypeReference<T> typeReference) {
+    return OBJECT_MAPPER.convertValue(parameters.get(name), typeReference);
   }
 
   public Boolean getBoolean(String name) {
-    return this.get(name);
+    return this.get(name, Boolean.class);
   }
 
   /** Deserializes a base64-encoded String as a ByteBuffer. */
   public ByteBuffer getByteBuffer(String name) {
-    String byteString = get(name);
+    String byteString = get(name, String.class);
     if (byteString == null) {
       return null;
     }
@@ -65,7 +63,7 @@ abstract class JsonObject {
 
   /** Deserializes a list of base64-encoded Strings as a list of ByteBuffers. */
   public List<ByteBuffer> getByteBufferList(String name) {
-    List<String> byteStrings = get(name);
+    List<String> byteStrings = get(name, new TypeReference<List<String>>() {});
     if (byteStrings == null) {
       return null;
     }
@@ -78,7 +76,7 @@ abstract class JsonObject {
   }
 
   public Integer getInt(String name) {
-    return this.<Number> get(name).intValue();
+    return this.get(name, Number.class).intValue();
   }
 
   /**
@@ -87,16 +85,16 @@ abstract class JsonObject {
    * have been deserialized as integers if they were sufficiently small.
    */
   public Long getLong(String name) {
-    return this.<Number> get(name).longValue();
+    return this.get(name, Number.class).longValue();
   }
 
   public String getString(String name) {
-    return this.get(name);
+    return this.get(name, String.class);
   }
 
   /** Adds the given named parameter to the Json object. Value must be JSON-serializable. */
   public JsonObject withParameter(String name, Object value) {
-    parameters.put(name, value);
+    parameters.put(name, OBJECT_MAPPER.convertValue(value, JsonNode.class));
     return this;
   }
 }

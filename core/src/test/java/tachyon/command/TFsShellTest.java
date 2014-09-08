@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.command;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -49,7 +35,7 @@ import tachyon.util.CommonUtils;
  * Unit tests on TFsShell.
  */
 public class TFsShellTest {
-  private final int mSizeBytes = Constants.MB * 10;
+  private static final int SIZE_BYTES = Constants.MB * 10;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
   private TFsShell mFsShell = null;
@@ -59,6 +45,7 @@ public class TFsShellTest {
 
   @After
   public final void after() throws Exception {
+    mFsShell.close();
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.setOut(mOldOutput);
@@ -67,7 +54,7 @@ public class TFsShellTest {
   @Before
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    mLocalTachyonCluster = new LocalTachyonCluster(mSizeBytes);
+    mLocalTachyonCluster = new LocalTachyonCluster(SIZE_BYTES);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();
     mFsShell = new TFsShell();
@@ -107,7 +94,7 @@ public class TFsShellTest {
     File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
     testFile.createNewFile();
     FileOutputStream fos = new FileOutputStream(testFile);
-    byte toWrite[] = TestUtils.getIncreasingByteArray(mSizeBytes);
+    byte toWrite[] = TestUtils.getIncreasingByteArray(SIZE_BYTES);
     fos.write(toWrite);
     fos.close();
     mFsShell
@@ -117,11 +104,11 @@ public class TFsShellTest {
             "/testFile" }), mOutput.toString());
     TachyonFile tFile = mTfs.getFile("/testFile");
     Assert.assertNotNull(tFile);
-    Assert.assertEquals(mSizeBytes, tFile.length());
+    Assert.assertEquals(SIZE_BYTES, tFile.length());
     InStream tfis = tFile.getInStream(ReadType.NO_CACHE);
-    byte read[] = new byte[mSizeBytes];
+    byte read[] = new byte[SIZE_BYTES];
     tfis.read(read);
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(mSizeBytes, read));
+    Assert.assertTrue(TestUtils.equalIncreasingByteArray(SIZE_BYTES, read));
   }
 
   @Test
@@ -168,17 +155,17 @@ public class TFsShellTest {
 
   @Test
   public void copyToLocalLargeTest() throws IOException {
-    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, mSizeBytes);
+    TestUtils.createByteFile(mTfs, "/testFile", WriteType.MUST_CACHE, SIZE_BYTES);
     mFsShell.copyToLocal(new String[] { "copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile" });
     Assert.assertEquals(getCommandOutput(new String[] { "copyToLocal", "/testFile",
         mLocalTachyonCluster.getTachyonHome() + "/testFile" }), mOutput.toString());
     File testFile = new File(mLocalTachyonCluster.getTachyonHome() + "/testFile");
     FileInputStream fis = new FileInputStream(testFile);
-    byte read[] = new byte[mSizeBytes];
+    byte read[] = new byte[SIZE_BYTES];
     fis.read(read);
     fis.close();
-    Assert.assertTrue(TestUtils.equalIncreasingByteArray(mSizeBytes, read));
+    Assert.assertTrue(TestUtils.equalIncreasingByteArray(SIZE_BYTES, read));
   }
 
   @Test
@@ -262,14 +249,14 @@ public class TFsShellTest {
     } else if (command.length > 3) {
       if (cmd.equals("location")) {
         StringBuilder ret = new StringBuilder();
-        ret.append(command[1] + " with file id " + command[2] + " are on nodes: \n");
+        ret.append(command[1] + " with file id " + command[2] + " is on nodes: \n");
         for (int i = 3; i < command.length; i ++) {
           ret.append(command[i] + "\n");
         }
         return ret.toString();
       } else if (cmd.equals("fileinfo")) {
         StringBuilder ret = new StringBuilder();
-        ret.append(command[1] + " with file id " + command[2] + " have following blocks: \n");
+        ret.append(command[1] + " with file id " + command[2] + " has the following blocks: \n");
         for (int i = 3; i < command.length; i ++) {
           ret.append(command[i] + "\n");
         }
@@ -317,8 +304,7 @@ public class TFsShellTest {
             "/testRoot/testFileA");
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(0),
-            CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "",
-            "/testRoot/testDir");
+            CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(30),
             CommonUtils.convertMsToDate(files[3].getCreationTimeMs()), "Not In Memory",
@@ -344,8 +330,7 @@ public class TFsShellTest {
             "/testRoot/testFileA");
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(0),
-            CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "",
-            "/testRoot/testDir");
+            CommonUtils.convertMsToDate(files[1].getCreationTimeMs()), "", "/testRoot/testDir");
     expected +=
         String.format(format, CommonUtils.getSizeFromBytes(30),
             CommonUtils.convertMsToDate(files[2].getCreationTimeMs()), "Not In Memory",
@@ -386,13 +371,12 @@ public class TFsShellTest {
 
   @Test
   public void mkdirTest() throws IOException {
-    mFsShell.mkdir(new String[] {
-        "mkdir",
-        "tachyon://" + InetAddress.getLocalHost().getCanonicalHostName() + ":"
-            + mLocalTachyonCluster.getMasterPort() + "/root/testFile1" });
+    String qualifiedPath = "tachyon://" + InetAddress.getLocalHost().getCanonicalHostName() + ":"
+        + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
+    mFsShell.mkdir(new String[] { "mkdir", qualifiedPath });
     TachyonFile tFile = mTfs.getFile("/root/testFile1");
     Assert.assertNotNull(tFile);
-    Assert.assertEquals(getCommandOutput(new String[] { "mkdir", "/root/testFile1" }),
+    Assert.assertEquals(getCommandOutput(new String[] { "mkdir", qualifiedPath }),
         mOutput.toString());
     Assert.assertTrue(tFile.isDirectory());
   }

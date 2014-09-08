@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.examples;
 
 import java.io.IOException;
@@ -61,7 +47,7 @@ public class Performance {
   private static String RESULT_PREFIX = null;
   private static long[] Results = new long[RESULT_ARRAY_SIZE];
   private static int BASE_FILE_NUMBER = 0;
- 
+
   private static boolean TACHYON_STREAMING_READ = false;
 
   public static void createFiles() throws IOException {
@@ -74,7 +60,7 @@ public class Performance {
 
   public static void logPerIteration(long startTimeMs, int times, String msg, int workerId) {
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-    double result = 1000L * FILE_BYTES / takenTimeMs / 1024 / 1024;
+    double result = 1000.0 * FILE_BYTES / takenTimeMs / 1024 / 1024;
     LOG.info(times + msg + workerId + " : " + result + " Mb/sec. Took " + takenTimeMs + " ms. ");
   }
 
@@ -231,7 +217,7 @@ public class Performance {
 
         for (int pId = mLeft; pId < mRight; pId ++) {
           TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
-          buf = file.readByteBuffer();
+          buf = file.readByteBuffer(0);
           IntBuffer intBuf;
           intBuf = buf.DATA.asIntBuffer();
           int tmp;
@@ -268,7 +254,7 @@ public class Performance {
         for (int pId = mLeft; pId < mRight; pId ++) {
           long startTimeMs = System.currentTimeMillis();
           TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
-          buf = file.readByteBuffer();
+          buf = file.readByteBuffer(0);
           for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
             buf.DATA.get(mBuf.array());
           }
@@ -410,7 +396,7 @@ public class Performance {
       }
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-    double result = 1000L * FILES_BYTES / takenTimeMs / 1024 / 1024;
+    double result = 1000.0 * FILES_BYTES / takenTimeMs / 1024 / 1024;
 
     LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + msg + " Test : " + " Took "
         + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
@@ -450,7 +436,7 @@ public class Performance {
       }
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-    double result = FILES_BYTES * 1000L / takenTimeMs / 1024 / 1024;
+    double result = FILES_BYTES * 1000.0 / takenTimeMs / 1024 / 1024;
     LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write " : "Read ")
         + " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
@@ -486,7 +472,7 @@ public class Performance {
       }
     }
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-    double result = FILES_BYTES * 1000L / takenTimeMs / 1024 / 1024;
+    double result = FILES_BYTES * 1000.0 / takenTimeMs / 1024 / 1024;
     LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write " : "Read ")
         + " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }

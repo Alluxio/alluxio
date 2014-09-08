@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
 import java.io.IOException;
@@ -34,6 +20,7 @@ import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.thrift.MasterService;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 import tachyon.web.UIWebServer;
 
 /**
@@ -73,8 +60,14 @@ public class TachyonMaster {
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
+  /** metadata port */
+  private final int mPort;
+
   public TachyonMaster(InetSocketAddress address, int webPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads) {
+    CommonConf.assertValidPort(address);
+    CommonConf.assertValidPort(webPort);
+
     if (CommonConf.get().USE_ZOOKEEPER) {
       mZookeeperMode = true;
     }
@@ -86,7 +79,15 @@ public class TachyonMaster {
     mWorkerThreads = workerThreads;
 
     try {
-      mMasterAddress = address;
+      // Extract the port from the generated socket.
+      // When running tests, its great to use port '0' so the system will figure out what port to
+      // use (any random free port).
+      // In a production or any real deployment setup, port '0' should not be used as it will make
+      // deployment more complicated.
+      mServerTNonblockingServerSocket = new TNonblockingServerSocket(address);
+      mPort = NetworkUtils.getPort(mServerTNonblockingServerSocket);
+
+      mMasterAddress = new InetSocketAddress(NetworkUtils.getFqdnHost(address), mPort);
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
       Preconditions.checkState(isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX),
           "Tachyon was not formatted!");
@@ -95,9 +96,11 @@ public class TachyonMaster {
 
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
+        // InetSocketAddress.toString causes test issues, so build the string by hand
+        String name = NetworkUtils.getFqdnHost(mMasterAddress) + ":" + mMasterAddress.getPort();
         mLeaderSelectorClient =
             new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS, conf.ZOOKEEPER_ELECTION_PATH,
-                conf.ZOOKEEPER_LEADER_PATH, address.getHostName() + ":" + address.getPort());
+                conf.ZOOKEEPER_LEADER_PATH, name);
         mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
         Thread logProcessor = new Thread(mEditLogProcessor);
         logProcessor.start();
@@ -115,6 +118,13 @@ public class TachyonMaster {
    */
   MasterInfo getMasterInfo() {
     return mMasterInfo;
+  }
+
+  /**
+   * Get the port used by unit test only
+   */
+  int getMetaPort() {
+    return mPort;
   }
 
   private boolean isFormatted(String folder, String path) throws IOException {
@@ -160,13 +170,12 @@ public class TachyonMaster {
 
     mWebServer =
         new UIWebServer("Tachyon Master Server", new InetSocketAddress(
-            mMasterAddress.getHostName(), mWebPort), mMasterInfo);
+            NetworkUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
-    mServerTNonblockingServerSocket = new TNonblockingServerSocket(mMasterAddress);
     mMasterServiceServer =
         new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
             mServerTNonblockingServerSocket).processor(masterServiceProcessor)
@@ -228,9 +237,9 @@ public class TachyonMaster {
       }
 
       mWebServer.startWebServer();
-      LOG.info("The master server started @ " + mMasterAddress);
+      LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress);
       mMasterServiceServer.serve();
-      LOG.info("The master server ended @ " + mMasterAddress);
+      LOG.info("Tachyon Master version " + Version.VERSION + " ended @ " + mMasterAddress);
     }
   }
 

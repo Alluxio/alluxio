@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.client.table;
 
 import java.io.IOException;
@@ -29,8 +15,6 @@ import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
-import tachyon.client.table.RawColumn;
-import tachyon.client.table.RawTable;
 import tachyon.conf.CommonConf;
 import tachyon.master.LocalTachyonCluster;
 
@@ -147,18 +131,13 @@ public class RawTableTest {
   public void rawtablePerfTest() throws IOException {
     int col = 200;
 
-    long sMs = System.currentTimeMillis();
     int fileId = mTfs.createRawTable("/table", col);
-    // System.out.println("A " + (System.currentTimeMillis() - sMs));
 
-    sMs = System.currentTimeMillis();
     RawTable table = mTfs.getRawTable(fileId);
     Assert.assertEquals(col, table.getColumns());
     table = mTfs.getRawTable("/table");
     Assert.assertEquals(col, table.getColumns());
-    // System.out.println("B " + (System.currentTimeMillis() - sMs));
 
-    sMs = System.currentTimeMillis();
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       rawCol.createPartition(0);
@@ -167,27 +146,22 @@ public class RawTableTest {
       outStream.write(TestUtils.getIncreasingByteArray(10));
       outStream.close();
     }
-    // System.out.println("C " + (System.currentTimeMillis() - sMs));
 
-    sMs = System.currentTimeMillis();
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      TachyonByteBuffer buf = file.readByteBuffer();
+      TachyonByteBuffer buf = file.readByteBuffer(0);
       Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
       buf.close();
     }
-    // System.out.println("D " + (System.currentTimeMillis() - sMs));
 
-    sMs = System.currentTimeMillis();
     for (int k = 0; k < col; k ++) {
       RawColumn rawCol = table.getRawColumn(k);
       TachyonFile file = rawCol.getPartition(0, true);
-      TachyonByteBuffer buf = file.readByteBuffer();
+      TachyonByteBuffer buf = file.readByteBuffer(0);
       Assert.assertEquals(TestUtils.getIncreasingByteBuffer(10), buf.DATA);
       buf.close();
     }
-    // System.out.println("E " + (System.currentTimeMillis() - sMs));
   }
 
   @Test

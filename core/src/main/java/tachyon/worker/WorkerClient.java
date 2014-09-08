@@ -1,74 +1,59 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.worker;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
-import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.HeartbeatThread;
 import tachyon.conf.UserConf;
+import tachyon.master.MasterClient;
 import tachyon.thrift.BlockInfoException;
 import tachyon.thrift.FailedToCheckpointException;
 import tachyon.thrift.FileDoesNotExistException;
+import tachyon.thrift.NetAddress;
+import tachyon.thrift.NoWorkerException;
 import tachyon.thrift.SuspectedFileSizeException;
 import tachyon.thrift.TachyonException;
 import tachyon.thrift.WorkerService;
+import tachyon.util.NetworkUtils;
 
 /**
  * The client talks to a worker server. It keeps sending keep alive message to the worker server.
  * 
  * Since WorkerService.Client is not thread safe, this class has to guarantee thread safe.
  */
-public class WorkerClient {
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private final WorkerService.Client CLIENT;
+public class WorkerClient implements Closeable {
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private final MasterClient mMasterClient;
+  private static final int CONNECTION_RETRY_TIMES = 5;
 
+  private WorkerService.Client mClient;
   private TProtocol mProtocol;
   private InetSocketAddress mWorkerAddress;
-  private boolean mIsConnected = false;
-  private long mUserId;
+  private boolean mConnected = false;
+  private boolean mIsLocal = false;
+  private String mDataFolder = null;
+
   private HeartbeatThread mHeartbeatThread = null;
 
-  private String mRootFolder = null;
-
   /**
-   * @param address
-   *          The address of the worker the client trying to contect to.
-   * @param userId
-   *          The user id of the client
+   * Create a WorkerClient, with a given MasterClient.
+   * 
+   * @param masterClient
+   * @throws IOException
    */
-  public WorkerClient(InetSocketAddress address, long userId) {
-    mWorkerAddress = address;
-    mProtocol =
-        new TBinaryProtocol(new TFramedTransport(new TSocket(mWorkerAddress.getHostName(),
-            mWorkerAddress.getPort())));
-    CLIENT = new WorkerService.Client(mProtocol);
-
-    mUserId = userId;
-    mHeartbeatThread =
-        new HeartbeatThread("WorkerClientToWorkerHeartbeat", new WorkerClientHeartbeatExecutor(
-            this, mUserId), UserConf.get().HEARTBEAT_INTERVAL_MS);
+  public WorkerClient(MasterClient masterClient) throws IOException {
+    mMasterClient = masterClient;
   }
 
   /**
@@ -76,10 +61,18 @@ public class WorkerClient {
    * 
    * @param blockId
    *          The id of the block
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized void accessBlock(long blockId) throws TException {
-    CLIENT.accessBlock(blockId);
+  public synchronized void accessBlock(long blockId) throws IOException {
+    if (connect()) {
+      try {
+        mClient.accessBlock(blockId);
+      } catch (TException e) {
+        LOG.error("TachyonClient accessLocalBlock(" + blockId + ") failed");
+        mConnected = false;
+        throw new IOException(e);
+      }
+    }
   }
 
   /**
@@ -90,11 +83,12 @@ public class WorkerClient {
    * @param fileId
    *          The id of the checkpointed file
    * @throws IOException
-   * @throws TException
    */
-  public synchronized void addCheckpoint(long userId, int fileId) throws IOException, TException {
+  public synchronized void addCheckpoint(long userId, int fileId) throws IOException {
+    mustConnect();
+
     try {
-      CLIENT.addCheckpoint(userId, fileId);
+      mClient.addCheckpoint(userId, fileId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
@@ -102,6 +96,9 @@ public class WorkerClient {
     } catch (FailedToCheckpointException e) {
       throw new IOException(e);
     } catch (BlockInfoException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
       throw new IOException(e);
     }
   }
@@ -112,31 +109,41 @@ public class WorkerClient {
    * @param fid
    *          The id of the file
    * @return true if succeed, false otherwise
-   * @throws TachyonException
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized boolean asyncCheckpoint(int fid) throws TachyonException, TException {
-    return CLIENT.asyncCheckpoint(fid);
+  public synchronized boolean asyncCheckpoint(int fid) throws IOException {
+    mustConnect();
+
+    try {
+      return mClient.asyncCheckpoint(fid);
+    } catch (TachyonException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   /**
    * Notify the worker the block is cached.
    * 
-   * @param userId
-   *          The user id of the client who send the notification
    * @param blockId
    *          The id of the block
    * @throws IOException
-   * @throws TException
    */
-  public synchronized void cacheBlock(long userId, long blockId) throws IOException, TException {
+  public synchronized void cacheBlock(long blockId) throws IOException {
+    mustConnect();
+
     try {
-      CLIENT.cacheBlock(userId, blockId);
+      mClient.cacheBlock(mMasterClient.getUserId(), blockId);
     } catch (FileDoesNotExistException e) {
       throw new IOException(e);
     } catch (BlockInfoException e) {
       throw new IOException(e);
     } catch (SuspectedFileSizeException e) {
+      throw new IOException(e);
+    } catch (TException e) {
+      mConnected = false;
       throw new IOException(e);
     }
   }
@@ -144,55 +151,157 @@ public class WorkerClient {
   /**
    * Close the connection to worker. Shutdown the heartbeat thread.
    */
+  @Override
   public synchronized void close() {
-    if (mIsConnected) {
+    if (mConnected) {
       mProtocol.getTransport().close();
       mHeartbeatThread.shutdown();
-      mIsConnected = false;
+      mConnected = false;
     }
   }
 
   /**
-   * @return The root local data folder of the worker
-   * @throws TException
+   * Open the connection to the worker. And start the heartbeat thread.
+   * 
+   * @return true if succeed, false otherwise
+   * @throws IOException
    */
-  public synchronized String getDataFolder() throws TException {
-    if (mRootFolder == null) {
-      mRootFolder = CLIENT.getDataFolder();
+  private synchronized boolean connect() throws IOException {
+    if (!mConnected) {
+      NetAddress workerNetAddress = null;
+      try {
+        String localHostName = NetworkUtils.getLocalHostName();
+        LOG.info("Trying to get local worker host : " + localHostName);
+        workerNetAddress = mMasterClient.user_getWorker(false, localHostName);
+        mIsLocal = true;
+      } catch (NoWorkerException e) {
+        LOG.info(e.getMessage());
+        workerNetAddress = null;
+      } catch (UnknownHostException e) {
+        LOG.error(e.getMessage(), e);
+        workerNetAddress = null;
+      }
+
+      if (workerNetAddress == null) {
+        try {
+          workerNetAddress = mMasterClient.user_getWorker(true, "");
+        } catch (NoWorkerException e) {
+          LOG.info(e.getMessage());
+          workerNetAddress = null;
+        }
+      }
+
+      if (workerNetAddress == null) {
+        LOG.info("No worker running in the system");
+        mClient = null;
+        return false;
+      }
+
+      mWorkerAddress =
+          new InetSocketAddress(NetworkUtils.getFqdnHost(workerNetAddress), workerNetAddress.mPort);
+      LOG.info("Connecting " + (mIsLocal ? "local" : "remote") + " worker @ " + mWorkerAddress);
+
+      mProtocol =
+          new TBinaryProtocol(new TFramedTransport(new TSocket(
+              NetworkUtils.getFqdnHost(mWorkerAddress), mWorkerAddress.getPort())));
+      mClient = new WorkerService.Client(mProtocol);
+
+      mHeartbeatThread =
+          new HeartbeatThread("WorkerClientToWorkerHeartbeat", new WorkerClientHeartbeatExecutor(
+              this, mMasterClient.getUserId()), UserConf.get().HEARTBEAT_INTERVAL_MS);
+
+      try {
+        mProtocol.getTransport().open();
+      } catch (TTransportException e) {
+        LOG.error(e.getMessage(), e);
+        return false;
+      }
+      mHeartbeatThread.start();
+      mConnected = true;
     }
 
-    return mRootFolder;
+    return mConnected;
+  }
+
+  /**
+   * @return the address of the worker.
+   */
+  public synchronized InetSocketAddress getAddress() {
+    return mWorkerAddress;
+  }
+
+  /**
+   * @return The root local data folder of the worker
+   * @throws IOException
+   */
+  public synchronized String getDataFolder() throws IOException {
+    if (mDataFolder == null) {
+      try {
+        mustConnect();
+        mDataFolder = mClient.getDataFolder();
+      } catch (TException e) {
+        mDataFolder = null;
+        mConnected = false;
+        throw new IOException(e);
+      }
+    }
+
+    return mDataFolder;
   }
 
   /**
    * Get the local user temporary folder of the specified user.
    * 
-   * @param userId
-   *          The id of the user
    * @return The local user temporary folder of the specified user
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized String getUserTempFolder(long userId) throws TException {
-    return CLIENT.getUserTempFolder(userId);
+  public synchronized String getUserTempFolder() throws IOException {
+    mustConnect();
+
+    try {
+      return mClient.getUserTempFolder(mMasterClient.getUserId());
+    } catch (TException e) {
+      throw new IOException(e);
+    }
   }
 
   /**
    * Get the user temporary folder in the under file system of the specified user.
    * 
-   * @param userId
-   *          The id of the user
    * @return The user temporary folder in the under file system
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized String getUserUnderfsTempFolder(long userId) throws TException {
-    return CLIENT.getUserUnderfsTempFolder(userId);
+  public synchronized String getUserUfsTempFolder() throws IOException {
+    mustConnect();
+
+    try {
+      return mClient.getUserUfsTempFolder(mMasterClient.getUserId());
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   /**
-   * @return true if it's connected to the worker, false otherwise
+   * @return true if it's connected to the worker, false otherwise.
    */
   public synchronized boolean isConnected() {
-    return mIsConnected;
+    return mConnected;
+  }
+
+  /**
+   * @return true if the worker is local, false otherwise.
+   */
+  public synchronized boolean isLocal() {
+    if (!isConnected()) {
+      try {
+        connect();
+      } catch (IOException e) {
+        LOG.error(e.getMessage(), e);
+      }
+    }
+
+    return mIsLocal;
   }
 
   /**
@@ -203,30 +312,32 @@ public class WorkerClient {
    *          The id of the block
    * @param userId
    *          The id of the user who wants to lock the block
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized void lockBlock(long blockId, long userId) throws TException {
-    CLIENT.lockBlock(blockId, userId);
+  public synchronized void lockBlock(long blockId, long userId) throws IOException {
+    mustConnect();
+
+    try {
+      mClient.lockBlock(blockId, userId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   /**
-   * Open the connection to the worker. And start the heartbeat thread.
+   * Connect to the worker.
    * 
-   * @return true if succeed, false otherwise
+   * @throws IOException
    */
-  public synchronized boolean open() {
-    if (!mIsConnected) {
-      try {
-        mProtocol.getTransport().open();
-      } catch (TTransportException e) {
-        LOG.error(e.getMessage(), e);
-        return false;
+  public synchronized void mustConnect() throws IOException {
+    int tries = 0;
+    while (tries ++ <= CONNECTION_RETRY_TIMES) {
+      if (connect()) {
+        return;
       }
-      mHeartbeatThread.start();
-      mIsConnected = true;
     }
-
-    return mIsConnected;
+    throw new IOException("Failed to connect to the worker");
   }
 
   /**
@@ -237,10 +348,17 @@ public class WorkerClient {
    * @param requestBytes
    *          The requested space size, in bytes
    * @return true if succeed, false otherwise
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized boolean requestSpace(long userId, long requestBytes) throws TException {
-    return CLIENT.requestSpace(userId, requestBytes);
+  public synchronized boolean requestSpace(long userId, long requestBytes) throws IOException {
+    mustConnect();
+
+    try {
+      return mClient.requestSpace(userId, requestBytes);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -250,10 +368,17 @@ public class WorkerClient {
    *          The id of the user who wants to return the space
    * @param returnSpaceBytes
    *          The returned space size, in bytes
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized void returnSpace(long userId, long returnSpaceBytes) throws TException {
-    CLIENT.returnSpace(userId, returnSpaceBytes);
+  public synchronized void returnSpace(long userId, long returnSpaceBytes) throws IOException {
+    mustConnect();
+
+    try {
+      mClient.returnSpace(userId, returnSpaceBytes);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -263,10 +388,17 @@ public class WorkerClient {
    *          The id of the block
    * @param userId
    *          The id of the user who wants to unlock the block
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized void unlockBlock(long blockId, long userId) throws TException {
-    CLIENT.unlockBlock(blockId, userId);
+  public synchronized void unlockBlock(long blockId, long userId) throws IOException {
+    mustConnect();
+
+    try {
+      mClient.unlockBlock(blockId, userId);
+    } catch (TException e) {
+      mConnected = false;
+      throw new IOException(e);
+    }
   }
 
   /**
@@ -274,9 +406,15 @@ public class WorkerClient {
    * 
    * @param userId
    *          The id of the user
-   * @throws TException
+   * @throws IOException
    */
-  public synchronized void userHeartbeat(long userId) throws TException {
-    CLIENT.userHeartbeat(userId);
+  public synchronized void userHeartbeat(long userId) throws IOException {
+    mustConnect();
+
+    try {
+      mClient.userHeartbeat(userId);
+    } catch (TException e) {
+      throw new IOException(e);
+    }
   }
 }

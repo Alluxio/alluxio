@@ -1,20 +1,3 @@
-/*
- *  Licensed to the Apache Software Foundation (ASF) under one or more
- *  contributor license agreements.  See the NOTICE file distributed with
- *  this work for additional information regarding copyright ownership.
- *  The ASF licenses this file to You under the Apache License, Version 2.0
- *  (the "License"); you may not use this file except in compliance with
- *  the License.  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- */
 package tachyon;
 
 import java.io.File;
@@ -42,7 +25,7 @@ public class LazyFileOutputStream extends OutputStream {
    * name and replace it.
    * 
    * @param name
-   *            the filename.
+   *          the filename.
    */
   public LazyFileOutputStream(String name) {
     this(name, false);
@@ -53,9 +36,9 @@ public class LazyFileOutputStream extends OutputStream {
    * name and optionally append to instead of replacing it.
    * 
    * @param name
-   *            the filename.
+   *          the filename.
    * @param append
-   *            if true append rather than replace.
+   *          if true append rather than replace.
    */
   public LazyFileOutputStream(String name, boolean append) {
     this(new File(name), append);
@@ -66,7 +49,7 @@ public class LazyFileOutputStream extends OutputStream {
    * name and replace it.
    * 
    * @param f
-   *            the file to create.
+   *          the file to create.
    */
   public LazyFileOutputStream(File f) {
     this(f, false);
@@ -77,9 +60,9 @@ public class LazyFileOutputStream extends OutputStream {
    * name and optionally append to instead of replacing it.
    * 
    * @param file
-   *            the file to create.
+   *          the file to create.
    * @param append
-   *            if true append rather than replace.
+   *          if true append rather than replace.
    */
   public LazyFileOutputStream(File file, boolean append) {
     this(file, append, false);
@@ -91,11 +74,11 @@ public class LazyFileOutputStream extends OutputStream {
    * create a file (even if zero length).
    * 
    * @param file
-   *            the file to create.
+   *          the file to create.
    * @param append
-   *            if true append rather than replace.
+   *          if true append rather than replace.
    * @param alwaysCreate
-   *            if true create the file even if nothing to write.
+   *          if true create the file even if nothing to write.
    */
   public LazyFileOutputStream(File file, boolean append, boolean alwaysCreate) {
     this.file = file;
@@ -111,7 +94,7 @@ public class LazyFileOutputStream extends OutputStream {
    * </p>
    * 
    * @throws IOException
-   *             if there is an error.
+   *           if there is an error.
    */
   public void open() throws IOException {
     ensureOpened();
@@ -121,7 +104,7 @@ public class LazyFileOutputStream extends OutputStream {
    * Close the file.
    * 
    * @throws IOException
-   *             if there is an error.
+   *           if there is an error.
    */
   public synchronized void close() throws IOException {
     if (alwaysCreate && !closed) {
@@ -137,9 +120,9 @@ public class LazyFileOutputStream extends OutputStream {
    * Delegates to the three-arg version.
    * 
    * @param b
-   *            the bytearray to write.
+   *          the bytearray to write.
    * @throws IOException
-   *             if there is a problem.
+   *           if there is a problem.
    */
   public void write(byte[] b) throws IOException {
     write(b, 0, b.length);
@@ -149,16 +132,15 @@ public class LazyFileOutputStream extends OutputStream {
    * Write part of a byte array.
    * 
    * @param b
-   *            the byte array.
+   *          the byte array.
    * @param offset
-   *            write from this index.
+   *          write from this index.
    * @param len
-   *            the number of bytes to write.
+   *          the number of bytes to write.
    * @throws IOException
-   *             if there is a problem.
+   *           if there is a problem.
    */
-  public synchronized void write(byte[] b, int offset, int len)
-      throws IOException {
+  public synchronized void write(byte[] b, int offset, int len) throws IOException {
     ensureOpened();
     fos.write(b, offset, len);
   }
@@ -167,9 +149,9 @@ public class LazyFileOutputStream extends OutputStream {
    * Write a byte.
    * 
    * @param b
-   *            the byte to write.
+   *          the byte to write.
    * @throws IOException
-   *             if there is a problem.
+   *           if there is a problem.
    */
   public synchronized void write(int b) throws IOException {
     ensureOpened();
