@@ -112,7 +112,7 @@ public class MasterClient implements Closeable {
   @Override
   public synchronized void close() {
     if (mConnected) {
-      LOG.debug("Disconnecting from the master " + mMasterAddress);
+      LOG.debug("Disconnecting from the master {}", mMasterAddress);
       mConnected = false;
     }
     if (mProtocol != null) {

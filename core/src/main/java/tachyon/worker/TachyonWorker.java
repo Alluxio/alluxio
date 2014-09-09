@@ -235,7 +235,7 @@ public class TachyonWorker implements Runnable {
     while (!mStop) {
       long diff = System.currentTimeMillis() - lastHeartbeatMs;
       if (diff < WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS) {
-        LOG.debug("Heartbeat process takes " + diff + " ms.");
+        LOG.debug("Heartbeat process takes {} ms.", diff);
         CommonUtils.sleepMs(LOG, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS - diff);
       } else {
         LOG.error("Heartbeat process takes " + diff + " ms.");
@@ -268,7 +268,7 @@ public class TachyonWorker implements Runnable {
             LOG.error("Unknown command: " + cmd);
             break;
           case Nothing:
-            LOG.debug("Nothing command: " + cmd);
+            LOG.debug("Nothing command: {}", cmd);
             break;
           case Register:
             LOG.info("Register command: " + cmd);

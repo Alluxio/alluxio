@@ -92,7 +92,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        LOG.debug("Creating HDFS file at " + path);
+        LOG.debug("Creating HDFS file at {}", path);
         return FileSystem.create(mFs, new Path(path), PERMISSION);
       } catch (IOException e) {
         cnt ++;
@@ -137,7 +137,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
-    LOG.debug("deleting " + path + " " + recursive);
+    LOG.debug("deleting {} {}", path, recursive);
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
@@ -275,7 +275,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     while (cnt < MAX_TRY) {
       try {
         if (mFs.exists(new Path(path))) {
-          LOG.debug("Trying to create existing directory at " + path);
+          LOG.debug("Trying to create existing directory at {}", path);
           return false;
         }
         return mFs.mkdirs(new Path(path), PERMISSION);
@@ -308,7 +308,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   public boolean rename(String src, String dst) throws IOException {
     IOException te = null;
     int cnt = 0;
-    LOG.debug("Renaming from " + src + " to " + dst);
+    LOG.debug("Renaming from {} to {}", src, dst);
     if (!exists(src)) {
       LOG.error("File " + src + " does not exist. Therefore rename to " + dst + " failed.");
     }

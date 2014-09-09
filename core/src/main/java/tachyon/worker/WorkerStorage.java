@@ -158,7 +158,7 @@ public class WorkerStorage {
           }
 
           if (fileId == -1) {
-            LOG.debug("Thread " + mId + " has nothing to checkpoint. Sleep for 1 sec.");
+            LOG.debug("Thread {} has nothing to checkpoint. Sleep for 1 sec.",  mId);
             CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
             continue;
           }

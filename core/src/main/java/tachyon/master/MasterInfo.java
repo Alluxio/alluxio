@@ -461,7 +461,7 @@ public class MasterInfo extends ImageWriter {
       throw new InvalidPathException("Cannot create the root path");
     }
 
-    LOG.debug("createFile" + CommonUtils.parametersToString(path));
+    LOG.debug("createFile {}", CommonUtils.parametersToString(path));
 
     String[] pathNames = CommonUtils.getPathComponents(path);
     String name = pathNames[pathNames.length - 1];
@@ -539,10 +539,7 @@ public class MasterInfo extends ImageWriter {
       currentInodeFolder.addChild(ret);
       currentInodeFolder.setLastModificationTimeMs(creationTimeMs);
 
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("createFile: File Created: " + ret.toString() + " parent: "
-            + currentInodeFolder.toString());
-      }
+      LOG.debug("createFile: File Created: {} parent: ", ret, currentInodeFolder);
       return ret.getId();
     }
   }
@@ -886,7 +883,8 @@ public class MasterInfo extends ImageWriter {
    */
   public int cacheBlock(long workerId, long workerUsedBytes, long blockId, long length)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException {
-    LOG.debug(CommonUtils.parametersToString(workerId, workerUsedBytes, blockId, length));
+    LOG.debug("Cache block: {}",
+        CommonUtils.parametersToString(workerId, workerUsedBytes, blockId, length));
 
     MasterWorkerInfo tWorkerInfo = getWorkerInfo(workerId);
     tWorkerInfo.updateBlock(true, blockId);
@@ -1152,7 +1150,7 @@ public class MasterInfo extends ImageWriter {
       }
       ClientBlockInfo ret =
           ((InodeFile) inode).getClientBlockInfo(BlockInfo.computeBlockIndex(blockId));
-      LOG.debug("getClientBlockInfo: " + blockId + ret);
+      LOG.debug("getClientBlockInfo: {} : {}", blockId, ret);
       return ret;
     }
   }
@@ -1260,13 +1258,12 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    */
   public int getFileId(String path) throws InvalidPathException {
-    LOG.debug("getFileId(" + path + ")");
     Inode inode = getInode(path);
     int ret = -1;
     if (inode != null) {
       ret = inode.getId();
     }
-    LOG.debug("getFileId(" + path + "): " + ret);
+    LOG.debug("getFileId({}): {}", path, ret);
     return ret;
   }
 
@@ -1287,7 +1284,7 @@ public class MasterInfo extends ImageWriter {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
       List<ClientBlockInfo> ret = ((InodeFile) inode).getClientBlockInfos();
-      LOG.debug("getFileLocations: " + fileId + ret);
+      LOG.debug("getFileLocations: {} {}",fileId, ret);
       return ret;
     }
   }
@@ -1667,13 +1664,13 @@ public class MasterInfo extends ImageWriter {
         int index = new Random(mWorkerAddressToId.size()).nextInt(mWorkerAddressToId.size());
         for (NetAddress address : mWorkerAddressToId.keySet()) {
           if (index == 0) {
-            LOG.debug("getRandomWorker: " + address);
+            LOG.debug("getRandomWorker: {}", address);
             return address;
           }
           index --;
         }
         for (NetAddress address : mWorkerAddressToId.keySet()) {
-          LOG.debug("getRandomWorker: " + address);
+          LOG.debug("getRandomWorker: {}", address);
           return address;
         }
       } else {
@@ -1681,7 +1678,7 @@ public class MasterInfo extends ImageWriter {
           InetAddress inetAddress = InetAddress.getByName(address.getMHost());
           if (inetAddress.getHostName().equals(host) || inetAddress.getHostAddress().equals(host)
               || inetAddress.getCanonicalHostName().equals(host)) {
-            LOG.debug("getLocalWorker: " + address);
+            LOG.debug("getLocalWorker: {}" + address);
             return address;
           }
         }
@@ -1822,7 +1819,7 @@ public class MasterInfo extends ImageWriter {
       ImageElement ele;
       try {
         ele = parser.readValueAs(ImageElement.class);
-        LOG.debug("Read Element: " + ele);
+        LOG.debug("Read Element: {}", ele);
       } catch (IOException e) {
         // Unfortunately brittle, but Jackson rethrows EOF with this message.
         if (e.getMessage().contains("end-of-input")) {
@@ -2222,7 +2219,7 @@ public class MasterInfo extends ImageWriter {
    */
   public Command workerHeartbeat(long workerId, long usedBytes, List<Long> removedBlockIds)
       throws BlockInfoException {
-    LOG.debug("WorkerId: " + workerId);
+    LOG.debug("WorkerId: {}", workerId);
     synchronized (ROOT_LOCK) {
       synchronized (mWorkers) {
         MasterWorkerInfo tWorkerInfo = mWorkers.get(workerId);
@@ -2246,8 +2243,8 @@ public class MasterInfo extends ImageWriter {
             LOG.error("File " + fileId + " does not exist");
           } else if (inode.isFile()) {
             ((InodeFile) inode).removeLocation(blockIndex, workerId);
-            LOG.debug("File " + fileId + " block " + blockIndex + " was evicted from worker "
-                + workerId);
+            LOG.debug("File {} with block {} was evicted from worker {} ", fileId ,blockIndex ,
+                workerId);
           }
         }
 

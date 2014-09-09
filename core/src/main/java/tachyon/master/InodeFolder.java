@@ -46,7 +46,7 @@ public class InodeFolder extends Inode {
     for (int k = 0; k < numberOfChildren; k ++) {
       try {
         ele = parser.readValueAs(ImageElement.class);
-        LOG.debug("Read Element: " + ele);
+        LOG.debug("Read Element: {}", ele);
       } catch (IOException e) {
         throw e;
       }
