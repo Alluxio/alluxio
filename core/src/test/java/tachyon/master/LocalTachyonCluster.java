@@ -14,6 +14,7 @@ import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 import tachyon.worker.TachyonWorker;
 
 /**
@@ -133,7 +134,7 @@ public class LocalTachyonCluster {
     deleteDir(mTachyonHome);
     mkdir(mTachyonHome);
 
-    mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
+    mLocalhostName = NetworkUtils.getLocalHostName();
 
     System.setProperty("tachyon.test.mode", "true");
     System.setProperty("tachyon.home", mTachyonHome);

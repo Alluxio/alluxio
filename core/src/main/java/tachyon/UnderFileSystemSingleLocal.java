@@ -7,11 +7,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 
 /**
  * Single node UnderFilesystem implementation.
@@ -87,7 +87,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<String>();
-    ret.add(InetAddress.getLocalHost().getCanonicalHostName());
+    ret.add(NetworkUtils.getLocalHostName());
     return ret;
   }
 
