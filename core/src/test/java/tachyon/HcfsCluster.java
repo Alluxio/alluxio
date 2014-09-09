@@ -2,6 +2,10 @@ package tachyon;
 
 import java.io.IOException;
 
+/**
+ * The impplements Hadoop compatible filesystem cluster 
+ * to test under filesystems like glusterfs and cephfs.
+ */
 public class HcfsCluster extends UnderFileSystemCluster {
   private final String HCFS_URI_KEY = "uri";
   private String mUri = null;

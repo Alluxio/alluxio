@@ -57,7 +57,6 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     // for some HCFS e.g. ceph, that has numerous parameters.
     // Providing a hadoop core-site.xml that is required for this type of underfs.
     tConf.addResource("core-site.xml");
-    tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
 
     // To disable the instance cache for hdfs client, otherwise it causes the
     // FileSystem closed exception. Being configurable for unit/integration

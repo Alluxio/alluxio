@@ -46,14 +46,6 @@ public class WebInterfaceConfigurationServlet extends HttpServlet {
     request.setAttribute("tachyon.data.folder", "" + mCommonConf.UNDERFS_DATA_FOLDER);
     request.setAttribute("tachyon.workers.folder", "" + mCommonConf.UNDERFS_WORKERS_FOLDER);
     request.setAttribute("tachyon.underfs.hdfs.impl", "" + mCommonConf.UNDERFS_HDFS_IMPL);
-    request
-        .setAttribute("tachyon.underfs.glusterfs.impl", "" + mCommonConf.UNDERFS_GLUSTERFS_IMPL);
-    request.setAttribute("tachyon.underfs.glusterfs.volumes", ""
-        + mCommonConf.UNDERFS_GLUSTERFS_VOLUMES);
-    request.setAttribute("tachyon.underfs.glusterfs.mounts", ""
-        + mCommonConf.UNDERFS_GLUSTERFS_MOUNTS);
-    request.setAttribute("tachyon.underfs.glusterfs.mapred.system.dir", ""
-        + mCommonConf.UNDERFS_GLUSTERFS_MR_DIR);
     request.setAttribute("tachyon.web.resources", "" + mCommonConf.WEB_RESOURCES);
     request.setAttribute("tachyon.usezookeeper", "" + mCommonConf.USE_ZOOKEEPER);
     request.setAttribute("tachyon.zookeeper.address", "" + mCommonConf.ZOOKEEPER_ADDRESS);
