@@ -377,6 +377,20 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
+   * Qualify a TachyonURI by using the scheme and authority of the provided TachyonURI
+   * @param defaultUri the TachyonURI with scheme and authority
+   * @return a TachyonURI with the scheme and authority of the defaultUri
+   */
+  public TachyonURI makeQualified(TachyonURI defaultUri) {
+    if (null != defaultUri && defaultUri.hasScheme() && defaultUri.hasAuthority()) {
+      return new TachyonURI(defaultUri.getScheme(), defaultUri.getAuthority(), this.getPath());
+    } else {
+      throw new IllegalArgumentException(
+          "Tachyon Uri " + defaultUri + " needs scheme and authority");
+    }
+  }
+
+  /**
    * Illegal characters unescaped in the string, for glob processing, etc.
    */
   @Override
