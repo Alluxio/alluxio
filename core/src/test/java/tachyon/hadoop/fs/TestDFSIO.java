@@ -1,21 +1,3 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package tachyon.hadoop.fs;
 
 import java.io.BufferedReader;
@@ -40,7 +22,6 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
-import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
@@ -215,7 +196,7 @@ public class TestDFSIO implements Tool {
   public static void beforeClass() throws Exception {
     // Init TestDFSIO
     bench = new TestDFSIO();
-    bench.getConf().setBoolean(DFSConfigKeys.DFS_SUPPORT_APPEND_KEY, true);
+    bench.getConf().setBoolean("dfs.support.append", true);
 
     // Start local Tachyon cluster
     System.setProperty("tachyon.user.quota.unit.bytes", "100000");
@@ -257,7 +238,7 @@ public class TestDFSIO implements Tool {
     bench.analyzeResult(fs, TestType.TEST_TYPE_WRITE, execTime);
   }
 
-  @Test (timeout = 3000)
+  @Test (timeout = 25000)
   public void testRead() throws Exception {
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
@@ -266,7 +247,7 @@ public class TestDFSIO implements Tool {
     bench.analyzeResult(fs, TestType.TEST_TYPE_READ, execTime);
   }
 
-  @Test (timeout = 3000)
+  @Test (timeout = 25000)
   public void testReadRandom() throws Exception {
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
@@ -276,7 +257,7 @@ public class TestDFSIO implements Tool {
     bench.analyzeResult(fs, TestType.TEST_TYPE_READ_RANDOM, execTime);
   }
 
-  @Test (timeout = 3000)
+  @Test (timeout = 25000)
   public void testReadBackward() throws Exception {
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
@@ -286,7 +267,7 @@ public class TestDFSIO implements Tool {
     bench.analyzeResult(fs, TestType.TEST_TYPE_READ_BACKWARD, execTime);
   }
 
-  @Test (timeout = 3000)
+  @Test (timeout = 20000)
   public void testReadSkip() throws Exception {
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
@@ -296,7 +277,7 @@ public class TestDFSIO implements Tool {
     bench.analyzeResult(fs, TestType.TEST_TYPE_READ_SKIP, execTime);
   }
 
-  @Test (timeout = 3000)
+  @Test (timeout = 25000)
   public void testReadLargeSkip() throws Exception {
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
@@ -307,7 +288,7 @@ public class TestDFSIO implements Tool {
   }
 
   // TODO: Should active this unit test after TACHYON-25 has been solved
-  //@Test (timeout = 6000)
+  //@Test (timeout = 25000)
   public void testAppend() throws Exception {
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
     long tStart = System.currentTimeMillis();
@@ -776,7 +757,7 @@ public class TestDFSIO implements Tool {
 
     config.setInt("test.io.file.buffer.size", bufferSize);
     config.setLong("test.io.skip.size", skipSize);
-    config.setBoolean(DFSConfigKeys.DFS_SUPPORT_APPEND_KEY, true);
+    config.setBoolean("dfs.support.append", true);
     FileSystem fs = FileSystem.get(config);
 
     if (isSequential) {

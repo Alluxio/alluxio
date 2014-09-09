@@ -73,10 +73,9 @@ public class LocalBlockInStream extends BlockInStream {
   @Override
   public void seek(long pos) throws IOException {
     if (pos < 0) {
-      throw new IOException("pos is negative: " + pos);
-    }
-    if (pos > mBuffer.limit()) {
-      throw new IOException("pos is past buffer limit: " + pos + ", Buffer Size = " + mBuffer.limit());
+      throw new IOException("Seek position is negative: " + pos);
+    } else if (pos > mBuffer.limit()) {
+      throw new IOException("Seek position is past buffer limit: " + pos + ", Buffer Size = " + mBuffer.limit());
     }
     mBuffer.position((int) pos);
   }

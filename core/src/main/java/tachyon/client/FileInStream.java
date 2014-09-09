@@ -132,10 +132,9 @@ public class FileInStream extends InStream {
       return;
     }
     if (pos < 0) {
-      throw new IOException("pos is negative: " + pos);
-    }
-    if (pos > mFileLength) {
-      throw new IOException("pos is past EOF: " + pos + ", fileSize = " + mFileLength);
+      throw new IOException("Seek position is negative: " + pos);
+    } else if (pos > mFileLength) {
+      throw new IOException("Seek position is past EOF: " + pos + ", fileSize = " + mFileLength);
     }
 
     if ((int) (pos / mBlockCapacity) != mCurrentBlockIndex) {

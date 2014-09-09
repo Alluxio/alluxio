@@ -214,7 +214,7 @@ public class LocalBlockInStreamTest {
   public void seekExceptionTest2() throws IOException {
 
     thrown.expect(IOException.class);
-    thrown.expectMessage("pos is past buffer limit");
+    thrown.expectMessage("Seek position is past buffer limit");
 
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : mWriteCacheType) {

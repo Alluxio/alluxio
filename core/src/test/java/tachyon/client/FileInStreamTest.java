@@ -180,7 +180,7 @@ public class FileInStreamTest {
   public void seekExceptionTest2() throws IOException {
 
     thrown.expect(IOException.class);
-    thrown.expectMessage("pos is past EOF");
+    thrown.expectMessage("Seek position is past EOF");
 
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {

@@ -362,7 +362,7 @@ public class RemoteBlockInStreamTest {
   public void seekExceptionTest2() throws IOException {
 
     thrown.expect(IOException.class);
-    thrown.expectMessage("pos is past block size");
+    thrown.expectMessage("Seek position is past block size");
 
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       WriteType op = WriteType.THROUGH;
