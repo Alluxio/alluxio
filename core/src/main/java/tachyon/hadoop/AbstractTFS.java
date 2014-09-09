@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.PrefixList;
+import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
@@ -46,7 +47,7 @@ abstract class AbstractTFS extends FileSystem {
   public static String mUnderFSAddress;
 
   private URI mUri = null;
-  private Path mWorkingDir = new Path(Constants.PATH_SEPARATOR);
+  private Path mWorkingDir = new Path(TachyonURI.SEPARATOR);
   private TachyonFS mTFS = null;
   private String mTachyonHeader = null;
 
