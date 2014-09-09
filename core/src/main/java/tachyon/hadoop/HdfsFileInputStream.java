@@ -40,8 +40,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   public HdfsFileInputStream(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
       int bufferSize) throws IOException {
-    LOG.debug("PartitionInputStreamHdfs(" + tfs + ", " + fileId + ", " + hdfsPath + ", " + conf
-        + ", " + bufferSize + ")");
+    LOG.debug("PartitionInputStreamHdfs({}, {}, {}, {}, {})", tfs, fileId, hdfsPath, conf,
+        bufferSize);
     mCurrentPosition = 0;
     mTFS = tfs;
     mFileId = fileId;

@@ -30,7 +30,7 @@ public final class BlockHandlerLocal extends BlockHandler {
 
   BlockHandlerLocal(String filePath) throws IOException {
     mFilePath = Preconditions.checkNotNull(filePath);
-    LOG.debug(mFilePath + " is created");
+    LOG.debug("{} is created", mFilePath);
     mLocalFile = new RandomAccessFile(mFilePath, "rw");
     mLocalFileChannel = mLocalFile.getChannel();
     mCloser.register(mLocalFile);

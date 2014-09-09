@@ -51,7 +51,7 @@ public class LeaderInquireClient {
       while (tried < MAX_TRY) {
         if (mCLient.checkExists().forPath(mLeaderPath) != null) {
           List<String> masters = mCLient.getChildren().forPath(mLeaderPath);
-          LOG.info("Master addresses: " + masters.toString());
+          LOG.info("Master addresses: {}", masters);
           if (masters.size() >= 1) {
             if (masters.size() == 1) {
               return masters.get(0);
