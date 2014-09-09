@@ -100,7 +100,7 @@ public class EditLog {
       EditLogOperation op;
       try {
         op = parser.readValueAs(EditLogOperation.class);
-        LOG.debug("Read operation: " + op);
+        LOG.debug("Read operation: {}", op);
       } catch (IOException e) {
         // Unfortunately brittle, but Jackson rethrows EOF with this message.
         if (e.getMessage().contains("end-of-input")) {

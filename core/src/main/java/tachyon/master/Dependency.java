@@ -142,7 +142,7 @@ public class Dependency extends ImageWriter {
    */
   public synchronized void childCheckpointed(int childFileId) {
     mUncheckpointedChildrenFiles.remove(childFileId);
-    LOG.debug("Child got checkpointed " + childFileId + " : " + toString());
+    LOG.debug("Child got checkpointed {} : {}", childFileId, toString());
   }
 
   /**

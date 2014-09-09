@@ -23,7 +23,7 @@ class MasterClientHeartbeatExecutor implements HeartbeatExecutor {
   public void heartbeat() {
     long internalMs = System.currentTimeMillis() - mClient.getLastAccessedMs();
     if (internalMs > mMaxNoneAccessIntervalMs) {
-      LOG.debug("The last Heartbeat was " + internalMs + " ago.");
+      LOG.debug("The last Heartbeat was {} ago.", internalMs);
       mClient.close();
     }
   }
