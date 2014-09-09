@@ -51,6 +51,8 @@ public class UIWebServer {
     HandlerList handlers = new HandlerList();
     webappcontext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterInfo)),
         "/home");
+    webappcontext.addServlet(new ServletHolder(new WebInterfaceWorkersServlet(masterInfo)),
+	    "/workers");
     webappcontext.addServlet(new ServletHolder(new WebInterfaceConfigurationServlet(masterInfo)),
         "/configuration");
     webappcontext.addServlet(new ServletHolder(new WebInterfaceBrowseServlet(masterInfo)),

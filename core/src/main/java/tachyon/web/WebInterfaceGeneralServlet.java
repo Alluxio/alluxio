@@ -20,54 +20,6 @@ import tachyon.util.CommonUtils;
  * Servlet that provides data for viewing the general status of the filesystem.
  */
 public class WebInterfaceGeneralServlet extends HttpServlet {
-  /**
-   * Class to make referencing worker nodes more intuitive. Mainly to avoid implicit association
-   * by array indexes.
-   */
-  public static class NodeInfo {
-    private final String mName;
-    private final String mLastContactSec;
-    private final String mWorkerState;
-    private final int mFreePercent;
-    private final int mUsedPercent;
-    private final String mUptimeClockTime;
-
-    private NodeInfo(ClientWorkerInfo workerInfo) {
-      mName = workerInfo.getAddress().getMHost();
-      mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
-      mWorkerState = workerInfo.getState();
-      mUsedPercent =
-          (int) (100L * workerInfo.getUsedBytes() / workerInfo.getCapacityBytes());
-      mFreePercent = 100 - mUsedPercent;
-      mUptimeClockTime =
-          CommonUtils.convertMsToShortClockTime(System.currentTimeMillis()
-              - workerInfo.getStarttimeMs());
-    }
-
-    public int getFreeSpacePercent() {
-      return mFreePercent;
-    }
-
-    public String getLastHeartbeat() {
-      return mLastContactSec;
-    }
-
-    public String getName() {
-      return mName;
-    }
-
-    public String getState() {
-      return mWorkerState;
-    }
-
-    public String getUptimeClockTime() {
-      return mUptimeClockTime;
-    }
-
-    public int getUsedSpacePercent() {
-      return mUsedPercent;
-    }
-  }
 
   private static final long serialVersionUID = 2335205655766736309L;
 
@@ -159,23 +111,5 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
     }
 
     request.setAttribute("recomputeVariables", DependencyVariables.VARIABLES);
-
-    List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
-    for (int i = 0; i < workerInfos.size(); i ++) {
-      for (int j = i + 1; j < workerInfos.size(); j ++) {
-        if (workerInfos.get(i).getAddress().getMHost()
-            .compareTo(workerInfos.get(j).getAddress().getMHost()) > 0) {
-          ClientWorkerInfo temp = workerInfos.get(i);
-          workerInfos.set(i, workerInfos.get(j));
-          workerInfos.set(j, temp);
-        }
-      }
-    }
-    int index = 0;
-    NodeInfo[] nodeInfos = new NodeInfo[workerInfos.size()];
-    for (ClientWorkerInfo workerInfo : workerInfos) {
-      nodeInfos[index ++] = new NodeInfo(workerInfo);
-    }
-    request.setAttribute("nodeInfos", nodeInfos);
   }
 }
