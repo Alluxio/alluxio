@@ -20,9 +20,8 @@
             <%= request.getAttribute("fatalError") %>
           </h1>
           <table class="table table-hover">
-          <caption>Files Currently In Memory</caption>
           <thead>
-            <th>File Name</th>
+            <th>File Path</th>
             <th>Size</th>
             <th>Block Size</th>
             <th>Pin</th>
@@ -67,11 +66,11 @@
             <table class="table">
               <tbody>
                 <tr>
-                  <th>number of items on each page:</th>
+                  <th>Number of items per page:</th>
                   <th><input id="nFilePerPage" type="text" placeholder="default = 20"></th>
                 </tr>
                 <tr>
-                  <th>maximum number of pages to show in pagination component:</th>
+                  <th>Maximum number of pages to show in pagination component:</th>
                   <th><input id="nMaxPageShown" type="text" placeholder="default = 10"></th>
                 </tr>
               </tbody>
