@@ -114,7 +114,7 @@ public class Performance {
           }
           dst.order(ByteOrder.nativeOrder());
           for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
-            mBuf.array()[0] = (byte) (k + mWorkerId);
+            mBuf.putInt(0, k + mWorkerId);
             dst.put(mBuf.array());
           }
           dst.clear();
@@ -183,7 +183,7 @@ public class Performance {
         TachyonFile file = mTC.getFile(FILE_NAME + (mWorkerId + BASE_FILE_NUMBER));
         OutStream os = file.getOutStream(WriteType.MUST_CACHE);
         for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
-          mBuf.array()[0] = (byte) (k + mWorkerId);
+          mBuf.putInt(0, k + mWorkerId);
           os.write(mBuf.array());
         }
         os.close();
@@ -219,7 +219,7 @@ public class Performance {
           TachyonFile file = mTC.getFile(FILE_NAME + mWorkerId);
           buf = file.readByteBuffer(0);
           IntBuffer intBuf;
-          intBuf = buf.DATA.asIntBuffer();
+          intBuf = buf.DATA.order(ByteOrder.nativeOrder()).asIntBuffer();
           int tmp;
           for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
             for (int k = 0; k < BLOCK_SIZE_BYTES / 4; k ++) {
@@ -261,7 +261,7 @@ public class Performance {
           sum += mBuf.get(pId % 16);
 
           if (DEBUG_MODE) {
-            buf.DATA.flip();
+            buf.DATA.order(ByteOrder.nativeOrder()).flip();
             CommonUtils.printByteBuffer(LOG, buf.DATA);
           }
           buf.DATA.clear();
@@ -326,7 +326,7 @@ public class Performance {
           String filePath = FILE_NAME + (mWorkerId + BASE_FILE_NUMBER);
           OutputStream os = mHdfsFs.create(new Path(filePath));
           for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
-            mBuf.array()[0] = (byte) (k + mWorkerId);
+            mBuf.putInt(0, k + mWorkerId);
             os.write(mBuf.array());
           }
           os.close();
