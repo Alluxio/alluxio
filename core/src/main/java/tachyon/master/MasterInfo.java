@@ -1803,21 +1803,6 @@ public class MasterInfo extends ImageWriter {
     return ret;
   }
 
-  /**
-   * Get info about the lost workers
-   * 
-   * @return a list of worker info
-   */
-  public List<ClientWorkerInfo> getLostWorkersInfo() {
-    List<ClientWorkerInfo> ret = new ArrayList<ClientWorkerInfo>();
-
-    for (MasterWorkerInfo worker : mLostWorkers) {
-      ret.add(worker.generateClientWorkerInfo());
-    }
-
-    return ret;
-  }
-
   public void init() throws IOException {
     mCheckpointInfo.updateEditTransactionCounter(mJournal.loadEditLog(this));
 
