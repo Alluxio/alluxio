@@ -14,7 +14,7 @@
 <div class="container-fluid">
   <jsp:include page="header.jsp" />
   <div class="row-fluid">
-    <div class="accordion span6" id="accordion1">
+    <div class="accordion span14" id="accordion1">
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion1" href="#data1">
@@ -55,8 +55,10 @@
         </div>
       </div>
     </div>
-
-    <div class="accordion span6" id="accordion2">
+  </div>
+  
+  <div class="row-fluid">
+    <div class="accordion span14" id="accordion2">
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#data2">
@@ -134,88 +136,6 @@
     </div>
   </div>
 -->
-  <div class="row-fluid">
-    <div class="accordion span14" id="accordion6">
-      <div class="accordion-group">
-        <div class="accordion-heading">
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion6" href="#data6">
-            <h4>Detailed Nodes Summary</h4>
-          </a>
-        </div>
-        <div id="data6" class="accordion-body collapse in">
-          <div class="accordion-inner">
-            <table class="table table-hover table-condensed">
-              <thead>
-                <th>Node Name</th>
-                <!--
-                  <c:if test="${debug}">
-                    <th>[D]Uptime</th>
-                  </c:if>
-                  -->
-                <% if ((Boolean) request.getAttribute("debug")) { %>
-                  <th>[D]Uptime</th>
-                <% } %>
-                <th>Last Heartbeat</th>
-                <th>State</th>
-                <th>Memory Usage</th>
-              <tbody>
-                <!--
-                <c:forEach var="nodeInfo" items="${nodeInfos}">
-                  <tr>
-                    <th>${nodeInfo.name}</th>
-                    <c:if test="${debug}">
-                      <th>${nodeInfo.uptimeClockTime}</th>
-                    </c:if>
-                    <th>${nodeInfo.lastHeartbeat} seconds ago</th>
-                    <th>${nodeInfo.state}</th>
-                    <th>
-                      <div class="progress custom-progress">
-                          <div class="bar bar-success" style="width: ${nodeInfo.freeSpacePercent}%;">
-                            <c:if test="${nodeInfo.freeSpacePercent ge nodeInfo.usedSpacePercent}">
-                              ${nodeInfo.freeSpacePercent}% Free
-                            </c:if>
-                          </div>
-                          <div class="bar bar-danger" style="width: ${nodeInfo.usedSpacePercent}%;">
-                            <c:if test="${nodeInfo.usedSpacePercent gt nodeInfo.freeSpacePercent}">
-                              ${nodeInfo.usedSpacePercent}% Used
-                            </c:if>
-                          </div>
-                      </div>
-                    </th>
-                  </tr>
-                </c:forEach>
-                -->
-                <% for (WebInterfaceGeneralServlet.NodeInfo nodeInfo : ((WebInterfaceGeneralServlet.NodeInfo[]) request.getAttribute("nodeInfos"))) { %>
-                  <tr>
-                    <th><%= nodeInfo.getName() %></th>
-                    <% if ((Boolean) request.getAttribute("debug")) { %>
-                      <th><%= nodeInfo.getUptimeClockTime() %></th>
-                    <% } %>
-                    <th><%= nodeInfo.getLastHeartbeat() %></th>
-                    <th><%= nodeInfo.getState() %></th>
-                    <th>
-                      <div class="progress custom-progress">
-                          <div class="bar bar-success" style="width: <%= nodeInfo.getFreeSpacePercent() %>%;">
-                            <% if (nodeInfo.getFreeSpacePercent() >= nodeInfo.getUsedSpacePercent()) { %>
-                              <%= nodeInfo.getFreeSpacePercent() %>%Free
-                            <% } %>
-                          </div>
-                          <div class="bar bar-danger" style="width: <%= nodeInfo.getUsedSpacePercent() %>%;">
-                            <% if (nodeInfo.getFreeSpacePercent() < nodeInfo.getUsedSpacePercent()) { %>
-                              <%= nodeInfo.getUsedSpacePercent() %>%Used
-                            <% } %>
-                          </div>
-                      </div>
-                    </th>
-                  </tr>
-                <% } %>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
   <%@ include file="footer.jsp" %>
 </div>
 <script>
