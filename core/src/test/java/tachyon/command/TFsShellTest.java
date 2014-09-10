@@ -30,6 +30,7 @@ import tachyon.client.WriteType;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 
 /**
  * Unit tests on TFsShell.
@@ -249,14 +250,14 @@ public class TFsShellTest {
     } else if (command.length > 3) {
       if (cmd.equals("location")) {
         StringBuilder ret = new StringBuilder();
-        ret.append(command[1] + " with file id " + command[2] + " are on nodes: \n");
+        ret.append(command[1] + " with file id " + command[2] + " is on nodes: \n");
         for (int i = 3; i < command.length; i ++) {
           ret.append(command[i] + "\n");
         }
         return ret.toString();
       } else if (cmd.equals("fileinfo")) {
         StringBuilder ret = new StringBuilder();
-        ret.append(command[1] + " with file id " + command[2] + " have following blocks: \n");
+        ret.append(command[1] + " with file id " + command[2] + " has the following blocks: \n");
         for (int i = 3; i < command.length; i ++) {
           ret.append(command[i] + "\n");
         }
@@ -371,13 +372,12 @@ public class TFsShellTest {
 
   @Test
   public void mkdirTest() throws IOException {
-    mFsShell.mkdir(new String[] {
-        "mkdir",
-        "tachyon://" + InetAddress.getLocalHost().getCanonicalHostName() + ":"
-            + mLocalTachyonCluster.getMasterPort() + "/root/testFile1" });
+    String qualifiedPath = "tachyon://" + NetworkUtils.getLocalHostName() + ":"
+        + mLocalTachyonCluster.getMasterPort() + "/root/testFile1";
+    mFsShell.mkdir(new String[] { "mkdir", qualifiedPath });
     TachyonFile tFile = mTfs.getFile("/root/testFile1");
     Assert.assertNotNull(tFile);
-    Assert.assertEquals(getCommandOutput(new String[] { "mkdir", "/root/testFile1" }),
+    Assert.assertEquals(getCommandOutput(new String[] { "mkdir", qualifiedPath }),
         mOutput.toString());
     Assert.assertTrue(tFile.isDirectory());
   }

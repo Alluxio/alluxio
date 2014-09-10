@@ -2,6 +2,7 @@ package tachyon.conf;
 
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 
 public class WorkerConf extends Utils {
   private static WorkerConf WORKER_CONF = null;
@@ -41,7 +42,7 @@ public class WorkerConf extends Utils {
   public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
 
   private WorkerConf() {
-    MASTER_HOSTNAME = getProperty("tachyon.master.hostname", "localhost");
+    MASTER_HOSTNAME = getProperty("tachyon.master.hostname", NetworkUtils.getLocalHostName());
     MASTER_PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
 
     PORT = getIntProperty("tachyon.worker.port", Constants.DEFAULT_WORKER_PORT);

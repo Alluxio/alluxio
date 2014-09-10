@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -35,12 +36,16 @@ public class Dependency extends ImageWriter {
    */
   static Dependency loadImage(ImageElement ele) throws IOException {
     Dependency dep =
-        new Dependency(ele.getInt("depID"), ele.<List<Integer>> get("parentFiles"),
-            ele.<List<Integer>> get("childrenFiles"), ele.getString("commandPrefix"),
+        new Dependency(ele.getInt("depID"),
+            ele.get("parentFiles", new TypeReference<List<Integer>>() {}),
+            ele.get("childrenFiles", new TypeReference<List<Integer>>() {}),
+            ele.getString("commandPrefix"),
             ele.getByteBufferList("data"), ele.getString("comment"), ele.getString("framework"),
-            ele.getString("frameworkVersion"), ele.<DependencyType> get("dependencyType"),
-            ele.<List<Integer>> get("parentDeps"), ele.getLong("creationTimeMs"));
-    dep.resetUncheckpointedChildrenFiles(ele.<List<Integer>> get("unCheckpointedChildrenFiles"));
+            ele.getString("frameworkVersion"), ele.get("dependencyType", DependencyType.class),
+            ele.get("parentDeps", new TypeReference<List<Integer>>() {}),
+            ele.getLong("creationTimeMs"));
+    dep.resetUncheckpointedChildrenFiles(ele.get("unCheckpointedChildrenFiles",
+        new TypeReference<List<Integer>>() {}));
 
     return dep;
   }

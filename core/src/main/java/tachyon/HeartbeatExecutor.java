@@ -5,5 +5,5 @@ package tachyon;
  * <code>heartbeat()</code> method.
  */
 public interface HeartbeatExecutor {
-  public void heartbeat();
+  void heartbeat();
 }

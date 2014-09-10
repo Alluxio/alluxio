@@ -2,7 +2,6 @@ package tachyon.master;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +20,7 @@ import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 import tachyon.worker.TachyonWorker;
 
 /**
@@ -130,7 +130,7 @@ public class LocalTachyonClusterMultiMaster {
     mkdir(masterDataFolder);
     mkdir(masterLogFolder);
 
-    mLocalhostName = InetAddress.getLocalHost().getCanonicalHostName();
+    mLocalhostName = NetworkUtils.getLocalHostName();
 
     System.setProperty("tachyon.test.mode", "true");
     System.setProperty("tachyon.home", mTachyonHome);

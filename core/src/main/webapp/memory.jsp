@@ -20,9 +20,8 @@
             <%= request.getAttribute("fatalError") %>
           </h1>
           <table class="table table-hover">
-          <caption>Files Currently In Memory</caption>
           <thead>
-            <th>File Name</th>
+            <th>File Path</th>
             <th>Size</th>
             <th>Block Size</th>
             <th>Pin</th>

@@ -11,6 +11,8 @@ import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import com.google.common.collect.ImmutableSet;
 
 import tachyon.Constants;
@@ -38,7 +40,7 @@ public class InodeFolder extends Inode {
     String fileName = ele.getString("name");
     int parentId = ele.getInt("parentId");
     boolean isPinned = ele.getBoolean("pinned");
-    List<Integer> childrenIds = ele.<List<Integer>> get("childrenIds");
+    List<Integer> childrenIds = ele.get("childrenIds", new TypeReference<List<Integer>>() {});
     long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
 
     int numberOfChildren = childrenIds.size();
