@@ -93,10 +93,10 @@ public class TachyonWorker implements Runnable {
     WorkerConf wConf = WorkerConf.get();
     String confFileMasterLoc = wConf.MASTER_HOSTNAME + ":" + wConf.MASTER_PORT;
     String masterLocation;
-    if (args.length < 2) {
+    if (args.length < 1) {
       masterLocation = confFileMasterLoc;
     } else {
-      masterLocation = args[1];
+      masterLocation = args[0];
       if (masterLocation.indexOf(":") == -1) {
         masterLocation += ":" + wConf.MASTER_PORT;
       }
@@ -109,20 +109,16 @@ public class TachyonWorker implements Runnable {
   }
 
   public static void main(String[] args) throws UnknownHostException {
-    if (args.length < 1 || args.length > 2) {
+    if (args.length > 1) {
       LOG.info("Usage: java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
-          + "tachyon.Worker <WorkerHost> [<MasterHost:Port>]");
+          + "tachyon.Worker [<MasterHost:Port>]");
       System.exit(-1);
     }
 
     WorkerConf wConf = WorkerConf.get();
 
-    String resolvedWorkerHost;
-    try {
-      resolvedWorkerHost = NetworkUtils.resolveHostName(args[0]);
-    } catch (UnknownHostException e) {
-      resolvedWorkerHost = args[0];
-    }
+    String resolvedWorkerHost = NetworkUtils.getLocalHostName();
+    LOG.info("Resolved local TachyonWorker host to " + resolvedWorkerHost);
 
     TachyonWorker worker =
         TachyonWorker.createWorker(getMasterLocation(args), resolvedWorkerHost + ":" + wConf.PORT,
