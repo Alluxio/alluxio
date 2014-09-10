@@ -17,6 +17,7 @@ import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 
 /**
  * Constructs an isolated master. Primary users of this class are the
@@ -57,7 +58,7 @@ public final class LocalTachyonMaster {
     UnderFileSystemsUtils.mkdirIfNotExists(mDataDir);
     UnderFileSystemsUtils.mkdirIfNotExists(mLogDir);
 
-    mHostname = InetAddress.getLocalHost().getCanonicalHostName();
+    mHostname = NetworkUtils.getLocalHostName();
 
     // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
     // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of
