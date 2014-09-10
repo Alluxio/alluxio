@@ -31,12 +31,9 @@ public class UIWebServer {
   /**
    * Constructor that pairs urls with servlets and sets the webapp folder.
    * 
-   * @param serverName
-   *          Name of the server
-   * @param address
-   *          Address of the server
-   * @param masterInfo
-   *          MasterInfo for the tachyon filesystem this UIWebServer supports
+   * @param serverName Name of the server
+   * @param address Address of the server
+   * @param masterInfo MasterInfo for the tachyon filesystem this UIWebServer supports
    */
   public UIWebServer(String serverName, InetSocketAddress address, MasterInfo masterInfo) {
     mAddress = address;
@@ -49,10 +46,10 @@ public class UIWebServer {
     File warPath = new File(CommonConf.get().WEB_RESOURCES);
     webappcontext.setWar(warPath.getAbsolutePath());
     HandlerList handlers = new HandlerList();
-    webappcontext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterInfo)),
-        "/home");
+    webappcontext
+        .addServlet(new ServletHolder(new WebInterfaceGeneralServlet(masterInfo)), "/home");
     webappcontext.addServlet(new ServletHolder(new WebInterfaceWorkersServlet(masterInfo)),
-	    "/workers");
+        "/workers");
     webappcontext.addServlet(new ServletHolder(new WebInterfaceConfigurationServlet(masterInfo)),
         "/configuration");
     webappcontext.addServlet(new ServletHolder(new WebInterfaceBrowseServlet(masterInfo)),
@@ -62,7 +59,7 @@ public class UIWebServer {
     webappcontext.addServlet(new ServletHolder(new WebInterfaceDependencyServlet(masterInfo)),
         "/dependency");
 
-    handlers.setHandlers(new Handler[] { webappcontext, new DefaultHandler() });
+    handlers.setHandlers(new Handler[] {webappcontext, new DefaultHandler()});
     mServer.setHandler(handlers);
   }
 

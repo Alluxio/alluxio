@@ -14,7 +14,7 @@
 <div class="container-fluid">
   <jsp:include page="header.jsp" />
   <div class="row-fluid">
-    <div class="accordion span14" id="accordion1">
+    <div class="accordion span6" id="accordion1">
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion1" href="#data1">
@@ -55,10 +55,8 @@
         </div>
       </div>
     </div>
-  </div>
-  
-  <div class="row-fluid">
-    <div class="accordion span14" id="accordion2">
+
+    <div class="accordion span6" id="accordion2">
       <div class="accordion-group">
         <div class="accordion-heading">
           <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#data2">
