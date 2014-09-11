@@ -499,6 +499,7 @@ public class TachyonFSTest {
     }
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
+      Assert.assertEquals(tFile.length(), fileSize);
       Assert.assertTrue(tFile.isInMemory());
       TachyonByteBuffer tBuf = tFile.readByteBuffer(0);
       Assert.assertNotNull(tBuf);

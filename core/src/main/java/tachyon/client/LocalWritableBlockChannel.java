@@ -44,10 +44,18 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
 
     mTachyonFS.releaseSpace(mLocalFileChannel.written());
     new File(mLocalFilePath).delete();
+    LOG.info("Canceled output of block " + mBlockId + ", deleted local file " + mLocalFilePath);
   }
 
   @Override
   public int write(ByteBuffer src) throws IOException {
+    if (!mTachyonFS.requestSpace(src.remaining())) {
+      String msg =
+          "Local tachyon worker does not have enough " + "space (" + src.remaining()
+              + ") or no worker for " /* + mFile.mFileId + " " */ + mBlockId;
+
+      throw new IOException(msg);
+    }
     return mLocalFileChannel.write(src);
   }
 
