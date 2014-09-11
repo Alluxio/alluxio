@@ -166,6 +166,7 @@ public class FileOutStream extends OutStream {
   }
 
   private void write(final ByteBuffer buffer) throws IOException {
+    final int pos = buffer.position();
     if (mWriteType.isCache()) {
       try {
         if (mCurrentBlockChannel == null) {
@@ -173,7 +174,7 @@ public class FileOutStream extends OutStream {
         }
         while (buffer.remaining() > 0) {
           int n = mCurrentBlockChannel.write(buffer);
-          if (n <= 0) {
+          if (n < 0) {
             // block full, get new block
             getNextBlock();
           } else {
@@ -191,8 +192,8 @@ public class FileOutStream extends OutStream {
     }
 
     if (mWriteType.isThrough()) {
-      buffer.rewind();
-      mCheckpointOutputStream.write(buffer.array(), buffer.arrayOffset(), buffer.array().length - buffer.arrayOffset());
+      buffer.position(pos);
+      mCheckpointOutputStream.write(buffer.array(), pos, buffer.limit());
     }
   }
 

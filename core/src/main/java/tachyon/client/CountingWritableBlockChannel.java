@@ -15,7 +15,9 @@ public final class CountingWritableBlockChannel implements WritableBlockChannel 
   @Override
   public int write(ByteBuffer src) throws IOException {
     int r = mDelegate.write(src);
-    mWritten.addAndGet(r);
+    if (r > 0) {
+      mWritten.addAndGet(r);
+    }
     return r;
   }
 
