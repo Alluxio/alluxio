@@ -15,6 +15,10 @@ final class LocalBlock implements Block {
 
   @Override
   public WritableBlockChannel write() throws IOException {
-    return new BoundedWritableBlockChannel(mMaxBlockSize, new LocalWritableBlockChannel(mTachyonFS, mBlockId));
+    int bufferSize = (int) Math.min(mMaxBlockSize, 0x1000); // 4k
+    LocalWritableBlockChannel local = new LocalWritableBlockChannel(mTachyonFS, mBlockId);
+    BufferedWritableBlockChannel buffered = new BufferedWritableBlockChannel(bufferSize, local);
+    BoundedWritableBlockChannel bounded = new BoundedWritableBlockChannel(mMaxBlockSize, buffered);
+    return bounded;
   }
 }
