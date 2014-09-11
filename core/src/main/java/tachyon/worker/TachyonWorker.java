@@ -13,6 +13,7 @@ import org.apache.thrift.transport.TTransportException;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.Users;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
@@ -22,6 +23,8 @@ import tachyon.thrift.NetAddress;
 import tachyon.thrift.WorkerService;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
+import tachyon.worker.netty.NettyDataServer;
+import tachyon.worker.nio.NIODataServer;
 
 /**
  * Entry point for a worker daemon.
@@ -143,8 +146,6 @@ public class TachyonWorker implements Runnable {
 
   private final DataServer mDataServer;
 
-  private Thread mDataServerThread;
-
   private Thread mHeartbeatThread;
 
   private volatile boolean mStop = false;
@@ -188,10 +189,9 @@ public class TachyonWorker implements Runnable {
     // (any random free port).
     // In a production or any real deployment setup, port '0' should not be used as it will make
     // deployment more complicated.
-    mDataServer =
-        new DataServer(new InetSocketAddress(NetworkUtils.getFqdnHost(workerAddress), dataPort),
-            mWorkerStorage);
-    mDataServerThread = new Thread(mDataServer);
+    InetSocketAddress dataAddress = new InetSocketAddress(workerAddress.getHostName(), dataPort);
+    BlocksLocker blockLocker = new BlocksLocker(mWorkerStorage, Users.sDATASERVER_USER_ID);
+    mDataServer = createDataServer(dataAddress, blockLocker);
     mDataPort = mDataServer.getPort();
 
     mHeartbeatThread = new Thread(this);
@@ -214,6 +214,18 @@ public class TachyonWorker implements Runnable {
     mWorkerAddress =
         new NetAddress(workerAddress.getAddress().getCanonicalHostName(), mPort, mDataPort);
     mWorkerStorage.initialize(mWorkerAddress);
+  }
+
+  private DataServer createDataServer(final InetSocketAddress dataAddress,
+      final BlocksLocker blockLocker) {
+    switch (WorkerConf.get().NETWORK_TYPE) {
+      case NIO:
+        return new NIODataServer(dataAddress, blockLocker);
+      case NETTY:
+        return new NettyDataServer(dataAddress, blockLocker);
+      default:
+        throw new AssertionError("Unknown network type: " + WorkerConf.get().NETWORK_TYPE);
+    }
   }
 
   /**
@@ -305,7 +317,6 @@ public class TachyonWorker implements Runnable {
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
   public void start() {
-    mDataServerThread.start();
     mHeartbeatThread.start();
 
     LOG.info("The worker server started @ " + mWorkerAddress);
