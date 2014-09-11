@@ -342,6 +342,7 @@ public class TachyonFSTest {
     for (int k = 0; k < numOfFiles; k ++) {
       tFile = mTfs.getFile(fileIds.get(k));
       Assert.assertTrue(tFile.isInMemory());
+      // locks the files, so can't be removed
       Assert.assertNotNull(tFile.readByteBuffer(0));
     }
     fileIds.add(TestUtils.createByteFile(mTfs, "/file_" + numOfFiles, WriteType.CACHE_THROUGH,

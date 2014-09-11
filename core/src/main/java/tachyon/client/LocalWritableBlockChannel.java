@@ -19,6 +19,7 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
   private final RandomAccessFile mLocalFile;
   private final String mLocalFilePath;
   private final long mBlockId;
+  private volatile boolean mCanWrite = true;
 
   public LocalWritableBlockChannel(TachyonFS tachyonFS, long blockId) throws IOException {
     mTachyonFS = tachyonFS;
@@ -49,7 +50,12 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
 
   @Override
   public int write(ByteBuffer src) throws IOException {
+    if (!mCanWrite) {
+      throw new IOException("Can not write cache.");
+    }
+
     if (!mTachyonFS.requestSpace(src.remaining())) {
+      mCanWrite = false;
       String msg =
           "Local tachyon worker does not have enough " + "space (" + src.remaining()
               + ") or no worker for " /* + mFile.mFileId + " " */ + mBlockId;
@@ -66,9 +72,17 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
 
   @Override
   public void close() throws IOException {
-    free();
+    if (mCanWrite) {
+      free();
 
-    mTachyonFS.cacheBlock(mBlockId);
+      mTachyonFS.cacheBlock(mBlockId);
+    } else {
+      // we failed to write this block, so cancel it
+      // this logic is different than BlockOutStream because that buffers.
+      // when the buffer is smaller than the block size, and you fail after writing a block
+      // then BlockOutStream will hit a bug
+      cancel();
+    }
   }
 
   private void free() throws IOException {
