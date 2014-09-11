@@ -1,0 +1,35 @@
+#!/bin/bash
+
+env
+
+source /root/tachyon_base_files/configure_tachyon.sh
+
+IP=$(ip -o -4 addr list eth0 | perl -n -e 'if (m{inet\s([\d\.]+)\/\d+\s}xms) { print $1 }')
+echo "MASTER_IP=$IP"
+MASTER_IP=$IP
+
+echo "preparing Tachyon"
+prepare_tachyon $MASTER_IP
+
+echo "starting Hadoop Namenode"
+sudo -u hdfs hadoop namenode -format > /dev/null 2>&1
+service hadoop-namenode start > /dev/null 2>&1
+
+echo "starting sshd"
+/usr/sbin/sshd
+
+sleep 5
+
+echo "starting Tachyon Master"
+#source /root/tachyon_master_files/run_tachyon_master.sh
+chown -R hdfs:hdfs $TACHYON_CONTAINER
+run_tachyon=run_tachyon_master.sh
+cp /root/tachyon_master_files/"$run_tachyon" /
+chmod a+rx /"$run_tachyon"
+sudo -u hdfs TACHYON_CONTAINER=$TACHYON_CONTAINER MASTER_IP=$MASTER_IP /"$run_tachyon"
+
+# Keep this script alive in container, so that docker will keep the container running
+while [ 1 ];
+do
+  sleep 1
+done
