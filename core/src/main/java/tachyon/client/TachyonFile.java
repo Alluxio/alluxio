@@ -122,8 +122,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       throw new IOException("The file " + this + " is not complete.");
     }
 
-    List<Long> blocks =
-        mTachyonFS.getFileStatus(mFileId, false).getBlockIds();
+    List<Long> blocks = mTachyonFS.getFileStatus(mFileId, false).getBlockIds();
 
     if (blocks.size() == 0) {
       return new EmptyBlockInStream(this, readType);
