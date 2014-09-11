@@ -30,27 +30,36 @@ if [[ `uname -a` == Darwin* ]]; then
 else
   # Assuming Linux
   if [ -z "$JAVA_HOME" ]; then
-    export JAVA_HOME=/usr/lib/jvm/java-1.6.0-sun-1.6.0.45.x86_64/
+    if [ -d /usr/lib/jvm/java-7-oracle ]; then
+      export JAVA_HOME=/usr/lib/jvm/java-7-oracle
+    else
+      # openjdk will set this
+      if [ -d /usr/lib/jvm/jre-1.7.0 ]; then
+        export JAVA_HOME=/usr/lib/jvm/jre-1.7.0
+      fi
+    fi
   fi
   export TACHYON_RAM_FOLDER=/mnt/ramdisk
 fi
 
+if [ -z "$JAVA_HOME" ]; then
+  export JAVA_HOME="$(dirname $(which java))/.."
+fi
+
 export JAVA="$JAVA_HOME/bin/java"
-
 export TACHYON_MASTER_ADDRESS=localhost
-
+export TACHYON_UNDERFS_ADDRESS=$TACHYON_HOME/underfs
 export TACHYON_UNDERFS_ADDRESS=glusterfs:///
-export TACHYON_UNDERFS_GLUSTER_VOLUMES=tachyon_vol
-export TACHYON_UNDERFS_GLUSTER_MOUNTS=/vol
-export TACHYON_UNDERFS_GLUSTER_MR_DIR=glusterfs:///mapred/system
 export TACHYON_WORKER_MEMORY_SIZE=1GB
+
 
 CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 export TACHYON_JAVA_OPTS+="
   -Dlog4j.configuration=file:$CONF_DIR/log4j.properties
-  -Dtachyon.debug=true
+  -Dtachyon.debug=false
   -Dtachyon.underfs.address=$TACHYON_UNDERFS_ADDRESS
+  -Dtachyon.underfs.hdfs.impl=$TACHYON_UNDERFS_HDFS_IMPL
   -Dtachyon.data.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/data
   -Dtachyon.workers.folder=$TACHYON_UNDERFS_ADDRESS/tmp/tachyon/workers
   -Dtachyon.worker.memory.size=$TACHYON_WORKER_MEMORY_SIZE
@@ -58,11 +67,8 @@ export TACHYON_JAVA_OPTS+="
   -Dtachyon.master.worker.timeout.ms=60000
   -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS
   -Dtachyon.master.journal.folder=$TACHYON_HOME/journal/
-  -Dtachyon.master.pinlist=/pinfiles;/pindata
-  -Dtachyon.underfs.glusterfs.volumes=$TACHYON_UNDERFS_GLUSTER_VOLUMES
-  -Dtachyon.underfs.glusterfs.mounts=$TACHYON_UNDERFS_GLUSTER_MOUNTS
-  -Dtachyon.underfs.glusterfs.mapred.system.dir=$TACHYON_UNDERFS_GLUSTER_MR_DIR
   -Dorg.apache.jasper.compiler.disablejsr199=true
+  -Djava.net.preferIPv4Stack=true
 "
 
 # Master specific parameters. Default to TACHYON_JAVA_OPTS.

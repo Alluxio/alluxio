@@ -19,7 +19,7 @@ public class CommonConf extends Utils {
   private static CommonConf COMMON_CONF = null;
 
   public static final ImmutableList<String> DEFAULT_HADOOP_UFS_PREFIX = ImmutableList.of(
-      "hdfs://", "s3://", "s3n://", "glusterfs:///");
+      "hdfs://", "s3://", "s3n://", "glusterfs:///", "ceph://");
 
   /**
    * This is for unit test only. DO NOT use it for other purpose.
@@ -42,10 +42,6 @@ public class CommonConf extends Utils {
   public final String UNDERFS_WORKERS_FOLDER;
 
   public final String UNDERFS_HDFS_IMPL;
-  public final String UNDERFS_GLUSTERFS_IMPL;
-  public final String UNDERFS_GLUSTERFS_VOLUMES;
-  public final String UNDERFS_GLUSTERFS_MOUNTS;
-  public final String UNDERFS_GLUSTERFS_MR_DIR;
   public final String WEB_RESOURCES;
   public final boolean USE_ZOOKEEPER;
   public final String ZOOKEEPER_ADDRESS;
@@ -80,13 +76,6 @@ public class CommonConf extends Utils {
         getProperty("tachyon.workers.folder", UNDERFS_ADDRESS + "/tachyon/workers");
     UNDERFS_HDFS_IMPL =
         getProperty("tachyon.underfs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
-    UNDERFS_GLUSTERFS_IMPL =
-        getProperty("tachyon.underfs.glusterfs.impl",
-            "org.apache.hadoop.fs.glusterfs.GlusterFileSystem");
-    UNDERFS_GLUSTERFS_VOLUMES = getProperty("tachyon.underfs.glusterfs.volumes", null);
-    UNDERFS_GLUSTERFS_MOUNTS = getProperty("tachyon.underfs.glusterfs.mounts", null);
-    UNDERFS_GLUSTERFS_MR_DIR =
-        getProperty("tachyon.underfs.glusterfs.mapred.system.dir", "glusterfs:///mapred/system");
     USE_ZOOKEEPER = getBooleanProperty("tachyon.usezookeeper", false);
     if (USE_ZOOKEEPER) {
       ZOOKEEPER_ADDRESS = getProperty("tachyon.zookeeper.address");
