@@ -1,12 +1,15 @@
 package tachyon.web;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.google.common.collect.Ordering;
 
 import tachyon.Constants;
 import tachyon.master.MasterInfo;
@@ -88,10 +91,8 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
   /**
    * Populates attributes before redirecting to a jsp.
    * 
-   * @param request
-   *          The HttpServletRequest object
-   * @param response
-   *          The HttpServletReponse object
+   * @param request The HttpServletRequest object
+   * @param response The HttpServletReponse object
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -103,47 +104,40 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
   /**
    * Populates key, value pairs for UI display
    * 
-   * @param request
-   *          The HttpServletRequest object
+   * @param request The HttpServletRequest object
    * @throws IOException
    */
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Constants.DEBUG);
 
     List<ClientWorkerInfo> workerInfos = mMasterInfo.getWorkersInfo();
-    for (int i = 0; i < workerInfos.size(); i++) {
-      for (int j = i + 1; j < workerInfos.size(); j++) {
-        if (workerInfos.get(i).getAddress().getMHost()
-            .compareTo(workerInfos.get(j).getAddress().getMHost()) > 0) {
-          ClientWorkerInfo temp = workerInfos.get(i);
-          workerInfos.set(i, workerInfos.get(j));
-          workerInfos.set(j, temp);
-        }
-      }
-    }
-    int index = 0;
-    NodeInfo[] normalNodeInfos = new NodeInfo[workerInfos.size()];
-    for (ClientWorkerInfo workerInfo : workerInfos) {
-      normalNodeInfos[index ++] = new NodeInfo(workerInfo);
-    }
+    NodeInfo[] normalNodeInfos = generateOrderedNodeInfos(workerInfos);
     request.setAttribute("normalNodeInfos", normalNodeInfos);
 
     List<ClientWorkerInfo> lostWorkerInfos = mMasterInfo.getLostWorkersInfo();
-    for (int i = 0; i < lostWorkerInfos.size(); i++) {
-      for (int j = i + 1; j < lostWorkerInfos.size(); j++) {
-        if (lostWorkerInfos.get(i).getAddress().getMHost()
-            .compareTo(lostWorkerInfos.get(j).getAddress().getMHost()) > 0) {
-          ClientWorkerInfo temp = lostWorkerInfos.get(i);
-          lostWorkerInfos.set(i, lostWorkerInfos.get(j));
-          lostWorkerInfos.set(j, temp);
-        }
-      }
-    }
-    index = 0;
-    NodeInfo[] failedNodeInfos = new NodeInfo[lostWorkerInfos.size()];
-    for (ClientWorkerInfo workerInfo : lostWorkerInfos) {
-      failedNodeInfos[index ++] = new NodeInfo(workerInfo);
-    }
+    NodeInfo[] failedNodeInfos = generateOrderedNodeInfos(lostWorkerInfos);
     request.setAttribute("failedNodeInfos", failedNodeInfos);
+  }
+
+  /**
+   * Order the nodes by hostName and generate NodeInfo list for UI display
+   * 
+   * @param workerInfos The list of ClientWorkerInfo objects
+   * @return The list of NodeInfo objects
+   */
+  private NodeInfo[] generateOrderedNodeInfos(List<ClientWorkerInfo> workerInfos) {
+    NodeInfo[] ret = new NodeInfo[workerInfos.size()];
+    Collections.sort(workerInfos, new Ordering<ClientWorkerInfo>() {
+      @Override
+      public int compare(ClientWorkerInfo arg0, ClientWorkerInfo arg1) {
+        return arg0.getAddress().getMHost().compareTo(arg1.getAddress().getMHost());
+      }
+    });
+    int index = 0;
+    for (ClientWorkerInfo workerInfo : workerInfos) {
+      ret[index++] = new NodeInfo(workerInfo);
+    }
+
+    return ret;
   }
 }
