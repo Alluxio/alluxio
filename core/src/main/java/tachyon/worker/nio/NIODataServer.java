@@ -125,12 +125,12 @@ public class NIODataServer implements Runnable, DataServer {
     } catch (IOException e) {
       // we wan't to throw the original IO issue, not the close issue, so don't throw
       // #close IOException.
-      Closeables.closeQuietly(socketSelector);
+      socketSelector.close();
       throw e;
     } catch (RuntimeException e) {
       // we wan't to throw the original IO issue, not the close issue, so don't throw
       // #close IOException.
-      Closeables.closeQuietly(socketSelector);
+      socketSelector.close();
       throw e;
     }
   }
