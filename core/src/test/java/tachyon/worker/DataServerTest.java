@@ -32,12 +32,22 @@ public class DataServerTest {
   private static final int WORKER_CAPACITY_BYTES = 1000;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    // creates a new instance of DataServerTest for each network type
+    List<Object[]> list = new ArrayList<Object[]>();
+    for (final NetworkType type : NetworkType.values()) {
+      list.add(new Object[] { type });
+    }
+    return list;
+  }
   private final NetworkType mType;
   private LocalTachyonCluster mLocalTachyonCluster = null;
+
   private TachyonFS mTFS = null;
 
   public DataServerTest(NetworkType type) {
-    this.mType = type;
+    mType = type;
   }
 
   @After
@@ -45,6 +55,32 @@ public class DataServerTest {
     mLocalTachyonCluster.stop();
     System.clearProperty("tachyon.user.quota.unit.bytes");
     System.clearProperty("tachyon.worker.network.type");
+  }
+
+  /**
+   * Asserts that the message back matches the block response protocols for the error case.
+   */
+  private void assertError(final DataServerMessage msg, final long blockId) {
+    assertValid(msg, 0, -1 * blockId, 0, 0);
+  }
+
+  /**
+   * Asserts that the message back matches the block response protocols.
+   */
+  private void assertValid(final DataServerMessage msg, final ByteBuffer expectedData,
+      final long blockId, final long offset, final long length) {
+    Assert.assertEquals(expectedData, msg.getReadOnlyData());
+    Assert.assertEquals(blockId, msg.getBlockId());
+    Assert.assertEquals(offset, msg.getOffset());
+    Assert.assertEquals(length, msg.getLength());
+  }
+
+  /**
+   * Asserts that the message back matches the block response protocols.
+   */
+  private void assertValid(final DataServerMessage msg, final int expectedSize,
+      final long blockId, final long offset, final long length) {
+    assertValid(msg, TestUtils.getIncreasingByteBuffer(expectedSize), blockId, offset, length);
   }
 
   @Before
@@ -56,19 +92,38 @@ public class DataServerTest {
     mTFS = mLocalTachyonCluster.getClient();
   }
 
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() {
-    // creates a new instance of DataServerTest for each network type
-    List<Object[]> list = new ArrayList<Object[]>();
-    for (final NetworkType type : NetworkType.values()) {
-      list.add(new Object[] { type });
+  @Test
+  public void lengthTooSmall() throws IOException {
+    final int length = 20;
+    int fileId = TestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
+    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+    DataServerMessage recvMsg = request(block, 0, length * -2);
+    assertError(recvMsg, block.blockId);
+  }
+
+  @Test
+  public void multiReadTest() throws IOException {
+    final int length = 20;
+    int fileId = TestUtils.createByteFile(mTFS, "/multiReadTest", WriteType.MUST_CACHE, length);
+    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+    for (int i = 0; i < 10; i ++) {
+      DataServerMessage recvMsg = request(block);
+      assertValid(recvMsg, length, block.getBlockId(), 0, length);
     }
-    return list;
+  }
+
+  @Test
+  public void negativeOffset() throws IOException {
+    final int length = 10;
+    int fileId = TestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
+    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+    DataServerMessage recvMsg = request(block, length * -2, 1);
+    assertError(recvMsg, block.blockId);
   }
 
   @Test
   public void readPartialTest1() throws InvalidPathException, FileAlreadyExistException,
-      IOException {
+  IOException {
     int fileId = TestUtils.createByteFile(mTFS, "/testFile", WriteType.MUST_CACHE, 10);
     ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     final int offset = 0;
@@ -79,7 +134,7 @@ public class DataServerTest {
 
   @Test
   public void readPartialTest2() throws InvalidPathException, FileAlreadyExistException,
-      IOException {
+  IOException {
     int fileId = TestUtils.createByteFile(mTFS, "/testFile", WriteType.MUST_CACHE, 10);
     ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     final int offset = 2;
@@ -99,76 +154,12 @@ public class DataServerTest {
   }
 
   @Test
-  public void multiReadTest() throws IOException {
-    final int length = 20;
-    int fileId = TestUtils.createByteFile(mTFS, "/multiReadTest", WriteType.MUST_CACHE, length);
-    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
-    for (int i = 0; i < 10; i ++) {
-      DataServerMessage recvMsg = request(block);
-      assertValid(recvMsg, length, block.getBlockId(), 0, length);
-    }
-  }
-
-  @Test
   public void readTooLarge() throws IOException {
     final int length = 20;
     int fileId = TestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
     ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     DataServerMessage recvMsg = request(block, 0, length * 2);
     assertError(recvMsg, block.blockId);
-  }
-
-  @Test
-  public void lengthTooSmall() throws IOException {
-    final int length = 20;
-    int fileId = TestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
-    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
-    DataServerMessage recvMsg = request(block, 0, length * -2);
-    assertError(recvMsg, block.blockId);
-  }
-
-  @Test
-  public void tooLargeOffset() throws IOException {
-    final int length = 10;
-    int fileId = TestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
-    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
-    DataServerMessage recvMsg = request(block, length * 2, 1);
-    assertError(recvMsg, block.blockId);
-  }
-
-  @Test
-  public void negativeOffset() throws IOException {
-    final int length = 10;
-    int fileId = TestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
-    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
-    DataServerMessage recvMsg = request(block, length * -2, 1);
-    assertError(recvMsg, block.blockId);
-  }
-
-  /**
-   * Asserts that the message back matches the block response protocols for the error case.
-   */
-  private void assertError(final DataServerMessage msg, final long blockId) {
-    assertValid(msg, 0, -1 * blockId, 0, 0);
-  }
-
-  /**
-   * Asserts that the message back matches the block response protocols.
-   */
-  private void assertValid(final DataServerMessage msg, final int expectedSize,
-      final long blockId, final long offset, final long length) {
-    assertValid(msg, TestUtils.getIncreasingByteBuffer(expectedSize), blockId, offset, length);
-  }
-
-  /**
-   * Asserts that the message back matches the block response protocols.
-   */
-  private void assertValid(final DataServerMessage msg, final ByteBuffer expectedData,
-      final long blockId, final long offset, final long length) {
-    Assert.assertEquals(expectedData, msg.getReadOnlyData());
-    Assert.assertEquals(blockId, msg.getBlockId());
-    Assert.assertEquals(offset, msg.getOffset());
-    Assert.assertEquals(length, msg.getLength());
   }
 
   /**
@@ -205,5 +196,14 @@ public class DataServerTest {
     } finally {
       socketChannel.close();
     }
+  }
+
+  @Test
+  public void tooLargeOffset() throws IOException {
+    final int length = 10;
+    int fileId = TestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
+    ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
+    DataServerMessage recvMsg = request(block, length * 2, 1);
+    assertError(recvMsg, block.blockId);
   }
 }
