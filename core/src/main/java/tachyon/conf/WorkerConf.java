@@ -1,12 +1,13 @@
 package tachyon.conf;
 
 import com.google.common.base.Optional;
+
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 import tachyon.worker.NetworkType;
 import tachyon.worker.netty.ChannelType;
 import tachyon.worker.netty.FileTransferType;
-import tachyon.util.NetworkUtils;
 
 public class WorkerConf extends Utils {
   private static WorkerConf WORKER_CONF = null;

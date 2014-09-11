@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -80,6 +79,20 @@ public class TachyonFile implements Comparable<TachyonFile> {
   }
 
   /**
+   * Get the block id by the file id and offset. it will check whether the file and the block exist.
+   *
+   * @param offset
+   *          The offset of the file.
+   * @return the block id if exists
+   * @throws IOException
+   */
+  long getBlockIdBasedOnOffset(long offset) throws IOException {
+    int index = (int) (offset / mTachyonFS.getFileStatus(mFileId, "", true).getBlockSizeByte());
+
+    return mTachyonFS.getBlockId(mFileId, index);
+  }
+
+  /**
    * Return the block's size of this file
    *
    * @return the block's size in bytes
@@ -87,6 +100,18 @@ public class TachyonFile implements Comparable<TachyonFile> {
    */
   public long getBlockSizeByte() throws IOException {
     return mTachyonFS.getFileStatus(mFileId, "", true).getBlockSizeByte();
+  }
+
+  /**
+   * Get a ClientBlockInfo by the file id and block index
+   *
+   * @param blockIndex
+   *          The index of the block in the file.
+   * @return the ClientBlockInfo of the specified block
+   * @throws IOException
+   */
+  public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws IOException {
+    return mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
   }
 
   /**
@@ -132,18 +157,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
 
     return new FileInStream(this, readType, mUFSConf);
-  }
-
-  /**
-   * Get a ClientBlockInfo by the file id and block index
-   *
-   * @param blockIndex
-   *          The index of the block in the file.
-   * @return the ClientBlockInfo of the specified block
-   * @throws IOException
-   */
-  public synchronized ClientBlockInfo getClientBlockInfo(int blockIndex) throws IOException {
-    return mTachyonFS.getClientBlockInfo(getBlockId(blockIndex));
   }
 
   /**
@@ -253,20 +266,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
     }
 
     return mTachyonFS.getFileStatus(mFileId, "", false).getUfsPath();
-  }
-
-  /**
-   * Get the block id by the file id and offset. it will check whether the file and the block exist.
-   *
-   * @param offset
-   *          The offset of the file.
-   * @return the block id if exists
-   * @throws IOException
-   */
-  long getBlockIdBasedOnOffset(long offset) throws IOException {
-    int index = (int) (offset / mTachyonFS.getFileStatus(mFileId, "", true).getBlockSizeByte());
-
-    return mTachyonFS.getBlockId(mFileId, index);
   }
 
   @Override
