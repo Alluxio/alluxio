@@ -1,4 +1,4 @@
-package tachyon.worker;
+package tachyon.worker.nio;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -21,6 +21,10 @@ import tachyon.util.CommonUtils;
 public class DataServerMessage {
   public static final short DATA_SERVER_REQUEST_MESSAGE = 1;
   public static final short DATA_SERVER_RESPONSE_MESSAGE = 2;
+
+  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+
+  private static final int HEADER_LENGTH = 26;
 
   /**
    * Create a default block request message, just allocate the message header, and no attribute is
@@ -87,7 +91,6 @@ public class DataServerMessage {
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId) {
     return createBlockResponseMessage(toSend, blockId, 0, -1);
   }
-
   /**
    * Create a block response message specified by the block's id, the offset and the length. If
    * <code>toSend</code> is true, it will prepare the data to be sent, otherwise the message is used
@@ -171,14 +174,11 @@ public class DataServerMessage {
 
     return ret;
   }
-
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
   private final boolean mToSendData;
   private final short mMessageType;
   private boolean mIsMessageReady;
-  private ByteBuffer mHeader;
 
-  private static final int HEADER_LENGTH = 26;
+  private ByteBuffer mHeader;
   private long mBlockId;
 
   private long mOffset;

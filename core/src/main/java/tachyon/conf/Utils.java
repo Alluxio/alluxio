@@ -25,12 +25,26 @@ class Utils {
     return Boolean.valueOf(getProperty(property, defaultValue + ""));
   }
 
+  public static <T extends Enum<T>> T getEnumProperty(String property, T defaultValue) {
+    final String val = getProperty(property, null);
+    return null == val ? defaultValue
+        : Enum.valueOf(defaultValue.getDeclaringClass(), val);
+  }
+
   public static int getIntProperty(String property) {
     return Integer.valueOf(getProperty(property));
   }
 
   public static int getIntProperty(String property, int defaultValue) {
     return Integer.valueOf(getProperty(property, defaultValue + ""));
+  }
+
+  public static Integer getIntegerProperty(String property, Integer defaultValue) {
+    try {
+      return Integer.valueOf(getProperty(property, null));
+    } catch (NumberFormatException e) {
+      return defaultValue;
+    }
   }
 
   public static long getLongProperty(String property) {

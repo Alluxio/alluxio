@@ -16,7 +16,8 @@ import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.worker.DataServerMessage;
+import tachyon.util.NetworkUtils;
+import tachyon.worker.nio.DataServerMessage;
 
 /**
  * BlockInStream for remote block.
@@ -213,14 +214,14 @@ public class RemoteBlockInStream extends BlockInStream {
           continue;
         }
         if (host.equals(InetAddress.getLocalHost().getHostName())
-            || host.equals(InetAddress.getLocalHost().getHostAddress())) {
+            || host.equals(InetAddress.getLocalHost().getHostAddress())
+            || host.equals(NetworkUtils.getLocalHostName())) {
           String localFileName =
               CommonUtils.concat(mTachyonFS.getLocalDataFolder(), blockInfo.blockId);
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         }
         LOG.info(host + ":" + port + " current host is "
-            + InetAddress.getLocalHost().getHostName() + " "
-            + InetAddress.getLocalHost().getHostAddress());
+            + NetworkUtils.getLocalHostName() + " " + NetworkUtils.getLocalIpAddress());
 
         try {
           buf =
