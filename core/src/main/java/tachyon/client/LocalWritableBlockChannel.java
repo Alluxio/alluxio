@@ -7,11 +7,11 @@ import java.nio.ByteBuffer;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.io.Closer;
+
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
 import tachyon.util.CountingWritableByteChannel;
-
-import com.google.common.io.Closer;
 
 final class LocalWritableBlockChannel implements WritableBlockChannel {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
