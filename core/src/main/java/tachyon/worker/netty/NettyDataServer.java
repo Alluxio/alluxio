@@ -1,26 +1,4 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more contributor license
- * agreements. See the NOTICE file distributed with this work for additional information regarding
- * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance with the License. You may obtain a
- * copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable
- * law or agreed to in writing, software distributed under the License is distributed on an "AS IS"
- * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
- * for the specific language governing permissions and limitations under the License.
- */
 package tachyon.worker.netty;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.util.concurrent.ThreadFactory;
-
-import tachyon.conf.WorkerConf;
-import tachyon.worker.BlocksLocker;
-import tachyon.worker.DataServer;
-
-import com.google.common.base.Throwables;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -32,11 +10,24 @@ import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.concurrent.ThreadFactory;
+
+import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
+import tachyon.conf.WorkerConf;
+import tachyon.worker.BlocksLocker;
+import tachyon.worker.DataServer;
+
 /**
  * Runs a netty server that will response to block requests.
  */
 public final class NettyDataServer implements DataServer {
   private final ServerBootstrap mBootstrap;
+
   private final ChannelFuture mChannelFuture;
 
   public NettyDataServer(final SocketAddress address, final BlocksLocker locker) {
@@ -56,21 +47,7 @@ public final class NettyDataServer implements DataServer {
     mBootstrap.childGroup().shutdownGracefully();
   }
 
-  /**
-   * Gets the port listening on.
-   */
-  @Override
-  public int getPort() {
-    // according to the docs, a InetSocketAddress is returned and the user must down-cast
-    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getPort();
-  }
-
-  @Override
-  public boolean isClosed() {
-    return mBootstrap.group().isShutdown();
-  }
-
-  private static ServerBootstrap createBootstrap() {
+  private ServerBootstrap createBootstrap() {
     final WorkerConf conf = WorkerConf.get();
     ServerBootstrap boot = new ServerBootstrap();
     boot = setupGroups(boot, conf.NETTY_CHANNEL_TYPE);
@@ -97,11 +74,29 @@ public final class NettyDataServer implements DataServer {
     return boot;
   }
 
+  private ThreadFactory createThreadFactory(final String nameFormat) {
+    return new ThreadFactoryBuilder().setNameFormat(nameFormat).build();
+  }
+
+  /**
+   * Gets the port listening on.
+   */
+  @Override
+  public int getPort() {
+    // according to the docs, a InetSocketAddress is returned and the user must down-cast
+    return ((InetSocketAddress) mChannelFuture.channel().localAddress()).getPort();
+  }
+
+  @Override
+  public boolean isClosed() {
+    return mBootstrap.group().isShutdown();
+  }
+
   /**
    * Creates a default {@link io.netty.bootstrap.ServerBootstrap} where the channel and groups are
    * preset. Current channel type supported are nio and epoll.
    */
-  private static ServerBootstrap setupGroups(final ServerBootstrap boot, final ChannelType type) {
+  private ServerBootstrap setupGroups(final ServerBootstrap boot, final ChannelType type) {
     ThreadFactory workerFactory = createThreadFactory("data-server-%d");
     EventLoopGroup bossGroup;
     EventLoopGroup workerGroup;
@@ -118,9 +113,5 @@ public final class NettyDataServer implements DataServer {
     }
     boot.group(bossGroup, workerGroup);
     return boot;
-  }
-
-  private static ThreadFactory createThreadFactory(final String nameFormat) {
-    return new ThreadFactoryBuilder().setNameFormat(nameFormat).build();
   }
 }
