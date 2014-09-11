@@ -9,10 +9,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.io.Closer;
+
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
-
-import com.google.common.io.Closer;
 
 final class LocalWritableBlockChannel implements WritableBlockChannel {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
@@ -71,7 +71,7 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
 
       throw new IOException(msg);
     }
-    //TODO Unify BlockHandler
+    // TODO Unify BlockHandler
     ByteBuffer out =
         mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, mWritten.get(), src.limit());
     out.put(src);
