@@ -4,21 +4,23 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.log4j.Logger;
 
-import com.google.common.io.Closer;
-
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
-import tachyon.util.CountingWritableByteChannel;
+
+import com.google.common.io.Closer;
 
 final class LocalWritableBlockChannel implements WritableBlockChannel {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final Closer mCloser = Closer.create();
   private final TachyonFS mTachyonFS;
-  private final CountingWritableByteChannel mLocalFileChannel;
+  private final FileChannel mLocalFileChannel;
+  private final AtomicLong mWritten = new AtomicLong(0);
   private final String mLocalFilePath;
   private final long mBlockId;
   private volatile boolean mCanWrite = true;
@@ -34,18 +36,23 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
     mLocalFilePath = CommonUtils.concat(localFolder.getPath(), blockId);
     RandomAccessFile localFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
     // change the permission of the temporary file in order that the worker can move it.
-    CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
-    // use the sticky bit, only the client and the worker can write to the block
-    CommonUtils.setLocalFileStickyBit(mLocalFilePath);
-    mLocalFileChannel = mCloser.register(new CountingWritableByteChannel(localFile.getChannel()));
+    checkPermission();
+    mLocalFileChannel = mCloser.register(localFile.getChannel());
     LOG.info(mLocalFilePath + " was created!");
+  }
+
+  private void checkPermission() throws IOException {
+    // change the permission of the file and use the sticky bit
+    CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
+    CommonUtils.setLocalFileStickyBit(mLocalFilePath);
   }
 
   @Override
   public void cancel() throws IOException {
     free();
 
-    mTachyonFS.releaseSpace(mLocalFileChannel.written());
+    mTachyonFS.releaseSpace(mWritten.get());
+    checkPermission();
     new File(mLocalFilePath).delete();
     LOG.info("Canceled output of block " + mBlockId + ", deleted local file " + mLocalFilePath);
   }
@@ -64,7 +71,14 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
 
       throw new IOException(msg);
     }
-    return mLocalFileChannel.write(src);
+    //TODO Unify BlockHandler
+    ByteBuffer out =
+        mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, mWritten.get(), src.limit());
+    out.put(src);
+
+    mWritten.addAndGet(src.limit());
+
+    return src.limit();
   }
 
   @Override

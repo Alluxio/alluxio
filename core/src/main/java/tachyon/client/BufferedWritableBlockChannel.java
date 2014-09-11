@@ -2,14 +2,14 @@ package tachyon.client;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 final class BufferedWritableBlockChannel extends ForwardingWritableBlockChannel {
-  private final byte[] buffer;
-  private int length = 0;
+  private final ByteBuffer buffer;
 
   public BufferedWritableBlockChannel(int bufferSize, WritableBlockChannel delegate) {
     super(delegate);
-    buffer = new byte[bufferSize];
+    buffer = ByteBuffer.allocate(bufferSize);
   }
 
 
@@ -19,32 +19,30 @@ final class BufferedWritableBlockChannel extends ForwardingWritableBlockChannel 
       flush();
     }
 
-    if (src.remaining() >= buffer.length) {
+    if (src.remaining() >= buffer.capacity()) {
       // skip buffer since its large enough
       return delegate().write(src);
     } else {
       // write to local buffer and return
       int r = src.remaining();
-      src.get(buffer, length, r);
-      length += r;
+      buffer.put(src);
       return r;
     }
   }
 
   private boolean shouldFlush(ByteBuffer src) {
-    return length + src.remaining() > buffer.length;
+    return buffer.position() + src.remaining() > buffer.limit();
   }
 
   private void flush() throws IOException {
-    delegate().write(ByteBuffer.wrap(buffer, 0, length));
-    length = 0;
+    buffer.flip();
+    delegate().write(buffer);
+    buffer.clear();
   }
 
   @Override
   public void close() throws IOException {
-    if (length > 0) {
-      flush();
-    }
+    flush();
     delegate().close();
   }
 }
