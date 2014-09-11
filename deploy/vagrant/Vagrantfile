@@ -1,0 +1,27 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+require 'yaml'
+
+@cmd = YAML.load_file('init.yml')
+puts @cmd.inspect
+
+INIT=@cmd['init']
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  config.vm.provision "shell", path: INIT
+  
+  config.vm.box = "chef/centos-6.5"
+
+  config.vm.synced_folder "../../", "/tachyon"
+  config.vm.synced_folder "./", "/vagrant"
+
+  config.vm.provider "virtualbox" do |vb|
+     vb.gui = true
+     vb.customize ["modifyvm", :id, "--memory", "3024"]
+  end
+end
