@@ -51,10 +51,6 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
       return CommonUtils.getSizeFromBytes(mCapacityBytes);
     }
 
-    public String getUsedMemory() {
-      return CommonUtils.getSizeFromBytes(mUsedBytes);
-    }
-
     public int getFreeSpacePercent() {
       return mFreePercent;
     }
@@ -73,6 +69,10 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
 
     public String getUptimeClockTime() {
       return mUptimeClockTime;
+    }
+
+    public String getUsedMemory() {
+      return CommonUtils.getSizeFromBytes(mUsedBytes);
     }
 
     public int getUsedSpacePercent() {
@@ -102,6 +102,28 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
   }
 
   /**
+   * Order the nodes by hostName and generate NodeInfo list for UI display
+   * 
+   * @param workerInfos The list of ClientWorkerInfo objects
+   * @return The list of NodeInfo objects
+   */
+  private NodeInfo[] generateOrderedNodeInfos(List<ClientWorkerInfo> workerInfos) {
+    NodeInfo[] ret = new NodeInfo[workerInfos.size()];
+    Collections.sort(workerInfos, new Ordering<ClientWorkerInfo>() {
+      @Override
+      public int compare(ClientWorkerInfo info0, ClientWorkerInfo info1) {
+        return info0.getAddress().getMHost().compareTo(info1.getAddress().getMHost());
+      }
+    });
+    int index = 0;
+    for (ClientWorkerInfo workerInfo : workerInfos) {
+      ret[index ++] = new NodeInfo(workerInfo);
+    }
+
+    return ret;
+  }
+
+  /**
    * Populates key, value pairs for UI display
    * 
    * @param request The HttpServletRequest object
@@ -117,27 +139,5 @@ public class WebInterfaceWorkersServlet extends HttpServlet {
     List<ClientWorkerInfo> lostWorkerInfos = mMasterInfo.getLostWorkersInfo();
     NodeInfo[] failedNodeInfos = generateOrderedNodeInfos(lostWorkerInfos);
     request.setAttribute("failedNodeInfos", failedNodeInfos);
-  }
-
-  /**
-   * Order the nodes by hostName and generate NodeInfo list for UI display
-   * 
-   * @param workerInfos The list of ClientWorkerInfo objects
-   * @return The list of NodeInfo objects
-   */
-  private NodeInfo[] generateOrderedNodeInfos(List<ClientWorkerInfo> workerInfos) {
-    NodeInfo[] ret = new NodeInfo[workerInfos.size()];
-    Collections.sort(workerInfos, new Ordering<ClientWorkerInfo>() {
-      @Override
-      public int compare(ClientWorkerInfo arg0, ClientWorkerInfo arg1) {
-        return arg0.getAddress().getMHost().compareTo(arg1.getAddress().getMHost());
-      }
-    });
-    int index = 0;
-    for (ClientWorkerInfo workerInfo : workerInfos) {
-      ret[index++] = new NodeInfo(workerInfo);
-    }
-
-    return ret;
   }
 }
