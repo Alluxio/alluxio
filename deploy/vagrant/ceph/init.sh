@@ -8,7 +8,6 @@ type=rpm-md
 gpgkey=https://ceph.com/git/?p=ceph.git;a=blob_plain;f=keys/release.asc
 EOF
 sudo yum update && sudo yum install ceph-deploy
-yum install -y java-1.6.0-openjdk-devel.x86_64
 yum install -y ceph
 yum install -y ceph-release
 yum install -y ceph-deploy
@@ -19,7 +18,7 @@ yum install -y ceph-fuse libcephfs1.x86_64 rbd-fuse
 echo "Now installing the java bindings" 
 
 yum install -y cephfs-java.x86_64  
-#!/bin/sh  
+
 if [ $# -lt 1 ]; then  
     DIR=/etc/ceph  
 else  
@@ -102,10 +101,7 @@ ceph-fuse -m 127.0.0.1:6789 /mnt/ceph/
 mount
 
 ceph osd pool set data size 3
-wget http://mirrors.gigenet.com/apache/maven/maven-3/3.0.5/binaries/apache-maven-3.0.5-bin.tar.gz
-tar -zxvf apache-maven-3.0.5-bin.tar.gz -C /opt/
-ln -s /opt/apache-maven-3.0.5/bin/mvn /usr/bin/mvn
 
 cd /tachyon
 
-mvn clean package -Dtest.profile=cephfs -Dhadoop.version=2.3.0
+mvn clean package install -Dtest.profile=cephfs -Dhadoop.version=2.3.0

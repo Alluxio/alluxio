@@ -13,6 +13,7 @@ VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
+  config.vm.provision "shell", path: "init.sh"
   config.vm.provision "shell", path: INIT
   
   config.vm.box = "chef/centos-6.5"
