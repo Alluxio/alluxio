@@ -1,0 +1,2 @@
+SPEC: 'Ceph'
+init: 'ceph/init.sh'
