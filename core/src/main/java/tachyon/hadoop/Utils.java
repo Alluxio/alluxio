@@ -10,6 +10,7 @@ import org.apache.hadoop.mapred.InputSplit;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 
 public final class Utils {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
@@ -38,6 +39,14 @@ public final class Utils {
     }
 
     return new Path(TFS.mUnderFSAddress + mid + path);
+  }
+
+  public static Path getHDFSPath(TachyonURI path) {
+    if (path.isAbsolute()) {
+      return new Path(TFS.mUnderFSAddress + path.getPath());
+    } else {
+      return new Path(TFS.mUnderFSAddress + TachyonURI.SEPARATOR + path.getPath());
+    }
   }
 
   public static String getPathWithoutScheme(Path path) {

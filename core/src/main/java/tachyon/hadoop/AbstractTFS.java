@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 
 import tachyon.Constants;
 import tachyon.PrefixList;
+import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
@@ -55,7 +56,8 @@ abstract class AbstractTFS extends FileSystem {
       throws IOException {
     LOG.info("append(" + cPath + ", " + bufferSize + ", " + progress + ")");
 
-    String path = Utils.getPathWithoutScheme(cPath);
+    String pathWithoutScheme = Utils.getPathWithoutScheme(cPath);
+    TachyonURI path = new TachyonURI(pathWithoutScheme).makeQualified(mTFS.getUri());
     fromHdfsToTachyon(path);
     int fileId = mTFS.getFileId(path);
     TachyonFile file = mTFS.getFile(fileId);
@@ -206,6 +208,19 @@ abstract class AbstractTFS extends FileSystem {
         String ufsAddrPath = CommonUtils.concat(mUnderFSAddress, path);
         // Set the path as the TFS root path.
         UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null));
+      }
+    }
+  }
+
+  private void fromHdfsToTachyon(TachyonURI path) throws IOException {
+    if (!mTFS.exist(path)) {
+      Path hdfsPath = Utils.getHDFSPath(path);
+      FileSystem fs = hdfsPath.getFileSystem(getConf());
+      if (fs.exists(hdfsPath)) {
+        TachyonURI ufsAddrPath = path.makeQualified(new TachyonURI(mUnderFSAddress));
+        // Set the path as the TFS root path.
+        // TODO: Make loadUnderFs use tachyonURI arguments.
+        UfsUtils.loadUnderFs(mTFS, path.toString(), ufsAddrPath.toString(), new PrefixList(null));
       }
     }
   }
