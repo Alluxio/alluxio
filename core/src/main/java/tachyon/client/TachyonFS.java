@@ -522,7 +522,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *           if the file does not exist, or connection issue.
    */
   public synchronized long getBlockId(int fileId, int blockIndex) throws IOException {
-    ClientFileInfo info = getFileStatus(fileId, TachyonURI.EMPTY_URI, true);
+    ClientFileInfo info = getFileStatus(fileId, true);
 
     if (info == null) {
       throw new IOException("File " + fileId + " does not exist.");
@@ -740,6 +740,20 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized ClientFileInfo getFileStatus(int fileId, String path,
       boolean useCachedMetadata) throws IOException {
     return getFileStatus(fileId, new TachyonURI(path), useCachedMetadata);
+  }
+
+  /**
+   * Get ClientFileInfo object based on fileId.
+   * @param fileId
+   *          the file id of the file or folder.
+   * @param useCachedMetadata
+   *          if true use the local cached meta data
+   * @return the ClientFileInfo of the file. null if the file does not exist.
+   * @throws IOException
+   */
+  public synchronized ClientFileInfo getFileStatus(int fileId, boolean useCachedMetadata)
+      throws IOException {
+    return getFileStatus(fileId, TachyonURI.EMPTY_URI, useCachedMetadata);
   }
 
   /**
