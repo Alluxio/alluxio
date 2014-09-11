@@ -39,12 +39,11 @@ public class FileOutStream extends OutStream {
   private final long mBlockCapacityByte;
 
   private WritableBlockChannel mCurrentBlockChannel;
-  private long mCurrentBlockId;
-  private List<WritableBlockChannel> mPreviousBlockOutStreams;
+  private final List<WritableBlockChannel> mPreviousBlockChannels;
   private long mCachedBytes;
 
   private OutputStream mCheckpointOutputStream = null;
-  private String mUnderFsFile = null;
+  private final String mUnderFsFile;
 
   private boolean mClosed = false;
   private boolean mCancel = false;
@@ -61,8 +60,7 @@ public class FileOutStream extends OutStream {
     mBlockCapacityByte = file.getBlockSizeByte();
 
     // TODO Support and test append.
-    mCurrentBlockId = -1;
-    mPreviousBlockOutStreams = new ArrayList<WritableBlockChannel>();
+    mPreviousBlockChannels = new ArrayList<WritableBlockChannel>();
     mCachedBytes = 0;
 
     if (mWriteType.isThrough()) {
@@ -73,6 +71,8 @@ public class FileOutStream extends OutStream {
             + Integer.MAX_VALUE);
       }
       mCheckpointOutputStream = underfsClient.create(mUnderFsFile, (int) mBlockCapacityByte);
+    } else {
+      mUnderFsFile = null;
     }
   }
 
@@ -86,7 +86,7 @@ public class FileOutStream extends OutStream {
   public void close() throws IOException {
     if (!mClosed) {
       if (mCurrentBlockChannel != null) {
-        mPreviousBlockOutStreams.add(mCurrentBlockChannel);
+        mPreviousBlockChannels.add(mCurrentBlockChannel);
       }
 
       Boolean canComplete = false;
@@ -106,12 +106,12 @@ public class FileOutStream extends OutStream {
       if (mWriteType.isCache()) {
         try {
           if (mCancel) {
-            for (WritableBlockChannel bos : mPreviousBlockOutStreams) {
-              bos.cancel();
+            for (WritableBlockChannel wbc : mPreviousBlockChannels) {
+              wbc.cancel();
             }
           } else {
-            for (WritableBlockChannel bos : mPreviousBlockOutStreams) {
-              bos.close();
+            for (WritableBlockChannel wbc : mPreviousBlockChannels) {
+              wbc.close();
             }
             canComplete = true;
           }
@@ -145,13 +145,15 @@ public class FileOutStream extends OutStream {
   }
 
   private void getNextBlock() throws IOException {
-    if (mCurrentBlockId != -1) {
-      mPreviousBlockOutStreams.add(mCurrentBlockChannel);
+    if (mCurrentBlockChannel != null) {
+      mPreviousBlockChannels.add(mCurrentBlockChannel);
     }
 
     if (mWriteType.isCache()) {
-      mCurrentBlockId = mFile.getBlockIdBasedOnOffset(mCachedBytes);
-      mCurrentBlockChannel = Blocks.createBlock(mTachyonFS, mFile.getBlockId((int) (mCachedBytes / mBlockCapacityByte)), mBlockCapacityByte).write();
+      mCurrentBlockChannel =
+          Blocks.createBlock(mTachyonFS,
+              mFile.getBlockId((int) (mCachedBytes / mBlockCapacityByte)), mBlockCapacityByte)
+              .write();
     }
   }
 

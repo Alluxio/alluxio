@@ -3,20 +3,15 @@ package tachyon.client;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public final class BufferedWritableBlockChannel implements WritableBlockChannel {
+final class BufferedWritableBlockChannel extends ForwardingWritableBlockChannel {
   private final byte[] buffer;
   private int length = 0;
-  private final WritableBlockChannel delegate;
 
   public BufferedWritableBlockChannel(int bufferSize, WritableBlockChannel delegate) {
-    this.delegate = delegate;
+    super(delegate);
     buffer = new byte[bufferSize];
   }
 
-  @Override
-  public void cancel() throws IOException {
-    delegate.cancel();
-  }
 
   @Override
   public int write(ByteBuffer src) throws IOException {
@@ -26,7 +21,7 @@ public final class BufferedWritableBlockChannel implements WritableBlockChannel 
 
     if (src.remaining() >= buffer.length) {
       // skip buffer since its large enough
-      return delegate.write(src);
+      return delegate().write(src);
     } else {
       // write to local buffer and return
       int r = src.remaining();
@@ -41,13 +36,8 @@ public final class BufferedWritableBlockChannel implements WritableBlockChannel 
   }
 
   private void flush() throws IOException {
-    delegate.write(ByteBuffer.wrap(buffer, 0, length));
+    delegate().write(ByteBuffer.wrap(buffer, 0, length));
     length = 0;
-  }
-
-  @Override
-  public boolean isOpen() {
-    return delegate.isOpen();
   }
 
   @Override
@@ -55,6 +45,6 @@ public final class BufferedWritableBlockChannel implements WritableBlockChannel 
     if (length > 0) {
       flush();
     }
-    delegate.close();
+    delegate().close();
   }
 }

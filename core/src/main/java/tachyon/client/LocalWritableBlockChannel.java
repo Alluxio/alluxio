@@ -11,12 +11,14 @@ import tachyon.Constants;
 import tachyon.util.CommonUtils;
 import tachyon.util.CountingWritableByteChannel;
 
+import com.google.common.io.Closer;
+
 final class LocalWritableBlockChannel implements WritableBlockChannel {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
+  private final Closer mCloser = Closer.create();
   private final TachyonFS mTachyonFS;
   private final CountingWritableByteChannel mLocalFileChannel;
-  private final RandomAccessFile mLocalFile;
   private final String mLocalFilePath;
   private final long mBlockId;
   private volatile boolean mCanWrite = true;
@@ -30,12 +32,12 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
     }
 
     mLocalFilePath = CommonUtils.concat(localFolder.getPath(), blockId);
-    mLocalFile = new RandomAccessFile(mLocalFilePath, "rw");
+    RandomAccessFile localFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
     // change the permission of the temporary file in order that the worker can move it.
     CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
     // use the sticky bit, only the client and the worker can write to the block
     CommonUtils.setLocalFileStickyBit(mLocalFilePath);
-    mLocalFileChannel = new CountingWritableByteChannel(mLocalFile.getChannel());
+    mLocalFileChannel = mCloser.register(new CountingWritableByteChannel(localFile.getChannel()));
     LOG.info(mLocalFilePath + " was created!");
   }
 
@@ -57,8 +59,8 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
     if (!mTachyonFS.requestSpace(src.remaining())) {
       mCanWrite = false;
       String msg =
-          "Local tachyon worker does not have enough " + "space (" + src.remaining()
-              + ") or no worker for " /* + mFile.mFileId + " " */ + mBlockId;
+          "Local tachyon worker does not have enough space (" + src.remaining()
+              + ") or no worker for " + mLocalFilePath + " with block id " + mBlockId;
 
       throw new IOException(msg);
     }
@@ -86,7 +88,6 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
   }
 
   private void free() throws IOException {
-    mLocalFileChannel.close();
-    mLocalFile.close();
+    mCloser.close();
   }
 }
