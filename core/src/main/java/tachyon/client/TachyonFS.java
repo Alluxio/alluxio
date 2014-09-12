@@ -522,7 +522,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *           if the file does not exist, or connection issue.
    */
   public synchronized long getBlockId(int fileId, int blockIndex) throws IOException {
-    ClientFileInfo info = getFileStatus(fileId, "", true);
+    ClientFileInfo info = getFileStatus(fileId, true);
 
     if (info == null) {
       throw new IOException("File " + fileId + " does not exist.");
@@ -589,7 +589,7 @@ public class TachyonFS extends AbstractTachyonFS {
    */
   public synchronized TachyonFile getFile(int fid, boolean useCachedMetadata) throws IOException {
     if (!useCachedMetadata || !mIdToClientFileInfo.containsKey(fid)) {
-      ClientFileInfo clientFileInfo = getFileStatus(fid, "");
+      ClientFileInfo clientFileInfo = getFileStatus(fid, TachyonURI.EMPTY_URI);
       if (clientFileInfo == null) {
         return null;
       }
@@ -644,7 +644,7 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized TachyonFile getFile(TachyonURI path, boolean useCachedMetadata)
       throws IOException {
     validateUri(path);
-    ClientFileInfo clientFileInfo = getFileStatus(-1, path.getPath(), useCachedMetadata);
+    ClientFileInfo clientFileInfo = getFileStatus(-1, path, useCachedMetadata);
     if (clientFileInfo == null) {
       return null;
     }
@@ -743,6 +743,20 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
+   * Get ClientFileInfo object based on fileId.
+   * @param fileId
+   *          the file id of the file or folder.
+   * @param useCachedMetadata
+   *          if true use the local cached meta data
+   * @return the ClientFileInfo of the file. null if the file does not exist.
+   * @throws IOException
+   */
+  public synchronized ClientFileInfo getFileStatus(int fileId, boolean useCachedMetadata)
+      throws IOException {
+    return getFileStatus(fileId, TachyonURI.EMPTY_URI, useCachedMetadata);
+  }
+
+  /**
    * Advanced API.
    * 
    * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
@@ -761,6 +775,7 @@ public class TachyonFS extends AbstractTachyonFS {
     ClientFileInfo info = null;
     boolean updated = false;
 
+    validateUri(path);
 
     if (fileId != -1) {
       info = mIdToClientFileInfo.get(fileId);
@@ -776,14 +791,14 @@ public class TachyonFS extends AbstractTachyonFS {
 
       path = new TachyonURI(info.getPath());
     } else {
-      info = mPathToClientFileInfo.get(path);
+      info = mPathToClientFileInfo.get(path.getPath());
       if (!useCachedMetadata || info == null) {
         info = getFileStatus(-1, path);
         updated = true;
       }
 
       if (info == null) {
-        mPathToClientFileInfo.remove(path);
+        mPathToClientFileInfo.remove(path.getPath());
         return null;
       }
 
