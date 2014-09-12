@@ -151,7 +151,7 @@ public class FileOutStream extends OutStream {
 
     if (mWriteType.isCache()) {
       long blockId = mFile.getBlockId((int) (mCachedBytes / mBlockCapacityByte));
-      mCurrentBlockChannel = Blocks.createBlock(mTachyonFS, blockId, mBlockCapacityByte).write();
+      mCurrentBlockChannel = Blocks.createWritableBlock(mTachyonFS, blockId, mBlockCapacityByte);
     }
   }
 
