@@ -3,6 +3,7 @@ package tachyon.command;
 import java.io.IOException;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.conf.CommonConf;
 import tachyon.util.CommonUtils;
 
@@ -26,7 +27,7 @@ public class Utils {
     } else if (path.startsWith(Constants.HEADER_FT)) {
       path = path.substring(Constants.HEADER_FT.length());
     }
-    String ret = path.substring(path.indexOf(Constants.PATH_SEPARATOR));
+    String ret = path.substring(path.indexOf(TachyonURI.SEPARATOR));
     return ret;
   }
 

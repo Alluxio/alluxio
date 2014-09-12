@@ -11,8 +11,6 @@ import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.io.FilenameUtils;
-
 import com.google.common.io.Closer;
 
 import tachyon.Constants;
