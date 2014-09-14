@@ -33,10 +33,8 @@ public final class CommonUtils {
   /**
    * Change local file's permission.
    * 
-   * @param filePath
-   *          that will change permission
-   * @param perms
-   *          the permission, e.g. "775"
+   * @param filePath that will change permission
+   * @param perms the permission, e.g. "775"
    * @throws IOException
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
@@ -69,8 +67,7 @@ public final class CommonUtils {
   /**
    * Change local file's permission to be 777.
    * 
-   * @param filePath
-   *          that will change permission
+   * @param filePath that will change permission
    * @throws IOException
    */
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
@@ -80,8 +77,7 @@ public final class CommonUtils {
   /**
    * Checks and normalizes the given path
    * 
-   * @param path
-   *          The path to clean up
+   * @param path The path to clean up
    * @return a normalized version of the path, with single separators between path components and
    *         dot components resolved
    */
@@ -99,7 +95,7 @@ public final class CommonUtils {
 
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
     List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
-    for (int k = 0; k < source.size(); k ++) {
+    for (int k = 0; k < source.size(); k++) {
       ret.add(cloneByteBuffer(source.get(k)));
     }
     return ret;
@@ -108,8 +104,7 @@ public final class CommonUtils {
   /**
    * Add the path component to the base path
    * 
-   * @param args
-   *          The components to concatenate
+   * @param args The components to concatenate
    * @return the concatenated path
    */
   public static String concat(Object... args) {
@@ -117,7 +112,7 @@ public final class CommonUtils {
       return "";
     }
     String retPath = args[0].toString();
-    for (int k = 1; k < args.length; k ++) {
+    for (int k = 1; k < args.length; k++) {
       while (retPath.endsWith(Constants.PATH_SEPARATOR)) {
         retPath = retPath.substring(0, retPath.length() - 1);
       }
@@ -132,7 +127,7 @@ public final class CommonUtils {
 
   public static String convertByteArrayToStringWithoutEscape(byte[] data) {
     StringBuilder sb = new StringBuilder(data.length);
-    for (int i = 0; i < data.length; i ++) {
+    for (int i = 0; i < data.length; i++) {
       if (data[i] < 128) {
         sb.append((char) data[i]);
       } else {
@@ -140,6 +135,31 @@ public final class CommonUtils {
       }
     }
     return sb.toString();
+  }
+
+  /**
+   * Copies count bytes from one stream to another.
+   * 
+   * @param in InputStream to read from
+   * @param out OutputStream to write to
+   * @param len number of bytes to copy
+   * @throws IOException if bytes can not be read or written
+   */
+  public static void copyBytes(InputStream in, OutputStream out, long len) throws IOException {
+    byte buf[] = new byte[4096];
+    long bytesRemaining = len;
+    int bytesRead;
+
+    while (bytesRemaining > 0) {
+      int bytesToRead = (int) (bytesRemaining < buf.length ? bytesRemaining : buf.length);
+
+      bytesRead = in.read(buf, 0, bytesToRead);
+      if (bytesRead == -1)
+        break;
+
+      out.write(buf, 0, bytesRead);
+      bytesRemaining -= bytesRead;
+    }
   }
 
   public static String convertMsToClockTime(long Millis) {
@@ -209,8 +229,7 @@ public final class CommonUtils {
   /**
    * Get the name of the file at a path.
    * 
-   * @param path
-   *          The path
+   * @param path The path
    * @return the name of the file
    * @throws InvalidPathException
    */
@@ -221,8 +240,7 @@ public final class CommonUtils {
   /**
    * Get the parent of the file at a path.
    * 
-   * @param path
-   *          The path
+   * @param path The path
    * @return the parent path of the file; this is "/" if the given path is the root.
    * @throws InvalidPathException
    */
@@ -240,8 +258,7 @@ public final class CommonUtils {
   /**
    * Get the path components of the given path.
    * 
-   * @param path
-   *          The path to split
+   * @param path The path to split
    * @return the path split into components
    * @throws InvalidPathException
    */
@@ -264,8 +281,7 @@ public final class CommonUtils {
    * <p>
    * tachyon-ft://localhost:19998/abc/d.txt -> /abc/d.txt
    * 
-   * @param path
-   *          the original path
+   * @param path the original path
    * @return the path without the schema
    */
   public static String getPathWithoutSchema(String path) {
@@ -307,8 +323,7 @@ public final class CommonUtils {
   /**
    * Check if the given path is the root.
    * 
-   * @param path
-   *          The path to check
+   * @param path The path to check
    * @return true if the path is the root
    * @throws InvalidPathException
    */
@@ -318,7 +333,7 @@ public final class CommonUtils {
 
   public static <T> String listToString(List<T> list) {
     StringBuilder sb = new StringBuilder();
-    for (int k = 0; k < list.size(); k ++) {
+    for (int k = 0; k < list.size(); k++) {
       sb.append(list.get(k)).append(" ");
     }
     return sb.toString();
@@ -326,7 +341,7 @@ public final class CommonUtils {
 
   public static String parametersToString(Object... objs) {
     StringBuilder sb = new StringBuilder("(");
-    for (int k = 0; k < objs.length; k ++) {
+    for (int k = 0; k < objs.length; k++) {
       if (k != 0) {
         sb.append(", ");
       }
@@ -357,8 +372,7 @@ public final class CommonUtils {
   /**
    * Parse a String size to Bytes.
    * 
-   * @param spaceSize
-   *          the size of a space, e.g. 10GB, 5TB, 1024
+   * @param spaceSize the size of a space, e.g. 10GB, 5TB, 1024
    * @return the space size in bytes
    */
   public static long parseSpaceSize(String spaceSize) {
@@ -372,7 +386,7 @@ public final class CommonUtils {
       } else {
         break;
       }
-      tIndex --;
+      tIndex--;
     }
     spaceSize = spaceSize.substring(0, tIndex + 1);
     double ret = Double.parseDouble(spaceSize);
@@ -399,7 +413,7 @@ public final class CommonUtils {
 
   public static void printByteBuffer(Logger LOG, ByteBuffer buf) {
     StringBuilder sb = new StringBuilder();
-    for (int k = 0; k < buf.limit() / 4; k ++) {
+    for (int k = 0; k < buf.limit() / 4; k++) {
       sb.append(buf.getInt()).append(" ");
     }
 
@@ -431,8 +445,7 @@ public final class CommonUtils {
    * If the sticky bit of the 'file' is set, the 'file' is only writable to its owner and the owner
    * of the folder containing the 'file'.
    * 
-   * @param file
-   *          absolute file path
+   * @param file absolute file path
    */
   public static void setLocalFileStickyBit(String file) {
     try {
@@ -476,10 +489,8 @@ public final class CommonUtils {
   /**
    * Check if the given path is properly formed
    * 
-   * @param path
-   *          The path to check
-   * @throws InvalidPathException
-   *           If the path is not properly formed
+   * @param path The path to check
+   * @throws InvalidPathException If the path is not properly formed
    */
   public static void validatePath(String path) throws InvalidPathException {
     if (path == null || path.isEmpty() || !path.startsWith(Constants.PATH_SEPARATOR)
