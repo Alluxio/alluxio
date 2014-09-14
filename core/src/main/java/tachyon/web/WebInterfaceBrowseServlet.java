@@ -1,12 +1,14 @@
 package tachyon.web;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.client.InStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
@@ -30,11 +33,10 @@ import tachyon.util.CommonUtils;
  */
 public class WebInterfaceBrowseServlet extends HttpServlet {
   /**
-   * Class to make referencing file objects more intuitive. Mainly to avoid
-   * implicit association by array indexes.
+   * Class to make referencing file objects more intuitive. Mainly to avoid implicit association by
+   * array indexes.
    */
   public static class UiBlockInfo implements Comparable<UiBlockInfo> {
-
     private final long mId;
     private final long mBlockLength;
     private final boolean mInMemory;
@@ -74,15 +76,11 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   }
 
   /**
-   * This function displays 5KB of a file from a specific offset if it is in
-   * ASCII format.
+   * This function displays 5KB of a file from a specific offset if it is in ASCII format.
    * 
-   * @param path
-   *          The path of the file to display
-   * @param request
-   *          The HttpServletRequest object
-   * @param offset
-   *          Where the file starts to display.
+   * @param path The path of the file to display
+   * @param request The HttpServletRequest object
+   * @param offset Where the file starts to display.
    * @throws FileDoesNotExistException
    * @throws IOException
    * @throws InvalidPathException
@@ -92,8 +90,8 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     String masterAddress =
         Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
             + mMasterInfo.getMasterAddress().getPort();
-    TachyonFS tachyonClient = TachyonFS.get(masterAddress);
-    TachyonFile tFile = tachyonClient.getFile(path);
+    TachyonFS tachyonClient = TachyonFS.get(new TachyonURI(masterAddress));
+    TachyonFile tFile = tachyonClient.getFile(new TachyonURI(path));
     String fileData = null;
     if (tFile == null) {
       throw new FileDoesNotExistException(path);
@@ -127,14 +125,53 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   }
 
   /**
-   * Populates attribute fields with data from the MasterInfo associated with
-   * this servlet. Errors will be displayed in an error field. Debugging can be
-   * enabled to display additional data. Will eventually redirect the request to a jsp.
+   * This function prepares for downloading a file.
    * 
-   * @param request
-   *          The HttpServletRequest object
-   * @param response
-   *          The HttpServletResponse object
+   * @param path The path of the file to download
+   * @param request The HttpServletRequest object
+   * @param response The HttpServletResponse object
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
+   * @throws IOException
+   */
+  private void downloadFile(String path, HttpServletRequest request, HttpServletResponse response)
+      throws FileDoesNotExistException, InvalidPathException, IOException {
+    String masterAddress =
+        Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
+            + mMasterInfo.getMasterAddress().getPort();
+    TachyonFS tachyonClient = TachyonFS.get(new TachyonURI(masterAddress));
+    TachyonFile tFile = tachyonClient.getFile(new TachyonURI(path));
+
+    String fileName = path.substring(path.lastIndexOf("/") + 1);
+    fileName = URLEncoder.encode(fileName, "UTF-8");
+    if (tFile == null) {
+      throw new FileDoesNotExistException(path);
+    }
+    Long len = tFile.length();
+    response.setContentLength(len.intValue());
+    response.setContentType("application/octet-stream");
+    response.addHeader("Content-Disposition", "attachment; filename=" + fileName);
+
+    InStream is = tFile.getInStream(ReadType.NO_CACHE);
+    ServletOutputStream out = response.getOutputStream();
+    CommonUtils.copyBytes(is, out, len);
+    out.flush();
+    out.close();
+    is.close();
+    try {
+      tachyonClient.close();
+    } catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
+  }
+
+  /**
+   * Populates attribute fields with data from the MasterInfo associated with this servlet. Errors
+   * will be displayed in an error field. Debugging can be enabled to display additional data. Will
+   * eventually redirect the request to a jsp.
+   * 
+   * @param request The HttpServletRequest object
+   * @param response The HttpServletResponse object
    * @throws ServletException
    * @throws IOException
    * @throws UnknownHostException
@@ -153,6 +190,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     }
     request.setAttribute("currentPath", currentPath);
     request.setAttribute("viewingOffset", 0);
+
     try {
       ClientFileInfo clientFileInfo = mMasterInfo.getClientFileInfo(currentPath);
       UiFileInfo currentFileInfo = new UiFileInfo(clientFileInfo);
@@ -160,6 +198,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       request.setAttribute("blockSizeByte", currentFileInfo.getBlockSizeBytes());
       if (!currentFileInfo.getIsDirectory()) {
         String tmpParam = request.getParameter("offset");
+        String opParam = request.getParameter("op");
         long offset = 0;
         try {
           if (tmpParam != null) {
@@ -173,9 +212,13 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
         } else if (offset > clientFileInfo.getLength()) {
           offset = clientFileInfo.getLength();
         }
-        displayFile(currentFileInfo.getAbsolutePath(), request, offset);
-        request.setAttribute("viewingOffset", offset);
-        getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
+        if (opParam != null && "DOWNLOAD".equals(opParam)) {
+          downloadFile(currentFileInfo.getAbsolutePath(), request, response);
+        } else {
+          displayFile(currentFileInfo.getAbsolutePath(), request, offset);
+          request.setAttribute("viewingOffset", offset);
+          getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
+        }
         return;
       }
       CommonUtils.validatePath(currentPath);
@@ -201,8 +244,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       UiFileInfo toAdd = new UiFileInfo(fileInfo);
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
-          toAdd
-              .setFileLocations(mMasterInfo.getFileBlocks(toAdd.getId()).get(0).getLocations());
+          toAdd.setFileLocations(mMasterInfo.getFileBlocks(toAdd.getId()).get(0).getLocations());
         }
       } catch (FileDoesNotExistException fdne) {
         request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
@@ -218,13 +260,10 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   }
 
   /**
-   * This function sets the fileinfos for folders that are in the path to the
-   * current directory.
+   * This function sets the fileinfos for folders that are in the path to the current directory.
    * 
-   * @param path
-   *          The path of the current directory.
-   * @param request
-   *          The HttpServletRequest object
+   * @param path The path of the current directory.
+   * @param request The HttpServletRequest object
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
@@ -239,7 +278,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length - 1];
     String currentPath = Constants.PATH_SEPARATOR;
     pathInfos[0] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
-    for (int i = 1; i < splitPath.length - 1; i ++) {
+    for (int i = 1; i < splitPath.length - 1; i++) {
       currentPath = CommonUtils.concat(currentPath, splitPath[i]);
       pathInfos[i] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     }
