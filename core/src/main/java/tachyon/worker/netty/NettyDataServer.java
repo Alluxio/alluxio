@@ -23,11 +23,13 @@ import java.util.concurrent.ThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import com.google.common.base.Throwables;
@@ -36,6 +38,7 @@ import tachyon.conf.WorkerConf;
 import tachyon.util.ThreadFactoryUtils;
 import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
+import tachyon.worker.netty.handler.RequestDecoder;
 
 /**
  * Runs a netty server that will response to block requests.
@@ -46,7 +49,13 @@ public final class NettyDataServer implements DataServer {
   private final ChannelFuture mChannelFuture;
 
   public NettyDataServer(final SocketAddress address, final BlocksLocker locker) {
-    mBootstrap = createBootstrap().childHandler(new PipelineHandler(locker));
+//    mBootstrap = createBootstrap().childHandler(new PipelineHandler(locker));
+    mBootstrap = createBootstrap().childHandler(new ChannelInitializer<SocketChannel>() {
+      @Override
+      protected void initChannel(SocketChannel ch) throws Exception {
+        ch.pipeline().addLast(new RequestDecoder(locker));
+      }
+    });
 
     try {
       mChannelFuture = mBootstrap.bind(address).sync();

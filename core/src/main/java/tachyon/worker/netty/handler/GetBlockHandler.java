@@ -4,12 +4,13 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.List;
 
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.log4j.Logger;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageEncoder;
+import io.netty.handler.codec.MessageToMessageDecoder;
 
 import tachyon.Constants;
 import tachyon.conf.WorkerConf;
@@ -19,7 +20,7 @@ import tachyon.worker.netty.ClosableResourceChannelListener;
 import tachyon.worker.netty.protocol.GetBlock;
 import tachyon.worker.netty.protocol.GetBlockResponse;
 
-public final class GetBlockHandler extends MessageToMessageEncoder<GetBlock> {
+public final class GetBlockHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private final BlocksLocker mLocker;
@@ -29,31 +30,43 @@ public final class GetBlockHandler extends MessageToMessageEncoder<GetBlock> {
   }
 
   @Override
-  protected void encode(ChannelHandlerContext ctx, GetBlock msg, List<Object> out) throws Exception {
-    final long blockId = msg.getBlockId();
+  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    if (msg instanceof GetBlock) {
+      GetBlock getBlock = (GetBlock) msg;
+      final long blockId = getBlock.getBlockId();
 
-    final int lockId = mLocker.lock(blockId);
-    try {
-      String filePath = CommonUtils.concat(WorkerConf.get().DATA_FOLDER, blockId);
-      LOG.info("Try to response remote request by reading from " + filePath);
+      final int lockId = mLocker.lock(blockId);
+      try {
+        String filePath = CommonUtils.concat(WorkerConf.get().DATA_FOLDER, blockId);
+        LOG.info("Try to response remote request by reading from " + filePath);
 
-      RandomAccessFile file = new RandomAccessFile(filePath, "r");
-      long fileLength = file.length();
-      if (inRange(msg, fileLength)) {
-        final long readLength = returnLength(msg.getOffset(), msg.getLength(), fileLength);
+        RandomAccessFile file = new RandomAccessFile(filePath, "r");
+        long fileLength = file.length();
+        if (inRange(getBlock, fileLength)) {
+          final long readLength = returnLength(getBlock.getOffset(), getBlock.getLength(), fileLength);
 
-        FileChannel channel = file.getChannel();
-        ChannelFuture future =
-            ctx.writeAndFlush(new GetBlockResponse(blockId, msg.getOffset(), readLength, channel));
-        future.addListener(ChannelFutureListener.CLOSE);
-        future.addListener(new ClosableResourceChannelListener(file));
-        LOG.info("Response remote request by reading from " + filePath + " preparation done.");
-      } else {
-        // unable to read data, range check fail
+          FileChannel channel = file.getChannel();
+          ChannelFuture future =
+              ctx.writeAndFlush(new GetBlockResponse(blockId, getBlock.getOffset(), readLength, channel));
+
+          future.addListener(ChannelFutureListener.CLOSE);
+          future.addListener(new ClosableResourceChannelListener(file));
+          LOG.info("Response remote request by reading from " + filePath + " preparation done.");
+        } else {
+          // unable to read data, range check fail
+        }
+      } finally {
+        mLocker.unlock(blockId, lockId);
       }
-    } finally {
-      mLocker.unlock(blockId, lockId);
+    } else {
+      ctx.fireChannelRead(msg);
     }
+  }
+
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    ctx.close().sync();
+    cause.printStackTrace();
   }
 
   /**

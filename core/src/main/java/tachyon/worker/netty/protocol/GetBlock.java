@@ -38,7 +38,6 @@ public final class GetBlock {
     return length;
   }
 
-  @ChannelHandler.Sharable
   public static final class GetBlockDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
@@ -46,12 +45,13 @@ public final class GetBlock {
         // offset defaults to zero
         GetBlock get = new GetBlock(in.readLong(), or(in.readLong(), 0), in.readLong());
         if (get.getBlockId() < 0) {
-          // return invalid block id
+          //TODO return invalid block id
         } else if (get.getOffset() < -1 || get.getLength() < -1) {
-          // -1 is used to indicate ignore
+          //TODO -1 is used to indicate ignore
           // return invalid index
         } else {
           out.add(get);
+          ctx.pipeline().remove(this);
         }
       }
     }

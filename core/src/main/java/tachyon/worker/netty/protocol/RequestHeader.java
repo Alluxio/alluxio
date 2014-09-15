@@ -4,7 +4,7 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 
 public final class RequestHeader {
-  public static final long CURRENT_VERSION = 1;
+  public static final long CURRENT_VERSION = 2;
   public static final long HEADER_SIZE = Longs.BYTES + Ints.BYTES;
 
   private final long version;

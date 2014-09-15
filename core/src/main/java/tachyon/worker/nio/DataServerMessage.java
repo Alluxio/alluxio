@@ -25,22 +25,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
+import com.google.common.primitives.Shorts;
 
 import tachyon.Constants;
 import tachyon.client.TachyonByteBuffer;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
+import tachyon.worker.netty.protocol.RequestHeader;
 
 /**
  * The message type used to send data request and response for remote data.
  */
 public class DataServerMessage {
-  public static final short DATA_SERVER_REQUEST_MESSAGE = 1;
-  public static final short DATA_SERVER_RESPONSE_MESSAGE = 2;
+  public static final int DATA_SERVER_REQUEST_MESSAGE = 0;
+  public static final int DATA_SERVER_RESPONSE_MESSAGE = 1;
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  
-  private static final int HEADER_LENGTH = 26;
+
+  private static final int HEADER_LENGTH = Longs.BYTES + Ints.BYTES + 3 * Longs.BYTES;
 
   /**
    * Create a default block request message, just allocate the message header, and no attribute is
@@ -183,7 +187,7 @@ public class DataServerMessage {
   }
 
   private final boolean mToSendData;
-  private final short mMessageType;
+  private final int mMessageType;
   private boolean mIsMessageReady;
 
   private ByteBuffer mHeader;
@@ -205,7 +209,7 @@ public class DataServerMessage {
    * @param isToSendData true if this is a send message, otherwise this is a recv message
    * @param msgType The message type
    */
-  private DataServerMessage(boolean isToSendData, short msgType) {
+  private DataServerMessage(boolean isToSendData, int msgType) {
     mToSendData = isToSendData;
     mMessageType = msgType;
     mIsMessageReady = false;
@@ -247,7 +251,8 @@ public class DataServerMessage {
 
   private void generateHeader() {
     mHeader.clear();
-    mHeader.putShort(mMessageType);
+    mHeader.putLong(RequestHeader.CURRENT_VERSION);
+    mHeader.putInt(mMessageType);
     mHeader.putLong(mBlockId);
     mHeader.putLong(mOffset);
     mHeader.putLong(mLength);
