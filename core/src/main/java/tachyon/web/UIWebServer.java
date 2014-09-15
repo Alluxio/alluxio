@@ -41,7 +41,7 @@ public class UIWebServer {
     mServer = new Server(mAddress);
 
     WebAppContext webappcontext = new WebAppContext();
-  
+
     webappcontext.setContextPath(Constants.PATH_SEPARATOR);
     File warPath = new File(CommonConf.get().WEB_RESOURCES);
     webappcontext.setWar(warPath.getAbsolutePath());

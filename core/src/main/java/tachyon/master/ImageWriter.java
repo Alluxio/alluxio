@@ -13,10 +13,8 @@ public abstract class ImageWriter {
   /**
    * Write image to the specified DataOutputStream. Use the specified ObjectWriter.
    * 
-   * @param objWriter
-   *          The used object writer
-   * @param dos
-   *          The target data output stream
+   * @param objWriter The used object writer
+   * @param dos The target data output stream
    * @throws IOException
    */
   abstract void writeImage(ObjectWriter objWriter, DataOutputStream dos) throws IOException;
@@ -24,12 +22,9 @@ public abstract class ImageWriter {
   /**
    * Write an ImageElement to the specified DataOutputStream. Use the specified ObjectWriter.
    * 
-   * @param objWriter
-   *          The used object writer
-   * @param dos
-   *          The target data output stream
-   * @param ele
-   *          The image element to be written
+   * @param objWriter The used object writer
+   * @param dos The target data output stream
+   * @param ele The image element to be written
    */
   protected void writeElement(ObjectWriter objWriter, DataOutputStream dos, ImageElement ele) {
     try {

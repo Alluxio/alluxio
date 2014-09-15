@@ -22,8 +22,8 @@ import tachyon.worker.BlocksLocker;
 import tachyon.worker.DataServer;
 
 /**
- * The Server to serve data file read request from remote machines. The current implementation
- * is based on non-blocking NIO.
+ * The Server to serve data file read request from remote machines. The current implementation is
+ * based on non-blocking NIO.
  */
 public class NIODataServer implements Runnable, DataServer {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
@@ -52,10 +52,8 @@ public class NIODataServer implements Runnable, DataServer {
   /**
    * Create a data server with direct access to worker storage.
    * 
-   * @param address
-   *          The address of the data server.
-   * @param locker
-   *          The lock system for lock blocks.
+   * @param address The address of the data server.
+   * @param locker The lock system for lock blocks.
    */
   public NIODataServer(InetSocketAddress address, BlocksLocker locker) {
     LOG.info("Starting DataServer @ " + address);

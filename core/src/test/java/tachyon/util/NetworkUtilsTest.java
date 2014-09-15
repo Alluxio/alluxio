@@ -16,8 +16,8 @@ public class NetworkUtilsTest {
     Assert.assertEquals(NetworkUtils.replaceHostName(null), null);
 
     String[] paths =
-        new String[] { "hdfs://localhost:9000/dir", "hdfs://localhost/dir", "hdfs://localhost/",
-            "hdfs://localhost", "file:///dir", "/dir", "anythingElse" };
+        new String[] {"hdfs://localhost:9000/dir", "hdfs://localhost/dir", "hdfs://localhost/",
+            "hdfs://localhost", "file:///dir", "/dir", "anythingElse"};
 
     for (String path : paths) {
       Assert.assertEquals(NetworkUtils.replaceHostName(path), path);

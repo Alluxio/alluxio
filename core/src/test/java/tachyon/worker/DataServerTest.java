@@ -37,10 +37,11 @@ public class DataServerTest {
     // creates a new instance of DataServerTest for each network type
     List<Object[]> list = new ArrayList<Object[]>();
     for (final NetworkType type : NetworkType.values()) {
-      list.add(new Object[] { type });
+      list.add(new Object[] {type});
     }
     return list;
   }
+
   private final NetworkType mType;
   private LocalTachyonCluster mLocalTachyonCluster = null;
 
@@ -78,8 +79,8 @@ public class DataServerTest {
   /**
    * Asserts that the message back matches the block response protocols.
    */
-  private void assertValid(final DataServerMessage msg, final int expectedSize,
-      final long blockId, final long offset, final long length) {
+  private void assertValid(final DataServerMessage msg, final int expectedSize, final long blockId,
+      final long offset, final long length) {
     assertValid(msg, TestUtils.getIncreasingByteBuffer(expectedSize), blockId, offset, length);
   }
 
@@ -123,7 +124,7 @@ public class DataServerTest {
 
   @Test
   public void readPartialTest1() throws InvalidPathException, FileAlreadyExistException,
-  IOException {
+      IOException {
     int fileId = TestUtils.createByteFile(mTFS, "/testFile", WriteType.MUST_CACHE, 10);
     ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     final int offset = 0;
@@ -134,7 +135,7 @@ public class DataServerTest {
 
   @Test
   public void readPartialTest2() throws InvalidPathException, FileAlreadyExistException,
-  IOException {
+      IOException {
     int fileId = TestUtils.createByteFile(mTFS, "/testFile", WriteType.MUST_CACHE, 10);
     ClientBlockInfo block = mTFS.getFileBlocks(fileId).get(0);
     final int offset = 2;
@@ -163,15 +164,15 @@ public class DataServerTest {
   }
 
   /**
-   * Requests a block from the server.  This call will read the full block.
+   * Requests a block from the server. This call will read the full block.
    */
   private DataServerMessage request(final ClientBlockInfo block) throws IOException {
     return request(block, 0, -1);
   }
 
   /**
-   * Create a new socket to the data port and send a block request.  The returned value is
-   * the response from the server.
+   * Create a new socket to the data port and send a block request. The returned value is the
+   * response from the server.
    */
   private DataServerMessage request(final ClientBlockInfo block, final long offset,
       final long length) throws IOException {

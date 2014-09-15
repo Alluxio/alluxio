@@ -242,8 +242,8 @@ public class MasterInfoTest {
   }
 
   @Test
-  public void clientFileInfoDirectoryTest() throws InvalidPathException,
-      FileDoesNotExistException, FileAlreadyExistException, TachyonException {
+  public void clientFileInfoDirectoryTest() throws InvalidPathException, FileDoesNotExistException,
+      FileAlreadyExistException, TachyonException {
     Assert.assertTrue(mMasterInfo.mkdirs("/testFolder", true));
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFolder");
     Assert.assertEquals("testFolder", fileInfo.getName());
@@ -257,8 +257,8 @@ public class MasterInfoTest {
   }
 
   @Test
-  public void clientFileInfoEmptyFileTest() throws InvalidPathException,
-      FileDoesNotExistException, FileAlreadyExistException, BlockInfoException, TachyonException {
+  public void clientFileInfoEmptyFileTest() throws InvalidPathException, FileDoesNotExistException,
+      FileAlreadyExistException, BlockInfoException, TachyonException {
     int fileId = mMasterInfo.createFile("/testFile", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo("/testFile");
     Assert.assertEquals("testFile", fileInfo.getName());
@@ -533,8 +533,7 @@ public class MasterInfoTest {
   public void lastModificationTimeRenameTest() throws InvalidPathException,
       FileAlreadyExistException, FileDoesNotExistException, TachyonException, BlockInfoException {
     Assert.assertTrue(mMasterInfo.mkdirs("/testFolder", true));
-    int fileId =
-        mMasterInfo.createFile("/testFolder/testFile1", Constants.DEFAULT_BLOCK_SIZE_BYTE);
+    int fileId = mMasterInfo.createFile("/testFolder/testFile1", Constants.DEFAULT_BLOCK_SIZE_BYTE);
     long opTimeMs = System.currentTimeMillis();
     Assert.assertTrue(mMasterInfo._rename(fileId, "/testFolder/testFile2", opTimeMs));
     ClientFileInfo folderInfo = mMasterInfo.getClientFileInfo("/testFolder");

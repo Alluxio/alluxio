@@ -27,8 +27,7 @@ class Utils {
 
   public static <T extends Enum<T>> T getEnumProperty(String property, T defaultValue) {
     final String val = getProperty(property, null);
-    return null == val ? defaultValue
-        : Enum.valueOf(defaultValue.getDeclaringClass(), val);
+    return null == val ? defaultValue : Enum.valueOf(defaultValue.getDeclaringClass(), val);
   }
 
   public static int getIntProperty(String property) {
