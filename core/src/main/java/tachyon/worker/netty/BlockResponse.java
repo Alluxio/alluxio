@@ -48,6 +48,7 @@ public final class BlockResponse {
             msg.getChannel().map(FileChannel.MapMode.READ_ONLY, msg.getOffset(),
                 msg.getLength());
             out.add(Unpooled.wrappedBuffer(data));
+            msg.getChannel().close();
             break;
           case TRANSFER:
             out.add(new DefaultFileRegion(msg.getChannel(), msg.getOffset(), msg.getLength()));
