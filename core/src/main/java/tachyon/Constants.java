@@ -48,8 +48,9 @@ public class Constants {
   public static final boolean DEBUG = Boolean.valueOf(System.getProperty("tachyon.debug", "false"));
 
   /**
-   * Version 1 [Before 0.5.0] Customized ser/de based. Version 2 [0.5.0] Starts to use JSON. Version
-   * 3 [0.6.0] Add lastModificationTimeMs to inode.
+   * Version 1 [Before 0.5.0] Customized ser/de based. <br>
+   * Version 2 [0.5.0] Starts to use JSON. <br>
+   * Version 3 [0.6.0] Add lastModificationTimeMs to inode.
    */
   public static final int JOURNAL_VERSION = 2;
 }
