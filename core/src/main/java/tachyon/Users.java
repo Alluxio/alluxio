@@ -126,8 +126,8 @@ public class Users {
     } else {
       returnedBytes = tUser.getOwnBytes();
       String folder = getUserTempFolder(userId);
-      sb.append(" The user returns " + returnedBytes + " bytes. Remove the user's folder " + folder
-          + " ;");
+      sb.append(" The user returns ").append(returnedBytes).append(" bytes.");
+      sb.append(" Remove the user's folder ").append(folder).append(" ;");
       try {
         FileUtils.deleteDirectory(new File(folder));
       } catch (IOException e) {
@@ -135,7 +135,7 @@ public class Users {
       }
 
       folder = getUserUfsTempFolder(userId);
-      sb.append(" Also remove users underfs folder " + folder);
+      sb.append(" Also remove users underfs folder ").append(folder);
       try {
         UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
       } catch (IOException e) {
