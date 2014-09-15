@@ -30,8 +30,8 @@ import tachyon.util.CommonUtils;
  */
 public class WebInterfaceBrowseServlet extends HttpServlet {
   /**
-   * Class to make referencing file objects more intuitive. Mainly to avoid
-   * implicit association by array indexes.
+   * Class to make referencing file objects more intuitive. Mainly to avoid implicit association by
+   * array indexes.
    */
   public static class UiBlockInfo implements Comparable<UiBlockInfo> {
 
@@ -74,15 +74,11 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   }
 
   /**
-   * This function displays 5KB of a file from a specific offset if it is in
-   * ASCII format.
+   * This function displays 5KB of a file from a specific offset if it is in ASCII format.
    * 
-   * @param path
-   *          The path of the file to display
-   * @param request
-   *          The HttpServletRequest object
-   * @param offset
-   *          Where the file starts to display.
+   * @param path The path of the file to display
+   * @param request The HttpServletRequest object
+   * @param offset Where the file starts to display.
    * @throws FileDoesNotExistException
    * @throws IOException
    * @throws InvalidPathException
@@ -127,14 +123,12 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   }
 
   /**
-   * Populates attribute fields with data from the MasterInfo associated with
-   * this servlet. Errors will be displayed in an error field. Debugging can be
-   * enabled to display additional data. Will eventually redirect the request to a jsp.
+   * Populates attribute fields with data from the MasterInfo associated with this servlet. Errors
+   * will be displayed in an error field. Debugging can be enabled to display additional data. Will
+   * eventually redirect the request to a jsp.
    * 
-   * @param request
-   *          The HttpServletRequest object
-   * @param response
-   *          The HttpServletResponse object
+   * @param request The HttpServletRequest object
+   * @param response The HttpServletResponse object
    * @throws ServletException
    * @throws IOException
    * @throws UnknownHostException
@@ -201,8 +195,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       UiFileInfo toAdd = new UiFileInfo(fileInfo);
       try {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
-          toAdd
-              .setFileLocations(mMasterInfo.getFileBlocks(toAdd.getId()).get(0).getLocations());
+          toAdd.setFileLocations(mMasterInfo.getFileBlocks(toAdd.getId()).get(0).getLocations());
         }
       } catch (FileDoesNotExistException fdne) {
         request.setAttribute("invalidPathError", "Error: Invalid Path " + fdne.getMessage());
@@ -218,13 +211,10 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   }
 
   /**
-   * This function sets the fileinfos for folders that are in the path to the
-   * current directory.
+   * This function sets the fileinfos for folders that are in the path to the current directory.
    * 
-   * @param path
-   *          The path of the current directory.
-   * @param request
-   *          The HttpServletRequest object
+   * @param path The path of the current directory.
+   * @param request The HttpServletRequest object
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */

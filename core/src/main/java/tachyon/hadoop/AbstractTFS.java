@@ -34,9 +34,9 @@ import tachyon.util.UfsUtils;
 /**
  * Base class for Apache Hadoop based Tachyon {@link FileSystem}. This class really just delegates
  * to {@link tachyon.client.TachyonFS} for most operations.
- *
- * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant
- * is used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
+ * 
+ * All implementing classes must define {@link #isZookeeperMode()} which states if fault tolerant is
+ * used and {@link #getScheme()} for Hadoop's {@link java.util.ServiceLoader} support.
  */
 abstract class AbstractTFS extends FileSystem {
   public static final String FIRST_COM_PATH = "tachyon_dep/";
@@ -156,16 +156,12 @@ abstract class AbstractTFS extends FileSystem {
    * <p>
    * Opens an FSDataOutputStream at the indicated Path with write-progress reporting. Same as
    * create(), except fails if parent directory doesn't already exist.
-   *
-   * @param cPath
-   *          the file name to open
-   * @param overwrite
-   *          if a file with this name already exists, then if true,
-   *          the file will be overwritten, and if false an error will be thrown.
-   * @param bufferSize
-   *          the size of the buffer to be used.
-   * @param replication
-   *          required block replication for the file.
+   * 
+   * @param cPath the file name to open
+   * @param overwrite if a file with this name already exists, then if true, the file will be
+   *        overwritten, and if false an error will be thrown.
+   * @param bufferSize the size of the buffer to be used.
+   * @param replication required block replication for the file.
    * @param blockSize
    * @param progress
    * @throws IOException
@@ -278,13 +274,13 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   /**
-   * Get the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means
-   * to make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so can not put
-   *
+   * Get the URI schema that maps to the FileSystem. This was introduced in Hadoop 2.x as a means to
+   * make loading new FileSystems simpler. This doesn't exist in Hadoop 1.x, so can not put
+   * 
    * @Override on this method.
-   *
+   * 
    * @return schema hadoop should map to.
-   *
+   * 
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)
    */
@@ -292,7 +288,7 @@ abstract class AbstractTFS extends FileSystem {
 
   /**
    * Returns an object implementing the Tachyon-specific client API.
-   *
+   * 
    * @return null if initialize() hasn't been called.
    */
   public TachyonFS getTachyonFS() {
@@ -329,7 +325,7 @@ abstract class AbstractTFS extends FileSystem {
   /**
    * Determines if zookeeper should be used for the FileSystem. This method should only be used for
    * {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
-   *
+   * 
    * @return true if zookeeper should be used
    */
   protected abstract boolean isZookeeperMode();
@@ -398,10 +394,10 @@ abstract class AbstractTFS extends FileSystem {
   /**
    * When underfs has a schema, then we can use the hdfs underfs code base.
    * <p />
-   * When this check is not done, {@link #fromHdfsToTachyon(String)} is called, which loads
-   * the default filesystem (hadoop's).  When there is no schema, then it may default to tachyon
-   * which causes a recursive loop.
-   *
+   * When this check is not done, {@link #fromHdfsToTachyon(String)} is called, which loads the
+   * default filesystem (hadoop's). When there is no schema, then it may default to tachyon which
+   * causes a recursive loop.
+   * 
    * @see <a href="https://tachyon.atlassian.net/browse/TACHYON-54">TACHYON-54</a>
    */
   @Deprecated

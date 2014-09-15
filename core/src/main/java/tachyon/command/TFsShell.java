@@ -32,8 +32,7 @@ public class TFsShell implements Closeable {
   /**
    * Main method, starts a new TFsShell
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    */
   public static void main(String argv[]) throws IOException {
     TFsShell shell = new TFsShell();
@@ -56,8 +55,7 @@ public class TFsShell implements Closeable {
   /**
    * Prints the file's contents to the console.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -96,8 +94,7 @@ public class TFsShell implements Closeable {
    * Copies a file or directory specified by argv from the local filesystem to the filesystem. Will
    * fail if the path given already exists in the filesystem.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -159,8 +156,7 @@ public class TFsShell implements Closeable {
   /**
    * Copies a file specified by argv from the filesystem to the local filesystem.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -201,8 +197,7 @@ public class TFsShell implements Closeable {
   /**
    * Displays the number of folders and files matching the specified prefix in argv.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -224,10 +219,10 @@ public class TFsShell implements Closeable {
     TachyonFile tFile = tachyonClient.getFile(path);
 
     if (tFile.isFile()) {
-      return new long[] { 1L, 0L, tFile.length() };
+      return new long[] {1L, 0L, tFile.length()};
     }
 
-    long[] rtn = new long[] { 0L, 1L, 0L };
+    long[] rtn = new long[] {0L, 1L, 0L};
 
     List<ClientFileInfo> files = tachyonClient.listStatus(path);
     Collections.sort(files);
@@ -243,8 +238,7 @@ public class TFsShell implements Closeable {
   /**
    * Displays the file's all blocks info
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -267,8 +261,7 @@ public class TFsShell implements Closeable {
   /**
    * Displays a list of hosts that have the file specified in argv stored.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -291,8 +284,7 @@ public class TFsShell implements Closeable {
   /**
    * Displays information for all directories and files directly under the path specified in argv.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -325,8 +317,7 @@ public class TFsShell implements Closeable {
    * Displays information for all directories and files under the path specified in argv
    * recursively.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -352,18 +343,17 @@ public class TFsShell implements Closeable {
       System.out.format(format, CommonUtils.getSizeFromBytes(file.getLength()),
           CommonUtils.convertMsToDate(file.getCreationTimeMs()), inMemory, file.getPath());
       if (file.isFolder) {
-        lsr(new String[] { "lsr", file.getPath() });
+        lsr(new String[] {"lsr", file.getPath()});
       }
     }
     return 0;
   }
 
   /**
-   * Creates a new directory specified by the path in argv, including any parent folders that
-   * are required. This method fails if a directory or file with the same path already exists.
+   * Creates a new directory specified by the path in argv, including any parent folders that are
+   * required. This method fails if a directory or file with the same path already exists.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -383,11 +373,10 @@ public class TFsShell implements Closeable {
   }
 
   /**
-   * Pins the given file or folder (recursively pinning all children if a folder). Pinned files
-   * are never evicted from memory.
+   * Pins the given file or folder (recursively pinning all children if a folder). Pinned files are
+   * never evicted from memory.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -436,11 +425,9 @@ public class TFsShell implements Closeable {
   }
 
   /**
-   * Renames a file or directory specified by argv. Will fail if the new path name already
-   * exists.
+   * Renames a file or directory specified by argv. Will fail if the new path name already exists.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -487,11 +474,10 @@ public class TFsShell implements Closeable {
   }
 
   /**
-   * Removes the file or directory specified by argv. Will remove all files and directories in
-   * the directory if a directory is specified.
+   * Removes the file or directory specified by argv. Will remove all files and directories in the
+   * directory if a directory is specified.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -511,11 +497,10 @@ public class TFsShell implements Closeable {
   }
 
   /**
-   * Method which determines how to handle the user's request, will display usage help to the
-   * user if command format is incorrect.
+   * Method which determines how to handle the user's request, will display usage help to the user
+   * if command format is incorrect.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred
    */
   public int run(String argv[]) {
@@ -575,8 +560,7 @@ public class TFsShell implements Closeable {
   /**
    * Prints the file's last 1KB of contents to the console.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.f
    * @throws IOException
    */
@@ -618,8 +602,7 @@ public class TFsShell implements Closeable {
   /**
    * Creates a 0 byte file specified by argv.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command if successful, -1 if an error occurred.
    * @throws IOException
    */
@@ -641,8 +624,7 @@ public class TFsShell implements Closeable {
    * Unpins the given file or folder (recursively unpinning all children if a folder). Pinned files
    * are never evicted from memory, so this method will allow such files to be evicted.
    * 
-   * @param argv
-   *          [] Array of arguments given by the user's input from the terminal
+   * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */

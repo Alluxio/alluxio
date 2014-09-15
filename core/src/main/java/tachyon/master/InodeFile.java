@@ -21,8 +21,7 @@ public class InodeFile extends Inode {
   /**
    * Create a new InodeFile from an image JSON element
    * 
-   * @param ele
-   *          the image JSON element
+   * @param ele the image JSON element
    * @return the created inode file.
    * @throws IOException
    */
@@ -70,16 +69,11 @@ public class InodeFile extends Inode {
   /**
    * Create a new InodeFile.
    * 
-   * @param name
-   *          The name of the file
-   * @param id
-   *          The id of the file
-   * @param parentId
-   *          The id of the parent of the file
-   * @param blockSizeByte
-   *          The block size of the file, in bytes
-   * @param creationTimeMs
-   *          The creation time of the file, in milliseconds
+   * @param name The name of the file
+   * @param id The id of the file
+   * @param parentId The id of the parent of the file
+   * @param blockSizeByte The block size of the file, in bytes
+   * @param creationTimeMs The creation time of the file, in milliseconds
    */
   public InodeFile(String name, int id, int parentId, long blockSizeByte, long creationTimeMs) {
     super(name, id, parentId, false, creationTimeMs);
@@ -91,8 +85,7 @@ public class InodeFile extends Inode {
    * Add a block to the file.It will check the legality. Cannot add the block if the file is
    * complete or the block's information doesn't match the file's information.
    * 
-   * @param blockInfo
-   *          The block to be added
+   * @param blockInfo The block to be added
    * @throws BlockInfoException
    */
   public synchronized void addBlock(BlockInfo blockInfo) throws BlockInfoException {
@@ -123,12 +116,9 @@ public class InodeFile extends Inode {
   /**
    * Add a location information of the file. A worker caches a block of the file.
    * 
-   * @param blockIndex
-   *          The index of the block in the file
-   * @param workerId
-   *          The id of the worker
-   * @param workerAddress
-   *          The net address of the worker
+   * @param blockIndex The index of the block in the file
+   * @param workerId The id of the worker
+   * @param workerAddress The net address of the worker
    * @throws BlockInfoException
    */
   public synchronized void addLocation(int blockIndex, long workerId, NetAddress workerAddress)
@@ -165,8 +155,7 @@ public class InodeFile extends Inode {
   /**
    * Get the id of the specified block by the offset of the file.
    * 
-   * @param offset
-   *          The offset of the file
+   * @param offset The offset of the file
    * @return the id of the specified block
    */
   public long getBlockIdBasedOnOffset(long offset) {
@@ -213,8 +202,7 @@ public class InodeFile extends Inode {
   /**
    * Get the locations of the specified block.
    * 
-   * @param blockIndex
-   *          The index of the block in the file
+   * @param blockIndex The index of the block in the file
    * @return a list of the worker's net address who caches the block
    * @throws BlockInfoException
    */
@@ -247,8 +235,7 @@ public class InodeFile extends Inode {
   /**
    * Get a ClientBlockInfo of the specified block.
    * 
-   * @param blockIndex
-   *          The index of the block in the file
+   * @param blockIndex The index of the block in the file
    * @return the generated ClientBlockInfo
    * @throws BlockInfoException
    */
@@ -369,10 +356,8 @@ public class InodeFile extends Inode {
   /**
    * Remove a location of a block.
    * 
-   * @param blockIndex
-   *          The index of the block in the file
-   * @param workerId
-   *          The id of the removed location worker
+   * @param blockIndex The index of the block in the file
+   * @param workerId The id of the removed location worker
    * @throws BlockInfoException
    */
   public synchronized void removeLocation(int blockIndex, long workerId) throws BlockInfoException {
@@ -385,8 +370,7 @@ public class InodeFile extends Inode {
   /**
    * Set whether the file is cacheable or not.
    * 
-   * @param cache
-   *          If true, the file is cacheable
+   * @param cache If true, the file is cacheable
    */
   public synchronized void setCache(boolean cache) {
     // TODO this related logic is not complete right. fix this.
@@ -396,8 +380,7 @@ public class InodeFile extends Inode {
   /**
    * Set the path of the file in under file system.
    * 
-   * @param ufsPath
-   *          The new path of the file in under file system
+   * @param ufsPath The new path of the file in under file system
    */
   public synchronized void setUfsPath(String ufsPath) {
     mUfsPath = ufsPath;
@@ -413,8 +396,7 @@ public class InodeFile extends Inode {
   /**
    * Set the complete flag of the file
    * 
-   * @param complete
-   *          If true, the file is complete
+   * @param complete If true, the file is complete
    */
   public synchronized void setComplete(boolean complete) {
     mIsComplete = complete;
@@ -423,8 +405,7 @@ public class InodeFile extends Inode {
   /**
    * Set the dependency id of the file
    * 
-   * @param dependencyId
-   *          The new dependency id of the file
+   * @param dependencyId The new dependency id of the file
    */
   public synchronized void setDependencyId(int dependencyId) {
     mDependencyId = dependencyId;
@@ -434,8 +415,7 @@ public class InodeFile extends Inode {
    * Set the length of the file. Cannot set the length if the file is complete or the length is
    * negative.
    * 
-   * @param length
-   *          The new length of the file, cannot be negative
+   * @param length The new length of the file, cannot be negative
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    */

@@ -30,10 +30,8 @@ public class WebInterfaceConfigurationServlet extends HttpServlet {
   /**
    * Populates attributes before redirecting to a jsp.
    * 
-   * @param request
-   *          The HttpServletRequest object
-   * @param response
-   *          The HttpServletReponse object
+   * @param request The HttpServletRequest object
+   * @param response The HttpServletReponse object
    */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -46,8 +44,7 @@ public class WebInterfaceConfigurationServlet extends HttpServlet {
     request.setAttribute("tachyon.data.folder", "" + mCommonConf.UNDERFS_DATA_FOLDER);
     request.setAttribute("tachyon.workers.folder", "" + mCommonConf.UNDERFS_WORKERS_FOLDER);
     request.setAttribute("tachyon.underfs.hdfs.impl", "" + mCommonConf.UNDERFS_HDFS_IMPL);
-    request
-        .setAttribute("tachyon.underfs.glusterfs.impl", "" + mCommonConf.UNDERFS_GLUSTERFS_IMPL);
+    request.setAttribute("tachyon.underfs.glusterfs.impl", "" + mCommonConf.UNDERFS_GLUSTERFS_IMPL);
     request.setAttribute("tachyon.underfs.glusterfs.volumes", ""
         + mCommonConf.UNDERFS_GLUSTERFS_VOLUMES);
     request.setAttribute("tachyon.underfs.glusterfs.mounts", ""

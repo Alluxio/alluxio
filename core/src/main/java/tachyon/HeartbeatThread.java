@@ -3,8 +3,8 @@ package tachyon;
 import org.apache.log4j.Logger;
 
 /**
- * Thread class to execute a heartbeat periodically.
- * This Thread is daemonic, so it will not prevent the JVM from exiting.
+ * Thread class to execute a heartbeat periodically. This Thread is daemonic, so it will not prevent
+ * the JVM from exiting.
  */
 public class HeartbeatThread extends Thread {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
@@ -18,8 +18,7 @@ public class HeartbeatThread extends Thread {
   /**
    * @param threadName
    * @param hbExecutor
-   * @param fixedExecutionIntervalMs
-   *          Sleep time between different heartbeat.
+   * @param fixedExecutionIntervalMs Sleep time between different heartbeat.
    */
   public HeartbeatThread(String threadName, HeartbeatExecutor hbExecutor,
       long fixedExecutionIntervalMs) {

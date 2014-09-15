@@ -24,8 +24,7 @@ import tachyon.thrift.NetAddress;
 public final class NetworkUtils {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
-  private NetworkUtils() {
-  }
+  private NetworkUtils() {}
 
   /**
    * @return the local host name, which is not based on a loopback ip address.
@@ -79,12 +78,10 @@ public final class NetworkUtils {
   /**
    * Replace and resolve the hostname in a given address or path string.
    * 
-   * @param addr
-   *          an address or path string, e.g., "hdfs://host:port/dir", "file:///dir", "/dir".
-   * @return an address or path string with hostname resolved, or the original path intact if
-   *         no hostname is embedded, or null if the given path is null or empty.
-   * @throws UnknownHostException
-   *           if the hostname cannot be resolved.
+   * @param addr an address or path string, e.g., "hdfs://host:port/dir", "file:///dir", "/dir".
+   * @return an address or path string with hostname resolved, or the original path intact if no
+   *         hostname is embedded, or null if the given path is null or empty.
+   * @throws UnknownHostException if the hostname cannot be resolved.
    */
   public static String replaceHostName(String addr) throws UnknownHostException {
     if (addr == null || addr.isEmpty()) {
@@ -121,15 +118,13 @@ public final class NetworkUtils {
   }
 
   /**
-   * Resolve a given hostname by a canonical hostname. When a hostname alias (e.g., those
-   * specified in /etc/hosts) is given, the alias may not be resolvable on other hosts in a
-   * cluster unless the same alias is defined there. In this situation, loadufs would break.
+   * Resolve a given hostname by a canonical hostname. When a hostname alias (e.g., those specified
+   * in /etc/hosts) is given, the alias may not be resolvable on other hosts in a cluster unless the
+   * same alias is defined there. In this situation, loadufs would break.
    * 
-   * @param hostname
-   *          the input hostname, which could be an alias.
+   * @param hostname the input hostname, which could be an alias.
    * @return the canonical form of the hostname, or null if it is null or empty.
-   * @throws UnknownHostException
-   *           if the given hostname cannot be resolved.
+   * @throws UnknownHostException if the given hostname cannot be resolved.
    */
   public static String resolveHostName(String hostname) throws UnknownHostException {
     if (hostname == null || hostname.isEmpty()) {
@@ -144,8 +139,7 @@ public final class NetworkUtils {
    * String representation which should be handled by #resolveHostName(String hostname) which will
    * handle the situation where hostname is null.
    * 
-   * @param addr
-   *          the input network address representation, can not be null
+   * @param addr the input network address representation, can not be null
    * @return the resolved FQDN host name
    */
   public static String getFqdnHost(InetSocketAddress addr) {
@@ -158,8 +152,8 @@ public final class NetworkUtils {
 
   /**
    * Gets the port for the underline socket. This function calls
-   * {@link #getSocket(org.apache.thrift.transport.TNonblockingServerSocket)}, so reflection
-   * will be used to get the port.
+   * {@link #getSocket(org.apache.thrift.transport.TNonblockingServerSocket)}, so reflection will be
+   * used to get the port.
    * 
    * @see #getSocket(org.apache.thrift.transport.TNonblockingServerSocket)
    */
@@ -168,11 +162,10 @@ public final class NetworkUtils {
   }
 
   /**
-   * Extracts the port from the thrift socket. As of thrift 0.9, the internal socket used
-   * is not exposed in the API, so this function will use reflection to get access to it.
+   * Extracts the port from the thrift socket. As of thrift 0.9, the internal socket used is not
+   * exposed in the API, so this function will use reflection to get access to it.
    * 
-   * @throws java.lang.RuntimeException
-   *           if reflection calls fail
+   * @throws java.lang.RuntimeException if reflection calls fail
    */
   public static ServerSocket getSocket(final TNonblockingServerSocket thriftSocket) {
     try {
