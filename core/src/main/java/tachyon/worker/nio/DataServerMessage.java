@@ -56,7 +56,7 @@ public class DataServerMessage {
    * @return the created block request message
    */
   public static DataServerMessage createBlockRequestMessage() {
-    DataServerMessage ret = new DataServerMessage(false, DATA_SERVER_REQUEST_MESSAGE);
+    DataServerMessage ret = new DataServerMessage(false, DATA_SERVER_REQUEST_MESSAGE, true);
     ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
     return ret;
   }
@@ -84,7 +84,7 @@ public class DataServerMessage {
    * @return The created block request message
    */
   public static DataServerMessage createBlockRequestMessage(long blockId, long offset, long len) {
-    DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
+    DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE, true);
 
     ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
     ret.mBlockId = blockId;
@@ -124,7 +124,7 @@ public class DataServerMessage {
    */
   public static DataServerMessage createBlockResponseMessage(boolean toSend, long blockId,
       long offset, long len) {
-    DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE);
+    DataServerMessage ret = new DataServerMessage(toSend, DATA_SERVER_RESPONSE_MESSAGE, false);
 
     if (toSend) {
       ret.mBlockId = blockId;
@@ -175,7 +175,7 @@ public class DataServerMessage {
         // TODO This is a trick for now. The data may have been removed before remote retrieving.
         ret.mBlockId = -ret.mBlockId;
         ret.mLength = 0;
-        ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
+        ret.mHeader = ByteBuffer.allocate(RESPONSE_HEADER_LENGTH);
         ret.mData = ByteBuffer.allocate(0);
         ret.mIsMessageReady = true;
         ret.generateHeader();
@@ -206,15 +206,18 @@ public class DataServerMessage {
 
   private ByteBuffer mData = null;
 
+  private final boolean mIsRequest;
+
   /**
    * New a DataServerMessage. Notice that it's not ready.
-   * 
-   * @param isToSendData true if this is a send message, otherwise this is a recv message
+   *  @param isToSendData true if this is a send message, otherwise this is a recv message
    * @param msgType The message type
+   * @param isRequest
    */
-  private DataServerMessage(boolean isToSendData, int msgType) {
+  private DataServerMessage(boolean isToSendData, int msgType, boolean isRequest) {
     mToSendData = isToSendData;
     mMessageType = msgType;
+    mIsRequest = isRequest;
     mIsMessageReady = false;
   }
 
@@ -358,6 +361,10 @@ public class DataServerMessage {
       numRead = socketChannel.read(mHeader);
       if (mHeader.remaining() == 0) {
         mHeader.flip();
+        if (mIsRequest) {
+          // version
+          mHeader.getLong();
+        }
         int msgType = mHeader.getInt();
         assert (mMessageType == msgType);
         mBlockId = mHeader.getLong();
@@ -365,7 +372,8 @@ public class DataServerMessage {
         mLength = mHeader.getLong();
         // TODO make this better to truncate the file.
         assert mLength < Integer.MAX_VALUE;
-        if (mMessageType == DATA_SERVER_RESPONSE_MESSAGE) {
+//        if (mMessageType == DATA_SERVER_RESPONSE_MESSAGE) {
+        if (!mIsRequest) {
           if (mLength == -1) {
             mData = ByteBuffer.allocate(0);
           } else {
@@ -375,7 +383,7 @@ public class DataServerMessage {
         LOG.info(String.format("data" + mData + ", blockId(%d), offset(%d), dataLength(%d)",
             mBlockId, mOffset, mLength));
 //        if (mMessageType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
-        if (mLength <= 0) {
+        if (mIsRequest || mLength <= 0) {
           mIsMessageReady = true;
         }
       }
