@@ -70,7 +70,6 @@ public final class GetBlockResponse implements NettyWritable {
 
   private ByteBuf createHeader(ByteBufAllocator allocator) {
     ByteBuf header = allocator.buffer(MESSAGE_LENGTH);
-    header.writeShort(DataServerMessage.DATA_SERVER_RESPONSE_MESSAGE);
     header.writeLong(getBlockId());
     header.writeLong(getOffset());
     header.writeLong(getLength());

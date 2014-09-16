@@ -182,7 +182,7 @@ public class DataServerMessage {
         LOG.error("The file is not here : " + e.getMessage(), e);
       }
     } else {
-      ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
+      ret.mHeader = ByteBuffer.allocate(RESPONSE_HEADER_LENGTH);
       ret.mData = null;
     }
 
@@ -374,7 +374,8 @@ public class DataServerMessage {
         }
         LOG.info(String.format("data" + mData + ", blockId(%d), offset(%d), dataLength(%d)",
             mBlockId, mOffset, mLength));
-        if (mMessageType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
+//        if (mMessageType == DATA_SERVER_REQUEST_MESSAGE || mLength <= 0) {
+        if (mLength <= 0) {
           mIsMessageReady = true;
         }
       }
