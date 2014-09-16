@@ -5,7 +5,6 @@ import java.util.List;
 import com.google.common.primitives.Longs;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 
@@ -16,7 +15,7 @@ public final class GetBlock {
   private final long offset;
   private final long length;
 
-  private GetBlock(long blockId, long offset, long length) {
+  public GetBlock(long blockId, long offset, long length) {
     this.blockId = blockId;
     this.offset = offset;
     this.length = length;

@@ -34,17 +34,20 @@ import tachyon.client.TachyonByteBuffer;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
 import tachyon.worker.netty.protocol.RequestHeader;
+import tachyon.worker.netty.protocol.RequestType;
+import tachyon.worker.netty.protocol.ResponseType;
 
 /**
  * The message type used to send data request and response for remote data.
  */
 public class DataServerMessage {
-  public static final int DATA_SERVER_REQUEST_MESSAGE = 0;
-  public static final int DATA_SERVER_RESPONSE_MESSAGE = 1;
+  public static final int DATA_SERVER_REQUEST_MESSAGE = RequestType.GetBlock.ordinal();
+  public static final int DATA_SERVER_RESPONSE_MESSAGE = ResponseType.GetBlockResponse.ordinal();
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static final int HEADER_LENGTH = Longs.BYTES + Ints.BYTES + 3 * Longs.BYTES;
+  private static final int REQUEST_HEADER_LENGTH = Longs.BYTES + Ints.BYTES + 3 * Longs.BYTES;
+  private static final int RESPONSE_HEADER_LENGTH = Ints.BYTES + 3 * Longs.BYTES;
 
   /**
    * Create a default block request message, just allocate the message header, and no attribute is
@@ -54,7 +57,7 @@ public class DataServerMessage {
    */
   public static DataServerMessage createBlockRequestMessage() {
     DataServerMessage ret = new DataServerMessage(false, DATA_SERVER_REQUEST_MESSAGE);
-    ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+    ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
     return ret;
   }
 
@@ -83,11 +86,11 @@ public class DataServerMessage {
   public static DataServerMessage createBlockRequestMessage(long blockId, long offset, long len) {
     DataServerMessage ret = new DataServerMessage(true, DATA_SERVER_REQUEST_MESSAGE);
 
-    ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+    ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
     ret.mBlockId = blockId;
     ret.mOffset = offset;
     ret.mLength = len;
-    ret.generateHeader();
+    ret.generateRequestHeader();
     ret.mData = ByteBuffer.allocate(0);
     ret.mIsMessageReady = true;
 
@@ -157,7 +160,7 @@ public class DataServerMessage {
           len = fileLength - offset;
         }
 
-        ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+        ret.mHeader = ByteBuffer.allocate(RESPONSE_HEADER_LENGTH);
         ret.mOffset = offset;
         ret.mLength = len;
         FileChannel channel = file.getChannel();
@@ -172,14 +175,14 @@ public class DataServerMessage {
         // TODO This is a trick for now. The data may have been removed before remote retrieving.
         ret.mBlockId = -ret.mBlockId;
         ret.mLength = 0;
-        ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+        ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
         ret.mData = ByteBuffer.allocate(0);
         ret.mIsMessageReady = true;
         ret.generateHeader();
         LOG.error("The file is not here : " + e.getMessage(), e);
       }
     } else {
-      ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
+      ret.mHeader = ByteBuffer.allocate(REQUEST_HEADER_LENGTH);
       ret.mData = null;
     }
 
@@ -249,9 +252,18 @@ public class DataServerMessage {
     return mHeader.remaining() == 0 && mData.remaining() == 0;
   }
 
-  private void generateHeader() {
+  private void generateRequestHeader() {
     mHeader.clear();
     mHeader.putLong(RequestHeader.CURRENT_VERSION);
+    mHeader.putInt(mMessageType);
+    mHeader.putLong(mBlockId);
+    mHeader.putLong(mOffset);
+    mHeader.putLong(mLength);
+    mHeader.flip();
+  }
+
+  private void generateResponseHeader() {
+    mHeader.clear();
     mHeader.putInt(mMessageType);
     mHeader.putLong(mBlockId);
     mHeader.putLong(mOffset);
@@ -346,7 +358,7 @@ public class DataServerMessage {
       numRead = socketChannel.read(mHeader);
       if (mHeader.remaining() == 0) {
         mHeader.flip();
-        short msgType = mHeader.getShort();
+        int msgType = mHeader.getInt();
         assert (mMessageType == msgType);
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();

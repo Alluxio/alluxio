@@ -2,15 +2,13 @@ package tachyon.worker.netty.handler;
 
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
-import java.util.List;
 
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.log4j.Logger;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageDecoder;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import tachyon.Constants;
 import tachyon.conf.WorkerConf;
@@ -19,6 +17,8 @@ import tachyon.worker.BlocksLocker;
 import tachyon.worker.netty.ClosableResourceChannelListener;
 import tachyon.worker.netty.protocol.GetBlock;
 import tachyon.worker.netty.protocol.GetBlockResponse;
+import tachyon.worker.netty.protocol.ResponseHeader;
+import tachyon.worker.netty.protocol.ResponseType;
 
 public final class GetBlockHandler extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
@@ -43,11 +43,14 @@ public final class GetBlockHandler extends ChannelInboundHandlerAdapter {
         RandomAccessFile file = new RandomAccessFile(filePath, "r");
         long fileLength = file.length();
         if (inRange(getBlock, fileLength)) {
-          final long readLength = returnLength(getBlock.getOffset(), getBlock.getLength(), fileLength);
+          final long readLength =
+              returnLength(getBlock.getOffset(), getBlock.getLength(), fileLength);
 
           FileChannel channel = file.getChannel();
+          ctx.write(new ResponseHeader(ResponseType.GetBlockResponse));
           ChannelFuture future =
-              ctx.writeAndFlush(new GetBlockResponse(blockId, getBlock.getOffset(), readLength, channel));
+              ctx.writeAndFlush(new GetBlockResponse(blockId, getBlock.getOffset(), readLength,
+                  channel));
 
           future.addListener(ChannelFutureListener.CLOSE);
           future.addListener(new ClosableResourceChannelListener(file));
