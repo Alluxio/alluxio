@@ -20,6 +20,10 @@ public abstract class Error implements NettyWritable {
     this.mType = mType;
   }
 
+  public ResponseType getType() {
+    return mType;
+  }
+
   @Override
   public List<Object> write(ByteBufAllocator allocator) throws IOException {
     return ImmutableList.<Object>of(allocator.buffer(Ints.BYTES).writeInt(mType.ordinal()));

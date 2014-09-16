@@ -40,6 +40,7 @@ import tachyon.worker.netty.protocol.ResponseType;
 /**
  * The message type used to send data request and response for remote data.
  */
+@Deprecated
 public class DataServerMessage {
   public static final int DATA_SERVER_REQUEST_MESSAGE = RequestType.GetBlock.ordinal();
   public static final int DATA_SERVER_RESPONSE_MESSAGE = ResponseType.GetBlockResponse.ordinal();
@@ -386,6 +387,7 @@ public class DataServerMessage {
         if (mIsRequest || mLength <= 0) {
           mIsMessageReady = true;
         }
+
       }
     } else {
       numRead = socketChannel.read(mData);

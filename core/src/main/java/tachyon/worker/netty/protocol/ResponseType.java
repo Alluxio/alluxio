@@ -1,5 +1,7 @@
 package tachyon.worker.netty.protocol;
 
+import com.google.common.base.Optional;
+
 public enum ResponseType {
   GetBlockResponse,
   PutBlockSuccess,
@@ -7,5 +9,14 @@ public enum ResponseType {
   UnknownError,
   BadHeaderError,
   InvalidBlockId,
-  InvalidBlockRange
+  InvalidBlockRange;
+
+  public static Optional<ResponseType> valueOf(int ordinal) {
+    for (ResponseType type : ResponseType.values()) {
+      if (type.ordinal() == ordinal) {
+        return Optional.of(type);
+      }
+    }
+    return Optional.absent();
+  }
 }
