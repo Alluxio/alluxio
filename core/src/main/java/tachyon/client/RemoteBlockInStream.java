@@ -290,7 +290,7 @@ public class RemoteBlockInStream extends BlockInStream {
       while (!recvMsg.isMessageReady()) {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {
-          LOG.warn("Read nothing");
+          throw new IOException("Socket has hit end-of-stream unexpectedly.");
         }
       }
       LOG.info("Data " + blockId + " from remote machine " + address + " received");
