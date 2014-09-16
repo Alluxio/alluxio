@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.util.NetworkUtils;
 
 /**
@@ -47,8 +48,8 @@ public class MasterConf extends Utils {
   private MasterConf() {
     String journalFolder =
         getProperty("tachyon.master.journal.folder", CommonConf.get().TACHYON_HOME + "/journal/");
-    if (!journalFolder.endsWith(Constants.PATH_SEPARATOR)) {
-      journalFolder += Constants.PATH_SEPARATOR;
+    if (!journalFolder.endsWith(TachyonURI.SEPARATOR)) {
+      journalFolder += TachyonURI.SEPARATOR;
     }
     JOURNAL_FOLDER = journalFolder;
     FORMAT_FILE_PREFIX = "_format_";
@@ -71,8 +72,8 @@ public class MasterConf extends Utils {
     WORKER_TIMEOUT_MS =
         getIntProperty("tachyon.master.worker.timeout.ms", 10 * Constants.SECOND_MS);
 
-    WHITELIST.addAll(Arrays.asList(getProperty("tachyon.master.whitelist",
-        Constants.PATH_SEPARATOR).split(",")));
+    WHITELIST.addAll(Arrays.asList(getProperty("tachyon.master.whitelist", TachyonURI.SEPARATOR)
+        .split(",")));
     String tPinList = getProperty("tachyon.master.pinlist", null);
     if (tPinList != null && !tPinList.isEmpty()) {
       System.err.println("WARNING: tachyon.master.pinlist is set but no longer supported!"

@@ -3,10 +3,8 @@ package tachyon;
 /**
  * A pair representation defined by two elements (of type First and type Second).
  * 
- * @param <First>
- *          the first element of the Pair.
- * @param <Second>
- *          the second element of the Pair.
+ * @param <First> the first element of the Pair.
+ * @param <Second> the second element of the Pair.
  */
 public class Pair<First, Second> {
   private First mFirst;
@@ -15,10 +13,8 @@ public class Pair<First, Second> {
   /**
    * Constructs and initializes a Pair specified by the two input elements.
    * 
-   * @param first
-   *          the first element of the pair (of type First)
-   * @param second
-   *          the second element of the pair (of type Second)
+   * @param first the first element of the pair (of type First)
+   * @param second the second element of the pair (of type Second)
    */
   public Pair(First first, Second second) {
     mFirst = first;
@@ -51,8 +47,7 @@ public class Pair<First, Second> {
   /**
    * Set the first value.
    * 
-   * @param first
-   *          the value to be set.
+   * @param first the value to be set.
    */
   public void setFirst(First first) {
     mFirst = first;
@@ -61,8 +56,7 @@ public class Pair<First, Second> {
   /**
    * Set the second value.
    * 
-   * @param second
-   *          the value to be set.
+   * @param second the value to be set.
    */
   public void setSecond(Second second) {
     mSecond = second;

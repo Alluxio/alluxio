@@ -33,9 +33,9 @@ public class TachyonURITest {
   @Test
   public void basicTests() {
     String[] strs =
-        new String[] { "tachyon://localhost:19998/xyz/abc", "hdfs://localhost:19998/xyz/abc",
+        new String[] {"tachyon://localhost:19998/xyz/abc", "hdfs://localhost:19998/xyz/abc",
             "s3://localhost:19998/xyz/abc", "tachyon://localhost:19998/xy z/a b c",
-            "hdfs://localhost:19998/xy z/a b c", "s3://localhost:19998/xy z/a b c" };
+            "hdfs://localhost:19998/xy z/a b c", "s3://localhost:19998/xy z/a b c"};
     for (String str : strs) {
       TachyonURI uri = new TachyonURI(str);
       Assert.assertEquals(str, uri.toString());
@@ -124,14 +124,13 @@ public class TachyonURITest {
     testParentChild("foo://bar boo:80/foo", "foo://bar boo:80/bar", "/foo");
     testParentChild("c:/foo", "foo://bar boo:80/bar", "c:/foo");
     testParentChild("c:/foo", "foo://bar boo:80/d:/bar", "c:/foo");
-    testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/d:/bar",
-        "foo://bar boo:80/c:/foo");
+    testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/d:/bar", "foo://bar boo:80/c:/foo");
   }
 
   @Test
   public void compareToTests() {
     TachyonURI[] uris =
-        new TachyonURI[] { new TachyonURI("file://127.0.0.0:8081/a/b/c.txt"),
+        new TachyonURI[] {new TachyonURI("file://127.0.0.0:8081/a/b/c.txt"),
             new TachyonURI("glusterfs://127.0.0.0:8081/a/b/c.txt"),
             new TachyonURI("hdfs://127.0.0.0:8081/a/b/c.txt"),
             new TachyonURI("hdfs://127.0.0.1:8081/a/b/c.txt"),
@@ -139,7 +138,7 @@ public class TachyonURITest {
             new TachyonURI("hdfs://127.0.0.1:8081/a/c/c.txt"),
             new TachyonURI("hdfs://127.0.0.1:8082/a/c/c.txt"),
             new TachyonURI("hdfs://localhost:8080/a/b/c.txt"),
-            new TachyonURI("s3://localhost:8080/a/b/c.txt") };
+            new TachyonURI("s3://localhost:8080/a/b/c.txt")};
 
     for (int i = 0; i < uris.length - 1; i ++) {
       Assert.assertTrue(uris[i].compareTo(uris[i + 1]) < 0);
@@ -154,10 +153,9 @@ public class TachyonURITest {
         "tachyon://localhost:8080/a/b/c.txt")));
 
     TachyonURI[] uriFromDifferentConstructor =
-        new TachyonURI[] {
-            new TachyonURI("tachyon://127.0.0.1:8080/a/b/c.txt"),
+        new TachyonURI[] {new TachyonURI("tachyon://127.0.0.1:8080/a/b/c.txt"),
             new TachyonURI("tachyon", "127.0.0.1:8080", "/a/b/c.txt"),
-            new TachyonURI(new TachyonURI("tachyon://127.0.0.1:8080/a"), new TachyonURI("b/c.txt")) };
+            new TachyonURI(new TachyonURI("tachyon://127.0.0.1:8080/a"), new TachyonURI("b/c.txt"))};
     for (int i = 0; i < uriFromDifferentConstructor.length - 1; i ++) {
       Assert.assertTrue(uriFromDifferentConstructor[i].equals(uriFromDifferentConstructor[i + 1]));
     }
@@ -166,7 +164,7 @@ public class TachyonURITest {
   @Test
   public void getAuthorityTests() {
     String[] authorities =
-        new String[] { "localhost", "localhost:8080", "127.0.0.1", "127.0.0.1:8080" };
+        new String[] {"localhost", "localhost:8080", "127.0.0.1", "127.0.0.1:8080"};
     for (String authority : authorities) {
       TachyonURI uri = new TachyonURI("file", authority, "/a/b");
       Assert.assertEquals(authority, uri.getAuthority());
@@ -329,9 +327,9 @@ public class TachyonURITest {
   @Test
   public void toStringTests() {
     String[] uris =
-        new String[] { "/", "/a", "/a/ b", "tachyon:/a/b/c d.txt",
+        new String[] {"/", "/a", "/a/ b", "tachyon:/a/b/c d.txt",
             "tachyon://localhost:8080/a/b.txt", "foo", "foo/bar", "/foo/bar#boo", "foo/bar#boo",
-            "c:/", "c:/foo/bar", "C:/foo/bar#boo", "C:/foo/ bar" };
+            "c:/", "c:/foo/bar", "C:/foo/bar#boo", "C:/foo/ bar"};
     for (String uri : uris) {
       TachyonURI turi = new TachyonURI(uri);
       Assert.assertEquals(uri, turi.toString());

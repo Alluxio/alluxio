@@ -127,54 +127,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
   }
 
   /**
-   * This function prepares for downloading a file.
-   * 
-   * @param path The path of the file to download
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletResponse object
-   * @throws FileDoesNotExistException
-   * @throws InvalidPathException
-   * @throws IOException
-   */
-  private void downloadFile(String path, HttpServletRequest request, HttpServletResponse response)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
-    String masterAddress =
-        Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
-            + mMasterInfo.getMasterAddress().getPort();
-    TachyonFS tachyonClient = TachyonFS.get(new TachyonURI(masterAddress));
-    TachyonFile tFile = tachyonClient.getFile(new TachyonURI(path));
-    if (tFile == null) {
-      throw new FileDoesNotExistException(path);
-    }
-    long len = tFile.length();
-    String fileName = new TachyonURI(path).getName();
-    response.setContentType("application/octet-stream");
-    if (len <= Integer.MAX_VALUE) {
-      response.setContentLength((int) len);
-    } else {
-      response.addHeader("Content-Length", Long.toString(len));
-    }
-    response.addHeader("Content-Disposition", "attachment;filename=" + fileName);
-
-    InStream is = null;
-    ServletOutputStream out = null;
-    try {
-      is = tFile.getInStream(ReadType.NO_CACHE);
-      out = response.getOutputStream();
-      ByteStreams.copy(is, out);
-    } finally {
-      out.flush();
-      out.close();
-      is.close();
-    }
-    try {
-      tachyonClient.close();
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
-  }
-
-  /**
    * Populates attribute fields with data from the MasterInfo associated with this servlet. Errors
    * will be displayed in an error field. Debugging can be enabled to display additional data. Will
    * eventually redirect the request to a jsp.
@@ -292,5 +244,53 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       pathInfos[i] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     }
     request.setAttribute("pathInfos", pathInfos);
+  }
+
+  /**
+   * This function prepares for downloading a file.
+   * 
+   * @param path The path of the file to download
+   * @param request The HttpServletRequest object
+   * @param response The HttpServletResponse object
+   * @throws FileDoesNotExistException
+   * @throws InvalidPathException
+   * @throws IOException
+   */
+  private void downloadFile(String path, HttpServletRequest request, HttpServletResponse response)
+      throws FileDoesNotExistException, InvalidPathException, IOException {
+    String masterAddress =
+        Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
+            + mMasterInfo.getMasterAddress().getPort();
+    TachyonFS tachyonClient = TachyonFS.get(new TachyonURI(masterAddress));
+    TachyonFile tFile = tachyonClient.getFile(new TachyonURI(path));
+    if (tFile == null) {
+      throw new FileDoesNotExistException(path);
+    }
+    long len = tFile.length();
+    String fileName = new TachyonURI(path).getName();
+    response.setContentType("application/octet-stream");
+    if (len <= Integer.MAX_VALUE) {
+      response.setContentLength((int) len);
+    } else {
+      response.addHeader("Content-Length", Long.toString(len));
+    }
+    response.addHeader("Content-Disposition", "attachment;filename=" + fileName);
+
+    InStream is = null;
+    ServletOutputStream out = null;
+    try {
+      is = tFile.getInStream(ReadType.NO_CACHE);
+      out = response.getOutputStream();
+      ByteStreams.copy(is, out);
+    } finally {
+      out.flush();
+      out.close();
+      is.close();
+    }
+    try {
+      tachyonClient.close();
+    } catch (IOException e) {
+      LOG.error(e.getMessage());
+    }
   }
 }

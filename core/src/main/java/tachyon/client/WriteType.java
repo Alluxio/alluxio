@@ -30,8 +30,7 @@ public enum WriteType {
   /**
    * Parse the write type
    * 
-   * @param op
-   *          the String format of the write type
+   * @param op the String format of the write type
    * @return the write type
    * @throws IOException
    */
@@ -74,8 +73,7 @@ public enum WriteType {
   }
 
   /**
-   * @return true if the write type is one of MUST_CACHE, CACHE_THROUGH,
-   *         TRY_CACHE, or ASYNC_THROUGH
+   * @return true if the write type is one of MUST_CACHE, CACHE_THROUGH, TRY_CACHE, or ASYNC_THROUGH
    */
   public boolean isCache() {
     return (mValue == MUST_CACHE.mValue) || (mValue == CACHE_THROUGH.mValue)

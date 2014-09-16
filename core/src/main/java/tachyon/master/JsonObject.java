@@ -7,11 +7,10 @@ import java.util.Map;
 import org.apache.commons.codec.binary.Base64;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.core.type.TypeReference;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -32,8 +31,8 @@ abstract class JsonObject {
   public Map<String, JsonNode> parameters = Maps.newHashMap();
 
   /**
-   * Generic parameter getter, useful for custom classes or enums.
-   * Use a more specific getter, like getLong(), when available.
+   * Generic parameter getter, useful for custom classes or enums. Use a more specific getter, like
+   * getLong(), when available.
    */
   public <T> T get(String name, Class<T> clazz) {
     return OBJECT_MAPPER.convertValue(parameters.get(name), clazz);
@@ -80,9 +79,8 @@ abstract class JsonObject {
   }
 
   /**
-   * Deserializes the parameter as a long.
-   * Use of this function is necessary when dealing with longs, as they may
-   * have been deserialized as integers if they were sufficiently small.
+   * Deserializes the parameter as a long. Use of this function is necessary when dealing with
+   * longs, as they may have been deserialized as integers if they were sufficiently small.
    */
   public Long getLong(String name) {
     return this.get(name, Number.class).longValue();
