@@ -26,12 +26,9 @@ public class UfsUtils {
    * Build a new path relative to a given mTachyonFS root by retrieving the given path relative to
    * the ufsRootPath.
    * 
-   * @param tfsRootPath
-   *          the destination point in mTachyonFS to load the under FS path onto
-   * @param ufsRootPath
-   *          the source path in the under FS to be loaded
-   * @param path
-   *          the path in the under FS be loaded, path.startsWith(ufsRootPath) must be true
+   * @param tfsRootPath the destination point in mTachyonFS to load the under FS path onto
+   * @param ufsRootPath the source path in the under FS to be loaded
+   * @param path the path in the under FS be loaded, path.startsWith(ufsRootPath) must be true
    * @return the new path relative to tfsRootPath.
    */
   private static String buildTFSPath(String tfsRootPath, String ufsRootPath, String path) {
@@ -44,15 +41,13 @@ public class UfsUtils {
   }
 
   /**
-   * Load files under path "ufsAddrRootPath" (excluding excludePathPrefix relative to the path)
-   * to the given tfs under a given destination path.
+   * Load files under path "ufsAddrRootPath" (excluding excludePathPrefix relative to the path) to
+   * the given tfs under a given destination path.
    * 
-   * @param tfsAddrRootPath
-   *          the mTachyonFS address and path to load the src files, like "tachyon://host:port/dest".
-   * @param ufsAddrRootPath
-   *          the address and root path of the under FS, like "hdfs://host:port/src".
-   * @param excludePaths
-   *          paths to exclude from ufsRootPath, which will not be loaded in mTachyonFS.
+   * @param tfsAddrRootPath the mTachyonFS address and path to load the src files, like
+   *        "tachyon://host:port/dest".
+   * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/src".
+   * @param excludePaths paths to exclude from ufsRootPath, which will not be loaded in mTachyonFS.
    * @throws IOException
    */
   public static void loadUfs(String tfsAddrRootPath, String ufsAddrRootPath, String excludePaths)
@@ -68,17 +63,14 @@ public class UfsUtils {
   }
 
   /**
-   * Load files under path "ufsAddress/ufsRootPath" (excluding excludePathPrefix)
-   * to the given tfs under the given tfsRootPath directory.
+   * Load files under path "ufsAddress/ufsRootPath" (excluding excludePathPrefix) to the given tfs
+   * under the given tfsRootPath directory.
    * 
-   * @param tfs
-   *          the mTachyonFS handler created out of address like "tachyon://host:port"
-   * @param tfsRootPath
-   *          the destination point in mTachyonFS to load the under FS path onto
-   * @param ufsAddrRootPath
-   *          the address and root path of the under FS, like "hdfs://host:port/dir".
-   * @param excludePathPrefix
-   *          paths to exclude from ufsRootPath, which will not be registered in mTachyonFS.
+   * @param tfs the mTachyonFS handler created out of address like "tachyon://host:port"
+   * @param tfsRootPath the destination point in mTachyonFS to load the under FS path onto
+   * @param ufsAddrRootPath the address and root path of the under FS, like "hdfs://host:port/dir".
+   * @param excludePathPrefix paths to exclude from ufsRootPath, which will not be registered in
+   *        mTachyonFS.
    * @throws IOException
    */
   public static void loadUnderFs(TachyonFS tfs, String tfsRootPath, String ufsAddrRootPath,
@@ -120,7 +112,7 @@ public class UfsUtils {
     }
 
     while (!ufsPathQueue.isEmpty()) {
-      String ufsPath = ufsPathQueue.poll();  // this is the absolute path
+      String ufsPath = ufsPathQueue.poll(); // this is the absolute path
       LOG.info("loading: " + ufsPath);
       if (ufs.isFile(ufsPath)) {
         String tfsPath = buildTFSPath(tfsRootPath, ufsAddrRootPath, ufsPath);
@@ -165,7 +157,8 @@ public class UfsUtils {
           tfs.mkdir(tfsPath);
           // TODO Add the following.
           // if (tfs.mkdir(tfsPath)) {
-          // LOG.info("Created mTachyonFS folder " + tfsPath + " with checkpoint location " + ufsPath);
+          // LOG.info("Created mTachyonFS folder " + tfsPath + " with checkpoint location " +
+          // ufsPath);
           // } else {
           // LOG.info("Failed to create tachyon folder: " + tfsPath);
           // }
@@ -200,8 +193,7 @@ public class UfsUtils {
 
     System.out.println("Usage: " + cmd + "<TachyonPath> <UfsPath> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");
-    System.out
-        .println("Example: " + cmd + "tachyon://127.0.0.1:19998/a hdfs://localhost:9000/b c");
+    System.out.println("Example: " + cmd + "tachyon://127.0.0.1:19998/a hdfs://localhost:9000/b c");
     System.out.println("Example: " + cmd + "tachyon://127.0.0.1:19998/a file:///b c");
     System.out.println("Example: " + cmd + "tachyon://127.0.0.1:19998/a /b c");
     System.out.print("In the TFS, all files under local FS /b will be registered under /a, ");

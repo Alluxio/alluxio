@@ -22,11 +22,9 @@ public class RecomputeCommand implements Runnable {
 
   /**
    * Create a new RecomputeCommand.
-   *
-   * @param cmd
-   *          The command to execute
-   * @param filePath
-   *          The path of the output file, which records the output of the recompute process.
+   * 
+   * @param cmd The command to execute
+   * @param filePath The path of the output file, which records the output of the recompute process.
    */
   public RecomputeCommand(String cmd, String filePath) {
     mCommand = cmd;

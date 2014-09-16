@@ -68,7 +68,7 @@ public class LeaderInquireClient {
             return leader;
           }
         } else {
-          LOG.info(mLeaderPath + " does not exist (" + (++ tried) + ")");
+          LOG.info(mLeaderPath + " does not exist (" + (++tried) + ")");
         }
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }

@@ -2,7 +2,6 @@ package tachyon.master;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import com.google.common.base.Preconditions;
@@ -17,6 +16,7 @@ import tachyon.conf.MasterConf;
 import tachyon.conf.UserConf;
 import tachyon.conf.WorkerConf;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 
 /**
  * Constructs an isolated master. Primary users of this class are the
@@ -57,7 +57,7 @@ public final class LocalTachyonMaster {
     UnderFileSystemsUtils.mkdirIfNotExists(mDataDir);
     UnderFileSystemsUtils.mkdirIfNotExists(mLogDir);
 
-    mHostname = InetAddress.getLocalHost().getCanonicalHostName();
+    mHostname = NetworkUtils.getLocalHostName();
 
     // To start the UFS either for integration or unit test. If it targets the unit test, UFS is
     // setup over the local file system (see also {@link LocalFilesystemCluster} - under folder of
@@ -104,8 +104,7 @@ public final class LocalTachyonMaster {
   /**
    * Creates a new local tachyon master with a isolated home and port.
    * 
-   * @throws IOException
-   *           unable to do file operation or listen on port
+   * @throws IOException unable to do file operation or listen on port
    */
   public static LocalTachyonMaster create() throws IOException {
     final String tachyonHome = uniquePath();
@@ -130,8 +129,7 @@ public final class LocalTachyonMaster {
    * }
    * </pre>
    * 
-   * @throws IOException
-   *           unable to do file operation or listen on port
+   * @throws IOException unable to do file operation or listen on port
    */
   public static LocalTachyonMaster create(final String tachyonHome) throws IOException {
     return new LocalTachyonMaster(Preconditions.checkNotNull(tachyonHome));

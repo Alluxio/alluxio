@@ -34,7 +34,7 @@ import tachyon.client.TachyonFS;
  * Unit tests for TFS
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ TachyonFS.class, UserGroupInformation.class })
+@PrepareForTest({TachyonFS.class, UserGroupInformation.class})
 public class TFSTest {
   private static final Logger LOG = Logger.getLogger(TFSTest.class.getName());
 

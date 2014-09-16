@@ -16,7 +16,8 @@ import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-import tachyon.worker.DataServerMessage;
+import tachyon.util.NetworkUtils;
+import tachyon.worker.nio.DataServerMessage;
 
 /**
  * BlockInStream for remote block.
@@ -37,12 +38,9 @@ public class RemoteBlockInStream extends BlockInStream {
   private Object mUFSConf = null;
 
   /**
-   * @param file
-   *          the file the block belongs to
-   * @param readType
-   *          the InStream's read type
-   * @param blockIndex
-   *          the index of the block in the file
+   * @param file the file the block belongs to
+   * @param readType the InStream's read type
+   * @param blockIndex the index of the block in the file
    * @throws IOException
    */
   RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
@@ -50,14 +48,10 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   /**
-   * @param file
-   *          the file the block belongs to
-   * @param readType
-   *          the InStream's read type
-   * @param blockIndex
-   *          the index of the block in the file
-   * @param ufsConf
-   *          the under file system configuration
+   * @param file the file the block belongs to
+   * @param readType the InStream's read type
+   * @param blockIndex the index of the block in the file
+   * @param ufsConf the under file system configuration
    * @throws IOException
    */
   RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf)
@@ -213,14 +207,14 @@ public class RemoteBlockInStream extends BlockInStream {
           continue;
         }
         if (host.equals(InetAddress.getLocalHost().getHostName())
-            || host.equals(InetAddress.getLocalHost().getHostAddress())) {
+            || host.equals(InetAddress.getLocalHost().getHostAddress())
+            || host.equals(NetworkUtils.getLocalHostName())) {
           String localFileName =
               CommonUtils.concat(mTachyonFS.getLocalDataFolder(), blockInfo.blockId);
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         }
-        LOG.info(host + ":" + port + " current host is "
-            + InetAddress.getLocalHost().getHostName() + " "
-            + InetAddress.getLocalHost().getHostAddress());
+        LOG.info(host + ":" + port + " current host is " + NetworkUtils.getLocalHostName() + " "
+            + NetworkUtils.getLocalIpAddress());
 
         try {
           buf =
@@ -320,8 +314,8 @@ public class RemoteBlockInStream extends BlockInStream {
           }
         }
       } catch (IOException e) {
-        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File "
-            + mFile.mFileId, e);
+        LOG.error(
+            "Failed to read from checkpoint " + checkpointPath + " for File " + mFile.mFileId, e);
         mCheckpointInputStream = null;
       }
     }

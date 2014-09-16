@@ -40,11 +40,9 @@ public class Users {
 
   /**
    * Adds user's own bytes and updates the user's heartbeat.
-   *
-   * @param userId
-   *          id of the user.
-   * @param newBytes
-   *          delta bytes the user owns.
+   * 
+   * @param userId id of the user.
+   * @param newBytes delta bytes the user owns.
    */
   public void addOwnBytes(long userId, long newBytes) {
     UserInfo tUser = null;
@@ -58,7 +56,7 @@ public class Users {
 
   /**
    * Check the status of the users pool.
-   *
+   * 
    * @return the list of timeout users.
    */
   public List<Long> checkStatus() {
@@ -76,9 +74,8 @@ public class Users {
 
   /**
    * Returns the user's temporary data folder in the worker's machine.
-   *
-   * @param userId
-   *          The queried user.
+   * 
+   * @param userId The queried user.
    * @return String contains user's temporary data folder in the worker's machine..
    */
   public String getUserTempFolder(long userId) {
@@ -87,9 +84,8 @@ public class Users {
 
   /**
    * Returns the user's temporary data folder in the under filesystem.
-   *
-   * @param userId
-   *          The queried user.
+   * 
+   * @param userId The queried user.
    * @return String contains the user's temporary data folder in the under filesystem.
    */
   public String getUserUfsTempFolder(long userId) {
@@ -98,9 +94,8 @@ public class Users {
 
   /**
    * Get how much space quote does a user own.
-   *
-   * @param userId
-   *          The queried user.
+   * 
+   * @param userId The queried user.
    * @return Bytes the user owns.
    */
   public long ownBytes(long userId) {
@@ -112,9 +107,8 @@ public class Users {
 
   /**
    * Remove <code> userId </code> from user pool.
-   *
-   * @param userId
-   *          The user to be removed.
+   * 
+   * @param userId The user to be removed.
    * @return The space quote the removed user occupied in bytes.
    */
   public synchronized long removeUser(long userId) {
@@ -132,8 +126,8 @@ public class Users {
     } else {
       returnedBytes = tUser.getOwnBytes();
       String folder = getUserTempFolder(userId);
-      sb.append(" The user returns " + returnedBytes + " bytes. Remove the user's folder "
-          + folder + " ;");
+      sb.append(" The user returns ").append(returnedBytes).append(" bytes.");
+      sb.append(" Remove the user's folder ").append(folder).append(" ;");
       try {
         FileUtils.deleteDirectory(new File(folder));
       } catch (IOException e) {
@@ -141,7 +135,7 @@ public class Users {
       }
 
       folder = getUserUfsTempFolder(userId);
-      sb.append(" Also remove users underfs folder " + folder);
+      sb.append(" Also remove users underfs folder ").append(folder);
       try {
         UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
       } catch (IOException e) {
@@ -155,9 +149,8 @@ public class Users {
 
   /**
    * Updates user's heartbeat.
-   *
-   * @param userId
-   *          the id of the user
+   * 
+   * @param userId the id of the user
    */
   public void userHeartbeat(long userId) {
     synchronized (mUsers) {
