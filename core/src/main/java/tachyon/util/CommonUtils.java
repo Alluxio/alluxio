@@ -95,7 +95,7 @@ public final class CommonUtils {
 
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
     List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
-    for (int k = 0; k < source.size(); k++) {
+    for (int k = 0; k < source.size(); k ++) {
       ret.add(cloneByteBuffer(source.get(k)));
     }
     return ret;
@@ -112,7 +112,7 @@ public final class CommonUtils {
       return "";
     }
     String retPath = args[0].toString();
-    for (int k = 1; k < args.length; k++) {
+    for (int k = 1; k < args.length; k ++) {
       while (retPath.endsWith(Constants.PATH_SEPARATOR)) {
         retPath = retPath.substring(0, retPath.length() - 1);
       }
@@ -127,7 +127,7 @@ public final class CommonUtils {
 
   public static String convertByteArrayToStringWithoutEscape(byte[] data) {
     StringBuilder sb = new StringBuilder(data.length);
-    for (int i = 0; i < data.length; i++) {
+    for (int i = 0; i < data.length; i ++) {
       if (data[i] < 128) {
         sb.append((char) data[i]);
       } else {
@@ -135,31 +135,6 @@ public final class CommonUtils {
       }
     }
     return sb.toString();
-  }
-
-  /**
-   * Copies count bytes from one stream to another.
-   * 
-   * @param in InputStream to read from
-   * @param out OutputStream to write to
-   * @param len number of bytes to copy
-   * @throws IOException if bytes can not be read or written
-   */
-  public static void copyBytes(InputStream in, OutputStream out, long len) throws IOException {
-    byte buf[] = new byte[4096];
-    long bytesRemaining = len;
-    int bytesRead;
-
-    while (bytesRemaining > 0) {
-      int bytesToRead = (int) (bytesRemaining < buf.length ? bytesRemaining : buf.length);
-
-      bytesRead = in.read(buf, 0, bytesToRead);
-      if (bytesRead == -1)
-        break;
-
-      out.write(buf, 0, bytesRead);
-      bytesRemaining -= bytesRead;
-    }
   }
 
   public static String convertMsToClockTime(long Millis) {
@@ -333,7 +308,7 @@ public final class CommonUtils {
 
   public static <T> String listToString(List<T> list) {
     StringBuilder sb = new StringBuilder();
-    for (int k = 0; k < list.size(); k++) {
+    for (int k = 0; k < list.size(); k ++) {
       sb.append(list.get(k)).append(" ");
     }
     return sb.toString();
@@ -341,7 +316,7 @@ public final class CommonUtils {
 
   public static String parametersToString(Object... objs) {
     StringBuilder sb = new StringBuilder("(");
-    for (int k = 0; k < objs.length; k++) {
+    for (int k = 0; k < objs.length; k ++) {
       if (k != 0) {
         sb.append(", ");
       }
@@ -386,7 +361,7 @@ public final class CommonUtils {
       } else {
         break;
       }
-      tIndex--;
+      tIndex --;
     }
     spaceSize = spaceSize.substring(0, tIndex + 1);
     double ret = Double.parseDouble(spaceSize);
@@ -413,7 +388,7 @@ public final class CommonUtils {
 
   public static void printByteBuffer(Logger LOG, ByteBuffer buf) {
     StringBuilder sb = new StringBuilder();
-    for (int k = 0; k < buf.limit() / 4; k++) {
+    for (int k = 0; k < buf.limit() / 4; k ++) {
       sb.append(buf.getInt()).append(" ");
     }
 

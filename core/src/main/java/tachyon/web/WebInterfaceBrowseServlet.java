@@ -15,6 +15,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.io.ByteStreams;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.client.InStream;
@@ -141,23 +143,30 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
             + mMasterInfo.getMasterAddress().getPort();
     TachyonFS tachyonClient = TachyonFS.get(new TachyonURI(masterAddress));
     TachyonFile tFile = tachyonClient.getFile(new TachyonURI(path));
-
-    String fileName = path.substring(path.lastIndexOf("/") + 1);
-    fileName = URLEncoder.encode(fileName, "UTF-8");
     if (tFile == null) {
       throw new FileDoesNotExistException(path);
     }
-    Long len = tFile.length();
-    response.setContentLength(len.intValue());
+    long len = tFile.length();
+    String fileName = new TachyonURI(path).getName();
     response.setContentType("application/octet-stream");
-    response.addHeader("Content-Disposition", "attachment; filename=" + fileName);
+    if (len <= Integer.MAX_VALUE) {
+      response.setContentLength((int) len);
+    } else {
+      response.addHeader("Content-Length", Long.toString(len));
+    }
+    response.addHeader("Content-Disposition", "attachment;filename=" + fileName);
 
-    InStream is = tFile.getInStream(ReadType.NO_CACHE);
-    ServletOutputStream out = response.getOutputStream();
-    CommonUtils.copyBytes(is, out, len);
-    out.flush();
-    out.close();
-    is.close();
+    InStream is = null;
+    ServletOutputStream out = null;
+    try {
+      is = tFile.getInStream(ReadType.NO_CACHE);
+      out = response.getOutputStream();
+      ByteStreams.copy(is, out);
+    } finally {
+      out.flush();
+      out.close();
+      is.close();
+    }
     try {
       tachyonClient.close();
     } catch (IOException e) {
@@ -278,7 +287,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length - 1];
     String currentPath = Constants.PATH_SEPARATOR;
     pathInfos[0] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
-    for (int i = 1; i < splitPath.length - 1; i++) {
+    for (int i = 1; i < splitPath.length - 1; i ++) {
       currentPath = CommonUtils.concat(currentPath, splitPath[i]);
       pathInfos[i] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     }
