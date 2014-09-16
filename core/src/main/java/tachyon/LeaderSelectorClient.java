@@ -35,10 +35,10 @@ public class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
       String name) {
     mZookeeperAddress = zookeeperAddress;
     mElectionPath = electionPath;
-    if (leaderPath.endsWith(Constants.PATH_SEPARATOR)) {
+    if (leaderPath.endsWith(TachyonURI.SEPARATOR)) {
       mLeaderFolder = leaderPath;
     } else {
-      mLeaderFolder = leaderPath + Constants.PATH_SEPARATOR;
+      mLeaderFolder = leaderPath + TachyonURI.SEPARATOR;
     }
     mName = name;
 

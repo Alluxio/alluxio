@@ -28,12 +28,9 @@ public class EditLogProcessor implements Runnable {
   /**
    * Create a new EditLogProcessor.
    * 
-   * @param journal
-   *          The journal of the Master
-   * @param path
-   *          The path of the edit logs
-   * @param info
-   *          The Master Info
+   * @param journal The journal of the Master
+   * @param path The path of the edit logs
+   * @param info The Master Info
    */
   public EditLogProcessor(Journal journal, String path, MasterInfo info) {
     mJournal = journal;
