@@ -51,24 +51,18 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     } else {
       tConf = new Configuration();
     }
-    tConf.set("fs.defaultFS", fsDefaultName);
-    String glusterfsPrefix = "glusterfs:///";
-    if (fsDefaultName.startsWith(glusterfsPrefix)) {
-      tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
-      tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
-      tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
-      tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
-          CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
-    } else {
-      tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
 
-      // To disable the instance cache for hdfs client, otherwise it causes the
-      // FileSystem closed exception. Being configurable for unit/integration
-      // test only, and not expose to the end-user currently.
-      tConf.set("fs.hdfs.impl.disable.cache",
-          System.getProperty("fs.hdfs.impl.disable.cache", "false"));
-    }
+    // Setting Hadoop compatible filesystem (HCFS) properties in command argument is not scalable
+    // for some HCFS e.g. ceph, that has numerous parameters.
+    // Providing a hadoop core-site.xml that is required for this type of underfs.
+    tConf.addResource("core-site.xml");
 
+    // To disable the instance cache for hdfs client, otherwise it causes the
+    // FileSystem closed exception. Being configurable for unit/integration
+    // test only, and not expose to the end-user currently.
+    tConf.set("fs.hdfs.impl.disable.cache", 
+        System.getProperty("fs.hdfs.impl.disable.cache", "false"));
+ 
     Utils.addS3Credentials(tConf);
 
     Path path = new Path(mUfsPrefix);
