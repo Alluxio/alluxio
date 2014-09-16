@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -200,13 +201,14 @@ public class TachyonFS extends AbstractTachyonFS {
   /**
    * Create a user local temporary folder and return it
    * 
-   * @return the local temporary folder for the user
+   * @return the local temporary folder for the user or null if unable to allocate one.
    * @throws IOException
    */
   synchronized File createAndGetUserLocalTempFolder() throws IOException {
     String userTempFolder = mWorkerClient.getUserTempFolder();
 
-    if (userTempFolder == null) {
+    if (StringUtils.isBlank(userTempFolder)) {
+      LOG.error("Unable to get local temporary folder location for user.");
       return null;
     }
 
