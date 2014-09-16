@@ -7,12 +7,12 @@ import io.netty.buffer.ByteBufAllocator;
 import java.io.IOException;
 import java.util.List;
 
-public final class BlockNotFound extends Error {
+public abstract class BlockError extends Error {
   private final long mBlockId;
 
-  public BlockNotFound(long blockId) {
-    super(ResponseType.BlockNotFound);
-    this.mBlockId = blockId;
+  public BlockError(ResponseType mType, long blockId) {
+    super(mType);
+    mBlockId = blockId;
   }
 
   public long getBlockId() {

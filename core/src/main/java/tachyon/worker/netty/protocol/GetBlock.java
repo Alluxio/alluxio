@@ -44,10 +44,11 @@ public final class GetBlock {
         // offset defaults to zero
         GetBlock get = new GetBlock(in.readLong(), or(in.readLong(), 0), in.readLong());
         if (get.getBlockId() < 0) {
-          //TODO return invalid block id
+          Error.writeAndClose(new InvalidBlockId(get.getBlockId()), ctx);
         } else if (get.getOffset() < -1 || get.getLength() < -1) {
-          //TODO -1 is used to indicate ignore
-          // return invalid index
+          // -1 is used to indicate ignore
+          Error.writeAndClose(
+              new InvalidBlockRange(get.getBlockId(), get.getOffset(), get.getLength()), ctx);
         } else {
           out.add(get);
           ctx.pipeline().remove(this);

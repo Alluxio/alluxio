@@ -3,5 +3,9 @@ package tachyon.worker.netty.protocol;
 public enum ResponseType {
   GetBlockResponse,
   PutBlockSuccess,
-  BlockNotFound
+  BlockNotFound,
+  UnknownError,
+  BadHeaderError,
+  InvalidBlockId,
+  InvalidBlockRange
 }

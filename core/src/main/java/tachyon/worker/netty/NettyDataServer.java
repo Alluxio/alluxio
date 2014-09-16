@@ -53,7 +53,7 @@ public final class NettyDataServer implements DataServer {
     mBootstrap = createBootstrap().childHandler(new ChannelInitializer<SocketChannel>() {
       @Override
       protected void initChannel(SocketChannel ch) throws Exception {
-        ch.pipeline().addLast(new RequestDecoder(locker));
+        ch.pipeline().addLast(new NettyWritableEncoder(), new RequestDecoder(locker));
       }
     });
 
