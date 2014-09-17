@@ -200,6 +200,7 @@ abstract class AbstractTFS extends FileSystem {
     return mTFS.delete(tPath, recursive);
   }
 
+  @Deprecated
   private void fromHdfsToTachyon(String path) throws IOException {
     if (!mTFS.exist(path)) {
       Path hdfsPath = Utils.getHDFSPath(path);
@@ -219,8 +220,7 @@ abstract class AbstractTFS extends FileSystem {
       if (fs.exists(hdfsPath)) {
         TachyonURI ufsAddrPath = path.makeQualified(new TachyonURI(mUnderFSAddress));
         // Set the path as the TFS root path.
-        // TODO: Make loadUnderFs use tachyonURI arguments.
-        UfsUtils.loadUnderFs(mTFS, path.toString(), ufsAddrPath.toString(), new PrefixList(null));
+        UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null));
       }
     }
   }

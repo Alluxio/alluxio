@@ -107,6 +107,42 @@ public abstract class UnderFileSystem {
     return null;
   }
 
+  /**
+   * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir
+   * into a pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
+   * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
+   *
+   * @param path
+   *          the input path string
+   * @return null if path does not start with tachyon://, tachyon-ft://, hdfs://, s3://, s3n://,
+   *         file://, /. Or a pair of strings denoting the under FS address and the relative path
+   *         relative to that address. For local FS (with prefixes file:// or /), the under FS
+   *         address is "/" and the path starts with "/".
+   */
+  public static Pair<String, String> parse(TachyonURI path) {
+    if (path == null) {
+      return null;
+    }
+
+    if (path.hasScheme()) {
+      String header = path.getScheme() + "://";
+      if (header.equals(Constants.HEADER) || header.equals(Constants.HEADER_FT)
+          || isHadoopUnderFS(header)) {
+        if (path.getPath().isEmpty()) {
+          return new Pair<String, String>(header + path.getAuthority(), TachyonURI.SEPARATOR);
+        } else {
+          return new Pair<String, String>(header + path.getAuthority(), path.getPath());
+        }
+      } else if (header.equals("file://")) {
+        return new Pair<String, String>(TachyonURI.SEPARATOR, path.getPath());
+      }
+    } else if (path.isPathAbsolute()) {
+      return new Pair<String, String>(TachyonURI.SEPARATOR, path.getPath());
+    }
+
+    return null;
+  }
+
   public abstract void close() throws IOException;
 
   public abstract OutputStream create(String path) throws IOException;

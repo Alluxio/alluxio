@@ -16,6 +16,7 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.thrift.NetAddress;
 
 /**
@@ -86,6 +87,7 @@ public final class NetworkUtils {
    * @throws UnknownHostException
    *           if the hostname cannot be resolved.
    */
+  @Deprecated
   public static String replaceHostName(String addr) throws UnknownHostException {
     if (addr == null || addr.isEmpty()) {
       return null;
@@ -118,6 +120,29 @@ public final class NetworkUtils {
     }
 
     return addr;
+  }
+
+  /**
+   * Replace and resolve the hostname in a given address or path string.
+   *
+   * @param path
+   *          an address or path uri, e.g., "hdfs://host:port/dir", "file:///dir", "/dir".
+   * @return an address or path uri with hostname resolved, or the original path intact if
+   *         no hostname is embedded, or null if the given path is null.
+   * @throws UnknownHostException
+   *           if the hostname cannot be resolved.
+   */
+  public static TachyonURI replaceHostName(TachyonURI path) throws UnknownHostException {
+    if (path == null) {
+      return null;
+    }
+
+    if (path.hasAuthority()) {
+      String authority = resolveHostName(path.getHost()) + ":" + path.getPort();
+      return new TachyonURI(path.getScheme(), authority, path.getPath());
+    } else {
+      return path;
+    }
   }
 
   /**
