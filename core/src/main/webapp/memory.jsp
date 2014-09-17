@@ -11,25 +11,17 @@
 <script src="js/jquery-1.9.1.min.js" type="text/javascript"></script>
 <script src="js/bootstrap.min.js"></script>
 <div class="container-fluid">
-  <div class="navbar navbar-inverse">
-    <div class="navbar-inner">
-      <ul class="nav nav-pills" style="height:40px;font-size:14px;font-weight: bold;vertical-align: bottom;">
-        <li><a href="http://tachyon-project.org/" target="_blank"><img style="height:25px;margin-top:-5px;" src="img/logo.png" alt="Tachyon Logo"/></a></li>
-        <li><a href="./home">Overview</a></li>
-        <li><a href="./configuration">System Configuration</a></li>
-        <li><a href="./browse?path=/">Browse File System</a></li>
-        <li class="active"><a href="./memory">In Memory Files</a></li>
-      </ul>
-    </div>
-  </div>
+  <jsp:include page="header.jsp" />
 
   <div class="container-fluid">
     <div class="row-fluid">
       <div class="span12 well">
-        <table class="table table-hover">
-          <caption>Files Currently In Memory</caption>
+          <h1 class="text-error">
+            <%= request.getAttribute("fatalError") %>
+          </h1>
+          <table class="table table-hover">
           <thead>
-            <th>File Name</th>
+            <th>File Path</th>
             <th>Size</th>
             <th>Block Size</th>
             <th>Pin</th>
@@ -51,14 +43,49 @@
             <% } %>
           </tbody>
         </table>
+
+        <!-- pagination component -->
+        <div class="pagination pagination-centered">
+          <ul id="paginationUl">
+          </ul>
+        </div>
+
+        <!-- view setting panel -->
+        <div class="accordion">
+          <div class="accordion-group">
+            <div class="accordion-heading">
+              <a class="accordion-toggle" data-toggle="collapse" href="#viewSettings">
+                <h4>View Settings</h4>
+              </a>
+              <div id="viewSettings" class="accordion-body collapse">
+                <div class="accordion-inner">
+                  <table class="table">
+                    <tbody>
+                      <tr>
+                        <th>Number of items per page:</th>
+                        <th><input id="nFilePerPage" type="text" placeholder="default = 20"></th>
+                      </tr>
+                      <tr>
+                        <th>Maximum number of pages to show in pagination component:</th>
+                        <th><input id="nMaxPageShown" type="text" placeholder="default = 10"></th>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <button class="btn" id="updateView">Update</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
-  <footer>
-    <p style="text-align: center;">
-      <a href="http://tachyon-project.org/" target="_blank">Tachyon</a> is an <a href="https://github.com/amplab/tachyon" target="_blank">open source</a> project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu" target="_blank">AMPLab</a>.
-    </p>
-  </footer>
+
+  <%@ include file="footer.jsp" %>
 </div>
+
+<!-- where the magic behind dynamic pagination happens -->
+<jsp:include page="memory-pagination.jsp" />
 </body>
 </html>

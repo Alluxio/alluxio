@@ -18,8 +18,7 @@ public enum ReadType {
   /**
    * Parse the read type
    * 
-   * @param op
-   *          the String format of the read type
+   * @param op the String format of the read type
    * @return the read type
    * @throws IOException
    */

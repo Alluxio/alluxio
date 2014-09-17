@@ -1,12 +1,12 @@
 package tachyon.web;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import tachyon.Constants;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class UiFileInfo implements Comparable<UiFileInfo> {
   private final int mId;
@@ -99,7 +99,7 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
   }
 
   public String getName() {
-    if (mAbsolutePath.equals(Constants.PATH_SEPARATOR)) {
+    if (Constants.PATH_SEPARATOR.equals(mAbsolutePath)) {
       return "root";
     } else {
       return mName;

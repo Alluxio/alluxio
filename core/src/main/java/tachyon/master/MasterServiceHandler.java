@@ -45,10 +45,8 @@ public class MasterServiceHandler implements MasterService.Iface {
   }
 
   @Override
-  public boolean
-      addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath)
-          throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException,
-          TException {
+  public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath)
+      throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     try {
       return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
     } catch (FileNotFoundException e) {
@@ -234,8 +232,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public boolean user_rename(int fileId, String srcPath, String dstPath)
-      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException,
-      TException {
+      throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException {
     if (fileId != -1) {
       return mMasterInfo.rename(fileId, dstPath);
     }

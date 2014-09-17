@@ -23,7 +23,7 @@ few things that everyone should do before developing on Tachyon.
 
 6.  Fork the repository, add unit tests or javadoc for one or two files in the
 following list, and then submit a pull request. You are also welcome to address
-issues in our [JIRA](https://spark-project.atlassian.net/browse/TACHYON).
+issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
 Here are a list of
 [tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner)
 for beginners. For a tutorial, see the GitHub guides on
@@ -68,6 +68,9 @@ leverage the Scala shell, as discussed in this
     synchronized native strictfp**, then as **alphabetical order**.
     -  Class member variable names should be prefixed with `m`, for example `private WorkerClient mWorkerClient;`
     -  Static variable names should be prefixed with `s`, for example `public static String sUnderFSAddress;`
+    -  Do not add `public` or `abstract` modifier to methods defined in an Java interface because
+       method declaration in the body of an interface is implicitly public and abstract.
+       (http://docs.oracle.com/javase/specs/jls/se7/html/jls-9.html#jls-9.4)  
 -   You can download our [Eclipse formatter](resources/tachyon-code-formatter-eclipse.xml)
     -  If you use IntelliJ IDEA: you can either use our formatter with the help from
        [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
@@ -88,6 +91,10 @@ You can generate an Eclipse configuration file by running:
     mvn clean test -Dtest.profile=hdfs -DskipTests eclipse:eclipse
 
 Then import the folder into Eclipse.
+
+You may also have to add the classpath variable M2_REPO by running:
+
+    mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
 
 ### Submitting Code
 

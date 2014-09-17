@@ -8,8 +8,7 @@ import java.io.IOException;
  * TODO May move this to non-testing code.
  */
 public final class UnderFileSystemsUtils {
-  private UnderFileSystemsUtils() {
-  }
+  private UnderFileSystemsUtils() {}
 
   /**
    * Deletes the directory at the given path. If delete is unsuccessful, then this operation will

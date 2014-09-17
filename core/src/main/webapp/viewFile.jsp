@@ -19,19 +19,13 @@
     var tmp = document.getElementById("offset").value;
     window.location.href = "./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>&offset=" + tmp;
   }
+  $(document).ready(function(){
+    var download_url = "./download?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>";
+    $("#file-download").attr("href",download_url);
+  });
 </script>
 <div class="container-fluid">
-  <div class="navbar navbar-inverse">
-    <div class="navbar-inner">
-      <ul class="nav nav-pills" style="height:40px;font-size:14px;font-weight: bold;vertical-align: bottom;">
-        <li><a href="http://tachyon-project.org/" target="_blank"><img style="height:25px;margin-top:-5px;" src="img/logo.png" alt="Tachyon Logo"/></a></li>
-        <li><a href="./home">Overview</a></li>
-        <li><a href="./configuration">System Configuration</a></li>
-        <li class="active"><a href="./browse?path=/">Browse File System</a></li>
-        <li><a href="./memory">In Memory Files</a></li>
-      </ul>
-    </div>
-  </div>
+  <jsp:include page="header.jsp" />
 
   <div class="container-fluid">
     <div class="row-fluid">
@@ -48,6 +42,10 @@
       <span>Display from position: </span>
       <input type="text" id="offset" value="<% if(request.getParameter("offset")==null) { %><%= 0 %><% } else { %><%= request.getParameter("offset") %><% } %>"></input>
       <a class="btn btn-default" onclick="displayContent();">GO!</a>
+      <div>
+        <a id="file-download">Download</a>
+        <hr>
+      </div>
     </div>
     <hr>
     <div>
@@ -75,11 +73,7 @@
     </div>
   </div>
   <hr>
-  <footer>
-    <p style="text-align: center;">
-      <a href="http://tachyon-project.org/" target="_blank">Tachyon</a> is an <a href="https://github.com/amplab/tachyon" target="_blank">open source</a> project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu" target="_blank">AMPLab</a>.
-    </p>
-  </footer>
+  <%@ include file="footer.jsp" %>
 </div>
 </body>
 </html>

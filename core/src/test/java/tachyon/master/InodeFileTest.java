@@ -185,4 +185,27 @@ public class InodeFileTest {
     inodeFile.setPinned(false);
     Assert.assertFalse(inodeFile.isPinned());
   }
+
+  @Test(expected = BlockInfoException.class)
+  public void emeptyInodeGetBlock() throws BlockInfoException {
+    InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
+    Assert.assertEquals(0, inode1.getBlockIds().size());
+    // cant get a block that is missing
+    inode1.getClientBlockInfo(0);
+  }
+
+  @Test(expected = BlockInfoException.class)
+  public void emeptyInodeGetBlockLarger() throws BlockInfoException {
+    InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
+    Assert.assertEquals(0, inode1.getBlockIds().size());
+    // cant get a block that is missing
+    inode1.getClientBlockInfo(1);
+  }
+
+  @Test(expected = BlockInfoException.class)
+  public void negativeBlockGetBlock() throws BlockInfoException {
+    InodeFile inode1 = new InodeFile("test1", 1, 0, 1000, System.currentTimeMillis());
+    // cant get a block that is missing
+    inode1.getClientBlockInfo(-1);
+  }
 }

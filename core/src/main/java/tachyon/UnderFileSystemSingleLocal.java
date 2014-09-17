@@ -7,11 +7,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 
 /**
  * Single node UnderFilesystem implementation.
@@ -25,8 +25,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public void close() throws IOException {
-  }
+  public void close() throws IOException {}
 
   @Override
   public OutputStream create(String path) throws IOException {
@@ -87,7 +86,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<String>();
-    ret.add(InetAddress.getLocalHost().getCanonicalHostName());
+    ret.add(NetworkUtils.getLocalHostName());
     return ret;
   }
 
@@ -112,12 +111,12 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   public long getSpace(String path, SpaceType type) throws IOException {
     File file = new File(path);
     switch (type) {
-    case SPACE_TOTAL:
-      return file.getTotalSpace();
-    case SPACE_FREE:
-      return file.getFreeSpace();
-    case SPACE_USED:
-      return file.getTotalSpace() - file.getFreeSpace();
+      case SPACE_TOTAL:
+        return file.getTotalSpace();
+      case SPACE_FREE:
+        return file.getFreeSpace();
+      case SPACE_USED:
+        return file.getTotalSpace() - file.getFreeSpace();
     }
     throw new IOException("Unknown getSpace parameter: " + type);
   }
@@ -165,8 +164,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public void setConf(Object conf) {
-  }
+  public void setConf(Object conf) {}
 
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {
