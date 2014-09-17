@@ -3,7 +3,8 @@ package tachyon.web;
 import java.io.File;
 import java.net.InetSocketAddress;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
@@ -22,7 +23,7 @@ import tachyon.master.MasterInfo;
  * Class that bootstraps and starts the web server for the web interface.
  */
 public class UIWebServer {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private Server mServer;
   private String mServerName;

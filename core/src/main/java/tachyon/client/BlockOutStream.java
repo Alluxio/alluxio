@@ -8,7 +8,8 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
@@ -17,7 +18,7 @@ import tachyon.util.CommonUtils;
  * <code>BlockOutStream</code> implementation of TachyonFile. This class is not client facing.
  */
 public class BlockOutStream extends OutStream {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final int mBlockIndex;
   private final long mBlockCapacityByte;

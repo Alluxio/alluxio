@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -33,7 +34,7 @@ import tachyon.util.NetworkUtils;
  * Since WorkerService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class WorkerClient implements Closeable {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final MasterClient mMasterClient;
   private static final int CONNECTION_RETRY_TIMES = 5;
 

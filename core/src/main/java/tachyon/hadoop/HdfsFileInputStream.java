@@ -10,7 +10,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.InStream;
@@ -20,7 +21,7 @@ import tachyon.client.TachyonFile;
 import tachyon.conf.UserConf;
 
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
-  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private long mCurrentPosition;
   private TachyonFS mTFS;
@@ -39,8 +40,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   public HdfsFileInputStream(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
       int bufferSize) throws IOException {
-    LOG.debug("PartitionInputStreamHdfs(" + tfs + ", " + fileId + ", " + hdfsPath + ", " + conf
-        + ", " + bufferSize + ")");
+    LOG.debug("PartitionInputStreamHdfs({}, {}, {}, {}, {})", tfs, fileId, hdfsPath, conf,
+        bufferSize);
     mCurrentPosition = 0;
     mTFS = tfs;
     mFileId = fileId;

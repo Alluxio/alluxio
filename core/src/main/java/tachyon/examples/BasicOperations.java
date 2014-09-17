@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Version;
@@ -16,7 +17,7 @@ import tachyon.client.WriteType;
 import tachyon.util.CommonUtils;
 
 public class BasicOperations {
-  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static TachyonFS sTachyonClient;
   private static String sFilePath = null;

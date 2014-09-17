@@ -5,7 +5,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -17,7 +18,7 @@ import tachyon.util.CommonUtils;
  * code.
  */
 public class FileOutStream extends OutStream {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockCapacityByte;
 
@@ -103,7 +104,7 @@ public class FileOutStream extends OutStream {
           }
         } catch (IOException ioe) {
           if (mWriteType.isMustCache()) {
-            LOG.error(ioe);
+            LOG.error(ioe.getMessage(), ioe);
             throw new IOException("Fail to cache: " + mWriteType, ioe);
           } else {
             LOG.warn("Fail to cache for: ", ioe);
