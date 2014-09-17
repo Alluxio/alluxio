@@ -15,7 +15,6 @@ import io.netty.channel.DefaultFileRegion;
 
 import tachyon.conf.WorkerConf;
 import tachyon.worker.netty.NettyWritable;
-import tachyon.worker.nio.DataServerMessage;
 
 public final class GetBlockResponse implements NettyWritable {
   private static final int MESSAGE_LENGTH = 3 * Longs.BYTES;

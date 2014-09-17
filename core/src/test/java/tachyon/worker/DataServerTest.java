@@ -110,7 +110,7 @@ public class DataServerTest {
     mTFS = mLocalTachyonCluster.getClient();
   }
 
-  @Test
+  @Test(expected = IOException.class)
   public void lengthTooSmall() throws IOException {
     final int length = 20;
     int fileId = TestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
@@ -130,7 +130,7 @@ public class DataServerTest {
     }
   }
 
-  @Test
+  @Test(expected = IOException.class)
   public void negativeOffset() throws IOException {
     final int length = 10;
     int fileId = TestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
@@ -189,7 +189,7 @@ public class DataServerTest {
     assertValid(recvMsg, length, block.getBlockId(), 0, length);
   }
 
-  @Test
+  @Test(expected = IOException.class)
   public void readTooLarge() throws IOException {
     final int length = 20;
     int fileId = TestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);
@@ -216,7 +216,7 @@ public class DataServerTest {
         length);
   }
 
-  @Test
+  @Test(expected = IOException.class)
   public void tooLargeOffset() throws IOException {
     final int length = 10;
     int fileId = TestUtils.createByteFile(mTFS, "/readTooLarge", WriteType.MUST_CACHE, length);

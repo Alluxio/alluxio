@@ -29,7 +29,7 @@ import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 
 import tachyon.conf.WorkerConf;
-import tachyon.worker.nio.DataServerMessage;
+import tachyon.worker.netty.protocol.ResponseType;
 
 /**
  * When a user sends a {@link tachyon.worker.netty.BlockRequest}, the response back is of this type.
@@ -45,7 +45,7 @@ public final class BlockResponse {
 
     private ByteBuf createHeader(final ChannelHandlerContext ctx, final BlockResponse msg) {
       ByteBuf header = ctx.alloc().buffer(MESSAGE_LENGTH);
-      header.writeShort(DataServerMessage.DATA_SERVER_RESPONSE_MESSAGE);
+      header.writeShort(ResponseType.GetBlockResponse.ordinal());
       header.writeLong(msg.getBlockId());
       header.writeLong(msg.getOffset());
       header.writeLong(msg.getLength());

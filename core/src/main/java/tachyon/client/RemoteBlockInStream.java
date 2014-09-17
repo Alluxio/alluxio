@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -31,7 +30,7 @@ import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
-import tachyon.worker.nio.DataServerMessage;
+import tachyon.worker.DataClient;
 
 /**
  * BlockInStream for remote block.
@@ -273,41 +272,9 @@ public class RemoteBlockInStream extends BlockInStream {
 
   private ByteBuffer retrieveByteBufferFromRemoteMachine(InetSocketAddress address, long blockId,
       long offset, long length) throws IOException {
-    SocketChannel socketChannel = SocketChannel.open();
-    try {
-      socketChannel.connect(address);
-
-      LOG.info("Connected to remote machine " + address + " sent");
-      DataServerMessage sendMsg =
-          DataServerMessage.createBlockRequestMessage(blockId, offset, length);
-      while (!sendMsg.finishSending()) {
-        sendMsg.send(socketChannel);
-      }
-
-      LOG.info("Data " + blockId + " to remote machine " + address + " sent");
-
-      DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
-      while (!recvMsg.isMessageReady()) {
-        int numRead = recvMsg.recv(socketChannel);
-        if (numRead == -1) {
-          throw new IOException("Socket has hit end-of-stream unexpectedly.");
-        }
-      }
-      LOG.info("Data " + blockId + " from remote machine " + address + " received");
-
-      if (!recvMsg.isMessageReady()) {
-        LOG.info("Data " + blockId + " from remote machine is not ready.");
-        return null;
-      }
-
-      if (recvMsg.getBlockId() < 0) {
-        LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
-        return null;
-      }
-      return recvMsg.getReadOnlyData();
-    } finally {
-      socketChannel.close();
-    }
+    DataClient data = new DataClient(address);
+    DataClient.GetBlock block = data.getBlock(blockId, offset, length);
+    return ByteBuffer.wrap(block.getData());
   }
 
   @Override

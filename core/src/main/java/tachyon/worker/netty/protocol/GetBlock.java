@@ -57,7 +57,7 @@ public final class GetBlock {
     }
 
     private static long or(long value, long defaultValue) {
-      if (value < 0) {
+      if (value == -1) {
         return defaultValue;
       } else {
         return value;

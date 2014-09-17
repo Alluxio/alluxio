@@ -39,7 +39,7 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
-import tachyon.worker.nio.DataServerMessage;
+import tachyon.worker.DataClient;
 
 /**
  * Tachyon File.
@@ -569,41 +569,44 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   private ByteBuffer retrieveRemoteByteBuffer(InetSocketAddress address, long blockId)
       throws IOException {
-    SocketChannel socketChannel = SocketChannel.open();
-    try {
-      socketChannel.connect(address);
-
-      LOG.info("Connected to remote machine " + address + " sent");
-      DataServerMessage sendMsg = DataServerMessage.createBlockRequestMessage(blockId);
-      while (!sendMsg.finishSending()) {
-        sendMsg.send(socketChannel);
-      }
-
-      LOG.info("Data " + blockId + " to remote machine " + address + " sent");
-
-      DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
-      while (!recvMsg.isMessageReady()) {
-        int numRead = recvMsg.recv(socketChannel);
-        if (numRead == -1) {
-          break;
-        }
-      }
-      LOG.info("Data " + blockId + " from remote machine " + address + " received");
-
-      if (!recvMsg.isMessageReady()) {
-        LOG.info("Data " + blockId + " from remote machine is not ready.");
-        return null;
-      }
-
-      if (recvMsg.getBlockId() < 0) {
-        LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
-        return null;
-      }
-
-      return recvMsg.getReadOnlyData();
-    } finally {
-      socketChannel.close();
-    }
+    DataClient data = new DataClient(address);
+    DataClient.GetBlock block = data.getBlock(blockId);
+    return ByteBuffer.wrap(block.getData());
+//    SocketChannel socketChannel = SocketChannel.open();
+//    try {
+//      socketChannel.connect(address);
+//
+//      LOG.info("Connected to remote machine " + address + " sent");
+//      DataServerMessage sendMsg = DataServerMessage.createBlockRequestMessage(blockId);
+//      while (!sendMsg.finishSending()) {
+//        sendMsg.send(socketChannel);
+//      }
+//
+//      LOG.info("Data " + blockId + " to remote machine " + address + " sent");
+//
+//      DataServerMessage recvMsg = DataServerMessage.createBlockResponseMessage(false, blockId);
+//      while (!recvMsg.isMessageReady()) {
+//        int numRead = recvMsg.recv(socketChannel);
+//        if (numRead == -1) {
+//          break;
+//        }
+//      }
+//      LOG.info("Data " + blockId + " from remote machine " + address + " received");
+//
+//      if (!recvMsg.isMessageReady()) {
+//        LOG.info("Data " + blockId + " from remote machine is not ready.");
+//        return null;
+//      }
+//
+//      if (recvMsg.getBlockId() < 0) {
+//        LOG.info("Data " + recvMsg.getBlockId() + " is not in remote machine.");
+//        return null;
+//      }
+//
+//      return recvMsg.getReadOnlyData();
+//    } finally {
+//      socketChannel.close();
+//    }
   }
 
   /**
