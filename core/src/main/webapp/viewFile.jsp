@@ -20,7 +20,7 @@
     window.location.href = "./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>&offset=" + tmp;
   }
   $(document).ready(function(){
-    var download_url = "./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>&op=DOWNLOAD";
+    var download_url = "./download?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>";
     $("#file-download").attr("href",download_url);
   });
 </script>

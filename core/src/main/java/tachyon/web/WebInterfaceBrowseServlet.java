@@ -1,21 +1,17 @@
 package tachyon.web;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-
-import com.google.common.io.ByteStreams;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -147,7 +143,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     List<ClientFileInfo> filesInfo = null;
     String currentPath = request.getParameter("path");
     if (currentPath == null || currentPath.isEmpty()) {
-      currentPath = Constants.PATH_SEPARATOR;
+      currentPath = TachyonURI.SEPARATOR;
     }
     request.setAttribute("currentPath", currentPath);
     request.setAttribute("viewingOffset", 0);
@@ -159,7 +155,6 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       request.setAttribute("blockSizeByte", currentFileInfo.getBlockSizeBytes());
       if (!currentFileInfo.getIsDirectory()) {
         String tmpParam = request.getParameter("offset");
-        String opParam = request.getParameter("op");
         long offset = 0;
         try {
           if (tmpParam != null) {
@@ -173,13 +168,9 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
         } else if (offset > clientFileInfo.getLength()) {
           offset = clientFileInfo.getLength();
         }
-        if (opParam != null && "DOWNLOAD".equals(opParam)) {
-          downloadFile(currentFileInfo.getAbsolutePath(), request, response);
-        } else {
-          displayFile(currentFileInfo.getAbsolutePath(), request, offset);
-          request.setAttribute("viewingOffset", offset);
-          getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
-        }
+        displayFile(currentFileInfo.getAbsolutePath(), request, offset);
+        request.setAttribute("viewingOffset", offset);
+        getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
         return;
       }
       CommonUtils.validatePath(currentPath);
@@ -230,67 +221,19 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    */
   private void setPathDirectories(String path, HttpServletRequest request)
       throws FileDoesNotExistException, InvalidPathException {
-    if (path.equals(Constants.PATH_SEPARATOR)) {
+    if (path.equals(TachyonURI.SEPARATOR)) {
       request.setAttribute("pathInfos", new UiFileInfo[0]);
       return;
     }
 
-    String[] splitPath = path.split(Constants.PATH_SEPARATOR);
+    String[] splitPath = path.split(TachyonURI.SEPARATOR);
     UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length - 1];
-    String currentPath = Constants.PATH_SEPARATOR;
+    String currentPath = TachyonURI.SEPARATOR;
     pathInfos[0] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     for (int i = 1; i < splitPath.length - 1; i ++) {
       currentPath = CommonUtils.concat(currentPath, splitPath[i]);
       pathInfos[i] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     }
     request.setAttribute("pathInfos", pathInfos);
-  }
-
-  /**
-   * This function prepares for downloading a file.
-   * 
-   * @param path The path of the file to download
-   * @param request The HttpServletRequest object
-   * @param response The HttpServletResponse object
-   * @throws FileDoesNotExistException
-   * @throws InvalidPathException
-   * @throws IOException
-   */
-  private void downloadFile(String path, HttpServletRequest request, HttpServletResponse response)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
-    String masterAddress =
-        Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
-            + mMasterInfo.getMasterAddress().getPort();
-    TachyonFS tachyonClient = TachyonFS.get(new TachyonURI(masterAddress));
-    TachyonFile tFile = tachyonClient.getFile(new TachyonURI(path));
-    if (tFile == null) {
-      throw new FileDoesNotExistException(path);
-    }
-    long len = tFile.length();
-    String fileName = new TachyonURI(path).getName();
-    response.setContentType("application/octet-stream");
-    if (len <= Integer.MAX_VALUE) {
-      response.setContentLength((int) len);
-    } else {
-      response.addHeader("Content-Length", Long.toString(len));
-    }
-    response.addHeader("Content-Disposition", "attachment;filename=" + fileName);
-
-    InStream is = null;
-    ServletOutputStream out = null;
-    try {
-      is = tFile.getInStream(ReadType.NO_CACHE);
-      out = response.getOutputStream();
-      ByteStreams.copy(is, out);
-    } finally {
-      out.flush();
-      out.close();
-      is.close();
-    }
-    try {
-      tachyonClient.close();
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
-    }
   }
 }

@@ -15,6 +15,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.conf.CommonConf;
 import tachyon.master.MasterInfo;
 
@@ -42,7 +43,7 @@ public class UIWebServer {
 
     WebAppContext webappcontext = new WebAppContext();
 
-    webappcontext.setContextPath(Constants.PATH_SEPARATOR);
+    webappcontext.setContextPath(TachyonURI.SEPARATOR);
     File warPath = new File(CommonConf.get().WEB_RESOURCES);
     webappcontext.setWar(warPath.getAbsolutePath());
     HandlerList handlers = new HandlerList();
@@ -58,6 +59,8 @@ public class UIWebServer {
         "/memory");
     webappcontext.addServlet(new ServletHolder(new WebInterfaceDependencyServlet(masterInfo)),
         "/dependency");
+    webappcontext.addServlet(new ServletHolder(new WebInterfaceDownloadServlet(masterInfo)),
+        "/download");
 
     handlers.setHandlers(new Handler[] {webappcontext, new DefaultHandler()});
     mServer.setHandler(handlers);
