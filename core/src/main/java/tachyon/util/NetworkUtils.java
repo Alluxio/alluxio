@@ -10,9 +10,9 @@ import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
+import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.thrift.transport.TNonblockingServerSocket;
 
 import com.google.common.base.Throwables;
 
