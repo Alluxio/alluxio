@@ -62,6 +62,7 @@ public class TFsShell implements Closeable {
   public int cat(String argv[]) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs cat <path>");
+      return -1;
     }
     TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
@@ -567,6 +568,7 @@ public class TFsShell implements Closeable {
   public int tail(String argv[]) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs tail <path>");
+      return -1;
     }
     TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);

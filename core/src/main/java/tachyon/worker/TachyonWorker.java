@@ -3,6 +3,10 @@ package tachyon.worker;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.apache.thrift.server.TServer;
@@ -130,7 +134,8 @@ public class TachyonWorker implements Runnable {
 
   private final DataServer mDataServer;
 
-  private Thread mHeartbeatThread;
+  // private Thread mHeartbeatThread;
+  private ScheduledExecutorService scheduledService;
 
   private volatile boolean mStop = false;
 
@@ -161,16 +166,21 @@ public class TachyonWorker implements Runnable {
     mWorkerServiceHandler = new WorkerServiceHandler(mWorkerStorage);
 
     // Extract the port from the generated socket.
-    // When running tests, its great to use port '0' so the system will figure out what port to use
+    // When running tests, its great to use port '0' so the system will
+    // figure out what port to use
     // (any random free port).
-    // In a production or any real deployment setup, port '0' should not be used as it will make
+    // In a production or any real deployment setup, port '0' should not be
+    // used as it will make
     // deployment more complicated.
     InetSocketAddress dataAddress = new InetSocketAddress(workerAddress.getHostName(), dataPort);
     BlocksLocker blockLocker = new BlocksLocker(mWorkerStorage, Users.sDATASERVER_USER_ID);
     mDataServer = createDataServer(dataAddress, blockLocker);
     mDataPort = mDataServer.getPort();
 
-    mHeartbeatThread = new Thread(this);
+    // mHeartbeatThread = new Thread(this);
+    int corePoolSize = Runtime.getRuntime().availableProcessors();
+    scheduledService = Executors.newScheduledThreadPool(corePoolSize);
+
     try {
       LOG.info("Tachyon Worker version " + Version.VERSION + " tries to start @ " + workerAddress);
       WorkerService.Processor<WorkerServiceHandler> processor =
@@ -195,12 +205,12 @@ public class TachyonWorker implements Runnable {
   private DataServer createDataServer(final InetSocketAddress dataAddress,
       final BlocksLocker blockLocker) {
     switch (WorkerConf.get().NETWORK_TYPE) {
-      case NIO:
-        return new NIODataServer(dataAddress, blockLocker);
-      case NETTY:
-        return new NettyDataServer(dataAddress, blockLocker);
-      default:
-        throw new AssertionError("Unknown network type: " + WorkerConf.get().NETWORK_TYPE);
+    case NIO:
+      return new NIODataServer(dataAddress, blockLocker);
+    case NETTY:
+      return new NettyDataServer(dataAddress, blockLocker);
+    default:
+      throw new AssertionError("Unknown network type: " + WorkerConf.get().NETWORK_TYPE);
     }
   }
 
@@ -227,73 +237,125 @@ public class TachyonWorker implements Runnable {
     return mWorkerServiceHandler;
   }
 
+  // @Override
+  // public void run() {
+  // long lastHeartbeatMs = System.currentTimeMillis();
+  // Command cmd = null;
+  //
+  // while (!mStop) {
+  // long diff = System.currentTimeMillis() - lastHeartbeatMs;
+  // if (diff < WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS) {
+  // LOG.debug("Heartbeat process takes " + diff + " ms.");
+  // CommonUtils
+  // .sleepMs(
+  // LOG,
+  // WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS
+  // - diff);
+  // } else {
+  // LOG.error("Heartbeat process takes " + diff + " ms.");
+  // }
+  //
+  // try {
+  // cmd = mWorkerStorage.heartbeat();
+  //
+  // lastHeartbeatMs = System.currentTimeMillis();
+  // } catch (BlockInfoException e) {
+  // LOG.error(e.getMessage(), e);
+  // } catch (IOException e) {
+  // LOG.error(e.getMessage(), e);
+  // try {
+  // mWorkerStorage.resetMasterClient();
+  // } catch (IOException e2) {
+  // LOG.error(
+  // "Received exception while attempting to reset client",
+  // e2);
+  // }
+  // CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
+  // cmd = null;
+  // if (System.currentTimeMillis() - lastHeartbeatMs >= WorkerConf
+  // .get().HEARTBEAT_TIMEOUT_MS) {
+  // throw new RuntimeException("Timebeat timeout "
+  // + (System.currentTimeMillis() - lastHeartbeatMs)
+  // + "ms");
+  // }
+  // }
+  //
+  // if (cmd != null) {
+  // switch (cmd.mCommandType) {
+  // case Unknown:
+  // LOG.error("Unknown command: " + cmd);
+  // break;
+  // case Nothing:
+  // LOG.debug("Nothing command: " + cmd);
+  // break;
+  // case Register:
+  // LOG.info("Register command: " + cmd);
+  // mWorkerStorage.register();
+  // break;
+  // case Free:
+  // mWorkerStorage.freeBlocks(cmd.mData);
+  // LOG.info("Free command: " + cmd);
+  // break;
+  // case Delete:
+  // LOG.info("Delete command: " + cmd);
+  // break;
+  // default:
+  // throw new RuntimeException(
+  // "Un-recognized command from master "
+  // + cmd.toString());
+  // }
+  // }
+  //
+  // mWorkerStorage.checkStatus();
+  // }
+  // }
+
   @Override
   public void run() {
-    long lastHeartbeatMs = System.currentTimeMillis();
-    Command cmd = null;
-    while (!mStop) {
-      long diff = System.currentTimeMillis() - lastHeartbeatMs;
-      if (diff < WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS) {
-        LOG.debug("Heartbeat process takes " + diff + " ms.");
-        CommonUtils.sleepMs(LOG, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS - diff);
-      } else {
-        LOG.error("Heartbeat process takes " + diff + " ms.");
-      }
+    LOG.info("HeartBeat StartUp");
+    Command command = null;
 
-      try {
-        cmd = mWorkerStorage.heartbeat();
-
-        lastHeartbeatMs = System.currentTimeMillis();
-      } catch (BlockInfoException e) {
-        LOG.error(e.getMessage(), e);
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-        try {
-          mWorkerStorage.resetMasterClient();
-        } catch (IOException e2) {
-          LOG.error("Received exception while attempting to reset client", e2);
-        }
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-        cmd = null;
-        if (System.currentTimeMillis() - lastHeartbeatMs >= WorkerConf.get().HEARTBEAT_TIMEOUT_MS) {
-          throw new RuntimeException("Timebeat timeout "
-              + (System.currentTimeMillis() - lastHeartbeatMs) + "ms");
-        }
-      }
-
-      if (cmd != null) {
-        switch (cmd.mCommandType) {
-          case Unknown:
-            LOG.error("Unknown command: " + cmd);
-            break;
-          case Nothing:
-            LOG.debug("Nothing command: " + cmd);
-            break;
-          case Register:
-            LOG.info("Register command: " + cmd);
-            mWorkerStorage.register();
-            break;
-          case Free:
-            mWorkerStorage.freeBlocks(cmd.mData);
-            LOG.info("Free command: " + cmd);
-            break;
-          case Delete:
-            LOG.info("Delete command: " + cmd);
-            break;
-          default:
-            throw new RuntimeException("Un-recognized command from master " + cmd.toString());
-        }
-      }
-
-      mWorkerStorage.checkStatus();
+    try {
+      command = mWorkerStorage.heartbeat();
+    } catch (BlockInfoException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
     }
+
+    if (command != null) {
+      switch (command.mCommandType) {
+      case Unknown:
+        LOG.error("Unknown command: " + command);
+        break;
+      case Nothing:
+        LOG.debug("Nothing command: " + command);
+        break;
+      case Register:
+        LOG.info("Register command: " + command);
+        mWorkerStorage.register();
+        break;
+      case Free:
+        mWorkerStorage.freeBlocks(command.mData);
+        LOG.info("Free command: " + command);
+        break;
+      case Delete:
+        LOG.info("Delete command: " + command);
+        break;
+      default:
+        throw new RuntimeException("Un-recognized command from master " + command.toString());
+      }
+    }
+
+    mWorkerStorage.checkStatus();
   }
 
   /**
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
   public void start() {
-    mHeartbeatThread.start();
+    // mHeartbeatThread.start();
+    scheduledService.schedule(this, WorkerConf.get().HEARTBEAT_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 
     LOG.info("The worker server started @ " + mWorkerAddress);
     mServer.serve();
@@ -301,7 +363,8 @@ public class TachyonWorker implements Runnable {
   }
 
   /**
-   * Stop this TachyonWorker. Stop all the threads belong to this TachyonWorker.
+   * Stop this TachyonWorker. Stop all the threads belong to this
+   * TachyonWorker.
    * 
    * @throws IOException
    * @throws InterruptedException
@@ -312,12 +375,19 @@ public class TachyonWorker implements Runnable {
     mDataServer.close();
     mServer.stop();
     mServerTNonblockingServerSocket.close();
-    while (!mDataServer.isClosed() || mServer.isServing() || mHeartbeatThread.isAlive()) {
-      // TODO The reason to stop and close again is due to some issues in Thrift.
+
+    scheduledService.shutdown();
+
+    while (!mDataServer.isClosed() || mServer.isServing()) {
+      // || mHeartbeatThread.isAlive()) {
+      // TODO The reason to stop and close again is due to some issues in
+      // Thrift.
       mServer.stop();
       mServerTNonblockingServerSocket.close();
       CommonUtils.sleepMs(null, 100);
     }
-    mHeartbeatThread.join();
+
+    // mHeartbeatThread.join();
   }
+
 }
