@@ -50,8 +50,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     mHadoopBufferSize = bufferSize;
     mTachyonFile = mTFS.getFile(mFileId);
     if (mTachyonFile == null) {
-      throw new FileNotFoundException("File " + hdfsPath + " with FID " + fileId
-          + " is not found.");
+      throw new FileNotFoundException("File " + hdfsPath + " with FID " + fileId + " is not found.");
     }
     mTachyonFile.setUFSConf(mHadoopConf);
     try {
@@ -143,9 +142,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Read upto the specified number of bytes, from a given position within a
-   * file, and return the number of bytes read. This does not change the current
-   * offset of a file, and is thread-safe.
+   * Read upto the specified number of bytes, from a given position within a file, and return the
+   * number of bytes read. This does not change the current offset of a file, and is thread-safe.
    */
   @Override
   public int read(long position, byte[] buffer, int offset, int length) throws IOException {
@@ -204,9 +202,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Read number of bytes equalt to the length of the buffer, from a given
-   * position within a file. This does not change the current offset of a file,
-   * and is thread-safe.
+   * Read number of bytes equalt to the length of the buffer, from a given position within a file.
+   * This does not change the current offset of a file, and is thread-safe.
    */
   @Override
   public void readFully(long position, byte[] buffer) throws IOException {
@@ -214,8 +211,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Read the specified number of bytes, from a given position within a file.
-   * This does not change the current offset of a file, and is thread-safe.
+   * Read the specified number of bytes, from a given position within a file. This does not change
+   * the current offset of a file, and is thread-safe.
    */
   @Override
   public void readFully(long position, byte[] buffer, int offset, int length) throws IOException {
@@ -223,8 +220,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Seek to the given offset from the start of the file. The next read() will
-   * be from that location. Can't seek past the end of the file.
+   * Seek to the given offset from the start of the file. The next read() will be from that
+   * location. Can't seek past the end of the file.
    */
   @Override
   public void seek(long pos) throws IOException {
@@ -248,8 +245,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   /**
-   * Seeks a different copy of the data. Returns true if found a new source,
-   * false otherwise.
+   * Seeks a different copy of the data. Returns true if found a new source, false otherwise.
    */
   @Override
   public boolean seekToNewSource(long targetPos) throws IOException {

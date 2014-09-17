@@ -7,8 +7,7 @@ import tachyon.client.ReadType;
 import tachyon.client.WriteType;
 
 public final class Utils {
-  private Utils() {
-  }
+  private Utils() {}
 
   public static void printPassInfo(boolean pass) {
     if (pass) {

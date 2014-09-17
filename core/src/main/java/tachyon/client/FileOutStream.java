@@ -12,9 +12,9 @@ import tachyon.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**
- * <code>FileOutStream</code> implementation of TachyonFile. It can only be gotten by
- * calling the methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by
- * the client code.
+ * <code>FileOutStream</code> implementation of TachyonFile. It can only be gotten by calling the
+ * methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by the client
+ * code.
  */
 public class FileOutStream extends OutStream {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
@@ -34,12 +34,9 @@ public class FileOutStream extends OutStream {
   private boolean mCancel = false;
 
   /**
-   * @param file
-   *          the output file
-   * @param opType
-   *          the OutStream's write type
-   * @param ufsConf
-   *          the under file system configuration
+   * @param file the output file
+   * @param opType the OutStream's write type
+   * @param ufsConf the under file system configuration
    * @throws IOException
    */
   FileOutStream(TachyonFile file, WriteType opType, Object ufsConf) throws IOException {

@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import tachyon.Constants;
@@ -27,20 +28,22 @@ public class Dependency extends ImageWriter {
 
   /**
    * Create a new dependency from a JSON Element.
-   *
-   * @param ele
-   *          the JSON element
+   * 
+   * @param ele the JSON element
    * @return the loaded dependency
    * @throws IOException
    */
   static Dependency loadImage(ImageElement ele) throws IOException {
     Dependency dep =
-        new Dependency(ele.getInt("depID"), ele.<List<Integer>> get("parentFiles"),
-            ele.<List<Integer>> get("childrenFiles"), ele.getString("commandPrefix"),
+        new Dependency(ele.getInt("depID"), ele.get("parentFiles",
+            new TypeReference<List<Integer>>() {}), ele.get("childrenFiles",
+            new TypeReference<List<Integer>>() {}), ele.getString("commandPrefix"),
             ele.getByteBufferList("data"), ele.getString("comment"), ele.getString("framework"),
-            ele.getString("frameworkVersion"), ele.<DependencyType> get("dependencyType"),
-            ele.<List<Integer>> get("parentDeps"), ele.getLong("creationTimeMs"));
-    dep.resetUncheckpointedChildrenFiles(ele.<List<Integer>> get("unCheckpointedChildrenFiles"));
+            ele.getString("frameworkVersion"), ele.get("dependencyType", DependencyType.class),
+            ele.get("parentDeps", new TypeReference<List<Integer>>() {}),
+            ele.getLong("creationTimeMs"));
+    dep.resetUncheckpointedChildrenFiles(ele.get("unCheckpointedChildrenFiles",
+        new TypeReference<List<Integer>>() {}));
 
     return dep;
   }
@@ -67,29 +70,18 @@ public class Dependency extends ImageWriter {
 
   /**
    * Create a new dependency
-   *
-   * @param id
-   *          The id of the dependency
-   * @param parents
-   *          The input files' id of the dependency
-   * @param children
-   *          The output files' id of the dependency
-   * @param commandPrefix
-   *          The prefix of the command used for recomputation
-   * @param data
-   *          The list of the data used for recomputation
-   * @param comment
-   *          The comment of the dependency
-   * @param framework
-   *          The framework of the dependency, used for recomputation
-   * @param frameworkVersion
-   *          The version of the framework
-   * @param type
-   *          The type of the dependency, DependencyType.Wide or DependencyType.Narrow
-   * @param parentDependencies
-   *          The id of the parents' dependencies
-   * @param creationTimeMs
-   *          The create time of the dependency, in milliseconds
+   * 
+   * @param id The id of the dependency
+   * @param parents The input files' id of the dependency
+   * @param children The output files' id of the dependency
+   * @param commandPrefix The prefix of the command used for recomputation
+   * @param data The list of the data used for recomputation
+   * @param comment The comment of the dependency
+   * @param framework The framework of the dependency, used for recomputation
+   * @param frameworkVersion The version of the framework
+   * @param type The type of the dependency, DependencyType.Wide or DependencyType.Narrow
+   * @param parentDependencies The id of the parents' dependencies
+   * @param creationTimeMs The create time of the dependency, in milliseconds
    */
   public Dependency(int id, List<Integer> parents, List<Integer> children, String commandPrefix,
       List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
@@ -121,9 +113,8 @@ public class Dependency extends ImageWriter {
   /**
    * Add a child dependency, which means one of the children of the current dependency is a parent
    * of the added dependency.
-   *
-   * @param childDependencyId
-   *          The id of the child dependency to be added
+   * 
+   * @param childDependencyId The id of the child dependency to be added
    */
   public synchronized void addChildrenDependency(int childDependencyId) {
     for (int dependencyId : mChildrenDependencies) {
@@ -136,9 +127,8 @@ public class Dependency extends ImageWriter {
 
   /**
    * A file lost. Add it to the dependency.
-   *
-   * @param fileId
-   *          The id of the lost file
+   * 
+   * @param fileId The id of the lost file
    */
   public synchronized void addLostFile(int fileId) {
     mLostFileIds.add(fileId);
@@ -146,9 +136,8 @@ public class Dependency extends ImageWriter {
 
   /**
    * A child file has been checkpointed. Remove it from the uncheckpointed children list.
-   *
-   * @param childFileId
-   *          The id of the checkpointed child file
+   * 
+   * @param childFileId The id of the checkpointed child file
    */
   public synchronized void childCheckpointed(int childFileId) {
     mUncheckpointedChildrenFiles.remove(childFileId);
@@ -157,7 +146,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Generate a ClientDependencyInfo, which is used for the thrift server.
-   *
+   * 
    * @return the generated ClientDependencyInfo
    */
   public ClientDependencyInfo generateClientDependencyInfo() {
@@ -173,7 +162,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Get the children dependencies of this dependency. It will return a duplication.
-   *
+   * 
    * @return the duplication of the children dependencies
    */
   public synchronized List<Integer> getChildrenDependency() {
@@ -184,7 +173,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Get the command used for the recomputation. Note that it will clear the set of lost files' id.
-   *
+   * 
    * @return the command used for the recomputation
    */
   public synchronized String getCommand() {
@@ -205,7 +194,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Get the lost files of the dependency. It will return a duplication.
-   *
+   * 
    * @return the duplication of the lost files' id
    */
   public synchronized List<Integer> getLostFiles() {
@@ -216,7 +205,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Get the uncheckpointed children files. It will return a duplication.
-   *
+   * 
    * @return the duplication of the uncheckpointed children files' id
    */
   synchronized List<Integer> getUncheckpointedChildrenFiles() {
@@ -228,7 +217,7 @@ public class Dependency extends ImageWriter {
   /**
    * Return true if the dependency has checkpointed, which means all the children files are
    * checkpointed.
-   *
+   * 
    * @return true if all the children files are checkpointed, false otherwise
    */
   public synchronized boolean hasCheckpointed() {
@@ -237,7 +226,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Return true if it has children dependency.
-   *
+   * 
    * @return true if it has children dependency, false otherwise
    */
   public synchronized boolean hasChildrenDependency() {
@@ -246,7 +235,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Return true if there exists lost file of the dependency.
-   *
+   * 
    * @return true if the dependency has lost file, false otherwise
    */
   public synchronized boolean hasLostFile() {
@@ -255,7 +244,7 @@ public class Dependency extends ImageWriter {
 
   /**
    * Replace the prefix with the specified variable in DependencyVariables.
-   *
+   * 
    * @return the replaced command
    */
   String parseCommandPrefix() {
@@ -268,12 +257,10 @@ public class Dependency extends ImageWriter {
 
   /**
    * Reset the uncheckpointed children files with the specified input
-   *
-   * @param uncheckpointedChildrenFiles
-   *          The new uncheckpointed children files' id
+   * 
+   * @param uncheckpointedChildrenFiles The new uncheckpointed children files' id
    */
-  synchronized void resetUncheckpointedChildrenFiles(
-      Collection<Integer> uncheckpointedChildrenFiles) {
+  synchronized void resetUncheckpointedChildrenFiles(Collection<Integer> uncheckpointedChildrenFiles) {
     mUncheckpointedChildrenFiles.clear();
     mUncheckpointedChildrenFiles.addAll(uncheckpointedChildrenFiles);
   }
@@ -305,7 +292,8 @@ public class Dependency extends ImageWriter {
             .withParameter("commandPrefix", mCommandPrefix)
             .withParameter("data", Utils.byteBufferListToBase64(mData))
             .withParameter("comment", mComment).withParameter("framework", mFramework)
-            .withParameter("frameworkVersion", mFrameworkVersion).withParameter("depType", mDependencyType)
+            .withParameter("frameworkVersion", mFrameworkVersion)
+            .withParameter("depType", mDependencyType)
             .withParameter("parentDeps", mParentDependencies)
             .withParameter("creationTimeMs", mCreationTimeMs)
             .withParameter("unCheckpointedChildrenFiles", getUncheckpointedChildrenFiles());

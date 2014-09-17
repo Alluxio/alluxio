@@ -22,10 +22,8 @@ public class Image {
   /**
    * Write a new image to path. This method assumes having a lock on the master info.
    * 
-   * @param info
-   *          the master info to generate the image
-   * @param path
-   *          the new image path
+   * @param info the master info to generate the image
+   * @param path the new image path
    * @throws IOException
    */
   public static void create(MasterInfo info, String path) throws IOException {
@@ -57,10 +55,8 @@ public class Image {
   /**
    * Load an image into the masterinfo.
    * 
-   * @param info
-   *          the masterinfo to fill.
-   * @param path
-   *          the data to load
+   * @param info the masterinfo to fill.
+   * @param path the data to load
    * @throws IOException
    */
   public static void load(MasterInfo info, String path) throws IOException {
@@ -81,10 +77,8 @@ public class Image {
   /**
    * Rename the src to the dst. Only used to rename the Image.
    * 
-   * @param src
-   *          The src image path
-   * @param dst
-   *          The dst image path
+   * @param src The src image path
+   * @param dst The dst image path
    * @throws IOException
    */
   public static void rename(String src, String dst) throws IOException {

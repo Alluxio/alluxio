@@ -9,7 +9,7 @@
   <artifactId>tachyon</artifactId>
   <version>0.6.0-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <description>Tachyon: Reliable File Sharing at Memory Speed Across Cluster Frameworks</description>
+  <description>Tachyon: A Reliable Memory Centric Distributed Storage System</description>
   <name>Tachyon Project Core</name>
 
   <dependencies>
@@ -19,6 +19,11 @@
       <artifactId>guava</artifactId>
       <version>14.0.1</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+      <version>4.0.23.Final</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -118,6 +123,12 @@
       <artifactId>curator-test</artifactId>
       <version>${apache.curator.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.javassist</groupId>
+          <artifactId>javassist</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>

@@ -19,10 +19,8 @@ public class FileInStream extends InStream {
   private Object mUFSConf = null;
 
   /**
-   * @param file
-   *          the file to be read
-   * @param opType
-   *          the InStream's read type
+   * @param file the file to be read
+   * @param opType the InStream's read type
    * @throws IOException
    */
   public FileInStream(TachyonFile file, ReadType opType) throws IOException {
@@ -30,12 +28,9 @@ public class FileInStream extends InStream {
   }
 
   /**
-   * @param file
-   *          the file to be read
-   * @param opType
-   *          the InStream's read type
-   * @param ufsConf
-   *          the under file system configuration
+   * @param file the file to be read
+   * @param opType the InStream's read type
+   * @param ufsConf the under file system configuration
    * @throws IOException
    */
   public FileInStream(TachyonFile file, ReadType opType, Object ufsConf) throws IOException {
@@ -103,6 +98,8 @@ public class FileInStream extends InStream {
       throw new IndexOutOfBoundsException();
     } else if (len == 0) {
       return 0;
+    } else if (mCurrentPosition >= mFileLength) {
+      return -1;
     }
 
     int tOff = off;

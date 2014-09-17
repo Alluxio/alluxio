@@ -38,17 +38,18 @@ public class Constants {
 
   public static final int DEFAULT_BLOCK_SIZE_BYTE = 512 * MB;
 
+  /** @deprecated use {@link tachyon.TachyonURI#SEPARATOR} instead **/
+  @Deprecated
   public static final String PATH_SEPARATOR = "/";
 
   public static final int WORKER_BLOCKS_QUEUE_SIZE = 10000;
 
   public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
-  public static final boolean DEBUG = Boolean
-      .valueOf(System.getProperty("tachyon.debug", "false"));
+  public static final boolean DEBUG = Boolean.valueOf(System.getProperty("tachyon.debug", "false"));
 
   /**
-   * Version 1 [Before 0.5.0] Customized ser/de based.
-   * Version 2 [0.5.0] Starts to use JSON.
+   * Version 1 [Before 0.5.0] Customized ser/de based. <br>
+   * Version 2 [0.5.0] Starts to use JSON. <br>
    * Version 3 [0.6.0] Add lastModificationTimeMs to inode.
    */
   public static final int JOURNAL_VERSION = 2;
