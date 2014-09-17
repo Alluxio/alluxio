@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.io.Closer;
 
@@ -70,8 +71,16 @@ public final class DataClient {
       switch (type) {
         case GetBlockResponse:
           return parseGetBlock(in);
+        case BlockNotFound:
+          throw new IOException("Block not found for id " + in.readLong());
+        case InvalidBlockId:
+          throw new IOException("Invalid Block ID: " + in.readLong());
         case InvalidBlockRange:
-          throw new IOException("InvalidBlockRange");
+          throw new IOException("Invalid Block Range for " + in.readLong());
+        case UnknownError:
+          byte[] data = new byte[in.readInt()];
+          in.read(data);
+          throw new IOException("Unknown error: " + new String(data, Charsets.UTF_8));
         default:
           throw new AssertionError("Unsupported type: " + type);
       }
