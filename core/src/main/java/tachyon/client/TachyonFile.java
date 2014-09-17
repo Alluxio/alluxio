@@ -508,52 +508,32 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   boolean recache(int blockIndex) throws IOException {
-    boolean succeed = true;
     String path = getUfsPath();
     UnderFileSystem underFsClient = UnderFileSystem.get(path);
 
     try {
       InputStream inputStream = underFsClient.open(path);
-
-      long length = getBlockSizeByte();
-      long offset = blockIndex * length;
-      inputStream.skip(offset);
-
-      byte[] buffer = new byte[mUserConf.FILE_BUFFER_BYTES * 4];
-
-      BlockOutStream bos = new BlockOutStream(this, WriteType.TRY_CACHE, blockIndex);
       try {
-        int limit;
-        while (length > 0 && ((limit = inputStream.read(buffer)) >= 0)) {
-          if (limit != 0) {
-            try {
-              if (length >= limit) {
-                bos.write(buffer, 0, limit);
-                length -= limit;
-              } else {
-                bos.write(buffer, 0, (int) length);
-                length = 0;
-              }
-            } catch (IOException e) {
-              LOG.warn(e.getMessage(), e);
-              succeed = false;
-              break;
-            }
-          }
+        long length = getBlockSizeByte();
+        long offset = blockIndex * length;
+        inputStream.skip(offset);
+
+        WritableBlockChannel channel = Blocks.createWritableBlock(this, blockIndex);
+        try {
+          Blocks.copy(inputStream, channel, length);
+          channel.close();
+        } catch (IOException e){
+          channel.cancel();
+          return false;
         }
+        return true;
       } finally {
-        if (succeed) {
-          bos.close();
-        } else {
-          bos.cancel();
-        }
+        inputStream.close();
       }
     } catch (IOException e) {
       LOG.warn(e.getMessage(), e);
       return false;
     }
-
-    return succeed;
   }
 
   /**
