@@ -14,6 +14,9 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
 
+/**
+ * Writes all {@link #write(java.nio.ByteBuffer)} directly to the file system.
+ */
 final class LocalWritableBlockChannel implements WritableBlockChannel {
   private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
@@ -21,11 +24,11 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
   private final TachyonFS mTachyonFS;
   private final FileChannel mLocalFileChannel;
   private final AtomicLong mWritten = new AtomicLong(0);
-  private final String mLocalFilePath;
+  private final File mLocalFile;
   private final long mBlockId;
   private volatile boolean mCanWrite = true;
 
-  public LocalWritableBlockChannel(TachyonFS tachyonFS, long blockId) throws IOException {
+  LocalWritableBlockChannel(TachyonFS tachyonFS, long blockId) throws IOException {
     mTachyonFS = tachyonFS;
     mBlockId = blockId;
     File localFolder = tachyonFS.createAndGetUserLocalTempFolder();
@@ -33,18 +36,24 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
       throw new IOException("Failed to create temp user folder for tachyon client.");
     }
 
-    mLocalFilePath = CommonUtils.concat(localFolder.getPath(), blockId);
-    RandomAccessFile localFile = mCloser.register(new RandomAccessFile(mLocalFilePath, "rw"));
+    mLocalFile = new File(localFolder, new Long(blockId).toString());
+    if (mLocalFile.exists()) {
+      throw new IOException("Block exists; unable to write new block");
+    }
+    // RandomAccessFile will create the file, so must be before check permissions
+    RandomAccessFile localFile = mCloser.register(new RandomAccessFile(mLocalFile, "rw"));
     // change the permission of the temporary file in order that the worker can move it.
     checkPermission();
+
     mLocalFileChannel = mCloser.register(localFile.getChannel());
-    LOG.info(mLocalFilePath + " was created!");
+    LOG.info(mLocalFile + " was created!");
   }
 
   private void checkPermission() throws IOException {
     // change the permission of the file and use the sticky bit
-    CommonUtils.changeLocalFileToFullPermission(mLocalFilePath);
-    CommonUtils.setLocalFileStickyBit(mLocalFilePath);
+    String path = mLocalFile.getAbsolutePath();
+    CommonUtils.changeLocalFileToFullPermission(path);
+    CommonUtils.setLocalFileStickyBit(path);
   }
 
   @Override
@@ -53,8 +62,8 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
 
     mTachyonFS.releaseSpace(mWritten.get());
     checkPermission();
-    new File(mLocalFilePath).delete();
-    LOG.info("Canceled output of block " + mBlockId + ", deleted local file " + mLocalFilePath);
+    mLocalFile.delete();
+    LOG.info("Canceled output of block " + mBlockId + ", deleted local file " + mLocalFile);
   }
 
   @Override
@@ -67,7 +76,7 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
       mCanWrite = false;
       String msg =
           "Local tachyon worker does not have enough space (" + src.remaining()
-              + ") or no worker for " + mLocalFilePath + " with block id " + mBlockId;
+              + ") or no worker for " + mLocalFile + " with block id " + mBlockId;
 
       throw new IOException(msg);
     }
@@ -94,13 +103,16 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
       mTachyonFS.cacheBlock(mBlockId);
     } else {
       // we failed to write this block, so cancel it
-      // this logic is different than BlockOutStream because that buffers.
-      // when the buffer is smaller than the block size, and you fail after writing a block
-      // then BlockOutStream will hit a bug
+      // this logic is different than BlockOutStream because that buffers and expects to always
+      // succeed. When the buffer is smaller than the block size, and you fail after writing a block
+      // then BlockOutStream will hit this case.
       cancel();
     }
   }
 
+  /**
+   * Free all locally consumed resources, such as streams.
+   */
   private void free() throws IOException {
     mCloser.close();
   }
