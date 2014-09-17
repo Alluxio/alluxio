@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
-import com.google.common.primitives.Shorts;
 
 import tachyon.Constants;
 import tachyon.client.TachyonByteBuffer;
@@ -41,7 +40,7 @@ import tachyon.worker.netty.protocol.ResponseType;
  * The message type used to send data request and response for remote data.
  */
 @Deprecated
-public class DataServerMessage {
+final class DataServerMessage {
   public static final int DATA_SERVER_REQUEST_MESSAGE = RequestType.GetBlock.ordinal();
   public static final int DATA_SERVER_RESPONSE_MESSAGE = ResponseType.GetBlockResponse.ordinal();
 
@@ -170,7 +169,7 @@ public class DataServerMessage {
         channel.close();
         file.close();
         ret.mIsMessageReady = true;
-        ret.generateHeader();
+        ret.generateResponseHeader();
         LOG.info("Response remote request by reading from " + filePath + " preparation done.");
       } catch (Exception e) {
         // TODO This is a trick for now. The data may have been removed before remote retrieving.
@@ -179,7 +178,7 @@ public class DataServerMessage {
         ret.mHeader = ByteBuffer.allocate(RESPONSE_HEADER_LENGTH);
         ret.mData = ByteBuffer.allocate(0);
         ret.mIsMessageReady = true;
-        ret.generateHeader();
+        ret.generateResponseHeader();
         LOG.error("The file is not here : " + e.getMessage(), e);
       }
     } else {
