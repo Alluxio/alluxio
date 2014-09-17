@@ -33,8 +33,8 @@ public final class Utils {
   public static Path getHDFSPath(String path) {
     path = getTachyonFileName(path);
 
-    String mid = Constants.PATH_SEPARATOR;
-    if (path.startsWith(Constants.PATH_SEPARATOR)) {
+    String mid = TachyonURI.SEPARATOR;
+    if (path.startsWith(TachyonURI.SEPARATOR)) {
       mid = "";
     }
 
@@ -42,7 +42,7 @@ public final class Utils {
   }
 
   public static Path getHDFSPath(TachyonURI path) {
-    if (path.isAbsolute()) {
+    if (path.isPathAbsolute()) {
       return new Path(TFS.mUnderFSAddress + path.getPath());
     } else {
       return new Path(TFS.mUnderFSAddress + TachyonURI.SEPARATOR + path.getPath());
@@ -55,7 +55,7 @@ public final class Utils {
 
   public static String getTachyonFileName(String path) {
     if (path.isEmpty()) {
-      return Constants.PATH_SEPARATOR;
+      return TachyonURI.SEPARATOR;
     }
 
     while (path.contains(":")) {
@@ -63,7 +63,7 @@ public final class Utils {
       path = path.substring(index + 1);
     }
 
-    while (!path.startsWith(Constants.PATH_SEPARATOR)) {
+    while (!path.startsWith(TachyonURI.SEPARATOR)) {
       path = path.substring(1);
     }
 
