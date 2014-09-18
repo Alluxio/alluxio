@@ -4,11 +4,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
-import org.apache.log4j.Logger;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
@@ -30,7 +31,7 @@ import tachyon.worker.nio.NIODataServer;
  * Entry point for a worker daemon.
  */
 public class TachyonWorker implements Runnable {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Create a new TachyonWorker
@@ -234,7 +235,7 @@ public class TachyonWorker implements Runnable {
     while (!mStop) {
       long diff = System.currentTimeMillis() - lastHeartbeatMs;
       if (diff < WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS) {
-        LOG.debug("Heartbeat process takes " + diff + " ms.");
+        LOG.debug("Heartbeat process takes {} ms.", diff);
         CommonUtils.sleepMs(LOG, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS - diff);
       } else {
         LOG.error("Heartbeat process takes " + diff + " ms.");
@@ -267,7 +268,7 @@ public class TachyonWorker implements Runnable {
             LOG.error("Unknown command: " + cmd);
             break;
           case Nothing:
-            LOG.debug("Nothing command: " + cmd);
+            LOG.debug("Nothing command: {}", cmd);
             break;
           case Register:
             LOG.info("Register command: " + cmd);

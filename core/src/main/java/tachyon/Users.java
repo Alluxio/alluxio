@@ -9,7 +9,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
@@ -23,7 +24,7 @@ public class Users {
   public static final int sDATASERVER_USER_ID = -1;
   public static final int sCHECKPOINT_USER_ID = -2;
 
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** User's temporary data folder in the worker **/
   private final String mUserFolder;
@@ -139,7 +140,7 @@ public class Users {
       try {
         UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
       } catch (IOException e) {
-        LOG.error(e);
+        LOG.warn(e.getMessage(), e);
       }
     }
 
