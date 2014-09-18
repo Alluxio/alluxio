@@ -1,5 +1,6 @@
 package tachyon.client;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -75,5 +76,15 @@ final class Blocks {
         }
       }
     }
+  }
+
+  public static boolean existsLocally(TachyonFile file, int blockIndex) throws IOException {
+    File localFolder = file.mTachyonFS.createAndGetUserLocalTempFolder();
+    if (localFolder == null) {
+      throw new IOException("Failed to create temp user folder for tachyon client.");
+    }
+
+    File localFile = new File(localFolder, new Long(file.getBlockId(blockIndex)).toString());
+    return localFile.exists();
   }
 }
