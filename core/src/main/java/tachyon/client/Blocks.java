@@ -4,16 +4,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-import org.apache.log4j.Logger;
-
-import tachyon.Constants;
 import tachyon.conf.UserConf;
 
 /**
  * Utility class for working with Blocks.
  */
 final class Blocks {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Default client side buffer.

@@ -7,7 +7,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.io.Closer;
 
@@ -18,7 +19,7 @@ import tachyon.util.CommonUtils;
  * Writes all {@link #write(java.nio.ByteBuffer)} directly to the file system.
  */
 final class LocalWritableBlockChannel implements WritableBlockChannel {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Closer mCloser = Closer.create();
   private final TachyonFS mTachyonFS;
@@ -40,14 +41,14 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
     // old behavior allowed new block streams to be created even if the file exists
     // in order to fix this behavior, FileInStream.seek needs to be rethought about
     // since that tells the worker "block is good!" even though in some cases
-    // it won't be.  In order to move forward with remote write, leaving this behavior
+    // it won't be. In order to move forward with remote write, leaving this behavior
     // unchanged and expecting a different PR will fix this behavior.
     // Sorry future self!
 
-    //TODO reject blocks that exists locally in both temp and data dir
-//    if (mLocalFile.exists()) {
-//      throw new IOException("Block exists; unable to write new block");
-//    }
+    // TODO reject blocks that exists locally in both temp and data dir
+    // if (mLocalFile.exists()) {
+    // throw new IOException("Block exists; unable to write new block");
+    // }
 
     // RandomAccessFile will create the file, so must be before check permissions
     RandomAccessFile localFile = mCloser.register(new RandomAccessFile(mLocalFile, "rw"));
@@ -55,7 +56,7 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
     checkPermission();
 
     mLocalFileChannel = mCloser.register(localFile.getChannel());
-    LOG.info(mLocalFile + " was created!");
+    LOG.info("{} was created!", mLocalFile);
   }
 
   private void checkPermission() throws IOException {
@@ -71,7 +72,7 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
 
     mTachyonFS.releaseSpace(mWritten.get());
     mLocalFile.delete();
-    LOG.info("Canceled output of block " + mBlockId + ", deleted local file " + mLocalFile);
+    LOG.info("Canceled output of block {}, deleted local file {}", mBlockId, mLocalFile);
   }
 
   @Override
@@ -90,7 +91,8 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
     }
     int written = src.position();
     ByteBuffer out =
-        mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, mWritten.get(), src.limit() - src.position());
+        mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, mWritten.get(),
+            src.limit() - src.position());
     out.put(src);
 
     written = src.position() - written;
