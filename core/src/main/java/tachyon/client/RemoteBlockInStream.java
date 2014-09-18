@@ -280,7 +280,8 @@ public class RemoteBlockInStream extends BlockInStream {
     if (pos < 0) {
       throw new IOException("Seek position is negative: " + pos);
     } else if (pos > mBlockInfo.length) {
-      throw new IOException("Seek position is past block size: " + pos + ", Block Size = " + mBlockInfo.length);
+      throw new IOException("Seek position is past block size: " + pos + ", Block Size = "
+          + mBlockInfo.length);
     }
     mRecache = false;
     if (mCurrentBuffer != null) {
