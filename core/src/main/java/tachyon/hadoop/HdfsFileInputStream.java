@@ -228,7 +228,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     if (pos == mCurrentPosition) {
       return;
     } else if (pos > mTachyonFile.length()) {
-      throw new IOException( "Seek position is past EOF: " + pos + ", fileSize = " + mTachyonFile.length());
+      throw new IOException("Seek position is past EOF: " + pos + ", fileSize = "
+          + mTachyonFile.length());
     }
 
     if (mTachyonFileInputStream != null) {

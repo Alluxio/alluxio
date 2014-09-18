@@ -74,7 +74,9 @@ public class LocalTachyonCluster {
     return mMaster.getMasterInfo();
   }
 
-  public String getMasterUri() { return mMaster.getUri(); }
+  public String getMasterUri() {
+    return mMaster.getUri();
+  }
 
   public int getMasterPort() {
     return mMaster.getMetaPort();

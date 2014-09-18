@@ -1,19 +1,16 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 package tachyon.hadoop.fs;
 
@@ -31,8 +28,8 @@ import org.apache.hadoop.mapred.Reporter;
 /**
  * Reducer that accumulates values based on their type.
  * <p>
- * The type is specified in the key part of the key-value pair 
- * as a prefix to the key in the following way
+ * The type is specified in the key part of the key-value pair as a prefix to the key in the
+ * following way
  * <p>
  * <tt>type:key</tt>
  * <p>
@@ -45,29 +42,25 @@ import org.apache.hadoop.mapred.Reporter;
  * 
  */
 @SuppressWarnings("deprecation")
-public class AccumulatingReducer extends MapReduceBase
-    implements Reducer<Text, Text, Text, Text> {
+public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, Text, Text, Text> {
   static final String VALUE_TYPE_LONG = "l:";
   static final String VALUE_TYPE_FLOAT = "f:";
   static final String VALUE_TYPE_STRING = "s:";
   private static final Log LOG = LogFactory.getLog(AccumulatingReducer.class);
-  
+
   protected String hostName;
-  
-  public AccumulatingReducer () {
+
+  public AccumulatingReducer() {
     try {
       hostName = java.net.InetAddress.getLocalHost().getHostName();
-    } catch(Exception e) {
+    } catch (Exception e) {
       hostName = "localhost";
     }
     LOG.info("Starting AccumulatingReducer on " + hostName);
   }
-  
-  public void reduce(Text key,
-                     Iterator<Text> values,
-                     OutputCollector<Text, Text> output,
-                     Reporter reporter
-                     ) throws IOException {
+
+  public void reduce(Text key, Iterator<Text> values, OutputCollector<Text, Text> output,
+      Reporter reporter) throws IOException {
     String field = key.toString();
 
     reporter.setStatus("starting " + field + " ::host = " + hostName);
