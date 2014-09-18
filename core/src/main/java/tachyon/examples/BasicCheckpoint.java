@@ -24,7 +24,7 @@ import tachyon.util.CommonUtils;
  * An example to show to how use Tachyon's API
  */
 public class BasicCheckpoint {
-  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static TachyonFS sTachyonClient;
   private static String sFileFolder = null;

@@ -76,6 +76,19 @@ leverage the Scala shell, as discussed in this
        [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
        or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in IntelliJ
        IDEA
+-   Tachyon is using SLF4J for logging with typical usage pattern of:
+
+        import org.slf4j.Logger;
+        import org.slf4j.LoggerFactory;
+        
+        public MyClass {    
+        
+          private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+        
+          public void someMethod() { 
+            LOG.info("Hello world");
+          }
+        }       
 
 ### FindBugs
 
