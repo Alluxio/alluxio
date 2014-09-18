@@ -56,29 +56,22 @@ public class EditLog {
     LOG.info("currentLogNum passed in was " + currentLogFileNum);
     int completedLogs = currentLogFileNum;
     mBackUpLogStartNum = currentLogFileNum;
-    int numFiles = 1;
     String completedPath =
         path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
     if (!ufs.exists(completedPath)) {
       LOG.info("No completed edit logs to be parsed");
     } else {
-      while (ufs.exists(CommonUtils.concat(completedPath, (completedLogs ++) + ".editLog"))) {
-        numFiles ++;
+      String curEditLogFile = CommonUtils.concat(completedPath, completedLogs + ".editLog");
+      while (ufs.exists(curEditLogFile)) {
+        LOG.info("Loading Edit Log " + curEditLogFile);
+        loadSingleLog(info, curEditLogFile);
+        completedLogs ++;
+        curEditLogFile = CommonUtils.concat(completedPath, completedLogs + ".editLog");
       }
     }
-    String editLogs[] = new String[numFiles];
-    for (int i = 0; i < numFiles; i ++) {
-      if (i != numFiles - 1) {
-        editLogs[i] = CommonUtils.concat(completedPath, (i + currentLogFileNum) + ".editLog");
-      } else {
-        editLogs[i] = path;
-      }
-    }
+    LOG.info("Loading Edit Log " + path);
+    loadSingleLog(info, path);
 
-    for (String currentPath : editLogs) {
-      LOG.info("Loading Edit Log " + currentPath);
-      loadSingleLog(info, currentPath);
-    }
     ufs.close();
     return mCurrentTId;
   }
