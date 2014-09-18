@@ -10,8 +10,9 @@ import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
-import org.apache.log4j.Logger;
 import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
@@ -22,7 +23,7 @@ import tachyon.thrift.NetAddress;
  * Common network utilities shared by all components in Tachyon.
  */
 public final class NetworkUtils {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private NetworkUtils() {}
 
@@ -33,7 +34,7 @@ public final class NetworkUtils {
     try {
       return InetAddress.getByName(getLocalIpAddress()).getCanonicalHostName();
     } catch (UnknownHostException e) {
-      LOG.error(e);
+      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
@@ -44,10 +45,8 @@ public final class NetworkUtils {
   public static String getLocalIpAddress() {
     try {
       InetAddress address = InetAddress.getLocalHost();
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("address " + address.toString() + " " + address.isLoopbackAddress() + " "
-            + address.getHostAddress() + " " + address.getHostName());
-      }
+      LOG.debug("address: {} isLoopbackAddress: {}, with host {} {}", address,
+          address.isLoopbackAddress(), address.getHostAddress(), address.getHostName());
       if (address.isLoopbackAddress()) {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
         while (networkInterfaces.hasMoreElements()) {
@@ -70,7 +69,7 @@ public final class NetworkUtils {
 
       return address.getHostAddress();
     } catch (IOException e) {
-      LOG.error(e);
+      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }

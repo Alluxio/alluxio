@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.Version;
@@ -17,7 +18,7 @@ import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 
 public class BasicRawTableOperations {
-  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final int COLS = 3;
   private static TachyonFS sTachyonClient;

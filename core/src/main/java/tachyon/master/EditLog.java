@@ -8,7 +8,8 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -32,7 +33,7 @@ import tachyon.util.CommonUtils;
  * Master operation journal.
  */
 public class EditLog {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static int mBackUpLogStartNum = -1;
   private static long mCurrentTId = 0;
@@ -99,7 +100,7 @@ public class EditLog {
       EditLogOperation op;
       try {
         op = parser.readValueAs(EditLogOperation.class);
-        LOG.debug("Read operation: " + op);
+        LOG.debug("Read operation: {}", op);
       } catch (IOException e) {
         // Unfortunately brittle, but Jackson rethrows EOF with this message.
         if (e.getMessage().contains("end-of-input")) {
