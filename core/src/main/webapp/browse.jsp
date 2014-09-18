@@ -146,10 +146,17 @@
             <% } %>
           </tbody>
         </table>
+
+        <%@ include file="pagination-component.jsp" %>
+
       </div>
     </div>
   </div>
   <%@ include file="footer.jsp" %>
 </div>
+
+<%@ include file="browse-pagination-header.jsp" %>
+<%@ include file="pagination-control.jsp" %>
+
 </body>
 </html>
