@@ -17,13 +17,10 @@ public interface EvictStrategy {
 
   /**
    * Get StorageDir allocated and also get blocks to be evicted among StorageDir candidates
-   * 
-   * @param storageDirs
-   *          StorageDir candidates that the space will be allocated in
-   * @param pinList
-   *          list of pinned file
-   * @param requestSize
-   *          size to request
+   *
+   * @param storageDirs StorageDir candidates that the space will be allocated in
+   * @param pinList list of pinned file
+   * @param requestSize size to request
    * @return Pair of StorageDir allocated and blockInfoList which contains information of blocks to
    *         be evicted, null if no allocated directory is found
    */

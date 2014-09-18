@@ -22,11 +22,9 @@ public abstract class EvictLRUBase implements EvictStrategy {
 
   /**
    * Check if current block can be evicted
-   * 
-   * @param blockId
-   *          id of the block
-   * @param pinList
-   *          list of pinned files
+   *
+   * @param blockId id of the block
+   * @param pinList list of pinned files
    * @return true if the block can be evicted, false otherwise
    */
   boolean blockEvictable(long blockId, Set<Integer> pinList) {
@@ -38,13 +36,10 @@ public abstract class EvictLRUBase implements EvictStrategy {
 
   /**
    * Get the oldest block access information in certain StorageDir
-   * 
-   * @param curDir
-   *          current StorageDir
-   * @param toEvictBlockIds
-   *          block ids that have been selected to be evicted
-   * @param pinList
-   *          list of pinned files
+   *
+   * @param curDir current StorageDir
+   * @param toEvictBlockIds block ids that have been selected to be evicted
+   * @param pinList list of pinned files
    * @return oldest access information of current StorageDir
    */
   Pair<Long, Long> getLRUBlock(StorageDir curDir, Collection<Long> toEvictBlockIds,

@@ -16,7 +16,7 @@ public final class BlockInfo {
 
   /**
    * Get id of the block
-   * 
+   *
    * @return id of the block
    */
   public long getBlockId() {
@@ -25,7 +25,7 @@ public final class BlockInfo {
 
   /**
    * Get size of the block
-   * 
+   *
    * @return size of the block
    */
   public long getBlockSize() {
@@ -33,9 +33,9 @@ public final class BlockInfo {
   }
 
   /**
-   * Get the storage dir which contains the block
-   * 
-   * @return index of the storage dir
+   * Get the StorageDir which contains the block
+   *
+   * @return index of the StorageDir
    */
   public StorageDir getStorageDir() {
     return mDir;
