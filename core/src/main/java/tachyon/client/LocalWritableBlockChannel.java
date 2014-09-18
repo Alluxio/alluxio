@@ -37,9 +37,18 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
     }
 
     mLocalFile = new File(localFolder, new Long(blockId).toString());
-    if (mLocalFile.exists()) {
-      throw new IOException("Block exists; unable to write new block");
-    }
+    // old behavior allowed new block streams to be created even if the file exists
+    // in order to fix this behavior, FileInStream.seek needs to be rethought about
+    // since that tells the worker "block is good!" even though in some cases
+    // it won't be.  In order to move forward with remote write, leaving this behavior
+    // unchanged and expecting a different PR will fix this behavior.
+    // Sorry future self!
+
+    //TODO reject blocks that exists locally in both temp and data dir
+//    if (mLocalFile.exists()) {
+//      throw new IOException("Block exists; unable to write new block");
+//    }
+
     // RandomAccessFile will create the file, so must be before check permissions
     RandomAccessFile localFile = mCloser.register(new RandomAccessFile(mLocalFile, "rw"));
     // change the permission of the temporary file in order that the worker can move it.

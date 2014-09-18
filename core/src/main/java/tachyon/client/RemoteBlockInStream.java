@@ -102,7 +102,7 @@ public class RemoteBlockInStream extends BlockInStream {
       throw new IOException("File " + mFile.getPath() + " is not ready to read");
     }
 
-    mRecache = readType.isCache() && ! Blocks.existsLocally(file, blockIndex);
+    mRecache = readType.isCache();
     if (mRecache) {
       mBlockOutStream = Blocks.createWritableBlock(file, blockIndex);
     }
