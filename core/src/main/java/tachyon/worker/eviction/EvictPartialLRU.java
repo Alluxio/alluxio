@@ -19,7 +19,7 @@ public final class EvictPartialLRU extends EvictLRUBase {
   }
 
   @Override
-  public Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
+  public synchronized Pair<StorageDir, List<BlockInfo>> getDirCandidate(StorageDir[] storageDirs,
       Set<Integer> pinList, long requestSize) {
     List<BlockInfo> blockInfoList = new ArrayList<BlockInfo>();
     Set<StorageDir> ignoredDirs = new HashSet<StorageDir>();
@@ -52,13 +52,10 @@ public final class EvictPartialLRU extends EvictLRUBase {
 
   /**
    * Get the StorageDir which has max free space
-   * 
-   * @param requestSize
-   *          space size to request
-   * @param storageDirs
-   *          StorageDir candidates that the space will be allocated in
-   * @param ignoredList
-   *          StorageDirs that have been ignored
+   *
+   * @param requestSize space size to request
+   * @param storageDirs StorageDir candidates that the space will be allocated in
+   * @param ignoredList StorageDirs that have been ignored
    * @return the StorageDir selected
    */
   private StorageDir getDirWithMaxFreeSpace(long requestSize, StorageDir[] storageDirs,
