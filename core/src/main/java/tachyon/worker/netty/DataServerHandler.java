@@ -9,7 +9,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.io.Closeables;
 
@@ -24,7 +25,7 @@ import tachyon.worker.BlocksLocker;
  */
 @ChannelHandler.Sharable
 public final class DataServerHandler extends ChannelInboundHandlerAdapter {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final BlocksLocker mLocker;
 

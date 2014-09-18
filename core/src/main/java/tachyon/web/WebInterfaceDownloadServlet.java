@@ -8,7 +8,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.io.ByteStreams;
 
@@ -29,7 +30,7 @@ import tachyon.thrift.InvalidPathException;
 public class WebInterfaceDownloadServlet extends HttpServlet {
   private static final long serialVersionUID = 7329267100965731815L;
 
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private MasterInfo mMasterInfo;
 
