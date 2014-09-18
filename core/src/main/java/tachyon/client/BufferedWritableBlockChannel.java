@@ -2,8 +2,11 @@ package tachyon.client;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
+/**
+ * Buffers {@link #write(java.nio.ByteBuffer)} requests until {@code bufferSize} is reached. When
+ * {@link #close()} is called, the remaining buffer will be flushed to the underline channel.
+ */
 final class BufferedWritableBlockChannel extends ForwardingWritableBlockChannel {
   private final ByteBuffer buffer;
 
