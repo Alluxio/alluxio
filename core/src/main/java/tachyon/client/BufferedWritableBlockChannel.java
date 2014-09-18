@@ -35,9 +35,12 @@ final class BufferedWritableBlockChannel extends ForwardingWritableBlockChannel 
   }
 
   private void flush() throws IOException {
-    buffer.flip();
-    delegate().write(buffer);
-    buffer.clear();
+    if (buffer.position() != 0) {
+      // empty, so ignore
+      buffer.flip();
+      delegate().write(buffer);
+      buffer.clear();
+    }
   }
 
   @Override

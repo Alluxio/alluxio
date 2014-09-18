@@ -61,7 +61,6 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
     free();
 
     mTachyonFS.releaseSpace(mWritten.get());
-    checkPermission();
     mLocalFile.delete();
     LOG.info("Canceled output of block " + mBlockId + ", deleted local file " + mLocalFile);
   }
@@ -80,14 +79,16 @@ final class LocalWritableBlockChannel implements WritableBlockChannel {
 
       throw new IOException(msg);
     }
-    // TODO Unify BlockHandler
+    int written = src.position();
     ByteBuffer out =
-        mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, mWritten.get(), src.limit());
+        mLocalFileChannel.map(FileChannel.MapMode.READ_WRITE, mWritten.get(), src.limit() - src.position());
     out.put(src);
 
-    mWritten.addAndGet(src.limit());
+    written = src.position() - written;
 
-    return src.limit();
+    mWritten.getAndAdd(written);
+
+    return written;
   }
 
   @Override
