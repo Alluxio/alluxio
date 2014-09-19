@@ -3,7 +3,6 @@ package tachyon.worker.eviction;
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 
 import tachyon.Pair;
 import tachyon.master.BlockInfo;
@@ -22,8 +21,8 @@ public abstract class EvictLRUBase implements EvictStrategy {
 
   /**
    * Check if current block can be evicted
-   *
-   * @param blockId id of the block
+   * 
+   * @param blockId Id of the block
    * @param pinList list of pinned files
    * @return true if the block can be evicted, false otherwise
    */
@@ -35,20 +34,20 @@ public abstract class EvictLRUBase implements EvictStrategy {
   }
 
   /**
-   * Get the oldest block access information in certain StorageDir
-   *
+   * Get the oldest access information of certain StorageDir
+   * 
    * @param curDir current StorageDir
-   * @param toEvictBlockIds block ids that have been selected to be evicted
+   * @param toEvictBlockIds Ids of blocks that have been selected to be evicted
    * @param pinList list of pinned files
-   * @return oldest access information of current StorageDir
+   * @return the oldest access information of current StorageDir
    */
   Pair<Long, Long> getLRUBlock(StorageDir curDir, Collection<Long> toEvictBlockIds,
       Set<Integer> pinList) {
     long blockId = -1;
     long oldestTime = Long.MAX_VALUE;
-    ConcurrentMap<Long, Long> accessTimes = curDir.getLastBlockAccessTime();
+    Set<Entry<Long, Long>> accessTimes = curDir.getLastBlockAccessTime();
 
-    for (Entry<Long, Long> accessTime : accessTimes.entrySet()) {
+    for (Entry<Long, Long> accessTime : accessTimes) {
       if (toEvictBlockIds.contains(accessTime.getKey())) {
         continue;
       }
