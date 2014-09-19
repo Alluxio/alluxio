@@ -30,6 +30,7 @@ public final class Utils {
     }
   }
 
+  @Deprecated
   public static Path getHDFSPath(String path) {
     path = getTachyonFileName(path);
 
@@ -53,6 +54,7 @@ public final class Utils {
     return path.toUri().getPath();
   }
 
+  @Deprecated
   public static String getTachyonFileName(String path) {
     if (path.isEmpty()) {
       return TachyonURI.SEPARATOR;

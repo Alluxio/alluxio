@@ -85,6 +85,7 @@ public abstract class UnderFileSystem {
    *         relative to that address. For local FS (with prefixes file:// or /), the under FS
    *         address is "/" and the path starts with "/".
    */
+  @Deprecated
   public static Pair<String, String> parse(String path) {
     if (path == null) {
       return null;
