@@ -16,8 +16,7 @@ abstract class BlockHandler implements Closeable {
   /**
    * Create a block handler according to path scheme
    * 
-   * @param path
-   *          block file path
+   * @param path block file path
    * @return block handler of the block file
    * @throws IOException
    * @throws IllegalArgumentException
@@ -32,14 +31,10 @@ abstract class BlockHandler implements Closeable {
   /**
    * Append data to block file from byte array
    * 
-   * @param blockOffset
-   *          starting position of the block file
-   * @param buf
-   *          buffer that data is stored in
-   * @param offset
-   *          offset of the buf
-   * @param length
-   *          length of the data
+   * @param blockOffset starting position of the block file
+   * @param buf buffer that data is stored in
+   * @param offset offset of the buf
+   * @param length length of the data
    * @return size of data that is written
    * @throws IOException
    */
@@ -50,10 +45,8 @@ abstract class BlockHandler implements Closeable {
   /**
    * Append data to block file from ByteBuffer
    * 
-   * @param blockOffset
-   *          starting position of the block file
-   * @param srcBuf
-   *          ByteBuffer that data is stored in
+   * @param blockOffset starting position of the block file
+   * @param srcBuf ByteBuffer that data is stored in
    * @return size of data that is written
    * @throws IOException
    */
@@ -70,10 +63,8 @@ abstract class BlockHandler implements Closeable {
   /**
    * Read data from block file
    * 
-   * @param blockOffset
-   *          offset from starting of the block file
-   * @param length
-   *          length of data to read, -1 represents reading the rest of the block file
+   * @param blockOffset offset from starting of the block file
+   * @param length length of data to read, -1 represents reading the rest of the block file
    * @return ByteBuffer storing data that is read
    * @throws IOException
    */

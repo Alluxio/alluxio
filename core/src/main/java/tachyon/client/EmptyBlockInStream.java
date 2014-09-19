@@ -7,18 +7,15 @@ import java.io.IOException;
  */
 public class EmptyBlockInStream extends InStream {
   /**
-   * @param file
-   *          the file the block belongs to
-   * @param readType
-   *          the InStream's read type
+   * @param file the file the block belongs to
+   * @param readType the InStream's read type
    */
   EmptyBlockInStream(TachyonFile file, ReadType readType) {
     super(file, readType);
   }
 
   @Override
-  public void close() throws IOException {
-  }
+  public void close() throws IOException {}
 
   @Override
   public int read() throws IOException {

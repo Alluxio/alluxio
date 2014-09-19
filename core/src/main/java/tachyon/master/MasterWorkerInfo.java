@@ -135,11 +135,9 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes a block from the worker
-   *
-   * @param add
-   *          true if to add, to remove otherwise.
-   * @param blockId
-   *          the ID of the block to be added or removed
+   * 
+   * @param add true if to add, to remove otherwise.
+   * @param blockId the ID of the block to be added or removed
    */
   public synchronized void updateBlock(boolean add, long blockId) {
     if (add) {
@@ -151,11 +149,9 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes blocks from the worker
-   *
-   * @param add
-   *          true if to add, to remove otherwise.
-   * @param blockIds
-   *          IDs of the blocks to be added or removed
+   * 
+   * @param add true if to add, to remove otherwise.
+   * @param blockIds IDs of the blocks to be added or removed
    */
   public synchronized void updateBlocks(boolean add, Collection<Long> blockIds) {
     if (add) {
@@ -174,11 +170,9 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes a block from the to-be-removed blocks set of the worker.
-   *
-   * @param add
-   *          true if to add, to remove otherwise.
-   * @param blockId
-   *          the ID of the block to be added or removed
+   * 
+   * @param add true if to add, to remove otherwise.
+   * @param blockId the ID of the block to be added or removed
    */
   public synchronized void updateToRemovedBlock(boolean add, long blockId) {
     if (add) {
@@ -192,11 +186,9 @@ public class MasterWorkerInfo {
 
   /**
    * Adds or removes blocks from the to-be-removed blocks set of the worker.
-   *
-   * @param add
-   *          true if to add, to remove otherwise.
-   * @param blockIds
-   *          IDs of blocks to be added or removed
+   * 
+   * @param add true if to add, to remove otherwise.
+   * @param blockIds IDs of blocks to be added or removed
    */
   public synchronized void updateToRemovedBlocks(boolean add, Collection<Long> blockIds) {
     for (long blockId : blockIds) {
@@ -206,9 +198,8 @@ public class MasterWorkerInfo {
 
   /**
    * Set the used space of the worker in bytes.
-   *
-   * @param usedBytes
-   *          the used space in bytes
+   * 
+   * @param usedBytes the used space in bytes
    */
   public synchronized void updateUsedBytes(long usedBytes) {
     mUsedBytes = usedBytes;

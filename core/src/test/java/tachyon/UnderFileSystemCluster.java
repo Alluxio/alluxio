@@ -112,8 +112,8 @@ public abstract class UnderFileSystemCluster {
   public abstract boolean isStarted();
 
   /**
-   * Add a shutdown hook. The {@link #shutdown} phase will be automatically
-   * called while the process exists.
+   * Add a shutdown hook. The {@link #shutdown} phase will be automatically called while the process
+   * exists.
    * 
    * @throws InterruptedException
    */

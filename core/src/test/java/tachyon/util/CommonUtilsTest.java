@@ -107,8 +107,8 @@ public class CommonUtilsTest {
   @Test
   public void convertToClockTimeWithOneHour10Minutes45Seconds() {
     String out =
-        CommonUtils.convertMsToClockTime(TimeUnit.HOURS.toMillis(1)
-            + TimeUnit.MINUTES.toMillis(10) + TimeUnit.SECONDS.toMillis(45));
+        CommonUtils.convertMsToClockTime(TimeUnit.HOURS.toMillis(1) + TimeUnit.MINUTES.toMillis(10)
+            + TimeUnit.SECONDS.toMillis(45));
     Assert.assertEquals("0 day(s), 1 hour(s), 10 minute(s), and 45 second(s)", out);
   }
 

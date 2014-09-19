@@ -3,6 +3,7 @@ package tachyon.command;
 import java.io.IOException;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.conf.CommonConf;
 import tachyon.util.CommonUtils;
 
@@ -14,8 +15,7 @@ public class Utils {
    * Removes Constants.HEADER / Constants.HEADER_FT and hostname:port information from a path,
    * leaving only the local file path.
    * 
-   * @param path
-   *          The path to obtain the local path from
+   * @param path The path to obtain the local path from
    * @return The local path in string format
    * @throws IOException
    */
@@ -26,7 +26,7 @@ public class Utils {
     } else if (path.startsWith(Constants.HEADER_FT)) {
       path = path.substring(Constants.HEADER_FT.length());
     }
-    String ret = path.substring(path.indexOf(Constants.PATH_SEPARATOR));
+    String ret = path.substring(path.indexOf(TachyonURI.SEPARATOR));
     return ret;
   }
 
@@ -34,13 +34,11 @@ public class Utils {
    * Validates the path, verifying that it contains the <code>Constants.HEADER </code> or
    * <code>Constants.HEADER_FT</code> and a hostname:port specified.
    * 
-   * @param path
-   *          The path to be verified.
+   * @param path The path to be verified.
    * @return the verified path in a form like tachyon://host:port/dir. If only the "/dir" or "dir"
    *         part is provided, the host and port are retrieved from property,
    *         tachyon.master.hostname and tachyon.master.port, respectively.
-   * @throws IOException
-   *           if the given path is not valid.
+   * @throws IOException if the given path is not valid.
    */
   public static String validatePath(String path) throws IOException {
     if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)) {

@@ -25,8 +25,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public void close() throws IOException {
-  }
+  public void close() throws IOException {}
 
   @Override
   public OutputStream create(String path) throws IOException {
@@ -165,8 +164,7 @@ public class UnderFileSystemSingleLocal extends UnderFileSystem {
   }
 
   @Override
-  public void setConf(Object conf) {
-  }
+  public void setConf(Object conf) {}
 
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {

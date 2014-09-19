@@ -7,7 +7,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 
@@ -15,18 +16,16 @@ import tachyon.Constants;
  * The recompute command class. Used to execute the recomputation.
  */
 public class RecomputeCommand implements Runnable {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final String mCommand;
   private final String mFilePath;
 
   /**
    * Create a new RecomputeCommand.
-   *
-   * @param cmd
-   *          The command to execute
-   * @param filePath
-   *          The path of the output file, which records the output of the recompute process.
+   * 
+   * @param cmd The command to execute
+   * @param filePath The path of the output file, which records the output of the recompute process.
    */
   public RecomputeCommand(String cmd, String filePath) {
     mCommand = cmd;

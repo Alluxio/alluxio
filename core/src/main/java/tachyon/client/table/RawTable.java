@@ -10,8 +10,8 @@ import tachyon.thrift.ClientRawTableInfo;
 import tachyon.util.CommonUtils;
 
 /**
- * Tachyon provides native support for tables with multiple columns. Each table contains one or
- * more columns. Each columns contains one or more ordered files.
+ * Tachyon provides native support for tables with multiple columns. Each table contains one or more
+ * columns. Each columns contains one or more ordered files.
  */
 public class RawTable {
   private final TachyonFS mTachyonFS;
@@ -64,13 +64,11 @@ public class RawTable {
   /**
    * Get one column of the raw table
    * 
-   * @param columnIndex
-   *          the index of the column
+   * @param columnIndex the index of the column
    * @return the RawColumn
    */
   public RawColumn getRawColumn(int columnIndex) {
-    Preconditions.checkArgument(
-        columnIndex >= 0 && columnIndex < mClientRawTableInfo.getColumns(),
+    Preconditions.checkArgument(columnIndex >= 0 && columnIndex < mClientRawTableInfo.getColumns(),
         mClientRawTableInfo.getPath() + " does not have column " + columnIndex + ". It has "
             + mClientRawTableInfo.getColumns() + " columns.");
 
@@ -80,8 +78,7 @@ public class RawTable {
   /**
    * Update the meta data of the raw table
    * 
-   * @param metadata
-   *          the new meta data
+   * @param metadata the new meta data
    * @throws IOException
    */
   public void updateMetadata(ByteBuffer metadata) throws IOException {

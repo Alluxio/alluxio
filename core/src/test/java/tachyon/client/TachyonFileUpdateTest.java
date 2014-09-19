@@ -84,8 +84,8 @@ public final class TachyonFileUpdateTest {
   }
 
   /**
-   * Runs the tests against the writer. The test verifies that a IOException is returned
-   * when {@link Write#apply(TachyonFile, WriteType, int)} is called more than once.
+   * Runs the tests against the writer. The test verifies that a IOException is returned when
+   * {@link Write#apply(TachyonFile, WriteType, int)} is called more than once.
    */
   private void run(Write writer) throws IOException {
     // runs against all write types

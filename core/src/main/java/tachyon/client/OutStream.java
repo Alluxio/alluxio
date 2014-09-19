@@ -7,8 +7,8 @@ import tachyon.conf.UserConf;
 
 /**
  * <code>OutStream</code> is the base output stream class for TachyonFile streaming output methods.
- * It can only be gotten by calling the methods in <code>tachyon.client.TachyonFile</code>, but
- * can not be initialized by the client code.
+ * It can only be gotten by calling the methods in <code>tachyon.client.TachyonFile</code>, but can
+ * not be initialized by the client code.
  */
 public abstract class OutStream extends OutputStream {
   protected final UserConf mUserConf = UserConf.get();
@@ -17,10 +17,8 @@ public abstract class OutStream extends OutputStream {
   protected final WriteType mWriteType;
 
   /**
-   * @param file
-   *          the output file of the OutStream
-   * @param writeType
-   *          the OutStream's write type
+   * @param file the output file of the OutStream
+   * @param writeType the OutStream's write type
    */
   OutStream(TachyonFile file, WriteType writeType) {
     mFile = file;

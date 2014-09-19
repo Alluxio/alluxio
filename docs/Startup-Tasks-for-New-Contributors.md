@@ -23,7 +23,7 @@ few things that everyone should do before developing on Tachyon.
 
 6.  Fork the repository, add unit tests or javadoc for one or two files in the
 following list, and then submit a pull request. You are also welcome to address
-issues in our [JIRA](https://spark-project.atlassian.net/browse/TACHYON).
+issues in our [JIRA](https://tachyon.atlassian.net/browse/TACHYON).
 Here are a list of
 [tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner)
 for beginners. For a tutorial, see the GitHub guides on
@@ -76,6 +76,19 @@ leverage the Scala shell, as discussed in this
        [Eclipse Code Formatter](https://github.com/krasa/EclipseCodeFormatter#instructions)
        or use [Eclipse Code Formatter Plugin](http://plugins.jetbrains.com/plugin/6546) in IntelliJ
        IDEA
+-   Tachyon is using SLF4J for logging with typical usage pattern of:
+
+        import org.slf4j.Logger;
+        import org.slf4j.LoggerFactory;
+        
+        public MyClass {    
+        
+          private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+        
+          public void someMethod() { 
+            LOG.info("Hello world");
+          }
+        }       
 
 ### FindBugs
 

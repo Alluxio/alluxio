@@ -11,8 +11,7 @@ public abstract class ByteBufferWriter {
   /**
    * Get most efficient ByteBufferWriter for the ByteBuffer.
    * 
-   * @param buf
-   *          the ByteBuffer to write.
+   * @param buf the ByteBuffer to write.
    * @return The most efficient ByteBufferWriter for buf.
    * @throws IOException
    */
@@ -47,8 +46,7 @@ public abstract class ByteBufferWriter {
    * Writes the given byte into this buffer at the current position, and then increments the
    * position.
    * 
-   * @param b
-   *          The byte to be written
+   * @param b The byte to be written
    */
   public abstract void put(Byte b);
 

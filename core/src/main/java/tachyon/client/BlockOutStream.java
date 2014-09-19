@@ -8,7 +8,8 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
@@ -17,7 +18,7 @@ import tachyon.util.CommonUtils;
  * <code>BlockOutStream</code> implementation of TachyonFile. This class is not client facing.
  */
 public class BlockOutStream extends OutStream {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final int mBlockIndex;
   private final long mBlockCapacityByte;
@@ -39,12 +40,9 @@ public class BlockOutStream extends OutStream {
   private boolean mCancel = false;
 
   /**
-   * @param file
-   *          the file the block belongs to
-   * @param opType
-   *          the OutStream's write type
-   * @param blockIndex
-   *          the index of the block in the file
+   * @param file the file the block belongs to
+   * @param opType the OutStream's write type
+   * @param blockIndex the index of the block in the file
    * @throws IOException
    */
   BlockOutStream(TachyonFile file, WriteType opType, int blockIndex) throws IOException {
@@ -93,8 +91,8 @@ public class BlockOutStream extends OutStream {
       mCanWrite = false;
 
       String msg =
-          "Local tachyon worker does not have enough " + "space (" + length
-              + ") or no worker for " + mFile.mFileId + " " + mBlockId;
+          "Local tachyon worker does not have enough " + "space (" + length + ") or no worker for "
+              + mFile.mFileId + " " + mBlockId;
 
       throw new IOException(msg);
     }
