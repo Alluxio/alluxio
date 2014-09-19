@@ -13,22 +13,8 @@ public class NetworkUtilsTest {
 
   @Test
   public void replaceHostNameTest() throws UnknownHostException {
-    Assert.assertEquals(NetworkUtils.replaceHostName(""), null);
-    Assert.assertEquals(NetworkUtils.replaceHostName((String) null), null);
-
-    String[] paths =
-        new String[] { "hdfs://localhost:9000/dir", "hdfs://localhost/dir", "hdfs://localhost/",
-            "hdfs://localhost", "file:///dir", "/dir", "anythingElse" };
-
-    for (String path : paths) {
-      Assert.assertEquals(NetworkUtils.replaceHostName(path), path);
-    }
-  }
-
-  @Test
-  public void replaceHostNameTest2() throws UnknownHostException {
     Assert.assertEquals(NetworkUtils.replaceHostName(TachyonURI.EMPTY_URI), TachyonURI.EMPTY_URI);
-    Assert.assertEquals(NetworkUtils.replaceHostName((TachyonURI) null), null);
+    Assert.assertEquals(NetworkUtils.replaceHostName(null), null);
 
     TachyonURI[] paths =
         new TachyonURI[] { new TachyonURI("hdfs://localhost:9000/dir"),

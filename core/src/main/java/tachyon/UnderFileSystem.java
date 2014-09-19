@@ -52,7 +52,7 @@ public abstract class UnderFileSystem {
   public static UnderFileSystem get(String path, Object conf) {
     if (isHadoopUnderFS(path)) {
       return UnderFileSystemHdfs.getClient(path, conf);
-    } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
+    } else if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
       return UnderFileSystemSingleLocal.getClient();
     }
     throw new IllegalArgumentException("Unknown under file system scheme " + path);
@@ -71,41 +71,6 @@ public abstract class UnderFileSystem {
       }
     }
     return false;
-  }
-
-  /**
-   * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir
-   * into a pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
-   * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
-   * 
-   * @param path
-   *          the input path string
-   * @return null if path does not start with tachyon://, tachyon-ft://, hdfs://, s3://, s3n://,
-   *         file://, /. Or a pair of strings denoting the under FS address and the relative path
-   *         relative to that address. For local FS (with prefixes file:// or /), the under FS
-   *         address is "/" and the path starts with "/".
-   */
-  @Deprecated
-  public static Pair<String, String> parse(String path) {
-    if (path == null) {
-      return null;
-    } else if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)
-        || isHadoopUnderFS(path)) {
-      String prefix = path.substring(0, path.indexOf("://") + 3);
-      String body = path.substring(prefix.length());
-      if (body.contains(Constants.PATH_SEPARATOR)) {
-        int ind = body.indexOf(Constants.PATH_SEPARATOR);
-        return new Pair<String, String>(prefix + body.substring(0, ind), body.substring(ind));
-      } else {
-        return new Pair<String, String>(path, Constants.PATH_SEPARATOR);
-      }
-    } else if (path.startsWith("file://") || path.startsWith(Constants.PATH_SEPARATOR)) {
-      String prefix = "file://";
-      String suffix = path.startsWith(prefix) ? path.substring(prefix.length()) : path;
-      return new Pair<String, String>(Constants.PATH_SEPARATOR, suffix);
-    }
-
-    return null;
   }
 
   /**

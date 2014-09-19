@@ -10,11 +10,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.Constants;
-import tachyon.PrefixList;
-import tachyon.TestUtils;
-import tachyon.UnderFileSystem;
-import tachyon.UnderFileSystemCluster;
+import tachyon.*;
 import tachyon.client.TachyonFS;
 import tachyon.master.LocalTachyonCluster;
 
@@ -68,8 +64,8 @@ public class UnderfsUtilsTest {
       CommonUtils.touch(mUnderfsAddress + inclusion + "/1");
     }
 
-    UfsUtils.loadUnderFs(mTfs, Constants.PATH_SEPARATOR, mUnderfsAddress
-        + Constants.PATH_SEPARATOR, new PrefixList("tachyon;exclusions", ";"));
+    UfsUtils.loadUnderFs(mTfs, new TachyonURI(TachyonURI.SEPARATOR), new TachyonURI(mUnderfsAddress
+        + TachyonURI.SEPARATOR), new PrefixList("tachyon;exclusions", ";"));
 
     List<String> paths = null;
     for (String exclusion : exclusions) {
