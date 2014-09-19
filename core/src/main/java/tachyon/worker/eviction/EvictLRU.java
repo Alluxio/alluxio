@@ -55,7 +55,7 @@ public final class EvictLRU extends EvictLRUBase {
         evictionSize = blockSize;
       }
       sizeToEvict.put(dirCandidate, evictionSize);
-      if (evictionSize + dirCandidate.getAvailable() >= requestSize) {
+      if (evictionSize + dirCandidate.getAvailableBytes() >= requestSize) {
         return new Pair<StorageDir, List<BlockInfo>>(dirCandidate, blockInfoList);
       }
     }
@@ -63,12 +63,12 @@ public final class EvictLRU extends EvictLRUBase {
 
   /**
    * Get block to be evicted by choosing the oldest block in StorageDir candidates
-   *
+   * 
    * @param storageDirs StorageDir candidates that the space will be allocated in
-   * @param dir2LRUBlocks oldest access information for each StorageDir
-   * @param dir2BlocksToEvict block ids that have been selected to be evicted
+   * @param dir2LRUBlocks the oldest access information of each StorageDir
+   * @param dir2BlocksToEvict Ids of blocks that have been selected to be evicted
    * @param pinList list of pinned files
-   * @return block to be evicted
+   * @return pair of StorageDir that contains the block to be evicted and Id of the block
    */
   private Pair<StorageDir, Long> getLRUBlockCandidate(StorageDir[] storageDirs,
       Map<StorageDir, Pair<Long, Long>> dir2LRUBlocks,

@@ -27,7 +27,7 @@ public final class EvictPartialLRU extends EvictLRUBase {
     while (dirSelected != null) {
       Set<Long> blockIdSet = new HashSet<Long>();
       long sizeToEvict = 0;
-      while (sizeToEvict + dirSelected.getAvailable() < requestSize) {
+      while (sizeToEvict + dirSelected.getAvailableBytes() < requestSize) {
         Pair<Long, Long> oldestAccess = getLRUBlock(dirSelected, blockIdSet, pinList);
         if (oldestAccess.getFirst() != -1) {
           long blockSize = dirSelected.getBlockSize(oldestAccess.getFirst());
@@ -38,7 +38,7 @@ public final class EvictPartialLRU extends EvictLRUBase {
           break;
         }
       }
-      if (sizeToEvict + dirSelected.getAvailable() < requestSize) {
+      if (sizeToEvict + dirSelected.getAvailableBytes() < requestSize) {
         ignoredDirs.add(dirSelected);
         blockInfoList.clear();
         blockIdSet.clear();
@@ -52,7 +52,7 @@ public final class EvictPartialLRU extends EvictLRUBase {
 
   /**
    * Get the StorageDir which has max free space
-   *
+   * 
    * @param requestSize space size to request
    * @param storageDirs StorageDir candidates that the space will be allocated in
    * @param ignoredList StorageDirs that have been ignored
@@ -66,9 +66,9 @@ public final class EvictPartialLRU extends EvictLRUBase {
       if (ignoredList.contains(dir)) {
         continue;
       }
-      if (dir.getCapacity() >= requestSize && dir.getAvailable() > maxAvailableSize) {
+      if (dir.getCapacityBytes() >= requestSize && dir.getAvailableBytes() > maxAvailableSize) {
         dirSelected = dir;
-        maxAvailableSize = dir.getAvailable();
+        maxAvailableSize = dir.getAvailableBytes();
       }
     }
     return dirSelected;

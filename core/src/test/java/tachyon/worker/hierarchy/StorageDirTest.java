@@ -39,17 +39,17 @@ public class StorageDirTest {
 
     createBlockFile(mSrcDir, blockId, blockSize);
     Assert.assertTrue(mSrcDir.containsBlock(blockId));
-    Assert.assertEquals(mCapacity - blockSize, mSrcDir.getAvailable());
+    Assert.assertEquals(mCapacity - blockSize, mSrcDir.getAvailableBytes());
     Assert.assertEquals(blockSize, mSrcDir.getBlockSize(blockId));
     boolean requestDst = mDstDir.requestSpace(mUserId, blockSize);
     Assert.assertTrue(requestDst);
     mSrcDir.copyBlock(blockId, mDstDir);
     Assert.assertTrue(mDstDir.containsBlock(blockId));
-    Assert.assertEquals(mCapacity - blockSize, mDstDir.getAvailable());
+    Assert.assertEquals(mCapacity - blockSize, mDstDir.getAvailableBytes());
     Assert.assertEquals(blockSize, mDstDir.getBlockSize(blockId));
     mSrcDir.deleteBlock(blockId);
     Assert.assertFalse(mSrcDir.containsBlock(blockId));
-    Assert.assertEquals(mCapacity, mSrcDir.getAvailable());
+    Assert.assertEquals(mCapacity, mSrcDir.getAvailableBytes());
   }
 
   private void createBlockFile(StorageDir dir, long blockId, int blockSize) throws IOException {
@@ -116,9 +116,9 @@ public class StorageDirTest {
     Assert.assertTrue(requestSrc);
     requestSrc = mSrcDir.requestSpace(mUserId, mCapacity / 2 + 1);
     Assert.assertFalse(requestSrc);
-    Assert.assertEquals(mCapacity / 2, mSrcDir.getUsed());
-    Assert.assertEquals(mCapacity / 2, mSrcDir.getAvailable());
+    Assert.assertEquals(mCapacity / 2, mSrcDir.getUsedBytes());
+    Assert.assertEquals(mCapacity / 2, mSrcDir.getAvailableBytes());
     mSrcDir.returnSpace(mUserId, mCapacity / 2);
-    Assert.assertEquals(mCapacity, mSrcDir.getAvailable());
+    Assert.assertEquals(mCapacity, mSrcDir.getAvailableBytes());
   }
 }
