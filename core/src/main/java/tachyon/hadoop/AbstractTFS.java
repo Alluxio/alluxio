@@ -209,19 +209,6 @@ abstract class AbstractTFS extends FileSystem {
     return mTFS.delete(path, recursive);
   }
 
-  @Deprecated
-  private void fromHdfsToTachyon(String path) throws IOException {
-    if (!mTFS.exist(path)) {
-      Path hdfsPath = Utils.getHDFSPath(path);
-      FileSystem fs = hdfsPath.getFileSystem(getConf());
-      if (fs.exists(hdfsPath)) {
-        String ufsAddrPath = CommonUtils.concat(mUnderFSAddress, path);
-        // Set the path as the TFS root path.
-        UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null));
-      }
-    }
-  }
-
   private void fromHdfsToTachyon(TachyonURI path) throws IOException {
     if (!mTFS.exist(path)) {
       Path hdfsPath = Utils.getHDFSPath(path);
@@ -429,7 +416,7 @@ abstract class AbstractTFS extends FileSystem {
   /**
    * When underfs has a schema, then we can use the hdfs underfs code base.
    * <p />
-   * When this check is not done, {@link #fromHdfsToTachyon(String)} is called, which loads
+   * When this check is not done, {@link #fromHdfsToTachyon(TachyonURI)} is called, which loads
    * the default filesystem (hadoop's).  When there is no schema, then it may default to tachyon
    * which causes a recursive loop.
    *

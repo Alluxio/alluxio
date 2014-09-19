@@ -30,18 +30,6 @@ public final class Utils {
     }
   }
 
-  @Deprecated
-  public static Path getHDFSPath(String path) {
-    path = getTachyonFileName(path);
-
-    String mid = TachyonURI.SEPARATOR;
-    if (path.startsWith(TachyonURI.SEPARATOR)) {
-      mid = "";
-    }
-
-    return new Path(TFS.mUnderFSAddress + mid + path);
-  }
-
   public static Path getHDFSPath(TachyonURI path) {
     if (path.isPathAbsolute()) {
       return new Path(TFS.mUnderFSAddress + path.getPath());
@@ -52,24 +40,6 @@ public final class Utils {
 
   public static String getPathWithoutScheme(Path path) {
     return path.toUri().getPath();
-  }
-
-  @Deprecated
-  public static String getTachyonFileName(String path) {
-    if (path.isEmpty()) {
-      return TachyonURI.SEPARATOR;
-    }
-
-    while (path.contains(":")) {
-      int index = path.indexOf(":");
-      path = path.substring(index + 1);
-    }
-
-    while (!path.startsWith(TachyonURI.SEPARATOR)) {
-      path = path.substring(1);
-    }
-
-    return path;
   }
 
   public static String toStringHadoopFileSplit(FileSplit fs) {
