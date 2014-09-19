@@ -20,8 +20,7 @@ public enum DependencyType {
   /**
    * Get the enum value with the given integer value. It will check the legality.
    * 
-   * @param value
-   *          The integer value, 1 or 2, means Wide or Narrow
+   * @param value The integer value, 1 or 2, means Wide or Narrow
    * @return the enum value of DependencyType
    * @throws IOException
    */

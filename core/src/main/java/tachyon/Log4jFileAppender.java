@@ -50,8 +50,7 @@ public class Log4jFileAppender extends FileAppender {
   /**
    * Gets a log file name which includes the logger's host address and the date.
    * 
-   * @param fileName
-   *          The base filename
+   * @param fileName The base filename
    * @return A new filename string
    */
   private String getNewLogFileName(String fileName) {
@@ -82,8 +81,7 @@ public class Log4jFileAppender extends FileAppender {
    * reached the maximum backup index, a percent of backup logs will be deleted, started from the
    * earliest first. Then all rolledover logs will be moved up.
    * 
-   * @param fileName
-   *          The fileName of the new current log.
+   * @param fileName The fileName of the new current log.
    */
   private void rotateLogs(String fileName) {
     if (mCurrentFileBackupIndex == -1) {

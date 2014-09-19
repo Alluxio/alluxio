@@ -5,13 +5,14 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
-import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.HeartbeatThread;
@@ -33,7 +34,7 @@ import tachyon.util.NetworkUtils;
  * Since WorkerService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class WorkerClient implements Closeable {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final MasterClient mMasterClient;
   private static final int CONNECTION_RETRY_TIMES = 5;
 
@@ -59,8 +60,7 @@ public class WorkerClient implements Closeable {
   /**
    * Update the latest block access time on the worker.
    * 
-   * @param blockId
-   *          The id of the block
+   * @param blockId The id of the block
    * @throws IOException
    */
   public synchronized void accessBlock(long blockId) throws IOException {
@@ -78,10 +78,8 @@ public class WorkerClient implements Closeable {
   /**
    * Notify the worker that the checkpoint file of the file has been added.
    * 
-   * @param userId
-   *          The user id of the client who send the notification
-   * @param fileId
-   *          The id of the checkpointed file
+   * @param userId The user id of the client who send the notification
+   * @param fileId The id of the checkpointed file
    * @throws IOException
    */
   public synchronized void addCheckpoint(long userId, int fileId) throws IOException {
@@ -106,8 +104,7 @@ public class WorkerClient implements Closeable {
   /**
    * Notify the worker to checkpoint the file asynchronously.
    * 
-   * @param fid
-   *          The id of the file
+   * @param fid The id of the file
    * @return true if succeed, false otherwise
    * @throws IOException
    */
@@ -127,8 +124,7 @@ public class WorkerClient implements Closeable {
   /**
    * Notify the worker the block is cached.
    * 
-   * @param blockId
-   *          The id of the block
+   * @param blockId The id of the block
    * @throws IOException
    */
   public synchronized void cacheBlock(long blockId) throws IOException {
@@ -308,10 +304,8 @@ public class WorkerClient implements Closeable {
    * Lock the block, therefore, the worker will lock evict the block from the memory untill it is
    * unlocked.
    * 
-   * @param blockId
-   *          The id of the block
-   * @param userId
-   *          The id of the user who wants to lock the block
+   * @param blockId The id of the block
+   * @param userId The id of the user who wants to lock the block
    * @throws IOException
    */
   public synchronized void lockBlock(long blockId, long userId) throws IOException {
@@ -343,10 +337,8 @@ public class WorkerClient implements Closeable {
   /**
    * Request space from the worker's memory
    * 
-   * @param userId
-   *          The id of the user who send the request
-   * @param requestBytes
-   *          The requested space size, in bytes
+   * @param userId The id of the user who send the request
+   * @param requestBytes The requested space size, in bytes
    * @return true if succeed, false otherwise
    * @throws IOException
    */
@@ -364,10 +356,8 @@ public class WorkerClient implements Closeable {
   /**
    * Return the space which has been requested
    * 
-   * @param userId
-   *          The id of the user who wants to return the space
-   * @param returnSpaceBytes
-   *          The returned space size, in bytes
+   * @param userId The id of the user who wants to return the space
+   * @param returnSpaceBytes The returned space size, in bytes
    * @throws IOException
    */
   public synchronized void returnSpace(long userId, long returnSpaceBytes) throws IOException {
@@ -384,10 +374,8 @@ public class WorkerClient implements Closeable {
   /**
    * Unlock the block
    * 
-   * @param blockId
-   *          The id of the block
-   * @param userId
-   *          The id of the user who wants to unlock the block
+   * @param blockId The id of the block
+   * @param userId The id of the user who wants to unlock the block
    * @throws IOException
    */
   public synchronized void unlockBlock(long blockId, long userId) throws IOException {
@@ -404,8 +392,7 @@ public class WorkerClient implements Closeable {
   /**
    * Users' heartbeat to the Worker.
    * 
-   * @param userId
-   *          The id of the user
+   * @param userId The id of the user
    * @throws IOException
    */
   public synchronized void userHeartbeat(long userId) throws IOException {

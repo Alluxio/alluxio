@@ -28,12 +28,9 @@ public class RawTables extends ImageWriter {
   /**
    * Add a raw table. It will check if the raw table is already added.
    * 
-   * @param tableId
-   *          The id of the raw table
-   * @param columns
-   *          The number of columns in the raw table
-   * @param metadata
-   *          The additional metadata of the raw table
+   * @param tableId The id of the raw table
+   * @param columns The number of columns in the raw table
+   * @param metadata The additional metadata of the raw table
    * @return true if success, false otherwise
    * @throws TachyonException
    */
@@ -52,8 +49,7 @@ public class RawTables extends ImageWriter {
   /**
    * Remove a raw table.
    * 
-   * @param tableId
-   *          The id of the raw table
+   * @param tableId The id of the raw table
    * @return true if success, false otherwise
    */
   public synchronized boolean delete(int tableId) {
@@ -64,8 +60,7 @@ public class RawTables extends ImageWriter {
   /**
    * Test if the raw table exist or not.
    * 
-   * @param inodeId
-   *          the raw table id.
+   * @param inodeId the raw table id.
    * @return true if the table exists, false otherwise.
    */
   public synchronized boolean exist(int inodeId) {
@@ -75,8 +70,7 @@ public class RawTables extends ImageWriter {
   /**
    * Get the number of the columns of a raw table.
    * 
-   * @param inodeId
-   *          the inode id of the raw table.
+   * @param inodeId the inode id of the raw table.
    * @return the number of the columns, -1 if the table does not exist.
    */
   public synchronized int getColumns(int tableId) {
@@ -88,8 +82,7 @@ public class RawTables extends ImageWriter {
   /**
    * Get the metadata of the specified raw table. It will return a duplication.
    * 
-   * @param tableId
-   *          The id of the raw table
+   * @param tableId The id of the raw table
    * @return null if it has no metadata, or a duplication of the metadata
    */
   public synchronized ByteBuffer getMetadata(int tableId) {
@@ -109,8 +102,7 @@ public class RawTables extends ImageWriter {
   /**
    * Get the raw table info.
    * 
-   * @param tableId
-   *          the raw table id.
+   * @param tableId the raw table id.
    * @return <columns, metadata> if the table exist, null otherwise.
    */
   public synchronized Pair<Integer, ByteBuffer> getTableInfo(int tableId) {
@@ -120,8 +112,7 @@ public class RawTables extends ImageWriter {
   /**
    * Load the image into the RawTables structure.
    * 
-   * @param ele
-   *          the json element to load
+   * @param ele the json element to load
    * @throws IOException
    */
   void loadImage(ImageElement ele) throws IOException {
@@ -143,15 +134,12 @@ public class RawTables extends ImageWriter {
   /**
    * Update the metadata of the specified raw table. It will check if the table exists.
    * 
-   * @param tableId
-   *          The id of the raw table
-   * @param metadata
-   *          The new metadata of the raw table
+   * @param tableId The id of the raw table
+   * @param metadata The new metadata of the raw table
    * @throws TachyonException
    */
   // TODO add version number.
-  public synchronized void updateMetadata(int tableId, ByteBuffer metadata)
-      throws TachyonException {
+  public synchronized void updateMetadata(int tableId, ByteBuffer metadata) throws TachyonException {
     Pair<Integer, ByteBuffer> data = mData.get(tableId);
 
     if (null == data) {

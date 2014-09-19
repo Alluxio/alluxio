@@ -20,14 +20,10 @@ public class TachyonByteBuffer implements Closeable {
   private boolean mClosed = false;
 
   /**
-   * @param tfs
-   *          the Tachyon file system
-   * @param buf
-   *          the ByteBuffer wrapped on
-   * @param blockId
-   *          the id of the block
-   * @param blockLockId
-   *          the id of the block's lock
+   * @param tfs the Tachyon file system
+   * @param buf the ByteBuffer wrapped on
+   * @param blockId the id of the block
+   * @param blockLockId the id of the block's lock
    */
   TachyonByteBuffer(TachyonFS tfs, ByteBuffer buf, long blockId, int blockLockId) {
     DATA = buf;

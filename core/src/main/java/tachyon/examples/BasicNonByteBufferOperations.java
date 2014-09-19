@@ -23,8 +23,8 @@ import tachyon.client.WriteType;
  */
 public final class BasicNonByteBufferOperations {
   private static void usage() {
-    System.out.println("java -cp target/tachyon-" + Version.VERSION
-        + "-jar-with-dependencies.jar " + BasicNonByteBufferOperations.class.getName()
+    System.out.println("java -cp target/tachyon-" + Version.VERSION + "-jar-with-dependencies.jar "
+        + BasicNonByteBufferOperations.class.getName()
         + " <master address> <file path> [write type] [read type] [delete file] [num writes]");
     System.exit(-1);
   }
@@ -65,8 +65,8 @@ public final class BasicNonByteBufferOperations {
     }
   }
 
-  private static TachyonFile
-      getOrCreate(TachyonFS client, String filePath, boolean deleteIfExists) throws IOException {
+  private static TachyonFile getOrCreate(TachyonFS client, String filePath, boolean deleteIfExists)
+      throws IOException {
     TachyonFile file = client.getFile(filePath);
     if (file == null) {
       // file doesn't exist yet, so create it

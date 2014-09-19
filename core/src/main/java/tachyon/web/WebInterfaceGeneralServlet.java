@@ -1,7 +1,6 @@
 package tachyon.web;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
 import javax.servlet.ServletException;
@@ -13,7 +12,6 @@ import tachyon.Constants;
 import tachyon.Version;
 import tachyon.master.DependencyVariables;
 import tachyon.master.MasterInfo;
-import tachyon.thrift.ClientWorkerInfo;
 import tachyon.util.CommonUtils;
 
 /**
@@ -31,10 +29,8 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Redirects the request to a JSP after populating attributes via populateValues.
    * 
-   * @param request
-   *          The HttpServletRequest object
-   * @param response
-   *          The HttpServletResponse object
+   * @param request The HttpServletRequest object
+   * @param response The HttpServletResponse object
    */
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -63,8 +59,7 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
   /**
    * Populates key, value pairs for UI display
    * 
-   * @param request
-   *          The HttpServletRequest object
+   * @param request The HttpServletRequest object
    * @throws IOException
    */
   private void populateValues(HttpServletRequest request) throws IOException {
@@ -72,8 +67,11 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
 
-    request.setAttribute("uptime", CommonUtils.convertMsToClockTime(System.currentTimeMillis()
-        - mMasterInfo.getStarttimeMs()));
+    request
+        .setAttribute(
+            "uptime",
+            CommonUtils.convertMsToClockTime(System.currentTimeMillis()
+                - mMasterInfo.getStarttimeMs()));
 
     request.setAttribute("startTime", CommonUtils.convertMsToDate(mMasterInfo.getStarttimeMs()));
 
@@ -85,8 +83,10 @@ public class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("usedCapacity", CommonUtils.getSizeFromBytes(mMasterInfo.getUsedBytes()));
 
-    request.setAttribute("freeCapacity", CommonUtils.getSizeFromBytes((mMasterInfo
-        .getCapacityBytes() - mMasterInfo.getUsedBytes())));
+    request
+        .setAttribute("freeCapacity",
+            CommonUtils.getSizeFromBytes((mMasterInfo.getCapacityBytes() - mMasterInfo
+                .getUsedBytes())));
 
     long sizeBytes = mMasterInfo.getUnderFsCapacityBytes();
     if (sizeBytes >= 0) {

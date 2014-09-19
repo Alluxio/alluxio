@@ -105,7 +105,7 @@ Tachyon Presentations:
 
 You are welcome to join our
 [mailing list](https://groups.google.com/forum/?fromgroups#!forum/tachyon-users) to discuss
-questions and make suggestions. We use [JIRA](https://spark-project.atlassian.net/browse/TACHYON) to
+questions and make suggestions. We use [JIRA](https://tachyon.atlassian.net/browse/TACHYON) to
 track development and issues. If you are interested in trying out Tachyon in your cluster, please
 contact [Haoyuan](mailto:haoyuan@cs.berkeley.edu).
 

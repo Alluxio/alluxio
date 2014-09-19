@@ -1,13 +1,14 @@
 package tachyon;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Thread class to execute a heartbeat periodically.
- * This Thread is daemonic, so it will not prevent the JVM from exiting.
+ * Thread class to execute a heartbeat periodically. This Thread is daemonic, so it will not prevent
+ * the JVM from exiting.
  */
 public class HeartbeatThread extends Thread {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final String mThreadName;
   private final HeartbeatExecutor mExecutor;
@@ -18,8 +19,7 @@ public class HeartbeatThread extends Thread {
   /**
    * @param threadName
    * @param hbExecutor
-   * @param fixedExecutionIntervalMs
-   *          Sleep time between different heartbeat.
+   * @param fixedExecutionIntervalMs Sleep time between different heartbeat.
    */
   public HeartbeatThread(String threadName, HeartbeatExecutor hbExecutor,
       long fixedExecutionIntervalMs) {

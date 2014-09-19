@@ -1,12 +1,12 @@
 package tachyon.web;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import tachyon.Constants;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class UiFileInfo implements Comparable<UiFileInfo> {
   private final int mId;

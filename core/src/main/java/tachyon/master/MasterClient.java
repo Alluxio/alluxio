@@ -9,13 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
@@ -48,11 +49,11 @@ import tachyon.util.NetworkUtils;
 
 /**
  * The master server client side.
- *
+ * 
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class MasterClient implements Closeable {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_CONNECT_TRY = 5;
 
   private boolean mUseZookeeper;
@@ -79,8 +80,7 @@ public class MasterClient implements Closeable {
   }
 
   /**
-   * @param workerId
-   *          if -1, means the checkpoint is added directly by the client from underlayer fs.
+   * @param workerId if -1, means the checkpoint is added directly by the client from underlayer fs.
    * @param fileId
    * @param length
    * @param checkpointPath
@@ -112,7 +112,7 @@ public class MasterClient implements Closeable {
   @Override
   public synchronized void close() {
     if (mConnected) {
-      LOG.debug("Disconnecting from the master " + mMasterAddress);
+      LOG.debug("Disconnecting from the master {}", mMasterAddress);
       mConnected = false;
     }
     if (mProtocol != null) {
@@ -184,8 +184,8 @@ public class MasterClient implements Closeable {
     }
 
     // Reaching here indicates that we did not successfully connect.
-    throw new IOException("Failed to connect to master " + mMasterAddress + " after "
-        + (tries - 1) + " attempts", lastException);
+    throw new IOException("Failed to connect to master " + mMasterAddress + " after " + (tries - 1)
+        + " attempts", lastException);
   }
 
   public synchronized ClientDependencyInfo getClientDependencyInfo(int did) throws IOException {
@@ -743,15 +743,11 @@ public class MasterClient implements Closeable {
 
   /**
    * Register the worker to the master.
-   *
-   * @param workerNetAddress
-   *          Worker's NetAddress
-   * @param totalBytes
-   *          Worker's capacity
-   * @param usedBytes
-   *          Worker's used storage
-   * @param currentBlockList
-   *          Blocks in worker's space.
+   * 
+   * @param workerNetAddress Worker's NetAddress
+   * @param totalBytes Worker's capacity
+   * @param usedBytes Worker's used storage
+   * @param currentBlockList Blocks in worker's space.
    * @return the worker id assigned by the master.
    * @throws BlockInfoException
    * @throws TException

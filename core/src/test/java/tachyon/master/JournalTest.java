@@ -22,8 +22,8 @@ import tachyon.thrift.FileDoesNotExistException;
 import tachyon.thrift.InvalidPathException;
 
 /**
- * Test master journal, including image and edit log.
- * Most tests will test edit log first, followed by the image.
+ * Test master journal, including image and edit log. Most tests will test edit log first, followed
+ * by the image.
  */
 public class JournalTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -168,8 +168,7 @@ public class JournalTest {
     DeleteTestUtil();
   }
 
-  private void DeleteTestUtil() throws IOException, InvalidPathException,
-      FileDoesNotExistException {
+  private void DeleteTestUtil() throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
@@ -214,8 +213,7 @@ public class JournalTest {
     FileFolderUtil();
   }
 
-  private void FileFolderUtil() throws IOException, InvalidPathException,
-      FileDoesNotExistException {
+  private void FileFolderUtil() throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
@@ -404,8 +402,7 @@ public class JournalTest {
     RenameTestUtil();
   }
 
-  private void RenameTestUtil() throws IOException, InvalidPathException,
-      FileDoesNotExistException {
+  private void RenameTestUtil() throws IOException, InvalidPathException, FileDoesNotExistException {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();

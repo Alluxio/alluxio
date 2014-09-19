@@ -14,8 +14,8 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   private int mParentId;
 
   /**
-   * A pinned file is never evicted from memory. Folders are not pinned in memory;
-   * however, new files and folders will inherit this flag from their parents.
+   * A pinned file is never evicted from memory. Folders are not pinned in memory; however, new
+   * files and folders will inherit this flag from their parents.
    */
   private boolean mPinned = false;
 
@@ -24,16 +24,11 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   /**
    * Create an inode.
    * 
-   * @param name
-   *          the name of the inode.
-   * @param id
-   *          the id of the inode, which is globaly unique.
-   * @param parentId
-   *          the parent of the inode. -1 if there is no parent.
-   * @param isFolder
-   *          if the inode presents a folder
-   * @param creationTimeMs
-   *          the creation time of the inode.
+   * @param name the name of the inode.
+   * @param id the id of the inode, which is globaly unique.
+   * @param parentId the parent of the inode. -1 if there is no parent.
+   * @param isFolder if the inode presents a folder
+   * @param creationTimeMs the creation time of the inode.
    */
   protected Inode(String name, int id, int parentId, boolean isFolder, long creationTimeMs) {
     mCreationTimeMs = creationTimeMs;
@@ -61,8 +56,7 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   /**
    * Generate a ClientFileInfo of the file or folder.
    * 
-   * @param path
-   *          The path of the file
+   * @param path The path of the file
    * @return
    */
   public abstract ClientFileInfo generateClientFileInfo(String path);
@@ -154,8 +148,7 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   /**
    * Set the name of the inode
    * 
-   * @param name
-   *          The new name of the inode
+   * @param name The new name of the inode
    */
   public synchronized void setName(String name) {
     mName = name;
@@ -164,8 +157,7 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   /**
    * Set the parent folder of the inode
    * 
-   * @param parentId
-   *          The new parent
+   * @param parentId The new parent
    */
   public synchronized void setParentId(int parentId) {
     mParentId = parentId;
@@ -174,8 +166,7 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   /**
    * Set the pinned flag of the inode
    * 
-   * @param pinned
-   *          If true, the inode need pinned, and a pinned file is never evicted from memory
+   * @param pinned If true, the inode need pinned, and a pinned file is never evicted from memory
    */
   public synchronized void setPinned(boolean pinned) {
     mPinned = pinned;
@@ -184,8 +175,7 @@ public abstract class Inode extends ImageWriter implements Comparable<Inode> {
   /**
    * Set the last modification time of the inode
    * 
-   * @param lastModificationTimeMs
-   *          The last modification time, in milliseconds
+   * @param lastModificationTimeMs The last modification time, in milliseconds
    */
   public synchronized void setLastModificationTimeMs(long lastModificationTimeMs) {
     mLastModificationTimeMs = lastModificationTimeMs;

@@ -61,7 +61,7 @@
       <version>${powermock.version}</version>
       <scope>test</scope>
     </dependency>
-   <dependency>
+    <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-api-mockito</artifactId>
       <version>${powermock.version}</version>
@@ -148,7 +148,7 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
-        <ufs />
+        <ufs/>
       </properties>
       <build>
         <plugins>

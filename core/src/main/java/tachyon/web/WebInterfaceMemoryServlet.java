@@ -28,10 +28,8 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
   /**
    * Populates attributes before redirecting to a jsp.
    * 
-   * @param request
-   *          The HttpServletRequest object
-   * @param response
-   *          The HttpServletReponse object
+   * @param request The HttpServletRequest object
+   * @param response The HttpServletReponse object
    */
   @Override
   public void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -75,8 +73,8 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
       getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
       return;
     } catch (IndexOutOfBoundsException iobe) {
-      request.setAttribute("fatalError", "Error: offset or offset + limit is out of bound, "
-          + iobe.getLocalizedMessage());
+      request.setAttribute("fatalError",
+          "Error: offset or offset + limit is out of bound, " + iobe.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/memory.jsp").forward(request, response);
       return;
     } catch (IllegalArgumentException iae) {

@@ -40,7 +40,7 @@ public class UnderfsUtilsTest {
     mTfs = mLocalTachyonCluster.getClient();
 
     mUnderfsAddress = System.getProperty("tachyon.underfs.address");
-    mUfs = UnderFileSystem.get(mUnderfsAddress + Constants.PATH_SEPARATOR);
+    mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR);
   }
 
   @Test

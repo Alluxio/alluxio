@@ -3,7 +3,8 @@ package tachyon.conf;
 import java.io.File;
 import java.net.InetSocketAddress;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -14,12 +15,12 @@ import tachyon.Constants;
  * Configurations shared by master and workers.
  */
 public class CommonConf extends Utils {
-  private static final Logger LOG = Logger.getLogger("");
+  private static final Logger LOG = LoggerFactory.getLogger("");
 
   private static CommonConf COMMON_CONF = null;
 
-  public static final ImmutableList<String> DEFAULT_HADOOP_UFS_PREFIX = ImmutableList.of(
-      "hdfs://", "s3://", "s3n://", "glusterfs:///");
+  public static final ImmutableList<String> DEFAULT_HADOOP_UFS_PREFIX = ImmutableList.of("hdfs://",
+      "s3://", "s3n://", "glusterfs:///");
 
   /**
    * This is for unit test only. DO NOT use it for other purpose.

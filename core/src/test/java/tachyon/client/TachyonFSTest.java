@@ -17,6 +17,7 @@ import tachyon.client.table.RawTable;
 import tachyon.conf.CommonConf;
 import tachyon.conf.WorkerConf;
 import tachyon.master.LocalTachyonCluster;
+import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.ClientWorkerInfo;
 import tachyon.util.CommonUtils;
 
@@ -197,6 +198,32 @@ public class TachyonFSTest {
       Assert.assertEquals(WORKER_CAPACITY_BYTES, workers.get(0).getCapacityBytes());
       Assert.assertEquals(writeBytes * (4 - k), workers.get(0).getUsedBytes());
     }
+  }
+
+  @Test
+  public void getFileStatusTest() throws IOException {
+    int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
+    int fileId = TestUtils.createByteFile(mTfs, "/file", WriteType.MUST_CACHE, writeBytes);
+    TachyonFile file = mTfs.getFile(fileId);
+    Assert.assertTrue(file.isInMemory());
+    Assert.assertTrue(mTfs.exist("/file"));
+    ClientFileInfo fileInfo = mTfs.getFileStatus(fileId, false);
+    Assert.assertTrue(fileInfo.getPath().equals("/file"));
+  }
+
+  @Test
+  public void getFileStatusCacheTest() throws IOException {
+    int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
+    int fileId = TestUtils.createByteFile(mTfs, "/file", WriteType.MUST_CACHE, writeBytes);
+    TachyonFile file = mTfs.getFile(fileId);
+    Assert.assertTrue(file.isInMemory());
+    Assert.assertTrue(mTfs.exist("/file"));
+    ClientFileInfo fileInfo = mTfs.getFileStatus(fileId, false);
+    Assert.assertTrue(fileInfo.getPath().equals("/file"));
+    ClientFileInfo fileInfoCached = mTfs.getFileStatus(fileId, true);
+    ClientFileInfo fileInfoNotCached = mTfs.getFileStatus(fileId, false);
+    Assert.assertTrue(fileInfo == fileInfoCached);
+    Assert.assertFalse(fileInfo == fileInfoNotCached);
   }
 
   @Test(expected = IOException.class)

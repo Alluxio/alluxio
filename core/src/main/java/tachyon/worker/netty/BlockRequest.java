@@ -39,6 +39,7 @@ public final class BlockRequest {
       ctx.channel().pipeline().remove(this);
     }
   }
+
   private final long mBlockId;
   private final long mOffset;
 

@@ -8,7 +8,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -24,7 +25,7 @@ import tachyon.worker.nio.DataServerMessage;
  */
 public class RemoteBlockInStream extends BlockInStream {
   private static final int BUFFER_SIZE = UserConf.get().REMOTE_READ_BUFFER_SIZE_BYTE;
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private ClientBlockInfo mBlockInfo;
   private InputStream mCheckpointInputStream = null;
@@ -38,12 +39,9 @@ public class RemoteBlockInStream extends BlockInStream {
   private Object mUFSConf = null;
 
   /**
-   * @param file
-   *          the file the block belongs to
-   * @param readType
-   *          the InStream's read type
-   * @param blockIndex
-   *          the index of the block in the file
+   * @param file the file the block belongs to
+   * @param readType the InStream's read type
+   * @param blockIndex the index of the block in the file
    * @throws IOException
    */
   RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex) throws IOException {
@@ -51,14 +49,10 @@ public class RemoteBlockInStream extends BlockInStream {
   }
 
   /**
-   * @param file
-   *          the file the block belongs to
-   * @param readType
-   *          the InStream's read type
-   * @param blockIndex
-   *          the index of the block in the file
-   * @param ufsConf
-   *          the under file system configuration
+   * @param file the file the block belongs to
+   * @param readType the InStream's read type
+   * @param blockIndex the index of the block in the file
+   * @param ufsConf the under file system configuration
    * @throws IOException
    */
   RemoteBlockInStream(TachyonFile file, ReadType readType, int blockIndex, Object ufsConf)
@@ -220,8 +214,8 @@ public class RemoteBlockInStream extends BlockInStream {
               CommonUtils.concat(mTachyonFS.getLocalDataFolder(), blockInfo.blockId);
           LOG.warn("Master thinks the local machine has data " + localFileName + "! But not!");
         }
-        LOG.info(host + ":" + port + " current host is "
-            + NetworkUtils.getLocalHostName() + " " + NetworkUtils.getLocalIpAddress());
+        LOG.info(host + ":" + port + " current host is " + NetworkUtils.getLocalHostName() + " "
+            + NetworkUtils.getLocalIpAddress());
 
         try {
           buf =
@@ -231,7 +225,8 @@ public class RemoteBlockInStream extends BlockInStream {
             break;
           }
         } catch (IOException e) {
-          LOG.error(e);
+          LOG.error("Fail to retrieve byte buffer for block " + blockInfo.blockId + " from remote "
+              + host + ":" + port + " with offset " + offset + " and length " + len, e);
           buf = null;
         }
       }
@@ -321,8 +316,8 @@ public class RemoteBlockInStream extends BlockInStream {
           }
         }
       } catch (IOException e) {
-        LOG.error("Failed to read from checkpoint " + checkpointPath + " for File "
-            + mFile.mFileId, e);
+        LOG.error(
+            "Failed to read from checkpoint " + checkpointPath + " for File " + mFile.mFileId, e);
         mCheckpointInputStream = null;
       }
     }

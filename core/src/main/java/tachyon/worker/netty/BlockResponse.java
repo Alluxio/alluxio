@@ -45,9 +45,10 @@ public final class BlockResponse {
         switch (WorkerConf.get().NETTY_FILE_TRANSFER_TYPE) {
           case MAPPED:
             MappedByteBuffer data =
-            msg.getChannel().map(FileChannel.MapMode.READ_ONLY, msg.getOffset(),
-                msg.getLength());
+                msg.getChannel().map(FileChannel.MapMode.READ_ONLY, msg.getOffset(),
+                    msg.getLength());
             out.add(Unpooled.wrappedBuffer(data));
+            msg.getChannel().close();
             break;
           case TRANSFER:
             out.add(new DefaultFileRegion(msg.getChannel(), msg.getOffset(), msg.getLength()));
@@ -59,6 +60,7 @@ public final class BlockResponse {
       }
     }
   }
+
   /**
    * Creates a {@link tachyon.worker.netty.BlockResponse} that represents a error case for the given
    * block.
@@ -66,6 +68,7 @@ public final class BlockResponse {
   public static BlockResponse createErrorResponse(final long blockId) {
     return new BlockResponse(-blockId, 0, 0, null);
   }
+
   private final long mBlockId;
   private final long mOffset;
 

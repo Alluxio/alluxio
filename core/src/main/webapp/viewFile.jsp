@@ -19,6 +19,10 @@
     var tmp = document.getElementById("offset").value;
     window.location.href = "./browse?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>&offset=" + tmp;
   }
+  $(document).ready(function(){
+    var download_url = "./download?path=<%= encode(request.getAttribute("currentPath").toString(), "UTF-8") %>";
+    $("#file-download").attr("href",download_url);
+  });
 </script>
 <div class="container-fluid">
   <jsp:include page="header.jsp" />
@@ -38,6 +42,10 @@
       <span>Display from position: </span>
       <input type="text" id="offset" value="<% if(request.getParameter("offset")==null) { %><%= 0 %><% } else { %><%= request.getParameter("offset") %><% } %>"></input>
       <a class="btn btn-default" onclick="displayContent();">GO!</a>
+      <div>
+        <a id="file-download">Download</a>
+        <hr>
+      </div>
     </div>
     <hr>
     <div>

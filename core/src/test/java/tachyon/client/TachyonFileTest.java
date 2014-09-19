@@ -73,8 +73,7 @@ public class TachyonFileTest {
     Assert.assertTrue(file.recache());
     Assert.assertTrue(file.isInMemory());
 
-    fileId =
-        TestUtils.createByteFile(mTfs, "/file4", WriteType.THROUGH, WORKER_CAPACITY_BYTES + 1);
+    fileId = TestUtils.createByteFile(mTfs, "/file4", WriteType.THROUGH, WORKER_CAPACITY_BYTES + 1);
     file = mTfs.getFile(fileId);
     Assert.assertFalse(file.isInMemory());
     Assert.assertFalse(file.recache());
@@ -95,8 +94,7 @@ public class TachyonFileTest {
    * @throws IOException
    */
   @Test
-  public void isInMemoryTest2() throws InvalidPathException, FileAlreadyExistException,
-      IOException {
+  public void isInMemoryTest2() throws InvalidPathException, FileAlreadyExistException, IOException {
     for (int k = 0; k < MAX_FILES; k ++) {
       int fileId =
           TestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);
@@ -135,8 +133,7 @@ public class TachyonFileTest {
    * @throws IOException
    */
   @Test
-  public void isInMemoryTest3() throws InvalidPathException, FileAlreadyExistException,
-      IOException {
+  public void isInMemoryTest3() throws InvalidPathException, FileAlreadyExistException, IOException {
     mTfs.mkdir("/pin");
     mTfs.pinFile(mTfs.getFileId("/pin"));
 

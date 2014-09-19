@@ -3,11 +3,12 @@ package tachyon.master;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import org.apache.log4j.Logger;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -27,7 +28,7 @@ import tachyon.web.UIWebServer;
  * Entry point for the Master program.
  */
 public class TachyonMaster {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public static void main(String[] args) {
     if (args.length != 0) {

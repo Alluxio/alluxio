@@ -47,10 +47,8 @@ public class MasterFaultToleranceTest {
   /**
    * Create 10 files in the folder
    * 
-   * @param folderName
-   *          the folder name to create
-   * @param answer
-   *          the results, the mapping from file id to file path
+   * @param folderName the folder name to create
+   * @param answer the results, the mapping from file id to file path
    * @throws IOException
    */
   private void faultTestDataCreation(String folderName, List<Pair<Integer, String>> answer)
@@ -70,8 +68,7 @@ public class MasterFaultToleranceTest {
   /**
    * Tells if the results can match the answer
    * 
-   * @param answer
-   *          the correct results
+   * @param answer the correct results
    * @throws IOException
    */
   private void faultTestDataCheck(List<Pair<Integer, String>> answer) throws IOException {

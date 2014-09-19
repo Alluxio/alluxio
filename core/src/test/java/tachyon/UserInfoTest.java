@@ -70,7 +70,7 @@ public class UserInfoTest {
     UserInfo tUserInfo = new UserInfo(99);
     tUserInfo.addOwnBytes(2093);
     tUserInfo.addOwnBytes(-1029);
-    Assert.assertEquals(USERINFOR_TOSTRING, tUserInfo
-        .toString().substring(0, USERINFOR_TOSTRING.length()));
+    Assert.assertEquals(USERINFOR_TOSTRING,
+        tUserInfo.toString().substring(0, USERINFOR_TOSTRING.length()));
   }
 }

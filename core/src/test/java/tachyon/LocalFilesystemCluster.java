@@ -23,10 +23,8 @@ public class LocalFilesystemCluster extends UnderFileSystemCluster {
   }
 
   @Override
-  public void shutdown() throws IOException {
-  }
+  public void shutdown() throws IOException {}
 
   @Override
-  public void start() throws IOException {
-  }
+  public void start() throws IOException {}
 }

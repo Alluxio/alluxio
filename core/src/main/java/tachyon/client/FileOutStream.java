@@ -5,19 +5,20 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
 import tachyon.util.CommonUtils;
 
 /**
- * <code>FileOutStream</code> implementation of TachyonFile. It can only be gotten by
- * calling the methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by
- * the client code.
+ * <code>FileOutStream</code> implementation of TachyonFile. It can only be gotten by calling the
+ * methods in <code>tachyon.client.TachyonFile</code>, but can not be initialized by the client
+ * code.
  */
 public class FileOutStream extends OutStream {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final long mBlockCapacityByte;
 
@@ -34,12 +35,9 @@ public class FileOutStream extends OutStream {
   private boolean mCancel = false;
 
   /**
-   * @param file
-   *          the output file
-   * @param opType
-   *          the OutStream's write type
-   * @param ufsConf
-   *          the under file system configuration
+   * @param file the output file
+   * @param opType the OutStream's write type
+   * @param ufsConf the under file system configuration
    * @throws IOException
    */
   FileOutStream(TachyonFile file, WriteType opType, Object ufsConf) throws IOException {
@@ -106,7 +104,7 @@ public class FileOutStream extends OutStream {
           }
         } catch (IOException ioe) {
           if (mWriteType.isMustCache()) {
-            LOG.error(ioe);
+            LOG.error(ioe.getMessage(), ioe);
             throw new IOException("Fail to cache: " + mWriteType, ioe);
           } else {
             LOG.warn("Fail to cache for: ", ioe);
