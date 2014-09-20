@@ -8,7 +8,12 @@ import java.util.Queue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tachyon.*;
+import tachyon.Constants;
+import tachyon.Pair;
+import tachyon.PrefixList;
+import tachyon.TachyonURI;
+import tachyon.UnderFileSystem;
+import tachyon.Version;
 import tachyon.client.TachyonFS;
 
 /**

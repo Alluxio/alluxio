@@ -88,12 +88,13 @@ public abstract class UnderFileSystem {
 
     if (path.hasScheme()) {
       String header = path.getScheme() + "://";
+      String authority = (path.hasAuthority()) ? path.getAuthority() : "";
       if (header.equals(Constants.HEADER) || header.equals(Constants.HEADER_FT)
           || isHadoopUnderFS(header)) {
         if (path.getPath().isEmpty()) {
-          return new Pair<String, String>(header + path.getAuthority(), TachyonURI.SEPARATOR);
+          return new Pair<String, String>(header + authority, TachyonURI.SEPARATOR);
         } else {
-          return new Pair<String, String>(header + path.getAuthority(), path.getPath());
+          return new Pair<String, String>(header + authority, path.getPath());
         }
       } else if (header.equals("file://")) {
         return new Pair<String, String>(TachyonURI.SEPARATOR, path.getPath());
