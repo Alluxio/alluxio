@@ -744,8 +744,7 @@ public class WorkerStorage {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        id = 0;
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
+        System.exit(-1);
       }
     }
     mWorkerId = id;
