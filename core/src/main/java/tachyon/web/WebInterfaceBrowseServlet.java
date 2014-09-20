@@ -207,7 +207,35 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       fileInfos.add(toAdd);
     }
     Collections.sort(fileInfos);
-    request.setAttribute("fileInfos", fileInfos);
+
+    request.setAttribute("nTotalFile", new Integer(fileInfos.size()));
+
+    // URL can not determine offset and limit, let javascript in jsp determine and redirect
+    if (request.getParameter("offset") == null && request.getParameter("limit") == null) {
+      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+      return;
+    }
+
+    try {
+      int offset = Integer.parseInt(request.getParameter("offset"));
+      int limit = Integer.parseInt(request.getParameter("limit"));
+      List<UiFileInfo> sub = fileInfos.subList(offset, offset + limit);
+      request.setAttribute("fileInfos", sub);
+    } catch (NumberFormatException nfe) {
+      request.setAttribute("fatalError",
+              "Error: offset or limit parse error, " + nfe.getLocalizedMessage());
+      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+      return;
+    } catch (IndexOutOfBoundsException iobe) {
+      request.setAttribute("fatalError",
+              "Error: offset or offset + limit is out of bound, " + iobe.getLocalizedMessage());
+      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+      return;
+    } catch (IllegalArgumentException iae) {
+      request.setAttribute("fatalError", iae.getLocalizedMessage());
+      getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+      return;
+    }
 
     getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
   }
