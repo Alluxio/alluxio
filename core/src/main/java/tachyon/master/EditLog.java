@@ -252,17 +252,20 @@ public class EditLog {
         mUfs.mkdirs(folder, true);
         String toRename = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
         int currentLogFileNum = 0;
+        String dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
         while (mUfs.exists(toRename)) {
+          mUfs.rename(toRename, dstPath);
           LOG.info("Rename " + toRename + " to "
-              + CommonUtils.concat(folder, currentLogFileNum + ".editLog"));
+              + dstPath);
           currentLogFileNum ++;
           mBackUpLogStartNum ++;
           toRename = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
+          dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
         }
         if (mUfs.exists(path)) {
-          mUfs.rename(path, CommonUtils.concat(folder, currentLogFileNum + ".editLog"));
-          LOG.info("Rename " + path + " to "
-              + CommonUtils.concat(folder, currentLogFileNum + ".editLog"));
+          dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
+          mUfs.rename(path, dstPath);
+          LOG.info("Rename " + path + " to " + dstPath);
           currentLogFileNum ++;
         }
         mBackUpLogStartNum = -1;
