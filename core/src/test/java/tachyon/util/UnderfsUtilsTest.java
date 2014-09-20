@@ -10,7 +10,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.*;
+import tachyon.PrefixList;
+import tachyon.TachyonURI;
+import tachyon.TestUtils;
+import tachyon.UnderFileSystem;
+import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
 import tachyon.master.LocalTachyonCluster;
 
