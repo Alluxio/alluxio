@@ -255,8 +255,7 @@ public class EditLog {
         String dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
         while (mUfs.exists(toRename)) {
           mUfs.rename(toRename, dstPath);
-          LOG.info("Rename " + toRename + " to "
-              + dstPath);
+          LOG.info("Rename " + toRename + " to " + dstPath);
           currentLogFileNum ++;
           mBackUpLogStartNum ++;
           toRename = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
