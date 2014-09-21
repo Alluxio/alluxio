@@ -92,7 +92,7 @@ abstract class AbstractTFS extends FileSystem {
       String path = Utils.getPathWithoutScheme(cPath);
       mTFS.createFile(new TachyonURI(path), blockSize);
       path = path.substring(path.indexOf(FIRST_COM_PATH) + FIRST_COM_PATH.length());
-      path = path.substring(0, path.indexOf(Constants.PATH_SEPARATOR));
+      path = path.substring(0, path.indexOf(TachyonURI.SEPARATOR));
       int depId = Integer.parseInt(path);
       LOG.info("create(" + cPath + ") : " + path + " " + depId);
       path = Utils.getPathWithoutScheme(cPath);
@@ -114,7 +114,7 @@ abstract class AbstractTFS extends FileSystem {
       String path = Utils.getPathWithoutScheme(cPath);
       mTFS.createFile(new TachyonURI(path), blockSize);
       path = path.substring(path.indexOf(RECOMPUTE_PATH) + RECOMPUTE_PATH.length());
-      path = path.substring(0, path.indexOf(Constants.PATH_SEPARATOR));
+      path = path.substring(0, path.indexOf(TachyonURI.SEPARATOR));
       int depId = Integer.parseInt(path);
       LOG.info("create(" + cPath + ") : " + path + " " + depId);
       path = Utils.getPathWithoutScheme(cPath);

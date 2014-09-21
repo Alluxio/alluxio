@@ -57,8 +57,8 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(2, info.ls(Constants.PATH_SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(Constants.PATH_SEPARATOR) != -1);
+    Assert.assertEquals(2, info.ls(TachyonURI.SEPARATOR, true).size());
+    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
     Assert.assertTrue(info.getFileId("/xyz") != -1);
     int temp = fileInfo.inMemoryPercentage;
     fileInfo.setInMemoryPercentage(0);
@@ -90,8 +90,8 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(3, info.ls(Constants.PATH_SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(Constants.PATH_SEPARATOR) != -1);
+    Assert.assertEquals(3, info.ls(TachyonURI.SEPARATOR, true).size());
+    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
     Assert.assertTrue(info.getFileId("/xyz") != -1);
     Assert.assertTrue(info.getFileId("/xyz_ck") != -1);
     Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId("/xyz")));
@@ -135,7 +135,7 @@ public class JournalTest {
     mLocalTachyonCluster.stopTFS();
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
     String completedPath =
-        editLogPath.substring(0, editLogPath.lastIndexOf(Constants.PATH_SEPARATOR)) + "/completed";
+        editLogPath.substring(0, editLogPath.lastIndexOf(TachyonURI.SEPARATOR)) + "/completed";
     Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length > 1);
     MultiEditLogTestUtil();
     Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length == 0);
@@ -172,8 +172,8 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(31, info.ls(Constants.PATH_SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(Constants.PATH_SEPARATOR) != -1);
+    Assert.assertEquals(31, info.ls(TachyonURI.SEPARATOR, true).size());
+    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
     for (int i = 0; i < 5; i ++) {
       for (int j = 0; j < 5; j ++) {
         Assert.assertTrue(info.getFileId("/i" + i + "/j" + j) != -1);
@@ -188,8 +188,8 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(1, info.ls(Constants.PATH_SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(Constants.PATH_SEPARATOR) != -1);
+    Assert.assertEquals(1, info.ls(TachyonURI.SEPARATOR, true).size());
+    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
     info.stop();
   }
 
@@ -217,8 +217,8 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(111, info.ls(Constants.PATH_SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(Constants.PATH_SEPARATOR) != -1);
+    Assert.assertEquals(111, info.ls(TachyonURI.SEPARATOR, true).size());
+    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
     for (int i = 0; i < 10; i ++) {
       for (int j = 0; j < 10; j ++) {
         Assert.assertTrue(info.getFileId("/i" + i + "/j" + j) != -1);
@@ -248,8 +248,8 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(2, info.ls(Constants.PATH_SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(Constants.PATH_SEPARATOR) != -1);
+    Assert.assertEquals(2, info.ls(TachyonURI.SEPARATOR, true).size());
+    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
     Assert.assertTrue(info.getFileId("/xyz") != -1);
     Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId("/xyz")));
     info.stop();
@@ -311,8 +311,8 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(2, info.ls(Constants.PATH_SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(Constants.PATH_SEPARATOR) != -1);
+    Assert.assertEquals(2, info.ls(TachyonURI.SEPARATOR, true).size());
+    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
     Assert.assertTrue(info.getFileId("/xyz") != -1);
     Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId("/xyz")));
     info.stop();
@@ -340,8 +340,8 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(11, info.ls(Constants.PATH_SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(Constants.PATH_SEPARATOR) != -1);
+    Assert.assertEquals(11, info.ls(TachyonURI.SEPARATOR, true).size());
+    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
     for (int k = 0; k < 10; k ++) {
       Assert.assertTrue(info.getFileId("/a" + k) != -1);
     }
@@ -372,8 +372,8 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(125, info.ls(Constants.PATH_SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(Constants.PATH_SEPARATOR) != -1);
+    Assert.assertEquals(125, info.ls(TachyonURI.SEPARATOR, true).size());
+    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
     for (int k = 0; k < 124; k ++) {
       Assert.assertTrue(info.getFileId("/a" + k) != -1);
     }
@@ -406,8 +406,8 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(111, info.ls(Constants.PATH_SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(Constants.PATH_SEPARATOR) != -1);
+    Assert.assertEquals(111, info.ls(TachyonURI.SEPARATOR, true).size());
+    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
     for (int i = 0; i < 10; i ++) {
       for (int j = 0; j < 10; j ++) {
         Assert.assertTrue(info.getFileId("/ii" + i + "/jj" + j) != -1);
@@ -437,8 +437,8 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(12, info.ls(Constants.PATH_SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(Constants.PATH_SEPARATOR) != -1);
+    Assert.assertEquals(12, info.ls(TachyonURI.SEPARATOR, true).size());
+    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
     Assert.assertTrue(info.getFileId("/xyz") != -1);
     Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId("/xyz")));
     info.stop();

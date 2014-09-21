@@ -35,6 +35,7 @@ import tachyon.HeartbeatExecutor;
 import tachyon.HeartbeatThread;
 import tachyon.Pair;
 import tachyon.PrefixList;
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystem.SpaceType;
 import tachyon.conf.CommonConf;
@@ -450,7 +451,7 @@ public class MasterInfo extends ImageWriter {
   int _createFile(boolean recursive, String path, boolean directory, long blockSizeByte,
       long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
       BlockInfoException, TachyonException {
-    if (path.equals(Constants.PATH_SEPARATOR)) {
+    if (path.equals(TachyonURI.SEPARATOR)) {
       LOG.info("FileAlreadyExistException: " + path);
       throw new FileAlreadyExistException(path);
     }
@@ -732,7 +733,7 @@ public class MasterInfo extends ImageWriter {
       if (srcPath.equals(dstPath)) {
         return true;
       }
-      if (srcPath.equals(Constants.PATH_SEPARATOR) || dstPath.equals(Constants.PATH_SEPARATOR)) {
+      if (srcPath.equals(TachyonURI.SEPARATOR) || dstPath.equals(TachyonURI.SEPARATOR)) {
         return false;
       }
       String[] srcComponents = CommonUtils.getPathComponents(srcPath);
@@ -1284,7 +1285,7 @@ public class MasterInfo extends ImageWriter {
         throw new FileDoesNotExistException("FileId " + fileId + " does not exist.");
       }
       List<ClientBlockInfo> ret = ((InodeFile) inode).getClientBlockInfos();
-      LOG.debug("getFileLocations: {} {}",fileId, ret);
+      LOG.debug("getFileLocations: {} {}", fileId, ret);
       return ret;
     }
   }
@@ -1485,10 +1486,10 @@ public class MasterInfo extends ImageWriter {
   private String getPath(Inode inode) {
     synchronized (ROOT_LOCK) {
       if (inode.getId() == 1) {
-        return Constants.PATH_SEPARATOR;
+        return TachyonURI.SEPARATOR;
       }
       if (inode.getParentId() == 1) {
-        return Constants.PATH_SEPARATOR + inode.getName();
+        return TachyonURI.SEPARATOR + inode.getName();
       }
       return CommonUtils.concat(getPath(mFileIdToInodes.get(inode.getParentId())), inode.getName());
     }
@@ -2243,7 +2244,7 @@ public class MasterInfo extends ImageWriter {
             LOG.error("File " + fileId + " does not exist");
           } else if (inode.isFile()) {
             ((InodeFile) inode).removeLocation(blockIndex, workerId);
-            LOG.debug("File {} with block {} was evicted from worker {} ", fileId ,blockIndex ,
+            LOG.debug("File {} with block {} was evicted from worker {} ", fileId, blockIndex,
                 workerId);
           }
         }

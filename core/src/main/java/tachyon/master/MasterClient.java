@@ -23,6 +23,7 @@ import com.google.common.base.Throwables;
 import tachyon.Constants;
 import tachyon.HeartbeatThread;
 import tachyon.LeaderInquireClient;
+import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
@@ -208,7 +209,7 @@ public class MasterClient implements Closeable {
     if (path == null) {
       path = "";
     }
-    if (fileId == -1 && !path.startsWith(Constants.PATH_SEPARATOR)) {
+    if (fileId == -1 && !path.startsWith(TachyonURI.SEPARATOR)) {
       throw new IOException("Illegal path parameter: " + path);
     }
 
@@ -297,7 +298,7 @@ public class MasterClient implements Closeable {
     if (path == null) {
       throw new IOException("Illegal path parameter: " + path + " ; Please use an empty string.");
     }
-    if (id == -1 && (path == null || !path.startsWith(Constants.PATH_SEPARATOR))) {
+    if (id == -1 && (path == null || !path.startsWith(TachyonURI.SEPARATOR))) {
       throw new IOException("Illegal path parameter: " + path);
     }
   }
@@ -358,7 +359,7 @@ public class MasterClient implements Closeable {
 
   public synchronized int user_createFile(String path, String ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {
-    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR)) {
+    if (path == null || !path.startsWith(TachyonURI.SEPARATOR)) {
       throw new IOException("Illegal path parameter: " + path);
     }
     if (ufsPath == null) {

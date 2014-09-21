@@ -9,7 +9,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.conf.CommonConf;
@@ -46,8 +46,8 @@ public class RawColumnTest {
       for (int pid = 0; pid < 5; pid ++) {
         Assert.assertTrue(column.createPartition(pid));
         TachyonFile file = column.getPartition(pid);
-        Assert.assertEquals("/table" + Constants.PATH_SEPARATOR + MasterInfo.COL + col
-            + Constants.PATH_SEPARATOR + pid, file.getPath());
+        Assert.assertEquals("/table" + TachyonURI.SEPARATOR + MasterInfo.COL + col
+            + TachyonURI.SEPARATOR + pid, file.getPath());
       }
       Assert.assertEquals(5, column.partitions());
     }

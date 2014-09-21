@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.thrift.NetAddress;
 
 /**
@@ -98,9 +99,9 @@ public final class NetworkUtils {
         hostname = resolveHostName(hostname);
         String suffix = rest.substring(idx2);
         return prefix + hostname + suffix;
-      } else if (rest.contains(Constants.PATH_SEPARATOR)) {
+      } else if (rest.contains(TachyonURI.SEPARATOR)) {
         // case host/dir or /dir or host/
-        int idx2 = rest.indexOf(Constants.PATH_SEPARATOR);
+        int idx2 = rest.indexOf(TachyonURI.SEPARATOR);
         if (idx2 > 0) {
           String hostname = rest.substring(0, idx2);
           hostname = resolveHostName(hostname);
