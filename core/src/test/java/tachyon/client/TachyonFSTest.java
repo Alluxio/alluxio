@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.table.RawTable;
@@ -54,21 +55,21 @@ public class TachyonFSTest {
 
   @Test
   public void createFileTest() throws IOException {
-    int fileId = mTfs.createFile("/root/testFile1");
+    int fileId = mTfs.createFile(new TachyonURI("/root/testFile1"));
     Assert.assertEquals(3, fileId);
-    fileId = mTfs.createFile("/root/testFile2");
+    fileId = mTfs.createFile(new TachyonURI("/root/testFile2"));
     Assert.assertEquals(4, fileId);
-    fileId = mTfs.createFile("/root/testFile3");
+    fileId = mTfs.createFile(new TachyonURI("/root/testFile3"));
     Assert.assertEquals(5, fileId);
   }
 
   @Test
   public void createFileTest2() throws IOException {
-    Assert.assertEquals(3, mTfs.createFile("/root/testFile1"));
+    Assert.assertEquals(3, mTfs.createFile(new TachyonURI("/root/testFile1")));
     Assert.assertTrue(mTfs.exist("/root/testFile1"));
-    Assert.assertEquals(4, mTfs.createFile("/root/testFile2"));
+    Assert.assertEquals(4, mTfs.createFile(new TachyonURI("/root/testFile2")));
     Assert.assertTrue(mTfs.exist("/root/testFile2"));
-    Assert.assertEquals(5, mTfs.createFile("/root/testFile3"));
+    Assert.assertEquals(5, mTfs.createFile(new TachyonURI("/root/testFile3")));
     Assert.assertTrue(mTfs.exist("/root/testFile3"));
   }
 
@@ -78,21 +79,21 @@ public class TachyonFSTest {
     UnderFileSystem underFs = UnderFileSystem.get(tempFolder);
     OutputStream os = underFs.create(tempFolder + "/temp", 100);
     os.close();
-    mTfs.createFile("/abc", tempFolder + "/temp");
+    mTfs.createFile(new TachyonURI("/abc"), new TachyonURI(tempFolder + "/temp"));
     Assert.assertTrue(mTfs.exist("/abc"));
     Assert.assertEquals(tempFolder + "/temp", mTfs.getFile("/abc").getUfsPath());
   }
 
   @Test(expected = IOException.class)
   public void createFileWithFileAlreadyExistExceptionTest() throws IOException {
-    int fileId = mTfs.createFile("/root/testFile1");
+    int fileId = mTfs.createFile(new TachyonURI("/root/testFile1"));
     Assert.assertEquals(3, fileId);
-    fileId = mTfs.createFile("/root/testFile1");
+    fileId = mTfs.createFile(new TachyonURI("/root/testFile1"));
   }
 
   @Test(expected = IOException.class)
   public void createFileWithInvalidPathExceptionTest() throws IOException {
-    mTfs.createFile("root/testFile1");
+    mTfs.createFile(new TachyonURI("root/testFile1"));
   }
 
   @Test
@@ -255,7 +256,7 @@ public class TachyonFSTest {
   }
 
   private void getTestHelper(TachyonFS tfs) throws IOException {
-    int fileId = mTfs.createFile("/root/testFile1");
+    int fileId = mTfs.createFile(new TachyonURI("/root/testFile1"));
     Assert.assertEquals(3, fileId);
     Assert.assertNotNull(mTfs.getFile(fileId));
   }
@@ -400,7 +401,7 @@ public class TachyonFSTest {
 
   @Test
   public void renameFileTest1() throws IOException {
-    int fileId = mTfs.createFile("/root/testFile1");
+    int fileId = mTfs.createFile(new TachyonURI("/root/testFile1"));
     for (int k = 1; k < 10; k ++) {
       Assert.assertTrue(mTfs.exist("/root/testFile" + k));
       Assert.assertTrue(mTfs.rename("/root/testFile" + k, "/root/testFile" + (k + 1)));
@@ -411,13 +412,13 @@ public class TachyonFSTest {
 
   @Test
   public void renameFileTest2() throws IOException {
-    mTfs.createFile("/root/testFile1");
+    mTfs.createFile(new TachyonURI("/root/testFile1"));
     Assert.assertTrue(mTfs.rename("/root/testFile1", "/root/testFile1"));
   }
 
   @Test
   public void renameFileTest3() throws IOException {
-    int fileId = mTfs.createFile("/root/testFile0");
+    int fileId = mTfs.createFile(new TachyonURI("/root/testFile0"));
     TachyonFile file = mTfs.getFile("/root/testFile0");
     for (int k = 1; k < 10; k ++) {
       Assert.assertTrue(mTfs.exist("/root/testFile" + (k - 1)));

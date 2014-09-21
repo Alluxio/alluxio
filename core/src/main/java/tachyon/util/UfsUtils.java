@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import tachyon.Constants;
 import tachyon.Pair;
 import tachyon.PrefixList;
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.Version;
 import tachyon.client.TachyonFS;
@@ -114,12 +115,12 @@ public class UfsUtils {
       String ufsPath = ufsPathQueue.poll(); // this is the absolute path
       LOG.info("loading: " + ufsPath);
       if (ufs.isFile(ufsPath)) {
-        String tfsPath = buildTFSPath(tfsRootPath, ufsAddrRootPath, ufsPath);
+        TachyonURI tfsPath = new TachyonURI(buildTFSPath(tfsRootPath, ufsAddrRootPath, ufsPath));
         if (tfs.exist(tfsPath)) {
           LOG.info("File " + tfsPath + " already exists in Tachyon.");
           continue;
         }
-        int fileId = tfs.createFile(tfsPath, ufsPath);
+        int fileId = tfs.createFile(tfsPath, new TachyonURI(ufsPath));
         if (fileId == -1) {
           LOG.info("Failed to create tachyon file: " + tfsPath);
         } else {
