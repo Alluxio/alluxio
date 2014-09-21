@@ -78,8 +78,8 @@ public class MasterFaultToleranceTest {
     List<String> files = TestUtils.listFiles(tfs, Constants.PATH_SEPARATOR);
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
-      Assert.assertEquals(answer.get(k).getSecond(), tfs.getFile(answer.get(k).getFirst())
-          .getPath());
+      Assert.assertEquals(answer.get(k).getSecond().toString(),
+          tfs.getFile(answer.get(k).getFirst()).getPath());
       Assert.assertEquals(answer.get(k).getFirst().intValue(),
           tfs.getFileId(answer.get(k).getSecond()));
     }
