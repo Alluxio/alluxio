@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.Pair;
+import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.util.CommonUtils;
@@ -61,7 +62,7 @@ public class MasterFaultToleranceTest {
 
     for (int k = 0; k < 10; k ++) {
       String path = folderName + Constants.PATH_SEPARATOR + folderName.substring(1) + k;
-      answer.add(new Pair<Integer, String>(tfs.createFile(path), path));
+      answer.add(new Pair<Integer, String>(tfs.createFile(new TachyonURI(path)), path));
     }
   }
 
@@ -111,10 +112,10 @@ public class MasterFaultToleranceTest {
   @Test
   public void getClientsTest() throws IOException {
     int clients = 10;
-    mTfs.createFile("/0", 1024);
+    mTfs.createFile(new TachyonURI("/0"), 1024);
     for (int k = 1; k < clients; k ++) {
       TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
-      tfs.createFile(Constants.PATH_SEPARATOR + k, 1024);
+      tfs.createFile(new TachyonURI(Constants.PATH_SEPARATOR + k), 1024);
     }
     List<String> files = TestUtils.listFiles(mTfs, Constants.PATH_SEPARATOR);
     Assert.assertEquals(clients, files.size());

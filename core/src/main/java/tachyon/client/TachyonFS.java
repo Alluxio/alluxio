@@ -268,54 +268,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Creates a file with the default block size (1GB) in the system. It also creates necessary
-   * folders along the path. // TODO It should not create necessary path.
-   * 
-   * @param path the path of the file
-   * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException If file already exists, or path is invalid.
-   * @deprecated use {@link #createFile(TachyonURI)} instead
-   */
-  @Deprecated
-  public synchronized int createFile(String path) throws IOException {
-    return createFile(new TachyonURI(path));
-  }
-
-  /**
-   * Creates a file in the system. It also creates necessary folders along the path. // TODO It
-   * should not create necessary path.
-   * 
-   * @param path the path of the file
-   * @param blockSizeByte the block size of the file
-   * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException If file already exists, or path is invalid.
-   * @deprecated use {@link #createFile(TachyonURI, long)} instead
-   */
-  @Deprecated
-  public synchronized int createFile(String path, long blockSizeByte) throws IOException {
-    if (blockSizeByte > (long) Constants.GB * 2) {
-      throw new IOException("Block size must be less than 2GB: " + blockSizeByte);
-    }
-
-    return createFile(new TachyonURI(path), blockSizeByte);
-  }
-
-  /**
-   * Creates a file in the system with a pre-defined underfsPath. It also creates necessary folders
-   * along the path. // TODO It should not create necessary path.
-   * 
-   * @param path the path of the file in Tachyon
-   * @param ufsPath the path of the file in the underfs
-   * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException If file already exists, or path is invalid.
-   * @deprecated use {@link #createFile(TachyonURI, TachyonURI)} instead
-   */
-  @Deprecated
-  public synchronized int createFile(String path, String ufsPath) throws IOException {
-    return createFile(new TachyonURI(path), new TachyonURI(ufsPath));
-  }
-
-  /**
    * Creates a new file in the file system.
    * 
    * @param path The path of the file
@@ -324,14 +276,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockSizeByte The size of the block in bytes. It is -1 iff ufsPath is non-empty.
    * @param recursive Creates necessary parent folders if true, not otherwise.
    * @return The file id, which is globally unique.
-   * @deprecated use {@link #createFile(TachyonURI, TachyonURI, long, boolean)} instead.
    */
-  @Deprecated
-  public synchronized int createFile(String path, String ufsPath, long blockSizeByte,
-      boolean recursive) throws IOException {
-    return createFile(new TachyonURI(path), new TachyonURI(ufsPath), blockSizeByte, recursive);
-  }
-
   @Override
   public synchronized int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {

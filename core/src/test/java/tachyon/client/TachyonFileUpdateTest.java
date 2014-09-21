@@ -123,7 +123,7 @@ public final class TachyonFileUpdateTest {
   }
 
   private TachyonFile createFile(final String path) throws IOException {
-    int fileId = mTfs.createFile(path);
+    int fileId = mTfs.createFile(new TachyonURI(path));
     TachyonFile file = mTfs.getFile(fileId);
     return file;
   }
