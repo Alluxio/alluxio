@@ -135,8 +135,9 @@ public class TachyonFileTest {
    */
   @Test
   public void isInMemoryTest3() throws InvalidPathException, FileAlreadyExistException, IOException {
-    mTfs.mkdir("/pin");
-    mTfs.pinFile(mTfs.getFileId("/pin"));
+    TachyonURI pin = new TachyonURI("/pin");
+    mTfs.mkdir(pin);
+    mTfs.pinFile(mTfs.getFileId(pin));
 
     int fileId =
         TestUtils.createByteFile(mTfs, "/pin/file", WriteType.MUST_CACHE, USER_QUOTA_UNIT_BYTES);

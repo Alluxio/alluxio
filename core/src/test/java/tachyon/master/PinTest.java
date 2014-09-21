@@ -37,10 +37,10 @@ public class PinTest {
 
   @Test
   public void recursivePinness() throws Exception {
-    int dir0Id = mTfs.getFileId("/");
+    int dir0Id = mTfs.getFileId(new TachyonURI("/"));
 
     mTfs.mkdir("/myFolder");
-    int dir1Id = mTfs.getFileId("/myFolder");
+    int dir1Id = mTfs.getFileId(new TachyonURI("/myFolder"));
 
     int fileId = mTfs.createFile(new TachyonURI("/myFolder/myFile"));
     assertFalse(mTfs.getFile(fileId).needPin());
@@ -74,7 +74,7 @@ public class PinTest {
     // Children should inherit the isPinned value of their parents on creation.
 
     // Pin root
-    int rootId = mTfs.getFileId("/");
+    int rootId = mTfs.getFileId(new TachyonURI("/"));
     mTfs.pinFile(rootId);
 
     // Child file should be pinned
@@ -84,7 +84,7 @@ public class PinTest {
 
     // Child folder should be pinned
     mTfs.mkdir("/folder");
-    int folderId = mTfs.getFileId("/folder");
+    int folderId = mTfs.getFileId(new TachyonURI("/folder"));
     assertTrue(mMasterInfo.getClientFileInfo(folderId).isPinned);
 
     // Granchild file also pinned

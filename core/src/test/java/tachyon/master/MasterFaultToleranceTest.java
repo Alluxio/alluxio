@@ -52,17 +52,18 @@ public class MasterFaultToleranceTest {
    * @param answer the results, the mapping from file id to file path
    * @throws IOException
    */
-  private void faultTestDataCreation(String folderName, List<Pair<Integer, String>> answer)
+  private void faultTestDataCreation(TachyonURI folderName, List<Pair<Integer, TachyonURI>> answer)
       throws IOException {
     TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
     if (!tfs.exist(folderName)) {
       tfs.mkdir(folderName);
-      answer.add(new Pair<Integer, String>(tfs.getFileId(folderName), folderName));
+      answer.add(new Pair<Integer, TachyonURI>(tfs.getFileId(folderName), folderName));
     }
 
     for (int k = 0; k < 10; k ++) {
-      String path = folderName + Constants.PATH_SEPARATOR + folderName.substring(1) + k;
-      answer.add(new Pair<Integer, String>(tfs.createFile(new TachyonURI(path)), path));
+      TachyonURI path =
+          new TachyonURI(folderName + TachyonURI.SEPARATOR + folderName.toString().substring(1) + k);
+      answer.add(new Pair<Integer, TachyonURI>(tfs.createFile(path), path));
     }
   }
 
@@ -72,7 +73,7 @@ public class MasterFaultToleranceTest {
    * @param answer the correct results
    * @throws IOException
    */
-  private void faultTestDataCheck(List<Pair<Integer, String>> answer) throws IOException {
+  private void faultTestDataCheck(List<Pair<Integer, TachyonURI>> answer) throws IOException {
     TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
     List<String> files = TestUtils.listFiles(tfs, Constants.PATH_SEPARATOR);
     Assert.assertEquals(answer.size(), files.size());
@@ -87,9 +88,9 @@ public class MasterFaultToleranceTest {
   @Test
   public void faultTest() throws IOException {
     int clients = 10;
-    List<Pair<Integer, String>> answer = new ArrayList<Pair<Integer, String>>();
+    List<Pair<Integer, TachyonURI>> answer = new ArrayList<Pair<Integer, TachyonURI>>();
     for (int k = 0; k < clients; k ++) {
-      faultTestDataCreation("/data" + k, answer);
+      faultTestDataCreation(new TachyonURI("/data" + k), answer);
     }
 
     faultTestDataCheck(answer);
