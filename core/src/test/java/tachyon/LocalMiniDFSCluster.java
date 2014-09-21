@@ -28,7 +28,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
       DistributedFileSystem dfs = cluster.getDFSClient();
       dfs.mkdirs(new Path("/1"));
       mkdirs(cluster.getUnderFilesystemAddress() + "/1/2");
-      FileStatus[] fs = dfs.listStatus(new Path(Constants.PATH_SEPARATOR));
+      FileStatus[] fs = dfs.listStatus(new Path(TachyonURI.SEPARATOR));
       assert fs.length != 0;
       System.out.println(fs[0].getPath().toUri());
       dfs.close();

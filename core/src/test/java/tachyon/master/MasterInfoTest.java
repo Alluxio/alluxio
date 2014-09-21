@@ -17,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.thrift.BlockInfoException;
@@ -66,7 +67,7 @@ public class MasterInfoTest {
         for (int i = 0; i < FILES_PER_NODE; i ++) {
           Callable<Void> call =
               (new ConcurrentCreator(depth - 1, concurrencyDepth - 1, path
-                  + Constants.PATH_SEPARATOR + i));
+                  + TachyonURI.SEPARATOR + i));
           futures.add(executor.submit(call));
         }
         for (Future<Void> f : futures) {
@@ -75,7 +76,7 @@ public class MasterInfoTest {
         executor.shutdown();
       } else {
         for (int i = 0; i < FILES_PER_NODE; i ++) {
-          exec(depth - 1, concurrencyDepth, path + Constants.PATH_SEPARATOR + i);
+          exec(depth - 1, concurrencyDepth, path + TachyonURI.SEPARATOR + i);
         }
       }
     }
@@ -117,7 +118,7 @@ public class MasterInfoTest {
           for (int i = 0; i < FILES_PER_NODE; i ++) {
             Callable<Void> call =
                 (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1, path
-                    + Constants.PATH_SEPARATOR + i));
+                    + TachyonURI.SEPARATOR + i));
             futures.add(executor.submit(call));
           }
           for (Future<Void> f : futures) {
@@ -126,7 +127,7 @@ public class MasterInfoTest {
           executor.shutdown();
         } else {
           for (int i = 0; i < FILES_PER_NODE; i ++) {
-            exec(depth - 1, concurrencyDepth, path + Constants.PATH_SEPARATOR + i);
+            exec(depth - 1, concurrencyDepth, path + TachyonURI.SEPARATOR + i);
           }
         }
         doDelete(path);
@@ -183,7 +184,7 @@ public class MasterInfoTest {
         for (int i = 0; i < FILES_PER_NODE; i ++) {
           Callable<Void> call =
               (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, this.rootPath,
-                  this.rootPath2, path + Constants.PATH_SEPARATOR + i));
+                  this.rootPath2, path + TachyonURI.SEPARATOR + i));
           futures.add(executor.submit(call));
         }
         for (Future<Void> f : futures) {
@@ -192,7 +193,7 @@ public class MasterInfoTest {
         executor.shutdown();
       } else {
         for (int i = 0; i < FILES_PER_NODE; i ++) {
-          exec(depth - 1, concurrencyDepth, path + Constants.PATH_SEPARATOR + i);
+          exec(depth - 1, concurrencyDepth, path + TachyonURI.SEPARATOR + i);
         }
       }
     }
@@ -363,14 +364,14 @@ public class MasterInfoTest {
       FileDoesNotExistException, TachyonException {
     // long sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mMasterInfo.mkdirs("/testFile" + Constants.PATH_SEPARATOR + MasterInfo.COL + k
-          + Constants.PATH_SEPARATOR + 0, true);
+      mMasterInfo.mkdirs("/testFile" + TachyonURI.SEPARATOR + MasterInfo.COL + k
+          + TachyonURI.SEPARATOR + 0, true);
     }
     // System.out.println(System.currentTimeMillis() - sMs);
     // sMs = System.currentTimeMillis();
     for (int k = 0; k < 200; k ++) {
-      mMasterInfo.getClientFileInfo("/testFile" + Constants.PATH_SEPARATOR + MasterInfo.COL + k
-          + Constants.PATH_SEPARATOR + 0);
+      mMasterInfo.getClientFileInfo("/testFile" + TachyonURI.SEPARATOR + MasterInfo.COL + k
+          + TachyonURI.SEPARATOR + 0);
     }
     // System.out.println(System.currentTimeMillis() - sMs);
   }
@@ -575,8 +576,8 @@ public class MasterInfoTest {
       Assert.assertEquals(11, mMasterInfo.ls("/i" + i, false).size());
       Assert.assertEquals(11, mMasterInfo.ls("/i" + i, true).size());
     }
-    Assert.assertEquals(11, mMasterInfo.ls(Constants.PATH_SEPARATOR, false).size());
-    Assert.assertEquals(111, mMasterInfo.ls(Constants.PATH_SEPARATOR, true).size());
+    Assert.assertEquals(11, mMasterInfo.ls(TachyonURI.SEPARATOR, false).size());
+    Assert.assertEquals(111, mMasterInfo.ls(TachyonURI.SEPARATOR, true).size());
   }
 
   @Test(expected = TableColumnException.class)

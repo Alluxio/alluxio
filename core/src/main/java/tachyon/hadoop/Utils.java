@@ -43,6 +43,23 @@ public final class Utils {
     return path.toUri().getPath();
   }
 
+  public static String getTachyonFileName(String path) {
+    if (path.isEmpty()) {
+      return TachyonURI.SEPARATOR;
+    }
+
+    while (path.contains(":")) {
+      int index = path.indexOf(":");
+      path = path.substring(index + 1);
+    }
+
+    while (!path.startsWith(TachyonURI.SEPARATOR)) {
+      path = path.substring(1);
+    }
+
+    return path;
+  }
+
   public static String toStringHadoopFileSplit(FileSplit fs) {
     StringBuilder sb = new StringBuilder();
     sb.append("HadoopFileSplit: Path: ").append(fs.getPath());
