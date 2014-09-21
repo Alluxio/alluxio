@@ -78,7 +78,7 @@ abstract class AbstractTFS extends FileSystem {
     if (!CommonConf.get().ASYNC_ENABLED) {
       String path = Utils.getPathWithoutScheme(cPath);
       if (mTFS.exist(path)) {
-        if (!mTFS.delete(path, false)) {
+        if (!mTFS.delete(new TachyonURI(path), false)) {
           throw new IOException("Failed to delete existing data " + cPath);
         }
       }
@@ -193,7 +193,7 @@ abstract class AbstractTFS extends FileSystem {
     LOG.info("delete(" + path + ", " + recursive + ")");
     String tPath = Utils.getPathWithoutScheme(path);
     fromHdfsToTachyon(tPath);
-    return mTFS.delete(tPath, recursive);
+    return mTFS.delete(new TachyonURI(tPath), recursive);
   }
 
   private void fromHdfsToTachyon(String path) throws IOException {

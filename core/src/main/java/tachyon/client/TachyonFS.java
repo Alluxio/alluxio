@@ -348,21 +348,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Deletes the file denoted by the path.
-   * 
-   * @param path the file path
-   * @param recursive if delete the path recursively.
-   * @return true if the deletion succeed (including the case that the path does not exist in the
-   *         first place), false otherwise.
-   * @throws IOException
-   * @deprecated use {@link #delete(TachyonURI, boolean)} instead
-   */
-  @Deprecated
-  public synchronized boolean delete(String path, boolean recursive) throws IOException {
-    return delete(new TachyonURI(path), recursive);
-  }
-
-  /**
    * Deletes a file or folder
    * 
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
@@ -372,13 +357,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *        or not
    * @return true if deletes successfully, false otherwise.
    * @throws IOException
-   * @deprecated use {@link #delete(int, TachyonURI, boolean)} instead
    */
-  @Deprecated
-  public synchronized boolean delete(int fileId, String path, boolean recursive) throws IOException {
-    return delete(fileId, new TachyonURI(path), recursive);
-  }
-
   @Override
   public synchronized boolean delete(int fileId, TachyonURI path, boolean recursive)
       throws IOException {
