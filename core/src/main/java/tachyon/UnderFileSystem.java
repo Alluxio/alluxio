@@ -49,7 +49,7 @@ public abstract class UnderFileSystem {
   public static UnderFileSystem get(String path, Object conf) {
     if (isHadoopUnderFS(path)) {
       return UnderFileSystemHdfs.getClient(path, conf);
-    } else if (path.startsWith(Constants.PATH_SEPARATOR) || path.startsWith("file://")) {
+    } else if (path.startsWith(TachyonURI.SEPARATOR) || path.startsWith("file://")) {
       return UnderFileSystemSingleLocal.getClient();
     }
     throw new IllegalArgumentException("Unknown under file system scheme " + path);
@@ -88,16 +88,16 @@ public abstract class UnderFileSystem {
         || isHadoopUnderFS(path)) {
       String prefix = path.substring(0, path.indexOf("://") + 3);
       String body = path.substring(prefix.length());
-      if (body.contains(Constants.PATH_SEPARATOR)) {
-        int ind = body.indexOf(Constants.PATH_SEPARATOR);
+      if (body.contains(TachyonURI.SEPARATOR)) {
+        int ind = body.indexOf(TachyonURI.SEPARATOR);
         return new Pair<String, String>(prefix + body.substring(0, ind), body.substring(ind));
       } else {
-        return new Pair<String, String>(path, Constants.PATH_SEPARATOR);
+        return new Pair<String, String>(path, TachyonURI.SEPARATOR);
       }
-    } else if (path.startsWith("file://") || path.startsWith(Constants.PATH_SEPARATOR)) {
+    } else if (path.startsWith("file://") || path.startsWith(TachyonURI.SEPARATOR)) {
       String prefix = "file://";
       String suffix = path.startsWith(prefix) ? path.substring(prefix.length()) : path;
-      return new Pair<String, String>(Constants.PATH_SEPARATOR, suffix);
+      return new Pair<String, String>(TachyonURI.SEPARATOR, suffix);
     }
 
     return null;

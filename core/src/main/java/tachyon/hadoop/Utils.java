@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 
 public final class Utils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -33,8 +34,8 @@ public final class Utils {
   public static Path getHDFSPath(String path) {
     path = getTachyonFileName(path);
 
-    String mid = Constants.PATH_SEPARATOR;
-    if (path.startsWith(Constants.PATH_SEPARATOR)) {
+    String mid = TachyonURI.SEPARATOR;
+    if (path.startsWith(TachyonURI.SEPARATOR)) {
       mid = "";
     }
 
@@ -47,7 +48,7 @@ public final class Utils {
 
   public static String getTachyonFileName(String path) {
     if (path.isEmpty()) {
-      return Constants.PATH_SEPARATOR;
+      return TachyonURI.SEPARATOR;
     }
 
     while (path.contains(":")) {
@@ -55,7 +56,7 @@ public final class Utils {
       path = path.substring(index + 1);
     }
 
-    while (!path.startsWith(Constants.PATH_SEPARATOR)) {
+    while (!path.startsWith(TachyonURI.SEPARATOR)) {
       path = path.substring(1);
     }
 

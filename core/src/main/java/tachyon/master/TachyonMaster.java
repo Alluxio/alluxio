@@ -15,6 +15,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
@@ -129,8 +130,8 @@ public class TachyonMaster {
   }
 
   private boolean isFormatted(String folder, String path) throws IOException {
-    if (!folder.endsWith(Constants.PATH_SEPARATOR)) {
-      folder += Constants.PATH_SEPARATOR;
+    if (!folder.endsWith(TachyonURI.SEPARATOR)) {
+      folder += TachyonURI.SEPARATOR;
     }
     UnderFileSystem ufs = UnderFileSystem.get(folder);
     String[] files = ufs.list(folder);

@@ -10,8 +10,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import tachyon.Constants;
 import tachyon.PrefixList;
+import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
@@ -44,7 +44,7 @@ public class UnderfsUtilsTest {
     mTfs = mLocalTachyonCluster.getClient();
 
     mUnderfsAddress = System.getProperty("tachyon.underfs.address");
-    mUfs = UnderFileSystem.get(mUnderfsAddress + Constants.PATH_SEPARATOR);
+    mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR);
   }
 
   @Test
@@ -53,8 +53,8 @@ public class UnderfsUtilsTest {
       return;
     }
 
-    String[] exclusions = { "/tachyon", "/exclusions" };
-    String[] inclusions = { "/inclusions/sub-1", "/inclusions/sub-2" };
+    String[] exclusions = {"/tachyon", "/exclusions"};
+    String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
       if (!mUfs.exists(exclusion)) {
         mUfs.mkdirs(exclusion, true);
@@ -68,8 +68,8 @@ public class UnderfsUtilsTest {
       CommonUtils.touch(mUnderfsAddress + inclusion + "/1");
     }
 
-    UfsUtils.loadUnderFs(mTfs, Constants.PATH_SEPARATOR,
-        mUnderfsAddress + Constants.PATH_SEPARATOR, new PrefixList("tachyon;exclusions", ";"));
+    UfsUtils.loadUnderFs(mTfs, TachyonURI.SEPARATOR, mUnderfsAddress + TachyonURI.SEPARATOR,
+        new PrefixList("tachyon;exclusions", ";"));
 
     List<String> paths = null;
     for (String exclusion : exclusions) {

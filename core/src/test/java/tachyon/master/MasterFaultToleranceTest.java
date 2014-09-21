@@ -75,7 +75,7 @@ public class MasterFaultToleranceTest {
    */
   private void faultTestDataCheck(List<Pair<Integer, TachyonURI>> answer) throws IOException {
     TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
-    List<String> files = TestUtils.listFiles(tfs, Constants.PATH_SEPARATOR);
+    List<String> files = TestUtils.listFiles(tfs, TachyonURI.SEPARATOR);
     Assert.assertEquals(answer.size(), files.size());
     for (int k = 0; k < answer.size(); k ++) {
       Assert.assertEquals(answer.get(k).getSecond().toString(),
@@ -116,12 +116,12 @@ public class MasterFaultToleranceTest {
     mTfs.createFile(new TachyonURI("/0"), 1024);
     for (int k = 1; k < clients; k ++) {
       TachyonFS tfs = mLocalTachyonClusterMultiMaster.getClient();
-      tfs.createFile(new TachyonURI(Constants.PATH_SEPARATOR + k), 1024);
+      tfs.createFile(new TachyonURI(TachyonURI.SEPARATOR + k), 1024);
     }
-    List<String> files = TestUtils.listFiles(mTfs, Constants.PATH_SEPARATOR);
+    List<String> files = TestUtils.listFiles(mTfs, TachyonURI.SEPARATOR);
     Assert.assertEquals(clients, files.size());
     for (int k = 0; k < clients; k ++) {
-      Assert.assertEquals(Constants.PATH_SEPARATOR + k, files.get(k));
+      Assert.assertEquals(TachyonURI.SEPARATOR + k, files.get(k));
     }
   }
 }

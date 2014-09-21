@@ -35,7 +35,7 @@ public class UfsUtils {
     String filePath = path.substring(ufsRootPath.length());
     if (filePath.isEmpty()) {
       // retrieve the basename in ufsRootPath
-      filePath = path.substring(ufsRootPath.lastIndexOf(Constants.PATH_SEPARATOR) + 1);
+      filePath = path.substring(ufsRootPath.lastIndexOf(TachyonURI.SEPARATOR) + 1);
     }
     return CommonUtils.concat(tfsRootPath, filePath);
   }
@@ -134,8 +134,8 @@ public class UfsUtils {
             LOG.info("Get: " + filePath);
             String aPath = CommonUtils.concat(ufsPath, filePath);
             String checkPath = aPath.substring(ufsAddrRootPath.length());
-            if (checkPath.startsWith(Constants.PATH_SEPARATOR)) {
-              checkPath = checkPath.substring(Constants.PATH_SEPARATOR.length());
+            if (checkPath.startsWith(TachyonURI.SEPARATOR)) {
+              checkPath = checkPath.substring(TachyonURI.SEPARATOR.length());
             }
             if (excludePathPrefix.inList(checkPath)) {
               LOG.info("excluded: " + checkPath);
