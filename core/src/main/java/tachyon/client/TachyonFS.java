@@ -567,43 +567,11 @@ public class TachyonFS extends AbstractTachyonFS {
     }
   }
 
-  /**
-   * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
-   * 
-   * @param fileId the file id of the file or folder.
-   * @param path the path of the file or folder. valid iff fileId is -1.
-   * @return the ClientFileInfo of the file or folder, null if the file or folder does not exist.
-   * @throws IOException
-   * @deprecated use {@link #getFileStatus(int, TachyonURI)} instead
-   */
-  @Deprecated
-  public ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
-    return getFileStatus(fileId, new TachyonURI(path));
-  }
-
   @Override
   public ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException {
     validateUri(path);
     ClientFileInfo info = mMasterClient.getFileStatus(fileId, path.getPath());
     return info.getId() == -1 ? null : info;
-  }
-
-  /**
-   * Advanced API.
-   * 
-   * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
-   * 
-   * @param fileId the file id of the file or folder.
-   * @param path the path of the file or folder. valid iff fileId is -1.
-   * @param useCachedMetadata if true use the local cached meta data
-   * @return the ClientFileInfo of the file. null if the file does not exist.
-   * @throws IOException
-   * @deprecated use {@link #getFileStatus(int, TachyonURI, boolean)} instead
-   */
-  @Deprecated
-  public synchronized ClientFileInfo getFileStatus(int fileId, String path,
-      boolean useCachedMetadata) throws IOException {
-    return getFileStatus(fileId, new TachyonURI(path), useCachedMetadata);
   }
 
   /**
