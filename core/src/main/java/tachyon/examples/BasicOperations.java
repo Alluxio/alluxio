@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonByteBuffer;
@@ -20,7 +21,7 @@ public class BasicOperations {
   private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static TachyonFS sTachyonClient;
-  private static String sFilePath = null;
+  private static TachyonURI sFilePath = null;
   private static WriteType sWriteType = null;
   private static int sNumbers = 20;
   private static boolean sPass = true;
@@ -33,7 +34,7 @@ public class BasicOperations {
       System.exit(-1);
     }
     sTachyonClient = TachyonFS.get(args[0]);
-    sFilePath = args[1];
+    sFilePath = new TachyonURI(args[1]);
     sWriteType = WriteType.getOpType(args[2]);
     createFile();
     writeFile();

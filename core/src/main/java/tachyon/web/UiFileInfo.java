@@ -3,7 +3,7 @@ package tachyon.web;
 import java.util.ArrayList;
 import java.util.List;
 
-import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.NetAddress;
 import tachyon.util.CommonUtils;
@@ -99,7 +99,7 @@ public class UiFileInfo implements Comparable<UiFileInfo> {
   }
 
   public String getName() {
-    if (Constants.PATH_SEPARATOR.equals(mAbsolutePath)) {
+    if (TachyonURI.SEPARATOR.equals(mAbsolutePath)) {
       return "root";
     } else {
       return mName;

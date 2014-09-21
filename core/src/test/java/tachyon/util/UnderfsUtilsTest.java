@@ -53,8 +53,8 @@ public class UnderfsUtilsTest {
       return;
     }
 
-    String[] exclusions = { "/tachyon", "/exclusions" };
-    String[] inclusions = { "/inclusions/sub-1", "/inclusions/sub-2" };
+    String[] exclusions = {"/tachyon", "/exclusions"};
+    String[] inclusions = {"/inclusions/sub-1", "/inclusions/sub-2"};
     for (String exclusion : exclusions) {
       if (!mUfs.exists(exclusion)) {
         mUfs.mkdirs(exclusion, true);

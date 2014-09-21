@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 
 /**
@@ -29,7 +30,7 @@ public class Image {
    */
   public static void create(MasterInfo info, String path) throws IOException {
     String tPath = path + ".tmp";
-    String parentFolder = path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR));
+    String parentFolder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR));
     LOG.info("Creating the image file: " + tPath);
     UnderFileSystem ufs = UnderFileSystem.get(path);
     if (!ufs.exists(parentFolder)) {

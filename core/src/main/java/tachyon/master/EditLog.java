@@ -18,6 +18,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.Pair;
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.io.Utils;
 import tachyon.thrift.BlockInfoException;
@@ -58,7 +59,7 @@ public class EditLog {
     mBackUpLogStartNum = currentLogFileNum;
     int numFiles = 1;
     String completedPath =
-        path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
+        path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     if (!ufs.exists(completedPath)) {
       LOG.info("No completed edit logs to be parsed");
     } else {
@@ -194,7 +195,7 @@ public class EditLog {
    */
   public static void markUpToDate(String path) {
     UnderFileSystem ufs = UnderFileSystem.get(path);
-    String folder = path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
+    String folder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     try {
       // delete all loaded editlogs since mBackupLogStartNum.
       String toDelete = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
@@ -252,7 +253,7 @@ public class EditLog {
       mUfs = UnderFileSystem.get(path);
       if (mBackUpLogStartNum != -1) {
         String folder =
-            path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "/completed";
+            path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "/completed";
         LOG.info("Deleting completed editlogs that are part of the image.");
         deleteCompletedLogs(path, mBackUpLogStartNum);
         LOG.info("Backing up logs from " + mBackUpLogStartNum + " since image is not updated.");
@@ -489,7 +490,7 @@ public class EditLog {
    */
   public void deleteCompletedLogs(String path, int upTo) {
     UnderFileSystem ufs = UnderFileSystem.get(path);
-    String folder = path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
+    String folder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     try {
       for (int i = 0; i < upTo; i ++) {
         String toDelete = CommonUtils.concat(folder, i + ".editLog");
@@ -565,7 +566,7 @@ public class EditLog {
     _closeActiveStream();
     LOG.info("Edit log max size of " + mMaxLogSize + " bytes reached, rotating edit log");
     String pathPrefix =
-        path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
+        path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     LOG.info("path: " + path + " prefix: " + pathPrefix);
     try {
       if (!mUfs.exists(pathPrefix)) {

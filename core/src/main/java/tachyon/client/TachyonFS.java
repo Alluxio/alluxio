@@ -268,54 +268,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Creates a file with the default block size (1GB) in the system. It also creates necessary
-   * folders along the path. // TODO It should not create necessary path.
-   * 
-   * @param path the path of the file
-   * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException If file already exists, or path is invalid.
-   * @deprecated use {@link #createFile(TachyonURI)} instead
-   */
-  @Deprecated
-  public synchronized int createFile(String path) throws IOException {
-    return createFile(new TachyonURI(path));
-  }
-
-  /**
-   * Creates a file in the system. It also creates necessary folders along the path. // TODO It
-   * should not create necessary path.
-   * 
-   * @param path the path of the file
-   * @param blockSizeByte the block size of the file
-   * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException If file already exists, or path is invalid.
-   * @deprecated use {@link #createFile(TachyonURI, long)} instead
-   */
-  @Deprecated
-  public synchronized int createFile(String path, long blockSizeByte) throws IOException {
-    if (blockSizeByte > (long) Constants.GB * 2) {
-      throw new IOException("Block size must be less than 2GB: " + blockSizeByte);
-    }
-
-    return createFile(new TachyonURI(path), blockSizeByte);
-  }
-
-  /**
-   * Creates a file in the system with a pre-defined underfsPath. It also creates necessary folders
-   * along the path. // TODO It should not create necessary path.
-   * 
-   * @param path the path of the file in Tachyon
-   * @param ufsPath the path of the file in the underfs
-   * @return The unique file id. It returns -1 if the creation failed.
-   * @throws IOException If file already exists, or path is invalid.
-   * @deprecated use {@link #createFile(TachyonURI, TachyonURI)} instead
-   */
-  @Deprecated
-  public synchronized int createFile(String path, String ufsPath) throws IOException {
-    return createFile(new TachyonURI(path), new TachyonURI(ufsPath));
-  }
-
-  /**
    * Creates a new file in the file system.
    * 
    * @param path The path of the file
@@ -324,14 +276,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param blockSizeByte The size of the block in bytes. It is -1 iff ufsPath is non-empty.
    * @param recursive Creates necessary parent folders if true, not otherwise.
    * @return The file id, which is globally unique.
-   * @deprecated use {@link #createFile(TachyonURI, TachyonURI, long, boolean)} instead.
    */
-  @Deprecated
-  public synchronized int createFile(String path, String ufsPath, long blockSizeByte,
-      boolean recursive) throws IOException {
-    return createFile(new TachyonURI(path), new TachyonURI(ufsPath), blockSizeByte, recursive);
-  }
-
   @Override
   public synchronized int createFile(TachyonURI path, TachyonURI ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {
@@ -403,21 +348,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Deletes the file denoted by the path.
-   * 
-   * @param path the file path
-   * @param recursive if delete the path recursively.
-   * @return true if the deletion succeed (including the case that the path does not exist in the
-   *         first place), false otherwise.
-   * @throws IOException
-   * @deprecated use {@link #delete(TachyonURI, boolean)} instead
-   */
-  @Deprecated
-  public synchronized boolean delete(String path, boolean recursive) throws IOException {
-    return delete(new TachyonURI(path), recursive);
-  }
-
-  /**
    * Deletes a file or folder
    * 
    * @param fileId The id of the file / folder. If it is not -1, path parameter is ignored.
@@ -427,13 +357,7 @@ public class TachyonFS extends AbstractTachyonFS {
    *        or not
    * @return true if deletes successfully, false otherwise.
    * @throws IOException
-   * @deprecated use {@link #delete(int, TachyonURI, boolean)} instead
    */
-  @Deprecated
-  public synchronized boolean delete(int fileId, String path, boolean recursive) throws IOException {
-    return delete(fileId, new TachyonURI(path), recursive);
-  }
-
   @Override
   public synchronized boolean delete(int fileId, TachyonURI path, boolean recursive)
       throws IOException {
@@ -617,23 +541,6 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path the path in Tachyon file system
    * @return the file id if exists, -1 otherwise
    * @throws IOException
-   * @deprecated use {@link #getFileId(TachyonURI)} instead
-   */
-  @Deprecated
-  public synchronized int getFileId(String path) throws IOException {
-    try {
-      return getFileStatus(-1, new TachyonURI(path), false).getId();
-    } catch (IOException e) {
-      return -1;
-    }
-  }
-
-  /**
-   * Get file id by the path. It will check if the path exists.
-   * 
-   * @param path the path in Tachyon file system
-   * @return the file id if exists, -1 otherwise
-   * @throws IOException
    */
   public synchronized int getFileId(TachyonURI path) throws IOException {
     try {
@@ -643,43 +550,11 @@ public class TachyonFS extends AbstractTachyonFS {
     }
   }
 
-  /**
-   * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
-   * 
-   * @param fileId the file id of the file or folder.
-   * @param path the path of the file or folder. valid iff fileId is -1.
-   * @return the ClientFileInfo of the file or folder, null if the file or folder does not exist.
-   * @throws IOException
-   * @deprecated use {@link #getFileStatus(int, TachyonURI)} instead
-   */
-  @Deprecated
-  public ClientFileInfo getFileStatus(int fileId, String path) throws IOException {
-    return getFileStatus(fileId, new TachyonURI(path));
-  }
-
   @Override
   public ClientFileInfo getFileStatus(int fileId, TachyonURI path) throws IOException {
     validateUri(path);
     ClientFileInfo info = mMasterClient.getFileStatus(fileId, path.getPath());
     return info.getId() == -1 ? null : info;
-  }
-
-  /**
-   * Advanced API.
-   * 
-   * Gets the ClientFileInfo object that represents the fileId, or the path if fileId is -1.
-   * 
-   * @param fileId the file id of the file or folder.
-   * @param path the path of the file or folder. valid iff fileId is -1.
-   * @param useCachedMetadata if true use the local cached meta data
-   * @return the ClientFileInfo of the file. null if the file does not exist.
-   * @throws IOException
-   * @deprecated use {@link #getFileStatus(int, TachyonURI, boolean)} instead
-   */
-  @Deprecated
-  public synchronized ClientFileInfo getFileStatus(int fileId, String path,
-      boolean useCachedMetadata) throws IOException {
-    return getFileStatus(fileId, new TachyonURI(path), useCachedMetadata);
   }
 
   /**
