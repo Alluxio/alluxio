@@ -541,23 +541,6 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path the path in Tachyon file system
    * @return the file id if exists, -1 otherwise
    * @throws IOException
-   * @deprecated use {@link #getFileId(TachyonURI)} instead
-   */
-  @Deprecated
-  public synchronized int getFileId(String path) throws IOException {
-    try {
-      return getFileStatus(-1, new TachyonURI(path), false).getId();
-    } catch (IOException e) {
-      return -1;
-    }
-  }
-
-  /**
-   * Get file id by the path. It will check if the path exists.
-   * 
-   * @param path the path in Tachyon file system
-   * @return the file id if exists, -1 otherwise
-   * @throws IOException
    */
   public synchronized int getFileId(TachyonURI path) throws IOException {
     try {
