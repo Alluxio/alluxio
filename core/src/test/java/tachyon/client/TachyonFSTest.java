@@ -421,15 +421,16 @@ public class TachyonFSTest {
 
   @Test
   public void renameFileTest3() throws IOException {
-    int fileId = mTfs.createFile(new TachyonURI("/root/testFile0"));
-    TachyonFile file = mTfs.getFile("/root/testFile0");
+    TachyonURI file0 = new TachyonURI("/root/testFile0");
+    int fileId = mTfs.createFile(file0);
+    TachyonFile file = mTfs.getFile(file0);
     for (int k = 1; k < 10; k ++) {
       TachyonURI fileA = new TachyonURI("/root/testFile" + (k - 1));
       TachyonURI fileB = new TachyonURI("/root/testFile" + k);
       Assert.assertTrue(mTfs.exist(fileA));
       Assert.assertTrue(file.rename(fileB));
-      Assert.assertEquals(fileId, mTfs.getFileId(fileA));
-      Assert.assertFalse(mTfs.exist(fileB));
+      Assert.assertEquals(fileId, mTfs.getFileId(fileB));
+      Assert.assertFalse(mTfs.exist(fileA));
     }
   }
 
