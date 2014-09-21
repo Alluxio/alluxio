@@ -75,7 +75,7 @@ public final class BasicNonByteBufferOperations {
       file = client.getFile(fileId);
     } else if (deleteIfExists) {
       // file exists, so delete it and recreate
-      client.delete(file.getPath(), false);
+      client.delete(new TachyonURI(file.getPath()), false);
 
       int fileId = client.createFile(filePath);
       file = client.getFile(fileId);

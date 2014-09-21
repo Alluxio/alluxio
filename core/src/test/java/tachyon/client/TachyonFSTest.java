@@ -173,8 +173,8 @@ public class TachyonFSTest {
     // Delete non-existing files.
     Assert.assertTrue(mTfs.delete(2, false));
     Assert.assertTrue(mTfs.delete(2, true));
-    Assert.assertTrue(mTfs.delete("/abc", false));
-    Assert.assertTrue(mTfs.delete("/abc", true));
+    Assert.assertTrue(mTfs.delete(new TachyonURI("/abc"), false));
+    Assert.assertTrue(mTfs.delete(new TachyonURI("/abc"), true));
 
     for (int k = 0; k < 5; k ++) {
       int fileId = TestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, writeBytes);
