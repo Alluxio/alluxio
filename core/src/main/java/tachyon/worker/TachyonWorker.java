@@ -174,7 +174,7 @@ public class TachyonWorker implements Runnable {
     mDataServer = createDataServer(dataAddress, blockLocker);
     mDataPort = mDataServer.getPort();
 
-    heartbeatService=Executors.newSingleThreadScheduledExecutor();
+    heartbeatService = Executors.newSingleThreadScheduledExecutor();
     try {
       LOG.info("Tachyon Worker version " + Version.VERSION + " tries to start @ " + workerAddress);
       WorkerService.Processor<WorkerServiceHandler> processor =
