@@ -94,7 +94,7 @@ public abstract class UnderFileSystemCluster {
    */
   public void cleanup() throws IOException {
     if (isStarted()) {
-      String path = getUnderFilesystemAddress() + Constants.PATH_SEPARATOR;
+      String path = getUnderFilesystemAddress() + TachyonURI.SEPARATOR;
       UnderFileSystem ufs = UnderFileSystem.get(path);
       for (String p : ufs.list(path)) {
         ufs.delete(CommonUtils.concat(path, p), true);
