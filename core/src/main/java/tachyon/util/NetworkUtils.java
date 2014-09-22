@@ -77,44 +77,23 @@ public final class NetworkUtils {
 
   /**
    * Replace and resolve the hostname in a given address or path string.
-   * 
-   * @param addr an address or path string, e.g., "hdfs://host:port/dir", "file:///dir", "/dir".
+   *
+   * @param path an address or path string, e.g., "hdfs://host:port/dir", "file:///dir", "/dir".
    * @return an address or path string with hostname resolved, or the original path intact if no
    *         hostname is embedded, or null if the given path is null or empty.
    * @throws UnknownHostException if the hostname cannot be resolved.
    */
-  public static String replaceHostName(String addr) throws UnknownHostException {
-    if (addr == null || addr.isEmpty()) {
+  public static TachyonURI replaceHostName(TachyonURI path) throws UnknownHostException {
+    if (path == null) {
       return null;
     }
 
-    if (addr.contains("://")) {
-      int idx = addr.indexOf("://");
-      String prefix = addr.substring(0, idx + 3);
-      String rest = addr.substring(idx + 3);
-      if (rest.contains(":")) {
-        // case host:port/dir or host:port or host:port/
-        int idx2 = rest.indexOf(":");
-        String hostname = rest.substring(0, idx2);
-        hostname = resolveHostName(hostname);
-        String suffix = rest.substring(idx2);
-        return prefix + hostname + suffix;
-      } else if (rest.contains(TachyonURI.SEPARATOR)) {
-        // case host/dir or /dir or host/
-        int idx2 = rest.indexOf(TachyonURI.SEPARATOR);
-        if (idx2 > 0) {
-          String hostname = rest.substring(0, idx2);
-          hostname = resolveHostName(hostname);
-          String suffix = rest.substring(idx2);
-          return prefix + hostname + suffix;
-        }
-      } else {
-        // case host is rest of the path
-        return prefix + resolveHostName(rest);
-      }
+    if (path.hasAuthority()) {
+      String authority = resolveHostName(path.getHost()) + ":" + path.getPort();
+      return new TachyonURI(path.getScheme(), authority, path.getPath());
+    } else {
+      return path;
     }
-
-    return addr;
   }
 
   /**

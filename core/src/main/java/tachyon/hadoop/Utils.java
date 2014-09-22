@@ -31,15 +31,12 @@ public final class Utils {
     }
   }
 
-  public static Path getHDFSPath(String path) {
-    path = getTachyonFileName(path);
-
-    String mid = TachyonURI.SEPARATOR;
-    if (path.startsWith(TachyonURI.SEPARATOR)) {
-      mid = "";
+  public static Path getHDFSPath(TachyonURI path) {
+    if (path.isPathAbsolute()) {
+      return new Path(TFS.mUnderFSAddress + path.getPath());
+    } else {
+      return new Path(TFS.mUnderFSAddress + TachyonURI.SEPARATOR + path.getPath());
     }
-
-    return new Path(TFS.mUnderFSAddress + mid + path);
   }
 
   public static String getPathWithoutScheme(Path path) {
