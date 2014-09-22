@@ -6,20 +6,23 @@ import java.net.UnknownHostException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tachyon.TachyonURI;
 import tachyon.thrift.NetAddress;
 
 public class NetworkUtilsTest {
 
   @Test
   public void replaceHostNameTest() throws UnknownHostException {
-    Assert.assertEquals(NetworkUtils.replaceHostName(""), null);
+    Assert.assertEquals(NetworkUtils.replaceHostName(TachyonURI.EMPTY_URI), TachyonURI.EMPTY_URI);
     Assert.assertEquals(NetworkUtils.replaceHostName(null), null);
 
-    String[] paths =
-        new String[] {"hdfs://localhost:9000/dir", "hdfs://localhost/dir", "hdfs://localhost/",
-            "hdfs://localhost", "file:///dir", "/dir", "anythingElse"};
+    TachyonURI[] paths =
+        new TachyonURI[] { new TachyonURI("hdfs://localhost:9000/dir"),
+            new TachyonURI("hdfs://localhost/dir"), new TachyonURI("hdfs://localhost/"),
+            new TachyonURI("hdfs://localhost"), new TachyonURI("file:///dir"),
+            new TachyonURI("/dir"), new TachyonURI("anythingElse") };
 
-    for (String path : paths) {
+    for (TachyonURI path : paths) {
       Assert.assertEquals(NetworkUtils.replaceHostName(path), path);
     }
   }

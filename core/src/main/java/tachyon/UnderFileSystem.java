@@ -81,23 +81,26 @@ public abstract class UnderFileSystem {
    *         relative to that address. For local FS (with prefixes file:// or /), the under FS
    *         address is "/" and the path starts with "/".
    */
-  public static Pair<String, String> parse(String path) {
+  public static Pair<String, String> parse(TachyonURI path) {
     if (path == null) {
       return null;
-    } else if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)
-        || isHadoopUnderFS(path)) {
-      String prefix = path.substring(0, path.indexOf("://") + 3);
-      String body = path.substring(prefix.length());
-      if (body.contains(TachyonURI.SEPARATOR)) {
-        int ind = body.indexOf(TachyonURI.SEPARATOR);
-        return new Pair<String, String>(prefix + body.substring(0, ind), body.substring(ind));
-      } else {
-        return new Pair<String, String>(path, TachyonURI.SEPARATOR);
+    }
+
+    if (path.hasScheme()) {
+      String header = path.getScheme() + "://";
+      String authority = (path.hasAuthority()) ? path.getAuthority() : "";
+      if (header.equals(Constants.HEADER) || header.equals(Constants.HEADER_FT)
+          || isHadoopUnderFS(header)) {
+        if (path.getPath().isEmpty()) {
+          return new Pair<String, String>(header + authority, TachyonURI.SEPARATOR);
+        } else {
+          return new Pair<String, String>(header + authority, path.getPath());
+        }
+      } else if (header.equals("file://")) {
+        return new Pair<String, String>(TachyonURI.SEPARATOR, path.getPath());
       }
-    } else if (path.startsWith("file://") || path.startsWith(TachyonURI.SEPARATOR)) {
-      String prefix = "file://";
-      String suffix = path.startsWith(prefix) ? path.substring(prefix.length()) : path;
-      return new Pair<String, String>(TachyonURI.SEPARATOR, suffix);
+    } else if (path.isPathAbsolute()) {
+      return new Pair<String, String>(TachyonURI.SEPARATOR, path.getPath());
     }
 
     return null;
