@@ -92,7 +92,7 @@ public final class StorageDir {
   }
 
   /**
-   * Add a block in current StorageDir
+   * Add information of a block in current StorageDir
    * 
    * @param blockId Id of the block
    * @param size size of the block in bytes
@@ -167,7 +167,7 @@ public final class StorageDir {
       BlockHandler bhSrc = closer.register(getBlockHandler(blockId));
       BlockHandler bhDst = closer.register(dstDir.getBlockHandler(blockId));
       ByteBuffer srcBuf = bhSrc.read(0, (int) size);
-      copySuccess = bhDst.append(0, srcBuf) > 0;
+      copySuccess = (bhDst.append(0, srcBuf) == size);
     } finally {
       closer.close();
     }
@@ -190,14 +190,16 @@ public final class StorageDir {
       String blockfile = getBlockFilePath(blockId);
       boolean result = false;
       try {
-        result = mFs.delete(blockfile, true);
+        if (!isBlockLocked(blockId)) {
+          result = mFs.delete(blockfile, true);
+        }
       } finally {
         if (result) {
           deleteBlockId(blockId);
           LOG.debug("Removed block file:" + blockfile);
         } else {
           mLastBlockAccessTimeMs.put(blockId, accessTimeMs);
-          LOG.error("Error during delete block! blockfile:" + blockfile);
+          LOG.error("Failed to delete block file! file name:" + blockfile);
         }
       }
       return result;
@@ -208,7 +210,7 @@ public final class StorageDir {
   }
 
   /**
-   * Delete information bound with some block Id from current StorageDir
+   * Delete information of a block from current StorageDir
    * 
    * @param blockId Id of the block
    */
@@ -228,12 +230,12 @@ public final class StorageDir {
   }
 
   /**
-   * Read data from some block file
+   * Read data into ByteBuffer from some block file
    * 
    * @param blockId Id of the block
    * @param offset starting position of the block file
    * @param length length of data to read
-   * @return ByteBuffer contains data of the block
+   * @return ByteBuffer which contains data of the block
    * @throws IOException
    */
   public ByteBuffer getBlockData(long blockId, long offset, int length) throws IOException {
@@ -262,7 +264,7 @@ public final class StorageDir {
    * @return block handler of the block file
    * @throws IOException
    */
-  BlockHandler getBlockHandler(long blockId) throws IOException {
+  private BlockHandler getBlockHandler(long blockId) throws IOException {
     String filePath = getBlockFilePath(blockId);
     try {
       return BlockHandler.get(filePath);
@@ -345,7 +347,7 @@ public final class StorageDir {
    * 
    * @return queue of removed block Ids
    */
-  public BlockingQueue<Long> getRemovedBlockList() {
+  public BlockingQueue<Long> getRemovedBlockIdList() {
     return mRemovedBlockIdList;
   }
 
@@ -451,7 +453,7 @@ public final class StorageDir {
   }
 
   /**
-   * Check whether block is locked by some user
+   * Check whether certain block is locked
    * 
    * @param blockId Id of the block
    * @return true if block is locked, false otherwise
@@ -465,24 +467,26 @@ public final class StorageDir {
    * 
    * @param blockId Id of the block
    * @param userId Id of the user
+   * @return true if success, false otherwise
    */
-  public void lockBlock(long blockId, long userId) {
-    if (!containsBlock(blockId)) {
-      return;
+  public boolean lockBlock(long blockId, long userId) {
+    if (!containsBlock(blockId) && !isBlockLocked(blockId)) {
+      return false;
     }
     mUserPerLockedBlock.put(blockId, userId);
     mLockedBlocksPerUser.put(userId, blockId);
+    return true;
   }
 
   /**
-   * Move block from current StorageDir to another StorageDir
+   * Move block file from current StorageDir to another StorageDir
    * 
    * @param blockId Id of the block
    * @param dstDir destination StorageDir
    * @return true if success, false otherwise
    * @throws IOException
    */
-  boolean moveBlock(long blockId, StorageDir dstDir) throws IOException {
+  public boolean moveBlock(long blockId, StorageDir dstDir) throws IOException {
     boolean copySuccess = copyBlock(blockId, dstDir);
     if (copySuccess) {
       return deleteBlock(blockId);
@@ -516,7 +520,7 @@ public final class StorageDir {
         while (!mUserAllocatedBytes.replace(userId, used, used + size)) {
           used = mUserAllocatedBytes.get(userId);
           if (used == null) {
-            LOG.error("Error during requesting space! unknown user Id:" + userId);
+            LOG.error("Failed to request space! unknown user Id:" + userId);
             break;
           }
         }
@@ -546,7 +550,7 @@ public final class StorageDir {
     do {
       used = mUserAllocatedBytes.get(userId);
       if (used == null) {
-        LOG.error("Error during returning space! unknown user Id:" + userId);
+        LOG.error("Failed to return space! unknown user Id:" + userId);
         break;
       }
     } while (!mUserAllocatedBytes.replace(userId, used, used - size));
@@ -557,12 +561,14 @@ public final class StorageDir {
    * 
    * @param blockId Id of the block
    * @param userId Id of the user
+   * @return true if success, false otherwise
    */
-  public void unlockBlock(long blockId, long userId) {
-    if (!containsBlock(blockId)) {
-      return;
+  public boolean unlockBlock(long blockId, long userId) {
+    if (!containsBlock(blockId) && !isBlockLocked(blockId)) {
+      return false;
     }
     mUserPerLockedBlock.remove(blockId, userId);
     mLockedBlocksPerUser.remove(userId, blockId);
+    return true;
   }
 }

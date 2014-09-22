@@ -75,9 +75,9 @@ public final class EvictLRU extends EvictLRUBase {
       HashMultimap<StorageDir, Long> dir2BlocksToEvict, Set<Integer> pinList) {
     StorageDir dirCandidate = null;
     long blockId = -1;
+    long oldestTime = Long.MAX_VALUE;
     for (StorageDir dir : storageDirs) {
       Pair<Long, Long> lruBlock;
-      long oldestTime = Long.MAX_VALUE;
       if (!dir2LRUBlocks.containsKey(dir)) {
         Set<Long> blocksToEvict = dir2BlocksToEvict.get(dir);
         lruBlock = getLRUBlock(dir, blocksToEvict, pinList);

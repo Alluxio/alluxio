@@ -45,7 +45,7 @@ public abstract class EvictLRUBase implements EvictStrategy {
       Set<Integer> pinList) {
     long blockId = -1;
     long oldestTime = Long.MAX_VALUE;
-    Set<Entry<Long, Long>> accessTimes = curDir.getLastBlockAccessTime();
+    Set<Entry<Long, Long>> accessTimes = curDir.getLastBlockAccessTimeMs();
 
     for (Entry<Long, Long> accessTime : accessTimes) {
       if (toEvictBlockIds.contains(accessTime.getKey())) {
