@@ -6,23 +6,28 @@ require 'yaml'
 @cmd = YAML.load_file('init.yml')
 puts @cmd.inspect
 
-INIT=@cmd['init']
+Init = @cmd['Init']
+Total = @cmd['Total']
+Provider = @cmd['Provider']
 
-# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+# Vagrantfile API/syntax version. 
 VAGRANTFILE_API_VERSION = "2"
-
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-
-  config.vm.provision "shell", path: "init.sh"
-  config.vm.provision "shell", path: INIT
-  
-  config.vm.box = "chef/centos-6.5"
-
-  config.vm.synced_folder "../../", "/tachyon"
-  config.vm.synced_folder "./", "/vagrant"
-
-  config.vm.provider "virtualbox" do |vb|
-     vb.gui = true
-     vb.customize ["modifyvm", :id, "--memory", "3024"]
+  (1..Total).each do |i|    
+    config.vm.define "tachyon#{i}" do |n|
+    n.vm.provision "shell", path: "init.sh"
+    n.vm.provision "shell", path: Init
+    n.vm.synced_folder "../../", "/tachyon"
+    n.vm.synced_folder "./", "/vagrant"
+    
+      if Provider == "vb"
+        n.vm.box = "chef/centos-6.5"
+        n.vm.provider "virtualbox" do |vb|
+          vb.gui = true
+          eval File.open('config_vb.rb').read
+          config_vb(n, i)
+        end
+      end
+    end
   end
 end
