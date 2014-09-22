@@ -2,7 +2,7 @@ package tachyon.master;
 
 import java.io.IOException;
 
-import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 
 /**
@@ -25,8 +25,8 @@ public class Journal {
    * @throws IOException
    */
   public Journal(String folder, String imageFileName, String editLogFileName) throws IOException {
-    if (!folder.endsWith(Constants.PATH_SEPARATOR)) {
-      folder += Constants.PATH_SEPARATOR;
+    if (!folder.endsWith(TachyonURI.SEPARATOR)) {
+      folder += TachyonURI.SEPARATOR;
     }
     mImagePath = folder + imageFileName;
     mEditLogPath = folder + editLogFileName;

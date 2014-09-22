@@ -24,7 +24,7 @@ public final class TestUtils {
    */
   public static int createByteFile(TachyonFS tfs, String fileName, WriteType op, int len)
       throws IOException {
-    int fileId = tfs.createFile(fileName);
+    int fileId = tfs.createFile(new TachyonURI(fileName));
     TachyonFile file = tfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
 
@@ -49,7 +49,7 @@ public final class TestUtils {
    */
   public static int createByteFile(TachyonFS tfs, String fileName, WriteType op, int len,
       long blockCapacityByte) throws IOException {
-    int fileId = tfs.createFile(fileName, blockCapacityByte);
+    int fileId = tfs.createFile(new TachyonURI(fileName), blockCapacityByte);
     TachyonFile file = tfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
 

@@ -1,26 +1,19 @@
-<script src="js/cookies.min.js" type="text/javascript"></script>
-<script type="text/javascript">
-  var nTotalFile = <%= request.getAttribute("inMemoryFileNum") %>;
-
-  // view settings
-  var nFilePerPage = 20;
-  var nMaxPageShown = 10;
-
-  // current states
+  // default current states
   var currentPage = 1;
   var currentOffset = 0;
-  var currentLimit = initalOffset();
+  var currentLimit = initialLimit();
 
-  function initalOffset() {
+  function initialLimit() {
     return Math.min(nFilePerPage, nTotalFile);
   }
-  function constructLink(off, lim) {
-    return './memory?offset=' + off + '&limit=' + lim;
-  }
+ 
   function redirect() {
-    var noOffsetAndLimit = window.location.href.toString().split(window.location.host)[1] == "/memory";
-    if (noOffsetAndLimit) {
-      window.location.href = constructLink(0, initalOffset());
+    var url = window.location.href;
+    var hasLimit = url.substring(url.lastIndexOf("&") + 1, url.lastIndexOf("=")) == "limit";
+    var urlWithoutLimit = url.substring(0, url.lastIndexOf("&"));
+    var hasOffset = urlWithoutLimit.substring(urlWithoutLimit.lastIndexOf("&") + 1, urlWithoutLimit.lastIndexOf("=")) == "offset";
+    if (!hasLimit && !hasOffset) {
+      window.location.href = constructLink(0, initialLimit());
     }
   }
   function addPage(option, off, lim, name) {
@@ -65,15 +58,18 @@
     }
   }
 
+  // suppose offset=xxx&limit=xxx is always the last two elements of URL
   function getOffsetFromUrl() {
     var url = window.location.href;
-    var ret = parseInt(url.substring(url.indexOf("=") + 1, url.indexOf("&")));
+    var urlBeforeLimit = url.substring(0, url.lastIndexOf("&"));
+    var ret = parseInt(urlBeforeLimit.substring(urlBeforeLimit.lastIndexOf("=") + 1));
     if (isNaN(ret)) return 0;
     return ret;
   }
   function getLimitFromUrl() {
     var url = window.location.href;
-    var ret = parseInt(url.substring(url.lastIndexOf("=") + 1));
+    var urlAfterOffset = url.substring(url.lastIndexOf("&"));
+    var ret = parseInt(urlAfterOffset.substring(urlAfterOffset.indexOf("=") + 1));
     if (isNaN(ret)) return 0;
     return ret;
   }
@@ -83,23 +79,23 @@
     currentPage = Math.floor(currentOffset / nFilePerPage) + 1;
   }
   function updateViewSettings() {
-    if (Cookies.get("nFilePerPage") != undefined) {
-      nFilePerPage = Cookies.get("nFilePerPage");
+    if (Cookies.get(nFilePerPageCookie) != undefined) {
+      nFilePerPage = Cookies.get(nFilePerPageCookie);
     }
-    if (Cookies.get("nMaxPageShown") != undefined) {
-      nMaxPageShown = Cookies.get("nMaxPageShown");
+    if (Cookies.get(nMaxPageShownCookie) != undefined) {
+      nMaxPageShown = Cookies.get(nMaxPageShownCookie);
     }
   }
   function saveNewViewSettings() {
     var updated = false;
     var nfpg = parseInt($("#nFilePerPage").val());
     if (!isNaN(nfpg)) {
-      Cookies.set("nFilePerPage", nfpg);
+      Cookies.set(nFilePerPageCookie, nfpg);
       updated = true;
     }
     var nmps = parseInt($("#nMaxPageShown").val());
     if (!isNaN(nmps)) {
-      Cookies.set("nMaxPageShown", nmps);
+      Cookies.set(nMaxPageShownCookie, nmps);
       updated = true;
     }
     return updated;
@@ -111,7 +107,7 @@
 
     $("#updateView").on('click', function(e) {
       if(saveNewViewSettings()) {
-        window.location.href = './memory';
+        window.location.href = baseUrl;
       }
     });
   }
