@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
  */
 public class TachyonByteBuffer implements Closeable {
   // ByteBuffer contains data.
-  public final ByteBuffer DATA;
+  public final ByteBuffer mData;
 
   private final long mBlockId;
 
@@ -26,7 +26,7 @@ public class TachyonByteBuffer implements Closeable {
    * @param blockLockId the id of the block's lock
    */
   TachyonByteBuffer(TachyonFS tfs, ByteBuffer buf, long blockId, int blockLockId) {
-    DATA = buf;
+    mData = buf;
     mBlockId = blockId;
     mBlockLockId = blockLockId;
     mTachyonFS = tfs;

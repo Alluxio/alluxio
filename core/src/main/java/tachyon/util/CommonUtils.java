@@ -399,8 +399,8 @@ public final class CommonUtils {
     } else if (end.equals("pb")) {
       // When parsing petabyte values, we can't multiply with doubles and longs, since that will
       // lose presicion with such high numbers. Therefore we use a BigDecimal.
-      BigDecimal PBDecimal = new BigDecimal(Constants.PB);
-      return PBDecimal.multiply(BigDecimal.valueOf(ret)).longValue();
+      BigDecimal pBDecimal = new BigDecimal(Constants.PB);
+      return pBDecimal.multiply(BigDecimal.valueOf(ret)).longValue();
     } else {
       throw new IllegalArgumentException("Fail to parse " + ori + " as memory size");
     }

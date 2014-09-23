@@ -51,8 +51,8 @@ public class UfsUtils {
    * @param excludePaths paths to exclude from ufsRootPath, which will not be loaded in mTachyonFS.
    * @throws IOException
    */
-  public static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath, String excludePaths)
-      throws IOException {
+  public static void loadUfs(TachyonURI tfsAddrRootPath, TachyonURI ufsAddrRootPath,
+      String excludePaths) throws IOException {
     TachyonFS tfs = TachyonFS.get(tfsAddrRootPath);
 
     PrefixList excludePathPrefix = new PrefixList(excludePaths, ";");

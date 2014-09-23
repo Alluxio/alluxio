@@ -35,7 +35,7 @@ public class TFsShell implements Closeable {
    * 
    * @param argv [] Array of arguments given by the user's input from the terminal
    */
-  public static void main(String argv[]) throws IOException {
+  public static void main(String[] argv) throws IOException {
     TFsShell shell = new TFsShell();
     int ret;
     try {
@@ -60,7 +60,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int cat(String argv[]) throws IOException {
+  public int cat(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs cat <path>");
       return -1;
@@ -100,7 +100,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int copyFromLocal(String argv[]) throws IOException {
+  public int copyFromLocal(String[] argv) throws IOException {
     if (argv.length != 3) {
       System.out.println("Usage: tfs copyFromLocal <src> <remoteDst>");
       return -1;
@@ -162,7 +162,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int copyToLocal(String argv[]) throws IOException {
+  public int copyToLocal(String[] argv) throws IOException {
     if (argv.length != 3) {
       System.out.println("Usage: tfs copyToLocal <src> <localdst>");
       return -1;
@@ -203,7 +203,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int count(String argv[]) throws IOException {
+  public int count(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs count <path>");
       return -1;
@@ -244,7 +244,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int fileinfo(String argv[]) throws IOException {
+  public int fileinfo(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs fileinfo <path>");
       return -1;
@@ -267,7 +267,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int location(String argv[]) throws IOException {
+  public int location(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs location <path>");
       return -1;
@@ -290,7 +290,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int ls(String argv[]) throws IOException {
+  public int ls(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs ls <path>");
       return -1;
@@ -323,7 +323,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int lsr(String argv[]) throws IOException {
+  public int lsr(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs lsr <path>");
       return -1;
@@ -359,7 +359,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int mkdir(String argv[]) throws IOException {
+  public int mkdir(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs mkdir <path>");
       return -1;
@@ -382,7 +382,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int pin(String argv[]) throws IOException {
+  public int pin(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs pin <path>");
       return -1;
@@ -433,7 +433,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int rename(String argv[]) throws IOException {
+  public int rename(String[] argv) throws IOException {
     if (argv.length != 3) {
       System.out.println("Usage: tfs mv <src> <dst>");
       return -1;
@@ -449,7 +449,7 @@ public class TFsShell implements Closeable {
     }
   }
 
-  public int report(String argv[]) throws IOException {
+  public int report(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs report <path>");
       return -1;
@@ -462,7 +462,7 @@ public class TFsShell implements Closeable {
     return 0;
   }
 
-  public int request(String argv[]) throws IOException {
+  public int request(String[] argv) throws IOException {
     if (argv.length != 3) {
       System.out.println("Usage: tfs request <tachyonaddress> <dependencyId>");
       return -1;
@@ -483,7 +483,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int rm(String argv[]) throws IOException {
+  public int rm(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs rm <path>");
       return -1;
@@ -505,7 +505,7 @@ public class TFsShell implements Closeable {
    * @param argv [] Array of arguments given by the user's input from the terminal
    * @return 0 if command is successful, -1 if an error occurred
    */
-  public int run(String argv[]) {
+  public int run(String[] argv) {
     if (argv.length == 0) {
       printUsage();
       return -1;
@@ -566,7 +566,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.f
    * @throws IOException
    */
-  public int tail(String argv[]) throws IOException {
+  public int tail(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs tail <path>");
       return -1;
@@ -609,7 +609,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command if successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int touch(String argv[]) throws IOException {
+  public int touch(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs touch <path>");
       return -1;
@@ -631,7 +631,7 @@ public class TFsShell implements Closeable {
    * @return 0 if command is successful, -1 if an error occurred.
    * @throws IOException
    */
-  public int unpin(String argv[]) throws IOException {
+  public int unpin(String[] argv) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs unpin <path>");
       return -1;

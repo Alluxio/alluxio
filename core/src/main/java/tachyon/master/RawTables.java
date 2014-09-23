@@ -139,7 +139,8 @@ public class RawTables extends ImageWriter {
    * @throws TachyonException
    */
   // TODO add version number.
-  public synchronized void updateMetadata(int tableId, ByteBuffer metadata) throws TachyonException {
+  public synchronized void updateMetadata(int tableId, ByteBuffer metadata)
+      throws TachyonException {
     Pair<Integer, ByteBuffer> data = mData.get(tableId);
 
     if (null == data) {
