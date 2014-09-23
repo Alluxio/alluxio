@@ -9,23 +9,43 @@ puts @cmd.inspect
 Init = @cmd['Init']
 Total = @cmd['Total']
 Provider = @cmd['Provider']
+Memory = @cmd['Memory']
+Addr = @cmd['Addresses']
 
 # Vagrantfile API/syntax version. 
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   (1..Total).each do |i|    
+    # multi vm config
     config.vm.define "tachyon#{i}" do |n|
-    n.vm.provision "shell", path: "init.sh"
-    n.vm.provision "shell", path: Init
-    n.vm.synced_folder "../../", "/tachyon"
-    n.vm.synced_folder "./", "/vagrant"
-    
+      # common config
+      n.vm.provision "shell", path: "init.sh"
+      n.vm.provision "shell", path: Init
+      n.vm.synced_folder "../../", "/tachyon"
+      n.vm.synced_folder "./", "/vagrant"
+
+      # config cluster
+      if i == 1
+        file = File.open("../../conf/slaves","w")
+      else
+        file = File.open("../../conf/slaves","a")
+      end
+      if file != nil
+        file.write(Addr[i - 1])
+        file.write("\n")
+      end
+      file.close unless file == nil
+
+      # Provider specific init
       if Provider == "vb"
         n.vm.box = "chef/centos-6.5"
         n.vm.provider "virtualbox" do |vb|
+          if Memory != ''
+            vb.customize ["modifyvm", :id, "--memory", Memory]
+          end
           vb.gui = true
           eval File.open('config_vb.rb').read
-          config_vb(n, i)
+          config_vb(n, i, Total)
         end
       end
     end
