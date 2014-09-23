@@ -1,6 +1,7 @@
 SPEC: 'Dummy'
 Init: 'dummy/init.sh'
 Provider: 'vb'
+Memory: 1024 #MB
 Total: 2
 Addresses:
     - "192.168.1.11"
