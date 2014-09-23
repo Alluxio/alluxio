@@ -11,6 +11,7 @@ Total = @cmd['Total']
 Provider = @cmd['Provider']
 Memory = @cmd['Memory']
 Addr = @cmd['Addresses']
+Post = @cmd['Post']
 
 # Vagrantfile API/syntax version. 
 VAGRANTFILE_API_VERSION = "2"

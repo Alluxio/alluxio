@@ -1,5 +1,6 @@
-SPEC: 'Dummy'
-Init: 'dummy/init.sh'
+SPEC: 'Hadoop2'
+Init: 'hadoop2/init.sh'
+Post: 'hadoop2/post.sh'
 Provider: 'vb'
 Memory: 1024 #MB
 Total: 2
