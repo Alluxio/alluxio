@@ -119,7 +119,7 @@ public class RemoteBlockInStreamTest {
   }
 
   /**
-   * Test <code>void read(byte b[])</code>. Read from underfs.
+   * Test <code>void read(byte[] b)</code>. Read from underfs.
    */
   @Test
   public void readTest2() throws IOException {
@@ -251,7 +251,7 @@ public class RemoteBlockInStreamTest {
   }
 
   /**
-   * Test <code>void read(byte b[])</code>. Read from remote data server.
+   * Test <code>void read(byte[] b)</code>. Read from remote data server.
    */
   @Test
   public void readTest5() throws IOException {
@@ -299,7 +299,7 @@ public class RemoteBlockInStreamTest {
   }
 
   /**
-   * Test <code>void read(byte b[])</code>. Read from underfs.
+   * Test <code>void read(byte[] b)</code>. Read from underfs.
    */
   @Test
   public void readTest7() throws IOException {

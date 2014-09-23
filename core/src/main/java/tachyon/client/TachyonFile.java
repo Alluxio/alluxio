@@ -2,8 +2,8 @@ package tachyon.client;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -34,7 +34,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
 
   final TachyonFS mTachyonFS;
   final int mFileId;
-  private final UserConf USER_CONF = UserConf.get();
+  private final UserConf mUserConf = UserConf.get();
 
   private Object mUFSConf = null;
 
@@ -405,7 +405,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
         }
 
         FileChannel localFileChannel = localFile.getChannel();
-        ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
+        final ByteBuffer buf = localFileChannel.map(FileChannel.MapMode.READ_ONLY, offset, len);
         localFileChannel.close();
         localFile.close();
         mTachyonFS.accessLocalBlock(blockId);
@@ -504,7 +504,7 @@ public class TachyonFile implements Comparable<TachyonFile> {
       long offset = blockIndex * length;
       inputStream.skip(offset);
 
-      byte buffer[] = new byte[USER_CONF.FILE_BUFFER_BYTES * 4];
+      byte[] buffer = new byte[mUserConf.FILE_BUFFER_BYTES * 4];
 
       BlockOutStream bos = new BlockOutStream(this, WriteType.TRY_CACHE, blockIndex);
       try {

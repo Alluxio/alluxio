@@ -101,7 +101,7 @@ public class LocalBlockInStreamTest {
   }
 
   /**
-   * Test <code>void read(byte b[])</code>.
+   * Test <code>void read(byte[] b)</code>.
    */
   @Test
   public void readTest2() throws IOException {

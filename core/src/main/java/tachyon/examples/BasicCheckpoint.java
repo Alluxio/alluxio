@@ -73,9 +73,9 @@ public class BasicCheckpoint implements Callable<Boolean> {
         file.recache();
         buf = file.readByteBuffer(0);
       }
-      buf.DATA.order(ByteOrder.nativeOrder());
+      buf.mData.order(ByteOrder.nativeOrder());
       for (int k = 0; k < mNumFiles; k ++) {
-        pass = pass && (buf.DATA.getInt() == k);
+        pass = pass && (buf.mData.getInt() == k);
       }
       buf.close();
     }
@@ -84,17 +84,16 @@ public class BasicCheckpoint implements Callable<Boolean> {
 
   private void writeFile(TachyonFS tachyonClient) throws IOException {
     for (int i = 0; i < mNumFiles; i ++) {
-      TachyonURI filePath = new TachyonURI(mFileFolder + "/part-" + i);
-      TachyonFile file = tachyonClient.getFile(filePath);
-      OutputStream os = file.getOutStream(WriteType.ASYNC_THROUGH);
-
       ByteBuffer buf = ByteBuffer.allocate(80);
       buf.order(ByteOrder.nativeOrder());
       for (int k = 0; k < mNumFiles; k ++) {
         buf.putInt(k);
       }
       buf.flip();
+      TachyonURI filePath = new TachyonURI(mFileFolder + "/part-" + i);
       LOG.debug("Writing data to {}", filePath);
+      TachyonFile file = tachyonClient.getFile(filePath);
+      OutputStream os = file.getOutStream(WriteType.ASYNC_THROUGH);
       os.write(buf.array());
       os.close();
     }

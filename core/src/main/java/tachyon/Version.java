@@ -1,7 +1,7 @@
 package tachyon;
 
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 import org.slf4j.Logger;

@@ -49,12 +49,12 @@ public class Utils {
         return path;
       }
     } else {
-      String HOSTNAME = System.getProperty("tachyon.master.hostname", "localhost");
-      String PORT = System.getProperty("tachyon.master.port", "" + Constants.DEFAULT_MASTER_PORT);
+      String hostname = System.getProperty("tachyon.master.hostname", "localhost");
+      String port = System.getProperty("tachyon.master.port", "" + Constants.DEFAULT_MASTER_PORT);
       if (CommonConf.get().USE_ZOOKEEPER) {
-        return CommonUtils.concat(Constants.HEADER_FT + HOSTNAME + ":" + PORT, path);
+        return CommonUtils.concat(Constants.HEADER_FT + hostname + ":" + port, path);
       }
-      return CommonUtils.concat(Constants.HEADER + HOSTNAME + ":" + PORT, path);
+      return CommonUtils.concat(Constants.HEADER + hostname + ":" + port, path);
     }
   }
 }

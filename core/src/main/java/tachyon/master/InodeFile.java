@@ -26,19 +26,18 @@ public class InodeFile extends Inode {
    * @throws IOException
    */
   static InodeFile loadImage(ImageElement ele) throws IOException {
-    long creationTimeMs = ele.getLong("creationTimeMs");
-    int fileId = ele.getInt("id");
-    String fileName = ele.getString("name");
-    int parentId = ele.getInt("parentId");
-
-    long blockSizeByte = ele.getLong("blockSizeByte");
-    long length = ele.getLong("length");
-    boolean isComplete = ele.getBoolean("complete");
-    boolean isPinned = ele.getBoolean("pin");
-    boolean isCache = ele.getBoolean("cache");
-    String ufsPath = ele.getString("ufsPath");
-    int dependencyId = ele.getInt("depId");
-    long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
+    final long creationTimeMs = ele.getLong("creationTimeMs");
+    final int fileId = ele.getInt("id");
+    final String fileName = ele.getString("name");
+    final int parentId = ele.getInt("parentId");
+    final long blockSizeByte = ele.getLong("blockSizeByte");
+    final long length = ele.getLong("length");
+    final boolean isComplete = ele.getBoolean("complete");
+    final boolean isPinned = ele.getBoolean("pin");
+    final boolean isCache = ele.getBoolean("cache");
+    final String ufsPath = ele.getString("ufsPath");
+    final int dependencyId = ele.getInt("depId");
+    final long lastModificationTimeMs = ele.getLong("lastModificationTimeMs");
 
     InodeFile inode = new InodeFile(fileName, fileId, parentId, blockSizeByte, creationTimeMs);
 

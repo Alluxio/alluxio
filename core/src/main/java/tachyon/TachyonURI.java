@@ -276,8 +276,8 @@ public final class TachyonURI implements Comparable<TachyonURI> {
         && path.length() >= start + 2
         && (!slashed || path.charAt(0) == '/')
         && path.charAt(start + 1) == ':'
-        && ((path.charAt(start) >= 'A' && path.charAt(start) <= 'Z') || (path.charAt(start) >= 'a' && path
-            .charAt(start) <= 'z'));
+        && ((path.charAt(start) >= 'A' && path.charAt(start) <= 'Z') || (path.charAt(start) >= 'a'
+        && path.charAt(start) <= 'z'));
   }
 
   /**

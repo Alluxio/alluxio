@@ -81,7 +81,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     return file;
   }
 
-  private boolean read(TachyonFS client, TachyonURI filePath, ReadType readType) throws IOException {
+  private boolean read(TachyonFS client, TachyonURI filePath, ReadType readType)
+      throws IOException {
     TachyonFile file = client.getFile(filePath);
     DataInputStream input = new DataInputStream(file.getInStream(readType));
     boolean passes = true;

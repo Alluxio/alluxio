@@ -76,8 +76,8 @@ public class WebInterfaceDownloadServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws IOException
    */
-  private void downloadFile(TachyonURI path, HttpServletRequest request, HttpServletResponse response)
-      throws FileDoesNotExistException, IOException {
+  private void downloadFile(TachyonURI path, HttpServletRequest request,
+      HttpServletResponse response) throws FileDoesNotExistException, IOException {
     String masterAddress =
         Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
             + mMasterInfo.getMasterAddress().getPort();
