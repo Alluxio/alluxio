@@ -587,6 +587,17 @@ public class EditLog {
   }
 
   /**
+   * Changes backup log start number for testing purposes.
+   *
+   * Note that we must set it back to -1 when test case ended.
+   *
+   * @param num
+   */
+  public static void setBackUpLogStartNum(int num) {
+    mBackUpLogStartNum = num;
+  }
+
+  /**
    * Log a setPinned operation. Do nothing if the edit log is inactive.
    * 
    * @param fileId The id of the file

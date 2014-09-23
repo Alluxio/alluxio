@@ -1,5 +1,6 @@
 package tachyon.master;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -378,6 +379,46 @@ public class JournalTest {
       Assert.assertTrue(info.getFileId("/a" + k) != -1);
     }
     info.stop();
+  }
+
+  /**
+   * Test renaming completed edit logs.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void RenameEditLogTest() throws Exception {
+    String journalPrefix = "/tmp/JournalDir" + String.valueOf(System.currentTimeMillis());
+    String journalPath = journalPrefix + "/log.data";
+    String completedStr = journalPrefix + "/completed/";
+    File journal = new File(journalPath);
+    journal.delete();
+    journal.getParentFile().mkdirs();
+    journal.createNewFile();
+
+    // Write operation and flush them to completed directory.
+    EditLog log = new EditLog(journalPath, false, 0);
+    log.setMaxLogSize(100);
+    for (int i = 0; i < 124; i ++) {
+      log.createFile(false, "/sth" + i, false, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis());
+      log.flush();
+    }
+    log.close();
+
+    // Rename completed edit logs when loading them.
+    File completedDir = new File(completedStr);
+    int numOfCompleteFiles = completedDir.listFiles().length;
+    Assert.assertTrue(numOfCompleteFiles > 0);
+    EditLog.setBackUpLogStartNum(numOfCompleteFiles / 2);
+    log = new EditLog(journalPath, false, 0);
+    int numOfCompleteFilesLeft = numOfCompleteFiles - numOfCompleteFiles / 2 + 1;
+    Assert.assertEquals(numOfCompleteFilesLeft, completedDir.listFiles().length);
+    for (int i = 0; i < numOfCompleteFilesLeft; i ++) {
+      Assert.assertTrue(new File(completedStr + i + ".editLog").exists());
+    }
+    EditLog.setBackUpLogStartNum(-1);
+    log.close();
+    new File(journalPrefix).delete();
   }
 
   /**
