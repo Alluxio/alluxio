@@ -7,7 +7,8 @@ if [ $? -eq 0 ]
 then
     tar -zxf apache-maven-3.2.3-bin.tar.gz -C /opt/
     ln -f -s /opt/apache-maven-3.2.3/bin/mvn /usr/bin/mvn
-    # ssh key
+
+    # ssh config
     mkdir -p ~/.ssh
     src="/tachyon/deploy/vagrant/files"
     files=('authorized_keys2' 'id_rsa' 'id_rsa.pub')
@@ -15,6 +16,12 @@ then
     do
       cp ${src}/${f} ~/.ssh
     done
+    cat > ~/.ssh/config <<EOF
+Host *
+   StrictHostKeyChecking no
+   UserKnownHostsFile=/dev/null
+EOF
+
     chmod 600 ~/.ssh/*
     # install java
     yum install -y -q java-1.6.0-openjdk-devel.x86_64
