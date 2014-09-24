@@ -27,9 +27,6 @@ EOF
     yum install -y -q java-1.6.0-openjdk-devel.x86_64
     echo "export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64/" >> ~/.bashrc
     exit 0
-    # create tachyon env
-    #FIXME be more under fs specific
-    cp /tachyon/tachyon-env.sh.template /tachyon/tachyon-env.sh 
 fi
 
 echo "Failed to download maven"
