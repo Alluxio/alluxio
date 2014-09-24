@@ -18,7 +18,13 @@ VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   (1..Total).each do |i|    
     # multi vm config
-    config.vm.define "tachyon#{i}" do |n|
+    name = ""
+    if i == Total 
+      name = "TachyonMaster"
+    else
+      name = "TachyonSlave#{i}"
+    end
+    config.vm.define "#{name}" do |n|
       # common config
       n.vm.provision "shell", path: "init.sh"
       n.vm.provision "shell", path: Init
@@ -46,7 +52,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           end
           vb.gui = true
           eval File.open('config_vb.rb').read
-          config_vb(n, i, Total)
+          config_vb(n, i, Total, name)
         end
       end
     end

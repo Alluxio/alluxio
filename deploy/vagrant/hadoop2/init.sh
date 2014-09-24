@@ -24,6 +24,7 @@ then
         echo $i >> /hadoop/etc/hadoop/slaves
     done
 
+    # choose the last node as namenode
     namenode=$i
     cat > /hadoop/etc/hadoop/core-site.xml << EOF
 <configuration>
@@ -51,6 +52,10 @@ EOF
      </property>
 </configuration>
 EOF
+    # create tachyon env
+    /bin/cp /tachyon/conf/tachyon-env.sh.template /tachyon/conf/tachyon-env.sh 
+    sed -i "s/#export TACHYON_UNDERFS_ADDRESS=hdfs:\/\/localhost:9000/export TACHYON_UNDERFS_ADDRESS=hdfs:\/\/${namenode}:9000/g" /tachyon/conf/tachyon-env.sh
+    sed -i "s/export TACHYON_MASTER_ADDRESS=localhost/export TACHYON_MASTER_ADDRESS=${namenode}/g" /tachyon/conf/tachyon-env.sh
 
 fi
 
