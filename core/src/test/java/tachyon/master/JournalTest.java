@@ -391,10 +391,16 @@ public class JournalTest {
     String journalPrefix = "/tmp/JournalDir" + String.valueOf(System.currentTimeMillis());
     String journalPath = journalPrefix + "/log.data";
     String completedStr = journalPrefix + "/completed/";
-    File journal = new File(journalPath);
-    journal.delete();
-    journal.getParentFile().mkdirs();
-    journal.createNewFile();
+    UnderFileSystem ufs = UnderFileSystem.get(journalPath);
+    ufs.delete(journalPrefix, true);
+    ufs.mkdirs(journalPrefix, true);
+    OutputStream ops = ufs.create(journalPath);
+    if (ops != null) {
+      ops.close();
+    }
+    if (ufs != null) {
+      ufs.close();
+    }
 
     // Write operation and flush them to completed directory.
     EditLog log = new EditLog(journalPath, false, 0);
@@ -406,19 +412,22 @@ public class JournalTest {
     log.close();
 
     // Rename completed edit logs when loading them.
-    File completedDir = new File(completedStr);
-    int numOfCompleteFiles = completedDir.listFiles().length;
+    ufs = UnderFileSystem.get(completedStr);
+    int numOfCompleteFiles = ufs.list(completedStr).length;
     Assert.assertTrue(numOfCompleteFiles > 0);
     EditLog.setBackUpLogStartNum(numOfCompleteFiles / 2);
     log = new EditLog(journalPath, false, 0);
     int numOfCompleteFilesLeft = numOfCompleteFiles - numOfCompleteFiles / 2 + 1;
-    Assert.assertEquals(numOfCompleteFilesLeft, completedDir.listFiles().length);
+    Assert.assertEquals(numOfCompleteFilesLeft, ufs.list(completedStr).length);
     for (int i = 0; i < numOfCompleteFilesLeft; i ++) {
-      Assert.assertTrue(new File(completedStr + i + ".editLog").exists());
+      Assert.assertTrue(ufs.exists(completedStr + i + ".editLog"));
     }
     EditLog.setBackUpLogStartNum(-1);
     log.close();
-    new File(journalPrefix).delete();
+    ufs.delete(journalPrefix, true);
+    if (ufs != null) {
+      ufs.close();
+    }
   }
 
   /**
