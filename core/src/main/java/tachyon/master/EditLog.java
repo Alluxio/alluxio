@@ -582,7 +582,7 @@ public class EditLog {
    * 
    * @param size
    */
-  public void setMaxLogSize(int size) {
+  void setMaxLogSize(int size) {
     mMaxLogSize = size;
   }
 
@@ -593,7 +593,7 @@ public class EditLog {
    *
    * @param num
    */
-  public static void setBackUpLogStartNum(int num) {
+  static void setBackUpLogStartNum(int num) {
     mBackUpLogStartNum = num;
   }
 
