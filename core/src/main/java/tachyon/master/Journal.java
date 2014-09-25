@@ -135,7 +135,7 @@ public class Journal {
    * 
    * @param size
    */
-  public void setMaxLogSize(int size) {
+  void setMaxLogSize(int size) {
     mEditLog.setMaxLogSize(size);
   }
 }

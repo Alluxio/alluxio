@@ -1,5 +1,6 @@
 package tachyon.master;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -378,6 +379,55 @@ public class JournalTest {
       Assert.assertTrue(info.getFileId("/a" + k) != -1);
     }
     info.stop();
+  }
+
+  /**
+   * Test renaming completed edit logs.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void RenameEditLogTest() throws Exception {
+    String journalPrefix = "/tmp/JournalDir" + String.valueOf(System.currentTimeMillis());
+    String journalPath = journalPrefix + "/log.data";
+    String completedStr = journalPrefix + "/completed/";
+    UnderFileSystem ufs = UnderFileSystem.get(journalPath);
+    ufs.delete(journalPrefix, true);
+    ufs.mkdirs(journalPrefix, true);
+    OutputStream ops = ufs.create(journalPath);
+    if (ops != null) {
+      ops.close();
+    }
+    if (ufs != null) {
+      ufs.close();
+    }
+
+    // Write operation and flush them to completed directory.
+    EditLog log = new EditLog(journalPath, false, 0);
+    log.setMaxLogSize(100);
+    for (int i = 0; i < 124; i ++) {
+      log.createFile(false, "/sth" + i, false, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis());
+      log.flush();
+    }
+    log.close();
+
+    // Rename completed edit logs when loading them.
+    ufs = UnderFileSystem.get(completedStr);
+    int numOfCompleteFiles = ufs.list(completedStr).length;
+    Assert.assertTrue(numOfCompleteFiles > 0);
+    EditLog.setBackUpLogStartNum(numOfCompleteFiles / 2);
+    log = new EditLog(journalPath, false, 0);
+    int numOfCompleteFilesLeft = numOfCompleteFiles - numOfCompleteFiles / 2 + 1;
+    Assert.assertEquals(numOfCompleteFilesLeft, ufs.list(completedStr).length);
+    for (int i = 0; i < numOfCompleteFilesLeft; i ++) {
+      Assert.assertTrue(ufs.exists(completedStr + i + ".editLog"));
+    }
+    EditLog.setBackUpLogStartNum(-1);
+    log.close();
+    ufs.delete(journalPrefix, true);
+    if (ufs != null) {
+      ufs.close();
+    }
   }
 
   /**
