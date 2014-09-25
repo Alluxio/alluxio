@@ -6,12 +6,13 @@ require 'yaml'
 @cmd = YAML.load_file('init.yml')
 puts @cmd.inspect
 
-Init = @cmd['Init']
+Ufs = @cmd['Ufs']
 Total = @cmd['Total']
 Provider = @cmd['Provider']
 Memory = @cmd['Memory']
 Addr = @cmd['Addresses']
-Post = @cmd['Post']
+Init = "#{Ufs}"+"/init.sh"
+Post = "#{Ufs}"+"/post.sh"
 
 # Vagrantfile API/syntax version. 
 VAGRANTFILE_API_VERSION = "2"
