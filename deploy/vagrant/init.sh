@@ -1,13 +1,24 @@
 #!/bin/sh
 
-# install maven
-wget -q http://mirrors.gigenet.com/apache/maven/maven-3/3.2.3/binaries/apache-maven-3.2.3-bin.tar.gz 
+cd /vagrant/shared
 
-if [ $? -eq 0 ]
+# install maven
+if [ ! -f apache-maven-3.2.3-bin.tar.gz ]
+then
+    wget -q http://mirrors.gigenet.com/apache/maven/maven-3/3.2.3/binaries/apache-maven-3.2.3-bin.tar.gz 
+fi
+
+if [ -f apache-maven-3.2.3-bin.tar.gz ]
 then
     tar -zxf apache-maven-3.2.3-bin.tar.gz -C /opt/
     ln -f -s /opt/apache-maven-3.2.3/bin/mvn /usr/bin/mvn
-
+    # relocate local repo to shared folder
+    mkdir -p ~/.m2
+    cat > ~/.m2/settings.xml <<EOF
+<settings>
+  <localRepository>/vagrant/shared</localRepository>
+</settings>
+EOF
     # ssh config
     mkdir -p ~/.ssh
     src="/tachyon/deploy/vagrant/files"

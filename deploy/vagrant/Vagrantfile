@@ -31,6 +31,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       n.vm.synced_folder "../../", "/tachyon"
       n.vm.synced_folder "./", "/vagrant"
 
+      # files shared by VMs go into shared folder
+      system 'mkdir', '-p', './shared'
+
       # config cluster
       if i == 1
         file = File.open("../../conf/slaves","w")
