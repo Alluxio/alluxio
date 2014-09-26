@@ -175,7 +175,8 @@ public class LocalBlockInStreamTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>.
+   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a negative
+   * position.
    * 
    * @throws IOException
    */
@@ -206,13 +207,13 @@ public class LocalBlockInStreamTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>.
+   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a position
+   * that is past buffer limit.
    *
    * @throws IOException
    */
   @Test
   public void seekExceptionTest2() throws IOException {
-
     thrown.expect(IOException.class);
     thrown.expectMessage("Seek position is past buffer limit");
 

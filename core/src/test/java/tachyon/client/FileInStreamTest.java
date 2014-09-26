@@ -173,7 +173,8 @@ public class FileInStreamTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>.
+   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a negative
+   * position.
    * 
    * @throws IOException
    */
@@ -200,13 +201,13 @@ public class FileInStreamTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>.
+   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a position
+   * that is past EOF.
    *
    * @throws IOException
    */
   @Test
   public void seekExceptionTest2() throws IOException {
-
     thrown.expect(IOException.class);
     thrown.expectMessage("Seek position is past EOF");
 
