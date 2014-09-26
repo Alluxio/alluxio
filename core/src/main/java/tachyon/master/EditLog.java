@@ -57,29 +57,22 @@ public class EditLog {
     LOG.info("currentLogNum passed in was " + currentLogFileNum);
     int completedLogs = currentLogFileNum;
     mBackUpLogStartNum = currentLogFileNum;
-    int numFiles = 1;
     String completedPath =
         path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     if (!ufs.exists(completedPath)) {
       LOG.info("No completed edit logs to be parsed");
     } else {
-      while (ufs.exists(CommonUtils.concat(completedPath, (completedLogs ++) + ".editLog"))) {
-        numFiles ++;
+      String curEditLogFile = CommonUtils.concat(completedPath, completedLogs + ".editLog");
+      while (ufs.exists(curEditLogFile)) {
+        LOG.info("Loading Edit Log " + curEditLogFile);
+        loadSingleLog(info, curEditLogFile);
+        completedLogs ++;
+        curEditLogFile = CommonUtils.concat(completedPath, completedLogs + ".editLog");
       }
     }
-    String editLogs[] = new String[numFiles];
-    for (int i = 0; i < numFiles; i ++) {
-      if (i != numFiles - 1) {
-        editLogs[i] = CommonUtils.concat(completedPath, (i + currentLogFileNum) + ".editLog");
-      } else {
-        editLogs[i] = path;
-      }
-    }
+    LOG.info("Loading Edit Log " + path);
+    loadSingleLog(info, path);
 
-    for (String currentPath : editLogs) {
-      LOG.info("Loading Edit Log " + currentPath);
-      loadSingleLog(info, currentPath);
-    }
     ufs.close();
     return mCurrentTId;
   }
@@ -260,17 +253,19 @@ public class EditLog {
         mUfs.mkdirs(folder, true);
         String toRename = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
         int currentLogFileNum = 0;
+        String dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
         while (mUfs.exists(toRename)) {
-          LOG.info("Rename " + toRename + " to "
-              + CommonUtils.concat(folder, currentLogFileNum + ".editLog"));
+          mUfs.rename(toRename, dstPath);
+          LOG.info("Rename " + toRename + " to " + dstPath);
           currentLogFileNum ++;
           mBackUpLogStartNum ++;
           toRename = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
+          dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
         }
         if (mUfs.exists(path)) {
-          mUfs.rename(path, CommonUtils.concat(folder, currentLogFileNum + ".editLog"));
-          LOG.info("Rename " + path + " to "
-              + CommonUtils.concat(folder, currentLogFileNum + ".editLog"));
+          dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
+          mUfs.rename(path, dstPath);
+          LOG.info("Rename " + path + " to " + dstPath);
           currentLogFileNum ++;
         }
         mBackUpLogStartNum = -1;
@@ -588,8 +583,19 @@ public class EditLog {
    * 
    * @param size
    */
-  public void setMaxLogSize(int size) {
+  void setMaxLogSize(int size) {
     mMaxLogSize = size;
+  }
+
+  /**
+   * Changes backup log start number for testing purposes.
+   *
+   * Note that we must set it back to -1 when test case ended.
+   *
+   * @param num
+   */
+  static void setBackUpLogStartNum(int num) {
+    mBackUpLogStartNum = num;
   }
 
   /**
