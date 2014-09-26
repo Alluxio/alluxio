@@ -4,9 +4,9 @@
  * copyright ownership. The ASF licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License. You may obtain a
  * copy of the License at
- *
+ * 
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -34,7 +34,7 @@ import org.apache.hadoop.mapred.Reporter;
  * {@link #collectStats(org.apache.hadoop.mapred.OutputCollector, String,long, Object)} should be
  * overloaded in derived classes to define the IO operation and the statistics data to be collected
  * by subsequent reducers.
- *
+ * 
  */
 public abstract class IOMapperBase<T> extends Configured implements
     Mapper<Text, LongWritable, Text, Text> {
@@ -67,7 +67,7 @@ public abstract class IOMapperBase<T> extends Configured implements
 
   /**
    * Perform io operation, usually read or write.
-   *
+   * 
    * @param reporter
    * @param name file name
    * @param value offset within the file
@@ -80,7 +80,7 @@ public abstract class IOMapperBase<T> extends Configured implements
   /**
    * Create an input or output stream based on the specified file. Subclasses should override this
    * method to provide an actual stream.
-   *
+   * 
    * @param name file name
    * @return the stream
    * @throws java.io.IOException
@@ -91,7 +91,7 @@ public abstract class IOMapperBase<T> extends Configured implements
 
   /**
    * Collect stat data to be combined by a subsequent reducer.
-   *
+   * 
    * @param output
    * @param name file name
    * @param execTime IO execution time
@@ -107,7 +107,7 @@ public abstract class IOMapperBase<T> extends Configured implements
    * <p>
    * The map task is to get the <tt>key</tt>, which contains the file name, and the <tt>value</tt>,
    * which is the offset within the file.
-   *
+   * 
    * The parameters are passed to the abstract method
    * {@link #doIO(org.apache.hadoop.mapred.Reporter, String,long)}, which performs the io operation,
    * usually read or write data, and then
