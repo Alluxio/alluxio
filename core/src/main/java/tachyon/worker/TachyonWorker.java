@@ -39,22 +39,14 @@ public class TachyonWorker implements Runnable {
   /**
    * Create a new TachyonWorker
    * 
-   * @param masterAddress
-   *          The TachyonMaster's address
-   * @param workerAddress
-   *          This TachyonWorker's address
-   * @param dataPort
-   *          This TachyonWorker's data server's port
-   * @param selectorThreads
-   *          The number of selector threads of the worker's thrift server
-   * @param acceptQueueSizePerThreads
-   *          The accept queue size per thread of the worker's thrift server
-   * @param workerThreads
-   *          The number of threads of the worker's thrift server
-   * @param localFolder
-   *          This TachyonWorker's local folder's path
-   * @param spaceLimitBytes
-   *          The maximum memory space this TachyonWorker can use, in bytes
+   * @param masterAddress The TachyonMaster's address
+   * @param workerAddress This TachyonWorker's address
+   * @param dataPort This TachyonWorker's data server's port
+   * @param selectorThreads The number of selector threads of the worker's thrift server
+   * @param acceptQueueSizePerThreads The accept queue size per thread of the worker's thrift server
+   * @param workerThreads The number of threads of the worker's thrift server
+   * @param localFolder This TachyonWorker's local folder's path
+   * @param spaceLimitBytes The maximum memory space this TachyonWorker can use, in bytes
    * @return The new TachyonWorker
    */
   public static synchronized TachyonWorker createWorker(InetSocketAddress masterAddress,
@@ -67,27 +59,19 @@ public class TachyonWorker implements Runnable {
   /**
    * Create a new TachyonWorker
    * 
-   * @param masterAddress
-   *          The TachyonMaster's address. e.g., localhost:19998
-   * @param workerAddress
-   *          This TachyonWorker's address. e.g., localhost:29998
-   * @param dataPort
-   *          This TachyonWorker's data server's port
-   * @param selectorThreads
-   *          The number of selector threads of the worker's thrift server
-   * @param acceptQueueSizePerThreads
-   *          The accept queue size per thread of the worker's thrift server
-   * @param workerThreads
-   *          The number of threads of the worker's thrift server
-   * @param localFolder
-   *          This TachyonWorker's local folder's path
-   * @param spaceLimitBytes
-   *          The maximum memory space this TachyonWorker can use, in bytes
+   * @param masterAddress The TachyonMaster's address. e.g., localhost:19998
+   * @param workerAddress This TachyonWorker's address. e.g., localhost:29998
+   * @param dataPort This TachyonWorker's data server's port
+   * @param selectorThreads The number of selector threads of the worker's thrift server
+   * @param acceptQueueSizePerThreads The accept queue size per thread of the worker's thrift server
+   * @param workerThreads The number of threads of the worker's thrift server
+   * @param localFolder This TachyonWorker's local folder's path
+   * @param spaceLimitBytes The maximum memory space this TachyonWorker can use, in bytes
    * @return The new TachyonWorker
    */
-  public static synchronized TachyonWorker createWorker(String masterAddress,
-      String workerAddress, int dataPort, int selectorThreads, int acceptQueueSizePerThreads,
-      int workerThreads, String localFolder, long spaceLimitBytes) {
+  public static synchronized TachyonWorker createWorker(String masterAddress, String workerAddress,
+      int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
+      String localFolder, long spaceLimitBytes) {
     String[] address = masterAddress.split(":");
     InetSocketAddress master = new InetSocketAddress(address[0], Integer.parseInt(address[1]));
     address = workerAddress.split(":");
@@ -152,28 +136,20 @@ public class TachyonWorker implements Runnable {
 
   private ScheduledExecutorService heartbeatService;
 
-  // private volatile boolean mStop = false;
+//  private volatile boolean mStop = false;
 
   private final int mPort;
   private final int mDataPort;
 
   /**
-   * @param masterAddress
-   *          The TachyonMaster's address.
-   * @param workerAddress
-   *          This TachyonWorker's address.
-   * @param dataPort
-   *          This TachyonWorker's data server's port
-   * @param selectorThreads
-   *          The number of selector threads of the worker's thrift server
-   * @param acceptQueueSizePerThreads
-   *          The accept queue size per thread of the worker's thrift server
-   * @param workerThreads
-   *          The number of threads of the worker's thrift server
-   * @param dataFolder
-   *          This TachyonWorker's local folder's path
-   * @param memoryCapacityBytes
-   *          The maximum memory space this TachyonWorker can use, in bytes
+   * @param masterAddress The TachyonMaster's address.
+   * @param workerAddress This TachyonWorker's address.
+   * @param dataPort This TachyonWorker's data server's port
+   * @param selectorThreads The number of selector threads of the worker's thrift server
+   * @param acceptQueueSizePerThreads The accept queue size per thread of the worker's thrift server
+   * @param workerThreads The number of threads of the worker's thrift server
+   * @param dataFolder This TachyonWorker's local folder's path
+   * @param memoryCapacityBytes The maximum memory space this TachyonWorker can use, in bytes
    */
   private TachyonWorker(InetSocketAddress masterAddress, InetSocketAddress workerAddress,
       int dataPort, int selectorThreads, int acceptQueueSizePerThreads, int workerThreads,
@@ -209,8 +185,8 @@ public class TachyonWorker implements Runnable {
       mServer =
           new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
               mServerTNonblockingServerSocket).processor(processor)
-              .selectorThreads(selectorThreads)
-              .acceptQueueSizePerThread(acceptQueueSizePerThreads).workerThreads(workerThreads));
+              .selectorThreads(selectorThreads).acceptQueueSizePerThread(acceptQueueSizePerThreads)
+              .workerThreads(workerThreads));
     } catch (TTransportException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -223,12 +199,12 @@ public class TachyonWorker implements Runnable {
   private DataServer createDataServer(final InetSocketAddress dataAddress,
       final BlocksLocker blockLocker) {
     switch (WorkerConf.get().NETWORK_TYPE) {
-    case NIO:
-      return new NIODataServer(dataAddress, blockLocker);
-    case NETTY:
-      return new NettyDataServer(dataAddress, blockLocker);
-    default:
-      throw new AssertionError("Unknown network type: " + WorkerConf.get().NETWORK_TYPE);
+      case NIO:
+        return new NIODataServer(dataAddress, blockLocker);
+      case NETTY:
+        return new NettyDataServer(dataAddress, blockLocker);
+      default:
+        throw new AssertionError("Unknown network type: " + WorkerConf.get().NETWORK_TYPE);
     }
   }
 
@@ -259,57 +235,56 @@ public class TachyonWorker implements Runnable {
   public void run() {
     Command cmd = null;
 
-    try {
-      cmd = mWorkerStorage.heartbeat();
-
-    } catch (BlockInfoException e) {
-      LOG.error(e.getMessage(), e);
-      e.printStackTrace();
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
-      e.printStackTrace();
       try {
-        mWorkerStorage.resetMasterClient();
-      } catch (IOException e2) {
-        e.printStackTrace();
-        LOG.error("Received exception while attempting to reset client", e2);
-      }
-      CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
-      cmd = null;
-    }
+        cmd = mWorkerStorage.heartbeat();
 
-    if (cmd != null) {
-      switch (cmd.mCommandType) {
-      case Unknown:
-        LOG.error("Unknown command: " + cmd);
-        break;
-      case Nothing:
-        LOG.debug("Nothing command: {}", cmd);
-        break;
-      case Register:
-        LOG.info("Register command: " + cmd);
-        mWorkerStorage.register();
-        break;
-      case Free:
-        LOG.info("Free command: " + cmd);
-        mWorkerStorage.freeBlocks(cmd.mData);
-        break;
-      case Delete:
-        LOG.info("Delete command: " + cmd);
-        break;
-      default:
-        throw new RuntimeException("Un-recognized command from master " + cmd.toString());
+      } catch (BlockInfoException e) {
+        LOG.error(e.getMessage(), e);
+      } catch (IOException e) {
+        LOG.error(e.getMessage(), e);
+        try {
+          mWorkerStorage.resetMasterClient();
+        } catch (IOException e2) {
+          LOG.error("Received exception while attempting to reset client", e2);
+        }
+        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
+        cmd = null;
       }
-    }
 
-    mWorkerStorage.checkStatus();
+      if (cmd != null) {
+        switch (cmd.mCommandType) {
+          case Unknown:
+            LOG.error("Unknown command: " + cmd);
+            break;
+          case Nothing:
+            LOG.debug("Nothing command: {}", cmd);
+            break;
+          case Register:
+            LOG.info("Register command: " + cmd);
+            mWorkerStorage.register();
+            break;
+          case Free:
+            LOG.info("Free command: " + cmd);
+            mWorkerStorage.freeBlocks(cmd.mData);
+            break;
+          case Delete:
+            LOG.info("Delete command: " + cmd);
+            break;
+          default:
+            throw new RuntimeException("Un-recognized command from master " + cmd.toString());
+        }
+      }
+
+      mWorkerStorage.checkStatus();
   }
 
   /**
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
   public void start() {
-    heartbeatService.scheduleWithFixedDelay(this, 0, 100, TimeUnit.MILLISECONDS);
+    heartbeatService.scheduleWithFixedDelay(this, 0, WorkerConf.get().HEARTBEAT_TIMEOUT_MS, 
+        TimeUnit.MILLISECONDS);
+
     LOG.info("The worker server started @ " + mWorkerAddress);
     mServer.serve();
     LOG.info("The worker server ends @ " + mWorkerAddress);
