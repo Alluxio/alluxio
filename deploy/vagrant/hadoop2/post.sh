@@ -5,3 +5,5 @@
 /hadoop/sbin/start-all.sh
 echo "check hadoop processes ..."
 jps
+echo "check node list..."
+/hadoop/bin/yarn node -list

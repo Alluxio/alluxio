@@ -3,7 +3,7 @@
 HADOOP_VERSION="2.4.1"
 nodes=`cat /tachyon/conf/slaves`
 
-cd /vagrant/hadoop2
+cd /vagrant/shared
 
 if [ ! -f hadoop-${HADOOP_VERSION}.tar.gz ]
 then
@@ -50,8 +50,42 @@ EOF
          <name>mapred.job.tracker</name>
          <value>${namenode}:9001</value>
      </property>
+     <property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+    </property>
 </configuration>
 EOF
+
+    cat > /hadoop/etc/hadoop/yarn-site.xml << EOF
+<configuration>
+<property>
+ <name>yarn.resourcemanager.resourcetracker.address</name>
+ <value>${namenode}:8025</value>  
+</property>
+<property>
+ <name>yarn.resourcemanager.scheduler.address</name>
+ <value>${namenode}:8030</value>  
+</property>
+<property>
+ <name>yarn.resourcemanager.address</name>
+ <value>${namenode}:8050</value>  
+</property>
+<property>
+ <name>yarn.resourcemanager.admin.address</name>
+ <value>${namenode}:8041</value>  
+</property>
+<property>
+  <name>yarn.resourcemanager.hostname</name>
+  <value>${namenode}</value>
+</property>
+<property>
+  <name>yarn.nodemanager.aux-services</name>
+  <value>mapreduce_shuffle</value>
+</property>
+</configuration>
+EOF
+
     # create tachyon env
     /bin/cp /tachyon/conf/tachyon-env.sh.template /tachyon/conf/tachyon-env.sh 
     sed -i "s/#export TACHYON_UNDERFS_ADDRESS=hdfs:\/\/localhost:9000/export TACHYON_UNDERFS_ADDRESS=hdfs:\/\/${namenode}:9000/g" /tachyon/conf/tachyon-env.sh
