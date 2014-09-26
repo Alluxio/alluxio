@@ -65,7 +65,7 @@ abstract class AbstractTFS extends FileSystem {
       LOG.warn("This maybe an error.");
     }
 
-    return new FSDataOutputStream(file.getOutStream(WriteType.CACHE_THROUGH), null);
+    return new FSDataOutputStream(file.getOutStream(CommonConf.get().DEFAULT_WRITE_TYPE), null);
   }
 
   @Override
@@ -84,7 +84,7 @@ abstract class AbstractTFS extends FileSystem {
       int fileId = mTFS.createFile(path, blockSize);
       TachyonFile file = mTFS.getFile(fileId);
       file.setUFSConf(getConf());
-      return new FSDataOutputStream(file.getOutStream(WriteType.CACHE_THROUGH), null);
+      return new FSDataOutputStream(file.getOutStream(CommonConf.get().DEFAULT_WRITE_TYPE), null);
     }
 
     if (cPath.toString().contains(FIRST_COM_PATH) && !cPath.toString().contains("SUCCESS")) {
@@ -136,7 +136,7 @@ abstract class AbstractTFS extends FileSystem {
     } else {
       TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
       int fileId;
-      WriteType type = WriteType.CACHE_THROUGH;
+      WriteType type = CommonConf.get().DEFAULT_WRITE_TYPE;
       if (mTFS.exist(path)) {
         fileId = mTFS.getFileId(path);
         type = WriteType.MUST_CACHE;
