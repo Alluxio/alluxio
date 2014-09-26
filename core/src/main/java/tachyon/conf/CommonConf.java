@@ -10,6 +10,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import tachyon.Constants;
+import tachyon.client.WriteType;
 
 /**
  * Configurations shared by master and workers.
@@ -65,6 +66,8 @@ public class CommonConf extends Utils {
 
   public final boolean IN_TEST_MODE;
 
+  public final WriteType DEFAULT_WRITE_TYPE;
+
   private CommonConf() {
     if (System.getProperty("tachyon.home") == null) {
       LOG.warn("tachyon.home is not set. Using /mnt/tachyon_default_home as the default value.");
@@ -108,6 +111,8 @@ public class CommonConf extends Utils {
         getListProperty("tachyon.underfs.hadoop.prefixes", DEFAULT_HADOOP_UFS_PREFIX);
 
     IN_TEST_MODE = getBooleanProperty("tachyon.test.mode", false);
+
+    DEFAULT_WRITE_TYPE = getEnumProperty("tachyon.file.writetype.default", WriteType.CACHE_THROUGH);
   }
 
   public static void assertValidPort(final int port) {
