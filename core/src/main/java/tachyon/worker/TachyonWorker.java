@@ -39,7 +39,8 @@ public class TachyonWorker implements Runnable {
   /**
    * Create a new TachyonWorker
    * 
-   * @param masterAddress The TachyonMaster's address
+   * @param masterAddress
+   *          The TachyonMaster's address
    * @param workerAddress
    *          This TachyonWorker's address
    * @param dataPort
@@ -308,8 +309,7 @@ public class TachyonWorker implements Runnable {
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
   public void start() {
-        heartbeatService.scheduleWithFixedDelay(this, 0, 100,
-        TimeUnit.MILLISECONDS);
+    heartbeatService.scheduleWithFixedDelay(this, 0, 100, TimeUnit.MILLISECONDS);
     LOG.info("The worker server started @ " + mWorkerAddress);
     mServer.serve();
     LOG.info("The worker server ends @ " + mWorkerAddress);
