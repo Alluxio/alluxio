@@ -202,9 +202,10 @@ public class TachyonFileTest {
 
   @Test
   public void writeEmptyFileTest() throws IOException {
-    Assert.assertEquals(2, mTfs.createFile(new TachyonURI("/emptyFile")));
-    Assert.assertTrue(mTfs.exist("/emptyFile"));
-    TachyonFile file = mTfs.getFile("/emptyFile");
+    TachyonURI uri = new TachyonURI("/emptyFile");
+    Assert.assertEquals(2, mTfs.createFile(uri));
+    Assert.assertTrue(mTfs.exist(uri));
+    TachyonFile file = mTfs.getFile(uri);
     Assert.assertEquals(0, file.length());
     OutStream os = file.getOutStream(WriteType.CACHE_THROUGH);
     os.close();
