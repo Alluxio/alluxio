@@ -1,6 +1,5 @@
 package tachyon.master;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -38,8 +37,9 @@ public class JournalTest {
    */
   @Test
   public void AddBlockTest() throws Exception {
-    mTfs.createFile(new TachyonURI("/xyz"), 64);
-    TachyonFile file = mTfs.getFile("/xyz");
+    TachyonURI uri = new TachyonURI("/xyz");
+    mTfs.createFile(uri, 64);
+    TachyonFile file = mTfs.getFile(uri);
     OutputStream os = file.getOutStream(WriteType.MUST_CACHE);
     for (int k = 0; k < 1000; k ++) {
       os.write(k);

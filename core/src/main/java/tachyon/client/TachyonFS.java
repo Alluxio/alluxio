@@ -465,35 +465,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path file path.
    * @return TachyonFile of the path, or null if the file does not exist.
    * @throws IOException
-   * @deprecated use {@link #getFile(TachyonURI)} instead
-   */
-  @Deprecated
-  public synchronized TachyonFile getFile(String path) throws IOException {
-    return getFile(new TachyonURI(path));
-  }
-
-  /**
-   * Get <code>TachyonFile</code> based on the path. Does not utilize the file metadata cache.
-   * 
-   * @param path file path.
-   * @return TachyonFile of the path, or null if the file does not exist.
-   * @throws IOException
    */
   public synchronized TachyonFile getFile(TachyonURI path) throws IOException {
     validateUri(path);
     return getFile(path, false);
-  }
-
-  /**
-   * Get <code>TachyonFile</code> based on the path. If useCachedMetadata, this will not see changes
-   * to the file's pin setting, or other dynamic properties.
-   * 
-   * @deprecated use {@link #getFile(TachyonURI, boolean)} instead
-   */
-  @Deprecated
-  public synchronized TachyonFile getFile(String path, boolean useCachedMetadata)
-      throws IOException {
-    return getFile(new TachyonURI(path), useCachedMetadata);
   }
 
   /**
