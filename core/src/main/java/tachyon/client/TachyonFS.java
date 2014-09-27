@@ -690,33 +690,13 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Create a directory if it does not exist. The method also creates necessary non-existing parent
-   * folders.
-   * 
-   * @param path Directory path.
-   * @return true if the folder is created successfully or already existing. false otherwise.
-   * @throws IOException
-   * @deprecated use {@link #mkdir(TachyonURI)} instead
-   */
-  @Deprecated
-  public synchronized boolean mkdir(String path) throws IOException {
-    return mkdir(new TachyonURI(path));
-  }
-
-  /**
    * Creates a folder.
    * 
    * @param path the path of the folder to be created
    * @param recursive Creates necessary parent folders if true, not otherwise.
    * @return true if the folder is created successfully or already existing. false otherwise.
    * @throws IOException
-   * @deprecated use {@link #mkdirs(TachyonURI, boolean)} instead
    */
-  @Deprecated
-  public synchronized boolean mkdirs(String path, boolean recursive) throws IOException {
-    return mkdirs(new TachyonURI(path), recursive);
-  }
-
   @Override
   public synchronized boolean mkdirs(TachyonURI path, boolean recursive) throws IOException {
     validateUri(path);
