@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonByteBuffer;
@@ -22,7 +23,7 @@ public class BasicRawTableOperations {
 
   private static final int COLS = 3;
   private static TachyonFS sTachyonClient;
-  private static String sTablePath = null;
+  private static TachyonURI sTablePath = null;
   private static int mId;
   private static WriteType sWriteType = null;
   private static int sDataLength = 20;
@@ -47,7 +48,7 @@ public class BasicRawTableOperations {
       System.exit(-1);
     }
     sTachyonClient = TachyonFS.get(args[0]);
-    sTablePath = args[1];
+    sTablePath = new TachyonURI(args[1]);
     sWriteType = WriteType.getOpType(args[2]);
     createRawTable();
     write();

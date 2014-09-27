@@ -473,7 +473,7 @@ public class JournalTest {
    */
   @Test
   public void TableTest() throws Exception {
-    mTfs.createRawTable("/xyz", 10);
+    mTfs.createRawTable(new TachyonURI("/xyz"), 10);
     ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz");
     mLocalTachyonCluster.stopTFS();
     TableTest(fInfo);

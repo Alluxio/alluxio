@@ -292,39 +292,9 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param columns number of columns it has
    * @return the id if succeed, -1 otherwise
    * @throws IOException
-   * @deprecated use {@link #createRawTable(TachyonURI, int)} instead
-   */
-  @Deprecated
-  public synchronized int createRawTable(String path, int columns) throws IOException {
-    return createRawTable(new TachyonURI(path), columns);
-  }
-
-  /**
-   * Create a RawTable and return its id
-   * 
-   * @param path the RawTable's path
-   * @param columns number of columns it has
-   * @return the id if succeed, -1 otherwise
-   * @throws IOException
    */
   public synchronized int createRawTable(TachyonURI path, int columns) throws IOException {
     return createRawTable(path, columns, ByteBuffer.allocate(0));
-  }
-
-  /**
-   * Create a RawTable and return its id
-   * 
-   * @param path the RawTable's path
-   * @param columns number of columns it has
-   * @param metadata the meta data of the RawTable
-   * @return the id if succeed, -1 otherwise
-   * @throws IOException
-   * @deprecated use {@link #createRawTable(TachyonURI, int, java.nio.ByteBuffer)} instead
-   */
-  @Deprecated
-  public synchronized int createRawTable(String path, int columns, ByteBuffer metadata)
-      throws IOException {
-    return createRawTable(new TachyonURI(path), columns, metadata);
   }
 
   /**
@@ -597,19 +567,6 @@ public class TachyonFS extends AbstractTachyonFS {
   public synchronized RawTable getRawTable(int id) throws IOException {
     ClientRawTableInfo clientRawTableInfo = mMasterClient.user_getClientRawTableInfo(id, "");
     return new RawTable(this, clientRawTableInfo);
-  }
-
-  /**
-   * Get the RawTable by path
-   * 
-   * @param path the path of the raw table
-   * @return the RawTable
-   * @throws IOException
-   * @deprecated use {@link #getRawTable(TachyonURI)} instead
-   */
-  @Deprecated
-  public synchronized RawTable getRawTable(String path) throws IOException {
-    return getRawTable(new TachyonURI(path));
   }
 
   /**
