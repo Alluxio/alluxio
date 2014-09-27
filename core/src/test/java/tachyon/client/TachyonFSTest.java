@@ -98,14 +98,14 @@ public class TachyonFSTest {
 
   @Test
   public void createRawTableTestEmptyMetadata() throws IOException {
-    int fileId = mTfs.createRawTable("/tables/table1", 20);
+    int fileId = mTfs.createRawTable(new TachyonURI("/tables/table1"), 20);
     RawTable table = mTfs.getRawTable(fileId);
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals("/tables/table1", table.getPath());
     Assert.assertEquals(20, table.getColumns());
     Assert.assertEquals(ByteBuffer.allocate(0), table.getMetadata());
 
-    table = mTfs.getRawTable("/tables/table1");
+    table = mTfs.getRawTable(new TachyonURI("/tables/table1"));
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals("/tables/table1", table.getPath());
     Assert.assertEquals(20, table.getColumns());
@@ -114,14 +114,15 @@ public class TachyonFSTest {
 
   @Test
   public void createRawTableTestWithMetadata() throws IOException {
-    int fileId = mTfs.createRawTable("/tables/table1", 20, TestUtils.getIncreasingByteBuffer(9));
+    TachyonURI uri = new TachyonURI("/tables/table1");
+    int fileId = mTfs.createRawTable(uri, 20, TestUtils.getIncreasingByteBuffer(9));
     RawTable table = mTfs.getRawTable(fileId);
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals("/tables/table1", table.getPath());
     Assert.assertEquals(20, table.getColumns());
     Assert.assertEquals(TestUtils.getIncreasingByteBuffer(9), table.getMetadata());
 
-    table = mTfs.getRawTable("/tables/table1");
+    table = mTfs.getRawTable(uri);
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals("/tables/table1", table.getPath());
     Assert.assertEquals(20, table.getColumns());
@@ -130,18 +131,19 @@ public class TachyonFSTest {
 
   @Test(expected = IOException.class)
   public void createRawTableWithFileAlreadyExistExceptionTest() throws IOException {
-    mTfs.createRawTable("/table", 20);
-    mTfs.createRawTable("/table", 20);
+    TachyonURI uri = new TachyonURI("/table");
+    mTfs.createRawTable(uri, 20);
+    mTfs.createRawTable(uri, 20);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithInvalidPathExceptionTest1() throws IOException {
-    mTfs.createRawTable("tables/table1", 20);
+    mTfs.createRawTable(new TachyonURI("tables/table1"), 20);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithInvalidPathExceptionTest2() throws IOException {
-    mTfs.createRawTable("/tab les/table1", 20);
+    mTfs.createRawTable(new TachyonURI("/tab les/table1"), 20);
   }
 
   @Test(expected = IOException.class)
@@ -149,17 +151,17 @@ public class TachyonFSTest {
     String maxColumnsProp = System.getProperty("tachyon.max.columns");
 
     Assert.assertEquals(Integer.parseInt(maxColumnsProp), CommonConf.get().MAX_COLUMNS);
-    mTfs.createRawTable("/table", CommonConf.get().MAX_COLUMNS);
+    mTfs.createRawTable(new TachyonURI("/table"), CommonConf.get().MAX_COLUMNS);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest2() throws IOException {
-    mTfs.createRawTable("/table", 0);
+    mTfs.createRawTable(new TachyonURI("/table"), 0);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest3() throws IOException {
-    mTfs.createRawTable("/table", -1);
+    mTfs.createRawTable(new TachyonURI("/table"), -1);
   }
 
   @Test
