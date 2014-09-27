@@ -151,7 +151,7 @@ public class JournalTest {
   @Test
   public void DeleteTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
-      mTfs.mkdir("/i" + i);
+      mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
         mTfs.createFile(new TachyonURI("/i" + i + "/j" + j), (i + j + 1) * 64);
         if (j >= 5) {
@@ -202,7 +202,7 @@ public class JournalTest {
   @Test
   public void FileFolderTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
-      mTfs.mkdir("/i" + i);
+      mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
         mTfs.createFile(new TachyonURI("/i" + i + "/j" + j), (i + j + 1) * 64);
       }
@@ -261,7 +261,7 @@ public class JournalTest {
    */
   @Test
   public void PinTest() throws Exception {
-    mTfs.mkdir("/myFolder");
+    mTfs.mkdir(new TachyonURI("/myFolder"));
     int folderId = mTfs.getFileId(new TachyonURI("/myFolder"));
     mTfs.setPinned(folderId, true);
     int file0Id = mTfs.createFile(new TachyonURI("/myFolder/file0"), 64);
@@ -298,7 +298,7 @@ public class JournalTest {
    */
   @Test
   public void FolderTest() throws Exception {
-    mTfs.mkdir("/xyz");
+    mTfs.mkdir(new TachyonURI("/xyz"));
     ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz");
     mLocalTachyonCluster.stopTFS();
     FolderTest(fInfo);
@@ -438,7 +438,7 @@ public class JournalTest {
   @Test
   public void RenameTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
-      mTfs.mkdir("/i" + i);
+      mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
         mTfs.createFile(new TachyonURI("/i" + i + "/j" + j), (i + j + 1) * 64);
         mTfs.rename("/i" + i + "/j" + j, "/i" + i + "/jj" + j);

@@ -400,8 +400,8 @@ public class TachyonFSTest {
   @Test
   public void mkdirTest() throws IOException {
     for (int k = 0; k < 10; k ++) {
-      Assert.assertEquals(true, mTfs.mkdir("/root/folder" + k));
-      Assert.assertEquals(true, mTfs.mkdir("/root/folder" + k));
+      Assert.assertEquals(true, mTfs.mkdir(new TachyonURI("/root/folder" + k)));
+      Assert.assertEquals(true, mTfs.mkdir(new TachyonURI("/root/folder" + k)));
     }
   }
 
