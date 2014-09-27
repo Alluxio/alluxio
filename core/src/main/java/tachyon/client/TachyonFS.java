@@ -371,19 +371,6 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path the file's path in Tachyon file system
    * @return true if it exists, false otherwise
    * @throws IOException
-   * @deprecated use {@link #exist(TachyonURI)} instead
-   */
-  @Deprecated
-  public synchronized boolean exist(String path) throws IOException {
-    return exist(new TachyonURI(path));
-  }
-
-  /**
-   * Return whether the file exists or not
-   * 
-   * @param path the file's path in Tachyon file system
-   * @return true if it exists, false otherwise
-   * @throws IOException
    */
   public synchronized boolean exist(TachyonURI path) throws IOException {
     return getFileStatus(-1, path, false) != null;
