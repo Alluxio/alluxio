@@ -11,7 +11,7 @@ import tachyon.TachyonURI;
  * implemented by extending this class. It is not thread safe, the caller must guarantee thread
  * safe. This class is internal and subject to changes.
  */
-abstract class BlockHandler implements Closeable {
+public abstract class BlockHandler implements Closeable {
 
   /**
    * Create a block handler according to path scheme
