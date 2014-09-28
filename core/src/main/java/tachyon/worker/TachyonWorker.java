@@ -247,7 +247,6 @@ public class TachyonWorker implements Runnable {
         } catch (IOException e2) {
           LOG.error("Received exception while attempting to reset client", e2);
         }
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         cmd = null;
       }
 
@@ -282,7 +281,7 @@ public class TachyonWorker implements Runnable {
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
   public void start() {
-    heartbeatService.scheduleWithFixedDelay(this, 0, WorkerConf.get().HEARTBEAT_TIMEOUT_MS, 
+    heartbeatService.scheduleWithFixedDelay(this, 0, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS, 
         TimeUnit.MILLISECONDS);
 
     LOG.info("The worker server started @ " + mWorkerAddress);
