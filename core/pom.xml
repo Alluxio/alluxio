@@ -202,7 +202,7 @@
           <groupId>commons-codec</groupId>
           <artifactId>commons-codec</artifactId>
           <version>1.4</version>
-          <scope>compile</scope>
+          <scope>provided</scope>
         </dependency>
       </dependencies>
     </profile>
