@@ -82,16 +82,15 @@ public class BlockHandlerLocalTest {
     BlockHandler handler = BlockHandler.get(filename);
     try {
       IllegalArgumentException exception = null;
-      ByteBuffer buf = null;
       try {
-        buf = handler.read(101, 10);
+        handler.read(101, 10);
       } catch (IllegalArgumentException e) {
         exception = e;
       }
       Assert.assertEquals("blockOffset(101) is larger than file length(100)",
           exception.getMessage());
       try {
-        buf = handler.read(10, 100);
+        handler.read(10, 100);
       } catch (IllegalArgumentException e) {
         exception = e;
       }

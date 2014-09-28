@@ -547,19 +547,6 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @param path the new name
    * @return true if succeed, false otherwise
    * @throws IOException
-   * @deprecated use {@link #rename(TachyonURI)} instead
-   */
-  @Deprecated
-  public boolean rename(String path) throws IOException {
-    return rename(new TachyonURI(path));
-  }
-
-  /**
-   * Rename this file
-   * 
-   * @param path the new name
-   * @return true if succeed, false otherwise
-   * @throws IOException
    */
   public boolean rename(TachyonURI path) throws IOException {
     return mTachyonFS.rename(mFileId, path);
