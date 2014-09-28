@@ -55,6 +55,7 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 import tachyon.Constants;
 import tachyon.hadoop.TFS;
@@ -243,7 +244,7 @@ public class TestDFSIO implements Tool {
     long execTime = System.currentTimeMillis() - tStart;
     bench.analyzeResult(fs, TestType.TEST_TYPE_WRITE, execTime);
   }
-/**
+
   @Test(timeout = 25000)
   public void testRead() throws Exception {
     FileSystem fs = FileSystem.get(mLocalTachyonClusterUri, bench.getConf());
@@ -302,7 +303,7 @@ public class TestDFSIO implements Tool {
     long execTime = System.currentTimeMillis() - tStart;
     bench.analyzeResult(fs, TestType.TEST_TYPE_APPEND, execTime);
   }
-*/
+
   @SuppressWarnings("deprecation")
   private void createControlFile(FileSystem fs, long nrBytes, // in bytes
       int nrFiles) throws IOException {
