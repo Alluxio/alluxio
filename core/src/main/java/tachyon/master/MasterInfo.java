@@ -115,7 +115,7 @@ public class MasterInfo extends ImageWriter {
                       dep.addLostFile(tFile.getId());
                       LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId()
                           + " . Trying to recompute it using dependency " + dep.mId);
-                      if (!getPath(tFile).startsWith(mMasterConf.TEMPORARY_FOLDER)) {
+                      if (!getPath(tFile).getPath().startsWith(mMasterConf.TEMPORARY_FOLDER)) {
                         mMustRecomputedDpendencies.add(depId);
                       }
                     }
@@ -435,7 +435,7 @@ public class MasterInfo extends ImageWriter {
   // TODO Make this API better.
   /**
    * Internal API.
-   * 
+   *
    * @param recursive If recursive is true and the filesystem tree is not filled in all the way to
    *        path yet, it fills in the missing components.
    * @param path The path to create
@@ -448,24 +448,22 @@ public class MasterInfo extends ImageWriter {
    * @throws BlockInfoException
    * @throws TachyonException
    */
-  int _createFile(boolean recursive, String path, boolean directory, long blockSizeByte,
-      long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
+  int _createFile(boolean recursive, TachyonURI path, boolean directory, long blockSizeByte,
+                  long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
       BlockInfoException, TachyonException {
-    if (path.equals(TachyonURI.SEPARATOR)) {
+    if (path.isRoot()) {
       LOG.info("FileAlreadyExistException: " + path);
-      throw new FileAlreadyExistException(path);
+      throw new FileAlreadyExistException(path.toString());
     }
 
     if (!directory && blockSizeByte < 1) {
       throw new BlockInfoException("Invalid block size " + blockSizeByte);
-    } else if (CommonUtils.isRoot(path)) {
-      throw new InvalidPathException("Cannot create the root path");
     }
 
     LOG.debug("createFile {}", CommonUtils.parametersToString(path));
 
-    String[] pathNames = CommonUtils.getPathComponents(path);
-    String name = pathNames[pathNames.length - 1];
+    String[] pathNames = CommonUtils.getPathComponents(path.getPath());
+    String name = path.getName();
 
     String[] parentPath = new String[pathNames.length - 1];
     System.arraycopy(pathNames, 0, parentPath, 0, parentPath.length);
@@ -516,7 +514,7 @@ public class MasterInfo extends ImageWriter {
           return ret.getId();
         }
         LOG.info("FileAlreadyExistException: " + path);
-        throw new FileAlreadyExistException(path);
+        throw new FileAlreadyExistException(path.toString());
       }
       if (directory) {
         ret =
@@ -531,7 +529,7 @@ public class MasterInfo extends ImageWriter {
         if (ret.isPinned()) {
           mPinnedInodeFileIds.add(ret.getId());
         }
-        if (mWhitelist.inList(path)) {
+        if (mWhitelist.inList(path.getPath())) {
           ((InodeFile) ret).setCache(true);
         }
       }
@@ -639,13 +637,13 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the raw table info associated with the given id.
-   * 
+   *
    * @param path The path of the table
    * @param inode The inode at the path
    * @return the table info
    * @throws TableDoesNotExistException
    */
-  public ClientRawTableInfo _getClientRawTableInfo(String path, Inode inode)
+  public ClientRawTableInfo _getClientRawTableInfo(TachyonURI path, Inode inode)
       throws TableDoesNotExistException {
     LOG.info("getClientRawTableInfo(" + path + ")");
     if (!mRawTables.exist(inode.getId())) {
@@ -654,7 +652,7 @@ public class MasterInfo extends ImageWriter {
     ClientRawTableInfo ret = new ClientRawTableInfo();
     ret.id = inode.getId();
     ret.name = inode.getName();
-    ret.path = path;
+    ret.path = path.getPath();
     ret.columns = mRawTables.getColumns(ret.id);
     ret.metadata = mRawTables.getMetadata(ret.id);
     return ret;
@@ -662,7 +660,7 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Get the names of the sub-directories at the given path.
-   * 
+   *
    * @param inode The inode to list
    * @param path The path of the given inode
    * @param recursive If true, recursively add the paths of the sub-directories
@@ -670,18 +668,18 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    * @throws FileDoesNotExistException
    */
-  private List<String> _ls(Inode inode, String path, boolean recursive)
+  private List<TachyonURI> _ls(Inode inode, TachyonURI path, boolean recursive)
       throws InvalidPathException, FileDoesNotExistException {
     synchronized (ROOT_LOCK) {
-      List<String> ret = new ArrayList<String>();
+      List<TachyonURI> ret = new ArrayList<TachyonURI>();
       ret.add(path);
       if (inode.isDirectory()) {
         for (Inode child : ((InodeFolder) inode).getChildren()) {
-          String childPath = CommonUtils.concat(path, child.getName());
+          TachyonURI childUri = path.join(child.getName());
           if (recursive) {
-            ret.addAll(_ls(child, childPath, recursive));
+            ret.addAll(_ls(child, childUri, recursive));
           } else {
-            ret.add(childPath);
+            ret.add(childUri);
           }
         }
       }
@@ -718,26 +716,26 @@ public class MasterInfo extends ImageWriter {
 
   /**
    * Rename a file to the given path, inner method.
-   * 
+   *
    * @param fileId The id of the file to rename
-   * @param dstPath The new path of the file
+   * @param dstPath The new uri of the file
    * @param opTimeMs The time of the rename operation, in milliseconds
    * @return true if the rename succeeded, false otherwise
    * @throws FileDoesNotExistException If the id doesn't point to an inode
    * @throws InvalidPathException if the source path is a prefix of the destination
    */
-  public boolean _rename(int fileId, String dstPath, long opTimeMs)
+  public boolean _rename(int fileId, TachyonURI dstPath, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException {
     synchronized (ROOT_LOCK) {
-      String srcPath = getPath(fileId);
+      TachyonURI srcPath = getPath(fileId);
       if (srcPath.equals(dstPath)) {
         return true;
       }
-      if (srcPath.equals(TachyonURI.SEPARATOR) || dstPath.equals(TachyonURI.SEPARATOR)) {
+      if (srcPath.isRoot() || dstPath.isRoot()) {
         return false;
       }
-      String[] srcComponents = CommonUtils.getPathComponents(srcPath);
-      String[] dstComponents = CommonUtils.getPathComponents(dstPath);
+      String[] srcComponents = CommonUtils.getPathComponents(srcPath.getPath());
+      String[] dstComponents = CommonUtils.getPathComponents(dstPath.getPath());
       // We can't rename a path to one of its subpaths, so we check for that, by making sure
       // srcComponents isn't a prefix of dstComponents.
       if (srcComponents.length < dstComponents.length) {
@@ -754,8 +752,8 @@ public class MasterInfo extends ImageWriter {
         }
       }
 
-      String srcParent = CommonUtils.getParent(srcPath);
-      String dstParent = CommonUtils.getParent(dstPath);
+      TachyonURI srcParent = srcPath.getParent();
+      TachyonURI dstParent = dstPath.getParent();
 
       // We traverse down to the source and destinations' parent paths
       Inode srcParentInode = getInode(srcParent);
@@ -934,7 +932,7 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
-  public int createDependency(List<String> parents, List<String> children, String commandPrefix,
+  public int createDependency(List<TachyonURI> parents, List<TachyonURI> children, String commandPrefix,
       List<ByteBuffer> data, String comment, String framework, String frameworkVersion,
       DependencyType dependencyType) throws InvalidPathException, FileDoesNotExistException {
     synchronized (ROOT_LOCK) {
@@ -960,7 +958,7 @@ public class MasterInfo extends ImageWriter {
    * @throws BlockInfoException
    * @throws TachyonException
    */
-  public int createFile(boolean recursive, String path, boolean directory, long blockSizeByte)
+  public int createFile(boolean recursive, TachyonURI path, boolean directory, long blockSizeByte)
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
     long creationTimeMs = System.currentTimeMillis();
     synchronized (ROOT_LOCK) {
@@ -971,12 +969,12 @@ public class MasterInfo extends ImageWriter {
     }
   }
 
-  public int createFile(String path, long blockSizeByte) throws FileAlreadyExistException,
+  public int createFile(TachyonURI path, long blockSizeByte) throws FileAlreadyExistException,
       InvalidPathException, BlockInfoException, TachyonException {
     return createFile(true, path, false, blockSizeByte);
   }
 
-  public int createFile(String path, long blockSizeByte, boolean recursive)
+  public int createFile(TachyonURI path, long blockSizeByte, boolean recursive)
       throws FileAlreadyExistException, InvalidPathException, BlockInfoException, TachyonException {
     return createFile(recursive, path, false, blockSizeByte);
   }
@@ -1015,7 +1013,7 @@ public class MasterInfo extends ImageWriter {
    * @throws TableColumnException
    * @throws TachyonException
    */
-  public int createRawTable(String path, int columns, ByteBuffer metadata)
+  public int createRawTable(TachyonURI path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException,
       TachyonException {
     LOG.info("createRawTable" + CommonUtils.parametersToString(path, columns));
@@ -1034,7 +1032,7 @@ public class MasterInfo extends ImageWriter {
     }
 
     for (int k = 0; k < columns; k ++) {
-      mkdirs(CommonUtils.concat(path, COL + k), true);
+      mkdirs(path.join(COL + k), true);
     }
 
     return id;
@@ -1066,7 +1064,7 @@ public class MasterInfo extends ImageWriter {
    * @return succeed or not
    * @throws TachyonException
    */
-  public boolean delete(String path, boolean recursive) throws TachyonException {
+  public boolean delete(TachyonURI path, boolean recursive) throws TachyonException {
     LOG.info("delete(" + path + ")");
     synchronized (ROOT_LOCK) {
       Inode inode = null;
@@ -1104,7 +1102,7 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    * @throws FileDoesNotExistException
    */
-  public List<BlockInfo> getBlockList(String path) throws InvalidPathException,
+  public List<BlockInfo> getBlockList(TachyonURI path) throws InvalidPathException,
       FileDoesNotExistException {
     Inode inode = getInode(path);
     if (inode == null) {
@@ -1191,7 +1189,7 @@ public class MasterInfo extends ImageWriter {
         info.id = -1;
         return info;
       }
-      return inode.generateClientFileInfo(getPath(inode));
+      return inode.generateClientFileInfo(getPath(inode).getPath());
     }
   }
 
@@ -1203,7 +1201,7 @@ public class MasterInfo extends ImageWriter {
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public ClientFileInfo getClientFileInfo(String path) throws InvalidPathException {
+  public ClientFileInfo getClientFileInfo(TachyonURI path) throws InvalidPathException {
     synchronized (ROOT_LOCK) {
       Inode inode = getInode(path);
       if (inode == null) {
@@ -1211,7 +1209,7 @@ public class MasterInfo extends ImageWriter {
         info.id = -1;
         return info;
       }
-      return inode.generateClientFileInfo(path);
+      return inode.generateClientFileInfo(path.getPath());
     }
   }
 
@@ -1240,7 +1238,7 @@ public class MasterInfo extends ImageWriter {
    * @throws TableDoesNotExistException
    * @throws InvalidPathException
    */
-  public ClientRawTableInfo getClientRawTableInfo(String path) throws TableDoesNotExistException,
+  public ClientRawTableInfo getClientRawTableInfo(TachyonURI path) throws TableDoesNotExistException,
       InvalidPathException {
     synchronized (ROOT_LOCK) {
       Inode inode = getInode(path);
@@ -1258,7 +1256,7 @@ public class MasterInfo extends ImageWriter {
    * @return The file id of the file. -1 if the file does not exist.
    * @throws InvalidPathException
    */
-  public int getFileId(String path) throws InvalidPathException {
+  public int getFileId(TachyonURI path) throws InvalidPathException {
     Inode inode = getInode(path);
     int ret = -1;
     if (inode != null) {
@@ -1300,13 +1298,13 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    * @throws IOException
    */
-  public List<ClientBlockInfo> getFileBlocks(String path) throws FileDoesNotExistException,
+  public List<ClientBlockInfo> getFileBlocks(TachyonURI path) throws FileDoesNotExistException,
       InvalidPathException, IOException {
     LOG.info("getFileLocations: " + path);
     synchronized (ROOT_LOCK) {
       Inode inode = getInode(path);
       if (inode == null) {
-        throw new FileDoesNotExistException(path);
+        throw new FileDoesNotExistException(path.toString());
       }
       return getFileBlocks(inode.getId());
     }
@@ -1321,7 +1319,7 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    * @throws FileDoesNotExistException
    */
-  private List<Integer> getFilesIds(List<String> pathList) throws InvalidPathException,
+  private List<Integer> getFilesIds(List<TachyonURI> pathList) throws InvalidPathException,
       FileDoesNotExistException {
     List<Integer> ret = new ArrayList<Integer>(pathList.size());
     for (int k = 0; k < pathList.size(); k ++) {
@@ -1331,29 +1329,29 @@ public class MasterInfo extends ImageWriter {
   }
 
   /**
-   * If the <code>path</code> is a directory, return all the direct entries in it. If the
-   * <code>path</code> is a file, return its ClientFileInfo.
+   * If the <code>uri</code> is a directory, return all the direct entries in it. If the
+   * <code>uri</code> is a file, return its ClientFileInfo.
    * 
-   * @param path the target directory/file path
+   * @param uri the target directory/file uri
    * @return A list of ClientFileInfo
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public List<ClientFileInfo> getFilesInfo(String path) throws FileDoesNotExistException,
+  public List<ClientFileInfo> getFilesInfo(TachyonURI uri) throws FileDoesNotExistException,
       InvalidPathException {
     List<ClientFileInfo> ret = new ArrayList<ClientFileInfo>();
 
-    Inode inode = getInode(path);
+    Inode inode = getInode(uri);
     if (inode == null) {
-      throw new FileDoesNotExistException(path);
+      throw new FileDoesNotExistException(uri.toString());
     }
 
     if (inode.isDirectory()) {
       for (Inode child : ((InodeFolder) inode).getChildren()) {
-        ret.add(child.generateClientFileInfo(CommonUtils.concat(path, child.getName())));
+        ret.add(child.generateClientFileInfo(CommonUtils.concat(uri, child.getName())));
       }
     } else {
-      ret.add(inode.generateClientFileInfo(path));
+      ret.add(inode.generateClientFileInfo(uri.getPath()));
     }
     return ret;
   }
@@ -1363,24 +1361,27 @@ public class MasterInfo extends ImageWriter {
    * 
    * @return absolute paths of all in memory files.
    */
-  public List<String> getInMemoryFiles() {
-    List<String> ret = new ArrayList<String>();
+  public List<TachyonURI> getInMemoryFiles() {
+    List<TachyonURI> ret = new ArrayList<TachyonURI>();
     LOG.info("getInMemoryFiles()");
-    Queue<Pair<InodeFolder, String>> nodesQueue = new LinkedList<Pair<InodeFolder, String>>();
+    Queue<Pair<InodeFolder, TachyonURI>> nodesQueue =
+        new LinkedList<Pair<InodeFolder, TachyonURI>>();
     synchronized (ROOT_LOCK) {
-      nodesQueue.add(new Pair<InodeFolder, String>(mRoot, ""));
+      // TODO: Verify we want to use absolute path.
+      nodesQueue.add(
+          new Pair<InodeFolder, TachyonURI>(mRoot, new TachyonURI(TachyonURI.SEPARATOR)));
       while (!nodesQueue.isEmpty()) {
-        Pair<InodeFolder, String> tPair = nodesQueue.poll();
+        Pair<InodeFolder, TachyonURI> tPair = nodesQueue.poll();
         InodeFolder tFolder = tPair.getFirst();
-        String curPath = tPair.getSecond();
+        TachyonURI curUri = tPair.getSecond();
 
         Set<Inode> children = tFolder.getChildren();
         for (Inode tInode : children) {
-          String newPath = CommonUtils.concat(curPath, tInode.getName());
+          TachyonURI newUri = curUri.join(tInode.getName());
           if (tInode.isDirectory()) {
-            nodesQueue.add(new Pair<InodeFolder, String>((InodeFolder) tInode, newPath));
+            nodesQueue.add(new Pair<InodeFolder, TachyonURI>((InodeFolder) tInode, newUri));
           } else if (((InodeFile) tInode).isFullyInMemory()) {
-            ret.add(newPath);
+            ret.add(newUri);
           }
         }
       }
@@ -1391,8 +1392,8 @@ public class MasterInfo extends ImageWriter {
   /**
    * Same as {@link #getInode(String[] pathNames)} except that it takes a path string.
    */
-  private Inode getInode(String path) throws InvalidPathException {
-    return getInode(CommonUtils.getPathComponents(path));
+  private Inode getInode(TachyonURI path) throws InvalidPathException {
+    return getInode(CommonUtils.getPathComponents(path.getPath()));
   }
 
   /**
@@ -1458,18 +1459,18 @@ public class MasterInfo extends ImageWriter {
   }
 
   /**
-   * Get the number of files at a given path.
+   * Get the number of files at a given uri.
    * 
-   * @param path The path to look at
-   * @return The number of files at the path. Returns 1 if the path specifies a file. If it's a
+   * @param uri The uri to look at
+   * @return The number of files at the uri. Returns 1 if the uri specifies a file. If it's a
    *         directory, returns the number of items in the directory.
    * @throws InvalidPathException
    * @throws FileDoesNotExistException
    */
-  public int getNumberOfFiles(String path) throws InvalidPathException, FileDoesNotExistException {
-    Inode inode = getInode(path);
+  public int getNumberOfFiles(TachyonURI uri) throws InvalidPathException, FileDoesNotExistException {
+    Inode inode = getInode(uri);
     if (inode == null) {
-      throw new FileDoesNotExistException(path);
+      throw new FileDoesNotExistException(uri.toString());
     }
     if (inode.isFile()) {
       return 1;
@@ -1478,20 +1479,20 @@ public class MasterInfo extends ImageWriter {
   }
 
   /**
-   * Get the file path specified by a given inode.
+   * Get the uri specified by a given inode.
    * 
    * @param inode The inode
-   * @return the path of the inode
+   * @return the uri of the inode
    */
-  private String getPath(Inode inode) {
+  private TachyonURI getPath(Inode inode) {
     synchronized (ROOT_LOCK) {
       if (inode.getId() == 1) {
-        return TachyonURI.SEPARATOR;
+        return new TachyonURI(TachyonURI.SEPARATOR);
       }
       if (inode.getParentId() == 1) {
-        return TachyonURI.SEPARATOR + inode.getName();
+        return new TachyonURI(TachyonURI.SEPARATOR + inode.getName());
       }
-      return CommonUtils.concat(getPath(mFileIdToInodes.get(inode.getParentId())), inode.getName());
+      return getPath(mFileIdToInodes.get(inode.getParentId())).join(inode.getName());
     }
   }
 
@@ -1502,7 +1503,7 @@ public class MasterInfo extends ImageWriter {
    * @return the path of the file
    * @throws FileDoesNotExistException raise if the file does not exist.
    */
-  public String getPath(int fileId) throws FileDoesNotExistException {
+  public TachyonURI getPath(int fileId) throws FileDoesNotExistException {
     synchronized (ROOT_LOCK) {
       Inode inode = mFileIdToInodes.get(fileId);
       if (inode == null) {
@@ -1562,17 +1563,17 @@ public class MasterInfo extends ImageWriter {
   }
 
   /**
-   * Get the id of the table at the given path.
+   * Get the id of the table at the given uri.
    * 
-   * @param path The path of the table
+   * @param uri The uri of the table
    * @return the id of the table
    * @throws InvalidPathException
    * @throws TableDoesNotExistException
    */
-  public int getRawTableId(String path) throws InvalidPathException, TableDoesNotExistException {
-    Inode inode = getInode(path);
+  public int getRawTableId(TachyonURI uri) throws InvalidPathException, TableDoesNotExistException {
+    Inode inode = getInode(uri);
     if (inode == null) {
-      throw new TableDoesNotExistException(path);
+      throw new TableDoesNotExistException(uri.toString());
     }
     if (inode.isDirectory()) {
       int id = inode.getId();
@@ -1766,21 +1767,21 @@ public class MasterInfo extends ImageWriter {
   }
 
   /**
-   * Get the id of the file at the given path. If recursive, it scans the subdirectories as well.
+   * Get the id of the file at the given uri. If recursive, it scans the subdirectories as well.
    * 
-   * @param path The path to start looking at
-   * @param recursive If true, recursively scan the subdirectories at the given path as well
-   * @return the list of the inode id's at the path
+   * @param uri The uri to start looking at
+   * @param recursive If true, recursively scan the subdirectories at the given uri as well
+   * @return the list of the inode id's at the uri
    * @throws InvalidPathException
    * @throws FileDoesNotExistException
    */
-  public List<Integer> listFiles(String path, boolean recursive) throws InvalidPathException,
+  public List<Integer> listFiles(TachyonURI uri, boolean recursive) throws InvalidPathException,
       FileDoesNotExistException {
     List<Integer> ret = new ArrayList<Integer>();
     synchronized (ROOT_LOCK) {
-      Inode inode = getInode(path);
+      Inode inode = getInode(uri);
       if (inode == null) {
-        throw new FileDoesNotExistException(path);
+        throw new FileDoesNotExistException(uri.toString());
       }
 
       if (inode.isFile()) {
@@ -1812,10 +1813,10 @@ public class MasterInfo extends ImageWriter {
    * Assume this blocks the whole MasterInfo.
    * 
    * @param parser the JsonParser to load the image
-   * @param path the file to load the image
+   * @param uri the file to load the image
    * @throws IOException
    */
-  public void loadImage(JsonParser parser, String path) throws IOException {
+  public void loadImage(JsonParser parser, TachyonURI uri) throws IOException {
     while (true) {
       ImageElement ele;
       try {
@@ -1833,7 +1834,7 @@ public class MasterInfo extends ImageWriter {
       switch (ele.type) {
         case Version: {
           if (ele.getInt("version") != Constants.JOURNAL_VERSION) {
-            throw new IOException("Image " + path + " has journal version " + ele.getInt("version")
+            throw new IOException("Image " + uri + " has journal version " + ele.getInt("version")
                 + " . The system has verion " + Constants.JOURNAL_VERSION);
           }
           break;
@@ -1891,12 +1892,12 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    * @throws FileDoesNotExistException
    */
-  public List<String> ls(String path, boolean recursive) throws InvalidPathException,
+  public List<TachyonURI> ls(TachyonURI path, boolean recursive) throws InvalidPathException,
       FileDoesNotExistException {
     synchronized (ROOT_LOCK) {
       Inode inode = getInode(path);
       if (inode == null) {
-        throw new FileDoesNotExistException(path);
+        throw new FileDoesNotExistException(path.toString());
       }
       return _ls(inode, path, recursive);
     }
@@ -1911,7 +1912,7 @@ public class MasterInfo extends ImageWriter {
    * @throws InvalidPathException
    * @throws TachyonException
    */
-  public boolean mkdirs(String path, boolean recursive) throws FileAlreadyExistException,
+  public boolean mkdirs(TachyonURI path, boolean recursive) throws FileAlreadyExistException,
       InvalidPathException, TachyonException {
     try {
       return createFile(recursive, path, true, 0) > 0;
@@ -2024,7 +2025,7 @@ public class MasterInfo extends ImageWriter {
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public boolean rename(int fileId, String dstPath) throws FileDoesNotExistException,
+  public boolean rename(int fileId, TachyonURI dstPath) throws FileDoesNotExistException,
       InvalidPathException {
     long opTimeMs = System.currentTimeMillis();
     synchronized (ROOT_LOCK) {
@@ -2044,7 +2045,7 @@ public class MasterInfo extends ImageWriter {
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  public boolean rename(String srcPath, String dstPath) throws FileDoesNotExistException,
+  public boolean rename(TachyonURI srcPath, TachyonURI dstPath) throws FileDoesNotExistException,
       InvalidPathException {
     synchronized (ROOT_LOCK) {
       Inode inode = getInode(srcPath);
