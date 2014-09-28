@@ -383,7 +383,7 @@ public class JournalTest {
 
   /**
    * Test renaming completed edit logs.
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -406,7 +406,8 @@ public class JournalTest {
     EditLog log = new EditLog(journalPath, false, 0);
     log.setMaxLogSize(100);
     for (int i = 0; i < 124; i ++) {
-      log.createFile(false, "/sth" + i, false, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis());
+      log.createFile(false, "/sth" + i, false, Constants.DEFAULT_BLOCK_SIZE_BYTE,
+          System.currentTimeMillis());
       log.flush();
     }
     log.close();
@@ -441,9 +442,9 @@ public class JournalTest {
       mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
         mTfs.createFile(new TachyonURI("/i" + i + "/j" + j), (i + j + 1) * 64);
-        mTfs.rename("/i" + i + "/j" + j, "/i" + i + "/jj" + j);
+        mTfs.rename(new TachyonURI("/i" + i + "/j" + j), new TachyonURI("/i" + i + "/jj" + j));
       }
-      mTfs.rename("/i" + i, "/ii" + i);
+      mTfs.rename(new TachyonURI("/i" + i), new TachyonURI("/ii" + i));
     }
     mLocalTachyonCluster.stopTFS();
     RenameTestUtil();

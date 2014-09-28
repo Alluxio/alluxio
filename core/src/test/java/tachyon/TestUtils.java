@@ -122,7 +122,7 @@ public final class TestUtils {
   }
 
   public static List<String> listFiles(TachyonFS tfs, String path) throws IOException {
-    List<ClientFileInfo> infos = tfs.listStatus(path);
+    List<ClientFileInfo> infos = tfs.listStatus(new TachyonURI(path));
     List<String> res = new ArrayList<String>();
     for (ClientFileInfo info : infos) {
       res.add(info.getPath());
