@@ -118,7 +118,7 @@ public class EditLog {
             break;
           }
           case CREATE_FILE: {
-            info._createFile(op.getBoolean("recursive"), op.getString("path"),
+            info._createFile(op.getBoolean("recursive"), new TachyonURI(op.getString("path")),
                 op.getBoolean("directory"), op.getLong("blockSizeByte"),
                 op.getLong("creationTimeMs"));
             break;
@@ -132,7 +132,8 @@ public class EditLog {
             break;
           }
           case RENAME: {
-            info._rename(op.getInt("fileId"), op.getString("dstPath"), op.getLong("opTimeMs"));
+            info._rename(op.getInt("fileId"), new TachyonURI(op.getString("dstPath")),
+                op.getLong("opTimeMs"));
             break;
           }
           case DELETE: {
@@ -425,7 +426,7 @@ public class EditLog {
    * @param blockSizeByte If it's a file, the block size for the Inode
    * @param creationTimeMs The time the file was created
    */
-  public synchronized void createFile(boolean recursive, String path, boolean directory,
+  public synchronized void createFile(boolean recursive, TachyonURI path, boolean directory,
       long blockSizeByte, long creationTimeMs) {
     if (INACTIVE) {
       return;
@@ -433,7 +434,7 @@ public class EditLog {
 
     EditLogOperation operation =
         new EditLogOperation(EditLogOperationType.CREATE_FILE, ++mTransactionId)
-            .withParameter("recursive", recursive).withParameter("path", path)
+            .withParameter("recursive", recursive).withParameter("path", path.getPath())
             .withParameter("directory", directory).withParameter("blockSizeByte", blockSizeByte)
             .withParameter("creationTimeMs", creationTimeMs);
     writeOperation(operation);
@@ -536,14 +537,14 @@ public class EditLog {
    * @param dstPath The new path of the file
    * @param opTimeMs The time of the rename operation, in milliseconds
    */
-  public synchronized void rename(int fileId, String dstPath, long opTimeMs) {
+  public synchronized void rename(int fileId, TachyonURI dstPath, long opTimeMs) {
     if (INACTIVE) {
       return;
     }
 
     EditLogOperation operation =
         new EditLogOperation(EditLogOperationType.RENAME, ++mTransactionId)
-            .withParameter("fileId", fileId).withParameter("dstPath", dstPath)
+            .withParameter("fileId", fileId).withParameter("dstPath", dstPath.getPath())
             .withParameter("opTimeMs", opTimeMs);
     writeOperation(operation);
   }

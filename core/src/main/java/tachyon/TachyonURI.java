@@ -328,7 +328,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return the new TachyonURI
    */
   public TachyonURI join(String suffix) {
-    return new TachyonURI(toString() + suffix);
+    return new TachyonURI(toString() + TachyonURI.SEPARATOR + suffix);
   }
 
   /**
@@ -338,7 +338,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
    * @return the new TachyonURI
    */
   public TachyonURI join(TachyonURI suffix) {
-    return new TachyonURI(toString() + suffix.toString());
+    return new TachyonURI(toString() + TachyonURI.SEPARATOR + suffix.toString());
   }
 
   /**
