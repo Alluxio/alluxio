@@ -258,7 +258,7 @@ public class TachyonFSTest {
   public void getTestAbnormal4() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS.get("/" + host + ":" + port + "/ab/c.txt");
+    TachyonFS.get(new TachyonURI("/" + host + ":" + port + "/ab/c.txt"));
   }
 
   private void getTestHelper(TachyonFS tfs) throws IOException {
@@ -271,7 +271,7 @@ public class TachyonFSTest {
   public void getTestNormal1() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS tfs = TachyonFS.get("tachyon://" + host + ":" + port);
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port));
     getTestHelper(tfs);
   }
 
@@ -279,7 +279,7 @@ public class TachyonFSTest {
   public void getTestNormal2() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS tfs = TachyonFS.get("tachyon://" + host + ":" + port + "/");
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port + "/"));
     getTestHelper(tfs);
   }
 
@@ -287,7 +287,7 @@ public class TachyonFSTest {
   public void getTestNormal3() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS tfs = TachyonFS.get("tachyon://" + host + ":" + port + "/ab/c.txt");
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port + "/ab/c.txt"));
     getTestHelper(tfs);
   }
 
@@ -442,8 +442,7 @@ public class TachyonFSTest {
 
   @Test
   public void toStringTest() throws IOException {
-    String tfsAddress = "tachyon://127.0.0.1:19998";
-    TachyonFS tfs = TachyonFS.get(tfsAddress);
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://127.0.0.1:19998"));
     Assert.assertEquals(tfs.toString(), "tachyon:///127.0.0.1:19998");
   }
 

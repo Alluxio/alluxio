@@ -37,7 +37,7 @@ public class Performance {
   private static final String FOLDER = "/mnt/ramdisk/";
 
   private static TachyonFS MTC = null;
-  private static String MASTER_ADDRESS = null;
+  private static TachyonURI MASTER_ADDRESS = null;
   private static String FILE_NAME = null;
   private static int BLOCK_SIZE_BYTES = -1;
   private static long BLOCKS_PER_FILE = -1;
@@ -491,7 +491,7 @@ public class Performance {
       System.exit(-1);
     }
 
-    MASTER_ADDRESS = args[0];
+    MASTER_ADDRESS = new TachyonURI(args[0]);
     FILE_NAME = args[1];
     BLOCK_SIZE_BYTES = Integer.parseInt(args[2]);
     BLOCKS_PER_FILE = Long.parseLong(args[3]);

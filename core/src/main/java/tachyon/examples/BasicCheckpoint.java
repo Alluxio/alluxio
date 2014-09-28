@@ -56,7 +56,7 @@ public class BasicCheckpoint {
           + "tachyon.examples.BasicCheckpoint <TachyonMasterAddress> <FileFolder> <Files>");
       System.exit(-1);
     }
-    sTachyonClient = TachyonFS.get(args[0]);
+    sTachyonClient = TachyonFS.get(new TachyonURI(args[0]));
     sFileFolder = args[1];
     sFiles = Integer.parseInt(args[2]);
     createDependency();
