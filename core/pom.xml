@@ -192,6 +192,18 @@
             </exclusion>
           </exclusions>
         </dependency>
+        <dependency>
+          <groupId>commons-httpclient</groupId>
+          <artifactId>commons-httpclient</artifactId>
+          <version>3.0.1</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+          <version>1.4</version>
+          <scope>provided</scope>
+        </dependency>
       </dependencies>
     </profile>
 
