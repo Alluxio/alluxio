@@ -226,6 +226,11 @@ The user configuration specifies values regarding file system access.
   <td>The number of times to request space from the file system before aborting</td>
 </tr>
 <tr>
+  <td>tachyon.user.file.writetype.default</td>
+  <td>CACHE_THROUGH</td>
+  <td>Default write type for Tachyon files.</td>
+</tr>
+<tr>
   <td>tachyon.user.quota.unit.bytes</td>
   <td>8 MB</td>
   <td>The minimum number of bytes that will be requested from a client to a worker at a time</td>
