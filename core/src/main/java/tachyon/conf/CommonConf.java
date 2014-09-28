@@ -10,7 +10,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import tachyon.Constants;
-import tachyon.client.WriteType;
 
 /**
  * Configurations shared by master and workers.
