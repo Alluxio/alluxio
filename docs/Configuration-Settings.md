@@ -12,7 +12,7 @@ Additional Java VM options can be added to `TACHYON_MASTER_JAVA_OPTS` for Master
 `TACHYON_WORKER_JAVA_OPTS` for Worker configuration. In the template file, `TACHYON_JAVA_OPTS` is
 included in both `TACHYON_MASTER_JAVA_OPTS` and `TACHYON_WORKER_JAVA_OPTS`.
 
-For example if you would like to enable Java remote debugging at port 7001 in the Master you can modify 
+For example if you would like to enable Java remote debugging at port 7001 in the Master you can modify
 `TACHYON_MASTER_JAVA_OPTS` like this:
 
 `export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"`
@@ -228,7 +228,7 @@ The user configuration specifies values regarding file system access.
 <tr>
   <td>tachyon.user.file.writetype.default</td>
   <td>CACHE_THROUGH</td>
-  <td>Default write type for Tachyon files.</td>
+  <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface. It can be any type in WriteType.</td>
 </tr>
 <tr>
   <td>tachyon.user.quota.unit.bytes</td>
