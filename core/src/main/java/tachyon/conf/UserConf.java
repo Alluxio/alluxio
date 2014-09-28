@@ -1,6 +1,7 @@
 package tachyon.conf;
 
 import tachyon.Constants;
+import tachyon.client.WriteType;
 
 public class UserConf extends Utils {
   private static UserConf USER_CONF = null;
@@ -30,6 +31,8 @@ public class UserConf extends Utils {
 
   public final int REMOTE_READ_BUFFER_SIZE_BYTE;
 
+  public final WriteType DEFAULT_WRITE_TYPE;
+
   private UserConf() {
     FAILED_SPACE_REQUEST_LIMITS = getIntProperty("tachyon.user.failed.space.request.limits", 3);
     QUOTA_UNIT_BYTES = getLongProperty("tachyon.user.quota.unit.bytes", 8 * Constants.MB);
@@ -41,5 +44,7 @@ public class UserConf extends Utils {
     DEFAULT_BLOCK_SIZE_BYTE = getLongProperty("tachyon.user.default.block.size.byte", Constants.GB);
     REMOTE_READ_BUFFER_SIZE_BYTE =
         getIntProperty("tachyon.user.remote.read.buffer.size.byte", Constants.MB);
+    DEFAULT_WRITE_TYPE =
+        getEnumProperty("tachyon.user.file.writetype.default", WriteType.CACHE_THROUGH);
   }
 }
