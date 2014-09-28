@@ -33,7 +33,7 @@ public class BasicOperations {
           + "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
       System.exit(-1);
     }
-    sTachyonClient = TachyonFS.get(args[0]);
+    sTachyonClient = TachyonFS.get(new TachyonURI(args[0]));
     sFilePath = new TachyonURI(args[1]);
     sWriteType = WriteType.getOpType(args[2]);
     createFile();
