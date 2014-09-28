@@ -421,7 +421,8 @@ public class TachyonFSTest {
   @Test
   public void renameFileTest2() throws IOException {
     mTfs.createFile(new TachyonURI("/root/testFile1"));
-    Assert.assertTrue(mTfs.rename("/root/testFile1", "/root/testFile1"));
+    Assert.assertTrue(mTfs.rename(new TachyonURI("/root/testFile1"), new TachyonURI(
+        "/root/testFile1")));
   }
 
   @Test

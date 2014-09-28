@@ -647,13 +647,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param path the target directory/file path
    * @return A list of ClientFileInfo, null if the file or folder does not exist.
    * @throws IOException
-   * @deprecated use {@link #listStatus(TachyonURI)} instead
    */
-  @Deprecated
-  public synchronized List<ClientFileInfo> listStatus(String path) throws IOException {
-    return listStatus(new TachyonURI(path));
-  }
-
   @Override
   public synchronized List<ClientFileInfo> listStatus(TachyonURI path) throws IOException {
     validateUri(path);
@@ -713,34 +707,6 @@ public class TachyonFS extends AbstractTachyonFS {
   }
 
   /**
-   * Renames the file
-   * 
-   * @param fileId the file id
-   * @param dstPath the new path of the file in the file system.
-   * @return true if succeed, false otherwise
-   * @throws IOException
-   * @deprecated use {@link #rename(int, TachyonURI)} instead
-   */
-  @Deprecated
-  public synchronized boolean rename(int fileId, String dstPath) throws IOException {
-    return rename(fileId, new TachyonURI(dstPath));
-  }
-
-  /**
-   * Rename the srcPath to the dstPath
-   * 
-   * @param srcPath The path of the source file / folder.
-   * @param dstPath The path of the destination file / folder.
-   * @return true if succeed, false otherwise.
-   * @throws IOException
-   * @deprecated use {@link #rename(TachyonURI, TachyonURI)} instead
-   */
-  @Deprecated
-  public synchronized boolean rename(String srcPath, String dstPath) throws IOException {
-    return rename(new TachyonURI(srcPath), new TachyonURI(dstPath));
-  }
-
-  /**
    * Renames a file or folder to another path.
    * 
    * @param fileId The id of the source file / folder. If it is not -1, path parameter is ignored.
@@ -749,13 +715,7 @@ public class TachyonFS extends AbstractTachyonFS {
    * @param dstPath The path of the destination file / folder. It could be empty iff id is not -1.
    * @return true if renames successfully, false otherwise.
    * @throws IOException
-   * @deprecated use {@link #rename(int, TachyonURI, TachyonURI)} instead
    */
-  @Deprecated
-  public synchronized boolean rename(int fileId, String srcPath, String dstPath) throws IOException {
-    return rename(fileId, new TachyonURI(srcPath), new TachyonURI(dstPath));
-  }
-
   @Override
   public synchronized boolean rename(int fileId, TachyonURI srcPath, TachyonURI dstPath)
       throws IOException {
