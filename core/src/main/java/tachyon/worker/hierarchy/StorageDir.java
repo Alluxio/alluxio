@@ -343,6 +343,19 @@ public final class StorageDir {
   }
 
   /**
+   * Get size of locked blocks in bytes in current StorageDir
+   * 
+   * @return size of locked blocks in bytes in current StorageDir
+   */
+  public long getLockedSizeBytes() {
+    long lockedBytes = 0;
+    for (long blockId : mUserPerLockedBlock.keySet()) {
+      lockedBytes += mBlockSizes.get(blockId);
+    }
+    return lockedBytes;
+  }
+
+  /**
    * Get Ids of removed blocks
    * 
    * @return queue of removed block Ids
@@ -436,7 +449,7 @@ public final class StorageDir {
     for (String name : mFs.list(mDataPath)) {
       String path = CommonUtils.concat(mDataPath, name);
       if (mFs.isFile(path)) {
-        cnt++;
+        cnt ++;
         long fileSize = mFs.getFileSize(path);
         LOG.debug("File " + cnt + ": " + path + " with size " + fileSize + " Bs.");
         long blockId = CommonUtils.getBlockIdFromFileName(name);

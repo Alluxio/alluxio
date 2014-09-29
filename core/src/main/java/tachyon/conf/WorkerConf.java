@@ -6,6 +6,8 @@ import tachyon.Constants;
 import tachyon.util.CommonUtils;
 import tachyon.util.NetworkUtils;
 import tachyon.worker.NetworkType;
+import tachyon.worker.eviction.EvictStrategyType;
+import tachyon.worker.hierarchy.AllocateStrategyType;
 import tachyon.worker.netty.ChannelType;
 import tachyon.worker.netty.FileTransferType;
 
@@ -57,6 +59,14 @@ public class WorkerConf extends Utils {
   public final Optional<Integer> NETTY_SEND_BUFFER;
   public final Optional<Integer> NETTY_RECIEVE_BUFFER;
 
+  public final EvictStrategyType EVICT_STRATEGY_TYPE;
+  public final AllocateStrategyType ALLOCATE_STRATEGY_TYPE;
+  public final int MAX_HIERARCHY_STORAGE_LEVEL;
+  public final String[] STORAGE_LEVEL_ALIAS;
+  public final String[] STORAGE_TIER_DIRS;
+  public final String[] STORAGE_TIER_DIR_QUOTA;
+  public final String[] STORAGE_TIER_DIR_QUOTA_DEFAULTS = "512MB,64GB,1TB".split(",");
+
   private WorkerConf() {
     MASTER_HOSTNAME = getProperty("tachyon.master.hostname", NetworkUtils.getLocalHostName());
     MASTER_PORT = getIntProperty("tachyon.master.port", Constants.DEFAULT_MASTER_PORT);
@@ -99,5 +109,27 @@ public class WorkerConf extends Utils {
     NETTY_RECIEVE_BUFFER =
         Optional.fromNullable(getIntegerProperty("tachyon.worker.network.netty.buffer.recieve",
             null));
+    EVICT_STRATEGY_TYPE = getEnumProperty("tachyon.worker.evict.type", EvictStrategyType.LRU);
+    ALLOCATE_STRATEGY_TYPE =
+        getEnumProperty("tachyon.worker.allocate.type", AllocateStrategyType.MAX_FREE);
+    MAX_HIERARCHY_STORAGE_LEVEL = getIntProperty("tachyon.worker.hierarchystore.level.max", 4);
+    STORAGE_TIER_DIRS = new String[MAX_HIERARCHY_STORAGE_LEVEL];
+    STORAGE_LEVEL_ALIAS = new String[MAX_HIERARCHY_STORAGE_LEVEL];
+    STORAGE_TIER_DIR_QUOTA = new String[MAX_HIERARCHY_STORAGE_LEVEL];
+    for (int i = 0; i < MAX_HIERARCHY_STORAGE_LEVEL; i ++) {
+      STORAGE_LEVEL_ALIAS[i] =
+          getProperty("tachyon.worker.hierarchystore.level" + i + ".alias", "MEM");
+      STORAGE_TIER_DIRS[i] =
+          getProperty("tachyon.worker.hierarchystore.level" + i + ".dirs.path", "/mnt/ramdisk");
+      if (i < STORAGE_TIER_DIR_QUOTA_DEFAULTS.length) {
+        STORAGE_TIER_DIR_QUOTA[i] =
+            getProperty("tachyon.worker.hierarchystore.level" + i + ".dirs.quota",
+                STORAGE_TIER_DIR_QUOTA_DEFAULTS[i]);
+      } else {
+        STORAGE_TIER_DIR_QUOTA[i] =
+            getProperty("tachyon.worker.hierarchystore.level" + i + ".dirs.quota",
+                STORAGE_TIER_DIR_QUOTA_DEFAULTS[STORAGE_TIER_DIR_QUOTA_DEFAULTS.length - 1]);
+      }
+    }
   }
 }
