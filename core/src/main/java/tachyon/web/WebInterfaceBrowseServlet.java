@@ -147,13 +147,13 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       requestPath = TachyonURI.SEPARATOR;
     }
     TachyonURI currentPath = new TachyonURI(requestPath);
-    request.setAttribute("currentPath", currentPath.getPath());
+    request.setAttribute("currentPath", currentPath.toString());
     request.setAttribute("viewingOffset", 0);
 
     try {
       ClientFileInfo clientFileInfo = mMasterInfo.getClientFileInfo(currentPath);
       if (null == clientFileInfo) {
-        throw new FileDoesNotExistException(currentPath.getPath());
+        throw new FileDoesNotExistException(currentPath.toString());
       }
       UiFileInfo currentFileInfo = new UiFileInfo(clientFileInfo);
       request.setAttribute("currentDirectory", currentFileInfo);
@@ -258,7 +258,7 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
       return;
     }
 
-    String[] splitPath = CommonUtils.getPathComponents(path.getPath());
+    String[] splitPath = CommonUtils.getPathComponents(path.toString());
     UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length - 1];
     TachyonURI currentPath = new TachyonURI(TachyonURI.SEPARATOR);
     pathInfos[0] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));

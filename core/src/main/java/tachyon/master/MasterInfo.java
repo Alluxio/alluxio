@@ -115,7 +115,7 @@ public class MasterInfo extends ImageWriter {
                       dep.addLostFile(tFile.getId());
                       LOG.info("File " + tFile.getId() + " got lost from worker " + worker.getId()
                           + " . Trying to recompute it using dependency " + dep.mId);
-                      if (!getPath(tFile).getPath().startsWith(mMasterConf.TEMPORARY_FOLDER)) {
+                      if (!getPath(tFile).toString().startsWith(mMasterConf.TEMPORARY_FOLDER)) {
                         mMustRecomputedDpendencies.add(depId);
                       }
                     }
@@ -326,7 +326,7 @@ public class MasterInfo extends ImageWriter {
       }
 
       if (!tFile.hasCheckpointed()) {
-        tFile.setUfsPath(checkpointPath.getPath());
+        tFile.setUfsPath(checkpointPath.toString());
         needLog = true;
 
         synchronized (mFileIdToDependency) {
@@ -462,7 +462,7 @@ public class MasterInfo extends ImageWriter {
 
     LOG.debug("createFile {}", CommonUtils.parametersToString(path));
 
-    String[] pathNames = CommonUtils.getPathComponents(path.getPath());
+    String[] pathNames = CommonUtils.getPathComponents(path.toString());
     String name = path.getName();
 
     String[] parentPath = new String[pathNames.length - 1];
@@ -529,7 +529,7 @@ public class MasterInfo extends ImageWriter {
         if (ret.isPinned()) {
           mPinnedInodeFileIds.add(ret.getId());
         }
-        if (mWhitelist.inList(path.getPath())) {
+        if (mWhitelist.inList(path.toString())) {
           ((InodeFile) ret).setCache(true);
         }
       }
@@ -652,7 +652,7 @@ public class MasterInfo extends ImageWriter {
     ClientRawTableInfo ret = new ClientRawTableInfo();
     ret.id = inode.getId();
     ret.name = inode.getName();
-    ret.path = path.getPath();
+    ret.path = path.toString();
     ret.columns = mRawTables.getColumns(ret.id);
     ret.metadata = mRawTables.getMetadata(ret.id);
     return ret;
@@ -734,8 +734,8 @@ public class MasterInfo extends ImageWriter {
       if (srcPath.isRoot() || dstPath.isRoot()) {
         return false;
       }
-      String[] srcComponents = CommonUtils.getPathComponents(srcPath.getPath());
-      String[] dstComponents = CommonUtils.getPathComponents(dstPath.getPath());
+      String[] srcComponents = CommonUtils.getPathComponents(srcPath.toString());
+      String[] dstComponents = CommonUtils.getPathComponents(dstPath.toString());
       // We can't rename a path to one of its subpaths, so we check for that, by making sure
       // srcComponents isn't a prefix of dstComponents.
       if (srcComponents.length < dstComponents.length) {
@@ -1189,7 +1189,7 @@ public class MasterInfo extends ImageWriter {
         info.id = -1;
         return info;
       }
-      return inode.generateClientFileInfo(getPath(inode).getPath());
+      return inode.generateClientFileInfo(getPath(inode).toString());
     }
   }
 
@@ -1209,7 +1209,7 @@ public class MasterInfo extends ImageWriter {
         info.id = -1;
         return info;
       }
-      return inode.generateClientFileInfo(path.getPath());
+      return inode.generateClientFileInfo(path.toString());
     }
   }
 
@@ -1351,7 +1351,7 @@ public class MasterInfo extends ImageWriter {
         ret.add(child.generateClientFileInfo(CommonUtils.concat(uri, child.getName())));
       }
     } else {
-      ret.add(inode.generateClientFileInfo(uri.getPath()));
+      ret.add(inode.generateClientFileInfo(uri.toString()));
     }
     return ret;
   }
@@ -1393,7 +1393,7 @@ public class MasterInfo extends ImageWriter {
    * Same as {@link #getInode(String[] pathNames)} except that it takes a path string.
    */
   private Inode getInode(TachyonURI path) throws InvalidPathException {
-    return getInode(CommonUtils.getPathComponents(path.getPath()));
+    return getInode(CommonUtils.getPathComponents(path.toString()));
   }
 
   /**
