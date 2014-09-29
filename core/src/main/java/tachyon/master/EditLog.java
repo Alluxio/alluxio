@@ -345,7 +345,7 @@ public class EditLog {
     EditLogOperation operation =
         new EditLogOperation(EditLogOperationType.ADD_CHECKPOINT, ++mTransactionId)
             .withParameter("fileId", fileId).withParameter("length", length)
-            .withParameter("path", checkpointPath.getPath()).withParameter("opTimeMs", opTimeMs);
+            .withParameter("path", checkpointPath.toString()).withParameter("opTimeMs", opTimeMs);
     writeOperation(operation);
   }
 
@@ -434,7 +434,7 @@ public class EditLog {
 
     EditLogOperation operation =
         new EditLogOperation(EditLogOperationType.CREATE_FILE, ++mTransactionId)
-            .withParameter("recursive", recursive).withParameter("path", path.getPath())
+            .withParameter("recursive", recursive).withParameter("path", path.toString())
             .withParameter("directory", directory).withParameter("blockSizeByte", blockSizeByte)
             .withParameter("creationTimeMs", creationTimeMs);
     writeOperation(operation);
@@ -544,7 +544,7 @@ public class EditLog {
 
     EditLogOperation operation =
         new EditLogOperation(EditLogOperationType.RENAME, ++mTransactionId)
-            .withParameter("fileId", fileId).withParameter("dstPath", dstPath.getPath())
+            .withParameter("fileId", fileId).withParameter("dstPath", dstPath.toString())
             .withParameter("opTimeMs", opTimeMs);
     writeOperation(operation);
   }
