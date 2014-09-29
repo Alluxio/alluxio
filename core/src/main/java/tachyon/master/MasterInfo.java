@@ -293,7 +293,7 @@ public class MasterInfo extends ImageWriter {
    * @throws BlockInfoException
    */
   Pair<Boolean, Boolean> _addCheckpoint(long workerId, int fileId, long length,
-      String checkpointPath, long opTimeMs) throws FileNotFoundException,
+      TachyonURI checkpointPath, long opTimeMs) throws FileNotFoundException,
       SuspectedFileSizeException, BlockInfoException {
     LOG.info(CommonUtils.parametersToString(workerId, fileId, length, checkpointPath));
 
@@ -326,7 +326,7 @@ public class MasterInfo extends ImageWriter {
       }
 
       if (!tFile.hasCheckpointed()) {
-        tFile.setUfsPath(checkpointPath);
+        tFile.setUfsPath(checkpointPath.getPath());
         needLog = true;
 
         synchronized (mFileIdToDependency) {
@@ -821,7 +821,7 @@ public class MasterInfo extends ImageWriter {
    * @throws SuspectedFileSizeException
    * @throws BlockInfoException
    */
-  public boolean addCheckpoint(long workerId, int fileId, long length, String checkpointPath)
+  public boolean addCheckpoint(long workerId, int fileId, long length, TachyonURI checkpointPath)
       throws FileNotFoundException, SuspectedFileSizeException, BlockInfoException {
     long opTimeMs = System.currentTimeMillis();
     synchronized (ROOT_LOCK) {

@@ -114,7 +114,7 @@ public class EditLog {
           }
           case ADD_CHECKPOINT: {
             info._addCheckpoint(-1, op.getInt("fileId"), op.getLong("length"),
-                op.getString("path"), op.getLong("opTimeMs"));
+                new TachyonURI(op.getString("path")), op.getLong("opTimeMs"));
             break;
           }
           case CREATE_FILE: {
@@ -336,7 +336,7 @@ public class EditLog {
    * @param checkpointPath The path of the checkpoint
    * @param opTimeMs The time of the addCheckpoint operation, in milliseconds
    */
-  public synchronized void addCheckpoint(int fileId, long length, String checkpointPath,
+  public synchronized void addCheckpoint(int fileId, long length, TachyonURI checkpointPath,
       long opTimeMs) {
     if (INACTIVE) {
       return;
@@ -345,7 +345,7 @@ public class EditLog {
     EditLogOperation operation =
         new EditLogOperation(EditLogOperationType.ADD_CHECKPOINT, ++mTransactionId)
             .withParameter("fileId", fileId).withParameter("length", length)
-            .withParameter("path", checkpointPath).withParameter("opTimeMs", opTimeMs);
+            .withParameter("path", checkpointPath.getPath()).withParameter("opTimeMs", opTimeMs);
     writeOperation(operation);
   }
 

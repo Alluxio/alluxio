@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
@@ -57,23 +58,23 @@ public class WorkerServiceHandlerTest {
         TestUtils.createByteFile(mTfs, "/file1", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 3);
     Assert.assertTrue(fileId1 >= 0);
-    ClientFileInfo fileInfo1 = mMasterInfo.getClientFileInfo("/file1");
+    ClientFileInfo fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
     int fileId2 =
         TestUtils.createByteFile(mTfs, "/file2", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 3);
     Assert.assertTrue(fileId2 >= 0);
-    fileInfo1 = mMasterInfo.getClientFileInfo("/file1");
-    ClientFileInfo fileInfo2 = mMasterInfo.getClientFileInfo("/file2");
+    fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
+    ClientFileInfo fileInfo2 = mMasterInfo.getClientFileInfo(new TachyonURI("/file2"));
     Assert.assertEquals(100, fileInfo1.inMemoryPercentage);
     Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
     int fileId3 =
         TestUtils.createByteFile(mTfs, "/file3", WriteType.MUST_CACHE,
             (int) WORKER_CAPACITY_BYTES / 2);
     CommonUtils.sleepMs(null, WORKER_TO_MASTER_HEARTBEAT_INTERVAL_MS);
-    fileInfo1 = mMasterInfo.getClientFileInfo("/file1");
-    fileInfo2 = mMasterInfo.getClientFileInfo("/file2");
-    ClientFileInfo fileInfo3 = mMasterInfo.getClientFileInfo("/file3");
+    fileInfo1 = mMasterInfo.getClientFileInfo(new TachyonURI("/file1"));
+    fileInfo2 = mMasterInfo.getClientFileInfo(new TachyonURI("/file2"));
+    ClientFileInfo fileInfo3 = mMasterInfo.getClientFileInfo(new TachyonURI("/file3"));
     Assert.assertTrue(fileId3 >= 0);
     Assert.assertEquals(0, fileInfo1.inMemoryPercentage);
     Assert.assertEquals(100, fileInfo2.inMemoryPercentage);
