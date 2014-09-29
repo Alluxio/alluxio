@@ -449,7 +449,7 @@ public class MasterInfo extends ImageWriter {
    * @throws TachyonException
    */
   int _createFile(boolean recursive, TachyonURI path, boolean directory, long blockSizeByte,
-                  long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
+      long creationTimeMs) throws FileAlreadyExistException, InvalidPathException,
       BlockInfoException, TachyonException {
     if (path.isRoot()) {
       LOG.info("FileAlreadyExistException: " + path);
