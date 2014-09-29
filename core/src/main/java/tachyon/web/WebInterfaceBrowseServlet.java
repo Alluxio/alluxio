@@ -152,6 +152,9 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
 
     try {
       ClientFileInfo clientFileInfo = mMasterInfo.getClientFileInfo(currentPath);
+      if (null == clientFileInfo) {
+        throw new FileDoesNotExistException(currentPath.getPath());
+      }
       UiFileInfo currentFileInfo = new UiFileInfo(clientFileInfo);
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeByte", currentFileInfo.getBlockSizeBytes());
