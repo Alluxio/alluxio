@@ -6,7 +6,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -22,8 +23,8 @@ public class DataServerMessage {
   public static final short DATA_SERVER_REQUEST_MESSAGE = 1;
   public static final short DATA_SERVER_RESPONSE_MESSAGE = 2;
 
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  
   private static final int HEADER_LENGTH = 26;
 
   /**

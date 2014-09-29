@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
@@ -48,13 +49,13 @@ public class FileOutStreamTest {
   public void writeTest1() throws IOException, InvalidPathException, FileAlreadyExistException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        writeTest1Util("/root/testFile_" + k + "_" + op, op, k);
+        writeTest1Util(new TachyonURI("/root/testFile_" + k + "_" + op), op, k);
       }
     }
   }
 
-  private void writeTest1Util(String filePath, WriteType op, int len) throws InvalidPathException,
-      FileAlreadyExistException, IOException {
+  private void writeTest1Util(TachyonURI filePath, WriteType op, int len)
+      throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mTfs.createFile(filePath);
     TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
@@ -97,13 +98,13 @@ public class FileOutStreamTest {
   public void writeTest2() throws IOException, InvalidPathException, FileAlreadyExistException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        writeTest2Util("/root/testFile_" + k + "_" + op, op, k);
+        writeTest2Util(new TachyonURI("/root/testFile_" + k + "_" + op), op, k);
       }
     }
   }
 
-  private void writeTest2Util(String filePath, WriteType op, int len) throws InvalidPathException,
-      FileAlreadyExistException, IOException {
+  private void writeTest2Util(TachyonURI filePath, WriteType op, int len)
+      throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mTfs.createFile(filePath);
     TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
@@ -144,13 +145,13 @@ public class FileOutStreamTest {
   public void writeTest3() throws IOException, InvalidPathException, FileAlreadyExistException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        writeTest3Util("/root/testFile_" + k + "_" + op, op, k);
+        writeTest3Util(new TachyonURI("/root/testFile_" + k + "_" + op), op, k);
       }
     }
   }
 
-  private void writeTest3Util(String filePath, WriteType op, int len) throws InvalidPathException,
-      FileAlreadyExistException, IOException {
+  private void writeTest3Util(TachyonURI filePath, WriteType op, int len)
+      throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mTfs.createFile(filePath);
     TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);

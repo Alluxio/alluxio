@@ -28,7 +28,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
       DistributedFileSystem dfs = cluster.getDFSClient();
       dfs.mkdirs(new Path("/1"));
       mkdirs(cluster.getUnderFilesystemAddress() + "/1/2");
-      FileStatus[] fs = dfs.listStatus(new Path(Constants.PATH_SEPARATOR));
+      FileStatus[] fs = dfs.listStatus(new Path(TachyonURI.SEPARATOR));
       assert fs.length != 0;
       System.out.println(fs[0].getPath().toUri());
       dfs.close();
@@ -62,7 +62,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     return ufs.mkdirs(path, true);
   }
 
-  private final Configuration mConf = new Configuration();
+  private Configuration mConf = new Configuration();
   private int mNamenodePort;
 
   private int mNumDataNode;
@@ -104,6 +104,25 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
    */
   public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, int nameNodePort) {
     super(dfsBaseDirs);
+    mNamenodePort = nameNodePort;
+    mNumDataNode = numDataNode;
+  }
+
+  /**
+   * To initialize the local minidfscluster
+   *
+   * @param conf The base configuration to use in starting the servers. This will be modified as
+   *        necessary.
+   * @param dfsBaseDirs The base directory for both namenode and datanode. The dfs.name.dir and
+   *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
+   * @param numDataNode The number of datanode
+   * @param nameNodePort The port of namenode. If it is 0, the real namenode port can be retrieved
+   *        by {@link #getNameNodePort()} after the cluster started
+   */
+  public LocalMiniDFSCluster(Configuration conf, String dfsBaseDirs, int numDataNode,
+      int nameNodePort) {
+    super(dfsBaseDirs);
+    mConf = conf;
     mNamenodePort = nameNodePort;
     mNumDataNode = numDataNode;
   }

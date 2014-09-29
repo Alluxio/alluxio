@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
@@ -34,14 +35,13 @@ public final class BasicNonByteBufferOperations {
       usage();
     }
 
-    String address = args[0];
-    String filePath = args[1];
+    TachyonURI filePath = new TachyonURI(args[1]);
     WriteType writeType = Utils.option(args, 2, WriteType.MUST_CACHE);
     ReadType readType = Utils.option(args, 3, ReadType.NO_CACHE);
     boolean deleteIfExists = Utils.option(args, 4, true);
     int length = Utils.option(args, 5, 20);
 
-    TachyonFS client = TachyonFS.get(address);
+    TachyonFS client = TachyonFS.get(new TachyonURI(args[0]));
 
     write(client, filePath, writeType, deleteIfExists, length);
     boolean passes = read(client, filePath, readType);
@@ -50,7 +50,7 @@ public final class BasicNonByteBufferOperations {
     System.exit(0);
   }
 
-  private static void write(TachyonFS client, String filePath, WriteType writeType,
+  private static void write(TachyonFS client, TachyonURI filePath, WriteType writeType,
       boolean deleteIfExists, int length) throws IOException {
     // If the file exists already, we will override it.
     TachyonFile file = getOrCreate(client, filePath, deleteIfExists);
@@ -65,8 +65,8 @@ public final class BasicNonByteBufferOperations {
     }
   }
 
-  private static TachyonFile getOrCreate(TachyonFS client, String filePath, boolean deleteIfExists)
-      throws IOException {
+  private static TachyonFile getOrCreate(TachyonFS client, TachyonURI filePath,
+      boolean deleteIfExists) throws IOException {
     TachyonFile file = client.getFile(filePath);
     if (file == null) {
       // file doesn't exist yet, so create it
@@ -74,7 +74,7 @@ public final class BasicNonByteBufferOperations {
       file = client.getFile(fileId);
     } else if (deleteIfExists) {
       // file exists, so delete it and recreate
-      client.delete(file.getPath(), false);
+      client.delete(new TachyonURI(file.getPath()), false);
 
       int fileId = client.createFile(filePath);
       file = client.getFile(fileId);
@@ -82,7 +82,7 @@ public final class BasicNonByteBufferOperations {
     return file;
   }
 
-  private static boolean read(TachyonFS client, String filePath, ReadType readType)
+  private static boolean read(TachyonFS client, TachyonURI filePath, ReadType readType)
       throws IOException {
     TachyonFile file = client.getFile(filePath);
     DataInputStream input = new DataInputStream(file.getInStream(readType));

@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonByteBuffer;
@@ -16,10 +18,10 @@ import tachyon.client.WriteType;
 import tachyon.util.CommonUtils;
 
 public class BasicOperations {
-  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static TachyonFS sTachyonClient;
-  private static String sFilePath = null;
+  private static TachyonURI sFilePath = null;
   private static WriteType sWriteType = null;
   private static int sNumbers = 20;
   private static boolean sPass = true;
@@ -31,8 +33,8 @@ public class BasicOperations {
           + "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
       System.exit(-1);
     }
-    sTachyonClient = TachyonFS.get(args[0]);
-    sFilePath = args[1];
+    sTachyonClient = TachyonFS.get(new TachyonURI(args[0]));
+    sFilePath = new TachyonURI(args[1]);
     sWriteType = WriteType.getOpType(args[2]);
     createFile();
     writeFile();

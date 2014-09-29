@@ -9,19 +9,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.HeartbeatThread;
 import tachyon.LeaderInquireClient;
+import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.UserConf;
@@ -52,7 +54,7 @@ import tachyon.util.NetworkUtils;
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
 public class MasterClient implements Closeable {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_CONNECT_TRY = 5;
 
   private boolean mUseZookeeper;
@@ -111,7 +113,7 @@ public class MasterClient implements Closeable {
   @Override
   public synchronized void close() {
     if (mConnected) {
-      LOG.debug("Disconnecting from the master " + mMasterAddress);
+      LOG.debug("Disconnecting from the master {}", mMasterAddress);
       mConnected = false;
     }
     if (mProtocol != null) {
@@ -207,7 +209,7 @@ public class MasterClient implements Closeable {
     if (path == null) {
       path = "";
     }
-    if (fileId == -1 && !path.startsWith(Constants.PATH_SEPARATOR)) {
+    if (fileId == -1 && !path.startsWith(TachyonURI.SEPARATOR)) {
       throw new IOException("Illegal path parameter: " + path);
     }
 
@@ -296,7 +298,7 @@ public class MasterClient implements Closeable {
     if (path == null) {
       throw new IOException("Illegal path parameter: " + path + " ; Please use an empty string.");
     }
-    if (id == -1 && (path == null || !path.startsWith(Constants.PATH_SEPARATOR))) {
+    if (id == -1 && (path == null || !path.startsWith(TachyonURI.SEPARATOR))) {
       throw new IOException("Illegal path parameter: " + path);
     }
   }
@@ -357,7 +359,7 @@ public class MasterClient implements Closeable {
 
   public synchronized int user_createFile(String path, String ufsPath, long blockSizeByte,
       boolean recursive) throws IOException {
-    if (path == null || !path.startsWith(Constants.PATH_SEPARATOR)) {
+    if (path == null || !path.startsWith(TachyonURI.SEPARATOR)) {
       throw new IOException("Illegal path parameter: " + path);
     }
     if (ufsPath == null) {

@@ -8,7 +8,8 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -17,6 +18,7 @@ import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.Pair;
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.io.Utils;
 import tachyon.thrift.BlockInfoException;
@@ -32,7 +34,7 @@ import tachyon.util.CommonUtils;
  * Master operation journal.
  */
 public class EditLog {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static int mBackUpLogStartNum = -1;
   private static long mCurrentTId = 0;
@@ -55,29 +57,22 @@ public class EditLog {
     LOG.info("currentLogNum passed in was " + currentLogFileNum);
     int completedLogs = currentLogFileNum;
     mBackUpLogStartNum = currentLogFileNum;
-    int numFiles = 1;
     String completedPath =
-        path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
+        path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     if (!ufs.exists(completedPath)) {
       LOG.info("No completed edit logs to be parsed");
     } else {
-      while (ufs.exists(CommonUtils.concat(completedPath, (completedLogs ++) + ".editLog"))) {
-        numFiles ++;
+      String curEditLogFile = CommonUtils.concat(completedPath, completedLogs + ".editLog");
+      while (ufs.exists(curEditLogFile)) {
+        LOG.info("Loading Edit Log " + curEditLogFile);
+        loadSingleLog(info, curEditLogFile);
+        completedLogs ++;
+        curEditLogFile = CommonUtils.concat(completedPath, completedLogs + ".editLog");
       }
     }
-    String editLogs[] = new String[numFiles];
-    for (int i = 0; i < numFiles; i ++) {
-      if (i != numFiles - 1) {
-        editLogs[i] = CommonUtils.concat(completedPath, (i + currentLogFileNum) + ".editLog");
-      } else {
-        editLogs[i] = path;
-      }
-    }
+    LOG.info("Loading Edit Log " + path);
+    loadSingleLog(info, path);
 
-    for (String currentPath : editLogs) {
-      LOG.info("Loading Edit Log " + currentPath);
-      loadSingleLog(info, currentPath);
-    }
     ufs.close();
     return mCurrentTId;
   }
@@ -99,7 +94,7 @@ public class EditLog {
       EditLogOperation op;
       try {
         op = parser.readValueAs(EditLogOperation.class);
-        LOG.debug("Read operation: " + op);
+        LOG.debug("Read operation: {}", op);
       } catch (IOException e) {
         // Unfortunately brittle, but Jackson rethrows EOF with this message.
         if (e.getMessage().contains("end-of-input")) {
@@ -193,7 +188,7 @@ public class EditLog {
    */
   public static void markUpToDate(String path) {
     UnderFileSystem ufs = UnderFileSystem.get(path);
-    String folder = path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
+    String folder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     try {
       // delete all loaded editlogs since mBackupLogStartNum.
       String toDelete = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
@@ -251,24 +246,26 @@ public class EditLog {
       mUfs = UnderFileSystem.get(path);
       if (mBackUpLogStartNum != -1) {
         String folder =
-            path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "/completed";
+            path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "/completed";
         LOG.info("Deleting completed editlogs that are part of the image.");
         deleteCompletedLogs(path, mBackUpLogStartNum);
         LOG.info("Backing up logs from " + mBackUpLogStartNum + " since image is not updated.");
         mUfs.mkdirs(folder, true);
         String toRename = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
         int currentLogFileNum = 0;
+        String dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
         while (mUfs.exists(toRename)) {
-          LOG.info("Rename " + toRename + " to "
-              + CommonUtils.concat(folder, currentLogFileNum + ".editLog"));
+          mUfs.rename(toRename, dstPath);
+          LOG.info("Rename " + toRename + " to " + dstPath);
           currentLogFileNum ++;
           mBackUpLogStartNum ++;
           toRename = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
+          dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
         }
         if (mUfs.exists(path)) {
-          mUfs.rename(path, CommonUtils.concat(folder, currentLogFileNum + ".editLog"));
-          LOG.info("Rename " + path + " to "
-              + CommonUtils.concat(folder, currentLogFileNum + ".editLog"));
+          dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
+          mUfs.rename(path, dstPath);
+          LOG.info("Rename " + path + " to " + dstPath);
           currentLogFileNum ++;
         }
         mBackUpLogStartNum = -1;
@@ -488,7 +485,7 @@ public class EditLog {
    */
   public void deleteCompletedLogs(String path, int upTo) {
     UnderFileSystem ufs = UnderFileSystem.get(path);
-    String folder = path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
+    String folder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     try {
       for (int i = 0; i < upTo; i ++) {
         String toDelete = CommonUtils.concat(folder, i + ".editLog");
@@ -564,7 +561,7 @@ public class EditLog {
     _closeActiveStream();
     LOG.info("Edit log max size of " + mMaxLogSize + " bytes reached, rotating edit log");
     String pathPrefix =
-        path.substring(0, path.lastIndexOf(Constants.PATH_SEPARATOR) + 1) + "completed";
+        path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     LOG.info("path: " + path + " prefix: " + pathPrefix);
     try {
       if (!mUfs.exists(pathPrefix)) {
@@ -586,8 +583,19 @@ public class EditLog {
    * 
    * @param size
    */
-  public void setMaxLogSize(int size) {
+  void setMaxLogSize(int size) {
     mMaxLogSize = size;
+  }
+
+  /**
+   * Changes backup log start number for testing purposes.
+   *
+   * Note that we must set it back to -1 when test case ended.
+   *
+   * @param num
+   */
+  static void setBackUpLogStartNum(int num) {
+    mBackUpLogStartNum = num;
   }
 
   /**

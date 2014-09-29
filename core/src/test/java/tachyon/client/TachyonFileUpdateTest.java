@@ -19,7 +19,6 @@ import tachyon.master.LocalTachyonCluster;
  * These set of tests are to verify that updates to files are rejected.
  */
 public final class TachyonFileUpdateTest {
-
   private static final int WORKER_CAPACITY_BYTES = 1000;
 
   private static final int USER_QUOTA_UNIT_BYTES = 100;
@@ -109,7 +108,7 @@ public final class TachyonFileUpdateTest {
       }
 
       // in case of caching, try to create the file object again
-      file = mTfs.getFile(filePath, false);
+      file = mTfs.getFile(new TachyonURI(filePath), false);
 
       // should fail the third time as well
       try {
@@ -123,7 +122,7 @@ public final class TachyonFileUpdateTest {
   }
 
   private TachyonFile createFile(final String path) throws IOException {
-    int fileId = mTfs.createFile(path);
+    int fileId = mTfs.createFile(new TachyonURI(path));
     TachyonFile file = mTfs.getFile(fileId);
     return file;
   }

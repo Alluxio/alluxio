@@ -12,12 +12,14 @@ import java.nio.channels.FileChannel.MapMode;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.ReadType;
@@ -29,13 +31,13 @@ import tachyon.conf.UserConf;
 import tachyon.util.CommonUtils;
 
 public class Performance {
-  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final int RESULT_ARRAY_SIZE = 64;
   private static final String FOLDER = "/mnt/ramdisk/";
 
   private static TachyonFS MTC = null;
-  private static String MASTER_ADDRESS = null;
+  private static TachyonURI MASTER_ADDRESS = null;
   private static String FILE_NAME = null;
   private static int BLOCK_SIZE_BYTES = -1;
   private static long BLOCKS_PER_FILE = -1;
@@ -53,7 +55,7 @@ public class Performance {
   public static void createFiles() throws IOException {
     long startTimeMs = CommonUtils.getCurrentMs();
     for (int k = 0; k < FILES; k ++) {
-      int fileId = MTC.createFile(FILE_NAME + (k + BASE_FILE_NUMBER));
+      int fileId = MTC.createFile(new TachyonURI(FILE_NAME + (k + BASE_FILE_NUMBER)));
       CommonUtils.printTimeTakenMs(startTimeMs, LOG, "user_createFiles with fileId " + fileId);
     }
   }
@@ -180,7 +182,7 @@ public class Performance {
       mBuf.flip();
       for (int pId = mLeft; pId < mRight; pId ++) {
         long startTimeMs = System.currentTimeMillis();
-        TachyonFile file = mTC.getFile(FILE_NAME + (pId + BASE_FILE_NUMBER));
+        TachyonFile file = mTC.getFile(new TachyonURI(FILE_NAME + (pId + BASE_FILE_NUMBER)));
         OutStream os = file.getOutStream(WriteType.MUST_CACHE);
         for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
           mBuf.putInt(0, k + mWorkerId);
@@ -216,7 +218,7 @@ public class Performance {
         LOG.info("Verifying the reading data...");
 
         for (int pId = mLeft; pId < mRight; pId ++) {
-          TachyonFile file = mTC.getFile(FILE_NAME + (pId + BASE_FILE_NUMBER));
+          TachyonFile file = mTC.getFile(new TachyonURI(FILE_NAME + (pId + BASE_FILE_NUMBER)));
           buf = file.readByteBuffer(0);
           IntBuffer intBuf;
           intBuf = buf.DATA.order(ByteOrder.nativeOrder()).asIntBuffer();
@@ -238,7 +240,7 @@ public class Performance {
       if (TACHYON_STREAMING_READ) {
         for (int pId = mLeft; pId < mRight; pId ++) {
           long startTimeMs = System.currentTimeMillis();
-          TachyonFile file = mTC.getFile(FILE_NAME + (pId + BASE_FILE_NUMBER));
+          TachyonFile file = mTC.getFile(new TachyonURI(FILE_NAME + (pId + BASE_FILE_NUMBER)));
           InputStream is = file.getInStream(ReadType.CACHE);
           long len = BLOCKS_PER_FILE * BLOCK_SIZE_BYTES;
 
@@ -253,7 +255,7 @@ public class Performance {
       } else {
         for (int pId = mLeft; pId < mRight; pId ++) {
           long startTimeMs = System.currentTimeMillis();
-          TachyonFile file = mTC.getFile(FILE_NAME + (pId + BASE_FILE_NUMBER));
+          TachyonFile file = mTC.getFile(new TachyonURI(FILE_NAME + (pId + BASE_FILE_NUMBER)));
           buf = file.readByteBuffer(0);
           for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
             buf.DATA.get(mBuf.array());
@@ -489,7 +491,7 @@ public class Performance {
       System.exit(-1);
     }
 
-    MASTER_ADDRESS = args[0];
+    MASTER_ADDRESS = new TachyonURI(args[0]);
     FILE_NAME = args[1];
     BLOCK_SIZE_BYTES = Integer.parseInt(args[2]);
     BLOCKS_PER_FILE = Long.parseLong(args[3]);

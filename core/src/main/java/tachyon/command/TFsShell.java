@@ -21,6 +21,7 @@ import tachyon.client.ReadType;
 import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
+import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.util.CommonUtils;
@@ -62,6 +63,7 @@ public class TFsShell implements Closeable {
   public int cat(String argv[]) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs cat <path>");
+      return -1;
     }
     TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);
@@ -128,7 +130,7 @@ public class TFsShell implements Closeable {
       TachyonFile tFile = tachyonClient.getFile(fileId);
       Closer closer = Closer.create();
       try {
-        OutStream os = closer.register(tFile.getOutStream(WriteType.CACHE_THROUGH));
+        OutStream os = closer.register(tFile.getOutStream(UserConf.get().DEFAULT_WRITE_TYPE));
         FileInputStream in = closer.register(new FileInputStream(src));
         FileChannel channel = closer.register(in.getChannel());
         ByteBuffer buf = ByteBuffer.allocate(Constants.KB);
@@ -567,6 +569,7 @@ public class TFsShell implements Closeable {
   public int tail(String argv[]) throws IOException {
     if (argv.length != 2) {
       System.out.println("Usage: tfs tail <path>");
+      return -1;
     }
     TachyonURI path = new TachyonURI(argv[1]);
     TachyonFS tachyonClient = createFS(path);

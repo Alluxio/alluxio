@@ -6,8 +6,9 @@ import java.util.List;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.log4j.Logger;
 import org.apache.zookeeper.data.Stat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.util.CommonUtils;
 
@@ -16,7 +17,7 @@ import tachyon.util.CommonUtils;
  */
 public class LeaderInquireClient {
   private static final int MAX_TRY = 10;
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static HashMap<String, LeaderInquireClient> createdClients =
       new HashMap<String, LeaderInquireClient>();
@@ -50,7 +51,7 @@ public class LeaderInquireClient {
       while (tried < MAX_TRY) {
         if (mCLient.checkExists().forPath(mLeaderPath) != null) {
           List<String> masters = mCLient.getChildren().forPath(mLeaderPath);
-          LOG.info(masters);
+          LOG.info("Master addresses: {}", masters);
           if (masters.size() >= 1) {
             if (masters.size() == 1) {
               return masters.get(0);

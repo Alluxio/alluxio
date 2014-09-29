@@ -7,12 +7,14 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileSplit;
 import org.apache.hadoop.mapred.InputSplit;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 
 public final class Utils {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Add S3 keys to the given Hadoop Configuration object if the user has specified them using
@@ -29,15 +31,12 @@ public final class Utils {
     }
   }
 
-  public static Path getHDFSPath(String path) {
-    path = getTachyonFileName(path);
-
-    String mid = Constants.PATH_SEPARATOR;
-    if (path.startsWith(Constants.PATH_SEPARATOR)) {
-      mid = "";
+  public static Path getHDFSPath(TachyonURI path) {
+    if (path.isPathAbsolute()) {
+      return new Path(TFS.mUnderFSAddress + path.getPath());
+    } else {
+      return new Path(TFS.mUnderFSAddress + TachyonURI.SEPARATOR + path.getPath());
     }
-
-    return new Path(TFS.mUnderFSAddress + mid + path);
   }
 
   public static String getPathWithoutScheme(Path path) {
@@ -46,7 +45,7 @@ public final class Utils {
 
   public static String getTachyonFileName(String path) {
     if (path.isEmpty()) {
-      return Constants.PATH_SEPARATOR;
+      return TachyonURI.SEPARATOR;
     }
 
     while (path.contains(":")) {
@@ -54,7 +53,7 @@ public final class Utils {
       path = path.substring(index + 1);
     }
 
-    while (!path.startsWith(Constants.PATH_SEPARATOR)) {
+    while (!path.startsWith(TachyonURI.SEPARATOR)) {
       path = path.substring(1);
     }
 

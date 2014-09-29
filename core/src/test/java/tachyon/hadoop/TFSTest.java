@@ -18,7 +18,6 @@ import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +25,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.MockClassLoader;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.TachyonFS;
@@ -36,7 +37,7 @@ import tachyon.client.TachyonFS;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({TachyonFS.class, UserGroupInformation.class})
 public class TFSTest {
-  private static final Logger LOG = Logger.getLogger(TFSTest.class.getName());
+  private static final Logger LOG = LoggerFactory.getLogger(TFSTest.class.getName());
 
   private ClassLoader getClassLoader(Class<?> clazz) {
     // Power Mock makes this hard, so try to hack it

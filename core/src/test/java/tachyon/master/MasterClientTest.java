@@ -59,6 +59,7 @@ public class MasterClientTest {
     // in the cases we don't want to disconnect from master
     MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress());
     masterClient.user_getClientBlockInfo(Long.MAX_VALUE);
+    masterClient.close();
   }
 
   @Test(timeout = 3000, expected = NoWorkerException.class)
@@ -68,5 +69,6 @@ public class MasterClientTest {
     // in the cases we don't want to disconnect from master
     MasterClient masterClient = new MasterClient(mMasterInfo.getMasterAddress());
     masterClient.user_getWorker(false, "host.doesnotexist.fail");
+    masterClient.close();
   }
 }

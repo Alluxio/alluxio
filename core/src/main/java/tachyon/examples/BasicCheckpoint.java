@@ -7,10 +7,12 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.TachyonByteBuffer;
 import tachyon.client.TachyonFS;
@@ -23,7 +25,7 @@ import tachyon.util.CommonUtils;
  * An example to show to how use Tachyon's API
  */
 public class BasicCheckpoint {
-  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static TachyonFS sTachyonClient;
   private static String sFileFolder = null;
@@ -54,7 +56,7 @@ public class BasicCheckpoint {
           + "tachyon.examples.BasicCheckpoint <TachyonMasterAddress> <FileFolder> <Files>");
       System.exit(-1);
     }
-    sTachyonClient = TachyonFS.get(args[0]);
+    sTachyonClient = TachyonFS.get(new TachyonURI(args[0]));
     sFileFolder = args[1];
     sFiles = Integer.parseInt(args[2]);
     createDependency();
@@ -66,8 +68,8 @@ public class BasicCheckpoint {
 
   public static void readFile() throws IOException {
     for (int i = 0; i < sFiles; i ++) {
-      String filePath = sFileFolder + "/part-" + i;
-      LOG.debug("Reading data from " + filePath);
+      TachyonURI filePath = new TachyonURI(sFileFolder + "/part-" + i);
+      LOG.debug("Reading data from {}", filePath);
       TachyonFile file = sTachyonClient.getFile(filePath);
       TachyonByteBuffer buf = file.readByteBuffer(0);
       if (buf == null) {
@@ -84,7 +86,7 @@ public class BasicCheckpoint {
 
   public static void writeFile() throws IOException {
     for (int i = 0; i < sFiles; i ++) {
-      String filePath = sFileFolder + "/part-" + i;
+      TachyonURI filePath = new TachyonURI(sFileFolder + "/part-" + i);
       TachyonFile file = sTachyonClient.getFile(filePath);
       OutputStream os = file.getOutStream(WriteType.ASYNC_THROUGH);
 
@@ -94,7 +96,7 @@ public class BasicCheckpoint {
         buf.putInt(k);
       }
       buf.flip();
-      LOG.debug("Writing data to " + filePath);
+      LOG.debug("Writing data to {}", filePath);
       os.write(buf.array());
       os.close();
     }

@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.TachyonByteBuffer;
@@ -17,11 +19,11 @@ import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 
 public class BasicRawTableOperations {
-  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final int COLS = 3;
   private static TachyonFS sTachyonClient;
-  private static String sTablePath = null;
+  private static TachyonURI sTablePath = null;
   private static int mId;
   private static WriteType sWriteType = null;
   private static int sDataLength = 20;
@@ -45,8 +47,8 @@ public class BasicRawTableOperations {
           + "tachyon.examples.BasicRawTableOperations <TachyonMasterAddress> <FilePath>");
       System.exit(-1);
     }
-    sTachyonClient = TachyonFS.get(args[0]);
-    sTablePath = args[1];
+    sTachyonClient = TachyonFS.get(new TachyonURI(args[0]));
+    sTablePath = new TachyonURI(args[1]);
     sWriteType = WriteType.getOpType(args[2]);
     createRawTable();
     write();

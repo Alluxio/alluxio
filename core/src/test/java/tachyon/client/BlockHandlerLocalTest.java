@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.util.CommonUtils;
@@ -36,7 +37,7 @@ public class BlockHandlerLocalTest {
     ByteBuffer buf = ByteBuffer.allocateDirect(100);
     buf.put(TestUtils.getIncreasingByteArray(100));
 
-    int fileId = mTfs.createFile("/root/testFile");
+    int fileId = mTfs.createFile(new TachyonURI("/root/testFile"));
     long blockId = mTfs.getBlockId(fileId, 0);
     String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
     String filename = CommonUtils.concat(localFolder, blockId);
@@ -55,7 +56,7 @@ public class BlockHandlerLocalTest {
 
   @Test
   public void heapByteBufferwriteTest() throws IOException {
-    int fileId = mTfs.createFile("/root/testFile");
+    int fileId = mTfs.createFile(new TachyonURI("/root/testFile"));
     long blockId = mTfs.getBlockId(fileId, 0);
     String localFolder = mTfs.createAndGetUserLocalTempFolder().getPath();
     String filename = CommonUtils.concat(localFolder, blockId);
@@ -81,16 +82,15 @@ public class BlockHandlerLocalTest {
     BlockHandler handler = BlockHandler.get(filename);
     try {
       IllegalArgumentException exception = null;
-      ByteBuffer buf = null;
       try {
-        buf = handler.read(101, 10);
+        handler.read(101, 10);
       } catch (IllegalArgumentException e) {
         exception = e;
       }
       Assert.assertEquals("blockOffset(101) is larger than file length(100)",
           exception.getMessage());
       try {
-        buf = handler.read(10, 100);
+        handler.read(10, 100);
       } catch (IllegalArgumentException e) {
         exception = e;
       }

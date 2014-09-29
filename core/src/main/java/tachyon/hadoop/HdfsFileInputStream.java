@@ -10,7 +10,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.client.InStream;
@@ -20,7 +21,7 @@ import tachyon.client.TachyonFile;
 import tachyon.conf.UserConf;
 
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
-  private static Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private long mCurrentPosition;
   private TachyonFS mTFS;
@@ -28,6 +29,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   private Path mHdfsPath;
   private Configuration mHadoopConf;
   private int mHadoopBufferSize;
+  private TachyonFile mTachyonFile;
 
   private FSDataInputStream mHdfsInputStream = null;
 
@@ -39,22 +41,21 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   public HdfsFileInputStream(TachyonFS tfs, int fileId, Path hdfsPath, Configuration conf,
       int bufferSize) throws IOException {
-    LOG.debug("PartitionInputStreamHdfs(" + tfs + ", " + fileId + ", " + hdfsPath + ", " + conf
-        + ", " + bufferSize + ")");
+    LOG.debug("PartitionInputStreamHdfs({}, {}, {}, {}, {})", tfs, fileId, hdfsPath, conf,
+        bufferSize);
     mCurrentPosition = 0;
     mTFS = tfs;
     mFileId = fileId;
     mHdfsPath = hdfsPath;
     mHadoopConf = conf;
     mHadoopBufferSize = bufferSize;
-
-    TachyonFile tachyonFile = mTFS.getFile(mFileId);
-    if (tachyonFile == null) {
+    mTachyonFile = mTFS.getFile(mFileId);
+    if (mTachyonFile == null) {
       throw new FileNotFoundException("File " + hdfsPath + " with FID " + fileId + " is not found.");
     }
-    tachyonFile.setUFSConf(mHadoopConf);
+    mTachyonFile.setUFSConf(mHadoopConf);
     try {
-      mTachyonFileInputStream = tachyonFile.getInStream(ReadType.CACHE);
+      mTachyonFileInputStream = mTachyonFile.getInStream(ReadType.CACHE);
     } catch (IOException e) {
       LOG.error(e.getMessage());
     }
@@ -148,16 +149,18 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   @Override
   public int read(long position, byte[] buffer, int offset, int length) throws IOException {
     int ret = -1;
+    long oldPos = getPos();
+    if ((position < 0) || (position >= mTachyonFile.length())) {
+      return ret;
+    }
 
     if (mTachyonFileInputStream != null) {
       try {
         seek(position);
         ret = mTachyonFileInputStream.read(buffer, offset, length);
-        mCurrentPosition += ret;
         return ret;
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-        mTachyonFileInputStream = null;
+      } finally {
+        seek(oldPos);
       }
     }
 
@@ -166,9 +169,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
         mHdfsInputStream.seek(position);
         ret = mHdfsInputStream.read(buffer, offset, length);
         return ret;
-      } catch (IOException e) {
-        LOG.error(e.getMessage(), e);
-        mHdfsInputStream = null;
+      } finally {
+        mHdfsInputStream.seek(oldPos);
       }
     }
 
@@ -177,12 +179,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       mHdfsInputStream = fs.open(mHdfsPath, mHadoopBufferSize);
       mHdfsInputStream.seek(position);
       ret = mHdfsInputStream.read(buffer, offset, length);
-      return ret;
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
+    } finally {
+      mHdfsInputStream.seek(oldPos);
     }
 
-    return -1;
+    return ret;
   }
 
   private int readFromHdfsBuffer() throws IOException {
@@ -226,7 +227,11 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   public void seek(long pos) throws IOException {
     if (pos == mCurrentPosition) {
       return;
+    } else if (pos > mTachyonFile.length()) {
+      throw new IOException("Seek position is past EOF: " + pos + ", fileSize = "
+          + mTachyonFile.length());
     }
+
     if (mTachyonFileInputStream != null) {
       mTachyonFileInputStream.seek(pos);
     } else if (mHdfsInputStream != null) {

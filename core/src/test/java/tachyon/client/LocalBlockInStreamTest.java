@@ -7,7 +7,9 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import tachyon.TestUtils;
 import tachyon.master.LocalTachyonCluster;
@@ -23,6 +25,9 @@ public class LocalBlockInStreamTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
   private Set<WriteType> mWriteCacheType;
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
 
   @After
   public final void after() throws Exception {
@@ -170,12 +175,13 @@ public class LocalBlockInStreamTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>.
+   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a negative
+   * position.
    * 
    * @throws IOException
    */
   @Test
-  public void seekExceptionTest() throws IOException {
+  public void seekExceptionTest1() throws IOException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : mWriteCacheType) {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
@@ -196,6 +202,35 @@ public class LocalBlockInStreamTest {
         }
         is.close();
         throw new IOException("Except seek IOException");
+      }
+    }
+  }
+
+  /**
+   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a position
+   * that is past buffer limit.
+   *
+   * @throws IOException
+   */
+  @Test
+  public void seekExceptionTest2() throws IOException {
+    thrown.expect(IOException.class);
+    thrown.expectMessage("Seek position is past buffer limit");
+
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+      for (WriteType op : mWriteCacheType) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+
+        TachyonFile file = mTfs.getFile(fileId);
+        InStream is = file.getInStream(ReadType.NO_CACHE);
+        if (k == 0) {
+          Assert.assertTrue(is instanceof EmptyBlockInStream);
+        } else {
+          Assert.assertTrue(is instanceof LocalBlockInStream);
+        }
+
+        is.seek(k + 1);
+        is.close();
       }
     }
   }

@@ -15,7 +15,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
 import tachyon.PrefixList;
@@ -24,6 +25,7 @@ import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.CommonConf;
+import tachyon.conf.UserConf;
 import tachyon.thrift.ClientBlockInfo;
 import tachyon.thrift.ClientDependencyInfo;
 import tachyon.thrift.ClientFileInfo;
@@ -42,7 +44,7 @@ abstract class AbstractTFS extends FileSystem {
   public static final String FIRST_COM_PATH = "tachyon_dep/";
   public static final String RECOMPUTE_PATH = "tachyon_recompute/";
 
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public static String mUnderFSAddress;
 
@@ -55,8 +57,7 @@ abstract class AbstractTFS extends FileSystem {
   public FSDataOutputStream append(Path cPath, int bufferSize, Progressable progress)
       throws IOException {
     LOG.info("append(" + cPath + ", " + bufferSize + ", " + progress + ")");
-
-    String path = Utils.getPathWithoutScheme(cPath);
+    TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     fromHdfsToTachyon(path);
     int fileId = mTFS.getFileId(path);
     TachyonFile file = mTFS.getFile(fileId);
@@ -65,7 +66,7 @@ abstract class AbstractTFS extends FileSystem {
       LOG.warn("This maybe an error.");
     }
 
-    return new FSDataOutputStream(file.getOutStream(WriteType.CACHE_THROUGH), null);
+    return new FSDataOutputStream(file.getOutStream(UserConf.get().DEFAULT_WRITE_TYPE), null);
   }
 
   @Override
@@ -75,7 +76,7 @@ abstract class AbstractTFS extends FileSystem {
         + replication + ", " + blockSize + ", " + progress + ")");
 
     if (!CommonConf.get().ASYNC_ENABLED) {
-      String path = Utils.getPathWithoutScheme(cPath);
+      TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
       if (mTFS.exist(path)) {
         if (!mTFS.delete(path, false)) {
           throw new IOException("Failed to delete existing data " + cPath);
@@ -84,22 +85,23 @@ abstract class AbstractTFS extends FileSystem {
       int fileId = mTFS.createFile(path, blockSize);
       TachyonFile file = mTFS.getFile(fileId);
       file.setUFSConf(getConf());
-      return new FSDataOutputStream(file.getOutStream(WriteType.CACHE_THROUGH), null);
+      return new FSDataOutputStream(file.getOutStream(UserConf.get().DEFAULT_WRITE_TYPE), null);
     }
 
     if (cPath.toString().contains(FIRST_COM_PATH) && !cPath.toString().contains("SUCCESS")) {
-      String path = Utils.getPathWithoutScheme(cPath);
+      TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
       mTFS.createFile(path, blockSize);
-      path = path.substring(path.indexOf(FIRST_COM_PATH) + FIRST_COM_PATH.length());
-      path = path.substring(0, path.indexOf(Constants.PATH_SEPARATOR));
-      int depId = Integer.parseInt(path);
-      LOG.info("create(" + cPath + ") : " + path + " " + depId);
-      path = Utils.getPathWithoutScheme(cPath);
-      path = path.substring(path.indexOf("part-") + 5);
-      int index = Integer.parseInt(path);
+      String depPath = path.getPath();
+      depPath = depPath.substring(depPath.indexOf(FIRST_COM_PATH) + FIRST_COM_PATH.length());
+      depPath = depPath.substring(0, depPath.indexOf(TachyonURI.SEPARATOR));
+      int depId = Integer.parseInt(depPath);
+      LOG.info("create(" + cPath + ") : " + depPath + " " + depId);
+      depPath = path.getPath();
+      depPath = depPath.substring(depPath.indexOf("part-") + 5);
+      int index = Integer.parseInt(depPath);
       ClientDependencyInfo info = mTFS.getClientDependencyInfo(depId);
       int fileId = info.getChildren().get(index);
-      LOG.info("create(" + cPath + ") : " + path + " " + index + " " + info + " " + fileId);
+      LOG.info("create(" + cPath + ") : " + depPath + " " + index + " " + info + " " + fileId);
 
       TachyonFile file = mTFS.getFile(fileId);
       file.setUFSConf(getConf());
@@ -109,19 +111,21 @@ abstract class AbstractTFS extends FileSystem {
       // }
       return new FSDataOutputStream(file.getOutStream(WriteType.ASYNC_THROUGH), null);
     }
+
     if (cPath.toString().contains(RECOMPUTE_PATH) && !cPath.toString().contains("SUCCESS")) {
-      String path = Utils.getPathWithoutScheme(cPath);
+      TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
       mTFS.createFile(path, blockSize);
-      path = path.substring(path.indexOf(RECOMPUTE_PATH) + RECOMPUTE_PATH.length());
-      path = path.substring(0, path.indexOf(Constants.PATH_SEPARATOR));
-      int depId = Integer.parseInt(path);
-      LOG.info("create(" + cPath + ") : " + path + " " + depId);
-      path = Utils.getPathWithoutScheme(cPath);
-      path = path.substring(path.indexOf("part-") + 5);
-      int index = Integer.parseInt(path);
+      String depPath = path.getPath();
+      depPath = depPath.substring(depPath.indexOf(RECOMPUTE_PATH) + RECOMPUTE_PATH.length());
+      depPath = depPath.substring(0, depPath.indexOf(TachyonURI.SEPARATOR));
+      int depId = Integer.parseInt(depPath);
+      LOG.info("create(" + cPath + ") : " + depPath + " " + depId);
+      depPath = path.getPath();
+      depPath = depPath.substring(depPath.indexOf("part-") + 5);
+      int index = Integer.parseInt(depPath);
       ClientDependencyInfo info = mTFS.getClientDependencyInfo(depId);
       int fileId = info.getChildren().get(index);
-      LOG.info("create(" + cPath + ") : " + path + " " + index + " " + info + " " + fileId);
+      LOG.info("create(" + cPath + ") : " + depPath + " " + index + " " + info + " " + fileId);
 
       TachyonFile file = mTFS.getFile(fileId);
       file.setUFSConf(getConf());
@@ -131,9 +135,9 @@ abstract class AbstractTFS extends FileSystem {
       // }
       return new FSDataOutputStream(file.getOutStream(WriteType.ASYNC_THROUGH), null);
     } else {
-      String path = Utils.getPathWithoutScheme(cPath);
+      TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
       int fileId;
-      WriteType type = WriteType.CACHE_THROUGH;
+      WriteType type = UserConf.get().DEFAULT_WRITE_TYPE;
       if (mTFS.exist(path)) {
         fileId = mTFS.getFileId(path);
         type = WriteType.MUST_CACHE;
@@ -173,9 +177,9 @@ abstract class AbstractTFS extends FileSystem {
   public FSDataOutputStream createNonRecursive(Path cPath, FsPermission permission,
       boolean overwrite, int bufferSize, short replication, long blockSize, Progressable progress)
       throws IOException {
-    String tPath = Utils.getPathWithoutScheme(cPath.getParent());
-    fromHdfsToTachyon(tPath);
-    if (!mTFS.exist(tPath)) {
+    TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath.getParent()));
+    fromHdfsToTachyon(path);
+    if (!mTFS.exist(path)) {
       throw new FileNotFoundException("Parent directory does not exist!");
     }
     return this.create(cPath, permission, overwrite, bufferSize, replication, blockSize, progress);
@@ -188,19 +192,20 @@ abstract class AbstractTFS extends FileSystem {
   }
 
   @Override
-  public boolean delete(Path path, boolean recursive) throws IOException {
-    LOG.info("delete(" + path + ", " + recursive + ")");
-    String tPath = Utils.getPathWithoutScheme(path);
-    fromHdfsToTachyon(tPath);
-    return mTFS.delete(tPath, recursive);
+  public boolean delete(Path cPath, boolean recursive) throws IOException {
+    LOG.info("delete(" + cPath + ", " + recursive + ")");
+    TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
+    fromHdfsToTachyon(path);
+    return mTFS.delete(path, recursive);
   }
 
-  private void fromHdfsToTachyon(String path) throws IOException {
+  private void fromHdfsToTachyon(TachyonURI path) throws IOException {
     if (!mTFS.exist(path)) {
       Path hdfsPath = Utils.getHDFSPath(path);
       FileSystem fs = hdfsPath.getFileSystem(getConf());
       if (fs.exists(hdfsPath)) {
-        String ufsAddrPath = CommonUtils.concat(mUnderFSAddress, path);
+        TachyonURI ufsUri = new TachyonURI(mUnderFSAddress);
+        TachyonURI ufsAddrPath = new TachyonURI(ufsUri.getScheme(), ufsUri.getAuthority(), path.getPath());
         // Set the path as the TFS root path.
         UfsUtils.loadUnderFs(mTFS, path, ufsAddrPath, new PrefixList(null));
       }
@@ -214,7 +219,7 @@ abstract class AbstractTFS extends FileSystem {
       return null;
     }
 
-    String path = Utils.getPathWithoutScheme(file.getPath());
+    TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(file.getPath()));
     fromHdfsToTachyon(path);
     int fileId = mTFS.getFileId(path);
 
@@ -252,7 +257,7 @@ abstract class AbstractTFS extends FileSystem {
    */
   @Override
   public FileStatus getFileStatus(Path path) throws IOException {
-    String tPath = Utils.getPathWithoutScheme(path);
+    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
     Path hdfsPath = Utils.getHDFSPath(tPath);
 
     LOG.info("getFileStatus(" + path + "): HDFS Path: " + hdfsPath + " TPath: " + mTachyonHeader
@@ -332,7 +337,7 @@ abstract class AbstractTFS extends FileSystem {
 
   @Override
   public FileStatus[] listStatus(Path path) throws IOException {
-    String tPath = Utils.getPathWithoutScheme(path);
+    TachyonURI tPath = new TachyonURI(Utils.getPathWithoutScheme(path));
     Path hdfsPath = Utils.getHDFSPath(tPath);
     LOG.info("listStatus(" + path + "): HDFS Path: " + hdfsPath);
 
@@ -357,14 +362,15 @@ abstract class AbstractTFS extends FileSystem {
   @Override
   public boolean mkdirs(Path cPath, FsPermission permission) throws IOException {
     LOG.info("mkdirs(" + cPath + ", " + permission + ")");
-    return mTFS.mkdir(Utils.getPathWithoutScheme(cPath));
+    TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
+    return mTFS.mkdir(path);
   }
 
   @Override
   public FSDataInputStream open(Path cPath, int bufferSize) throws IOException {
     LOG.info("open(" + cPath + ", " + bufferSize + ")");
 
-    String path = Utils.getPathWithoutScheme(cPath);
+    TachyonURI path = new TachyonURI(Utils.getPathWithoutScheme(cPath));
     fromHdfsToTachyon(path);
     int fileId = mTFS.getFileId(path);
 
@@ -375,10 +381,10 @@ abstract class AbstractTFS extends FileSystem {
   @Override
   public boolean rename(Path src, Path dst) throws IOException {
     LOG.info("rename(" + src + ", " + dst + ")");
-    String hSrc = Utils.getPathWithoutScheme(src);
-    String hDst = Utils.getPathWithoutScheme(dst);
-    fromHdfsToTachyon(hSrc);
-    return mTFS.rename(hSrc, hDst);
+    TachyonURI srcPath = new TachyonURI(Utils.getPathWithoutScheme(src));
+    TachyonURI dstPath = new TachyonURI(Utils.getPathWithoutScheme(dst));
+    fromHdfsToTachyon(srcPath);
+    return mTFS.rename(srcPath, dstPath);
   }
 
   @Override
@@ -394,10 +400,10 @@ abstract class AbstractTFS extends FileSystem {
   /**
    * When underfs has a schema, then we can use the hdfs underfs code base.
    * <p />
-   * When this check is not done, {@link #fromHdfsToTachyon(String)} is called, which loads the
+   * When this check is not done, {@link #fromHdfsToTachyon(TachyonURI)} is called, which loads the
    * default filesystem (hadoop's). When there is no schema, then it may default to tachyon which
    * causes a recursive loop.
-   * 
+   *
    * @see <a href="https://tachyon.atlassian.net/browse/TACHYON-54">TACHYON-54</a>
    */
   @Deprecated

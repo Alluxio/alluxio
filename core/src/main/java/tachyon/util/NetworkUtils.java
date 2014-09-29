@@ -12,19 +12,21 @@ import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 
-import org.apache.log4j.Logger;
 import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.thrift.NetAddress;
 
 /**
  * Common network utilities shared by all components in Tachyon.
  */
 public final class NetworkUtils {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private NetworkUtils() {}
 
@@ -35,7 +37,7 @@ public final class NetworkUtils {
     try {
       return InetAddress.getByName(getLocalIpAddress()).getCanonicalHostName();
     } catch (UnknownHostException e) {
-      LOG.error(e);
+      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
@@ -46,10 +48,8 @@ public final class NetworkUtils {
   public static String getLocalIpAddress() {
     try {
       InetAddress address = InetAddress.getLocalHost();
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("address " + address.toString() + " " + address.isLoopbackAddress() + " "
-            + address.getHostAddress() + " " + address.getHostName());
-      }
+      LOG.debug("address: {} isLoopbackAddress: {}, with host {} {}", address,
+          address.isLoopbackAddress(), address.getHostAddress(), address.getHostName());
       if (address.isLoopbackAddress()) {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
         while (networkInterfaces.hasMoreElements()) {
@@ -72,21 +72,21 @@ public final class NetworkUtils {
 
       return address.getHostAddress();
     } catch (IOException e) {
-      LOG.error(e);
+      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
 
   /**
    * Replace and resolve the hostname in a given address or path string.
-   * 
-   * @param addr an address or path string, e.g., "hdfs://host:port/dir", "file:///dir", "/dir".
+   *
+   * @param path an address or path string, e.g., "hdfs://host:port/dir", "file:///dir", "/dir".
    * @return an address or path string with hostname resolved, or the original path intact if no
    *         hostname is embedded, or null if the given path is null or empty.
    * @throws UnknownHostException if the hostname cannot be resolved.
    */
-  public static String replaceHostName(String addr) throws UnknownHostException {
-    if (addr == null || addr.isEmpty()) {
+  public static TachyonURI replaceHostName(TachyonURI path) throws UnknownHostException {
+    if (path == null) {
       return null;
     }
 

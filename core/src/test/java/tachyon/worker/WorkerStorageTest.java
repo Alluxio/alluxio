@@ -11,7 +11,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.client.InStream;
@@ -63,10 +63,10 @@ public class WorkerStorageTest {
 
     WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
     ws.initialize(mWorkerAddress);
-    String orpahnblock = ws.getUfsOrphansFolder() + Constants.PATH_SEPARATOR + bid;
+    String orpahnblock = ws.getUfsOrphansFolder() + TachyonURI.SEPARATOR + bid;
     UnderFileSystem ufs = UnderFileSystem.get(orpahnblock);
     Assert.assertFalse("Orphan block file isn't deleted from workerDataFolder", new File(
-        mWorkerDataFolder + Constants.PATH_SEPARATOR + bid).exists());
+        mWorkerDataFolder + TachyonURI.SEPARATOR + bid).exists());
     Assert.assertTrue("UFS hasn't the orphan block file ", ufs.exists(orpahnblock));
     Assert.assertTrue("Orpahblock file size is changed", ufs.getFileSize(orpahnblock) == filesize);
   }
@@ -127,7 +127,7 @@ public class WorkerStorageTest {
     thrown.expectMessage("Wrong file name: xyz");
     mLocalTachyonCluster.stopWorker();
     // try a non-numerical file name
-    File unknownFile = new File(mWorkerDataFolder + Constants.PATH_SEPARATOR + "xyz");
+    File unknownFile = new File(mWorkerDataFolder + TachyonURI.SEPARATOR + "xyz");
     unknownFile.createNewFile();
     WorkerStorage ws = new WorkerStorage(mMasterAddress, mWorkerDataFolder, WORKER_CAPACITY_BYTES);
     ws.initialize(mWorkerAddress);

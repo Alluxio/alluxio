@@ -16,11 +16,13 @@ import java.util.List;
 import java.util.Scanner;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
 import tachyon.Constants;
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.thrift.InvalidPathException;
 
@@ -28,7 +30,7 @@ import tachyon.thrift.InvalidPathException;
  * Common utilities shared by all components in Tachyon.
  */
 public final class CommonUtils {
-  private static final Logger LOG = Logger.getLogger("");
+  private static final Logger LOG = LoggerFactory.getLogger("");
 
   /**
    * Change local file's permission.
@@ -113,13 +115,13 @@ public final class CommonUtils {
     }
     String retPath = args[0].toString();
     for (int k = 1; k < args.length; k ++) {
-      while (retPath.endsWith(Constants.PATH_SEPARATOR)) {
+      while (retPath.endsWith(TachyonURI.SEPARATOR)) {
         retPath = retPath.substring(0, retPath.length() - 1);
       }
-      if (args[k].toString().startsWith(Constants.PATH_SEPARATOR)) {
+      if (args[k].toString().startsWith(TachyonURI.SEPARATOR)) {
         retPath += args[k].toString();
       } else {
-        retPath += Constants.PATH_SEPARATOR + args[k].toString();
+        retPath += TachyonURI.SEPARATOR + args[k].toString();
       }
     }
     return retPath;
@@ -225,7 +227,7 @@ public final class CommonUtils {
     String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
     if (parent.isEmpty()) {
       // The parent is the root path
-      return Constants.PATH_SEPARATOR;
+      return TachyonURI.SEPARATOR;
     }
     return parent;
   }
@@ -244,7 +246,7 @@ public final class CommonUtils {
       ret[0] = "";
       return ret;
     }
-    return path.split(Constants.PATH_SEPARATOR);
+    return path.split(TachyonURI.SEPARATOR);
   }
 
   /**
@@ -265,10 +267,10 @@ public final class CommonUtils {
     }
 
     path = path.substring(path.indexOf("://") + 3);
-    if (!path.contains(Constants.PATH_SEPARATOR)) {
-      return Constants.PATH_SEPARATOR;
+    if (!path.contains(TachyonURI.SEPARATOR)) {
+      return TachyonURI.SEPARATOR;
     }
-    return path.substring(path.indexOf(Constants.PATH_SEPARATOR));
+    return path.substring(path.indexOf(TachyonURI.SEPARATOR));
   }
 
   public static String getSizeFromBytes(long bytes) {
@@ -303,7 +305,7 @@ public final class CommonUtils {
    * @throws InvalidPathException
    */
   public static boolean isRoot(String path) throws InvalidPathException {
-    return Constants.PATH_SEPARATOR.equals(cleanPath(path));
+    return TachyonURI.SEPARATOR.equals(cleanPath(path));
   }
 
   public static <T> String listToString(List<T> list) {
@@ -425,7 +427,7 @@ public final class CommonUtils {
   public static void setLocalFileStickyBit(String file) {
     try {
       // sticky bit is not implemented in PosixFilePermission
-      if (file.startsWith(Constants.PATH_SEPARATOR)) {
+      if (file.startsWith(TachyonURI.SEPARATOR)) {
         Runtime.getRuntime().exec("chmod o+t " + file);
       }
     } catch (IOException e) {
@@ -468,7 +470,7 @@ public final class CommonUtils {
    * @throws InvalidPathException If the path is not properly formed
    */
   public static void validatePath(String path) throws InvalidPathException {
-    if (path == null || path.isEmpty() || !path.startsWith(Constants.PATH_SEPARATOR)
+    if (path == null || path.isEmpty() || !path.startsWith(TachyonURI.SEPARATOR)
         || path.contains(" ")) {
       throw new InvalidPathException("Path " + path + " is invalid.");
     }

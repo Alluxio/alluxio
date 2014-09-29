@@ -2,7 +2,8 @@ package tachyon.master;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
 
@@ -14,7 +15,7 @@ import tachyon.util.CommonUtils;
  * Class that periodically looks for completed edit logs to update metadata of failover nodes.
  */
 public class EditLogProcessor implements Runnable {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Journal mJournal;
   private final String mPath;
