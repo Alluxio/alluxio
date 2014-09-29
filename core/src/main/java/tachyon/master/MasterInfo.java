@@ -1834,7 +1834,7 @@ public class MasterInfo extends ImageWriter {
         case Version: {
           if (ele.getInt("version") != Constants.JOURNAL_VERSION) {
             throw new IOException("Image " + path + " has journal version " + ele.getInt("version")
-                + " . The system has verion " + Constants.JOURNAL_VERSION);
+                + ". The system has version " + Constants.JOURNAL_VERSION);
           }
           break;
         }

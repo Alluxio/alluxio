@@ -21,7 +21,8 @@ import tachyon.util.CommonUtils;
  */
 public final class BlockHandlerLocal extends BlockHandler {
 
-  private final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
   private boolean mPermission = false;
