@@ -116,7 +116,7 @@ public class DataServerMessage {
         }
 
         String filePath = CommonUtils.concat(WorkerConf.get().DATA_FOLDER, blockId);
-        ret.LOG.info("Try to response remote request by reading from " + filePath);
+        LOG.info("Try to response remote request by reading from " + filePath);
         RandomAccessFile file = new RandomAccessFile(filePath, "r");
 
         long fileLength = file.length();
@@ -148,7 +148,7 @@ public class DataServerMessage {
         file.close();
         ret.mIsMessageReady = true;
         ret.generateHeader();
-        ret.LOG.info("Response remote request by reading from " + filePath + " preparation done.");
+        LOG.info("Response remote request by reading from " + filePath + " preparation done.");
       } catch (Exception e) {
         // TODO This is a trick for now. The data may have been removed before remote retrieving.
         ret.mBlockId = -ret.mBlockId;
@@ -157,7 +157,7 @@ public class DataServerMessage {
         ret.mData = ByteBuffer.allocate(0);
         ret.mIsMessageReady = true;
         ret.generateHeader();
-        ret.LOG.error("The file is not here : " + e.getMessage(), e);
+        LOG.error("The file is not here : " + e.getMessage(), e);
       }
     } else {
       ret.mHeader = ByteBuffer.allocate(HEADER_LENGTH);
