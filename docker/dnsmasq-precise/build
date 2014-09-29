@@ -1,0 +1,1 @@
+docker build -t ${IMAGE_PREFIX}dnsmasq-precise .

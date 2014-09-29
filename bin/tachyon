@@ -32,7 +32,7 @@ TACHYON_LIBEXEC_DIR=${TACHYON_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . $TACHYON_LIBEXEC_DIR/tachyon-config.sh
 
 function runTest {
-  Usage="Usage: tachyon runTest <Basic|BasicRawTable> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
+  Usage="Usage: tachyon runTest <Basic|BasicRawTable|BasicCheckpoint|BasicNonByteBuffer> <MUST_CACHE|TRY_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
 
   if [ "$#" -ne 2 ]; then
     echo $Usage
@@ -46,15 +46,19 @@ function runTest {
 
   if [[ "$1" == "Basic" ]]; then
     $bin/tachyon tfs rm /BasicFile_$2
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR $TACHYON_JAVA_OPTS tachyon.examples.BasicOperations tachyon://$MASTER_ADDRESS:19998 /BasicFile_$2 $2
+    $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicOperations tachyon://$MASTER_ADDRESS:19998 /BasicFile_$2 $2
     exit 0
   elif [[ "$1" == "BasicRawTable" ]]; then
     $bin/tachyon tfs rm /BasicRawTable_$2
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR $TACHYON_JAVA_OPTS tachyon.examples.BasicRawTableOperations tachyon://$MASTER_ADDRESS:19998 /BasicRawTable_$2 $2
+    $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicRawTableOperations tachyon://$MASTER_ADDRESS:19998 /BasicRawTable_$2 $2
     exit 0
   elif [[ "$1" == "BasicCheckpoint" ]]; then
     $bin/tachyon tfs rm /BasicCheckpoint
-    $JAVA -cp $TACHYON_CONF_DIR/:$TACHYON_JAR $TACHYON_JAVA_OPTS tachyon.examples.BasicCheckpoint tachyon://$MASTER_ADDRESS:19998 /BasicCheckpoint 10
+    $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicCheckpoint tachyon://$MASTER_ADDRESS:19998 /BasicCheckpoint 10
+    exit 0
+  elif [[ "$1" == "BasicNonByteBuffer" ]]; then
+    $bin/tachyon tfs rm /BasicNonByteBuffer_$2
+    $JAVA -cp $CLASSPATH $TACHYON_JAVA_OPTS tachyon.examples.BasicNonByteBufferOperations tachyon://$MASTER_ADDRESS:19998 /BasicNonByteBuffer_$2 "$2"
     exit 0
   fi
 
@@ -165,7 +169,7 @@ elif [ "$COMMAND" == "formatWorker" ]; then
 elif [ "$COMMAND" == "tfs" ]; then
   CLASS=tachyon.command.TFsShell
 elif [ "$COMMAND" == "loadufs" ]; then
-  CLASS=tachyon.util.UnderfsUtils
+  CLASS=tachyon.util.UfsUtils
 elif [ "$COMMAND" == "runTest" ]; then
   runTest "$@"
   exit 0
@@ -174,10 +178,11 @@ elif [ "$COMMAND" == "runTests" ]; then
 
   for op in ${opArr[@]}
   do
-    echo $bin/tachyon runTest Basic $op
-    $bin/tachyon runTest Basic $op
-    echo $bin/tachyon runTest BasicRawTable $op
-    $bin/tachyon runTest BasicRawTable $op
+    for example in Basic BasicRawTable BasicCheckpoint BasicNonByteBuffer
+    do
+      echo $bin/tachyon runTest $example $op
+      $bin/tachyon runTest $example $op
+    done
   done
 
   exit 0
@@ -201,4 +206,4 @@ else
   exit 1
 fi
 
-$JAVA -cp $TACHYON_JAR -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $PARAMETER $@
+$JAVA -cp $CLASSPATH -Dtachyon.home=$TACHYON_HOME -Dtachyon.master.hostname=$TACHYON_MASTER_ADDRESS -Dtachyon.logger.type=USER_LOGGER $TACHYON_JAVA_OPTS $CLASS $PARAMETER $@

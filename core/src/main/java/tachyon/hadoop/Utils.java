@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.hadoop;
 
 import java.io.IOException;
@@ -21,15 +7,19 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileSplit;
 import org.apache.hadoop.mapred.InputSplit;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
+<<<<<<< HEAD
 import tachyon.conf.MasterConf;
 import tachyon.util.CommonUtils;
+=======
+import tachyon.TachyonURI;
+>>>>>>> upstream/master
 
 public final class Utils {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
-  private static final boolean DEBUG = Constants.DEBUG;
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Add S3 keys to the given Hadoop Configuration object if the user has specified them using
@@ -46,40 +36,21 @@ public final class Utils {
     }
   }
 
-  public static Path getHDFSPath(String path) {
-    path = getTachyonFileName(path);
-
-    String mid = Constants.PATH_SEPARATOR;
-    if (path.startsWith(Constants.PATH_SEPARATOR)) {
-      mid = "";
+  public static Path getHDFSPath(TachyonURI path) {
+    if (path.isPathAbsolute()) {
+      return new Path(TFS.mUnderFSAddress + path.getPath());
+    } else {
+      return new Path(TFS.mUnderFSAddress + TachyonURI.SEPARATOR + path.getPath());
     }
-
-    return new Path(TFS.UNDERFS_ADDRESS + mid + path);
   }
 
   public static String getPathWithoutScheme(Path path) {
-    Path ori = path;
-    String ret = "";
-    while (path != null) {
-      if (ret.equals("")) {
-        ret = path.getName();
-      } else {
-        ret = CommonUtils.concat(path.getName(), ret);
-      }
-      path = path.getParent();
-    }
-    if (DEBUG) {
-      LOG.info("Utils getPathWithoutScheme(" + ori + ") result: " + ret);
-    }
-    if (ret.isEmpty()) {
-      return Constants.PATH_SEPARATOR;
-    }
-    return ret;
+    return path.toUri().getPath();
   }
 
   public static String getTachyonFileName(String path) {
     if (path.isEmpty()) {
-      return Constants.PATH_SEPARATOR;
+      return TachyonURI.SEPARATOR;
     }
 
     while (path.contains(":")) {
@@ -87,7 +58,7 @@ public final class Utils {
       path = path.substring(index + 1);
     }
 
-    while (!path.startsWith(Constants.PATH_SEPARATOR)) {
+    while (!path.startsWith(TachyonURI.SEPARATOR)) {
       path = path.substring(1);
     }
 

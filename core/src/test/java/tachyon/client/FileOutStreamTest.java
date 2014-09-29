@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.client;
 
 import java.io.IOException;
@@ -22,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import tachyon.TachyonURI;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
@@ -34,9 +21,9 @@ import tachyon.thrift.InvalidPathException;
  * Unit tests for <code>tachyon.client.FileOutStream</code>.
  */
 public class FileOutStreamTest {
-  private final int MIN_LEN = 0;
-  private final int MAX_LEN = 255;
-  private final int DELTA = 32;
+  private static final int MIN_LEN = 0;
+  private static final int MAX_LEN = 255;
+  private static final int DELTA = 32;
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
 
@@ -63,13 +50,13 @@ public class FileOutStreamTest {
   public void writeTest1() throws IOException, InvalidPathException, FileAlreadyExistException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        writeTest1Util("/root/testFile_" + k + "_" + op, op, k);
+        writeTest1Util(new TachyonURI("/root/testFile_" + k + "_" + op), op, k);
       }
     }
   }
 
-  private void writeTest1Util(String filePath, WriteType op, int len) throws InvalidPathException,
-      FileAlreadyExistException, IOException {
+  private void writeTest1Util(TachyonURI filePath, WriteType op, int len)
+      throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mTfs.createFile(filePath);
     TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
@@ -112,13 +99,13 @@ public class FileOutStreamTest {
   public void writeTest2() throws IOException, InvalidPathException, FileAlreadyExistException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        writeTest2Util("/root/testFile_" + k + "_" + op, op, k);
+        writeTest2Util(new TachyonURI("/root/testFile_" + k + "_" + op), op, k);
       }
     }
   }
 
-  private void writeTest2Util(String filePath, WriteType op, int len) throws InvalidPathException,
-      FileAlreadyExistException, IOException {
+  private void writeTest2Util(TachyonURI filePath, WriteType op, int len)
+      throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mTfs.createFile(filePath);
     TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
@@ -159,13 +146,13 @@ public class FileOutStreamTest {
   public void writeTest3() throws IOException, InvalidPathException, FileAlreadyExistException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
-        writeTest3Util("/root/testFile_" + k + "_" + op, op, k);
+        writeTest3Util(new TachyonURI("/root/testFile_" + k + "_" + op), op, k);
       }
     }
   }
 
-  private void writeTest3Util(String filePath, WriteType op, int len) throws InvalidPathException,
-      FileAlreadyExistException, IOException {
+  private void writeTest3Util(TachyonURI filePath, WriteType op, int len)
+      throws InvalidPathException, FileAlreadyExistException, IOException {
     int fileId = mTfs.createFile(filePath);
     TachyonFile file = mTfs.getFile(fileId);
     OutStream os = file.getOutStream(op);

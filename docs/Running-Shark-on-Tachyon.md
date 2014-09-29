@@ -14,8 +14,8 @@ Tachyon to cache Shark's tables. In summary, the followings are four major ones:
 
 -   In-memory data sharing across multiple Shark instances (i.e. stronger isolation)
 -   Instant recovery of in-memory tables
--   Reduce heap size =\> faster GC in shark
--   If the table is larger than the memory size, only the hot columns will be cached in memory
+-   Reduce heap size results in faster GC in shark
+-   If the table is larger than the amount of available memory, only hot columns will be cached in memory
 
 ### Shark Compatibility
 
@@ -45,25 +45,29 @@ Tachyon to cache Shark's tables. In summary, the followings are four major ones:
 
 ### Setup
 
-In order to run Shark on Tachyon, you need to setup `Tachyon` first, either
-[Local Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-Locally),
-or [Cluster Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-on-a-Cluster), with HDFS.
+In order to run Shark on Tachyon, you need to setup `Tachyon` first, either in
+[Local Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-Locally) or
+in
+[Cluster Mode](https://github.com/amplab/tachyon/wiki/Running-Tachyon-on-a-Cluster),
+with HDFS.
 
-Then, edit `shark-env.sh` and add
+Then add the following lines to `shark-env.sh`.
 
     export TACHYON_MASTER="tachyon://TachyonMasterHost:TachyonMasterPort"
     export TACHYON_WAREHOUSE_PATH=/sharktables
 
-### Cache Shark table in Tachyon
+### Caching Shark tables in Tachyon
 
-Running these queries requires some data to already be loaded into Shark.
+There are a couple ways to create tables that are cached on Tachyon. Running
+these queries requires some data to already be on the filesystom or loaded into
+Shark.
 
 ##### Specify TBLPROPERTIES(“shark.cache” = “tachyon”), for example:
 
     CREATE TABLE data TBLPROPERTIES(“shark.cache” = “tachyon”) AS SELECT a, b, c from data_on_disk WHERE month=“May”;
 
-##### Specify table's name ending with \_tachyon, for example:
+##### Specify the table's name ending with \_tachyon, for example:
 
     CREATE TABLE orders_tachyon AS SELECT * FROM orders;
 
-After creating the table in Tachyon, you can query it like query normal tables.
+After creating the table in Tachyon, you can query it like any other table.

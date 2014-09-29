@@ -8,11 +8,11 @@ Worker), and User configurations. The environment configuration file responsible
 properties is under `conf/tachyon-env.sh`. These variables should be set as variables under the
 `TACHYON_JAVA_OPTS` definition. A template is provided with the zip: `conf/tachyon-env.sh.template`.
 
-Additional Java VM options can be set by adding it to `TACHYON_MASTER_JAVA_OPTS` for Master and 
-`TACHYON_WORKER_JAVA_OPTS` for Worker. By default, in the template file `TACHYON_JAVA_OPTS` is copied to both
-`TACHYON_MASTER_JAVA_OPTS` and `TACHYON_WORKER_JAVA_OPTS`.
+Additional Java VM options can be added to `TACHYON_MASTER_JAVA_OPTS` for Master and
+`TACHYON_WORKER_JAVA_OPTS` for Worker configuration. In the template file, `TACHYON_JAVA_OPTS` is
+included in both `TACHYON_MASTER_JAVA_OPTS` and `TACHYON_WORKER_JAVA_OPTS`.
 
-For example if you would like to enable Java remote debugging at port 7001 in the Master you can modify 
+For example if you would like to enable Java remote debugging at port 7001 in the Master you can modify
 `TACHYON_MASTER_JAVA_OPTS` like this:
 
 `export TACHYON_MASTER_JAVA_OPTS="$TACHYON_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7001"`
@@ -103,6 +103,11 @@ The common configuration contains constants which specify paths and the log appe
   <td>glusterfs:///mapred/system</td>
   <td>Optionally specify subdirectory under GLusterfs for intermediary MapReduce data.</td>
 </tr>
+<tr>
+  <td>tachyon.underfs.hadoop.prefixes</td>
+  <td>hdfs:// s3:// s3n:// glusterfs:///</td>
+  <td>Optionally specify which prefixes should run through the Apache Hadoop's implementation of UnderFileSystem.  The delimiter is any whitespace and/or ','</td>
+</tr>
 </table>
 
 # Master Configuration
@@ -166,6 +171,47 @@ number.
   <td>128 MB</td>
   <td>Memory capacity of each worker node.</td>
 </tr>
+<tr>
+  <td>tachyon.worker.network.type</td>
+  <td>NETTY</td>
+  <td>Selects networking stack to run the worker with.  Valid options are NETTY and NIO.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.channel</td>
+  <td>EPOLL</td>
+  <td>Selects netty's channel implementation.  On linux, epoll is used; valid options are NIO and EPOLL.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.file.transfer</td>
+  <td>MAPPED</td>
+  <td>When returning files to the user, select how the data is transferred; valid options are MAPPED (uses java MappedByteBuffer) and TRANSFER (uses Java FileChannel.transferTo).</td>
+</tr>
+
+<tr>
+  <td>tachyon.worker.network.netty.watermark.high</td>
+  <td>32768</td>
+  <td>Determines how many bytes can be in the write queue before channels isWritable is set to false.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.watermark.low</td>
+  <td>8192</td>
+  <td>Once the high watermark limit is reached, the queue must be flushed down to the low watermark before switching back to writable.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.backlog</td>
+  <td>128 on linux</td>
+  <td>How many requests can be queued up before new requests are rejected; this value is platform dependent.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.buffer.send</td>
+  <td>platform specific</td>
+  <td>Sets SO_SNDBUF for the socket; more details can be found in the socket man page.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.buffer.recieve</td>
+  <td>platform specific</td>
+  <td>Sets SO_RCVBUF for the socket; more details can be found in the socket man page.</td>
+</tr>
 </table>
 
 # User Configuration
@@ -178,6 +224,11 @@ The user configuration specifies values regarding file system access.
   <td>tachyon.user.failed.space.request.limits</td>
   <td>3</td>
   <td>The number of times to request space from the file system before aborting</td>
+</tr>
+<tr>
+  <td>tachyon.user.file.writetype.default</td>
+  <td>CACHE_THROUGH</td>
+  <td>Default write type for Tachyon files in CLI copyFromLocal and Hadoop compatitable interface. It can be any type in WriteType.</td>
 </tr>
 <tr>
   <td>tachyon.user.quota.unit.bytes</td>
@@ -198,5 +249,10 @@ The user configuration specifies values regarding file system access.
   <td>tachyon.user.remote.read.buffer.size.byte</td>
   <td>1 MB</td>
   <td>The size of the file buffer to read data from remote Tachyon worker.</td>
+</tr>
+<tr>
+  <td>tachyon.worker.network.netty.process.threads</td>
+  <td>16</td>
+  <td>How many threads to use to process block requests.</td>
 </tr>
 </table>

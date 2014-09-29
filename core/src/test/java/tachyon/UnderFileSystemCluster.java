@@ -1,23 +1,11 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon;
 
 import java.io.IOException;
 
 import tachyon.conf.MasterConf;
 import tachyon.util.CommonUtils;
+
+import com.google.common.base.Throwables;
 
 public abstract class UnderFileSystemCluster {
   class ShutdownHook extends Thread {
@@ -74,7 +62,7 @@ public abstract class UnderFileSystemCluster {
       } catch (Exception e) {
         System.out.println("Failed to initialize the ufsCluster of " + mUfsClz
             + " for integration test.");
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
     }
     return new LocalFilesystemCluster(baseDir);
@@ -107,7 +95,7 @@ public abstract class UnderFileSystemCluster {
    */
   public void cleanup() throws IOException {
     if (isStarted()) {
-      String path = getUnderFilesystemAddress() + Constants.PATH_SEPARATOR;
+      String path = getUnderFilesystemAddress() + TachyonURI.SEPARATOR;
       UnderFileSystem ufs = UnderFileSystem.get(path);
       for (String p : ufs.list(path)) {
         ufs.delete(CommonUtils.concat(path, p), true);
@@ -125,8 +113,8 @@ public abstract class UnderFileSystemCluster {
   public abstract boolean isStarted();
 
   /**
-   * Add a shutdown hook. The {@link #shutdown} phase will be automatically
-   * called while the process exists.
+   * Add a shutdown hook. The {@link #shutdown} phase will be automatically called while the process
+   * exists.
    * 
    * @throws InterruptedException
    */

@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon;
 
 import java.io.File;
@@ -37,13 +23,12 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     try {
       cluster = new LocalMiniDFSCluster("/tmp/dfs", 1, 54321);
       cluster.start();
-      System.out
-          .println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
+      System.out.println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
       Thread.sleep(10);
       DistributedFileSystem dfs = cluster.getDFSClient();
       dfs.mkdirs(new Path("/1"));
       mkdirs(cluster.getUnderFilesystemAddress() + "/1/2");
-      FileStatus[] fs = dfs.listStatus(new Path(Constants.PATH_SEPARATOR));
+      FileStatus[] fs = dfs.listStatus(new Path(TachyonURI.SEPARATOR));
       assert fs.length != 0;
       System.out.println(fs[0].getPath().toUri());
       dfs.close();
@@ -52,8 +37,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
       cluster = new LocalMiniDFSCluster("/tmp/dfs", 3);
       cluster.start();
-      System.out
-          .println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
+      System.out.println("Address of local minidfscluster: " + cluster.getUnderFilesystemAddress());
 
       dfs = cluster.getDFSClient();
       dfs.mkdirs(new Path("/1"));
@@ -78,7 +62,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
     return ufs.mkdirs(path, true);
   }
 
-  private final Configuration CONF = new Configuration();
+  private Configuration mConf = new Configuration();
   private int mNamenodePort;
 
   private int mNumDataNode;
@@ -91,9 +75,8 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   /**
    * To intiaize the local minidfscluster with single namenode and datanode
    * 
-   * @param dfsBaseDirs
-   *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
-   *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
+   * @param dfsBaseDirs The base directory for both namenode and datanode. The dfs.name.dir and
+   *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
    */
   public LocalMiniDFSCluster(String dfsBaseDirs) {
     this(dfsBaseDirs, 1, 0);
@@ -102,11 +85,9 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   /**
    * To initialize the local minidfscluster
    * 
-   * @param dfsBaseDirs
-   *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
-   *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
-   * @param numDataNode
-   *          The number of datanode
+   * @param dfsBaseDirs The base directory for both namenode and datanode. The dfs.name.dir and
+   *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
+   * @param numDataNode The number of datanode
    */
   public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode) {
     this(dfsBaseDirs, numDataNode, 0);
@@ -115,17 +96,33 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   /**
    * To initialize the local minidfscluster
    * 
-   * @param dfsBaseDirs
-   *          The base directory for both namenode and datanode. The dfs.name.dir and dfs.data.dir
-   *          will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
-   * @param numDataNode
-   *          The number of datanode
-   * @param nameNodePort
-   *          The port of namenode. If it is 0, the real namenode port can be retrieved by
-   *          {@link #getNameNodePort()} after the cluster started
+   * @param dfsBaseDirs The base directory for both namenode and datanode. The dfs.name.dir and
+   *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
+   * @param numDataNode The number of datanode
+   * @param nameNodePort The port of namenode. If it is 0, the real namenode port can be retrieved
+   *        by {@link #getNameNodePort()} after the cluster started
    */
   public LocalMiniDFSCluster(String dfsBaseDirs, int numDataNode, int nameNodePort) {
     super(dfsBaseDirs);
+    mNamenodePort = nameNodePort;
+    mNumDataNode = numDataNode;
+  }
+
+  /**
+   * To initialize the local minidfscluster
+   *
+   * @param conf The base configuration to use in starting the servers. This will be modified as
+   *        necessary.
+   * @param dfsBaseDirs The base directory for both namenode and datanode. The dfs.name.dir and
+   *        dfs.data.dir will be setup as dfsBaseDir/name* and dfsBaseDir/data* respectively
+   * @param numDataNode The number of datanode
+   * @param nameNodePort The port of namenode. If it is 0, the real namenode port can be retrieved
+   *        by {@link #getNameNodePort()} after the cluster started
+   */
+  public LocalMiniDFSCluster(Configuration conf, String dfsBaseDirs, int numDataNode,
+      int nameNodePort) {
+    super(dfsBaseDirs);
+    mConf = conf;
     mNamenodePort = nameNodePort;
     mNumDataNode = numDataNode;
   }

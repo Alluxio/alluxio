@@ -1,3 +1,4 @@
+tests.log*
 .classpath
 .project
 *.iml

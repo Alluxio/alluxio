@@ -1,43 +1,35 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.master;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import org.apache.log4j.Logger;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 
 import tachyon.Constants;
 import tachyon.LeaderSelectorClient;
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.Version;
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.thrift.MasterService;
 import tachyon.util.CommonUtils;
+import tachyon.util.NetworkUtils;
 import tachyon.web.UIWebServer;
 
 /**
  * Entry point for the Master program.
  */
 public class TachyonMaster {
-  private static final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public static void main(String[] args) {
     if (args.length != 0) {
@@ -70,8 +62,14 @@ public class TachyonMaster {
 
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
+  /** metadata port */
+  private final int mPort;
+
   public TachyonMaster(InetSocketAddress address, int webPort, int selectorThreads,
       int acceptQueueSizePerThreads, int workerThreads) {
+    CommonConf.assertValidPort(address);
+    CommonConf.assertValidPort(webPort);
+
     if (CommonConf.get().USE_ZOOKEEPER) {
       mZookeeperMode = true;
     }
@@ -83,27 +81,35 @@ public class TachyonMaster {
     mWorkerThreads = workerThreads;
 
     try {
-      mMasterAddress = address;
+      // Extract the port from the generated socket.
+      // When running tests, its great to use port '0' so the system will figure out what port to
+      // use (any random free port).
+      // In a production or any real deployment setup, port '0' should not be used as it will make
+      // deployment more complicated.
+      mServerTNonblockingServerSocket = new TNonblockingServerSocket(address);
+      mPort = NetworkUtils.getPort(mServerTNonblockingServerSocket);
+
+      mMasterAddress = new InetSocketAddress(NetworkUtils.getFqdnHost(address), mPort);
       String journalFolder = MasterConf.get().JOURNAL_FOLDER;
-      if (!isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX)) {
-        LOG.error("Tachyon was not formatted!");
-        CommonUtils.runtimeException("Tachyon was not formatted!");
-      }
+      Preconditions.checkState(isFormatted(journalFolder, MasterConf.get().FORMAT_FILE_PREFIX),
+          "Tachyon was not formatted!");
       mJournal = new Journal(journalFolder, "image.data", "log.data");
       mMasterInfo = new MasterInfo(mMasterAddress, mJournal);
 
       if (mZookeeperMode) {
         CommonConf conf = CommonConf.get();
+        // InetSocketAddress.toString causes test issues, so build the string by hand
+        String name = NetworkUtils.getFqdnHost(mMasterAddress) + ":" + mMasterAddress.getPort();
         mLeaderSelectorClient =
             new LeaderSelectorClient(conf.ZOOKEEPER_ADDRESS, conf.ZOOKEEPER_ELECTION_PATH,
-                conf.ZOOKEEPER_LEADER_PATH, address.getHostName() + ":" + address.getPort());
+                conf.ZOOKEEPER_LEADER_PATH, name);
         mEditLogProcessor = new EditLogProcessor(mJournal, journalFolder, mMasterInfo);
         Thread logProcessor = new Thread(mEditLogProcessor);
         logProcessor.start();
       }
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
-      CommonUtils.runtimeException(e);
+      throw Throwables.propagate(e);
     }
   }
 
@@ -116,9 +122,16 @@ public class TachyonMaster {
     return mMasterInfo;
   }
 
+  /**
+   * Get the port used by unit test only
+   */
+  int getMetaPort() {
+    return mPort;
+  }
+
   private boolean isFormatted(String folder, String path) throws IOException {
-    if (!folder.endsWith(Constants.PATH_SEPARATOR)) {
-      folder += Constants.PATH_SEPARATOR;
+    if (!folder.endsWith(TachyonURI.SEPARATOR)) {
+      folder += TachyonURI.SEPARATOR;
     }
     UnderFileSystem ufs = UnderFileSystem.get(folder);
     String[] files = ufs.list(folder);
@@ -159,13 +172,12 @@ public class TachyonMaster {
 
     mWebServer =
         new UIWebServer("Tachyon Master Server", new InetSocketAddress(
-            mMasterAddress.getHostName(), mWebPort), mMasterInfo);
+            NetworkUtils.getFqdnHost(mMasterAddress), mWebPort), mMasterInfo);
 
     mMasterServiceHandler = new MasterServiceHandler(mMasterInfo);
     MasterService.Processor<MasterServiceHandler> masterServiceProcessor =
         new MasterService.Processor<MasterServiceHandler>(mMasterServiceHandler);
 
-    mServerTNonblockingServerSocket = new TNonblockingServerSocket(mMasterAddress);
     mMasterServiceServer =
         new TThreadedSelectorServer(new TThreadedSelectorServer.Args(
             mServerTNonblockingServerSocket).processor(masterServiceProcessor)
@@ -181,7 +193,7 @@ public class TachyonMaster {
         mLeaderSelectorClient.start();
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
 
       Thread currentThread = Thread.currentThread();
@@ -195,10 +207,10 @@ public class TachyonMaster {
               setup();
             } catch (IOException e) {
               LOG.error(e.getMessage(), e);
-              CommonUtils.runtimeException(e);
+              throw Throwables.propagate(e);
             } catch (TTransportException e) {
               LOG.error(e.getMessage(), e);
-              CommonUtils.runtimeException(e);
+              throw Throwables.propagate(e);
             }
             mWebServer.startWebServer();
             LOG.info("The master (leader) server started @ " + mMasterAddress);
@@ -220,16 +232,16 @@ public class TachyonMaster {
         setup();
       } catch (IOException e) {
         LOG.error(e.getMessage(), e);
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       } catch (TTransportException e) {
         LOG.error(e.getMessage(), e);
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
 
       mWebServer.startWebServer();
-      LOG.info("The master server started @ " + mMasterAddress);
+      LOG.info("Tachyon Master version " + Version.VERSION + " started @ " + mMasterAddress);
       mMasterServiceServer.serve();
-      LOG.info("The master server ended @ " + mMasterAddress);
+      LOG.info("Tachyon Master version " + Version.VERSION + " ended @ " + mMasterAddress);
     }
   }
 

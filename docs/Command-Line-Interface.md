@@ -43,7 +43,7 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>mkdir</td>
     <td>mkdir "path"</td>
-    <td>Create a directory under the given path, and creates any necessary parent directories. Will fail if the path is already in use.</td>
+    <td>Create a directory under the given path, along with any necessary parent directories. Will fail if the path already exists.</td>
   </tr>
   <tr>
     <td>rm</td>
@@ -63,12 +63,12 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>mv</td>
     <td>mv "source" "destination"</td>
-    <td>Move a file or directory specified by "source" to a new path "destination". Will fail if "destination" is already in use.</td>
+    <td>Move a file or directory specified by "source" to a new path "destination". Will fail if "destination" already exists.</td>
   </tr>
   <tr>
     <td>copyFromLocal</td>
     <td>copyFromLocal "source path" "remote path"</td>
-    <td>Copy the specified file to the path specified by "remote path". Will fail if "remote path" is already in use.</td>
+    <td>Copy the specified file to the path specified by "remote path". Will fail if "remote path" already exists.</td>
   </tr>
   <tr>
     <td>copyToLocal</td>
@@ -83,11 +83,11 @@ Or, if no header is provided, the default hostname and port (set in the env file
   <tr>
     <td>pin</td>
     <td>pin "path"</td>
-    <td>Pins the given file, such that Tachyon will never evict it from memory. If called on a folder, we will recursively pin all contained files, and new files created within this folder.</td>
+    <td>Pins the given file, such that Tachyon will never evict it from memory. If called on a folder, it recursively pins all contained files and any new files created within this folder.</td>
   </tr>
   <tr>
     <td>unpin</td>
     <td>unpin "path"</td>
-    <td>Unpins the given file, to allow Tachyon to start evicting it again. If called on a folder, we will recursively unpin all contained files, and new files created within this folder.</td>
+    <td>Unpins the given file to allow Tachyon to start evicting it again. If called on a folder, it recursively unpins all contained files and any new files created within this folder.</td>
   </tr>
 </table>

@@ -1,35 +1,30 @@
-<!--
-  ~ Licensed to the Apache Software Foundation (ASF) under one or more
-  ~ contributor license agreements.  See the NOTICE file distributed with
-  ~ this work for additional information regarding copyright ownership.
-  ~ The ASF licenses this file to You under the Apache License, Version 2.0
-  ~ (the "License"); you may not use this file except in compliance with
-  ~ the License.  You may obtain a copy of the License at
-  ~
-  ~    http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.tachyonproject</groupId>
     <artifactId>tachyon-parent</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
   </parent>
   <groupId>org.tachyonproject</groupId>
   <artifactId>tachyon</artifactId>
-  <version>0.5.0-SNAPSHOT</version>
+  <version>0.6.0-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <description>Tachyon: Reliable File Sharing at Memory Speed Across Cluster Frameworks</description>
+  <description>Tachyon: A Reliable Memory Centric Distributed Storage System</description>
   <name>Tachyon Project Core</name>
 
   <dependencies>
+    <dependency>
+      <!-- using older version to map dependency version from Hadoop -->
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>14.0.1</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+      <version>4.0.23.Final</version>
+    </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-jsp</artifactId>
@@ -66,7 +61,7 @@
       <version>${powermock.version}</version>
       <scope>test</scope>
     </dependency>
-   <dependency>
+    <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-api-mockito</artifactId>
       <version>${powermock.version}</version>
@@ -117,6 +112,10 @@
           <groupId>org.jboss.netty</groupId>
           <artifactId>netty</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -124,6 +123,12 @@
       <artifactId>curator-test</artifactId>
       <version>${apache.curator.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.javassist</groupId>
+          <artifactId>javassist</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -143,7 +148,7 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
-        <ufs />
+        <ufs/>
       </properties>
       <build>
         <plugins>
@@ -182,22 +187,22 @@
               <artifactId>netty</artifactId>
             </exclusion>
             <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-core-asl</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-mapper-asl</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-jaxrs</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-xc</artifactId>
+              <groupId>com.google.guava</groupId>
+              <artifactId>guava</artifactId>
             </exclusion>
           </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>commons-httpclient</groupId>
+          <artifactId>commons-httpclient</artifactId>
+          <version>3.0.1</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+          <version>1.4</version>
+          <scope>provided</scope>
         </dependency>
       </dependencies>
     </profile>
@@ -226,22 +231,6 @@
             <exclusion>
               <groupId>org.jboss.netty</groupId>
               <artifactId>netty</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-core-asl</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-mapper-asl</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-jaxrs</artifactId>
-            </exclusion>
-            <exclusion>
-              <groupId>org.codehaus.jackson</groupId>
-              <artifactId>jackson-xc</artifactId>
             </exclusion>
           </exclusions>
         </dependency>
@@ -273,27 +262,28 @@
           <version>${hadoop.version}</version>
         </dependency>
       </dependencies>
-    </profile>
-
-    <profile>
-      <id>Glusterfs</id>
-      <activation>
-        <property>
-          <name>glusterfs</name>
-        </property>
-      </activation>
-      <properties>
-        <ufs>tachyon.GlusterfsCluster</ufs>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>org.gluster</groupId>
-          <artifactId>glusterfs-hadoop</artifactId>
-          <version>${glusterfs-hadoop.version}</version>
-          <type>jar</type>
-          <scope>compile</scope>
-        </dependency>
-      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>default-testCompile</id>
+                <phase>test-compile</phase>
+                <configuration>
+                  <testExcludes>
+                    <exclude>**/LocalMiniDFSCluster.java</exclude>
+                  </testExcludes>
+                </configuration>
+                <goals>
+                  <goal>testCompile</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 
@@ -311,6 +301,7 @@
         <version>2.2</version>
         <executions>
           <execution>
+            <id>include-thrift</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
@@ -338,6 +329,29 @@
               </relocations>
             </configuration>
           </execution>
+          <execution>
+            <id>uber-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+              </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:* </artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -346,26 +360,8 @@
         <version>2.14</version>
         <configuration>
           <argLine>-Dufs=${ufs}</argLine>
-          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
         </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
-        </configuration>
-        <executions>
-          <execution>
-            <id>make-assembly</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -385,6 +381,17 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>2.5.2</version>
+        <configuration>
+          <excludeFilterFile>${project.basedir}/src/main/findbugs/findbugs-exclude.xml</excludeFilterFile>
+          <findbugsXmlOutput>true</findbugsXmlOutput>
+          <xmlOutput>true</xmlOutput>
+          <effort>Max</effort>
+        </configuration>
       </plugin>
     </plugins>
   </build>

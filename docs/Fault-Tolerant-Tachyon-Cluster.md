@@ -69,7 +69,7 @@ In addition, the following variable must also be set:
 
     export TACHYON_MASTER_ADDRESS=[externally visible address of this machine]
 
-Finally, configure your TACHYON\_JAVA\_OPTS to include:
+Finally, configure your `TACHYON_JAVA_OPTS` to include:
 
     -Dtachyon.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/tachyon/journal
 
@@ -78,7 +78,7 @@ current master dies and then offer to be the new leader.
 
 ## Worker Configuration
 
-For a worker, it is only necessary to set the TACHYON\_MASTER\_ADDRESS option, as:
+For a worker, it is only necessary to set the `TACHYON_MASTER_ADDRESS` option as:
 
     export TACHYON_MASTER_ADDRESS=[address of one of the master nodes in the system]
 

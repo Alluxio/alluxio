@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon;
 
 import java.io.FileNotFoundException;
@@ -29,19 +15,21 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Throwables;
 
 import tachyon.conf.CommonConf;
 import tachyon.conf.MasterConf;
 import tachyon.hadoop.Utils;
-import tachyon.util.CommonUtils;
 
 /**
  * HDFS UnderFilesystem implementation.
  */
 public class UnderFileSystemHdfs extends UnderFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_TRY = 5;
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
 
   private FileSystem mFs = null;
   private String mUfsPrefix = null;
@@ -58,40 +46,39 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   private UnderFileSystemHdfs(String fsDefaultName, Object conf) {
+
+    mUfsPrefix = fsDefaultName;
+    Configuration tConf;
+    if (conf != null) {
+      tConf = (Configuration) conf;
+    } else {
+      tConf = new Configuration();
+    }
+    String glusterfsPrefix = "glusterfs:///";
+    if (fsDefaultName.startsWith(glusterfsPrefix)) {
+      tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
+      tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
+      tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
+      tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
+          CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
+    } else {
+      tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
+
+      // To disable the instance cache for hdfs client, otherwise it causes the
+      // FileSystem closed exception. Being configurable for unit/integration
+      // test only, and not expose to the end-user currently.
+      tConf.set("fs.hdfs.impl.disable.cache",
+          System.getProperty("fs.hdfs.impl.disable.cache", "false"));
+    }
+
+    Utils.addS3Credentials(tConf);
+
+    Path path = new Path(mUfsPrefix);
     try {
-      mUfsPrefix = fsDefaultName;
-      Configuration tConf = null;
-      if (conf != null) {
-        tConf = (Configuration) conf;
-      } else {
-        tConf = new Configuration();
-      }
-      tConf.set("fs.defaultFS", fsDefaultName);
-      String glusterfsPrefix = "glusterfs:///";
-      if (fsDefaultName.startsWith(glusterfsPrefix)) {
-        tConf.set("fs.glusterfs.impl", CommonConf.get().UNDERFS_GLUSTERFS_IMPL);
-        tConf.set("mapred.system.dir", CommonConf.get().UNDERFS_GLUSTERFS_MR_DIR);
-        tConf.set("fs.glusterfs.volumes", CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES);
-        tConf.set("fs.glusterfs.volume.fuse." + CommonConf.get().UNDERFS_GLUSTERFS_VOLUMES,
-            CommonConf.get().UNDERFS_GLUSTERFS_MOUNTS);
-      } else {
-        tConf.set("fs.hdfs.impl", CommonConf.get().UNDERFS_HDFS_IMPL);
-
-        // To disable the instance cache for hdfs client, otherwise it causes the
-        // FileSystem closed exception. Being configurable for unit/integration
-        // test only, and not expose to the end-user currently.
-        tConf.set("fs.hdfs.impl.disable.cache",
-            MasterConf.get().getProperty("fs.hdfs.impl.disable.cache", "false"));
-      }
-
-      Utils.addS3Credentials(tConf);
-
-      Path path = new Path(mUfsPrefix);
       mFs = path.getFileSystem(tConf);
-      // FileSystem.get(tConf);
-      // mFs = FileSystem.get(new URI(fsDefaultName), tConf);
     } catch (IOException e) {
-      CommonUtils.runtimeException(e);
+      LOG.error("Exception thrown when trying to get FileSystem for " + mUfsPrefix, e);
+      throw Throwables.propagate(e);
     }
   }
 
@@ -106,7 +93,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
-        LOG.debug("Creating HDFS file at " + path);
+        LOG.debug("Creating HDFS file at {}", path);
         return FileSystem.create(mFs, new Path(path), PERMISSION);
       } catch (IOException e) {
         cnt ++;
@@ -117,10 +104,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     throw te;
   }
 
+  /**
+   * BlockSize should be a multiple of 512
+   */
   @Override
-  // BlockSize should be a multiple of 512
-      public
-      FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
+  public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
     // TODO Fix this
     // return create(path, (short) Math.min(3, mFs.getDefaultReplication()), blockSizeByte);
     return create(path);
@@ -150,7 +138,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
 
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
-    LOG.debug("deleting " + path + " " + recursive);
+    LOG.debug("deleting {} {}", path, recursive);
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
@@ -166,7 +154,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public boolean exists(String path) {
+  public boolean exists(String path) throws IOException {
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
@@ -174,12 +162,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         return mFs.exists(new Path(path));
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " : " + e.getMessage(), e);
+        LOG.error(cnt + " try to check if " + path + " exists " + " : " + e.getMessage(), e);
         te = e;
       }
     }
-    CommonUtils.runtimeException(te);
-    return false;
+    throw te;
   }
 
   @Override
@@ -198,12 +185,12 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public List<String> getFileLocations(String path) {
+  public List<String> getFileLocations(String path) throws IOException {
     return getFileLocations(path, 0);
   }
 
   @Override
-  public List<String> getFileLocations(String path, long offset) {
+  public List<String> getFileLocations(String path, long offset) throws IOException {
     List<String> ret = new ArrayList<String>();
     try {
       FileStatus fStatus = mFs.getFileStatus(new Path(path));
@@ -213,13 +200,13 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         Collections.addAll(ret, hosts);
       }
     } catch (IOException e) {
-      LOG.error(e);
+      LOG.error("Unable to get file location for " + path, e);
     }
     return ret;
   }
 
   @Override
-  public long getFileSize(String path) {
+  public long getFileSize(String path) throws IOException {
     int cnt = 0;
     Path tPath = new Path(path);
     while (cnt < MAX_TRY) {
@@ -228,7 +215,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         return fs.getLen();
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " : " + e.getMessage(), e);
+        LOG.error(cnt + " try to get file size for " + path + " : " + e.getMessage(), e);
       }
     }
     return -1;
@@ -250,12 +237,12 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
     // as Tachyon can load/store data out of entire HDFS cluster
     if (mFs instanceof DistributedFileSystem) {
       switch (type) {
-      case SPACE_TOTAL:
-        return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
-      case SPACE_USED:
-        return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
-      case SPACE_FREE:
-        return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
+        case SPACE_TOTAL:
+          return ((DistributedFileSystem) mFs).getDiskStatus().getCapacity();
+        case SPACE_USED:
+          return ((DistributedFileSystem) mFs).getDiskStatus().getDfsUsed();
+        case SPACE_FREE:
+          return ((DistributedFileSystem) mFs).getDiskStatus().getRemaining();
       }
     }
     return -1;
@@ -274,7 +261,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       int i = 0;
       for (FileStatus status : files) {
         // only return the relative path, to keep consistent with java.io.File.list()
-        rtn[i ++] = status.getPath().toString().substring(path.length()); // mUfsPrefix
+        rtn[i ++] = status.getPath().toUri().toString().substring(path.length()); // mUfsPrefix
       }
       return rtn;
     } else {
@@ -283,27 +270,27 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   @Override
-  public boolean mkdirs(String path, boolean createParent) {
+  public boolean mkdirs(String path, boolean createParent) throws IOException {
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
       try {
         if (mFs.exists(new Path(path))) {
+          LOG.debug("Trying to create existing directory at {}", path);
           return false;
         }
         return mFs.mkdirs(new Path(path), PERMISSION);
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " : " + e.getMessage(), e);
+        LOG.error(cnt + " try to make directory for " + path + " : " + e.getMessage(), e);
         te = e;
       }
     }
-    CommonUtils.runtimeException(te);
-    return false;
+    throw te;
   }
 
   @Override
-  public FSDataInputStream open(String path) {
+  public FSDataInputStream open(String path) throws IOException {
     IOException te = null;
     int cnt = 0;
     while (cnt < MAX_TRY) {
@@ -311,19 +298,18 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         return mFs.open(new Path(path));
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " : " + e.getMessage(), e);
+        LOG.error(cnt + " try to open " + path + " : " + e.getMessage(), e);
         te = e;
       }
     }
-    CommonUtils.runtimeException(te);
-    return null;
+    throw te;
   }
 
   @Override
-  public boolean rename(String src, String dst) {
+  public boolean rename(String src, String dst) throws IOException {
     IOException te = null;
     int cnt = 0;
-    LOG.debug("Renaming from " + src + " to " + dst);
+    LOG.debug("Renaming from {} to {}", src, dst);
     if (!exists(src)) {
       LOG.error("File " + src + " does not exist. Therefore rename to " + dst + " failed.");
     }
@@ -337,12 +323,11 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
         return mFs.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
         cnt ++;
-        LOG.error(cnt + " : " + e.getMessage(), e);
+        LOG.error(cnt + " try to rename " + src + " to " + dst + " : " + e.getMessage(), e);
         te = e;
       }
     }
-    CommonUtils.runtimeException(te);
-    return false;
+    throw te;
   }
 
   @Override
@@ -359,7 +344,8 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
       FsPermission perm = new FsPermission(Short.parseShort(posixPerm));
       mFs.setPermission(fileStatus.getPath(), perm);
     } catch (IOException e) {
-      LOG.error(e);
+      LOG.error("Fail to set permission for " + path + " with perm " + posixPerm, e);
+      throw e;
     }
   }
 }

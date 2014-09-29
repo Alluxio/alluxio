@@ -13,17 +13,7 @@
 <script src="js/jquery-1.9.1.min.js" type="text/javascript"></script>
 <script src="js/bootstrap.min.js"></script>
 <div class="container-fluid">
-  <div class="navbar navbar-inverse">
-    <div class="navbar-inner">
-      <ul class="nav nav-pills" style="height:40px;font-size:14px;font-weight: bold;vertical-align: bottom;">
-        <li><a href="http://tachyon-project.org/" target="_blank"><img style="height:25px;margin-top:-5px;" src="img/logo.png" alt="Tachyon Logo"/></a></li>
-        <li><a href="./home">Overview</a></li>
-        <li><a href="./configuration">System Configuration</a></li>
-        <li class="active"><a href="./browse?path=/">Browse File System</a></li>
-        <li><a href="./memory">In Memory Files</a></li>
-      </ul>
-    </div>
-  </div>
+  <jsp:include page="header.jsp" />
 
   <div class="container-fluid">
     <div class="row-fluid">
@@ -53,6 +43,7 @@
             <th>In-Memory</th>
             <th>Pin</th>
             <th>Creation Time</th>
+            <th>Modification Time</th>
           <!--
             <c:if test = "${debug}">
               <th>[D]Inode Number</th>
@@ -136,6 +127,7 @@
                   </th>
                   <th><%= (fileInfo.getNeedPin() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
+                  <th><%= fileInfo.getModificationTime() %></th>
                   <% if ((Boolean) request.getAttribute("debug")) { %>
                     <th>
                       <% if (fileInfo.getDependencyId() != -1) { %>
@@ -154,14 +146,17 @@
             <% } %>
           </tbody>
         </table>
+
+        <%@ include file="pagination-component.jsp" %>
+
       </div>
     </div>
   </div>
-  <footer>
-    <p style="text-align: center;">
-      <a href="http://tachyon-project.org/" target="_blank">Tachyon</a> is an <a href="https://github.com/amplab/tachyon" target="_blank">open source</a> project developed at the UC Berkeley <a href="https://amplab.cs.berkeley.edu" target="_blank">AMPLab</a>.
-    </p>
-  </footer>
+  <%@ include file="footer.jsp" %>
 </div>
+
+<%@ include file="browse-pagination-header.jsp" %>
+<%@ include file="pagination-control.jsp" %>
+
 </body>
 </html>

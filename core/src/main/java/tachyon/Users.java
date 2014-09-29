@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon;
 
 import java.io.File;
@@ -23,7 +9,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Throwables;
 
 import tachyon.conf.CommonConf;
 import tachyon.util.CommonUtils;
@@ -35,24 +24,32 @@ public class Users {
   public static final int sDATASERVER_USER_ID = -1;
   public static final int sCHECKPOINT_USER_ID = -2;
 
-  private final Logger LOG = Logger.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final String USER_FOLDER;
-  private final String USER_UNDERFS_FOLDER;
-  private final Map<Long, UserInfo> USERS;
+  /** User's temporary data folder in the worker **/
+  private final String mUserFolder;
+  /** User's temporary data folder in the under filesystem **/
+  private final String mUserUnderFSFolder;
+  /** Map from UserId to {@link tachyon.UserInfo} object **/
+  private final Map<Long, UserInfo> mUsers;
 
-  public Users(String userfolder, String userUnderfsFolder) {
-    USER_FOLDER = userfolder;
-    USER_UNDERFS_FOLDER = userUnderfsFolder;
-
-    USERS = new HashMap<Long, UserInfo>();
+  public Users(final String userfolder, final String userUfsFolder) {
+    mUserFolder = userfolder;
+    mUserUnderFSFolder = userUfsFolder;
+    mUsers = new HashMap<Long, UserInfo>();
   }
 
+  /**
+   * Adds user's own bytes and updates the user's heartbeat.
+   * 
+   * @param userId id of the user.
+   * @param newBytes delta bytes the user owns.
+   */
   public void addOwnBytes(long userId, long newBytes) {
     UserInfo tUser = null;
-    synchronized (USERS) {
+    synchronized (mUsers) {
       userHeartbeat(userId);
-      tUser = USERS.get(userId);
+      tUser = mUsers.get(userId);
     }
 
     tUser.addOwnBytes(newBytes);
@@ -66,8 +63,8 @@ public class Users {
   public List<Long> checkStatus() {
     LOG.debug("Worker is checking all users' status.");
     List<Long> ret = new ArrayList<Long>();
-    synchronized (USERS) {
-      for (Entry<Long, UserInfo> entry : USERS.entrySet()) {
+    synchronized (mUsers) {
+      for (Entry<Long, UserInfo> entry : mUsers.entrySet()) {
         if (entry.getValue().timeout()) {
           ret.add(entry.getKey());
         }
@@ -76,24 +73,35 @@ public class Users {
     return ret;
   }
 
+  /**
+   * Returns the user's temporary data folder in the worker's machine.
+   * 
+   * @param userId The queried user.
+   * @return String contains user's temporary data folder in the worker's machine..
+   */
   public String getUserTempFolder(long userId) {
-    return CommonUtils.concat(USER_FOLDER, userId);
+    return CommonUtils.concat(mUserFolder, userId);
   }
 
-  public String getUserUnderfsTempFolder(long userId) {
-    return CommonUtils.concat(USER_UNDERFS_FOLDER, userId);
+  /**
+   * Returns the user's temporary data folder in the under filesystem.
+   * 
+   * @param userId The queried user.
+   * @return String contains the user's temporary data folder in the under filesystem.
+   */
+  public String getUserUfsTempFolder(long userId) {
+    return CommonUtils.concat(mUserUnderFSFolder, userId);
   }
 
   /**
    * Get how much space quote does a user own.
    * 
-   * @param userId
-   *          The queried user.
+   * @param userId The queried user.
    * @return Bytes the user owns.
    */
   public long ownBytes(long userId) {
-    synchronized (USERS) {
-      UserInfo tUser = USERS.get(userId);
+    synchronized (mUsers) {
+      UserInfo tUser = mUsers.get(userId);
       return tUser == null ? 0 : tUser.getOwnBytes();
     }
   }
@@ -101,16 +109,15 @@ public class Users {
   /**
    * Remove <code> userId </code> from user pool.
    * 
-   * @param userId
-   *          The user to be removed.
+   * @param userId The user to be removed.
    * @return The space quote the removed user occupied in bytes.
    */
   public synchronized long removeUser(long userId) {
     StringBuilder sb = new StringBuilder("Trying to cleanup user " + userId + " : ");
     UserInfo tUser = null;
-    synchronized (USERS) {
-      tUser = USERS.get(userId);
-      USERS.remove(userId);
+    synchronized (mUsers) {
+      tUser = mUsers.get(userId);
+      mUsers.remove(userId);
     }
 
     long returnedBytes = 0;
@@ -120,20 +127,20 @@ public class Users {
     } else {
       returnedBytes = tUser.getOwnBytes();
       String folder = getUserTempFolder(userId);
-      sb.append(" The user returns " + returnedBytes + " bytes. Remove the user's folder "
-          + folder + " ;");
+      sb.append(" The user returns ").append(returnedBytes).append(" bytes.");
+      sb.append(" Remove the user's folder ").append(folder).append(" ;");
       try {
         FileUtils.deleteDirectory(new File(folder));
       } catch (IOException e) {
-        CommonUtils.runtimeException(e);
+        throw Throwables.propagate(e);
       }
 
-      folder = getUserUnderfsTempFolder(userId);
-      sb.append(" Also remove users underfs folder " + folder);
+      folder = getUserUfsTempFolder(userId);
+      sb.append(" Also remove users underfs folder ").append(folder);
       try {
         UnderFileSystem.get(CommonConf.get().UNDERFS_ADDRESS).delete(folder, true);
       } catch (IOException e) {
-        LOG.error(e);
+        LOG.warn(e.getMessage(), e);
       }
     }
 
@@ -141,12 +148,17 @@ public class Users {
     return returnedBytes;
   }
 
+  /**
+   * Updates user's heartbeat.
+   * 
+   * @param userId the id of the user
+   */
   public void userHeartbeat(long userId) {
-    synchronized (USERS) {
-      if (USERS.containsKey(userId)) {
-        USERS.get(userId).heartbeat();
+    synchronized (mUsers) {
+      if (mUsers.containsKey(userId)) {
+        mUsers.get(userId).heartbeat();
       } else {
-        USERS.put(userId, new UserInfo(userId));
+        mUsers.put(userId, new UserInfo(userId));
       }
     }
   }

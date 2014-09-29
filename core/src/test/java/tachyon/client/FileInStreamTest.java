@@ -1,17 +1,3 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package tachyon.client;
 
 import java.io.IOException;
@@ -19,7 +5,9 @@ import java.io.IOException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import tachyon.TestUtils;
 import tachyon.conf.MasterConf;
@@ -29,14 +17,17 @@ import tachyon.master.LocalTachyonCluster;
  * Unit tests for <code>tachyon.client.FileInStream</code>.
  */
 public class FileInStreamTest {
-  private final int BLOCK_SIZE = 30;
-  private final int MIN_LEN = BLOCK_SIZE + 1;
-  private final int MAX_LEN = 255;
-  private final int MEAN = (MIN_LEN + MAX_LEN) / 2;
-  private final int DELTA = 33;
+  private static final int BLOCK_SIZE = 30;
+  private static final int MIN_LEN = BLOCK_SIZE + 1;
+  private static final int MAX_LEN = 255;
+  private static final int MEAN = (MIN_LEN + MAX_LEN) / 2;
+  private static final int DELTA = 33;
 
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
 
   @After
   public final void after() throws Exception {
@@ -155,12 +146,41 @@ public class FileInStreamTest {
   }
 
   /**
-   * Test <code>void seek(long pos)</code>.
+   * Test <code>void read(byte[] b, int off, int len)</code> for end of file.
+   */
+  @Test
+  public void readEndOfFileTest() throws IOException {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+      for (WriteType op : WriteType.values()) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+
+        TachyonFile file = mTfs.getFile(fileId);
+        InStream is =
+            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+        Assert.assertTrue(is instanceof FileInStream);
+        try {
+          byte[] ret = new byte[k / 2];
+          int readBytes = is.read(ret, 0, k / 2);
+          while (readBytes != -1) {
+            readBytes = is.read(ret);
+            Assert.assertTrue(0 != readBytes);
+          }
+          Assert.assertEquals(-1, readBytes);
+        } finally {
+          is.close();
+        }
+      }
+    }
+  }
+
+  /**
+   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a negative
+   * position.
    * 
    * @throws IOException
    */
   @Test
-  public void seekExceptionTest() throws IOException {
+  public void seekExceptionTest1() throws IOException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (WriteType op : WriteType.values()) {
         int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
@@ -177,6 +197,31 @@ public class FileInStreamTest {
         }
         is.close();
         throw new IOException("Except seek IOException");
+      }
+    }
+  }
+
+  /**
+   * Test <code>void seek(long pos)</code>. Validate the expected exception for seeking a position
+   * that is past EOF.
+   *
+   * @throws IOException
+   */
+  @Test
+  public void seekExceptionTest2() throws IOException {
+    thrown.expect(IOException.class);
+    thrown.expectMessage("Seek position is past EOF");
+
+    for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
+      for (WriteType op : WriteType.values()) {
+        int fileId = TestUtils.createByteFile(mTfs, "/root/testFile_" + k + "_" + op, op, k);
+
+        TachyonFile file = mTfs.getFile(fileId);
+        InStream is =
+            (k < MEAN ? file.getInStream(ReadType.CACHE) : file.getInStream(ReadType.NO_CACHE));
+
+        is.seek(k + 1);
+        is.close();
       }
     }
   }
