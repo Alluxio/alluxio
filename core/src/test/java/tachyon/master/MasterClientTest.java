@@ -11,12 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
-<<<<<<< HEAD
 import tachyon.conf.MasterConf;
-import tachyon.master.MasterClient;
-import tachyon.master.MasterInfo;
-=======
->>>>>>> upstream/master
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NoWorkerException;

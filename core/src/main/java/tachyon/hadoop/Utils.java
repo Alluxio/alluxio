@@ -11,12 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tachyon.Constants;
-<<<<<<< HEAD
-import tachyon.conf.MasterConf;
-import tachyon.util.CommonUtils;
-=======
 import tachyon.TachyonURI;
->>>>>>> upstream/master
+import tachyon.conf.MasterConf;
+
 
 public final class Utils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);

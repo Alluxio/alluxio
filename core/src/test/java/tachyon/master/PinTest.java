@@ -1,30 +1,20 @@
 package tachyon.master;
 
 import static junit.framework.Assert.assertEquals;
-<<<<<<< HEAD
-
-import com.google.common.collect.Sets;
-=======
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 
 import java.io.IOException;
->>>>>>> upstream/master
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-<<<<<<< HEAD
-
-import tachyon.client.TachyonFS;
-import tachyon.conf.MasterConf;
-=======
->>>>>>> upstream/master
-
-import com.google.common.collect.Sets;
 
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
+import tachyon.conf.MasterConf;
+
+import com.google.common.collect.Sets;
 
 public class PinTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
