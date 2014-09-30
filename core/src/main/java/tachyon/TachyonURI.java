@@ -322,23 +322,23 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Add a suffix to the end of the Tachyon URI.
+   * Append additional path elements to the end of a TachyonURI.
    * 
    * @param suffix the suffix to add
    * @return the new TachyonURI
    */
   public TachyonURI join(String suffix) {
-    return new TachyonURI(toString() + suffix);
+    return new TachyonURI(toString() + TachyonURI.SEPARATOR + suffix);
   }
 
   /**
-   * Add a suffix to the end of the Tachyon URI.
+   * Append additional path elements to the end of a TachyonURI.
    * 
    * @param suffix the suffix to add
    * @return the new TachyonURI
    */
   public TachyonURI join(TachyonURI suffix) {
-    return new TachyonURI(toString() + suffix.toString());
+    return join(suffix.toString());
   }
 
   /**

@@ -84,16 +84,16 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws IOException
    * @throws InvalidPathException
    */
-  private void displayFile(String path, HttpServletRequest request, long offset)
+  private void displayFile(TachyonURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     String masterAddress =
         Constants.HEADER + mMasterInfo.getMasterAddress().getHostName() + ":"
             + mMasterInfo.getMasterAddress().getPort();
     TachyonFS tachyonClient = TachyonFS.get(new TachyonURI(masterAddress));
-    TachyonFile tFile = tachyonClient.getFile(new TachyonURI(path));
+    TachyonFile tFile = tachyonClient.getFile(path);
     String fileData = null;
     if (tFile == null) {
-      throw new FileDoesNotExistException(path);
+      throw new FileDoesNotExistException(path.toString());
     }
     if (tFile.isComplete()) {
       InStream is = tFile.getInStream(ReadType.NO_CACHE);
@@ -142,16 +142,20 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
     request.setAttribute("invalidPathError", "");
     List<ClientFileInfo> filesInfo = null;
-    String currentPath = request.getParameter("path");
-    if (currentPath == null || currentPath.isEmpty()) {
-      currentPath = TachyonURI.SEPARATOR;
+    String requestPath = request.getParameter("path");
+    if (requestPath == null || requestPath.isEmpty()) {
+      requestPath = TachyonURI.SEPARATOR;
     }
-    request.setAttribute("currentPath", currentPath);
+    TachyonURI currentPath = new TachyonURI(requestPath);
+    request.setAttribute("currentPath", currentPath.toString());
     request.setAttribute("viewingOffset", 0);
 
     try {
       ClientFileInfo clientFileInfo = mMasterInfo.getClientFileInfo(currentPath);
       UiFileInfo currentFileInfo = new UiFileInfo(clientFileInfo);
+      if (null == currentFileInfo.getAbsolutePath()) {
+        throw new FileDoesNotExistException(currentPath.toString());
+      }
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeByte", currentFileInfo.getBlockSizeBytes());
       if (!currentFileInfo.getIsDirectory()) {
@@ -169,12 +173,11 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
         } else if (offset > clientFileInfo.getLength()) {
           offset = clientFileInfo.getLength();
         }
-        displayFile(currentFileInfo.getAbsolutePath(), request, offset);
+        displayFile(new TachyonURI(currentFileInfo.getAbsolutePath()), request, offset);
         request.setAttribute("viewingOffset", offset);
         getServletContext().getRequestDispatcher("/viewFile.jsp").forward(request, response);
         return;
       }
-      CommonUtils.validatePath(currentPath);
       setPathDirectories(currentPath, request);
       filesInfo = mMasterInfo.getFilesInfo(currentPath);
     } catch (FileDoesNotExistException fdne) {
@@ -248,19 +251,19 @@ public class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws FileDoesNotExistException
    * @throws InvalidPathException
    */
-  private void setPathDirectories(String path, HttpServletRequest request)
+  private void setPathDirectories(TachyonURI path, HttpServletRequest request)
       throws FileDoesNotExistException, InvalidPathException {
-    if (path.equals(TachyonURI.SEPARATOR)) {
+    if (path.isRoot()) {
       request.setAttribute("pathInfos", new UiFileInfo[0]);
       return;
     }
 
-    String[] splitPath = path.split(TachyonURI.SEPARATOR);
+    String[] splitPath = CommonUtils.getPathComponents(path.toString());
     UiFileInfo[] pathInfos = new UiFileInfo[splitPath.length - 1];
-    String currentPath = TachyonURI.SEPARATOR;
+    TachyonURI currentPath = new TachyonURI(TachyonURI.SEPARATOR);
     pathInfos[0] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     for (int i = 1; i < splitPath.length - 1; i ++) {
-      currentPath = CommonUtils.concat(currentPath, splitPath[i]);
+      currentPath = currentPath.join(splitPath[i]);
       pathInfos[i] = new UiFileInfo(mMasterInfo.getClientFileInfo(currentPath));
     }
     request.setAttribute("pathInfos", pathInfos);
