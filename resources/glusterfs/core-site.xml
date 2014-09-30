@@ -16,12 +16,12 @@
     <value>org.apache.hadoop.fs.local.GlusterFs</value> 
   </property>
   <property>
-	<name>fs.glusterfs.volumes</name>
-	<value>testvol</value>
+    <name>fs.glusterfs.volumes</name>
+    <value>testvol</value>
   </property>
   <property>
-	<name>fs.glusterfs.volume.fuse.testvol</name>
-	<value>/tmp</value>
+    <name>fs.glusterfs.volume.fuse.testvol</name>
+    <value>/tmp</value>
   </property>
   <property>
     <name>mapred.system.dir</name>
