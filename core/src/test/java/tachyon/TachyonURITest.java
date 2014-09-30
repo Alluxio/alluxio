@@ -312,6 +312,10 @@ public class TachyonURITest {
   public void joinTests() {
     Assert.assertEquals(new TachyonURI("/a"), new TachyonURI("/").join("a"));
     Assert.assertEquals(new TachyonURI("/a"), new TachyonURI("/").join(new TachyonURI("a")));
+    Assert.assertEquals(new TachyonURI("/a/b"), new TachyonURI("/a").join(new TachyonURI("b")));
+    Assert.assertEquals(new TachyonURI("a/b"), new TachyonURI("a").join(new TachyonURI("b")));
+    Assert.assertEquals(new TachyonURI("/a/c"),
+        new TachyonURI("/a").join(new TachyonURI("b/../c")));
     Assert.assertEquals(new TachyonURI("a/b.txt"),
         new TachyonURI("a").join(new TachyonURI("/b.txt")));
     Assert.assertEquals(new TachyonURI("a/b.txt"),
