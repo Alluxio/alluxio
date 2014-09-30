@@ -71,7 +71,7 @@ public class Image {
     DataInputStream imageIs = new DataInputStream(ufs.open(path));
     JsonParser parser = JsonObject.createObjectMapper().getFactory().createParser(imageIs);
 
-    info.loadImage(parser, path);
+    info.loadImage(parser, new TachyonURI(path));
     imageIs.close();
     ufs.close();
   }
