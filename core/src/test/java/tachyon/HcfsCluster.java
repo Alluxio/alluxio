@@ -3,7 +3,7 @@ package tachyon;
 import java.io.IOException;
 
 /**
- * The implements Hadoop compatible filesystem cluster 
+ * This implements Hadoop compatible filesystem (except HDFS) cluster 
  * to test under filesystems like glusterfs and cephfs.
  */
 public class HcfsCluster extends UnderFileSystemCluster {
