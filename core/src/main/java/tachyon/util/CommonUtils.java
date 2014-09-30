@@ -2,9 +2,7 @@ package tachyon.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -13,13 +11,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Scanner;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Closer;
 
 import tachyon.Constants;
 import tachyon.TachyonURI;
@@ -51,10 +50,23 @@ public final class CommonUtils {
       ProcessBuilder builder = new ProcessBuilder(commands);
       Process process = builder.start();
 
-      redirectStreamAsync(process.getInputStream(), System.out);
-      redirectStreamAsync(process.getErrorStream(), System.err);
-
       process.waitFor();
+
+      // because chmod doesn't have a lot of error or output messages, its safe to process
+      // the output after the process is done.
+      // As of java 7, you can have the process redirect to System.out and System.err without
+      // forking a process.
+      // TODO when java 6 support is dropped, switch to
+      // http://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html#inheritIO()
+      Closer closer = Closer.create();
+      try {
+        ByteStreams.copy(closer.register(process.getInputStream()), System.out);
+        ByteStreams.copy(closer.register(process.getErrorStream()), System.err);
+      } catch (Throwable e) {
+        throw closer.rethrow(e);
+      } finally {
+        closer.close();
+      }
 
       if (process.exitValue() != 0) {
         throw new IOException("Can not change the file " + file.getAbsolutePath()
@@ -403,19 +415,6 @@ public final class CommonUtils {
 
   public static void printTimeTakenNs(long startTimeNs, Logger logger, String message) {
     logger.info(message + " took " + (getCurrentNs() - startTimeNs) + " ns.");
-  }
-
-  static void redirectStreamAsync(final InputStream input, final PrintStream output) {
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        Scanner scanner = new Scanner(input);
-        while (scanner.hasNextLine()) {
-          output.println(scanner.nextLine());
-        }
-        scanner.close();
-      }
-    }).start();
   }
 
   /**

@@ -11,7 +11,6 @@ import tachyon.worker.netty.FileTransferType;
 
 public class WorkerConf extends Utils {
   private static WorkerConf WORKER_CONF = null;
-
   /**
    * This is for unit test only. DO NOT use it for other purpose.
    */
@@ -28,6 +27,7 @@ public class WorkerConf extends Utils {
   }
 
   public final String MASTER_HOSTNAME;
+
   public final int MASTER_PORT;
   public final int PORT;
   public final int DATA_PORT;
@@ -38,19 +38,21 @@ public class WorkerConf extends Utils {
   public final int SELECTOR_THREADS;
   public final int QUEUE_SIZE_PER_SELECTOR;
   public final int SERVER_THREADS;
-
   public final int USER_TIMEOUT_MS;
-  public final String USER_TEMP_RELATIVE_FOLDER = "users";
 
+  public final String USER_TEMP_RELATIVE_FOLDER = "users";
   public final int WORKER_CHECKPOINT_THREADS;
 
   public final int WORKER_PER_THREAD_CHECKPOINT_CAP_MB_SEC;
 
   public final NetworkType NETWORK_TYPE;
+
   public final ChannelType NETTY_CHANNEL_TYPE;
   public final FileTransferType NETTY_FILE_TRANSFER_TYPE;
-
   public final int NETTY_HIGH_WATER_MARK;
+
+  public final int NETTY_BOSS_THREADS;
+  public final int NETTY_WORKER_THREADS;
   public final int NETTY_LOW_WATER_MARK;
   public final Optional<Integer> NETTY_BACKLOG;
   public final Optional<Integer> NETTY_SEND_BUFFER;
@@ -82,6 +84,9 @@ public class WorkerConf extends Utils {
         getIntProperty("tachyon.worker.per.thread.checkpoint.cap.mb.sec", Constants.SECOND_MS);
 
     NETWORK_TYPE = getEnumProperty("tachyon.worker.network.type", NetworkType.NETTY);
+    NETTY_BOSS_THREADS = getIntProperty("tachyon.worker.network.netty.boss.threads", 1);
+    NETTY_WORKER_THREADS = getIntProperty("tachyon.worker.network.netty.worker.threads", 0);
+
     NETTY_CHANNEL_TYPE =
         getEnumProperty("tachyon.worker.network.netty.channel", ChannelType.defaultType());
     NETTY_FILE_TRANSFER_TYPE =
