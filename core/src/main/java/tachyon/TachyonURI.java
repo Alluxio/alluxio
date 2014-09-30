@@ -322,7 +322,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Add a suffix to the end of the Tachyon URI.
+   * Append additional path elements to the end of a TachyonURI.
    * 
    * @param suffix the suffix to add
    * @return the new TachyonURI
@@ -332,7 +332,7 @@ public final class TachyonURI implements Comparable<TachyonURI> {
   }
 
   /**
-   * Add a suffix to the end of the Tachyon URI.
+   * Append additional path elements to the end of a TachyonURI.
    * 
    * @param suffix the suffix to add
    * @return the new TachyonURI
