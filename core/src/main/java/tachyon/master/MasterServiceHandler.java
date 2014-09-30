@@ -50,8 +50,8 @@ public class MasterServiceHandler implements MasterService.Iface {
   public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     try {
-      return mMasterInfo.addCheckpoint(
-          workerId, fileId, fileSizeBytes, new TachyonURI(checkpointPath));
+      return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, new TachyonURI(
+          checkpointPath));
     } catch (FileNotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     }
@@ -94,11 +94,11 @@ public class MasterServiceHandler implements MasterService.Iface {
       List<TachyonURI> childrenUris = new ArrayList<TachyonURI>(children.size());
       for (int k = 0; k < children.size(); k ++) {
         mMasterInfo.createFile(new TachyonURI(children.get(k)), childrenBlockSizeByte);
-        childrenUris.add(k, new TachyonURI(children.get(k)));
+        childrenUris.add(new TachyonURI(children.get(k)));
       }
       List<TachyonURI> parentUris = new ArrayList<TachyonURI>(parents.size());
       for (int k = 0; k < parents.size(); k ++) {
-        parentUris.add(k, new TachyonURI(parents.get(k)));
+        parentUris.add(new TachyonURI(parents.get(k)));
       }
       return mMasterInfo.createDependency(parentUris, childrenUris, commandPrefix, data, comment,
           framework, frameworkVersion, DependencyType.getDependencyType(dependencyType));
@@ -117,8 +117,8 @@ public class MasterServiceHandler implements MasterService.Iface {
         long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
         long fileSizeByte = underfs.getFileSize(ufsPath);
         int fileId = mMasterInfo.createFile(new TachyonURI(path), ufsBlockSizeByte, recursive);
-        if (fileId != -1 &&
-            mMasterInfo.addCheckpoint(-1, fileId, fileSizeByte, new TachyonURI(ufsPath))) {
+        if (fileId != -1
+            && mMasterInfo.addCheckpoint(-1, fileId, fileSizeByte, new TachyonURI(ufsPath))) {
           return fileId;
         }
       } catch (IOException e) {
