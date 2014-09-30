@@ -13,9 +13,11 @@ The master branch is in version 0.6.0-SNAPSHOT:
 [Beginner's Tasks](https://tachyon.atlassian.net/issues/?jql=project%20%3D%20TACHYON%20AND%20labels%20%3D%20Beginner)
 
 
-## Dependency Information
+## Building applications with Tachyon
 
-### Apache Maven
+### Dependency Information
+
+#### Apache Maven
 ```xml
 <dependency>
   <groupId>org.tachyonproject</groupId>
@@ -24,20 +26,20 @@ The master branch is in version 0.6.0-SNAPSHOT:
 </dependency>
 ```
 
-### Gradle
+#### Gradle
 
 ```groovy
 compile 'org.tachyonproject:tachyon-client:0.5.0'
 ```
 
-### Apache Ant
+#### Apache Ant
 ```xml
 <dependency org="org.tachyonproject" name="tachyon" rev="0.5.0">
   <artifact name="tachyon-client" type="jar" />
 </dependency>
 ```
 
-### SBT
+#### SBT
 ```
 libraryDependencies += "org.tachyonproject" % "tachyon-client" % "0.5.0"
 ```
