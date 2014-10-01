@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import tachyon.TestUtils;
+import tachyon.conf.MasterConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -35,8 +36,8 @@ public class RemoteBlockInStreamTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    System.setProperty("tachyon.user.remote.read.buffer.size.byte", "100");
+    MasterConf.get().setProperty("tachyon.user.quota.unit.bytes", "1000");
+    MasterConf.get().setProperty("tachyon.user.remote.read.buffer.size.byte", "100");
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();

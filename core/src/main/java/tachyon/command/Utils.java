@@ -5,6 +5,7 @@ import java.io.IOException;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.conf.CommonConf;
+import tachyon.conf.MasterConf;
 import tachyon.util.CommonUtils;
 
 /**
@@ -49,8 +50,8 @@ public class Utils {
         return path;
       }
     } else {
-      String HOSTNAME = System.getProperty("tachyon.master.hostname", "localhost");
-      String PORT = System.getProperty("tachyon.master.port", "" + Constants.DEFAULT_MASTER_PORT);
+      String HOSTNAME = MasterConf.get().getProperty("tachyon.master.hostname", "localhost");
+      String PORT = MasterConf.get().getProperty("tachyon.master.port", "" + Constants.DEFAULT_MASTER_PORT);
       if (CommonConf.get().USE_ZOOKEEPER) {
         return CommonUtils.concat(Constants.HEADER_FT + HOSTNAME + ":" + PORT, path);
       }

@@ -16,6 +16,7 @@ import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
 import tachyon.UnderFileSystemCluster;
 import tachyon.client.TachyonFS;
+import tachyon.conf.MasterConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -36,15 +37,14 @@ public class UnderfsUtilsTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
-    System.setProperty("tachyon.user.default.block.size.byte", "128");
+    MasterConf.get().setProperty("tachyon.user.quota.unit.bytes", "1000");
+    MasterConf.get().setProperty("tachyon.user.default.block.size.byte", "128");
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
 
     mTfs = mLocalTachyonCluster.getClient();
-
-    mUnderfsAddress = System.getProperty("tachyon.underfs.address");
-    mUfs = UnderFileSystem.get(mUnderfsAddress + TachyonURI.SEPARATOR);
+    mUnderfsAddress = MasterConf.get().getProperty("tachyon.underfs.address");
+    mUfs = UnderFileSystem.get(mUnderfsAddress + Constants.PATH_SEPARATOR);
   }
 
   @Test

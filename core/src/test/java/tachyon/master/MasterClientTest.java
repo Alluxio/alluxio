@@ -11,6 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.conf.MasterConf;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.thrift.NoWorkerException;
@@ -30,7 +31,7 @@ public class MasterClientTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
+    MasterConf.get().setProperty("tachyon.user.quota.unit.bytes", "1000");
     mLocalTachyonCluster = new LocalTachyonCluster(1000);
     mLocalTachyonCluster.start();
     mMasterInfo = mLocalTachyonCluster.getMasterInfo();

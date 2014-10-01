@@ -133,15 +133,16 @@ public class LocalTachyonClusterMultiMaster {
 
     mLocalhostName = NetworkUtils.getLocalHostName();
 
-    System.setProperty("tachyon.test.mode", "true");
-    System.setProperty("tachyon.home", mTachyonHome);
-    System.setProperty("tachyon.usezookeeper", "true");
-    System.setProperty("tachyon.zookeeper.address", mCuratorServer.getConnectString());
-    System.setProperty("tachyon.zookeeper.election.path", "/election");
-    System.setProperty("tachyon.zookeeper.leader.path", "/leader");
-    System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
-    System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
-    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
+    MasterConf.get().setProperty("tachyon.test.mode", "true");
+    MasterConf.get().setProperty("tachyon.home", mTachyonHome);
+    MasterConf.get().setProperty("tachyon.usezookeeper", "true");
+    MasterConf.get().setProperty("tachyon.zookeeper.address", mCuratorServer.getConnectString());
+    MasterConf.get().setProperty("tachyon.zookeeper.election.path", "/election");
+    MasterConf.get().setProperty("tachyon.zookeeper.leader.path", "/leader");
+    MasterConf.get().setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
+    MasterConf.get().setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
+    MasterConf.get().setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
+
 
     CommonConf.clear();
     MasterConf.clear();

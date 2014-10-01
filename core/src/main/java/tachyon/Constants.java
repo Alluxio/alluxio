@@ -1,5 +1,7 @@
 package tachyon;
 
+import tachyon.conf.MasterConf;
+
 /**
  * System wide constants
  */
@@ -40,13 +42,12 @@ public class Constants {
 
   public static final int WORKER_BLOCKS_QUEUE_SIZE = 10000;
 
-  public static final String LOGGER_TYPE = System.getProperty("tachyon.logger.type", "");
-  public static final boolean DEBUG = Boolean.valueOf(System.getProperty("tachyon.debug", "false"));
+  public static final String LOGGER_TYPE = MasterConf.get().getProperty("tachyon.logger.type", "");
+  public static final boolean DEBUG = Boolean
+      .valueOf(MasterConf.get().getProperty("tachyon.debug", "false"));
 
-  /**
-   * Version 1 [Before 0.5.0] Customized ser/de based. <br>
-   * Version 2 [0.5.0] Starts to use JSON. <br>
-   * Version 3 [0.6.0] Add lastModificationTimeMs to inode.
-   */
-  public static final int JOURNAL_VERSION = 2;
+  // Version 1 [Before 0.5.0] is customized ser/de based.
+  // Version 2 [From 0.5.0] starts to use JSON.
+  public static final int JOURNAL_VERSION = 2; // The version keeps increasing.
+
 }

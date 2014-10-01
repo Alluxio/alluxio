@@ -137,18 +137,19 @@ public class LocalTachyonCluster {
     deleteDir(mTachyonHome);
     mkdir(mTachyonHome);
 
+    MasterConf.get().setProperty("tachyon.home", mTachyonHome);
+    MasterConf.get().setProperty("tachyon.master.hostname", mLocalhostName);
+    MasterConf.get().setProperty("tachyon.master.journal.folder", masterJournalFolder);
+    MasterConf.get().setProperty("tachyon.master.port", mMasterPort + "");
+    MasterConf.get().setProperty("tachyon.master.web.port", (mMasterPort + 1) + "");
+    MasterConf.get().setProperty("tachyon.worker.port", mWorkerPort + "");
+    MasterConf.get().setProperty("tachyon.worker.data.port", (mWorkerPort + 1) + "");
+    MasterConf.get().setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
+    MasterConf.get().setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
+    MasterConf.get().setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
+    MasterConf.get().setProperty("tachyon.underfs.address", underfsFolder);
+    MasterConf.get().setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
     mLocalhostName = NetworkUtils.getLocalHostName();
-
-    System.setProperty("tachyon.test.mode", "true");
-    System.setProperty("tachyon.home", mTachyonHome);
-    System.setProperty("tachyon.master.port", 0 + "");
-    System.setProperty("tachyon.master.web.port", 0 + "");
-    System.setProperty("tachyon.worker.port", 0 + "");
-    System.setProperty("tachyon.worker.data.port", 0 + "");
-    System.setProperty("tachyon.worker.data.folder", mWorkerDataFolder);
-    System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
-    System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
-    System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
 
     CommonConf.clear();
     MasterConf.clear();

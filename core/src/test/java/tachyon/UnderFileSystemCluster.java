@@ -2,9 +2,10 @@ package tachyon;
 
 import java.io.IOException;
 
-import com.google.common.base.Throwables;
-
+import tachyon.conf.MasterConf;
 import tachyon.util.CommonUtils;
+
+import com.google.common.base.Throwables;
 
 public abstract class UnderFileSystemCluster {
   class ShutdownHook extends Thread {
@@ -50,7 +51,7 @@ public abstract class UnderFileSystemCluster {
   }
 
   public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir) {
-    mUfsClz = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
+    mUfsClz = MasterConf.get().getProperty(INTEGRATION_UFS_PROFILE_KEY);
 
     if (mUfsClz != null && !mUfsClz.equals("")) {
       try {

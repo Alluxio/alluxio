@@ -10,10 +10,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.Sets;
-
 import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
+import tachyon.conf.MasterConf;
+
+import com.google.common.collect.Sets;
 
 public class PinTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
@@ -22,7 +23,7 @@ public class PinTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
+    MasterConf.get().setProperty("tachyon.user.quota.unit.bytes", "1000");
     mLocalTachyonCluster = new LocalTachyonCluster(1000);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();

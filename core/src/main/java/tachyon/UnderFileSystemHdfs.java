@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Throwables;
 
 import tachyon.conf.CommonConf;
+import tachyon.conf.MasterConf;
 import tachyon.hadoop.Utils;
 
 /**
@@ -45,6 +46,7 @@ public class UnderFileSystemHdfs extends UnderFileSystem {
   }
 
   private UnderFileSystemHdfs(String fsDefaultName, Object conf) {
+
     mUfsPrefix = fsDefaultName;
     Configuration tConf;
     if (conf != null) {

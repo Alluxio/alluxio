@@ -17,6 +17,7 @@ import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.CommonConf;
+import tachyon.conf.MasterConf;
 import tachyon.master.LocalTachyonCluster;
 
 /**
@@ -34,7 +35,7 @@ public class RawTableTest {
 
   @Before
   public final void before() throws IOException {
-    System.setProperty("tachyon.user.quota.unit.bytes", "1000");
+    MasterConf.get().setProperty("tachyon.user.quota.unit.bytes", "1000");
     mLocalTachyonCluster = new LocalTachyonCluster(10000);
     mLocalTachyonCluster.start();
     mTfs = mLocalTachyonCluster.getClient();

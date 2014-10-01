@@ -1,5 +1,6 @@
 package tachyon.util;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -8,8 +9,60 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import tachyon.Constants;
+import tachyon.conf.MasterConf;
 
 public class CommonUtilsTest {
+
+  @Test
+
+  public void addLeadingZeroTest() throws IOException {
+    for (int k = 0; k < 10; k ++) {
+      Assert.assertEquals("" + k, CommonUtils.addLeadingZero(k, 1));
+      Assert.assertEquals("0" + k, CommonUtils.addLeadingZero(k, 2));
+      Assert.assertEquals("00" + k, CommonUtils.addLeadingZero(k, 3));
+      Assert.assertEquals("000" + k, CommonUtils.addLeadingZero(k, 4));
+      Assert.assertEquals("0000" + k, CommonUtils.addLeadingZero(k, 5));
+    }
+    for (int k = 10; k < 100; k ++) {
+      Assert.assertEquals("" + k, CommonUtils.addLeadingZero(k, 1));
+      Assert.assertEquals("" + k, CommonUtils.addLeadingZero(k, 2));
+      Assert.assertEquals("0" + k, CommonUtils.addLeadingZero(k, 3));
+      Assert.assertEquals("00" + k, CommonUtils.addLeadingZero(k, 4));
+      Assert.assertEquals("000" + k, CommonUtils.addLeadingZero(k, 5));
+    }
+  }
+
+  @Test(expected = IOException.class)
+  public void addLeadingZeroTestWithNegativeNumber() throws IOException {
+    CommonUtils.addLeadingZero(-1, 1);
+  }
+
+  @Test(expected = IOException.class)
+  public void addLeadingZeroTestWithNegativeWidth() throws IOException {
+    CommonUtils.addLeadingZero(1, 0);
+  }
+
+  @Test(expected = IOException.class)
+  public void addLeadingZeroTestWithZeroWidth() throws IOException {
+    CommonUtils.addLeadingZero(1, -1);
+  }
+
+  @Test
+  public void testSystemProperty() {
+    MasterConf conf = MasterConf.get();
+    String testProperty = "ANYTHING." + System.currentTimeMillis();
+    String prop = conf.getProperty(testProperty);
+    Assert.assertNull(prop); 
+
+    System.setProperty(testProperty, testProperty);
+    Assert.assertEquals(testProperty, conf.getProperty(testProperty));
+    System.clearProperty(testProperty);
+
+    prop = conf.getProperty(testProperty);
+    Assert.assertNull(prop); 
+
+  }
+
   @Test
   public void getPathWithoutSchemaTest() {
     List<String> schemas = new ArrayList<String>();
