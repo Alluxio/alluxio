@@ -14,7 +14,6 @@ import org.junit.Test;
 import tachyon.Pair;
 import tachyon.TestUtils;
 import tachyon.UnderFileSystem;
-import tachyon.client.BlockHandler;
 import tachyon.master.BlockInfo;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
@@ -43,12 +42,11 @@ public class EvictStrategyTest {
   private void createBlockFile(StorageDir dir, long blockId, int blockSize) throws IOException {
     byte[] buf = TestUtils.getIncreasingByteArray(blockSize);
 
-    BlockHandler bhSrc =
-        BlockHandler.get(CommonUtils.concat(dir.getUserTempFilePath(mUserId, blockId)));
+    SeekableByteChannel block = dir.getBlock(blockId);
     try {
-      bhSrc.append(0, ByteBuffer.wrap(buf));
+      block.write(ByteBuffer.wrap(buf));
     } finally {
-      bhSrc.close();
+      block.close();
     }
     dir.requestSpace(mUserId, blockSize);
     dir.cacheBlock(mUserId, blockId);

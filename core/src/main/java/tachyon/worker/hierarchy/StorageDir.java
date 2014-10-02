@@ -2,6 +2,8 @@ package tachyon.worker.hierarchy;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
@@ -22,7 +24,7 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
-import tachyon.client.BlockHandler;
+import tachyon.util.Channels;
 import tachyon.util.CommonUtils;
 import tachyon.worker.SpaceCounter;
 
@@ -165,10 +167,9 @@ public final class StorageDir {
     boolean copySuccess = false;
     Closer closer = Closer.create();
     try {
-      BlockHandler bhSrc = closer.register(getBlockHandler(blockId));
-      BlockHandler bhDst = closer.register(dstDir.getBlockHandler(blockId));
-      ByteBuffer srcBuf = bhSrc.read(0, (int) size);
-      copySuccess = (bhDst.append(0, srcBuf) == size);
+      SeekableByteChannel src = closer.register(getBlock(blockId));
+      SeekableByteChannel dest = closer.register(dstDir.getBlock(blockId));
+      copySuccess = src.transferTo(0, size, dest) > -1;
     } finally {
       closer.close();
     }
@@ -240,11 +241,11 @@ public final class StorageDir {
    * @throws IOException
    */
   public ByteBuffer getBlockData(long blockId, long offset, int length) throws IOException {
-    BlockHandler bh = getBlockHandler(blockId);
+    SeekableByteChannel block = getBlock(blockId);
     try {
-      return bh.read(offset, length);
+      return Channels.read(block.position(offset), length);
     } finally {
-      bh.close();
+      block.close();
     }
   }
 
@@ -258,20 +259,8 @@ public final class StorageDir {
     return mDataPath.join("" + blockId).toString();
   }
 
-  /**
-   * Get block handler used to access the block file
-   * 
-   * @param blockId Id of the block
-   * @return block handler of the block file
-   * @throws IOException
-   */
-  private BlockHandler getBlockHandler(long blockId) throws IOException {
-    String filePath = getBlockFilePath(blockId);
-    try {
-      return BlockHandler.get(filePath);
-    } catch (IllegalArgumentException e) {
-      throw new IOException(e.getMessage());
-    }
+  public SeekableByteChannel getBlock(long blockId) throws IOException {
+    return new BlockChannel(getBlockFilePath(blockId));
   }
 
   /**
