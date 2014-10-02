@@ -61,7 +61,7 @@ public class StorageDirTest {
       block.close();
     }
     dir.requestSpace(mUserId, blockSize);
-    dir.cacheBlock(mUserId, blockId);
+    dir.addBlock(blockId);
   }
 
   @Test

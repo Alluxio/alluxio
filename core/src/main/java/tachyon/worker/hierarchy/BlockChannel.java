@@ -92,4 +92,9 @@ final class BlockChannel implements SeekableByteChannel {
   public long transferTo(long position, long count, WritableByteChannel target) throws IOException {
     return mLocalFileChannel.transferTo(position, count, target);
   }
+
+  @Override
+  public long size() throws IOException {
+    return mLocalFile.length();
+  }
 }

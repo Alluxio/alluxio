@@ -13,4 +13,6 @@ public interface SeekableByteChannel extends ReadableByteChannel, WritableByteCh
   SeekableByteChannel position(long newPosition);
 
   long	transferTo(long position, long count, WritableByteChannel target) throws IOException;
+
+  long size() throws IOException;
 }
