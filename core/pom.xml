@@ -324,7 +324,7 @@
         <dependency>
           <groupId>com.ceph</groupId>
           <artifactId>libcephfs</artifactId>
-          <version>${libcephfs.version}</version>
+          <version>${cephfs-hadoop.version}</version>
           <type>jar</type>
           <scope>compile</scope>
         </dependency>
