@@ -1,6 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# VB specific configurations go here
+
 def config_vb(config, i, total, name)
   puts "starting " 
   puts Addr[i - 1]

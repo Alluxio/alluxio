@@ -1,4 +1,7 @@
 #!/bin/sh
+# uncommit the following to debug
+# set -e
+
 nodes=`cat /tachyon/conf/slaves`
 vol="tachyon_vol"
 brick=""

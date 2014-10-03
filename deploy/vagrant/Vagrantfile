@@ -14,6 +14,20 @@ Addr = @cmd['Addresses']
 Init = "#{Ufs}"+"/init.sh"
 Post = "#{Ufs}"+"/post.sh"
 
+# config cluster
+(1..Total).each do |i|    
+  if i == 1
+     file = File.open("../../conf/slaves","w")
+  else
+     file = File.open("../../conf/slaves","a")
+  end
+  if file != nil
+     file.write(Addr[i - 1])
+     file.write("\n")
+  end
+  file.close unless file == nil
+end
+  
 # Vagrantfile API/syntax version. 
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -34,18 +48,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
       # files shared by VMs go into shared folder
       system 'mkdir', '-p', './shared'
-
-      # config cluster
-      if i == 1
-        file = File.open("../../conf/slaves","w")
-      else
-        file = File.open("../../conf/slaves","a")
-      end
-      if file != nil
-        file.write(Addr[i - 1])
-        file.write("\n")
-      end
-      file.close unless file == nil
 
       # Provider specific init
       if Provider == "vb"
