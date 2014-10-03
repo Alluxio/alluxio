@@ -1,6 +1,6 @@
 ## What is Vagrant?
 
-Vagrant can create VM images (VirtualBox VMWare Fusion), Docker containers, and AWS instances. 
+Vagrant can create VM images (VirtualBox VMWare Fusion), Docker containers, and AWS and OpenStack instances. 
 
 ## Why Use Vagrant?
 
@@ -12,6 +12,6 @@ Tachyon uses a variety of under filesystems. Some of these filesystems must be i
 
 This directory contains Vagrant recipe to create VM images and configurations to initialize Hadoop (both 1.x and 2.x), CephFS, and GlusterFS.
 
-Once vagrant is installed, starting an Tachyon cluster requires only `vagrant up` command. A two-VM cluster is then created. `vagrant destroy` command destroys the cluster.
+Once Vagrant is installed, starting an Tachyon cluster requires only `vagrant up` command. A two-VM cluster is then created. `vagrant destroy` command destroys the cluster.
  
-`init.yaml` is the configuration file that sets different cluster parameters. The file is self-explanatory.  
+`init.yml` is the configuration file that sets different cluster parameters. The file is self-explanatory.  
