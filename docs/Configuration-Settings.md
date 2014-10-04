@@ -189,7 +189,7 @@ number.
 <tr>
   <td>tachyon.worker.network.netty.worker.threads</td>
   <td>0</td>
-  <td>How many threads to use for processing requests.  Zero defaults to #cpuCores * 2</td>
+  <td>How many threads to use for processing requests. Zero defaults to #cpuCores * 2</td>
 </tr>
 <tr>
   <td>tachyon.worker.network.netty.file.transfer</td>

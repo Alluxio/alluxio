@@ -68,10 +68,9 @@ public final class CommonUtils {
    * Blocking operation that copies the processes stdout/stderr to this JVM's stdout/stderr.
    */
   private static void redirectIO(final Process process) throws IOException {
-    // because chmod doesn't have a lot of error or output messages, its safe to process
-    // the output after the process is done.
-    // As of java 7, you can have the process redirect to System.out and System.err without
-    // forking a process.
+    // Because chmod doesn't have a lot of error or output messages, its safe to process the output
+    // after the process is done. As of java 7, you can have the process redirect to System.out
+    // and System.err without forking a process.
     // TODO when java 6 support is dropped, switch to
     // http://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html#inheritIO()
     Closer closer = Closer.create();

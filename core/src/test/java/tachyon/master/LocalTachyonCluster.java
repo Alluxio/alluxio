@@ -149,8 +149,8 @@ public class LocalTachyonCluster {
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
     System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
-    // don't spin off too many threads for data port.  Each test will create a new data
-    // server so the default thread overhead is too much
+    // Don't spin off too many threads for data port. Each test will create a new data server so the
+    // default thread overhead is too much.
     System.setProperty("tachyon.worker.network.netty.worker.threads", Integer.toString(2));
 
     CommonConf.clear();
