@@ -134,7 +134,7 @@ public class TachyonWorker implements Runnable {
 
   private final DataServer mDataServer;
 
-  private ScheduledExecutorService mHeartbeatService;
+  private final ScheduledExecutorService mHeartbeatService;
 
   private final int mPort;
   private final int mDataPort;
