@@ -1,6 +1,6 @@
-# Ufs = {glusterfs|ceph|hadoop2|dummy}
+# Ufs = {glusterfs|hadoop2|dummy}
 Ufs: 'glusterfs'
-# Provider = {vb|docker|aws}
+# Provider = {vb|aws}
 # Currently only vb is implemented
 Provider: 'vb'
 # Memory is the amount memory allocated to each VM

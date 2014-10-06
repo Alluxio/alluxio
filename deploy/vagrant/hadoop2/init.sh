@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 HADOOP_VERSION="2.4.1"
 nodes=`cat /tachyon/conf/slaves`
