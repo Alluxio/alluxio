@@ -1,6 +1,7 @@
 package tachyon.examples;
 
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import tachyon.Constants;
 import tachyon.client.ReadType;
@@ -74,5 +75,16 @@ public final class Utils {
     } else {
       return defaultValue;
     }
+  }
+
+  public static void runExample(final Callable<Boolean> example) {
+    boolean result;
+    try {
+      result = example.call();
+    } catch (Exception e) {
+      result = false;
+    }
+    Utils.printPassInfo(result);
+    System.exit(result? 0 : 1);
   }
 }

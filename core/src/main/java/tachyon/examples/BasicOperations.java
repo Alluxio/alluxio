@@ -3,6 +3,7 @@ package tachyon.examples;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,43 +18,39 @@ import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.util.CommonUtils;
 
-public class BasicOperations {
+public class BasicOperations implements Callable<Boolean> {
   private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static TachyonFS sTachyonClient;
-  private static TachyonURI sFilePath = null;
-  private static WriteType sWriteType = null;
-  private static int sNumbers = 20;
-  private static boolean sPass = true;
+  private final TachyonURI mMasterLocation;
+  private final TachyonURI mFilePath;
+  private final WriteType sWriteType;
+  private final int mNumbers = 20;
 
-  public static void main(String[] args) throws IOException {
-    if (args.length != 3) {
-      System.out.println("java -cp target/tachyon-" + Version.VERSION
-          + "-jar-with-dependencies.jar "
-          + "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
-      System.exit(-1);
-    }
-    sTachyonClient = TachyonFS.get(new TachyonURI(args[0]));
-    sFilePath = new TachyonURI(args[1]);
-    sWriteType = WriteType.getOpType(args[2]);
-    createFile();
-    writeFile();
-    readFile();
-    Utils.printPassInfo(sPass);
-    System.exit(0);
+  public BasicOperations(TachyonURI mMasterLocation, TachyonURI mFilePath, WriteType sWriteType) {
+    this.mMasterLocation = mMasterLocation;
+    this.mFilePath = mFilePath;
+    this.sWriteType = sWriteType;
   }
 
-  public static void createFile() throws IOException {
+  @Override
+  public Boolean call() throws Exception {
+    TachyonFS tachyonClient = TachyonFS.get(mMasterLocation);
+    createFile(tachyonClient);
+    writeFile(tachyonClient);
+    return readFile(tachyonClient);
+  }
+
+  private void createFile(TachyonFS tachyonClient) throws IOException {
     LOG.debug("Creating file...");
     long startTimeMs = CommonUtils.getCurrentMs();
-    int fileId = sTachyonClient.createFile(sFilePath);
+    int fileId = tachyonClient.createFile(mFilePath);
     CommonUtils.printTimeTakenMs(startTimeMs, LOG, "createFile with fileId " + fileId);
   }
 
-  public static void writeFile() throws IOException {
-    ByteBuffer buf = ByteBuffer.allocate(sNumbers * 4);
+  private void writeFile(TachyonFS tachyonClient) throws IOException {
+    ByteBuffer buf = ByteBuffer.allocate(mNumbers * 4);
     buf.order(ByteOrder.nativeOrder());
-    for (int k = 0; k < sNumbers; k ++) {
+    for (int k = 0; k < mNumbers; k ++) {
       buf.putInt(k);
     }
 
@@ -62,30 +59,44 @@ public class BasicOperations {
     buf.flip();
 
     long startTimeMs = CommonUtils.getCurrentMs();
-    TachyonFile file = sTachyonClient.getFile(sFilePath);
+    TachyonFile file = tachyonClient.getFile(mFilePath);
     OutStream os = file.getOutStream(sWriteType);
     os.write(buf.array());
     os.close();
 
-    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "writeFile to file " + sFilePath);
+    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "writeFile to file " + mFilePath);
   }
 
-  public static void readFile() throws IOException {
+  private boolean readFile(TachyonFS tachyonClient) throws IOException {
+    boolean pass = true;
     LOG.debug("Reading data...");
 
     long startTimeMs = CommonUtils.getCurrentMs();
-    TachyonFile file = sTachyonClient.getFile(sFilePath);
+    TachyonFile file = tachyonClient.getFile(mFilePath);
     TachyonByteBuffer buf = file.readByteBuffer(0);
     if (buf == null) {
       file.recache();
       buf = file.readByteBuffer(0);
     }
     buf.DATA.order(ByteOrder.nativeOrder());
-    for (int k = 0; k < sNumbers; k ++) {
-      sPass = sPass && (buf.DATA.getInt() == k);
+    for (int k = 0; k < mNumbers; k ++) {
+      pass = pass && (buf.DATA.getInt() == k);
     }
     buf.close();
 
-    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "readFile file " + sFilePath);
+    CommonUtils.printTimeTakenMs(startTimeMs, LOG, "readFile file " + mFilePath);
+    return pass;
+  }
+
+  public static void main(String[] args) throws IOException {
+    if (args.length != 3) {
+      System.out.println("java -cp target/tachyon-" + Version.VERSION
+          + "-jar-with-dependencies.jar "
+          + "tachyon.examples.BasicOperations <TachyonMasterAddress> <FilePath> <WriteType>");
+      System.exit(-1);
+    };
+
+    Utils.runExample(new BasicOperations(new TachyonURI(args[0]), new TachyonURI(args[1]),
+        WriteType.getOpType(args[2])));
   }
 }
