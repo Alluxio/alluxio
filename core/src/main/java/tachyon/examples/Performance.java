@@ -15,9 +15,6 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
@@ -29,6 +26,9 @@ import tachyon.client.TachyonFile;
 import tachyon.client.WriteType;
 import tachyon.conf.UserConf;
 import tachyon.util.CommonUtils;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 
 public class Performance {
   private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
