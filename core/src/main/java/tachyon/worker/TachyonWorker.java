@@ -134,9 +134,7 @@ public class TachyonWorker implements Runnable {
 
   private final DataServer mDataServer;
 
-  private ScheduledExecutorService heartbeatService;
-
-//  private volatile boolean mStop = false;
+  private final ScheduledExecutorService mHeartbeatService;
 
   private final int mPort;
   private final int mDataPort;
@@ -174,7 +172,7 @@ public class TachyonWorker implements Runnable {
     mDataServer = createDataServer(dataAddress, blockLocker);
     mDataPort = mDataServer.getPort();
 
-    heartbeatService = Executors.newSingleThreadScheduledExecutor();
+    mHeartbeatService = Executors.newSingleThreadScheduledExecutor();
     try {
       LOG.info("Tachyon Worker version " + Version.VERSION + " tries to start @ " + workerAddress);
       WorkerService.Processor<WorkerServiceHandler> processor =
@@ -247,7 +245,6 @@ public class TachyonWorker implements Runnable {
         } catch (IOException e2) {
           LOG.error("Received exception while attempting to reset client", e2);
         }
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         cmd = null;
       }
 
@@ -264,8 +261,8 @@ public class TachyonWorker implements Runnable {
             mWorkerStorage.register();
             break;
           case Free:
-            mWorkerStorage.freeBlocks(cmd.mData);
             LOG.info("Free command: " + cmd);
+            mWorkerStorage.freeBlocks(cmd.mData);
             break;
           case Delete:
             LOG.info("Delete command: " + cmd);
@@ -282,7 +279,7 @@ public class TachyonWorker implements Runnable {
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
   public void start() {
-    heartbeatService.scheduleWithFixedDelay(this, 0, WorkerConf.get().HEARTBEAT_TIMEOUT_MS, 
+    mHeartbeatService.scheduleWithFixedDelay(this, 0, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS, 
         TimeUnit.MILLISECONDS);
 
     LOG.info("The worker server started @ " + mWorkerAddress);
@@ -301,10 +298,10 @@ public class TachyonWorker implements Runnable {
     mDataServer.close();
     mServer.stop();
     mServerTNonblockingServerSocket.close();
-    while (!mDataServer.isClosed() || mServer.isServing() || !heartbeatService.isShutdown()) {
+    while (!mDataServer.isClosed() || mServer.isServing() || !mHeartbeatService.isShutdown()) {
       // TODO The reason to stop and close again is due to some issues in Thrift.
       mServer.stop();
-      heartbeatService.shutdown();
+      mHeartbeatService.shutdown();
       mServerTNonblockingServerSocket.close();
       CommonUtils.sleepMs(null, 100);
     }
