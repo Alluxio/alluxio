@@ -3,6 +3,9 @@ package tachyon.worker;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
@@ -131,9 +134,7 @@ public class TachyonWorker implements Runnable {
 
   private final DataServer mDataServer;
 
-  private Thread mHeartbeatThread;
-
-  private volatile boolean mStop = false;
+  private final ScheduledExecutorService mHeartbeatService;
 
   private final int mPort;
   private final int mDataPort;
@@ -171,7 +172,7 @@ public class TachyonWorker implements Runnable {
     mDataServer = createDataServer(dataAddress, blockLocker);
     mDataPort = mDataServer.getPort();
 
-    mHeartbeatThread = new Thread(this);
+    mHeartbeatService = Executors.newSingleThreadScheduledExecutor();
     try {
       LOG.info("Tachyon Worker version " + Version.VERSION + " tries to start @ " + workerAddress);
       WorkerService.Processor<WorkerServiceHandler> processor =
@@ -230,21 +231,11 @@ public class TachyonWorker implements Runnable {
 
   @Override
   public void run() {
-    long lastHeartbeatMs = System.currentTimeMillis();
     Command cmd = null;
-    while (!mStop) {
-      long diff = System.currentTimeMillis() - lastHeartbeatMs;
-      if (diff < WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS) {
-        LOG.debug("Heartbeat process takes {} ms.", diff);
-        CommonUtils.sleepMs(LOG, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS - diff);
-      } else {
-        LOG.error("Heartbeat process takes " + diff + " ms.");
-      }
 
       try {
         cmd = mWorkerStorage.heartbeat();
 
-        lastHeartbeatMs = System.currentTimeMillis();
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
       } catch (IOException e) {
@@ -254,12 +245,7 @@ public class TachyonWorker implements Runnable {
         } catch (IOException e2) {
           LOG.error("Received exception while attempting to reset client", e2);
         }
-        CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
         cmd = null;
-        if (System.currentTimeMillis() - lastHeartbeatMs >= WorkerConf.get().HEARTBEAT_TIMEOUT_MS) {
-          throw new RuntimeException("Timebeat timeout "
-              + (System.currentTimeMillis() - lastHeartbeatMs) + "ms");
-        }
       }
 
       if (cmd != null) {
@@ -275,8 +261,8 @@ public class TachyonWorker implements Runnable {
             mWorkerStorage.register();
             break;
           case Free:
-            mWorkerStorage.freeBlocks(cmd.mData);
             LOG.info("Free command: " + cmd);
+            mWorkerStorage.freeBlocks(cmd.mData);
             break;
           case Delete:
             LOG.info("Delete command: " + cmd);
@@ -287,14 +273,14 @@ public class TachyonWorker implements Runnable {
       }
 
       mWorkerStorage.checkStatus();
-    }
   }
 
   /**
    * Start the data server thread and heartbeat thread of this TachyonWorker.
    */
   public void start() {
-    mHeartbeatThread.start();
+    mHeartbeatService.scheduleWithFixedDelay(this, 0, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS, 
+        TimeUnit.MILLISECONDS);
 
     LOG.info("The worker server started @ " + mWorkerAddress);
     mServer.serve();
@@ -308,17 +294,16 @@ public class TachyonWorker implements Runnable {
    * @throws InterruptedException
    */
   public void stop() throws IOException, InterruptedException {
-    mStop = true;
     mWorkerStorage.stop();
     mDataServer.close();
     mServer.stop();
     mServerTNonblockingServerSocket.close();
-    while (!mDataServer.isClosed() || mServer.isServing() || mHeartbeatThread.isAlive()) {
+    while (!mDataServer.isClosed() || mServer.isServing() || !mHeartbeatService.isShutdown()) {
       // TODO The reason to stop and close again is due to some issues in Thrift.
       mServer.stop();
+      mHeartbeatService.shutdown();
       mServerTNonblockingServerSocket.close();
       CommonUtils.sleepMs(null, 100);
     }
-    mHeartbeatThread.join();
   }
 }
