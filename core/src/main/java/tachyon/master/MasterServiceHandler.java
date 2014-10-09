@@ -4,12 +4,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.thrift.TException;
 
+import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.conf.CommonConf;
 import tachyon.thrift.BlockInfoException;
@@ -48,7 +50,8 @@ public class MasterServiceHandler implements MasterService.Iface {
   public boolean addCheckpoint(long workerId, int fileId, long fileSizeBytes, String checkpointPath)
       throws FileDoesNotExistException, SuspectedFileSizeException, BlockInfoException, TException {
     try {
-      return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, checkpointPath);
+      return mMasterInfo.addCheckpoint(workerId, fileId, fileSizeBytes, new TachyonURI(
+          checkpointPath));
     } catch (FileNotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());
     }
@@ -62,7 +65,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
     }
 
-    return mMasterInfo.getClientFileInfo(path);
+    return mMasterInfo.getClientFileInfo(new TachyonURI(path));
   }
 
   @Override
@@ -73,7 +76,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public List<ClientFileInfo> liststatus(String path) throws InvalidPathException,
       FileDoesNotExistException, TException {
-    return mMasterInfo.getFilesInfo(path);
+    return mMasterInfo.getFilesInfo(new TachyonURI(path));
   }
 
   @Override
@@ -88,10 +91,16 @@ public class MasterServiceHandler implements MasterService.Iface {
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistException,
       BlockInfoException, TachyonException, TException {
     try {
+      List<TachyonURI> childrenUris = new ArrayList<TachyonURI>(children.size());
       for (int k = 0; k < children.size(); k ++) {
-        mMasterInfo.createFile(children.get(k), childrenBlockSizeByte);
+        mMasterInfo.createFile(new TachyonURI(children.get(k)), childrenBlockSizeByte);
+        childrenUris.add(new TachyonURI(children.get(k)));
       }
-      return mMasterInfo.createDependency(parents, children, commandPrefix, data, comment,
+      List<TachyonURI> parentUris = new ArrayList<TachyonURI>(parents.size());
+      for (int k = 0; k < parents.size(); k ++) {
+        parentUris.add(new TachyonURI(parents.get(k)));
+      }
+      return mMasterInfo.createDependency(parentUris, childrenUris, commandPrefix, data, comment,
           framework, frameworkVersion, DependencyType.getDependencyType(dependencyType));
     } catch (IOException e) {
       throw new FileDoesNotExistException(e.getMessage());
@@ -107,8 +116,9 @@ public class MasterServiceHandler implements MasterService.Iface {
       try {
         long ufsBlockSizeByte = underfs.getBlockSizeByte(ufsPath);
         long fileSizeByte = underfs.getFileSize(ufsPath);
-        int fileId = mMasterInfo.createFile(path, ufsBlockSizeByte, recursive);
-        if (fileId != -1 && mMasterInfo.addCheckpoint(-1, fileId, fileSizeByte, ufsPath)) {
+        int fileId = mMasterInfo.createFile(new TachyonURI(path), ufsBlockSizeByte, recursive);
+        if (fileId != -1
+            && mMasterInfo.addCheckpoint(-1, fileId, fileSizeByte, new TachyonURI(ufsPath))) {
           return fileId;
         }
       } catch (IOException e) {
@@ -116,7 +126,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       }
     }
 
-    return mMasterInfo.createFile(path, blockSizeByte, recursive);
+    return mMasterInfo.createFile(new TachyonURI(path), blockSizeByte, recursive);
   }
 
   @Override
@@ -128,7 +138,7 @@ public class MasterServiceHandler implements MasterService.Iface {
   public int user_createRawTable(String path, int columns, ByteBuffer metadata)
       throws FileAlreadyExistException, InvalidPathException, TableColumnException,
       TachyonException, TException {
-    return mMasterInfo.createRawTable(path, columns,
+    return mMasterInfo.createRawTable(new TachyonURI(path), columns,
         CommonUtils.generateNewByteBufferFromThriftRPCResults(metadata));
   }
 
@@ -138,7 +148,7 @@ public class MasterServiceHandler implements MasterService.Iface {
     if (fileId != -1) {
       return mMasterInfo.delete(fileId, recursive);
     }
-    return mMasterInfo.delete(path, recursive);
+    return mMasterInfo.delete(new TachyonURI(path), recursive);
   }
 
   @Override
@@ -171,7 +181,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       return mMasterInfo.getClientRawTableInfo(id);
     }
 
-    return mMasterInfo.getClientRawTableInfo(path);
+    return mMasterInfo.getClientRawTableInfo(new TachyonURI(path));
   }
 
   @Override
@@ -182,7 +192,7 @@ public class MasterServiceHandler implements MasterService.Iface {
       if (fileId != -1) {
         ret = mMasterInfo.getFileBlocks(fileId);
       } else {
-        ret = mMasterInfo.getFileBlocks(path);
+        ret = mMasterInfo.getFileBlocks(new TachyonURI(path));
       }
     } catch (IOException e) {
       throw new FileDoesNotExistException(e.getMessage());
@@ -192,7 +202,7 @@ public class MasterServiceHandler implements MasterService.Iface {
 
   @Override
   public int user_getRawTableId(String path) throws InvalidPathException, TException {
-    return mMasterInfo.getRawTableId(path);
+    return mMasterInfo.getRawTableId(new TachyonURI(path));
   }
 
   @Override
@@ -227,17 +237,17 @@ public class MasterServiceHandler implements MasterService.Iface {
   @Override
   public boolean user_mkdirs(String path, boolean recursive) throws FileAlreadyExistException,
       InvalidPathException, TachyonException, TException {
-    return mMasterInfo.mkdirs(path, recursive);
+    return mMasterInfo.mkdirs(new TachyonURI(path), recursive);
   }
 
   @Override
   public boolean user_rename(int fileId, String srcPath, String dstPath)
       throws FileAlreadyExistException, FileDoesNotExistException, InvalidPathException, TException {
     if (fileId != -1) {
-      return mMasterInfo.rename(fileId, dstPath);
+      return mMasterInfo.rename(fileId, new TachyonURI(dstPath));
     }
 
-    return mMasterInfo.rename(srcPath, dstPath);
+    return mMasterInfo.rename(new TachyonURI(srcPath), new TachyonURI(dstPath));
   }
 
   @Override

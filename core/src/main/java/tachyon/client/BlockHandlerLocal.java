@@ -21,7 +21,8 @@ import tachyon.util.CommonUtils;
  */
 public final class BlockHandlerLocal extends BlockHandler {
 
-  private final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final RandomAccessFile mLocalFile;
   private final FileChannel mLocalFileChannel;
   private boolean mPermission = false;
@@ -40,10 +41,11 @@ public final class BlockHandlerLocal extends BlockHandler {
   @Override
   public int append(long blockOffset, ByteBuffer srcBuf) throws IOException {
     checkPermission();
-    ByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, blockOffset, srcBuf.limit());
+    int bufLen = srcBuf.limit();
+    ByteBuffer out = mLocalFileChannel.map(MapMode.READ_WRITE, blockOffset, bufLen);
     out.put(srcBuf);
 
-    return srcBuf.limit();
+    return bufLen;
   }
 
   private void checkPermission() throws IOException {

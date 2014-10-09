@@ -65,12 +65,11 @@ public class TachyonFSTest {
 
   @Test
   public void createFileTest2() throws IOException {
-    Assert.assertEquals(3, mTfs.createFile(new TachyonURI("/root/testFile1")));
-    Assert.assertTrue(mTfs.exist("/root/testFile1"));
-    Assert.assertEquals(4, mTfs.createFile(new TachyonURI("/root/testFile2")));
-    Assert.assertTrue(mTfs.exist("/root/testFile2"));
-    Assert.assertEquals(5, mTfs.createFile(new TachyonURI("/root/testFile3")));
-    Assert.assertTrue(mTfs.exist("/root/testFile3"));
+    for (int k = 1; k < 4; k ++) {
+      TachyonURI uri = new TachyonURI("/root/testFile" + k);
+      Assert.assertEquals(k + 2, mTfs.createFile(uri));
+      Assert.assertTrue(mTfs.exist(uri));
+    }
   }
 
   @Test
@@ -79,9 +78,10 @@ public class TachyonFSTest {
     UnderFileSystem underFs = UnderFileSystem.get(tempFolder);
     OutputStream os = underFs.create(tempFolder + "/temp", 100);
     os.close();
-    mTfs.createFile(new TachyonURI("/abc"), new TachyonURI(tempFolder + "/temp"));
-    Assert.assertTrue(mTfs.exist("/abc"));
-    Assert.assertEquals(tempFolder + "/temp", mTfs.getFile("/abc").getUfsPath());
+    TachyonURI uri = new TachyonURI("/abc");
+    mTfs.createFile(uri, new TachyonURI(tempFolder + "/temp"));
+    Assert.assertTrue(mTfs.exist(uri));
+    Assert.assertEquals(tempFolder + "/temp", mTfs.getFile(uri).getUfsPath());
   }
 
   @Test(expected = IOException.class)
@@ -98,14 +98,14 @@ public class TachyonFSTest {
 
   @Test
   public void createRawTableTestEmptyMetadata() throws IOException {
-    int fileId = mTfs.createRawTable("/tables/table1", 20);
+    int fileId = mTfs.createRawTable(new TachyonURI("/tables/table1"), 20);
     RawTable table = mTfs.getRawTable(fileId);
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals("/tables/table1", table.getPath());
     Assert.assertEquals(20, table.getColumns());
     Assert.assertEquals(ByteBuffer.allocate(0), table.getMetadata());
 
-    table = mTfs.getRawTable("/tables/table1");
+    table = mTfs.getRawTable(new TachyonURI("/tables/table1"));
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals("/tables/table1", table.getPath());
     Assert.assertEquals(20, table.getColumns());
@@ -114,14 +114,15 @@ public class TachyonFSTest {
 
   @Test
   public void createRawTableTestWithMetadata() throws IOException {
-    int fileId = mTfs.createRawTable("/tables/table1", 20, TestUtils.getIncreasingByteBuffer(9));
+    TachyonURI uri = new TachyonURI("/tables/table1");
+    int fileId = mTfs.createRawTable(uri, 20, TestUtils.getIncreasingByteBuffer(9));
     RawTable table = mTfs.getRawTable(fileId);
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals("/tables/table1", table.getPath());
     Assert.assertEquals(20, table.getColumns());
     Assert.assertEquals(TestUtils.getIncreasingByteBuffer(9), table.getMetadata());
 
-    table = mTfs.getRawTable("/tables/table1");
+    table = mTfs.getRawTable(uri);
     Assert.assertEquals(fileId, table.getId());
     Assert.assertEquals("/tables/table1", table.getPath());
     Assert.assertEquals(20, table.getColumns());
@@ -130,18 +131,19 @@ public class TachyonFSTest {
 
   @Test(expected = IOException.class)
   public void createRawTableWithFileAlreadyExistExceptionTest() throws IOException {
-    mTfs.createRawTable("/table", 20);
-    mTfs.createRawTable("/table", 20);
+    TachyonURI uri = new TachyonURI("/table");
+    mTfs.createRawTable(uri, 20);
+    mTfs.createRawTable(uri, 20);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithInvalidPathExceptionTest1() throws IOException {
-    mTfs.createRawTable("tables/table1", 20);
+    mTfs.createRawTable(new TachyonURI("tables/table1"), 20);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithInvalidPathExceptionTest2() throws IOException {
-    mTfs.createRawTable("/tab les/table1", 20);
+    mTfs.createRawTable(new TachyonURI("/tab les/table1"), 20);
   }
 
   @Test(expected = IOException.class)
@@ -149,17 +151,17 @@ public class TachyonFSTest {
     String maxColumnsProp = System.getProperty("tachyon.max.columns");
 
     Assert.assertEquals(Integer.parseInt(maxColumnsProp), CommonConf.get().MAX_COLUMNS);
-    mTfs.createRawTable("/table", CommonConf.get().MAX_COLUMNS);
+    mTfs.createRawTable(new TachyonURI("/table"), CommonConf.get().MAX_COLUMNS);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest2() throws IOException {
-    mTfs.createRawTable("/table", 0);
+    mTfs.createRawTable(new TachyonURI("/table"), 0);
   }
 
   @Test(expected = IOException.class)
   public void createRawTableWithTableColumnExceptionTest3() throws IOException {
-    mTfs.createRawTable("/table", -1);
+    mTfs.createRawTable(new TachyonURI("/table"), -1);
   }
 
   @Test
@@ -177,10 +179,11 @@ public class TachyonFSTest {
     Assert.assertTrue(mTfs.delete(new TachyonURI("/abc"), true));
 
     for (int k = 0; k < 5; k ++) {
-      int fileId = TestUtils.createByteFile(mTfs, "/file" + k, WriteType.MUST_CACHE, writeBytes);
+      TachyonURI fileURI = new TachyonURI("/file" + k);
+      int fileId = TestUtils.createByteFile(mTfs, fileURI, WriteType.MUST_CACHE, writeBytes);
       TachyonFile file = mTfs.getFile(fileId);
       Assert.assertTrue(file.isInMemory());
-      Assert.assertTrue(mTfs.exist("/file" + k));
+      Assert.assertTrue(mTfs.exist(fileURI));
 
       workers = mTfs.getWorkersInfo();
       Assert.assertEquals(1, workers.size());
@@ -205,10 +208,11 @@ public class TachyonFSTest {
   @Test
   public void getFileStatusTest() throws IOException {
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
-    int fileId = TestUtils.createByteFile(mTfs, "/file", WriteType.MUST_CACHE, writeBytes);
+    TachyonURI uri = new TachyonURI("/file");
+    int fileId = TestUtils.createByteFile(mTfs, uri, WriteType.MUST_CACHE, writeBytes);
     TachyonFile file = mTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
-    Assert.assertTrue(mTfs.exist("/file"));
+    Assert.assertTrue(mTfs.exist(uri));
     ClientFileInfo fileInfo = mTfs.getFileStatus(fileId, false);
     Assert.assertTrue(fileInfo.getPath().equals("/file"));
   }
@@ -216,10 +220,11 @@ public class TachyonFSTest {
   @Test
   public void getFileStatusCacheTest() throws IOException {
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
-    int fileId = TestUtils.createByteFile(mTfs, "/file", WriteType.MUST_CACHE, writeBytes);
+    TachyonURI uri = new TachyonURI("/file");
+    int fileId = TestUtils.createByteFile(mTfs, uri, WriteType.MUST_CACHE, writeBytes);
     TachyonFile file = mTfs.getFile(fileId);
     Assert.assertTrue(file.isInMemory());
-    Assert.assertTrue(mTfs.exist("/file"));
+    Assert.assertTrue(mTfs.exist(uri));
     ClientFileInfo fileInfo = mTfs.getFileStatus(fileId, false);
     Assert.assertTrue(fileInfo.getPath().equals("/file"));
     ClientFileInfo fileInfoCached = mTfs.getFileStatus(fileId, true);
@@ -232,28 +237,28 @@ public class TachyonFSTest {
   public void getTestAbnormal1() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS.get("/" + host + ":" + port);
+    TachyonFS.get(new TachyonURI("/" + host + ":" + port));
   }
 
   @Test(expected = IOException.class)
   public void getTestAbnormal2() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS.get("/" + host + port);
+    TachyonFS.get(new TachyonURI("/" + host + port));
   }
 
   @Test(expected = IOException.class)
   public void getTestAbnormal3() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS.get("/" + host + ":" + (port - 1));
+    TachyonFS.get(new TachyonURI("/" + host + ":" + (port - 1)));
   }
 
   @Test(expected = IOException.class)
   public void getTestAbnormal4() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS.get("/" + host + ":" + port + "/ab/c.txt");
+    TachyonFS.get(new TachyonURI("/" + host + ":" + port + "/ab/c.txt"));
   }
 
   private void getTestHelper(TachyonFS tfs) throws IOException {
@@ -266,7 +271,7 @@ public class TachyonFSTest {
   public void getTestNormal1() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS tfs = TachyonFS.get("tachyon://" + host + ":" + port);
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port));
     getTestHelper(tfs);
   }
 
@@ -274,7 +279,7 @@ public class TachyonFSTest {
   public void getTestNormal2() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS tfs = TachyonFS.get("tachyon://" + host + ":" + port + "/");
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port + "/"));
     getTestHelper(tfs);
   }
 
@@ -282,7 +287,7 @@ public class TachyonFSTest {
   public void getTestNormal3() throws IOException {
     String host = mLocalTachyonCluster.getMasterHostname();
     int port = mLocalTachyonCluster.getMasterPort();
-    TachyonFS tfs = TachyonFS.get("tachyon://" + host + ":" + port + "/ab/c.txt");
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://" + host + ":" + port + "/ab/c.txt"));
     getTestHelper(tfs);
   }
 
@@ -395,8 +400,8 @@ public class TachyonFSTest {
   @Test
   public void mkdirTest() throws IOException {
     for (int k = 0; k < 10; k ++) {
-      Assert.assertEquals(true, mTfs.mkdir("/root/folder" + k));
-      Assert.assertEquals(true, mTfs.mkdir("/root/folder" + k));
+      Assert.assertEquals(true, mTfs.mkdir(new TachyonURI("/root/folder" + k)));
+      Assert.assertEquals(true, mTfs.mkdir(new TachyonURI("/root/folder" + k)));
     }
   }
 
@@ -416,7 +421,8 @@ public class TachyonFSTest {
   @Test
   public void renameFileTest2() throws IOException {
     mTfs.createFile(new TachyonURI("/root/testFile1"));
-    Assert.assertTrue(mTfs.rename("/root/testFile1", "/root/testFile1"));
+    Assert.assertTrue(mTfs.rename(new TachyonURI("/root/testFile1"), new TachyonURI(
+        "/root/testFile1")));
   }
 
   @Test
@@ -436,8 +442,7 @@ public class TachyonFSTest {
 
   @Test
   public void toStringTest() throws IOException {
-    String tfsAddress = "tachyon://127.0.0.1:19998";
-    TachyonFS tfs = TachyonFS.get(tfsAddress);
+    TachyonFS tfs = TachyonFS.get(new TachyonURI("tachyon://127.0.0.1:19998"));
     Assert.assertEquals(tfs.toString(), "tachyon:///127.0.0.1:19998");
   }
 

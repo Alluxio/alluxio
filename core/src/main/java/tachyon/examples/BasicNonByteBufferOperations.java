@@ -35,14 +35,13 @@ public final class BasicNonByteBufferOperations {
       usage();
     }
 
-    String address = args[0];
     TachyonURI filePath = new TachyonURI(args[1]);
     WriteType writeType = Utils.option(args, 2, WriteType.MUST_CACHE);
     ReadType readType = Utils.option(args, 3, ReadType.NO_CACHE);
     boolean deleteIfExists = Utils.option(args, 4, true);
     int length = Utils.option(args, 5, 20);
 
-    TachyonFS client = TachyonFS.get(address);
+    TachyonFS client = TachyonFS.get(new TachyonURI(args[0]));
 
     write(client, filePath, writeType, deleteIfExists, length);
     boolean passes = read(client, filePath, readType);
@@ -66,8 +65,8 @@ public final class BasicNonByteBufferOperations {
     }
   }
 
-  private static TachyonFile getOrCreate(TachyonFS client, TachyonURI filePath, boolean deleteIfExists)
-      throws IOException {
+  private static TachyonFile getOrCreate(TachyonFS client, TachyonURI filePath,
+      boolean deleteIfExists) throws IOException {
     TachyonFile file = client.getFile(filePath);
     if (file == null) {
       // file doesn't exist yet, so create it

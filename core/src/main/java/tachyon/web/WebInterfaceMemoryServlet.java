@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import tachyon.TachyonURI;
 import tachyon.master.MasterInfo;
 import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.InvalidPathException;
@@ -37,11 +38,11 @@ public class WebInterfaceMemoryServlet extends HttpServlet {
     request.setAttribute("masterNodeAddress", mMasterInfo.getMasterAddress().toString());
     request.setAttribute("fatalError", "");
 
-    List<String> inMemoryFiles = mMasterInfo.getInMemoryFiles();
+    List<TachyonURI> inMemoryFiles = mMasterInfo.getInMemoryFiles();
     Collections.sort(inMemoryFiles);
 
     List<UiFileInfo> fileInfos = new ArrayList<UiFileInfo>(inMemoryFiles.size());
-    for (String file : inMemoryFiles) {
+    for (TachyonURI file : inMemoryFiles) {
       try {
         ClientFileInfo fileInfo = mMasterInfo.getClientFileInfo(file);
         if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {

@@ -38,34 +38,36 @@ public class PinTest {
   @Test
   public void recursivePinness() throws Exception {
     int dir0Id = mTfs.getFileId(new TachyonURI("/"));
+    TachyonURI folder = new TachyonURI("/myFolder");
+    TachyonURI file = new TachyonURI("/myFolder/myFile");
 
-    mTfs.mkdir("/myFolder");
-    int dir1Id = mTfs.getFileId(new TachyonURI("/myFolder"));
+    mTfs.mkdir(folder);
+    int dir1Id = mTfs.getFileId(folder);
 
-    int fileId = mTfs.createFile(new TachyonURI("/myFolder/myFile"));
+    int fileId = mTfs.createFile(file);
     assertFalse(mTfs.getFile(fileId).needPin());
 
     mTfs.pinFile(fileId);
-    assertTrue(mTfs.getFile("/myFolder/myFile").needPin());
+    assertTrue(mTfs.getFile(file).needPin());
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(fileId));
 
     mTfs.unpinFile(fileId);
-    assertFalse(mTfs.getFile("/myFolder/myFile").needPin());
+    assertFalse(mTfs.getFile(file).needPin());
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer>newHashSet());
 
     // Pinning a folder should recursively pin subfolders.
     mTfs.pinFile(dir1Id);
-    assertTrue(mTfs.getFile("/myFolder/myFile").needPin());
+    assertTrue(mTfs.getFile(file).needPin());
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(fileId));
 
     // Same with unpinning.
     mTfs.unpinFile(dir0Id);
-    assertFalse(mTfs.getFile("/myFolder/myFile").needPin());
+    assertFalse(mTfs.getFile(file).needPin());
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.<Integer>newHashSet());
 
     // The last pin command always wins.
     mTfs.pinFile(fileId);
-    assertTrue(mTfs.getFile("/myFolder/myFile").needPin());
+    assertTrue(mTfs.getFile(file).needPin());
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(fileId));
   }
 
@@ -83,7 +85,7 @@ public class PinTest {
     assertEquals(Sets.newHashSet(mMasterInfo.getPinIdList()), Sets.newHashSet(file0Id));
 
     // Child folder should be pinned
-    mTfs.mkdir("/folder");
+    mTfs.mkdir(new TachyonURI("/folder"));
     int folderId = mTfs.getFileId(new TachyonURI("/folder"));
     assertTrue(mMasterInfo.getClientFileInfo(folderId).isPinned);
 

@@ -1,6 +1,5 @@
 package tachyon.master;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -30,6 +29,7 @@ import tachyon.thrift.InvalidPathException;
 public class JournalTest {
   private LocalTachyonCluster mLocalTachyonCluster = null;
   private TachyonFS mTfs = null;
+  private TachyonURI mRootUri = new TachyonURI(TachyonURI.SEPARATOR);
 
   /**
    * Test add block
@@ -38,14 +38,15 @@ public class JournalTest {
    */
   @Test
   public void AddBlockTest() throws Exception {
-    mTfs.createFile(new TachyonURI("/xyz"), 64);
-    TachyonFile file = mTfs.getFile("/xyz");
+    TachyonURI uri = new TachyonURI("/xyz");
+    mTfs.createFile(uri, 64);
+    TachyonFile file = mTfs.getFile(uri);
     OutputStream os = file.getOutStream(WriteType.MUST_CACHE);
     for (int k = 0; k < 1000; k ++) {
       os.write(k);
     }
     os.close();
-    ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz");
+    ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(uri);
     mLocalTachyonCluster.stopTFS();
     AddBlockTestUtil(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
@@ -58,12 +59,12 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(2, info.ls(TachyonURI.SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
-    Assert.assertTrue(info.getFileId("/xyz") != -1);
+    Assert.assertEquals(2, info.ls(mRootUri, true).size());
+    Assert.assertTrue(info.getFileId(mRootUri) != -1);
+    Assert.assertTrue(info.getFileId(new TachyonURI("/xyz")) != -1);
     int temp = fileInfo.inMemoryPercentage;
     fileInfo.setInMemoryPercentage(0);
-    Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId("/xyz")));
+    Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId(new TachyonURI("/xyz"))));
     fileInfo.setInMemoryPercentage(temp);
     info.stop();
   }
@@ -76,9 +77,11 @@ public class JournalTest {
   @Test
   public void AddCheckpointTest() throws Exception {
     TestUtils.createByteFile(mTfs, "/xyz", WriteType.THROUGH, 10);
-    ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz");
+    ClientFileInfo fInfo =
+        mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
     mTfs.createFile(new TachyonURI("/xyz_ck"), new TachyonURI(fInfo.getUfsPath()));
-    ClientFileInfo ckFileInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz_ck");
+    ClientFileInfo ckFileInfo =
+        mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz_ck"));
     mLocalTachyonCluster.stopTFS();
     AddCheckpointTestUtil(fInfo, ckFileInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
@@ -91,12 +94,14 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(3, info.ls(TachyonURI.SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
-    Assert.assertTrue(info.getFileId("/xyz") != -1);
-    Assert.assertTrue(info.getFileId("/xyz_ck") != -1);
-    Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId("/xyz")));
-    Assert.assertEquals(ckFileInfo, info.getClientFileInfo(info.getFileId("/xyz_ck")));
+    Assert.assertEquals(3, info.ls(mRootUri, true).size());
+    Assert.assertTrue(info.getFileId(mRootUri) != -1);
+    Assert.assertTrue(info.getFileId(new TachyonURI("/xyz")) != -1);
+    Assert.assertTrue(info.getFileId(new TachyonURI("/xyz_ck")) != -1);
+    Assert.assertEquals(
+        fileInfo, info.getClientFileInfo(info.getFileId(new TachyonURI("/xyz"))));
+    Assert.assertEquals(
+        ckFileInfo, info.getClientFileInfo(info.getFileId(new TachyonURI("/xyz_ck"))));
     info.stop();
   }
 
@@ -151,7 +156,7 @@ public class JournalTest {
   @Test
   public void DeleteTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
-      mTfs.mkdir("/i" + i);
+      mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
         mTfs.createFile(new TachyonURI("/i" + i + "/j" + j), (i + j + 1) * 64);
         if (j >= 5) {
@@ -173,11 +178,11 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(31, info.ls(TachyonURI.SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
+    Assert.assertEquals(31, info.ls(mRootUri, true).size());
+    Assert.assertTrue(info.getFileId(mRootUri) != -1);
     for (int i = 0; i < 5; i ++) {
       for (int j = 0; j < 5; j ++) {
-        Assert.assertTrue(info.getFileId("/i" + i + "/j" + j) != -1);
+        Assert.assertTrue(info.getFileId(new TachyonURI("/i" + i + "/j" + j)) != -1);
       }
     }
     info.stop();
@@ -189,8 +194,8 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(1, info.ls(TachyonURI.SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
+    Assert.assertEquals(1, info.ls(mRootUri, true).size());
+    Assert.assertTrue(info.getFileId(mRootUri) != -1);
     info.stop();
   }
 
@@ -202,7 +207,7 @@ public class JournalTest {
   @Test
   public void FileFolderTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
-      mTfs.mkdir("/i" + i);
+      mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
         mTfs.createFile(new TachyonURI("/i" + i + "/j" + j), (i + j + 1) * 64);
       }
@@ -218,11 +223,11 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(111, info.ls(TachyonURI.SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
+    Assert.assertEquals(111, info.ls(mRootUri, true).size());
+    Assert.assertTrue(info.getFileId(mRootUri) != -1);
     for (int i = 0; i < 10; i ++) {
       for (int j = 0; j < 10; j ++) {
-        Assert.assertTrue(info.getFileId("/i" + i + "/j" + j) != -1);
+        Assert.assertTrue(info.getFileId(new TachyonURI("/i" + i + "/j" + j)) != -1);
       }
     }
     info.stop();
@@ -236,7 +241,8 @@ public class JournalTest {
   @Test
   public void FileTest() throws Exception {
     mTfs.createFile(new TachyonURI("/xyz"), 64);
-    ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz");
+    ClientFileInfo fInfo =
+        mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
     mLocalTachyonCluster.stopTFS();
     FileTestUtil(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
@@ -249,10 +255,10 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(2, info.ls(TachyonURI.SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
-    Assert.assertTrue(info.getFileId("/xyz") != -1);
-    Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId("/xyz")));
+    Assert.assertEquals(2, info.ls(mRootUri, true).size());
+    Assert.assertTrue(info.getFileId(mRootUri) != -1);
+    Assert.assertTrue(info.getFileId(new TachyonURI("/xyz")) != -1);
+    Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId(new TachyonURI("/xyz"))));
     info.stop();
   }
 
@@ -261,7 +267,7 @@ public class JournalTest {
    */
   @Test
   public void PinTest() throws Exception {
-    mTfs.mkdir("/myFolder");
+    mTfs.mkdir(new TachyonURI("/myFolder"));
     int folderId = mTfs.getFileId(new TachyonURI("/myFolder"));
     mTfs.setPinned(folderId, true);
     int file0Id = mTfs.createFile(new TachyonURI("/myFolder/file0"), 64);
@@ -282,12 +288,18 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(folder, info.getClientFileInfo(info.getFileId("/myFolder")));
-    Assert.assertTrue(info.getClientFileInfo(info.getFileId("/myFolder")).isPinned);
-    Assert.assertEquals(file0, info.getClientFileInfo(info.getFileId("/myFolder/file0")));
-    Assert.assertFalse(info.getClientFileInfo(info.getFileId("/myFolder/file0")).isPinned);
-    Assert.assertEquals(file1, info.getClientFileInfo(info.getFileId("/myFolder/file1")));
-    Assert.assertTrue(info.getClientFileInfo(info.getFileId("/myFolder/file1")).isPinned);
+    Assert.assertEquals(
+        folder, info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder"))));
+    Assert.assertTrue(
+        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder"))).isPinned);
+    Assert.assertEquals(
+        file0, info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file0"))));
+    Assert.assertFalse(
+        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file0"))).isPinned);
+    Assert.assertEquals(
+        file1, info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file1"))));
+    Assert.assertTrue(
+        info.getClientFileInfo(info.getFileId(new TachyonURI("/myFolder/file1"))).isPinned);
     info.stop();
   }
 
@@ -298,8 +310,8 @@ public class JournalTest {
    */
   @Test
   public void FolderTest() throws Exception {
-    mTfs.mkdir("/xyz");
-    ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz");
+    mTfs.mkdir(new TachyonURI("/xyz"));
+    ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
     mLocalTachyonCluster.stopTFS();
     FolderTest(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
@@ -312,10 +324,10 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(2, info.ls(TachyonURI.SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
-    Assert.assertTrue(info.getFileId("/xyz") != -1);
-    Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId("/xyz")));
+    Assert.assertEquals(2, info.ls(mRootUri, true).size());
+    Assert.assertTrue(info.getFileId(mRootUri) != -1);
+    Assert.assertTrue(info.getFileId(new TachyonURI("/xyz")) != -1);
+    Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId(new TachyonURI("/xyz"))));
     info.stop();
   }
 
@@ -341,10 +353,10 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(11, info.ls(TachyonURI.SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
+    Assert.assertEquals(11, info.ls(mRootUri, true).size());
+    Assert.assertTrue(info.getFileId(mRootUri) != -1);
     for (int k = 0; k < 10; k ++) {
-      Assert.assertTrue(info.getFileId("/a" + k) != -1);
+      Assert.assertTrue(info.getFileId(new TachyonURI("/a" + k)) != -1);
     }
     info.stop();
   }
@@ -373,17 +385,17 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(125, info.ls(TachyonURI.SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
+    Assert.assertEquals(125, info.ls(mRootUri, true).size());
+    Assert.assertTrue(info.getFileId(mRootUri) != -1);
     for (int k = 0; k < 124; k ++) {
-      Assert.assertTrue(info.getFileId("/a" + k) != -1);
+      Assert.assertTrue(info.getFileId(new TachyonURI("/a" + k)) != -1);
     }
     info.stop();
   }
 
   /**
    * Test renaming completed edit logs.
-   *
+   * 
    * @throws Exception
    */
   @Test
@@ -406,7 +418,8 @@ public class JournalTest {
     EditLog log = new EditLog(journalPath, false, 0);
     log.setMaxLogSize(100);
     for (int i = 0; i < 124; i ++) {
-      log.createFile(false, "/sth" + i, false, Constants.DEFAULT_BLOCK_SIZE_BYTE, System.currentTimeMillis());
+      log.createFile(false, new TachyonURI("/sth" + i), false, Constants.DEFAULT_BLOCK_SIZE_BYTE,
+          System.currentTimeMillis());
       log.flush();
     }
     log.close();
@@ -438,12 +451,12 @@ public class JournalTest {
   @Test
   public void RenameTest() throws Exception {
     for (int i = 0; i < 10; i ++) {
-      mTfs.mkdir("/i" + i);
+      mTfs.mkdir(new TachyonURI("/i" + i));
       for (int j = 0; j < 10; j ++) {
         mTfs.createFile(new TachyonURI("/i" + i + "/j" + j), (i + j + 1) * 64);
-        mTfs.rename("/i" + i + "/j" + j, "/i" + i + "/jj" + j);
+        mTfs.rename(new TachyonURI("/i" + i + "/j" + j), new TachyonURI("/i" + i + "/jj" + j));
       }
-      mTfs.rename("/i" + i, "/ii" + i);
+      mTfs.rename(new TachyonURI("/i" + i), new TachyonURI("/ii" + i));
     }
     mLocalTachyonCluster.stopTFS();
     RenameTestUtil();
@@ -456,11 +469,11 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(111, info.ls(TachyonURI.SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
+    Assert.assertEquals(111, info.ls(mRootUri, true).size());
+    Assert.assertTrue(info.getFileId(mRootUri) != -1);
     for (int i = 0; i < 10; i ++) {
       for (int j = 0; j < 10; j ++) {
-        Assert.assertTrue(info.getFileId("/ii" + i + "/jj" + j) != -1);
+        Assert.assertTrue(info.getFileId(new TachyonURI("/ii" + i + "/jj" + j)) != -1);
       }
     }
     info.stop();
@@ -473,8 +486,8 @@ public class JournalTest {
    */
   @Test
   public void TableTest() throws Exception {
-    mTfs.createRawTable("/xyz", 10);
-    ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo("/xyz");
+    mTfs.createRawTable(new TachyonURI("/xyz"), 10);
+    ClientFileInfo fInfo = mLocalTachyonCluster.getMasterInfo().getClientFileInfo(new TachyonURI("/xyz"));
     mLocalTachyonCluster.stopTFS();
     TableTest(fInfo);
     String editLogPath = mLocalTachyonCluster.getEditLogPath();
@@ -487,10 +500,10 @@ public class JournalTest {
     Journal journal = new Journal(MasterConf.get().JOURNAL_FOLDER, "image.data", "log.data");
     MasterInfo info = new MasterInfo(new InetSocketAddress(9999), journal);
     info.init();
-    Assert.assertEquals(12, info.ls(TachyonURI.SEPARATOR, true).size());
-    Assert.assertTrue(info.getFileId(TachyonURI.SEPARATOR) != -1);
-    Assert.assertTrue(info.getFileId("/xyz") != -1);
-    Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId("/xyz")));
+    Assert.assertEquals(12, info.ls(mRootUri, true).size());
+    Assert.assertTrue(info.getFileId(mRootUri) != -1);
+    Assert.assertTrue(info.getFileId(new TachyonURI("/xyz")) != -1);
+    Assert.assertEquals(fileInfo, info.getClientFileInfo(info.getFileId(new TachyonURI("/xyz"))));
     info.stop();
   }
 }

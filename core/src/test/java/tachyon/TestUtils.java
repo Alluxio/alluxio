@@ -24,7 +24,22 @@ public final class TestUtils {
    */
   public static int createByteFile(TachyonFS tfs, String fileName, WriteType op, int len)
       throws IOException {
-    int fileId = tfs.createFile(new TachyonURI(fileName));
+    return createByteFile(tfs, new TachyonURI(fileName), op, len);
+  }
+  
+  /**
+   * Create a simple file with <code>len</code> bytes.
+   * 
+   * @param tfs
+   * @param fileURI
+   * @param op
+   * @param len
+   * @return
+   * @throws IOException
+   */
+  public static int createByteFile(TachyonFS tfs, TachyonURI fileURI, WriteType op, int len)
+      throws IOException {
+    int fileId = tfs.createFile(fileURI);
     TachyonFile file = tfs.getFile(fileId);
     OutStream os = file.getOutStream(op);
 
@@ -107,7 +122,7 @@ public final class TestUtils {
   }
 
   public static List<String> listFiles(TachyonFS tfs, String path) throws IOException {
-    List<ClientFileInfo> infos = tfs.listStatus(path);
+    List<ClientFileInfo> infos = tfs.listStatus(new TachyonURI(path));
     List<String> res = new ArrayList<String>();
     for (ClientFileInfo info : infos) {
       res.add(info.getPath());

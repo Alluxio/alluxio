@@ -38,7 +38,7 @@ public class RawColumnTest {
   public void basicTest() throws InvalidPathException, FileAlreadyExistException,
       TableColumnException, TableDoesNotExistException, FileDoesNotExistException, IOException,
       TException {
-    int fileId = mTfs.createRawTable("/table", CommonConf.get().MAX_COLUMNS / 10);
+    int fileId = mTfs.createRawTable(new TachyonURI("/table"), CommonConf.get().MAX_COLUMNS / 10);
     RawTable table = mTfs.getRawTable(fileId);
 
     for (int col = 0; col < CommonConf.get().MAX_COLUMNS / 10; col ++) {

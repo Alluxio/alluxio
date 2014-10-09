@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.google.common.base.Supplier;
 
+import tachyon.TachyonURI;
 import tachyon.client.TachyonFS;
 
 /**
@@ -28,7 +29,7 @@ public final class ClientPool implements Closeable {
    * directly, but can be closed by calling {@link #close()} on this object.
    */
   public TachyonFS getClient() throws IOException {
-    final TachyonFS fs = TachyonFS.get(mUriSuppliers.get());
+    final TachyonFS fs = TachyonFS.get(new TachyonURI(mUriSuppliers.get()));
     mClients.add(fs);
     return fs;
   }

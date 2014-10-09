@@ -74,6 +74,10 @@ public class LocalTachyonCluster {
     return mMaster.getMasterInfo();
   }
 
+  public String getMasterUri() {
+    return mMaster.getUri();
+  }
+
   public int getMasterPort() {
     return mMaster.getMetaPort();
   }
@@ -145,6 +149,9 @@ public class LocalTachyonCluster {
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
     System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
+    // Don't spin off too many threads for data port. Each test will create a new data server so the
+    // default thread overhead is too much.
+    System.setProperty("tachyon.worker.network.netty.worker.threads", Integer.toString(2));
 
     CommonConf.clear();
     MasterConf.clear();
@@ -212,6 +219,7 @@ public class LocalTachyonCluster {
     System.clearProperty("tachyon.worker.memory.size");
     System.clearProperty("tachyon.user.remote.read.buffer.size.byte");
     System.clearProperty("tachyon.worker.to.master.heartbeat.interval.ms");
+    System.clearProperty("tachyon.worker.network.netty.worker.threads");
   }
 
   /**
