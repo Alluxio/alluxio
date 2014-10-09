@@ -85,6 +85,6 @@ public final class Utils {
       result = false;
     }
     Utils.printPassInfo(result);
-    System.exit(result? 0 : 1);
+    System.exit(result ? 0 : 1);
   }
 }
