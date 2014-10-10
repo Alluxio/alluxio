@@ -70,7 +70,7 @@ public final class DataServerHandler extends ChannelInboundHandlerAdapter {
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       if (file != null) {
-        Closeables.closeQuietly(file);
+        Closeables.close(file, true);
       }
     } finally {
       mLocker.unlock(blockId, lockId);
