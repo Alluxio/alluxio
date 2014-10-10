@@ -238,7 +238,7 @@ public class WorkerStorage {
   private volatile MasterClient mMasterClient;
   private InetSocketAddress mMasterAddress;
   private NetAddress mWorkerAddress;
-  private WorkerSpaceCounter mWorkerSpaceCounter;
+  private SpaceCounter mSpaceCounter;
 
   private long mWorkerId;
   private Set<Long> mMemoryData = new HashSet<Long>();
@@ -290,7 +290,7 @@ public class WorkerStorage {
     mMasterClient = new MasterClient(mMasterAddress);
     mLocalDataFolder = new File(dataFolder);
 
-    mWorkerSpaceCounter = new WorkerSpaceCounter(memoryCapacityBytes);
+    mSpaceCounter = new SpaceCounter(memoryCapacityBytes);
     mLocalUserFolder = new File(mLocalDataFolder, WorkerConf.get().USER_TEMP_RELATIVE_FOLDER);
   }
 
@@ -323,7 +323,7 @@ public class WorkerStorage {
     }
 
     LOG.info("Current Worker Info: ID " + mWorkerId + ", mWorkerAddress: " + mWorkerAddress
-        + ", MemoryCapacityBytes: " + mWorkerSpaceCounter.getCapacityBytes());
+        + ", MemoryCapacityBytes: " + mSpaceCounter.getCapacityBytes());
   }
 
   /**
@@ -385,7 +385,7 @@ public class WorkerStorage {
   private void addFoundBlock(long blockId, long length) throws FileDoesNotExistException,
       SuspectedFileSizeException, BlockInfoException, IOException {
     addBlockId(blockId, length);
-    mMasterClient.worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId, length);
+    mMasterClient.worker_cacheBlock(mWorkerId, mSpaceCounter.getUsedBytes(), blockId, length);
   }
 
   /**
@@ -447,11 +447,11 @@ public class WorkerStorage {
             + " to " + dstFile.getPath());
       }
       if (mBlockSizes.containsKey(blockId)) {
-        mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
+        mSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
       }
       addBlockId(blockId, fileSizeBytes);
       mUsers.addOwnBytes(userId, -fileSizeBytes);
-      mMasterClient.worker_cacheBlock(mWorkerId, mWorkerSpaceCounter.getUsedBytes(), blockId,
+      mMasterClient.worker_cacheBlock(mWorkerId, mSpaceCounter.getUsedBytes(), blockId,
           fileSizeBytes);
     }
     LOG.info(userId + " " + dstFile);
@@ -466,7 +466,7 @@ public class WorkerStorage {
     List<Long> removedUsers = mUsers.checkStatus();
 
     for (long userId : removedUsers) {
-      mWorkerSpaceCounter.returnUsedBytes(mUsers.removeUser(userId));
+      mSpaceCounter.returnUsedBytes(mUsers.removeUser(userId));
       synchronized (mLockedBlockIdToUserId) {
         Set<Long> blockds = mLockedBlocksPerUser.get(userId);
         mLockedBlocksPerUser.remove(userId);
@@ -493,7 +493,7 @@ public class WorkerStorage {
     long freedFileBytes = 0;
     synchronized (mBlockIdToLatestAccessTimeMs) {
       if (mBlockSizes.containsKey(blockId)) {
-        mWorkerSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
+        mSpaceCounter.returnUsedBytes(mBlockSizes.get(blockId));
         File srcFile = new File(CommonUtils.concat(mLocalDataFolder, blockId));
         srcFile.delete();
         mBlockIdToLatestAccessTimeMs.remove(blockId);
@@ -596,7 +596,7 @@ public class WorkerStorage {
     while (mRemovedBlockList.size() > 0) {
       sendRemovedPartitionList.add(mRemovedBlockList.poll());
     }
-    return mMasterClient.worker_heartbeat(mWorkerId, mWorkerSpaceCounter.getUsedBytes(),
+    return mMasterClient.worker_heartbeat(mWorkerId, mSpaceCounter.getUsedBytes(),
         sendRemovedPartitionList);
   }
 
@@ -641,7 +641,7 @@ public class WorkerStorage {
         LOG.info("File " + cnt + ": " + tFile.getPath() + " with size " + tFile.length() + " Bs.");
 
         long blockId = CommonUtils.getBlockIdFromFileName(tFile.getName());
-        boolean success = mWorkerSpaceCounter.requestSpaceBytes(tFile.length());
+        boolean success = mSpaceCounter.requestSpaceBytes(tFile.length());
         try {
           addFoundBlock(blockId, tFile.length());
         } catch (FileDoesNotExistException e) {
@@ -704,7 +704,7 @@ public class WorkerStorage {
 
     synchronized (mBlockIdToLatestAccessTimeMs) {
       synchronized (mLockedBlockIdToUserId) {
-        while (mWorkerSpaceCounter.getAvailableBytes() < requestBytes) {
+        while (mSpaceCounter.getAvailableBytes() < requestBytes) {
           long blockId = -1;
           long latestTimeMs = Long.MAX_VALUE;
           for (Entry<Long, Long> entry : mBlockIdToLatestAccessTimeMs.entrySet()) {
@@ -736,8 +736,8 @@ public class WorkerStorage {
     while (id == 0) {
       try {
         id =
-            mMasterClient.worker_register(mWorkerAddress, mWorkerSpaceCounter.getCapacityBytes(),
-                mWorkerSpaceCounter.getUsedBytes(), new ArrayList<Long>(mMemoryData));
+            mMasterClient.worker_register(mWorkerAddress, mSpaceCounter.getCapacityBytes(),
+                mSpaceCounter.getUsedBytes(), new ArrayList<Long>(mMemoryData));
       } catch (BlockInfoException e) {
         LOG.error(e.getMessage(), e);
         id = 0;
@@ -761,14 +761,14 @@ public class WorkerStorage {
    */
   public boolean requestSpace(long userId, long requestBytes) throws TException {
     LOG.info("requestSpace(" + userId + ", " + requestBytes + "): Current available: "
-        + mWorkerSpaceCounter.getAvailableBytes() + " requested: " + requestBytes);
-    if (mWorkerSpaceCounter.getCapacityBytes() < requestBytes) {
+        + mSpaceCounter.getAvailableBytes() + " requested: " + requestBytes);
+    if (mSpaceCounter.getCapacityBytes() < requestBytes) {
       LOG.info("user_requestSpace(): requested memory size is larger than the total memory on"
           + " the machine.");
       return false;
     }
 
-    while (!mWorkerSpaceCounter.requestSpaceBytes(requestBytes)) {
+    while (!mSpaceCounter.requestSpaceBytes(requestBytes)) {
       if (!memoryEvictionLRU(requestBytes)) {
         return false;
       }
@@ -797,17 +797,17 @@ public class WorkerStorage {
    * @throws TException
    */
   public void returnSpace(long userId, long returnedBytes) throws TException {
-    long preAvailableBytes = mWorkerSpaceCounter.getAvailableBytes();
+    long preAvailableBytes = mSpaceCounter.getAvailableBytes();
     if (returnedBytes > mUsers.ownBytes(userId)) {
       LOG.error("User " + userId + " does not own " + returnedBytes + " bytes.");
     } else {
-      mWorkerSpaceCounter.returnUsedBytes(returnedBytes);
+      mSpaceCounter.returnUsedBytes(returnedBytes);
       mUsers.addOwnBytes(userId, -returnedBytes);
     }
 
     LOG.info("returnSpace(" + userId + ", " + returnedBytes + ") : " + preAvailableBytes
         + " returned: " + returnedBytes + ". New Available: "
-        + mWorkerSpaceCounter.getAvailableBytes());
+        + mSpaceCounter.getAvailableBytes());
   }
 
   /**
