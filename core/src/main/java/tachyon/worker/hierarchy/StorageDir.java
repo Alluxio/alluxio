@@ -24,7 +24,7 @@ import tachyon.TachyonURI;
 import tachyon.UnderFileSystem;
 import tachyon.client.BlockHandler;
 import tachyon.util.CommonUtils;
-import tachyon.worker.WorkerSpaceCounter;
+import tachyon.worker.SpaceCounter;
 
 /**
  * Used to store and manage block files in storage's directory on different under file systems.
@@ -40,7 +40,7 @@ public final class StorageDir {
   private final BlockingQueue<Long> mRemovedBlockIdList = new ArrayBlockingQueue<Long>(
       Constants.WORKER_BLOCKS_QUEUE_SIZE);
   /** Space counter of current StorageDir */
-  private final WorkerSpaceCounter mSpaceCounter;
+  private final SpaceCounter mSpaceCounter;
   /** Id of StorageDir */
   private final long mStorageDirId;
   /** Path of the data in current StorageDir */
@@ -77,7 +77,7 @@ public final class StorageDir {
     mDirPath = new TachyonURI(dirPath);
     mConf = conf;
     mFs = UnderFileSystem.get(dirPath, conf);
-    mSpaceCounter = new WorkerSpaceCounter(capacityBytes);
+    mSpaceCounter = new SpaceCounter(capacityBytes);
     mStorageDirId = storageDirId;
     mDataPath = mDirPath.join(dataFolder);
     mUserTempPath = mDirPath.join(userTempFolder);
