@@ -83,7 +83,7 @@ public class AllocateStrategies {
   }
 
   /**
-   * Base class for AllocateStrategy, which provides basic function for other strategies
+   * Base class for AllocateStrategy, which provides basic function for AllocateStrategy
    */
   private static abstract class AllocateStrategyBase implements AllocateStrategy {
     @Override

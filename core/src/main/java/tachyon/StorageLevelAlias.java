@@ -24,7 +24,7 @@ public enum StorageLevelAlias {
    * Parse the storage level
    * 
    * @param storageLevel the String format of the storage level
-   * @return the StorageLevel
+   * @return alias of storage level
    * @throws IOException
    */
   public static StorageLevelAlias getStorageLevel(String storageLevel) throws IOException {

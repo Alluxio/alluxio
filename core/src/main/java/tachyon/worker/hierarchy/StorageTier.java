@@ -19,9 +19,9 @@ import tachyon.worker.eviction.EvictStrategy;
 
 /**
  * Used to manage StorageDirs, request space for new coming blocks, and evict old blocks to its
- * successor StorageTier to get enough space for new coming blocks. Each StorageTier contains
- * several StorageDirs, which is configurable. It recommends to configure multiple StorageDirs in
- * each storage layer, to spread out the I/O while doing the eviction for better performance.
+ * successor StorageTier to get enough space requested. Each StorageTier may contains several
+ * StorageDirs. It recommends to configure multiple StorageDirs in each StorageTier, to spread out
+ * the I/O for better performance.
  */
 public class StorageTier {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -45,18 +45,18 @@ public class StorageTier {
   /**
    * Create a new StorageTier
    * 
-   * @param level storage level of StorageTier
-   * @param alias storage level alias of StorageTier
-   * @param dirPaths
-   * @param dirCapacitieBytes
-   * @param dataFolder
-   * @param userFolder
-   * @param nextTier
-   * @param conf
+   * @param storageLevel storage level of StorageTier
+   * @param storageLevelAlias String format alias of current StorageTier's storage level
+   * @param dirPaths paths of StorageDirs in current StorageTier
+   * @param dirCapacityBytes capacities of StorageDirs in current StorageTier
+   * @param dataFolder data folder in StorageDir
+   * @param userTempFolder user temporary folder in StorageDir
+   * @param nextTier the successor StorageTier
+   * @param conf configuration of StorageDir
    * @throws IOException
    */
   public StorageTier(int storageLevel, String storageLevelAlias, String[] dirPaths,
-      long[] dirCapacitieBytes, String dataFolder, String userFolder, StorageTier nextTier,
+      long[] dirCapacityBytes, String dataFolder, String userTempFolder, StorageTier nextTier,
       Object conf) throws IOException {
     mStorageLevel = storageLevel;
     int storageDirNum = dirPaths.length;
@@ -67,9 +67,9 @@ public class StorageTier {
       long storageDirId =
           StorageDirId.getStorageDirId(storageLevel, mStorageLevelAlias.getValue(), i);
       mStorageDirs[i] =
-          new StorageDir(storageDirId, dirPaths[i], dirCapacitieBytes[i], dataFolder, userFolder,
-              conf);
-      quotaBytes += dirCapacitieBytes[i];
+          new StorageDir(storageDirId, dirPaths[i], dirCapacityBytes[i], dataFolder,
+              userTempFolder, conf);
+      quotaBytes += dirCapacityBytes[i];
     }
     mCapacityBytes = quotaBytes;
     mNextStorageTier = nextTier;
@@ -108,7 +108,7 @@ public class StorageTier {
   }
 
   /**
-   * Get removed blocks of current StorageTier
+   * Get removed block Ids of current StorageTier
    * 
    * @return Id list of removed blocks
    */
@@ -121,7 +121,7 @@ public class StorageTier {
   };
 
   /**
-   * Find the StorageDir for certain blockId
+   * Find the StorageDir which contains given block Id
    * 
    * @param blockId the id of the block
    * @return StorageDir which contains the block
@@ -141,7 +141,7 @@ public class StorageTier {
    * Get StorageDir by array index
    * 
    * @param dirIndex index of the StorageDir
-   * @return the chosen StorageDir, null if index out of boundary
+   * @return StorageDir selected, null if index out of boundary
    */
   public StorageDir getStorageDirByIndex(int dirIndex) {
     if (dirIndex < mStorageDirs.length && dirIndex >= 0) {
@@ -152,27 +152,27 @@ public class StorageTier {
   }
 
   /**
-   * Get StorageDirs in current storage tier
+   * Get StorageDirs in current StorageTier
    * 
-   * @return StorageDirs in current tier
+   * @return StorageDirs in current StorageTier
    */
   public StorageDir[] getStorageDirs() {
     return mStorageDirs;
   }
 
   /**
-   * Get StorageLevel of current StorageTier
+   * Get storage level of current StorageTier
    * 
-   * @return StorageLevel of current storage tier
+   * @return storage level of current StorageTier
    */
   public int getStorageLevel() {
     return mStorageLevel;
   }
 
   /**
-   * Get StorageLevelAlias of current StorageTier
+   * Get alias of current StorageTier's storage level
    * 
-   * @return StorageLevelAlias of current StorageTier
+   * @return alias of current StorageTier's storage level
    */
   public StorageLevelAlias getStorageLevelAlias() {
     return mStorageLevelAlias;
@@ -181,7 +181,7 @@ public class StorageTier {
   /**
    * Get used space in current StorageTier
    * 
-   * @return used space size
+   * @return used space size in bytes
    */
   public long getUsedBytes() {
     long used = 0;
@@ -203,68 +203,68 @@ public class StorageTier {
   }
 
   /**
-   * Check whether current tier is the last tier
+   * Check whether current StorageTier is the last tier
    * 
-   * @return true if current tier is the last tier, false otherwise
+   * @return true if current StorageTier is the last tier, false otherwise
    */
   public boolean isLastTier() {
     return mNextStorageTier == null;
   }
 
   /**
-   * Request certain space from current StorageTier
+   * Request space from current StorageTier by some user
    * 
    * @param userId id of the user
-   * @param requestSize size to request
-   * @param pinList pinned files
+   * @param requestSizeBytes size to request in bytes
+   * @param pinList list of pinned files
    * @return the StorageDir assigned.
    * @throws IOException
    */
-  public StorageDir requestSpace(long userId, long requestSize, Set<Integer> pinList)
+  public StorageDir requestSpace(long userId, long requestSizeBytes, Set<Integer> pinList)
       throws IOException {
-    return requestSpace(mStorageDirs, userId, requestSize, pinList);
+    return requestSpace(mStorageDirs, userId, requestSizeBytes, pinList);
   }
 
   /**
-   * Request certain space from current StorageTier
+   * Request space from current StorageTier by some user
    * 
    * @param storageDir StorageDir that the space will be allocated in
    * @param userId id of the user
-   * @param requestSize size to request
-   * @param pinList pinned files
+   * @param requestSizeBytes size to request in bytes
+   * @param pinList list of pinned files
    * @return true if allocate successfully, false otherwise.
    * @throws IOException
    */
-  public boolean requestSpace(StorageDir storageDir, long userId, long requestSize,
+  public boolean requestSpace(StorageDir storageDir, long userId, long requestSizeBytes,
       Set<Integer> pinList) throws IOException {
     if (StorageDirId.getStorageLevel(storageDir.getStorageDirId()) != mStorageLevel) {
       return false;
     }
     StorageDir[] dirCandidates = new StorageDir[1];
     dirCandidates[0] = storageDir;
-    return storageDir == requestSpace(dirCandidates, userId, requestSize, pinList);
+    return storageDir == requestSpace(dirCandidates, userId, requestSizeBytes, pinList);
   }
 
   /**
-   * Request certain space from current StorageTier
+   * Request space from current StorageTier by some user
    * 
    * @param dirCandidates candidates of StorageDir that the space will be allocated in
    * @param userId id of the user
-   * @param requestSize size to request
-   * @param pinList pinned files
+   * @param requestSizeBytes size to request in bytes
+   * @param pinList list of pinned files
    * @return the StorageDir assigned.
    * @throws IOException
    */
   // TODO make block eviction asynchronous
-  private StorageDir requestSpace(StorageDir[] dirCandidates, long userId, long requestSize,
+  private StorageDir requestSpace(StorageDir[] dirCandidates, long userId, long requestSizeBytes,
       Set<Integer> pinList) throws IOException {
-    StorageDir dirSelected = mSpaceAllocator.getStorageDir(dirCandidates, userId, requestSize);
+    StorageDir dirSelected = mSpaceAllocator.getStorageDir(dirCandidates, userId, requestSizeBytes);
     if (dirSelected != null) {
       return dirSelected;
-    } else if (mSpaceAllocator.fitInPossible(dirCandidates, requestSize)) {
+    } else if (mSpaceAllocator.fitInPossible(dirCandidates, requestSizeBytes)) {
       for (int attempt = 0; attempt < mRequestSpaceMaxTryTimes; attempt ++) {
         Pair<StorageDir, List<BlockInfo>> evictInfo =
-            mBlockEvictor.getDirCandidate(dirCandidates, pinList, requestSize);
+            mBlockEvictor.getDirCandidate(dirCandidates, pinList, requestSizeBytes);
         if (evictInfo == null) {
           return null;
         }
@@ -285,7 +285,7 @@ public class StorageTier {
             }
           }
         }
-        if (dirSelected.requestSpace(userId, requestSize)) {
+        if (dirSelected.requestSpace(userId, requestSizeBytes)) {
           return dirSelected;
         } else {
           LOG.warn("Request space attempt failed! attempt time:" + attempt + " storage level:"
