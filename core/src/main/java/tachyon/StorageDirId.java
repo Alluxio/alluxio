@@ -9,20 +9,20 @@ public class StorageDirId {
   /**
    * Generate StorageDirId from given information
    * 
-   * @param level storage level of the StorageDir
-   * @param aliasValue storage level alias value of the StorageDir
-   * @param dirIndex index of the StorageDir in StorageTier which contains it
+   * @param level storage level of the StorageTier which contains the StorageDir
+   * @param storageLevelaliasValue StorageLevelAlias value of the StorageTier
+   * @param dirIndex index of the StorageDir
    * @return StorageDirId generated
    */
-  public static long getStorageDirId(int level, int aliasValue, int dirIndex) {
-    return (level << 24) + (aliasValue << 16) + dirIndex;
+  public static long getStorageDirId(int level, int storageLevelAliasValue, int dirIndex) {
+    return (level << 24) + (storageLevelAliasValue << 16) + dirIndex;
   }
 
   /**
    * Get index of the StorageDir in the StorageTier which contains it
    * 
    * @param storageDirId Id of the StorageDir
-   * @return
+   * @return index of the StorageDir
    */
   public static int getStorageDirIndex(long storageDirId) {
     return (int) storageDirId & 0x00ff;
@@ -32,7 +32,7 @@ public class StorageDirId {
    * Get storage level of StorageTier which contains the StorageDir
    * 
    * @param storageDirId Id of the StorageDir
-   * @return storage level of the StorageTier
+   * @return storage level of the StorageTier which contains the StorageDir
    */
   public static int getStorageLevel(long storageDirId) {
     return ((int) storageDirId >> 24) & 0x0f;
@@ -49,19 +49,19 @@ public class StorageDirId {
   }
 
   /**
-   * Check whether StorageDirId is unknown
+   * Check whether the value of StorageDirId is UNKNOWN
    * 
    * @param storageDirId Id of the StorageDir
-   * @return true if StorageDirId is unknown, false otherwise.
+   * @return true if StorageDirId is UNKNOWN, false otherwise.
    */
   public static boolean isUnknown(long storageDirId) {
     return storageDirId == UNKNOWN;
   }
 
   /**
-   * Get unknown value of StorageDirId
+   * Get unknown value of StorageDirId, which indicates the StorageDir is unknown
    * 
-   * @return unknown value of StorageDirId
+   * @return UNKNOWN value of StorageDirId
    */
   public static long unknownId() {
     return UNKNOWN;

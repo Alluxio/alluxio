@@ -109,9 +109,9 @@ public class WorkerConf extends Utils {
     NETTY_RECIEVE_BUFFER =
         Optional.fromNullable(getIntegerProperty("tachyon.worker.network.netty.buffer.recieve",
             null));
-    EVICT_STRATEGY_TYPE = getEnumProperty("tachyon.worker.evict.type", EvictStrategyType.LRU);
+    EVICT_STRATEGY_TYPE = getEnumProperty("tachyon.worker.evict.strategy", EvictStrategyType.LRU);
     ALLOCATE_STRATEGY_TYPE =
-        getEnumProperty("tachyon.worker.allocate.type", AllocateStrategyType.MAX_FREE);
+        getEnumProperty("tachyon.worker.allocate.strategy", AllocateStrategyType.MAX_FREE);
     MAX_HIERARCHY_STORAGE_LEVEL = getIntProperty("tachyon.worker.hierarchystore.level.max", 4);
     STORAGE_TIER_DIRS = new String[MAX_HIERARCHY_STORAGE_LEVEL];
     STORAGE_LEVEL_ALIAS = new String[MAX_HIERARCHY_STORAGE_LEVEL];
