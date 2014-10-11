@@ -22,6 +22,16 @@ EOF
     # ssh config
     mkdir -p ~/.ssh
     src="/tachyon/deploy/vagrant/files"
+    if [ ! -d ${src} ]
+    then
+        mkdir ${src}
+        # ensure we have ssh-keygen rpm installed
+        yum install -y -q openssh
+        # generate key
+        ssh-keygen -f ${src}/id_rsa -t rsa -N ''
+        # ssh without password
+        cat ${src}/id_rsa.pub |awk '{print $1, $2, "root@vagrant"}' > ${src}/authorized_keys2
+    fi
     files=('authorized_keys2' 'id_rsa' 'id_rsa.pub')
     for f in ${files[@]}
     do

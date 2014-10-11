@@ -9,7 +9,7 @@ cd /vagrant/shared
 if [ ! -f hadoop-${HADOOP_VERSION}.tar.gz ]
 then
     # download hadoop
-    echo "Downloading hadoop ..."
+    echo "Downloading hadoop ${HADOOP_VERSION} ..." 
     wget -q http://www.us.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz  
     tar xzf hadoop-${HADOOP_VERSION}.tar.gz  
 fi
