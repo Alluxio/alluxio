@@ -350,7 +350,10 @@ public final class StorageDir {
   public long getLockedSizeBytes() {
     long lockedBytes = 0;
     for (long blockId : mUserPerLockedBlock.keySet()) {
-      lockedBytes += mBlockSizes.get(blockId);
+      Long blockSize = mBlockSizes.get(blockId);
+      if (blockSize != null) {
+        lockedBytes += blockSize;
+      }
     }
     return lockedBytes;
   }
