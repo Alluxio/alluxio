@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+    <name>fs.default.name</name>
+    <value>ceph://localhost:6789/</value>
+  </property>
+  <property>
+    <name>fs.defaultFS</name>
+    <value>ceph://localhost:6789/</value>
+  </property>
+  <property>
+    <name>ceph.conf.file</name>
+    <value>/etc/ceph/ceph.conf</value>
+  </property>
+  <!--
+     <property>
+       <name>ceph.mon.address</name>
+       <value>localhost:6789</value>
+     </property>
+     <property>
+       <name>ceph.auth.id</name>
+       <value>root</value>
+     </property>
+     -->
+  <property>
+    <name>ceph.data.pools</name>
+    <value>data</value>
+  </property>
+  <property>
+    <name>fs.AbstractFileSystem.ceph.impl</name>
+    <value>org.apache.hadoop.fs.ceph.CephFs</value>
+  </property>
+  <property>
+    <name>fs.ceph.impl</name>
+    <value>org.apache.hadoop.fs.ceph.CephFileSystem</value>
+  </property>
+  <property>
+    <name>fs.ceph.impl.disable.cache</name>
+    <value>true</value>
+  </property>
+
+</configuration>
