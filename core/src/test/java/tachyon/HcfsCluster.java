@@ -1,6 +1,7 @@
 package tachyon;
 
 import java.io.IOException;
+import com.google.common.base.Throwables;
 
 /**
  * This implements Hadoop compatible filesystem (except HDFS) cluster 
@@ -8,19 +9,25 @@ import java.io.IOException;
  */
 public class HcfsCluster extends UnderFileSystemCluster {
   private final String HCFS_URI_KEY = "uri";
-  private String mUri = null;
+  private final String mUri;
 
   public HcfsCluster(String baseDir) {
     super(baseDir);
     String uri = System.getProperty(HCFS_URI_KEY);
     if (null != uri && !uri.equals("")) {
       mUri = uri;
+    }else {
+    	mUri = null;
+    	throw Throwables.propagate(new Exception("Invalid HCFS URI"));
     }
   }
 
   @Override
   public String getUnderFilesystemAddress() {
-    return mUri + "tachyon_test";
+	if ('/' == mUri.charAt(mUri.length() - 1)) { 
+		return mUri + "tachyon_test";
+	}
+	return mUri + "/tachyon_test";
   }
 
   @Override

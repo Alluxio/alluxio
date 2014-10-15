@@ -294,7 +294,7 @@
                 </property>
               </systemProperties>
               <additionalClasspathElements>
-                <additionalClasspathElement>resources/glusterfs</additionalClasspathElement>
+                <additionalClasspathElement>core/src/test/resources/hcfs/glusterfs</additionalClasspathElement>
               </additionalClasspathElements>
             </configuration>
           </plugin>
@@ -366,7 +366,7 @@
                 </property>
               </systemProperties>
               <additionalClasspathElements>
-                <additionalClasspathElement>resources/ceph</additionalClasspathElement>
+                <additionalClasspathElement>core/src/test/resources/hcfs/ceph</additionalClasspathElement>
               </additionalClasspathElements>
             </configuration>
           </plugin>
