@@ -121,7 +121,7 @@ public class TFSTest {
     // need to mock out since FileSystem.get calls UGI, which some times has issues on some systems
     mockStatic(UserGroupInformation.class);
     final UserGroupInformation ugi = mock(UserGroupInformation.class);
-    when(ugi.getCurrentUser()).thenReturn(ugi);
+    when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);
   }
 
   @Before
