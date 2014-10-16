@@ -106,7 +106,7 @@ public class DataServerTest {
   public final void before() throws IOException {
     System.setProperty("tachyon.user.quota.unit.bytes", USER_QUOTA_UNIT_BYTES + "");
     System.setProperty("tachyon.worker.network.type", mType.toString());
-    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES);
+    mLocalTachyonCluster = new LocalTachyonCluster(WORKER_CAPACITY_BYTES, 1);
     mLocalTachyonCluster.start();
     mTFS = mLocalTachyonCluster.getClient();
   }

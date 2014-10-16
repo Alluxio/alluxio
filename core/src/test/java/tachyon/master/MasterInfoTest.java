@@ -517,7 +517,7 @@ public class MasterInfoTest {
 
   @Test
   public void getCapacityBytesTest() {
-    Assert.assertEquals(1000, mMasterInfo.getCapacityBytes());
+    Assert.assertEquals(1000 * mLocalTachyonCluster.getWorkers().size(), mMasterInfo.getCapacityBytes());
   }
 
   @Test
