@@ -148,7 +148,7 @@ public class MasterInfo extends ImageWriter {
   public class RecomputationScheduler implements Runnable {
     @Override
     public void run() {
-      while (true) {
+      while (!Thread.currentThread().isInterrupted()) {
         boolean hasLostFiles = false;
         boolean launched = false;
         List<String> cmds = new ArrayList<String>();
@@ -197,7 +197,10 @@ public class MasterInfo extends ImageWriter {
         for (String cmd : cmds) {
           String filePath =
               CommonConf.get().TACHYON_HOME + "/logs/rerun-" + mRerunCounter.incrementAndGet();
-          new Thread(new RecomputeCommand(cmd, filePath)).start();
+          //TODO use bounded threads (ExecutorService)
+          Thread thread = new Thread(new RecomputeCommand(cmd, filePath));
+          thread.setName("recompute-command-" + cmd);
+          thread.start();
         }
 
         if (!launched) {
@@ -1768,6 +1771,7 @@ public class MasterInfo extends ImageWriter {
     mHeartbeatThread.start();
 
     mRecomputeThread = new Thread(new RecomputationScheduler());
+    mRecomputeThread.setName("recompute-scheduler");
     mRecomputeThread.start();
   }
 
@@ -2125,7 +2129,11 @@ public class MasterInfo extends ImageWriter {
    * Stops the heartbeat thread.
    */
   public void stop() {
-    mHeartbeatThread.shutdown();
+    try {
+      mHeartbeatThread.shutdown();
+    } finally {
+      mRecomputeThread.interrupt();
+    }
   }
 
   /**

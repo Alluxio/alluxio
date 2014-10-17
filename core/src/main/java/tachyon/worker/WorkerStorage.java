@@ -18,6 +18,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.thrift.TException;
@@ -25,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import tachyon.Constants;
 import tachyon.UnderFileSystem;
@@ -116,7 +120,7 @@ public class WorkerStorage {
 
     @Override
     public void run() {
-      while (true) {
+      while (!Thread.currentThread().isInterrupted()) {
         try {
           int fileId = -1;
           synchronized (mDependencyLock) {
@@ -158,7 +162,7 @@ public class WorkerStorage {
           }
 
           if (fileId == -1) {
-            LOG.debug("Thread {} has nothing to checkpoint. Sleep for 1 sec.",  mId);
+            LOG.debug("Thread {} has nothing to checkpoint. Sleep for 1 sec.", mId);
             CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
             continue;
           }
@@ -270,8 +274,9 @@ public class WorkerStorage {
 
   private List<Integer> mPriorityDependencies = new ArrayList<Integer>();
 
-  private ArrayList<Thread> mCheckpointThreads = new ArrayList<Thread>(
-      WorkerConf.get().WORKER_CHECKPOINT_THREADS);
+  private final ExecutorService mCheckpointExecutor = Executors.newFixedThreadPool(
+      WorkerConf.get().WORKER_CHECKPOINT_THREADS,
+      new ThreadFactoryBuilder().setNameFormat("checkpoint-%d").build());
 
   /**
    * Main logic behind the worker process.
@@ -306,9 +311,7 @@ public class WorkerStorage {
     mUsers = new Users(mLocalUserFolder.toString(), mUfsWorkerFolder);
 
     for (int k = 0; k < WorkerConf.get().WORKER_CHECKPOINT_THREADS; k ++) {
-      Thread thread = new Thread(new CheckpointThread(k));
-      mCheckpointThreads.add(thread);
-      thread.start();
+      mCheckpointExecutor.submit(new CheckpointThread(k));
     }
 
     try {
@@ -807,8 +810,7 @@ public class WorkerStorage {
     }
 
     LOG.info("returnSpace(" + userId + ", " + returnedBytes + ") : " + preAvailableBytes
-        + " returned: " + returnedBytes + ". New Available: "
-        + mSpaceCounter.getAvailableBytes());
+        + " returned: " + returnedBytes + ". New Available: " + mSpaceCounter.getAvailableBytes());
   }
 
   /**
@@ -816,6 +818,15 @@ public class WorkerStorage {
    */
   public void stop() {
     mMasterClient.shutdown();
+    // this will make sure that we don't move on till checkpoint threads are cleaned up
+    // needed or tests can get resource issues
+    mCheckpointExecutor.shutdownNow();
+    try {
+      mCheckpointExecutor.awaitTermination(5, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      // didn't stop in time, this is a bug!
+      throw Throwables.propagate(e);
+    }
   }
 
   /**

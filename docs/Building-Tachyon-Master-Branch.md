@@ -107,3 +107,19 @@ To build against a Hortonworks release, just use a version like `$apacheRelease.
     -Dhadoop.version=2.1.0.2.0.5.0-67
     -Dhadoop.version=2.2.0.2.1.0.0-92
     -Dhadoop.version=2.4.0.2.1.3.0-563
+
+# System Settings
+
+Some times you will need to play with a few system settings in order to have the unit tests pass locally.  A common setting that may need to be set is ulimit.
+
+## ulimit Mac
+
+In order to increase the number of files and procs allowed, run the following
+
+```bash
+sudo launchctl limit maxfiles 16384 16384
+sudo launchctl limit maxproc 2048 2048
+
+sudo ulimit -n 16384
+sudo ulimit -u 2048
+```

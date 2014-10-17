@@ -53,7 +53,7 @@ import tachyon.util.NetworkUtils;
  * 
  * Since MasterService.Client is not thread safe, this class has to guarantee thread safe.
  */
-public class MasterClient implements Closeable {
+public final class MasterClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_CONNECT_TRY = 5;
 
@@ -116,11 +116,14 @@ public class MasterClient implements Closeable {
       LOG.debug("Disconnecting from the master {}", mMasterAddress);
       mConnected = false;
     }
-    if (mProtocol != null) {
-      mProtocol.getTransport().close();
-    }
-    if (mHeartbeatThread != null) {
-      mHeartbeatThread.shutdown();
+    try {
+      if (mProtocol != null) {
+        mProtocol.getTransport().close();
+      }
+    } finally {
+      if (mHeartbeatThread != null) {
+        mHeartbeatThread.shutdown();
+      }
     }
   }
 

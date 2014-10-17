@@ -19,7 +19,7 @@ import tachyon.worker.TachyonWorker;
 /**
  * Local Tachyon cluster for unit tests.
  */
-public class LocalTachyonCluster {
+public final class LocalTachyonCluster {
   public static void main(String[] args) throws Exception {
     LocalTachyonCluster cluster = new LocalTachyonCluster(100);
     cluster.start();
@@ -149,8 +149,12 @@ public class LocalTachyonCluster {
     System.setProperty("tachyon.worker.memory.size", mWorkerCapacityBytes + "");
     System.setProperty("tachyon.worker.to.master.heartbeat.interval.ms", 15 + "");
     System.setProperty("tachyon.user.remote.read.buffer.size.byte", 64 + "");
-    // Don't spin off too many threads for data port. Each test will create a new data server so the
+    // Lower the number of threads that the cluster will spin off.
     // default thread overhead is too much.
+    System.setProperty("tachyon.master.selector.threads", Integer.toString(1));
+    System.setProperty("tachyon.master.server.threads", Integer.toString(2));
+    System.setProperty("tachyon.worker.selector.threads", Integer.toString(1));
+    System.setProperty("tachyon.worker.server.threads", Integer.toString(2));
     System.setProperty("tachyon.worker.network.netty.worker.threads", Integer.toString(2));
 
     CommonConf.clear();
