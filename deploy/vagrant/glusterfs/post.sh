@@ -8,27 +8,27 @@ brick=""
 # create a simple volume
 for i in ${nodes[@]}
 do 
-    gluster peer probe ${i}
+    sudo gluster peer probe ${i}
 done
 
 for i in ${nodes[@]}
 do 
     if [ "x${brick}" == "x" ]
     then
-        gluster volume create ${vol} ${i}:/gfs_vol force        
+        sudo gluster volume create ${vol} ${i}:/gfs_vol force        
     else
-        gluster volume add-brick ${vol} ${i}:/gfs_vol force        
+        sudo gluster volume add-brick ${vol} ${i}:/gfs_vol force        
     fi
     brick=${i}
 done
 
 # start volume
-gluster volume start ${vol}
+sudo gluster volume start ${vol}
 
 # mount volume
 for i in ${nodes[@]}
 do 
-   ssh root@${i} "mount -t glusterfs localhost:${vol} /vol"
+   ssh ${i} "sudo mount -t glusterfs localhost:${vol} /vol"
 done
 
 # config tachyon env

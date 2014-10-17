@@ -43,14 +43,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # common config
       n.vm.provision "shell", path: "init.sh"
       n.vm.provision "shell", path: Init
-      n.vm.synced_folder "../../", "/tachyon"
-      n.vm.synced_folder "./", "/vagrant"
 
       # files shared by VMs go into shared folder
-      system 'mkdir', '-p', './shared'
+      # system 'mkdir', '-p', './shared'
 
       # Provider specific init
       if Provider == "vb"
+        n.vm.synced_folder "../../", "/tachyon"
+        n.vm.synced_folder "./", "/vagrant"
         n.vm.box = "chef/centos-6.5"
         n.vm.provider "virtualbox" do |vb|
           if Memory != ''
@@ -59,6 +59,27 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           vb.gui = true
           eval File.open('config_vb.rb').read
           config_vb(n, i, Total, name)
+        end
+      end
+
+      if Provider == "aws"
+        n.vm.box = "dummy"
+        n.vm.box_url = "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
+        n.ssh.username = "ec2-user"
+        n.ssh.private_key_path = "~/.ssh/aws-east.pem"
+        n.vm.provider :aws do |aws, override|
+          aws.keypair_name = "aws-east"
+          aws.security_groups =  	["test"]
+          # RHEL 6.5
+          aws.ami = "ami-b06a98d8"
+          aws.region = "us-east-1"
+          aws.user_data = "#!/bin/bash\necho 'Defaults:root !requiretty' > /etc/sudoers.d/998-vagrant-cloud-init-requiretty && echo 'Defaults:ec2-user !requiretty' > /etc/sudoers.d/999-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/998-vagrant-cloud-init-requiretty && chmod 440 /etc/sudoers.d/999-vagrant-cloud-init-requiretty"    
+                   
+          n.vm.synced_folder "../../", "/tachyon", type: "rsync", 
+          rsync__exclude: ["../../.git/", "shared/"]
+          n.vm.synced_folder "./", "/vagrant", type: "rsync", 
+          rsync__exclude: ["shared/"]
+
         end
       end
     end

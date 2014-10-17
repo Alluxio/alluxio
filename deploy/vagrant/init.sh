@@ -1,5 +1,6 @@
 #!/bin/sh
-
+set -x
+mkdir -p /vagrant/shared
 cd /vagrant/shared
 
 # install maven
@@ -26,7 +27,7 @@ EOF
     then
         mkdir ${src}
         # ensure we have ssh-keygen rpm installed
-        yum install -y -q openssh
+        sudo yum install -y -q openssh
         # generate key
         ssh-keygen -f ${src}/id_rsa -t rsa -N ''
         # ssh without password
@@ -45,8 +46,9 @@ EOF
 
     chmod 600 ~/.ssh/*
     # install java
-    yum install -y -q java-1.6.0-openjdk-devel.x86_64
-    echo "export JAVA_HOME=/usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0.x86_64/" >> ~/.bashrc
+    sudo yum install -y -q java-1.6.0-openjdk-devel.x86_64
+    jvm="/usr/lib/jvm/java-1.6.0-openjdk.x86_64"
+    echo "export JAVA_HOME=${jvm}" >> ~/.bashrc
     exit 0
 fi
 
