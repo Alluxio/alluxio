@@ -15,20 +15,20 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
+
 import tachyon.Constants;
 import tachyon.TachyonURI;
 import tachyon.Version;
 import tachyon.client.OutStream;
 import tachyon.client.ReadType;
 import tachyon.client.TachyonByteBuffer;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.conf.UserConf;
 import tachyon.util.CommonUtils;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 
 public class Performance {
   private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -461,7 +461,8 @@ public class Performance {
     int t = FILES / THREADS;
     String msg = (write ? "Write " : "Read ");
     for (int thread = 0; thread < THREADS; thread ++) {
-      workerThreads[thread] = new HdfsWorker(thread, t * thread, t * (thread + 1), bufs[thread], write, msg);
+      workerThreads[thread] = new HdfsWorker(thread, t * thread, t * (thread + 1), bufs[thread],
+          write, msg);
     }
 
     final long startTimeMs = System.currentTimeMillis();

@@ -10,8 +10,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import tachyon.TachyonURI;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.conf.CommonConf;
 import tachyon.master.LocalTachyonCluster;
 import tachyon.master.MasterInfo;

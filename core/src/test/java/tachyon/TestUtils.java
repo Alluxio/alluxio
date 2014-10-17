@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import tachyon.client.OutStream;
-import tachyon.client.TachyonFS;
 import tachyon.client.TachyonFile;
+import tachyon.client.TachyonFS;
 import tachyon.client.WriteType;
 import tachyon.thrift.ClientFileInfo;
 

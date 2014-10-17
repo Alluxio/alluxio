@@ -153,15 +153,14 @@
     <!--          <property name="allowedAbbreviationLength" value="1"/> -->
     <!--          </module> -->
     <module name="OverloadMethodsDeclarationOrder"/>
-    <module name="VariableDeclarationUsageDistance">
-      <property name="allowedDistance" value="20" />
-    </module>
+    <!-- <module name="VariableDeclarationUsageDistance" /> -->
     <module name="CustomImportOrder">
-      <property name="thirdPartyPackageRegExp" value=".*"/>
-      <property name="specialImportsRegExp" value="com.google"/>
-      <property name="sortImportsInGroupAlphabetically" value="true"/>
+      <property name="thirdPartyPackageRegExp" value="^com\..*|^org\..*|^io\..*"/>
+      <property name="specialImportsRegExp" value="tachyon"/>
+      <property name="sortImportsInGroupAlphabetically" value="false"/>
+      <property name="separateLineBetweenGroups" value="true"/>
       <property name="customImportOrderRules"
-                value="STATIC###SPECIAL_IMPORTS###THIRD_PARTY_PACKAGE###STANDARD_JAVA_PACKAGE"/>
+                value="STANDARD_JAVA_PACKAGE###THIRD_PARTY_PACKAGE###SPECIAL_IMPORTS"/>
     </module>
     <module name="MethodParamPad"/>
     <module name="OperatorWrap">
