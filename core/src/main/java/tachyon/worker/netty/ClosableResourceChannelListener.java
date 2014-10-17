@@ -1,9 +1,9 @@
 package tachyon.worker.netty;
 
+import java.io.Closeable;
+
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-
-import java.io.Closeable;
 
 /**
  * A listener that will close the given resource when the operation completes. This class accepts

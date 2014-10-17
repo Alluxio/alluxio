@@ -1,10 +1,10 @@
 package tachyon.worker.netty;
 
+import java.util.List;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-
-import java.util.List;
 
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;

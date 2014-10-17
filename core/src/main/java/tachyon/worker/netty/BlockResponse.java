@@ -1,14 +1,14 @@
 package tachyon.worker.netty;
 
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.List;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.MessageToMessageEncoder;
-
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.List;
 
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
