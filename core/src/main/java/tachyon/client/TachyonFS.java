@@ -194,7 +194,7 @@ public class TachyonFS extends AbstractTachyonFS {
     String userTempFolder = mWorkerClient.getUserTempFolder();
 
     if (StringUtils.isBlank(userTempFolder)) {
-      LOG.error("Unable to get local temporary folder location for user.");
+      LOG.error("Unable to get local temporary folder \"{}\" for user.", userTempFolder);
       return null;
     }
 
