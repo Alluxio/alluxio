@@ -96,7 +96,7 @@ public final class StorageDir {
    * Add information of a block in current StorageDir
    * 
    * @param blockId Id of the block
-   * @param size size of the block in bytes
+   * @param sizeBytes size of the block in bytes
    */
   private void addBlockId(long blockId, long sizeBytes) {
     accessBlock(blockId);
