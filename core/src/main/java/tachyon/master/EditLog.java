@@ -36,8 +36,8 @@ import tachyon.util.CommonUtils;
 public class EditLog {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static int mBackUpLogStartNum = -1;
-  private static long mCurrentTId = 0;
+  private static int sBackUpLogStartNum = -1;
+  private static long sCurrentTId = 0;
 
   /**
    * Load edit log.
@@ -56,7 +56,7 @@ public class EditLog {
     }
     LOG.info("currentLogNum passed in was " + currentLogFileNum);
     int completedLogs = currentLogFileNum;
-    mBackUpLogStartNum = currentLogFileNum;
+    sBackUpLogStartNum = currentLogFileNum;
     String completedPath =
         path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     if (!ufs.exists(completedPath)) {
@@ -74,7 +74,7 @@ public class EditLog {
     loadSingleLog(info, path);
 
     ufs.close();
-    return mCurrentTId;
+    return sCurrentTId;
   }
 
   /**
@@ -104,7 +104,7 @@ public class EditLog {
         }
       }
 
-      mCurrentTId = op.mTransId;
+      sCurrentTId = op.mTransId;
       try {
         switch (op.mType) {
           case ADD_BLOCK: {
@@ -183,7 +183,7 @@ public class EditLog {
   }
 
   /**
-   * Make the edit log up-to-date, It will delete all editlogs since mBackUpLogStartNum.
+   * Make the edit log up-to-date, It will delete all editlogs since sBackUpLogStartNum.
    * 
    * @param path The path of the edit logs
    */
@@ -192,17 +192,17 @@ public class EditLog {
     String folder = path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "completed";
     try {
       // delete all loaded editlogs since mBackupLogStartNum.
-      String toDelete = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
+      String toDelete = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
       while (ufs.exists(toDelete)) {
         LOG.info("Deleting editlog " + toDelete);
         ufs.delete(toDelete, true);
-        mBackUpLogStartNum ++;
-        toDelete = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
+        sBackUpLogStartNum++;
+        toDelete = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
       }
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
-    mBackUpLogStartNum = -1;
+    sBackUpLogStartNum = -1;
   }
 
   /** When a master is replaying an edit log, mark the current edit log as an mInactive one. */
@@ -245,22 +245,22 @@ public class EditLog {
       LOG.info("Creating edit log file " + path);
       mPath = path;
       mUfs = UnderFileSystem.get(path);
-      if (mBackUpLogStartNum != -1) {
+      if (sBackUpLogStartNum != -1) {
         LOG.info("Deleting completed editlogs that are part of the image.");
-        deleteCompletedLogs(path, mBackUpLogStartNum);
-        LOG.info("Backing up logs from " + mBackUpLogStartNum + " since image is not updated.");
+        deleteCompletedLogs(path, sBackUpLogStartNum);
+        LOG.info("Backing up logs from " + sBackUpLogStartNum + " since image is not updated.");
         String folder =
             path.substring(0, path.lastIndexOf(TachyonURI.SEPARATOR) + 1) + "/completed";
         mUfs.mkdirs(folder, true);
-        String toRename = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
+        String toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
         int currentLogFileNum = 0;
         String dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
         while (mUfs.exists(toRename)) {
           mUfs.rename(toRename, dstPath);
           LOG.info("Rename " + toRename + " to " + dstPath);
           currentLogFileNum ++;
-          mBackUpLogStartNum ++;
-          toRename = CommonUtils.concat(folder, mBackUpLogStartNum + ".editLog");
+          sBackUpLogStartNum++;
+          toRename = CommonUtils.concat(folder, sBackUpLogStartNum + ".editLog");
           dstPath = CommonUtils.concat(folder, currentLogFileNum + ".editLog");
         }
         if (mUfs.exists(path)) {
@@ -269,7 +269,7 @@ public class EditLog {
           LOG.info("Rename " + path + " to " + dstPath);
           currentLogFileNum ++;
         }
-        mBackUpLogStartNum = -1;
+        sBackUpLogStartNum = -1;
       }
 
       // In case this file is created by different dfs-clients, which has been
@@ -596,7 +596,7 @@ public class EditLog {
    * @param num
    */
   static void setBackUpLogStartNum(int num) {
-    mBackUpLogStartNum = num;
+    sBackUpLogStartNum = num;
   }
 
   /**

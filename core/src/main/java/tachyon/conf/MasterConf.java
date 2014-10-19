@@ -11,21 +11,21 @@ import tachyon.util.NetworkUtils;
  * Configurations used by master only.
  */
 public class MasterConf extends Utils {
-  private static MasterConf MASTER_CONF = null;
+  private static MasterConf sMasterConf = null;
 
   /**
    * This is for unit test only. DO NOT use it for other purpose.
    */
   public static synchronized void clear() {
-    MASTER_CONF = null;
+    sMasterConf = null;
   }
 
   public static synchronized MasterConf get() {
-    if (MASTER_CONF == null) {
-      MASTER_CONF = new MasterConf();
+    if (sMasterConf == null) {
+      sMasterConf = new MasterConf();
     }
 
-    return MASTER_CONF;
+    return sMasterConf;
   }
 
   public final String JOURNAL_FOLDER;

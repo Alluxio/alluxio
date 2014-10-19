@@ -20,7 +20,7 @@ import tachyon.client.TachyonFS;
  * Utilities related to under filesystem
  */
 public class UfsUtils {
-  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Build a new path relative to a given mTachyonFS root by retrieving the given path relative to

@@ -20,7 +20,7 @@ import tachyon.client.table.RawColumn;
 import tachyon.client.table.RawTable;
 
 public class BasicRawTableOperations implements Callable<Boolean> {
-  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final int COLS = 3;
 

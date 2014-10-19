@@ -31,38 +31,37 @@ import tachyon.conf.UserConf;
 import tachyon.util.CommonUtils;
 
 public class Performance {
-  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final int RESULT_ARRAY_SIZE = 64;
   private static final String FOLDER = "/mnt/ramdisk/";
 
-  private static TachyonFS MTC = null;
-  private static TachyonURI MASTER_ADDRESS = null;
-  private static String FILE_NAME = null;
-  private static int BLOCK_SIZE_BYTES = -1;
-  private static long BLOCKS_PER_FILE = -1;
-  private static int THREADS = -1;
-  private static int FILES = -1;
-  private static boolean DEBUG_MODE = false;
-  private static long FILE_BYTES = -1;
-  private static long FILES_BYTES = -1;
-  private static String RESULT_PREFIX = null;
-  private static long[] Results = new long[RESULT_ARRAY_SIZE];
-  private static int BASE_FILE_NUMBER = 0;
-
-  private static boolean TACHYON_STREAMING_READ = false;
+  private static TachyonFS sMtc = null;
+  private static TachyonURI sMasterAddress = null;
+  private static String sFileName = null;
+  private static int sBlockSizeBytes = -1;
+  private static long sBlocskPerFile = -1;
+  private static int sThreads = -1;
+  private static int sFiles = -1;
+  private static boolean sDebugMode = false;
+  private static long sFileBytes = -1;
+  private static long sFilesBytes = -1;
+  private static String sResultPrefix = null;
+  private static long[] sResults = new long[RESULT_ARRAY_SIZE];
+  private static int sBaseFileNumber = 0;
+  private static boolean sTachyonStreamingRead = false;
 
   public static void createFiles() throws IOException {
     final long startTimeMs = CommonUtils.getCurrentMs();
-    for (int k = 0; k < FILES; k ++) {
-      int fileId = MTC.createFile(new TachyonURI(FILE_NAME + (k + BASE_FILE_NUMBER)));
+    for (int k = 0; k < sFiles; k ++) {
+      int fileId = sMtc.createFile(new TachyonURI(sFileName + (k + sBaseFileNumber)));
       CommonUtils.printTimeTakenMs(startTimeMs, LOG, "user_createFiles with fileId " + fileId);
     }
   }
 
   public static void logPerIteration(long startTimeMs, int times, String msg, int workerId) {
     long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-    double result = 1000.0 * FILE_BYTES / takenTimeMs / 1024 / 1024;
+    double result = 1000.0 * sFileBytes / takenTimeMs / 1024 / 1024;
     LOG.info(times + msg + workerId + " : " + result + " Mb/sec. Took " + takenTimeMs + " ms. ");
   }
 
@@ -94,7 +93,7 @@ public class Performance {
     }
 
     public void memoryCopyParition() throws IOException {
-      if (DEBUG_MODE) {
+      if (sDebugMode) {
         mBuf.flip();
         CommonUtils.printByteBuffer(LOG, mBuf);
       }
@@ -106,16 +105,16 @@ public class Performance {
         ByteBuffer dst = null;
         RandomAccessFile file = null;
         if (mMemoryOnly) {
-          dst = ByteBuffer.allocateDirect((int) FILE_BYTES);
+          dst = ByteBuffer.allocateDirect((int) sFileBytes);
         }
         for (int times = mLeft; times < mRight; times ++) {
           final long startTimeMs = System.currentTimeMillis();
           if (!mMemoryOnly) {
-            file = new RandomAccessFile(FOLDER + (times + BASE_FILE_NUMBER), "rw");
-            dst = file.getChannel().map(MapMode.READ_WRITE, 0, FILE_BYTES);
+            file = new RandomAccessFile(FOLDER + (times + sBaseFileNumber), "rw");
+            dst = file.getChannel().map(MapMode.READ_WRITE, 0, sFileBytes);
           }
           dst.order(ByteOrder.nativeOrder());
-          for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
+          for (int k = 0; k < sBlocskPerFile; k ++) {
             mBuf.putInt(0, k + mWorkerId);
             dst.put(mBuf.array());
           }
@@ -131,16 +130,16 @@ public class Performance {
         ByteBuffer dst = null;
         RandomAccessFile file = null;
         if (mMemoryOnly) {
-          dst = ByteBuffer.allocateDirect((int) FILE_BYTES);
+          dst = ByteBuffer.allocateDirect((int) sFileBytes);
         }
         for (int times = mLeft; times < mRight; times ++) {
           final long startTimeMs = System.currentTimeMillis();
           if (!mMemoryOnly) {
-            file = new RandomAccessFile(FOLDER + (times + BASE_FILE_NUMBER), "rw");
-            dst = file.getChannel().map(MapMode.READ_WRITE, 0, FILE_BYTES);
+            file = new RandomAccessFile(FOLDER + (times + sBaseFileNumber), "rw");
+            dst = file.getChannel().map(MapMode.READ_WRITE, 0, sFileBytes);
           }
           dst.order(ByteOrder.nativeOrder());
-          for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
+          for (int k = 0; k < sBlocskPerFile; k ++) {
             dst.get(mBuf.array());
           }
           sum += mBuf.get(times % 16);
@@ -151,7 +150,7 @@ public class Performance {
           logPerIteration(startTimeMs, times, str, mWorkerId);
         }
       }
-      Results[mWorkerId] = sum;
+      sResults[mWorkerId] = sum;
     }
 
     @Override
@@ -170,11 +169,11 @@ public class Performance {
 
     public TachyonWriterWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
-      mTC = TachyonFS.get(MASTER_ADDRESS);
+      mTC = TachyonFS.get(sMasterAddress);
     }
 
     public void writeParition() throws IOException {
-      if (DEBUG_MODE) {
+      if (sDebugMode) {
         mBuf.flip();
         CommonUtils.printByteBuffer(LOG, mBuf);
       }
@@ -182,9 +181,9 @@ public class Performance {
       mBuf.flip();
       for (int pId = mLeft; pId < mRight; pId ++) {
         final long startTimeMs = System.currentTimeMillis();
-        TachyonFile file = mTC.getFile(new TachyonURI(FILE_NAME + (pId + BASE_FILE_NUMBER)));
+        TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
         OutStream os = file.getOutStream(WriteType.MUST_CACHE);
-        for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
+        for (int k = 0; k < sBlocskPerFile; k ++) {
           mBuf.putInt(0, k + mWorkerId);
           os.write(mBuf.array());
         }
@@ -209,21 +208,21 @@ public class Performance {
 
     public TachyonReadWorker(int id, int left, int right, ByteBuffer buf) throws IOException {
       super(id, left, right, buf);
-      mTC = TachyonFS.get(MASTER_ADDRESS);
+      mTC = TachyonFS.get(sMasterAddress);
     }
 
     public void readPartition() throws IOException {
       TachyonByteBuffer buf;
-      if (DEBUG_MODE) {
+      if (sDebugMode) {
         LOG.info("Verifying the reading data...");
 
         for (int pId = mLeft; pId < mRight; pId ++) {
-          TachyonFile file = mTC.getFile(new TachyonURI(FILE_NAME + (pId + BASE_FILE_NUMBER)));
+          TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
           buf = file.readByteBuffer(0);
           IntBuffer intBuf;
           intBuf = buf.mData.order(ByteOrder.nativeOrder()).asIntBuffer();
-          for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
-            for (int k = 0; k < BLOCK_SIZE_BYTES / 4; k ++) {
+          for (int i = 0; i < sBlocskPerFile; i ++) {
+            for (int k = 0; k < sBlockSizeBytes / 4; k ++) {
               int tmp = intBuf.get();
               if ((k == 0 && tmp == (i + mWorkerId)) || (k != 0 && tmp == k)) {
                 LOG.debug("Partition at {} is {}", k, tmp);
@@ -237,12 +236,12 @@ public class Performance {
       }
 
       long sum = 0;
-      if (TACHYON_STREAMING_READ) {
+      if (sTachyonStreamingRead) {
         for (int pId = mLeft; pId < mRight; pId ++) {
           final long startTimeMs = System.currentTimeMillis();
-          TachyonFile file = mTC.getFile(new TachyonURI(FILE_NAME + (pId + BASE_FILE_NUMBER)));
+          TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
           InputStream is = file.getInStream(ReadType.CACHE);
-          long len = BLOCKS_PER_FILE * BLOCK_SIZE_BYTES;
+          long len = sBlocskPerFile * sBlockSizeBytes;
 
           while (len > 0) {
             int r = is.read(mBuf.array());
@@ -255,14 +254,14 @@ public class Performance {
       } else {
         for (int pId = mLeft; pId < mRight; pId ++) {
           final long startTimeMs = System.currentTimeMillis();
-          TachyonFile file = mTC.getFile(new TachyonURI(FILE_NAME + (pId + BASE_FILE_NUMBER)));
+          TachyonFile file = mTC.getFile(new TachyonURI(sFileName + (pId + sBaseFileNumber)));
           buf = file.readByteBuffer(0);
-          for (int i = 0; i < BLOCKS_PER_FILE; i ++) {
+          for (int i = 0; i < sBlocskPerFile; i ++) {
             buf.mData.get(mBuf.array());
           }
           sum += mBuf.get(pId % 16);
 
-          if (DEBUG_MODE) {
+          if (sDebugMode) {
             buf.mData.order(ByteOrder.nativeOrder()).flip();
             CommonUtils.printByteBuffer(LOG, buf.mData);
           }
@@ -271,7 +270,7 @@ public class Performance {
           buf.close();
         }
       }
-      Results[mWorkerId] = sum;
+      sResults[mWorkerId] = sum;
     }
 
     @Override
@@ -297,8 +296,8 @@ public class Performance {
       mMsg = msg;
 
       Configuration tConf = new Configuration();
-      tConf.set("fs.default.name", FILE_NAME);
-      tConf.set("fs.defaultFS", FILE_NAME);
+      tConf.set("fs.default.name", sFileName);
+      tConf.set("fs.defaultFS", sFileName);
       tConf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
 
       tConf.set("dfs.client.read.shortcircuit", "true");
@@ -314,7 +313,7 @@ public class Performance {
     }
 
     public void io() throws IOException {
-      if (DEBUG_MODE) {
+      if (sDebugMode) {
         mBuf.flip();
         CommonUtils.printByteBuffer(LOG, mBuf);
       }
@@ -325,9 +324,9 @@ public class Performance {
       if (mWrite) {
         for (int times = mLeft; times < mRight; times ++) {
           final long startTimeMs = System.currentTimeMillis();
-          String filePath = FILE_NAME + (times + BASE_FILE_NUMBER);
+          String filePath = sFileName + (times + sBaseFileNumber);
           OutputStream os = mHdfsFs.create(new Path(filePath));
-          for (int k = 0; k < BLOCKS_PER_FILE; k ++) {
+          for (int k = 0; k < sBlocskPerFile; k ++) {
             mBuf.putInt(0, k + mWorkerId);
             os.write(mBuf.array());
           }
@@ -337,9 +336,9 @@ public class Performance {
       } else {
         for (int times = mLeft; times < mRight; times ++) {
           final long startTimeMs = System.currentTimeMillis();
-          String filePath = FILE_NAME + (times + BASE_FILE_NUMBER);
+          String filePath = sFileName + (times + sBaseFileNumber);
           InputStream is = mHdfsFs.open(new Path(filePath));
-          long len = BLOCKS_PER_FILE * BLOCK_SIZE_BYTES;
+          long len = sBlocskPerFile * sBlockSizeBytes;
 
           while (len > 0) {
             int r = is.read(mBuf.array());
@@ -350,7 +349,7 @@ public class Performance {
           logPerIteration(startTimeMs, times, str, mWorkerId);
         }
       }
-      Results[mWorkerId] = sum;
+      sResults[mWorkerId] = sum;
     }
 
     @Override
@@ -365,12 +364,12 @@ public class Performance {
   }
 
   private static void memoryCopyTest(boolean write, boolean memoryOnly) {
-    ByteBuffer[] bufs = new ByteBuffer[THREADS];
+    ByteBuffer[] bufs = new ByteBuffer[sThreads];
 
-    for (int thread = 0; thread < THREADS; thread ++) {
-      ByteBuffer sRawData = ByteBuffer.allocate(BLOCK_SIZE_BYTES);
+    for (int thread = 0; thread < sThreads; thread ++) {
+      ByteBuffer sRawData = ByteBuffer.allocate(sBlockSizeBytes);
       sRawData.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < BLOCK_SIZE_BYTES / 4; k ++) {
+      for (int k = 0; k < sBlockSizeBytes / 4; k ++) {
         sRawData.putInt(k);
       }
       bufs[thread] = sRawData;
@@ -378,19 +377,19 @@ public class Performance {
 
     String msg = (write ? "Write" : "Read") + (memoryOnly ? "_Memory " : "_RamFile ");
 
-    GeneralWorker[] workerThreads = new GeneralWorker[THREADS];
-    int t = FILES / THREADS;
-    for (int thread = 0; thread < THREADS; thread ++) {
+    GeneralWorker[] workerThreads = new GeneralWorker[sThreads];
+    int t = sFiles / sThreads;
+    for (int thread = 0; thread < sThreads; thread ++) {
       workerThreads[thread] =
           new GeneralWorker(thread, t * thread, t * (thread + 1), bufs[thread], write, memoryOnly,
               msg);
     }
 
     final long startTimeMs = System.currentTimeMillis();
-    for (int thread = 0; thread < THREADS; thread ++) {
+    for (int thread = 0; thread < sThreads; thread ++) {
       workerThreads[thread].start();
     }
-    for (int thread = 0; thread < THREADS; thread ++) {
+    for (int thread = 0; thread < sThreads; thread ++) {
       try {
         workerThreads[thread].join();
       } catch (InterruptedException e) {
@@ -398,27 +397,27 @@ public class Performance {
       }
     }
     final long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-    double result = 1000.0 * FILES_BYTES / takenTimeMs / 1024 / 1024;
+    double result = 1000.0 * sFilesBytes / takenTimeMs / 1024 / 1024;
 
-    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + msg + " Test : " + " Took "
+    LOG.info(result + " Mb/sec. " + sResultPrefix + "Entire " + msg + " Test : " + " Took "
         + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
   private static void TachyonTest(boolean write) throws IOException {
-    ByteBuffer[] bufs = new ByteBuffer[THREADS];
+    ByteBuffer[] bufs = new ByteBuffer[sThreads];
 
-    for (int thread = 0; thread < THREADS; thread ++) {
-      ByteBuffer sRawData = ByteBuffer.allocate(BLOCK_SIZE_BYTES);
+    for (int thread = 0; thread < sThreads; thread ++) {
+      ByteBuffer sRawData = ByteBuffer.allocate(sBlockSizeBytes);
       sRawData.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < BLOCK_SIZE_BYTES / 4; k ++) {
+      for (int k = 0; k < sBlockSizeBytes / 4; k ++) {
         sRawData.putInt(k);
       }
       bufs[thread] = sRawData;
     }
 
-    Worker[] workerThreads = new Worker[THREADS];
-    int t = FILES / THREADS;
-    for (int thread = 0; thread < THREADS; thread ++) {
+    Worker[] workerThreads = new Worker[sThreads];
+    int t = sFiles / sThreads;
+    for (int thread = 0; thread < sThreads; thread ++) {
       if (write) {
         workerThreads[thread] = new TachyonWriterWorker(thread, t * thread, t * (thread + 1),
             bufs[thread]);
@@ -429,10 +428,10 @@ public class Performance {
     }
 
     final long startTimeMs = System.currentTimeMillis();
-    for (int thread = 0; thread < THREADS; thread ++) {
+    for (int thread = 0; thread < sThreads; thread ++) {
       workerThreads[thread].start();
     }
-    for (int thread = 0; thread < THREADS; thread ++) {
+    for (int thread = 0; thread < sThreads; thread ++) {
       try {
         workerThreads[thread].join();
       } catch (InterruptedException e) {
@@ -440,36 +439,36 @@ public class Performance {
       }
     }
     final long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-    double result = FILES_BYTES * 1000.0 / takenTimeMs / 1024 / 1024;
-    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write " : "Read ")
+    double result = sFilesBytes * 1000.0 / takenTimeMs / 1024 / 1024;
+    LOG.info(result + " Mb/sec. " + sResultPrefix + "Entire " + (write ? "Write " : "Read ")
         + " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
   private static void HdfsTest(boolean write) throws IOException {
-    ByteBuffer[] bufs = new ByteBuffer[THREADS];
+    ByteBuffer[] bufs = new ByteBuffer[sThreads];
 
-    for (int thread = 0; thread < THREADS; thread ++) {
-      ByteBuffer sRawData = ByteBuffer.allocate(BLOCK_SIZE_BYTES);
+    for (int thread = 0; thread < sThreads; thread ++) {
+      ByteBuffer sRawData = ByteBuffer.allocate(sBlockSizeBytes);
       sRawData.order(ByteOrder.nativeOrder());
-      for (int k = 0; k < BLOCK_SIZE_BYTES / 4; k ++) {
+      for (int k = 0; k < sBlockSizeBytes / 4; k ++) {
         sRawData.putInt(k);
       }
       bufs[thread] = sRawData;
     }
 
-    Worker[] workerThreads = new Worker[THREADS];
-    int t = FILES / THREADS;
+    Worker[] workerThreads = new Worker[sThreads];
+    int t = sFiles / sThreads;
     String msg = (write ? "Write " : "Read ");
-    for (int thread = 0; thread < THREADS; thread ++) {
+    for (int thread = 0; thread < sThreads; thread ++) {
       workerThreads[thread] = new HdfsWorker(thread, t * thread, t * (thread + 1), bufs[thread],
           write, msg);
     }
 
     final long startTimeMs = System.currentTimeMillis();
-    for (int thread = 0; thread < THREADS; thread ++) {
+    for (int thread = 0; thread < sThreads; thread ++) {
       workerThreads[thread].start();
     }
-    for (int thread = 0; thread < THREADS; thread ++) {
+    for (int thread = 0; thread < sThreads; thread ++) {
       try {
         workerThreads[thread].join();
       } catch (InterruptedException e) {
@@ -477,8 +476,8 @@ public class Performance {
       }
     }
     final long takenTimeMs = System.currentTimeMillis() - startTimeMs;
-    double result = FILES_BYTES * 1000.0 / takenTimeMs / 1024 / 1024;
-    LOG.info(result + " Mb/sec. " + RESULT_PREFIX + "Entire " + (write ? "Write " : "Read ")
+    double result = sFilesBytes * 1000.0 / takenTimeMs / 1024 / 1024;
+    LOG.info(result + " Mb/sec. " + sResultPrefix + "Entire " + (write ? "Write " : "Read ")
         + " Took " + takenTimeMs + " ms. Current System Time: " + System.currentTimeMillis());
   }
 
@@ -494,72 +493,72 @@ public class Performance {
       System.exit(-1);
     }
 
-    MASTER_ADDRESS = new TachyonURI(args[0]);
-    FILE_NAME = args[1];
-    BLOCK_SIZE_BYTES = Integer.parseInt(args[2]);
-    BLOCKS_PER_FILE = Long.parseLong(args[3]);
-    DEBUG_MODE = ("true".equals(args[4]));
-    THREADS = Integer.parseInt(args[5]);
-    FILES = Integer.parseInt(args[6]) * THREADS;
+    sMasterAddress = new TachyonURI(args[0]);
+    sFileName = args[1];
+    sBlockSizeBytes = Integer.parseInt(args[2]);
+    sBlocskPerFile = Long.parseLong(args[3]);
+    sDebugMode = ("true".equals(args[4]));
+    sThreads = Integer.parseInt(args[5]);
+    sFiles = Integer.parseInt(args[6]) * sThreads;
     final int testCase = Integer.parseInt(args[7]);
-    BASE_FILE_NUMBER = Integer.parseInt(args[8]);
+    sBaseFileNumber = Integer.parseInt(args[8]);
 
-    FILE_BYTES = BLOCKS_PER_FILE * BLOCK_SIZE_BYTES;
-    FILES_BYTES = 1L * FILE_BYTES * FILES;
+    sFileBytes = sBlocskPerFile * sBlockSizeBytes;
+    sFilesBytes = 1L * sFileBytes * sFiles;
 
-    RESULT_PREFIX =
+    sResultPrefix =
         String.format("Threads %d FilesPerThread %d TotalFiles %d "
             + "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d "
-            + "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ", THREADS, FILES / THREADS,
-            FILES, BLOCK_SIZE_BYTES / 1024, BLOCKS_PER_FILE, CommonUtils.getMB(FILE_BYTES),
-            UserConf.get().FILE_BUFFER_BYTES / 1024, BASE_FILE_NUMBER);
+            + "Tachyon_WRITE_BUFFER_SIZE_KB %d BaseFileNumber %d : ", sThreads, sFiles / sThreads,
+            sFiles, sBlockSizeBytes / 1024, sBlocskPerFile, CommonUtils.getMB(sFileBytes),
+            UserConf.get().FILE_BUFFER_BYTES / 1024, sBaseFileNumber);
 
     for (int k = 0; k < 10000000; k ++) {
       // Warmup
     }
 
     if (testCase == 1) {
-      RESULT_PREFIX = "TachyonFilesWriteTest " + RESULT_PREFIX;
-      LOG.info(RESULT_PREFIX);
-      MTC = TachyonFS.get(MASTER_ADDRESS);
+      sResultPrefix = "TachyonFilesWriteTest " + sResultPrefix;
+      LOG.info(sResultPrefix);
+      sMtc = TachyonFS.get(sMasterAddress);
       createFiles();
       TachyonTest(true);
     } else if (testCase == 2 || testCase == 9) {
-      RESULT_PREFIX = "TachyonFilesReadTest " + RESULT_PREFIX;
-      LOG.info(RESULT_PREFIX);
-      MTC = TachyonFS.get(MASTER_ADDRESS);
-      TACHYON_STREAMING_READ = (9 == testCase);
+      sResultPrefix = "TachyonFilesReadTest " + sResultPrefix;
+      LOG.info(sResultPrefix);
+      sMtc = TachyonFS.get(sMasterAddress);
+      sTachyonStreamingRead = (9 == testCase);
       TachyonTest(false);
     } else if (testCase == 3) {
-      RESULT_PREFIX = "RamFile Write " + RESULT_PREFIX;
-      LOG.info(RESULT_PREFIX);
+      sResultPrefix = "RamFile Write " + sResultPrefix;
+      LOG.info(sResultPrefix);
       memoryCopyTest(true, false);
     } else if (testCase == 4) {
-      RESULT_PREFIX = "RamFile Read " + RESULT_PREFIX;
-      LOG.info(RESULT_PREFIX);
+      sResultPrefix = "RamFile Read " + sResultPrefix;
+      LOG.info(sResultPrefix);
       memoryCopyTest(false, false);
     } else if (testCase == 5) {
-      RESULT_PREFIX = "ByteBuffer Write Test " + RESULT_PREFIX;
-      LOG.info(RESULT_PREFIX);
+      sResultPrefix = "ByteBuffer Write Test " + sResultPrefix;
+      LOG.info(sResultPrefix);
       memoryCopyTest(true, true);
     } else if (testCase == 6) {
-      RESULT_PREFIX = "ByteBuffer Read Test " + RESULT_PREFIX;
-      LOG.info(RESULT_PREFIX);
+      sResultPrefix = "ByteBuffer Read Test " + sResultPrefix;
+      LOG.info(sResultPrefix);
       memoryCopyTest(false, true);
     } else if (testCase == 7) {
-      RESULT_PREFIX = "HdfsFilesWriteTest " + RESULT_PREFIX;
-      LOG.info(RESULT_PREFIX);
+      sResultPrefix = "HdfsFilesWriteTest " + sResultPrefix;
+      LOG.info(sResultPrefix);
       HdfsTest(true);
     } else if (testCase == 8) {
-      RESULT_PREFIX = "HdfsFilesReadTest " + RESULT_PREFIX;
-      LOG.info(RESULT_PREFIX);
+      sResultPrefix = "HdfsFilesReadTest " + sResultPrefix;
+      LOG.info(sResultPrefix);
       HdfsTest(false);
     } else {
       throw new RuntimeException("No Test Case " + testCase);
     }
 
     for (int k = 0; k < RESULT_ARRAY_SIZE; k ++) {
-      System.out.print(Results[k] + " ");
+      System.out.print(sResults[k] + " ");
     }
     System.out.println();
     System.exit(0);
