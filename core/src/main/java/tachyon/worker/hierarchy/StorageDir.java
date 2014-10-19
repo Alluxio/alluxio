@@ -3,8 +3,6 @@ package tachyon.worker.hierarchy;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
@@ -266,7 +264,7 @@ public final class StorageDir {
   }
 
   public SeekableByteChannel getBlock(long blockId) throws IOException {
-    return new BlockChannel(getBlockFilePath(blockId));
+    return new SeekableFileChannel(getBlockFilePath(blockId));
   }
 
   /**

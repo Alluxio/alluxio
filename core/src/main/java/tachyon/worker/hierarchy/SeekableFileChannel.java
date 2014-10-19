@@ -17,7 +17,11 @@ import com.google.common.io.Closer;
 import tachyon.Constants;
 import tachyon.util.CommonUtils;
 
-final class BlockChannel implements SeekableByteChannel {
+/**
+ * {@link SeekableByteChannel} that is backed by a file.  This class
+ * should never be used directly, users should accept and work with {@link SeekableByteChannel}.
+ */
+final class SeekableFileChannel implements SeekableByteChannel {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final RandomAccessFile mLocalFile;
@@ -27,7 +31,7 @@ final class BlockChannel implements SeekableByteChannel {
   private final Closer mCloser = Closer.create();
   private final AtomicLong mPosition = new AtomicLong(0);
 
-  BlockChannel(final String filePath) throws FileNotFoundException {
+  SeekableFileChannel(final String filePath) throws FileNotFoundException {
     mFilePath = Preconditions.checkNotNull(filePath);
     LOG.debug("{} is created", mFilePath);
     mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));
