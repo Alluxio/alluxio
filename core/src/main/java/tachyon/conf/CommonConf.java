@@ -17,7 +17,7 @@ import tachyon.Constants;
 public class CommonConf extends Utils {
   private static final Logger LOG = LoggerFactory.getLogger("");
 
-  private static CommonConf COMMON_CONF = null;
+  private static CommonConf sCommonConf = null;
 
   public static final ImmutableList<String> DEFAULT_HADOOP_UFS_PREFIX = ImmutableList.of("hdfs://",
       "s3://", "s3n://", "glusterfs:///");
@@ -26,15 +26,15 @@ public class CommonConf extends Utils {
    * This is for unit test only. DO NOT use it for other purpose.
    */
   public static synchronized void clear() {
-    COMMON_CONF = null;
+    sCommonConf = null;
   }
 
   public static synchronized CommonConf get() {
-    if (COMMON_CONF == null) {
-      COMMON_CONF = new CommonConf();
+    if (sCommonConf == null) {
+      sCommonConf = new CommonConf();
     }
 
-    return COMMON_CONF;
+    return sCommonConf;
   }
 
   public final String TACHYON_HOME;

@@ -21,7 +21,7 @@ import tachyon.client.TachyonFS;
 import tachyon.conf.UserConf;
 
 public class HdfsFileInputStream extends InputStream implements Seekable, PositionedReadable {
-  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private long mCurrentPosition;
   private TachyonFS mTFS;

@@ -19,7 +19,7 @@ import tachyon.client.WriteType;
 import tachyon.util.CommonUtils;
 
 public class BasicOperations implements Callable<Boolean> {
-  private static Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final TachyonURI mMasterLocation;
   private final TachyonURI mFilePath;

@@ -158,5 +158,10 @@
       <property name="tokens" value="BAND, BOR, BSR, BXOR, DIV, EQUAL, GE, GT, LAND, LE,
         LITERAL_INSTANCEOF, LOR, LT, MINUS, MOD, NOT_EQUAL, PLUS, QUESTION, SL, SR, STAR "/>
     </module>
+    <module name="StaticVariableName">
+      <property name="format" value="^s[A-Z][a-zA-Z0-9]*$"/>
+      <message key="name.invalidPattern"
+               value="Static member name ''{0}'' must match pattern ''{1}''."/>
+    </module>
   </module>
 </module>

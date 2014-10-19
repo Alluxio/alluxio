@@ -33,9 +33,9 @@ public final class Utils {
 
   public static Path getHDFSPath(TachyonURI path) {
     if (path.isPathAbsolute()) {
-      return new Path(TFS.mUnderFSAddress + path.getPath());
+      return new Path(TFS.sUnderFSAddress + path.getPath());
     } else {
-      return new Path(TFS.mUnderFSAddress + TachyonURI.SEPARATOR + path.getPath());
+      return new Path(TFS.sUnderFSAddress + TachyonURI.SEPARATOR + path.getPath());
     }
   }
 
