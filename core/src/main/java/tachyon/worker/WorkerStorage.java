@@ -181,7 +181,7 @@ public class WorkerStorage {
             continue;
           }
           for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-            lockBlock(fileInfo.blockIds.get(k), Users.sCHECKPOINT_USER_ID);
+            lockBlock(fileInfo.blockIds.get(k), Users.CHECKPOINT_USER_ID);
           }
           OutputStream os = mCheckpointUfs.create(midPath, (int) fileInfo.getBlockSizeByte());
           long fileSizeByte = 0;
@@ -204,7 +204,7 @@ public class WorkerStorage {
           }
           mMasterClient.addCheckpoint(mWorkerId, fileId, fileSizeByte, dstPath);
           for (int k = 0; k < fileInfo.blockIds.size(); k ++) {
-            unlockBlock(fileInfo.blockIds.get(k), Users.sCHECKPOINT_USER_ID);
+            unlockBlock(fileInfo.blockIds.get(k), Users.CHECKPOINT_USER_ID);
           }
 
           long shouldTakeMs = (long) (1000.0 * fileSizeByte / Constants.MB

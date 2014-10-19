@@ -167,7 +167,7 @@ public class TachyonWorker implements Runnable {
     // In a production or any real deployment setup, port '0' should not be used as it will make
     // deployment more complicated.
     InetSocketAddress dataAddress = new InetSocketAddress(workerAddress.getHostName(), dataPort);
-    BlocksLocker blockLocker = new BlocksLocker(mWorkerStorage, Users.sDATASERVER_USER_ID);
+    BlocksLocker blockLocker = new BlocksLocker(mWorkerStorage, Users.DATASERVER_USER_ID);
     mDataServer = createDataServer(dataAddress, blockLocker);
     mDataPort = mDataServer.getPort();
 
