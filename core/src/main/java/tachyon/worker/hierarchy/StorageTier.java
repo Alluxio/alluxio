@@ -46,7 +46,7 @@ public class StorageTier {
    * Create a new StorageTier
    * 
    * @param storageLevel storage level of StorageTier
-   * @param storageLevelAlias String format alias of current StorageTier's storage level
+   * @param storageLevelAlias alias of current StorageTier's storage level
    * @param dirPaths paths of StorageDirs in current StorageTier
    * @param dirCapacityBytes capacities of StorageDirs in current StorageTier
    * @param dataFolder data folder in StorageDir
@@ -55,12 +55,12 @@ public class StorageTier {
    * @param conf configuration of StorageDir
    * @throws IOException
    */
-  public StorageTier(int storageLevel, String storageLevelAlias, String[] dirPaths,
+  public StorageTier(int storageLevel, StorageLevelAlias storageLevelAlias, String[] dirPaths,
       long[] dirCapacityBytes, String dataFolder, String userTempFolder, StorageTier nextTier,
       Object conf) throws IOException {
     mStorageLevel = storageLevel;
     int storageDirNum = dirPaths.length;
-    mStorageLevelAlias = StorageLevelAlias.getStorageLevel(storageLevelAlias);
+    mStorageLevelAlias = storageLevelAlias;
     mStorageDirs = new StorageDir[storageDirNum];
     long quotaBytes = 0;
     for (int i = 0; i < storageDirNum; i ++) {
@@ -106,19 +106,6 @@ public class StorageTier {
   public StorageTier getNextStorageTier() {
     return mNextStorageTier;
   }
-
-  /**
-   * Get removed block Ids of current StorageTier
-   * 
-   * @return Id list of removed blocks
-   */
-  public List<Long> getRemovedBlockIdList() {
-    List<Long> removedBlockIds = new ArrayList<Long>();
-    for (StorageDir dir : mStorageDirs) {
-      dir.getRemovedBlockIdList().drainTo(removedBlockIds);
-    }
-    return removedBlockIds;
-  };
 
   /**
    * Find the StorageDir which contains given block Id
