@@ -3,13 +3,7 @@ layout: global
 title: Running Tachyon Locally
 ---
 
-This guide describes how to accomplish the following:
-
--   Run Tachyon on a single machine
--   Set Apache HDFS as Tachyon's underlayer filesystem
--   Set Amazon S3 as Tachyon's underlayer filesystem
-
-# Run Tachyon Standalone
+# Run Tachyon Standalone on a Single Machine.
 
 The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 6 or above).
 
@@ -58,21 +52,3 @@ To run a more comprehensive sanity check:
 You can stop Tachyon any time by running:
 
     $ ./bin/tachyon-stop.sh
-
-# Set HDFS as Tachyon's under filesystem
-
-The additional prerequisite for this part is [Hadoop HDFS](http://www.michael-noll.com/tutorials
-/running-hadoop-on-ubuntu-linux-multi-node-cluster/). By default, Tachyon is set to use HDFS version
-1.0.4. You can use another Hadoop version by changing the hadoop.version tag in pom.xml in Tachyon
-and recompiling it. You can also set the hadoop version when compiling with maven:
-
-    $ mvn -Dhadoop.version=2.2.0 clean package
-
-Edit `tachyon-env.sh` file. Setup `TACHYON_UNDERFS_ADDRESS=hdfs://HDFS_HOSTNAME:HDFS_IP`. You may
-also need to setup `JAVA_HOME` in the same file.
-
-# Set Amazon S3 as Tachyon's under filesystem
-
-Edit `tachyon-env.sh` file. Setup `TACHYON_UNDERFS_ADDRESS=s3://s3address` and the necessary
-credentials such as `fs.s3n.awsAccessKeyId` and `fs.s3n.awsSecretAccessKey` under
-`TACHYON_JAVA_OPTS`. You may also need to setup `JAVA_HOME` in the same file.
