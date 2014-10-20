@@ -1,13 +1,13 @@
 package tachyon.worker.netty.protocol;
 
 public final class PutBlockSuccess {
-  private final long blockId;
+  private final long mBlockId;
 
   public PutBlockSuccess(long blockId) {
-    this.blockId = blockId;
+    mBlockId = blockId;
   }
 
   public long getBlockId() {
-    return blockId;
+    return mBlockId;
   }
 }

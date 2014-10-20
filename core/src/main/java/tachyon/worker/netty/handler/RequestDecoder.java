@@ -4,18 +4,18 @@ import com.google.common.base.Optional;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.stream.ChunkedWriteHandler;
-
 import io.netty.util.ReferenceCountUtil;
+
 import tachyon.worker.BlocksLocker;
-import tachyon.worker.netty.NettyWritableEncoder;
-import tachyon.worker.netty.protocol.*;
+import tachyon.worker.netty.protocol.BadHeaderError;
 import tachyon.worker.netty.protocol.Error;
+import tachyon.worker.netty.protocol.GetBlock;
+import tachyon.worker.netty.protocol.RequestHeader;
+import tachyon.worker.netty.protocol.RequestType;
 import tachyon.worker.netty.protocol.UnknownError;
 
 public final class RequestDecoder extends ChannelInboundHandlerAdapter {

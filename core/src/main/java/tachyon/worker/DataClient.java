@@ -106,32 +106,32 @@ public final class DataClient {
   }
 
   public static final class GetBlock {
-    private final long blockId;
-    private final long offset;
-    private final long length;
-    private final byte[] data;
+    private final long mBlockId;
+    private final long mOffset;
+    private final long mLength;
+    private final byte[] mData;
 
     public GetBlock(long blockId, long offset, long length, byte[] data) {
-      this.blockId = blockId;
-      this.offset = offset;
-      this.length = length;
-      this.data = data;
+      mBlockId = blockId;
+      mOffset = offset;
+      mLength = length;
+      mData = data;
     }
 
     public long getBlockId() {
-      return blockId;
+      return mBlockId;
     }
 
     public long getOffset() {
-      return offset;
+      return mOffset;
     }
 
     public long getLength() {
-      return length;
+      return mLength;
     }
 
     public byte[] getData() {
-      return data;
+      return mData;
     }
   }
 }

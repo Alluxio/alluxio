@@ -11,35 +11,36 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 public final class GetBlock {
   public static final long REQUEST_SIZE = 3 * Longs.BYTES;
 
-  private final long blockId;
-  private final long offset;
-  private final long length;
+  private final long mBlockId;
+  private final long mOffset;
+  private final long mLength;
 
   public GetBlock(long blockId, long offset, long length) {
-    this.blockId = blockId;
-    this.offset = offset;
-    this.length = length;
+    mBlockId = blockId;
+    mOffset = offset;
+    mLength = length;
   }
 
   public long getBlockId() {
-    return blockId;
+    return mBlockId;
   }
 
   public long getOffset() {
-    return offset;
+    return mOffset;
   }
 
   public boolean hasLength() {
-    return length > 0;
+    return mLength > 0;
   }
 
   public long getLength() {
-    return length;
+    return mLength;
   }
 
   public static final class GetBlockDecoder extends ByteToMessageDecoder {
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out)
+        throws Exception {
       if (in.readableBytes() >= REQUEST_SIZE) {
         // offset defaults to zero
         GetBlock get = new GetBlock(in.readLong(), or(in.readLong(), 0), in.readLong());

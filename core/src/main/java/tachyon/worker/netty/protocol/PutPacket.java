@@ -1,19 +1,19 @@
 package tachyon.worker.netty.protocol;
 
 public final class PutPacket {
-  private final PacketHeader header;
-  private final byte[] data;
+  private final PacketHeader mHeader;
+  private final byte[] mData;
 
   public PutPacket(PacketHeader header, byte[] data) {
-    this.header = header;
-    this.data = data;
+    mHeader = header;
+    mData = data;
   }
 
   public PacketHeader getHeader() {
-    return header;
+    return mHeader;
   }
 
   public byte[] getData() {
-    return data;
+    return mData;
   }
 }

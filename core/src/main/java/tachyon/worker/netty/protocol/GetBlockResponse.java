@@ -19,32 +19,32 @@ import tachyon.worker.netty.NettyWritable;
 public final class GetBlockResponse implements NettyWritable {
   private static final int MESSAGE_LENGTH = 3 * Longs.BYTES;
 
-  private final long blockId;
-  private final long offset;
-  private final long length;
-  private final FileChannel data;
+  private final long mBlockId;
+  private final long mOffset;
+  private final long mLength;
+  private final FileChannel mData;
 
   public GetBlockResponse(long blockId, long offset, long length, FileChannel data) {
-    this.blockId = blockId;
-    this.offset = offset;
-    this.length = length;
-    this.data = data;
+    mBlockId = blockId;
+    mOffset = offset;
+    mLength = length;
+    mData = data;
   }
 
   public long getBlockId() {
-    return blockId;
+    return mBlockId;
   }
 
   public long getLength() {
-    return length;
+    return mLength;
   }
 
   public FileChannel getData() {
-    return data;
+    return mData;
   }
 
   public long getOffset() {
-    return offset;
+    return mOffset;
   }
 
   @Override

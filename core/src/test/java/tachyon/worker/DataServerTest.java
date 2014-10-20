@@ -38,7 +38,6 @@ import tachyon.thrift.ClientFileInfo;
 import tachyon.thrift.FileAlreadyExistException;
 import tachyon.thrift.InvalidPathException;
 import tachyon.util.CommonUtils;
-import tachyon.worker.nio.DataServerMessage;
 import tachyon.thrift.NetAddress;
 
 /**
@@ -144,12 +143,12 @@ public class DataServerTest {
     final int length = WORKER_CAPACITY_BYTES / 2 + 1;
     int fileId1 = TestUtils.createByteFile(mTFS, "/readFile1", WriteType.MUST_CACHE, length);
     ClientBlockInfo block1 = mTFS.getFileBlocks(fileId1).get(0);
-    DataServerMessage recvMsg1 = request(block1);
+    DataClient.GetBlock recvMsg1 = request(block1);
     assertValid(recvMsg1, length, block1.getBlockId(), 0, length);
 
     int fileId2 = TestUtils.createByteFile(mTFS, "/readFile2", WriteType.MUST_CACHE, length);
     ClientBlockInfo block2 = mTFS.getFileBlocks(fileId2).get(0);
-    DataServerMessage recvMsg2 = request(block2);
+    DataClient.GetBlock recvMsg2 = request(block2);
     assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
 
     CommonUtils.sleepMs(null, WorkerConf.get().TO_MASTER_HEARTBEAT_INTERVAL_MS);

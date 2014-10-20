@@ -1,15 +1,15 @@
 package tachyon.worker.netty.protocol;
 
 public final class PacketHeader {
-  private final long blockOffset;
-  private final long sequenceNumber;
-  private final long length;
-  private final boolean last;
+  private final long mBlockOffset;
+  private final long mSequenceNumber;
+  private final long mLength;
+  private final boolean mLast;
 
   private PacketHeader(long blockOffset, long sequenceNumber, long length, boolean last) {
-    this.blockOffset = blockOffset;
-    this.sequenceNumber = sequenceNumber;
-    this.length = length;
-    this.last = last;
+    mBlockOffset = blockOffset;
+    mSequenceNumber = sequenceNumber;
+    mLength = length;
+    mLast = last;
   }
 }

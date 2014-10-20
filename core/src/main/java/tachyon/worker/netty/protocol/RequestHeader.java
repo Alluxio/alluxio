@@ -7,19 +7,19 @@ public final class RequestHeader {
   public static final long CURRENT_VERSION = 2;
   public static final long HEADER_SIZE = Longs.BYTES + Ints.BYTES;
 
-  private final long version;
-  private final RequestType type;
+  private final long mVersion;
+  private final RequestType mType;
 
   private RequestHeader(long version, RequestType type) {
-    this.version = version;
-    this.type = type;
+    mVersion = version;
+    mType = type;
   }
 
   public long getVersion() {
-    return version;
+    return mVersion;
   }
 
   public RequestType getType() {
-    return type;
+    return mType;
   }
 }
