@@ -9,6 +9,8 @@ Memory: 1024 #MB
 Total: 2
 # Addresses are the internal IPs given to each VM. 
 # The last one is designated as Tachyon master
+# For VirtualBox: the addresses can be arbitrary
+# For AWS: the addresses should be within the same availability zone
 Addresses:
     - "192.168.1.11"
     - "192.168.1.12"
